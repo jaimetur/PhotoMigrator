@@ -4,9 +4,9 @@ Script to fix metadata of all your Google Photos extracted with Google Takeout
 ### Download Script:
 Download the script from built_versions dolder (above) either Linux/Mac version or Windows version as you prefeer or directly from following links:
 
-Linux/Mac version: [OrganizeTakeoutPhotos_v1.2.0_linux_mac.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.2.0_linux_mac.zip)
+Linux version: [OrganizeTakeoutPhotos_v1.2.0_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.2.0_linux.zip)
 
-Windows version: [OrganizeTakeoutPhotos_v1.2.0_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.2.0_win64.zip)
+Win64 version: [OrganizeTakeoutPhotos_v1.2.0_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.2.0_win64.zip)
 
 
 ### Instructions:
