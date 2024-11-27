@@ -1,8 +1,8 @@
 # OrganizeTakeoutPhotos
-Script to fix metadata of all your Google Photos extracted with Google Takeout
+Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates, fix metadata, organize per year/month folder, and separate Albums)
 
 ### Download Script:
-Download the script from built_versions dolder (above) either Linux/Mac version or Windows version as you prefeer or directly from following links:
+Download the script either Linux or Windows version as you prefeer directly from following links:
 
 Linux version: [OrganizeTakeoutPhotos_v1.2.0_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.2.0_linux.zip)
 
@@ -15,7 +15,7 @@ I have prepared the attached scripts pack that you can copy and unzip into any f
 Once download the Takeout Zip's files you have to paste them on the folder called '**Zip_files**' which is the default folder or if you prefeer you can put them in any other subfolder and use the option _--zip-folder <folder_name>_ to indicate it. (Note: paste all Zip files downloaded from Google Takeout directly on that folder, without subfolders inside it).
 
 Then you just need to call it depending of your environment
-  - If you run it from Synology NAS (using SSH terminal) you have to call the master script '**OrganizeTakeoutPhotos.run**' (ensure that it has execution permissons) and that's it.
+  - If you run it from Synology NAS (using SSH terminal) you have to call the master script '**OrganizeTakeoutPhotos.run**'.
   - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**OrganizeTakeoutPhotos.exe**'
 
 ### Syntax:
@@ -44,7 +44,7 @@ options:
 ### Process Explained:
 The whole process will do the next actions if all flags are false (by default):
 
-1. Unzip all the Takeout Zips from default zip folder "Zip_files" (you can modify the Zip_folder with the option _--zip-folder <folder_name>_) into a subfolder named Takeout (by default) or any other folder if you specify it with the option _--takeout-folder <folder_name>_. This step can be skipped using flag _--skip-unzip_ in case that you already have unzip all the files manually.
+1. Unzip all the Takeout Zips from default zip folder "Zip_files" (you can modify the Zip_folder with the option _--zip-folder <folder_name>_) into a subfolder named Takeout (by default) or any other folder if you specify it with the option _--takeout-folder <folder_name>_. This step can be skipped if you ommit this argument (useful in case that you already have unzip all the files manually).
 
 2. Use GPTH Tool to process all .json files and fix date of all photos/videos found on Takeout folder and organize them into the output folder using  a year/month folder structure. There are two flags to avoid creating year/month folder structure on this step:
     - _--flatten-albums_ to skip create year/month folder structuture on each album folder individually
