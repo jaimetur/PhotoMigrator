@@ -2,7 +2,8 @@
 Script to fix metadata of all your Google Photos extracted with Google Takeout
 
 ### Download Script:
-[OrganizeTakeoutPhotos_v1.1.3.zip](https://github.com/user-attachments/files/17878023/OrganizeTakeoutPhotos_v1.1.3.zip)
+Linux/Mac: https://github.com/jaimetur/OrganizeTakeoutPhotos/blob/main/built_versions/OrganizeTakeoutPhotos_v1.2.0_linux_mac.zip
+Windows: https://github.com/jaimetur/OrganizeTakeoutPhotos/blob/main/built_versions/OrganizeTakeoutPhotos_v1.2.0_win64.zip
 
 ### Instructions:
 I have prepared the attached scripts pack that you can copy and unzip into any folder of our Synology NAS.
@@ -14,11 +15,11 @@ Then you just need to call from SSH terminal the master script '**OrganizeTakeou
 ### Syntax:
 ```
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-OrganizeTakeoutPhotos v1.1.3 - 2024-11-22
+OrganizeTakeoutPhotos v1.2.0 - 2024-11-27
 Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates, fix metadata, organize per year/month folder, and separate Albums)
 (c) by Jaime Tur (@jaimetur)
 
-Usage: OrganizeTakeoutPhotos.runme [Options]
+Usage: OrganizeTakeoutPhotos.run [Options]
 Options:
   -z,  --zip-folder          Specify the Zip folder where the Zip files downloaded with Google Takeout are placed (default: Zip_files)
   -t,  --takeout-folder      Specify the Takeout folder where all the Zip files downloaded with Google Takeout will be unpacked (default: Takeout)
