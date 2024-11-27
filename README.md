@@ -12,7 +12,7 @@ Win64 version: [OrganizeTakeoutPhotos_v1.2.0_win64.zip](https://github.com/jaime
 ### Instructions:
 I have prepared the attached scripts pack that you can copy and unzip into any folder of our Synology NAS.
 
-Once download the Takeout Zip's files you have to paste them on the folder called '**Zip_files**' which is the default folder or if you prefeer you can put them in any other subfolder and use the option _--zip-folder <folder_name>_ to indicate it. (Note: paste all Zip files downloaded from Google Takeout directly on that folder, without subfolders inside it).
+Once download the Takeout Zip's files you have to paste them on the folder called '**Zip_files**' which is the default folder or if you prefeer you can put them in any other subfolder and use the option _-z, --zip-folder <folder_name>_ to indicate it. (Note: paste all Zip files downloaded from Google Takeout directly on that folder, without subfolders inside it).
 
 Then you just need to call it depending of your environment
   - If you run it from Synology NAS (using SSH terminal) you have to call the master script '**OrganizeTakeoutPhotos.run**'.
@@ -44,24 +44,24 @@ options:
 ### Process Explained:
 The whole process will do the next actions if all flags are false (by default):
 
-1. Unzip all the Takeout Zips from default zip folder "Zip_files" (you can modify the Zip_folder with the option _--zip-folder <folder_name>_) into a subfolder named Takeout (by default) or any other folder if you specify it with the option _--takeout-folder <folder_name>_. This step can be skipped if you ommit this argument (useful in case that you already have unzip all the files manually).
+1. Unzip all the Takeout Zips from default zip folder "Zip_files" (you can modify the Zip_folder with the option _-z, --zip-folder <folder_name>_) into a subfolder named Takeout (by default) or any other folder if you specify it with the option _-t, --takeout-folder <folder_name>_. This step can be skipped if you ommit _-z, --zip-folder <folder_name>_ argument (useful in case that you already have unzip all the files manually).
 
-2. Use GPTH Tool to process all .json files and fix date of all photos/videos found on Takeout folder and organize them into the output folder using  a year/month folder structure. There are two flags to avoid creating year/month folder structure on this step:
-    - _--flatten-albums_ to skip create year/month folder structuture on each album folder individually
-    - _--flatten-no-albums_ to skip create year/month folder structuture on ALL_PHOTOS folder (Photos without albums)
+2. Use GPTH Tool to process all .json files and fix date of all photos/videos found on Takeout folder and organize them into the output folder using a year/month folder structure (This step can be skipped using flag _-sg, --skip-gpth-tool_). There are two flags to avoid creating year/month folder structure on this step:
+    - _-fa, --flatten-albums_ to skip create year/month folder structuture on each album folder individually
+    - _-fn, --flatten-no-albums_ to skip create year/month folder structuture on ALL_PHOTOS folder (Photos without albums)
 
-3. Then all the Albums will be moved into Albums subfolder and the Photos that does not belong to any album will be moved to ALL_PHOTOS folder. This step can be skipped using flag _--skip-move-albums_
+3. Then all the Albums will be moved into Albums subfolder and the Photos that does not belong to any album will be moved to ALL_PHOTOS folder. This step can be skipped using flag _-sm, --skip-move-albums_
 
-4.  Finally the script will use EXIF Tool as well just in case that any photo cannot be resolved by GPTH Tool. This step can be skipped using flag _--skip-exif-tool_
+4.  Finally the script will use EXIF Tool as well just in case that any photo cannot be resolved by GPTH Tool. This step can be skipped using flag _-se, --skip-exif-tool_
 
-The result will be a folder (called Takeout_fixed_{timestamp} by default, but you can specify any other with the option _--takeout-folder <folder_name>_ or change the default suffix _'fixed'_ by any other using the option _--suffix <desired_suffix>_) which will contains:
+The result will be a folder (called Takeout_fixed_{timestamp} by default, but you can specify any other with the option _-t, --takeout-folder <folder_name>_ or change the default suffix _'fixed'_ by any other using the option _-s, --suffix <desired_suffix>_) which will contains:
 
 - ALL_PHOTOS subfolder with all the photos with year/month structure (by default).
 - Albums subfolder with all the Albums without year/month structure (by default).
 
 Finally you just need to move the output folder (Takeout_fixed_{timestamp} by default) into your /home/Photos folder and let Synology to index all files (it will take long time). After that you will be able to explore your photos chronologycally on the Synology Photos App, and all your Albums will be there when you explore the library by folder instead of chronologycally.
 
-I hope this can be useful for any of you. It was very useful for me when I used it to retrieve more than **300 GB** of Photos and Albums from Google Photos to move it into Synology Photos. The whole process took around **2.5 hours** (extraction process around 1.5h while fixing and sorting process around 1h) to complete runing it directly on a Synology NAS DS920+ using SSH terminal.
+I hope this can be useful for any of you. It was very useful for me when I used it to retrieve more than **300 GB** of Photos and Albums from Google Photos to move it into Synology Photos. The whole process took around **5 hours** (extraction process around 1.5h while fixing and sorting process around 3.5) to complete runing it directly on a Synology NAS DS920+ using SSH terminal.
 
 ### Additional Trick! 
 
