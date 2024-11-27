@@ -12,33 +12,34 @@ Win64 version: [OrganizeTakeoutPhotos_v1.2.0_win64.zip](https://github.com/jaime
 ### Instructions:
 I have prepared the attached scripts pack that you can copy and unzip into any folder of our Synology NAS.
 
-Once unzipped you have to paste the Takeout Zip files on the folder called '**Zip_files**' which is the default folder or if you prefeer you can put them in any other subfolder and use the option _--zip-folder <folder_name>_ to indicate it. (Note: paste all Zip files downloaded from Google Takeout directly on that folder, without subfolders inside it).
+Once download the Takeout Zip's files you have to paste them on the folder called '**Zip_files**' which is the default folder or if you prefeer you can put them in any other subfolder and use the option _--zip-folder <folder_name>_ to indicate it. (Note: paste all Zip files downloaded from Google Takeout directly on that folder, without subfolders inside it).
 
-Then you just need to call from SSH terminal the master script '**OrganizeTakeoutPhotos.runme**' (ensure that it has execution permissons) and that's it.
+Then you just need to call it depending of your environment
+  - If you run it from Synology NAS (using SSH terminal) you have to call the master script '**OrganizeTakeoutPhotos.run**' (ensure that it has execution permissons) and that's it.
+  - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**OrganizeTakeoutPhotos.exe**'
 
 ### Syntax:
 ```
------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+usage: OrganizeTakeoutPhotos.run/.exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>] [-sl] [-sg] [-se] [-sm] [-fa] [-fn]
+
 OrganizeTakeoutPhotos v1.2.0 - 2024-11-27
-Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates, fix metadata, organize per year/month folder, and separate Albums)
+
+Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates, fix metadata, organize per year/month folder, and separate Albums).
 (c) by Jaime Tur (@jaimetur)
 
-Usage: OrganizeTakeoutPhotos.run [Options]
-Options:
-  -z,  --zip-folder          Specify the Zip folder where the Zip files downloaded with Google Takeout are placed (default: Zip_files)
-  -t,  --takeout-folder      Specify the Takeout folder where all the Zip files downloaded with Google Takeout will be unpacked (default: Takeout)
-  -s,  --suffix              Specify the suffix for the output folder. Output folder will be Takeout folder followed by _{suffix}_{timestamp} (default: fixed)
-
-  -sl, --skip-log            Flag to skip saving output messages into log file
-  -su, --skip-unzip          Flag to skip unzip files (useful if you have already unzipped all the Takeout Zip files manually)
-  -sg, --skip-gpth-tool      Flag to skip process files with GPTH Tool (not recommended since this tool do the main job)
-  -se, --skip-exif-tool      Flag to skip process files with EXIF Tool
-  -sm, --skip-move-albums    Flag to skip move all albums into Albums folder (not recommended)
-  -fa, --flatten-albums      Flag to skip create year/month folder structuture on each album folder individually (recommended)
-  -fn, --flatten-no-albums   Flag to skip create year/month folder structuture on ALL_PHOTOS folder (Photos without albums) (not recommended)
-
-  -h , --help                Show this help message and exit
------------------------------------------------------------------------------------------------------------------------------------------------------------------
+options:
+  -h,  --help                             show this help message and exit
+  -z,  --zip-folder <ZIP_FOLDER>          Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files will be skipped.
+  -t,  --takeout-folder <TAKEOUT_FOLDER>  Specify the Takeout folder to process. If -z, --zip-folder is present, this will be the folder to unzip input files. Default: 'Takeout'
+  -s,  --suffix <SUFIX>                   Specify the suffix for the output folder. Default: 'fixed'
+  -sl, --skip-log                         Skip saving output messages to log file.
+  -sg, --skip-gpth-tool                   Skip processing files with GPTH Tool.
+  -se, --skip-exif-tool                   Skip processing files with EXIF Tool.
+  -sm, --skip-move-albums                 Skip moving albums to Albums folder.
+  -fa, --flatten-albums                   Flatten photos/videos within each album folder.
+  -fn, --flatten-no-albums                Flatten photos/videos within ALL_PHOTOS folder.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 ### Process Explained:
 The whole process will do the next actions if all flags are false (by default):
