@@ -2,8 +2,7 @@
 Script to fix metadata of all your Google Photos extracted with Google Takeout
 
 ### Download Script:
-Linux/Mac: https://github.com/jaimetur/OrganizeTakeoutPhotos/blob/main/built_versions/OrganizeTakeoutPhotos_v1.2.0_linux_mac.zip
-Windows: https://github.com/jaimetur/OrganizeTakeoutPhotos/blob/main/built_versions/OrganizeTakeoutPhotos_v1.2.0_win64.zip
+Download the script from above files either Linux/Mac version or Windows version as you prefeer.
 
 ### Instructions:
 I have prepared the attached scripts pack that you can copy and unzip into any folder of our Synology NAS.
