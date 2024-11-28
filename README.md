@@ -61,7 +61,16 @@ The result will be a folder (called Takeout_fixed_{timestamp} by default, but yo
 
 Finally you just need to move the output folder (Takeout_fixed_{timestamp} by default) into your /home/Photos folder and let Synology to index all files (it will take long time). After that you will be able to explore your photos chronologycally on the Synology Photos App, and all your Albums will be there when you explore the library by folder instead of chronologycally.
 
-I hope this can be useful for any of you. It was very useful for me when I used it to retrieve more than **300 GB** of Photos and Albums from Google Photos to move it into Synology Photos. The whole process took around **5 hours** (extraction process around 1.5h while fixing and sorting process around 3.5) to complete runing it directly on a Synology NAS DS920+ using SSH terminal.
+It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (408559 files zipped, 168168 photos/video files, 740 albums) and moved it into Synology Photos. 
+The whole process took around **5 hours** and this is the time split per step:
+1. Extraction process --> 25m
+2. GPTH Tool fixing --> 2h 12m
+3. Flattening & Moving Album Folder --> 10s
+4. EXIF Tool fixing --> 2h 24m
+   
+(The last step can be skipped if most of your files have been already fixed with GPTH Tool, if not, you can always run again the script to run only this step by omitting the other steps with '--skipt-gpth-tool --skip-move-albums' arguments)
+
+I hope this can be useful for any of you.
 
 ### Additional Trick! 
 
