@@ -4,9 +4,9 @@ Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove d
 ### Download Script:
 Download the script either Linux or Windows version as you prefeer directly from following links:
 
-Linux version: [OrganizeTakeoutPhotos_v1.2.0_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.2.0_linux.zip)
+Linux version: [OrganizeTakeoutPhotos_v1.2.1_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.2.1_linux.zip)
 
-Win64 version: [OrganizeTakeoutPhotos_v1.2.0_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.2.0_win64.zip)
+Win64 version: [OrganizeTakeoutPhotos_v1.2.1_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.2.1_win64.zip)
 
 
 ### Instructions:
@@ -15,7 +15,8 @@ I have prepared the attached scripts pack that you can copy and unzip into any f
 Once download the Takeout Zip's files you have to paste them on the folder called '**Zip_files**' which is the default folder or if you prefeer you can put them in any other subfolder and use the option _'-z, --zip-folder <folder_name>'_ to indicate it. (Note: paste all Zip files downloaded from Google Takeout directly on that folder, without subfolders inside it).
 
 Then you just need to call it depending of your environment
-  - If you run it from Synology NAS (using SSH terminal) you have to call the master script '**OrganizeTakeoutPhotos.run**'. (if you receive any error just run the following command before to run the script: export TMPDIR=/var/tmp/)
+  - If you run it from Synology NAS (using SSH terminal) you have to call the master script '**OrganizeTakeoutPhotos.run**'.
+    (if you receive any error just run the following command before to run the script: export TMPDIR=/var/tmp/)
   - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**OrganizeTakeoutPhotos.exe**'
 
 ### Syntax:
