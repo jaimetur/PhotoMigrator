@@ -22,9 +22,9 @@ Then you just need to call it depending of your environment
 ### Syntax:
 ```
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-usage: OrganizeTakeoutPhotos.run/.exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>] [-sl] [-sg] [-se] [-sm] [-fa] [-fn]
+usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>] [-sl] [-sg] [-se] [-sm] [-fa] [-fn] [-it]
 
-OrganizeTakeoutPhotos v1.2.0 - 2024-11-27
+OrganizeTakeoutPhotos v1.2.1 - 2024-11-29
 
 Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates, fix metadata, organize per year/month folder, and separate Albums).
 (c) by Jaime Tur (@jaimetur)
@@ -40,6 +40,7 @@ options:
   -sm, --skip-move-albums                 Skip moving albums to Albums folder.
   -fa, --flatten-albums                   Flatten photos/videos within each album folder.
   -fn, --flatten-no-albums                Flatten photos/videos within ALL_PHOTOS folder.
+  -it, --ignore-takeout-structure         Ignore Google Takeout structure, and will fix all files found on <TAKEOUT_FOLDER>.
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 ### Process Explained:
