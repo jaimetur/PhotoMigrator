@@ -16,12 +16,11 @@ Once download the Takeout Zip's files you have to paste them on the folder calle
 
 Then you just need to call it depending of your environment
   - If you run it from Synology NAS (using SSH terminal) you have to call the master script '**OrganizeTakeoutPhotos.run**'.
-    (if you receive any error just run the following command before to run the script: export TMPDIR=/var/tmp/)
   - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**OrganizeTakeoutPhotos.exe**'
 
 ### Syntax:
 ```
----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
 usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
                                      [-sl] [-sg] [-se] [-sm] [-fa] [-fn] [-it]
 
@@ -35,39 +34,29 @@ options:
 
 -h,  --help
        show this help message and exit
-
 -z,  --zip-folder <ZIP_FOLDER>
        Specify the Zip folder where the Zip files are placed. If this option is omitted,
        unzip of input files will be skipped.
-
 -t,  --takeout-folder <TAKEOUT_FOLDER>
        Specify the Takeout folder to process. If -z, --zip-folder is present, this will be
        the folder to unzip input files. Default: 'Takeout'
-
 -s,  --suffix <SUFIX>
        Specify the suffix for the output folder. Default: 'fixed'
-
 -sl, --skip-log
        Skip saving output messages to log file.
-
 -sg, --skip-gpth-tool
        Skip processing files with GPTH Tool.
-
 -se, --skip-exif-tool
        Skip processing files with EXIF Tool.
-
 -sm, --skip-move-albums
        Skip moving albums to Albums folder.
-
 -fa, --flatten-albums
        Flatten photos/videos within each album folder.
-
 -fn, --flatten-no-albums
        Flatten photos/videos within ALL_PHOTOS folder.
-
 -it, --ignore-takeout-structure
        Ignore Google Takeout structure, and will fix all files found on <TAKEOUT_FOLDER>.
----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
 ```
 ### Process Explained:
 The whole process will do the next actions if all flags are false (by default):
