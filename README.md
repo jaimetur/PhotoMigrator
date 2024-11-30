@@ -55,7 +55,7 @@ options:
 -fn, --flatten-no-albums
        Flatten photos/videos within ALL_PHOTOS folder.
 -it, --ignore-takeout-structure
-       Ignore Google Takeout structure, and will fix all files found on <TAKEOUT_FOLDER>.
+       Ignore Google Takeout structure, and fix all files found on <TAKEOUT_FOLDER>.
 ----------------------------------------------------------------------------------------------------------------------------
 ```
 ### Process Explained:
