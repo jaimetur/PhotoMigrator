@@ -21,7 +21,7 @@ Then you just need to call it depending of your environment
 
 ### Syntax:
 ```
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
                                      [-sl] [-sg] [-se] [-sm] [-fa] [-fn] [-it]
 
@@ -67,7 +67,7 @@ options:
 
 -it, --ignore-takeout-structure
        Ignore Google Takeout structure, and will fix all files found on <TAKEOUT_FOLDER>.
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 ```
 ### Process Explained:
 The whole process will do the next actions if all flags are false (by default):
