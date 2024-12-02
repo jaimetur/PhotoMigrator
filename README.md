@@ -24,7 +24,7 @@ Then you just need to call it depending of your environment
 usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
                                      [-sg] [-sm] [-fa] [-fn] [-it] [-nl] [-re] [-mt]
 
-OrganizeTakeoutPhotos v1.2.2 - 2024-11-30
+OrganizeTakeoutPhotos v1.2.2 - 2024-12-02
 
 Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates,
 fix metadata, organize per year/month folder, and separate Albums).
