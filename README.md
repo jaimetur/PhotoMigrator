@@ -76,9 +76,13 @@ The whole process will do the next actions if all flags are false (by default):
     - _'-fa, --flatten-albums'_ to skip create year/month folder structuture on each album folder individually
     - _'-fn, --flatten-no-albums'_ to skip create year/month folder structuture on ALL_PHOTOS folder (Photos without albums)
 
-3. Then all the Albums will be moved into Albums subfolder and the Photos that does not belong to any album will be moved to ALL_PHOTOS folder. This step can be skipped using flag _'-sm, --skip-move-albums'_
+3. After that, the Flattening process is started to fatten Albums folder, ALL_PHOTOS folder or all. This step only is executed if at least any of the two above flags for flattening are present.
 
-4.  Finally the script will use EXIF Tool as well just in case that any photo cannot be resolved by GPTH Tool. This step can be skipped using flag _'-se, --skip-exif-tool'_
+4. Then all the Albums will be moved into Albums subfolder and the Photos that does not belong to any album will be moved to ALL_PHOTOS folder. This step can be skipped using flag _'-sm, --skip-move-albums'_
+
+5. In next step, the script will use EXIF Tool as well just in case that any photo cannot be resolved by GPTH Tool. This step is disabled by default, but you can force it using flag _'-re, --run-exif-tool'_ (this step is optional)
+
+6. Finally the script will try to fix timestamp of .MP4 files generate by Google Photos that contains Live pictures by using the same timestamp than the original live picture file if is found in the same folder.
 
 The result will be a folder (called Takeout_fixed_{timestamp} by default, but you can specify any other with the option _'-t, --takeout-folder <folder_name>'_ or change the default suffix _'fixed'_ by any other using the option _'-s, --suffix <desired_suffix>'_) which will contains:
 
@@ -91,10 +95,12 @@ It was very useful for me when I run it to process more than **300 GB** of Photo
 The whole process took around **5 hours** and this is the time split per step:
 1. Extraction process --> 25m
 2. GPTH Tool fixing --> 2h 12m
-3. Flattening & Moving Album Folder --> 10s
-4. EXIF Tool fixing --> 2h 24m
+3. Flattening Album folder --> 05s
+4. Moving Album Folder --> 05s
+5. EXIF Tool fixing --> 2h 24m
+6. Sync .MP4 timestamp --> 10s
    
-(The last step can be skipped if most of your files have been already fixed with GPTH Tool, if not, you can always run again the script to run only this step by omitting the other steps with '--skipt-gpth-tool --skip-move-albums' arguments)
+(Step 5 is disabled by default, and is only recommended when GPTH Tool cannot fix many files. You can always run again the script to run only this step (using flag '-re, --run-exif-tool) and omitting the other steps with the flags '--skipt-gpth-tool --skip-move-albums' arguments)
 
 I hope this can be useful for any of you.
 
