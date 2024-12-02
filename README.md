@@ -4,9 +4,9 @@ Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove d
 ### Download Script:
 Download the script either Linux or Windows version as you prefeer directly from following links:
 
-Linux version: [OrganizeTakeoutPhotos_v1.2.1_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.2.1_linux.zip)
+Linux version: [OrganizeTakeoutPhotos_v1.2.2_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.2.1_linux.zip)
 
-Win64 version: [OrganizeTakeoutPhotos_v1.2.1_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.2.1_win64.zip)
+Win64 version: [OrganizeTakeoutPhotos_v1.2.2_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.2.1_win64.zip)
 
 
 ### Instructions:
@@ -22,9 +22,9 @@ Then you just need to call it depending of your environment
 ```
 ----------------------------------------------------------------------------------------------------------------------------
 usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
-                                     [-sl] [-sg] [-se] [-sm] [-fa] [-fn] [-it]
+                                     [-sg] [-sm] [-fa] [-fn] [-it] [-nl] [-re] [-mt]
 
-OrganizeTakeoutPhotos v1.2.1 - 2024-11-29
+OrganizeTakeoutPhotos v1.2.2 - 2024-11-30
 
 Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates,
 fix metadata, organize per year/month folder, and separate Albums).
@@ -42,12 +42,8 @@ options:
        the folder to unzip input files. Default: 'Takeout'
 -s,  --suffix <SUFIX>
        Specify the suffix for the output folder. Default: 'fixed'
--sl, --skip-log
-       Skip saving output messages to log file.
 -sg, --skip-gpth-tool
        Skip processing files with GPTH Tool.
--se, --skip-exif-tool
-       Skip processing files with EXIF Tool.
 -sm, --skip-move-albums
        Skip moving albums to Albums folder.
 -fa, --flatten-albums
@@ -55,7 +51,21 @@ options:
 -fn, --flatten-no-albums
        Flatten photos/videos within ALL_PHOTOS folder.
 -it, --ignore-takeout-structure
-       Ignore Google Takeout structure, and fix all files found on <TAKEOUT_FOLDER>.
+       Ignore Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc..),
+       and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from them.
+-nl, --no-log-file
+       Skip saving output messages to execution log file.
+-re, --run-exif-tool
+       Run EXIF Tool files processing in the last step. (Useful if GPTH Tool cannot fix
+       some files, but is a slow process). RECOMMENDATION: Use only if after runnning
+       normal process with GPTH Tool, you still have many files with no date.
+-mt, --move-takeout-folder
+       Move original photos/videos from <TAKEOUT_FOLDER> to <OUTPUT_FOLDER>.
+       CAUTION: Useful to avoid disk space duplication and improve execution speed, but
+       you will lost your original unzipped files!!!. Use only if you keep the original
+       zipped files or you have disk space limitations and you don't mind to lost your
+       original unzipped files.
+
 ----------------------------------------------------------------------------------------------------------------------------
 ```
 ### Process Explained:
