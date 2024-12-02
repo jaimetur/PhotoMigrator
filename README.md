@@ -4,9 +4,9 @@ Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove d
 ### Download Script:
 Download the script either Linux or Windows version as you prefeer directly from following links:
 
-Linux version: [OrganizeTakeoutPhotos_v1.2.2_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.2.1_linux.zip)
+Linux version: [OrganizeTakeoutPhotos_v1.2.2_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.2.2_linux.zip)
 
-Win64 version: [OrganizeTakeoutPhotos_v1.2.2_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.2.1_win64.zip)
+Win64 version: [OrganizeTakeoutPhotos_v1.2.2_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.2.2_win64.zip)
 
 
 ### Instructions:
@@ -65,7 +65,6 @@ options:
        you will lost your original unzipped files!!!. Use only if you keep the original
        zipped files or you have disk space limitations and you don't mind to lost your
        original unzipped files.
-
 ----------------------------------------------------------------------------------------------------------------------------
 ```
 ### Process Explained:
