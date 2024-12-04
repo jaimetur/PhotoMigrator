@@ -2,7 +2,7 @@
 Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates, fix metadata, organize per year/month folder, and separate Albums)
 
 ### Download Script:
-Download the script either Linux or Windows version as you prefeer directly from following links:
+Download the script either Linux, MacOS or Windows version as you prefeer directly from following links:
 
 Linux version: [OrganizeTakeoutPhotos_v1.3.0_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.3.0_linux.zip)
 
