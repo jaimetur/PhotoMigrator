@@ -6,6 +6,8 @@ Download the script either Linux or Windows version as you prefeer directly from
 
 Linux version: [OrganizeTakeoutPhotos_v1.3.0_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.3.0_linux.zip)
 
+MacOS version: [OrganizeTakeoutPhotos_v1.3.0_macos.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.3.0_macos.zip)
+
 Win64 version: [OrganizeTakeoutPhotos_v1.3.0_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.3.0_win64.zip)
 
 
