@@ -57,10 +57,6 @@ options:
        Skip moving albums to Albums folder.
 -se, --skip-extras
        Skip processing extra photos such as  -edited, -effects photos.
--fa, --flatten-albums
-       Flatten photos/videos within each album folder.
--fn, --flatten-no-albums
-       Flatten photos/videos within ALL_PHOTOS folder.
 -it, --ignore-takeout-structure
        Ignore Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc..),
        and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from them.
