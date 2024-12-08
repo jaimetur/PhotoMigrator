@@ -148,7 +148,7 @@ Additionally this script from version 1.4.0 onwards, can be used to find duplica
 
 Example of use:
 
-./OrganizeTakeoutPhotos --duplicates-action move --find-duplicates-in-folder ./Albums ./ALL_PHOTOS
+./OrganizeTakeoutPhotos --find-duplicates-in-folder ./Albums ./ALL_PHOTOS --duplicates-action move
 
 With this example, the script will find duplicated files within folders ./Albums and ./ALL_PHOTOS,
 If finds any duplicated, will keep the file within ./Albums folder (bacause it has been passed first on the list)
