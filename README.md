@@ -4,12 +4,11 @@ Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove d
 ### Download Script:
 Download the script either Linux, MacOS or Windows version as you prefeer directly from following links:
 
-Linux version: [OrganizeTakeoutPhotos_v1.3.1_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.3.1_linux.zip)
+Linux version: [OrganizeTakeoutPhotos_v1.4.0_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.4.0_linux.zip)
 
-MacOS version: [OrganizeTakeoutPhotos_v1.3.1_macos.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.3.1_macos.zip)
+MacOS version: [OrganizeTakeoutPhotos_v1.4.0_macos.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.4.0_macos.zip)
 
-Win64 version: [OrganizeTakeoutPhotos_v1.3.1_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.3.1_win64.zip)
-
+Win64 version: [OrganizeTakeoutPhotos_v1.4.0_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.4.0_win64.zip)
 
 ### Instructions:
 I have prepared the attached script that you can copy and unzip into any folder of our Synology NAS.
@@ -23,12 +22,14 @@ Then you just need to call it depending of your environment
 ### Syntax:
 ```
 ----------------------------------------------------------------------------------------------------------------------------
-usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
-                                     [-as ['flatten', 'year', 'year/month', 'year-month']]
-                                     [-ns ['flatten', 'year', 'year/month', 'year-month']]
-                                     [-sg] [-sm] [-se] [-fa] [-fn] [-it] [-nl] [-re] [-mt]
+usage: OrganizeTakeoutPhotos.py [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
+                                [-as ['flatten', 'year', 'year/month', 'year-month']]
+                                [-ns ['flatten', 'year', 'year/month', 'year-month']]
+                                [-sg] [-sm] [-se] [-it] [-nl] [-re] [-mt]
+                                [-fd <DUPLICATES_FOLDER(s)> [<DUPLICATES_FOLDER(s)> ...]]
+                                [-da ['list', 'move', 'remove']]
 
-OrganizeTakeoutPhotos v1.3.1 - 2024-12-08
+OrganizeTakeoutPhotos v1.4.0 - 2024-12-08
 
 Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates,
 fix metadata, organize per year/month folder, and separate Albums).
@@ -72,6 +73,12 @@ options:
        you will lost your original unzipped files!!!. Use only if you keep the original
        zipped files or you have disk space limitations and you don't mind to lost your
        original unzipped files.
+-fd, --find-duplicates-in-folders <DUPLICATES_FOLDER(s)>
+       Specify the Folder(s) where you want to find duplicates. If found any duplicates
+       within the list of folders given, the file in the first folder will be kept and the
+       others will me moved or deleted according to the flag '-da, --duplicates-action'
+-da, --duplicates-action ['list', 'move', 'remove']
+       Specify what to do with duplicates files found.
 
 ----------------------------------------------------------------------------------------------------------------------------
 ```
@@ -109,14 +116,19 @@ Finally you just need to move the output folder (Takeout_fixed_{timestamp} by de
 It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (408559 files zipped, 168168 photos/video files, 740 albums) and moved it into Synology Photos. 
 The whole process took around **5 hours** and this is the time split per step:
 1. Extraction process --> 25m
-2. Pre-processing Takeout_folder --> 10s
+2. Pre-processing Takeout_folder --> 3m 50s
 3. GPTH Tool fixing --> 2h 12m
 4. Sync .MP$ timestamps --> 10s
-5. Create Date Folder Structure --> 10s
-6. Moving Album Folder --> 10s
+5. Create Date Folder Structure --> 50s
+6. Moving Album Folder --> 1s
 7. EXIF Tool fixing --> 2h 24m
    
 (Step 7 is disabled by default, and is only recommended when GPTH Tool cannot fix many files. You can always run again the script to run only this step (using flag '-re, --run-exif-tool) and omitting the other steps with the flags '--skipt-gpth-tool --skip-move-albums' arguments)
+
+### Find Duplicates Mode:
+Additionally this script from version 1.4.0 onwards, can be used to find duplicated files in a smart way:
+- To find duplicated files first you need to provide the flag '-da, --duplicates-action' to specify what to do wwiith duplicates iles found. Valid actions are: 'list', 'move' or 'remove'. If the provided action is 'list', then the script will only create a list of duplicaed files found within the folder Duplicates. If the action is 'move' then the script will maintain the main file and move the others inside the folder Duplicates/Duplicated_timestamp. Finally, if the action is 'remove' the script will maintain the main file and remove the others.
+- In Find Duplicates Mode, yout must also provide a folder (or list of foldders) wherre the script will look for duplicated files. If you proviide more than one folder, when a duplicated file is found, the script will mainains the file found within the folder given first in the list of folders provided. If the duplicaded files are within the same folder given as an argument, the script will maitain the file whose name is shorter.
 
 I hope this can be useful for any of you.
 
