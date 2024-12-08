@@ -82,6 +82,19 @@ options:
 
 ----------------------------------------------------------------------------------------------------------------------------
 ```
+
+```
+
+Example of use:
+
+./OrganizeTakeoutPhotos --zip-folder ./Zips --takeout-folder ./Takeout --albums-structure year/month
+
+Withh this example, the script will unzip all zip files found under ./Zips folder into ./Takeout folder.
+Then will process ./Takeout folder to fix all files found and set the correct date and time.
+Finally the script will create a folder structure based on year/month for each Album found.
+
+```
+
 ### Process Explained:
 The whole process will do the next actions if all flags are false (by default):
 
@@ -132,7 +145,9 @@ Additionally this script from version 1.4.0 onwards, can be used to find duplica
 
 ```
 
-Example: ./OrganizeTakeoutPhotos --duplicates-action move --find-duplicates-in-folder ./Albums ./ALL_PHOTOS
+Example of use:
+
+./OrganizeTakeoutPhotos --duplicates-action move --find-duplicates-in-folder ./Albums ./ALL_PHOTOS
 
 With this example, the script will find duplicated files within folders ./Albums and ./ALL_PHOTOS,
 If finds any duplicated, will keep the file within ./Albums folder (bacause it has been passed first on the list)
