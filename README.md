@@ -92,6 +92,7 @@ Example of use:
 Withh this example, the script will unzip all zip files found under ./Zips folder into ./Takeout folder.
 Then will process ./Takeout folder to fix all files found and set the correct date and time.
 Finally the script will create a folder structure based on year/month for each Album found.
+The output files will be placed into ./Takeout_fixed_timestamp folder.
 
 ```
 
