@@ -131,8 +131,13 @@ Additionally this script from version 1.4.0 onwards, can be used to find duplica
 - For this mode, you must also provide an action to do with the duplicated files found. For that you can use the flag '-da, --duplicates-action' to specify what to do with duplicated files found. Valid actions are: 'list', 'move' or 'remove'. If the provided action is 'list', then the script will only create a list of duplicaed files found within the folder Duplicates. If the action is 'move' then the script will maintain the main file and move the others inside the folder Duplicates/Duplicated_timestamp. Finally, if the action is 'remove' the script will maintain the main file and remove the others.
 
 ```
+
 Example: ./OrganizeTakeoutPhotos --duplicates-action move --find-duplicates-in-folder ./Albums ./ALL_PHOTOS
-With this example, the script will find duplicated files within folders ./Albums and ./ALL_PHOTOS, if finds any duplicated, will keep the file within ./Albums folder (bacause it has been passed first on the list) and will move the otherss duplicated files into the ./Duplicated folder on the root folder of the script. 
+
+With this example, the script will find duplicated files within folders ./Albums and ./ALL_PHOTOS,
+If finds any duplicated, will keep the file within ./Albums folder (bacause it has been passed first on the list)
+and will move the otherss duplicated files into the ./Duplicated folder on the root folder of the script.
+
 ```
 
 I hope this can be useful for any of you.
