@@ -140,7 +140,7 @@ The whole process took around **5 hours** and this is the time split per step:
 (Step 7 is disabled by default, and is only recommended when GPTH Tool cannot fix many files. You can always run again the script to run only this step (using flag '-re, --run-exif-tool) and omitting the other steps with the flags '--skipt-gpth-tool --skip-move-albums' arguments)
 
 ### Find Duplicates Mode:
-Additionally this script from version 1.4.0 onwards, can be used to find duplicates files in a smart way:
+Additionally this script from version 1.4.0 onwards, can be used to find duplicates files in a smart way based on file size and content:
 - In Find Duplicates Mode, yout must provide a folder (or list of foldders) using the flag '-fd, --find-duplicates-in-folder', wherre the script will look for duplicates files. If you provide more than one folders, when a duplicated file is found, the script will mainains the file found within the folder given first in the list of folders provided. If the duplicaded files are within the same folder given as an argument, the script will maitain the file whose name is shorter.
 - For this mode, you must also provide an action to do with the duplicates files found. For that you can use the flag '-da, --duplicates-action' to specify what to do with duplicates files found. Valid actions are: 'list', 'move' or 'remove'. If the provided action is 'list', then the script will only create a list of duplicaed files found within the folder Duplicates. If the action is 'move' then the script will maintain the main file and move the others inside the folder Duplicates/Duplicates_timestamp. Finally, if the action is 'remove' the script will maintain the main file and remove the others.
 
