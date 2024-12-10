@@ -4,11 +4,11 @@ Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove d
 ### Download Script:
 Download the script either Linux, MacOS or Windows version as you prefeer directly from following links:
 
-Linux version: [OrganizeTakeoutPhotos_v1.4.1_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.4.1_linux.zip)
+Linux version: [OrganizeTakeoutPhotos_v1.5.0_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.5.0_linux.zip)
 
-MacOS version: [OrganizeTakeoutPhotos_v1.4.1_macos.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.4.1_macos.zip)
+MacOS version: [OrganizeTakeoutPhotos_v1.5.0_macos.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.5.0_macos.zip)
 
-Win64 version: [OrganizeTakeoutPhotos_v1.4.1_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.4.1_win64.zip)
+Win64 version: [OrganizeTakeoutPhotos_v1.5.0_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.5.0_win64.zip)
 
 ### Instructions:
 I have prepared the attached script that you can copy and unzip into any folder of our Synology NAS.
@@ -75,12 +75,13 @@ options:
 -rd, --remove-duplicates-before-fixing
        Remove Duplicates files in <TAKEOUT_FOLDER> before fixing them.
 -fd, --find-duplicates-in-folders <DUPLICATES_FOLDER(s)>
+       Execute the Script in Mode 'Find Duplicates' (All other steps will be skipped).
        Specify the Folder(s) where you want to find duplicates. If found any duplicates
        within the list of folders given, the file in the first folder will be kept and the
        others will me moved or deleted according to the flag '-da, --duplicates-action'
 -da, --duplicates-action ['list', 'move', 'remove']
+       Execute the Script in Mode 'Find Duplicates' (All other steps will be skipped).
        Specify what to do with duplicates files found.
-
 ----------------------------------------------------------------------------------------------------------------------------
 ```
 
