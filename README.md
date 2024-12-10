@@ -25,11 +25,11 @@ Then you just need to call it depending of your environment
 usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
                                      [-as ['flatten', 'year', 'year/month', 'year-month']]
                                      [-ns ['flatten', 'year', 'year/month', 'year-month']]
-                                     [-sg] [-sm] [-se] [-it] [-nl] [-re] [-mt]
+                                     [-sg] [-sm] [-se] [-it] [-nl] [-re] [-mt] [-rd]
                                      [-fd <DUPLICATES_FOLDER(s)> [<DUPLICATES_FOLDER(s)> ...]]
                                      [-da ['list', 'move', 'remove']]
 
-OrganizeTakeoutPhotos v1.4.1 - 2024-12-08
+OrganizeTakeoutPhotos v1.5.0 - 2024-12-10
 
 Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates,
 fix metadata, organize per year/month folder, and separate Albums).
@@ -72,12 +72,15 @@ options:
        you will lost your original unzipped files!!!. Use only if you keep the original
        zipped files or you have disk space limitations and you don't mind to lost your
        original unzipped files.
+-rd, --remove-duplicates-before-fixing
+       Remove Duplicates files in <TAKEOUT_FOLDER> before fixing them.
 -fd, --find-duplicates-in-folders <DUPLICATES_FOLDER(s)>
        Specify the Folder(s) where you want to find duplicates. If found any duplicates
        within the list of folders given, the file in the first folder will be kept and the
        others will me moved or deleted according to the flag '-da, --duplicates-action'
 -da, --duplicates-action ['list', 'move', 'remove']
        Specify what to do with duplicates files found.
+
 ----------------------------------------------------------------------------------------------------------------------------
 ```
 
