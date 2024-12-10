@@ -22,14 +22,14 @@ Then you just need to call it depending of your environment
 ### Syntax:
 ```
 ----------------------------------------------------------------------------------------------------------------------------
-usage: OrganizeTakeoutPhotos.py [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
-                                [-as ['flatten', 'year', 'year/month', 'year-month']]
-                                [-ns ['flatten', 'year', 'year/month', 'year-month']]
-                                [-sg] [-sm] [-se] [-it] [-nl] [-re] [-mt]
-                                [-fd <DUPLICATES_FOLDER(s)> [<DUPLICATES_FOLDER(s)> ...]]
-                                [-da ['list', 'move', 'remove']]
+usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
+                                     [-as ['flatten', 'year', 'year/month', 'year-month']]
+                                     [-ns ['flatten', 'year', 'year/month', 'year-month']]
+                                     [-sg] [-sm] [-se] [-it] [-nl] [-re] [-mt]
+                                     [-fd <DUPLICATES_FOLDER(s)> [<DUPLICATES_FOLDER(s)> ...]]
+                                     [-da ['list', 'move', 'remove']]
 
-OrganizeTakeoutPhotos v1.4.0 - 2024-12-08
+OrganizeTakeoutPhotos v1.4.1 - 2024-12-08
 
 Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates,
 fix metadata, organize per year/month folder, and separate Albums).
@@ -48,10 +48,9 @@ options:
 -s,  --suffix <SUFIX>
        Specify the suffix for the output folder. Default: 'fixed'
 -as, --albums-structure ['flatten', 'year', 'year/month', 'year-month']
-       Specify the type of folder structure for each Album folder.
+       Specify the type of folder structure for each Album folder (Default: 'flatten').
 -ns, --no-albums-structure ['flatten', 'year', 'year/month', 'year-month']
-       Specify the type of folder structure for ALL_PHOTOS folder (Photos that are no
-       contained in any Album).
+       Specify the type of folder structure for ALL_PHOTOS folder (Default: 'year/month').
 -sg, --skip-gpth-tool
        Skip processing files with GPTH Tool.
 -sm, --skip-move-albums
@@ -79,7 +78,6 @@ options:
        others will me moved or deleted according to the flag '-da, --duplicates-action'
 -da, --duplicates-action ['list', 'move', 'remove']
        Specify what to do with duplicates files found.
-
 ----------------------------------------------------------------------------------------------------------------------------
 ```
 
