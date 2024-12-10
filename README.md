@@ -4,11 +4,11 @@ Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove d
 ### Download Script:
 Download the script either Linux, MacOS or Windows version as you prefeer directly from following links:
 
-Linux version: [OrganizeTakeoutPhotos_v1.4.0_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.4.0_linux.zip)
+Linux version: [OrganizeTakeoutPhotos_v1.4.1_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.4.1_linux.zip)
 
-MacOS version: [OrganizeTakeoutPhotos_v1.4.0_macos.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.4.0_macos.zip)
+MacOS version: [OrganizeTakeoutPhotos_v1.4.1_macos.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.4.1_macos.zip)
 
-Win64 version: [OrganizeTakeoutPhotos_v1.4.0_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.4.0_win64.zip)
+Win64 version: [OrganizeTakeoutPhotos_v1.4.1_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.4.1_win64.zip)
 
 ### Instructions:
 I have prepared the attached script that you can copy and unzip into any folder of our Synology NAS.
