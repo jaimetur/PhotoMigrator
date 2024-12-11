@@ -22,20 +22,21 @@ Then you just need to call it depending of your environment
 ### Syntax:
 ```
 ----------------------------------------------------------------------------------------------------------------------------
-usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
+usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
                                      [-as ['flatten', 'year', 'year/month', 'year-month']]
                                      [-ns ['flatten', 'year', 'year/month', 'year-month']]
                                      [-sg] [-sm] [-se] [-sa] [-it] [-nl] [-re] [-mt] [-rd]
+                                     [-fs <FOLDER_TO_FIX>]
                                      [-fd <DUPLICATES_FOLDERs)> [<DUPLICATES_FOLDER(s> ...]]
                                      [-da ['list', 'move', 'remove']]
 
 OrganizeTakeoutPhotos v1.5.0 - 2024-12-11
 
-Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates, 
+Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates,
 fix metadata, organize per year/month folder, and separate Albums).
 (c) by Jaime Tur (@jaimetur)
 
-options:
+optional arguments:
 
 -h,  --help
        show this help message and exit
@@ -78,6 +79,10 @@ options:
        original unzipped files.
 -rd, --remove-duplicates-after-fixing
        Remove Duplicates files in <OUTPUT_FOLDER> after fixing them.
+-fs, --fix-symlinks-broken <FOLDER_TO_FIX>
+       Execute the Script in Mode 'Fix Symbolic Links Broken' and try to fix all symbolic
+       links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder from
+       the OUTPUT_FOLDER and some Albums seems to be empty.
 -fd, --find-duplicates-in-folders <DUPLICATES_FOLDER(s)>
        Execute the Script in Mode 'Find Duplicates' (All other steps will be skipped).
        Specify the Folder(s) where you want to find duplicates. If found any duplicates
