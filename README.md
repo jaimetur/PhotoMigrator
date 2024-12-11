@@ -22,21 +22,21 @@ Then you just need to call it depending of your environment
 ### Syntax:
 ```
 ----------------------------------------------------------------------------------------------------------------------------
-usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
+usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
                                      [-as ['flatten', 'year', 'year/month', 'year-month']]
                                      [-ns ['flatten', 'year', 'year/month', 'year-month']]
-                                     [-sg] [-sm] [-se] [-sa] [-it] [-nl] [-re] [-mt] [-rd]
+                                     [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-re] [-nl]
                                      [-fs <FOLDER_TO_FIX>]
-                                     [-fd <DUPLICATES_FOLDERs)> [<DUPLICATES_FOLDER(s> ...]]
+                                     [-fd <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]]
                                      [-da ['list', 'move', 'remove']]
 
 OrganizeTakeoutPhotos v1.5.0 - 2024-12-11
 
-Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates,
+Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates, 
 fix metadata, organize per year/month folder, and separate Albums).
 (c) by Jaime Tur (@jaimetur)
 
-optional arguments:
+options:
 
 -h,  --help
        show this help message and exit
@@ -55,22 +55,16 @@ optional arguments:
 -sg, --skip-gpth-tool
        Skip processing files with GPTH Tool. NOT RECOMMENDED because this is the Core of
        the Script. Use this flag only for testing purposses!
--sm, --skip-move-albums
-       Skip moving albums to Albums folder.
 -se, --skip-extras
        Skip processing extra photos such as  -edited, -effects photos.
+-sm, --skip-move-albums
+       Skip moving albums to Albums folder.
 -sa, --symbolic-albums
        Creates symbolic links for Albums instead of duplicate the files of each Album.
        (Useful to save disk space but may not be portable to other systems).
 -it, --ignore-takeout-structure
        Ignore Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc..),
        and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from them.
--nl, --no-log-file
-       Skip saving output messages to execution log file.
--re, --run-exif-tool
-       Run EXIF Tool files processing in the last step. (Useful if GPTH Tool cannot fix
-       some files, but is a slow process). RECOMMENDATION: Use only if after runnning
-       normal process with GPTH Tool, you still have many files with no date.
 -mt, --move-takeout-folder
        Move original photos/videos from <TAKEOUT_FOLDER> to <OUTPUT_FOLDER>.
        CAUTION: Useful to avoid disk space duplication and improve execution speed, but
@@ -79,11 +73,17 @@ optional arguments:
        original unzipped files.
 -rd, --remove-duplicates-after-fixing
        Remove Duplicates files in <OUTPUT_FOLDER> after fixing them.
+-re, --run-exif-tool
+       Run EXIF Tool files processing in the last step. (Useful if GPTH Tool cannot fix
+       some files, but is a slow process). RECOMMENDATION: Use only if after runnning
+       normal process with GPTH Tool, you still have many files with no date.
+-nl, --no-log-file
+       Skip saving output messages to execution log file.
 -fs, --fix-symlinks-broken <FOLDER_TO_FIX>
        Execute the Script in Mode 'Fix Symbolic Links Broken' and try to fix all symbolic
        links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder from
        the OUTPUT_FOLDER and some Albums seems to be empty.
--fd, --find-duplicates-in-folders <DUPLICATES_FOLDER(s)>
+-fd, --find-duplicates-in-folders <DUPLICATES_FOLDER>
        Execute the Script in Mode 'Find Duplicates' (All other steps will be skipped).
        Specify the Folder(s) where you want to find duplicates. If found any duplicates
        within the list of folders given, the file in the first folder will be kept and the
