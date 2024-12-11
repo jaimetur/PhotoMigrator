@@ -52,7 +52,8 @@ options:
 -ns, --no-albums-structure ['flatten', 'year', 'year/month', 'year-month']
        Specify the type of folder structure for ALL_PHOTOS folder (Default: 'year/month').
 -sg, --skip-gpth-tool
-       Skip processing files with GPTH Tool.
+       Skip processing files with GPTH Tool. NOT RECOMMENDED because this is the Core of
+       the Script. Use this flag only for testing purposses!
 -sm, --skip-move-albums
        Skip moving albums to Albums folder.
 -se, --skip-extras
