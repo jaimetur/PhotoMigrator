@@ -1,7 +1,7 @@
 # OrganizeTakeoutPhotos
 Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates, fix metadata, organize per year/month folder, and separate Albums)
 
-### Download Script:
+## Download Script:
 Download the script either Linux, MacOS or Windows version as you prefeer directly from following links:
 
 Linux version: [OrganizeTakeoutPhotos_v1.5.0_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.5.0_linux.zip)
@@ -10,7 +10,7 @@ MacOS version: [OrganizeTakeoutPhotos_v1.5.0_macos.zip](https://github.com/jaime
 
 Win64 version: [OrganizeTakeoutPhotos_v1.5.0_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.5.0_win64.zip)
 
-### Instructions:
+## Instructions:
 I have prepared the attached script that you can copy and unzip into any folder of our Synology NAS.
 
 Once downloaded the Takeout Zip's files you have to paste them on the folder called '**Zip_files**' which is the default folder or if you prefeer you can put them in any other subfolder and use the option _'-z, --zip-folder <folder_name>'_ to indicate it. (Note: paste all Zip files downloaded from Google Takeout directly on that folder, without subfolders inside it).
@@ -19,7 +19,7 @@ Then you just need to call it depending of your environment
   - If you run it from Synology NAS (using SSH terminal) you have to call the master script '**OrganizeTakeoutPhotos.run**'.
   - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**OrganizeTakeoutPhotos.exe**'
 
-### Syntax:
+## Syntax:
 ```
 ----------------------------------------------------------------------------------------------------------------------------
 usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
@@ -107,7 +107,7 @@ The output files will be placed into ./Takeout_fixed_timestamp folder.
 
 ```
 
-### Process Explained:
+## Process Explained:
 The whole process will do the next actions if all flags are false (by default):
 
 1. Unzip all the Takeout Zips from default zip folder "Zip_files" (you can modify the Zip_folder with the option _'-z, --zip-folder <folder_name>'_) into a subfolder named Takeout (by default) or any other folder if you specify it with the option _'-t, --takeout-folder <folder_name>'_. This step can be skipped if you ommit _'-z, --zip-folder <folder_name>'_ argument (useful in case that you already have unzip all the files manually).
@@ -128,7 +128,11 @@ The whole process will do the next actions if all flags are false (by default):
 
 6. Then all the Albums will be moved into Albums subfolder and the Photos that does not belong to any album will be moved to ALL_PHOTOS folder. This step can be skipped using flag _'-sm, --skip-move-albums'_
 
-7. In next step, the script will use EXIF Tool as well just in case that any photo cannot be resolved by GPTH Tool. This step is disabled by default, but you can force it using flag _'-re, --run-exif-tool'_ (this step is optional)
+7. Finally the script will look in OUTPUT_FOLDER for any symbolic link broken and will try to fix it by looking for the original file where the symlink is pointing to.
+
+8. (Optional) In this step, the script will use EXIF Tool as well just in case that any photo cannot be resolved by GPTH Tool. This step is disabled by default, but you can force it using flag _'-re, --run-exif-tool'_ (this step is optional)
+
+8. (Optional) In this step, the script will look for any duplicate file on OUTPUT_FOLDER (ignoring symbolic links), and will remove all duplicates keeping only the principal file (giving more priority to duplicates files found into any album folder than those found on 'ALL_PHOTOS' folder. 
 
 
 The result will be a folder (called Takeout_fixed_{timestamp} by default, but you can specify any other with the option _'-t, --takeout-folder <folder_name>'_ or change the default suffix _'fixed'_ by any other using the option _'-s, --suffix <desired_suffix>'_) which will contains:
@@ -146,15 +150,36 @@ The whole process took around **10 hours** and this is the time split per step:
 4. Sync .MP$ timestamps --> 10s
 5. Create Date Folder Structure --> 50s
 6. Moving Album Folder --> 1s
-7. EXIF Tool fixing --> 2h 24m
-8. Fix Broken Symlinks --> 10m
-9. Remove Duplicates after fixing --> 3h
+7. Fix Broken Symlinks --> 10m
+8. (Optional) EXIF Tool fixing --> 2h 24m
+9. (Optional) Remove Duplicates after fixing --> 3h
    
-(Step 8 is disabled by default, and is only recommended when GPTH Tool cannot fix many files. You can always run again the script to run only this step (using flag '-re, --run-exif-tool) and omitting the other steps with the flags '--skipt-gpth-tool --skip-move-albums' arguments)
-(Step 9 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums)
+NOTE: Step 8 is disabled by default, and is only recommended when GPTH Tool cannot fix many files. You can always run again the script to run only this step (using flag '-re, --run-exif-tool) and omitting the other steps with the flags '--skipt-gpth-tool --skip-move-albums' arguments.
+
+NOTE: Step 9 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
+
+## EXTRA MODES:
+Additionally, this script can be executed with 2 Extra Modes:
+
+### Fix Symbolic Links Broken:
+From version 1.5.0 onwards, the script can be executed in 'Fix Symbolic Links Broken' Mode. 
+- You can use the flag '-fs, --fix-symlinks-broken <FOLDER_TO_FIX>' and provide a FOLDER_TO_FIX and the script will try to look for all symbolic links within FOLDER_TO_FIX and will try to find the target file within the same folder.
+- This is useful when you run the main script using flag '-sa, --symbolic-albums' to create symbolic Albums instead of duplicate copies of the files contained on Albums.
+- If you run the script with this flag and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken and you will need to use this feature to fix them.
+
+```
+
+Example of use:
+
+./OrganizeTakeoutPhotos --fix-symlinks-broken ./OUTPUT_FOLDER 
+
+With this example, the script will look for all symbolic links within OUTPUT_FOLDER and if any is broken,
+the script will try to fix it finding the target of the symlink within the same OUTPUT_FOLDER structure.
+
+```
 
 ### Find Duplicates Mode:
-Additionally this script from version 1.4.0 onwards, can be used to find duplicates files in a smart way based on file size and content:
+From version 1.4.0 onwards, the script can be executed in 'Find Duplicates' Mode. In this mode, the script will find duplicates files in a smart way based on file size and content:
 - In Find Duplicates Mode, yout must provide a folder (or list of foldders) using the flag '-fd, --find-duplicates-in-folder', wherre the script will look for duplicates files. If you provide more than one folders, when a duplicated file is found, the script will mainains the file found within the folder given first in the list of folders provided. If the duplicaded files are within the same folder given as an argument, the script will maitain the file whose name is shorter.
 - For this mode, you must also provide an action to do with the duplicates files found. For that you can use the flag '-da, --duplicates-action' to specify what to do with duplicates files found. Valid actions are: 'list', 'move' or 'remove'. If the provided action is 'list', then the script will only create a list of duplicaed files found within the folder Duplicates. If the action is 'move' then the script will maintain the main file and move the others inside the folder Duplicates/Duplicates_timestamp. Finally, if the action is 'remove' the script will maintain the main file and remove the others.
 
@@ -172,7 +197,7 @@ and will move the otherss duplicates files into the ./Duplicates folder on the r
 
 I hope this can be useful for any of you.
 
-### Additional Trick! 
+## Additional Trick! 
 
 When prepare Google Takeout to export all your Photos and Albums, select 50GB for the zip file size and select Google Drive as output for those Zip files. On this way you can just Download all the big Zip files directly on your Synology NAS by using the Tool Cloud Sync (included on Synology App Store) and creating a new synchronization task from your Google Drive account (/Takeout folder) to any local folder of your Synology NAS (I recommend to use the default folder called '**Zip_files**' within this script folder structure)
 
