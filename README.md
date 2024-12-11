@@ -147,10 +147,11 @@ The whole process took around **10 hours** and this is the time split per step:
 5. Create Date Folder Structure --> 50s
 6. Moving Album Folder --> 1s
 7. EXIF Tool fixing --> 2h 24m
-8. Remove Duplicates after fixing --> 3h
+8. Fix Broken Symlinks --> 10m
+9. Remove Duplicates after fixing --> 3h
    
-(Step 7 is disabled by default, and is only recommended when GPTH Tool cannot fix many files. You can always run again the script to run only this step (using flag '-re, --run-exif-tool) and omitting the other steps with the flags '--skipt-gpth-tool --skip-move-albums' arguments)
-(Step 8 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums)
+(Step 8 is disabled by default, and is only recommended when GPTH Tool cannot fix many files. You can always run again the script to run only this step (using flag '-re, --run-exif-tool) and omitting the other steps with the flags '--skipt-gpth-tool --skip-move-albums' arguments)
+(Step 9 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums)
 
 ### Find Duplicates Mode:
 Additionally this script from version 1.4.0 onwards, can be used to find duplicates files in a smart way based on file size and content:
