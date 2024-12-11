@@ -25,13 +25,13 @@ Then you just need to call it depending of your environment
 usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
                                      [-as ['flatten', 'year', 'year/month', 'year-month']]
                                      [-ns ['flatten', 'year', 'year/month', 'year-month']]
-                                     [-sg] [-sm] [-se] [-it] [-nl] [-re] [-mt] [-rd]
-                                     [-fd <DUPLICATES_FOLDER(s)> [<DUPLICATES_FOLDER(s)> ...]]
+                                     [-sg] [-sm] [-se] [-sa] [-it] [-nl] [-re] [-mt] [-rd]
+                                     [-fd <DUPLICATES_FOLDERs)> [<DUPLICATES_FOLDER(s> ...]]
                                      [-da ['list', 'move', 'remove']]
 
-OrganizeTakeoutPhotos v1.5.0 - 2024-12-10
+OrganizeTakeoutPhotos v1.5.0 - 2024-12-11
 
-Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates,
+Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates, 
 fix metadata, organize per year/month folder, and separate Albums).
 (c) by Jaime Tur (@jaimetur)
 
@@ -57,6 +57,9 @@ options:
        Skip moving albums to Albums folder.
 -se, --skip-extras
        Skip processing extra photos such as  -edited, -effects photos.
+-sa, --symbolic-albums
+       Creates symbolic links for Albums instead of duplicate the files of each Album.
+       (Useful to save disk space but may not be portable to other systems).
 -it, --ignore-takeout-structure
        Ignore Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc..),
        and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from them.
