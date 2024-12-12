@@ -32,11 +32,11 @@ Then you just need to call it depending of your environment
 
 OrganizeTakeoutPhotos v1.5.0 - 2024-12-11
 
-Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates, 
+Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates,
 fix metadata, organize per year/month folder, and separate Albums).
 (c) by Jaime Tur (@jaimetur)
 
-options:
+optional arguments:
 
 -h,  --help
        show this help message and exit
@@ -91,6 +91,7 @@ options:
 -da, --duplicates-action ['list', 'move', 'remove']
        Execute the Script in Mode 'Find Duplicates' (All other steps will be skipped).
        Specify what to do with duplicates files found.
+
 ----------------------------------------------------------------------------------------------------------------------------
 ```
 
