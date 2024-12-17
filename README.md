@@ -4,11 +4,11 @@ Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove d
 ## Download Script:
 Download the script either Linux, MacOS or Windows version as you prefeer directly from following links:
 
-Linux version: [OrganizeTakeoutPhotos_v1.5.1_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.5.1_linux.zip)
+Linux version: [OrganizeTakeoutPhotos_v1.6.0_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.6.0_linux.zip)
 
-MacOS version: [OrganizeTakeoutPhotos_v1.5.1_macos.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.5.1_macos.zip)
+MacOS version: [OrganizeTakeoutPhotos_v1.6.0_macos.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.6.0_macos.zip)
 
-Win64 version: [OrganizeTakeoutPhotos_v1.5.1_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.5.1_win64.zip)
+Win64 version: [OrganizeTakeoutPhotos_v1.6.0_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v1.6.0_win64.zip)
 
 ## Instructions:
 I have prepared the attached script that you can copy and unzip into any folder of our Synology NAS.
@@ -31,7 +31,7 @@ Then you just need to call it depending of your environment
                                      [-da ['list', 'move', 'remove']]
                                      [-pd <DUPLICATES_REVISED_CSV>]
 
-OrganizeTakeoutPhotos v1.5.1 - 2024-12-17
+OrganizeTakeoutPhotos v1.6.0 - 2024-12-18
 
 Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos and much more useful features
 (remove duplicates, fix metadata, organize per year/month folder, separate Albums, fix symlinks, etc...).
