@@ -201,6 +201,27 @@ and will move the otherss duplicates files into the ./Duplicates folder on the r
 
 ```
 
+### Process Duplicates Mode:
+From version 1.6.0 onwards, the script can be executed in 'Process Duplicates' Mode. In this mode, the script will process the CSV generated during 'Find Duplicates' mode and will perform the Action given in column Action for each duplicated file.
+- Included new flag '-pd, --process-duplicates-revised' to process the Duplicates.csv output file after execute the 'Find Duplicates Mode'. In that case, the script will move all duplicates found to Duplicates folder and will generate a CSV file that can be revised and change the Action column values.
+Possible Actions in revised CSV file are:
+    - remove_duplicate  : Duplicated file moved to Duplicates folder will be permanentely removed
+    - restore_duplicate : Duplicated file moved to Duplicates folder will be restored to its original location
+    - replace_duplicate : Use this action to replace the principal file chosen for each duplicates and select manually the principal file
+        - Duplicated file moved to Duplicates folder will be restored to its original location as principal file
+        - and Original Principal file detected by the Script will be removed permanently
+
+```
+
+Example of use:
+
+./OrganizeTakeoutPhotos --process-duplicates-revised ./Duplicates/Duplicates_revised.csv
+
+With this example, the script will process the file ./Duplicates/Duplicates_revised.csv
+and for each duplicate, will do the given action according with Action column
+
+```
+
 I hope this can be useful for any of you.
 
 ## Additional Trick! 
