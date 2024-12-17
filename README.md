@@ -29,11 +29,12 @@ Then you just need to call it depending of your environment
                                      [-fs <FOLDER_TO_FIX>]
                                      [-fd <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]]
                                      [-da ['list', 'move', 'remove']]
+                                     [-pd <DUPLICATES_REVISED_CSV>]
 
 OrganizeTakeoutPhotos v1.5.1 - 2024-12-17
 
-Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates,
-fix metadata, organize per year/month folder, and separate Albums).
+Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos and much more useful features
+(remove duplicates, fix metadata, organize per year/month folder, separate Albums, fix symlinks, etc...).
 (c) by Jaime Tur (@jaimetur)
 
 optional arguments:
@@ -45,7 +46,7 @@ optional arguments:
        unzip of input files will be skipped.
 -t,  --takeout-folder <TAKEOUT_FOLDER>
        Specify the Takeout folder to process. If -z, --zip-folder is present, this will be
-       the folder to unzip input files. Default: 'Takeout'
+       the folder to unzip input files. Default: 'Takeout'.
 -s,  --suffix <SUFIX>
        Specify the suffix for the output folder. Default: 'fixed'
 -as, --albums-structure ['flatten', 'year', 'year/month', 'year-month']
@@ -53,8 +54,8 @@ optional arguments:
 -ns, --no-albums-structure ['flatten', 'year', 'year/month', 'year-month']
        Specify the type of folder structure for ALL_PHOTOS folder (Default: 'year/month').
 -sg, --skip-gpth-tool
-       Skip processing files with GPTH Tool. NOT RECOMMENDED because this is the Core of
-       the Script. Use this flag only for testing purposses!
+       Skip processing files with GPTH Tool. NOT RECOMMENDED!!! because this is the Core
+       of the Script. Use this flag only for testing purposses.
 -se, --skip-extras
        Skip processing extra photos such as  -edited, -effects photos.
 -sm, --skip-move-albums
@@ -87,11 +88,15 @@ optional arguments:
        Execute the Script in Mode 'Find Duplicates' (All other steps will be skipped).
        Specify the Folder(s) where you want to find duplicates. If found any duplicates
        within the list of folders given, the file in the first folder will be kept and the
-       others will me moved or deleted according to the flag '-da, --duplicates-action'
+       others will me moved or deleted according to the flag '-da, --duplicates-action'.
 -da, --duplicates-action ['list', 'move', 'remove']
        Execute the Script in Mode 'Find Duplicates' (All other steps will be skipped).
        Specify what to do with duplicates files found.
-
+-pd, --process-duplicates-revised <DUPLICATES_REVISED_CSV>
+       Execute the Script in Mode 'Process Duplicates Revised' (All other steps will be
+       skipped). Specify the Duplicates CSV file revised with specifics Actions in Action
+       column, and the script will execute that Action for each duplicates found in CSV.
+       Valid Actions are: 'restore_duplicate', 'remove_duplicate' and 'replace_duplicate'.
 ----------------------------------------------------------------------------------------------------------------------------
 ```
 
