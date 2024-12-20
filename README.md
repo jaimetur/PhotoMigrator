@@ -161,7 +161,7 @@ NOTE: Step 8 is disabled by default, and is only recommended when GPTH Tool cann
 NOTE: Step 9 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
 
 ## EXTRA MODES:
-Additionally, this script can be executed with 2 Extra Modes:
+Additionally, this script can be executed with 3 Extra Modes:
 
 ### Fix Symbolic Links Broken:
 From version 1.5.0 onwards, the script can be executed in 'Fix Symbolic Links Broken' Mode. 
