@@ -87,6 +87,7 @@ optional arguments:
         links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder
         from the OUTPUT_FOLDER and some Albums seems to be empty.
 -ra,  --rename-albums <ALBUMS_FOLDER>
+        Execute the Script in Mode 'Rename Albums' (All other steps will be skipped).
         Rename all Albums folders found in <ALBUMS_FOLDER> to unificate the format.
 -fd,  --find-duplicates-in-folders <DUPLICATES_FOLDER>
         Execute the Script in Mode 'Find Duplicates' (All other steps will be skipped).
