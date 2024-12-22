@@ -1,5 +1,5 @@
 # OrganizeTakeoutPhotos
-Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates, fix metadata, organize per year/month folder, and separate Albums)
+Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates, fix metadata, organize per year/month folder, separate Albums, Fix Symbolic Links, Find Duplicates, Unificate Albums folders name, Create Synology Photos Albums, Delete Empty Synology Photos Albums)
 
 ## Download Script:
 Download the script either Linux, MacOS or Windows version as you prefeer directly from following links:
@@ -89,7 +89,10 @@ optional arguments:
 
 EXTRA MODES:
 ------------
-Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes included. When an Extra Mode is detected only this module will be executed (ignoring the normal steps). If more than one Extra Mode is detected, only the first one will be executed.
+Following optional arguments can be used to execute the Script in any of the usefull
+additionals Extra Modes included. When an Extra Mode is detected only this module will be
+executed (ignoring the normal steps). If more than one Extra Mode is detected, only the
+first one will be executed.
 
 -fs,  --fix-symlinks-broken <FOLDER_TO_FIX>
         Force Mode: 'Fix Symbolic Links Broken'. The script will try to fix all symbolic
