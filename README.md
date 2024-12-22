@@ -22,13 +22,13 @@ Then you just need to call it depending of your environment
 ## Syntax:
 ```
 ----------------------------------------------------------------------------------------------------------------------------
-usage: OrganizeTakeoutPhotos.py [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
+usage: OrganizeTakeoutPhotos.py [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
                                 [-as ['flatten', 'year', 'year/month', 'year-month']]
                                 [-ns ['flatten', 'year', 'year/month', 'year-month']]
-                                [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-re] [-nl]
+                                [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-re]
+                                [-da ['list', 'move', 'remove']] [-nl]
                                 [-fs <FOLDER_TO_FIX>] [-ra <ALBUMS_FOLDER>]
                                 [-fd <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]]
-                                [-da ['list', 'move', 'remove']]
                                 [-pd <DUPLICATES_REVISED_CSV>] [-ca <ALBUMS_FOLDER>] [-de]
 
 OrganizeTakeoutPhotos v2.0.0 - 2024-12-22
@@ -80,38 +80,42 @@ optional arguments:
         Run EXIF Tool files processing in the last step. (Useful if GPTH Tool cannot fix
         some files, but is a slow process). RECOMMENDATION: Use only if after runnning
         normal process with GPTH Tool, you still have many files with no date.
+-da,  --duplicates-action ['list', 'move', 'remove']
+        Specify what to do with duplicates files found. This argument is a complementary
+        argument for '-fd, --find-duplicates' and will force the script to run in Mode
+        'Find Duplicates' (All other steps will be skipped).
 -nl,  --no-log-file
         Skip saving output messages to execution log file.
+
+EXTRA MODES:
+------------
+Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes included. When an Extra Mode is detected only this module will be executed (ignoring the normal steps). If more than one Extra Mode is detected, only the first one will be executed.
+
 -fs,  --fix-symlinks-broken <FOLDER_TO_FIX>
-        Execute the Script in Mode 'Fix Symbolic Links Broken' (All other steps will be
-        skipped). The script will try to fix all symbolic links for Albums in
-        <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_FOLDER
-        and some Albums seems to be empty.
+        Force Mode: 'Fix Symbolic Links Broken'. The script will try to fix all symbolic
+        links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder
+        from the OUTPUT_FOLDER and some Albums seems to be empty.
 -ra,  --rename-albums <ALBUMS_FOLDER>
-        Execute the Script in Mode 'Rename Albums' (All other steps will be skipped).
-        Rename all Albums folders found in <ALBUMS_FOLDER> to unificate the format.
+        Force Mode: 'Rename Albums'. Rename all Albums folders found in <ALBUMS_FOLDER> to
+        unificate the format.
 -fd,  --find-duplicates-in-folders <DUPLICATES_FOLDER>
-        Execute the Script in Mode 'Find Duplicates' (All other steps will be skipped).
-        Specify the Folder(s) where you want to find duplicates. If found any duplicates
-        within the list of folders given, the file in the first folder will be kept and
-        the others will me moved or deleted according to the flag '-da, --duplicates-
-        action'.
--da,  --duplicates-action ['list', 'move', 'remove']
-        Execute the Script in Mode 'Find Duplicates' (All other steps will be skipped).
-        Specify what to do with duplicates files found.
+        Force Mode: 'Find Duplicates'. Specify the Folder(s) where you want to find
+        duplicates. If found any duplicates within the list of folders given, the file in
+        the first folder will be kept and the others will me moved or deleted according to
+        the flag '-da, --duplicates-action'.
 -pd,  --process-duplicates-revised <DUPLICATES_REVISED_CSV>
-        Execute the Script in Mode 'Process Duplicates Revised' (All other steps will be
-        skipped). Specify the Duplicates CSV file revised with specifics Actions in Action
-        column, and the script will execute that Action for each duplicates found in CSV.
-        Valid Actions: restore_duplicate / remove_duplicate / replace_duplicate.
+        Force Mode: 'Process Duplicates Revised'. Specify the Duplicates CSV file revised
+        with specifics Actions in Action column, and the script will execute that Action
+        for each duplicates found in CSV. Valid Actions: restore_duplicate /
+        remove_duplicate / replace_duplicate.
 -ca,  --create-albums-synology-photos <ALBUMS_FOLDER>
-        Execute the Script in Mode 'Create Albums' (All other steps will be skipped). The
-        script will look for all Albums within ALBUM_FOLDER and will create one Album per
-        folder into Synology Photos.
+        force Mode: 'Create Albums in Synology Photos'. The script will look for all
+        Albums within ALBUM_FOLDER and will create one Album per folder into Synology
+        Photos.
 -de,  --delete-empty-albums-synology-photos
-        Execute the Script in Mode 'Remove Albums' (All other steps will be skipped). The
-        script will look for all Albums reated in Synology Photos database and if any
-        Album is empty, will remove it from Synology database.
+        Force Mode: 'Remove Empty Albums in Synology Photos'. The script will look for all
+        Albums in Synology Photos database and if any Album is empty, will remove it from
+        Synology Photos database.
 ----------------------------------------------------------------------------------------------------------------------------
 ```
 
