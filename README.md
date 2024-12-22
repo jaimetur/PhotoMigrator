@@ -1,5 +1,5 @@
 # OrganizeTakeoutPhotos
-Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (remove duplicates, fix metadata, organize per year/month folder, separate Albums, Fix Symbolic Links, Find Duplicates, Unificate Albums folders name, Create Synology Photos Albums, Delete Empty Synology Photos Albums)
+Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (Fix metadata, Identify Live Pictures, Organize per year/month folders, separate Albums, Fix Symbolic Links, Find Duplicates, Manage Duplicates, Homogenize Albums folders name, Create Synology Photos Albums, Delete Empty Synology Photos Albums)
 
 ## Download Script:
 Download the script either Linux, MacOS or Windows version as you prefeer directly from following links:
