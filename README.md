@@ -83,9 +83,10 @@ optional arguments:
 -nl,  --no-log-file
         Skip saving output messages to execution log file.
 -fs,  --fix-symlinks-broken <FOLDER_TO_FIX>
-        Execute the Script in Mode 'Fix Symbolic Links Broken' and try to fix all symbolic
-        links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder
-        from the OUTPUT_FOLDER and some Albums seems to be empty.
+        Execute the Script in Mode 'Fix Symbolic Links Broken' (All other steps will be
+        skipped). The script will try to fix all symbolic links for Albums in
+        <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_FOLDER
+        and some Albums seems to be empty.
 -ra,  --rename-albums <ALBUMS_FOLDER>
         Execute the Script in Mode 'Rename Albums' (All other steps will be skipped).
         Rename all Albums folders found in <ALBUMS_FOLDER> to unificate the format.
