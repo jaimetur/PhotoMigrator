@@ -22,14 +22,13 @@ Then you just need to call it depending of your environment
 ## Syntax:
 ```
 ----------------------------------------------------------------------------------------------------------------------------
-usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
-                                     [-as ['flatten', 'year', 'year/month', 'year-month']]
-                                     [-ns ['flatten', 'year', 'year/month', 'year-month']]
-                                     [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-re]
-                                     [-da ['list', 'move', 'remove']] [-nl]
-                                     [-fs <FOLDER_TO_FIX>] [-ra <ALBUMS_FOLDER>]
-                                     [-fd <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]]
-                                     [-pd <DUPLICATES_REVISED_CSV>] [-ca <ALBUMS_FOLDER>] [-de]
+usage: OrganizeTakeoutPhotos.py [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
+                                [-as ['flatten', 'year', 'year/month', 'year-month']]
+                                [-ns ['flatten', 'year', 'year/month', 'year-month']]
+                                [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-re] [-nl] [-fs <FOLDER_TO_FIX>]
+                                [-ra <ALBUMS_FOLDER>]
+                                [-fd ['list', 'move', 'remove'] <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
+                                [-pd <DUPLICATES_REVISED_CSV>] [-ca <ALBUMS_FOLDER>] [-de]
 
 OrganizeTakeoutPhotos v2.0.0 - 2024-12-22
 
@@ -42,83 +41,73 @@ optional arguments:
 -h,   --help
         show this help message and exit
 -z,   --zip-folder <ZIP_FOLDER>
-        Specify the Zip folder where the Zip files are placed. If this option is omitted,
-        unzip of input files will be skipped.
+        Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files
+        will be skipped.
 -t,   --takeout-folder <TAKEOUT_FOLDER>
-        Specify the Takeout folder to process. If -z, --zip-folder is present, this will
-        be the folder to unzip input files. Default: 'Takeout'.
+        Specify the Takeout folder to process. If -z, --zip-folder is present, this will be the folder to
+        unzip input files. Default: 'Takeout'.
 -s,   --suffix <SUFIX>
         Specify the suffix for the output folder. Default: 'fixed'
 -as,  --albums-structure ['flatten', 'year', 'year/month', 'year-month']
         Specify the type of folder structure for each Album folder (Default: 'flatten').
 -ns,  --no-albums-structure ['flatten', 'year', 'year/month', 'year-month']
-        Specify the type of folder structure for ALL_PHOTOS folder (Default:
-        'year/month').
+        Specify the type of folder structure for ALL_PHOTOS folder (Default: 'year/month').
 -sg,  --skip-gpth-tool
-        Skip processing files with GPTH Tool. NOT RECOMMENDED!!! because this is the Core
-        of the Script. Use this flag only for testing purposses.
+        Skip processing files with GPTH Tool. NOT RECOMMENDED!!! because this is the Core of the Script. Use
+        this flag only for testing purposses.
 -se,  --skip-extras
         Skip processing extra photos such as  -edited, -effects photos.
 -sm,  --skip-move-albums
         Skip moving albums to Albums folder.
 -sa,  --symbolic-albums
-        Creates symbolic links for Albums instead of duplicate the files of each Album.
-        (Useful to save disk space but may not be portable to other systems).
+        Creates symbolic links for Albums instead of duplicate the files of each Album. (Useful to save disk
+        space but may not be portable to other systems).
 -it,  --ignore-takeout-structure
-        Ignore Google Takeout structure ('.json' files, 'Photos from ' sub-folders,
-        etc..), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from
-        them.
+        Ignore Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc..), and fix all files
+        found on <TAKEOUT_FOLDER> trying to guess timestamp from them.
 -mt,  --move-takeout-folder
         Move original photos/videos from <TAKEOUT_FOLDER> to <OUTPUT_FOLDER>.
-        CAUTION: Useful to avoid disk space duplication and improve execution speed, but
-        you will lost your original unzipped files!!!. Use only if you keep the original
-        zipped files or you have disk space limitations and you don't mind to lost your
-        original unzipped files.
+        CAUTION: Useful to avoid disk space duplication and improve execution speed, but you will lost your
+        original unzipped files!!!. Use only if you keep the original zipped files or you have disk space
+        limitations and you don't mind to lost your original unzipped files.
 -rd,  --remove-duplicates-after-fixing
         Remove Duplicates files in <OUTPUT_FOLDER> after fixing them.
 -re,  --run-exif-tool
-        Run EXIF Tool files processing in the last step. (Useful if GPTH Tool cannot fix
-        some files, but is a slow process). RECOMMENDATION: Use only if after runnning
-        normal process with GPTH Tool, you still have many files with no date.
--da,  --duplicates-action ['list', 'move', 'remove']
-        Specify what to do with duplicates files found. This argument is a complementary
-        argument for '-fd, --find-duplicates' and will force the script to run in Mode
-        'Find Duplicates' (All other steps will be skipped).
+        Run EXIF Tool files processing in the last step. (Useful if GPTH Tool cannot fix some files, but is a
+        slow process). RECOMMENDATION: Use only if after runnning normal process with GPTH Tool, you still
+        have many files with no date.
 -nl,  --no-log-file
         Skip saving output messages to execution log file.
 
 EXTRA MODES:
 ------------
-Following optional arguments can be used to execute the Script in any of the usefull
-additionals Extra Modes included. When an Extra Mode is detected only this module will be
-executed (ignoring the normal steps). If more than one Extra Mode is detected, only the
-first one will be executed.
+Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes
+included. When an Extra Mode is detected only this module will be executed (ignoring the normal steps).
+If more than one Extra Mode is detected, only the first one will be executed.
 
 -fs,  --fix-symlinks-broken <FOLDER_TO_FIX>
-        Force Mode: 'Fix Symbolic Links Broken'. The script will try to fix all symbolic
-        links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder
-        from the OUTPUT_FOLDER and some Albums seems to be empty.
+        Force Mode: 'Fix Symbolic Links Broken'. The script will try to fix all symbolic links for Albums in
+        <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_FOLDER and some Albums
+        seems to be empty.
 -ra,  --rename-albums <ALBUMS_FOLDER>
-        Force Mode: 'Rename Albums'. Rename all Albums folders found in <ALBUMS_FOLDER> to
-        unificate the format.
--fd,  --find-duplicates-in-folders <DUPLICATES_FOLDER>
-        Force Mode: 'Find Duplicates'. Specify the Folder(s) where you want to find
-        duplicates. If found any duplicates within the list of folders given, the file in
-        the first folder will be kept and the others will me moved or deleted according to
-        the flag '-da, --duplicates-action'.
+        Force Mode: 'Rename Albums'. Rename all Albums folders found in <ALBUMS_FOLDER> to unificate the
+        format.
+-fd,  --find-duplicates ['list', 'move', 'remove'] <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]
+        Force Mode: 'Find Duplicates'. Find duplicates in specified folders. The first argument is the action
+        to take on duplicates ('move', 'delete' or 'list'). Default: 'list' The remaining arguments are one or
+        more folders (string or list). where the script will look for duplicates files. The order of this list
+        is important to determine the principal file of a duplicates set. First folder will have higher
+        priority.
 -pd,  --process-duplicates-revised <DUPLICATES_REVISED_CSV>
-        Force Mode: 'Process Duplicates Revised'. Specify the Duplicates CSV file revised
-        with specifics Actions in Action column, and the script will execute that Action
-        for each duplicates found in CSV. Valid Actions: restore_duplicate /
-        remove_duplicate / replace_duplicate.
+        Force Mode: 'Process Duplicates Revised'. Specify the Duplicates CSV file revised with specifics
+        Actions in Action column, and the script will execute that Action for each duplicates found in CSV.
+        Valid Actions: restore_duplicate / remove_duplicate / replace_duplicate.
 -ca,  --create-albums-synology-photos <ALBUMS_FOLDER>
-        force Mode: 'Create Albums in Synology Photos'. The script will look for all
-        Albums within ALBUM_FOLDER and will create one Album per folder into Synology
-        Photos.
+        force Mode: 'Create Albums in Synology Photos'. The script will look for all Albums within
+        ALBUM_FOLDER and will create one Album per folder into Synology Photos.
 -de,  --delete-empty-albums-synology-photos
-        Force Mode: 'Remove Empty Albums in Synology Photos'. The script will look for all
-        Albums in Synology Photos database and if any Album is empty, will remove it from
-        Synology Photos database.
+        Force Mode: 'Remove Empty Albums in Synology Photos'. The script will look for all Albums in Synology
+        Photos database and if any Album is empty, will remove it from Synology Photos database.
 ----------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -204,14 +193,17 @@ the script will try to fix it finding the target of the symlink within the same 
 
 ### Find Duplicates Mode:
 From version 1.4.0 onwards, the script can be executed in 'Find Duplicates' Mode. In this mode, the script will find duplicates files in a smart way based on file size and content:
-- In Find Duplicates Mode, yout must provide a folder (or list of foldders) using the flag '-fd, --find-duplicates-in-folder', wherre the script will look for duplicates files. If you provide more than one folders, when a duplicated file is found, the script will mainains the file found within the folder given first in the list of folders provided. If the duplicaded files are within the same folder given as an argument, the script will maitain the file whose name is shorter.
-- For this mode, you must also provide an action to do with the duplicates files found. For that you can use the flag '-da, --duplicates-action' to specify what to do with duplicates files found. Valid actions are: 'list', 'move' or 'remove'. If the provided action is 'list', then the script will only create a list of duplicaed files found within the folder Duplicates. If the action is 'move' then the script will maintain the main file and move the others inside the folder Duplicates/Duplicates_timestamp. Finally, if the action is 'remove' the script will maintain the main file and remove the others.
+- In Find Duplicates Mode, yout must provide a folder (or list of foldders) using the flag '-fd, --find-duplicates', wherre the script will look for duplicates files. If you provide more than one folders, when a duplicated file is found, the script will mainains the file found within the folder given first in the list of folders provided. If the duplicaded files are within the same folder given as an argument, the script will maitain the file whose name is shorter.
+- For this mode, you can also provide an action to specify what to do with duplicates files found. You can include any of the valid actions with the flag '-fd, --find-duplicates'. Valid actions are: 'list', 'move' or 'remove'. If not action is detected, 'list' will be the default action.
+  - If the duplicates action is 'list', then the script will only create a list of duplicaed files found within the folder Duplicates. 
+  - If the duplicates actio is 'move' then the script will maintain the main file and move the others inside the folder Duplicates/Duplicates_timestamp. 
+  - Finally, If the duplicates action is 'remove' the script will maintain the main file and remove the others.
 
 ```
 
 Example of use:
 
-./OrganizeTakeoutPhotos --find-duplicates-in-folders ./Albums ./ALL_PHOTOS --duplicates-action move
+./OrganizeTakeoutPhotos --find-duplicatess ./Albums ./ALL_PHOTOS move
 
 With this example, the script will find duplicates files within folders ./Albums and ./ALL_PHOTOS,
 If finds any duplicates, will keep the file within ./Albums folder (bacause it has been passed first on the list)
