@@ -32,7 +32,7 @@ usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>
                                      [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-re] [-nl] [-fs <FOLDER_TO_FIX>]
                                      [-ra <ALBUMS_FOLDER>]
                                      [-fd ['list', 'move', 'remove'] <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
-                                     [-pd <DUPLICATES_REVISED_CSV>] [-ca <ALBUMS_FOLDER>] [-de]
+                                     [-pd <DUPLICATES_REVISED_CSV>] [-ca <ALBUMS_FOLDER>] [-de] [-dd]
 
 OrganizeTakeoutPhotos v2.0.0 - 2024-12-24
 
@@ -110,8 +110,11 @@ If more than one Extra Mode is detected, only the first one will be executed.
         force Mode: 'Create Albums in Synology Photos'. The script will look for all Albums within
         ALBUM_FOLDER and will create one Album per folder into Synology Photos.
 -de,  --delete-empty-albums-synology-photos
-        Force Mode: 'Remove Empty Albums in Synology Photos'. The script will look for all Albums in Synology
+        Force Mode: 'Delete Empty Albums in Synology Photos'. The script will look for all Albums in Synology
         Photos database and if any Album is empty, will remove it from Synology Photos database.
+-dd,  --delete-duplicates-albums-synology-photos
+        Force Mode: 'Delete Duplicates Albums in Synology Photos'. The script will look for all Albums in
+        Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
 ----------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -178,7 +181,7 @@ NOTE: Step 9 is disabled by default, and is only recommended if you want to save
 
 ## <span style="color:blue">EXTRA MODES:</span>
 
-Additionally, this script can be executed with 6 Extra Modes:
+Additionally, this script can be executed with 7 Extra Modes:
 
 ### <span style="color:blue">Extra Mode: Fix Symbolic Links Broken:</span>
 
@@ -252,17 +255,10 @@ From version 2.0.0 onwards, the script can connect to your Synology NAS and logi
 ```
 # NAS.config for Synology NAS
 
-# Change this IP by your Synology NAS IP
-NAS_IP              = 192.168.1.11
-
-# Your username for Synology Photos
-USERNAME            = username
-
-# Your password for Synology Photos
-PASSWORD            = password
-
-# Your root path to Synology Photos main folder. Tipically is /volume1/homes/your_username/Photos
-ROOT_PHOTOS_PATH    = /volume1/homes/your_username/Photos
+NAS_IP              = 192.168.1.11                          # Change this IP by your Synology NAS IP
+USERNAME            = username                              # Your username for Synology Photos
+PASSWORD            = password                              # Your password for Synology Photos
+ROOT_PHOTOS_PATH    = /volume1/homes/your_username/Photos   # Your root path to Synology Photos main folder. Tipically is /volume1/homes/your_username/Photos
 ```
 ### <span style="color:blue">Extra Mode: Create Albums in Synology Photos:</span>
 If you configure properly the file 'nas.config' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Synology Photos and with the same Album name as Album folder.  
@@ -294,6 +290,18 @@ Example of use:
 ./OrganizeTakeoutPhotos.run --delete-empty-albums-synology-photos
 ```
 With this example, the script will connect to Synology Photos database and will delete all Empty Albums found.
+
+### <span style="color:blue">Extra Mode: Delete Duplicates Albums in Synology Photos:</span>
+If you configure properly the file 'nas.config' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will look for all Duplicates Albums in Synology Photos database.  
+
+If any Duplicated Album is found, the script will remove it from Synology Photos.  
+
+To execute this Extra Mode, you can use the new Flag: -dd, --delete-duplicates-albums-synology-photos  
+Example of use:
+```
+./OrganizeTakeoutPhotos.run --delete-duplicates-albums-synology-photos
+```
+With this example, the script will connect to Synology Photos database and will delete all Duplicates Albums found.
 
 ## <span style="color:dark">Additional Trick!</span>
 
