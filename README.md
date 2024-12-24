@@ -22,13 +22,13 @@ Then you just need to call it depending of your environment
 ## Syntax:
 ```
 ----------------------------------------------------------------------------------------------------------------------------
-usage: OrganizeTakeoutPhotos.py [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
-                                [-as ['flatten', 'year', 'year/month', 'year-month']]
-                                [-ns ['flatten', 'year', 'year/month', 'year-month']]
-                                [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-re] [-nl] [-fs <FOLDER_TO_FIX>]
-                                [-ra <ALBUMS_FOLDER>]
-                                [-fd ['list', 'move', 'remove'] <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
-                                [-pd <DUPLICATES_REVISED_CSV>] [-ca <ALBUMS_FOLDER>] [-de]
+usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
+                                     [-as ['flatten', 'year', 'year/month', 'year-month']]
+                                     [-ns ['flatten', 'year', 'year/month', 'year-month']]
+                                     [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-re] [-nl] [-fs <FOLDER_TO_FIX>]
+                                     [-ra <ALBUMS_FOLDER>]
+                                     [-fd ['list', 'move', 'remove'] <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
+                                     [-pd <DUPLICATES_REVISED_CSV>] [-ca <ALBUMS_FOLDER>] [-de]
 
 OrganizeTakeoutPhotos v2.0.0 - 2024-12-22
 
