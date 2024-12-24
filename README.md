@@ -34,7 +34,7 @@ usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>
                                      [-fd ['list', 'move', 'remove'] <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
                                      [-pd <DUPLICATES_REVISED_CSV>] [-ca <ALBUMS_FOLDER>] [-de]
 
-OrganizeTakeoutPhotos v2.0.0 - 2024-12-22
+OrganizeTakeoutPhotos v2.0.0 - 2024-12-24
 
 Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos and much more useful features
 (remove duplicates, fix metadata, organize per year/month folder, separate Albums, fix symlinks, etc...).
