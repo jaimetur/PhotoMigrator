@@ -6,18 +6,22 @@ Download the script either Linux, MacOS or Windows version as you prefeer direct
 
 Linux version: [OrganizeTakeoutPhotos_v2.0.0_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.0.0_linux.zip)
 
+Win64 version: [OrganizeTakeoutPhotos_v2.0.0_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.0.0_win64.zip)
+
 MacOS version: [OrganizeTakeoutPhotos_v2.0.0_macos.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.0.0_macos.zip)
 
-Win64 version: [OrganizeTakeoutPhotos_v2.0.0_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.0.0_win64.zip)
 
 ## Instructions:
 I have prepared the attached script that you can copy and unzip into any folder of our Synology NAS.
 
 Once downloaded the Takeout Zip's files you have to paste them on the folder called '**Zip_files**' which is the default folder or if you prefeer you can put them in any other subfolder and use the option _'-z, --zip-folder <folder_name>'_ to indicate it. (Note: paste all Zip files downloaded from Google Takeout directly on that folder, without subfolders inside it).
 
-Then you just need to call it depending of your environment
-  - If you run it from Synology NAS (using SSH terminal) you have to call the master script '**OrganizeTakeoutPhotos.run**'. Minimum DSM version required is 7.1.0.
-  - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**OrganizeTakeoutPhotos.exe**'
+Then you just need to call it depending of your environment:
+  - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**OrganizeTakeoutPhotos.exe**'  
+
+
+  - If you run it from Synology NAS (using SSH terminal) or from Linux/Mac, you have to call the master script '**OrganizeTakeoutPhotos.run**'.  
+    Minimum version required to run the script directly from your Synology NAS (using SSH terminal) is **DSM 7.1.0**.
 
 ## Syntax:
 ```
@@ -111,20 +115,20 @@ If more than one Extra Mode is detected, only the first one will be executed.
 ----------------------------------------------------------------------------------------------------------------------------
 ```
 
-```
-
 Example of use:
-
-./OrganizeTakeoutPhotos --zip-folder ./Zips --takeout-folder ./Takeout --albums-structure year/month
-
-Withh this example, the script will unzip all zip files found under ./Zips folder into ./Takeout folder.
-Then will process ./Takeout folder to fix all files found and set the correct date and time.
-Finally the script will create a folder structure based on year/month for each Album found.
-The output files will be placed into ./Takeout_fixed_timestamp folder.
-
+```
+./OrganizeTakeoutPhotos --zip-folder ./Zips --takeout-folder ./Takeout --remove-duplicates-after-fixing
 ```
 
-## Process Explained:
+Withh this example, the script will unzip all zip files found under ./Zips folder into ./Takeout folder.  
+Then will process ./Takeout folder to fix all files found and set the correct date and time.  
+Finally the script will create a folder structure based on year/month for OUTPUT_FOLDER/ALL_PHOTOS folder (by default).  
+Also, the script will create a flatten folder structure for each Album subfolder found in OUTPUT_FOLDER/Albums.  
+The output files will be placed into ./Takeout_fixed_timestamp folder whre timestamp is the timestamp of the execution.
+
+
+## <span style="color:blue">Normal Mode: Process Explained:</span>
+
 The whole process will do the next actions if all flags are false (by default):
 
 1. Unzip all the Takeout Zips from default zip folder "Zip_files" (you can modify the Zip_folder with the option _'-z, --zip-folder <folder_name>'_) into a subfolder named Takeout (by default) or any other folder if you specify it with the option _'-t, --takeout-folder <folder_name>'_. This step can be skipped if you ommit _'-z, --zip-folder <folder_name>'_ argument (useful in case that you already have unzip all the files manually).
@@ -155,8 +159,9 @@ The result will be a folder (called Takeout_fixed_{timestamp} by default, but yo
 
 Finally you just need to move the output folder (Takeout_fixed_{timestamp} by default) into your /home/Photos folder and let Synology to index all files (it will take long time). After that you will be able to explore your photos chronologycally on the Synology Photos App, and all your Albums will be there when you explore the library by folder instead of chronologycally.
 
-It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (408559 files zipped, 168168 photos/video files, 740 albums) and moved it into Synology Photos. 
-The whole process took around **10 hours** and this is the time split per step:
+It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (408559 files zipped, 168168 photos/video files, 740 albums) and moved it into Synology Photos.  
+
+The whole process took around **~8.5 hours** (or **~3 hours without last two optional steps) and this is the time split per steps**):
 1. Extraction process --> 25m
 2. Pre-processing Takeout_folder --> 3m 50s
 3. GPTH Tool fixing --> 2h 12m
@@ -164,34 +169,33 @@ The whole process took around **10 hours** and this is the time split per step:
 5. Create Date Folder Structure --> 50s
 6. Moving Album Folder --> 1s
 7. Fix Broken Symlinks --> 10m
-8. (Optional) EXIF Tool fixing --> 2h 24m
-9. (Optional) Remove Duplicates after fixing --> 3h
+8. <span style="color:grey">(Optional) EXIF Tool fixing --> 2h 24m</span>
+9. <span style="color:grey">(Optional) Remove Duplicates after fixing --> 3h</span>
    
 NOTE: Step 8 is disabled by default, and is only recommended when GPTH Tool cannot fix many files. You can always run again the script to run only this step (using flag '-re, --run-exif-tool) and omitting the other steps with the flags '--skipt-gpth-tool --skip-move-albums' arguments.
 
 NOTE: Step 9 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
 
-## EXTRA MODES:
+## <span style="color:blue">EXTRA MODES:</span>
+
 Additionally, this script can be executed with 6 Extra Modes:
 
-### Fix Symbolic Links Broken:
+### <span style="color:blue">Extra Mode: Fix Symbolic Links Broken:</span>
+
 From version 1.5.0 onwards, the script can be executed in 'Fix Symbolic Links Broken' Mode. 
 - You can use the flag '-fs, --fix-symlinks-broken <FOLDER_TO_FIX>' and provide a FOLDER_TO_FIX and the script will try to look for all symbolic links within FOLDER_TO_FIX and will try to find the target file within the same folder.
 - This is useful when you run the main script using flag '-sa, --symbolic-albums' to create symbolic Albums instead of duplicate copies of the files contained on Albums.
 - If you run the script with this flag and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken and you will need to use this feature to fix them.
 
-```
-
 Example of use:
-
+```
 ./OrganizeTakeoutPhotos --fix-symlinks-broken ./OUTPUT_FOLDER 
-
+```
 With this example, the script will look for all symbolic links within OUTPUT_FOLDER and if any is broken,
 the script will try to fix it finding the target of the symlink within the same OUTPUT_FOLDER structure.
 
-```
 
-### Find Duplicates Mode:
+### <span style="color:blue">Extra Mode: Find Duplicates:</span>
 From version 1.4.0 onwards, the script can be executed in 'Find Duplicates' Mode. In this mode, the script will find duplicates files in a smart way based on file size and content:
 - In Find Duplicates Mode, yout must provide a folder (or list of foldders) using the flag '-fd, --find-duplicates', wherre the script will look for duplicates files. If you provide more than one folders, when a duplicated file is found, the script will mainains the file found within the folder given first in the list of folders provided. If the duplicaded files are within the same folder given as an argument, the script will maitain the file whose name is shorter.
 - For this mode, you can also provide an action to specify what to do with duplicates files found. You can include any of the valid actions with the flag '-fd, --find-duplicates'. Valid actions are: 'list', 'move' or 'remove'. If not action is detected, 'list' will be the default action.
@@ -199,19 +203,18 @@ From version 1.4.0 onwards, the script can be executed in 'Find Duplicates' Mode
   - If the duplicates actio is 'move' then the script will maintain the main file and move the others inside the folder Duplicates/Duplicates_timestamp. 
   - Finally, If the duplicates action is 'remove' the script will maintain the main file and remove the others.
 
-```
 
 Example of use:
-
+```
 ./OrganizeTakeoutPhotos --find-duplicatess ./Albums ./ALL_PHOTOS move
+```
 
 With this example, the script will find duplicates files within folders ./Albums and ./ALL_PHOTOS,
 If finds any duplicates, will keep the file within ./Albums folder (bacause it has been passed first on the list)
 and will move the otherss duplicates files into the ./Duplicates folder on the root folder of the script.
 
-```
 
-### Process Duplicates Mode:
+### <span style="color:blue">Extra Mode: Process Duplicates:</span>
 From version 1.6.0 onwards, the script can be executed in 'Process Duplicates' Mode. In this mode, the script will process the CSV generated during 'Find Duplicates' mode and will perform the Action given in column Action for each duplicated file.
 - Included new flag '-pd, --process-duplicates-revised' to process the Duplicates.csv output file after execute the 'Find Duplicates Mode'. In that case, the script will move all duplicates found to Duplicates folder and will generate a CSV file that can be revised and change the Action column values.
 Possible Actions in revised CSV file are:
@@ -221,32 +224,83 @@ Possible Actions in revised CSV file are:
         - Duplicated file moved to Duplicates folder will be restored to its original location as principal file
         - and Original Principal file detected by the Script will be removed permanently
 
-```
-
 Example of use:
-
+```
 ./OrganizeTakeoutPhotos --process-duplicates-revised ./Duplicates/Duplicates_revised.csv
+```
 
 With this example, the script will process the file ./Duplicates/Duplicates_revised.csv
 and for each duplicate, will do the given action according with Action column
 
+### <span style="color:blue">Extra Mode: Rename Albums Folders Mode:</span>
+With this Extra Mode, you can rename all Albums subfolders (if they contains a flatten file structure) and homogenize all your Albums names with this format: 'yyyy - Album Name' or 'yyyy-yyyy - Album Name', where yyyy is the year of the files contained in each Album folder (if more than one year is found, then yyyy-yyyy will indicate the range of years for the files contained in the Album folder.)  
+
+To define the <ALBUMS_FOLDER> you can use the new Flag: -ra, --rename-albums <ALBUMS_FOLDER>
+
+Recommendation: Use this Extra Mode before to create Synology Photos Albums in order to have a clean Albums structure in your Synology Photos database.
+Example of use:
 ```
+./OrganizeTakeoutPhotos.run --rename-albums ./My_Albums_Folder
+```
+With this example, the script will rename all subfolders within ./My_Albums_Folder (only first subfolder level) according to the format described above. If the subfolder does not contains any file, the folder will not be renamed.
 
-### Rename Albums Folders Mode:
-TODO: Describe this mode
+## <span style="color:green">Synology Photos Support</span>
+From version 2.0.0 onwards, the script can connect to your Synology NAS and login into Synology Photos App with your credentials. The credentials needs to be loaded from 'nas.config' file and will have this format:
 
-### Create Albums in Synology Photos Mode:
-TODO: Describe this mode
+#### <span style="color:green">Example 'nas.config':</span>
 
-### Delete Empty Albums in Synology Photos Mode:
-TODO: Describe this mode
+```
+# NAS.config for Synology NAS
 
-I hope this can be useful for any of you.
+# Change this IP by your Synology NAS IP
+NAS_IP              = 192.168.1.11
 
-## Additional Trick! 
+# Your username for Synology Photos
+USERNAME            = username
+
+# Your password for Synology Photos
+PASSWORD            = password
+
+# Your root path to Synology Photos main folder. Tipically is /volume1/homes/your_username/Photos
+ROOT_PHOTOS_PATH    = /volume1/homes/your_username/Photos
+```
+### <span style="color:blue">Extra Mode: Create Albums in Synology Photos:</span>
+If you configure properly the file 'nas.config' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Synology Photos and with the same Album name as Album folder.  
+
+The folder <ALBUMS_FOLDER> can be passed using the new Flag: -ca, --create-albums-synology-photos <ALBUMS_FOLDER>  
+
+**IMPORTANT:**  
+<ALBUMS_FOLDER> should be stored within your Synology Photos main folder in your NAS. Typically it is '/volume1/homes/your_username/Photos' and all files within <ALBUMS_FOLDER> should have been already indexed by Synology Photos before you can add them to a Synology Photos Album.  
+
+You can check if the files have been already indexed accessing Synology Photos mobile app or Synology Photos web portal and change to Folder View.  
+
+If you can't see your <ALBUMS_FOLDER> most probably is because it has not been indexed yet or because you didn't move it within Synology Photos root folder. 
+
+
+Example of use:
+```
+./OrganizeTakeoutPhotos.run --create-albums-synology-photos ./My_Albums_Folder
+```
+With this example, the script will connect to Synology Photos database and process the folder ./My_Albums_Folder and per each subfolder found on it that contains at least one file supported by Synology Photos, will create a new Album in Synology Photos with the same name of the Album Folder
+
+### <span style="color:blue">Extra Mode: Delete Empty Albums in Synology Photos:</span>
+If you configure properly the file 'nas.config' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will look for all Empty Albums in Synology Photos database.  
+
+If any Empty Album is found, the script will remove it from Synology Photos.  
+
+To execute this Extra Mode, you can use the new Flag: -de, --delete-empty-albums-synology-photos  
+Example of use:
+```
+./OrganizeTakeoutPhotos.run --delete-empty-albums-synology-photos
+```
+With this example, the script will connect to Synology Photos database and will delete all Empty Albums found.
+
+## <span style="color:dark">Additional Trick!</span>
 
 When prepare Google Takeout to export all your Photos and Albums, select 50GB for the zip file size and select Google Drive as output for those Zip files. On this way you can just Download all the big Zip files directly on your Synology NAS by using the Tool Cloud Sync (included on Synology App Store) and creating a new synchronization task from your Google Drive account (/Takeout folder) to any local folder of your Synology NAS (I recommend to use the default folder called '**Zip_files**' within this script folder structure)
 
+
+I hope this can be useful for any of you.  
 Enjoy it!
-Jaime Tur.
-@jaimetur 
+
+<span style="color:grey">Jaime Tur (@jaimetur) - 2024.</span>
