@@ -4,11 +4,11 @@ Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (Fix meta
 ## Download Script:
 Download the script either Linux, MacOS or Windows version as you prefeer directly from following links:
 
-Linux version: [OrganizeTakeoutPhotos_v2.0.0_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.0.0_linux.zip)
+Linux version: [OrganizeTakeoutPhotos_v2.1.0_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.1.0_linux.zip)
 
-Win64 version: [OrganizeTakeoutPhotos_v2.0.0_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.0.0_win64.zip)
+Win64 version: [OrganizeTakeoutPhotos_v2.1.0_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.1.0_win64.zip)
 
-MacOS version: [OrganizeTakeoutPhotos_v2.0.0_macos.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.0.0_macos.zip)
+MacOS version: [OrganizeTakeoutPhotos_v2.1.0_macos.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.1.0_macos.zip)
 
 
 ## Instructions:
@@ -29,12 +29,13 @@ Then you just need to call it depending of your environment:
 usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
                                      [-as ['flatten', 'year', 'year/month', 'year-month']]
                                      [-ns ['flatten', 'year', 'year/month', 'year-month']]
-                                     [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-re] [-nl] [-fs <FOLDER_TO_FIX>]
-                                     [-ra <ALBUMS_FOLDER>]
+                                     [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-re] [-nl]
+                                     [-fs <FOLDER_TO_FIX>] [-ra <ALBUMS_FOLDER>]
                                      [-fd ['list', 'move', 'remove'] <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
                                      [-pd <DUPLICATES_REVISED_CSV>] [-ca <ALBUMS_FOLDER>] [-de] [-dd]
+                                     [-ao <INPUT_FOLDER>]
 
-OrganizeTakeoutPhotos v2.0.0 - 2024-12-24
+OrganizeTakeoutPhotos v2.1.0 - 2024-12-27
 
 Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos and much more useful features
 (remove duplicates, fix metadata, organize per year/month folder, separate Albums, fix symlinks, etc...).
@@ -115,6 +116,9 @@ If more than one Extra Mode is detected, only the first one will be executed.
 -dd,  --delete-duplicates-albums-synology-photos
         Force Mode: 'Delete Duplicates Albums in Synology Photos'. The script will look for all Albums in
         Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
+-ao,  --all-in-one <INPUT_FOLDER>
+        Force Mode: 'All-in-One'. The Script will do the whole process (Zip extraction, Takeout Processing,
+        Remove Duplicates, Synology Photos Albums creation) in just One shot.
 ----------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -181,7 +185,7 @@ NOTE: Step 9 is disabled by default, and is only recommended if you want to save
 
 ## <span style="color:blue">EXTRA MODES:</span>
 
-Additionally, this script can be executed with 7 Extra Modes:
+Additionally, this script can be executed with 8 Extra Modes:
 
 ### <span style="color:blue">Extra Mode: Fix Symbolic Links Broken:</span>
 
@@ -302,6 +306,16 @@ Example of use:
 ./OrganizeTakeoutPhotos.run --delete-duplicates-albums-synology-photos
 ```
 With this example, the script will connect to Synology Photos database and will delete all Duplicates Albums found.
+
+### <span style="color:blue">Extra Mode: All in One Shot:</span>
+If you configure properly the file 'nas.config' and execute this Extra Mode, the script will process your Takeout Zip files, will process them, and will connect automatically to your Synology Photos database to import all your Photos & Videos automatically to Synology Photos database creating the same Albums that you have exported in your Takeout files.  
+
+To execute this Extra Mode, you can use the new Flag: -ao, --all-in-one  
+Example of use:
+```
+./OrganizeTakeoutPhotos.run --all-in-in ./Zip_files
+```
+With this example, the script will extract all your Takeout Zip files from ./Zip_files folder, will process them, and finally will connect to Synology Photos database to create all Albums found and import all the other photos without any Albums associated.
 
 ## <span style="color:dark">Additional Trick!</span>
 
