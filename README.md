@@ -313,7 +313,7 @@ If you configure properly the file 'nas.config' and execute this Extra Mode, the
 To execute this Extra Mode, you can use the new Flag: -ao, --all-in-one  
 Example of use:
 ```
-./OrganizeTakeoutPhotos.run --all-in-in ./Zip_files
+./OrganizeTakeoutPhotos.run --all-in-one ./Zip_files
 ```
 With this example, the script will extract all your Takeout Zip files from ./Zip_files folder, will process them, and finally will connect to Synology Photos database to create all Albums found and import all the other photos without any Albums associated.
 
