@@ -264,6 +264,18 @@ USERNAME            = username                              # Your username for 
 PASSWORD            = password                              # Your password for Synology Photos
 ROOT_PHOTOS_PATH    = /volume1/homes/your_username/Photos   # Your root path to Synology Photos main folder. Tipically is /volume1/homes/your_username/Photos
 ```
+
+
+## <span style="color:green">Extra Mode: All in One Shot:</span>
+If you configure properly the file 'nas.config' and execute this Extra Mode, the script will process your Takeout Zip files, will process them, and will connect automatically to your Synology Photos database to import all your Photos & Videos automatically to Synology Photos database creating the same Albums that you have exported in your Takeout files.  
+
+To execute this Extra Mode, you can use the new Flag: -ao, --all-in-one  
+Example of use:
+```
+./OrganizeTakeoutPhotos.run --all-in-one ./Zip_files
+```
+With this example, the script will extract all your Takeout Zip files from ./Zip_files folder, will process them, and finally will connect to Synology Photos database to create all Albums found and import all the other photos without any Albums associated.
+
 ### <span style="color:blue">Extra Mode: Create Albums in Synology Photos:</span>
 If you configure properly the file 'nas.config' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Synology Photos and with the same Album name as Album folder.  
 
@@ -306,16 +318,6 @@ Example of use:
 ./OrganizeTakeoutPhotos.run --delete-duplicates-albums-synology-photos
 ```
 With this example, the script will connect to Synology Photos database and will delete all Duplicates Albums found.
-
-### <span style="color:blue">Extra Mode: All in One Shot:</span>
-If you configure properly the file 'nas.config' and execute this Extra Mode, the script will process your Takeout Zip files, will process them, and will connect automatically to your Synology Photos database to import all your Photos & Videos automatically to Synology Photos database creating the same Albums that you have exported in your Takeout files.  
-
-To execute this Extra Mode, you can use the new Flag: -ao, --all-in-one  
-Example of use:
-```
-./OrganizeTakeoutPhotos.run --all-in-one ./Zip_files
-```
-With this example, the script will extract all your Takeout Zip files from ./Zip_files folder, will process them, and finally will connect to Synology Photos database to create all Albums found and import all the other photos without any Albums associated.
 
 ## <span style="color:dark">Additional Trick!</span>
 
