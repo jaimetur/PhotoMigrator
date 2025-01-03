@@ -2,16 +2,22 @@
 Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (Fix metadata, Identify Live Pictures, Organize per year/month folders, separate Albums, Fix Symbolic Links, Find Duplicates, Manage Duplicates, Homogenize Albums folders name, Import Albums to Synology Photos, Delete Empty Synology Photos Albums and much more)
 
 ## Download Script:
-Download the script either Linux, MacOS or Windows version as you prefeer directly from following links:
+Download the script either Linux, MacOS or Windows version (for both x86_64 or arm64 architectures) as you prefeer directly from following links:
 
 Linux_x86_64 version:  
 [OrganizeTakeoutPhotos_v2.2.0_linux_x86_64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_linux_x86_64.zip)
 
-Windows_amd64 version:  
-[OrganizeTakeoutPhotos_v2.2.0_windows_amd64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_windows_amd64.zip)
+Linux_arm64 version:  
+[OrganizeTakeoutPhotos_v2.2.0_linux_arm64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_linux_arm64.zip)
+
+MacOS_x86_64 version:  
+[OrganizeTakeoutPhotos_v2.2.0_macos_x86_64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_macos_x86_64.zip)
 
 MacOS_arm64 version:  
 [OrganizeTakeoutPhotos_v2.2.0_macos_arm64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_macos_arm64.zip)
+
+Windows_x86_64 version:  
+[OrganizeTakeoutPhotos_v2.2.0_windows_x86_64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_windows_x86_64.zip)
 
 
 ## Instructions:
@@ -19,7 +25,7 @@ I have prepared the attached script that you can copy and unzip into any folder 
 
 Once downloaded the Takeout Zip's files you have to paste them on the folder called '**Zip_files**' which is the default folder or if you prefeer you can put them in any other subfolder and use the option _'-z, --zip-folder <folder_name>'_ to indicate it. (Note: paste all Zip files downloaded from Google Takeout directly on that folder, without subfolders inside it).
 
-Then you just need to call it depending of your environment:
+Then you just need to call it depending on your environment:
   - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**OrganizeTakeoutPhotos.exe**'  
 
 
