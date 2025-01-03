@@ -7,10 +7,10 @@ Download the script either Linux, MacOS or Windows version (for both x86_64 or a
 Linux_x86_64 version:  
 [OrganizeTakeoutPhotos_v2.2.0_linux_x86_64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_linux_x86_64.zip)
 
-Linux_arm64 version:  
+Linux_arm64 version: (under development. No download yet)  
 [OrganizeTakeoutPhotos_v2.2.0_linux_arm64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_linux_arm64.zip)
 
-MacOS_x86_64 version:  
+MacOS_x86_64 version: (under development. No download yet)  
 [OrganizeTakeoutPhotos_v2.2.0_macos_x86_64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_macos_x86_64.zip)
 
 MacOS_arm64 version:  
