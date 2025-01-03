@@ -4,11 +4,14 @@ Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (Fix meta
 ## Download Script:
 Download the script either Linux, MacOS or Windows version as you prefeer directly from following links:
 
-Linux version: [OrganizeTakeoutPhotos_v2.1.0_linux.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.1.0_linux.zip)
+Linux_x86_64 version:  
+[OrganizeTakeoutPhotos_v2.2.0_linux_x86_64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_linux_x86_64.zip)
 
-Win64 version: [OrganizeTakeoutPhotos_v2.1.0_win64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.1.0_win64.zip)
+Windows_amd64 version:  
+[OrganizeTakeoutPhotos_v2.2.0_windows_amd64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_windows_amd64.zip)
 
-MacOS version: [OrganizeTakeoutPhotos_v2.1.0_macos.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.1.0_macos.zip)
+MacOS_arm64 version:  
+[OrganizeTakeoutPhotos_v2.2.0_macos_arm64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_macos_arm64.zip)
 
 
 ## Instructions:
@@ -35,7 +38,7 @@ usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>
                                      [-pd <DUPLICATES_REVISED_CSV>] [-ca <ALBUMS_FOLDER>] [-de] [-dd]
                                      [-ao <INPUT_FOLDER>]
 
-OrganizeTakeoutPhotos v2.1.0 - 2024-12-27
+OrganizeTakeoutPhotos v2.2.0 - 2025-01-04
 
 Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos and much more useful features
 (remove duplicates, fix metadata, organize per year/month folder, separate Albums, fix symlinks, etc...).
