@@ -2,22 +2,22 @@
 Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (Fix metadata, Identify Live Pictures, Organize per year/month folders, separate Albums, Fix Symbolic Links, Find Duplicates, Manage Duplicates, Homogenize Albums folders name, Import Albums to Synology Photos, Delete Empty Synology Photos Albums and much more)
 
 ## Download Script:
-Download the script either Linux, MacOS or Windows version (for both x86_64 or arm64 architectures) as you prefeer directly from following links:
+Download the script either Linux, MacOS or Windows version (for both x64 or arm64 architectures) as you prefeer directly from following links:
 
-Linux_x86_64 version:  
-[OrganizeTakeoutPhotos_v2.2.0_linux_x86_64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_linux_x86_64.zip)
+Linux_x64 version:  
+[OrganizeTakeoutPhotos_v2.2.0_linux_x64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_linux_x64.zip)
 
 Linux_arm64 version: (under development. No download yet)  
 [OrganizeTakeoutPhotos_v2.2.0_linux_arm64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_linux_arm64.zip)
 
-MacOS_x86_64 version: (under development. No download yet)  
-[OrganizeTakeoutPhotos_v2.2.0_macos_x86_64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_macos_x86_64.zip)
+MacOS_x64 version: (under development. No download yet)  
+[OrganizeTakeoutPhotos_v2.2.0_macos_x64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_macos_x64.zip)
 
 MacOS_arm64 version:  
 [OrganizeTakeoutPhotos_v2.2.0_macos_arm64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_macos_arm64.zip)
 
-Windows_x86_64 version:  
-[OrganizeTakeoutPhotos_v2.2.0_windows_x86_64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_windows_x86_64.zip)
+Windows_x64 version:  
+[OrganizeTakeoutPhotos_v2.2.0_windows_x64.zip](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_windows_x64.zip)
 
 
 ## Instructions:
