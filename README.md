@@ -5,16 +5,16 @@ Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (Fix meta
 Download the script either Linux, Mac OS or Windows version (for both x64 or arm64 architectures) as you prefeer directly from following links:
 
 **Linux:**:  
-  - AMD 64: [Download AMD 64 bits](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_linux_amd64.zip)  
-  - ARM 64: [Download ARM 64 bits](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_linux_arm64.zip)
+  - [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_linux_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_linux_arm64.zip)
 
 
 **Mac OS:**
-  - AMD 64: [Download AMD 64 bits](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_macos_amd64.zip)
-  - ARM 64: [Download ARM 64 bits](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_macos_arm64.zip)
+  - [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_macos_amd64.zip)
+  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_macos_arm64.zip)
 
 **Windows:**  
-- AMD 64: [Download AMD 64 bits](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_windows_amd64.zip)
+- [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/built_versions/OrganizeTakeoutPhotos_v2.2.0_windows_amd64.zip)
 
 
 ## Instructions:
