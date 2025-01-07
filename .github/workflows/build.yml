@@ -50,17 +50,32 @@ jobs:
         if: matrix.os == 'ubuntu-20.04'
         run: |
           cd src
-          ARCHIVE_PATH=$(python3 _compile.py | tail -n 1)
+          python3 _compile.py | tee tmp_output.log
+          ARCHIVE_PATH=$(tail -n 1 tmp_output.log)
+          ARCHIVE_NAME=$(basename "$ARCHIVE_PATH")  # Extrae solo el nombre del archivo
           echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> $GITHUB_ENV
+          echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
+          if [ ! -f "$ARCHIVE_PATH" ]; then
+            echo "Error: No se encontró el archivo comprimido."
+            exit 1
+          fi
         shell: bash
+
 
 #      # Compilación para macOS (usando macos-latest)
 #      - name: Compile for MacOS
 #        if: matrix.os == 'macos-latest'
 #        run: |
 #          cd src
-#          ARCHIVE_PATH=$(python3 _compile.py | tail -n 1)
+#          python3 _compile.py | tee tmp_output.log
+#          ARCHIVE_PATH=$(tail -n 1 tmp_output.log)
+#          ARCHIVE_NAME=$(basename "$ARCHIVE_PATH")  # Extrae solo el nombre del archivo
 #          echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> $GITHUB_ENV
+#          echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
+#          if [ ! -f "$ARCHIVE_PATH" ]; then
+#            echo "Error: No se encontró el archivo comprimido."
+#            exit 1
+#          fi
 #        shell: bash
 #
 #      # Compilación para Windows
@@ -68,13 +83,20 @@ jobs:
 #        if: matrix.os == 'windows-latest'
 #        run: |
 #          cd src
-#          FOR /F "tokens=*" %%A IN ('python3 _compile.py') DO @SET ARCHIVE_PATH=%%A
+#          python3 _compile.py | tee tmp_output.log
+#          FOR /F "tokens=*" %%A IN ('type tmp_output.log') DO @SET ARCHIVE_PATH=%%A
+#          FOR %%I IN (%ARCHIVE_PATH%) DO @SET ARCHIVE_NAME=%%~nxI
 #          echo ARCHIVE_PATH=%ARCHIVE_PATH% >> %GITHUB_ENV%
-#        shell: cmd
+#          echo ARCHIVE_NAME=%ARCHIVE_NAME% >> %GITHUB_ENV%
+#          if not exist %ARCHIVE_PATH% (
+#            echo Error: No se encontró el archivo comprimido.
+#            exit /b 1
+#          )
+#          shell: cmd
 
       # Subir los ejecutables generados usando la ruta completa
       - name: Archive Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.ARCHIVE_PATH }}
+          name: ${{ env.ARCHIVE_NAME }}
           path: ${{ env.ARCHIVE_PATH }}
