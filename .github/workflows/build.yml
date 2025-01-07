@@ -52,7 +52,6 @@ jobs:
         run: |
           cd src
           python3 _compile.py
-          cd ..
         shell: bash
 
       # Compilación para Windows
@@ -61,7 +60,6 @@ jobs:
         run: |
           cd src
           python _compile.py
-          cd ..
         shell: cmd
 
       # Extraer metadatos y construir paths
@@ -72,29 +70,41 @@ jobs:
           SCRIPT_NAME_VERSION="${SCRIPT_NAME}_${SCRIPT_VERSION}"
 
           ARCH="${{ matrix.arch }}"
-          OS_TAG="linux"  # Valor por defecto para Ubuntu
+          OS_TAG="linux"  # Valor por defecto
 
-          # Determinar etiqueta del sistema operativo
+          # Determinar etiqueta según el sistema operativo
           if [[ "${{ matrix.os }}" == *"windows"* ]]; then
             OS_TAG="windows"
           elif [[ "${{ matrix.os }}" == *"macos"* ]]; then
             OS_TAG="macos"
           fi
 
+          # Reemplazar x86_64 por amd64
           if [ "$ARCH" == "x86_64" ]; then
             ARCH="amd64"
           fi
 
+          # Crear el nombre del artefacto con la etiqueta dinámica
           ARCHIVE_NAME="${SCRIPT_NAME_VERSION}_${OS_TAG}_${ARCH}.zip"
 
-          # Construir ruta relativa correctamente
-          ARCHIVE_DIR=$(realpath "../_built_versions/${SCRIPT_NAME_VERSION}/")
+          # Determinar la ruta del archivo generado
+          if [ -d "_built_versions/${SCRIPT_NAME_VERSION}" ]; then
+            ARCHIVE_DIR=$(realpath "_built_versions/${SCRIPT_NAME_VERSION}/")
+          else
+            ARCHIVE_DIR=$(pwd)/_built_versions/${SCRIPT_NAME_VERSION}
+          fi
+
           ARCHIVE_PATH="${ARCHIVE_DIR}/${ARCHIVE_NAME}"
 
+          # Guardar variables en el entorno
           echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> $GITHUB_ENV
           echo "ARCHIVE_PATH=${ARCHIVE_PATH}" >> $GITHUB_ENV
-        shell: bash
 
+          # Para Windows, convertir rutas
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            echo "ARCHIVE_PATH=$(echo ${ARCHIVE_PATH} | sed 's/\//\\/g')" >> $GITHUB_ENV
+          fi
+        shell: bash
 
 
       - name: Debug Artifact Path
