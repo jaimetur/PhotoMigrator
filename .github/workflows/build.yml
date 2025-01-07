@@ -10,9 +10,9 @@ jobs:
   build:
     strategy:
       matrix:
-        # os: [ubuntu-20.04, macos-latest, windows-latest]  # macos-latest
+#        os: [ubuntu-20.04, macos-latest, windows-latest]  # macos-latest
         os: [ubuntu-20.04]  # macos-latest
-        # arch: [x86_64, arm64]  # amd64 y arm64
+#        arch: [x86_64, arm64]  # amd64 y arm64
         arch: [x86_64]  # amd64 y arm64
         exclude:
           - os: windows-latest
@@ -29,21 +29,21 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           
-      # - name: Install dependencies (Linux/MacOS)
-        # if: matrix.os != 'windows-latest'
-        # run: |
-         # python3 -m pip install --upgrade pip
-          # pip3 install cibuildwheel
-          # if [ -f src/requirements.txt ]; then pip install -r src/requirements.txt; fi
-        # shell: bash
-
-      # - name: Install dependencies (Windows)
-        # if: matrix.os == 'windows-latest'
-        # run: |
-          # python3 -m pip install --upgrade pip
-          # pip3 install cibuildwheel
-          # if exist src\requirements.txt ( pip install -r src\requirements.txt )
-        # shell: cmd
+#      - name: Install dependencies (Linux/MacOS)
+#        if: matrix.os != 'windows-latest'
+#        run: |
+#          python3 -m pip install --upgrade pip
+#           pip3 install cibuildwheel
+#           if [ -f src/requirements.txt ]; then pip install -r src/requirements.txt; fi
+#        shell: bash
+#
+#      - name: Install dependencies (Windows)
+#        if: matrix.os == 'windows-latest'
+#        run: |
+#         python3 -m pip install --upgrade pip
+#         pip3 install cibuildwheel
+#         if exist src\requirements.txt ( pip install -r src\requirements.txt )
+#        shell: cmd
 
       # Compilación para Linux
       - name: Compile for Linux
@@ -54,23 +54,23 @@ jobs:
           echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> $GITHUB_ENV
         shell: bash
 
-      # Compilación para macOS (usando macos-latest)
-      - name: Compile for MacOS
-        if: matrix.os == 'macos-latest'
-        run: |
-          cd src
-          ARCHIVE_PATH=$(python3 _compile.py | tee /dev/stderr)
-          echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> $GITHUB_ENV
-        shell: bash
-
-      # Compilación para Windows
-      - name: Compile for Windows
-        if: matrix.os == 'windows-latest'
-        run: |
-          cd src
-          FOR /F "tokens=*" %%A IN ('python3 _compile.py') DO @SET ARCHIVE_PATH=%%A
-          echo ARCHIVE_PATH=%ARCHIVE_PATH% >> %GITHUB_ENV%
-        shell: cmd
+#      # Compilación para macOS (usando macos-latest)
+#      - name: Compile for MacOS
+#        if: matrix.os == 'macos-latest'
+#        run: |
+#          cd src
+#          ARCHIVE_PATH=$(python3 _compile.py | tee /dev/stderr)
+#          echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> $GITHUB_ENV
+#        shell: bash
+#
+#      # Compilación para Windows
+#      - name: Compile for Windows
+#        if: matrix.os == 'windows-latest'
+#        run: |
+#          cd src
+#          FOR /F "tokens=*" %%A IN ('python3 _compile.py') DO @SET ARCHIVE_PATH=%%A
+#          echo ARCHIVE_PATH=%ARCHIVE_PATH% >> %GITHUB_ENV%
+#        shell: cmd
 
       # Subir los ejecutables generados usando la ruta completa
       - name: Archive Artifacts
