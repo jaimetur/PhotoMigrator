@@ -1,0 +1,42 @@
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 12.28
+[File, System, Other] FileName - File Name: ZISRAW.czi
+[File, System, Other] Directory - Directory: t/images
+[File, System, Other] FileSize - File Size: 1856 bytes
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2020:08:07 09:52:14-04:00
+[File, System, Time] FileAccessDate - File Access Date/Time: 2021:04:30 09:16:33-04:00
+[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2020:08:10 09:43:20-04:00
+[File, System, Other] FilePermissions - File Permissions: -rw-r--r--
+[File, File, Other] FileType - File Type: CZI
+[File, File, Other] FileTypeExtension - File Type Extension: czi
+[File, File, Other] MIMEType - MIME Type: image/x-zeiss-czi
+[File, File, Image] 32 - ZISRAW Version: 1.0
+[File, File, Image] 48 - Primary File GUID: 8fae1a521bc8714e97e12b82ec8fa652
+[File, File, Image] 64 - File GUID: 8fae1a521bc8714e97e12b82ec8fa652
+[XML, XML, Image] XML - XML: (Binary data 1003 bytes)
+[XML, XML, Unknown] HardwareSettingMicroscopeId - Microscope Id: Microscope
+[XML, XML, Unknown] HardwareSettingMicroscopeName - Microscope Name: Axio Observer.Z1
+[XML, XML, Unknown] HardwareSettingMicroscopeUniqueName - Microscope Unique Name: AquilaZ.Stand
+[XML, XML, Unknown] HardwareSettingMicroscopeModel - Microscope Model: 
+[XML, XML, Unknown] HardwareSettingMicroscopeIsAvailable - Microscope Is Available: true
+[XML, XML, Unknown] HardwareSettingMicroscopeIsBroken - Microscope Is Broken: false
+[XML, XML, Unknown] HardwareSettingMicroscopeIsBrokenReason - Microscope Is Broken Reason: 
+[XML, XML, Unknown] HardwareSettingMicroscopeMotorization - Microscope Motorization: Motorized
+[XML, XML, Unknown] HardwareSettingMicroscopeIsLightSource - Microscope Is Light Source: false
+[XML, XML, Unknown] HardwareSettingMicroscopeIsLightSink - Microscope Is Light Sink: false
+[XML, XML, Unknown] HardwareSettingMicroscopeStandSpecification - Microscope Stand Specification: Inverted
+[XML, XML, Unknown] HardwareSettingMicroscopeDevicesDeviceRefId - Microscope Device Ref Id: MTBCameraAdapter_MTBSideportChanger_Left
+[XML, XML, Unknown] HardwareSettingEyePieceId - Eye Piece Id: MTBEyePiece
+[XML, XML, Unknown] HardwareSettingEyePieceName - Eye Piece Name: 10x Eyepiece SF23
+[XML, XML, Unknown] HardwareSettingEyePieceUniqueName - Eye Piece Unique Name: Eyepiece.10x_23
+[XML, XML, Unknown] HardwareSettingEyePieceModel - Eye Piece Model: 
+[XML, XML, Unknown] HardwareSettingEyePieceIsAvailable - Eye Piece Is Available: true
+[XML, XML, Unknown] HardwareSettingEyePieceIsBroken - Eye Piece Is Broken: false
+[XML, XML, Unknown] HardwareSettingEyePieceIsBrokenReason - Eye Piece Is Broken Reason: 
+[XML, XML, Unknown] HardwareSettingEyePieceMotorization - Eye Piece Motorization: None
+[XML, XML, Unknown] HardwareSettingEyePieceIsLightSource - Eye Piece Is Light Source: false
+[XML, XML, Unknown] HardwareSettingEyePieceIsLightSink - Eye Piece Is Light Sink: false
+[XML, XML, Unknown] HardwareSettingEyePieceMagnification - Eye Piece Mag: 10
+[XML, XML, Unknown] HardwareSettingEyePieceTotalMagnification - Eye Piece Total Mag: 400
+[XML, XML, Unknown] HardwareSettingEyePieceDepthOfField - Eye Piece Depth Of Field: 0.487202380952381
+[XML, XML, Unknown] HardwareSettingEyePieceFieldOfView - Eye Piece Field Of View: 23
+[XML, XML, Unknown] HardwareSettingEyePieceTotalFieldOfView - Eye Piece Total Field Of View: 0.575

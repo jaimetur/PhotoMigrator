@@ -1,0 +1,611 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- (this file generated automatically by Image::ExifTool::BuildTagLookup) -->
+<head>
+<title>Jpeg2000 Tags</title>
+<link rel=stylesheet type='text/css' href='style.css' title='Style'>
+</head>
+<body>
+<h2 class=top>Jpeg2000 Tags</h2>
+<p>The tags below are found in JPEG 2000 images and the C2PA CAI JUMBF metadata
+in various file types (see below).  Note that ExifTool currently writes only
+EXIF, IPTC and XMP tags in Jpeg2000 images, and EXIF and XMP in JXL images.
+ExifTool will read/write Brotli-compressed EXIF and XMP in JXL images, but
+the API <a href="../ExifTool.html#Compress">Compress</a> option must be set to create new EXIF and XMP in compressed
+format.</p>
+
+<p>C2PA (Coalition for Content Provenance and Authenticity) CAI (Content
+Authenticity Initiative) JUMBF (JPEG Universal Metadata Box Format) metdata
+is currently extracted from JPEG, PNG, TIFF-based (eg. TIFF, DNG),
+QuickTime-based (eg. MP4, MOV, HEIF, AVIF), RIFF-based (eg. WAV, AVI, WebP),
+PDF, SVG and GIF files, and ID3v2 metadata.  The suggested ExifTool
+command-line arguments for reading C2PA metadata are <code>-jumbf:all -G3 -b -j
+-u -struct</code>.  This metadata may be deleted from writable JPEG, PNG, WebP,
+TIFF-based, and QuickTime-based files by deleting the JUMBF group with
+<code>-jumbf:all=</code>.  The C2PA JUMBF metadata may be extracted as a block via the
+JUMBF tag.  See <a href="https://c2pa.org/specifications/">https://c2pa.org/specifications/</a> for the C2PA
+specification.</p>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Tag&nbsp;ID</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td>'Exif'</td>
+<td>EXIF</td>
+<td class=c>-</td>
+<td>--&gt; <a href='EXIF.html'>EXIF Tags</a></td></tr>
+<tr class=b>
+<td>'asoc'</td>
+<td>Association</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Jpeg2000.html'>Jpeg2000 Tags</a></td></tr>
+<tr>
+<td>'bfdb'</td>
+<td>BinaryDataType</td>
+<td class=c>no</td>
+<td><span class=s><span class=n>(JUMBF, MIME type and optional file name)</span></span></td></tr>
+<tr class=b>
+<td>'bfil'</td>
+<td>BinaryFilter</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'bidb'</td>
+<td>BinaryData</td>
+<td class=c>no</td>
+<td><span class=s><span class=n>(JUMBF)</span></span></td></tr>
+<tr class=b>
+<td>'bpcc'</td>
+<td>BitsPerComponent</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'brob'</td>
+<td>BrotliXMP
+  <br>BrotliEXIF
+  <br>BrotliJUMB</td>
+<td class=c>-<br>-<br>-</td>
+<td>--&gt; <a href='XMP.html'>XMP Tags</a>
+  <br>--&gt; <a href='EXIF.html'>EXIF Tags</a>
+  <br>--&gt; <a href='Jpeg2000.html'>Jpeg2000 Tags</a></td></tr>
+<tr class=b>
+<td>'c2sh'</td>
+<td>C2PASaltHash</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'cbor'</td>
+<td>CBORData</td>
+<td class=c>-</td>
+<td>--&gt; <a href='CBOR.html'>CBOR Tags</a></td></tr>
+<tr class=b>
+<td>'cdef'</td>
+<td>ComponentDefinition</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'cgrp'</td>
+<td>ColorGroup</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'chck'</td>
+<td>DigitalSignature</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'cmap'</td>
+<td>ComponentMapping</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'colr'</td>
+<td>ColorSpecification</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Jpeg2000.html#ColorSpec'>Jpeg2000 ColorSpec Tags</a></td></tr>
+<tr>
+<td>'comp'</td>
+<td>Composition</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'copt'</td>
+<td>CompositionOptions</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'cref'</td>
+<td>Cross-Reference</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'creg'</td>
+<td>CodestreamRegistration</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'drep'</td>
+<td>DesiredReproductions</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'dtbl'</td>
+<td>DataReference</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'flst'</td>
+<td>FragmentList</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'free'</td>
+<td>Free</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'ftbl'</td>
+<td>FragmentTable</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'ftyp'</td>
+<td>FileType</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Jpeg2000.html#FileType'>Jpeg2000 FileType Tags</a></td></tr>
+<tr>
+<td>'gtso'</td>
+<td>GraphicsTechnologyStandardOutput</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'hrgm'</td>
+<td>GainMapImage</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'ihdr'</td>
+<td>ImageHeader</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Jpeg2000.html#ImageHeader'>Jpeg2000 ImageHeader Tags</a></td></tr>
+<tr class=b>
+<td>'inst'</td>
+<td>InstructionSet</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'jP  '</td>
+<td>JP2Signature</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'jp2c'</td>
+<td>ContiguousCodestream
+  <br>PreviewImage</td>
+<td class=c>no<br>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'jp2h'</td>
+<td>JP2Header</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Jpeg2000.html'>Jpeg2000 Tags</a></td></tr>
+<tr class=b>
+<td>'jp2i'</td>
+<td>IntellectualProperty</td>
+<td class=c>-</td>
+<td>--&gt; <a href='XMP.html'>XMP Tags</a></td></tr>
+<tr>
+<td>'jpch'</td>
+<td>CodestreamHeader</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Jpeg2000.html'>Jpeg2000 Tags</a></td></tr>
+<tr class=b>
+<td>'jplh'</td>
+<td>CompositingLayerHeader</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Jpeg2000.html'>Jpeg2000 Tags</a></td></tr>
+<tr>
+<td>'json'</td>
+<td>JSONData</td>
+<td class=c>-</td>
+<td>--&gt; <a href='JSON.html'>JSON Tags</a>
+  <br><span class='n s'>(by default, data in this tag is parsed using the ExifTool JSON module to to
+allow individual tags to be accessed when reading, but it may also be
+extracted as a block via the &quot;JSONData&quot; tag or by setting the API
+BlockExtract option)</span></td></tr>
+<tr class=b>
+<td>'jumb'</td>
+<td>JUMBFBox</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Jpeg2000.html'>Jpeg2000 Tags</a></td></tr>
+<tr>
+<td>'jumd'</td>
+<td>JUMBFDescr</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Jpeg2000.html#JUMD'>Jpeg2000 JUMD Tags</a></td></tr>
+<tr class=b>
+<td>'jxlc'</td>
+<td>JXLCodestream</td>
+<td class=c>no</td>
+<td><span class=s><span class=n>(Codestream in JPEG XL image.  Currently processed only to determine
+ImageSize)</span></span></td></tr>
+<tr>
+<td>'jxlp'</td>
+<td>PartialJXLCodestream</td>
+<td class=c>no</td>
+<td><span class=s><span class=n>(Partial codestreams in JPEG XL image.  Currently processed only to determine
+ImageSize)</span></span></td></tr>
+<tr class=b>
+<td>'lbl '</td>
+<td>Label</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'mdat'</td>
+<td>MediaData</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'mp7b'</td>
+<td>MPEG7Binary</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'nlst'</td>
+<td>NumberList</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'opct'</td>
+<td>Opacity</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'pclr'</td>
+<td>Palette</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'prfl'</td>
+<td>Profile</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'res '</td>
+<td>Resolution</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Jpeg2000.html'>Jpeg2000 Tags</a></td></tr>
+<tr class=b>
+<td>'resc'</td>
+<td>CaptureResolution</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Jpeg2000.html#CaptureResolution'>Jpeg2000 CaptureResolution Tags</a></td></tr>
+<tr>
+<td>'resd'</td>
+<td>DisplayResolution</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Jpeg2000.html#DisplayResolution'>Jpeg2000 DisplayResolution Tags</a></td></tr>
+<tr class=b>
+<td>'roid'</td>
+<td>ROIDescription</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'rreq'</td>
+<td>ReaderRequirements</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'uinf'</td>
+<td>UUIDInfo</td>
+<td class=c>-</td>
+<td>--&gt; <a href='Jpeg2000.html'>Jpeg2000 Tags</a></td></tr>
+<tr>
+<td>'ulst'</td>
+<td>UUIDList</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'url '</td>
+<td>URL</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'uuid'</td>
+<td>UUID-EXIF
+  <br>UUID-EXIF2
+  <br>UUID-EXIF_bad
+  <br>UUID-IPTC
+  <br>UUID-IPTC2
+  <br>UUID-XMP
+  <br>UUID-GeoJP2
+  <br>UUID-Photoshop
+  <br>UUID-C2PAClaimSignature
+  <br>UUID-Signature
+  <br>UUID-Unknown</td>
+<td class=c>-<br>-<br>-<br>-<br>-<br>-<br>-<br>-<br>-<br>no<br>no</td>
+<td>--&gt; <a href='EXIF.html'>EXIF Tags</a>
+  <br>--&gt; <a href='EXIF.html'>EXIF Tags</a>
+  <br>--&gt; <a href='EXIF.html'>EXIF Tags</a>
+  <br>--&gt; <a href='IPTC.html'>IPTC Tags</a>
+  <br>--&gt; <a href='IPTC.html'>IPTC Tags</a>
+  <br>--&gt; <a href='XMP.html'>XMP Tags</a>
+  <br>--&gt; <a href='EXIF.html'>EXIF Tags</a>
+  <br>--&gt; <a href='Photoshop.html'>Photoshop Tags</a>
+  <br>--&gt; <a href='CBOR.html'>CBOR Tags</a></td></tr>
+<tr class=b>
+<td>'xml '</td>
+<td>XML
+  <br>XMP</td>
+<td class=c title=' ! = Unsafe
+ + = List'>undef!+<br>-</td>
+<td><span class=n>(by default, the XML data in this tag is parsed using the ExifTool XMP module
+to to allow individual tags to be accessed when reading, but it may also be
+extracted as a block via the &quot;XML&quot; tag, which is also how this tag is
+written and copied.  It may also be extracted as a block by setting the API
+BlockExtract option.  This is a List-type tag because multiple XML blocks
+may exist)</span>
+  <br>--&gt; <a href='XMP.html#XML'>XMP XML Tags</a>
+  <br><span class=n>(used for XMP in JPEG XL files)</span>
+  <br>--&gt; <a href='XMP.html'>XMP Tags</a></td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='ColorSpec'>Jpeg2000 ColorSpec Tags</a></h2>
+<p>The table below contains tags in the color specification (colr) box.  This
+box may be rewritten by writing either ICC_Profile, ColorSpace or
+ColorSpecData.  When writing, any existing colr boxes are replaced with the
+newly created colr box.</p>
+
+<p><b>NOTE</b>: Care must be taken when writing this color specification because
+writing a specification that is incompatible with the image data may make
+the image undisplayable.</p>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Index1</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td class=r title='0 = 0x0'>0</td>
+<td>ColorSpecMethod</td>
+<td class=c title=' ! = Unsafe'>int8s!</td>
+<td><span class=s><span class=n>(default for writing is 2 when writing ICC_Profile, 1 when writing
+ColorSpace, or 4 when writing ColorSpecData)</span>
+  <br>1 = Enumerated
+  <br>2 = Restricted ICC
+  <br>3 = Any ICC
+  <br>4 = Vendor Color</span></td></tr>
+<tr class=b>
+<td class=r title='1 = 0x1'>1</td>
+<td>ColorSpecPrecedence</td>
+<td class=c title=' ! = Unsafe'>int8s!</td>
+<td><span class=s><span class=n>(default for writing is 0)</span></span></td></tr>
+<tr>
+<td class=r title='2 = 0x2'>2</td>
+<td>ColorSpecApproximation</td>
+<td class=c title=' ! = Unsafe'>int8s!</td>
+<td><span class=s><span class=n>(default for writing is 0)</span>
+  <br>0 = Not Specified
+  <br>1 = Accurate
+  <br>2 = Exceptional Quality
+  <br>3 = Reasonable Quality
+  <br>4 = Poor Quality</span></td></tr>
+<tr class=b>
+<td class=r title='3 = 0x3'>3</td>
+<td>ICC_Profile
+  <br>ColorSpace
+  <br>ColorSpecData</td>
+<td class=c title=' ! = Unsafe'>-<br>int32u!<br>undef[$size-3]!</td>
+<td>--&gt; <a href='ICC_Profile.html'>ICC_Profile Tags</a>
+  <br><table class=cols><tr>
+  <td>0 = Bi-level
+  <br>1 = YCbCr(1)
+  <br>3 = YCbCr(2)
+  <br>4 = YCbCr(3)
+  <br>9 = PhotoYCC
+  <br>11 = CMY
+  <br>12 = CMYK
+  <br>13 = YCCK
+  <br>14 = CIELab
+  <br>15 = Bi-level(2)</td><td>&nbsp;&nbsp;</td>
+  <td>16 = sRGB
+  <br>17 = Grayscale
+  <br>18 = sYCC
+  <br>19 = CIEJab
+  <br>20 = e-sRGB
+  <br>21 = ROMM-RGB
+  <br>22 = YPbPr(1125/60)
+  <br>23 = YPbPr(1250/50)
+  <br>24 = e-sYCC</td></tr></table>
+</td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='FileType'>Jpeg2000 FileType Tags</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Index4</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td class=r title='0 = 0x0'>0</td>
+<td>MajorBrand</td>
+<td class=c>no</td>
+<td><span class=s>&#39;jp2 &#39; = JPEG 2000 Image (.JP2)
+  <br>&#39;jph &#39; = High-throughput JPEG 2000 (.JPH)
+  <br>&#39;jpm &#39; = JPEG 2000 Compound Image (.JPM)
+  <br>&#39;jpx &#39; = JPEG 2000 with extensions (.JPX)
+  <br>&#39;jxl &#39; = JPEG XL Image (.JXL)</span></td></tr>
+<tr class=b>
+<td class=r title='1 = 0x1'>1</td>
+<td>MinorVersion</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='2 = 0x2'>2</td>
+<td>CompatibleBrands</td>
+<td class=c title=' + = List'>no+</td>
+<td>&nbsp;</td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='ImageHeader'>Jpeg2000 ImageHeader Tags</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Index1</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td class=r title='0 = 0x0'>0</td>
+<td>ImageHeight</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='4 = 0x4'>4</td>
+<td>ImageWidth</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='8 = 0x8'>8</td>
+<td>NumberOfComponents</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='10 = 0xa'>10</td>
+<td>BitsPerComponent</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='11 = 0xb'>11</td>
+<td>Compression</td>
+<td class=c>no</td>
+<td><table class=cols><tr>
+  <td>0 = Uncompressed
+  <br>1 = Modified Huffman
+  <br>2 = Modified READ
+  <br>3 = Modified Modified READ
+  <br>4 = JBIG
+  <br>5 = JPEG
+  <br>6 = JPEG-LS
+  <br>7 = JPEG 2000
+  <br>8 = JBIG2</td></tr></table>
+</td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='JUMD'>Jpeg2000 JUMD Tags</a></h2>
+<p>Information extracted from the JUMBF description box.</p>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Tag&nbsp;ID</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td>'id'</td>
+<td>JUMDID</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'label'</td>
+<td>JUMDLabel</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td>'sig'</td>
+<td>JUMDSignature</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td>'toggles'</td>
+<td>JUMDToggles?</td>
+<td class=c>no</td>
+<td><span class=s>Bit 0 = Requestable
+  <br>Bit 1 = Label
+  <br>Bit 2 = ID
+  <br>Bit 3 = Signature</span></td></tr>
+<tr>
+<td>'type'</td>
+<td>JUMDType</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='CaptureResolution'>Jpeg2000 CaptureResolution Tags</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Index1</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td class=r title='0 = 0x0'>0</td>
+<td>CaptureYResolution</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='4 = 0x4'>4</td>
+<td>CaptureXResolution</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='8 = 0x8'>8</td>
+<td>CaptureYResolutionUnit</td>
+<td class=c>no</td>
+<td>--&gt; <a href='Jpeg2000.html#ResolutionUnit'>Jpeg2000 ResolutionUnit Values</a></td></tr>
+<tr class=b>
+<td class=r title='9 = 0x9'>9</td>
+<td>CaptureXResolutionUnit</td>
+<td class=c>no</td>
+<td>--&gt; <a href='Jpeg2000.html#ResolutionUnit'>Jpeg2000 ResolutionUnit Values</a></td></tr>
+</table></td></tr></table></blockquote>
+
+<h2><a name='ResolutionUnit'>Jpeg2000 ResolutionUnit Values</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class='inner sep' cellspacing=1>
+<tr class=h><th>Value</th><th>ResolutionUnit</th><th>Value</th><th>ResolutionUnit</th><th>Value</th><th>ResolutionUnit</th></tr>
+<tr><td>-3</td><td>= km</td>
+<td class=b>1</td><td class=b>= 10 cm</td>
+<td>5</td><td>= 0.01 mm</td>
+</tr><tr><td>-2</td><td>= 100 m</td>
+<td class=b>2</td><td class=b>= cm</td>
+<td>6</td><td>= um</td>
+</tr><tr><td>-1</td><td>= 10 m</td>
+<td class=b>3</td><td class=b>= mm</td>
+<td>&nbsp;</td><td>&nbsp;</td>
+</tr><tr><td>0</td><td>= m</td>
+<td class=b>4</td><td class=b>= 0.1 mm</td>
+<td>&nbsp;</td><td>&nbsp;</td>
+</tr></table></td></tr></table></blockquote>
+
+<h2><a name='DisplayResolution'>Jpeg2000 DisplayResolution Tags</a></h2>
+<blockquote>
+<table class=frame><tr><td>
+<table class=inner cellspacing=1>
+<tr class=h><th>Index1</th><th>Tag Name</th>
+<th>Writable</th><th>Values / <span class=n>Notes</span></th></tr>
+<tr>
+<td class=r title='0 = 0x0'>0</td>
+<td>DisplayYResolution</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr class=b>
+<td class=r title='4 = 0x4'>4</td>
+<td>DisplayXResolution</td>
+<td class=c>no</td>
+<td>&nbsp;</td></tr>
+<tr>
+<td class=r title='8 = 0x8'>8</td>
+<td>DisplayYResolutionUnit</td>
+<td class=c>no</td>
+<td>--&gt; <a href='Jpeg2000.html#ResolutionUnit'>Jpeg2000 ResolutionUnit Values</a></td></tr>
+<tr class=b>
+<td class=r title='9 = 0x9'>9</td>
+<td>DisplayXResolutionUnit</td>
+<td class=c>no</td>
+<td>--&gt; <a href='Jpeg2000.html#ResolutionUnit'>Jpeg2000 ResolutionUnit Values</a></td></tr>
+</table></td></tr></table></blockquote>
+
+<hr>
+(This document generated automatically by Image::ExifTool::BuildTagLookup)
+<br><i>Last revised Oct 2, 2024</i>
+<p class=lf><a href='index.html'>&lt;-- ExifTool Tag Names</a></p>
+</body>
+</html>

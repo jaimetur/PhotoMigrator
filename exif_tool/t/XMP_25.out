@@ -1,0 +1,44 @@
+[ExifTool, ExifTool, ExifTool] ExifToolVersion - ExifTool Version Number: 12.75
+[File, System, Other] FileName - File Name: XMP.svg
+[File, System, Other] Directory - Directory: t/images
+[File, System, Other] FileSize - File Size: 2.1 kB
+[File, System, Time] FileModifyDate - File Modification Date/Time: 2024:01:25 11:21:47-05:00
+[File, System, Time] FileAccessDate - File Access Date/Time: 2024:01:25 11:21:58-05:00
+[File, System, Time] FileInodeChangeDate - File Inode Change Date/Time: 2024:01:25 11:21:47-05:00
+[File, System, Other] FilePermissions - File Permissions: -rw-r--r--
+[File, File, Other] FileType - File Type: SVG
+[File, File, Other] FileTypeExtension - File Type Extension: svg
+[File, File, Other] MIMEType - MIME Type: image/svg+xml
+[SVG, SVG, Image] width - Image Width: 4in
+[SVG, SVG, Image] height - Image Height: 3in
+[SVG, SVG, Image] version - SVG Version: 1.1
+[SVG, SVG, Image] xmlns - Xmlns: http://www.w3.org/2000/svg
+[SVG, SVG-myfoo, Unknown] myfoo:descTitle - Desc Title: This is a financial report
+[SVG, SVG-myfoo, Unknown] myfoo:descDescrEmph - Desc Descr Emph: myfoo
+[SVG, SVG-myfoo, Unknown] myfoo:descSceneWhat - Desc Scene What: widget $growth
+[SVG, SVG-myfoo, Unknown] myfoo:descSceneContains - Desc Scene Contains: $three $graph-bar
+[SVG, SVG-myfoo, Unknown] myfoo:descSceneWhen - Desc Scene When: 1998 $through 2000
+[XMP, XMP-rdf, Document] about - About: http://example.org/myfoo
+[XMP, XMP-dc, Image] title - Title: MyFoo Financial Report
+[XMP, XMP-dc, Image] description - Description: $three $bar $thousands $dollars $from 1998 $through 2000
+[XMP, XMP-dc, Author] publisher - Publisher: Example Organization
+[XMP, XMP-dc, Time] date - Date: 2000:04:11
+[XMP, XMP-dc, Image] format - Format: image/svg+xml
+[XMP, XMP-dc, Other] language - Language: en
+[XMP, XMP-dc, Author] creator - Creator: Irving Bird, Mary Lambert
+[JUMBF, SVG-c2pa, Unknown] c2pa:manifest - JUMBF: (Binary data 413 bytes)
+[JUMBF, JUMBF, Image] type - JUMD Type: (cacb)-0011-0010-800000aa00389b71
+[JUMBF, JUMBF, Image] label - JUMD Label: cai
+[JUMBF, JUMBF, Image] type - JUMD Type: (cast)-0011-0010-800000aa00389b71
+[JUMBF, JUMBF, Image] label - JUMD Label: cb.reuters_1
+[JUMBF, JUMBF, Image] type - JUMD Type: (caas)-0011-0010-800000aa00389b71
+[JUMBF, JUMBF, Image] label - JUMD Label: cai.assertions
+[JUMBF, JUMBF, Image] type - JUMD Type: (json)-0011-0010-800000aa00389b71
+[JUMBF, JUMBF, Image] label - JUMD Label: adobe.asset.info
+[JUMBF, JSON, Other] title - Title: HEALTHCORONAVIRUSUSAOREGON_SALEM_08.jpg
+[JUMBF, JUMBF, Image] type - JUMD Type: (json)-0011-0010-800000aa00389b71
+[JUMBF, JUMBF, Image] label - JUMD Label: cai.location.broad
+[JUMBF, JSON, Other] location - Location: Salem, Oregon
+[JUMBF, JUMBF, Image] type - JUMD Type: (json)-0011-0010-800000aa00389b71
+[JUMBF, JUMBF, Image] label - JUMD Label: cai.rights
+[JUMBF, JSON, Other] copyright - Copyright: Alisha Jucevic
