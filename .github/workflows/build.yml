@@ -101,11 +101,13 @@ jobs:
           echo "ARCHIVE_NAME=${ARCHIVE_NAME}"
           echo "ARCHIVE_PATH=${ARCHIVE_PATH}"
           echo "ARCHIVE_PATH_NAME=${ARCHIVE_PATH_NAME}"
+          echo "ARCHIVE_FINAL_PATH=${ARCHIVE_FINAL_PATH}"
           echo "ARCHIVE_FINAL_PATH_NAME=${ARCHIVE_FINAL_PATH_NAME}"
           
           echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> $GITHUB_ENV
           echo "ARCHIVE_PATH=${ARCHIVE_PATH}" >> $GITHUB_ENV
           echo "ARCHIVE_PATH_NAME=${ARCHIVE_PATH_NAME}" >> $GITHUB_ENV
+          echo "ARCHIVE_FINAL_PATH=${ARCHIVE_FINAL_PATH}" >> $GITHUB_ENV
           echo "ARCHIVE_FINAL_PATH_NAME=${ARCHIVE_FINAL_PATH_NAME}" >> $GITHUB_ENV
 
           # Para Windows, convertir rutas
@@ -114,16 +116,12 @@ jobs:
           fi
         shell: bash
 
-      - name: Debug Artifact Path
-        run: |
-          echo "Archivo a original a subir: ${{ env.ARCHIVE_PATH_NAME }}"
-          echo "Archivo final subido: ${{ env.ARCHIVE_FINAL_PATH_NAME }}"
-        shell: bash
-
       - name: Move Artifact to Workspace
         run: |
-          mkdir -p ${{ env.ARCHIVE_PATH }}
+          echo "Archivo a original a subir: ${{ env.ARCHIVE_PATH_NAME }}"
+          mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
           mv ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH_NAME }}
+          echo "Archivo final subido: ${{ env.ARCHIVE_FINAL_PATH_NAME }}"
         shell: bash
 
 
@@ -132,7 +130,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARCHIVE_NAME }}
-          path: ${{ env.ARCHIVE_PATH }}
+          path: ${{ env.ARCHIVE_FINAL_PATH }}
 
 
 
