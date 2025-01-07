@@ -211,4 +211,5 @@ def compile():
 
 if __name__ == "__main__":
     result = compile()
+    print(result)
     sys.exit(result)
