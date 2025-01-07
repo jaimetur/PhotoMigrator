@@ -46,47 +46,16 @@ jobs:
 #        shell: cmd
 
 
-      - name: Extract Metadata and Build Archive Path (Linux/Mac)
-        if: runner.os != 'Windows'
+      - name: Extract Metadata and create environmnet variables for ARCHIVE_NAME and ARCHIVE_PATH
         run: |
-          # Extraer SCRIPT_NAME y SCRIPT_VERSION usando grep
           SCRIPT_NAME=$(grep -oP 'SCRIPT_NAME\s*=\s*"\K[^"]+' src/OrganizeTakeoutPhotos.py)
           SCRIPT_VERSION=$(grep -oP 'SCRIPT_VERSION\s*=\s*"\K[^"]+' src/OrganizeTakeoutPhotos.py)
-      
-          # Validar si las variables se extrajeron correctamente
-          if [ -z "$SCRIPT_NAME" ] || [ -z "$SCRIPT_VERSION" ]; then
-            echo "Error: No se pudo extraer SCRIPT_NAME o SCRIPT_VERSION"
-            exit 1
-          fi
           SCRIPT_NAME_VERSION="${SCRIPT_NAME}_${SCRIPT_VERSION}"
-          ARCHIVE_PATH="../_built_versions/${SCRIPT_NAME_VERSION}/"
           ARCHIVE_NAME="${SCRIPT_NAME_VERSION}_${{ matrix.os }}_${{ matrix.arch }}.zip"
-          echo "ARCHIVE_PATH=${ARCHIVE_PATH}" >> $GITHUB_ENV
+          ARCHIVE_PATH=$(realpath "../_built_versions/${SCRIPT_NAME_VERSION}/")
           echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> $GITHUB_ENV
-          echo "Archivo comprimido: ${ARCHIVE_PATH}${ARCHIVE_NAME}"
+          echo "ARCHIVE_PATH=${ARCHIVE_PATH}" >> $GITHUB_ENV
         shell: bash
-
-      - name: Extract Metadata and Build Archive Path (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          FOR /F "tokens=2 delims== " %%A IN ('findstr /C:"SCRIPT_NAME" src\OrganizeTakeoutPhotos.py') DO @SET SCRIPT_NAME=%%A
-          FOR /F "tokens=2 delims== " %%A IN ('findstr /C:"SCRIPT_VERSION" src\OrganizeTakeoutPhotos.py') DO @SET SCRIPT_VERSION=%%A
-          REM Eliminar comillas del principio y final
-          SET SCRIPT_NAME=%SCRIPT_NAME:~1,-1%
-          SET SCRIPT_VERSION=%SCRIPT_VERSION:~1,-1%
-          REM Crear SCRIPT_NAME_VERSION
-          SET SCRIPT_NAME_VERSION=%SCRIPT_NAME%_%SCRIPT_VERSION%
-          REM Construir paths
-          SET ARCHIVE_PATH=..\_built_versions\%SCRIPT_NAME_VERSION%\
-          SET ARCHIVE_NAME=%SCRIPT_NAME_VERSION%_windows_${{ matrix.arch }}.zip
-          REM Guardar en GITHUB_ENV
-          echo ARCHIVE_PATH=%ARCHIVE_PATH% >> %GITHUB_ENV%
-          echo ARCHIVE_NAME=%ARCHIVE_NAME% >> %GITHUB_ENV%
-          echo Script Name: %SCRIPT_NAME%
-          echo Script Version: %SCRIPT_VERSION%
-          echo Archivo comprimido: %ARCHIVE_PATH%%ARCHIVE_NAME%
-        shell: cmd
-
 
       # Compilación para Linux y macOS
       - name: Compile for Linux and MacOS
@@ -107,13 +76,20 @@ jobs:
       - name: Debug Artifact Path
         run: |
           ls -l _built_versions/
-          echo "Archivo a subir: ${{ env.ARCHIVE_PATH }}"
+          echo "Archivo a subir: ${{ env.ARCHIVE_PATH }}${{ env.ARCHIVE_NAME }}"
         shell: bash
 
       # Subir los ejecutables generados usando la ruta completa
+      - name: Adjust Path for Windows
+        if: runner.os == 'Windows'
+        run: |
+          echo "ARCHIVE_PATH=$(echo ${{ env.ARCHIVE_PATH }} | sed 's/\//\\/g')" >> $GITHUB_ENV
+        shell: bash
+
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARCHIVE_NAME }}
-          path: ${{ env.ARCHIVE_PATH }}/${{ env.ARCHIVE_NAME }}
+          path: ${{ env.ARCHIVE_PATH }}
+
 
