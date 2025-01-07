@@ -50,16 +50,14 @@ jobs:
         if: matrix.os == 'ubuntu-20.04'
         run: |
           cd src
-          python3 _compile.py | tee tmp_output.log
-          ARCHIVE_PATH=$(tail -n 1 tmp_output.log)        
-          ARCHIVE_NAME=$(basename "$ARCHIVE_PATH")  # Extrae solo el nombre del archivo
+          ARCHIVE_PATH=$(python3 _compile.py | tail -n 1)
+          ARCHIVE_NAME=$(basename "$ARCHIVE_PATH")
+          ARCHIVE_DIR=$(dirname "$ARCHIVE_PATH")
+          
           echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> $GITHUB_ENV
           echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
-          if [ ! -f "$ARCHIVE_PATH" ]; then
-            echo "Error: No se encontró el archivo comprimido."
-            exit 1
-          fi
-        shell: bash
+          echo "ARCHIVE_DIR=$ARCHIVE_DIR" >> $GITHUB_ENV
+          shell: bash
 
 
       # Compilación para macOS (usando macos-latest)
@@ -67,16 +65,14 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           cd src
-          python3 _compile.py | tee tmp_output.log
-          ARCHIVE_PATH=$(tail -n 1 tmp_output.log)
-          ARCHIVE_NAME=$(basename "$ARCHIVE_PATH")  # Extrae solo el nombre del archivo
+          ARCHIVE_PATH=$(python3 _compile.py | tail -n 1)
+          ARCHIVE_NAME=$(basename "$ARCHIVE_PATH")
+          ARCHIVE_DIR=$(dirname "$ARCHIVE_PATH")
+          
           echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> $GITHUB_ENV
           echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
-          if [ ! -f "$ARCHIVE_PATH" ]; then
-            echo "Error: No se encontró el archivo comprimido."
-            exit 1
-          fi
-        shell: bash
+          echo "ARCHIVE_DIR=$ARCHIVE_DIR" >> $GITHUB_ENV
+          shell: bash
 
       # Compilación para Windows
       - name: Compile for Windows
@@ -85,13 +81,16 @@ jobs:
           cd src
           python3 _compile.py | tee tmp_output.log
           FOR /F "tokens=*" %%A IN ('type tmp_output.log') DO @SET ARCHIVE_PATH=%%A
+          
+          REM Extraer nombre del archivo (basename)
           FOR %%I IN (%ARCHIVE_PATH%) DO @SET ARCHIVE_NAME=%%~nxI
+          
+          REM Extraer ruta del directorio (dirname)
+          FOR %%I IN (%ARCHIVE_PATH%) DO @SET ARCHIVE_DIR=%%~dpI
+          
           echo ARCHIVE_PATH=%ARCHIVE_PATH% >> %GITHUB_ENV%
           echo ARCHIVE_NAME=%ARCHIVE_NAME% >> %GITHUB_ENV%
-          if not exist %ARCHIVE_PATH% (
-            echo Error: No se encontró el archivo comprimido.
-            exit /b 1
-          )
+          echo ARCHIVE_DIR=%ARCHIVE_DIR% >> %GITHUB_ENV%
           shell: cmd
 
       - name: Debug Artifact Path
@@ -106,4 +105,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARCHIVE_NAME }}
-          path: _built_versions/${{ env.ARCHIVE_NAME }}
+          path: ${{ env.ARCHIVE_DIR }}/${{ env.ARCHIVE_NAME }}
+
