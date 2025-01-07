@@ -211,5 +211,5 @@ def compile():
 
 if __name__ == "__main__":
     result = compile()
-    print(result)
-    sys.exit(result)
+    print(result)  # Imprime el resultado (ruta del archivo comprimido)
+    sys.exit(0)    # Devuelve 0 para indicar éxito
