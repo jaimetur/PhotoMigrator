@@ -94,7 +94,7 @@ jobs:
             ARCHIVE_PATH=$(pwd)/_built_versions/${SCRIPT_NAME_VERSION}
           fi
           ARCHIVE_PATH_NAME="${ARCHIVE_PATH}/${ARCHIVE_NAME}"
-          ARCHIVE_FINAL_PATH="/_built_versions/${SCRIPT_NAME_VERSION}/"
+          ARCHIVE_FINAL_PATH="$GITHUB_WORKSPACE/_built_versions/${SCRIPT_NAME_VERSION}/"
           ARCHIVE_FINAL_PATH_NAME="${ARCHIVE_FINAL_PATH}/${ARCHIVE_NAME}"
           
           # Guardar variables en el entorno
