@@ -57,7 +57,7 @@ jobs:
           echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> $GITHUB_ENV
           echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
           echo "ARCHIVE_DIR=$ARCHIVE_DIR" >> $GITHUB_ENV
-          shell: bash
+        shell: bash
 
 
       # Compilación para macOS (usando macos-latest)
@@ -72,7 +72,7 @@ jobs:
           echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> $GITHUB_ENV
           echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
           echo "ARCHIVE_DIR=$ARCHIVE_DIR" >> $GITHUB_ENV
-          shell: bash
+        shell: bash
 
       # Compilación para Windows
       - name: Compile for Windows
@@ -91,7 +91,7 @@ jobs:
           echo ARCHIVE_PATH=%ARCHIVE_PATH% >> %GITHUB_ENV%
           echo ARCHIVE_NAME=%ARCHIVE_NAME% >> %GITHUB_ENV%
           echo ARCHIVE_DIR=%ARCHIVE_DIR% >> %GITHUB_ENV%
-          shell: cmd
+        shell: cmd
 
       - name: Debug Artifact Path
         run: |
