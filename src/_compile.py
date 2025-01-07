@@ -198,6 +198,7 @@ def compile_all_so_all_architectures():
             print(f"Script comprimido: {script_zip_file}")
 
     print("Todas las compilaciones han finalizado correctamente.")
+    return script_zip_file
 
 if __name__ == "__main__":
     compile_all_so_all_architectures()
