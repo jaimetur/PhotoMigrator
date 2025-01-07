@@ -49,8 +49,15 @@ jobs:
       - name: Extract Metadata and Build Archive Path (Linux/Mac)
         if: runner.os != 'Windows'
         run: |
-          SCRIPT_NAME=$(grep 'SCRIPT_NAME' src/OrganizeTakeoutPhotos.py | cut -d'"' -f2)
-          SCRIPT_VERSION=$(grep 'SCRIPT_VERSION' src/OrganizeTakeoutPhotos.py | cut -d'"' -f2)
+          # Extraer nombre del script y versión usando awk para mayor precisión
+          SCRIPT_NAME=$(awk -F '"' '/SCRIPT_NAME/ {print $2}' src/OrganizeTakeoutPhotos.py)
+          SCRIPT_VERSION=$(awk -F '"' '/SCRIPT_VERSION/ {print $2}' src/OrganizeTakeoutPhotos.py)
+      
+          # Validar si las variables se extrajeron correctamente
+          if [ -z "$SCRIPT_NAME" ] || [ -z "$SCRIPT_VERSION" ]; then
+            echo "Error: No se pudo extraer SCRIPT_NAME o SCRIPT_VERSION"
+            exit 1
+          fi
           SCRIPT_NAME_VERSION=${SCRIPT_NAME}_${SCRIPT_VERSION}
           ARCHIVE_PATH="../_built_versions/${SCRIPT_NAME_VERSION}/"
           ARCHIVE_NAME="${SCRIPT_NAME_VERSION}_${{ matrix.os }}_${{ matrix.arch }}.zip"
