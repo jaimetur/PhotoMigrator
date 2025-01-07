@@ -2,6 +2,9 @@
 OrganizeTakeoutPhotos*.run
 OrganizeTakeoutPhotos*.exe
 
+# ZIP src Versions
+_src_versions.zip
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
