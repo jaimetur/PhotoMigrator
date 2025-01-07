@@ -10,10 +10,10 @@ jobs:
   build:
     strategy:
       matrix:
-#        os: [ubuntu-20.04, macos-latest, windows-latest]  # macos-latest
-        os: [ubuntu-20.04]  # macos-latest
-#        arch: [x86_64, arm64]  # amd64 y arm64
-        arch: [x86_64]  # amd64 y arm64
+        os: [ubuntu-20.04, macos-latest, windows-latest]  # macos-latest
+#        os: [ubuntu-20.04]  # macos-latest
+        arch: [x86_64, arm64]  # amd64 y arm64
+#        arch: [x86_64]  # amd64 y arm64
         exclude:
           - os: windows-latest
             arch: arm64  # Windows solo se compila para x86 (32/64-bit)
@@ -51,7 +51,7 @@ jobs:
         run: |
           cd src
           python3 _compile.py | tee tmp_output.log
-          ARCHIVE_PATH=$(tail -n 1 tmp_output.log)
+          ARCHIVE_PATH=$(tail -n 1 tmp_output.log)        
           ARCHIVE_NAME=$(basename "$ARCHIVE_PATH")  # Extrae solo el nombre del archivo
           echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> $GITHUB_ENV
           echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
@@ -93,6 +93,13 @@ jobs:
             exit /b 1
           )
           shell: cmd
+
+      - name: Debug Artifact Path
+        run: |
+          ls -l _built_versions/
+          echo "Archivo a subir: ${{ env.ARCHIVE_PATH }}"
+        shell: bash
+
 
       # Subir los ejecutables generados usando la ruta completa
       - name: Archive Artifacts
