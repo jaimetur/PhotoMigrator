@@ -99,4 +99,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ env.ARCHIVE_NAME }}
-          path: ${{ env.ARCHIVE_PATH }}
+          path: _built_versions/${{ env.ARCHIVE_NAME }}

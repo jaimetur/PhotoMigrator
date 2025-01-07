@@ -211,5 +211,13 @@ def compile():
 
 if __name__ == "__main__":
     result = compile()
-    print(result)  # Imprime el resultado (ruta del archivo comprimido)
-    sys.exit(0)    # Devuelve 0 para indicar éxito
+    # Ruta donde queremos mover el archivo comprimido
+    target_directory = Path("../_built_versions")
+    # Crear la carpeta _built_versions si no existe
+    target_directory.mkdir(parents=True, exist_ok=True)
+    # Mover el archivo ZIP a _built_versions
+    target_file = target_directory / Path(result).name
+    shutil.move(result, target_file)
+    # Imprimir la ruta final del archivo comprimido
+    print(target_file)
+    sys.exit(0)
