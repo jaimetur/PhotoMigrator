@@ -89,36 +89,47 @@ jobs:
 
           # Determinar la ruta del archivo generado
           if [ -d "_built_versions/${SCRIPT_NAME_VERSION}" ]; then
-            ARCHIVE_DIR=$(realpath "_built_versions/${SCRIPT_NAME_VERSION}/")
+            ARCHIVE_FINAL_PATH=$(realpath "_built_versions/${SCRIPT_NAME_VERSION}/")
           else
-            ARCHIVE_DIR=$(pwd)/_built_versions/${SCRIPT_NAME_VERSION}
+            ARCHIVE_FINAL_PATH=$(pwd)/_built_versions/${SCRIPT_NAME_VERSION}
           fi
 
-          ARCHIVE_PATH="${ARCHIVE_DIR}/${ARCHIVE_NAME}"
+          ARCHIVE_FINAL_PATH_NAME="${ARCHIVE_FINAL_PATH}/${ARCHIVE_NAME}"
 
           # Guardar variables en el entorno
+          echo "ARCHIVE_NAME=${ARCHIVE_NAME}"
+          echo "ARCHIVE_FINAL_PATH=${ARCHIVE_FINAL_PATH}"
+          echo "ARCHIVE_FINAL_PATH_NAME=${ARCHIVE_FINAL_PATH_NAME}"
+          
           echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> $GITHUB_ENV
-          echo "ARCHIVE_PATH=${ARCHIVE_PATH}" >> $GITHUB_ENV
+          echo "ARCHIVE_FINAL_PATH=${ARCHIVE_FINAL_PATH}" >> $GITHUB_ENV
+          echo "ARCHIVE_FINAL_PATH_NAME=${ARCHIVE_FINAL_PATH_NAME}" >> $GITHUB_ENV
 
           # Para Windows, convertir rutas
           if [ "$RUNNER_OS" == "Windows" ]; then
-            echo "ARCHIVE_PATH=$(echo ${ARCHIVE_PATH} | sed 's/\//\\/g')" >> $GITHUB_ENV
+            echo "ARCHIVE_FINAL_PATH_NAME=$(echo ${ARCHIVE_FINAL_PATH_NAME} | sed 's/\//\\/g')" >> $GITHUB_ENV
           fi
         shell: bash
 
 
       - name: Debug Artifact Path
         run: |
-          ls -l _built_versions/
-          echo "Archivo a subir: ${{ env.ARCHIVE_PATH }}"
+          echo "Archivo a subir: ${{ env.ARCHIVE_FINAL_PATH_NAME }}"
         shell: bash
+
+      - name: Move Artifact to Workspace
+        run: |
+          mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
+          mv ${{ env.ARCHIVE_FINAL_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH }}/${{ env.ARCHIVE_NAME }}
+        shell: bash
+
 
       # Subir los ejecutables generados usando la ruta completa
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARCHIVE_NAME }}
-          path: _built_versions/${{ env.ARCHIVE_NAME }}
+          path: ${{ env.ARCHIVE_FINAL_PATH }}
 
 
 
