@@ -10,12 +10,12 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-12, windows-latest]
+        os: [ubuntu-20.04, macos-latest, windows-latest]
         arch: [x86_64, arm64]  # amd64 y arm64
         exclude:
           - os: windows-latest
             arch: arm64  # Windows solo se compila para x86 (32/64-bit)
-        python-version: ["3.8.x"]
+        python-version: ["3.10.x"]
 
     runs-on: ${{ matrix.os }}
     
@@ -30,16 +30,16 @@ jobs:
       - name: Install dependencies (Linux/MacOS)
         if: matrix.os != 'windows-latest'
         run: |
-          python -m pip install --upgrade pip
-          pip install cibuildwheel
+          python3 -m pip install --upgrade pip
+          pip3 install cibuildwheel
           if [ -f src/requirements.txt ]; then pip install -r src/requirements.txt; fi
         shell: bash
 
       - name: Install dependencies (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          python -m pip install --upgrade pip
-          pip install cibuildwheel
+          python3 -m pip install --upgrade pip
+          pip3 install cibuildwheel
           if exist src\requirements.txt ( pip install -r src\requirements.txt )
         shell: cmd
 
@@ -47,24 +47,24 @@ jobs:
       - name: Compile for Linux (glibc 2.26)
         if: matrix.os == 'ubuntu-20.04'
         run: |
-          docker run --rm -v $(pwd):/src python:3.8 /bin/bash -c "\
-          apt update && \
-          apt install -y build-essential glibc-source glibc-doc glibc-2.26 && \
-          cd /src/src && python _compile.py"
+          cd src
+          python3 _compile.py
         shell: bash
 
       # Compilación directa para macOS
       - name: Run _compile.py (MacOS)
         if: matrix.os == 'macos-latest'
         run: |
-          python src/_compile.py
+          cd src
+          python3 _compile.py
         shell: bash
 
       # Compilación directa para Windows
       - name: Run _compile.py (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          python src\_compile.py
+          cd src
+          python3 _compile.py
         shell: cmd
 
       # Subir los ejecutables generados
