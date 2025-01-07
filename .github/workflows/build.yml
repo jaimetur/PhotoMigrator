@@ -58,12 +58,12 @@ jobs:
             echo "Error: No se pudo extraer SCRIPT_NAME o SCRIPT_VERSION"
             exit 1
           fi
-          SCRIPT_NAME_VERSION=${SCRIPT_NAME}_${SCRIPT_VERSION}
+          SCRIPT_NAME_VERSION="${SCRIPT_NAME}_${SCRIPT_VERSION}"
           ARCHIVE_PATH="../_built_versions/${SCRIPT_NAME_VERSION}/"
           ARCHIVE_NAME="${SCRIPT_NAME_VERSION}_${{ matrix.os }}_${{ matrix.arch }}.zip"
           echo "ARCHIVE_PATH=${ARCHIVE_PATH}" >> $GITHUB_ENV
           echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> $GITHUB_ENV
-          echo "Archivo comprimido=${ARCHIVE_PATH}${ARCHIVE_NAME}"
+          echo "Archivo comprimido: ${ARCHIVE_PATH}${ARCHIVE_NAME}"
         shell: bash
 
       - name: Extract Metadata and Build Archive Path (Windows)
