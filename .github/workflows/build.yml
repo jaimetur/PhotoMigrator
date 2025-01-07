@@ -49,9 +49,9 @@ jobs:
       - name: Extract Metadata and Build Archive Path (Linux/Mac)
         if: runner.os != 'Windows'
         run: |
-          # Extraer nombre del script y versión usando awk para mayor precisión
-          SCRIPT_NAME=$(awk -F '"' '/SCRIPT_NAME/ {print $2}' src/OrganizeTakeoutPhotos.py)
-          SCRIPT_VERSION=$(awk -F '"' '/SCRIPT_VERSION/ {print $2}' src/OrganizeTakeoutPhotos.py)
+          # Extraer SCRIPT_NAME y SCRIPT_VERSION usando grep
+          SCRIPT_NAME=$(grep -oP 'SCRIPT_NAME\s*=\s*"\K[^"]+' src/OrganizeTakeoutPhotos.py)
+          SCRIPT_VERSION=$(grep -oP 'SCRIPT_VERSION\s*=\s*"\K[^"]+' src/OrganizeTakeoutPhotos.py)
       
           # Validar si las variables se extrajeron correctamente
           if [ -z "$SCRIPT_NAME" ] || [ -z "$SCRIPT_VERSION" ]; then
