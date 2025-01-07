@@ -51,37 +51,35 @@ jobs:
         run: |
           SCRIPT_NAME=$(grep 'SCRIPT_NAME' src/OrganizeTakeoutPhotos.py | cut -d'"' -f2)
           SCRIPT_VERSION=$(grep 'SCRIPT_VERSION' src/OrganizeTakeoutPhotos.py | cut -d'"' -f2)
-          ARCHIVE_PATH="../_built_versions/${SCRIPT_NAME}_${SCRIPT_VERSION}/"
-          ARCHIVE_NAME="${SCRIPT_NAME}_${SCRIPT_VERSION}_${{ matrix.os }}_${{ matrix.arch }}.zip"
-          FULL_ARCHIVE_PATH="${ARCHIVE_PATH}${ARCHIVE_NAME}"
-          echo "SCRIPT_NAME=$SCRIPT_NAME" >> $GITHUB_ENV
-          echo "SCRIPT_VERSION=$SCRIPT_VERSION" >> $GITHUB_ENV
-          echo "ARCHIVE_PATH=$FULL_ARCHIVE_PATH" >> $GITHUB_ENV
-          echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
-          echo "Script Name: $SCRIPT_NAME"
-          echo "Script Version: $SCRIPT_VERSION"
-          echo "Archivo comprimido: $FULL_ARCHIVE_PATH"
+          SCRIPT_NAME_VERSION=${SCRIPT_NAME}_${SCRIPT_VERSION}
+          ARCHIVE_PATH="../_built_versions/${SCRIPT_NAME_VERSION}/"
+          ARCHIVE_NAME="${SCRIPT_NAME_VERSION}_${{ matrix.os }}_${{ matrix.arch }}.zip"
+          echo "ARCHIVE_PATH=${ARCHIVE_PATH}" >> $GITHUB_ENV
+          echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> $GITHUB_ENV
+          echo "Archivo comprimido=${ARCHIVE_PATH}${ARCHIVE_NAME}"
         shell: bash
 
       - name: Extract Metadata and Build Archive Path (Windows)
         if: runner.os == 'Windows'
         run: |
-          FOR /F "tokens=2 delims==" %%A IN ('findstr /C:"SCRIPT_NAME" src\OrganizeTakeoutPhotos.py') DO @SET SCRIPT_NAME=%%A
-          FOR /F "tokens=2 delims==" %%A IN ('findstr /C:"SCRIPT_VERSION" src\OrganizeTakeoutPhotos.py') DO @SET SCRIPT_VERSION=%%A
-          REM Eliminar comillas
+          FOR /F "tokens=2 delims== " %%A IN ('findstr /C:"SCRIPT_NAME" src\OrganizeTakeoutPhotos.py') DO @SET SCRIPT_NAME=%%A
+          FOR /F "tokens=2 delims== " %%A IN ('findstr /C:"SCRIPT_VERSION" src\OrganizeTakeoutPhotos.py') DO @SET SCRIPT_VERSION=%%A
+          REM Eliminar comillas del principio y final
           SET SCRIPT_NAME=%SCRIPT_NAME:~1,-1%
           SET SCRIPT_VERSION=%SCRIPT_VERSION:~1,-1%
-          SET ARCHIVE_PATH=..\_built_versions\%SCRIPT_NAME%_%SCRIPT_VERSION%\
-          SET ARCHIVE_NAME=%SCRIPT_NAME%_%SCRIPT_VERSION%_windows_${{ matrix.arch }}.zip
-          SET FULL_ARCHIVE_PATH=%ARCHIVE_PATH%%ARCHIVE_NAME%
-          echo SCRIPT_NAME=%SCRIPT_NAME% >> %GITHUB_ENV%
-          echo SCRIPT_VERSION=%SCRIPT_VERSION% >> %GITHUB_ENV%
-          echo ARCHIVE_PATH=%FULL_ARCHIVE_PATH% >> %GITHUB_ENV%
+          REM Crear SCRIPT_NAME_VERSION
+          SET SCRIPT_NAME_VERSION=%SCRIPT_NAME%_%SCRIPT_VERSION%
+          REM Construir paths
+          SET ARCHIVE_PATH=..\_built_versions\%SCRIPT_NAME_VERSION%\
+          SET ARCHIVE_NAME=%SCRIPT_NAME_VERSION%_windows_${{ matrix.arch }}.zip
+          REM Guardar en GITHUB_ENV
+          echo ARCHIVE_PATH=%ARCHIVE_PATH% >> %GITHUB_ENV%
           echo ARCHIVE_NAME=%ARCHIVE_NAME% >> %GITHUB_ENV%
           echo Script Name: %SCRIPT_NAME%
           echo Script Version: %SCRIPT_VERSION%
-          echo Archivo comprimido: %FULL_ARCHIVE_PATH%
+          echo Archivo comprimido: %ARCHIVE_PATH%%ARCHIVE_NAME%
         shell: cmd
+
 
       # Compilación para Linux y macOS
       - name: Compile for Linux and MacOS
@@ -110,5 +108,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARCHIVE_NAME }}
-          path: ${{ env.ARCHIVE_DIR }}/${{ env.ARCHIVE_NAME }}
+          path: ${{ env.ARCHIVE_PATH }}/${{ env.ARCHIVE_NAME }}
 
