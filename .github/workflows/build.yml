@@ -47,17 +47,16 @@ jobs:
 
 
       # Extraer SCRIPT_NAME y SCRIPT_VERSION
-      - name: Extract Script Metadata
+      - name: Extract Script Metadata (Linux/Mac)
         run: |
-          SCRIPT_NAME=$(grep -oP '(?<=SCRIPT_NAME\s*=\s*")[^"]+' src/OrganizeTakeoutPhotos.py)
-          SCRIPT_VERSION=$(grep -oP '(?<=SCRIPT_VERSION\s*=\s*")[^"]+' src/OrganizeTakeoutPhotos.py)
-
+          SCRIPT_NAME=$(grep 'SCRIPT_NAME' src/OrganizeTakeoutPhotos.py | cut -d'"' -f2)
+          SCRIPT_VERSION=$(grep 'SCRIPT_VERSION' src/OrganizeTakeoutPhotos.py | cut -d'"' -f2)
           echo "SCRIPT_NAME=$SCRIPT_NAME" >> $GITHUB_ENV
           echo "SCRIPT_VERSION=$SCRIPT_VERSION" >> $GITHUB_ENV
-
           echo "Script Name: $SCRIPT_NAME"
           echo "Script Version: $SCRIPT_VERSION"
         shell: bash
+
 
       # Construcción del nombre del artefacto y path (Linux/Mac)
       - name: Build Archive Path (Linux/Mac)
