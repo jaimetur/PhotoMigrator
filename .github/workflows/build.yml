@@ -46,17 +46,6 @@ jobs:
 #        shell: cmd
 
 
-      - name: Extract Metadata and create environmnet variables for ARCHIVE_NAME and ARCHIVE_PATH
-        run: |
-          SCRIPT_NAME=$(grep -oP 'SCRIPT_NAME\s*=\s*"\K[^"]+' src/OrganizeTakeoutPhotos.py)
-          SCRIPT_VERSION=$(grep -oP 'SCRIPT_VERSION\s*=\s*"\K[^"]+' src/OrganizeTakeoutPhotos.py)
-          SCRIPT_NAME_VERSION="${SCRIPT_NAME}_${SCRIPT_VERSION}"
-          ARCHIVE_NAME="${SCRIPT_NAME_VERSION}_${{ matrix.os }}_${{ matrix.arch }}.zip"
-          ARCHIVE_PATH=$(realpath "../_built_versions/${SCRIPT_NAME_VERSION}/")
-          echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> $GITHUB_ENV
-          echo "ARCHIVE_PATH=${ARCHIVE_PATH}" >> $GITHUB_ENV
-        shell: bash
-
       # Compilación para Linux y macOS
       - name: Compile for Linux and MacOS
         if: matrix.os != 'windows-latest'
@@ -80,6 +69,18 @@ jobs:
         shell: bash
 
       # Subir los ejecutables generados usando la ruta completa
+      - name: Extract Metadata and create environment variables for ARCHIVE_NAME and ARCHIVE_PATH
+        run: |
+          SCRIPT_NAME=$(grep -oP 'SCRIPT_NAME\s*=\s*"\K[^"]+' src/OrganizeTakeoutPhotos.py)
+          SCRIPT_VERSION=$(grep -oP 'SCRIPT_VERSION\s*=\s*"\K[^"]+' src/OrganizeTakeoutPhotos.py)
+          SCRIPT_NAME_VERSION="${SCRIPT_NAME}_${SCRIPT_VERSION}"
+          ARCHIVE_NAME="${SCRIPT_NAME_VERSION}_${{ matrix.os }}_${{ matrix.arch }}.zip"
+          ARCHIVE_DIR=$(realpath "../_built_versions/${SCRIPT_NAME_VERSION}/")
+          ARCHIVE_PATH="${ARCHIVE_DIR}/${ARCHIVE_NAME}"
+          echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> $GITHUB_ENV
+          echo "ARCHIVE_PATH=${ARCHIVE_PATH}" >> $GITHUB_ENV
+        shell: bash
+
       - name: Adjust Path for Windows
         if: runner.os == 'Windows'
         run: |
