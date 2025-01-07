@@ -12,6 +12,15 @@ def clear_screen():
 
 def comprimir_directorio(temp_dir, output_file):
     print(f"Creando el archivo comprimido: {output_file}...")
+
+    # Convertir output_file a un objeto Path
+    output_path = Path(output_file)
+
+    # Crear los directorios padres si no existen
+    if not output_path.parent.exists():
+        print(f"Creando directorios necesarios para: {output_path.parent}")
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
     with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for root, dirs, files in os.walk(temp_dir):
             for file in files:
