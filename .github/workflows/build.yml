@@ -46,41 +46,50 @@ jobs:
 #        shell: cmd
 
 
-      # Extraer SCRIPT_NAME y SCRIPT_VERSION
-      - name: Extract Script Metadata (Linux/Mac)
+      - name: Extract Metadata and Build Archive Path
         run: |
-          SCRIPT_NAME=$(grep 'SCRIPT_NAME' src/OrganizeTakeoutPhotos.py | cut -d'"' -f2)
-          SCRIPT_VERSION=$(grep 'SCRIPT_VERSION' src/OrganizeTakeoutPhotos.py | cut -d'"' -f2)
-          echo "SCRIPT_NAME=$SCRIPT_NAME" >> $GITHUB_ENV
-          echo "SCRIPT_VERSION=$SCRIPT_VERSION" >> $GITHUB_ENV
-          echo "Script Name: $SCRIPT_NAME"
-          echo "Script Version: $SCRIPT_VERSION"
+          # Para Linux/Mac
+          if [ "$RUNNER_OS" != "Windows" ]; then
+            SCRIPT_NAME=$(grep 'SCRIPT_NAME' src/OrganizeTakeoutPhotos.py | cut -d'"' -f2)
+            SCRIPT_VERSION=$(grep 'SCRIPT_VERSION' src/OrganizeTakeoutPhotos.py | cut -d'"' -f2)
+            
+            ARCHIVE_PATH="../_built_versions/${SCRIPT_NAME}_${SCRIPT_VERSION}/"
+            ARCHIVE_NAME="${SCRIPT_NAME}_${SCRIPT_VERSION}_${{ matrix.os }}_${{ matrix.arch }}.zip"
+            FULL_ARCHIVE_PATH="${ARCHIVE_PATH}${ARCHIVE_NAME}"
+            
+            echo "SCRIPT_NAME=$SCRIPT_NAME" >> $GITHUB_ENV
+            echo "SCRIPT_VERSION=$SCRIPT_VERSION" >> $GITHUB_ENV
+            echo "ARCHIVE_PATH=$FULL_ARCHIVE_PATH" >> $GITHUB_ENV
+            echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
+            
+            echo "Script Name: $SCRIPT_NAME"
+            echo "Script Version: $SCRIPT_VERSION"
+            echo "Archivo comprimido: $FULL_ARCHIVE_PATH"
+          
+          # Para Windows
+          else
+            FOR /F "tokens=2 delims==" %%A IN ('findstr /C:"SCRIPT_NAME" src\OrganizeTakeoutPhotos.py') DO @SET SCRIPT_NAME=%%A
+            FOR /F "tokens=2 delims==" %%A IN ('findstr /C:"SCRIPT_VERSION" src\OrganizeTakeoutPhotos.py') DO @SET SCRIPT_VERSION=%%A
+            
+            REM Eliminar comillas
+            SET SCRIPT_NAME=%SCRIPT_NAME:~1,-1%
+            SET SCRIPT_VERSION=%SCRIPT_VERSION:~1,-1%
+            
+            SET ARCHIVE_PATH=..\_built_versions\%SCRIPT_NAME%_%SCRIPT_VERSION%\
+            SET ARCHIVE_NAME=%SCRIPT_NAME%_%SCRIPT_VERSION%_windows_${{ matrix.arch }}.zip
+            SET FULL_ARCHIVE_PATH=%ARCHIVE_PATH%%ARCHIVE_NAME%
+            
+            echo SCRIPT_NAME=%SCRIPT_NAME% >> %GITHUB_ENV%
+            echo SCRIPT_VERSION=%SCRIPT_VERSION% >> %GITHUB_ENV%
+            echo ARCHIVE_PATH=%FULL_ARCHIVE_PATH% >> %GITHUB_ENV%
+            echo ARCHIVE_NAME=%ARCHIVE_NAME% >> %GITHUB_ENV%
+            
+            echo Script Name: %SCRIPT_NAME%
+            echo Script Version: %SCRIPT_VERSION%
+            echo Archivo comprimido: %FULL_ARCHIVE_PATH%
+          fi
         shell: bash
 
-
-      # Construcción del nombre del artefacto y path (Linux/Mac)
-      - name: Build Archive Path (Linux/Mac)
-        if: matrix.os != 'windows-latest'
-        run: |
-          ARCHIVE_PATH="../_built_versions/${{ env.SCRIPT_NAME }}_${{ env.SCRIPT_VERSION }}/"
-          ARCHIVE_NAME="${{ env.SCRIPT_NAME }}_${{ env.SCRIPT_VERSION }}_${{ matrix.os }}_${{ matrix.arch }}.zip"
-          FULL_ARCHIVE_PATH="${ARCHIVE_PATH}${ARCHIVE_NAME}"
-          echo "ARCHIVE_PATH=$FULL_ARCHIVE_PATH" >> $GITHUB_ENV
-          echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
-          echo "Archivo comprimido: $FULL_ARCHIVE_PATH"
-        shell: bash
-
-      # Construcción del nombre del artefacto y path (Windows)
-      - name: Build Archive Path (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          SET ARCHIVE_PATH=..\_built_versions\%SCRIPT_NAME%_%SCRIPT_VERSION%\
-          SET ARCHIVE_NAME=%SCRIPT_NAME%_%SCRIPT_VERSION%_windows_%ARCH%.zip
-          SET FULL_ARCHIVE_PATH=%ARCHIVE_PATH%%ARCHIVE_NAME%
-          echo ARCHIVE_PATH=%FULL_ARCHIVE_PATH% >> %GITHUB_ENV%
-          echo ARCHIVE_NAME=%ARCHIVE_NAME% >> %GITHUB_ENV%
-          echo Archivo comprimido: %FULL_ARCHIVE_PATH%
-        shell: cmd
 
       # Compilación para Linux y macOS
       - name: Compile for Linux and MacOS
