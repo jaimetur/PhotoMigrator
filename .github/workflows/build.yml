@@ -52,6 +52,7 @@ jobs:
         run: |
           cd src
           python3 _compile.py
+          cd ..
         shell: bash
 
       # Compilación para Windows
@@ -60,6 +61,7 @@ jobs:
         run: |
           cd src
           python _compile.py
+          cd ..
         shell: cmd
 
       # Extraer metadatos y construir paths
