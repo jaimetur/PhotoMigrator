@@ -10,12 +10,12 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-latest, windows-latest]
+        os: [ubuntu-20.04, macos-latest, windows-latest]  # macos-latest
         arch: [x86_64, arm64]  # amd64 y arm64
         exclude:
           - os: windows-latest
             arch: arm64  # Windows solo se compila para x86 (32/64-bit)
-        python-version: ["3.10.x"]
+        python-version: ["3.10.10"]
 
     runs-on: ${{ matrix.os }}
     
@@ -43,33 +43,36 @@ jobs:
           if exist src\requirements.txt ( pip install -r src\requirements.txt )
         shell: cmd
 
-      # Compilación para Linux con glibc 2.26 usando Docker
-      - name: Compile for Linux (glibc 2.26)
+      # Compilación para Linux
+      - name: Compile for Linux
         if: matrix.os == 'ubuntu-20.04'
         run: |
           cd src
-          python3 _compile.py
+          ARCHIVE_PATH=$(python3 _compile.py)
+          echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> $GITHUB_ENV
         shell: bash
 
-      # Compilación directa para macOS
-      - name: Run _compile.py (MacOS)
+      # Compilación para macOS (usando macos-latest)
+      - name: Compile for MacOS
         if: matrix.os == 'macos-latest'
         run: |
           cd src
-          python3 _compile.py
+          ARCHIVE_PATH=$(python3 _compile.py)
+          echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> $GITHUB_ENV
         shell: bash
 
-      # Compilación directa para Windows
-      - name: Run _compile.py (Windows)
+      # Compilación para Windows
+      - name: Compile for Windows
         if: matrix.os == 'windows-latest'
         run: |
           cd src
-          python3 _compile.py
+          FOR /F "tokens=*" %%A IN ('python3 _compile.py') DO @SET ARCHIVE_PATH=%%A
+          echo ARCHIVE_PATH=%ARCHIVE_PATH% >> %GITHUB_ENV%
         shell: cmd
 
-      # Subir los ejecutables generados
+      # Subir los ejecutables generados usando la ruta completa
       - name: Archive Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: executable-${{ matrix.os }}-${{ matrix.arch }}
-          path: dist/*
+          name: ${{ env.ARCHIVE_PATH }}
+          path: ${{ env.ARCHIVE_PATH }}
