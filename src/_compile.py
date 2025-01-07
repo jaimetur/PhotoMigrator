@@ -67,7 +67,7 @@ def get_clean_version(version: str):
     return clean_version
 
 
-def compile_all_so_all_architectures():
+def compile():
     global SCRIPT_NAME
     global SCRIPT_NAME_VERSION
     global OS
@@ -201,4 +201,5 @@ def compile_all_so_all_architectures():
     return script_zip_file
 
 if __name__ == "__main__":
-    compile_all_so_all_architectures()
+    result = compile()
+    sys.exit(result)
