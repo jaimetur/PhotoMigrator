@@ -1,3 +1,7 @@
+# Compiled Code
+OrganizeTakeoutPhotos*.run
+OrganizeTakeoutPhotos*.exe
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
