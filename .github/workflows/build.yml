@@ -48,7 +48,7 @@ jobs:
         if: matrix.os == 'ubuntu-20.04'
         run: |
           cd src
-          ARCHIVE_PATH=$(python3 _compile.py)
+          ARCHIVE_PATH=$(python3 _compile.py | tee /dev/stderr)
           echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> $GITHUB_ENV
         shell: bash
 
@@ -57,7 +57,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           cd src
-          ARCHIVE_PATH=$(python3 _compile.py)
+          ARCHIVE_PATH=$(python3 _compile.py | tee /dev/stderr)
           echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> $GITHUB_ENV
         shell: bash
 
