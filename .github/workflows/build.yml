@@ -113,7 +113,7 @@ jobs:
           COMMIT_MESSAGE="Added from GitHub Actions"
 
           # Obtener el sha del archivo en dev (si existe)
-          FILE_EXISTS_DEV=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
+          SHA_DEV=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
             https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${ARCHIVE_FINAL_PATH_NAME} | \
             grep '"sha"' | awk -F '"' '{print $4}')
 
@@ -126,12 +126,12 @@ jobs:
             "message": "${COMMIT_MESSAGE}",
             "content": "${BASE64_ARTIFACT}",
             "branch": "${{ github.ref_name }}",
-            "sha": "${FILE_EXISTS_DEV}"
+            "sha": "${SHA_DEV}"
           }
           EOF
 
           # Obtener el sha del archivo en prod (si existe)
-          FILE_EXISTS_PROD=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
+          SHA_PROD=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
             https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${ARCHIVE_FINAL_PATH_NAME} | \
             grep '"sha"' | awk -F '"' '{print $4}')
 
@@ -144,7 +144,7 @@ jobs:
             "message": "${COMMIT_MESSAGE}",
             "content": "${BASE64_ARTIFACT}",
             "branch": "${{ github.ref_name }}",
-            "sha": "${FILE_EXISTS_PROD}"
+            "sha": "${SHA_PROD}"
           }
           EOF
 
