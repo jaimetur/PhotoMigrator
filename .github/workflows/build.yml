@@ -112,7 +112,12 @@ jobs:
           # Parámetros
           COMMIT_MESSAGE="Added from GitHub Actions"
 
-          # Subir al repo dev
+          # Obtener el sha del archivo en dev (si existe)
+          FILE_EXISTS_DEV=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
+            https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${ARCHIVE_FINAL_PATH_NAME} | \
+            grep '"sha"' | awk -F '"' '{print $4}')
+
+          # Subir al repo dev (sobrescribir si existe)
           curl -X PUT \
             -H "Authorization: token ${{ secrets.GH_PAT }}" \
             -H "Content-Type: application/json" \
@@ -120,11 +125,17 @@ jobs:
           {
             "message": "${COMMIT_MESSAGE}",
             "content": "${BASE64_ARTIFACT}",
-            "branch": "${{ github.ref_name }}"
+            "branch": "${{ github.ref_name }}",
+            "sha": "${FILE_EXISTS_DEV}"
           }
           EOF
 
-          # Subir al repo prod
+          # Obtener el sha del archivo en prod (si existe)
+          FILE_EXISTS_PROD=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
+            https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${ARCHIVE_FINAL_PATH_NAME} | \
+            grep '"sha"' | awk -F '"' '{print $4}')
+
+          # Subir al repo prod (sobrescribir si existe)
           curl -X PUT \
             -H "Authorization: token ${{ secrets.GH_PAT }}" \
             -H "Content-Type: application/json" \
@@ -132,12 +143,10 @@ jobs:
           {
             "message": "${COMMIT_MESSAGE}",
             "content": "${BASE64_ARTIFACT}",
-            "branch": "${{ github.ref_name }}"
+            "branch": "${{ github.ref_name }}",
+            "sha": "${FILE_EXISTS_PROD}"
           }
           EOF
-
-
-
 
 #      # Subir los ejecutables generados usando la ruta completa
 #      - name: Archive Artifacts
