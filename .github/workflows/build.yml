@@ -117,46 +117,37 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Crear el repositorio temporal y preparar el entorno
           mkdir -p temp-repo
           cd temp-repo
 
-          # Inicializar Git en el directorio raíz de temp-repo
           git init
 
-          # Añadir dos remotos: dev y prod
           git remote add dev https://${{ secrets.GH_PAT }}@github.com/jaimetur/OrganizeTakeoutPhotos-dev.git
           git remote add prod https://${{ secrets.GH_PAT }}@github.com/jaimetur/OrganizeTakeoutPhotos.git
 
-          # Obtener la rama que activó el workflow
           git fetch dev ${{ github.ref_name }} || git fetch dev main || git fetch dev master
           git checkout ${{ github.ref_name }} || git checkout main || git checkout -b ${{ github.ref_name }}
 
-          # Hacer pull de ambos remotos (desarrollo y producción) para evitar conflictos
+          # Rebase de dev y prod (omitimos conflictos)
           git pull dev ${{ github.ref_name }} --rebase || true
-          git pull prod ${{ github.ref_name }} --rebase || true
+          git pull prod ${{ github.ref_name }} --rebase || (git rebase --skip || true)
 
-          # Crear el directorio donde irá el artefacto
           mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
-
-          # Copiar el artefacto al directorio correspondiente
           cp -r ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH }}
 
-          # Añadir y hacer commit de los archivos
           if [ -d "${{ env.ARCHIVE_FINAL_PATH }}" ]; then
             git add ${{ env.ARCHIVE_FINAL_PATH }}
             git commit -m "Added from GitHub Actions"
 
-            # Renombrar la rama actual para coincidir con la rama remota
             git branch -m ${{ github.ref_name }}
 
-            # Hacer push a ambos repositorios (dev y prod)
             git push dev ${{ github.ref_name }}
             git push prod ${{ github.ref_name }}
           else
             echo "Error: El directorio ${{ env.ARCHIVE_FINAL_PATH }} no existe. No se realizará el commit."
             exit 1
           fi
+      
       
       
       
