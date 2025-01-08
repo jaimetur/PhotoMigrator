@@ -140,10 +140,12 @@ jobs:
           
           # Añadir los archivos al índice
           git add ${{ env.ARCHIVE_FINAL_PATH }}
+          # mkdir -p {{ env.ARCHIVE_FINAL_PATH }}
+          # cp -r ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH_NAME }}  # Copia el artefacto a la carpeta deseada del repositorio
           
           # Comprobar si hay cambios para evitar errores
           git diff --cached --quiet || git commit -m "Add artifact from GitHub Actions"
           
           # Push usando el token
-          git push https://${{ secrets.GH_PAT_CLASSIC }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref_name }}
-          git push https://${{ secrets.GH_PAT_CLASSIC }}@github.com/jaimetur/OrganizeTakeoutPhotos.git HEAD:${{ github.ref_name }}
+          git push https://${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref_name }}
+          git push https://${{ secrets.GH_PAT }}@github.com/jaimetur/OrganizeTakeoutPhotos.git HEAD:${{ github.ref_name }}
