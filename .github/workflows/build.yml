@@ -141,8 +141,8 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
           # Añadir los archivos al índice
-          mkdir -p {{ env.ARCHIVE_FINAL_PATH }}
-          cp -r ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH_NAME }}  # Copia el artefacto a la carpeta deseada del repositorio
+#          mkdir -p {{ env.ARCHIVE_FINAL_PATH }}
+#          cp -r ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH_NAME }}  # Copia el artefacto a la carpeta deseada del repositorio
           git add ${{ env.ARCHIVE_FINAL_PATH }}
           
           # Comprobar si hay cambios para evitar errores
