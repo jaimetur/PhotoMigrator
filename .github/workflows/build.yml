@@ -140,7 +140,7 @@ jobs:
       - name: Upload artifact to GitHub repos with API (Windows)
         if: runner.os == 'Windows'
         run: |
-          $FILE_TO_ADD=${{ env.ARCHIVE_FINAL_PATH_NAME }}
+          $FILE_TO_ADD = ${{ env.ARCHIVE_FINAL_PATH_NAME }}
           Write-Host "Uploading file '${FILE_TO_ADD}' to dev and prod repositories..."
           
           # Encode Artifact to Base64 (Windows)
