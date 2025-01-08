@@ -105,45 +105,6 @@ jobs:
           Write-Output "ARCHIVE_FINAL_PATH_NAME (Windows): $path"
 
       # Upload the compiled compressed file to the corresponding GitHub repositories
-      - name: Upload artifact to GitHub repos with CLI (Cross-Platform)
-#        if: runner.os != 'Windows'
-        if: runner.os == 'flksjflkajlfñkajlñfkasfñafsadfa'
-        run: |
-          echo "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
-
-          # Configuración inicial de Git
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "GitHub Actions"
-
-          # Definir parámetros
-          COMMIT_MESSAGE="Added from GitHub Actions"
-          REPOS=("OrganizeTakeoutPhotos-dev" "OrganizeTakeoutPhotos")
-          FILE=${{ env.ARCHIVE_FINAL_PATH_NAME }}
-
-          # Iterar sobre cada repositorio
-          for REPO in "${REPOS[@]}"; do
-            echo "Uploading to $REPO..."
-
-            # URL del repositorio
-            REPO_URL="https://${{ secrets.GH_PAT }}@github.com/jaimetur/$REPO.git"
-
-            # Añadir el archivo al índice
-            git init
-            git remote add origin $REPO_URL
-            git checkout -b ${{ github.ref_name }}
-
-            # Añadir archivo y hacer commit
-            git add $FILE
-            git commit -m "$COMMIT_MESSAGE"
-
-            # Subir el archivo (sin hacer pull previo)
-            git push origin ${{ github.ref_name }}
-
-            # Limpiar repositorio temporal
-            rm -r -fo .git
-          done
-
-      # Upload the compiled compressed file to the corresponding GitHub repositories
       - name: Upload artifact to GitHub repos with API (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
@@ -189,9 +150,46 @@ jobs:
             
             # Limpiar el archivo temporal
             rm ${PAYLOAD_FILE}
-            
           done
         shell: bash
+
+      # Upload the compiled compressed file to the corresponding GitHub repositories
+#      - name: Upload artifact to GitHub repos with CLI (Cross-Platform)
+#        if: runner.os == 'Windows'
+#        run: |
+#         echo "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
+#
+#         # Configuración inicial de Git
+#         git config --global user.email "github-actions@github.com"
+#         git config --global user.name "GitHub Actions"
+#
+#         # Definir parámetros
+#         COMMIT_MESSAGE="Added from GitHub Actions"
+#         REPOS=("OrganizeTakeoutPhotos-dev" "OrganizeTakeoutPhotos")
+#         FILE=${{ env.ARCHIVE_FINAL_PATH_NAME }}
+#
+#         # Iterar sobre cada repositorio
+#         for REPO in "${REPOS[@]}"; do
+#           echo "Uploading to $REPO..."
+#
+#           # URL del repositorio
+#           REPO_URL="https://${{ secrets.GH_PAT }}@github.com/jaimetur/$REPO.git"
+#
+#           # Añadir el archivo al índice
+#           git init
+#           git remote add origin $REPO_URL
+#           git checkout -b ${{ github.ref_name }}
+#
+#           # Añadir archivo y hacer commit
+#           git add $FILE
+#           git commit -m "$COMMIT_MESSAGE"
+#
+#           # Subir el archivo (sin hacer pull previo)
+#           git push origin ${{ github.ref_name }}
+#
+#           # Limpiar repositorio temporal
+#           rm -r -fo .git
+#         done
 
       - name: Upload artifact to GitHub repos with API (Windows)
         if: runner.os == 'Windows'
@@ -208,7 +206,7 @@ jobs:
           $COMMIT_MESSAGE = "Added from GitHub Actions"
 
           # UPLOAD TO DEV REPO:
-          URL=https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}
+          URL="https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}"
           # Get the sha of the file in dev
           SHA = (Invoke-RestMethod -Uri "${URL}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"}).sha
           Invoke-RestMethod -Method Put -Uri "${URL}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"} -Body (ConvertTo-Json -Compress @{
