@@ -94,7 +94,7 @@ jobs:
             ARCHIVE_PATH=$(pwd)/_built_versions/${SCRIPT_NAME_VERSION}
           fi
           ARCHIVE_PATH_NAME="${ARCHIVE_PATH}/${ARCHIVE_NAME}"
-          ARCHIVE_FINAL_PATH="jaimetur/OrganizeTakeoutPhotos-dev/_built_versions/${SCRIPT_NAME_VERSION}/"
+          ARCHIVE_FINAL_PATH="_built_versions/${SCRIPT_NAME_VERSION}/"
           ARCHIVE_FINAL_PATH_NAME="${ARCHIVE_FINAL_PATH}${ARCHIVE_NAME}"
           
           # Guardar variables en el entorno
@@ -131,14 +131,19 @@ jobs:
           name: ${{ env.ARCHIVE_NAME }}
           path: ${{ env.ARCHIVE_FINAL_PATH }}
 
+
       - name: Commit and push artifact to repo
         run: |
+          echo "Archivo a original a subir: ${{ env.ARCHIVE_PATH_NAME }}"
+          echo "Archivo final subido      : ${{ env.ARCHIVE_FINAL_PATH_NAME }}"
+          
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
           # Añadir los archivos al índice
+          mkdir -p {{ env.ARCHIVE_FINAL_PATH }}
           cp -r ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH_NAME }}  # Copia el artefacto a la carpeta deseada del repositorio
-          git add ${{ env.ARCHIVE_FINAL_PATH_NAME }}
+          git add ${{ env.ARCHIVE_FINAL_PATH }}
           
           # Comprobar si hay cambios para evitar errores
           git diff --cached --quiet || git commit -m "Add artifact from GitHub Actions"
