@@ -140,22 +140,16 @@ jobs:
           git init
           git remote add origin https://${{ secrets.GH_PAT }}@github.com/jaimetur/OrganizeTakeoutPhotos-dev.git
 
-          # Obtener la rama que activó el workflow
-          git fetch origin ${{ github.ref_name }} || git fetch origin main || git fetch origin master
-          git checkout ${{ github.ref_name }} || git checkout main || git checkout -b ${{ github.ref_name }}
-
           # Crear el directorio donde irá el artefacto
           mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
 
           # Copiar el artefacto al directorio correspondiente
           cp -r ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH }}
-          echo "Después de copiar el archivo"
-          ls -l ${{ env.ARCHIVE_FINAL_PATH }}
 
           # Añadir y hacer commit de los archivos
           if [ -d "${{ env.ARCHIVE_FINAL_PATH }}" ]; then
             git add ${{ env.ARCHIVE_FINAL_PATH }}
-            git commit -m "Add artifact from GitHub Actions"
+            git commit -m "Added from GitHub Actions"
 
             # Renombrar la rama actual para coincidir con la rama remota
             git branch -m ${{ github.ref_name }}
