@@ -112,16 +112,15 @@ jobs:
 
             # Subir el archivo (crear o sobrescribir)
             curl -X PUT \
-                    -H "Authorization: token ${{ secrets.GH_PAT }}" \
-                    -H "Content-Type: application/json" \
-                    -d @- ${URL}  <<EOF
-            {
-              "message": "${COMMIT_MESSAGE}",
-              "content": "${BASE64_ARTIFACT}",
-              "branch": "${{ github.ref_name }}",
-              "sha": "${SHA}"
-            }
-            EOF
+                -H "Authorization: token ${{ secrets.GH_PAT }}" \
+                -H "Content-Type: application/json" \
+                -d '{
+                  "message": "'"${COMMIT_MESSAGE}"'",
+                  "content": "'"${BASE64_ARTIFACT}"'",
+                  "branch": "'"${{ github.ref_name }}"'",
+                  "sha": "'"${SHA}"'"
+                }' ${URL}
+            
           done
         shell: bash
 
