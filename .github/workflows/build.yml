@@ -134,21 +134,11 @@ jobs:
 
           # Añadir los archivos al índice
           mkdir -p temp-repo
-          echo "Directorio actual (root): $(pwd)"
-          ls -l
-          cd temp-repo
           mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
           ls -l
-          echo "Directorio actual (temp-repo): $(pwd)"
-          ls -l
-          cd ${{ env.ARCHIVE_FINAL_PATH }}
-          echo "Directorio actual (dentro de _built_versions): $(pwd)"
-          ls -l 
-
           # Copiar el artefacto al directorio deseado
-          cp -r ${{ env.ARCHIVE_PATH_NAME }} .  # Copia el artefacto
-          echo "Después de copiar el archivo"
-          ls -l 
+          cp -r ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH }}  # Copia el artefacto
+          ls -l ${{ env.ARCHIVE_FINAL_PATH }}
 
           # Inicialización de Git y configuración del remoto
           git init
