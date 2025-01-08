@@ -12,6 +12,15 @@ def clear_screen():
 
 def comprimir_directorio(temp_dir, output_file):
     print(f"Creando el archivo comprimido: {output_file}...")
+
+    # Convertir output_file a un objeto Path
+    output_path = Path(output_file)
+
+    # Crear los directorios padres si no existen
+    if not output_path.parent.exists():
+        print(f"Creando directorios necesarios para: {output_path.parent}")
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
     with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for root, dirs, files in os.walk(temp_dir):
             for file in files:
@@ -67,7 +76,7 @@ def get_clean_version(version: str):
     return clean_version
 
 
-def compile_all_so_all_architectures():
+def compile():
     global SCRIPT_NAME
     global SCRIPT_NAME_VERSION
     global OS
@@ -120,7 +129,7 @@ def compile_all_so_all_architectures():
 
         # Inicializamos variables
         script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-        script_zip_file = Path(f"../_built_versions/{script_name_with_version_os_arch}.zip").resolve()
+        script_zip_file = Path(f"../_built_versions/{SCRIPT_NAME_VERSION}/{script_name_with_version_os_arch}.zip").resolve()
         if OPERATING_SYSTEM=='windows':
             script_compiled = f'{SCRIPT_NAME}.exe'
             script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
@@ -152,7 +161,7 @@ def compile_all_so_all_architectures():
             else:
                 script_compiled = f'{SCRIPT_NAME}.bin'
                 script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
-            script_zip_file = Path(f"../_built_versions/{script_name_with_version_os_arch}.zip").resolve()
+            script_zip_file = Path(f"../_built_versions/{SCRIPT_NAME_VERSION}/{script_name_with_version_os_arch}.zip").resolve()
             print("")
             print(f"Compilando para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}'...")
             if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
@@ -198,6 +207,16 @@ def compile_all_so_all_architectures():
             print(f"Script comprimido: {script_zip_file}")
 
     print("Todas las compilaciones han finalizado correctamente.")
+    # Obtener el directorio raíz un nivel arriba del directorio de trabajo
+    root_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+    # Calcular el path relativo
+    relative_path = os.path.relpath(script_zip_file, root_dir)
+    # Guardar el resultado en un fichero de texto
+    with open('filename.txt', 'w') as file:
+        file.write(relative_path)
+    print(f'El path relativo es: {relative_path}')
+    return relative_path
 
 if __name__ == "__main__":
-    compile_all_so_all_architectures()
+    result = compile()
+    sys.exit(0)
