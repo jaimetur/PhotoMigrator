@@ -102,41 +102,41 @@ jobs:
         shell: bash
 
       # Subir el fichero compilado comprimido a los repositorios Github correspondientes
-      - name: Commit and push artifact to repos
+      - name: Upload artifact to GitHub repos
         run: |
-          echo "Archivo a original a subir: ${{ env.ARCHIVE_PATH_NAME }}"
-          echo "Archivo final subido      : ${{ env.ARCHIVE_FINAL_PATH_NAME }}"
+          echo "Subiendo archivo a _built_versions..."
 
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          # Convertir el archivo a base64 (necesario para la API de GitHub)
+          BASE64_ARTIFACT=$(base64 -w 0 ${{ env.ARCHIVE_PATH_NAME }})
 
-          mkdir -p temp-repo
-          cd temp-repo
+          # Parámetros
+          REPO_PATH="_built_versions/${{ env.ARCHIVE_NAME }}"
+          COMMIT_MESSAGE="Added from GitHub Actions"
 
-          # Inicializar repositorio vacío
-          git init
+          # Subir al repo dev
+          curl -X PUT \
+            -H "Authorization: token ${{ secrets.GH_PAT }}" \
+            -H "Content-Type: application/json" \
+            -d @- https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${REPO_PATH} <<EOF
+          {
+            "message": "${COMMIT_MESSAGE}",
+            "content": "${BASE64_ARTIFACT}",
+            "branch": "${{ github.ref_name }}"
+          }
+          EOF
 
-          # Añadir el repositorio remoto (dev y prod)
-          git remote add dev https://${{ secrets.GH_PAT }}@github.com/jaimetur/OrganizeTakeoutPhotos-dev.git
-          git remote add prod https://${{ secrets.GH_PAT }}@github.com/jaimetur/OrganizeTakeoutPhotos.git
+          # Subir al repo prod
+          curl -X PUT \
+            -H "Authorization: token ${{ secrets.GH_PAT }}" \
+            -H "Content-Type: application/json" \
+            -d @- https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${REPO_PATH} <<EOF
+          {
+            "message": "${COMMIT_MESSAGE}",
+            "content": "${BASE64_ARTIFACT}",
+            "branch": "${{ github.ref_name }}"
+          }
+          EOF
 
-          # Obtener solo la referencia de la rama sin clonar el contenido completo
-          git fetch dev ${{ github.ref_name }} --depth=1
-          git checkout ${{ github.ref_name }} || git checkout -b ${{ github.ref_name }}
-
-          # Crear la carpeta _built_versions si no existe
-          mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
-
-          # Copiar el artefacto compilado
-          cp -r ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH }}
-
-          # Añadir y hacer commit del archivo
-          git add ${{ env.ARCHIVE_FINAL_PATH }}
-          git commit -m "Added from GitHub Actions"
-
-          # Hacer push del archivo solo a _built_versions sin afectar otros archivos
-          git push dev ${{ github.ref_name }}
-          git push prod ${{ github.ref_name }}
 
 
 #      # Subir los ejecutables generados usando la ruta completa
