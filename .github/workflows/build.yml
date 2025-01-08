@@ -104,56 +104,84 @@ jobs:
           echo "ARCHIVE_FINAL_PATH_NAME=$path" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Output "ARCHIVE_FINAL_PATH_NAME (Windows): $path"
 
-      # Upload the compiled compressed file to the corresponding GitHub repositories
-      - name: Upload artifact to GitHub repos with API (Linux/macOS)
-        if: runner.os != 'Windows'
+      # Upload artifact to GitHub repos with API (Windows)
+      - name: Upload artifact to GitHub repos with API (Windows)
+        if: runner.os == 'Windows'
         run: |
-          echo "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
+          Write-Host "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
+      
+          # Encode Artifact to Base64 (Windows)
+          [Convert]::ToBase64String([IO.File]::ReadAllBytes("${{ env.ARCHIVE_FINAL_PATH_NAME }}")) | Out-File -FilePath artifact_base64.txt
+          
+          # Leer el contenido codificado en base64 (for Windows)
+          $BASE64_ARTIFACT = Get-Content -Path "artifact_base64.txt" -Raw
+      
+          # Parameters
+          $COMMIT_MESSAGE = "Added from GitHub Actions"
+      
+          # UPLOAD TO DEV REPO:
+          $URL = "https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}"
+          # Get the sha of the file in dev
+          $SHA = (Invoke-RestMethod -Uri $URL -Headers @{Authorization="token ${{ secrets.GH_PAT }}"}).sha
+          Invoke-RestMethod -Method Put -Uri $URL -Headers @{Authorization="token ${{ secrets.GH_PAT }}"} -Body (ConvertTo-Json -Compress @{
+            message = $COMMIT_MESSAGE
+            content = $BASE64_ARTIFACT
+            branch = "main"
+            sha = $SHA
+          })
+      
+          # UPLOAD TO PROD REPO:
+          $URL = "https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}"
+          # Get the sha of the file in prod
+          $SHA = (Invoke-RestMethod -Uri $URL -Headers @{Authorization="token ${{ secrets.GH_PAT }}"}).sha
+          Invoke-RestMethod -Method Put -Uri $URL -Headers @{Authorization="token ${{ secrets.GH_PAT }}"} -Body (ConvertTo-Json -Compress @{
+            message = $COMMIT_MESSAGE
+            content = $BASE64_ARTIFACT
+            branch = "main"
+            sha = $SHA
+          })
+        shell: pwsh
 
-          # Encode Artifact to Base64 (Linux/macOS)
-          cat ${{ env.ARCHIVE_FINAL_PATH_NAME }} | base64 | tr -d '\n' > artifact_base64.txt
 
-          # Leer el contenido codificado en base64 desde el archivo
-          BASE64_ARTIFACT=$(cat artifact_base64.txt)
+      # Upload artifact to GitHub repos with API (Windows)
+      - name: Upload artifact to GitHub repos with API (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          Write-Host "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
+
+          # Encode Artifact to Base64 (Windows)
+          [Convert]::ToBase64String([IO.File]::ReadAllBytes("${{ env.ARCHIVE_FINAL_PATH_NAME }}")) | Out-File -FilePath artifact_base64.txt
+          
+          # Leer el contenido codificado en base64 (for Windows)
+          $BASE64_ARTIFACT = Get-Content -Path "artifact_base64.txt" -Raw
 
           # Parameters
-          COMMIT_MESSAGE="Added from GitHub Actions"
-          REPOS=("OrganizeTakeoutPhotos-dev" "OrganizeTakeoutPhotos")
+          $COMMIT_MESSAGE = "Added from GitHub Actions"
 
-          for REPO in "${REPOS[@]}"; do
-            echo "Uploading to $REPO..."
-            URL=https://api.github.com/repos/jaimetur/$REPO/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}
+          # UPLOAD TO DEV REPO:
+          URL=https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}
+          # Get the sha of the file in dev
+          SHA = (Invoke-RestMethod -Uri "${URL}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"}).sha
+          Invoke-RestMethod -Method Put -Uri "${URL}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"} -Body (ConvertTo-Json -Compress @{
+            message = $COMMIT_MESSAGE
+            content = $BASE64_ARTIFACT
+            branch = "main"
+            sha = SHA
+          })
 
-            # Extraer SHA si el archivo existe
-            command="curl -s -f -H 'Authorization: token ${{ secrets.GH_PAT }}' '${URL}' | grep '\"sha\"' | awk -F '\"' '{print \$4}' || echo \"\""
-            # echo "Command: ${command}"
-            SHA=$(eval ${command})
-            echo "SHA: ${SHA}"
-            
-            # Crear archivo temporal para el payload
-            PAYLOAD_FILE=$(mktemp)
-            
-            # Generar el contenido del JSON y guardarlo en el archivo temporal
-            echo "{
-              \"message\": \"${COMMIT_MESSAGE}\",
-              \"content\": \"${BASE64_ARTIFACT}\",
-              \"branch\": \"main\",
-              \"sha\": \"${SHA}\"
-            }" > ${PAYLOAD_FILE}
-                        
-            # Subir el archivo (crear o sobrescribir)
-            curl -X PUT \
-                -H "Authorization: token ${{ secrets.GH_PAT }}" \
-                -H "Content-Type: application/json" \
-                -d @${PAYLOAD_FILE} \
-                ${URL}
-            
-            # Limpiar el archivo temporal
-            rm ${PAYLOAD_FILE}
-          done
-        shell: bash
+          # UPLOAD TO PROD REPO:
+          URL=https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}
+          # Get the sha of the file in dev
+          SHA = (Invoke-RestMethod -Uri "${URL}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"}).sha
+          Invoke-RestMethod -Method Put -Uri "${URL}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"} -Body (ConvertTo-Json -Compress @{
+            message = $COMMIT_MESSAGE
+            content = $BASE64_ARTIFACT
+            branch = "main"
+            sha = SHA
+          })
+        shell: pwsh
 
-      # Upload the compiled compressed file to the corresponding GitHub repositories
+      # Upload artifact to GitHub repos with CLI (Cross-Platform)
 #      - name: Upload artifact to GitHub repos with CLI (Cross-Platform)
 #        if: runner.os == 'Windows'
 #        run: |
@@ -190,43 +218,6 @@ jobs:
 #           # Limpiar repositorio temporal
 #           rm -r -fo .git
 #         done
-
-      - name: Upload artifact to GitHub repos with API (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          Write-Host "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
-
-          # Encode Artifact to Base64 (Windows)
-          [Convert]::ToBase64String([IO.File]::ReadAllBytes("${{ env.ARCHIVE_FINAL_PATH_NAME }}")) | Out-File -FilePath artifact_base64.txt
-          
-          # Leer el contenido codificado en base64 (for Windows)
-          $BASE64_ARTIFACT = Get-Content -Path "artifact_base64.txt" -Raw
-
-          # Parameters
-          $COMMIT_MESSAGE = "Added from GitHub Actions"
-
-          # UPLOAD TO DEV REPO:
-          URL="https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}"
-          # Get the sha of the file in dev
-          SHA = (Invoke-RestMethod -Uri "${URL}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"}).sha
-          Invoke-RestMethod -Method Put -Uri "${URL}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"} -Body (ConvertTo-Json -Compress @{
-            message = $COMMIT_MESSAGE
-            content = $BASE64_ARTIFACT
-            branch = "main"
-            sha = SHA
-          })
-
-          # UPLOAD TO PROD REPO:
-          URL=https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}
-          # Get the sha of the file in dev
-          SHA = (Invoke-RestMethod -Uri "${URL}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"}).sha
-          Invoke-RestMethod -Method Put -Uri "${URL}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"} -Body (ConvertTo-Json -Compress @{
-            message = $COMMIT_MESSAGE
-            content = $BASE64_ARTIFACT
-            branch = "main"
-            sha = SHA
-          })
-        shell: pwsh
 
       - name: List Files (1)
         run: |
