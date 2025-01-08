@@ -240,7 +240,7 @@ jobs:
           Write-Host "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
 
           # Leer el contenido codificado en base64 (for Windows)
-          $Base64Content = Get-Content -Path "artifact_base64.txt" -Raw
+          $BASE64_ARTIFACT = Get-Content -Path "artifact_base64.txt" -Raw
 
           # Parameters
           $COMMIT_MESSAGE = "Added from GitHub Actions"
