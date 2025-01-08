@@ -133,12 +133,16 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           # Añadir los archivos al índice
-          mkdir -p temp-repo
+          mkdir -p temp_repo
+          temp_repo_path=$(pwd)
           mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
           ls -l
           # Copiar el artefacto al directorio deseado
-          cp -r ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH }}  # Copia el artefacto
-          ls -l ${{ env.ARCHIVE_FINAL_PATH }}
+          cd ${{ env.ARCHIVE_FINAL_PATH }}
+          cp -r ${{ env.ARCHIVE_PATH_NAME }} .  # Copia el artefacto
+          ls -l 
+          cd ${temp_repo_path}
+          ls -l 
 
           # Inicialización de Git y configuración del remoto
           git init
@@ -146,7 +150,7 @@ jobs:
           git fetch origin ${{ github.ref_name }} || git fetch origin main || git fetch origin master
           git checkout ${{ github.ref_name }} || git checkout main || git checkout -b ${{ github.ref_name }}
 
-          # Verificar si el directorio existe antes de añadirlo
+          # Verificar si el directorio existe antes de añadirlo con commit y push
           if [ -d "${{ env.ARCHIVE_FINAL_PATH }}" ]; then
             git add ${{ env.ARCHIVE_FINAL_PATH }}
             git commit -m "Add artifact from GitHub Actions"
