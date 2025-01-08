@@ -196,7 +196,6 @@ jobs:
 
       # Upload artifact to GitHub repos with CLI (Cross-Platform)
       - name: Upload artifact to GitHub repos with CLI (Cross-Platform)
-        if: runner.os != 'fdsjflskdajflkwelkfdmdlkmfdslkjelkmfdlasmfWindows'
         run: |
          echo "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
 
