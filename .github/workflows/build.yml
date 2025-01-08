@@ -127,16 +127,16 @@ jobs:
 #          fi
 #        shell: bash
 
-      - name: Extract Archive Path from filename.txt (Cross-Platform)
+      - name: Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Cross-Platform)
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
             $path = Get-Content src/filename.txt | Select-String -Pattern "."
             echo "ARCHIVE_FINAL_PATH_NAME=$path" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-            Write-Output "Extracted Path (Windows): $path"
+            Write-Output "ARCHIVE_FINAL_PATH_NAME (Windows): $path"
           else
             ARCHIVE_PATH=$(cat src/filename.txt)
             echo "ARCHIVE_FINAL_PATH_NAME=${ARCHIVE_PATH}" >> $GITHUB_ENV
-            echo "Extracted Path (Linux/macOS): ${ARCHIVE_PATH}"
+            echo "ARCHIVE_FINAL_PATH_NAME (Linux/macOS): ${ARCHIVE_PATH}"
           fi
 
       - name: Debug File Existence
