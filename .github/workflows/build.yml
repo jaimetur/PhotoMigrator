@@ -139,6 +139,48 @@ jobs:
             echo "Extracted Path (Linux/macOS): ${ARCHIVE_PATH}"
           fi
 
+      - name: Debug File Existence
+        run: |
+          ls -l _built_versions/OrganizeTakeoutPhotos_v2.3.0
+          if [ ! -f ${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
+            echo "Error: Archivo no encontrado -> ${{ env.ARCHIVE_FINAL_PATH_NAME }}"
+            exit 1
+          fi
+        shell: bash
+
+      - name: Debug SHA Retrieval
+        run: |
+          SHA_DEV=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
+          https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${ARCHIVE_FINAL_PATH_NAME} | \
+          grep '"sha"' | awk -F '"' '{print $4}')
+
+          echo "SHA_DEV: $SHA_DEV"
+          if [ -z "$SHA_DEV" ]; then
+            echo "Archivo no encontrado en el repo dev o token inválido."
+            curl -v -H "Authorization: token ${{ secrets.GH_PAT }}" \
+            https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${ARCHIVE_FINAL_PATH_NAME}
+            exit 1
+          fi
+        shell: bash
+
+      - name: Debug Base64 Output
+        run: |
+          echo "Base64 Artifact Length: ${#BASE64_ARTIFACT}"
+          echo "${BASE64_ARTIFACT:0:100}"  # Muestra los primeros 100 caracteres
+          if [ -z "$BASE64_ARTIFACT" ]; then
+            echo "Error: El archivo codificado está vacío."
+            exit 1
+          fi
+        shell: bash
+
+      - name: Debug Path Variable
+        run: |
+          echo "Ruta final del archivo: ${{ env.ARCHIVE_FINAL_PATH_NAME }}"
+        shell: bash
+
+
+
+
       # Upload the compiled compressed file to the corresponding GitHub repositories
       - name: Upload artifact to GitHub repos (Linux/macOS)
         if: runner.os != 'Windows'
@@ -157,6 +199,11 @@ jobs:
             https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${ARCHIVE_FINAL_PATH_NAME} | \
             grep '"sha"' | awk -F '"' '{print $4}')
 
+          if [ -z "$SHA_DEV" ]; then
+                echo "El archivo no existe en el repo dev. Se creará uno nuevo."
+                SHA_DEV=null
+          fi
+          
           # Upload to dev repo
           curl -X PUT \
             -H "Authorization: token ${{ secrets.GH_PAT }}" \
@@ -175,6 +222,11 @@ jobs:
             https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${ARCHIVE_FINAL_PATH_NAME} | \
             grep '"sha"' | awk -F '"' '{print $4}')
 
+          if [ -z "SHA_PROD" ]; then
+                echo "El archivo no existe en el repo prod. Se creará uno nuevo."
+                SHA_PROD=null
+          fi
+          
           # Upload to prod repo
           curl -X PUT \
             -H "Authorization: token ${{ secrets.GH_PAT }}" \
