@@ -45,7 +45,9 @@ jobs:
         run: |
           apt update
           apt install -y qemu qemu-user-static
-          docker run --rm --platform linux/arm64 --user root -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.10 bash -c "
+          docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.10 bash -c "
+                chown -R root:root /var/lib/apt/lists /var/cache/apt &&
+                chmod -R 777 /var/lib/apt/lists /var/cache/apt &&
                 apt update && apt install -y gcc-aarch64-linux-gnu &&
                 python3 _compile.py"
         shell: bash
@@ -60,12 +62,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           cd src
-          arch=${{ matrix.arch }}
-          if [ "$arch" = "arm64" ]; then
-            arch -arm64 python3 _compile.py
-          else
-            arch -x86_64 python3 _compile.py
-          fi
+          arch ${{ matrix.arch }} python3 _compile.py
         shell: bash
 
       # Compile for Windows (and64)
