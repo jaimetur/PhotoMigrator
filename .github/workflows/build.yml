@@ -72,61 +72,6 @@ jobs:
           python _compile.py
         shell: cmd
 
-#      # Extract metadata and build paths
-#      - name: Extract Metadata and Create Path Variables
-#        run: |
-#          SCRIPT_NAME=$(awk -F '"' '/SCRIPT_NAME/ {print $2}' src/OrganizeTakeoutPhotos.py)
-#          SCRIPT_VERSION=$(awk -F '"' '/SCRIPT_VERSION/ {print $2}' src/OrganizeTakeoutPhotos.py)
-#          SCRIPT_NAME_VERSION="${SCRIPT_NAME}_${SCRIPT_VERSION}"
-#
-#          ARCH="${{ matrix.arch }}"
-#          OS_TAG="linux"  # Default value
-#
-#          # Determine tag based on the operating system
-#          if [[ "${{ matrix.os }}" == *"windows"* ]]; then
-#            OS_TAG="windows"
-#          elif [[ "${{ matrix.os }}" == *"macos"* ]]; then
-#            OS_TAG="macos"
-#          fi
-#
-#          # Replace x86_64 with amd64
-#          if [ "$ARCH" == "x86_64" ]; then
-#            ARCH="amd64"
-#          fi
-#
-#          # Create the artifact name with the dynamic tag
-#          ARCHIVE_NAME="${SCRIPT_NAME_VERSION}_${OS_TAG}_${ARCH}.zip"
-#
-#          # Determine the path of the generated file
-#          if [ -d "_built_versions/${SCRIPT_NAME_VERSION}" ]; then
-#            ARCHIVE_PATH=$(realpath "_built_versions/${SCRIPT_NAME_VERSION}/")
-#          else
-#            ARCHIVE_PATH=$(pwd)/_built_versions/${SCRIPT_NAME_VERSION}
-#          fi
-#          ARCHIVE_PATH_NAME="${ARCHIVE_PATH}/${ARCHIVE_NAME}"
-#          ARCHIVE_FINAL_PATH="_built_versions/${SCRIPT_NAME_VERSION}/"
-#          ARCHIVE_FINAL_PATH_NAME="${ARCHIVE_FINAL_PATH}${ARCHIVE_NAME}"
-#
-#          # Print variables in screen
-#          echo "ARCHIVE_NAME=${ARCHIVE_NAME}"
-#          echo "ARCHIVE_PATH=${ARCHIVE_PATH}"
-#          echo "ARCHIVE_PATH_NAME=${ARCHIVE_PATH_NAME}"
-#          echo "ARCHIVE_FINAL_PATH=${ARCHIVE_FINAL_PATH}"
-#          echo "ARCHIVE_FINAL_PATH_NAME=${ARCHIVE_FINAL_PATH_NAME}"
-#
-#          # Save variables in the environment
-#          echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> $GITHUB_ENV
-#          echo "ARCHIVE_PATH=${ARCHIVE_PATH}" >> $GITHUB_ENV
-#          echo "ARCHIVE_PATH_NAME=${ARCHIVE_PATH_NAME}" >> $GITHUB_ENV
-#          echo "ARCHIVE_FINAL_PATH=${ARCHIVE_FINAL_PATH}" >> $GITHUB_ENV
-#          echo "ARCHIVE_FINAL_PATH_NAME=${ARCHIVE_FINAL_PATH_NAME}" >> $GITHUB_ENV
-#
-#          # For Windows, convert paths
-#          if [ "$RUNNER_OS" == "Windows" ]; then
-#            echo "ARCHIVE_PATH_NAME=$(echo ${ARCHIVE_PATH_NAME} | sed 's/\//\\/g')" >> $GITHUB_ENV
-#          fi
-#        shell: bash
-
       - name: Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Cross-Platform)
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
@@ -139,15 +84,6 @@ jobs:
             echo "ARCHIVE_FINAL_PATH_NAME (Linux/macOS): ${ARCHIVE_PATH}"
           fi
 
-      - name: Debug File Existence
-        run: |
-          ls -l _built_versions/OrganizeTakeoutPhotos_v2.3.0
-          if [ ! -f ${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
-            echo "Error: Archivo no encontrado -> ${{ env.ARCHIVE_FINAL_PATH_NAME }}"
-            exit 1
-          fi
-        shell: bash
-
       # Upload the compiled compressed file to the corresponding GitHub repositories
       - name: Upload artifact to GitHub repos (Linux/macOS)
         if: runner.os != 'Windows'
@@ -156,8 +92,8 @@ jobs:
 
           # Encode Artifact to Base64 (Linux/macOS)
           cat ${{ env.ARCHIVE_FINAL_PATH_NAME }} | base64 | tr -d '\n' > artifact_base64.txt
-          
-          # Leer el contenido codificado en base64 desde el archivo (for Linux/macOS)
+
+          # Leer el contenido codificado en base64 desde el archivo
           BASE64_ARTIFACT=$(cat artifact_base64.txt)
 
           # Parameters
@@ -166,65 +102,72 @@ jobs:
           # UPLOAD TO DEV REPO:
           URL=https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}
           # Realizar la solicitud y capturar la respuesta completa
-          RESPONSE=$(curl -s -w "%{http_code}" -H "Authorization: token ${{ secrets.GH_PAT }}" ${URL})
-      
-          # Separar el cuerpo de la respuesta del código HTTP
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
-          RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
-      
-          # Si el archivo no existe (404), subir como nuevo (SHA=null)
-          if [ "$HTTP_CODE" == "404" ]; then
+          RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" ${URL})
+
+          # Extraer SHA si el archivo existe (grep + awk)
+          SHA=$(echo "$RESPONSE" | grep '"sha"' | awk -F '"' '{print $4}')
+
+          if [ -z "$SHA" ]; then
             echo "Archivo no encontrado (404). Subiendo como nuevo..."
-            SHA=null
+            # Construir el JSON SIN la clave sha
+            JSON_BODY=$(jq -n \
+              --arg message "$COMMIT_MESSAGE" \
+              --arg content "$BASE64_ARTIFACT" \
+              --arg branch "main" \
+              '{message: $message, content: $content, branch: $branch}')
           else
-            # Extraer SHA si el archivo existe
-            SHA=$(echo "$RESPONSE_BODY" | grep '"sha"' | awk -F '"' '{print $4}')
+            echo "Archivo encontrado. SHA: $SHA"
+            # Construir el JSON CON la clave sha
+            JSON_BODY=$(jq -n \
+              --arg message "$COMMIT_MESSAGE" \
+              --arg content "$BASE64_ARTIFACT" \
+              --arg branch "main" \
+              --arg sha "$SHA" \
+              '{message: $message, content: $content, branch: $branch, sha: $sha}')
           fi
-      
+
           # Subir el archivo (crear o sobrescribir)
           curl -X PUT \
             -H "Authorization: token ${{ secrets.GH_PAT }}" \
             -H "Content-Type: application/json" \
-            -d @- ${URL} <<EOF
-          {
-            "message": "Added from GitHub Actions",
-            "content": "${BASE64_ARTIFACT}",
-            "branch": "main",
-            "sha": ${SHA}
-          }
-          EOF
+            -d "$JSON_BODY" \
+            ${URL}
 
           # UPLOAD TO PROD REPO:
           URL=https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}
           # Realizar la solicitud y capturar la respuesta completa
-          RESPONSE=$(curl -s -w "%{http_code}" -H "Authorization: token ${{ secrets.GH_PAT }}" ${URL})
-      
-          # Separar el cuerpo de la respuesta del código HTTP
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
-          RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
-      
-          # Si el archivo no existe (404), subir como nuevo (SHA=null)
-          if [ "$HTTP_CODE" == "404" ]; then
+          RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" ${URL})
+
+          # Extraer SHA si el archivo existe
+          SHA=$(echo "$RESPONSE" | grep '"sha"' | awk -F '"' '{print $4}')
+
+          if [ -z "$SHA" ]; then
             echo "Archivo no encontrado (404). Subiendo como nuevo..."
-            SHA=null
+            # Construir el JSON SIN la clave sha
+            JSON_BODY=$(jq -n \
+              --arg message "$COMMIT_MESSAGE" \
+              --arg content "$BASE64_ARTIFACT" \
+              --arg branch "main" \
+              '{message: $message, content: $content, branch: $branch}')
           else
-            # Extraer SHA si el archivo existe
-            SHA=$(echo "$RESPONSE_BODY" | grep '"sha"' | awk -F '"' '{print $4}')
+            echo "Archivo encontrado. SHA: $SHA"
+            # Construir el JSON CON la clave sha
+            JSON_BODY=$(jq -n \
+              --arg message "$COMMIT_MESSAGE" \
+              --arg content "$BASE64_ARTIFACT" \
+              --arg branch "main" \
+              --arg sha "$SHA" \
+              '{message: $message, content: $content, branch: $branch, sha: $sha}')
           fi
-      
+
           # Subir el archivo (crear o sobrescribir)
           curl -X PUT \
             -H "Authorization: token ${{ secrets.GH_PAT }}" \
             -H "Content-Type: application/json" \
-            -d @- ${URL} <<EOF
-          {
-            "message": "Added from GitHub Actions",
-            "content": "${BASE64_ARTIFACT}",
-            "branch": "main",
-            "sha": ${SHA}
-          }
-          EOF
+            -d "$JSON_BODY" \
+            ${URL}
         shell: bash
+
 
 
       - name: Upload artifact to GitHub repos (Windows)
@@ -264,6 +207,12 @@ jobs:
           })
         shell: pwsh
 
+      - name: List Files (1)
+        run: |
+          ls -l _built_versions/OrganizeTakeoutPhotos_v2.3.0
+          ls -l src
+        shell: bash
+
       - name: Cleanup (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
@@ -282,7 +231,6 @@ jobs:
             echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
           fi
         shell: bash
-
 
       - name: Cleanup Base64 File (Windows)
         if: runner.os == 'Windows'
@@ -304,6 +252,12 @@ jobs:
             Write-Host "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta src\."
           }
         shell: pwsh
+
+      - name: List Files (2)
+        run: |
+          ls -l _built_versions/OrganizeTakeoutPhotos_v2.3.0
+          ls -l src
+        shell: bash
 
 
 #      # Upload the compiled compressed file to the Actions task
