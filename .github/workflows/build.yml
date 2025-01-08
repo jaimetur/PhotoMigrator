@@ -265,6 +265,7 @@ jobs:
         shell: pwsh
 
       - name: Cleanup (Linux/macOS)
+        if: runner.os != 'Windows'
         run: |
           if [ -f artifact_base64.txt ]; then
             rm artifact_base64.txt
@@ -284,6 +285,7 @@ jobs:
 
 
       - name: Cleanup Base64 File (Windows)
+        if: runner.os == 'Windows'
         run: |
           if (Test-Path "artifact_base64.txt") {
             Remove-Item -Path "artifact_base64.txt"
