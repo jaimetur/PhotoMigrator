@@ -14,15 +14,15 @@ jobs:
   build:
     strategy:
       matrix:
-#        os: [ubuntu-20.04, macos-latest, windows-latest]  # os list
-        os: [ubuntu-20.04]  # os list
+        os: [ubuntu-20.04, macos-latest, windows-latest]  # os list
+#        os: [ubuntu-20.04]  # os list
 #        os: [macos-latest]  # os list
 #        os: [windows-latest]  # os list
 #        os: [ubuntu-20.04, windows-latest]  # os list
 #        os: [macos-latest, windows-latest]  # os list
 #        os: [ubuntu-20.04, macos-latest]  # os list
-#        arch: [x86_64, arm64]  # arch list
-        arch: [x86_64]  # arch list
+        arch: [x86_64, arm64]  # arch list
+#        arch: [x86_64]  # arch list
 #        arch: [arm64]  # arch list
         exclude:
           - os: windows-latest
@@ -59,19 +59,6 @@ jobs:
 
           # Compile for Linux (amd64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
-            # Install GLibc 2.26 for compatibility with DSM 7.0
-            sudo apt update
-            sudo apt install -y build-essential manpages-dev wget
-            wget http://ftp.gnu.org/gnu/libc/glibc-2.26.tar.gz
-            tar -xvzf glibc-2.26.tar.gz
-            cd glibc-2.26
-            mkdir build
-            cd build
-            ../configure --prefix=/opt/glibc-2.26
-            make -j$(nproc)
-            sudo make install
-            export LD_LIBRARY_PATH=/opt/glibc-2.26/lib:$LD_LIBRARY_PATH
-            export PATH=/opt/glibc-2.26/bin:$PATH
             cd src
             python3 _compile.py
 
@@ -90,7 +77,7 @@ jobs:
         shell: bash
 
       # 2. - Update README.md in prod repo with API
-      - name: 2. - Update README.md in prod repo with API
+      - name: 2. - Update README.md in Production Repository with API
         if: runner.os != 'Windows'
         run: |
           FILE_TO_ADD=README.md
