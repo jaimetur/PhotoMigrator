@@ -38,15 +38,6 @@ jobs:
           echo "Architecture: ${{ matrix.arch }}"
         shell: bash
 
-#      - name: Set up QEMU for ARM64 (Ubuntu)
-#        if: matrix.os == 'ubuntu-20.04' && matrix.arch == 'arm64'
-#        run: |
-#          sudo apt-get update
-#          sudo apt-get install -y qemu qemu-user-static
-#          sudo update-binfmts --enable qemu-aarch64
-#          ls /usr/bin | grep qemu
-#          /usr/bin/qemu-aarch64-static --version
-
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
@@ -205,7 +196,7 @@ jobs:
 
       # Upload artifact to GitHub repos with CLI (Cross-Platform)
       - name: Upload artifact to GitHub repos with CLI (Cross-Platform)
-        if: runner.os == 'Windows'
+        if: runner.os != 'fdsjflskdajflkwelkfdmdlkmfdslkjelkmfdlasmfWindows'
         run: |
          echo "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
 
@@ -241,13 +232,6 @@ jobs:
            rm -r -fo .git
          done
 
-      - name: List Files (1)
-        run: |
-          ls -l
-          ls -l _built_versions/OrganizeTakeoutPhotos_v2.3.0
-          ls -l src
-        shell: bash
-
       - name: Cleanup (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
@@ -267,7 +251,7 @@ jobs:
           fi
         shell: bash
 
-      - name: Cleanup Base64 File (Windows)
+      - name: Cleanup (Windows)
         if: runner.os == 'Windows'
         run: |
           if (Test-Path "artifact_base64.txt") {
@@ -287,14 +271,6 @@ jobs:
             Write-Host "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta src\."
           }
         shell: pwsh
-
-      - name: List Files (2)
-        run: |
-          ls -l
-          ls -l _built_versions/OrganizeTakeoutPhotos_v2.3.0
-          ls -l src
-        shell: bash
-
 
 #      # Upload the compiled compressed file to the Actions task
 #      - name: Archive Artifacts
