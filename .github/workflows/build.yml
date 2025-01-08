@@ -128,9 +128,10 @@ jobs:
           git fetch dev ${{ github.ref_name }} || git fetch dev main || git fetch dev master
           git checkout ${{ github.ref_name }} || git checkout main || git checkout -b ${{ github.ref_name }}
 
-          # Rebase de dev y prod (omitimos conflictos)
-          git pull dev ${{ github.ref_name }} --rebase || true
-          git pull prod ${{ github.ref_name }} --rebase || (git rebase --skip || true)
+          # Rebase con resolución automática de conflictos
+          (git pull dev ${{ github.ref_name }} --rebase || true) && \
+          (git pull prod ${{ github.ref_name }} --rebase || \
+            (git checkout --ours . && git add . && git rebase --continue || true))
 
           mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
           cp -r ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH }}
@@ -147,6 +148,7 @@ jobs:
             echo "Error: El directorio ${{ env.ARCHIVE_FINAL_PATH }} no existe. No se realizará el commit."
             exit 1
           fi
+      
       
       
       
