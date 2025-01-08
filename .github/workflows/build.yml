@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'src/**'  # Solo ejecuta el workflow si hay cambios en src/
   workflow_dispatch:  # Permite ejecución manual del workflow
 
 jobs:
