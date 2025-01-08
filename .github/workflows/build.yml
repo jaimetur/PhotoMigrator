@@ -90,17 +90,19 @@ jobs:
           python _compile.py
         shell: cmd
 
-      - name: Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Cross-Platform)
+      - name: Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Linux/macOS)
+        if: runner.os != 'Windows'
         run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            $path = Get-Content src/filename.txt | Select-String -Pattern "."
-            echo "ARCHIVE_FINAL_PATH_NAME=$path" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-            Write-Output "ARCHIVE_FINAL_PATH_NAME (Windows): $path"
-          else
-            ARCHIVE_PATH=$(cat src/filename.txt)
-            echo "ARCHIVE_FINAL_PATH_NAME=${ARCHIVE_PATH}" >> $GITHUB_ENV
-            echo "ARCHIVE_FINAL_PATH_NAME (Linux/macOS): ${ARCHIVE_PATH}"
-          fi
+          ARCHIVE_PATH=$(cat src/filename.txt)
+          echo "ARCHIVE_FINAL_PATH_NAME=${ARCHIVE_PATH}" >> $GITHUB_ENV
+          echo "ARCHIVE_FINAL_PATH_NAME (Linux/macOS): ${ARCHIVE_PATH}"
+
+      - name: Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          $path = Get-Content src/filename.txt | Select-String -Pattern "."
+          echo "ARCHIVE_FINAL_PATH_NAME=$path" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Output "ARCHIVE_FINAL_PATH_NAME (Windows): $path"
 
       # Upload the compiled compressed file to the corresponding GitHub repositories
       - name: Upload artifact to GitHub repos with CLI (Cross-Platform)
@@ -190,7 +192,6 @@ jobs:
             
           done
         shell: bash
-
 
       - name: Upload artifact to GitHub repos with API (Windows)
         if: runner.os == 'Windows'
