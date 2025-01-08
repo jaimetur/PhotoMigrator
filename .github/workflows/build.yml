@@ -45,43 +45,38 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Compile for Linux (arm64) with Docker and QEMU
-      - name: Compile for Linux (arm64) with Docker and QEMU
-        if: matrix.os == 'ubuntu-20.04' && matrix.arch == 'arm64'
+      # Compile for All SO (Linux, MacOS, Windows) and All Archs (amd64, arm64)
+      - name: Compile for All SO (Linux, MacOS, Windows) and All Archs (amd64, arm64)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y qemu qemu-user-static
-          sudo update-binfmts --enable qemu-aarch64
-          ls /usr/bin | grep qemu
-          /usr/bin/qemu-aarch64-static --version
-          docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.10 bash -c "
-                apt update && apt install -y gcc-aarch64-linux-gnu &&
-                python3 _compile.py"
-        shell: bash
+          echo "::group::Compile for ${{ matrix.os }} - ${{ matrix.arch }}"
 
-      # Compile for Linux (amd64)
-      - name: Compile for Linux (amd64)
-        if: matrix.os == 'ubuntu-20.04' && matrix.arch != 'arm64'
-        run: |
-          cd src
-          python3 _compile.py
-        shell: bash
+          # Compile for Linux (arm64)
+          if [ "${{ matrix.os }}" == "ubuntu-20.04" ] && [ "${{ matrix.arch }}" == "arm64" ]; then
+            sudo apt-get update
+            sudo apt-get install -y qemu qemu-user-static
+            sudo update-binfmts --enable qemu-aarch64
+            docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.10 bash -c "
+                  apt update && apt install -y gcc-aarch64-linux-gnu &&
+                  python3 _compile.py"
 
-      # Compile for macOS with different architectures
-      - name: Compile for MacOS (all architectures)
-        if: matrix.os == 'macos-latest'
-        run: |
-          cd src
-          arch -${{ matrix.arch }} python3 _compile.py
-        shell: bash
+          # Compile for Linux (amd64)
+          elif [ "${{ matrix.os }}" == "ubuntu-20.04" ] && [ "${{ matrix.arch }}" != "arm64" ]; then
+            cd src
+            python3 _compile.py
 
-      # Compile for Windows (and64)
-      - name: Compile for Windows (amd64)
-        if: matrix.os == 'windows-latest'
-        run: |
-          cd src
-          python _compile.py
-        shell: cmd
+          # Compile for macOS (any architecture)
+          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+            cd src
+            arch -${{ matrix.arch }} python3 _compile.py
+
+          # Compile for Windows (amd64)
+          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
+            cd src
+            python _compile.py
+          fi
+
+          echo "::endgroup::"
+        shell: bash
 
       - name: Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Linux/macOS)
         if: runner.os != 'Windows'
