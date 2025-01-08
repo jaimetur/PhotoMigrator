@@ -107,7 +107,7 @@ jobs:
           echo "Subiendo archivo a _built_versions..."
 
           # Convertir el archivo a base64 (necesario para la API de GitHub)
-          BASE64_ARTIFACT=$(base64 -w 0 ${{ env.ARCHIVE_PATH_NAME }})
+          BASE64_ARTIFACT=$(base64 -w 0 ${{ env.ARCHIVE_PATH }})
 
           # Parámetros
           REPO_PATH="_built_versions/${{ env.ARCHIVE_NAME }}"
