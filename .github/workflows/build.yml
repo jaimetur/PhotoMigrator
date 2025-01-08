@@ -102,40 +102,46 @@ jobs:
         shell: bash
 
       # Subir el fichero compilado comprimido a los repositorios Github correspondientes
-      - name: Upload artifact to GitHub repos
+      - name: Upload folder to GitHub repos
         run: |
-          echo "Subiendo archivo a _built_versions..."
+          echo "Subiendo carpeta completa a _built_versions..."
 
-          # Convertir el archivo a base64 (necesario para la API de GitHub)
-          BASE64_ARTIFACT=$(base64 -w 0 ${{ env.ARCHIVE_PATH }})
-
-          # Parámetros
           REPO_PATH="_built_versions/${{ env.ARCHIVE_NAME }}"
-          COMMIT_MESSAGE="Added from GitHub Actions"
+          COMMIT_MESSAGE="Add artifact from GitHub Actions"
 
-          # Subir al repo dev
-          curl -X PUT \
-            -H "Authorization: token ${{ secrets.GH_PAT }}" \
-            -H "Content-Type: application/json" \
-            -d @- https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${REPO_PATH} <<EOF
-          {
-            "message": "${COMMIT_MESSAGE}",
-            "content": "${BASE64_ARTIFACT}",
-            "branch": "${{ github.ref_name }}"
-          }
-          EOF
+          # Subir la carpeta completa de forma recursiva
+          for file in $(find ${{ env.ARCHIVE_PATH }} -type f); do
+            RELATIVE_PATH=$(realpath --relative-to="${{ env.ARCHIVE_PATH }}" "$file")
+            echo "Subiendo archivo: $RELATIVE_PATH"
 
-          # Subir al repo prod
-          curl -X PUT \
-            -H "Authorization: token ${{ secrets.GH_PAT }}" \
-            -H "Content-Type: application/json" \
-            -d @- https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${REPO_PATH} <<EOF
-          {
-            "message": "${COMMIT_MESSAGE}",
-            "content": "${BASE64_ARTIFACT}",
-            "branch": "${{ github.ref_name }}"
-          }
-          EOF
+            # Convertir archivo a base64
+            BASE64_ARTIFACT=$(base64 -w 0 "$file")
+
+            # Subir al repo dev
+            curl -X PUT \
+              -H "Authorization: token ${{ secrets.GH_PAT }}" \
+              -H "Content-Type: application/json" \
+              -d @- https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${REPO_PATH}/${RELATIVE_PATH} <<EOF
+            {
+              "message": "${COMMIT_MESSAGE}",
+              "content": "${BASE64_ARTIFACT}",
+              "branch": "${{ github.ref_name }}"
+            }
+            EOF
+
+            # Subir al repo prod
+            curl -X PUT \
+              -H "Authorization: token ${{ secrets.GH_PAT }}" \
+              -H "Content-Type: application/json" \
+              -d @- https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${REPO_PATH}/${RELATIVE_PATH} <<EOF
+            {
+              "message": "${COMMIT_MESSAGE}",
+              "content": "${BASE64_ARTIFACT}",
+              "branch": "${{ github.ref_name }}"
+            }
+            EOF
+          done
+
 
 
 
