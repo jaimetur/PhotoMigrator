@@ -221,7 +221,7 @@ jobs:
           # Leer el contenido codificado en base64 desde el archivo
           BASE64_ARTIFACT=$(cat artifact_base64.txt)
           # Parameters
-          COMMIT_MESSAGE="Ubdated from GitHub Actions"
+          COMMIT_MESSAGE="Added from GitHub Actions"
           REPOS=("OrganizeTakeoutPhotos")
           for REPO in "${REPOS[@]}"; do
             echo "Uploading to $REPO..."
