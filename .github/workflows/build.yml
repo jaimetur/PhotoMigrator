@@ -39,18 +39,19 @@ jobs:
         shell: bash
 
       # Compile for Linux with different architectures
-      - name: Compile for Linux (all architectures)
-        if: matrix.os == 'ubuntu-20.04'
+      - name: Compile for Linux (amd64)
+        if: matrix.os == 'ubuntu-20.04' && matrix.arch != 'arm64'
         run: |
-          cd src
-          arch=${{ matrix.arch }}
-          if [ "$arch" = "arm64" ]; then
-            sudo dpkg --add-architecture arm64
-            sudo apt update && sudo apt install -y gcc-aarch64-linux-gnu
-            export CC=aarch64-linux-gnu-gcc
-          fi
           python3 _compile.py
         shell: bash
+      - name: Compile for Linux (arm64) with Docker
+        if: matrix.os == 'ubuntu-20.04' && matrix.arch == 'arm64'
+        run: |
+          docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.10 bash -c "
+            sudo apt update && sudo apt install -y gcc-aarch64-linux-gnu &&
+            python3 _compile.py"
+        shell: bash
+
 
       # Compile for macOS with different architectures
       - name: Compile for MacOS (all architectures)
@@ -65,8 +66,8 @@ jobs:
           fi
         shell: bash
 
-      # Compile for Windows (and64 only)
-      - name: Compile for Windows (amd64 only)
+      # Compile for Windows (and64)
+      - name: Compile for Windows (amd64)
         if: matrix.os == 'windows-latest'
         run: |
           cd src
