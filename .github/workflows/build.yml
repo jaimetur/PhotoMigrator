@@ -68,7 +68,7 @@ jobs:
 #        shell: bash
 
       # Compilation for Windows
-      - name: Compile for Windows
+      - name: Compile for Windows (amd64 only)
         if: matrix.os == 'windows-latest'
         run: |
           cd src
