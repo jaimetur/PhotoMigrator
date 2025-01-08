@@ -264,14 +264,43 @@ jobs:
           })
         shell: pwsh
 
-      - name: Cleanup Base64 File (Linux/macOS)
+      - name: Cleanup (Linux/macOS)
         run: |
-          rm artifact_base64.txt
+          if [ -f artifact_base64.txt ]; then
+            rm artifact_base64.txt
+            echo "Archivo artifact_base64.txt eliminado de carpeta raiz."
+          elif [ -f src/artifact_base64.txt ]; then
+            rm artifact_base64.txt
+            echo "Archivo artifact_base64.txt eliminado de src."
+          fi
+          if [ -f ${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
+            rm ${{ env.ARCHIVE_FINAL_PATH_NAME }}
+            echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
+          elif [ -f src/${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
+            rm ${{ env.ARCHIVE_FINAL_PATH_NAME }}
+            echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
+          fi
         shell: bash
+
 
       - name: Cleanup Base64 File (Windows)
         run: |
-          Remove-Item -Path "artifact_base64.txt"
+          if (Test-Path "artifact_base64.txt") {
+            Remove-Item -Path "artifact_base64.txt"
+            Write-Host "Archivo artifact_base64.txt eliminado de carpeta raiz."
+          } 
+          elsif (Test-Path "src\artifact_base64.txt") {
+            Remove-Item -Path "src\artifact_base64.txt"
+            Write-Host "Archivo artifact_base64.txt eliminado de carpeta src\."
+          }
+          if (Test-Path "${{ env.ARCHIVE_FINAL_PATH_NAME }}") {
+            Remove-Item -Path "${{ env.ARCHIVE_FINAL_PATH_NAME }}"
+            Write-Host "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
+          } 
+          elsif (Test-Path "src\${{ env.ARCHIVE_FINAL_PATH_NAME }}") {
+            Remove-Item -Path "src\${{ env.ARCHIVE_FINAL_PATH_NAME }}"
+            Write-Host "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta src\."
+          }
         shell: pwsh
 
 
