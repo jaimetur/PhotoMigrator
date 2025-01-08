@@ -48,7 +48,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y qemu qemu-user-static
           sudo update-binfmts --enable qemu-aarch64
-          qemu-aarch64 --version
+          ls /usr/bin | grep qemu
+          /usr/bin/qemu-aarch64-static --version
 
       # Compile for Linux with different architectures
       - name: Compile for Linux (arm64) with Docker and QEMU
