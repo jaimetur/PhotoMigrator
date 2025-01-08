@@ -197,39 +197,45 @@ jobs:
       # Upload artifact to GitHub repos with CLI (Cross-Platform)
       - name: Upload artifact to GitHub repos with CLI (Cross-Platform)
         run: |
-         echo "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
-
-         # Configuración inicial de Git
-         git config --global user.email "github-actions@github.com"
-         git config --global user.name "GitHub Actions"
-
-         # Definir parámetros
-         COMMIT_MESSAGE="Added from GitHub Actions"
-         REPOS=("OrganizeTakeoutPhotos-dev" "OrganizeTakeoutPhotos")
-         FILE=${{ env.ARCHIVE_FINAL_PATH_NAME }}
-
-         # Iterar sobre cada repositorio
-         for REPO in "${REPOS[@]}"; do
-           echo "Uploading to $REPO..."
-
-           # URL del repositorio
-           REPO_URL="https://${{ secrets.GH_PAT }}@github.com/jaimetur/$REPO.git"
-
-           # Añadir el archivo al índice
-           git init
-           git remote add origin $REPO_URL
-           git checkout -b ${{ github.ref_name }}
-
-           # Añadir archivo y hacer commit
-           git add $FILE
-           git commit -m "$COMMIT_MESSAGE"
-
-           # Subir el archivo (sin hacer pull previo)
-           git push origin ${{ github.ref_name }}
-
-           # Limpiar repositorio temporal
-           rm -r -fo .git
-         done
+          echo "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
+      
+          # Configuración inicial de Git
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+      
+          # Definir parámetros
+          COMMIT_MESSAGE="Added from GitHub Actions"
+          REPOS=("OrganizeTakeoutPhotos-dev" "OrganizeTakeoutPhotos")
+          FILE=${{ env.ARCHIVE_FINAL_PATH_NAME }}
+      
+          # Iterar sobre cada repositorio
+          for REPO in "${REPOS[@]}"; do
+            echo "Uploading to $REPO..."
+      
+            # URL del repositorio
+            REPO_URL="https://${{ secrets.GH_PAT }}@github.com/jaimetur/$REPO.git"
+      
+            # Inicializar repositorio local (si no existe .git)
+            if [ ! -d ".git" ]; then
+              git init
+              git remote add origin $REPO_URL
+            fi
+      
+            # Asegurarse de usar la rama correcta
+            git fetch origin ${{ github.ref_name }} || git checkout -b ${{ github.ref_name }}
+            git checkout ${{ github.ref_name }}
+      
+            # Añadir archivo y hacer commit
+            git add $FILE
+            git commit -m "$COMMIT_MESSAGE"
+      
+            # Forzar el push (sobrescribir si ya existe)
+            git push origin ${{ github.ref_name }} --force
+      
+            # Limpiar repositorio temporal
+            rm -r -fo .git
+          done
+      
 
       - name: Cleanup (Linux/macOS)
         if: runner.os != 'Windows'
