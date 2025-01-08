@@ -193,49 +193,65 @@ jobs:
           # Parameters
           COMMIT_MESSAGE="Added from GitHub Actions"
 
-          # Get the sha of the file in dev
-          SHA_DEV=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
-            https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${ARCHIVE_FINAL_PATH_NAME} | \
-            grep '"sha"' | awk -F '"' '{print $4}')
-
-          if [ -z "$SHA_DEV" ]; then
-                echo "El archivo no existe en el repo dev. Se creará uno nuevo."
-                SHA_DEV=null
+          # UPLOAD TO PROD REPO:
+          URL=https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${ARCHIVE_FINAL_PATH_NAME}
+          # Realizar la solicitud y capturar la respuesta completa
+          RESPONSE=$(curl -s -w "%{http_code}" -H "Authorization: token ${{ secrets.GH_PAT }}" ${URL})
+      
+          # Separar el cuerpo de la respuesta del código HTTP
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
+          RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
+      
+          # Si el archivo no existe (404), subir como nuevo (SHA=null)
+          if [ "$HTTP_CODE" == "404" ]; then
+            echo "Archivo no encontrado (404). Subiendo como nuevo..."
+            SHA=null
+          else
+            # Extraer SHA si el archivo existe
+            SHA=$(echo "$RESPONSE_BODY" | grep '"sha"' | awk -F '"' '{print $4}')
           fi
-          
-          # Upload to dev repo
+      
+          # Subir el archivo (crear o sobrescribir)
           curl -X PUT \
             -H "Authorization: token ${{ secrets.GH_PAT }}" \
             -H "Content-Type: application/json" \
-            -d @- https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${ARCHIVE_FINAL_PATH_NAME} <<EOF
+            -d @- ${URL} <<EOF
           {
-            "message": "${COMMIT_MESSAGE}",
+            "message": "Added from GitHub Actions",
             "content": "${BASE64_ARTIFACT}",
             "branch": "main",
-            "sha": "${SHA_DEV}"
+            "sha": ${SHA}
           }
           EOF
 
-          # Get the sha of the file in prod
-          SHA_PROD=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
-            https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${ARCHIVE_FINAL_PATH_NAME} | \
-            grep '"sha"' | awk -F '"' '{print $4}')
-
-          if [ -z "SHA_PROD" ]; then
-                echo "El archivo no existe en el repo prod. Se creará uno nuevo."
-                SHA_PROD=null
+          # UPLOAD TO PROD REPO:
+          URL=https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${ARCHIVE_FINAL_PATH_NAME}
+          # Realizar la solicitud y capturar la respuesta completa
+          RESPONSE=$(curl -s -w "%{http_code}" -H "Authorization: token ${{ secrets.GH_PAT }}" ${URL})
+      
+          # Separar el cuerpo de la respuesta del código HTTP
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
+          RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
+      
+          # Si el archivo no existe (404), subir como nuevo (SHA=null)
+          if [ "$HTTP_CODE" == "404" ]; then
+            echo "Archivo no encontrado (404). Subiendo como nuevo..."
+            SHA=null
+          else
+            # Extraer SHA si el archivo existe
+            SHA=$(echo "$RESPONSE_BODY" | grep '"sha"' | awk -F '"' '{print $4}')
           fi
-          
-          # Upload to prod repo
+      
+          # Subir el archivo (crear o sobrescribir)
           curl -X PUT \
             -H "Authorization: token ${{ secrets.GH_PAT }}" \
             -H "Content-Type: application/json" \
-            -d @- https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${ARCHIVE_FINAL_PATH_NAME} <<EOF
+            -d @- ${URL} <<EOF
           {
-            "message": "${COMMIT_MESSAGE}",
+            "message": "Added from GitHub Actions",
             "content": "${BASE64_ARTIFACT}",
             "branch": "main",
-            "sha": "${SHA_PROD}"
+            "sha": ${SHA}
           }
           EOF
         shell: bash
