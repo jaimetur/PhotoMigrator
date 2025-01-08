@@ -124,6 +124,10 @@ jobs:
           # Inicializar Git en el directorio raíz de temp-repo
           git init
           git remote add origin https://${{ secrets.GH_PAT }}@github.com/jaimetur/OrganizeTakeoutPhotos-dev.git
+          
+          # Obtener la rama que activó el workflow
+          git fetch origin ${{ github.ref_name }} || git fetch origin main || git fetch origin master
+          git checkout ${{ github.ref_name }} || git checkout main || git checkout -b ${{ github.ref_name }}
 
           # Crear el directorio donde irá el artefacto
           mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
