@@ -32,8 +32,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Compilación para Linux con arquitectura
-      - name: Compile for Linux
+      # Compile for Linux with different architectures
+      - name: Compile for Linux (all architectures)
         if: matrix.os == 'ubuntu-20.04'
         run: |
           cd src
@@ -46,8 +46,8 @@ jobs:
           python3 _compile.py
         shell: bash
 
-      # Compilación directa para macOS con arquitectura
-      - name: Compile for MacOS
+      # Compile for macOS with different architectures
+      - name: Compile for MacOS (all architectures)
         if: matrix.os == 'macos-latest'
         run: |
           cd src
