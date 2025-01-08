@@ -13,14 +13,14 @@ jobs:
     strategy:
       matrix:
 #        os: [ubuntu-20.04, macos-latest, windows-latest]  # macos-latest
-        os: [ubuntu-20.04]  # macos-latest
+#        os: [ubuntu-20.04]  # macos-latest
 #        os: [macos-latest]  # macos-latest
 #        os: [ubuntu-20.04, windows-latest]  # macos-latest
 #        os: [macos-latest, windows-latest]  # macos-latest
-#        os: [ubuntu-20.04, macos-latest]  # macos-latest
-#        arch: [x86_64, arm64]  # amd64 and arm64
+        os: [ubuntu-20.04, macos-latest]  # macos-latest
+        arch: [x86_64, arm64]  # amd64 and arm64
 #        arch: [x86_64]  # amd64 and arm64
-        arch: [arm64]  # amd64 and arm64
+#        arch: [arm64]  # amd64 and arm64
         exclude:
           - os: windows-latest
             arch: arm64  # Windows is only compiled for x86 (32/64-bit)
@@ -29,6 +29,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - uses: actions/checkout@v3
 
       - name: Show Matrix Info
         run: |
@@ -36,16 +37,14 @@ jobs:
           echo "Architecture: ${{ matrix.arch }}"
         shell: bash
 
-      - name: Set up QEMU for ARM64 (Ubuntu)
-        if: matrix.os == 'ubuntu-20.04' && matrix.arch == 'arm64'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y qemu qemu-user-static
-          sudo update-binfmts --enable qemu-aarch64
-          ls /usr/bin | grep qemu
-          /usr/bin/qemu-aarch64-static --version
-
-      - uses: actions/checkout@v3
+#      - name: Set up QEMU for ARM64 (Ubuntu)
+#        if: matrix.os == 'ubuntu-20.04' && matrix.arch == 'arm64'
+#        run: |
+#          sudo apt-get update
+#          sudo apt-get install -y qemu qemu-user-static
+#          sudo update-binfmts --enable qemu-aarch64
+#          ls /usr/bin | grep qemu
+#          /usr/bin/qemu-aarch64-static --version
 
       - name: Set up Python
         uses: actions/setup-python@v3
@@ -56,6 +55,11 @@ jobs:
       - name: Compile for Linux (arm64) with Docker and QEMU
         if: matrix.os == 'ubuntu-20.04' && matrix.arch == 'arm64'
         run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu qemu-user-static
+          sudo update-binfmts --enable qemu-aarch64
+          ls /usr/bin | grep qemu
+          /usr/bin/qemu-aarch64-static --version
           docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.10 bash -c "
                 apt update && apt install -y gcc-aarch64-linux-gnu &&
                 python3 _compile.py"
