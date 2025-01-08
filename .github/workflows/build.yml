@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths-ignore:
-      - '_built_versions/**'  # Ignora cualquier cambio en _built_versions
-  workflow_dispatch:  # Permite ejecución manual del workflow
+      - '_built_versions/**'  # Ignore any changes in _built_versions
+  workflow_dispatch:  # Allows manual execution of the workflow
 
 jobs:
   build:
@@ -15,24 +15,24 @@ jobs:
 #        os: [ubuntu-20.04, macos-latest, windows-latest]  # macos-latest
 #        os: [ubuntu-20.04]  # macos-latest
         os: [ubuntu-20.04, windows-latest]  # macos-latest
-        arch: [x86_64, arm64]  # amd64 y arm64
-#        arch: [x86_64]  # amd64 y arm64
+        arch: [x86_64, arm64]  # amd64 and arm64
+#        arch: [x86_64]  # amd64 and arm64
         exclude:
           - os: windows-latest
-            arch: arm64  # Windows solo se compila para x86 (32/64-bit)
+            arch: arm64  # Windows is only compiled for x86 (32/64-bit)
         python-version: ["3.10.10"]
 
     runs-on: ${{ matrix.os }}
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Compilación para Linux y macOS
+      # Compilation for Linux and macOS
       - name: Compile for Linux and MacOS
         if: matrix.os != 'windows-latest'
         run: |
@@ -40,7 +40,7 @@ jobs:
           python3 _compile.py
         shell: bash
 
-      # Compilación para Windows
+      # Compilation for Windows
       - name: Compile for Windows
         if: matrix.os == 'windows-latest'
         run: |
@@ -48,7 +48,7 @@ jobs:
           python _compile.py
         shell: cmd
 
-      # Extraer metadatos y construir paths
+      # Extract metadata and build paths
       - name: Extract Metadata and Create Path Variables
         run: |
           SCRIPT_NAME=$(grep -oP 'SCRIPT_NAME\s*=\s*"\K[^"]+' src/OrganizeTakeoutPhotos.py)
@@ -56,24 +56,24 @@ jobs:
           SCRIPT_NAME_VERSION="${SCRIPT_NAME}_${SCRIPT_VERSION}"
 
           ARCH="${{ matrix.arch }}"
-          OS_TAG="linux"  # Valor por defecto
+          OS_TAG="linux"  # Default value
 
-          # Determinar etiqueta según el sistema operativo
+          # Determine tag based on the operating system
           if [[ "${{ matrix.os }}" == *"windows"* ]]; then
             OS_TAG="windows"
           elif [[ "${{ matrix.os }}" == *"macos"* ]]; then
             OS_TAG="macos"
           fi
 
-          # Reemplazar x86_64 por amd64
+          # Replace x86_64 with amd64
           if [ "$ARCH" == "x86_64" ]; then
             ARCH="amd64"
           fi
 
-          # Crear el nombre del artefacto con la etiqueta dinámica
+          # Create the artifact name with the dynamic tag
           ARCHIVE_NAME="${SCRIPT_NAME_VERSION}_${OS_TAG}_${ARCH}.zip"
           
-          # Determinar la ruta del archivo generado
+          # Determine the path of the generated file
           if [ -d "_built_versions/${SCRIPT_NAME_VERSION}" ]; then
             ARCHIVE_PATH=$(realpath "_built_versions/${SCRIPT_NAME_VERSION}/")
           else
@@ -83,7 +83,7 @@ jobs:
           ARCHIVE_FINAL_PATH="_built_versions/${SCRIPT_NAME_VERSION}/"
           ARCHIVE_FINAL_PATH_NAME="${ARCHIVE_FINAL_PATH}${ARCHIVE_NAME}"
           
-          # Guardar variables en el entorno
+          # Save variables in the environment
           echo "ARCHIVE_NAME=${ARCHIVE_NAME}"
           echo "ARCHIVE_PATH=${ARCHIVE_PATH}"
           echo "ARCHIVE_PATH_NAME=${ARCHIVE_PATH_NAME}"
@@ -96,29 +96,29 @@ jobs:
           echo "ARCHIVE_FINAL_PATH=${ARCHIVE_FINAL_PATH}" >> $GITHUB_ENV
           echo "ARCHIVE_FINAL_PATH_NAME=${ARCHIVE_FINAL_PATH_NAME}" >> $GITHUB_ENV
 
-          # Para Windows, convertir rutas
+          # For Windows, convert paths
           if [ "$RUNNER_OS" == "Windows" ]; then
             echo "ARCHIVE_PATH_NAME=$(echo ${ARCHIVE_PATH_NAME} | sed 's/\//\\/g')" >> $GITHUB_ENV
           fi
         shell: bash
 
-      # Subir el fichero compilado comprimido a los repositorios Github correspondientes
+      # Upload the compiled compressed file to the corresponding GitHub repositories
       - name: Upload artifact to GitHub repos
         run: |
-          echo "Subiendo archivo '${ARCHIVE_NAME}' a los Repositorios dev y prod..."
+          echo "Uploading file '${ARCHIVE_NAME}' to dev and prod repositories..."
 
-          # Convertir el archivo a base64 (necesario para la API de GitHub)
+          # Convert the file to base64 (necessary for the GitHub API)
           BASE64_ARTIFACT=$(base64 -w 0 ${{ env.ARCHIVE_PATH_NAME }})
 
-          # Parámetros
+          # Parameters
           COMMIT_MESSAGE="Added from GitHub Actions"
 
-          # Obtener el sha del archivo en dev (si existe)
+          # Get the sha of the file in dev (if it exists)
           SHA_DEV=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
             https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${ARCHIVE_FINAL_PATH_NAME} | \
             grep '"sha"' | awk -F '"' '{print $4}')
 
-          # Subir al repo dev (sobrescribir si existe)
+          # Upload to dev repo (overwrite if it exists)
           curl -X PUT \
             -H "Authorization: token ${{ secrets.GH_PAT }}" \
             -H "Content-Type: application/json" \
@@ -131,12 +131,12 @@ jobs:
           }
           EOF
 
-          # Obtener el sha del archivo en prod (si existe)
+          # Get the sha of the file in prod (if it exists)
           SHA_PROD=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
             https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${ARCHIVE_FINAL_PATH_NAME} | \
             grep '"sha"' | awk -F '"' '{print $4}')
 
-          # Subir al repo prod (sobrescribir si existe)
+          # Upload to prod repo (overwrite if it exists)
           curl -X PUT \
             -H "Authorization: token ${{ secrets.GH_PAT }}" \
             -H "Content-Type: application/json" \
@@ -149,7 +149,8 @@ jobs:
           }
           EOF
 
-#      # Subir los ejecutables generados usando la ruta completa
+
+#      # Upload the compiled compressed file to the Actions task
 #      - name: Archive Artifacts
 #        uses: actions/upload-artifact@v4
 #        with:
