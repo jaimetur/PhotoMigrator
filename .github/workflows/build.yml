@@ -127,23 +127,32 @@ jobs:
         run: |
           echo "Archivo a original a subir: ${{ env.ARCHIVE_PATH_NAME }}"
           echo "Archivo final subido      : ${{ env.ARCHIVE_FINAL_PATH_NAME }}"
-          
+
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           # Añadir los archivos al índice
-          ls -l
           mkdir temp-repo
-          cd temp-repo
-          mkdir -p ${ARCHIVE_FINAL_PATH}
+          echo $(pwd)
           ls -l
-          cd ${ARCHIVE_FINAL_PATH}
-          cp -r ${{ env.ARCHIVE_PATH_NAME }} .  # Copia el artefacto a la carpeta deseada del repositorio
+          cd temp-repo
+          mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
+          echo $(pwd)
+          ls -l
+          cd ${{ env.ARCHIVE_FINAL_PATH }}
+          echo $(pwd)
           ls -l 
+          cp -r ${{ env.ARCHIVE_PATH_NAME }} .  # Copia el artefacto a la carpeta deseada del repositorio
+          echo $(pwd)
+          ls -l 
+
+          # Inicialización de Git y configuración del remoto
           git init
-          git remote add origin https://${{ secrets.GH_PAT }}@github.com/jaimetur/OrganizeTakeoutPhotos-dev.git HEAD:${{ github.ref_name }}
-          git fetch origin ${{ github.ref_name }}
-          git checkout ${{ github.ref_name }}
+          git remote add origin https://${{ secrets.GH_PAT }}@github.com/jaimetur/OrganizeTakeoutPhotos-dev.git
+          git fetch origin ${{ github.ref_name }} || git fetch origin main || git fetch origin master
+          git checkout ${{ github.ref_name }} || git checkout main || git checkout -b ${{ github.ref_name }}
+
+          # Añadir y commitear el artefacto
           git add ${{ env.ARCHIVE_FINAL_PATH }}
           git commit -m "Add artifact from GitHub Actions"
           git push origin ${{ github.ref_name }}
