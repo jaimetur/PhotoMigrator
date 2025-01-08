@@ -34,14 +34,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # (1) - Set up Python
-      - name: (1) - Set up Python
+      # Set up Python
+      - name: Set up Python
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
-      # (2) - Compile for All Operating System (Linux, MacOS, Windows) and All Arquitectures (amd64, arm64)
-      - name: (2) - Compile for All Operating System (Linux, MacOS, Windows) and All Arquitectures (amd64, arm64)
+      # 1. - Compile for All Operating System (Linux, MacOS, Windows) and All Arquitectures (amd64, arm64)
+      - name: 1. - Compile for All Operating System (Linux, MacOS, Windows) and All Arquitectures (amd64, arm64)
         run: |
           echo "::group::Compile for ${{ matrix.os }} - ${{ matrix.arch }}"
 
@@ -73,26 +73,8 @@ jobs:
           echo "::endgroup::"
         shell: bash
 
-      # (3) - Extract ARCHIVE_FINAL_PATH_NAME from filename.txt
-      - name: (3) - Extract ARCHIVE_FINAL_PATH_NAME from filename.txt
-        run: |
-          echo "::group::Extract ARCHIVE_FINAL_PATH_NAME"
-
-          if [ "${{ runner.os }}" != "Windows" ]; then
-            ARCHIVE_PATH=$(cat src/filename.txt)
-            echo "ARCHIVE_FINAL_PATH_NAME=${ARCHIVE_PATH}" >> $GITHUB_ENV
-            echo "ARCHIVE_FINAL_PATH_NAME (Linux/macOS): ${ARCHIVE_PATH}"
-          else
-            $path = Get-Content src/filename.txt | Select-String -Pattern "."
-            echo "ARCHIVE_FINAL_PATH_NAME=$path" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-            Write-Output "ARCHIVE_FINAL_PATH_NAME (Windows): $path"
-          fi
-
-          echo "::endgroup::"
-        shell: bash
-
-      # (4) - Update README.md in prod repo with API
-      - name: (4) - Update README.md in prod repo with API
+      # 2. - Update README.md in prod repo with API
+      - name: 2. - Update README.md in prod repo with API
         if: runner.os != 'Windows'
         run: |
           FILE_TO_ADD=README.md
@@ -132,8 +114,24 @@ jobs:
           done
         shell: bash
 
-      # (5a) - Upload artifact to GitHub repos with API (Linux/macOS)
-      - name: (5a) - Upload artifact to GitHub repos with API (Linux/macOS)
+      # 3a. Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Linux/macOS)
+      - name: 3a. Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          ARCHIVE_PATH=$(cat src/filename.txt)
+          echo "ARCHIVE_FINAL_PATH_NAME=${ARCHIVE_PATH}" >> $GITHUB_ENV
+          echo "ARCHIVE_FINAL_PATH_NAME (Linux/macOS): ${ARCHIVE_PATH}"
+
+      # 3b. Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Windows)
+      - name: 3b. Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          $path = Get-Content src/filename.txt | Select-String -Pattern "."
+          echo "ARCHIVE_FINAL_PATH_NAME=$path" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Output "ARCHIVE_FINAL_PATH_NAME (Windows): $path"
+
+      # 4a. - Upload artifact to GitHub repos with API (Linux/macOS)
+      - name: 4a. - Upload artifact to GitHub repos with API (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
           FILE_TO_ADD=${{ env.ARCHIVE_FINAL_PATH_NAME }}
@@ -173,8 +171,8 @@ jobs:
           done
         shell: bash
 
-      # (5b) - Upload artifact to GitHub repos with API (Windows)
-      - name: (5b) - Upload artifact to GitHub repos with API (Windows)
+      # 4b. - Upload artifact to GitHub repos with API (Windows)
+      - name: 4b. - Upload artifact to GitHub repos with API (Windows)
         if: runner.os == 'Windows'
         run: |
           $FILE_TO_ADD = $env:ARCHIVE_FINAL_PATH_NAME
@@ -215,8 +213,8 @@ jobs:
           }
         shell: pwsh
 
-      # (6a) - Cleanup (Linux/macOS)
-      - name: (6a) - Cleanup (Linux/macOS)
+      # 5a. - Cleanup (Linux/macOS)
+      - name: 5a. - Cleanup (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
           if [ -f artifact_base64.txt ]; then
@@ -235,8 +233,8 @@ jobs:
           fi
         shell: bash
 
-      # (6b) - Cleanup (Windows)
-      - name: (6b) - Cleanup (Windows)
+      # 6b. - Cleanup (Windows)
+      - name: 6b. - Cleanup (Windows)
         if: runner.os == 'Windows'
         run: |
           if (Test-Path "artifact_base64.txt") {
