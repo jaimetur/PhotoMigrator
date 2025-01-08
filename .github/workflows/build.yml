@@ -118,30 +118,27 @@ jobs:
             BASE64_ARTIFACT=$(base64 -w 0 "$file")
 
             # Subir al repo dev
+            printf '{
+              "message": "%s",
+              "content": "%s",
+              "branch": "%s"
+            }' "$COMMIT_MESSAGE" "$BASE64_ARTIFACT" "${{ github.ref_name }}" | \
             curl -X PUT \
               -H "Authorization: token ${{ secrets.GH_PAT }}" \
               -H "Content-Type: application/json" \
-              -d @- https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${REPO_PATH}/${RELATIVE_PATH} <<EOF
-            {
-              "message": "${COMMIT_MESSAGE}",
-              "content": "${BASE64_ARTIFACT}",
-              "branch": "${{ github.ref_name }}"
-            }
-            EOF
+              -d @- https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${REPO_PATH}/${RELATIVE_PATH}
 
             # Subir al repo prod
+            printf '{
+              "message": "%s",
+              "content": "%s",
+              "branch": "%s"
+            }' "$COMMIT_MESSAGE" "$BASE64_ARTIFACT" "${{ github.ref_name }}" | \
             curl -X PUT \
               -H "Authorization: token ${{ secrets.GH_PAT }}" \
               -H "Content-Type: application/json" \
-              -d @- https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${REPO_PATH}/${RELATIVE_PATH} <<EOF
-            {
-              "message": "${COMMIT_MESSAGE}",
-              "content": "${BASE64_ARTIFACT}",
-              "branch": "${{ github.ref_name }}"
-            }
-            EOF
+              -d @- https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${REPO_PATH}/${RELATIVE_PATH}
           done
-
 
 
 
