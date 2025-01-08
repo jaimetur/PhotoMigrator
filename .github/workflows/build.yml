@@ -140,6 +140,10 @@ jobs:
           git init
           git remote add origin https://${{ secrets.GH_PAT }}@github.com/jaimetur/OrganizeTakeoutPhotos-dev.git
 
+          # Obtener la rama que activó el workflow
+          git fetch origin ${{ github.ref_name }} || git fetch origin main || git fetch origin master
+          git checkout ${{ github.ref_name }} || git checkout main || git checkout -b ${{ github.ref_name }}
+
           # Crear el directorio donde irá el artefacto
           mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
 
@@ -152,9 +156,16 @@ jobs:
           if [ -d "${{ env.ARCHIVE_FINAL_PATH }}" ]; then
             git add ${{ env.ARCHIVE_FINAL_PATH }}
             git commit -m "Add artifact from GitHub Actions"
+
+            # Renombrar la rama actual para coincidir con la rama remota
+            git branch -m ${{ github.ref_name }}
+
+            # Hacer push a la misma rama que activó el workflow
             git push origin ${{ github.ref_name }}
           else
             echo "Error: El directorio ${{ env.ARCHIVE_FINAL_PATH }} no existe. No se realizará el commit."
             exit 1
           fi
+      
+      
       
