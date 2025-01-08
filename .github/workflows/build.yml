@@ -32,6 +32,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Show Matrix Info
+        run: |
+          echo "OS: ${{ matrix.os }}"
+          echo "Architecture: ${{ matrix.arch }}"
+        shell: bash
+
       # Compile for Linux with different architectures
       - name: Compile for Linux (all architectures)
         if: matrix.os == 'ubuntu-20.04'
@@ -59,7 +65,7 @@ jobs:
           fi
         shell: bash
 
-      # Compilation for Windows
+      # Compile for Windows (and64 only)
       - name: Compile for Windows (amd64 only)
         if: matrix.os == 'windows-latest'
         run: |
