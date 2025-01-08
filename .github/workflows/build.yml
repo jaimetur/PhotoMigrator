@@ -276,7 +276,7 @@ jobs:
             Remove-Item -Path "artifact_base64.txt"
             Write-Host "Archivo artifact_base64.txt eliminado de carpeta raiz."
           } 
-          elsif (Test-Path "src\artifact_base64.txt") {
+          elseif (Test-Path "src\artifact_base64.txt") {
             Remove-Item -Path "src\artifact_base64.txt"
             Write-Host "Archivo artifact_base64.txt eliminado de carpeta src\."
           }
@@ -284,7 +284,7 @@ jobs:
             Remove-Item -Path "${{ env.ARCHIVE_FINAL_PATH_NAME }}"
             Write-Host "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
           } 
-          elsif (Test-Path "src\${{ env.ARCHIVE_FINAL_PATH_NAME }}") {
+          elseif (Test-Path "src\${{ env.ARCHIVE_FINAL_PATH_NAME }}") {
             Remove-Item -Path "src\${{ env.ARCHIVE_FINAL_PATH_NAME }}"
             Write-Host "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta src\."
           }
