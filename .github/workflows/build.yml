@@ -139,7 +139,7 @@ jobs:
             $FILE_TO_ADD = $env:ARCHIVE_FINAL_PATH_NAME
             Write-Host "Uploading file '${FILE_TO_ADD}' to dev and prod repositories..."
 
-            # Encode Artifact to Base64 (Windows)
+            # Encode Artifact to Base64
             $BASE64_ARTIFACT = [Convert]::ToBase64String([IO.File]::ReadAllBytes("${FILE_TO_ADD}"))
             $COMMIT_MESSAGE = "Added from GitHub Actions"
             $REPOS = @("OrganizeTakeoutPhotos-dev", "OrganizeTakeoutPhotos")
