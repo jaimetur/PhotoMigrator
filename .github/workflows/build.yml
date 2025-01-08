@@ -1,12 +1,14 @@
 name: Build Executables for Multiple Platforms
 
 on:
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - '_built_versions/**'  # Ignore any changes in _built_versions
-  workflow_dispatch:  # Allows manual execution of the workflow
+  workflow_dispatch:      # Allows manual execution of the workflow
+  schedule:               # Ejecución diaria a las 2 AM UTC
+    - cron: '0 2 * * *'
+#  push:                   # Ejecución tras push en main, excepto en los path-ignore
+#    branches:
+#      - main
+#    paths-ignore:
+#      - '_built_versions/**'  # Ignore any changes in _built_versions
 
 jobs:
   build:
@@ -140,8 +142,8 @@ jobs:
       - name: Upload artifact to GitHub repos with API (Windows)
         if: runner.os == 'Windows'
         run: |
-          $FILE_TO_ADD = ${{ env.ARCHIVE_FINAL_PATH_NAME }}
-          Write-Host "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
+          $FILE_TO_ADD = $env:ARCHIVE_FINAL_PATH_NAME
+          Write-Host "Uploading file '${FILE_TO_ADD}' to dev and prod repositories..."
           
           # Encode Artifact to Base64 (Windows)
           $BASE64_ARTIFACT = [Convert]::ToBase64String([IO.File]::ReadAllBytes("${FILE_TO_ADD}"))
