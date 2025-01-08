@@ -75,8 +75,8 @@ jobs:
       # Extract metadata and build paths
       - name: Extract Metadata and Create Path Variables
         run: |
-          SCRIPT_NAME=$(grep -oP 'SCRIPT_NAME\s*=\s*"\K[^"]+' src/OrganizeTakeoutPhotos.py)
-          SCRIPT_VERSION=$(grep -oP 'SCRIPT_VERSION\s*=\s*"\K[^"]+' src/OrganizeTakeoutPhotos.py)
+          SCRIPT_NAME=$(awk -F '"' '/SCRIPT_NAME/ {print $2}' src/OrganizeTakeoutPhotos.py)
+          SCRIPT_VERSION=$(awk -F '"' '/SCRIPT_VERSION/ {print $2}' src/OrganizeTakeoutPhotos.py)
           SCRIPT_NAME_VERSION="${SCRIPT_NAME}_${SCRIPT_VERSION}"
 
           ARCH="${{ matrix.arch }}"
