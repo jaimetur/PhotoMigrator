@@ -141,7 +141,7 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           $FILE_TO_ADD = ${{ env.ARCHIVE_FINAL_PATH_NAME }}
-          Write-Host "Uploading file '${FILE_TO_ADD}' to dev and prod repositories..."
+          Write-Host "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
           
           # Encode Artifact to Base64 (Windows)
           $BASE64_ARTIFACT = [Convert]::ToBase64String([IO.File]::ReadAllBytes("${FILE_TO_ADD}"))
