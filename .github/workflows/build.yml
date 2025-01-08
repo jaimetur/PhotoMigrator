@@ -114,32 +114,33 @@ jobs:
             if [ -z "$SHA" ]; then
               echo "Archivo no encontrado (404) en $REPO. Subiendo como nuevo..."
               # Construir el JSON SIN la clave sha
-              JSON_BODY=$(jq -n \
+              jq -n \
                 --arg message "$COMMIT_MESSAGE" \
                 --arg content "$BASE64_ARTIFACT" \
                 --arg branch "main" \
-                '{message: $message, content: $content, branch: $branch}')
+                '{message: $message, content: $content, branch: $branch}' > payload.json
             else
               echo "Archivo encontrado en $REPO. SHA: $SHA"
               # Construir el JSON CON la clave sha
-              JSON_BODY=$(jq -n \
+              jq -n \
                 --arg message "$COMMIT_MESSAGE" \
                 --arg content "$BASE64_ARTIFACT" \
                 --arg branch "main" \
                 --arg sha "$SHA" \
-                '{message: $message, content: $content, branch: $branch, sha: $sha}')
+                '{message: $message, content: $content, branch: $branch, sha: $sha}' > payload.json
             fi
 
             # Subir el archivo (crear o sobrescribir)
             curl -X PUT \
               -H "Authorization: token ${{ secrets.GH_PAT }}" \
               -H "Content-Type: application/json" \
-              -d "$JSON_BODY" \
+              -d @payload.json \
               ${URL}
+
+            # Limpiar el archivo temporal
+            rm -f payload.json
           done
         shell: bash
-
-
 
 
       - name: Upload artifact to GitHub repos (Windows)
