@@ -148,22 +148,15 @@ jobs:
           fi
         shell: bash
 
-      - name: Encode Artifact to Base64 (Linux/macOS/Windows)
-        run: |
-          base64 -w 0 ${{ env.ARCHIVE_FINAL_PATH_NAME }} > artifact_base64.txt
-        shell: bash
-
-      - name: Encode Artifact to Base64 (Windows)
-        run: |
-          [Convert]::ToBase64String([IO.File]::ReadAllBytes("${{ env.ARCHIVE_FINAL_PATH_NAME }}")) | Out-File -FilePath artifact_base64.txt
-        shell: pwsh
-
       # Upload the compiled compressed file to the corresponding GitHub repositories
       - name: Upload artifact to GitHub repos (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
           echo "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
 
+          # Encode Artifact to Base64 (Linux/macOS)
+          cat ${{ env.ARCHIVE_FINAL_PATH_NAME }} | base64 | tr -d '\n' > artifact_base64.txt
+          
           # Leer el contenido codificado en base64 desde el archivo (for Linux/macOS)
           BASE64_ARTIFACT=$(cat artifact_base64.txt)
 
@@ -239,6 +232,9 @@ jobs:
         run: |
           Write-Host "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
 
+          # Encode Artifact to Base64 (Windows)
+          [Convert]::ToBase64String([IO.File]::ReadAllBytes("${{ env.ARCHIVE_FINAL_PATH_NAME }}")) | Out-File -FilePath artifact_base64.txt
+          
           # Leer el contenido codificado en base64 (for Windows)
           $BASE64_ARTIFACT = Get-Content -Path "artifact_base64.txt" -Raw
 
