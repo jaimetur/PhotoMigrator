@@ -5,16 +5,15 @@ Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (Fix meta
 Download the script either Linux, Mac OS or Windows version (for both x64/amd64 or arm64 architectures) as you prefeer directly from following links:
 
 **Linux:**:  
-  - [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.2.0/OrganizeTakeoutPhotos_v2.2.0_linux_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.2.0/OrganizeTakeoutPhotos_v2.2.0_linux_arm64.zip)
-
+  - [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.3.0/OrganizeTakeoutPhotos_v2.3.0_linux_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.3.0/OrganizeTakeoutPhotos_v2.3.0_linux_arm64.zip)  
 
 **Mac OS:**
-  - [Download AMD 64 bits version (under development. No download yet)](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.2.0/OrganizeTakeoutPhotos_v2.2.0_macos_amd64.zip)
-  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.2.0/OrganizeTakeoutPhotos_v2.2.0_macos_arm64.zip)
+  - [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.3.0/OrganizeTakeoutPhotos_v2.3.0_macos_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.3.0/OrganizeTakeoutPhotos_v2.3.0_macos_arm64.zip)  
 
 **Windows:**  
-- [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.2.0/OrganizeTakeoutPhotos_v2.2.0_windows_amd64.zip)
+- [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.3.0/OrganizeTakeoutPhotos_v2.3.0_windows_amd64.zip)  
 
 
 ## Instructions:
@@ -41,7 +40,7 @@ usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>
                                      [-pd <DUPLICATES_REVISED_CSV>] [-ca <ALBUMS_FOLDER>] [-de] [-dd]
                                      [-ao <INPUT_FOLDER>]
 
-OrganizeTakeoutPhotos v2.2.0 - 2025-01-04
+OrganizeTakeoutPhotos v2.3.0 - 2025-01-08
 
 Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos and much more useful features
 (remove duplicates, fix metadata, organize per year/month folder, separate Albums, fix symlinks, etc...).
@@ -258,12 +257,12 @@ Example of use:
 With this example, the script will rename all subfolders within ./My_Albums_Folder (only first subfolder level) according to the format described above. If the subfolder does not contains any file, the folder will not be renamed.
 
 ## <span style="color:green">Synology Photos Support</span>
-From version 2.0.0 onwards, the script can connect to your Synology NAS and login into Synology Photos App with your credentials. The credentials needs to be loaded from 'nas.config' file and will have this format:
+From version 2.0.0 onwards, the script can connect to your Synology NAS and login into Synology Photos App with your credentials. The credentials need to be loaded from 'Synology.config' file and will have this format:
 
-#### <span style="color:green">Example 'nas.config':</span>
+#### <span style="color:green">Example 'Synology.config':</span>
 
 ```
-# NAS.config for Synology NAS
+# Synology.config for Synology NAS
 
 NAS_IP              = 192.168.1.11                          # Change this IP by your Synology NAS IP
 USERNAME            = username                              # Your username for Synology Photos
