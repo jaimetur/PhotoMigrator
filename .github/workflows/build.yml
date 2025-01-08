@@ -32,13 +32,40 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Compilation for Linux and macOS
-      - name: Compile for Linux and MacOS
-        if: matrix.os != 'windows-latest'
+      # Compilación para Linux con arquitectura
+      - name: Compile for Linux
+        if: matrix.os == 'ubuntu-20.04'
         run: |
           cd src
+          arch=${{ matrix.arch }}
+          if [ "$arch" = "arm64" ]; then
+            sudo dpkg --add-architecture arm64
+            sudo apt update && sudo apt install -y gcc-aarch64-linux-gnu
+            export CC=aarch64-linux-gnu-gcc
+          fi
           python3 _compile.py
         shell: bash
+
+      # Compilación directa para macOS con arquitectura
+      - name: Compile for MacOS
+        if: matrix.os == 'macos-latest'
+        run: |
+          cd src
+          arch=${{ matrix.arch }}
+          if [ "$arch" = "arm64" ]; then
+            arch -arm64 python3 _compile.py
+          else
+            arch -x86_64 python3 _compile.py
+          fi
+        shell: bash
+
+#      # Compilation for Linux and macOS
+#      - name: Compile for Linux and MacOS
+#        if: matrix.os != 'windows-latest'
+#        run: |
+#          cd src
+#          python3 _compile.py
+#        shell: bash
 
       # Compilation for Windows
       - name: Compile for Windows
@@ -83,13 +110,14 @@ jobs:
           ARCHIVE_FINAL_PATH="_built_versions/${SCRIPT_NAME_VERSION}/"
           ARCHIVE_FINAL_PATH_NAME="${ARCHIVE_FINAL_PATH}${ARCHIVE_NAME}"
           
-          # Save variables in the environment
+          # Print variables in screen
           echo "ARCHIVE_NAME=${ARCHIVE_NAME}"
           echo "ARCHIVE_PATH=${ARCHIVE_PATH}"
           echo "ARCHIVE_PATH_NAME=${ARCHIVE_PATH_NAME}"
           echo "ARCHIVE_FINAL_PATH=${ARCHIVE_FINAL_PATH}"
           echo "ARCHIVE_FINAL_PATH_NAME=${ARCHIVE_FINAL_PATH_NAME}"
           
+          # Save variables in the environment
           echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> $GITHUB_ENV
           echo "ARCHIVE_PATH=${ARCHIVE_PATH}" >> $GITHUB_ENV
           echo "ARCHIVE_PATH_NAME=${ARCHIVE_PATH_NAME}" >> $GITHUB_ENV
