@@ -34,12 +34,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Show Matrix Info
-        run: |
-          echo "OS: ${{ matrix.os }}"
-          echo "Architecture: ${{ matrix.arch }}"
-        shell: bash
-
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
