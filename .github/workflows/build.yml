@@ -148,23 +148,6 @@ jobs:
           fi
         shell: bash
 
-      - name: Debug SHA Retrieval
-        run: |
-          echo "Request URL: https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${ARCHIVE_FINAL_PATH_NAME}"
-          SHA_DEV=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
-          https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${ARCHIVE_FINAL_PATH_NAME} | \
-          grep '"sha"' | awk -F '"' '{print $4}')
-      
-          echo "SHA_DEV: $SHA_DEV"
-          if [ -z "$SHA_DEV" ]; then
-            echo "Archivo no encontrado o token inválido. Detalles:"
-            curl -v -H "Authorization: token ${{ secrets.GH_PAT }}" \
-            https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${ARCHIVE_FINAL_PATH_NAME}
-            exit 1
-          fi
-        shell: bash
-
-
       - name: Debug Base64 Output
         run: |
           echo "Base64 Artifact Length: ${#BASE64_ARTIFACT}"
@@ -184,7 +167,7 @@ jobs:
       - name: Upload artifact to GitHub repos (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
-          echo "Uploading file '${ARCHIVE_FINAL_PATH_NAME}' to dev and prod repositories..."
+          echo "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
 
           # Base64 Encoding for Linux/macOS
           BASE64_ARTIFACT=$(cat ${{ env.ARCHIVE_FINAL_PATH_NAME }} | base64 | tr -d '\n')
@@ -193,8 +176,8 @@ jobs:
           # Parameters
           COMMIT_MESSAGE="Added from GitHub Actions"
 
-          # UPLOAD TO PROD REPO:
-          URL=https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${ARCHIVE_FINAL_PATH_NAME}
+          # UPLOAD TO DEV REPO:
+          URL=https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}
           # Realizar la solicitud y capturar la respuesta completa
           RESPONSE=$(curl -s -w "%{http_code}" -H "Authorization: token ${{ secrets.GH_PAT }}" ${URL})
       
@@ -225,7 +208,7 @@ jobs:
           EOF
 
           # UPLOAD TO PROD REPO:
-          URL=https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${ARCHIVE_FINAL_PATH_NAME}
+          URL=https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}
           # Realizar la solicitud y capturar la respuesta completa
           RESPONSE=$(curl -s -w "%{http_code}" -H "Authorization: token ${{ secrets.GH_PAT }}" ${URL})
       
@@ -269,26 +252,26 @@ jobs:
           # Parameters
           $COMMIT_MESSAGE = "Added from GitHub Actions"
 
+          # UPLOAD TO DEV REPO:
+          URL=https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}
           # Get the sha of the file in dev
-          $SHA_DEV = (Invoke-RestMethod -Uri "https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"}).sha
-
-          # Upload to dev repo
-          Invoke-RestMethod -Method Put -Uri "https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"} -Body (ConvertTo-Json -Compress @{
+          SHA = (Invoke-RestMethod -Uri "${URL}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"}).sha
+          Invoke-RestMethod -Method Put -Uri "${URL}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"} -Body (ConvertTo-Json -Compress @{
             message = $COMMIT_MESSAGE
             content = $BASE64_ARTIFACT
             branch = "main"
-            sha = $SHA_DEV
+            sha = SHA
           })
 
-          # Get the sha of the file in prod
-          $SHA_PROD = (Invoke-RestMethod -Uri "https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"}).sha
-
-          # Upload to prod repo
-          Invoke-RestMethod -Method Put -Uri "https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"} -Body (ConvertTo-Json -Compress @{
+          # UPLOAD TO PROD REPO:
+          URL=https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}
+          # Get the sha of the file in dev
+          SHA = (Invoke-RestMethod -Uri "${URL}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"}).sha
+          Invoke-RestMethod -Method Put -Uri "${URL}" -Headers @{Authorization="token ${{ secrets.GH_PAT }}"} -Body (ConvertTo-Json -Compress @{
             message = $COMMIT_MESSAGE
             content = $BASE64_ARTIFACT
             branch = "main"
-            sha = $SHA_PROD
+            sha = SHA
           })
         shell: pwsh
 
