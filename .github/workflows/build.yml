@@ -86,8 +86,6 @@ jobs:
 
           # Crear el nombre del artefacto con la etiqueta dinámica
           ARCHIVE_NAME="${SCRIPT_NAME_VERSION}_${OS_TAG}_${ARCH}.zip"
-
-          echo "Directorio de trabajo: $(pwd)"
           
           # Determinar la ruta del archivo generado
           if [ -d "_built_versions/${SCRIPT_NAME_VERSION}" ]; then
@@ -96,7 +94,7 @@ jobs:
             ARCHIVE_PATH=$(pwd)/_built_versions/${SCRIPT_NAME_VERSION}
           fi
           ARCHIVE_PATH_NAME="${ARCHIVE_PATH}/${ARCHIVE_NAME}"
-          ARCHIVE_FINAL_PATH="_built_versions/${SCRIPT_NAME_VERSION}/"
+          ARCHIVE_FINAL_PATH="jaimetur/OrganizeTakeoutPhotos-dev/_built_versions/${SCRIPT_NAME_VERSION}/"
           ARCHIVE_FINAL_PATH_NAME="${ARCHIVE_FINAL_PATH}${ARCHIVE_NAME}"
           
           # Guardar variables en el entorno
@@ -122,8 +120,8 @@ jobs:
         run: |
           echo "Archivo a original a subir: ${{ env.ARCHIVE_PATH_NAME }}"
           echo "Archivo final subido      : ${{ env.ARCHIVE_FINAL_PATH_NAME }}"
-#          mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
-#          mv ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH_NAME }}
+          mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
+          mv ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH_NAME }}
         shell: bash
 
 
