@@ -106,12 +106,10 @@ jobs:
 
             # Extraer SHA si el archivo existe
             command="curl -s -f -H 'Authorization: token ${{ secrets.GH_PAT }}' '${URL}' | grep '\"sha\"' | awk -F '\"' '{print \$4}' || echo \"\""
-            echo "Command: ${command}"
+            # echo "Command: ${command}"
             SHA=$(eval ${command})
             echo "SHA: ${SHA}"
             
-
-            # Subir el archivo (crear o sobrescribir)
             # Crear archivo temporal para el payload
             PAYLOAD_FILE=$(mktemp)
             
@@ -122,10 +120,7 @@ jobs:
               \"branch\": \"main\",
               \"sha\": \"${SHA}\"
             }" > ${PAYLOAD_FILE}
-            
-            # Mostrar el contenido del payload para depuración (opcional)
-            cat ${PAYLOAD_FILE}
-            
+                        
             # Subir el archivo (crear o sobrescribir)
             curl -X PUT \
                 -H "Authorization: token ${{ secrets.GH_PAT }}" \
@@ -179,6 +174,7 @@ jobs:
 
       - name: List Files (1)
         run: |
+          ls -l
           ls -l _built_versions/OrganizeTakeoutPhotos_v2.3.0
           ls -l src
         shell: bash
@@ -225,6 +221,7 @@ jobs:
 
       - name: List Files (2)
         run: |
+          ls -l
           ls -l _built_versions/OrganizeTakeoutPhotos_v2.3.0
           ls -l src
         shell: bash
