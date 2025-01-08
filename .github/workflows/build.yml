@@ -29,18 +29,12 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
 
       - name: Show Matrix Info
         run: |
           echo "OS: ${{ matrix.os }}"
           echo "Architecture: ${{ matrix.arch }}"
         shell: bash
-
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: ${{ matrix.python-version }}
 
       - name: Set up QEMU for ARM64 (Ubuntu)
         if: matrix.os == 'ubuntu-20.04' && matrix.arch == 'arm64'
@@ -51,19 +45,20 @@ jobs:
           ls /usr/bin | grep qemu
           /usr/bin/qemu-aarch64-static --version
 
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
       # Compile for Linux with different architectures
       - name: Compile for Linux (arm64) with Docker and QEMU
         if: matrix.os == 'ubuntu-20.04' && matrix.arch == 'arm64'
         run: |
           docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.10 bash -c "
-                sudo apt update && sudo apt install -y gcc-aarch64-linux-gnu &&
+                apt update && apt install -y gcc-aarch64-linux-gnu &&
                 python3 _compile.py"
-        shell: bash
-      - name: Compile for Linux (amd64)
-        if: matrix.os == 'ubuntu-20.04' && matrix.arch != 'arm64'
-        run: |
-          cd src
-          python3 _compile.py
         shell: bash
 
       # Compile for macOS with different architectures
