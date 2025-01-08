@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'src/**'  # Solo ejecuta el workflow si hay cambios en src/
+    paths-ignore:
+      - '_built_versions/**'  # Ignora cualquier cambio en _built_versions
   workflow_dispatch:  # Permite ejecución manual del workflow
 
 jobs:
@@ -30,23 +30,6 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
-          
-#      - name: Install dependencies (Linux/MacOS)
-#        if: matrix.os != 'windows-latest'
-#        run: |
-#          python3 -m pip install --upgrade pip
-#           pip3 install cibuildwheel
-#           if [ -f src/requirements.txt ]; then pip install -r src/requirements.txt; fi
-#        shell: bash
-#
-#      - name: Install dependencies (Windows)
-#        if: matrix.os == 'windows-latest'
-#        run: |
-#         python3 -m pip install --upgrade pip
-#         pip3 install cibuildwheel
-#         if exist src\requirements.txt ( pip install -r src\requirements.txt )
-#        shell: cmd
-
 
       # Compilación para Linux y macOS
       - name: Compile for Linux and MacOS
