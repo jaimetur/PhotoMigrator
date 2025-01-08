@@ -116,14 +116,12 @@ jobs:
             PAYLOAD_FILE=$(mktemp)
             
             # Generar el contenido del JSON y guardarlo en el archivo temporal
-            cat <<EOF > ${PAYLOAD_FILE}
-            {
-              "message": "${COMMIT_MESSAGE}",
-              "content": "${BASE64_ARTIFACT}",
-              "branch": "${{ github.ref_name }}",
-              "sha": "${SHA}"
-            }
-            EOF
+            echo "{
+              \"message\": \"${COMMIT_MESSAGE}\",
+              \"content\": \"${BASE64_ARTIFACT}\",
+              \"branch\": \"main\",
+              \"sha\": \"${SHA}\"
+            }" > ${PAYLOAD_FILE}
             
             # Mostrar el contenido del payload para depuración (opcional)
             cat ${PAYLOAD_FILE}
