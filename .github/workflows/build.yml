@@ -45,9 +45,9 @@ jobs:
         run: |
           apt update
           apt install -y qemu qemu-user-static
-          docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.10 bash -c "
-            apt update && apt install -y gcc-aarch64-linux-gnu &&
-            python3 _compile.py"
+          docker run --rm --platform linux/arm64 --user root -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.10 bash -c "
+                apt update && apt install -y gcc-aarch64-linux-gnu &&
+                python3 _compile.py"
         shell: bash
       - name: Compile for Linux (amd64)
         if: matrix.os == 'ubuntu-20.04' && matrix.arch != 'arm64'
