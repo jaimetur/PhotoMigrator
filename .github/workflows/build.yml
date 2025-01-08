@@ -101,13 +101,6 @@ jobs:
           fi
         shell: bash
 
-      # Subir los ejecutables generados usando la ruta completa
-      - name: Archive Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ARCHIVE_NAME }}
-          path: ${{ env.ARCHIVE_FINAL_PATH }}
-
       # Subir el fichero compilado comprimido a los repositorios Github correspondientes
       - name: Commit and push artifact to repos
         run: |
@@ -122,9 +115,11 @@ jobs:
 
           git init
 
+          # Añadir dos remotos: dev y prod
           git remote add dev https://${{ secrets.GH_PAT }}@github.com/jaimetur/OrganizeTakeoutPhotos-dev.git
           git remote add prod https://${{ secrets.GH_PAT }}@github.com/jaimetur/OrganizeTakeoutPhotos.git
 
+          # Obtener la rama que activó el workflow
           git fetch dev ${{ github.ref_name }} || git fetch dev main || git fetch dev master
           git checkout ${{ github.ref_name }} || git checkout main || git checkout -b ${{ github.ref_name }}
 
@@ -133,25 +128,34 @@ jobs:
           (git pull prod ${{ github.ref_name }} --rebase || \
             (git checkout --ours . && git add . && git rebase --continue || true))
 
+          # Si Git queda en detached HEAD, reanudar en main
+          git checkout ${{ github.ref_name }} || git checkout main
+
           mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
           cp -r ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH }}
 
+          # Añadir y hacer commit de los archivos
           if [ -d "${{ env.ARCHIVE_FINAL_PATH }}" ]; then
             git add ${{ env.ARCHIVE_FINAL_PATH }}
             git commit -m "Added from GitHub Actions"
 
+            # Asegurar que estamos en la rama correcta
+            git checkout ${{ github.ref_name }} || git checkout main
+
+            # Renombrar la rama actual para coincidir con la rama remota
             git branch -m ${{ github.ref_name }}
 
+            # Hacer push a ambos repositorios (dev y prod)
             git push dev ${{ github.ref_name }}
             git push prod ${{ github.ref_name }}
           else
             echo "Error: El directorio ${{ env.ARCHIVE_FINAL_PATH }} no existe. No se realizará el commit."
             exit 1
           fi
-      
-      
-      
-      
-      
-      
-      
+
+      # Subir los ejecutables generados usando la ruta completa
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARCHIVE_NAME }}
+          path: ${{ env.ARCHIVE_FINAL_PATH }}
