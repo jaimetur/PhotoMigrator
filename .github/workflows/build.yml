@@ -14,8 +14,8 @@ jobs:
   build:
     strategy:
       matrix:
-#        os: [ubuntu-17.04, macos-latest, windows-latest]  # os list
-        os: [ubuntu-17.04]  # os list
+#        os: [ubuntu-20.04, macos-latest, windows-latest]  # os list
+        os: [ubuntu-20.04]  # os list
 #        os: [macos-latest]  # os list
 #        os: [windows-latest]  # os list
 #        os: [ubuntu-20.04, windows-latest]  # os list
