@@ -113,49 +113,35 @@ jobs:
           mkdir -p temp-repo
           cd temp-repo
 
+          # Inicializar repositorio vacío
           git init
 
-          # Añadir dos remotos: dev y prod
+          # Añadir el repositorio remoto (dev y prod)
           git remote add dev https://${{ secrets.GH_PAT }}@github.com/jaimetur/OrganizeTakeoutPhotos-dev.git
           git remote add prod https://${{ secrets.GH_PAT }}@github.com/jaimetur/OrganizeTakeoutPhotos.git
 
-          # Obtener la rama que activó el workflow
-          git fetch dev ${{ github.ref_name }} || git fetch dev main || git fetch dev master
-          git checkout ${{ github.ref_name }} || git checkout main || git checkout -b ${{ github.ref_name }}
+          # Obtener solo la referencia de la rama sin clonar el contenido completo
+          git fetch dev ${{ github.ref_name }} --depth=1
+          git checkout ${{ github.ref_name }} || git checkout -b ${{ github.ref_name }}
 
-          # Rebase con resolución automática de conflictos
-          (git pull dev ${{ github.ref_name }} --rebase || true) && \
-          (git pull prod ${{ github.ref_name }} --rebase || \
-            (git checkout --ours . && git add . && git rebase --continue || true))
-
-          # Si Git queda en detached HEAD, reanudar en main
-          git checkout ${{ github.ref_name }} || git checkout main
-
+          # Crear la carpeta _built_versions si no existe
           mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
+
+          # Copiar el artefacto compilado
           cp -r ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH }}
 
-          # Añadir y hacer commit de los archivos
-          if [ -d "${{ env.ARCHIVE_FINAL_PATH }}" ]; then
-            git add ${{ env.ARCHIVE_FINAL_PATH }}
-            git commit -m "Added from GitHub Actions"
+          # Añadir y hacer commit del archivo
+          git add ${{ env.ARCHIVE_FINAL_PATH }}
+          git commit -m "Added from GitHub Actions"
 
-            # Asegurar que estamos en la rama correcta
-            git checkout ${{ github.ref_name }} || git checkout main
+          # Hacer push del archivo solo a _built_versions sin afectar otros archivos
+          git push dev ${{ github.ref_name }}
+          git push prod ${{ github.ref_name }}
 
-            # Renombrar la rama actual para coincidir con la rama remota
-            git branch -m ${{ github.ref_name }}
 
-            # Hacer push a ambos repositorios (dev y prod)
-            git push dev ${{ github.ref_name }}
-            git push prod ${{ github.ref_name }}
-          else
-            echo "Error: El directorio ${{ env.ARCHIVE_FINAL_PATH }} no existe. No se realizará el commit."
-            exit 1
-          fi
-
-      # Subir los ejecutables generados usando la ruta completa
-      - name: Archive Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ARCHIVE_NAME }}
-          path: ${{ env.ARCHIVE_FINAL_PATH }}
+#      # Subir los ejecutables generados usando la ruta completa
+#      - name: Archive Artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ${{ env.ARCHIVE_NAME }}
+#          path: ${{ env.ARCHIVE_FINAL_PATH }}
