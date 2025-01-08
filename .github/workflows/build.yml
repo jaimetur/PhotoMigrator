@@ -98,75 +98,47 @@ jobs:
 
           # Parameters
           COMMIT_MESSAGE="Added from GitHub Actions"
+          REPOS=("OrganizeTakeoutPhotos-dev" "OrganizeTakeoutPhotos")
 
-          # UPLOAD TO DEV REPO:
-          URL=https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}
-          # Realizar la solicitud y capturar la respuesta completa
-          RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" ${URL})
+          for REPO in "${REPOS[@]}"; do
+            echo "Uploading to $REPO..."
 
-          # Extraer SHA si el archivo existe (grep + awk)
-          SHA=$(echo "$RESPONSE" | grep '"sha"' | awk -F '"' '{print $4}')
+            URL=https://api.github.com/repos/jaimetur/$REPO/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}
 
-          if [ -z "$SHA" ]; then
-            echo "Archivo no encontrado (404). Subiendo como nuevo..."
-            # Construir el JSON SIN la clave sha
-            JSON_BODY=$(jq -n \
-              --arg message "$COMMIT_MESSAGE" \
-              --arg content "$BASE64_ARTIFACT" \
-              --arg branch "main" \
-              '{message: $message, content: $content, branch: $branch}')
-          else
-            echo "Archivo encontrado. SHA: $SHA"
-            # Construir el JSON CON la clave sha
-            JSON_BODY=$(jq -n \
-              --arg message "$COMMIT_MESSAGE" \
-              --arg content "$BASE64_ARTIFACT" \
-              --arg branch "main" \
-              --arg sha "$SHA" \
-              '{message: $message, content: $content, branch: $branch, sha: $sha}')
-          fi
+            # Realizar la solicitud y capturar la respuesta completa
+            RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" ${URL})
 
-          # Subir el archivo (crear o sobrescribir)
-          curl -X PUT \
-            -H "Authorization: token ${{ secrets.GH_PAT }}" \
-            -H "Content-Type: application/json" \
-            -d "$JSON_BODY" \
-            ${URL}
+            # Extraer SHA si el archivo existe
+            SHA=$(echo "$RESPONSE" | grep '"sha"' | awk -F '"' '{print $4}')
 
-          # UPLOAD TO PROD REPO:
-          URL=https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}
-          # Realizar la solicitud y capturar la respuesta completa
-          RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" ${URL})
+            if [ -z "$SHA" ]; then
+              echo "Archivo no encontrado (404) en $REPO. Subiendo como nuevo..."
+              # Construir el JSON SIN la clave sha
+              JSON_BODY=$(jq -n \
+                --arg message "$COMMIT_MESSAGE" \
+                --arg content "$BASE64_ARTIFACT" \
+                --arg branch "main" \
+                '{message: $message, content: $content, branch: $branch}')
+            else
+              echo "Archivo encontrado en $REPO. SHA: $SHA"
+              # Construir el JSON CON la clave sha
+              JSON_BODY=$(jq -n \
+                --arg message "$COMMIT_MESSAGE" \
+                --arg content "$BASE64_ARTIFACT" \
+                --arg branch "main" \
+                --arg sha "$SHA" \
+                '{message: $message, content: $content, branch: $branch, sha: $sha}')
+            fi
 
-          # Extraer SHA si el archivo existe
-          SHA=$(echo "$RESPONSE" | grep '"sha"' | awk -F '"' '{print $4}')
-
-          if [ -z "$SHA" ]; then
-            echo "Archivo no encontrado (404). Subiendo como nuevo..."
-            # Construir el JSON SIN la clave sha
-            JSON_BODY=$(jq -n \
-              --arg message "$COMMIT_MESSAGE" \
-              --arg content "$BASE64_ARTIFACT" \
-              --arg branch "main" \
-              '{message: $message, content: $content, branch: $branch}')
-          else
-            echo "Archivo encontrado. SHA: $SHA"
-            # Construir el JSON CON la clave sha
-            JSON_BODY=$(jq -n \
-              --arg message "$COMMIT_MESSAGE" \
-              --arg content "$BASE64_ARTIFACT" \
-              --arg branch "main" \
-              --arg sha "$SHA" \
-              '{message: $message, content: $content, branch: $branch, sha: $sha}')
-          fi
-
-          # Subir el archivo (crear o sobrescribir)
-          curl -X PUT \
-            -H "Authorization: token ${{ secrets.GH_PAT }}" \
-            -H "Content-Type: application/json" \
-            -d "$JSON_BODY" \
-            ${URL}
+            # Subir el archivo (crear o sobrescribir)
+            curl -X PUT \
+              -H "Authorization: token ${{ secrets.GH_PAT }}" \
+              -H "Content-Type: application/json" \
+              -d "$JSON_BODY" \
+              ${URL}
+          done
         shell: bash
+
 
 
 
