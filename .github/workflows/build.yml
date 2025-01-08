@@ -12,8 +12,9 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-latest, windows-latest]  # macos-latest
+#        os: [ubuntu-20.04, macos-latest, windows-latest]  # macos-latest
 #        os: [ubuntu-20.04]  # macos-latest
+        os: [macos-latest]  # macos-latest
 #        os: [ubuntu-20.04, windows-latest]  # macos-latest
 #        arch: [x86_64, arm64]  # amd64 and arm64
         arch: [arm64]  # amd64 and arm64
@@ -27,16 +28,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: ${{ matrix.python-version }}
-
       - name: Show Matrix Info
         run: |
           echo "OS: ${{ matrix.os }}"
           echo "Architecture: ${{ matrix.arch }}"
         shell: bash
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
 
       # Compile for Linux with different architectures
       - name: Install QEMU for ARM Emulation
