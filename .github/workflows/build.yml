@@ -115,14 +115,13 @@ jobs:
                     -H "Authorization: token ${{ secrets.GH_PAT }}" \
                     -H "Content-Type: application/json" \
                     -d @- ${URL}  <<EOF
-                  {
-                    "message": "${COMMIT_MESSAGE}",
-                    "content": "${BASE64_ARTIFACT}",
-                    "branch": "${{ github.ref_name }}",
-                    "sha": "${SHA}"
-                  }
-                  EOF
-
+            {
+              "message": "${COMMIT_MESSAGE}",
+              "content": "${BASE64_ARTIFACT}",
+              "branch": "${{ github.ref_name }}",
+              "sha": "${SHA}"
+            }
+            EOF
           done
         shell: bash
 
