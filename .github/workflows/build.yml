@@ -107,8 +107,9 @@ jobs:
             # Extraer SHA si el archivo existe
             command="curl -s -f -H 'Authorization: token ${{ secrets.GH_PAT }}' '${URL}' | grep '\"sha\"' | awk -F '\"' '{print \$4}' || echo \"\""
             echo "Command: ${command}"
-            SHA=$(${command})
+            SHA=$(eval ${command})
             echo "SHA: ${SHA}"
+            
 
             # Subir el archivo (crear o sobrescribir)
             curl -X PUT \
