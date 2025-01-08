@@ -150,18 +150,20 @@ jobs:
 
       - name: Debug SHA Retrieval
         run: |
+          echo "Request URL: https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${ARCHIVE_FINAL_PATH_NAME}"
           SHA_DEV=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
           https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${ARCHIVE_FINAL_PATH_NAME} | \
           grep '"sha"' | awk -F '"' '{print $4}')
-
+      
           echo "SHA_DEV: $SHA_DEV"
           if [ -z "$SHA_DEV" ]; then
-            echo "Archivo no encontrado en el repo dev o token inválido."
+            echo "Archivo no encontrado o token inválido. Detalles:"
             curl -v -H "Authorization: token ${{ secrets.GH_PAT }}" \
             https://api.github.com/repos/jaimetur/OrganizeTakeoutPhotos-dev/contents/${ARCHIVE_FINAL_PATH_NAME}
             exit 1
           fi
         shell: bash
+
 
       - name: Debug Base64 Output
         run: |
@@ -177,9 +179,6 @@ jobs:
         run: |
           echo "Ruta final del archivo: ${{ env.ARCHIVE_FINAL_PATH_NAME }}"
         shell: bash
-
-
-
 
       # Upload the compiled compressed file to the corresponding GitHub repositories
       - name: Upload artifact to GitHub repos (Linux/macOS)
