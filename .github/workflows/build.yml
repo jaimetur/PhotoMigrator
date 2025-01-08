@@ -12,10 +12,10 @@ jobs:
   build:
     strategy:
       matrix:
-#        os: [ubuntu-20.04, macos-latest, windows-latest]  # macos-latest
-        os: [ubuntu-20.04]  # macos-latest
-#        arch: [x86_64, arm64]  # amd64 y arm64
-        arch: [x86_64]  # amd64 y arm64
+        os: [ubuntu-20.04, macos-latest, windows-latest]  # macos-latest
+#        os: [ubuntu-20.04]  # macos-latest
+        arch: [x86_64, arm64]  # amd64 y arm64
+#        arch: [x86_64]  # amd64 y arm64
         exclude:
           - os: windows-latest
             arch: arm64  # Windows solo se compila para x86 (32/64-bit)
@@ -132,6 +132,10 @@ jobs:
           git fetch dev ${{ github.ref_name }} || git fetch dev main || git fetch dev master
           git checkout ${{ github.ref_name }} || git checkout main || git checkout -b ${{ github.ref_name }}
 
+          # Hacer pull de ambos remotos (desarrollo y producción) para evitar conflictos
+          git pull dev ${{ github.ref_name }} --rebase || true
+          git pull prod ${{ github.ref_name }} --rebase || true
+
           # Crear el directorio donde irá el artefacto
           mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
 
@@ -153,6 +157,7 @@ jobs:
             echo "Error: El directorio ${{ env.ARCHIVE_FINAL_PATH }} no existe. No se realizará el commit."
             exit 1
           fi
+      
       
       
       
