@@ -46,7 +46,7 @@ jobs:
           echo "::group::Compile for ${{ matrix.os }} - ${{ matrix.arch }}"
 
           # Compile for Linux (arm64)
-          if [ "${{ matrix.os }}" == "ubuntu-20.04" ] && [ "${{ matrix.arch }}" == "arm64" ]; then
+          if [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
             sudo apt-get update
             sudo apt-get install -y qemu qemu-user-static
             sudo update-binfmts --enable qemu-aarch64
@@ -58,17 +58,17 @@ jobs:
                 python3 _compile.py"
 
           # Compile for Linux (amd64)
-          elif [ "${{ matrix.os }}" == "ubuntu-20.04" ] && [ "${{ matrix.arch }}" != "arm64" ]; then
+          elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
             cd src
             python3 _compile.py
 
           # Compile for macOS (any architecture)
-          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+          elif [[ "${{ matrix.os }}" == *"macos"* ]]; then
             cd src
             arch -${{ matrix.arch }} python3 _compile.py
 
           # Compile for Windows (amd64)
-          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
+          elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
             cd src
             python _compile.py
           fi
