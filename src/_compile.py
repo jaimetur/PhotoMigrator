@@ -207,13 +207,12 @@ def compile():
             print(f"Script comprimido: {script_zip_file}")
 
     print("Todas las compilaciones han finalizado correctamente.")
-    # Obtener la carpeta de ejecución del script
-    current_dir = os.getcwd()
-    print(current_dir)
+    # Obtener el directorio raíz un nivel arriba del directorio de trabajo
+    root_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
     # Calcular el path relativo
-    relative_path = os.path.relpath(script_zip_file, current_dir)
+    relative_path = os.path.relpath(script_zip_file, root_dir)
     # Guardar el resultado en un fichero de texto
-    with open('../filename.txt', 'w') as file:
+    with open('filename.txt', 'w') as file:
         file.write(relative_path)
     print(f'El path relativo es: {relative_path}')
     return relative_path
