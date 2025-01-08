@@ -123,6 +123,7 @@ jobs:
           name: ${{ env.ARCHIVE_NAME }}
           path: ${{ env.ARCHIVE_FINAL_PATH }}
 
+      # Subir el fichero compilado comprimido a los repositorios Github correspondientes
       - name: Commit and push artifact to repo
         run: |
           echo "Archivo a original a subir: ${{ env.ARCHIVE_PATH_NAME }}"
@@ -132,18 +133,21 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           # Añadir los archivos al índice
-          mkdir temp-repo
-          echo $(pwd)
+          mkdir -p temp-repo
+          echo "Directorio actual (root): $(pwd)"
           ls -l
           cd temp-repo
           mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
-          echo $(pwd)
+          ls -l
+          echo "Directorio actual (temp-repo): $(pwd)"
           ls -l
           cd ${{ env.ARCHIVE_FINAL_PATH }}
-          echo $(pwd)
+          echo "Directorio actual (dentro de _built_versions): $(pwd)"
           ls -l 
-          cp -r ${{ env.ARCHIVE_PATH_NAME }} .  # Copia el artefacto a la carpeta deseada del repositorio
-          echo $(pwd)
+
+          # Copiar el artefacto al directorio deseado
+          cp -r ${{ env.ARCHIVE_PATH_NAME }} .  # Copia el artefacto
+          echo "Después de copiar el archivo"
           ls -l 
 
           # Inicialización de Git y configuración del remoto
@@ -152,7 +156,12 @@ jobs:
           git fetch origin ${{ github.ref_name }} || git fetch origin main || git fetch origin master
           git checkout ${{ github.ref_name }} || git checkout main || git checkout -b ${{ github.ref_name }}
 
-          # Añadir y commitear el artefacto
-          git add ${{ env.ARCHIVE_FINAL_PATH }}
-          git commit -m "Add artifact from GitHub Actions"
-          git push origin ${{ github.ref_name }}
+          # Verificar si el directorio existe antes de añadirlo
+          if [ -d "${{ env.ARCHIVE_FINAL_PATH }}" ]; then
+            git add ${{ env.ARCHIVE_FINAL_PATH }}
+            git commit -m "Add artifact from GitHub Actions"
+            git push origin ${{ github.ref_name }}
+          else
+            echo "Error: El directorio ${{ env.ARCHIVE_FINAL_PATH }} no existe. No se realizará el commit."
+            exit 1
+          fi
