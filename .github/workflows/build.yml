@@ -112,15 +112,31 @@ jobs:
             
 
             # Subir el archivo (crear o sobrescribir)
+            # Crear archivo temporal para el payload
+            PAYLOAD_FILE=$(mktemp)
+            
+            # Generar el contenido del JSON y guardarlo en el archivo temporal
+            cat <<EOF > ${PAYLOAD_FILE}
+            {
+              "message": "${COMMIT_MESSAGE}",
+              "content": "${BASE64_ARTIFACT}",
+              "branch": "${{ github.ref_name }}",
+              "sha": "${SHA}"
+            }
+            EOF
+            
+            # Mostrar el contenido del payload para depuración (opcional)
+            cat ${PAYLOAD_FILE}
+            
+            # Subir el archivo (crear o sobrescribir)
             curl -X PUT \
                 -H "Authorization: token ${{ secrets.GH_PAT }}" \
                 -H "Content-Type: application/json" \
-                -d '{
-                  "message": "'"${COMMIT_MESSAGE}"'",
-                  "content": "'"${BASE64_ARTIFACT}"'",
-                  "branch": "'"${{ github.ref_name }}"'",
-                  "sha": "'"${SHA}"'"
-                }' ${URL}
+                -d @${PAYLOAD_FILE} \
+                ${URL}
+            
+            # Limpiar el archivo temporal
+            rm ${PAYLOAD_FILE}
             
           done
         shell: bash
