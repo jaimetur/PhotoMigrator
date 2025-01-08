@@ -12,16 +12,16 @@ jobs:
   build:
     strategy:
       matrix:
-#        os: [ubuntu-20.04, macos-latest, windows-latest]  # os list
+        os: [ubuntu-20.04, macos-latest, windows-latest]  # os list
 #        os: [ubuntu-20.04]  # os list
-        os: [macos-latest]  # os list
+#        os: [macos-latest]  # os list
 #        os: [windows-latest]  # os list
 #        os: [ubuntu-20.04, windows-latest]  # os list
 #        os: [macos-latest, windows-latest]  # os list
 #        os: [ubuntu-20.04, macos-latest]  # os list
-#        arch: [x86_64, arm64]  # arch list
+        arch: [x86_64, arm64]  # arch list
 #        arch: [x86_64]  # arch list
-        arch: [arm64]  # arch list
+#        arch: [arm64]  # arch list
         exclude:
           - os: windows-latest
             arch: arm64  # Windows is only compiled for x86 (32/64-bit)
@@ -95,147 +95,161 @@ jobs:
           echo "ARCHIVE_FINAL_PATH_NAME=$path" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Output "ARCHIVE_FINAL_PATH_NAME (Windows): $path"
 
-#      # Upload artifact to GitHub repos with API (Linux/macOS)
-#      - name: Upload artifact to GitHub repos with API (Linux/macOS)
-#        if: runner.os != 'Windows'
+      # Upload artifact to GitHub repos with API (Linux/macOS)
+      - name: Upload artifact to GitHub repos with API (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          echo "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
+          # Encode Artifact to Base64 (Linux/macOS)
+          cat ${{ env.ARCHIVE_FINAL_PATH_NAME }} | base64 | tr -d '\n' > artifact_base64.txt
+          # Leer el contenido codificado en base64 desde el archivo
+          BASE64_ARTIFACT=$(cat artifact_base64.txt)
+          # Parameters
+          COMMIT_MESSAGE="Added from GitHub Actions"
+          REPOS=("OrganizeTakeoutPhotos-dev" "OrganizeTakeoutPhotos")
+          for REPO in "${REPOS[@]}"; do
+            echo "Uploading to $REPO..."
+            URL=https://api.github.com/repos/jaimetur/$REPO/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}
+            # Extraer SHA si el archivo existe
+            command="curl -s -f -H 'Authorization: token ${{ secrets.GH_PAT }}' '${URL}' | grep '\"sha\"' | awk -F '\"' '{print \$4}' || echo \"\""
+            # echo "Command: ${command}"
+            SHA=$(eval ${command})
+            echo "SHA: ${SHA}"
+            # Crear archivo temporal para el payload
+            PAYLOAD_FILE=$(mktemp)
+            # Generar el contenido del JSON y guardarlo en el archivo temporal
+            echo "{
+              \"message\": \"${COMMIT_MESSAGE}\",
+              \"content\": \"${BASE64_ARTIFACT}\",
+              \"branch\": \"main\",
+              \"sha\": \"${SHA}\"
+            }" > ${PAYLOAD_FILE}
+            # Subir el archivo (crear o sobrescribir)
+            curl -X PUT \
+                -H "Authorization: token ${{ secrets.GH_PAT }}" \
+                -H "Content-Type: application/json" \
+                -d @${PAYLOAD_FILE} \
+                ${URL}
+            # Limpiar el archivo temporal
+            rm ${PAYLOAD_FILE}
+          done
+        shell: bash
+
+      # Upload artifact to GitHub repos with API (Windows)
+      - name: Upload artifact to GitHub repos with API (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          Write-Host "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
+          # Encode Artifact to Base64 (Windows)
+          $BASE64_ARTIFACT = [Convert]::ToBase64String([IO.File]::ReadAllBytes("${{ env.ARCHIVE_FINAL_PATH_NAME }}"))
+          # Parameters
+          $COMMIT_MESSAGE = "Added from GitHub Actions"
+          $REPOS = @("OrganizeTakeoutPhotos-dev", "OrganizeTakeoutPhotos")
+          foreach ($REPO in $REPOS) {
+            Write-Host "Uploading to $REPO..."
+            # Set URL
+            $URL = "https://api.github.com/repos/jaimetur/$REPO/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}"
+            # Try to get the SHA of the existing file (if it exists)
+            try {
+              $SHA = (Invoke-RestMethod -Uri $URL -Headers @{Authorization="token ${{ secrets.GH_PAT }}"} -ErrorAction Stop).sha
+            } catch {
+              # If the file does not exist, SHA should be empty
+              $SHA = $null
+              Write-Host "File does not exist in $REPO. Creating new file."
+            }
+            # Create payload
+            $Payload = @{
+              message = $COMMIT_MESSAGE
+              content = $BASE64_ARTIFACT
+              branch = "main"
+            }
+            # Include SHA only if the file exists
+            if ($SHA) {
+              $Payload.sha = $SHA
+            }
+            # Convert payload to JSON
+            $PayloadJson = $Payload | ConvertTo-Json -Compress
+            # Upload the file (create or overwrite)
+            Invoke-RestMethod -Method Put -Uri $URL -Headers @{Authorization="token ${{ secrets.GH_PAT }}"} -Body $PayloadJson
+            Write-Host "File uploaded to $REPO successfully."
+          }
+        shell: pwsh
+
+#      # Upload artifact to GitHub repos with CLI (Cross-Platform)
+#      - name: Upload artifact to GitHub repos with CLI (Cross-Platform)
 #        run: |
 #          echo "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
 #
-#          # Encode Artifact to Base64 (Linux/macOS)
-#          cat ${{ env.ARCHIVE_FINAL_PATH_NAME }} | base64 | tr -d '\n' > artifact_base64.txt
+#          git config --global user.email "github-actions@github.com"
+#          git config --global user.name "GitHub Actions"
 #
-#          # Leer el contenido codificado en base64 desde el archivo
-#          BASE64_ARTIFACT=$(cat artifact_base64.txt)
-#
-#          # Parameters
 #          COMMIT_MESSAGE="Added from GitHub Actions"
 #          REPOS=("OrganizeTakeoutPhotos-dev" "OrganizeTakeoutPhotos")
+#          FILE=${{ env.ARCHIVE_FINAL_PATH_NAME }}
 #
 #          for REPO in "${REPOS[@]}"; do
 #            echo "Uploading to $REPO..."
-#            URL=https://api.github.com/repos/jaimetur/$REPO/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}
 #
-#            # Extraer SHA si el archivo existe
-#            command="curl -s -f -H 'Authorization: token ${{ secrets.GH_PAT }}' '${URL}' | grep '\"sha\"' | awk -F '\"' '{print \$4}' || echo \"\""
-#            # echo "Command: ${command}"
-#            SHA=$(eval ${command})
-#            echo "SHA: ${SHA}"
+#            REPO_URL="https://${{ secrets.GH_PAT }}@github.com/jaimetur/$REPO.git"
 #
-#            # Crear archivo temporal para el payload
-#            PAYLOAD_FILE=$(mktemp)
+#            if [ ! -d ".git" ]; then
+#              git init
+#            fi
 #
-#            # Generar el contenido del JSON y guardarlo en el archivo temporal
-#            echo "{
-#              \"message\": \"${COMMIT_MESSAGE}\",
-#              \"content\": \"${BASE64_ARTIFACT}\",
-#              \"branch\": \"main\",
-#              \"sha\": \"${SHA}\"
-#            }" > ${PAYLOAD_FILE}
+#            # Sobrescribe la URL de origin sin añadir duplicados
+#            git remote set-url origin $REPO_URL
 #
-#            # Subir el archivo (crear o sobrescribir)
-#            curl -X PUT \
-#                -H "Authorization: token ${{ secrets.GH_PAT }}" \
-#                -H "Content-Type: application/json" \
-#                -d @${PAYLOAD_FILE} \
-#                ${URL}
+#            # Asegurar que estamos en la rama correcta
+#            git fetch origin ${{ github.ref_name }} || git checkout -b ${{ github.ref_name }}
+#            git checkout ${{ github.ref_name }}
 #
-#            # Limpiar el archivo temporal
-#            rm ${PAYLOAD_FILE}
+#            # Añadir archivo y hacer commit
+#            git add $FILE
+#            git commit -m "$COMMIT_MESSAGE"
+#
+#            # Forzar el push (sobrescribe si es necesario)
+#            git push origin ${{ github.ref_name }} --force
 #          done
-#        shell: bash
-#
-#      # Upload artifact to GitHub repos with API (Windows)
-#      - name: Upload artifact to GitHub repos with API (Windows)
-#        if: runner.os == 'Windows'
-#        run: |
-#          Write-Host "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
-#
-#          # Encode Artifact to Base64 (Windows)
-#          $BASE64_ARTIFACT = [Convert]::ToBase64String([IO.File]::ReadAllBytes("${{ env.ARCHIVE_FINAL_PATH_NAME }}"))
-#
-#          # Parameters
-#          $COMMIT_MESSAGE = "Added from GitHub Actions"
-#          $REPOS = @("OrganizeTakeoutPhotos-dev", "OrganizeTakeoutPhotos")
-#
-#          foreach ($REPO in $REPOS) {
-#            Write-Host "Uploading to $REPO..."
-#
-#            # Set URL
-#            $URL = "https://api.github.com/repos/jaimetur/$REPO/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}"
-#
-#            # Try to get the SHA of the existing file (if it exists)
-#            try {
-#              $SHA = (Invoke-RestMethod -Uri $URL -Headers @{Authorization="token ${{ secrets.GH_PAT }}"} -ErrorAction Stop).sha
-#            } catch {
-#              # If the file does not exist, SHA should be empty
-#              $SHA = $null
-#              Write-Host "File does not exist in $REPO. Creating new file."
-#            }
-#
-#            # Create payload
-#            $Payload = @{
-#              message = $COMMIT_MESSAGE
-#              content = $BASE64_ARTIFACT
-#              branch = "main"
-#            }
-#
-#            # Include SHA only if the file exists
-#            if ($SHA) {
-#              $Payload.sha = $SHA
-#            }
-#
-#            # Convert payload to JSON
-#            $PayloadJson = $Payload | ConvertTo-Json -Compress
-#
-#            # Upload the file (create or overwrite)
-#            Invoke-RestMethod -Method Put -Uri $URL -Headers @{Authorization="token ${{ secrets.GH_PAT }}"} -Body $PayloadJson
-#
-#            Write-Host "File uploaded to $REPO successfully."
-#          }
-#        shell: pwsh
 
-      # Upload artifact to GitHub repos with CLI (Cross-Platform)
-      - name: Upload artifact to GitHub repos with CLI (Cross-Platform)
+      # Update README.md in prod repo with API
+      - name: Update README.md in prod repo with API
+        if: runner.os != 'Windows'
         run: |
-          echo "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
-      
-          # Configuración inicial de Git
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "GitHub Actions"
-      
-          # Definir parámetros
-          COMMIT_MESSAGE="Added from GitHub Actions"
-          REPOS=("OrganizeTakeoutPhotos-dev" "OrganizeTakeoutPhotos")
-          FILE=${{ env.ARCHIVE_FINAL_PATH_NAME }}
-      
-          # Iterar sobre cada repositorio
+          echo "Uploading file 'README.md' to prod repository..."
+          # Encode Artifact to Base64 (Linux/macOS)
+          cat README.md | base64 | tr -d '\n' > artifact_base64.txt
+          # Leer el contenido codificado en base64 desde el archivo
+          BASE64_ARTIFACT=$(cat artifact_base64.txt)
+          # Parameters
+          COMMIT_MESSAGE="Ubdated from GitHub Actions"
+          REPOS=("OrganizeTakeoutPhotos")
           for REPO in "${REPOS[@]}"; do
             echo "Uploading to $REPO..."
-      
-            # URL del repositorio
-            REPO_URL="https://${{ secrets.GH_PAT }}@github.com/jaimetur/$REPO.git"
-      
-            # Inicializar repositorio local (si no existe .git)
-            if [ ! -d ".git" ]; then
-              git init
-              git remote add origin $REPO_URL
-            fi
-      
-            # Asegurarse de usar la rama correcta
-            git fetch origin ${{ github.ref_name }} || git checkout -b ${{ github.ref_name }}
-            git checkout ${{ github.ref_name }}
-      
-            # Añadir archivo y hacer commit
-            git add $FILE
-            git commit -m "$COMMIT_MESSAGE"
-      
-            # Forzar el push (sobrescribir si ya existe)
-            git push origin ${{ github.ref_name }} --force
-      
-            # Limpiar repositorio temporal
-            rm -r -fo .git
+            URL=https://api.github.com/repos/jaimetur/$REPO/contents/${{ env.ARCHIVE_FINAL_PATH_NAME }}
+            # Extraer SHA si el archivo existe
+            command="curl -s -f -H 'Authorization: token ${{ secrets.GH_PAT }}' '${URL}' | grep '\"sha\"' | awk -F '\"' '{print \$4}' || echo \"\""
+            # echo "Command: ${command}"
+            SHA=$(eval ${command})
+            echo "SHA: ${SHA}"
+            # Crear archivo temporal para el payload
+            PAYLOAD_FILE=$(mktemp)
+            # Generar el contenido del JSON y guardarlo en el archivo temporal
+            echo "{
+              \"message\": \"${COMMIT_MESSAGE}\",
+              \"content\": \"${BASE64_ARTIFACT}\",
+              \"branch\": \"main\",
+              \"sha\": \"${SHA}\"
+            }" > ${PAYLOAD_FILE}
+            # Subir el archivo (crear o sobrescribir)
+            curl -X PUT \
+                -H "Authorization: token ${{ secrets.GH_PAT }}" \
+                -H "Content-Type: application/json" \
+                -d @${PAYLOAD_FILE} \
+                ${URL}
+            # Limpiar el archivo temporal
+            rm ${PAYLOAD_FILE}
           done
-      
+        shell: bash
 
       - name: Cleanup (Linux/macOS)
         if: runner.os != 'Windows'

@@ -6,14 +6,14 @@ Download the script either Linux, Mac OS or Windows version (for both x64/amd64 
 
 **Linux:**:  
   - [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.3.0/OrganizeTakeoutPhotos_v2.3.0_linux_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.3.0/OrganizeTakeoutPhotos_v2.3.0_linux_arm64.zip)
+  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.3.0/OrganizeTakeoutPhotos_v2.3.0_linux_arm64.zip)  
 
 **Mac OS:**
-  - [Download AMD 64 bits version (under development. No download yet)](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.3.0/OrganizeTakeoutPhotos_v2.3.0_macos_amd64.zip)
-  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.3.0/OrganizeTakeoutPhotos_v2.3.0_macos_arm64.zip)
+  - [Download AMD 64 bits version (under development. No download yet)](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.3.0/OrganizeTakeoutPhotos_v2.3.0_macos_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.3.0/OrganizeTakeoutPhotos_v2.3.0_macos_arm64.zip)  
 
 **Windows:**  
-- [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.3.0/OrganizeTakeoutPhotos_v2.3.0_windows_amd64.zip)
+- [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.3.0/OrganizeTakeoutPhotos_v2.3.0_windows_amd64.zip)  
 
 
 ## Instructions:
