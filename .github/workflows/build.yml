@@ -132,25 +132,23 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Añadir los archivos al índice
-          mkdir -p temp_repo
-          temp_repo_path=$(pwd)
-          mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
-          ls -l
-          # Copiar el artefacto al directorio deseado
-          cd ${{ env.ARCHIVE_FINAL_PATH }}
-          cp -r ${{ env.ARCHIVE_PATH_NAME }} .  # Copia el artefacto
-          ls -l 
-          cd ${temp_repo_path}
-          ls -l 
+          # Crear el repositorio temporal y preparar el entorno
+          mkdir -p temp-repo
+          cd temp-repo
 
-          # Inicialización de Git y configuración del remoto
+          # Inicializar Git en el directorio raíz de temp-repo
           git init
           git remote add origin https://${{ secrets.GH_PAT }}@github.com/jaimetur/OrganizeTakeoutPhotos-dev.git
-          git fetch origin ${{ github.ref_name }} || git fetch origin main || git fetch origin master
-          git checkout ${{ github.ref_name }} || git checkout main || git checkout -b ${{ github.ref_name }}
 
-          # Verificar si el directorio existe antes de añadirlo con commit y push
+          # Crear el directorio donde irá el artefacto
+          mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
+
+          # Copiar el artefacto al directorio correspondiente
+          cp -r ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH }}
+          echo "Después de copiar el archivo"
+          ls -l ${{ env.ARCHIVE_FINAL_PATH }}
+
+          # Añadir y hacer commit de los archivos
           if [ -d "${{ env.ARCHIVE_FINAL_PATH }}" ]; then
             git add ${{ env.ARCHIVE_FINAL_PATH }}
             git commit -m "Add artifact from GitHub Actions"
@@ -159,3 +157,4 @@ jobs:
             echo "Error: El directorio ${{ env.ARCHIVE_FINAL_PATH }} no existe. No se realizará el commit."
             exit 1
           fi
+      
