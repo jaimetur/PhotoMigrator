@@ -130,6 +130,7 @@ jobs:
         with:
           name: ${{ env.ARCHIVE_NAME }}
           path: ${{ env.ARCHIVE_FINAL_PATH }}
+
       - name: Commit and push artifact to repo
         run: |
           echo "Archivo a original a subir: ${{ env.ARCHIVE_PATH_NAME }}"
@@ -139,13 +140,18 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
           # Añadir los archivos al índice
+          ls -l
+          mkdir temp-repo
+          cd temp-repo
+          mkdir -d ${ARCHIVE_FINAL_PATH}
+          ls -l
+          cd ${ARCHIVE_FINAL_PATH}
+          cp -r ${{ env.ARCHIVE_PATH_NAME }} .  # Copia el artefacto a la carpeta deseada del repositorio
+          ls -l 
+          git init
+          git remote add origin https://${{ secrets.GH_PAT }}@github.com/jaimetur/OrganizeTakeoutPhotos-dev.git HEAD:${{ github.ref_name }}
+          git fetch origin ${{ github.ref_name }}
+          git checkout ${{ github.ref_name }}
           git add ${{ env.ARCHIVE_FINAL_PATH }}
-          # mkdir -p {{ env.ARCHIVE_FINAL_PATH }}
-          # cp -r ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH_NAME }}  # Copia el artefacto a la carpeta deseada del repositorio
-          
-          # Comprobar si hay cambios para evitar errores
-          git diff --cached --quiet || git commit -m "Add artifact from GitHub Actions"
-          
-          # Push usando el token
-          git push https://${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref_name }}
-          git push https://${{ secrets.GH_PAT }}@github.com/jaimetur/OrganizeTakeoutPhotos.git HEAD:${{ github.ref_name }}
+          git commit -m "Add artifact from GitHub Actions"
+          git push origin ${{ github.ref_name }}
