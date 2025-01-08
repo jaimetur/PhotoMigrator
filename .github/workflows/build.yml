@@ -43,10 +43,10 @@ jobs:
       - name: Compile for Linux (arm64) with Docker and QEMU
         if: matrix.os == 'ubuntu-20.04' && matrix.arch == 'arm64'
         run: |
-          sudo apt update
-          sudo apt install -y qemu qemu-user-static
+          apt update
+          apt install -y qemu qemu-user-static
           docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.10 bash -c "
-            sudo apt update && sudo apt install -y gcc-aarch64-linux-gnu &&
+            apt update && apt install -y gcc-aarch64-linux-gnu &&
             python3 _compile.py"
         shell: bash
       - name: Compile for Linux (amd64)
