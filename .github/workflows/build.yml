@@ -17,8 +17,8 @@ jobs:
         os: [macos-latest]  # macos-latest
 #        os: [ubuntu-20.04, windows-latest]  # macos-latest
 #        os: [macos-latest, windows-latest]  # macos-latest
-        arch: [x86_64, arm64]  # amd64 and arm64
-#        arch: [arm64]  # amd64 and arm64
+#        arch: [x86_64, arm64]  # amd64 and arm64
+        arch: [arm64]  # amd64 and arm64
         exclude:
           - os: windows-latest
             arch: arm64  # Windows is only compiled for x86 (32/64-bit)
@@ -146,21 +146,6 @@ jobs:
             echo "Error: Archivo no encontrado -> ${{ env.ARCHIVE_FINAL_PATH_NAME }}"
             exit 1
           fi
-        shell: bash
-
-      - name: Debug Base64 Output
-        run: |
-          echo "Base64 Artifact Length: ${#BASE64_ARTIFACT}"
-          echo "${BASE64_ARTIFACT:0:100}"  # Muestra los primeros 100 caracteres
-          if [ -z "$BASE64_ARTIFACT" ]; then
-            echo "Error: El archivo codificado está vacío."
-            exit 1
-          fi
-        shell: bash
-
-      - name: Debug Path Variable
-        run: |
-          echo "Ruta final del archivo: ${{ env.ARCHIVE_FINAL_PATH_NAME }}"
         shell: bash
 
       # Upload the compiled compressed file to the corresponding GitHub repositories
