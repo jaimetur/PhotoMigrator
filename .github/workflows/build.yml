@@ -116,14 +116,6 @@ jobs:
           fi
         shell: bash
 
-#      - name: Move Artifact to Workspace
-#        run: |
-#          echo "Archivo a original a subir: ${{ env.ARCHIVE_PATH_NAME }}"
-#          echo "Archivo final subido      : ${{ env.ARCHIVE_FINAL_PATH_NAME }}"
-#          mkdir -p ${{ env.ARCHIVE_FINAL_PATH }}
-#          mv ${{ env.ARCHIVE_PATH_NAME }} ${{ env.ARCHIVE_FINAL_PATH_NAME }}
-#        shell: bash
-
       # Subir los ejecutables generados usando la ruta completa
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -143,7 +135,7 @@ jobs:
           ls -l
           mkdir temp-repo
           cd temp-repo
-          mkdir -d ${ARCHIVE_FINAL_PATH}
+          mkdir -p ${ARCHIVE_FINAL_PATH}
           ls -l
           cd ${ARCHIVE_FINAL_PATH}
           cp -r ${{ env.ARCHIVE_PATH_NAME }} .  # Copia el artefacto a la carpeta deseada del repositorio
