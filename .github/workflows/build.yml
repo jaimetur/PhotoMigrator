@@ -146,7 +146,7 @@ jobs:
       # Upload the compiled compressed file to the corresponding GitHub repositories
       - name: Upload artifact to GitHub repos
         run: |
-          echo "Uploading file '${ARCHIVE_NAME}' to dev and prod repositories..."
+          echo "Uploading file '${ARCHIVE_FINAL_PATH_NAME}' to dev and prod repositories..."
 
           # Convert the file to base64 (necessary for the GitHub API)
           BASE64_ARTIFACT=$(base64 -w 0 ${{ env.ARCHIVE_PATH_NAME }})
