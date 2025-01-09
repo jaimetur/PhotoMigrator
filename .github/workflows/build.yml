@@ -44,7 +44,18 @@ jobs:
       - name: 1. - Compile for All Operating System (Linux, MacOS, Windows) and All Arquitectures (amd64, arm64)
         run: |
           echo "::group::Compile for ${{ matrix.os }} - ${{ matrix.arch }}"
-
+                    
+          # Compile for macOS (any architecture)
+          elif [[ "${{ matrix.os }}" == *"macos"* ]]; then
+           cd src
+           arch -${{ matrix.arch }} python3 _compile.py
+          
+          # Compile for Windows (amd64)
+          elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
+           cd src
+           python _compile.py
+          fi
+               
           # Compile for Linux (arm64)
           if [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
             sudo apt-get update
@@ -54,7 +65,6 @@ jobs:
                 apt update && apt install -y gcc-aarch64-linux-gnu python3 python3-pip &&
                 python3 _compile.py
                 "
-
           # Compile for Linux (amd64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
             docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src jaimetur/ubuntu-17.04-amd64:latest bash -c "
@@ -62,16 +72,55 @@ jobs:
             python3 _compile.py
             "
 
-          # Compile for macOS (any architecture)
-          elif [[ "${{ matrix.os }}" == *"macos"* ]]; then
-            cd src
-            arch -${{ matrix.arch }} python3 _compile.py
-
-          # Compile for Windows (amd64)
-          elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
-            cd src
-            python _compile.py
-          fi
+#          # Compile for Linux (amd64)
+#          elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
+#            docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src ubuntu:17.04 bash -c "
+#               sed -i 's|http://.*.ubuntu.com|http://old-releases.ubuntu.com|g' /etc/apt/sources.list
+#                apt update
+#                apt install -y wget build-essential zlib1g-dev libffi-dev libssl-dev libbz2-dev libreadline-dev libsqlite3-dev tk-dev coreutils xz-utils git curl ca-certificates --fix-missing
+#                wget https://www.openssl.org/source/openssl-1.1.1u.tar.gz
+#                tar xvf openssl-1.1.1u.tar.gz
+#                cd openssl-1.1.1u
+#                ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl
+#                make
+#                make install
+#                export LD_LIBRARY_PATH=/usr/local/openssl/lib:\$LD_LIBRARY_PATH
+#                export LDFLAGS=\"-L/usr/local/openssl/lib\"
+#                export CPPFLAGS=\"-I/usr/local/openssl/include\"
+#                export PATH=/usr/local/openssl/bin:$PATH && \
+#                echo 'PATH: ' \$PATH
+#                openssl version
+#                cd ..
+#                rm -rf openssl-1.1.1u openssl-1.1.1u.tar.gz
+#                wget https://www.python.org/ftp/python/3.10.16/Python-3.10.16.tgz
+#                tar xvf Python-3.10.16.tgz
+#                cd Python-3.10.16
+#                ./configure --enable-optimizations --enable-shared --disable-test-modules --with-openssl=/usr/local/openssl
+#                make
+#                make install
+#                python3 --version
+#                python3 -m ensurepip --upgrade
+#                python3 -m pip install --upgrade pip
+#                python3 -m pip install tqdm
+#                python3 -m pip install urllib3==1.26.16
+#                python3 -m pip install pyinstaller
+#                export LD_LIBRARY_PATH=/usr/local/openssl/lib:/usr/local/lib:/usr/lib:$LD_LIBRARY_PATH
+#                echo 'PATH: ' \$PATH
+#                echo 'LD_LIBRARY_PATH: ' \$LD_LIBRARY_PATH
+#                echo "/usr/local/openssl/lib" > /etc/ld.so.conf.d/openssl.conf
+#                echo "/usr/lib" > /etc/ld.so.conf.d/python3.10.conf
+#                find /usr -name "libpython3.10.so.1.0"
+#                which pyinstaller
+#                cd ..
+#                python3 _compile.py
+#                rm -rf Python-3.10.16 Python-3.10.16.tgz
+#                "
+#            docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src centos:7 bash -c "
+#                yum install -y epel-release && yum install -y python3 python3-pip && pip3 install pyinstaller &&
+#                python3 _compile.py"
+#            docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.8-alpine bash -c "
+#                apk add py3-pip musl-dev gcc && pip install pyinstaller &&
+#                python3 _compile.py"
 
           echo "::endgroup::"
         shell: bash
