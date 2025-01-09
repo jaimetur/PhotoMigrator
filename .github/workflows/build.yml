@@ -72,7 +72,11 @@ jobs:
                 python3.10 --version
                 python3.10 -m ensurepip --upgrade
                 python3.10 -m pip install --upgrade pip
+                python3.10 -m pip install tqdm 
+                python3.10 -m pip install urllib3==1.26.16
                 python3.10 -m pip install pyinstaller
+                echo 'PATH: ' \$PATH
+                which pyinstaller
                 cd ..
                 python3.10 _compile.py
                 rm -rf /workspace/src/Python-3.10.16 /workspace/src/Python-3.10.16.tgz
