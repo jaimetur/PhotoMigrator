@@ -81,17 +81,17 @@ jobs:
                 cd Python-3.10.16
                 ./configure --enable-optimizations --with-openssl=/usr/local/openssl
                 make
-                make altinstall
-                python3.10 --version           
-                python3.10 -m ensurepip --upgrade
-                python3.10 -m pip install --upgrade pip
-                python3.10 -m pip install tqdm 
-                python3.10 -m pip install urllib3==1.26.16
-                python3.10 -m pip install pyinstaller
+                make install
+                python3 --version           
+                python3 -m ensurepip --upgrade
+                python3 -m pip install --upgrade pip
+                python3 -m pip install tqdm 
+                python3 -m pip install urllib3==1.26.16
+                python3 -m pip install pyinstaller
                 echo 'PATH: ' \$PATH
                 which pyinstaller
                 cd ..
-                python3.10 _compile.py
+                python3 _compile.py
                 rm -rf /workspace/src/Python-3.10.16 /workspace/src/Python-3.10.16.tgz
                 "   
             # docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src centos:7 bash -c "
