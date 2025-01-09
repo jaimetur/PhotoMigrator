@@ -86,13 +86,18 @@ jobs:
                 python3 --version           
                 python3 -m ensurepip --upgrade
                 python3 -m pip install --upgrade pip
+                pip3 install --upgrade pip
                 python3 -m pip install tqdm 
                 python3 -m pip install urllib3==1.26.16
                 python3 -m pip install pyinstaller
-                export LD_LIBRARY_PATH=/usr/lib:$LD_LIBRARY_PATH
+                export LD_LIBRARY_PATH=/usr/local/openssl/lib:/usr/lib:$LD_LIBRARY_PATH
                 echo 'PATH: ' \$PATH
                 echo 'LD_LIBRARY_PATH: ' \$LD_LIBRARY_PATH
-                ldd $(which python3.10)               
+                echo "/usr/local/openssl/lib" > /etc/ld.so.conf.d/openssl.conf
+                echo "/usr/lib" > /etc/ld.so.conf.d/python3.10.conf
+                ldconfig
+                ldconfig -p | grep -E "libssl|libpython3"                
+                find /usr -name "libpython3.10.so.1.0"                              
                 which pyinstaller
                 cd ..
                 python3 _compile.py
