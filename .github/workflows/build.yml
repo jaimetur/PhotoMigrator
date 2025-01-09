@@ -71,6 +71,7 @@ jobs:
                 make altinstall
                 python3.10 --version
                 python3.10 -m ensurepip --upgrade
+                python3.10 -m pip install pyinstaller
                 cd .. 
                 rm -rf Python-3.10.16 Python-3.10.16.tar.xz
                 python3.10 _compile.py
