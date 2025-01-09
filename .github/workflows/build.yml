@@ -72,9 +72,10 @@ jobs:
                 export LD_LIBRARY_PATH=/usr/local/openssl/lib:\$LD_LIBRARY_PATH
                 export LDFLAGS=\"-L/usr/local/openssl/lib\"
                 export CPPFLAGS=\"-I/usr/local/openssl/include\"
-                export PATH=/usr/local/openssl/bin:\$PATH
+                export PATH=/usr/local/openssl/bin:$PATH && \
                 openssl version
                 cd ..
+                /bin/rm -rf openssl-1.1.1u openssl-1.1.1u.tar.gz
                 wget https://www.python.org/ftp/python/3.10.16/Python-3.10.16.tgz
                 tar xvf Python-3.10.16.tgz
                 cd Python-3.10.16
