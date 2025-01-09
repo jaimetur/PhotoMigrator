@@ -14,15 +14,15 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-latest, windows-latest]  # os list
-#        os: [ubuntu-20.04]  # os list
+#        os: [ubuntu-20.04, macos-latest, windows-latest]  # os list
+        os: [ubuntu-20.04]  # os list
 #        os: [macos-latest]  # os list
 #        os: [windows-latest]  # os list
 #        os: [ubuntu-20.04, windows-latest]  # os list
 #        os: [macos-latest, windows-latest]  # os list
 #        os: [ubuntu-20.04, macos-latest]  # os list
-        arch: [x86_64, arm64]  # arch list
-#        arch: [x86_64]  # arch list
+#        arch: [x86_64, arm64]  # arch list
+        arch: [x86_64]  # arch list
 #        arch: [arm64]  # arch list
         exclude:
           - os: windows-latest
@@ -60,6 +60,7 @@ jobs:
           # Compile for Linux (amd64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
             docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src ubuntu:17.04 bash -c "
+                sed -i 's|http://.*.ubuntu.com|http://old-releases.ubuntu.com|g' /etc/apt/sources.list
                 apt update
                 apt install -y wget build-essential zlib1g-dev libffi-dev libssl-dev libbz2-dev libreadline-dev libsqlite3-dev tk-dev xz-utils git curl --fix-missing
                 wget https://www.python.org/ftp/python/3.10.16/Python-3.10.16.tgz
