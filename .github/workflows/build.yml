@@ -60,9 +60,10 @@ jobs:
           # Compile for Linux (amd64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
             docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src debian:stretch bash -c "
+                sed -i 's|deb http://security.debian.org/debian-security stretch/updates|#&|' /etc/apt/sources.list && 
+                sed -i '/stretch-updates/d' /etc/apt/sources.list && 
                 sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list && 
                 echo 'Acquire::Check-Valid-Until \"false\";' > /etc/apt/apt.conf.d/99archive &&
-                apt update && apt install -y python3 python3-pip && pip3 install pyinstaller && 
                 python3 _compile.py"   
             # docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.8-alpine bash -c "
                 # yum install -y epel-release && yum install -y python3 python3-pip && pip3 install pyinstaller && 
