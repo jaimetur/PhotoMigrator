@@ -2,13 +2,13 @@ name: Build Executables for Multiple Platforms
 
 on:
   workflow_dispatch:      # Allows manual execution of the workflow
-  schedule:               # Ejecución diaria a las 2 AM UTC
-    - cron: '0 2 * * *'
-#  push:                   # Ejecución tras push en main, excepto en los path-ignore
-#    branches:
-#      - main
-#    paths-ignore:
-#      - '_built_versions/**'  # Ignore any changes in _built_versions
+  push:                   # Ejecución tras push en main, excepto en los path-ignore
+    branches:
+      - main
+    paths-ignore:
+      - '_built_versions/**'  # Ignore any changes in _built_versions
+#  schedule:               # Ejecución diaria a las 2 AM UTC
+#    - cron: '0 2 * * *'
 
 jobs:
   build:
