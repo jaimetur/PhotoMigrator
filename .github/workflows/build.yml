@@ -59,8 +59,10 @@ jobs:
 
           # Compile for Linux (amd64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
-            cd src
-            python3 _compile.py
+            docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.8-alpine bash -c \
+            "apk add py3-pip musl-dev gcc && pip install pyinstaller && python3 _compile.py"
+            #cd src
+            #python3 _compile.py
 
           # Compile for macOS (any architecture)
           elif [[ "${{ matrix.os }}" == *"macos"* ]]; then
