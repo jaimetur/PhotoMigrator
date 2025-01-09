@@ -59,7 +59,7 @@ jobs:
 
           # Compile for Linux (amd64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
-            docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src debian:stretch bash -c "
+            docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src ubuntu:17.04 bash -c "
                 apt update && apt install -y python3 python3-pip && pip3 install pyinstaller && 
                 python3 _compile.py"   
             # docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.8-alpine bash -c "
