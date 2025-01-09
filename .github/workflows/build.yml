@@ -14,15 +14,15 @@ jobs:
   build:
     strategy:
       matrix:
-#        os: [ubuntu-20.04, macos-latest, windows-latest]  # os list
-        os: [ubuntu-20.04]  # os list
+        os: [ubuntu-20.04, macos-latest, windows-latest]  # os list
+#        os: [ubuntu-20.04]  # os list
 #        os: [macos-latest]  # os list
 #        os: [windows-latest]  # os list
 #        os: [ubuntu-20.04, windows-latest]  # os list
 #        os: [macos-latest, windows-latest]  # os list
 #        os: [ubuntu-20.04, macos-latest]  # os list
-#        arch: [x86_64, arm64]  # arch list
-        arch: [x86_64]  # arch list
+        arch: [x86_64, arm64]  # arch list
+#        arch: [x86_64]  # arch list
 #        arch: [arm64]  # arch list
         exclude:
           - os: windows-latest
@@ -50,10 +50,6 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y qemu qemu-user-static
             sudo update-binfmts --enable qemu-aarch64
-            # docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.10 bash -c "
-                  # apt update && apt install -y gcc-aarch64-linux-gnu &&
-                  # python3 _compile.py
-                  # "
             docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace/src ubuntu:20.04 bash -c "
                 apt update && apt install -y gcc-aarch64-linux-gnu python3 python3-pip &&
                 python3 _compile.py
