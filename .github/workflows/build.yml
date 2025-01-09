@@ -71,10 +71,11 @@ jobs:
                 make altinstall
                 python3.10 --version
                 python3.10 -m ensurepip --upgrade
+                python3.10 -m pip install --upgrade pip
                 python3.10 -m pip install pyinstaller
-                cd .. 
-                rm -rf Python-3.10.16 Python-3.10.16.tar.xz
+                cd ..
                 python3.10 _compile.py
+                rm -rf /workspace/src/Python-3.10.16 /workspace/src/Python-3.10.16.tgz
                 "   
             # docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src centos:7 bash -c "
                 # yum install -y epel-release && yum install -y python3 python3-pip && pip3 install pyinstaller && 
