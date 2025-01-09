@@ -62,16 +62,16 @@ jobs:
             docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src ubuntu:17.04 bash -c "
                 sed -i 's|http://.*.ubuntu.com|http://old-releases.ubuntu.com|g' /etc/apt/sources.list
                 apt update
-                apt install -y wget build-essential zlib1g-dev libffi-dev libssl-dev libbz2-dev libreadline-dev libsqlite3-dev tk-dev xz-utils git curl --fix-missing
+                apt install -y wget build-essential zlib1g-dev libffi-dev libssl-dev libbz2-dev libreadline-dev libsqlite3-dev tk-dev xz-utils git curl ca-certificates --fix-missing
                 wget https://www.python.org/ftp/python/3.10.16/Python-3.10.16.tgz
                 tar xvf Python-3.10.16.tgz
                 cd Python-3.10.16
-                ./configure --enable-optimizations
+                ./configure --enable-optimizations --with-openssl=/usr/lib/ssl
                 make
                 make altinstall
                 python3.10 --version
-                python3.10 -m pip install pyinstaller
-                python3 _compile.py
+                python3.10 -m ensurepip --upgrade
+                python3.10 _compile.py
                 "   
             # docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src centos:7 bash -c "
                 # yum install -y epel-release && yum install -y python3 python3-pip && pip3 install pyinstaller && 
