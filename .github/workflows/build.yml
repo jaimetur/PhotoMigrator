@@ -71,6 +71,8 @@ jobs:
                 make altinstall
                 python3.10 --version
                 python3.10 -m ensurepip --upgrade
+                cd .. 
+                rm -rf Python-3.10.16 Python-3.10.16.tar.xz
                 python3.10 _compile.py
                 "   
             # docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src centos:7 bash -c "
