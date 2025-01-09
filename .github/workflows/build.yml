@@ -64,9 +64,13 @@ jobs:
                 sed -i '/stretch-updates/d' /etc/apt/sources.list && 
                 sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list && 
                 echo 'Acquire::Check-Valid-Until \"false\";' > /etc/apt/apt.conf.d/99archive &&
-                apt update && apt install -y python3 python3-pip && python3 -m pip install pyinstaller
+                apt update && apt install -y wget build-essential zlib1g-dev libffi-dev libssl-dev && 
+                wget https://www.python.org/ftp/python/3.10.16/Python-3.10.16.tgz && 
+                tar xvf Python-3.10.16.tgz && cd Python-3.10.16 && 
+                ./configure --enable-optimizations && make && make altinstall && 
+                python3.10 --version && python3.10 -m pip install pyinstaller && 
                 python3 _compile.py"   
-            # docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.8-alpine bash -c "
+            # docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src centos:7 bash -c "
                 # yum install -y epel-release && yum install -y python3 python3-pip && pip3 install pyinstaller && 
                 # python3 _compile.py"   
             # docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.8-alpine bash -c "
