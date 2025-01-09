@@ -64,7 +64,7 @@ jobs:
                 sed -i '/stretch-updates/d' /etc/apt/sources.list && 
                 sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list && 
                 echo 'Acquire::Check-Valid-Until \"false\";' > /etc/apt/apt.conf.d/99archive &&
-                apt update && apt install -y wget build-essential zlib1g-dev libffi-dev libssl-dev && 
+                apt update && apt install -y wget=1.18-5+deb9u1 build-essential zlib1g=1:1.2.8.dfsg-5 libffi-dev libssl-dev && 
                 wget https://www.python.org/ftp/python/3.10.16/Python-3.10.16.tgz && 
                 tar xvf Python-3.10.16.tgz && cd Python-3.10.16 && 
                 ./configure --enable-optimizations && make && make altinstall && 
