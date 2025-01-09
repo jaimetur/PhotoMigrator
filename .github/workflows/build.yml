@@ -73,13 +73,14 @@ jobs:
                 export LDFLAGS=\"-L/usr/local/openssl/lib\"
                 export CPPFLAGS=\"-I/usr/local/openssl/include\"
                 export PATH=/usr/local/openssl/bin:$PATH && \
+                echo 'PATH: ' \$PATH
                 openssl version
                 cd ..
                 rm -rf openssl-1.1.1u openssl-1.1.1u.tar.gz
                 wget https://www.python.org/ftp/python/3.10.16/Python-3.10.16.tgz
                 tar xvf Python-3.10.16.tgz
                 cd Python-3.10.16
-                ./configure --enable-optimizations --enable-shared --with-openssl=/usr/local/openssl
+                ./configure --enable-optimizations --enable-shared --disable-test-modules --with-openssl=/usr/local/openssl
                 make
                 make install
                 python3 --version           
@@ -88,7 +89,10 @@ jobs:
                 python3 -m pip install tqdm 
                 python3 -m pip install urllib3==1.26.16
                 python3 -m pip install pyinstaller
+                export LD_LIBRARY_PATH=/usr/lib:$LD_LIBRARY_PATH
                 echo 'PATH: ' \$PATH
+                echo 'LD_LIBRARY_PATH: ' \$LD_LIBRARY_PATH
+                ldd $(which python3.10)               
                 which pyinstaller
                 cd ..
                 python3 _compile.py
