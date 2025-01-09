@@ -34,11 +34,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-#      # Set up Python
-#      - name: Set up Python
-#        uses: actions/setup-python@v3
-#        with:
-#          python-version: ${{ matrix.python-version }}
+      # Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
 
       # 1. - Compile for All Operating System (Linux, MacOS, Windows) and All Arquitectures (amd64, arm64)
       - name: 1. - Compile for All Operating System (Linux, MacOS, Windows) and All Arquitectures (amd64, arm64)
@@ -93,9 +93,7 @@ jobs:
                 echo 'PATH: ' \$PATH
                 echo 'LD_LIBRARY_PATH: ' \$LD_LIBRARY_PATH
                 echo "/usr/local/openssl/lib" > /etc/ld.so.conf.d/openssl.conf
-                echo "/usr/lib" > /etc/ld.so.conf.d/python3.10.conf
-                ldconfig
-                ldconfig -p | grep -E "libssl|libpython3"                
+                echo "/usr/lib" > /etc/ld.so.conf.d/python3.10.conf               
                 find /usr -name "libpython3.10.so.1.0"                              
                 which pyinstaller
                 cd ..
