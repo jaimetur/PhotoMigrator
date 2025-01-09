@@ -47,13 +47,13 @@ jobs:
                     
           # Compile for macOS (any architecture)
           if [[ "${{ matrix.os }}" == *"macos"* ]]; then
-           cd src
-           arch -${{ matrix.arch }} python3 _compile.py
+            cd src
+            arch -${{ matrix.arch }} python3 _compile.py
           
           # Compile for Windows (amd64)
           elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
-           cd src
-           python _compile.py
+            cd src
+            python _compile.py
                
           # Compile for Linux (arm64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
