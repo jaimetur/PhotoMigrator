@@ -68,9 +68,10 @@ jobs:
                 cd openssl-1.1.1u
                 ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl
                 make
-                make install                
-                wget https://www.python.org/ftp/python/3.10.16/Python-3.10.16.tgz
+                make install
                 openssl version
+                cd ..
+                wget https://www.python.org/ftp/python/3.10.16/Python-3.10.16.tgz
                 tar xvf Python-3.10.16.tgz
                 cd Python-3.10.16
                 ./configure --enable-optimizations --with-openssl=/usr/lib/x86_64-linux-gnu
