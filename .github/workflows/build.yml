@@ -63,7 +63,14 @@ jobs:
                 sed -i 's|http://.*.ubuntu.com|http://old-releases.ubuntu.com|g' /etc/apt/sources.list
                 apt update
                 apt install -y wget build-essential zlib1g-dev libffi-dev libssl-dev libbz2-dev libreadline-dev libsqlite3-dev tk-dev xz-utils git curl ca-certificates --fix-missing
+                wget https://www.openssl.org/source/openssl-1.1.1u.tar.gz
+                tar xvf openssl-1.1.1u.tar.gz
+                cd openssl-1.1.1u
+                ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl
+                make
+                make install                
                 wget https://www.python.org/ftp/python/3.10.16/Python-3.10.16.tgz
+                openssl version
                 tar xvf Python-3.10.16.tgz
                 cd Python-3.10.16
                 ./configure --enable-optimizations --with-openssl=/usr/lib/x86_64-linux-gnu
