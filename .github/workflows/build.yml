@@ -26,6 +26,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Check available QEMU packages
+        if: runner.os == 'Linux'
+        run: apt-cache search qemu
+
       # Install QEMU
       - name: Install QEMU
         if: runner.os == 'Linux' # Ejecutar solo en Linux
@@ -36,7 +40,7 @@ jobs:
           sudo add-apt-repository multiverse
           sudo add-apt-repository restricted
           sudo apt-get update
-          sudo apt-get install -y qemu qemu-user qemu-user-static binfmt-support
+          sudo apt-get install -y qemu-user-static binfmt-support
 
       # Set up QEMU
       - name: Set up QEMU
