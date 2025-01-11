@@ -26,6 +26,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      # Update repositories
+      - name: Update repositories
+        if: runner.os == 'Linux' # Ejecutar solo en Linux
+        run: sudo apt-get update
+
+      # Install QEMU
+      - name: Install QEMU
+        if: runner.os == 'Linux' # Ejecutar solo en Linux
+        run: |
+          sudo apt-get install -y qemu qemu-user qemu-user-static
+          sudo apt-get install -y binfmt-support
+
       # Set up QEMU
       - name: Set up QEMU
         if: runner.os == 'Linux' # Ejecutar solo en Linux
