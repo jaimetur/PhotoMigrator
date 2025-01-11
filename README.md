@@ -26,7 +26,7 @@ Then you just need to call it depending on your environment:
 
 
   - If you run it from Synology NAS (using SSH terminal) or from Linux/Mac, you have to call the master script '**OrganizeTakeoutPhotos.run**'.  
-    Minimum version required to run the script directly from your Synology NAS (using SSH terminal) is **DSM 7.1.0**.
+    Minimum version required to run the script directly from your Synology NAS (using SSH terminal) is **DSM 7.0**.
 
 ## Syntax:
 ```
