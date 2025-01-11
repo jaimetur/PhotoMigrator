@@ -67,7 +67,7 @@ jobs:
           
           # Compile for Linux (amd64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
-            docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src jaimetur/ubuntu-amd64:17.04 bash -c "
+            docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src jaimetur/centos-amd64:7 bash -c "
                 cd src
                 python3 _compile.py
                 "
