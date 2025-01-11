@@ -30,10 +30,13 @@ jobs:
       - name: Install QEMU
         if: runner.os == 'Linux' # Ejecutar solo en Linux
         run: |
-          sudo add-apt-repository universe
           sudo apt-get update
-          sudo apt-get install -y qemu qemu-user qemu-user-static
-          sudo apt-get install -y binfmt-support
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository universe
+          sudo add-apt-repository multiverse
+          sudo add-apt-repository restricted
+          sudo apt-get update
+          sudo apt-get install -y qemu qemu-user qemu-user-static binfmt-support
 
       # Set up QEMU
       - name: Set up QEMU
