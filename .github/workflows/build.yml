@@ -26,10 +26,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Check available QEMU packages
-        if: runner.os == 'Linux'
-        run: apt-cache search qemu
-
       # Set up Python
       - name: Set up Python
         uses: actions/setup-python@v3
