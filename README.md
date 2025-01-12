@@ -256,19 +256,20 @@ Example of use:
 ```
 With this example, the script will rename all subfolders within ./My_Albums_Folder (only first subfolder level) according to the format described above. If the subfolder does not contains any file, the folder will not be renamed.
 
-## <span style="color:green">Synology Photos Support</span>
-From version 2.0.0 onwards, the script can connect to your Synology NAS and login into Synology Photos App with your credentials. The credentials need to be loaded from 'Synology.config' file and will have this format:
-
-#### <span style="color:green">Example 'Synology.config':</span>
-
-```
-# Synology.config for Synology NAS
-
-NAS_IP              = 192.168.1.11                          # Change this IP by your Synology NAS IP
-USERNAME            = username                              # Your username for Synology Photos
-PASSWORD            = password                              # Your password for Synology Photos
-ROOT_PHOTOS_PATH    = /volume1/homes/your_username/Photos   # Your root path to Synology Photos main folder. Tipically is /volume1/homes/your_username/Photos
-```
+> [!NOTE]
+> ## <span style="color:green">Synology Photos Support</span>
+>From version 2.0.0 onwards, the script can connect to your Synology NAS and login into Synology Photos App with your credentials. The credentials need to be loaded from 'Synology.config' file and will have this format:
+>
+>#### <span style="color:green">Example 'Synology.config':</span>
+>
+>```
+># Synology.config for Synology NAS
+>
+>NAS_IP              = 192.168.1.11                          # Change this IP by your Synology NAS IP
+>USERNAME            = username                              # Your username for Synology Photos
+>PASSWORD            = password                              # Your password for Synology Photos
+>ROOT_PHOTOS_PATH    = /volume1/homes/your_username/Photos   # Your root path to Synology Photos main folder. Tipically is /volume1/homes/your_username/Photos
+>```
 
 
 ## <span style="color:green">Extra Mode: All in One Shot:</span>
