@@ -30,7 +30,7 @@ Then you just need to call it depending on your environment:
 ## Syntax:
 ```
 ----------------------------------------------------------------------------------------------------------------------------
-usage: OrganizeTakeoutPhotos.run/exe [-h] [-v] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
+usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
                                      [-as ['flatten', 'year', 'year/month', 'year-month']]
                                      [-ns ['flatten', 'year', 'year/month', 'year-month']]
                                      [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-nl]
@@ -49,8 +49,6 @@ optional arguments:
 
 -h,   --help
         show this help message and exit
--v,   --version
-        Show the script name, version, and date, then exit.
 -z,   --zip-folder <ZIP_FOLDER>
         Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files
         will be skipped.
