@@ -5,16 +5,15 @@ Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (Fix meta
 Download the script either Linux, MacOS or Windows version (for both x64/amd64 or arm64 architectures) as you prefeer directly from following links:
 
 **Linux:**:  
-  - [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.2.1/OrganizeTakeoutPhotos_v2.2.1_linux_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.2.1/OrganizeTakeoutPhotos_v2.2.1_linux_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/2.2.1/OrganizeTakeoutPhotos_v2.2.1_linux_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/2.2.1/OrganizeTakeoutPhotos_v2.2.1_linux_arm64.zip)  
 
 **Mac OS:**
-  - [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.2.1/OrganizeTakeoutPhotos_v2.2.1_macos_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.2.1/OrganizeTakeoutPhotos_v2.2.1_macos_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/2.2.1/OrganizeTakeoutPhotos_v2.2.1_macos_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/2.2.1/OrganizeTakeoutPhotos_v2.2.1_macos_arm64.zip)  
 
 **Windows:**  
-- [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/OrganizeTakeoutPhotos_v2.2.1/OrganizeTakeoutPhotos_v2.2.1_windows_amd64.zip)  
-
+- [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/2.2.1/OrganizeTakeoutPhotos_v2.2.1_windows_amd64.zip)  
 
 ## Instructions:
 I have prepared the attached script that you can copy and unzip into any folder of our Synology NAS.
