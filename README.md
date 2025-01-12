@@ -287,12 +287,13 @@ If you configure properly the file 'nas.config' and execute this Extra Mode, the
 
 The folder <ALBUMS_FOLDER> can be passed using the new Flag: -ca, --create-albums-synology-photos <ALBUMS_FOLDER>  
 
-**IMPORTANT:**  
-<ALBUMS_FOLDER> should be stored within your Synology Photos main folder in your NAS. Typically it is '/volume1/homes/your_username/Photos' and all files within <ALBUMS_FOLDER> should have been already indexed by Synology Photos before you can add them to a Synology Photos Album.  
-
-You can check if the files have been already indexed accessing Synology Photos mobile app or Synology Photos web portal and change to Folder View.  
-
-If you can't see your <ALBUMS_FOLDER> most probably is because it has not been indexed yet or because you didn't move it within Synology Photos root folder. 
+> [!IMPORTANT]
+> **IMPORTANT:**  
+> <ALBUMS_FOLDER> should be stored within your Synology Photos main folder in your NAS. Typically it is '/volume1/homes/your_username/Photos' and all files within <ALBUMS_FOLDER> should have been already indexed by Synology Photos before you can add them to a Synology Photos Album.  
+>
+>You can check if the files have been already indexed accessing Synology Photos mobile app or Synology Photos web portal and change to Folder View.  
+>
+>If you can't see your <ALBUMS_FOLDER> most probably is because it has not been indexed yet or because you didn't move it within Synology Photos root folder. 
 
 
 Example of use:
