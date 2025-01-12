@@ -7,38 +7,34 @@ GITHUB_USER = "jaimetur"
 GITHUB_REPO = "OrganizeTakeoutPhotos-dev"
 
 # Configura las cadenas de reemplazo
-ORIGINAL_STRING = "main_built_versions/"
-REPLACEMENT_STRING = "main/_built_versions/"
+DISCUSSION_NAME_TO_PROCESS = "."  # Procesar solo discusiones que contengan esta cadena en el título
+ORIGINAL_STRING = "## Release Notes: "
+REPLACEMENT_STRING = "## Release Notes:"
 
 # URL de la API GraphQL
 GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
 
-# Obtener el token de GitHub desde GitHub CLI
-def get_gh_token():
-    result = subprocess.run(['gh', 'auth', 'status', '--show-token'], capture_output=True, text=True)
-    if result.returncode != 0:
-        print("[Error] No se pudo obtener el token de GitHub CLI. Asegúrate de estar autenticado.")
-        exit(1)
-    for line in result.stdout.splitlines():
-        if line.startswith("Token:"):
-            return line.split("Token:")[1].strip()
-    print("[Error] No se encontró un token en la salida de GitHub CLI.")
-    exit(1)
-    
+# Función para obtener el token desde la CLI de GitHub
+def get_github_token():
+    try:
+        result = subprocess.run(['gh', 'auth', 'token'], check=True, stdout=subprocess.PIPE, text=True)
+        token = result.stdout.strip()
+        if not token:
+            raise ValueError("No se encontró un token en la salida de GitHub CLI.")
+        return token
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(f"Error al ejecutar el comando 'gh auth token': {e}")
+
 # Función para realizar consultas GraphQL
 def graphql_query(query, variables=None):
     headers = {
-        "Authorization": f"bearer {get_gh_token()}",
+        "Authorization": f"bearer {get_github_token()}",
         "Content-Type": "application/json",
     }
     payload = {
         "query": query,
         "variables": variables or {}
     }
-
-    # Depuración: muestra el JSON enviado
-    print("== JSON enviado a la API ==")
-    print(json.dumps(payload, indent=4))
 
     response = requests.post(GITHUB_GRAPHQL_URL, headers=headers, json=payload)
     if response.status_code != 200:
@@ -85,32 +81,33 @@ def main():
 
     discussions = discussions_data["data"]["repository"]["discussions"]["nodes"]
 
+    # Filtrar discusiones que contengan la cadena en el título
+    discussions = [d for d in discussions if DISCUSSION_NAME_TO_PROCESS in d["title"]]
+
+    # Ordenar discusiones alfabéticamente por título
+    discussions = sorted(discussions, key=lambda d: d["title"].lower())
+
     for discussion in discussions:
         discussion_id = discussion["id"]
         title = discussion["title"]
         body = discussion["body"]
 
         print(f"Procesando discusión: {title}")
-        print(f"  Cuerpo actual de la discusión ({title}):")
-        print(body)
 
+        # Modificar el cuerpo, incluso si no contiene la cadena original
         if ORIGINAL_STRING in body:
             print("  [INFO] La discusión contiene la cadena a reemplazar.")
             new_body = body.replace(ORIGINAL_STRING, REPLACEMENT_STRING)
-
-            # Depuración: muestra el nuevo cuerpo
-            print("  Nuevo cuerpo:")
-            print(new_body)
-
-            # Actualizar la discusión
-            update_data = graphql_query(UPDATE_DISCUSSION_MUTATION, {"id": discussion_id, "body": new_body})
-            if update_data and "errors" not in update_data:
-                print(f"  [OK] Discusión actualizada: {title}")
-            else:
-                print(f"  [Error] No se pudo actualizar: {title}")
         else:
-            print("  [INFO] Sin cambios en la discusión.")
+            print("  [INFO] La discusión no contiene la cadena, manteniendo el cuerpo original.")
+            new_body = body
 
+        # Actualizar la discusión
+        update_data = graphql_query(UPDATE_DISCUSSION_MUTATION, {"id": discussion_id, "body": new_body})
+        if update_data and "errors" not in update_data:
+            print(f"  [OK] Discusión actualizada: {title}")
+        else:
+            print(f"  [Error] No se pudo actualizar: {title}")
 
 # Punto de entrada del script
 if __name__ == "__main__":
