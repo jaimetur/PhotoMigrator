@@ -132,7 +132,7 @@ def compile():
         subprocess.run([
             'pyinstaller',
             '--runtime-tmpdir', '/var/tmp',
-            '--onedir',
+            '--onefile',
             '--hidden-import', 'os,sys,tqdm,argparse,platform,shutil,re,textwrap,logging,collections,csv,time,datetime,hashlib,fnmatch,requests,urllib3',
             '--add-data', add_gpth_command,
             # '--add-data', f"../exif_tool_{OPERATING_SYSTEM}:exif_tool",
