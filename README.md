@@ -49,6 +49,8 @@ optional arguments:
 
 -h,   --help
         show this help message and exit
+-v,   --version
+        show script version
 -z,   --zip-folder <ZIP_FOLDER>
         Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files
         will be skipped.
