@@ -22,7 +22,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, 
     elif current_os == "Darwin":
         script_name = "gpth_macos.bin"
     elif current_os == "Windows":
-        script_name = "gpth_win64.exe"
+        script_name = "gpth_windows.exe"
     # Usar resource_path para acceder a archivos o directorios:
     gpth_tool_path = resource_path(os.path.join("gpth_tool",script_name))
     gpth_command = [
