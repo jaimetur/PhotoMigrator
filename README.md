@@ -199,6 +199,7 @@ From version 1.5.0 onwards, the script can be executed in 'Fix Symbolic Links Br
 - This is useful when you run the main script using flag '-sa, --symbolic-albums' to create symbolic Albums instead of duplicate copies of the files contained on Albums.
 - If you run the script with this flag and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken and you will need to use this feature to fix them.
 
+
 Example of use:
 ```
 ./OrganizeTakeoutPhotos --fix-symlinks-broken ./OUTPUT_FOLDER 
@@ -236,6 +237,7 @@ Possible Actions in revised CSV file are:
         - Duplicated file moved to Duplicates folder will be restored to its original location as principal file
         - and Original Principal file detected by the Script will be removed permanently
 
+
 Example of use:
 ```
 ./OrganizeTakeoutPhotos --process-duplicates-revised ./Duplicates/Duplicates_revised.csv
@@ -250,6 +252,8 @@ With this Extra Mode, you can rename all Albums subfolders (if they contains a f
 To define the <ALBUMS_FOLDER> you can use the new Flag: -ra, --rename-albums <ALBUMS_FOLDER>
 
 Recommendation: Use this Extra Mode before to create Synology Photos Albums in order to have a clean Albums structure in your Synology Photos database.
+
+
 Example of use:
 ```
 ./OrganizeTakeoutPhotos.run --rename-albums ./My_Albums_Folder
@@ -276,6 +280,8 @@ With this example, the script will rename all subfolders within ./My_Albums_Fold
 If you configure properly the file 'nas.config' and execute this Extra Mode, the script will process your Takeout Zip files, will process them, and will connect automatically to your Synology Photos database to import all your Photos & Videos automatically to Synology Photos database creating the same Albums that you have exported in your Takeout files.  
 
 To execute this Extra Mode, you can use the new Flag: -ao, --all-in-one  
+
+
 Example of use:
 ```
 ./OrganizeTakeoutPhotos.run --all-in-one ./Zip_files
@@ -288,7 +294,6 @@ If you configure properly the file 'nas.config' and execute this Extra Mode, the
 The folder <ALBUMS_FOLDER> can be passed using the new Flag: -ca, --create-albums-synology-photos <ALBUMS_FOLDER>  
 
 > [!IMPORTANT]
-> **IMPORTANT:**  
 > <ALBUMS_FOLDER> should be stored within your Synology Photos main folder in your NAS. Typically it is '/volume1/homes/your_username/Photos' and all files within <ALBUMS_FOLDER> should have been already indexed by Synology Photos before you can add them to a Synology Photos Album.  
 >
 >You can check if the files have been already indexed accessing Synology Photos mobile app or Synology Photos web portal and change to Folder View.  
@@ -308,6 +313,8 @@ If you configure properly the file 'nas.config' and execute this Extra Mode, the
 If any Empty Album is found, the script will remove it from Synology Photos.  
 
 To execute this Extra Mode, you can use the new Flag: -de, --delete-empty-albums-synology-photos  
+
+
 Example of use:
 ```
 ./OrganizeTakeoutPhotos.run --delete-empty-albums-synology-photos
@@ -320,6 +327,8 @@ If you configure properly the file 'nas.config' and execute this Extra Mode, the
 If any Duplicated Album is found, the script will remove it from Synology Photos.  
 
 To execute this Extra Mode, you can use the new Flag: -dd, --delete-duplicates-albums-synology-photos  
+
+
 Example of use:
 ```
 ./OrganizeTakeoutPhotos.run --delete-duplicates-albums-synology-photos
