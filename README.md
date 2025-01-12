@@ -16,9 +16,9 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 - [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/2.2.1/OrganizeTakeoutPhotos_v2.2.1_windows_amd64.zip)  
 
 ## Instructions:
-I have prepared the attached script that you can copy and unzip into any folder of our Synology NAS.
+You can copy and unzip into any local folder or to any Shared folder of our Synology NAS.
 
-Once downloaded the Takeout Zip's files you have to paste them on the folder called '**Zip_files**' which is the default folder or if you prefeer you can put them in any other subfolder and use the option _'-z, --zip-folder <folder_name>'_ to indicate it. (Note: paste all Zip files downloaded from Google Takeout directly on that folder, without subfolders inside it).
+After that you have to download Takeout Zip's files from Google Takeout and paste the ZIP files onto the folder called '**Zip_files**' within the folder script which is the default folder to process Takeout ZIP files, or if you prefeer you can put them in any other subfolder and use the option _'-z, --zip-folder <folder_name>'_ to indicate it. (Note: paste all Zip files downloaded from Google Takeout directly on that folder, without subfolders inside it).
 
 Then you just need to call it depending on your environment:
   - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**OrganizeTakeoutPhotos.exe**'  
