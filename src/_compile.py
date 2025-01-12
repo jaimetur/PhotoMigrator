@@ -123,7 +123,7 @@ def compile():
             '--onefile',
             '--hidden-import', 'os,sys,tqdm,argparse,platform,shutil,re,textwrap,logging,collections,csv,time,datetime,hashlib,fnmatch,requests,urllib3',
             '--add-data', f"../gpth_tool_{OPERATING_SYSTEM}:gpth_tool",
-            '--add-data', f"../exif_tool_{OPERATING_SYSTEM}:exif_tool",
+            # '--add-data', f"../exif_tool_{OPERATING_SYSTEM}:exif_tool",
             f'{SCRIPT_SOURCE_NAME}'
         ])
 
@@ -186,7 +186,7 @@ def compile():
                 f'--file-version={SCRIPT_VERSION_INT}',
                 f'--copyright={COPYRIGHT_TEXT}',
                 '--include-raw-dir=../gpth_tool=gpth_tool',
-                '--include-raw-dir=../exif_tool=exif_tool',
+                # '--include-raw-dir=../exif_tool=exif_tool',
                 # '--include-data-dir=../gpth_tool=gpth_tool',
                 # '--include-data-dir=../exif_tool=exif_tool',
                 '--include-data-file=Synology.config=Synology.config',
