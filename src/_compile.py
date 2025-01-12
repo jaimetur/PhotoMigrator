@@ -113,6 +113,18 @@ def compile():
     print("")
 
     if COMPILER=='pyinstaller':
+        # Inicializamos variables
+        script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
+        script_zip_file = Path(f"../_built_versions/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
+        if OPERATING_SYSTEM=='windows':
+            script_compiled = f'{SCRIPT_NAME}.exe'
+            script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
+            add_gpth_coomand = f"../gpth_tool/gpth_{OPERATING_SYSTEM}.exe:gpth_tool"
+        else:
+            script_compiled = f'{SCRIPT_NAME}'
+            script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
+            add_gpth_coomand = f"../gpth_tool/gpth_{OPERATING_SYSTEM}.bin:gpth_tool"
+
         print("Añadiendo paquetes necesarios al entorno Python antes de compilar...")
         subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', 'requirements.txt'])
         print("")
@@ -122,20 +134,11 @@ def compile():
             '--runtime-tmpdir', '/var/tmp',
             '--onefile',
             '--hidden-import', 'os,sys,tqdm,argparse,platform,shutil,re,textwrap,logging,collections,csv,time,datetime,hashlib,fnmatch,requests,urllib3',
-            '--add-data', f"../gpth_tool_{OPERATING_SYSTEM}:gpth_tool",
+            '--add-data', add_gpth_command,
             # '--add-data', f"../exif_tool_{OPERATING_SYSTEM}:exif_tool",
             f'{SCRIPT_SOURCE_NAME}'
         ])
 
-        # Inicializamos variables
-        script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-        script_zip_file = Path(f"../_built_versions/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
-        if OPERATING_SYSTEM=='windows':
-            script_compiled = f'{SCRIPT_NAME}.exe'
-            script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
-        else:
-            script_compiled = f'{SCRIPT_NAME}'
-            script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
         # Movemos el fichero compilado a la carpeta padre
         print(f"\nMoviendo script compilado '{script_compiled_with_version_os_arch_extension}'...")
         shutil.move(f'./dist/{script_compiled}', f'../{script_compiled_with_version_os_arch_extension}')
