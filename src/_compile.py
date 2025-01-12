@@ -132,7 +132,7 @@ def compile():
         subprocess.run([
             'pyinstaller',
             '--runtime-tmpdir', '/var/tmp',
-            '--onefile',
+            '--onedir',
             '--hidden-import', 'os,sys,tqdm,argparse,platform,shutil,re,textwrap,logging,collections,csv,time,datetime,hashlib,fnmatch,requests,urllib3',
             '--add-data', add_gpth_command,
             # '--add-data', f"../exif_tool_{OPERATING_SYSTEM}:exif_tool",
@@ -145,10 +145,10 @@ def compile():
         # Comprimimos la carpeta con el script compilado y los ficheros y directorios a incluir
         include_file_and_folders_and_compress(f'../{script_compiled_with_version_os_arch_extension}', script_zip_file)
         # Borramos los ficheros y directorios temporales de la compilación
-        print("Borrando archivos temporales de la compilación...")
+        #print("Borrando archivos temporales de la compilación...")
         Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
-        shutil.rmtree('build', ignore_errors=True)
-        shutil.rmtree('dist', ignore_errors=True)
+        #shutil.rmtree('build', ignore_errors=True)
+        #shutil.rmtree('dist', ignore_errors=True)
         print(f"Compilación para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}' concluida con éxito.")
         print(f"Script compilado: {script_compiled_with_version_os_arch_extension}")
         print(f"Script comprimido: {script_zip_file}")
