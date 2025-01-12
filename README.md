@@ -324,9 +324,10 @@ Example of use:
 ```
 With this example, the script will connect to Synology Photos database and will delete all Duplicates Albums found.
 
-## <span style="color:dark">Additional Trick!</span>
+
 
 > [!TIP]
+> ## <span style="color:dark">Additional Trick!</span>
 > When prepare Google Takeout to export all your Photos and Albums, select 50GB for the zip file size and select Google Drive as output for those Zip files. On this way you can just Download all the big Zip files directly on your Synology NAS by using the Tool Cloud Sync (included on Synology App Store) and creating a new synchronization task from your Google Drive account (/Takeout folder) to any local folder of your Synology NAS (I recommend to use the default folder called '**Zip_files**' within this script folder structure)
 
 I hope this can be useful for any of you.  
