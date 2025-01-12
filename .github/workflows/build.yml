@@ -7,6 +7,13 @@ on:
       - main
     paths-ignore:
       - '_built_versions/**'  # Ignore any changes in _built_versions
+      - .gitignore
+      - gpth*/**
+      - exif*/**
+      - .idea/**
+      - _src_versions/**
+      - _buildt_versions/**
+      - .github/**
 #  schedule:               # Ejecución diaria a las 2 AM UTC
 #    - cron: '0 2 * * *'
 
