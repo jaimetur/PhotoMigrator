@@ -4,7 +4,7 @@ import subprocess
 
 # Configura el user de GitHub y el repositorio
 GITHUB_USER = "jaimetur"
-GITHUB_REPO = "OrganizeTakeoutPhotos"
+GITHUB_REPO = "OrganizeTakeoutPhotos-dev"
 
 # Configura las cadenas de reemplazo
 ORIGINAL_STRING_IN_BODY = "_built_versions/OrganizeTakeoutPhotos_v"
