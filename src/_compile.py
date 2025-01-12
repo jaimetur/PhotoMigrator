@@ -119,7 +119,7 @@ def compile():
         if OPERATING_SYSTEM=='windows':
             script_compiled = f'{SCRIPT_NAME}.exe'
             script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
-            add_gpth_command = f"..\gpth_tool\gpth_{OPERATING_SYSTEM}.exe:gpth_tool\gpth_{OPERATING_SYSTEM}.exe"
+            add_gpth_command = f"../gpth_tool/gpth_{OPERATING_SYSTEM}.exe:gpth_tool/gpth_{OPERATING_SYSTEM}.exe"
         else:
             script_compiled = f'{SCRIPT_NAME}'
             script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
@@ -161,7 +161,7 @@ def compile():
             if OPERATING_SYSTEM=='windows':
                 script_compiled = f'{SCRIPT_NAME}.exe'
                 script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
-                add_gpth_command = f'..\gpth_tool\gpth_{OPERATING_SYSTEM}.exe=gpth_tool\gpth_{OPERATING_SYSTEM}.exe'
+                add_gpth_command = f'../gpth_tool/gpth_{OPERATING_SYSTEM}.exe=gpth_tool/gpth_{OPERATING_SYSTEM}.exe'
             else:
                 script_compiled = f'{SCRIPT_NAME}.bin'
                 script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
