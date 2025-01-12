@@ -30,7 +30,7 @@ Then you just need to call it depending on your environment:
 ## Syntax:
 ```
 ----------------------------------------------------------------------------------------------------------------------------
-usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
+usage: OrganizeTakeoutPhotos.run/exe [-h] [-v] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
                                      [-as ['flatten', 'year', 'year/month', 'year-month']]
                                      [-ns ['flatten', 'year', 'year/month', 'year-month']]
                                      [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-nl]
