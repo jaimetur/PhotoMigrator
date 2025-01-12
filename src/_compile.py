@@ -119,11 +119,11 @@ def compile():
         if OPERATING_SYSTEM=='windows':
             script_compiled = f'{SCRIPT_NAME}.exe'
             script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
-            add_gpth_coomand = f"../gpth_tool/gpth_{OPERATING_SYSTEM}.exe:gpth_tool"
+            add_gpth_command = f"..\gpth_tool\gpth_{OPERATING_SYSTEM}.exe:gpth_tool\gpth_{OPERATING_SYSTEM}.exe"
         else:
             script_compiled = f'{SCRIPT_NAME}'
             script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
-            add_gpth_coomand = f"../gpth_tool/gpth_{OPERATING_SYSTEM}.bin:gpth_tool"
+            add_gpth_command = f"../gpth_tool/gpth_{OPERATING_SYSTEM}.bin:gpth_tool/gpth_{OPERATING_SYSTEM}.bin"
 
         print("Añadiendo paquetes necesarios al entorno Python antes de compilar...")
         subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', 'requirements.txt'])
@@ -161,9 +161,12 @@ def compile():
             if OPERATING_SYSTEM=='windows':
                 script_compiled = f'{SCRIPT_NAME}.exe'
                 script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
+                add_gpth_command = f'..\gpth_tool\gpth_{OPERATING_SYSTEM}.exe=gpth_tool\gpth_{OPERATING_SYSTEM}.exe'
             else:
                 script_compiled = f'{SCRIPT_NAME}.bin'
                 script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
+                add_gpth_command = f'..\gpth_tool\gpth_{OPERATING_SYSTEM}.bin=gpth_tool\gpth_{OPERATING_SYSTEM}.bin'
+                                
             script_zip_file = Path(f"../_built_versions/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
             print("")
             print(f"Compilando para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}'...")
@@ -188,7 +191,8 @@ def compile():
                 '--output-dir=./dist',
                 f'--file-version={SCRIPT_VERSION_INT}',
                 f'--copyright={COPYRIGHT_TEXT}',
-                '--include-raw-dir=../gpth_tool=gpth_tool',
+                f'--include-data-file={add_gpth_command}',
+                #f'--include-raw-dir=../gpth_tool=gpth_tool',
                 # '--include-raw-dir=../exif_tool=exif_tool',
                 # '--include-data-dir=../gpth_tool=gpth_tool',
                 # '--include-data-dir=../exif_tool=exif_tool',
