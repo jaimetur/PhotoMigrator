@@ -178,7 +178,7 @@ The whole process took around **~8.5 hours** (or **~3 hours without last two opt
 7. Fix Broken Symlinks --> 10m
 8. <span style="color:grey">(Optional) Remove Duplicates after fixing --> 3h</span>
    
-NOTE: Step 9 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
+NOTE: Step 8 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
 
 ## <span style="color:blue">EXTRA MODES:</span>
 
