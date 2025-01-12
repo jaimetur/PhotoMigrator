@@ -26,7 +26,7 @@ Then you just need to call it depending on your environment:
 
 
   - If you run it from Synology NAS (using SSH terminal) or from Linux/Mac, you have to call the master script '**OrganizeTakeoutPhotos.run**'.  
-    Minimum version required to run the script directly from your Synology NAS (using SSH terminal) is **DSM 7.1.0**.
+    Minimum version required to run the script directly from your Synology NAS (using SSH terminal) is **DSM 7.0**.
 
 ## Syntax:
 ```
@@ -199,6 +199,7 @@ From version 1.5.0 onwards, the script can be executed in 'Fix Symbolic Links Br
 - This is useful when you run the main script using flag '-sa, --symbolic-albums' to create symbolic Albums instead of duplicate copies of the files contained on Albums.
 - If you run the script with this flag and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken and you will need to use this feature to fix them.
 
+
 Example of use:
 ```
 ./OrganizeTakeoutPhotos --fix-symlinks-broken ./OUTPUT_FOLDER 
@@ -236,6 +237,7 @@ Possible Actions in revised CSV file are:
         - Duplicated file moved to Duplicates folder will be restored to its original location as principal file
         - and Original Principal file detected by the Script will be removed permanently
 
+
 Example of use:
 ```
 ./OrganizeTakeoutPhotos --process-duplicates-revised ./Duplicates/Duplicates_revised.csv
@@ -250,31 +252,36 @@ With this Extra Mode, you can rename all Albums subfolders (if they contains a f
 To define the <ALBUMS_FOLDER> you can use the new Flag: -ra, --rename-albums <ALBUMS_FOLDER>
 
 Recommendation: Use this Extra Mode before to create Synology Photos Albums in order to have a clean Albums structure in your Synology Photos database.
+
+
 Example of use:
 ```
 ./OrganizeTakeoutPhotos.run --rename-albums ./My_Albums_Folder
 ```
 With this example, the script will rename all subfolders within ./My_Albums_Folder (only first subfolder level) according to the format described above. If the subfolder does not contains any file, the folder will not be renamed.
 
-## <span style="color:green">Synology Photos Support</span>
-From version 2.0.0 onwards, the script can connect to your Synology NAS and login into Synology Photos App with your credentials. The credentials need to be loaded from 'Synology.config' file and will have this format:
-
-#### <span style="color:green">Example 'Synology.config':</span>
-
-```
-# Synology.config for Synology NAS
-
-NAS_IP              = 192.168.1.11                          # Change this IP by your Synology NAS IP
-USERNAME            = username                              # Your username for Synology Photos
-PASSWORD            = password                              # Your password for Synology Photos
-ROOT_PHOTOS_PATH    = /volume1/homes/your_username/Photos   # Your root path to Synology Photos main folder. Tipically is /volume1/homes/your_username/Photos
-```
+> [!NOTE]
+> ## <span style="color:green">Synology Photos Support</span>
+>From version 2.0.0 onwards, the script can connect to your Synology NAS and login into Synology Photos App with your credentials. The credentials need to be loaded from 'Synology.config' file and will have this format:
+>
+>#### <span style="color:green">Example 'Synology.config':</span>
+>
+>```
+># Synology.config for Synology NAS
+>
+>NAS_IP              = 192.168.1.11                          # Change this IP by your Synology NAS IP
+>USERNAME            = username                              # Your username for Synology Photos
+>PASSWORD            = password                              # Your password for Synology Photos
+>ROOT_PHOTOS_PATH    = /volume1/homes/your_username/Photos   # Your root path to Synology Photos main folder. Tipically is /volume1/homes/your_username/Photos
+>```
 
 
 ## <span style="color:green">Extra Mode: All in One Shot:</span>
 If you configure properly the file 'nas.config' and execute this Extra Mode, the script will process your Takeout Zip files, will process them, and will connect automatically to your Synology Photos database to import all your Photos & Videos automatically to Synology Photos database creating the same Albums that you have exported in your Takeout files.  
 
 To execute this Extra Mode, you can use the new Flag: -ao, --all-in-one  
+
+
 Example of use:
 ```
 ./OrganizeTakeoutPhotos.run --all-in-one ./Zip_files
@@ -286,12 +293,12 @@ If you configure properly the file 'nas.config' and execute this Extra Mode, the
 
 The folder <ALBUMS_FOLDER> can be passed using the new Flag: -ca, --create-albums-synology-photos <ALBUMS_FOLDER>  
 
-**IMPORTANT:**  
-<ALBUMS_FOLDER> should be stored within your Synology Photos main folder in your NAS. Typically it is '/volume1/homes/your_username/Photos' and all files within <ALBUMS_FOLDER> should have been already indexed by Synology Photos before you can add them to a Synology Photos Album.  
-
-You can check if the files have been already indexed accessing Synology Photos mobile app or Synology Photos web portal and change to Folder View.  
-
-If you can't see your <ALBUMS_FOLDER> most probably is because it has not been indexed yet or because you didn't move it within Synology Photos root folder. 
+> [!IMPORTANT]
+> <ALBUMS_FOLDER> should be stored within your Synology Photos main folder in your NAS. Typically it is '/volume1/homes/your_username/Photos' and all files within <ALBUMS_FOLDER> should have been already indexed by Synology Photos before you can add them to a Synology Photos Album.  
+>
+>You can check if the files have been already indexed accessing Synology Photos mobile app or Synology Photos web portal and change to Folder View.  
+>
+>If you can't see your <ALBUMS_FOLDER> most probably is because it has not been indexed yet or because you didn't move it within Synology Photos root folder. 
 
 
 Example of use:
@@ -306,6 +313,8 @@ If you configure properly the file 'nas.config' and execute this Extra Mode, the
 If any Empty Album is found, the script will remove it from Synology Photos.  
 
 To execute this Extra Mode, you can use the new Flag: -de, --delete-empty-albums-synology-photos  
+
+
 Example of use:
 ```
 ./OrganizeTakeoutPhotos.run --delete-empty-albums-synology-photos
@@ -318,16 +327,19 @@ If you configure properly the file 'nas.config' and execute this Extra Mode, the
 If any Duplicated Album is found, the script will remove it from Synology Photos.  
 
 To execute this Extra Mode, you can use the new Flag: -dd, --delete-duplicates-albums-synology-photos  
+
+
 Example of use:
 ```
 ./OrganizeTakeoutPhotos.run --delete-duplicates-albums-synology-photos
 ```
 With this example, the script will connect to Synology Photos database and will delete all Duplicates Albums found.
 
-## <span style="color:dark">Additional Trick!</span>
 
-When prepare Google Takeout to export all your Photos and Albums, select 50GB for the zip file size and select Google Drive as output for those Zip files. On this way you can just Download all the big Zip files directly on your Synology NAS by using the Tool Cloud Sync (included on Synology App Store) and creating a new synchronization task from your Google Drive account (/Takeout folder) to any local folder of your Synology NAS (I recommend to use the default folder called '**Zip_files**' within this script folder structure)
 
+> [!TIP]
+> ## <span style="color:dark">Additional Trick!</span>
+> When prepare Google Takeout to export all your Photos and Albums, select 50GB for the zip file size and select Google Drive as output for those Zip files. On this way you can just Download all the big Zip files directly on your Synology NAS by using the Tool Cloud Sync (included on Synology App Store) and creating a new synchronization task from your Google Drive account (/Takeout folder) to any local folder of your Synology NAS (I recommend to use the default folder called '**Zip_files**' within this script folder structure)
 
 I hope this can be useful for any of you.  
 Enjoy it!

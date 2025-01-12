@@ -129,7 +129,7 @@ def compile():
 
         # Inicializamos variables
         script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-        script_zip_file = Path(f"../_built_versions/{SCRIPT_NAME_VERSION}/{script_name_with_version_os_arch}.zip").resolve()
+        script_zip_file = Path(f"../_built_versions/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
         if OPERATING_SYSTEM=='windows':
             script_compiled = f'{SCRIPT_NAME}.exe'
             script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
@@ -161,7 +161,7 @@ def compile():
             else:
                 script_compiled = f'{SCRIPT_NAME}.bin'
                 script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
-            script_zip_file = Path(f"../_built_versions/{SCRIPT_NAME_VERSION}/{script_name_with_version_os_arch}.zip").resolve()
+            script_zip_file = Path(f"../_built_versions/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
             print("")
             print(f"Compilando para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}'...")
             if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
