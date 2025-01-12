@@ -1,5 +1,5 @@
 # OrganizeTakeoutPhotos
-Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos (Fix metadata, Identify Live Pictures, Organize per year/month folders, separate Albums, Fix Symbolic Links, Find Duplicates, Manage Duplicates, Homogenize Albums folders name, Import Albums to Synology Photos, Delete Empty Synology Photos Albums and much more)
+Script (based on GPTH Tool) to Process Google Takeout Photos (Fix metadata, Identify Live Pictures, Organize per year/month folders, separate Albums, Fix Symbolic Links, Find Duplicates, Manage Duplicates, Homogenize Albums folders name, Import Albums to Synology Photos, Delete Empty Synology Photos Albums and much more)
 
 ## Download Script:
 Download the script either Linux, MacOS or Windows version (for both x64/amd64 or arm64 architectures) as you prefeer directly from following links:
@@ -33,15 +33,15 @@ Then you just need to call it depending on your environment:
 usage: OrganizeTakeoutPhotos.run/exe [-h] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
                                      [-as ['flatten', 'year', 'year/month', 'year-month']]
                                      [-ns ['flatten', 'year', 'year/month', 'year-month']]
-                                     [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-re] [-nl]
+                                     [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-nl]
                                      [-fs <FOLDER_TO_FIX>] [-ra <ALBUMS_FOLDER>]
                                      [-fd ['list', 'move', 'remove'] <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
                                      [-pd <DUPLICATES_REVISED_CSV>] [-ca <ALBUMS_FOLDER>] [-de] [-dd]
                                      [-ao <INPUT_FOLDER>]
 
-OrganizeTakeoutPhotos v2.2.1 - 2025-01-08
+OrganizeTakeoutPhotos v2.3.0 - 2025-01-12
 
-Script (based on GPTH and EXIF Tools) to Process Google Takeout Photos and much more useful features
+Script (based on GPTH Tool) to Process Google Takeout Photos and much more useful features
 (remove duplicates, fix metadata, organize per year/month folder, separate Albums, fix symlinks, etc...).
 (c) by Jaime Tur (@jaimetur)
 
@@ -81,10 +81,6 @@ optional arguments:
         limitations and you don't mind to lost your original unzipped files.
 -rd,  --remove-duplicates-after-fixing
         Remove Duplicates files in <OUTPUT_FOLDER> after fixing them.
--re,  --run-exif-tool
-        Run EXIF Tool files processing in the last step. (Useful if GPTH Tool cannot fix some files, but is a
-        slow process). RECOMMENDATION: Use only if after runnning normal process with GPTH Tool, you still
-        have many files with no date.
 -nl,  --no-log-file
         Skip saving output messages to execution log file.
 
@@ -158,8 +154,6 @@ The whole process will do the next actions if all flags are false (by default):
 
 7. Finally the script will look in OUTPUT_FOLDER for any symbolic link broken and will try to fix it by looking for the original file where the symlink is pointing to.
 
-8. (Optional) In this step, the script will use EXIF Tool as well just in case that any photo cannot be resolved by GPTH Tool. This step is disabled by default, but you can force it using flag _'-re, --run-exif-tool'_ (this step is optional)
-
 8. (Optional) In this step, the script will look for any duplicate file on OUTPUT_FOLDER (ignoring symbolic links), and will remove all duplicates keeping only the principal file (giving more priority to duplicates files found into any album folder than those found on 'ALL_PHOTOS' folder. 
 
 
@@ -180,11 +174,8 @@ The whole process took around **~8.5 hours** (or **~3 hours without last two opt
 5. Create Date Folder Structure --> 50s
 6. Moving Album Folder --> 1s
 7. Fix Broken Symlinks --> 10m
-8. <span style="color:grey">(Optional) EXIF Tool fixing --> 2h 24m</span>
-9. <span style="color:grey">(Optional) Remove Duplicates after fixing --> 3h</span>
+8. <span style="color:grey">(Optional) Remove Duplicates after fixing --> 3h</span>
    
-NOTE: Step 8 is disabled by default, and is only recommended when GPTH Tool cannot fix many files. You can always run again the script to run only this step (using flag '-re, --run-exif-tool) and omitting the other steps with the flags '--skipt-gpth-tool --skip-move-albums' arguments.
-
 NOTE: Step 9 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
 
 ## <span style="color:blue">EXTRA MODES:</span>
