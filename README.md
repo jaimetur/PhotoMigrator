@@ -256,19 +256,20 @@ Example of use:
 ```
 With this example, the script will rename all subfolders within ./My_Albums_Folder (only first subfolder level) according to the format described above. If the subfolder does not contains any file, the folder will not be renamed.
 
-## <span style="color:green">Synology Photos Support</span>
-From version 2.0.0 onwards, the script can connect to your Synology NAS and login into Synology Photos App with your credentials. The credentials need to be loaded from 'Synology.config' file and will have this format:
-
-#### <span style="color:green">Example 'Synology.config':</span>
-
-```
-# Synology.config for Synology NAS
-
-NAS_IP              = 192.168.1.11                          # Change this IP by your Synology NAS IP
-USERNAME            = username                              # Your username for Synology Photos
-PASSWORD            = password                              # Your password for Synology Photos
-ROOT_PHOTOS_PATH    = /volume1/homes/your_username/Photos   # Your root path to Synology Photos main folder. Tipically is /volume1/homes/your_username/Photos
-```
+> [!NOTE]
+> ## <span style="color:green">Synology Photos Support</span>
+>From version 2.0.0 onwards, the script can connect to your Synology NAS and login into Synology Photos App with your credentials. The credentials need to be loaded from 'Synology.config' file and will have this format:
+>
+>#### <span style="color:green">Example 'Synology.config':</span>
+>
+>```
+># Synology.config for Synology NAS
+>
+>NAS_IP              = 192.168.1.11                          # Change this IP by your Synology NAS IP
+>USERNAME            = username                              # Your username for Synology Photos
+>PASSWORD            = password                              # Your password for Synology Photos
+>ROOT_PHOTOS_PATH    = /volume1/homes/your_username/Photos   # Your root path to Synology Photos main folder. Tipically is /volume1/homes/your_username/Photos
+>```
 
 
 ## <span style="color:green">Extra Mode: All in One Shot:</span>
@@ -286,12 +287,13 @@ If you configure properly the file 'nas.config' and execute this Extra Mode, the
 
 The folder <ALBUMS_FOLDER> can be passed using the new Flag: -ca, --create-albums-synology-photos <ALBUMS_FOLDER>  
 
-**IMPORTANT:**  
-<ALBUMS_FOLDER> should be stored within your Synology Photos main folder in your NAS. Typically it is '/volume1/homes/your_username/Photos' and all files within <ALBUMS_FOLDER> should have been already indexed by Synology Photos before you can add them to a Synology Photos Album.  
-
-You can check if the files have been already indexed accessing Synology Photos mobile app or Synology Photos web portal and change to Folder View.  
-
-If you can't see your <ALBUMS_FOLDER> most probably is because it has not been indexed yet or because you didn't move it within Synology Photos root folder. 
+> [!IMPORTANT]
+> **IMPORTANT:**  
+> <ALBUMS_FOLDER> should be stored within your Synology Photos main folder in your NAS. Typically it is '/volume1/homes/your_username/Photos' and all files within <ALBUMS_FOLDER> should have been already indexed by Synology Photos before you can add them to a Synology Photos Album.  
+>
+>You can check if the files have been already indexed accessing Synology Photos mobile app or Synology Photos web portal and change to Folder View.  
+>
+>If you can't see your <ALBUMS_FOLDER> most probably is because it has not been indexed yet or because you didn't move it within Synology Photos root folder. 
 
 
 Example of use:
@@ -324,9 +326,10 @@ Example of use:
 ```
 With this example, the script will connect to Synology Photos database and will delete all Duplicates Albums found.
 
-## <span style="color:dark">Additional Trick!</span>
+
 
 > [!TIP]
+> ## <span style="color:dark">Additional Trick!</span>
 > When prepare Google Takeout to export all your Photos and Albums, select 50GB for the zip file size and select Google Drive as output for those Zip files. On this way you can just Download all the big Zip files directly on your Synology NAS by using the Tool Cloud Sync (included on Synology App Store) and creating a new synchronization task from your Google Drive account (/Takeout folder) to any local folder of your Synology NAS (I recommend to use the default folder called '**Zip_files**' within this script folder structure)
 
 I hope this can be useful for any of you.  
