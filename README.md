@@ -300,7 +300,7 @@ To extract ALL Albums within in Synology Photos database use 'ALL' as <ALBUMS_NA
 The album(s) name <ALBUMS_NAME> can be passed using the new Flag: -ea, --extract-albums-synology-photos <ALBUMS_NAME>  
 
 > [!IMPORTANT]
-> <ALBUMS_NAME> should be exists within your Synology Photos Albums database, otherwise it will no extract anything. 
+> <ALBUMS_NAME> should exist within your Synology Photos Albums database, otherwise it will no extract anything. 
 > Extraction will be done in background task, so it could take time to complete. Even if the Script finish with success the extraction process could be still running on background, so take this into account.
 
 Example of use:
