@@ -1,1 +1,0 @@
-_built_versions/2.3.0/OrganizeTakeoutPhotos_v2.3.0_linux_amd64.zip
