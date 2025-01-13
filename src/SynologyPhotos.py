@@ -732,7 +732,7 @@ def wait_for_reindexing_synology_photos():
 
 
 # Function to extract Synology Photos Albums
-def extract_synology_photos_albums(album_name='ALL'):
+def extract_synology_photos_albums(albums_name='ALL'):
     #######################
     # AUXILIARY FUNCTIONS:
     #######################
@@ -913,29 +913,33 @@ def extract_synology_photos_albums(album_name='ALL'):
     all_albums = list_own_and_shared_albums()
 
     # Determine the albums to copy
-    if isinstance(album_name, str) and album_name.strip().upper() == 'ALL':
+    if isinstance(albums_name, str) and albums_name.strip().upper() == 'ALL':
         albums_to_copy = all_albums
         LOGGER.info(f"INFO: All albums ({len(albums_to_copy)}) from Synology Photos will be copied to the folder '{main_folder}...")
     else:
         # Ensure album_name is a list if it's not a string
-        if isinstance(album_name, str):
+        if isinstance(albums_name, str):
             # Split album names by commas or spaces
-            album_names = [name.strip() for name in album_name.replace(',', ' ').split() if name.strip()]
-        elif isinstance(album_name, list):
-            album_names = [name.strip() for name in album_name if isinstance(name, str) and name.strip()]
+            albums_names = [name.strip() for name in albums_name.replace(',', ' ').split() if name.strip()]
+        elif isinstance(albums_name, list):
+            # Flatten and clean up the list, splitting on commas within each item
+            albums_names = []
+            for item in albums_name:
+                if isinstance(item, str):
+                    albums_names.extend([name.strip() for name in item.split(',') if name.strip()])
         else:
-            LOGGER.error("ERROR: The parameter album_name must be a string or a list of strings.")
+            LOGGER.error("ERROR: The parameter albums_name must be a string or a list of strings.")
             return albums_extracted, photos_extracted
 
         albums_to_copy = []
-        for album_name in album_names:
+        for albums_name in albums_names:
             # Search for the album by name (case-insensitive)
-            found_album = next((album for album in all_albums if album['name'].strip().lower() == album_name.lower()), None)
+            found_album = next((album for album in all_albums if album['name'].strip().lower() == albums_name.lower()), None)
 
             if found_album:
                 albums_to_copy.append(found_album)
             else:
-                LOGGER.warning(f"WARNING: No album found with the name '{album_name}'.")
+                LOGGER.warning(f"WARNING: No album found with the name '{albums_name}'.")
 
         if not albums_to_copy:
             LOGGER.error("ERROR: No albums found with the provided names.")
@@ -947,24 +951,24 @@ def extract_synology_photos_albums(album_name='ALL'):
 
     # Iterate over each album to copy
     for album in albums_to_copy:
-        album_name = album['name']
+        albums_name = album['name']
         album_id = album['id']
-        LOGGER.info(f"INFO: Processing album: '{album_name}' (ID: {album_id})")
+        LOGGER.info(f"INFO: Processing album: '{albums_name}' (ID: {album_id})")
 
         # List photos in the album
-        photos = list_album_photos(album_name, album_id)
-        LOGGER.info(f"INFO: Number of photos in the album '{album_name}': {len(photos)}")
+        photos = list_album_photos(albums_name, album_id)
+        LOGGER.info(f"INFO: Number of photos in the album '{albums_name}': {len(photos)}")
 
         if not photos:
-            LOGGER.warning(f"WARNING: No photos to copy in the album '{album_name}'.")
+            LOGGER.warning(f"WARNING: No photos to copy in the album '{albums_name}'.")
             continue
 
         # Create or obtain the destination folder for the album within 'Albums_Synology_Photos'
-        target_folder_name = f'{album_name}'
+        target_folder_name = f'{albums_name}'
         target_folder_id = obtain_or_create_folder(target_folder_name, parent_folder_id=main_folder_id)
 
         if not target_folder_id:
-            LOGGER.warning(f"WARNING: Failed to obtain or create the destination folder for the album '{album_name}'.")
+            LOGGER.warning(f"WARNING: Failed to obtain or create the destination folder for the album '{albums_name}'.")
             continue
 
         # Copy the photos to the destination folder
@@ -989,7 +993,7 @@ if __name__ == "__main__":
     albums_folder_path = r"r:\jaimetur_ftp\Photos\Albums"                 # For Windows
 
     # ExtractSynologyPhotosAlbums(album_name='ALL')
-    extract_synology_photos_albums(album_name='Cadiz')
+    extract_synology_photos_albums(albums_name='Cadiz')
 
     # result = wait_for_reindexing_synology_photos()
     # LOGGER.info(f"INFO: Index Result: {result}")

@@ -52,7 +52,7 @@ def parse_arguments():
     # Acción personalizada para --version
     class VersionAction(argparse.Action):
         def __call__(self, parser, namespace, values, option_string=None):
-            print(f"{SCRIPT_NAME} {SCRIPT_VERSION} {SCRIPT_DATE}")
+            print(f"\n{SCRIPT_NAME} {SCRIPT_VERSION} {SCRIPT_DATE} by Jaime Tur (@jaimetur)\n")
             parser.exit()
 
     parser.add_argument("-v",  "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
@@ -206,7 +206,7 @@ The script will extract all your Takeout Zip files (if found any .zip) from <INP
     HELP_MODE_EXTRACT_SYNOLOGY_PHOTOS_ALBUMS = \
 f"""
 ATTENTION!!!: This process will connect to Synology Photos and extract the Album whose name is <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the Synology Photos root folder.
-              To extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: "-es "album1", "album2", "album3" 
+              To extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: --extract-synology-photos-albums "album1", "album2", "album3" 
               To extract ALL Albums within in Synology Photos database use 'ALL' as ALBUMS_NAME.
 """
 
