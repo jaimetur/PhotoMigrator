@@ -11,8 +11,8 @@ from LoggerConfig import log_setup
 
 # Script version & date
 SCRIPT_NAME         = "OrganizeTakeoutPhotos"
-SCRIPT_VERSION      = "v2.3.0-alpha"
-SCRIPT_DATE         = "2025-01-12"
+SCRIPT_VERSION      = "v2.3.0"
+SCRIPT_DATE         = "2025-01-13"
 
 SCRIPT_NAME_VERSION = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
 SCRIPT_DESCRIPTION  = f"""
