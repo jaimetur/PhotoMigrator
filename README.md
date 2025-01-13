@@ -5,15 +5,15 @@ Script (based on GPTH Tool) to Process Google Takeout Photos (Fix metadata, Iden
 Download the script either Linux, MacOS or Windows version (for both x64/amd64 or arm64 architectures) as you prefeer directly from following links:
 
 **Linux:**:  
-  - [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/2.2.1/OrganizeTakeoutPhotos_v2.2.1_linux_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/2.2.1/OrganizeTakeoutPhotos_v2.2.1_linux_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/2.3.0/OrganizeTakeoutPhotos_v2.3.0_linux_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/2.3.0/OrganizeTakeoutPhotos_v2.3.0_linux_arm64.zip)  
 
 **Mac OS:**
-  - [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/2.2.1/OrganizeTakeoutPhotos_v2.2.1_macos_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/2.2.1/OrganizeTakeoutPhotos_v2.2.1_macos_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/2.3.0/OrganizeTakeoutPhotos_v2.3.0_macos_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/2.3.0/OrganizeTakeoutPhotos_v2.3.0_macos_arm64.zip)  
 
 **Windows:**  
-- [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/2.2.1/OrganizeTakeoutPhotos_v2.2.1_windows_amd64.zip)  
+- [Download AMD 64 bits version](https://github.com/jaimetur/OrganizeTakeoutPhotos/raw/refs/heads/main/_built_versions/2.3.0/OrganizeTakeoutPhotos_v2.3.0_windows_amd64.zip)  
 
 ## Instructions:
 You can copy and unzip the downloaded Script into any local folder or to any Shared folder of our Synology NAS.
