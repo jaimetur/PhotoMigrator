@@ -486,8 +486,8 @@ def create_synology_photos_albums(albums_folder):
         sys.exit(-1)
 
     LOGGER.info(f"INFO: Reindexing Synology Photos database before to add content to it...")
-    # if wait_for_reindexing_synology_photos():
-    if True:
+    if wait_for_reindexing_synology_photos():
+    # if True:
         # El proceso consta de 4 pasos:
         # 1. Primero obtenemos el id de la carpeta raiz de Synology Photos para el usuario autenticado
         photos_root_folder_id = get_photos_root_folder_id ()
