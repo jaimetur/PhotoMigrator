@@ -2,7 +2,7 @@ import requests
 import json
 import subprocess
 
-# Configuración del repositorio y usuario
+# Configura el user de GitHub y el repositorio
 GITHUB_USER = "jaimetur"
 GITHUB_REPO = "OrganizeTakeoutPhotos"
 
