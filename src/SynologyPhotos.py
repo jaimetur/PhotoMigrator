@@ -732,7 +732,7 @@ def wait_for_reindexing_synology_photos():
 
 
 # Function to extract Synology Photos Albums
-def extract_synology_photos_albums(albums_name='ALL'):
+def extract_albums_synology_photos(albums_name='ALL'):
     #######################
     # AUXILIARY FUNCTIONS:
     #######################
@@ -974,7 +974,7 @@ def extract_synology_photos_albums(albums_name='ALL'):
         # Copy the photos to the destination folder
         photos_extracted += extract_photos_to_folder(target_folder_id, target_folder_name, photos)
 
-    LOGGER.info("INFO: Album(s) Extracted Successfully.")
+    LOGGER.info(f"INFO: Album(s) Extracted Successfully. You can find them in folder '{os.path.join(ROOT_PHOTOS_PATH, main_folder)}'")
     return albums_extracted, photos_extracted
 
 
@@ -993,7 +993,7 @@ if __name__ == "__main__":
     albums_folder_path = r"r:\jaimetur_ftp\Photos\Albums"                 # For Windows
 
     # ExtractSynologyPhotosAlbums(album_name='ALL')
-    extract_synology_photos_albums(albums_name='Cadiz')
+    extract_albums_synology_photos(albums_name='Cadiz')
 
     # result = wait_for_reindexing_synology_photos()
     # LOGGER.info(f"INFO: Index Result: {result}")

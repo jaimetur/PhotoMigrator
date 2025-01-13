@@ -36,16 +36,16 @@ usage: OrganizeTakeoutPhotos.run/exe [-h] [-v] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FO
                                      [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-nl]
                                      [-fs <FOLDER_TO_FIX>] [-ra <ALBUMS_FOLDER>]
                                      [-fd ['list', 'move', 'remove'] <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
-                                     [-pd <DUPLICATES_REVISED_CSV>] [-ca <ALBUMS_FOLDER>] [-de] [-dd]
-                                     [-ao <INPUT_FOLDER>]
+                                     [-pd <DUPLICATES_REVISED_CSV>] [-ea <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
+                                     [-ca <ALBUMS_FOLDER>] [-de] [-dd] [-ao <INPUT_FOLDER>]
 
-OrganizeTakeoutPhotos v2.3.0 - 2025-01-12
+OrganizeTakeoutPhotos v2.3.0 - 2025-01-13
 
 Script (based on GPTH Tool) to Process Google Takeout Photos and much more useful features
 (remove duplicates, fix metadata, organize per year/month folder, separate Albums, fix symlinks, etc...).
 (c) by Jaime Tur (@jaimetur)
 
-optional arguments:
+options:
 
 -h,   --help
         show this help message and exit
@@ -96,7 +96,7 @@ If more than one Extra Mode is detected, only the first one will be executed.
         Force Mode: 'Fix Symbolic Links Broken'. The script will try to fix all symbolic links for Albums in
         <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_FOLDER and some Albums
         seems to be empty.
--ra,  --rename-albums <ALBUMS_FOLDER>
+-ra,  --rename-albums-folders <ALBUMS_FOLDER>
         Force Mode: 'Rename Albums'. Rename all Albums folders found in <ALBUMS_FOLDER> to unificate the
         format.
 -fd,  --find-duplicates ['list', 'move', 'remove'] <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]
@@ -109,6 +109,10 @@ If more than one Extra Mode is detected, only the first one will be executed.
         Force Mode: 'Process Duplicates Revised'. Specify the Duplicates CSV file revised with specifics
         Actions in Action column, and the script will execute that Action for each duplicates found in CSV.
         Valid Actions: restore_duplicate / remove_duplicate / replace_duplicate.
+-ea,  --extract-albums-synology-photos <ALBUMS_NAME>
+        Force Mode: 'Extract  Album(s) Synology Photos'. The Script will connect to Synology Photos and
+        extract the Album whose name is <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the
+        Synology Photos root folder.
 -ca,  --create-albums-synology-photos <ALBUMS_FOLDER>
         force Mode: 'Create Albums in Synology Photos'. The script will look for all Albums within
         ALBUM_FOLDER and will create one Album per folder into Synology Photos.
@@ -182,7 +186,7 @@ NOTE: Step 8 is disabled by default, and is only recommended if you want to save
 
 ## <span style="color:blue">EXTRA MODES:</span>
 
-Additionally, this script can be executed with 8 Extra Modes:
+Additionally, this script can be executed with 9 Extra Modes:
 
 ### <span style="color:blue">Extra Mode: Fix Symbolic Links Broken:</span>
 
@@ -269,7 +273,9 @@ With this example, the script will rename all subfolders within ./My_Albums_Fold
 
 
 ## <span style="color:green">Extra Mode: All in One Shot:</span>
-If you configure properly the file 'nas.config' and execute this Extra Mode, the script will process your Takeout Zip files, will process them, and will connect automatically to your Synology Photos database to import all your Photos & Videos automatically to Synology Photos database creating the same Albums that you have exported in your Takeout files.  
+From version 2.1.0 onwards, the script can be executed in 'All in One Shot' Mode. 
+
+If you configure properly the file 'Synology.config' and execute this Extra Mode, the script will process your Takeout Zip files, will process them, and will connect automatically to your Synology Photos database to import all your Photos & Videos automatically to Synology Photos database creating the same Albums that you have exported in your Takeout files.  
 
 To execute this Extra Mode, you can use the new Flag: -ao, --all-in-one  
 
@@ -280,8 +286,31 @@ Example of use:
 ```
 With this example, the script will extract all your Takeout Zip files from ./Zip_files folder, will process them, and finally will connect to Synology Photos database to create all Albums found and import all the other photos without any Albums associated.
 
+### <span style="color:blue">Extra Mode: Extract Albums from Synology Photos:</span>
+From version 2.3.0 onwards, the script can be executed in 'Extract Albums from Synology Photos' Mode. 
+
+If you configure properly the file 'Synology.config' and execute this Extra Mode, the script will connect to Synology Photos and extract those Album(s) whose name is in <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the Synology Photos root folder.  
+
+To extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: --extract-albums-synology-photos "album1", "album2", "album3".  
+
+To extract ALL Albums within in Synology Photos database use 'ALL' as <ALBUMS_NAME>.  
+
+The album(s) name <ALBUMS_NAME> can be passed using the new Flag: -ea, --extract-albums-synology-photos <ALBUMS_NAME>  
+
+> [!IMPORTANT]
+> <ALBUMS_NAME> should be exists within your Synology Photos Albums database, otherwise it will no extract anything.
+> Extraction will be done in background task, so it could take time to complete. Even if the Script finish with success the extraction process could be still running on background, so take this into account.
+
+Example of use:
+```
+./OrganizeTakeoutPhotos.run --extract-albums-synology-photos "Album 1", "Album 2", "Album 3"
+```
+With this example, the script will connect to Synology Photos database and extract the Albums "Album 1", "Album 2", "Album 3" with all the photos and videos included on them into a subfolder of 'Synology_Photos_Albums' folder
+
 ### <span style="color:blue">Extra Mode: Create Albums in Synology Photos:</span>
-If you configure properly the file 'nas.config' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Synology Photos and with the same Album name as Album folder.  
+From version 2.0.0 onwards, the script can be executed in 'Create Albums in Synology Photos' Mode. 
+
+If you configure properly the file 'Synology.config' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Synology Photos and with the same Album name as Album folder.  
 
 The folder <ALBUMS_FOLDER> can be passed using the new Flag: -ca, --create-albums-synology-photos <ALBUMS_FOLDER>  
 
@@ -300,7 +329,9 @@ Example of use:
 With this example, the script will connect to Synology Photos database and process the folder ./My_Albums_Folder and per each subfolder found on it that contains at least one file supported by Synology Photos, will create a new Album in Synology Photos with the same name of the Album Folder
 
 ### <span style="color:blue">Extra Mode: Delete Empty Albums in Synology Photos:</span>
-If you configure properly the file 'nas.config' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will look for all Empty Albums in Synology Photos database.  
+From version 2.0.0 onwards, the script can be executed in 'Delete Empty Albums in Synology Photos' Mode. 
+
+If you configure properly the file 'Synology.config' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will look for all Empty Albums in Synology Photos database.  
 
 If any Empty Album is found, the script will remove it from Synology Photos.  
 
@@ -314,7 +345,9 @@ Example of use:
 With this example, the script will connect to Synology Photos database and will delete all Empty Albums found.
 
 ### <span style="color:blue">Extra Mode: Delete Duplicates Albums in Synology Photos:</span>
-If you configure properly the file 'nas.config' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will look for all Duplicates Albums in Synology Photos database.  
+From version 2.0.0 onwards, the script can be executed in 'Delete Duplicates Albums in Synology Photos' Mode. 
+
+If you configure properly the file 'Synology.config' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will look for all Duplicates Albums in Synology Photos database.  
 
 If any Duplicated Album is found, the script will remove it from Synology Photos.  
 
