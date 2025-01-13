@@ -74,7 +74,6 @@ def parse_arguments():
     parser.add_argument("-it", "--ignore-takeout-structure", action="store_true", help="Ignore Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc..), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from them.")
     parser.add_argument("-mt", "--move-takeout-folder", action="store_true", help=f"Move original photos/videos from <TAKEOUT_FOLDER> to <OUTPUT_FOLDER>. \nCAUTION: Useful to avoid disk space duplication and improve execution speed, but you will lost your original unzipped files!!!. Use only if you keep the original zipped files or you have disk space limitations and you don't mind to lost your original unzipped files.")
     parser.add_argument("-rd", "--remove-duplicates-after-fixing", action="store_true", help="Remove Duplicates files in <OUTPUT_FOLDER> after fixing them.")
-    # parser.add_argument("-re", "--run-exif-tool", action="store_true", help="Run EXIF Tool files processing in the last step. (Useful if GPTH Tool cannot fix some files, but is a slow process). RECOMMENDATION: Use only if after runnning normal process with GPTH Tool, you still have many files with no date.")
     parser.add_argument("-nl", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
 
     # EXTRA MODES ARGUMENTS:
@@ -90,6 +89,7 @@ def parse_arguments():
     parser.add_argument("-de", "--delete-empty-albums-synology-photos", action="store_true", default="", help="Force Mode: 'Delete Empty Albums in Synology Photos'. The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.")
     parser.add_argument("-dd", "--delete-duplicates-albums-synology-photos", action="store_true", default="", help="Force Mode: 'Delete Duplicates Albums in Synology Photos'. The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.")
     parser.add_argument("-ao", "--all-in-one", metavar="<INPUT_FOLDER>", default="", help="Force Mode: 'All-in-One'. The Script will do the whole process (Zip extraction, Takeout Processing, Remove Duplicates, Synology Photos Albums creation) in just One shot.")
+    parser.add_argument("-cs", "--copy-synology-photos-albums", metavar="<INPUT_FOLDER>", default="", help="Force Mode: 'All-in-One'. The Script will do the whole process (Zip extraction, Takeout Processing, Remove Duplicates, Synology Photos Albums creation) in just One shot.")
 
     args = parser.parse_args()
     # Procesar la acción y las carpetas
