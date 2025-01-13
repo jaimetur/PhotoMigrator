@@ -5,14 +5,14 @@ from datetime import datetime, timedelta
 import Utils
 import Fixers
 from Duplicates import find_duplicates, process_duplicates_actions
-from SynologyPhotos import read_synology_config, login_synology, create_synology_photos_albums, delete_synology_phptos_empty_albums, delete_synology_photos_duplicates_albums
+from SynologyPhotos import read_synology_config, login_synology, create_synology_photos_albums, delete_synology_photos_empty_albums, delete_synology_photos_duplicates_albums, extract_albums_synology_photos
 from CustomHelpFormatter import CustomHelpFormatter
 from LoggerConfig import log_setup
 
 # Script version & date
 SCRIPT_NAME         = "OrganizeTakeoutPhotos"
 SCRIPT_VERSION      = "v2.3.0"
-SCRIPT_DATE         = "2025-01-12"
+SCRIPT_DATE         = "2025-01-13"
 
 SCRIPT_NAME_VERSION = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
 SCRIPT_DESCRIPTION  = f"""
@@ -48,6 +48,14 @@ def parse_arguments():
         description=SCRIPT_DESCRIPTION,
         formatter_class=CustomHelpFormatter,  # Aplica el formatter
     )
+
+    # Acción personalizada para --version
+    class VersionAction(argparse.Action):
+        def __call__(self, parser, namespace, values, option_string=None):
+            print(f"\n{SCRIPT_NAME} {SCRIPT_VERSION} {SCRIPT_DATE} by Jaime Tur (@jaimetur)\n")
+            parser.exit()
+
+    parser.add_argument("-v",  "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
     parser.add_argument("-z",  "--zip-folder", metavar="<ZIP_FOLDER>", default="", help="Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files will be skipped.")
     parser.add_argument("-t",  "--takeout-folder", metavar="<TAKEOUT_FOLDER>", default="Takeout", help="Specify the Takeout folder to process. If -z, --zip-folder is present, this will be the folder to unzip input files. Default: 'Takeout'.")
     parser.add_argument("-s",  "--suffix", metavar="<SUFIX>", default="fixed", help="Specify the suffix for the output folder. Default: 'fixed'")
@@ -66,18 +74,18 @@ def parse_arguments():
     parser.add_argument("-it", "--ignore-takeout-structure", action="store_true", help="Ignore Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc..), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from them.")
     parser.add_argument("-mt", "--move-takeout-folder", action="store_true", help=f"Move original photos/videos from <TAKEOUT_FOLDER> to <OUTPUT_FOLDER>. \nCAUTION: Useful to avoid disk space duplication and improve execution speed, but you will lost your original unzipped files!!!. Use only if you keep the original zipped files or you have disk space limitations and you don't mind to lost your original unzipped files.")
     parser.add_argument("-rd", "--remove-duplicates-after-fixing", action="store_true", help="Remove Duplicates files in <OUTPUT_FOLDER> after fixing them.")
-    # parser.add_argument("-re", "--run-exif-tool", action="store_true", help="Run EXIF Tool files processing in the last step. (Useful if GPTH Tool cannot fix some files, but is a slow process). RECOMMENDATION: Use only if after runnning normal process with GPTH Tool, you still have many files with no date.")
     parser.add_argument("-nl", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
 
     # EXTRA MODES ARGUMENTS:
     parser.add_argument("-fs", "--fix-symlinks-broken", metavar="<FOLDER_TO_FIX>", default="", help="Force Mode: 'Fix Symbolic Links Broken'. The script will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_FOLDER and some Albums seems to be empty.")
-    parser.add_argument("-ra", "--rename-albums", metavar="<ALBUMS_FOLDER>", default="", help="Force Mode: 'Rename Albums'. Rename all Albums folders found in <ALBUMS_FOLDER> to unificate the format.")
+    parser.add_argument("-ra", "--rename-albums-folders", metavar="<ALBUMS_FOLDER>", default="", help="Force Mode: 'Rename Albums'. Rename all Albums folders found in <ALBUMS_FOLDER> to unificate the format.")
     parser.add_argument("-fd", "--find-duplicates", metavar=f"{choices_for_remove_duplicates} <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]", nargs="+", default=["list", ""],
                         help="Force Mode: 'Find Duplicates'. Find duplicates in specified folders. "
                              "The first argument is the action to take on duplicates ('move', 'delete' or 'list'). Default: 'list' "
                              "The remaining arguments are one or more folders (string or list). where the script will look for duplicates files. The order of this list is important to determine the principal file of a duplicates set. First folder will have higher priority."
                         )
     parser.add_argument("-pd", "--process-duplicates-revised", metavar="<DUPLICATES_REVISED_CSV>", default="", help="Force Mode: 'Process Duplicates Revised'. Specify the Duplicates CSV file revised with specifics Actions in Action column, and the script will execute that Action for each duplicates found in CSV. Valid Actions: restore_duplicate / remove_duplicate / replace_duplicate.")
+    parser.add_argument("-ea", "--extract-albums-synology-photos", metavar="<ALBUMS_NAME>", nargs="+", default="", help="Force Mode: 'Extract  Album(s) Synology Photos'. The Script will connect to Synology Photos and extract the Album whose name is <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the Synology Photos root folder.")
     parser.add_argument("-ca", "--create-albums-synology-photos", metavar="<ALBUMS_FOLDER>", default="", help="force Mode: 'Create Albums in Synology Photos'. The script will look for all Albums within ALBUM_FOLDER and will create one Album per folder into Synology Photos.")
     parser.add_argument("-de", "--delete-empty-albums-synology-photos", action="store_true", default="", help="Force Mode: 'Delete Empty Albums in Synology Photos'. The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.")
     parser.add_argument("-dd", "--delete-duplicates-albums-synology-photos", action="store_true", default="", help="Force Mode: 'Delete Duplicates Albums in Synology Photos'. The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.")
@@ -108,6 +116,52 @@ def parse_arguments():
     args.suffix = args.suffix.lstrip('_')
     return args
 
+def get_and_run_execution_mode():
+    # Determine the Execution mode based on the providen arguments:
+    if args.fix_symlinks_broken != "":
+        EXECUTION_MODE = 'fix_symlinks'
+    elif args.duplicates_folders != []:
+        EXECUTION_MODE = 'find_duplicates'
+    elif args.process_duplicates_revised != "":
+        EXECUTION_MODE = 'process_duplicates'
+    elif args.rename_albums_folders != "":
+        EXECUTION_MODE = 'rename_albums_folders'
+    elif args.create_albums_synology_photos != "":
+        EXECUTION_MODE = 'create_albums'
+    elif args.delete_empty_albums_synology_photos:
+        EXECUTION_MODE = 'delete_empty_albums'
+    elif args.delete_duplicates_albums_synology_photos:
+        EXECUTION_MODE = 'delete_duplicates_albums'
+    elif args.all_in_one:
+        EXECUTION_MODE = 'all_in_one'
+    elif args.extract_albums_synology_photos != "":
+        EXECUTION_MODE = 'extract_albums_synology_photos'
+    else:
+        EXECUTION_MODE = 'normal'  # Opción por defecto si no se cumple ninguna condición
+
+    if EXECUTION_MODE == 'normal':
+        mode_normal()
+    elif EXECUTION_MODE == 'fix_symlinks':
+        mode_fix_symlinkgs()
+    elif EXECUTION_MODE == 'find_duplicates':
+        mode_find_duplicates()
+    elif EXECUTION_MODE == 'process_duplicates':
+        mode_process_duplicates()
+    elif EXECUTION_MODE == 'rename_albums_folders':
+        mode_rename_albums_folders()
+    elif EXECUTION_MODE == 'extract_albums_synology_photos':
+        mode_extract_albums_synology_photos()
+    elif EXECUTION_MODE == 'create_albums':
+        mode_create_albums()
+    elif EXECUTION_MODE == 'delete_empty_albums':
+        mode_delete_empty_albums()
+    elif EXECUTION_MODE == 'delete_duplicates_albums':
+        mode_delete_duplicates_albums()
+    elif EXECUTION_MODE == 'all_in_one':
+        mode_all_in_one()
+    else:
+        print("Invalid execution mode.")
+
 def main():
     global args
     global LOGGER
@@ -121,11 +175,12 @@ def main():
     global HELP_MODE_FIX_SYMLINKS
     global HELP_MODE_FIND_DUPLICATES
     global HELP_MODE_PROCESS_DUPLICATES
-    global HELP_MODE_RENAME_ALBUMS
+    global HELP_MODE_RENAME_ALBUMS_FOLDERS
     global HELP_MODE_CREATE_ALBUMS
     global HELP_MODE_DELETE_EMPTY_ALBUMS
     global HELP_MODE_DELETE_DUPLICATES_ALBUMS
     global HELP_MODE_ALL_IN_ONE
+    global HELP_MODE_EXTRACT_ALBUMS_SYNOLOGY_PHOTOS
 
     # Limpiar la pantalla y parseamos argumentos de entrada
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -167,10 +222,17 @@ Possible Actions in revised CSV file are:
                           and Original Principal file detected by the Script will be removed permanently
 """
 
-    HELP_MODE_RENAME_ALBUMS = \
+    HELP_MODE_RENAME_ALBUMS_FOLDERS = \
 f"""
 ATTENTION!!!: This process will clean each Subfolder found in <ALBUMS_FOLDER> with an homogeneous name starting with album year followed by a cleaned subfolder name without underscores nor middle dashes.
 New Album name format: 'yyyy - Cleaned Subfolder name'
+"""
+
+    HELP_MODE_EXTRACT_ALBUMS_SYNOLOGY_PHOTOS = \
+f"""
+ATTENTION!!!: This process will connect to Synology Photos and extract those Album(s) whose name is in <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the Synology Photos root folder.
+              To extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: --extract-albums-synology-photos "album1", "album2", "album3" 
+              To extract ALL Albums within in Synology Photos database use 'ALL' as ALBUMS_NAME.
 """
 
     HELP_MODE_CREATE_ALBUMS = \
@@ -230,48 +292,10 @@ The script will extract all your Takeout Zip files (if found any .zip) from <INP
         LOGGER.info(f"INFO: Script running on Windows system")
     else:
         LOGGER.error(f"ERROR: Unsupported operating system: {current_os}")
+    LOGGER.info("")
 
-    # Determine the Execution mode based on the providen arguments:
-    if args.fix_symlinks_broken != "":
-        EXECUTION_MODE = 'fix_symlinks'
-    elif args.duplicates_folders != []:
-        EXECUTION_MODE = 'find_duplicates'
-    elif args.process_duplicates_revised != "":
-        EXECUTION_MODE = 'process_duplicates'
-    elif args.rename_albums != "":
-        EXECUTION_MODE = 'rename_albums'
-    elif args.create_albums_synology_photos != "":
-        EXECUTION_MODE = 'create_albums'
-    elif args.delete_empty_albums_synology_photos:
-        EXECUTION_MODE = 'delete_empty_albums'
-    elif args.delete_duplicates_albums_synology_photos:
-        EXECUTION_MODE = 'delete_duplicates_albums'
-    elif args.all_in_one:
-        EXECUTION_MODE = 'all_in_one'
-    else:
-        EXECUTION_MODE = 'normal'  # Opción por defecto si no se cumple ninguna condición
-    
-    if EXECUTION_MODE == 'normal':
-        mode_normal()
-    elif EXECUTION_MODE == 'fix_symlinks':
-        mode_fix_symlinkgs()
-    elif EXECUTION_MODE == 'find_duplicates':
-        mode_find_duplicates()
-    elif EXECUTION_MODE == 'process_duplicates':
-        mode_process_duplicates()
-    elif EXECUTION_MODE == 'rename_albums':
-        mode_rename_albums()
-    elif EXECUTION_MODE == 'create_albums':
-        mode_create_albums()
-    elif EXECUTION_MODE == 'delete_empty_albums':
-        mode_delete_empty_albums()
-    elif EXECUTION_MODE == 'delete_duplicates_albums':
-        mode_delete_duplicates_albums()
-    elif EXECUTION_MODE == 'all_in_one':
-        mode_all_in_one()
-    else:
-        print("Invalid execution mode.")
-
+    # Get the execution mode and run it.
+    get_and_run_execution_mode()
 
 def mode_normal(user_confirmation=True):
     # Mensajes informativos
@@ -308,8 +332,6 @@ def mode_normal(user_confirmation=True):
             LOGGER.warning(f"WARNING: Flag detected '-ns, --no-albums-structure'. Folder structure '{args.no_albums_structure}' will be applied on ALL_PHOTOS folder (Photos without Albums)...")
         if args.ignore_takeout_structure:
             LOGGER.warning(f"WARNING: Flag detected '-it, --ignore-takeout-structure'. All files in <TAKEOUT_FOLDER> will be processed ignoring Google Takeout Structure...")
-        if args.run_exif_tool:
-            LOGGER.warning(f"WARNING: Flag detected '-re, --run-exif-tool'. EXIF tool will be run in last step to try to fix photos metadata...")
         if args.remove_duplicates_after_fixing:
             LOGGER.warning(f"WARNING: Flag detected '-rd, --remove-duplicates-after-fixing'. All duplicates files within OUTPUT_FOLDER will be removed after fixing them...")
         if args.no_log_file:
@@ -484,23 +506,7 @@ def mode_normal(user_confirmation=True):
     else:
         LOGGER.warning("WARNING: Fixing broken symbolic links skipped ('-sa, --symbolic-albums' flag not detected, so this step is not needed.)")
 
-    # STEP 8: Fix metadata with EXIF Tool
-    STEP+=1
-    LOGGER.info("")
-    LOGGER.info("===========================================")
-    LOGGER.info(f"{STEP}. FIXING PHOTOS METADATA WITH EXIF TOOL...")
-    LOGGER.info("===========================================")
-    LOGGER.info("")
-    if args.run_exif_tool:
-        step_start_time = datetime.now()
-        Fixers.fix_metadata_with_exif_tool(OUTPUT_FOLDER)
-        step_end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(step_end_time-step_start_time).seconds))
-        LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
-    else:
-        LOGGER.warning("WARNING: Metadata fixing with EXIF tool skipped ('-re, --run-exif-tool' flag not detected).")
-
-    # STEP 9: Remove Duplicates in OUTPUT_FOLDER after Fixing
+    # STEP 8: Remove Duplicates in OUTPUT_FOLDER after Fixing
     STEP+=1
     duplicates_found = 0
     if args.remove_duplicates_after_fixing:
@@ -641,7 +647,7 @@ def mode_process_duplicates(user_confirmation=True):
     LOGGER.info("")
 
 
-def mode_rename_albums(user_confirmation=True):
+def mode_rename_albums_folders(user_confirmation=True):
     LOGGER.info(SCRIPT_DESCRIPTION)
     LOGGER.info("")
     LOGGER.info("===================")
@@ -649,13 +655,13 @@ def mode_rename_albums(user_confirmation=True):
     LOGGER.info("===================")
     LOGGER.info("")
     if user_confirmation:
-        LOGGER.info(HELP_MODE_RENAME_ALBUMS.replace('<ALBUMS_FOLDER>', f"'{args.rename_albums}'"))
+        LOGGER.info(HELP_MODE_RENAME_ALBUMS_FOLDERS.replace('<ALBUMS_FOLDER>', f"'{args.rename_albums_folders}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
         LOGGER.info(f"INFO: Rename Albums Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO: Flag detected '-ra, --rename-albums'. The Script will look for any Subfolder in '{args.rename_albums}' and will rename the folder name in order to unificate all the Albums names.")
-    renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = Utils.rename_album_folders(args.rename_albums)
+        LOGGER.info(f"INFO: Flag detected '-ra, --rename-albums-folders'. The Script will look for any Subfolder in '{args.rename_albums_folders}' and will rename the folder name in order to unificate all the Albums names.")
+    renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = Utils.rename_album_folders(args.rename_albums_folders)
     # FINAL SUMMARY
     end_time = datetime.now()
     formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -715,7 +721,7 @@ def mode_delete_empty_albums(user_confirmation=True):
             sys.exit(0)
         LOGGER.info(f"INFO: Delete Empty Album Mode detected. Only this module will be run!!!")
         LOGGER.info(f"INFO: Flag detected '-de, --delete-empty-albums-synology-photos'. The Script will look for any empty album in Synology Photos database and will detelte them (if any enpty album is found).")
-    albums_deleted = delete_synology_phptos_empty_albums()
+    albums_deleted = delete_synology_photos_empty_albums()
     # FINAL SUMMARY
     end_time = datetime.now()
     formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -797,6 +803,36 @@ def mode_all_in_one():
     # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
     mode_delete_duplicates_albums(user_confirmation=False)
     mode_delete_empty_albums(user_confirmation=False)
+
+def mode_extract_albums_synology_photos(user_confirmation=True):
+    if user_confirmation:
+        LOGGER.info(f"INFO: Flag detected '-ea, --extract-albums-synology-photos'.")
+        LOGGER.info(HELP_MODE_EXTRACT_ALBUMS_SYNOLOGY_PHOTOS.replace('<ALBUMS_NAME>', f"'{args.extract_albums_synology_photos}'"))
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO: Exiting program.")
+            sys.exit(0)
+        LOGGER.info(f"INFO: 'Extract Synology Photos Albums' Mode detected. Only this module will be run!!!")
+    LOGGER.info("")
+    LOGGER.info(f"INFO: Albums to extract       : {args.extract_albums_synology_photos}")
+    LOGGER.info("")
+    albums_extracted, photos_extracted = extract_albums_synology_photos(args.extract_albums_synology_photos)
+    # FINAL SUMMARY
+    end_time = datetime.now()
+    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+    LOGGER.info("")
+    LOGGER.info("==================================================")
+    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+    LOGGER.info("==================================================")
+    LOGGER.info("")
+    LOGGER.info("==================================================")
+    LOGGER.info("                  FINAL SUMMARY:                  ")
+    LOGGER.info("==================================================")
+    LOGGER.info(f"Total Albums extracted                  : {albums_extracted}")
+    LOGGER.info(f"Total Photos extracted from Albums      : {photos_extracted}")
+    LOGGER.info("")
+    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+    LOGGER.info("==================================================")
+    LOGGER.info("")
 
 if __name__ == "__main__":
     main()

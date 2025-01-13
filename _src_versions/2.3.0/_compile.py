@@ -113,6 +113,18 @@ def compile():
     print("")
 
     if COMPILER=='pyinstaller':
+        # Inicializamos variables
+        script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
+        script_zip_file = Path(f"../_built_versions/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
+        if OPERATING_SYSTEM=='windows':
+            script_compiled = f'{SCRIPT_NAME}.exe'
+            script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
+            add_gpth_command = f"../gpth_tool/gpth_{OPERATING_SYSTEM}.exe:gpth_tool"
+        else:
+            script_compiled = f'{SCRIPT_NAME}'
+            script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
+            add_gpth_command = f"../gpth_tool/gpth_{OPERATING_SYSTEM}.bin:gpth_tool"
+
         print("Añadiendo paquetes necesarios al entorno Python antes de compilar...")
         subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', 'requirements.txt'])
         print("")
@@ -121,21 +133,11 @@ def compile():
             'pyinstaller',
             '--runtime-tmpdir', '/var/tmp',
             '--onefile',
-            '--hidden-import', 'os,sys,tqdm,argparse,platform,shutil,re,textwrap,logging,collections,csv,time,datetime,hashlib,fnmatch,requests,urllib3',
-            '--add-data', f"../gpth_tool_{OPERATING_SYSTEM}:gpth_tool",
+            '--add-data', add_gpth_command,
             # '--add-data', f"../exif_tool_{OPERATING_SYSTEM}:exif_tool",
             f'{SCRIPT_SOURCE_NAME}'
         ])
 
-        # Inicializamos variables
-        script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-        script_zip_file = Path(f"../_built_versions/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
-        if OPERATING_SYSTEM=='windows':
-            script_compiled = f'{SCRIPT_NAME}.exe'
-            script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
-        else:
-            script_compiled = f'{SCRIPT_NAME}'
-            script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
         # Movemos el fichero compilado a la carpeta padre
         print(f"\nMoviendo script compilado '{script_compiled_with_version_os_arch_extension}'...")
         shutil.move(f'./dist/{script_compiled}', f'../{script_compiled_with_version_os_arch_extension}')
@@ -158,9 +160,12 @@ def compile():
             if OPERATING_SYSTEM=='windows':
                 script_compiled = f'{SCRIPT_NAME}.exe'
                 script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
+                add_gpth_command = f'../gpth_tool/gpth_{OPERATING_SYSTEM}.exe=gpth_tool/gpth_{OPERATING_SYSTEM}.exe'
             else:
                 script_compiled = f'{SCRIPT_NAME}.bin'
                 script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
+                add_gpth_command = f'../gpth_tool/gpth_{OPERATING_SYSTEM}.bin=gpth_tool/gpth_{OPERATING_SYSTEM}.bin'
+                                
             script_zip_file = Path(f"../_built_versions/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
             print("")
             print(f"Compilando para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}'...")
@@ -185,12 +190,13 @@ def compile():
                 '--output-dir=./dist',
                 f'--file-version={SCRIPT_VERSION_INT}',
                 f'--copyright={COPYRIGHT_TEXT}',
-                '--include-raw-dir=../gpth_tool=gpth_tool',
+                f'--include-data-file={add_gpth_command}',
+                #f'--include-raw-dir=../gpth_tool=gpth_tool',
                 # '--include-raw-dir=../exif_tool=exif_tool',
                 # '--include-data-dir=../gpth_tool=gpth_tool',
                 # '--include-data-dir=../exif_tool=exif_tool',
                 '--include-data-file=Synology.config=Synology.config',
-                '--include-data-file=README.md=README.md'
+                '--include-data-file=../README.md=README.md'
             ])
             # Movemos el fichero compilado a la carpeta padre
             print(f"\nMoviendo script compilado '{script_compiled_with_version_os_arch_extension}'...")

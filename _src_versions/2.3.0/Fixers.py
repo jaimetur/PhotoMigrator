@@ -18,11 +18,11 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, 
     # Determine the script name based on the OS
     script_name = ""
     if current_os == "Linux":
-        script_name = "gpth"
+        script_name = "gpth_linux.bin"
     elif current_os == "Darwin":
-        script_name = "gpth"
+        script_name = "gpth_macos.bin"
     elif current_os == "Windows":
-        script_name = "gpth.exe"
+        script_name = "gpth_windows.exe"
     # Usar resource_path para acceder a archivos o directorios:
     gpth_tool_path = resource_path(os.path.join("gpth_tool",script_name))
     gpth_command = [
@@ -57,7 +57,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, 
         gpth_command.append("--fix")
         gpth_command.append(input_folder)
     try:
-        # print (" ".join(gpth_command))
+        #print (" ".join(gpth_command))
         result = subprocess.run(gpth_command, check=True, capture_output=False)
         LOGGER.info(f"INFO: GPTH Tool finxing completed successfully.")
     except subprocess.CalledProcessError as e:
