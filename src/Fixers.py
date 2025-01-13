@@ -57,7 +57,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, 
         gpth_command.append("--fix")
         gpth_command.append(input_folder)
     try:
-        # print (" ".join(gpth_command))
+        #print (" ".join(gpth_command))
         result = subprocess.run(gpth_command, check=True, capture_output=False)
         LOGGER.info(f"INFO: GPTH Tool finxing completed successfully.")
     except subprocess.CalledProcessError as e:

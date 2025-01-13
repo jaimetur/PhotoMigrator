@@ -133,7 +133,6 @@ def compile():
             'pyinstaller',
             '--runtime-tmpdir', '/var/tmp',
             '--onefile',
-            '--hidden-import', 'os,sys,tqdm,argparse,platform,shutil,re,textwrap,logging,collections,csv,time,datetime,hashlib,fnmatch,requests,urllib3',
             '--add-data', add_gpth_command,
             # '--add-data', f"../exif_tool_{OPERATING_SYSTEM}:exif_tool",
             f'{SCRIPT_SOURCE_NAME}'
@@ -161,11 +160,11 @@ def compile():
             if OPERATING_SYSTEM=='windows':
                 script_compiled = f'{SCRIPT_NAME}.exe'
                 script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
-                add_gpth_command = f'../gpth_tool/gpth_{OPERATING_SYSTEM}.exe=gpth_tool'
+                add_gpth_command = f'../gpth_tool/gpth_{OPERATING_SYSTEM}.exe=gpth_tool/gpth_{OPERATING_SYSTEM}.exe'
             else:
                 script_compiled = f'{SCRIPT_NAME}.bin'
                 script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
-                add_gpth_command = f'..\gpth_tool\gpth_{OPERATING_SYSTEM}.bin=gpth_tool'
+                add_gpth_command = f'../gpth_tool/gpth_{OPERATING_SYSTEM}.bin=gpth_tool/gpth_{OPERATING_SYSTEM}.bin'
                                 
             script_zip_file = Path(f"../_built_versions/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
             print("")
@@ -197,7 +196,7 @@ def compile():
                 # '--include-data-dir=../gpth_tool=gpth_tool',
                 # '--include-data-dir=../exif_tool=exif_tool',
                 '--include-data-file=Synology.config=Synology.config',
-                '--include-data-file=README.md=README.md'
+                '--include-data-file=../README.md=README.md'
             ])
             # Movemos el fichero compilado a la carpeta padre
             print(f"\nMoviendo script compilado '{script_compiled_with_version_os_arch_extension}'...")

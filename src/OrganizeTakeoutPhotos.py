@@ -316,8 +316,6 @@ def mode_normal(user_confirmation=True):
             LOGGER.warning(f"WARNING: Flag detected '-ns, --no-albums-structure'. Folder structure '{args.no_albums_structure}' will be applied on ALL_PHOTOS folder (Photos without Albums)...")
         if args.ignore_takeout_structure:
             LOGGER.warning(f"WARNING: Flag detected '-it, --ignore-takeout-structure'. All files in <TAKEOUT_FOLDER> will be processed ignoring Google Takeout Structure...")
-        if args.run_exif_tool:
-            LOGGER.warning(f"WARNING: Flag detected '-re, --run-exif-tool'. EXIF tool will be run in last step to try to fix photos metadata...")
         if args.remove_duplicates_after_fixing:
             LOGGER.warning(f"WARNING: Flag detected '-rd, --remove-duplicates-after-fixing'. All duplicates files within OUTPUT_FOLDER will be removed after fixing them...")
         if args.no_log_file:
@@ -492,23 +490,7 @@ def mode_normal(user_confirmation=True):
     else:
         LOGGER.warning("WARNING: Fixing broken symbolic links skipped ('-sa, --symbolic-albums' flag not detected, so this step is not needed.)")
 
-    # STEP 8: Fix metadata with EXIF Tool
-    STEP+=1
-    LOGGER.info("")
-    LOGGER.info("===========================================")
-    LOGGER.info(f"{STEP}. FIXING PHOTOS METADATA WITH EXIF TOOL...")
-    LOGGER.info("===========================================")
-    LOGGER.info("")
-    if args.run_exif_tool:
-        step_start_time = datetime.now()
-        Fixers.fix_metadata_with_exif_tool(OUTPUT_FOLDER)
-        step_end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(step_end_time-step_start_time).seconds))
-        LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
-    else:
-        LOGGER.warning("WARNING: Metadata fixing with EXIF tool skipped ('-re, --run-exif-tool' flag not detected).")
-
-    # STEP 9: Remove Duplicates in OUTPUT_FOLDER after Fixing
+    # STEP 8: Remove Duplicates in OUTPUT_FOLDER after Fixing
     STEP+=1
     duplicates_found = 0
     if args.remove_duplicates_after_fixing:
