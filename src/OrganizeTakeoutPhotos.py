@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import Utils
 import Fixers
 from Duplicates import find_duplicates, process_duplicates_actions
-from SynologyPhotos import read_synology_config, login_synology, create_synology_photos_albums, delete_synology_phptos_empty_albums, delete_synology_photos_duplicates_albums, extract_synology_photos_albums
+from SynologyPhotos import read_synology_config, login_synology, create_synology_photos_albums, delete_synology_photos_empty_albums, delete_synology_photos_duplicates_albums, extract_synology_photos_albums
 from CustomHelpFormatter import CustomHelpFormatter
 from LoggerConfig import log_setup
 
@@ -717,7 +717,7 @@ def mode_delete_empty_albums(user_confirmation=True):
             sys.exit(0)
         LOGGER.info(f"INFO: Delete Empty Album Mode detected. Only this module will be run!!!")
         LOGGER.info(f"INFO: Flag detected '-de, --delete-empty-albums-synology-photos'. The Script will look for any empty album in Synology Photos database and will detelte them (if any enpty album is found).")
-    albums_deleted = delete_synology_phptos_empty_albums()
+    albums_deleted = delete_synology_photos_empty_albums()
     # FINAL SUMMARY
     end_time = datetime.now()
     formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -811,8 +811,7 @@ def mode_extract_synology_photos_albums(user_confirmation=True):
     LOGGER.info("")
     LOGGER.info(f"INFO: Albums to extract       : {args.extract_synology_photos_albums}")
     LOGGER.info("")
-    # albums_crated, albums_skipped, photos_added = extract_synology_photos_albums(args.extract_synology_photos_albums)
-    extract_synology_photos_albums(args.extract_synology_photos_albums)
+    albums_extracted, photos_extracted = extract_synology_photos_albums(args.extract_synology_photos_albums)
     # FINAL SUMMARY
     end_time = datetime.now()
     formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -824,9 +823,8 @@ def mode_extract_synology_photos_albums(user_confirmation=True):
     LOGGER.info("==================================================")
     LOGGER.info("                  FINAL SUMMARY:                  ")
     LOGGER.info("==================================================")
-    # LOGGER.info(f"Total Albums created                    : {albums_crated}")
-    # LOGGER.info(f"Total Albums skipped                    : {albums_skipped}")
-    # LOGGER.info(f"Total Photos added to Albums            : {photos_added}")
+    LOGGER.info(f"Total Albums extracted                  : {albums_extracted}")
+    LOGGER.info(f"Total Photos extracted from Albums      : {photos_extracted}")
     LOGGER.info("")
     LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
     LOGGER.info("==================================================")
