@@ -382,7 +382,8 @@ def create_synology_photos_albums(albums_folder):
         sys.exit(-1)
 
     LOGGER.info(f"INFO: Reindexing Synology Photos database before to add content to it...")
-    if wait_for_reindexing_synology_photos():
+    # if wait_for_reindexing_synology_photos():
+    if True:
         # El proceso consta de 4 pasos:
         # 1. Primero obtenemos el id de la carpeta raiz de Synology Photos para el usuario autenticado
         photos_root_folder_id = get_photos_root_folder_id ()
@@ -391,10 +392,10 @@ def create_synology_photos_albums(albums_folder):
         # 2. Luego buscamos el id de la carpeta que contiene los albumes que queremos añadir
         albums_folder_relative_path = os.path.relpath(albums_folder_full_path, ROOT_PHOTOS_PATH_full_path)
         albums_folder_relative_path = "/"+os.path.normpath(albums_folder_relative_path).replace("\\", "/")
-        albums_folder_id = get_folder_id (search_in_folder_id=photos_root_folder_id, folder_name=albums_folder)
+        albums_folder_id = get_folder_id (search_in_folder_id=photos_root_folder_id, folder_name=os.path.basename(albums_folder))
         LOGGER.info(f"INFO: Albums folder ID: {albums_folder_id}")
         if not albums_folder_id:
-            LOGGER.error(f"ERROR: Cannot obtain ID for folder '{albums_folder}'. Probably the folder has not been indexed yet. Try to force Indexing and try again.")
+            LOGGER.error(f"ERROR: Cannot obtain ID for folder '{albums_folder_relative_path}/{album_folder}'. Probably the folder has not been indexed yet. Try to force Indexing and try again.")
             sys.exit(-1)
 
         # Recorrer carpetas y crear álbumes
@@ -406,12 +407,9 @@ def create_synology_photos_albums(albums_folder):
             # LOGGER.info(f"INFO: Processing Album: '{album_folder}'")
 
             # 3. A continuación, por cada carpeta album_folder, buscamos el individual_folder_id dentro de la carpeta donde están los albumes que queremos crear
-            # album_folder_full_path = f"{albums_folder_full_path}/{album_folder}"
-            # album_folder_full_path = os.path.normpath(album_folder_full_path).replace("\\", "/")
-            album_folder_relative_path = f"{albums_folder_relative_path}/{album_folder}"
-            individual_album_folder_id = get_folder_id (search_in_folder_id=albums_folder_id, folder_name=album_folder)
+            individual_album_folder_id = get_folder_id (search_in_folder_id=albums_folder_id, folder_name=os.path.basename(album_folder))
             if not individual_album_folder_id:
-                LOGGER.error(f"ERROR: Cannot obtain ID for folder '{album_folder_relative_path}'. Probably the folder has not been indexed yet. Skipped this Album creation.")
+                LOGGER.error(f"ERROR: Cannot obtain ID for folder '{albums_folder_relative_path}/{album_folder}'. Probably the folder has not been indexed yet. Skipped this Album creation.")
                 albums_skipped += 1
                 continue
 
@@ -806,7 +804,7 @@ def wait_for_reindexing_synology_photos():
 
 
 # Función para extraer y copiar álbumes
-def ExtractSynologyPhotosAlbums(album_name='ALL'):
+def extract_synology_photos_albums(album_name='ALL'):
 
     #######################
     # AUXILIARY FUNNCTIONS:
@@ -984,21 +982,36 @@ def ExtractSynologyPhotosAlbums(album_name='ALL'):
     todos_albumes = listar_albumes_propios_y_compartidos()
 
     # Determinar los álbumes a copiar
-    if album_name.strip().upper() == 'ALL':
+    if isinstance(album_name, str) and album_name.strip().upper() == 'ALL':
         albumes_a_copiar = todos_albumes
         LOGGER.info(f"INFO: Se copiarán todos los álbumes ({len(albumes_a_copiar)}) de Synology Photos en la carpeta '{carpeta_principal}...")
     else:
-        # Buscar el álbum por nombre (case-insensitive)
-        album_objetivo = None
-        for album in todos_albumes:
-            if album['name'].strip().lower() == album_name.strip().lower():
-                album_objetivo = album
-                break
-        if not album_objetivo:
-            LOGGER.error(f"ERROR: No se encontró un álbum con el nombre '{album_name}'.")
+        # Asegurarse de que album_name sea una lista si no es una cadena
+        if isinstance(album_name, str):
+            # Separar los nombres de álbumes por comas o espacios
+            nombres_albumes = [nombre.strip() for nombre in album_name.replace(',', ' ').split() if nombre.strip()]
+        elif isinstance(album_name, list):
+            nombres_albumes = [nombre.strip() for nombre in album_name if isinstance(nombre, str) and nombre.strip()]
+        else:
+            LOGGER.error("ERROR: El parámetro album_name debe ser una cadena o una lista de cadenas.")
             sys.exit(1)
-        albumes_a_copiar = [album_objetivo]
-        LOGGER.info(f"INFO: Se copiará el álbum '{album_objetivo['name']}' (ID: {album_objetivo['id']}) de Synology Photos en la carpeta '{carpeta_principal}...")
+
+        albumes_a_copiar = []
+        for nombre_album in nombres_albumes:
+            # Buscar el álbum por nombre (case-insensitive)
+            album_encontrado = next((album for album in todos_albumes if album['name'].strip().lower() == nombre_album.lower()), None)
+
+            if album_encontrado:
+                albumes_a_copiar.append(album_encontrado)
+            else:
+                LOGGER.warning(f"WARNING: No se encontró un álbum con el nombre '{nombre_album}'.")
+
+        if not albumes_a_copiar:
+            LOGGER.error("ERROR: No se encontraron álbumes con los nombres proporcionados.")
+            sys.exit(1)
+
+        LOGGER.info(f"INFO: Se copiarán {len(albumes_a_copiar)} álbumes de Synology Photos en la carpeta '{carpeta_principal}...")
+
 
     # Iterar sobre cada álbum a copiar
     for album in albumes_a_copiar:
@@ -1026,7 +1039,7 @@ def ExtractSynologyPhotosAlbums(album_name='ALL'):
         # Copiar las fotos a la carpeta de destino
         copiar_fotos_a_carpeta(target_folder_id, target_folder_name, fotos)
 
-    LOGGER.info("INFO: \nProceso completado.")
+    LOGGER.info("INFO: Album(s) Extracted Successfully.")
 
 
 if __name__ == "__main__":
@@ -1044,7 +1057,7 @@ if __name__ == "__main__":
     albums_folder_path = r"r:\jaimetur_ftp\Photos\Albums"                 # For Windows
 
     # ExtractSynologyPhotosAlbums(album_name='ALL')
-    ExtractSynologyPhotosAlbums(album_name='Cadiz')
+    extract_synology_photos_albums(album_name='Cadiz')
 
     # result = wait_for_reindexing_synology_photos()
     # LOGGER.info(f"INFO: Index Result: {result}")

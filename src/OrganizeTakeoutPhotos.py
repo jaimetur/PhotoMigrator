@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import Utils
 import Fixers
 from Duplicates import find_duplicates, process_duplicates_actions
-from SynologyPhotos import read_synology_config, login_synology, create_synology_photos_albums, delete_synology_phptos_empty_albums, delete_synology_photos_duplicates_albums
+from SynologyPhotos import read_synology_config, login_synology, create_synology_photos_albums, delete_synology_phptos_empty_albums, delete_synology_photos_duplicates_albums, extract_synology_photos_albums
 from CustomHelpFormatter import CustomHelpFormatter
 from LoggerConfig import log_setup
 
@@ -89,7 +89,7 @@ def parse_arguments():
     parser.add_argument("-de", "--delete-empty-albums-synology-photos", action="store_true", default="", help="Force Mode: 'Delete Empty Albums in Synology Photos'. The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.")
     parser.add_argument("-dd", "--delete-duplicates-albums-synology-photos", action="store_true", default="", help="Force Mode: 'Delete Duplicates Albums in Synology Photos'. The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.")
     parser.add_argument("-ao", "--all-in-one", metavar="<INPUT_FOLDER>", default="", help="Force Mode: 'All-in-One'. The Script will do the whole process (Zip extraction, Takeout Processing, Remove Duplicates, Synology Photos Albums creation) in just One shot.")
-    parser.add_argument("-cs", "--copy-synology-photos-albums", metavar="<INPUT_FOLDER>", default="", help="Force Mode: 'All-in-One'. The Script will do the whole process (Zip extraction, Takeout Processing, Remove Duplicates, Synology Photos Albums creation) in just One shot.")
+    parser.add_argument("-es", "--extract-synology-photos-albums", metavar="<ALBUM_NAME>", nargs="+", default="", help="Force Mode: 'Extract Synology Photos Album(s)'. The Script will connect to Synology Photos and extract the Album whose name is <ALBUM_NAME> to the folder 'Synology_Photos_Albums' within the Synology Photos root folder.")
 
     args = parser.parse_args()
     # Procesar la acción y las carpetas
@@ -134,6 +134,7 @@ def main():
     global HELP_MODE_DELETE_EMPTY_ALBUMS
     global HELP_MODE_DELETE_DUPLICATES_ALBUMS
     global HELP_MODE_ALL_IN_ONE
+    global HELP_MODE_EXTRACT_SYNOLOGY_PHOTOS_ALBUMS
 
     # Limpiar la pantalla y parseamos argumentos de entrada
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -202,6 +203,13 @@ ATTENTION!!!: This process will do Automatically all the steps in One Shot.
 The script will extract all your Takeout Zip files (if found any .zip) from <INPUT_FOLDER>, after that, will process them, and finally will connect to Synology Photos database to create all Albums found in the Takeout and import all the other photos without any Albums associated.
 """
 
+    HELP_MODE_EXTRACT_SYNOLOGY_PHOTOS_ALBUMS = \
+f"""
+ATTENTION!!!: This process will connect to Synology Photos and extract the Album whose name is <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the Synology Photos root folder.
+              To extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: "-es "album1", "album2", "album3" 
+              To extract ALL Albums within in Synology Photos database use 'ALL' as ALBUMS_NAME.
+"""
+
     # List of Folder to Desprioritize when looking for duplicates.
     DEPRIORITIZE_FOLDERS_PATTERNS = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS', '*Variad[oa]*', '*Vari[oa]*', '*Miscellaneous*', '*M[oó]vil*', r'\bfotos\b\s+(\w+)\s*$', r'fotos de \w y \w\s*$', r'fotos de \w\s*$', '*Fotos_de*', '*Fotos_con', '*Fotos de*', '*Fotos con*']
 
@@ -256,6 +264,8 @@ The script will extract all your Takeout Zip files (if found any .zip) from <INP
         EXECUTION_MODE = 'delete_duplicates_albums'
     elif args.all_in_one:
         EXECUTION_MODE = 'all_in_one'
+    elif args.extract_synology_photos_albums != "":
+        EXECUTION_MODE = 'extract_synology_photos_albums'
     else:
         EXECUTION_MODE = 'normal'  # Opción por defecto si no se cumple ninguna condición
     
@@ -277,6 +287,8 @@ The script will extract all your Takeout Zip files (if found any .zip) from <INP
         mode_delete_duplicates_albums()
     elif EXECUTION_MODE == 'all_in_one':
         mode_all_in_one()
+    elif EXECUTION_MODE == 'extract_synology_photos_albums':
+        mode_extract_synology_photos_albums()
     else:
         print("Invalid execution mode.")
 
@@ -787,6 +799,38 @@ def mode_all_in_one():
     # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
     mode_delete_duplicates_albums(user_confirmation=False)
     mode_delete_empty_albums(user_confirmation=False)
+
+def mode_extract_synology_photos_albums(user_confirmation=True):
+    if user_confirmation:
+        LOGGER.info(f"INFO: Flag detected '-es, --extract-synology-photos-albums'.")
+        LOGGER.info(HELP_MODE_EXTRACT_SYNOLOGY_PHOTOS_ALBUMS.replace('<ALBUMS_NAME>', f"'{args.extract_synology_photos_albums}'"))
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO: Exiting program.")
+            sys.exit(0)
+        LOGGER.info(f"INFO: 'Extract Synology Photos Albums' Mode detected. Only this module will be run!!!")
+    LOGGER.info("")
+    LOGGER.info(f"INFO: Albums to extract       : {args.extract_synology_photos_albums}")
+    LOGGER.info("")
+    # albums_crated, albums_skipped, photos_added = extract_synology_photos_albums(args.extract_synology_photos_albums)
+    extract_synology_photos_albums(args.extract_synology_photos_albums)
+    # FINAL SUMMARY
+    end_time = datetime.now()
+    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+    LOGGER.info("")
+    LOGGER.info("==================================================")
+    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+    LOGGER.info("==================================================")
+    LOGGER.info("")
+    LOGGER.info("==================================================")
+    LOGGER.info("                  FINAL SUMMARY:                  ")
+    LOGGER.info("==================================================")
+    # LOGGER.info(f"Total Albums created                    : {albums_crated}")
+    # LOGGER.info(f"Total Albums skipped                    : {albums_skipped}")
+    # LOGGER.info(f"Total Photos added to Albums            : {photos_added}")
+    LOGGER.info("")
+    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+    LOGGER.info("==================================================")
+    LOGGER.info("")
 
 if __name__ == "__main__":
     main()
