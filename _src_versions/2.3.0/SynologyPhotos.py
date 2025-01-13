@@ -631,7 +631,7 @@ def start_reindex_synology_photos_with_api(type='basic'):
         if result.get("success"):
             if type=='basic':
                 LOGGER.info(f"INFO: Reindexing started in Synology Photos database for user: '{USERNAME}'.")
-                LOGGER.info(f"INFO: This process may take several minutes or even hours to finish (depending of number of files tonindex). Please be patient...")
+                LOGGER.info(f"INFO: This process may take several minutes or even hours to finish (depending of number of files ton index). Please be patient...")
         else:
             if result.get("error").get("code") == 105:
                 LOGGER.error(f"ERROR: The user '{USERNAME}' does not have sufficient privileges to start ReIndexing Services... You have to wait until the System Indexes the folder by itself before to add its content to Synology Photos Albums.")
