@@ -149,13 +149,13 @@ def check_OS_and_Terminal():
         LOGGER.error(f"ERROR: Unsupported Operating System: {current_os}")
 
     if sys.stdout.isatty():
-        LOGGER.info("INFO: Interactive (TTY) terminal detected for stdout.")
+        LOGGER.info("INFO: Interactive (TTY) terminal detected for stdout")
     else:
-        LOGGER.info("INFO: Non-Interactive (Non-TTY) terminal detected for stdout.")
+        LOGGER.info("INFO: Non-Interactive (Non-TTY) terminal detected for stdout")
     if sys.stdin.isatty():
-        LOGGER.info("INFO: Interactive (TTY) terminal detected for stdin.")
+        LOGGER.info("INFO: Interactive (TTY) terminal detected for stdin")
     else:
-        LOGGER.info("INFO: Non-Interactive (Non-TTY) terminal detected for stdin.")
+        LOGGER.info("INFO: Non-Interactive (Non-TTY) terminal detected for stdin")
     LOGGER.info("")
 
 def parse_arguments():
