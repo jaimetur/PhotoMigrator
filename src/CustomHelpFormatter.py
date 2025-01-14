@@ -1,6 +1,16 @@
 import textwrap
 import argparse
 import re
+import os
+import platform
+
+if platform.system() == "Windows":
+    try:
+        import curses
+    except ImportError:
+        raise ImportError("Instala 'windows-curses' para soporte en Windows: pip install windows-curses")
+else:
+    import curses
 
 class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
     def __init__(self, *args, **kwargs):
@@ -179,13 +189,27 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             # Add EXTRA MODES: after -nl, --no-log-file argument
             if help_text.lower().find('skip saving output messages to execution log file')!=-1:
                 parts.append(f"\n\n\nEXTRA MODES:\n------------\n")
-                extra_description = f"Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes included. When an Extra Mode is detected only this module will be executed (ignoring the normal steps). \nIf more than one Extra Mode is detected, only the first one will be executed.\n"
+                extra_description = f"Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes included. When an Extra Mode is detected only this module will be executed (ignoring the normal steps). If more than one Extra Mode is detected, only the first one will be executed.\n"
                 extra_description = procesar_saltos_de_linea(extra_description)
                 # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
                 parts.append(extra_description+'\n')
+            # Add EXTRA MODES for Synology Photos Management: after "Force Mode: 'All-in-One'".
+            if help_text.find("Force Mode: 'All-in-One'")!=-1:
+                parts.append(f"\n\n\nEXTRA MODES: Synology Photos Management:\n----------------------------------------\n")
+                extra_description = f"Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes included for Synology Photos Management. When an Extra Mode is detected only this module will be executed (ignoring the normal steps). If more than one Extra Mode is detected, only the first one will be executed.\n"
+                extra_description = procesar_saltos_de_linea(extra_description)
+                # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
+                parts.append(extra_description+'\n')
+            # Add EXTRA MODES for Immich Photos Management: after "Force Mode: 'Delete Duplicates Albums in Synology Photos'".
+            # if help_text.find("Force Mode: 'Delete Duplicates Albums in Synology Photos'")!=-1:
+            #     parts.append(f"\n\n\nEXTRA MODES: Immich Photos Management:\n--------------------------------------\n")
+            #     extra_description = f"Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes included for Immich Photos Management. When an Extra Mode is detected only this module will be executed (ignoring the normal steps). If more than one Extra Mode is detected, only the first one will be executed.\n"
+            #     extra_description = procesar_saltos_de_linea(extra_description)
+            #     # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
+            #     parts.append(extra_description+'\n')
 
         return "".join(parts)
-        
+
     def _format_action_invocation(self, action):
         if not action.option_strings:
             # Para argumentos posicionales
@@ -204,13 +228,96 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                         option_strings.append(f"{opt},  ")
                 else:
                     option_strings.append(f"{opt}")
-                    
+
             # Combina los argumentos cortos y largos, y agrega el parámetro si aplica
             formatted_options = " ".join(option_strings).rstrip(",")
             metavar = f" {action.metavar}" if action.metavar else ""
             return f"{formatted_options}{metavar}"
-            
+
     def _join_parts(self, part_strings):
         # Asegura que cada argumento quede separado por un salto de línea
         return "\n".join(part for part in part_strings if part)
-        
+
+class PagedArgumentParser(argparse.ArgumentParser):
+    """
+    Sobrescribimos ArgumentParser para que 'print_help()' use un paginador.
+    """
+    def custom_pager(self, text):
+        """
+        Implementación del paginador con curses que deja visible la última pantalla de texto.
+        """
+        def pager(stdscr):
+            curses.curs_set(0)  # Ocultar el cursor
+            lines = text.splitlines()
+            total_lines = len(lines)
+            page_size = curses.LINES - 2  # Altura de la terminal menos espacio para el mensaje
+            index = 0
+
+            while True:
+                # Mostrar las líneas actuales
+                stdscr.clear()
+                for i, line in enumerate(lines[index:index + page_size]):
+                    stdscr.addstr(i, 0, line)
+                # Mensaje de ayuda
+                stdscr.addstr(
+                    page_size, 0,
+                    "[Use: Arrows (↓/↑) to scroll line by line, PgUp/PgDown to scroll by page, Space/Enter to advance a page, Q/Esc to exit]",
+                    curses.A_REVERSE
+                )
+                stdscr.refresh()
+
+                # Salir automáticamente si se alcanza el final
+                if index >= total_lines - page_size:
+                    break
+
+                # Leer la entrada del usuario
+                key = stdscr.getch()
+                if key in [ord('q'), 27]:  # Salir con 'q' o Esc
+                    break
+                elif key == curses.KEY_DOWN:  # Avanzar 1 línea
+                    index = min(total_lines - 1, index + 1)
+                elif key == curses.KEY_UP:  # Retroceder 1 línea
+                    index = max(0, index - 1)
+                elif key == curses.KEY_NPAGE:  # Avanzar 1 página (PgDown)
+                    index = min(total_lines - page_size, index + page_size)
+                elif key == curses.KEY_PPAGE:  # Retroceder 1 página (PgUp)
+                    index = max(0, index - page_size)
+                elif key in [ord(' '), ord('\n')]:  # Avanzar 1 página (Espacio o Enter)
+                    index = min(total_lines - page_size, index + page_size)
+
+            # Devolver el último bloque mostrado
+            return lines[index:index + page_size]
+
+        # Configuración manual de curses
+        stdscr = curses.initscr()  # Inicializar curses
+        curses.noecho()            # Desactivar eco de teclas
+        curses.cbreak()            # Habilitar entrada sin bloqueo
+        stdscr.keypad(True)        # Habilitar teclas especiales
+        try:
+            # Ejecutar el paginador y obtener el último bloque de texto
+            last_screen = pager(stdscr)
+        finally:
+            # Restaurar la terminal al estado inicial
+            curses.nocbreak()
+            stdscr.keypad(False)
+            curses.echo()
+            curses.endwin()
+
+        # Imprimir el último bloque de texto fuera de curses
+        for line in last_screen:
+            print(line)
+
+    def get_terminal_height(self, default_height=20):
+        """
+        Obtiene la altura de la terminal para ajustar el número de líneas mostradas.
+        Si no puede determinar el tamaño, usa un valor predeterminado.
+        """
+        try:
+            return os.get_terminal_size().lines - 2  # Resta 2 para dejar espacio al mensaje custom
+        except OSError:
+            return default_height  # Si no se puede obtener, usa el valor predeterminado
+
+    def print_help(self, file=None):
+        # Genera el texto de ayuda usando el formatter_class (CustomHelpFormatter).
+        help_text = self.format_help()
+        self.custom_pager(help_text)
