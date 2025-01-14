@@ -10,10 +10,10 @@ Módulo Python con ejemplos de funciones para interactuar con Immich:
   - Listado y gestión de álbumes
   - Listado, subida y descarga de assets
   - Eliminación de álbumes vacíos o duplicados
-  - Descarga (extracción) de fotos de álbumes
-  - Descarga con estructura (Albums + ALL_PHOTOS/yyyy/mm)
-  - NUEVO: create_albums_from_folder() para crear un álbum por subcarpeta
-  - NUEVO: upload_files_without_album() para subir ficheros sin asociarlos a álbum
+  - NUEVOS NOMBRES:
+     - immich_extract_albums()    (antes extract_photos_from_album)
+     - immich_create_albums()     (antes create_albums_from_folder)
+     - immich_download_all_with_structure() (antes download_all_assets_with_structure)
 
 Requisitos:
   - requests
@@ -313,7 +313,7 @@ def upload_file_to_immich(file_path):
         "assetData": open(file_path, "rb")
     }
     data = {
-        # Puedes añadir campos opcionales, por ejemplo:
+        # Puedes añadir campos opcionales, si lo deseas
         # "deviceAssetId": os.path.basename(file_path),
         # "deviceId": "ScriptPy",
         # "fileCreatedAt": "2023-10-10T10:00:00.000Z",
@@ -369,10 +369,10 @@ def download_asset(asset_id, download_folder="Downloaded_Immich"):
         return False
 
 # -----------------------------------------------------------------------------
-#                 FUNCIONES PARA SUBIR FICHEROS DESDE DIRECTORIOS
+#           FUNCIONES PARA SUBIR FICHEROS DESDE DIRECTORIOS (NUEVAS)
 # -----------------------------------------------------------------------------
 
-def create_albums_from_folder(input_folder):
+def immich_create_albums(input_folder):
     """
     Recorre las *subcarpetas* de 'input_folder', creando un álbum por cada subcarpeta
     (nombre = nombre de la subcarpeta).
@@ -417,7 +417,7 @@ def create_albums_from_folder(input_folder):
                     asset_id = upload_file_to_immich(file_path)
                     if asset_id:
                         assets_ids.append(asset_id)
-            
+
             # Asociar ficheros al álbum
             if assets_ids:
                 added_count = add_assets_to_album(album_id, assets_ids)
@@ -554,8 +554,9 @@ def get_assets_from_album(album_id):
         print(f"[ERROR] No se pudieron obtener assets del álbum ID={album_id}: {str(e)}")
         return []
 
-def extract_photos_from_album(album_name_or_id='ALL', output_folder="DownloadedAlbums"):
+def immich_extract_albums(album_name_or_id='ALL', output_folder="DownloadedAlbums"):
     """
+    (Antes extract_photos_from_album)
     Descarga (extrae) todas las fotos/videos de uno o varios álbumes:
 
       - Si album_name_or_id == 'ALL', se descargan todos los álbumes.
@@ -617,8 +618,9 @@ def extract_photos_from_album(album_name_or_id='ALL', output_folder="DownloadedA
 #          DESCARGA COMPLETA DE TODOS LOS ASSETS (Albums + ALL_PHOTOS)
 # -----------------------------------------------------------------------------
 
-def download_all_assets_with_structure(output_folder="ImmichDownload"):
+def immich_download_all_with_structure(output_folder="ImmichDownload"):
     """
+    (Antes download_all_assets_with_structure)
     Descarga TODAS las fotos y vídeos de Immich en:
         output_folder/
           ├─ Albums/
@@ -705,24 +707,19 @@ if __name__ == "__main__":
     read_immich_config()
     login_immich()
 
-    # 2) Ejemplo: Crear álbumes a partir de subcarpetas
-    #    Supón que en "CarpetaConAlbums" tienes:
-    #       CarpetaConAlbums/Album1/...
-    #       CarpetaConAlbums/Album2/...
-    #    Cada subcarpeta se convierte en un álbum con su mismo nombre
-    #    y se suben los ficheros compatibles a cada álbum.
-    print("\n=== EJEMPLO: create_albums_from_folder ===")
+    # 2) Ejemplo: Crear álbumes a partir de subcarpetas en 'CarpetaConAlbums'
+    print("\n=== EJEMPLO: immich_create_albums ===")
     input_albums_folder = "CarpetaConAlbums"
-    create_albums_from_folder(input_albums_folder)
+    immich_create_albums(input_albums_folder)
 
-    # 3) Ejemplo: Subir ficheros SIN asignarlos a álbum, recorriendo subcarpetas recursivamente
+    # 3) Ejemplo: Subir ficheros SIN asignarlos a álbum, desde 'CarpetaFicherosSueltos'
     print("\n=== EJEMPLO: upload_files_without_album ===")
     big_folder = "CarpetaFicherosSueltos"
     upload_files_without_album(big_folder)
 
-    # 4) Ejemplo: Descargar todas las fotos de TODOS los álbumes (en "MisDescargasALL")
-    print("\n=== EJEMPLO: Descargar todas las fotos de todos los álbumes ===")
-    total = extract_photos_from_album('ALL', output_folder="MisDescargasALL")
+    # 4) Ejemplo: Descargar todas las fotos de TODOS los álbumes
+    print("\n=== EJEMPLO: immich_extract_albums ===")
+    total = immich_extract_albums('ALL', output_folder="MisDescargasALL")
     print(f"[RESULT] Se han descargado {total} assets en total.\n")
 
     # 5) Ejemplo: Crear un álbum y subir un par de fotos
@@ -752,9 +749,9 @@ if __name__ == "__main__":
     duplicates = immich_delete_duplicates_albums()
     print(f"[RESULT] Álbumes duplicados borrados: {duplicates}\n")
 
-    # 8) Ejemplo: Descargar TODO en estructura Albums/ y ALL_PHOTOS/yyyy/mm
-    print("=== EJEMPLO: Descarga MASIVA con Estructura ===")
-    total_struct = download_all_assets_with_structure(output_folder="FullImmichDownload")
+    # 8) Ejemplo: Descargar TODO en estructura /Albums/<albumName>/ + /ALL_PHOTOS/yyyy/mm
+    print("=== EJEMPLO: immich_download_all_with_structure ===")
+    total_struct = immich_download_all_with_structure(output_folder="FullImmichDownload")
     print(f"[RESULT] Descarga masiva completada. Total assets: {total_struct}\n")
 
     # 9) Logout local
