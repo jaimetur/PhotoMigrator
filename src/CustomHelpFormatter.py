@@ -1,7 +1,7 @@
 import textwrap
 import argparse
 import re
-import os
+import os, sys
 import platform
 
 if platform.system() == "Windows":
@@ -302,6 +302,12 @@ class PagedArgumentParser(argparse.ArgumentParser):
         # Imprimir todo el texto de ayuda fuera de curses
         print(text)
 
+    def is_interactive(self):
+        """
+        Detecta si el script se está ejecutando en un entorno interactivo.
+        """
+        return sys.stdout.isatty()
+
     def get_terminal_height(self, default_height=20):
         """
         Obtiene la altura de la terminal para ajustar el número de líneas mostradas.
@@ -315,4 +321,8 @@ class PagedArgumentParser(argparse.ArgumentParser):
     def print_help(self, file=None):
         # Genera el texto de ayuda usando el formatter_class (CustomHelpFormatter).
         help_text = self.format_help()
-        self.custom_pager(help_text)
+        if self.is_interactive():
+            self.custom_pager(help_text)
+        else:
+            # Muestra todo el texto directamente si no es interactivo
+            print(help_text)
