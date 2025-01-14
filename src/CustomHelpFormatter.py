@@ -252,7 +252,6 @@ class PagedArgumentParser(argparse.ArgumentParser):
             total_lines = len(lines)
             page_size = curses.LINES - 2  # Altura de la terminal menos espacio para el mensaje
             index = 0
-
             while True:
                 # Mostrar las líneas actuales
                 stdscr.clear()
@@ -285,21 +284,9 @@ class PagedArgumentParser(argparse.ArgumentParser):
                 elif key in [ord(' '), ord('\n')]:  # Avanzar 1 página (Espacio o Enter)
                     index = min(total_lines - page_size, index + page_size)
 
-        # Configuración manual de curses
-        stdscr = curses.initscr()  # Inicializar curses
-        curses.noecho()            # Desactivar eco de teclas
-        curses.cbreak()            # Habilitar entrada sin bloqueo
-        stdscr.keypad(True)        # Habilitar teclas especiales
-        try:
-            pager(stdscr)          # Ejecutar el paginador
-        finally:
-            # Restaurar la terminal al estado inicial
-            curses.nocbreak()
-            stdscr.keypad(False)
-            curses.echo()
-            curses.endwin()
+        curses.wrapper(pager)
 
-        # Imprimir todo el texto de ayuda fuera de curses
+        # Imprimir el texto de ayuda completo de nuevo fuera de curses para que se vea al salir
         print(text)
 
     def is_interactive(self):
