@@ -5,14 +5,15 @@ from datetime import datetime, timedelta
 import Utils
 import Fixers
 from Duplicates import find_duplicates, process_duplicates_actions
-from SynologyPhotos import read_synology_config, login_synology, synology_create_albums, synology_delete_empty_albums, synology_delete_duplicates_albums, synology_extract_albums
+from SynologyPhotos import read_synology_config, login_synology, synology_create_albums, synology_delete_empty_albums, \
+    synology_delete_duplicates_albums, synology_extract_albums, wait_for_reindexing_synology_photos
 from ImmichPhotos import read_immich_config, login_immich, immich_create_albums, immich_delete_empty_albums, immich_delete_duplicates_albums, immich_extract_albums
-from CustomHelpFormatter import CustomHelpFormatter
+from CustomHelpFormatter import CustomHelpFormatter, PagedArgumentParser
 from LoggerConfig import log_setup
 
 # Script version & date
 SCRIPT_NAME         = "OrganizeTakeoutPhotos"
-SCRIPT_VERSION      = "v2.4.0"
+SCRIPT_VERSION      = "v2.3.0"
 SCRIPT_DATE         = "2025-01-14"
 
 SCRIPT_NAME_VERSION = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
@@ -152,7 +153,7 @@ def parse_arguments():
 
     choices_for_folder_structure  = ['flatten', 'year', 'year/month', 'year-month']
     choices_for_remove_duplicates = ['list', 'move', 'remove']
-    parser = argparse.ArgumentParser(
+    parser = PagedArgumentParser(
         description=SCRIPT_DESCRIPTION,
         formatter_class=CustomHelpFormatter,  # Aplica el formatter
     )
@@ -913,4 +914,15 @@ def mode_all_in_one():
 
 
 if __name__ == "__main__":
+
+    # if sys.stdout.isatty():
+    #     print("stdout está conectado a un terminal interactivo (TTY).")
+    # else:
+    #     print("stdout NO está conectado a un terminal interactivo.")
+    #
+    # if sys.stdin.isatty():
+    #     print("stdin está conectado a un terminal interactivo (TTY).")
+    # else:
+    #     print("stdin NO está conectado a un terminal interactivo.")
+
     main()

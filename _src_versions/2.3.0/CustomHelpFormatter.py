@@ -1,6 +1,16 @@
 import textwrap
 import argparse
 import re
+import os, sys
+import platform
+
+if platform.system() == "Windows":
+    try:
+        import curses
+    except ImportError:
+        raise ImportError("Instala 'windows-curses' para soporte en Windows: pip install windows-curses")
+else:
+    import curses
 
 class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
     def __init__(self, *args, **kwargs):
@@ -116,29 +126,22 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             # 3) Remover 'chain_to_remove'
             usage_single_line = usage_single_line.replace(chain_to_remove, '')
             return usage_single_line
-
         # 1) Uso básico de la clase padre
         usage = super()._format_usage(usage, actions, groups, prefix)
-
         # 2) Eliminamos el bloque con <DUPLICATES_ACTION> ...
         usage = remove_chain(usage, "[['list', 'move', 'remove'] <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...] ...]")
-
         # 3) Quitamos los espacios antes de los ... y antes del último corchete
         usage = usage.replace(" ...] ]", "...]]")
-
         # 4) Tokenizamos con la nueva lógica (anidado)
         tokenized = self._tokenize_usage(usage)
-
         # 5) Diccionario de tokens forzados
         force_new_line_for_tokens = {
             "[-sg]": False                # Salto de línea antes, pero sigue reagrupando
             ,"[-fs <FOLDER_TO_FIX>]": False  # Va solo
             ,"[-fd ['list', 'move', 'remove'] <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]": True  # Va solo
         }
-
         # 6) Ancho real
         max_width = getattr(self, '_width', 90)
-
         # 7) Reconstruimos con indentaciones
         ident_spaces = 32
         usage = self._build_lines_with_forced_tokens(
@@ -148,7 +151,6 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             first_line_indent = '',         # Sin espacios en la primera línea
             subsequent_indent = ' ' * ident_spaces    # 32 espacios en líneas siguientes, por ejemplo
         )
-
         return usage
 
     def _format_action(self, action):
@@ -167,7 +169,6 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             ]
             # 3. Unirlas de nuevo con saltos de línea
             return "\n".join(wrapped_lines)
-
         # Encabezado del argumento
         parts = [self._format_action_invocation(action)]
         # Texto de ayuda, formateado e identado
@@ -199,7 +200,6 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             #     parts.append(extra_description+'\n')
 
         return "".join(parts)
-        
     def _format_action_invocation(self, action):
         if not action.option_strings:
             # Para argumentos posicionales
@@ -218,13 +218,83 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                         option_strings.append(f"{opt},  ")
                 else:
                     option_strings.append(f"{opt}")
-                    
+
             # Combina los argumentos cortos y largos, y agrega el parámetro si aplica
             formatted_options = " ".join(option_strings).rstrip(",")
             metavar = f" {action.metavar}" if action.metavar else ""
             return f"{formatted_options}{metavar}"
-            
     def _join_parts(self, part_strings):
         # Asegura que cada argumento quede separado por un salto de línea
         return "\n".join(part for part in part_strings if part)
-        
+
+class PagedArgumentParser(argparse.ArgumentParser):
+    """
+    Sobrescribimos ArgumentParser para que 'print_help()' use un paginador.
+    """
+    def custom_pager(self, text):
+        """
+        Implementación del paginador con curses que muestra todo el texto de ayuda al salir.
+        """
+        def pager(stdscr):
+            curses.curs_set(0)  # Ocultar el cursor
+            lines = text.splitlines()
+            total_lines = len(lines)
+            page_size = curses.LINES - 2  # Altura de la terminal menos espacio para el mensaje
+            index = 0
+            while True:
+                # Mostrar las líneas actuales
+                stdscr.clear()
+                for i, line in enumerate(lines[index:index + page_size]):
+                    stdscr.addstr(i, 0, line)
+                # Mensaje de ayuda
+                stdscr.addstr(
+                    page_size, 0,
+                    "[Use: Arrows (↓/↑) to scroll line by line, PgUp/PgDown to scroll by page, Space/Enter to advance a page, Q/Esc to exit]",
+                    curses.A_REVERSE
+                )
+                stdscr.refresh()
+                # Salir automáticamente si se alcanza el final
+                if index >= total_lines - page_size:
+                    break
+                # Leer la entrada del usuario
+                key = stdscr.getch()
+                if key in [ord('q'), 27]:  # Salir con 'q' o Esc
+                    break
+                elif key == curses.KEY_DOWN:  # Avanzar 1 línea
+                    index = min(total_lines - 1, index + 1)
+                elif key == curses.KEY_UP:  # Retroceder 1 línea
+                    index = max(0, index - 1)
+                elif key == curses.KEY_NPAGE:  # Avanzar 1 página (PgDown)
+                    index = min(total_lines - page_size, index + page_size)
+                elif key == curses.KEY_PPAGE:  # Retroceder 1 página (PgUp)
+                    index = max(0, index - page_size)
+                elif key in [ord(' '), ord('\n')]:  # Avanzar 1 página (Espacio o Enter)
+                    index = min(total_lines - page_size, index + page_size)
+        curses.wrapper(pager)
+        # Imprimir el texto de ayuda completo de nuevo fuera de curses para que se vea al salir
+        print(text)
+
+    def is_interactive(self):
+        """
+        Detecta si el script se está ejecutando en un entorno interactivo.
+        """
+        return sys.stdout.isatty()
+
+    def get_terminal_height(self, default_height=20):
+        """
+        Obtiene la altura de la terminal para ajustar el número de líneas mostradas.
+        Si no puede determinar el tamaño, usa un valor predeterminado.
+        """
+        try:
+            return os.get_terminal_size().lines - 2  # Resta 2 para dejar espacio al mensaje custom
+        except OSError:
+            return default_height  # Si no se puede obtener, usa el valor predeterminado
+
+    def print_help(self, file=None):
+        # Genera el texto de ayuda usando el formatter_class (CustomHelpFormatter).
+        help_text = self.format_help()
+        if self.is_interactive():
+            self.custom_pager(help_text)
+        else:
+            # Muestra todo el texto directamente si no es interactivo
+            print(help_text)
