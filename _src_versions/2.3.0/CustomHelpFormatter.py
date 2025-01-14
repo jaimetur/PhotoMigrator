@@ -234,7 +234,7 @@ class PagedArgumentParser(argparse.ArgumentParser):
     """
     def custom_pager(self, text):
         """
-        Implementación del paginador con curses que muestra todo el texto de ayuda al salir.
+        Paginador con curses que adapta dinámicamente el texto al tamaño de la terminal.
         """
         def pager(stdscr):
             curses.curs_set(0)  # Ocultar el cursor
@@ -242,22 +242,33 @@ class PagedArgumentParser(argparse.ArgumentParser):
             total_lines = len(lines)
             page_size = curses.LINES - 2  # Altura de la terminal menos espacio para el mensaje
             index = 0
+
             while True:
-                # Mostrar las líneas actuales
+                # Asegurarse de que el número de líneas no exceda los límites
                 stdscr.clear()
                 for i, line in enumerate(lines[index:index + page_size]):
-                    stdscr.addstr(i, 0, line)
+                    try:
+                        stdscr.addstr(i, 0, line[:curses.COLS])  # Ajustar texto al ancho de la terminal
+                    except curses.error:
+                        pass  # Ignorar errores si la terminal no puede mostrar el texto completo
+
                 # Mensaje de ayuda
-                stdscr.addstr(
-                    page_size, 0,
-                    "[Use: Arrows (↓/↑) to scroll line by line, PgUp/PgDown to scroll by page, Space/Enter to advance a page, Q/Esc to exit]",
-                    curses.A_REVERSE
-                )
+                try:
+                    stdscr.addstr(
+                        page_size, 0,
+                        "[Use: Arrows (↓/↑) to scroll line by line, PgUp/PgDown to scroll by page, Space/Enter to advance a page, Q/Esc to exit]",
+                        curses.A_REVERSE
+                    )
+                except curses.error:
+                    pass  # Ignorar errores si no hay suficiente espacio para el mensaje
+
                 stdscr.refresh()
+
                 # Salir automáticamente si se alcanza el final
                 if index >= total_lines - page_size:
                     break
-                # Leer la entrada del usuario
+
+                # Leer entrada del usuario
                 key = stdscr.getch()
                 if key in [ord('q'), 27]:  # Salir con 'q' o Esc
                     break
@@ -265,13 +276,13 @@ class PagedArgumentParser(argparse.ArgumentParser):
                     index = min(total_lines - 1, index + 1)
                 elif key == curses.KEY_UP:  # Retroceder 1 línea
                     index = max(0, index - 1)
-                elif key == curses.KEY_NPAGE:  # Avanzar 1 página (PgDown)
+                elif key == curses.KEY_NPAGE or key in [ord(' '), ord('\n'), curses.KEY_ENTER]:  # Avanzar 1 página (PgDown, Espacio, Enter, Enter NumPad)
                     index = min(total_lines - page_size, index + page_size)
-                elif key == curses.KEY_PPAGE:  # Retroceder 1 página (PgUp)
+                elif key == curses.KEY_PPAGE or key == curses.KEY_BACKSPACE:  # Retroceder 1 página (PgUp o Delete)
                     index = max(0, index - page_size)
-                elif key in [ord(' '), ord('\n')]:  # Avanzar 1 página (Espacio o Enter)
-                    index = min(total_lines - page_size, index + page_size)
+
         curses.wrapper(pager)
+
         # Imprimir el texto de ayuda completo de nuevo fuera de curses para que se vea al salir
         print(text)
 
