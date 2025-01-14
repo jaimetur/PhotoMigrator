@@ -15,7 +15,7 @@ else:
 class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
     def __init__(self, *args, **kwargs):
         # Configura la anchura máxima del texto de ayuda
-        kwargs['width'] = 110  # Ancho total del texto de ayuda
+        kwargs['width'] = 80  # Ancho total del texto de ayuda
         kwargs['max_help_position'] = 55  # Ajusta la posición de inicio de las descripciones
         super().__init__(*args, **kwargs)
 
@@ -177,27 +177,27 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             help_text = procesar_saltos_de_linea(action.help, initial_indent=" " * ident_spaces, subsequent_indent=" " * ident_spaces)
             # help_text = textwrap.fill(action.help, width=self._width, initial_indent=" " * ident_spaces, subsequent_indent=" " * ident_spaces)
             parts.append(f"\n{help_text}")  # Salto de línea adicional
-            # Add EXTRA MODES: after -nl, --no-log-file argument
-            if help_text.lower().find('skip saving output messages to execution log file')!=-1:
+            # Add EXTRA MODES: after "Skip saving output messages to execution log file."
+            if help_text.find('Skip saving output messages to execution log file.')!=-1:
                 parts.append(f"\n\n\nEXTRA MODES:\n------------\n")
                 extra_description = f"Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes included. When an Extra Mode is detected only this module will be executed (ignoring the normal steps). If more than one Extra Mode is detected, only the first one will be executed.\n"
                 extra_description = procesar_saltos_de_linea(extra_description)
                 # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
                 parts.append(extra_description+'\n')
-            # Add EXTRA MODES for Synology Photos Management: after "Force Mode: 'All-in-One'".
-            if help_text.find("Force Mode: 'All-in-One'")!=-1:
+            # Add EXTRA MODES for Synology Photos Management: after "The Script will do the whole process".
+            if help_text.find("The Script will do the whole process")!=-1:
                 parts.append(f"\n\n\nEXTRA MODES: Synology Photos Management:\n----------------------------------------\n")
-                extra_description = f"Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes included for Synology Photos Management. When an Extra Mode is detected only this module will be executed (ignoring the normal steps). If more than one Extra Mode is detected, only the first one will be executed.\n"
+                extra_description = f"Following Extra Modes allow you to interact with Synology Photos. \nIf more than one Extra Mode is detected, only the first one will be executed.\n"
                 extra_description = procesar_saltos_de_linea(extra_description)
                 # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
                 parts.append(extra_description+'\n')
-            # Add EXTRA MODES for Immich Photos Management: after "Force Mode: 'Delete Duplicates Albums in Synology Photos'".
-            # if help_text.find("Force Mode: 'Delete Duplicates Albums in Synology Photos'")!=-1:
-            #     parts.append(f"\n\n\nEXTRA MODES: Immich Photos Management:\n--------------------------------------\n")
-            #     extra_description = f"Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes included for Immich Photos Management. When an Extra Mode is detected only this module will be executed (ignoring the normal steps). If more than one Extra Mode is detected, only the first one will be executed.\n"
-            #     extra_description = procesar_saltos_de_linea(extra_description)
-            #     # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
-            #     parts.append(extra_description+'\n')
+            # Add EXTRA MODES for Immich Photos Management: after "any Album is duplicated, will remove it from Synology Photos database.".
+            if help_text.find("any Album is duplicated, will remove it from Synology Photos database.")!=-1:
+                parts.append(f"\n\n\nEXTRA MODES: Immich Photos Management: (Planned for version 3.0.0)\n--------------------------------------\n")
+                extra_description = f"Following Extra Modes allow you to interact with Immich Photos. \nIf more than one Extra Mode is detected, only the first one will be executed.\n"
+                extra_description = procesar_saltos_de_linea(extra_description)
+                # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
+                parts.append(extra_description+'\n')
 
         return "".join(parts)
     def _format_action_invocation(self, action):

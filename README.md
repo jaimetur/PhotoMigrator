@@ -30,14 +30,19 @@ Then you just need to call it depending on your environment:
 ## Syntax:
 ```
 ----------------------------------------------------------------------------------------------------------------------------
-usage: OrganizeTakeoutPhotos.run/exe [-h] [-v] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
-                                     [-as ['flatten', 'year', 'year/month', 'year-month']]
-                                     [-ns ['flatten', 'year', 'year/month', 'year-month']]
-                                     [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-nl]
-                                     [-fs <FOLDER_TO_FIX>] [-ra <ALBUMS_FOLDER>]
-                                     [-fd ['list', 'move', 'remove'] <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
-                                     [-pd <DUPLICATES_REVISED_CSV>] [-ao <INPUT_FOLDER>]
-                                     [-sea <ALBUMS_NAME> [<ALBUMS_NAME> ...]] [-sca <ALBUMS_FOLDER>] [-sde] [-sdd]
+usage: OrganizeTakeoutPhotos.py [-h] [-v] [-z <ZIP_FOLDER>]
+                                [-t <TAKEOUT_FOLDER>] [-s <SUFIX>]
+                                [-as ['flatten', 'year', 'year/month', 'year-month']]
+                                [-ns ['flatten', 'year', 'year/month', 'year-month']]
+                                [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-nl]
+                                [-fs <FOLDER_TO_FIX>] [-ra <ALBUMS_FOLDER>]
+                                [-fd <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...] [<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...] ...]]
+                                [-pd <DUPLICATES_REVISED_CSV>]
+                                [-ao <INPUT_FOLDER>]
+                                [-sea <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
+                                [-sca <ALBUMS_FOLDER>] [-sde] [-sdd]
+                                [-iea <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
+                                [-ica <ALBUMS_FOLDER>] [-ide] [-idd]
 
 OrganizeTakeoutPhotos v2.3.0 - 2025-01-14
 
@@ -45,41 +50,47 @@ Script (based on GPTH Tool) to Process Google Takeout Photos and much more usefu
 (remove duplicates, fix metadata, organize per year/month folder, separate Albums, fix symlinks, etc...).
 (c) by Jaime Tur (@jaimetur)
 
-optional arguments:
+options:
 
 -h,   --help
         show this help message and exit
 -v,   --version
         Show the script name, version, and date, then exit.
 -z,   --zip-folder <ZIP_FOLDER>
-        Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files
-        will be skipped.
+        Specify the Zip folder where the Zip files are placed. If this option is
+        omitted, unzip of input files will be skipped.
 -t,   --takeout-folder <TAKEOUT_FOLDER>
-        Specify the Takeout folder to process. If -z, --zip-folder is present, this will be the folder to
-        unzip input files. Default: 'Takeout'.
+        Specify the Takeout folder to process. If -z, --zip-folder is present,
+        this will be the folder to unzip input files. Default: 'Takeout'.
 -s,   --suffix <SUFIX>
         Specify the suffix for the output folder. Default: 'fixed'
 -as,  --albums-structure ['flatten', 'year', 'year/month', 'year-month']
-        Specify the type of folder structure for each Album folder (Default: 'flatten').
+        Specify the type of folder structure for each Album folder (Default:
+        'flatten').
 -ns,  --no-albums-structure ['flatten', 'year', 'year/month', 'year-month']
-        Specify the type of folder structure for ALL_PHOTOS folder (Default: 'year/month').
+        Specify the type of folder structure for ALL_PHOTOS folder (Default:
+        'year/month').
 -sg,  --skip-gpth-tool
-        Skip processing files with GPTH Tool. NOT RECOMMENDED!!! because this is the Core of the Script. Use
-        this flag only for testing purposses.
+        Skip processing files with GPTH Tool.
+        NOT RECOMMENDED!!! because this is the Core of the Script.
+        Use this flag only for testing purposses.
 -se,  --skip-extras
         Skip processing extra photos such as  -edited, -effects photos.
 -sm,  --skip-move-albums
         Skip moving albums to Albums folder.
 -sa,  --symbolic-albums
-        Creates symbolic links for Albums instead of duplicate the files of each Album. (Useful to save disk
-        space but may not be portable to other systems).
+        Creates symbolic links for Albums instead of duplicate the files of each
+        Album. (Useful to save disk space but may not be portable to other
+        systems).
 -it,  --ignore-takeout-structure
-        Ignore Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc..), and fix all files
-        found on <TAKEOUT_FOLDER> trying to guess timestamp from them.
+        Ignore Google Takeout structure ('.json' files, 'Photos from ' sub-
+        folders, etc..), and fix all files found on <TAKEOUT_FOLDER> trying to
+        guess timestamp from them.
 -mt,  --move-takeout-folder
         Move original photos/videos from <TAKEOUT_FOLDER> to <OUTPUT_FOLDER>.
-        CAUTION: Useful to avoid disk space duplication and improve execution speed, but you will lost your
-        original unzipped files!!!. Use only if you keep the original zipped files or you have disk space
+        CAUTION: Useful to avoid disk space duplication and improve execution
+        speed, but you will lost your original unzipped files!!!.
+        Use only if you keep the original zipped files or you have disk space
         limitations and you don't mind to lost your original unzipped files.
 -rd,  --remove-duplicates-after-fixing
         Remove Duplicates files in <OUTPUT_FOLDER> after fixing them.
@@ -88,50 +99,74 @@ optional arguments:
 
 EXTRA MODES:
 ------------
-Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes
-included. When an Extra Mode is detected only this module will be executed (ignoring the normal steps). If
-more than one Extra Mode is detected, only the first one will be executed.
+Following optional arguments can be used to execute the Script in any of the
+usefull additionals Extra Modes included. When an Extra Mode is detected only
+this module will be executed (ignoring the normal steps). If more than one Extra
+Mode is detected, only the first one will be executed.
 
 -fs,  --fix-symlinks-broken <FOLDER_TO_FIX>
-        Force Mode: 'Fix Symbolic Links Broken'. The script will try to fix all symbolic links for Albums in
-        <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_FOLDER and some Albums
-        seems to be empty.
+        The script will try to fix all symbolic links for Albums in
+        <FOLDER_TO_FIX> folder (Useful if you have move any folder from the
+        OUTPUT_FOLDER and some Albums seems to be empty.
 -ra,  --rename-albums-folders <ALBUMS_FOLDER>
-        Force Mode: 'Rename Albums'. Rename all Albums folders found in <ALBUMS_FOLDER> to unificate the
+        Rename all Albums folders found in <ALBUMS_FOLDER> to unificate the
         format.
--fd,  --find-duplicates ['list', 'move', 'remove'] <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]
-        Force Mode: 'Find Duplicates'. Find duplicates in specified folders. The first argument is the action
-        to take on duplicates ('move', 'delete' or 'list'). Default: 'list' The remaining arguments are one or
-        more folders (string or list). where the script will look for duplicates files. The order of this list
-        is important to determine the principal file of a duplicates set. First folder will have higher
-        priority.
+-fd,  --find-duplicates <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]
+        Find duplicates in specified folders.
+        <ACTION> defines the action to take on duplicates ('move', 'delete' or
+        'list'). Default: 'list'
+        <DUPLICATES_FOLDER> are one or more folders (string or list), where the
+        script will look for duplicates files. The order of this list is
+        important to determine the principal file of a duplicates set. First
+        folder will have higher priority.
 -pd,  --process-duplicates-revised <DUPLICATES_REVISED_CSV>
-        Force Mode: 'Process Duplicates Revised'. Specify the Duplicates CSV file revised with specifics
-        Actions in Action column, and the script will execute that Action for each duplicates found in CSV.
-        Valid Actions: restore_duplicate / remove_duplicate / replace_duplicate.
+        Specify the Duplicates CSV file revised with specifics Actions in Action
+        column, and the script will execute that Action for each duplicates
+        found in CSV. Valid Actions: restore_duplicate / remove_duplicate /
+        replace_duplicate.
 -ao,  --all-in-one <INPUT_FOLDER>
-        Force Mode: 'All-in-One'. The Script will do the whole process (Zip extraction, Takeout Processing,
-        Remove Duplicates, Synology Photos Albums creation) in just One Shot.
+        The Script will do the whole process (Zip extraction, Takeout
+        Processing, Remove Duplicates, Synology Photos Albums creation) in just
+        One Shot.
 
 EXTRA MODES: Synology Photos Management:
 ----------------------------------------
-Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes
-included for Synology Photos Management. When an Extra Mode is detected only this module will be executed
-(ignoring the normal steps). If more than one Extra Mode is detected, only the first one will be executed.
+Following Extra Modes allow you to interact with Synology Photos.
+If more than one Extra Mode is detected, only the first one will be executed.
 
 -sea, --synology-extract-albums <ALBUMS_NAME>
-        Force Mode: 'Extract  Album(s) Synology Photos'. The Script will connect to Synology Photos and
-        extract the Album whose name is <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the
+        The Script will connect to Synology Photos and extract the Album whose
+        name is <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the
         Synology Photos root folder.
 -sca, --synology-create-albums <ALBUMS_FOLDER>
-        force Mode: 'Create Albums in Synology Photos'. The script will look for all Albums within
-        ALBUM_FOLDER and will create one Album per folder into Synology Photos.
+        The script will look for all Albums within ALBUM_FOLDER and will create
+        one Album per folder into Synology Photos.
 -sde, --synology-delete-empty-albums
-        Force Mode: 'Delete Empty Albums in Synology Photos'. The script will look for all Albums in Synology
-        Photos database and if any Album is empty, will remove it from Synology Photos database.
+        The script will look for all Albums in Synology Photos database and if
+        any Album is empty, will remove it from Synology Photos database.
 -sdd, --synology-delete-duplicates-albums
-        Force Mode: 'Delete Duplicates Albums in Synology Photos'. The script will look for all Albums in
-        Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
+        The script will look for all Albums in Synology Photos database and if
+        any Album is duplicated, will remove it from Synology Photos database.
+
+EXTRA MODES: Immich Photos Management: (Planned for version 3.0.0)
+--------------------------------------
+Following Extra Modes allow you to interact with Immich Photos.
+If more than one Extra Mode is detected, only the first one will be executed.
+
+-iea, --immich-extract-albums <ALBUMS_NAME>
+        The Script will connect to Immich Photos and extract the Album whose
+        name is <ALBUMS_NAME> to the folder 'Immich_Photos_Albums' within the
+        Immich Photos root folder.
+-ica, --immich-create-albums <ALBUMS_FOLDER>
+        The script will look for all Albums within ALBUM_FOLDER and will create
+        one Album per folder into Immich Photos.
+-ide, --immich-delete-empty-albums
+        The script will look for all Albums in Immich Photos database and if any
+        Album is empty, will remove it from Immich Photos database.
+-idd, --immich-delete-duplicates-albums
+        The script will look for all Albums in Immich Photos database and if any
+        Album is duplicated, will remove it from Immich Photos database.
+
 ----------------------------------------------------------------------------------------------------------------------------
 ```
 
