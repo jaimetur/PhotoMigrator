@@ -244,7 +244,7 @@ class PagedArgumentParser(argparse.ArgumentParser):
     """
     def custom_pager(self, text):
         """
-        Implementación del paginador con curses que deja visible la última pantalla de texto.
+        Implementación del paginador con curses que muestra todo el texto de ayuda al salir.
         """
         def pager(stdscr):
             curses.curs_set(0)  # Ocultar el cursor
@@ -285,17 +285,13 @@ class PagedArgumentParser(argparse.ArgumentParser):
                 elif key in [ord(' '), ord('\n')]:  # Avanzar 1 página (Espacio o Enter)
                     index = min(total_lines - page_size, index + page_size)
 
-            # Devolver el último bloque mostrado
-            return lines[index:index + page_size]
-
         # Configuración manual de curses
         stdscr = curses.initscr()  # Inicializar curses
         curses.noecho()            # Desactivar eco de teclas
         curses.cbreak()            # Habilitar entrada sin bloqueo
         stdscr.keypad(True)        # Habilitar teclas especiales
         try:
-            # Ejecutar el paginador y obtener el último bloque de texto
-            last_screen = pager(stdscr)
+            pager(stdscr)          # Ejecutar el paginador
         finally:
             # Restaurar la terminal al estado inicial
             curses.nocbreak()
@@ -303,9 +299,8 @@ class PagedArgumentParser(argparse.ArgumentParser):
             curses.echo()
             curses.endwin()
 
-        # Imprimir el último bloque de texto fuera de curses
-        for line in last_screen:
-            print(line)
+        # Imprimir todo el texto de ayuda fuera de curses
+        print(text)
 
     def get_terminal_height(self, default_height=20):
         """

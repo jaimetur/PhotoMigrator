@@ -36,16 +36,16 @@ usage: OrganizeTakeoutPhotos.run/exe [-h] [-v] [-z <ZIP_FOLDER>] [-t <TAKEOUT_FO
                                      [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-nl]
                                      [-fs <FOLDER_TO_FIX>] [-ra <ALBUMS_FOLDER>]
                                      [-fd ['list', 'move', 'remove'] <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
-                                     [-pd <DUPLICATES_REVISED_CSV>] [-ea <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
-                                     [-ca <ALBUMS_FOLDER>] [-de] [-dd] [-ao <INPUT_FOLDER>]
+                                     [-pd <DUPLICATES_REVISED_CSV>] [-ao <INPUT_FOLDER>]
+                                     [-sea <ALBUMS_NAME> [<ALBUMS_NAME> ...]] [-sca <ALBUMS_FOLDER>] [-sde] [-sdd]
 
-OrganizeTakeoutPhotos v2.3.0 - 2025-01-13
+OrganizeTakeoutPhotos v2.3.0 - 2025-01-14
 
 Script (based on GPTH Tool) to Process Google Takeout Photos and much more useful features
 (remove duplicates, fix metadata, organize per year/month folder, separate Albums, fix symlinks, etc...).
 (c) by Jaime Tur (@jaimetur)
 
-options:
+optional arguments:
 
 -h,   --help
         show this help message and exit
@@ -89,8 +89,8 @@ options:
 EXTRA MODES:
 ------------
 Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes
-included. When an Extra Mode is detected only this module will be executed (ignoring the normal steps).
-If more than one Extra Mode is detected, only the first one will be executed.
+included. When an Extra Mode is detected only this module will be executed (ignoring the normal steps). If
+more than one Extra Mode is detected, only the first one will be executed.
 
 -fs,  --fix-symlinks-broken <FOLDER_TO_FIX>
         Force Mode: 'Fix Symbolic Links Broken'. The script will try to fix all symbolic links for Albums in
@@ -109,22 +109,29 @@ If more than one Extra Mode is detected, only the first one will be executed.
         Force Mode: 'Process Duplicates Revised'. Specify the Duplicates CSV file revised with specifics
         Actions in Action column, and the script will execute that Action for each duplicates found in CSV.
         Valid Actions: restore_duplicate / remove_duplicate / replace_duplicate.
--ea,  --extract-albums-synology-photos <ALBUMS_NAME>
+-ao,  --all-in-one <INPUT_FOLDER>
+        Force Mode: 'All-in-One'. The Script will do the whole process (Zip extraction, Takeout Processing,
+        Remove Duplicates, Synology Photos Albums creation) in just One Shot.
+
+EXTRA MODES: Synology Photos Management:
+----------------------------------------
+Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes
+included for Synology Photos Management. When an Extra Mode is detected only this module will be executed
+(ignoring the normal steps). If more than one Extra Mode is detected, only the first one will be executed.
+
+-sea, --synology-extract-albums <ALBUMS_NAME>
         Force Mode: 'Extract  Album(s) Synology Photos'. The Script will connect to Synology Photos and
         extract the Album whose name is <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the
         Synology Photos root folder.
--ca,  --create-albums-synology-photos <ALBUMS_FOLDER>
+-sca, --synology-create-albums <ALBUMS_FOLDER>
         force Mode: 'Create Albums in Synology Photos'. The script will look for all Albums within
         ALBUM_FOLDER and will create one Album per folder into Synology Photos.
--de,  --delete-empty-albums-synology-photos
+-sde, --synology-delete-empty-albums
         Force Mode: 'Delete Empty Albums in Synology Photos'. The script will look for all Albums in Synology
         Photos database and if any Album is empty, will remove it from Synology Photos database.
--dd,  --delete-duplicates-albums-synology-photos
+-sdd, --synology-delete-duplicates-albums
         Force Mode: 'Delete Duplicates Albums in Synology Photos'. The script will look for all Albums in
         Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
--ao,  --all-in-one <INPUT_FOLDER>
-        Force Mode: 'All-in-One'. The Script will do the whole process (Zip extraction, Takeout Processing,
-        Remove Duplicates, Synology Photos Albums creation) in just One shot.
 ----------------------------------------------------------------------------------------------------------------------------
 ```
 
