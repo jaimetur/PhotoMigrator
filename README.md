@@ -49,7 +49,7 @@ OrganizeTakeoutPhotos v2.3.0 - 2025-01-14
 
 Script (based on GPTH Tool) to Process Google Takeout Photos and much more useful features
 (remove duplicates, fix metadata, organize per year/month folder, separate Albums, fix symlinks, etc...).
-(c) by Jaime Tur (@jaimetur)
+(c) 2024-2025 by Jaime Tur (@jaimetur)
 
 options:
 
