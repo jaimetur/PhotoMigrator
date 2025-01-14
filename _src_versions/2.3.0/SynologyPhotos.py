@@ -38,7 +38,7 @@ def read_synology_config(config_file='Synology.config', show_info=True):
         return CONFIG
 
     CONFIG = {}
-    LOGGER.info(f"INFO: Looking for NAS config file: '{config_file}'")
+    LOGGER.info(f"INFO: Looking for Synology config file: '{config_file}'")
     try:
         # Intentar abrir el archivo
         with open(config_file, 'r') as file:

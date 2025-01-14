@@ -277,7 +277,7 @@ class PagedArgumentParser(argparse.ArgumentParser):
                                 
                 # Leer entrada del usuario
                 key = stdscr.getch()
-                if key in [ord('q'), 27]:  # Salir con 'q' o Esc
+                if key in [ord('q'), ord('Q'), 27]:  # Salir con 'q' o Esc
                     break
                 elif key == curses.KEY_DOWN:  # Avanzar 1 línea
                     index = min(total_lines - 1, index + 1)
