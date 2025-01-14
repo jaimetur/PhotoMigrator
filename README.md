@@ -35,8 +35,9 @@ usage: OrganizeTakeoutPhotos.py [-h] [-v] [-z <ZIP_FOLDER>]
                                 [-as ['flatten', 'year', 'year/month', 'year-month']]
                                 [-ns ['flatten', 'year', 'year/month', 'year-month']]
                                 [-sg] [-se] [-sm] [-sa] [-it] [-mt] [-rd] [-nl]
-                                [-fs <FOLDER_TO_FIX>] [-ra <ALBUMS_FOLDER>]
-                                [-fd <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...] [<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...] ...]]
+                                [-fs <FOLDER_TO_FIX>]
+                                [-ra <ALBUMS_FOLDER>]
+                                [-fd <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
                                 [-pd <DUPLICATES_REVISED_CSV>]
                                 [-ao <INPUT_FOLDER>]
                                 [-sea <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
@@ -166,7 +167,6 @@ If more than one Extra Mode is detected, only the first one will be executed.
 -idd, --immich-delete-duplicates-albums
         The script will look for all Albums in Immich Photos database and if any
         Album is duplicated, will remove it from Immich Photos database.
-
 ----------------------------------------------------------------------------------------------------------------------------
 ```
 

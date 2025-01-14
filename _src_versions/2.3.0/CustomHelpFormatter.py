@@ -129,7 +129,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         # 1) Uso básico de la clase padre
         usage = super()._format_usage(usage, actions, groups, prefix)
         # 2) Eliminamos el bloque con <DUPLICATES_ACTION> ...
-        usage = remove_chain(usage, "[['list', 'move', 'remove'] <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...] ...]")
+        # usage = remove_chain(usage, "[<ACTION>> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...] ...]")
+        usage = remove_chain(usage, "[<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...] ...]")
         # 3) Quitamos los espacios antes de los ... y antes del último corchete
         usage = usage.replace(" ...] ]", "...]]")
         # 4) Tokenizamos con la nueva lógica (anidado)
@@ -137,8 +138,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         # 5) Diccionario de tokens forzados
         force_new_line_for_tokens = {
             "[-sg]": False                # Salto de línea antes, pero sigue reagrupando
-            ,"[-fs <FOLDER_TO_FIX>]": False  # Va solo
-            ,"[-fd ['list', 'move', 'remove'] <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]": True  # Va solo
+            ,"[-fs <FOLDER_TO_FIX>]": True  # # Va solo
+            ,"[-fd <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]]": True  # Va solo
         }
         # 6) Ancho real
         max_width = getattr(self, '_width', 90)
