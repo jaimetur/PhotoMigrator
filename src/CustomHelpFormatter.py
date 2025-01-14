@@ -269,11 +269,12 @@ class PagedArgumentParser(argparse.ArgumentParser):
                     break
 
                 # Asignamos los códigos de las teclas +- y */ del teclado numérico
-                NUMPAD_PLUS = 584  # Código detectado para NUMPAD_PLUS
-                NUMPAD_MINUS = 268 # Código detectado para NUMPAD_MINUS
-                NUMPAD_MULTIPLY = 267  # Código detectado para NUMPAD_PLUS
-                NUMPAD_DIVIDE = 266 # Código detectado para NUMPAD_MINUS
-
+                NUMPAD_PLUS     = [584, 465]        # Codigos para NUMPAD_PLUS en LINUX, WINDOWS, MACOS
+                NUMPAD_MINUS    = [268, 464]        # Codigos para NUMPAD_MINUS en LINUX, WINDOWS, MACOS
+                NUMPAD_MULTIPLY = [267, 463, 42]    # Codigos para NUMPAD_MULTIPLY en LINUX, WINDOWS, MACOS
+                NUMPAD_DIVIDE   = [266, 458, 47]    # Codigos para NUMPAD_DIVIDE en LINUX, WINDOWS, MACOS
+                BACKSPACE       = [263, 8, 127]     # Codigos para BACKSPACE en LINUX, WINDOWS, MACOS
+                                
                 # Leer entrada del usuario
                 key = stdscr.getch()
                 if key in [ord('q'), 27]:  # Salir con 'q' o Esc
@@ -282,9 +283,9 @@ class PagedArgumentParser(argparse.ArgumentParser):
                     index = min(total_lines - 1, index + 1)
                 elif key == curses.KEY_UP:  # Retroceder 1 línea
                     index = max(0, index - 1)
-                elif key == curses.KEY_NPAGE or key in [ord(' '), ord('\n'), curses.KEY_ENTER, ord('+'), NUMPAD_PLUS, NUMPAD_MULTIPLY]:  # Avanzar 1 página
+                elif key == curses.KEY_NPAGE or key in [ord(' '), ord('\n'), curses.KEY_ENTER, ord('+')] or key in NUMPAD_PLUS or key in NUMPAD_MULTIPLY:  # Avanzar 1 página
                     index = min(total_lines - page_size, index + page_size)
-                elif key == curses.KEY_PPAGE or key in [curses.KEY_BACKSPACE, 8, ord('-'), NUMPAD_MINUS, NUMPAD_DIVIDE]:  # Retroceder 1 página
+                elif key == curses.KEY_PPAGE or key in [curses.KEY_BACKSPACE, 8, ord('-')] or key in BACKSPACE or key in NUMPAD_MINUS or key in NUMPAD_DIVIDE:  # Retroceder 1 página
                     index = max(0, index - page_size)
 
         curses.wrapper(pager)
