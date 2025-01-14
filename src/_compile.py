@@ -127,6 +127,8 @@ def compile():
 
         print("Añadiendo paquetes necesarios al entorno Python antes de compilar...")
         subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', 'requirements.txt'])
+        if OPERATING_SYSTEM=='windows':
+            subprocess.run([sys.executable, '-m', 'pip', 'install', 'windows-curses'])
         print("")
         print(f"Compilando para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}'...")
         subprocess.run([
