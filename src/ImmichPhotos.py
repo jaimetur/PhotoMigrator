@@ -4,14 +4,16 @@
 """
 ImmichPhotos.py
 ---------------
-Ejemplo de módulo Python que encapsula funciones para interactuar con Immich:
+Módulo Python con ejemplos de funciones para interactuar con Immich:
   - Configuración (leer Immich.config)
   - Autenticación (login/logout)
   - Listado y gestión de álbumes
   - Listado, subida y descarga de assets
   - Eliminación de álbumes vacíos o duplicados
-  - Extracción (descarga) de todas las fotos de uno o varios álbumes
-  - Descarga con estructura específica (Albums + ALL_PHOTOS/yyyy/mm)
+  - Descarga (extracción) de fotos de álbumes
+  - Descarga con estructura (Albums + ALL_PHOTOS/yyyy/mm)
+  - NUEVO: create_albums_from_folder() para crear un álbum por subcarpeta
+  - NUEVO: upload_files_without_album() para subir ficheros sin asociarlos a álbum
 
 Requisitos:
   - requests
@@ -37,6 +39,12 @@ USERNAME = None      # Usuario (email) de Immich
 PASSWORD = None      # Contraseña de Immich
 SESSION_TOKEN = None # Token JWT devuelto tras login
 HEADERS = {}         # Cabeceras que usaremos en cada petición
+
+# Lista de extensiones “compatibles” (ajústalo a tus necesidades)
+ALLOWED_EXTENSIONS = {
+    '.jpg', '.jpeg', '.png', '.gif', '.heic', '.heif', '.bmp',
+    '.mp4', '.mov', '.avi', '.mkv', '.mts', '.m2ts', '.wmv'
+}
 
 # -----------------------------------------------------------------------------
 #                          LECTURA DE CONFIGURACIÓN
@@ -64,7 +72,7 @@ def read_immich_config(config_file='Immich.config', show_info=True):
     try:
         with open(config_file, 'r') as file:
             for line in file:
-                # Eliminar comentarios ( # o // ) y espacios
+                # Eliminar comentarios y espacios extra
                 line = line.split('#')[0].split('//')[0].strip()
                 if line and '=' in line:
                     key, value = line.split('=', 1)
@@ -106,7 +114,7 @@ def read_immich_config(config_file='Immich.config', show_info=True):
 
 def login_immich():
     """
-    Inicia sesión en Immich y obtiene un token JWT que guardaremos en SESSION_TOKEN.
+    Inicia sesión en Immich y obtiene un token JWT (SESSION_TOKEN).
     Retorna True si la conexión fue exitosa, False en caso de error.
     """
     global SESSION_TOKEN, HEADERS
@@ -148,7 +156,7 @@ def login_immich():
 
 def logout_immich():
     """
-    "Cierra" la sesión local, descartando el token. 
+    "Cierra" la sesión local, descartando el token.
     (Actualmente Immich no provee un endpoint /logout oficial).
     """
     global SESSION_TOKEN, HEADERS
@@ -178,8 +186,7 @@ def list_albums():
     try:
         response = requests.get(url, headers=HEADERS, verify=False)
         response.raise_for_status()
-        albums_data = response.json()
-        # albums_data es una lista
+        albums_data = response.json()  # una lista
         return albums_data
     except Exception as e:
         print(f"[ERROR] Error al listar álbumes: {e}")
@@ -240,27 +247,6 @@ def delete_album(album_id):
         print(f"[ERROR] Error al eliminar álbum {album_id}: {e}")
         return False
 
-# -----------------------------------------------------------------------------
-#                          ASSETS (FOTOS/VIDEOS)
-# -----------------------------------------------------------------------------
-
-def list_all_assets():
-    """
-    Devuelve una lista de TODOS los assets (fotos, vídeos) del usuario en Immich.
-    Cada ítem incluye metadata como { id, deviceAssetId, fileCreatedAt, exifInfo, etc. }
-    """
-    if not login_immich():
-        return []
-    url = f"{IMMICH_URL}/api/asset"
-    try:
-        response = requests.get(url, headers=HEADERS, verify=False)
-        response.raise_for_status()
-        data = response.json()  # lista de assets
-        return data
-    except Exception as e:
-        print(f"[ERROR] Error al obtener lista de assets: {e}")
-        return []
-
 def add_assets_to_album(album_id, asset_ids):
     """
     Añade la lista de asset_ids (fotos/videos ya subidos) al álbum con album_id.
@@ -283,21 +269,190 @@ def add_assets_to_album(album_id, asset_ids):
         print(f"[ERROR] No se pudo añadir assets al álbum {album_id}: {e}")
         return 0
 
-def get_assets_from_album(album_id):
+# -----------------------------------------------------------------------------
+#                          ASSETS (FOTOS/VIDEOS)
+# -----------------------------------------------------------------------------
+
+def list_all_assets():
     """
-    Retorna la lista de assets que pertenecen a un álbum concreto (ID).
+    Devuelve una lista de TODOS los assets (fotos, vídeos) del usuario en Immich.
+    Cada ítem incluye metadata como { id, deviceAssetId, fileCreatedAt, exifInfo, etc. }
     """
     if not login_immich():
         return []
-    url = f"{IMMICH_URL}/api/album/{album_id}/assets"
+    url = f"{IMMICH_URL}/api/asset"
     try:
         response = requests.get(url, headers=HEADERS, verify=False)
         response.raise_for_status()
-        assets = response.json()  # lista
-        return assets
+        data = response.json()  # lista de assets
+        return data
     except Exception as e:
-        print(f"[ERROR] No se pudieron obtener assets del álbum ID={album_id}: {str(e)}")
+        print(f"[ERROR] Error al obtener lista de assets: {e}")
         return []
+
+def upload_file_to_immich(file_path):
+    """
+    Sube un fichero local (foto o vídeo) a Immich mediante /api/asset/upload-file.
+    Retorna el 'id' del asset creado, o None si falla.
+    """
+    if not login_immich():
+        return None
+
+    if not os.path.isfile(file_path):
+        print(f"[ERROR] Fichero no encontrado: {file_path}")
+        return None
+
+    # Comprobamos si la extensión es compatible
+    ext = os.path.splitext(file_path)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        print(f"[WARNING] Fichero '{file_path}' no es de una extensión compatible. Omitido.")
+        return None
+
+    url = f"{IMMICH_URL}/api/asset/upload-file"
+    files = {
+        "assetData": open(file_path, "rb")
+    }
+    data = {
+        # Puedes añadir campos opcionales, por ejemplo:
+        # "deviceAssetId": os.path.basename(file_path),
+        # "deviceId": "ScriptPy",
+        # "fileCreatedAt": "2023-10-10T10:00:00.000Z",
+        # ...
+    }
+
+    try:
+        # En la subida, 'Content-Type' se genera automáticamente con multipart
+        auth_headers = {"Authorization": HEADERS.get("Authorization", "")}
+        response = requests.post(url, headers=auth_headers, files=files, data=data, verify=False)
+        response.raise_for_status()
+        new_asset = response.json()
+        asset_id = new_asset.get("id")
+        if asset_id:
+            print(f"[INFO] Subido '{os.path.basename(file_path)}' con asset_id={asset_id}")
+        return asset_id
+    except Exception as e:
+        print(f"[ERROR] No se pudo subir '{file_path}': {e}")
+        return None
+
+def download_asset(asset_id, download_folder="Downloaded_Immich"):
+    """
+    Descarga un asset (foto/video) de Immich y lo guarda en disco local.
+    Usa GET /api/asset/:assetId/serve
+    Retorna True si se descargó con éxito, False en caso de error.
+    """
+    if not login_immich():
+        return False
+
+    os.makedirs(download_folder, exist_ok=True)
+    url = f"{IMMICH_URL}/api/asset/{asset_id}/serve"
+
+    try:
+        with requests.get(url, headers=HEADERS, verify=False, stream=True) as r:
+            r.raise_for_status()
+            # Intentar deducir filename de la cabecera
+            content_disp = r.headers.get('Content-Disposition', '')
+            filename = f"{asset_id}"
+            if 'filename=' in content_disp:
+                # attachment; filename="nombre.jpg"
+                filename = content_disp.split("filename=")[-1].strip('"; ')
+
+            out_path = os.path.join(download_folder, filename)
+
+            with open(out_path, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+
+        return True
+
+    except Exception as e:
+        print(f"[ERROR] No se pudo descargar asset {asset_id}: {e}")
+        return False
+
+# -----------------------------------------------------------------------------
+#                 FUNCIONES PARA SUBIR FICHEROS DESDE DIRECTORIOS
+# -----------------------------------------------------------------------------
+
+def create_albums_from_folder(input_folder):
+    """
+    Recorre las *subcarpetas* de 'input_folder', creando un álbum por cada subcarpeta
+    (nombre = nombre de la subcarpeta).
+    Dentro de cada subcarpeta, sube todos los ficheros 'compatibles' (según ALLOWED_EXTENSIONS)
+    y los asocia al álbum recién creado.
+
+    Ejemplo de estructura:
+        input_folder/
+          ├─ Album1/   (ficheros compatibles para el álbum "Album1")
+          └─ Album2/   (ficheros compatibles para el álbum "Album2")
+
+    Retorna la cantidad de álbumes creados.
+    """
+    if not login_immich():
+        return 0
+
+    if not os.path.isdir(input_folder):
+        print(f"[ERROR] La carpeta '{input_folder}' no existe.")
+        return 0
+
+    albums_created = 0
+
+    # Listar subcarpetas directas
+    for item in os.listdir(input_folder):
+        subpath = os.path.join(input_folder, item)
+        if os.path.isdir(subpath):
+            # 'item' será el nombre del nuevo álbum
+            album_name = item
+            album_id = create_album(album_name)
+            if not album_id:
+                print(f"[WARNING] No se pudo crear el álbum para la subcarpeta '{item}'.")
+                continue
+
+            albums_created += 1
+
+            # Recorrer ficheros en esta subcarpeta
+            assets_ids = []
+            for file_in_sub in os.listdir(subpath):
+                file_path = os.path.join(subpath, file_in_sub)
+                if os.path.isfile(file_path):
+                    # Subir si es compatible
+                    asset_id = upload_file_to_immich(file_path)
+                    if asset_id:
+                        assets_ids.append(asset_id)
+            
+            # Asociar ficheros al álbum
+            if assets_ids:
+                added_count = add_assets_to_album(album_id, assets_ids)
+                print(f"[INFO] Añadidos {added_count}/{len(assets_ids)} ficheros al álbum '{album_name}'.")
+
+    print(f"[INFO] Se crearon {albums_created} álbum(es) a partir de '{input_folder}'.")
+    return albums_created
+
+def upload_files_without_album(input_folder):
+    """
+    Recorre recursivamente 'input_folder' y sus subcarpetas para subir todos los ficheros
+    'compatibles' (fotos/vídeos) a Immich, **sin** asociarlos a ningún álbum.
+
+    Retorna la cantidad de ficheros subidos.
+    """
+    if not login_immich():
+        return 0
+
+    if not os.path.isdir(input_folder):
+        print(f"[ERROR] La carpeta '{input_folder}' no existe.")
+        return 0
+
+    total_uploaded = 0
+
+    # Recorrer recursivamente
+    for root, dirs, files in os.walk(input_folder):
+        for fname in files:
+            file_path = os.path.join(root, fname)
+            # Subir si es compatible
+            asset_id = upload_file_to_immich(file_path)
+            if asset_id:
+                total_uploaded += 1
+
+    print(f"[INFO] Se subieron {total_uploaded} ficheros (sin álbum) desde '{input_folder}'.")
+    return total_uploaded
 
 # -----------------------------------------------------------------------------
 #                          CÁLCULO DE TAMAÑO Y BORRADO MASIVO
@@ -305,7 +460,7 @@ def get_assets_from_album(album_id):
 
 def get_album_items_size(album_id):
     """
-    Suma el tamaño de cada asset en un álbum, basándose en exifInfo.fileSizeInByte (si existe).
+    Suma el tamaño de cada asset en un álbum, usando exifInfo.fileSizeInByte (si existe).
     """
     if not login_immich():
         return 0
@@ -313,11 +468,9 @@ def get_album_items_size(album_id):
         assets = get_assets_from_album(album_id)
         total_size = 0
         for a in assets:
-            size_in_bytes = 0
-            exif_info = a.get("exifInfo")
-            if exif_info and exif_info.get("fileSizeInByte"):
-                size_in_bytes = exif_info["fileSizeInByte"]
-            total_size += size_in_bytes
+            exif_info = a.get("exifInfo", {})
+            if "fileSizeInByte" in exif_info:
+                total_size += exif_info["fileSizeInByte"]
         return total_size
     except:
         return 0
@@ -371,10 +524,9 @@ def immich_delete_duplicates_albums():
     total_deleted = 0
     for (count, size), group in duplicates_map.items():
         if len(group) > 1:
-            # Ordenar por ID (numérico) y quedarnos con el de ID menor
             group_sorted = sorted(group, key=lambda x: int(x[0]))
             # keep = group_sorted[0]
-            to_delete = group_sorted[1:]  # Borramos a partir del segundo
+            to_delete = group_sorted[1:]
             for alb_id, alb_name in to_delete:
                 if delete_album(alb_id):
                     total_deleted += 1
@@ -383,91 +535,31 @@ def immich_delete_duplicates_albums():
     return total_deleted
 
 # -----------------------------------------------------------------------------
-#                          SUBIR Y DESCARGAR FICHEROS
+#             EXTRAER (DESCARGAR) FOTOS DE UN ÁLBUM (O DE TODOS)
 # -----------------------------------------------------------------------------
 
-def upload_file_to_immich(file_path):
+def get_assets_from_album(album_id):
     """
-    Sube un fichero local (foto o vídeo) a Immich mediante /api/asset/upload-file.
-    Retorna el 'id' del asset creado, o None si falla.
+    Retorna la lista de assets que pertenecen a un álbum concreto (ID).
     """
     if not login_immich():
-        return None
-
-    if not os.path.isfile(file_path):
-        print(f"[ERROR] Fichero no encontrado: {file_path}")
-        return None
-
-    url = f"{IMMICH_URL}/api/asset/upload-file"
-    files = {
-        "assetData": open(file_path, "rb")
-    }
-    data = {
-        # Ejemplos de campos opcionales:
-        # "deviceAssetId": os.path.basename(file_path),
-        # "deviceId": "ScriptPy",
-        # "fileCreatedAt": "2023-10-10T10:00:00.000Z",
-        # "fileModifiedAt": "2023-10-10T10:00:00.000Z",
-    }
-
+        return []
+    url = f"{IMMICH_URL}/api/album/{album_id}/assets"
     try:
-        # En la subida, 'Content-Type' se genera automáticamente con multipart
-        auth_headers = {"Authorization": HEADERS.get("Authorization", "")}
-        response = requests.post(url, headers=auth_headers, files=files, data=data, verify=False)
+        response = requests.get(url, headers=HEADERS, verify=False)
         response.raise_for_status()
-        new_asset = response.json()
-        asset_id = new_asset.get("id")
-        print(f"[INFO] Subido '{file_path}' a Immich con asset_id={asset_id}.")
-        return asset_id
+        assets = response.json()  # lista
+        return assets
     except Exception as e:
-        print(f"[ERROR] No se pudo subir '{file_path}': {e}")
-        return None
-
-def download_asset(asset_id, download_folder="Downloaded_Immich"):
-    """
-    Descarga un asset (foto/video) de Immich y lo guarda en disco local.
-    Usa GET /api/asset/:assetId/serve
-    Retorna True si se descargó con éxito, False en caso de error.
-    """
-    if not login_immich():
-        return False
-
-    os.makedirs(download_folder, exist_ok=True)
-    url = f"{IMMICH_URL}/api/asset/{asset_id}/serve"
-
-    try:
-        with requests.get(url, headers=HEADERS, verify=False, stream=True) as r:
-            r.raise_for_status()
-            # Intentar deducir filename de la cabecera
-            content_disp = r.headers.get('Content-Disposition', '')
-            filename = f"{asset_id}"
-            if 'filename=' in content_disp:
-                # Normalmente: attachment; filename="nombre.jpg"
-                filename = content_disp.split("filename=")[-1].strip('"; ')
-
-            out_path = os.path.join(download_folder, filename)
-
-            with open(out_path, 'wb') as f:
-                for chunk in r.iter_content(chunk_size=8192):
-                    f.write(chunk)
-
-        return True
-
-    except Exception as e:
-        print(f"[ERROR] No se pudo descargar asset {asset_id}: {e}")
-        return False
-
-# -----------------------------------------------------------------------------
-#                         DESCARGAR ÁLBUMES ESPECÍFICOS
-# -----------------------------------------------------------------------------
+        print(f"[ERROR] No se pudieron obtener assets del álbum ID={album_id}: {str(e)}")
+        return []
 
 def extract_photos_from_album(album_name_or_id='ALL', output_folder="DownloadedAlbums"):
     """
     Descarga (extrae) todas las fotos/videos de uno o varios álbumes:
 
       - Si album_name_or_id == 'ALL', se descargan todos los álbumes.
-      - Si coincide con un 'id' o con el 'albumName' de un álbum existente,
-        se descargan únicamente sus assets.
+      - Si coincide con un 'id' o con el 'albumName', se descarga sólo ése.
 
     Retorna la cantidad total de assets descargados.
     """
@@ -475,7 +567,6 @@ def extract_photos_from_album(album_name_or_id='ALL', output_folder="DownloadedA
         return 0
 
     os.makedirs(output_folder, exist_ok=True)
-
     all_albums = list_albums()
     if not all_albums:
         print("[INFO] No hay álbumes disponibles o no se pudieron listar.")
@@ -483,19 +574,15 @@ def extract_photos_from_album(album_name_or_id='ALL', output_folder="DownloadedA
 
     # Determinar qué álbum(es) descargar
     albums_to_download = []
-    # Si se pide 'ALL', descargamos todos
     if isinstance(album_name_or_id, str) and album_name_or_id.strip().upper() == 'ALL':
         albums_to_download = all_albums
         print(f"[INFO] Se van a descargar TODOS los álbumes ({len(all_albums)})...")
     else:
-        # Buscar por ID o por nombre
         found_album = None
         for alb in all_albums:
-            # Coincidencia por ID
             if str(alb.get("id")) == str(album_name_or_id):
                 found_album = alb
                 break
-            # Coincidencia por nombre (ignora mayúsculas)
             if alb.get("albumName", "").strip().lower() == album_name_or_id.strip().lower():
                 found_album = alb
                 break
@@ -508,12 +595,9 @@ def extract_photos_from_album(album_name_or_id='ALL', output_folder="DownloadedA
             return 0
 
     total_downloaded = 0
-
-    # Descargar assets de cada álbum
     for album in albums_to_download:
         album_id = album.get("id")
         album_name = album.get("albumName", f"album_{album_id}")
-
         album_folder = os.path.join(output_folder, f"{album_name}_{album_id}")
         os.makedirs(album_folder, exist_ok=True)
 
@@ -530,35 +614,31 @@ def extract_photos_from_album(album_name_or_id='ALL', output_folder="DownloadedA
     return total_downloaded
 
 # -----------------------------------------------------------------------------
-#                     DESCARGA GLOBAL: ÁLBUMES + FOTOS SIN ÁLBUM
+#          DESCARGA COMPLETA DE TODOS LOS ASSETS (Albums + ALL_PHOTOS)
 # -----------------------------------------------------------------------------
 
 def download_all_assets_with_structure(output_folder="ImmichDownload"):
     """
-    Descarga TODAS las fotos y vídeos de Immich en una estructura:
-    
+    Descarga TODAS las fotos y vídeos de Immich en:
         output_folder/
           ├─ Albums/
-          │    ├─ albumName1/ (assets del álbum 1)
-          │    ├─ albumName2/ (assets del álbum 2)
+          │    ├─ albumName1/ (assets del álbum)
+          │    ├─ albumName2/ (assets del álbum)
           │    ...
           └─ ALL_PHOTOS/
                └─ yyyy/
-                   └─ mm/
-                      (assets sin álbum en ese año/mes según fileCreatedAt)
+                   └─ mm/ (assets sin álbum en ese año/mes)
 
     Devuelve la cantidad total de assets descargados.
     """
     if not login_immich():
         return 0
 
-    # Asegurarnos de que existe la carpeta base
     os.makedirs(output_folder, exist_ok=True)
-
     total_downloaded = 0
     downloaded_assets_set = set()
 
-    # 1) Descarga todos los álbumes en output_folder/Albums
+    # 1) Álbumes en output_folder/Albums
     albums = list_albums()
     albums_path = os.path.join(output_folder, "Albums")
     os.makedirs(albums_path, exist_ok=True)
@@ -567,15 +647,12 @@ def download_all_assets_with_structure(output_folder="ImmichDownload"):
         album_id   = album.get("id")
         album_name = album.get("albumName", f"Album_{album_id}")
 
-        # Crear carpeta del álbum
         album_folder = os.path.join(albums_path, album_name)
         os.makedirs(album_folder, exist_ok=True)
 
-        # Obtener assets del álbum
         assets_in_album = get_assets_from_album(album_id)
         print(f"[INFO] Álbum '{album_name}' (ID={album_id}) tiene {len(assets_in_album)} asset(s).")
 
-        # Descargar cada asset en la carpeta de este álbum
         for asset in tqdm(assets_in_album, desc=f"Álbum '{album_name}'", unit="fotos"):
             aid = asset.get("id")
             if not aid:
@@ -586,31 +663,28 @@ def download_all_assets_with_structure(output_folder="ImmichDownload"):
                 total_downloaded += 1
                 downloaded_assets_set.add(aid)
 
-    # 2) Descarga todos los assets SIN ÁLBUM en output_folder/ALL_PHOTOS/yyyy/mm
+    # 2) Assets sin álbum -> output_folder/ALL_PHOTOS/yyyy/mm
     all_assets = list_all_assets()
     all_photos_path = os.path.join(output_folder, "ALL_PHOTOS")
     os.makedirs(all_photos_path, exist_ok=True)
 
-    # Filtramos aquellos no descargados (o sea, no asociados a ningún álbum)
     leftover_assets = [a for a in all_assets if a.get("id") not in downloaded_assets_set]
-    print(f"[INFO] Se encontraron {len(leftover_assets)} asset(s) que NO pertenecen a ningún álbum.")
+    print(f"[INFO] Se encontraron {len(leftover_assets)} asset(s) que no están en ningún álbum.")
 
     for asset in tqdm(leftover_assets, desc="Descargando SIN álbum", unit="fotos"):
         aid = asset.get("id")
         if not aid:
             continue
 
-        # Determinar la fecha de creación para clasificar en yyyy/mm
         created_at_str = asset.get("fileCreatedAt", "")
         try:
-            dt_created = datetime.fromisoformat(created_at_str.replace("Z",""))
+            dt_created = datetime.fromisoformat(created_at_str.replace("Z", ""))
         except:
             dt_created = datetime.now()
 
         year_str = dt_created.strftime("%Y")
         month_str = dt_created.strftime("%m")
 
-        # output_folder/ALL_PHOTOS/yyyy/mm
         target_folder = os.path.join(all_photos_path, year_str, month_str)
         os.makedirs(target_folder, exist_ok=True)
 
@@ -631,12 +705,27 @@ if __name__ == "__main__":
     read_immich_config()
     login_immich()
 
-    # 2) Ejemplo: Descargar TODAS las fotos de TODOS los álbumes (en "MisDescargasALL")
+    # 2) Ejemplo: Crear álbumes a partir de subcarpetas
+    #    Supón que en "CarpetaConAlbums" tienes:
+    #       CarpetaConAlbums/Album1/...
+    #       CarpetaConAlbums/Album2/...
+    #    Cada subcarpeta se convierte en un álbum con su mismo nombre
+    #    y se suben los ficheros compatibles a cada álbum.
+    print("\n=== EJEMPLO: create_albums_from_folder ===")
+    input_albums_folder = "CarpetaConAlbums"
+    create_albums_from_folder(input_albums_folder)
+
+    # 3) Ejemplo: Subir ficheros SIN asignarlos a álbum, recorriendo subcarpetas recursivamente
+    print("\n=== EJEMPLO: upload_files_without_album ===")
+    big_folder = "CarpetaFicherosSueltos"
+    upload_files_without_album(big_folder)
+
+    # 4) Ejemplo: Descargar todas las fotos de TODOS los álbumes (en "MisDescargasALL")
     print("\n=== EJEMPLO: Descargar todas las fotos de todos los álbumes ===")
     total = extract_photos_from_album('ALL', output_folder="MisDescargasALL")
     print(f"[RESULT] Se han descargado {total} assets en total.\n")
 
-    # 3) Ejemplo: Crear un álbum y subir un par de fotos
+    # 5) Ejemplo: Crear un álbum y subir un par de fotos
     print("=== EJEMPLO: Crear un álbum y subir 2 fotos ===")
     new_album_id = create_album("AlbumDePrueba")
     if new_album_id:
@@ -653,20 +742,20 @@ if __name__ == "__main__":
         added = add_assets_to_album(new_album_id, asset_ids)
         print(f"[INFO] Se añadieron {added} assets a 'AlbumDePrueba'.\n")
 
-    # 4) Ejemplo: Borrar álbumes vacíos
+    # 6) Ejemplo: Borrar álbumes vacíos
     print("=== EJEMPLO: Borrar álbumes vacíos ===")
     deleted = immich_delete_empty_albums()
     print(f"[RESULT] Álbumes vacíos borrados: {deleted}\n")
 
-    # 5) Ejemplo: Borrar álbumes duplicados
+    # 7) Ejemplo: Borrar álbumes duplicados
     print("=== EJEMPLO: Borrar álbumes duplicados ===")
     duplicates = immich_delete_duplicates_albums()
     print(f"[RESULT] Álbumes duplicados borrados: {duplicates}\n")
 
-    # 6) Ejemplo: Descargar TODAS las fotos/vídeos con la estructura Albums/ + ALL_PHOTOS/
-    print("=== EJEMPLO: Descargar TODAS las fotos/vídeos en estructura Albums y ALL_PHOTOS ===")
+    # 8) Ejemplo: Descargar TODO en estructura Albums/ y ALL_PHOTOS/yyyy/mm
+    print("=== EJEMPLO: Descarga MASIVA con Estructura ===")
     total_struct = download_all_assets_with_structure(output_folder="FullImmichDownload")
     print(f"[RESULT] Descarga masiva completada. Total assets: {total_struct}\n")
 
-    # 7) Logout local
+    # 9) Logout local
     logout_immich()
