@@ -415,5 +415,5 @@ Enjoy it!
 
 ## Credits
 
-<span style="color:grey">Jaime Tur (@jaimetur) - 2024-2025.</span>
+<span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>  
 Part of this Tool is based on [GPTH Tool](https://github.com/TheLastGimbus/GooglePhotosTakeoutHelper) by [TheLastGimbus](https://github.com/TheLastGimbus)
