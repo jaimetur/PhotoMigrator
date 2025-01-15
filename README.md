@@ -214,7 +214,7 @@ Finally you just need to move the output folder (Takeout_fixed_{timestamp} by de
 
 It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (408559 files zipped, 168168 photos/video files, 740 albums) and moved it into Synology Photos.  
 
-The whole process took around **~6 hours** (or **~3 hours without last optional step) and this is the time split per steps**):
+The whole process took around **~8.5 hours** (or **~3 hours without last two optional steps) and this is the time split per steps**):
 1. Extraction process --> 25m
 2. Pre-processing Takeout_folder --> 3m 50s
 3. GPTH Tool fixing --> 2h 12m
@@ -413,4 +413,7 @@ With this example, the script will connect to Synology Photos database and will 
 I hope this can be useful for any of you.  
 Enjoy it!
 
-<span style="color:grey">Jaime Tur (@jaimetur) - 2024.</span>
+## Credits
+
+<span style="color:grey">Jaime Tur (@jaimetur) - 2024-2025.</span>
+Part of this Tool is based on [GPTH Tool](https://github.com/TheLastGimbus/GooglePhotosTakeoutHelper) by [TheLastGimbus](https://github.com/TheLastGimbus)
