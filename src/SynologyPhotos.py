@@ -124,7 +124,7 @@ def login_synology():
         return SESSION, SID
     else:
         LOGGER.error(f"ERROR: Unable to Authenticate in NAS with the providen data: {data}")
-        return -1,-1
+        sys.exit(-1)
 
 def logout_synology():
     global SESSION
