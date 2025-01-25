@@ -1,973 +1,758 @@
-import os, sys
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+ImmichPhotos.py
+---------------
+Módulo Python con ejemplos de funciones para interactuar con Immich:
+  - Configuración (leer Immich.config)
+  - Autenticación (login/logout)
+  - Listado y gestión de álbumes
+  - Listado, subida y descarga de assets
+  - Eliminación de álbumes vacíos o duplicados
+  - NUEVOS NOMBRES:
+     - immich_extract_albums()    (antes extract_photos_from_album)
+     - immich_create_albums()     (antes create_albums_from_folder)
+     - immich_download_all_with_structure() (antes download_all_assets_with_structure)
+
+Requisitos:
+  - requests
+  - tqdm
+"""
+
+import os
+import sys
 import requests
 import urllib3
-import subprocess
-import Utils
 from tqdm import tqdm
-
-# Definimos variables globales del NAS:
-global CONFIG
-global NAS_IP
-global USERNAME
-global PASSWORD
-global ROOT_PHOTOS_PATH
-global IMMICH_URL
-global SESSION
-global SID
-
-# Initialize global variables
-CONFIG = None
-SESSION = None
-SID = None
+from datetime import datetime
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-#######################
-# AUXILIARY FUNNCTIONS:
-#######################
+# -----------------------------------------------------------------------------
+#                          VARIABLES GLOBALES
+# -----------------------------------------------------------------------------
+
+CONFIG = None        # Diccionario con info de config
+IMMICH_URL = None    # p.e. "http://192.168.1.100:2283"
+USERNAME = None      # Usuario (email) de Immich
+PASSWORD = None      # Contraseña de Immich
+SESSION_TOKEN = None # Token JWT devuelto tras login
+HEADERS = {}         # Cabeceras que usaremos en cada petición
+
+# Lista de extensiones “compatibles” (ajústalo a tus necesidades)
+ALLOWED_EXTENSIONS = {
+    '.jpg', '.jpeg', '.png', '.gif', '.heic', '.heif', '.bmp',
+    '.mp4', '.mov', '.avi', '.mkv', '.mts', '.m2ts', '.wmv'
+}
+
+# -----------------------------------------------------------------------------
+#                          LECTURA DE CONFIGURACIÓN
+# -----------------------------------------------------------------------------
+
 def read_immich_config(config_file='Immich.config', show_info=True):
-    global CONFIG
-    global NAS_IP
-    global USERNAME
-    global PASSWORD
-    global ROOT_PHOTOS_PATH
-    global IMMICH_URL
-    from LoggerConfig import LOGGER  # Importar logger dentro de la función
+    """
+    Lee la configuración (IMMICH_URL, USERNAME, PASSWORD) desde un fichero .config,
+    por ejemplo:
+
+        IMMICH_URL = http://192.168.1.100:2283
+        USERNAME   = user@example.com
+        PASSWORD   = 1234
+
+    Si no se encuentra, se solicitará por pantalla.
+    """
+    global CONFIG, IMMICH_URL, USERNAME, PASSWORD
 
     if CONFIG:
-        return CONFIG
+        return CONFIG  # Ya se ha leído previamente
 
     CONFIG = {}
-    LOGGER.info(f"INFO: Looking for Immich config file: '{config_file}'")
+    print(f"[INFO] Buscando archivo de configuración '{config_file}'...")
+
     try:
-        # Intentar abrir el archivo
         with open(config_file, 'r') as file:
             for line in file:
-                line = line.split('#')[0].split('//')[0].strip()  # Eliminar comentarios y espacios
+                # Eliminar comentarios y espacios extra
+                line = line.split('#')[0].split('//')[0].strip()
                 if line and '=' in line:
                     key, value = line.split('=', 1)
                     key = key.strip().upper()
                     value = value.strip()
-                    # Solo agregar si la clave no existe aún
                     if key not in CONFIG:
                         CONFIG[key] = value
+
     except FileNotFoundError:
-        LOGGER.warning(f"WARNING: The file {config_file} was not found. You must introduce required data manually...")
+        print(f"[WARNING] No se encontró el archivo {config_file}. Se pedirán datos por pantalla...")
 
-    # Extraer valores específicos
-    NAS_IP = CONFIG.get('NAS_IP')
-    USERNAME = CONFIG.get('USERNAME')
-    PASSWORD = CONFIG.get('PASSWORD')
-    ROOT_PHOTOS_PATH = CONFIG.get('ROOT_PHOTOS_PATH')
+    IMMICH_URL = CONFIG.get('IMMICH_URL', None)
+    USERNAME   = CONFIG.get('USERNAME', None)
+    PASSWORD   = CONFIG.get('PASSWORD', None)
 
-    # Verificación de parámetros obligatorios y solicitud por pantalla si faltan
-    if not NAS_IP:
-        LOGGER.warning(f"WARNING: NAS_IP not found. It will be requested on screen.")
-        CONFIG['NAS_IP'] = input("\nEnter NAS_IP: ")
+    # Si falta algún dato, lo pedimos por pantalla
+    if not IMMICH_URL:
+        CONFIG['IMMICH_URL'] = input("[PROMPT] Introduce IMMICH_URL (p.e. http://192.168.1.100:2283): ")
+        IMMICH_URL = CONFIG['IMMICH_URL']
     if not USERNAME:
-        LOGGER.warning(f"WARNING: USERNAME not found. It will be requested on screen.")
-        CONFIG['USERNAME'] = input("\nEnter USERNAME: ")
+        CONFIG['USERNAME'] = input("[PROMPT] Introduce USERNAME (email de Immich): ")
+        USERNAME = CONFIG['USERNAME']
     if not PASSWORD:
-        LOGGER.warning(f"WARNING: PASSWORD not found. It will be requested on screen.")
-        CONFIG['PASSWORD'] = input("\nEnter PASSWORD: ")
-    if not ROOT_PHOTOS_PATH:
-        LOGGER.warning(f"WARNING: ROOT_PHOTOS_PATH not found. It will be requested on screen.")
-        CONFIG['ROOT_PHOTOS_PATH'] = input("\nEnter ROOT_PHOTOS_PATH: ")
-
-    # Actualiza las variables globales de la conexión
-    NAS_IP = CONFIG['NAS_IP']
-    USERNAME = CONFIG['USERNAME']
-    PASSWORD = CONFIG['PASSWORD']
-    ROOT_PHOTOS_PATH = CONFIG['ROOT_PHOTOS_PATH']
-    IMMICH_URL = f"http://{NAS_IP}:5000"
+        CONFIG['PASSWORD'] = input("[PROMPT] Introduce PASSWORD: ")
+        PASSWORD = CONFIG['PASSWORD']
 
     if show_info:
-        # Muestra por pantalla las variables globales de la conexión
+        print("[INFO] Conexión a Immich:")
+        print(f"       IMMICH_URL : {IMMICH_URL}")
+        print(f"       USERNAME   : {USERNAME}")
         masked_password = '*' * len(PASSWORD)
-        LOGGER.info(f"INFO: NAS_IP           : {NAS_IP}")
-        LOGGER.info(f"INFO: USERNAME         : {USERNAME}")
-        LOGGER.info(f"INFO: PASSWORD         : {masked_password}")
-        LOGGER.info(f"INFO: ROOT_PHOTOS_PATH : {ROOT_PHOTOS_PATH}")
+        print(f"       PASSWORD   : {masked_password}")
 
     return CONFIG
 
+# -----------------------------------------------------------------------------
+#                          AUTENTICACIÓN / LOGOUT
+# -----------------------------------------------------------------------------
+
 def login_immich():
-    """Inicia sesión en el NAS y devuelve la sesión activa con el SID y la URL de Immich DSM."""
-    global SESSION
-    global SID
-    from LoggerConfig import LOGGER
+    """
+    Inicia sesión en Immich y obtiene un token JWT (SESSION_TOKEN).
+    Retorna True si la conexión fue exitosa, False en caso de error.
+    """
+    global SESSION_TOKEN, HEADERS
 
-    # Si ya tenemos una sesión iniciada, devolvemos esa sesión en lugar de crear otra nueva
-    if SESSION and SID:
-        return SESSION, SID
+    # Si ya hay un token y cabeceras, asumimos que estamos logueados
+    if SESSION_TOKEN and 'Authorization' in HEADERS:
+        return True
 
-    # Read Server Config
+    # Asegurarnos de que la config está leída
     read_immich_config()
 
-    SESSION = requests.Session()
-    url = f"{IMMICH_URL}/webapi/auth.cgi"
-    params = {
-        "api": "SYNO.API.Auth",
-        "version": "6",
-        "method": "login",
-        "account": USERNAME,
-        "passwd": PASSWORD,
-        "format": "sid",
+    url = f"{IMMICH_URL}/api/auth/login"
+    payload = {
+        "email": USERNAME,
+        "password": PASSWORD
     }
-    response = SESSION.get(url, params=params, verify=False)
-    response.raise_for_status()
-    data = response.json()
-    if data.get("success"):
-        SESSION.cookies.set("id", data["data"]["sid"])  # Asigna el SID como cookie
-        LOGGER.info(f"INFO: Authentication correct: Session iniciated sucssesfully")
-        SID = data["data"]["sid"]
-        return SESSION, SID
-    else:
-        LOGGER.error(f"ERROR: Unable to Authenticate in NAS with the providen data: {data}")
-        return -1,-1
 
-def logout_immich():
-    global SESSION
-    global SID
-    from LoggerConfig import LOGGER
-
-    if SESSION and SID:
-        url = f"{IMMICH_URL}/webapi/auth.cgi"
-        params = {
-            "api": "SYNO.API.Auth",
-            "version": "3",
-            "method": "logout",
-        }
-        response = SESSION.get(url, params=params, verify=False)
-        response.raise_for_status()
-        data = response.json()
-        if data.get("success"):
-            LOGGER.info(f"INFO: Session closed sucssesfully")
-            SESSION = None
-            SID = None
-        else:
-            LOGGER.error(f"ERROR: Unable to close session in immich NAS")
-
-def get_photos_root_folder_id():
-    """
-    Obtiene el folder_id de una carpeta en Immich Photos dado su ruta.
-
-    Args:
-        folder_path (str): Ruta de la carpeta en el NAS.
-
-    Returns:
-        int: El ID de la carpeta (folder_id).
-    """
-    url = f"{IMMICH_URL}/webapi/entry.cgi"
-    params = {
-        "api": "SYNO.Foto.Browse.Folder",
-        "method": "get",
-        "version": "2",
-    }
-    # Realizar la solicitud
-    response = SESSION.get(url, params=params, verify=False)
-    response.raise_for_status()
-    data = response.json()
-    if not data.get("success"):
-        LOGGER.error(f"ERROR: Cannot obtain Photos Root Folder ID due to error in API call.")
-        sys.exit(-1)
-    # Extraer el folder_id
-    folder_name = data["data"]["folder"]["name"]
-    folder_id = str(data["data"]["folder"]["id"])
-    if not folder_id or folder_name!="/":
-        LOGGER.error(f"ERROR: Cannot obtain Photos Root Folder ID.")
-        sys.exit(-1)
-    return folder_id
-
-
-def get_folder_id(search_in_folder_id, folder_name):
-    """
-    Obtiene el folder_id de una carpeta en Immich Photos dado el id de la carpeta en la que queremos buscar y el nombre de la carpeta a buscar.
-
-    Args:
-        search_in_folder_id (str): id de Immich Photos con la carpeta en la que vamos a buscar la subcarpeta folder_name
-        folder_name (str): Nombre de la carpeta que queremos buscar en la estructura de carpetas de Immich Photos.
-
-    Returns:
-        int: El ID de la carpeta (folder_id).
-    """
-    url = f"{IMMICH_URL}/webapi/entry.cgi"
-
-    # First, get folder_name for search_in_folder_id
-    params = {
-        "api": "SYNO.Foto.Browse.Folder",
-        "method": "get",
-        "version": "2",
-        "id": search_in_folder_id,
-    }
-    # Realizar la solicitud
-    response = SESSION.get(url, params=params, verify=False)
-    data = response.json()
-    if not data.get("success"):
-        LOGGER.error(f"ERROR: Cannot obtain name for folder ID'{search_in_folder_id}' due to error in API call.")
-        sys.exit(-1)
-    search_in_folder_name = data["data"]["folder"]["name"]
-
-    offset = 0
-    limit = 5000
-    subfolders_dict = []
-    folder_id = None
-    while True:
-        params = {
-            "api": "SYNO.Foto.Browse.Folder",
-            "method": "list",
-            "version": "2",
-            "id": search_in_folder_id,
-            "offset": offset,
-            "limit": limit
-        }
-        # Realizar la solicitud
-        response = SESSION.get(url, params=params, verify=False)
-        response.raise_for_status()
-        data = response.json()
-        if not data.get("success"):
-            LOGGER.error(f"ERROR: Cannot obtain ID for folder '{folder_name}' due to error in API call.")
-            sys.exit(-1)
-        # Construimos un diccionario con todos los IDs de todas las subcarpetas encontradas en albums_folder_id
-        subfolders_dict = {item["name"].replace(search_in_folder_name,'').replace('/',''): str(item["id"]) for item in data["data"]["list"] if "id" in item}
-
-        # Verificar si se han devuelto menos elementos que el límite o si la carpeta del album a crear ya se ha encontrado
-        if len(data["data"]["list"]) < limit or folder_name in subfolders_dict.keys():
-            break
-        # Incrementar el offset para la siguiente página
-        offset += limit
-
-    # Comprobamos si se ha encontrado el id para la carpeta que estamos buscando y si se ha encontrado lo devolvemos
-    folder_id = subfolders_dict.get(folder_name)
-    if folder_id:
-        return folder_id
-    # Si no se ha encontrado, iteramos recursivamente por todas las subcarpetas y si se encuentra en alguna lo devolvemos
-    else:
-        for subfolder_id in subfolders_dict.values():
-            folder_id = get_folder_id(search_in_folder_id=subfolder_id, folder_name=folder_name)
-            if folder_id:
-                return folder_id
-        # Si después de iterar por todas las subcarpetas recursivamente, seguimos sin encontrarlo, entonces devolvemos None
-        return folder_id
-
-def list_albums():
-    """Lists all albums in Immich Photos."""
-    url = f"{IMMICH_URL}/webapi/entry.cgi"
-    offset = 0
-    limit = 5000
-    albums_dict = []
-    while True:
-        params = {
-            "api": "SYNO.Foto.Browse.NormalAlbum",
-            "method": "list",
-            "version": "3",
-            "offset": offset,
-            "limit": limit
-        }
-        response = SESSION.get(url, params=params, verify=False)
-        response.raise_for_status()
-        data = response.json()
-        if data["success"]:
-            # Add IDs filtered by supported extensions
-            albums_dict = {str(item["id"]): item["name"] for item in data["data"]["list"] if "id" in item}
-        else:
-            LOGGER.error(f"ERROR: Failed to list albums: ", data)
-            return -1
-        # Check if fewer items than the limit were returned
-        if len(data["data"]["list"]) < limit:
-            break
-        # Increment offset for the next page
-        offset += limit
-    return albums_dict
-
-def get_album_items_count(album_id, album_name):
-    """Gets the number of items in an album."""
-    url = f"{IMMICH_URL}/webapi/entry.cgi"
-    params = {
-        "api": "SYNO.Foto.Browse.Item",
-        "method": "count",
-        "version": "4",
-        "album_id": album_id,
-    }
-    response = SESSION.get(url, params=params, verify=False)
-    response.raise_for_status()
-    data = response.json()
-    if not data["success"]:
-        LOGGER.warning(f"WARNING: Cannot count files for album: '{album_name}' due to API call error. Skipped! ")
-        return -1
-    num_files = data["data"]["count"]
-    return num_files
-
-def delete_album(album_id, album_name):
-    """Deletes an album in Immich Photos."""
-    url = f"{IMMICH_URL}/webapi/entry.cgi"
-    params = {
-        "api": "SYNO.Foto.Browse.Album",
-        "method": "delete",
-        "version": "3",
-        "id": f"[{album_id}]",
-        "name": album_name,
-    }
-    response = SESSION.get(url, params=params, verify=False)
-    response.raise_for_status()
-    data = response.json()
-    if not data["success"]:
-        LOGGER.warning(f"WARNING: Could not delete album {album_id}: ", data)
-
-def get_album_items_size(album_id, album_name):
-    """Gets the number of items in an album."""
-    url = f"{IMMICH_URL}/webapi/entry.cgi"
-    offset = 0
-    limit = 5000
-    album_size = 0
-    album_items = []
-    while True:
-        params = {
-            "api": "SYNO.Foto.Browse.Item",
-            "method": "list",
-            "version": "4",
-            "album_id": album_id,
-            "offset": offset,
-            "limit": limit
-        }
-        response = SESSION.get(url, params=params, verify=False)
-        response.raise_for_status()
-        data = response.json()
-        if not data["success"]:
-            LOGGER.warning(f"WARNING: Cannot list files for album: '{album_name}' due to API call error. Skipped! ")
-            return -1
-        album_items.append(data["data"]["list"])
-        # Check if fewer items than the limit were returned
-        if len(data["data"]["list"]) < limit:
-            break
-        # Increment offset for the next page
-        offset += limit
-    for set in album_items:
-        for item in set:
-            album_size += item.get("filesize")
-    return album_size
-
-#######################
-# END OF AUX FUNCTIONS
-#######################
-
-# Function immich_extract_albums()
-def immich_extract_albums(albums_name='ALL'):
-    #######################
-    # AUXILIARY FUNCTIONS:
-    #######################
-    # Function to list own and shared albums
-    def list_own_and_shared_albums():
-        from LoggerConfig import LOGGER
-        login_immich()
-        url = f"{IMMICH_URL}/webapi/entry.cgi"
-        offset = 0
-        limit = 5000
-        album_list = []
-        while True:
-            params = {
-                'api': 'SYNO.Foto.Browse.Album',
-                'version': '4',
-                'method': 'list',
-                'category': 'normal_share_with_me',
-                'sort_by': 'start_time',
-                'sort_direction': 'desc',
-                'additional': '["sharing_info", "thumbnail"]',
-                "offset": offset,
-                "limit": limit
-            }
-            try:
-                response = SESSION.get(url, params=params, verify=False)
-                data = response.json()
-                if not data.get("success"):
-                    LOGGER.error("ERROR: Failed to list own albums:", data)
-                    return []
-                album_list.append(data["data"]["list"])
-                # Check if fewer items than the limit were returned
-                if len(data["data"]["list"]) < limit:
-                    break
-                # Increment offset for the next page
-                offset += limit
-            except Exception as e:
-                LOGGER.error("ERROR: Exception while listing own albums:", e)
-                return []
-        return album_list[0]
-    # Function to list photos in an album
-    def list_album_photos(album_name, album_id):
-        from LoggerConfig import LOGGER
-        login_immich()
-        url = f"{IMMICH_URL}/webapi/entry.cgi"
-        offset = 0
-        limit = 5000
-        album_items = []
-        while True:
-            params = {
-                'api': 'SYNO.Foto.Browse.Item',
-                'version': '4',
-                'method': 'list',
-                'album_id': album_id,
-                "offset": offset,
-                "limit": limit
-            }
-            try:
-                response = SESSION.get(url, params=params, verify=False)
-                data = response.json()
-                if not data.get("success"):
-                    LOGGER.error(f"ERROR: Failed to list photos in the album '{album_name}'")
-                    return []
-                album_items.append(data["data"]["list"])
-                # Check if fewer items than the limit were returned
-                if len(data["data"]["list"]) < limit:
-                    break
-                # Increment offset for the next page
-                offset += limit
-            except Exception as e:
-                LOGGER.error(f"ERROR: Exception while listing photos in the album '{album_name}'", e)
-                return []
-        return album_items[0]
-    # Function to obtain or create a folder
-    def obtain_or_create_folder(folder_name, parent_folder_id=None):
-        from LoggerConfig import LOGGER
-        login_immich()
-        url = f"{IMMICH_URL}/webapi/entry.cgi"
-        # If no parent folder ID is provided, use the root folder of Immich Photos
-        if not parent_folder_id:
-            photos_root_folder_id = get_photos_root_folder_id()
-            parent_folder_id = photos_root_folder_id
-            LOGGER.info(f"INFO: Parent Folder ID not provided, using Immich Photos root folder ID: '{photos_root_folder_id}' as parent folder.")
-        folder_id = get_folder_id(search_in_folder_id=parent_folder_id, folder_name=folder_name)
-        # If the folder already exists, return its ID
-        if folder_id:
-            LOGGER.warning(f"WARNING: The folder '{folder_name}' already exists.")
-            return folder_id
-        # If the folder does not exist, create it
-        else:
-            # Create the folder
-            params = {
-                'api': 'SYNO.Foto.Browse.Folder',
-                'version': '1',
-                'method': 'create',
-                'target_id': parent_folder_id,
-                'name': folder_name
-            }
-            response = SESSION.get(url, params=params, verify=False)
-            data = response.json()
-            if data.get("success"):
-                LOGGER.info(f"INFO: Folder '{folder_name}' successfully created.")
-                return data['data']['folder']['id']
-            else:
-                LOGGER.error(f"ERROR: Failed to create the folder: '{folder_name}'")
-                return None
-    # Function to copy photos to a folder
-    def extract_photos_to_folder(folder_id, folder_name, photos_list):
-        from LoggerConfig import LOGGER
-        from math import ceil
-        login_immich()
-        url = f"{IMMICH_URL}/webapi/entry.cgi"
-        # Split the photo list into batches of 100
-        batch_size = 100
-        total_batches = ceil(len(photos_list) / batch_size)
-        try:
-            for i in range(total_batches):
-                # Get the current batch
-                batch = photos_list[i * batch_size:(i + 1) * batch_size]
-                items_id = ','.join([str(photo['id']) for photo in batch])
-                params_copy = {
-                    'api': 'SYNO.Foto.BackgroundTask.File',
-                    'version': '1',
-                    'method': 'copy',
-                    'target_folder_id': folder_id,
-                    "item_id": f"[{items_id}]",
-                    "folder_id": "[]",
-                    'action': 'skip'
-                }
-                response = SESSION.get(url, params=params_copy, verify=False)
-                data = response.json()
-                if data['success']:
-                    LOGGER.info(f"INFO: Batch {i + 1}/{total_batches} of photos successfully copied to the folder '{folder_name}' (ID:{folder_id}).")
-                else:
-                    LOGGER.error(f"ERROR: Failed to copy batch {i + 1}/{total_batches} of photos: {data}")
-            extracted_photos = len(photos_list)
-            return extracted_photos
-        except Exception as e:
-            LOGGER.error(f"ERROR: Exception while copying photo batches: {e}")
-
-    #######################
-    # END OF AUX FUNCTIONS
-    #######################
-    from LoggerConfig import LOGGER
-    # Variables to return
-    albums_extracted = 0
-    photos_extracted = 0
-    # Create or obtain the main folder 'Albums_Immich_Photos'
-    main_folder = "Albums_Immich_Photos"
-    main_folder_id = obtain_or_create_folder(main_folder)
-    if not main_folder_id:
-        LOGGER.error(f"ERROR: Failed to obtain or create the main folder '{main_folder}'.")
-        return albums_extracted, photos_extracted
-    # List own and shared albums
-    all_albums = list_own_and_shared_albums()
-    # Determine the albums to copy
-    if isinstance(albums_name, str) and albums_name.strip().upper() == 'ALL':
-        albums_to_copy = all_albums
-        LOGGER.info(f"INFO: All albums ({len(albums_to_copy)}) from Immich Photos will be copied to the folder '{main_folder}...")
-    else:
-        # Ensure album_name is a list if it's not a string
-        if isinstance(albums_name, str):
-            # Split album names by commas or spaces
-            albums_names = [name.strip() for name in albums_name.replace(',', ' ').split() if name.strip()]
-        elif isinstance(albums_name, list):
-            # Flatten and clean up the list, splitting on commas within each item
-            albums_names = []
-            for item in albums_name:
-                if isinstance(item, str):
-                    albums_names.extend([name.strip() for name in item.split(',') if name.strip()])
-        else:
-            LOGGER.error("ERROR: The parameter albums_name must be a string or a list of strings.")
-            return albums_extracted, photos_extracted
-
-        albums_to_copy = []
-        for albums_name in albums_names:
-            # Search for the album by name (case-insensitive)
-            found_album = next((album for album in all_albums if album['name'].strip().lower() == albums_name.lower()), None)
-
-            if found_album:
-                albums_to_copy.append(found_album)
-            else:
-                LOGGER.warning(f"WARNING: No album found with the name '{albums_name}'.")
-
-        if not albums_to_copy:
-            LOGGER.error("ERROR: No albums found with the provided names.")
-            return albums_extracted, photos_extracted
-        LOGGER.info(f"INFO: {len(albums_to_copy)} albums from Immich Photos will be copied to the folder '{main_folder}...")
-    albums_extracted = len(albums_to_copy)
-    # Iterate over each album to copy
-    for album in albums_to_copy:
-        albums_name = album['name']
-        album_id = album['id']
-        LOGGER.info(f"INFO: Processing album: '{albums_name}' (ID: {album_id})")
-        # List photos in the album
-        photos = list_album_photos(albums_name, album_id)
-        LOGGER.info(f"INFO: Number of photos in the album '{albums_name}': {len(photos)}")
-        if not photos:
-            LOGGER.warning(f"WARNING: No photos to copy in the album '{albums_name}'.")
-            continue
-        # Create or obtain the destination folder for the album within 'Albums_Immich_Photos'
-        target_folder_name = f'{albums_name}'
-        target_folder_id = obtain_or_create_folder(target_folder_name, parent_folder_id=main_folder_id)
-        if not target_folder_id:
-            LOGGER.warning(f"WARNING: Failed to obtain or create the destination folder for the album '{albums_name}'.")
-            continue
-        # Copy the photos to the destination folder
-        photos_extracted += extract_photos_to_folder(target_folder_id, target_folder_name, photos)
-    LOGGER.info(f"INFO: Album(s) Extracted Successfully. You can find them in folder '{os.path.join(ROOT_PHOTOS_PATH, main_folder)}'")
-    return albums_extracted, photos_extracted
-
-# Function immich_create_albums()
-def immich_create_albums(albums_folder):
-    """
-    Crea álbumes en Immich Photos basados en las carpetas en el NAS.
-
-    Args:
-        albums_folder (str): Ruta base en el NAS donde están las carpetas de los álbumes.
-
-    Returns:
-        None
-    """
-    # Importar logger e iniciar sesión en el NAS:
-    from LoggerConfig import LOGGER
-    login_immich()
-
-    #######################
-    # AUXILIARY FUNNCTIONS:
-    #######################
-    def add_photos_to_album(folder_id, album_name):
-        """Añade fotos de una carpeta a un álbum."""
-        url = f"{IMMICH_URL}/webapi/entry.cgi"
-
-        # Primero nos aseguramos de que la carpeta folder_id tenga al menos 1 fichero soportado indexado
-        params = {
-            "api": "SYNO.Foto.Browse.Item",
-            "method": "count",
-            "version": "4",
-            "folder_id": folder_id,
-        }
-        response = SESSION.get(url, params=params, verify=False)
-        response.raise_for_status()
-        data = response.json()
-        if not data["success"]:
-            LOGGER.warning(f"WARNING: Cannot count files in folder: '{album_name}' due to API call error. Skipped! ")
-            return -1
-
-        # Comprobar si hay fotos para añadir
-        num_files = data["data"]["count"]
-        if not num_files > 0:
-            LOGGER.warning(f"WARNING: Cannot find supported files in folder: '{album_name}'. Skipped! ")
-            return -1
-
-        # Obtenemos los ids de todos los ficheros de medios encontrados en folder_id
-        file_ids = []
-        offset = 0
-        limit = 5000
-        while True:
-            params = {
-                "api": "SYNO.Foto.Browse.Item",
-                "method": "list",
-                "version": "4",
-                "folder_id": folder_id,
-                "offset": offset,
-                "limit": limit
-            }
-            # Realizar la solicitud
-            response = SESSION.get(url, params=params, verify=False)
-            response.raise_for_status()
-            data = response.json()
-            if not data.get("success"):
-                LOGGER.warning(f"WARNING: Cannot list files in folder: '{album_name}' due to API call error. Skipped! ")
-                return -1
-            file_ids.extend([str(item["id"]) for item in data["data"]["list"] if "id" in item])
-            # Verificar si se han devuelto menos elementos que el límite
-            if len(data["data"]["list"]) < limit:
-                break
-            # Incrementar el offset para la siguiente página
-            offset += limit
-
-        # Ahora creamos el álbum con el mismo nombre que tiene su carpeta siempre y cuando la carpeta contenga ficheros soportados
-        if not len(file_ids) > 0:
-            LOGGER.warning(f"WARNING: Cannot find supported files in folder: '{album_name}'. Skipped! ")
-            return -1
-        params = {
-            "api": "SYNO.Foto.Browse.NormalAlbum",
-            "method": "create",
-            "version": "3",
-            "name": f'"{album_name}"',
-        }
-        response = SESSION.get(url, params=params, verify=False)
-        response.raise_for_status()
-        data = response.json()
-        if not data["success"]:
-            LOGGER.error(f"ERROR: Unable to create album '{album_name}': {data}")
-            return -1
-        album_id = data["data"]["album"]["id"]
-        LOGGER.info(f"INFO: Álbum '{album_name}' created with ID: {album_id}.")
-
-        # Finalmente, añadimos los ficheros al álbum en bloques de 100
-        batch_size = 100
-        total_added = 0
-
-        for i in range(0, len(file_ids), batch_size):
-            batch = file_ids[i:i + batch_size]  # Dividir en bloques de 100
-            items = ",".join(batch)  # Envía las fotos como una lista separada por comas
-            params = {
-                "api": "SYNO.Foto.Browse.NormalAlbum",
-                "method": "add_item",
-                "version": "1",
-                "id": album_id,
-                "item": f"[{items}]",
-            }
-
-            response = SESSION.get(url, params=params, verify=False)
-            response.raise_for_status()
-            data = response.json()
-
-            if not data["success"]:
-                LOGGER.warning(f"WARNING: Unable to add photos to album '{album_name}' (Batch {i // batch_size + 1}). Skipped!")
-                continue
-
-            total_added += len(batch)
-
-        return total_added
-
-    #######################
-    # END OF AUX FUNNCTIONS
-    #######################
-
-    # Check if albums_folder is inside ROOT_PHOTOS_PATH (This is necessary to process files within Albums with the indexed IDs.
-    albums_folder = Utils.remove_quotes(albums_folder)
-    if albums_folder.endswith(os.path.sep):
-        albums_folder=albums_folder[:-1]
-    if not os.path.isdir(albums_folder):
-        LOGGER.error(f"ERROR: Cannot find Album folder '{albums_folder}'. Exiting...")
-        sys.exit(-1)
-    LOGGER.info(f"INFO: Albums Folder Path: '{albums_folder}")
-    albums_folder_full_path = os.path.realpath(albums_folder)
-    ROOT_PHOTOS_PATH_full_path = os.path.realpath(ROOT_PHOTOS_PATH)
-    ROOT_PHOTOS_PATH_full_path = Utils.remove_server_name(ROOT_PHOTOS_PATH_full_path)
-    albums_folder_full_path = Utils.remove_server_name(albums_folder_full_path)
-    if ROOT_PHOTOS_PATH_full_path not in albums_folder_full_path:
-        LOGGER.error(f"ERROR: Albums folder: '{albums_folder_full_path}' should be inside ROOT_PHOTOS_PATH: '{ROOT_PHOTOS_PATH_full_path}'")
-        sys.exit(-1)
-
-    LOGGER.info(f"INFO: Reindexing Immich Photos database before to add content to it...")
-    if wait_for_reindexing_immich_photos():
-    # if True:
-        # El proceso consta de 4 pasos:
-        # 1. Primero obtenemos el id de la carpeta raiz de Immich Photos para el usuario autenticado
-        photos_root_folder_id = get_photos_root_folder_id ()
-        LOGGER.info(f"INFO: Immich Photos root folder ID: {photos_root_folder_id}")
-
-        # 2. Luego buscamos el id de la carpeta que contiene los albumes que queremos añadir
-        albums_folder_relative_path = os.path.relpath(albums_folder_full_path, ROOT_PHOTOS_PATH_full_path)
-        albums_folder_relative_path = "/"+os.path.normpath(albums_folder_relative_path).replace("\\", "/")
-        albums_folder_id = get_folder_id (search_in_folder_id=photos_root_folder_id, folder_name=os.path.basename(albums_folder))
-        LOGGER.info(f"INFO: Albums folder ID: {albums_folder_id}")
-        if not albums_folder_id:
-            LOGGER.error(f"ERROR: Cannot obtain ID for folder '{albums_folder_relative_path}/{albums_folder}'. Probably the folder has not been indexed yet. Try to force Indexing and try again.")
-            sys.exit(-1)
-
-        # Recorrer carpetas y crear álbumes
-        albums_crated = 0
-        albums_skipped = 0
-        photos_added = 0
-        LOGGER.info(f"INFO: Processing all Albums in folder '{albums_folder}' and Creating a new Album in Immich Photos with the same Folder Name...")
-        for album_folder in os.listdir(albums_folder):
-            # LOGGER.info(f"INFO: Processing Album: '{album_folder}'")
-
-            # 3. A continuación, por cada carpeta album_folder, buscamos el individual_folder_id dentro de la carpeta donde están los albumes que queremos crear
-            individual_album_folder_id = get_folder_id (search_in_folder_id=albums_folder_id, folder_name=os.path.basename(album_folder))
-            if not individual_album_folder_id:
-                LOGGER.error(f"ERROR: Cannot obtain ID for folder '{albums_folder_relative_path}/{album_folder}'. Probably the folder has not been indexed yet. Skipped this Album creation.")
-                albums_skipped += 1
-                continue
-
-            # 4. Por último añadimos todos los ficheros de fotos o videos encontrados en la carpeta del álbum, al álbum recién creado
-            res = add_photos_to_album(folder_id=individual_album_folder_id, album_name=album_folder)
-            if res==-1:
-                albums_skipped += 1
-            else:
-                albums_crated += 1
-                photos_added += res
-
-    LOGGER.info(f"INFO: Albums creation on Immich Photos Finished!.")
-    logout_immich()
-    return albums_crated, albums_skipped, photos_added
-
-
-# Function immich_delete_empty_albums()
-def immich_delete_empty_albums():
-    """
-    Elimina todos los álbumes vacíos en Immich Photos.
-
-    Args:
-        immich_url (str): Dirección IP o URL del NAS (ej: https://192.168.1.100:5001).
-        user (str): Nombre de usuario para autenticar con Immich.
-        password (str): Contraseña del usuario.
-    """
-    # Importar logger e iniciar sesión en el NAS:
-    from LoggerConfig import LOGGER
-    login_immich()
-
-    # List albums and check which ones are empty
-    albums_dict = list_albums()
-    albums_deleted = 0
-    if not albums_dict == -1:
-        LOGGER.info(f"INFO: Looking for Empty Albums in Immich Photos...")
-        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, desc=f"INFO: Processing Albums", unit=" albums" ):
-            item_count = get_album_items_count(album_id=album_id, album_name=album_name)
-            if item_count == 0:
-                LOGGER.info(f"INFO: Deleting empty album: '{album_name}' (ID: {album_id})")
-                delete_album(album_id=album_id, album_name=album_name)
-                albums_deleted += 1
-    LOGGER.info(f"INFO: Deleting empty albums process finished!")
-    logout_immich()
-    return albums_deleted
-
-# Function immich_delete_duplicates_albums()
-def immich_delete_duplicates_albums():
-    """
-    Elimina todos los álbumes duplicados en Immich Photos.
-
-    Args:
-        immich_url (str): Dirección IP o URL del NAS (ej: https://192.168.1.100:5001).
-        user (str): Nombre de usuario para autenticar con Immich.
-        password (str): Contraseña del usuario.
-    """
-    # Importar logger e iniciar sesión en el NAS:
-    from LoggerConfig import LOGGER
-    login_immich()
-
-    # List albums and check which ones are empty
-    albums_dict = list_albums()
-    albums_deleted = 0
-    albums_data = {}
-    if not albums_dict == -1:
-        LOGGER.info(f"INFO: Looking for Duplicates Albums in Immich Photos...")
-        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, desc=f"INFO: Processing Albums", unit=" albums" ):
-            item_count = get_album_items_count(album_id=album_id, album_name=album_name)
-            item_size = get_album_items_size(album_id=album_id, album_name=album_name)
-            albums_data.setdefault((item_count, item_size), []).append((album_id, album_name))
-
-        ids_to_delete = {}
-        for (item_count, item_size) in albums_data.keys():
-            if len(albums_data[(item_count, item_size)]) > 1:
-                duplicates_set = albums_data[(item_count, item_size)]
-                min_id = 0
-                min_name = ""
-                for album_id, album_name in duplicates_set:
-                    if min_id==0:
-                        min_id = album_id
-                        min_name = album_name
-                    elif int(album_id) < int(min_id):
-                        ids_to_delete.setdefault(min_id, []).append(min_name)
-                        min_id = album_id
-                        min_name = album_name
-                    else:
-                        ids_to_delete.setdefault(album_id, []).append(album_name)
-
-        for album_id, album_name in ids_to_delete.items():
-            LOGGER.info(f"INFO: Deleting duplicated album: '{album_name}' (ID: {album_id})")
-            delete_album(album_id=album_id, album_name=album_name)
-            albums_deleted += 1
-    LOGGER.info(f"INFO: Deleting duplicates albums process finished!")
-    logout_immich()
-    return albums_deleted
-
-
-# Function start_reindex_immich_photos_with_api()
-def start_reindex_immich_photos_with_api(type='basic'):
-    """
-    Inicia la indexación de una carpeta en Immich Photos.
-
-    Args:
-        type (str): 'basic' or 'thumbnail' 
-    """
-    from LoggerConfig import LOGGER  # Importación local del logger
-
-    login_immich()
-
-    url = f"{IMMICH_URL}/webapi/entry.cgi"
-    params = {
-        "api": "SYNO.Foto.Index",
-        "version": 1,
-        "method": "reindex",
-        "runner": USERNAME,
-        "type": type
-    }
     try:
-        result = SESSION.get(url, params=params, verify=False).json()
-        if result.get("success"):
-            if type=='basic':
-                LOGGER.info(f"INFO: Reindexing started in Immich Photos database for user: '{USERNAME}'.")
-                LOGGER.info(f"INFO: This process may take several minutes or even hours to finish (depending of number of files to index). Please be patient...")
-        else:
-            if result.get("error").get("code") == 105:
-                LOGGER.error(f"ERROR: The user '{USERNAME}' does not have sufficient privileges to start ReIndexing Services... You have to wait until the System Indexes the folder by itself before to add its content to Immich Photos Albums.")
-            else:
-                LOGGER.error(f"ERROR: Error Starting Reindex: {result.get('error')}")
-                start_reindex_immich_photos_with_command(type=type)
-        return result
-
+        response = requests.post(url, json=payload, verify=False)
+        response.raise_for_status()  # lanza excepción si 4xx o 5xx
     except Exception as e:
-        LOGGER.error(f"Error: Connection error: {str(e)}")
-        return {"success": False, "error": str(e)}
-
-# Function start_reindex_immich_photos_with_command()
-def start_reindex_immich_photos_with_command(type='basic'):
-    """
-    Inicia la indexación de una carpeta en Immich Photos.
-
-    Args:
-        type (str): 'basic' or 'thumbnail'
-    """
-    from LoggerConfig import LOGGER  # Importación local del logger
-
-    command = [
-            'sudo',  # Ejecutar con privilegios de administrador
-            'synowebapi',
-            '--exec',
-            'api=SYNO.Foto.Index',
-            'method=reindex',
-            'version=1',
-            f'runner={USERNAME}',
-            f'type={type}'
-        ]
-    comando = " ".join(command)
-    if Utils.run_from_immich():
-        try:
-            resultado = subprocess.run(command, capture_output=True, text=True, check=True)
-            if type=='basic':
-                LOGGER.info(f"INFO: Reindexing started in Immich Photos database for user: '{USERNAME}'.")
-                LOGGER.info(f"INFO: This process may take several minutes or even hours to finish (depending of number of files tonindex). Please be patient...")
-                LOGGER.info(f"INFO: Starting Reindex with command: '{comando}'")
-        except subprocess.CalledProcessError as e:
-            LOGGER.error(f"ERROR: Execute Reindexing with command '{comando}'")
-            LOGGER.error(e.stderr)
-    else:
-        LOGGER.error(f"ERROR: Execute Reindexing with command '{comando}' is only available if you run the Script from a Immich NAS terminal.")
-
-# Function wait_for_reindexing_immich_photos()
-def wait_for_reindexing_immich_photos():
-    """
-    Espera hasta que la indexación haya terminado, consultando el estado cada 10 segundos.
-    Muestra el progreso de la indexación en el log.
-    """
-    from LoggerConfig import LOGGER  # Importación local del logger
-    import time  # Importación local de time
-    login_immich()
-    
-    start_reindex_immich_photos_with_api(type='basic')
-    # start_reindex_immich_photos_with_command(type='basic')
-
-    url = f"{IMMICH_URL}/webapi/entry.cgi"
-    params = {
-        "api": "SYNO.Foto.Index",
-        "version": 1,
-        "method": "get"
-    }
-    time.sleep(5) # Espera 5 segundos para la primera consulta para que de tiempo a calcular los ficheros a indexar.
-    result = SESSION.get(url, params=params, verify=False).json()
-    if result.get("success"):
-        files_to_index = int(result["data"].get("basic"))
-        remaining_thumbnails_previous_step = files_to_index
-
-        with tqdm(total=files_to_index, smoothing=0.8,  desc=f"INFO: Reindexing files'", unit=" files") as pbar:
-            while True:
-                result = SESSION.get(url, params=params, verify=False).json()
-                if result.get("success"):
-                    remaining_files = int(result["data"].get("basic"))
-                    if remaining_files>files_to_index:
-                        files_to_index=remaining_files
-                        remaining_thumbnails_previous_step = files_to_index
-                        pbar.total = files_to_index
-                    step_indexed = remaining_thumbnails_previous_step-remaining_files
-                    remaining_thumbnails_previous_step=remaining_files
-                    pbar.update(step_indexed)
-                    if int(remaining_files) == 0:
-                        start_reindex_immich_photos_with_api(type='thumbnail')
-                        # start_reindex_immich_photos_with_command(type='thumbnail')
-                        time.sleep(10)
-                        return True
-                    else:
-                        time.sleep(5) # Espera 5 segundos antes de volver a consultar
-                else:
-                    LOGGER.error("ERROR: Error geting Reindex Status.")
-                    return False
-    else:
-        LOGGER.error("ERROR: Error geting Reindex Status.")
+        print(f"[ERROR] Excepción al hacer login en Immich: {str(e)}")
         return False
 
+    data = response.json()
+    SESSION_TOKEN = data.get("accessToken", None)
+    if not SESSION_TOKEN:
+        print(f"[ERROR] No se obtuvo 'accessToken' en la respuesta: {data}")
+        return False
+
+    # Cabeceras base para nuestras peticiones
+    HEADERS = {
+        "Authorization": f"Bearer {SESSION_TOKEN}",
+        "Content-Type": "application/json"
+    }
+
+    print("[INFO] Autenticación correcta. Token obtenido.")
+    return True
+
+def logout_immich():
+    """
+    "Cierra" la sesión local, descartando el token.
+    (Actualmente Immich no provee un endpoint /logout oficial).
+    """
+    global SESSION_TOKEN, HEADERS
+    SESSION_TOKEN = None
+    HEADERS = {}
+    print("[INFO] Sesión cerrada localmente (JWT descartado).")
+
+# -----------------------------------------------------------------------------
+#                          ÁLBUMES
+# -----------------------------------------------------------------------------
+
+def list_albums():
+    """
+    Devuelve la lista de álbumes del usuario actual en Immich.
+    Cada elemento es un dict con al menos:
+        {
+          "id": <str>,
+          "albumName": <str>,
+          "ownerId": <str>,
+          "assets": [ ... ],
+          ...
+        }
+    """
+    if not login_immich():
+        return []
+    url = f"{IMMICH_URL}/api/album"
+    try:
+        response = requests.get(url, headers=HEADERS, verify=False)
+        response.raise_for_status()
+        albums_data = response.json()  # una lista
+        return albums_data
+    except Exception as e:
+        print(f"[ERROR] Error al listar álbumes: {e}")
+        return []
+
+def get_album_items_count(album_id):
+    """
+    Devuelve la cantidad de assets (fotos/videos) que hay en un álbum concreto.
+    """
+    if not login_immich():
+        return 0
+    url = f"{IMMICH_URL}/api/album/{album_id}/assets"
+    try:
+        response = requests.get(url, headers=HEADERS, verify=False)
+        response.raise_for_status()
+        data = response.json()  # lista de assets
+        return len(data)
+    except Exception as e:
+        print(f"[WARNING] No se pudieron contar assets del álbum ID={album_id}: {e}")
+        return 0
+
+def create_album(album_name):
+    """
+    Crea un álbum en Immich con nombre 'album_name'.
+    Devuelve el ID del álbum creado o None si falla.
+    """
+    if not login_immich():
+        return None
+    url = f"{IMMICH_URL}/api/album"
+    payload = {"albumName": album_name}
+    try:
+        response = requests.post(url, headers=HEADERS, json=payload, verify=False)
+        response.raise_for_status()
+        data = response.json()
+        album_id = data.get("id")
+        print(f"[INFO] Álbum '{album_name}' creado con ID={album_id}.")
+        return album_id
+    except Exception as e:
+        print(f"[ERROR] No se pudo crear el álbum '{album_name}': {e}")
+        return None
+
+def delete_album(album_id):
+    """
+    Elimina un álbum de Immich por su ID. Devuelve True si se eliminó, False si no.
+    """
+    if not login_immich():
+        return False
+    url = f"{IMMICH_URL}/api/album/{album_id}"
+    try:
+        response = requests.delete(url, headers=HEADERS, verify=False)
+        if response.status_code == 204:
+            print(f"[INFO] Álbum ID={album_id} eliminado.")
+            return True
+        else:
+            print(f"[WARNING] No se pudo eliminar el álbum {album_id}. Status: {response.status_code}")
+            return False
+    except Exception as e:
+        print(f"[ERROR] Error al eliminar álbum {album_id}: {e}")
+        return False
+
+def add_assets_to_album(album_id, asset_ids):
+    """
+    Añade la lista de asset_ids (fotos/videos ya subidos) al álbum con album_id.
+    Retorna cuántos assets se añadieron realmente.
+    """
+    if not login_immich():
+        return 0
+    if not asset_ids:
+        return 0
+
+    url = f"{IMMICH_URL}/api/album/{album_id}/assets"
+    payload = {"assetIds": asset_ids}
+    try:
+        response = requests.post(url, headers=HEADERS, json=payload, verify=False)
+        response.raise_for_status()
+        data = response.json()
+        # data = { "successfullyAdded": int, "alreadyInAlbum": int }
+        return data.get("successfullyAdded", 0)
+    except Exception as e:
+        print(f"[ERROR] No se pudo añadir assets al álbum {album_id}: {e}")
+        return 0
+
+# -----------------------------------------------------------------------------
+#                          ASSETS (FOTOS/VIDEOS)
+# -----------------------------------------------------------------------------
+
+def list_all_assets():
+    """
+    Devuelve una lista de TODOS los assets (fotos, vídeos) del usuario en Immich.
+    Cada ítem incluye metadata como { id, deviceAssetId, fileCreatedAt, exifInfo, etc. }
+    """
+    if not login_immich():
+        return []
+    url = f"{IMMICH_URL}/api/asset"
+    try:
+        response = requests.get(url, headers=HEADERS, verify=False)
+        response.raise_for_status()
+        data = response.json()  # lista de assets
+        return data
+    except Exception as e:
+        print(f"[ERROR] Error al obtener lista de assets: {e}")
+        return []
+
+def upload_file_to_immich(file_path):
+    """
+    Sube un fichero local (foto o vídeo) a Immich mediante /api/asset/upload-file.
+    Retorna el 'id' del asset creado, o None si falla.
+    """
+    if not login_immich():
+        return None
+
+    if not os.path.isfile(file_path):
+        print(f"[ERROR] Fichero no encontrado: {file_path}")
+        return None
+
+    # Comprobamos si la extensión es compatible
+    ext = os.path.splitext(file_path)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        print(f"[WARNING] Fichero '{file_path}' no es de una extensión compatible. Omitido.")
+        return None
+
+    url = f"{IMMICH_URL}/api/asset/upload-file"
+    files = {
+        "assetData": open(file_path, "rb")
+    }
+    data = {
+        # Puedes añadir campos opcionales, si lo deseas
+        # "deviceAssetId": os.path.basename(file_path),
+        # "deviceId": "ScriptPy",
+        # "fileCreatedAt": "2023-10-10T10:00:00.000Z",
+        # ...
+    }
+
+    try:
+        # En la subida, 'Content-Type' se genera automáticamente con multipart
+        auth_headers = {"Authorization": HEADERS.get("Authorization", "")}
+        response = requests.post(url, headers=auth_headers, files=files, data=data, verify=False)
+        response.raise_for_status()
+        new_asset = response.json()
+        asset_id = new_asset.get("id")
+        if asset_id:
+            print(f"[INFO] Subido '{os.path.basename(file_path)}' con asset_id={asset_id}")
+        return asset_id
+    except Exception as e:
+        print(f"[ERROR] No se pudo subir '{file_path}': {e}")
+        return None
+
+def download_asset(asset_id, download_folder="Downloaded_Immich"):
+    """
+    Descarga un asset (foto/video) de Immich y lo guarda en disco local.
+    Usa GET /api/asset/:assetId/serve
+    Retorna True si se descargó con éxito, False en caso de error.
+    """
+    if not login_immich():
+        return False
+
+    os.makedirs(download_folder, exist_ok=True)
+    url = f"{IMMICH_URL}/api/asset/{asset_id}/serve"
+
+    try:
+        with requests.get(url, headers=HEADERS, verify=False, stream=True) as r:
+            r.raise_for_status()
+            # Intentar deducir filename de la cabecera
+            content_disp = r.headers.get('Content-Disposition', '')
+            filename = f"{asset_id}"
+            if 'filename=' in content_disp:
+                # attachment; filename="nombre.jpg"
+                filename = content_disp.split("filename=")[-1].strip('"; ')
+
+            out_path = os.path.join(download_folder, filename)
+
+            with open(out_path, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+
+        return True
+
+    except Exception as e:
+        print(f"[ERROR] No se pudo descargar asset {asset_id}: {e}")
+        return False
+
+# -----------------------------------------------------------------------------
+#           FUNCIONES PARA SUBIR FICHEROS DESDE DIRECTORIOS (NUEVAS)
+# -----------------------------------------------------------------------------
+
+def immich_create_albums(input_folder):
+    """
+    Recorre las *subcarpetas* de 'input_folder', creando un álbum por cada subcarpeta
+    (nombre = nombre de la subcarpeta).
+    Dentro de cada subcarpeta, sube todos los ficheros 'compatibles' (según ALLOWED_EXTENSIONS)
+    y los asocia al álbum recién creado.
+
+    Ejemplo de estructura:
+        input_folder/
+          ├─ Album1/   (ficheros compatibles para el álbum "Album1")
+          └─ Album2/   (ficheros compatibles para el álbum "Album2")
+
+    Retorna la cantidad de álbumes creados.
+    """
+    if not login_immich():
+        return 0
+
+    if not os.path.isdir(input_folder):
+        print(f"[ERROR] La carpeta '{input_folder}' no existe.")
+        return 0
+
+    albums_created = 0
+
+    # Listar subcarpetas directas
+    for item in os.listdir(input_folder):
+        subpath = os.path.join(input_folder, item)
+        if os.path.isdir(subpath):
+            # 'item' será el nombre del nuevo álbum
+            album_name = item
+            album_id = create_album(album_name)
+            if not album_id:
+                print(f"[WARNING] No se pudo crear el álbum para la subcarpeta '{item}'.")
+                continue
+
+            albums_created += 1
+
+            # Recorrer ficheros en esta subcarpeta
+            assets_ids = []
+            for file_in_sub in os.listdir(subpath):
+                file_path = os.path.join(subpath, file_in_sub)
+                if os.path.isfile(file_path):
+                    # Subir si es compatible
+                    asset_id = upload_file_to_immich(file_path)
+                    if asset_id:
+                        assets_ids.append(asset_id)
+
+            # Asociar ficheros al álbum
+            if assets_ids:
+                added_count = add_assets_to_album(album_id, assets_ids)
+                print(f"[INFO] Añadidos {added_count}/{len(assets_ids)} ficheros al álbum '{album_name}'.")
+
+    print(f"[INFO] Se crearon {albums_created} álbum(es) a partir de '{input_folder}'.")
+    return albums_created
+
+def upload_files_without_album(input_folder):
+    """
+    Recorre recursivamente 'input_folder' y sus subcarpetas para subir todos los ficheros
+    'compatibles' (fotos/vídeos) a Immich, **sin** asociarlos a ningún álbum.
+
+    Retorna la cantidad de ficheros subidos.
+    """
+    if not login_immich():
+        return 0
+
+    if not os.path.isdir(input_folder):
+        print(f"[ERROR] La carpeta '{input_folder}' no existe.")
+        return 0
+
+    total_uploaded = 0
+
+    # Recorrer recursivamente
+    for root, dirs, files in os.walk(input_folder):
+        for fname in files:
+            file_path = os.path.join(root, fname)
+            # Subir si es compatible
+            asset_id = upload_file_to_immich(file_path)
+            if asset_id:
+                total_uploaded += 1
+
+    print(f"[INFO] Se subieron {total_uploaded} ficheros (sin álbum) desde '{input_folder}'.")
+    return total_uploaded
+
+# -----------------------------------------------------------------------------
+#                          CÁLCULO DE TAMAÑO Y BORRADO MASIVO
+# -----------------------------------------------------------------------------
+
+def get_album_items_size(album_id):
+    """
+    Suma el tamaño de cada asset en un álbum, usando exifInfo.fileSizeInByte (si existe).
+    """
+    if not login_immich():
+        return 0
+    try:
+        assets = get_assets_from_album(album_id)
+        total_size = 0
+        for a in assets:
+            exif_info = a.get("exifInfo", {})
+            if "fileSizeInByte" in exif_info:
+                total_size += exif_info["fileSizeInByte"]
+        return total_size
+    except:
+        return 0
+
+def immich_delete_empty_albums():
+    """
+    Elimina todos los álbumes que no tengan ningún asset (estén vacíos).
+    Retorna la cantidad de álbumes eliminados.
+    """
+    if not login_immich():
+        return 0
+
+    albums = list_albums()
+    if not albums:
+        print("[INFO] No se encontraron álbumes.")
+        return 0
+
+    empty_count = 0
+    for album in tqdm(albums, desc="Buscando álbumes vacíos", unit="álbum"):
+        album_id = album.get("id")
+        album_name = album.get("albumName")
+        count = get_album_items_count(album_id)
+        if count == 0:
+            if delete_album(album_id):
+                print(f"[INFO] Álbum vacío '{album_name}' (ID={album_id}) eliminado.")
+                empty_count += 1
+
+    print(f"[INFO] Se eliminaron {empty_count} álbumes vacíos.")
+    return empty_count
+
+def immich_delete_duplicates_albums():
+    """
+    Elimina álbumes que tengan la misma cantidad de assets y el mismo tamaño total.
+    De cada grupo duplicado, conserva el primero (ID menor) y borra los demás.
+    """
+    if not login_immich():
+        return 0
+
+    albums = list_albums()
+    if not albums:
+        return 0
+
+    duplicates_map = {}
+    for album in tqdm(albums, desc="Buscando álbumes duplicados", unit="álbum"):
+        album_id = album.get("id")
+        album_name = album.get("albumName")
+        count = get_album_items_count(album_id)
+        size = get_album_items_size(album_id)
+        duplicates_map.setdefault((count, size), []).append((album_id, album_name))
+
+    total_deleted = 0
+    for (count, size), group in duplicates_map.items():
+        if len(group) > 1:
+            group_sorted = sorted(group, key=lambda x: int(x[0]))
+            # keep = group_sorted[0]
+            to_delete = group_sorted[1:]
+            for alb_id, alb_name in to_delete:
+                if delete_album(alb_id):
+                    total_deleted += 1
+
+    print(f"[INFO] Se eliminaron {total_deleted} álbumes duplicados.")
+    return total_deleted
+
+# -----------------------------------------------------------------------------
+#             EXTRAER (DESCARGAR) FOTOS DE UN ÁLBUM (O DE TODOS)
+# -----------------------------------------------------------------------------
+
+def get_assets_from_album(album_id):
+    """
+    Retorna la lista de assets que pertenecen a un álbum concreto (ID).
+    """
+    if not login_immich():
+        return []
+    url = f"{IMMICH_URL}/api/album/{album_id}/assets"
+    try:
+        response = requests.get(url, headers=HEADERS, verify=False)
+        response.raise_for_status()
+        assets = response.json()  # lista
+        return assets
+    except Exception as e:
+        print(f"[ERROR] No se pudieron obtener assets del álbum ID={album_id}: {str(e)}")
+        return []
+
+def immich_extract_albums(album_name_or_id='ALL', output_folder="DownloadedAlbums"):
+    """
+    (Antes extract_photos_from_album)
+    Descarga (extrae) todas las fotos/videos de uno o varios álbumes:
+
+      - Si album_name_or_id == 'ALL', se descargan todos los álbumes.
+      - Si coincide con un 'id' o con el 'albumName', se descarga sólo ése.
+
+    Retorna la cantidad total de assets descargados.
+    """
+    if not login_immich():
+        return 0
+
+    os.makedirs(output_folder, exist_ok=True)
+    all_albums = list_albums()
+    if not all_albums:
+        print("[INFO] No hay álbumes disponibles o no se pudieron listar.")
+        return 0
+
+    # Determinar qué álbum(es) descargar
+    albums_to_download = []
+    if isinstance(album_name_or_id, str) and album_name_or_id.strip().upper() == 'ALL':
+        albums_to_download = all_albums
+        print(f"[INFO] Se van a descargar TODOS los álbumes ({len(all_albums)})...")
+    else:
+        found_album = None
+        for alb in all_albums:
+            if str(alb.get("id")) == str(album_name_or_id):
+                found_album = alb
+                break
+            if alb.get("albumName", "").strip().lower() == album_name_or_id.strip().lower():
+                found_album = alb
+                break
+
+        if found_album:
+            albums_to_download = [found_album]
+            print(f"[INFO] Se descargará el álbum: '{found_album.get('albumName')}' (ID={found_album.get('id')}).")
+        else:
+            print(f"[WARNING] No se encontró el álbum '{album_name_or_id}'.")
+            return 0
+
+    total_downloaded = 0
+    for album in albums_to_download:
+        album_id = album.get("id")
+        album_name = album.get("albumName", f"album_{album_id}")
+        album_folder = os.path.join(output_folder, f"{album_name}_{album_id}")
+        os.makedirs(album_folder, exist_ok=True)
+
+        assets = get_assets_from_album(album_id)
+        print(f"[INFO] Álbum '{album_name}' (ID={album_id}) tiene {len(assets)} asset(s).")
+
+        for asset in tqdm(assets, desc=f"Descargando '{album_name}'", unit="fotos"):
+            aid = asset.get("id")
+            if aid:
+                ok = download_asset(aid, album_folder)
+                if ok:
+                    total_downloaded += 1
+
+    return total_downloaded
+
+# -----------------------------------------------------------------------------
+#          DESCARGA COMPLETA DE TODOS LOS ASSETS (Albums + ALL_PHOTOS)
+# -----------------------------------------------------------------------------
+
+def immich_download_all_with_structure(output_folder="ImmichDownload"):
+    """
+    (Antes download_all_assets_with_structure)
+    Descarga TODAS las fotos y vídeos de Immich en:
+        output_folder/
+          ├─ Albums/
+          │    ├─ albumName1/ (assets del álbum)
+          │    ├─ albumName2/ (assets del álbum)
+          │    ...
+          └─ ALL_PHOTOS/
+               └─ yyyy/
+                   └─ mm/ (assets sin álbum en ese año/mes)
+
+    Devuelve la cantidad total de assets descargados.
+    """
+    if not login_immich():
+        return 0
+
+    os.makedirs(output_folder, exist_ok=True)
+    total_downloaded = 0
+    downloaded_assets_set = set()
+
+    # 1) Álbumes en output_folder/Albums
+    albums = list_albums()
+    albums_path = os.path.join(output_folder, "Albums")
+    os.makedirs(albums_path, exist_ok=True)
+
+    for album in albums:
+        album_id   = album.get("id")
+        album_name = album.get("albumName", f"Album_{album_id}")
+
+        album_folder = os.path.join(albums_path, album_name)
+        os.makedirs(album_folder, exist_ok=True)
+
+        assets_in_album = get_assets_from_album(album_id)
+        print(f"[INFO] Álbum '{album_name}' (ID={album_id}) tiene {len(assets_in_album)} asset(s).")
+
+        for asset in tqdm(assets_in_album, desc=f"Álbum '{album_name}'", unit="fotos"):
+            aid = asset.get("id")
+            if not aid:
+                continue
+
+            ok = download_asset(aid, album_folder)
+            if ok:
+                total_downloaded += 1
+                downloaded_assets_set.add(aid)
+
+    # 2) Assets sin álbum -> output_folder/ALL_PHOTOS/yyyy/mm
+    all_assets = list_all_assets()
+    all_photos_path = os.path.join(output_folder, "ALL_PHOTOS")
+    os.makedirs(all_photos_path, exist_ok=True)
+
+    leftover_assets = [a for a in all_assets if a.get("id") not in downloaded_assets_set]
+    print(f"[INFO] Se encontraron {len(leftover_assets)} asset(s) que no están en ningún álbum.")
+
+    for asset in tqdm(leftover_assets, desc="Descargando SIN álbum", unit="fotos"):
+        aid = asset.get("id")
+        if not aid:
+            continue
+
+        created_at_str = asset.get("fileCreatedAt", "")
+        try:
+            dt_created = datetime.fromisoformat(created_at_str.replace("Z", ""))
+        except:
+            dt_created = datetime.now()
+
+        year_str = dt_created.strftime("%Y")
+        month_str = dt_created.strftime("%m")
+
+        target_folder = os.path.join(all_photos_path, year_str, month_str)
+        os.makedirs(target_folder, exist_ok=True)
+
+        ok = download_asset(aid, target_folder)
+        if ok:
+            total_downloaded += 1
+
+    print(f"[INFO] Descarga completada. Total de assets descargados: {total_downloaded}")
+    return total_downloaded
+
+# -----------------------------------------------------------------------------
+#                          MAIN DE EJEMPLO
+# -----------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    # Create timestamp, and initialize LOGGER.
-    from datetime import datetime
-    from LoggerConfig import log_setup
-    TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
-    log_filename=f"execution_log_{TIMESTAMP}"
-    log_folder="Logs"
-    LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
-    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename)
 
-    # Define albums_folder_path
-    albums_folder_path = "/volume1/homes/jaimetur_ftp/Photos/Albums"     # For Linux (NAS)
-    albums_folder_path = r"r:\jaimetur_ftp\Photos\Albums"                 # For Windows
+    # 1) Leemos la config y hacemos login
+    read_immich_config()
+    login_immich()
 
-    # ExtractImmichPhotosAlbums(album_name='ALL')
-    immich_extract_albums(albums_name='Cadiz')
+    # 2) Ejemplo: Crear álbumes a partir de subcarpetas en 'CarpetaConAlbums'
+    print("\n=== EJEMPLO: immich_create_albums ===")
+    input_albums_folder = "CarpetaConAlbums"
+    immich_create_albums(input_albums_folder)
 
-    # result = wait_for_reindexing_immich_photos()
-    # LOGGER.info(f"INFO: Index Result: {result}")
+    # 3) Ejemplo: Subir ficheros SIN asignarlos a álbum, desde 'CarpetaFicherosSueltos'
+    print("\n=== EJEMPLO: upload_files_without_album ===")
+    big_folder = "CarpetaFicherosSueltos"
+    upload_files_without_album(big_folder)
 
-    # if wait_for_reindexing_immich_photos():
-    #     delete_immich_photos_duplicates_albums()
-    #     delete_immich_phptos_empty_albums()
-    #     create_immich_photos_albums(albums_folder_path)
+    # 4) Ejemplo: Descargar todas las fotos de TODOS los álbumes
+    print("\n=== EJEMPLO: immich_extract_albums ===")
+    total = immich_extract_albums('ALL', output_folder="MisDescargasALL")
+    print(f"[RESULT] Se han descargado {total} assets en total.\n")
+
+    # 5) Ejemplo: Crear un álbum y subir un par de fotos
+    print("=== EJEMPLO: Crear un álbum y subir 2 fotos ===")
+    new_album_id = create_album("AlbumDePrueba")
+    if new_album_id:
+        asset_ids = []
+        for f in ["foto1.jpg", "foto2.png"]:
+            if os.path.isfile(f):
+                aid = upload_file_to_immich(f)
+                if aid:
+                    asset_ids.append(aid)
+            else:
+                print(f"[WARNING] No se encuentra '{f}' en el disco local.")
+
+        # Añadimos assets al álbum
+        added = add_assets_to_album(new_album_id, asset_ids)
+        print(f"[INFO] Se añadieron {added} assets a 'AlbumDePrueba'.\n")
+
+    # 6) Ejemplo: Borrar álbumes vacíos
+    print("=== EJEMPLO: Borrar álbumes vacíos ===")
+    deleted = immich_delete_empty_albums()
+    print(f"[RESULT] Álbumes vacíos borrados: {deleted}\n")
+
+    # 7) Ejemplo: Borrar álbumes duplicados
+    print("=== EJEMPLO: Borrar álbumes duplicados ===")
+    duplicates = immich_delete_duplicates_albums()
+    print(f"[RESULT] Álbumes duplicados borrados: {duplicates}\n")
+
+    # 8) Ejemplo: Descargar TODO en estructura /Albums/<albumName>/ + /ALL_PHOTOS/yyyy/mm
+    print("=== EJEMPLO: immich_download_all_with_structure ===")
+    total_struct = immich_download_all_with_structure(output_folder="FullImmichDownload")
+    print(f"[RESULT] Descarga masiva completada. Total assets: {total_struct}\n")
+
+    # 9) Logout local
+    logout_immich()

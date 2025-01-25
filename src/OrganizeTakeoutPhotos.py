@@ -337,6 +337,7 @@ def main():
     os.system('cls' if os.name == 'nt' else 'clear')
 
     DEFAULT_DUPLICATES_ACTION = False
+
     args = parse_arguments()
 
     # List of Folder to Desprioritize when looking for duplicates.
@@ -932,4 +933,10 @@ def mode_all_in_one():
 
 
 if __name__ == "__main__":
+    # Verificar si el script se ejecutó sin argumentos
+    if len(sys.argv) == 1:
+        # Agregar argumento predeterminado
+        sys.argv.append("-z")
+        sys.argv.append("Zip_folder")
+        print(f"INFO: No argument detected. Using default value '{sys.argv[2]}' for <ZIP_FOLDER'.")
     main()
