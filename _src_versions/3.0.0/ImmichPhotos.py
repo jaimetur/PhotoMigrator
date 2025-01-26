@@ -782,10 +782,10 @@ if __name__ == "__main__":
     # big_folder = r"r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Others"
     # upload_files_without_album(big_folder)
 
-    # # 3) Ejemplo: Crear álbumes a partir de subcarpetas en 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums'
-    # print("\n=== EJEMPLO: immich_create_albums ===")
-    # input_albums_folder = r"r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums"
-    # immich_create_albums(input_albums_folder)
+    # 3) Ejemplo: Crear álbumes a partir de subcarpetas en 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums'
+    print("\n=== EJEMPLO: immich_create_albums ===")
+    input_albums_folder = r"r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums"
+    immich_create_albums(input_albums_folder)
 
     # # 4) Ejemplo: Borrar álbumes vacíos
     # print("=== EJEMPLO: Borrar álbumes vacíos ===")
