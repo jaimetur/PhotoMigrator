@@ -23,7 +23,9 @@ Requisitos:
 import os
 import sys
 import requests
+import json
 import urllib3
+from requests_toolbelt.multipart.encoder import total_len
 from tqdm import tqdm
 from datetime import datetime
 
@@ -33,12 +35,14 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 #                          VARIABLES GLOBALES
 # -----------------------------------------------------------------------------
 
-CONFIG = None        # Diccionario con info de config
-IMMICH_URL = None    # p.e. "http://192.168.1.100:2283"
-USERNAME = None      # Usuario (email) de Immich
-PASSWORD = None      # Contraseña de Immich
-SESSION_TOKEN = None # Token JWT devuelto tras login
-HEADERS = {}         # Cabeceras que usaremos en cada petición
+CONFIG          = None  # Diccionario con info de config
+IMMICH_URL      = None  # p.e. "http://192.168.1.100:2283"
+API_KEY         = None  # API_KEY de Immich
+USERNAME        = None  # Usuario (email) de Immich
+PASSWORD        = None  # Contraseña de Immich
+SESSION_TOKEN   = None  # Token JWT devuelto tras login
+API_KEY_LOGIN   = False # Variable to define if we use API_KEY for login or not
+HEADERS         = {}    # Cabeceras que usaremos en cada petición
 
 # Lista de extensiones “compatibles” (ajústalo a tus necesidades)
 ALLOWED_EXTENSIONS = {
@@ -56,12 +60,13 @@ def read_immich_config(config_file='Immich.config', show_info=True):
     por ejemplo:
 
         IMMICH_URL = http://192.168.1.100:2283
+        API_KEY    ='
         USERNAME   = user@example.com
         PASSWORD   = 1234
 
     Si no se encuentra, se solicitará por pantalla.
     """
-    global CONFIG, IMMICH_URL, USERNAME, PASSWORD
+    global CONFIG, IMMICH_URL, API_KEY, USERNAME, PASSWORD, API_KEY_LOGIN
 
     if CONFIG:
         return CONFIG  # Ya se ha leído previamente
@@ -73,7 +78,7 @@ def read_immich_config(config_file='Immich.config', show_info=True):
         with open(config_file, 'r') as file:
             for line in file:
                 # Eliminar comentarios y espacios extra
-                line = line.split('#')[0].split('//')[0].strip()
+                line = line.split('#')[0].strip()
                 if line and '=' in line:
                     key, value = line.split('=', 1)
                     key = key.strip().upper()
@@ -85,6 +90,7 @@ def read_immich_config(config_file='Immich.config', show_info=True):
         print(f"[WARNING] No se encontró el archivo {config_file}. Se pedirán datos por pantalla...")
 
     IMMICH_URL = CONFIG.get('IMMICH_URL', None)
+    API_KEY    = CONFIG.get('API_KEY', None)
     USERNAME   = CONFIG.get('USERNAME', None)
     PASSWORD   = CONFIG.get('PASSWORD', None)
 
@@ -92,19 +98,26 @@ def read_immich_config(config_file='Immich.config', show_info=True):
     if not IMMICH_URL:
         CONFIG['IMMICH_URL'] = input("[PROMPT] Introduce IMMICH_URL (p.e. http://192.168.1.100:2283): ")
         IMMICH_URL = CONFIG['IMMICH_URL']
-    if not USERNAME:
-        CONFIG['USERNAME'] = input("[PROMPT] Introduce USERNAME (email de Immich): ")
-        USERNAME = CONFIG['USERNAME']
-    if not PASSWORD:
-        CONFIG['PASSWORD'] = input("[PROMPT] Introduce PASSWORD: ")
-        PASSWORD = CONFIG['PASSWORD']
+    if not API_KEY:
+        if not USERNAME:
+            CONFIG['USERNAME'] = input("[PROMPT] Introduce USERNAME (email de Immich): ")
+            USERNAME = CONFIG['USERNAME']
+        if not PASSWORD:
+            CONFIG['PASSWORD'] = input("[PROMPT] Introduce PASSWORD: ")
+            PASSWORD = CONFIG['PASSWORD']
+    else:
+        API_KEY_LOGIN = True
 
     if show_info:
-        print("[INFO] Conexión a Immich:")
+        print( "[INFO] Conexión a Immich:")
         print(f"       IMMICH_URL : {IMMICH_URL}")
-        print(f"       USERNAME   : {USERNAME}")
-        masked_password = '*' * len(PASSWORD)
-        print(f"       PASSWORD   : {masked_password}")
+        if API_KEY_LOGIN:
+            masked_password = '*' * len(API_KEY)
+            print(f"       API_KEY : {masked_password}")
+        else:
+            print(f"       USERNAME   : {USERNAME}")
+            masked_password = '*' * len(PASSWORD)
+            print(f"       PASSWORD   : {masked_password}")
 
     return CONFIG
 
@@ -120,20 +133,24 @@ def login_immich():
     global SESSION_TOKEN, HEADERS
 
     # Si ya hay un token y cabeceras, asumimos que estamos logueados
-    if SESSION_TOKEN and 'Authorization' in HEADERS:
+    if (SESSION_TOKEN and 'Authorization') or API_KEY in HEADERS:
         return True
 
     # Asegurarnos de que la config está leída
     read_immich_config()
 
     url = f"{IMMICH_URL}/api/auth/login"
-    payload = {
-        "email": USERNAME,
-        "password": PASSWORD
+    payload = json.dumps({
+      "email": USERNAME,
+      "password": PASSWORD
+    })
+    HEADERS = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
     }
 
     try:
-        response = requests.post(url, json=payload, verify=False)
+        response = requests.post(url, headers=HEADERS, data=payload)
         response.raise_for_status()  # lanza excepción si 4xx o 5xx
     except Exception as e:
         print(f"[ERROR] Excepción al hacer login en Immich: {str(e)}")
@@ -146,10 +163,18 @@ def login_immich():
         return False
 
     # Cabeceras base para nuestras peticiones
-    HEADERS = {
-        "Authorization": f"Bearer {SESSION_TOKEN}",
-        "Content-Type": "application/json"
-    }
+    if API_KEY_LOGIN:
+        HEADERS = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'x-api-key': API_KEY
+        }
+    else:
+        HEADERS = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': f'Bearer {SESSION_TOKEN}'
+        }
 
     print("[INFO] Autenticación correcta. Token obtenido.")
     return True
@@ -167,6 +192,70 @@ def logout_immich():
 # -----------------------------------------------------------------------------
 #                          ÁLBUMES
 # -----------------------------------------------------------------------------
+def get_user_id():
+    url = f"{IMMICH_URL}/api/users/me"
+    payload = {}
+    try:
+        response = requests.request("GET", url, headers=HEADERS, data=payload)
+        data = response.json()
+        user_id = data.get("id")
+        user_mail = data.get("email")
+        print(f"[INFO] User ID: '{user_id}' found for user '{user_mail}'.")
+        return user_id
+    except Exception as e:
+        print(f"[ERROR] Cannot find User ID for user '{user_mail}': {e}")
+        return None
+
+def create_album(album_name):
+    """
+    Crea un álbum en Immich con nombre 'album_name'.
+    Devuelve el ID del álbum creado o None si falla.
+    """
+    from LoggerConfig import LOGGER
+    if not login_immich():
+        return None
+    user_id = get_user_id()
+
+    url = f"{IMMICH_URL}/api/albums"
+    payload = json.dumps({
+        "albumName": album_name,
+        # "albumUsers": [
+        #   {
+        #     "role": "editor",
+        #     "userId": user_id
+        #   }
+        # ],
+    })
+
+    try:
+        response = requests.post(url, headers=HEADERS, data=payload, verify=False)
+        response.raise_for_status()
+        data = response.json()
+        album_id = data.get("id")
+        print(f"[INFO] Álbum '{album_name}' creado con ID={album_id}.")
+        return album_id
+    except Exception as e:
+        LOGGER.warning(f"WARNING: Cannot create album: '{album_name}' due to API call error. Skipped! ")
+        return None
+
+def delete_album(album_id, album_name):
+    """
+    Elimina un álbum de Immich por su ID. Devuelve True si se eliminó, False si no.
+    """
+    if not login_immich():
+        return False
+    url = f"{IMMICH_URL}/api/albums/{album_id}"
+    try:
+        response = requests.delete(url, headers=HEADERS, verify=False)
+        if response.status_code == 200 :
+            print(f"[INFO] Álbum '{album_name} con ID={album_id} eliminado.")
+            return True
+        else:
+            print(f"[WARNING] No se pudo eliminar el álbum {album_id}. Status: {response.status_code}")
+            return False
+    except Exception as e:
+        print(f"[ERROR] Error al eliminar álbum {album_id}: {e}")
+        return False
 
 def list_albums():
     """
@@ -182,7 +271,7 @@ def list_albums():
     """
     if not login_immich():
         return []
-    url = f"{IMMICH_URL}/api/album"
+    url = f"{IMMICH_URL}/api/albums"
     try:
         response = requests.get(url, headers=HEADERS, verify=False)
         response.raise_for_status()
@@ -191,61 +280,6 @@ def list_albums():
     except Exception as e:
         print(f"[ERROR] Error al listar álbumes: {e}")
         return []
-
-def get_album_items_count(album_id):
-    """
-    Devuelve la cantidad de assets (fotos/videos) que hay en un álbum concreto.
-    """
-    if not login_immich():
-        return 0
-    url = f"{IMMICH_URL}/api/album/{album_id}/assets"
-    try:
-        response = requests.get(url, headers=HEADERS, verify=False)
-        response.raise_for_status()
-        data = response.json()  # lista de assets
-        return len(data)
-    except Exception as e:
-        print(f"[WARNING] No se pudieron contar assets del álbum ID={album_id}: {e}")
-        return 0
-
-def create_album(album_name):
-    """
-    Crea un álbum en Immich con nombre 'album_name'.
-    Devuelve el ID del álbum creado o None si falla.
-    """
-    if not login_immich():
-        return None
-    url = f"{IMMICH_URL}/api/album"
-    payload = {"albumName": album_name}
-    try:
-        response = requests.post(url, headers=HEADERS, json=payload, verify=False)
-        response.raise_for_status()
-        data = response.json()
-        album_id = data.get("id")
-        print(f"[INFO] Álbum '{album_name}' creado con ID={album_id}.")
-        return album_id
-    except Exception as e:
-        print(f"[ERROR] No se pudo crear el álbum '{album_name}': {e}")
-        return None
-
-def delete_album(album_id):
-    """
-    Elimina un álbum de Immich por su ID. Devuelve True si se eliminó, False si no.
-    """
-    if not login_immich():
-        return False
-    url = f"{IMMICH_URL}/api/album/{album_id}"
-    try:
-        response = requests.delete(url, headers=HEADERS, verify=False)
-        if response.status_code == 204:
-            print(f"[INFO] Álbum ID={album_id} eliminado.")
-            return True
-        else:
-            print(f"[WARNING] No se pudo eliminar el álbum {album_id}. Status: {response.status_code}")
-            return False
-    except Exception as e:
-        print(f"[ERROR] Error al eliminar álbum {album_id}: {e}")
-        return False
 
 def add_assets_to_album(album_id, asset_ids):
     """
@@ -257,14 +291,20 @@ def add_assets_to_album(album_id, asset_ids):
     if not asset_ids:
         return 0
 
-    url = f"{IMMICH_URL}/api/album/{album_id}/assets"
-    payload = {"assetIds": asset_ids}
+    url = f"{IMMICH_URL}/api/albums/{album_id}/assets"
+    payload = json.dumps({
+              "ids": asset_ids
+            })
     try:
-        response = requests.post(url, headers=HEADERS, json=payload, verify=False)
+        response = requests.put(url, headers=HEADERS, data=payload, verify=False)
         response.raise_for_status()
         data = response.json()
-        # data = { "successfullyAdded": int, "alreadyInAlbum": int }
-        return data.get("successfullyAdded", 0)
+        total_files = len(data)
+        total_added = 0
+        for item in data:
+            if item.get("success"):
+                total_added += 1
+        return total_added
     except Exception as e:
         print(f"[ERROR] No se pudo añadir assets al álbum {album_id}: {e}")
         return 0
@@ -308,22 +348,51 @@ def upload_file_to_immich(file_path):
         print(f"[WARNING] Fichero '{file_path}' no es de una extensión compatible. Omitido.")
         return None
 
-    url = f"{IMMICH_URL}/api/asset/upload-file"
-    files = {
-        "assetData": open(file_path, "rb")
-    }
+    url = f"{IMMICH_URL}/api/assets"
+
+    if API_KEY_LOGIN:
+        HEADERS = {
+            'Accept': 'application/json',
+            'x-api-key': API_KEY
+        }
+    else:
+        HEADERS = {
+            'Accept': 'application/json',
+            'Authorization': f'Bearer {SESSION_TOKEN}'
+        }
+
+    stats = os.stat(file_path)
+    date_time_for_filename = datetime.fromtimestamp(stats.st_mtime).strftime("%Y%m%d_%H%M%S")
+    date_time_for_attributes = datetime.fromtimestamp(stats.st_mtime).strftime("%Y-%m-%dT%H:%M:%S.000Z")
     data = {
-        # Puedes añadir campos opcionales, si lo deseas
+        'deviceAssetId': f'IMG_{date_time_for_filename}_{os.path.basename(file_path)}',
+        'deviceId': 'OrganizeTakeoutPhotos',
+        'fileCreatedAt': date_time_for_attributes,
+        'fileModifiedAt': date_time_for_attributes,
+        'fileSize': str(stats.st_size),
+        'isFavorite': 'false',
+        # 'assetData': ('filename',open(file_path,'rb'),'application/octet-stream')
+        # Puedes añadir otros campos opcionales, si lo deseas como
         # "deviceAssetId": os.path.basename(file_path),
         # "deviceId": "ScriptPy",
         # "fileCreatedAt": "2023-10-10T10:00:00.000Z",
+        # "isArchived": "false"
+        # "isFavorite": "true"
+        # "isVisible": "true"
         # ...
     }
 
+    files = {
+        'assetData': open(file_path, 'rb')
+    }
+
+    # files=[
+    #   ('assetData',('file',open(file_path,'rb'),'application/octet-stream'))
+    # ]
+
     try:
         # En la subida, 'Content-Type' se genera automáticamente con multipart
-        auth_headers = {"Authorization": HEADERS.get("Authorization", "")}
-        response = requests.post(url, headers=auth_headers, files=files, data=data, verify=False)
+        response = requests.post(url, headers=HEADERS, data=data, files=files)
         response.raise_for_status()
         new_asset = response.json()
         asset_id = new_asset.get("id")
@@ -467,8 +536,8 @@ def get_album_items_size(album_id):
     try:
         assets = get_assets_from_album(album_id)
         total_size = 0
-        for a in assets:
-            exif_info = a.get("exifInfo", {})
+        for asset in assets:
+            exif_info = asset.get("exifInfo", {})
             if "fileSizeInByte" in exif_info:
                 total_size += exif_info["fileSizeInByte"]
         return total_size
@@ -492,9 +561,9 @@ def immich_delete_empty_albums():
     for album in tqdm(albums, desc="Buscando álbumes vacíos", unit="álbum"):
         album_id = album.get("id")
         album_name = album.get("albumName")
-        count = get_album_items_count(album_id)
-        if count == 0:
-            if delete_album(album_id):
+        assets_count = album.get("assetCount")
+        if assets_count == 0:
+            if delete_album(album_id, album_name):
                 print(f"[INFO] Álbum vacío '{album_name}' (ID={album_id}) eliminado.")
                 empty_count += 1
 
@@ -517,18 +586,18 @@ def immich_delete_duplicates_albums():
     for album in tqdm(albums, desc="Buscando álbumes duplicados", unit="álbum"):
         album_id = album.get("id")
         album_name = album.get("albumName")
-        count = get_album_items_count(album_id)
+        assets_count = album.get("assetCount")
         size = get_album_items_size(album_id)
-        duplicates_map.setdefault((count, size), []).append((album_id, album_name))
+        duplicates_map.setdefault((assets_count, size), []).append((album_id, album_name))
 
     total_deleted = 0
-    for (count, size), group in duplicates_map.items():
+    for (assets_count, size), group in duplicates_map.items():
         if len(group) > 1:
-            group_sorted = sorted(group, key=lambda x: int(x[0]))
+            group_sorted = sorted(group, key=lambda x: x[1])
             # keep = group_sorted[0]
             to_delete = group_sorted[1:]
-            for alb_id, alb_name in to_delete:
-                if delete_album(alb_id):
+            for album_id, album_name in to_delete:
+                if delete_album(album_id, album_name):
                     total_deleted += 1
 
     print(f"[INFO] Se eliminaron {total_deleted} álbumes duplicados.")
@@ -544,11 +613,12 @@ def get_assets_from_album(album_id):
     """
     if not login_immich():
         return []
-    url = f"{IMMICH_URL}/api/album/{album_id}/assets"
+    url = f"{IMMICH_URL}/api/albums/{album_id}"
     try:
         response = requests.get(url, headers=HEADERS, verify=False)
         response.raise_for_status()
-        assets = response.json()  # lista
+        data = response.json()  # lista
+        assets = data.get("assets")
         return assets
     except Exception as e:
         print(f"[ERROR] No se pudieron obtener assets del álbum ID={album_id}: {str(e)}")
@@ -703,56 +773,39 @@ def immich_download_all_with_structure(output_folder="ImmichDownload"):
 
 if __name__ == "__main__":
 
-    # 1) Leemos la config y hacemos login
-    read_immich_config()
-    login_immich()
+    # # 1) Leemos la config y hacemos login
+    # read_immich_config()
+    # login_immich()
 
-    # 2) Ejemplo: Crear álbumes a partir de subcarpetas en 'CarpetaConAlbums'
-    print("\n=== EJEMPLO: immich_create_albums ===")
-    input_albums_folder = "CarpetaConAlbums"
-    immich_create_albums(input_albums_folder)
+    # # 2) Ejemplo: Subir ficheros SIN asignarlos a álbum, desde 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Others'
+    # print("\n=== EJEMPLO: upload_files_without_album ===")
+    # big_folder = r"r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Others"
+    # upload_files_without_album(big_folder)
 
-    # 3) Ejemplo: Subir ficheros SIN asignarlos a álbum, desde 'CarpetaFicherosSueltos'
-    print("\n=== EJEMPLO: upload_files_without_album ===")
-    big_folder = "CarpetaFicherosSueltos"
-    upload_files_without_album(big_folder)
+    # # 3) Ejemplo: Crear álbumes a partir de subcarpetas en 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums'
+    # print("\n=== EJEMPLO: immich_create_albums ===")
+    # input_albums_folder = r"r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums"
+    # immich_create_albums(input_albums_folder)
 
-    # 4) Ejemplo: Descargar todas las fotos de TODOS los álbumes
-    print("\n=== EJEMPLO: immich_extract_albums ===")
-    total = immich_extract_albums('ALL', output_folder="MisDescargasALL")
-    print(f"[RESULT] Se han descargado {total} assets en total.\n")
+    # # 4) Ejemplo: Borrar álbumes vacíos
+    # print("=== EJEMPLO: Borrar álbumes vacíos ===")
+    # deleted = immich_delete_empty_albums()
+    # print(f"[RESULT] Álbumes vacíos borrados: {deleted}\n")
 
-    # 5) Ejemplo: Crear un álbum y subir un par de fotos
-    print("=== EJEMPLO: Crear un álbum y subir 2 fotos ===")
-    new_album_id = create_album("AlbumDePrueba")
-    if new_album_id:
-        asset_ids = []
-        for f in ["foto1.jpg", "foto2.png"]:
-            if os.path.isfile(f):
-                aid = upload_file_to_immich(f)
-                if aid:
-                    asset_ids.append(aid)
-            else:
-                print(f"[WARNING] No se encuentra '{f}' en el disco local.")
-
-        # Añadimos assets al álbum
-        added = add_assets_to_album(new_album_id, asset_ids)
-        print(f"[INFO] Se añadieron {added} assets a 'AlbumDePrueba'.\n")
-
-    # 6) Ejemplo: Borrar álbumes vacíos
-    print("=== EJEMPLO: Borrar álbumes vacíos ===")
-    deleted = immich_delete_empty_albums()
-    print(f"[RESULT] Álbumes vacíos borrados: {deleted}\n")
-
-    # 7) Ejemplo: Borrar álbumes duplicados
+    # 5) Ejemplo: Borrar álbumes duplicados
     print("=== EJEMPLO: Borrar álbumes duplicados ===")
     duplicates = immich_delete_duplicates_albums()
     print(f"[RESULT] Álbumes duplicados borrados: {duplicates}\n")
 
-    # 8) Ejemplo: Descargar TODO en estructura /Albums/<albumName>/ + /ALL_PHOTOS/yyyy/mm
-    print("=== EJEMPLO: immich_download_all_with_structure ===")
-    total_struct = immich_download_all_with_structure(output_folder="FullImmichDownload")
-    print(f"[RESULT] Descarga masiva completada. Total assets: {total_struct}\n")
+    # # 6) Ejemplo: Descargar todas las fotos de TODOS los álbumes
+    # print("\n=== EJEMPLO: immich_extract_albums ===")
+    # total = immich_extract_albums('ALL', output_folder="MisDescargasALL")
+    # print(f"[RESULT] Se han descargado {total} assets en total.\n")
+
+    # # 7) Ejemplo: Descargar todos en estructura /Albums/<albumName>/ + /ALL_PHOTOS/yyyy/mm
+    # print("=== EJEMPLO: immich_download_all_with_structure ===")
+    # total_struct = immich_download_all_with_structure(output_folder="FullImmichDownload")
+    # print(f"[RESULT] Descarga masiva completada. Total assets: {total_struct}\n")
 
     # 9) Logout local
     logout_immich()

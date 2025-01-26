@@ -43,7 +43,7 @@ def read_synology_config(config_file='Synology.config', show_info=True):
         # Intentar abrir el archivo
         with open(config_file, 'r') as file:
             for line in file:
-                line = line.split('#')[0].split('//')[0].strip()  # Eliminar comentarios y espacios
+                line = line.split('#')[0].strip()  # Eliminar comentarios y espacios
                 if line and '=' in line:
                     key, value = line.split('=', 1)
                     key = key.strip().upper()
