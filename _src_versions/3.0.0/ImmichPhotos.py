@@ -21,11 +21,9 @@ Requisitos:
 """
 
 import os
-import sys
 import requests
 import json
 import urllib3
-from requests_toolbelt.multipart.encoder import total_len
 from tqdm import tqdm
 from datetime import datetime
 
@@ -493,7 +491,7 @@ def immich_create_albums(input_folder):
                 print(f"[INFO] Añadidos {added_count}/{len(assets_ids)} ficheros al álbum '{album_name}'.")
 
     print(f"[INFO] Se crearon {albums_created} álbum(es) a partir de '{input_folder}'.")
-    return albums_created
+    return albums_created,0,0
 
 def upload_files_without_album(input_folder):
     """

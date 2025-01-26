@@ -13,8 +13,8 @@ from LoggerConfig import log_setup
 
 # Script version & date
 SCRIPT_NAME         = "OrganizeTakeoutPhotos"
-SCRIPT_VERSION      = "v2.3.0"
-SCRIPT_DATE         = "2025-01-14"
+SCRIPT_VERSION      = "v3.0.0-alpha"
+SCRIPT_DATE         = "2025-01-26"
 
 SCRIPT_NAME_VERSION = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
 SCRIPT_DESCRIPTION  = f"""
@@ -110,7 +110,7 @@ ATTENTION!!!: This process will connect to Immich Photos and extract those Album
               To extract ALL Albums within in Immich Photos database use 'ALL' as ALBUMS_NAME.
 """
 
-    HELP_MODE_IMMICH_CREATE = \
+    HELP_MODE_IMMICH_CREATE_ALBUMS = \
 f"""
 ATTENTION!!!: This process will connect to your to your Immich Photos account and will create a new Album for each Subfolder found in <ALBUMS_FOLDER> and will include all Photos and Videos included in that Subfolder.
 """
@@ -881,16 +881,92 @@ def mode_immich_extract_albums(user_confirmation=True):
     LOGGER.error("")
 
 def mode_immich_create_albums(user_confirmation=True):
-    LOGGER.error("ERROR: Immich Support not ready yet. It is planned for version 3.0.0 ")
-    LOGGER.error("")
+    if user_confirmation:
+        LOGGER.info(f"INFO: Flag detected '-ica, --immich-create-albums'.")
+        LOGGER.info(HELP_MODE_IMMICH_CREATE_ALBUMS.replace('<ALBUMS_FOLDER>', f"'{args.immich_create_albums}'"))
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO: Exiting program.")
+            sys.exit(0)
+        LOGGER.info(f"INFO: Create Albums Mode detected. Only this module will be run!!!")
+    LOGGER.info("")
+    LOGGER.info(f"INFO: Find Albums in Folder    : {args.immich_create_albums}")
+    LOGGER.info("")
+    # Call the Funxtion
+    albums_crated, albums_skipped, photos_added = immich_create_albums(args.immich_create_albums)
+    # FINAL SUMMARY
+    end_time = datetime.now()
+    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+    LOGGER.info("")
+    LOGGER.info("==================================================")
+    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+    LOGGER.info("==================================================")
+    LOGGER.info("")
+    LOGGER.info("==================================================")
+    LOGGER.info("                  FINAL SUMMARY:                  ")
+    LOGGER.info("==================================================")
+    LOGGER.info(f"Total Albums created                    : {albums_crated}")
+    LOGGER.info(f"Total Albums skipped                    : {albums_skipped}")
+    LOGGER.info(f"Total Photos added to Albums            : {photos_added}")
+    LOGGER.info("")
+    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+    LOGGER.info("==================================================")
+    LOGGER.info("")
 
 def mode_immich_delete_empty_albums(user_confirmation=True):
-    LOGGER.error("ERROR: Immich Support not ready yet. It is planned for version 3.0.0 ")
-    LOGGER.error("")
+    if user_confirmation:
+        LOGGER.info(f"INFO: Flag detected '-ide, --immich-delete-empty-albums'.")
+        LOGGER.info(HELP_MODE_IMMICH_DELETE_EMPTY_ALBUMS)
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO: Exiting program.")
+            sys.exit(0)
+        LOGGER.info(f"INFO: Delete Empty Album Mode detected. Only this module will be run!!!")
+        LOGGER.info(f"INFO: Flag detected '-ide, --immich-delete-empty-albums'. The Script will look for any empty album in Immich Photos database and will detelte them (if any enpty album is found).")
+    # Call the Funxtion
+    albums_deleted = immich_delete_empty_albums()
+    # FINAL SUMMARY
+    end_time = datetime.now()
+    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+    LOGGER.info("")
+    LOGGER.info("==================================================")
+    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+    LOGGER.info("==================================================")
+    LOGGER.info("")
+    LOGGER.info("==================================================")
+    LOGGER.info("                  FINAL SUMMARY:                  ")
+    LOGGER.info("==================================================")
+    LOGGER.info(f"Total Empty Albums deleted              : {albums_deleted}")
+    LOGGER.info("")
+    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+    LOGGER.info("==================================================")
+    LOGGER.info("")
 
 def mode_immich_delete_duplicates_albums(user_confirmation=True):
-    LOGGER.error("ERROR: Immich Support not ready yet. It is planned for version 3.0.0 ")
-    LOGGER.error("")
+    if user_confirmation:
+        LOGGER.info(f"INFO: Flag detected '-idd, --immich-delete-deuplicates-albums'.")
+        LOGGER.info(HELP_MODE_IMMICH_DELETE_DUPLICATES_ALBUMS)
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO: Exiting program.")
+            sys.exit(0)
+        LOGGER.info(f"INFO: Delete Duplicates Album Mode detected. Only this module will be run!!!")
+        LOGGER.info(f"INFO: Flag detected '-idd, --immich-delete-duplicates-albums'. The Script will look for any duplicated album in Immich Photos database and will detelte them (if any duplicated album is found).")
+    # Call the Funxtion
+    albums_deleted = immich_delete_duplicates_albums()
+    # FINAL SUMMARY
+    end_time = datetime.now()
+    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+    LOGGER.info("")
+    LOGGER.info("==================================================")
+    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+    LOGGER.info("==================================================")
+    LOGGER.info("")
+    LOGGER.info("==================================================")
+    LOGGER.info("                  FINAL SUMMARY:                  ")
+    LOGGER.info("==================================================")
+    LOGGER.info(f"Total Duplicates Albums deleted         : {albums_deleted}")
+    LOGGER.info("")
+    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+    LOGGER.info("==================================================")
+    LOGGER.info("")
 
 def mode_all_in_one():
     global OUTPUT_FOLDER
