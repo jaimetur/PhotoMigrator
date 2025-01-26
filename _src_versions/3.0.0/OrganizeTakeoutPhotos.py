@@ -6,7 +6,7 @@ import Utils
 import Fixers
 from Duplicates import find_duplicates, process_duplicates_actions
 from SynologyPhotos import read_synology_config, login_synology, synology_create_albums, synology_delete_empty_albums, \
-    synology_delete_duplicates_albums, synology_extract_albums, wait_for_reindexing_synology_photos
+    synology_delete_duplicates_albums, synology_extract_albums
 from ImmichPhotos import read_immich_config, login_immich, immich_create_albums, immich_delete_empty_albums, immich_delete_duplicates_albums, immich_extract_albums
 from CustomHelpFormatter import CustomHelpFormatter, PagedArgumentParser
 from LoggerConfig import log_setup
