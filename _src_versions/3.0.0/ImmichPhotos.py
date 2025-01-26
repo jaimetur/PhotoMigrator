@@ -802,7 +802,7 @@ if __name__ == "__main__":
     # total = immich_extract_albums('ALL', output_folder="MisDescargasALL")
     # print(f"[RESULT] Se han descargado {total} assets en total.\n")
 
-    # # 7) Ejemplo: Descargar TODO en estructura /Albums/<albumName>/ + /ALL_PHOTOS/yyyy/mm
+    # # 7) Ejemplo: Descargar todos en estructura /Albums/<albumName>/ + /ALL_PHOTOS/yyyy/mm
     # print("=== EJEMPLO: immich_download_all_with_structure ===")
     # total_struct = immich_download_all_with_structure(output_folder="FullImmichDownload")
     # print(f"[RESULT] Descarga masiva completada. Total assets: {total_struct}\n")
