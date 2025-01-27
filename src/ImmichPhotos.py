@@ -10,10 +10,12 @@ Módulo Python con ejemplos de funciones para interactuar con Immich:
   - Listado y gestión de álbumes
   - Listado, subida y descarga de assets
   - Eliminación de álbumes vacíos o duplicados
-  - NUEVOS NOMBRES:
-     - immich_extract_albums()    (antes extract_photos_from_album)
-     - immich_create_albums()     (antes create_albums_from_folder)
-     - immich_download_all_with_structure() (antes download_all_assets_with_structure)
+  - Funciones principales para llamar desde otros módulos:
+     - immich_upload_albums()
+     - immich_download_albums()
+     - immich_download_all()
+     - immich_delete_empty_albums()
+     - immich_delete_duplicates_albums()
 
 Requisitos:
   - requests
@@ -21,6 +23,8 @@ Requisitos:
 """
 
 import os
+from fileinput import filename
+
 import requests
 import json
 import urllib3
@@ -32,6 +36,15 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # -----------------------------------------------------------------------------
 #                          GLOBAL VARIABLES
 # -----------------------------------------------------------------------------
+global CONFIG
+global IMMICH_URL
+global API_KEY
+global USERNAME
+global PASSWORD
+global SESSION_TOKEN
+global API_KEY_LOGIN
+global HEADERS
+global ALLOWED_MEDIA_EXTENSIONS, ALLOWED_SIDECAR_EXTENSIONS
 
 CONFIG          = None  # Dictionary containing configuration information
 IMMICH_URL      = None  # e.g., "http://192.168.1.100:2283"
@@ -41,16 +54,71 @@ PASSWORD        = None  # Immich password
 SESSION_TOKEN   = None  # JWT token returned after login
 API_KEY_LOGIN   = False # Variable to determine if we use API_KEY for login
 HEADERS         = {}    # Headers used in each request
-
-# List of “compatible” extensions (adjust as needed)
-ALLOWED_EXTENSIONS = {
-    '.jpg', '.jpeg', '.png', '.gif', '.heic', '.heif', '.bmp',
-    '.mp4', '.mov', '.avi', '.mkv', '.mts', '.m2ts', '.wmv'
-}
+ALLOWED_MEDIA_EXTENSIONS    = None
+ALLOWED_SIDECAR_EXTENSIONS  = None
 
 ##############################################################################
 #                           AUXILIARY FUNNCTIONS                             #
 ##############################################################################
+# -----------------------------------------------------------------------------
+#                          GENERAL FUNCTIONS
+# -----------------------------------------------------------------------------
+def get_user_id():
+    """
+    Return the user_id for the logged user
+    """
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return []
+    url = f"{IMMICH_URL}/api/users/me"
+    payload = {}
+    try:
+        response = requests.request("GET", url, headers=HEADERS, data=payload)
+        response.raise_for_status()
+        data = response.json()
+        user_id = data.get("id")
+        user_mail = data.get("email")
+        LOGGER.info(f"INFO: User ID: '{user_id}' found for user '{user_mail}'.")
+        return user_id
+    except Exception as e:
+        LOGGER.error(f"ERROR: Cannot find User ID for user '{user_mail}': {e}")
+        return None
+
+def get_supported_media_types(type='media'):
+    """
+    Return the user_id for the logged user
+    """
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return []
+    url = f"{IMMICH_URL}/api/server/media-types"
+    payload = {}
+    try:
+        response = requests.request("GET", url, headers=HEADERS, data=payload)
+        response.raise_for_status()
+        data = response.json()
+        image = data.get("image")
+        video = data.get("video")
+        sidecar = data.get("sidecar")
+        if type.lower()=='media':
+            supported_types = image + video
+            LOGGER.info(f"INFO: Supported media types: '{supported_types}'.")
+        elif type.lower()=='image':
+            supported_types = image
+            LOGGER.info(f"INFO: Supported image types: '{supported_types}'.")
+        elif type.lower()=='video':
+            supported_types = video
+            LOGGER.info(f"INFO: Supported video types: '{supported_types}'.")
+        elif type.lower()=='sidecar':
+            supported_types = sidecar
+            LOGGER.info(f"INFO: Supported sidecar types: '{supported_types}'.")
+        else:
+            LOGGER.error(f"ERROR: Invalid type '{type}' to get supported media types. Types allowed are 'media', 'image', 'video' or 'sidecar'")
+            return None
+        return supported_types
+    except Exception as e:
+        LOGGER.error(f"ERROR: Cannot get Supported media types: {e}")
+        return None
 # -----------------------------------------------------------------------------
 #                          CONFIGURATION READING
 # -----------------------------------------------------------------------------
@@ -183,27 +251,6 @@ def logout_immich():
     SESSION_TOKEN = None
     HEADERS = {}
     LOGGER.info("INFO: Session closed locally (Bearer Token discarded).")
-
-# -----------------------------------------------------------------------------
-#                          GENERAL FUNCTIONS
-# -----------------------------------------------------------------------------
-def get_user_id():
-    """
-    Return the user_id for the logged user
-    """
-    from LoggerConfig import LOGGER  # Import global LOGGER
-    url = f"{IMMICH_URL}/api/users/me"
-    payload = {}
-    try:
-        response = requests.request("GET", url, headers=HEADERS, data=payload)
-        data = response.json()
-        user_id = data.get("id")
-        user_mail = data.get("email")
-        LOGGER.info(f"INFO: User ID: '{user_id}' found for user '{user_mail}'.")
-        return user_id
-    except Exception as e:
-        LOGGER.error(f"ERROR: Cannot find User ID for user '{user_mail}': {e}")
-        return None
 
 # -----------------------------------------------------------------------------
 #                          ALBUMS FUNCTIONS
@@ -372,11 +419,15 @@ def upload_file_to_immich(file_path):
     if not os.path.isfile(file_path):
         LOGGER.error(f"ERROR: File not found: {file_path}")
         return None
+    # Get filename and ext for the given file
+    filename, ext = os.path.splitext(file_path)
     # Check if the file extension is allowed
-    ext = os.path.splitext(file_path)[1].lower()
-    if ext not in ALLOWED_EXTENSIONS:
-        LOGGER.warning(f"WARNING: File '{file_path}' has an unsupported extension. Skipped.")
-        return None
+    if ext.lower() not in ALLOWED_MEDIA_EXTENSIONS:
+        if ext.lower() in ALLOWED_SIDECAR_EXTENSIONS:
+            return None
+        else:
+            LOGGER.warning(f"WARNING: File '{file_path}' has an unsupported extension. Skipped.")
+            return None
     # This API requires special headers without 'Content-Type': 'application/json'
     if API_KEY_LOGIN:
         header = {
@@ -395,6 +446,22 @@ def upload_file_to_immich(file_path):
     # files=[
     #    ('assetData',('file',open(file_path,'rb'),'application/octet-stream'))
     # ]
+
+    # Check if a sidecar file is found on the same path, if so, then add it to files dict.
+    for sidecar_extension in ALLOWED_SIDECAR_EXTENSIONS:
+        # Check with file_path/filename.ext.sidecar_extension
+        sidecar_path = f"{file_path}{sidecar_extension}"
+        if os.path.isfile(sidecar_path):
+            LOGGER.info(f"INFO: Uploaded Sidecar: '{os.path.basename(sidecar_path)}' for file: '{os.path.basename(file_path)}'")
+            files['sidecarData'] = open(sidecar_path, 'rb')
+            break
+        # Check with file_path/filename.sidecar_extension
+        sidecar_path = f"{file_path.replace(ext, sidecar_extension)}"
+        if os.path.isfile(sidecar_path):
+            LOGGER.info(f"INFO: Uploaded Sidecar: '{os.path.basename(sidecar_path)}' for file: '{os.path.basename(file_path)}'")
+            files['sidecarData'] = open(sidecar_path, 'rb')
+            break
+
     stats = os.stat(file_path)
     date_time_for_filename = datetime.fromtimestamp(stats.st_mtime).strftime("%Y%m%d_%H%M%S")
     date_time_for_attributes = datetime.fromtimestamp(stats.st_mtime).strftime("%Y-%m-%dT%H:%M:%S.000Z")
@@ -471,6 +538,11 @@ def immich_upload_folder(input_folder):
     if not os.path.isdir(input_folder):
         LOGGER.error(f"ERROR: The folder '{input_folder}' does not exist.")
         return 0
+    global ALLOWED_MEDIA_EXTENSIONS, ALLOWED_SIDECAR_EXTENSIONS
+    # get List of “compatible” media and sidecar extensions for Immich
+    ALLOWED_MEDIA_EXTENSIONS = get_supported_media_types()
+    ALLOWED_SIDECAR_EXTENSIONS = get_supported_media_types(type='sidecar')
+    # Initialize Counters
     total_uploaded = 0
     # Recursively traverse the folder
     for root, dirs, files in os.walk(input_folder):
@@ -503,6 +575,11 @@ def immich_upload_albums(input_folder):
     if not os.path.isdir(input_folder):
         LOGGER.error(f"ERROR: The folder '{input_folder}' does not exist.")
         return 0
+    global ALLOWED_MEDIA_EXTENSIONS, ALLOWED_SIDECAR_EXTENSIONS
+    # get List of “compatible” media and sidecar extensions for Immich
+    ALLOWED_MEDIA_EXTENSIONS = get_supported_media_types()
+    ALLOWED_SIDECAR_EXTENSIONS = get_supported_media_types(type='sidecar')
+    # Initialize Counters
     albums_created = 0
     albums_skipped = 0
     assets_added = 0
@@ -726,6 +803,8 @@ def immich_download_all(output_folder="ImmichDownload"):
 # -----------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    from LoggerConfig import log_setup
+    LOGGER = log_setup()
 
     # # 1) Leemos la config y hacemos login
     # read_immich_config()
@@ -736,20 +815,20 @@ if __name__ == "__main__":
     big_folder = r"r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Others"
     immich_upload_folder(big_folder)
 
-    # 3) Ejemplo: Crear álbumes a partir de subcarpetas en 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums'
-    print("\n=== EJEMPLO: immich_create_albums ===")
-    input_albums_folder = r"r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums"
-    immich_upload_albums(input_albums_folder)
+    # # 3) Ejemplo: Crear álbumes a partir de subcarpetas en 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums'
+    # print("\n=== EJEMPLO: immich_create_albums ===")
+    # input_albums_folder = r"r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums"
+    # immich_upload_albums(input_albums_folder)
 
     # # 4) Ejemplo: Borrar álbumes vacíos
     # print("=== EJEMPLO: Borrar álbumes vacíos ===")
     # deleted = immich_delete_empty_albums()
     # print(f"[RESULT] Álbumes vacíos borrados: {deleted}\n")
 
-    # 5) Ejemplo: Borrar álbumes duplicados
-    print("=== EJEMPLO: Borrar álbumes duplicados ===")
-    duplicates = immich_delete_duplicates_albums()
-    print(f"[RESULT] Álbumes duplicados borrados: {duplicates}\n")
+    # # 5) Ejemplo: Borrar álbumes duplicados
+    # print("=== EJEMPLO: Borrar álbumes duplicados ===")
+    # duplicates = immich_delete_duplicates_albums()
+    # print(f"[RESULT] Álbumes duplicados borrados: {duplicates}\n")
 
     # # 6) Ejemplo: Descargar todas las fotos de TODOS los álbumes
     # print("\n=== EJEMPLO: immich_extract_albums ===")
