@@ -29,7 +29,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
           The script will look for all Photos/Videos within <FOLDER> and will upload them into Synology Photos.
 
 
-- With those changes Synology Photos support and Immich Photos support has the same options. For Synology Photos, the options are:
+- With those changes the support for Synology Photos has the following options:
   - **-suf, --synology-upload-folder <FOLDER>**  
           The script will look for all Photos/Videos within <FOLDER> and will upload them into Synology Photos.
   - **-sua, --synology-upload-albums <ALBUMS_FOLDER>**  
