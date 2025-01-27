@@ -223,21 +223,13 @@ def parse_arguments():
     parser.add_argument("-ao", "--all-in-one", metavar="<INPUT_FOLDER>", default="", help="The Script will do the whole process (Zip extraction, Takeout Processing, Remove Duplicates, Synology Photos Albums creation) in just One Shot.")
 
     # EXTRA MODES FOR SYNOLOGY PHOTOS
-    parser.add_argument("-sea", "--synology-extract-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
-        help="The Script will connect to Synology Photos and extract the Album whose name is <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the Synology Photos root folder."
-           '\nTo extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: --extract-albums-synology-photos "album1", "album2", "album3".'
-           '\nTo extract ALL Albums within in Synology Photos database use "ALL" as <ALBUMS_NAME>.'
-        )
+    parser.add_argument("-sea", "--synology-extract-albums", metavar="<ALBUMS_NAME>", nargs="+", default="", help="The Script will connect to Synology Photos and extract the Album whose name is <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the Synology Photos root folder.")
     parser.add_argument("-sca", "--synology-create-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Albums within ALBUM_FOLDER and will create one Album per folder into Synology Photos.")
     parser.add_argument("-sde", "--synology-delete-empty-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.")
     parser.add_argument("-sdd", "--synology-delete-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.")
 
     # EXTRA MODES FOR IMMINCH PHOTOS
-    parser.add_argument("-iea", "--immich-extract-albums", metavar="<ALBUMS_NAME>", nargs="+", default="", 
-        help="The Script will connect to Immich Photos and extract the Album whose name is <ALBUMS_NAME> to the folder 'Immich_Photos_Albums' within the Immich Photos root folder."
-           '\nTo extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: --extract-albums-synology-photos "album1", "album2", "album3".'
-           '\nTo extract ALL Albums within in Synology Photos database use "ALL" as <ALBUMS_NAME>.'
-        )
+    parser.add_argument("-iea", "--immich-extract-albums", metavar="<ALBUMS_NAME>", nargs="+", default="", help="The Script will connect to Immich Photos and extract the Album whose name is <ALBUMS_NAME> to the folder 'Immich_Photos_Albums' within the Immich Photos root folder.")
     parser.add_argument("-ica", "--immich-create-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Albums within ALBUM_FOLDER and will create one Album per folder into Immich Photos.")
     parser.add_argument("-ide", "--immich-delete-empty-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.")
     parser.add_argument("-idd", "--immich-delete-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.")

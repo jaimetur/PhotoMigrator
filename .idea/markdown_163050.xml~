@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="MarkdownSettings">
+    <option name="customStylesheetPath" value="P:\Python_Scripts_jaimetur\PycharmProjects\OrganizeTakeoutPhotos-dev\github-markdown-dark.css" />
+    <enabledExtensions>
+      <entry key="MermaidLanguageExtension" value="false" />
+      <entry key="PlantUMLLanguageExtension" value="false" />
+    </enabledExtensions>
+    <option name="useCustomStylesheetPath" value="true" />
+  </component>
+</project>

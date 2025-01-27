@@ -36,7 +36,7 @@ def comprimir_directorio(temp_dir, output_file):
 
 
 def include_file_and_folders_and_compress(input_file, output_file):
-    extra_files = ["./Synology.config", "./Immich.config", "../README.md"]
+    extra_files = ["./Synology.config", "./Immich.config", "../README.md", "../release-notes.md"]
     if not input_file or not output_file:
         print("Uso: compress_file_and_folders(input_file, output_file)")
         sys.exit(1)
@@ -126,7 +126,7 @@ def compile():
             add_gpth_command = f"../gpth_tool/gpth_{OPERATING_SYSTEM}.bin:gpth_tool"
 
         print("Añadiendo paquetes necesarios al entorno Python antes de compilar...")
-        subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', 'requirements.txt'])
+        subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', '../requirements.txt'])
         if OPERATING_SYSTEM=='windows':
             subprocess.run([sys.executable, '-m', 'pip', 'install', 'windows-curses'])
         print("")

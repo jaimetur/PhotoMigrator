@@ -1,4 +1,6 @@
 import os, sys
+from http.client import responses
+
 import requests
 import urllib3
 import subprocess
@@ -347,12 +349,348 @@ def get_album_items_size(album_id, album_name):
             album_size += item.get("filesize")
     return album_size
 
+# Function start_reindex_synology_photos_with_api()
+def start_reindex_synology_photos_with_api(type='basic'):
+    """
+    Inicia la indexación de una carpeta en Synology Photos.
+
+    Args:
+        type (str): 'basic' or 'thumbnail'
+    """
+    from LoggerConfig import LOGGER  # Importación local del logger
+
+    login_synology()
+
+    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    params = {
+        "api": "SYNO.Foto.Index",
+        "version": 1,
+        "method": "reindex",
+        "runner": USERNAME,
+        "type": type
+    }
+    try:
+        result = SESSION.get(url, params=params, verify=False).json()
+        if result.get("success"):
+            if type=='basic':
+                LOGGER.info(f"INFO: Reindexing started in Synology Photos database for user: '{USERNAME}'.")
+                LOGGER.info(f"INFO: This process may take several minutes or even hours to finish (depending of number of files to index). Please be patient...")
+        else:
+            if result.get("error").get("code") == 105:
+                LOGGER.error(f"ERROR: The user '{USERNAME}' does not have sufficient privileges to start ReIndexing Services... You have to wait until the System Indexes the folder by itself before to add its content to Synology Photos Albums.")
+            else:
+                LOGGER.error(f"ERROR: Error Starting Reindex: {result.get('error')}")
+                start_reindex_synology_photos_with_command(type=type)
+        return result
+
+    except Exception as e:
+        LOGGER.error(f"Error: Connection error: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+# Function start_reindex_synology_photos_with_command()
+def start_reindex_synology_photos_with_command(type='basic'):
+    """
+    Inicia la indexación de una carpeta en Synology Photos.
+
+    Args:
+        type (str): 'basic' or 'thumbnail'
+    """
+    from LoggerConfig import LOGGER  # Importación local del logger
+
+    command = [
+            'sudo',  # Ejecutar con privilegios de administrador
+            'synowebapi',
+            '--exec',
+            'api=SYNO.Foto.Index',
+            'method=reindex',
+            'version=1',
+            f'runner={USERNAME}',
+            f'type={type}'
+        ]
+    comando = " ".join(command)
+    if Utils.run_from_synology():
+        try:
+            resultado = subprocess.run(command, capture_output=True, text=True, check=True)
+            if type=='basic':
+                LOGGER.info(f"INFO: Reindexing started in Synology Photos database for user: '{USERNAME}'.")
+                LOGGER.info(f"INFO: This process may take several minutes or even hours to finish (depending of number of files tonindex). Please be patient...")
+                LOGGER.info(f"INFO: Starting Reindex with command: '{comando}'")
+        except subprocess.CalledProcessError as e:
+            LOGGER.error(f"ERROR: Execute Reindexing with command '{comando}'")
+            LOGGER.error(e.stderr)
+    else:
+        LOGGER.error(f"ERROR: Execute Reindexing with command '{comando}' is only available if you run the Script from a Synology NAS terminal.")
+
+# Function wait_for_reindexing_synology_photos()
+def wait_for_reindexing_synology_photos():
+    """
+    Espera hasta que la indexación haya terminado, consultando el estado cada 10 segundos.
+    Muestra el progreso de la indexación en el log.
+    """
+    from LoggerConfig import LOGGER  # Importación local del logger
+    import time  # Importación local de time
+    login_synology()
+
+    start_reindex_synology_photos_with_api(type='basic')
+    # start_reindex_synology_photos_with_command(type='basic')
+
+    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    params = {
+        "api": "SYNO.Foto.Index",
+        "version": 1,
+        "method": "get"
+    }
+    time.sleep(5) # Espera 5 segundos para la primera consulta para que de tiempo a calcular los ficheros a indexar.
+    result = SESSION.get(url, params=params, verify=False).json()
+    if result.get("success"):
+        files_to_index = int(result["data"].get("basic"))
+        remaining_thumbnails_previous_step = files_to_index
+
+        with tqdm(total=files_to_index, smoothing=0.8,  desc=f"INFO: Reindexing files'", unit=" files") as pbar:
+            while True:
+                result = SESSION.get(url, params=params, verify=False).json()
+                if result.get("success"):
+                    remaining_files = int(result["data"].get("basic"))
+                    if remaining_files>files_to_index:
+                        files_to_index=remaining_files
+                        remaining_thumbnails_previous_step = files_to_index
+                        pbar.total = files_to_index
+                    step_indexed = remaining_thumbnails_previous_step-remaining_files
+                    remaining_thumbnails_previous_step=remaining_files
+                    pbar.update(step_indexed)
+                    if int(remaining_files) == 0:
+                        start_reindex_synology_photos_with_api(type='thumbnail')
+                        # start_reindex_synology_photos_with_command(type='thumbnail')
+                        time.sleep(10)
+                        return True
+                    else:
+                        time.sleep(5) # Espera 5 segundos antes de volver a consultar
+                else:
+                    LOGGER.error("ERROR: Error geting Reindex Status.")
+                    return False
+    else:
+        LOGGER.error("ERROR: Error geting Reindex Status.")
+        return False
+
 #######################
 # END OF AUX FUNCTIONS
 #######################
+# Function synology_upload_folder()
+def synology_upload_folder(folder):
+    # Importar logger e iniciar sesión en el NAS:
+    from LoggerConfig import LOGGER
+    login_synology()
+    LOGGER.warning("WARNING: This mode is not yet supported. Exiting.")
+    sys.exit(-1)
 
-# Function synology_extract_albums()
-def synology_extract_albums(albums_name='ALL'):
+# Function synology_upload_albums()
+def synology_upload_albums(albums_folder):
+    """
+    Crea álbumes en Synology Photos basados en las carpetas en el NAS.
+
+    Args:
+        albums_folder (str): Ruta base en el NAS donde están las carpetas de los álbumes.
+
+    Returns:
+        albums_crated, albums_skipped, assets_added
+    """
+    # Importar logger e iniciar sesión en el NAS:
+    from LoggerConfig import LOGGER
+    login_synology()
+
+    #######################
+    # AUXILIARY FUNNCTIONS:
+    #######################
+    def upload_assets(file_path, album_name=None):
+        stats = os.stat(file_path)
+        """Añade fotos de una carpeta a un álbum."""
+        url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+
+        # Primero nos aseguramos de que la carpeta folder_id tenga al menos 1 fichero soportado indexado
+        params = {
+            "api": "SYNO.Foto.Upload.Item",
+            "method": "upload_to_folder",
+            "version": "1",
+            "duplicate": "ignore",
+            "name": os.path.basename(file_path),
+            "mtime": stats.st_mtime,
+            "folder_id": 10234,
+            "file": 454
+        }
+
+        files = {
+            'assetData': open(file_path, 'rb')
+        }
+        response = SESSION.post(url, data=params, files=files, verify=False)
+        response.raise_for_status()
+        data = response.json()
+        if not data["success"]:
+            LOGGER.warning(f"WARNING: Cannot count files in folder: '{album_name}' due to API call error. Skipped! ")
+            return -1
+
+    def add_photos_to_album(folder_id, album_name):
+        """Añade fotos de una carpeta a un álbum."""
+        url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+
+        # Primero nos aseguramos de que la carpeta folder_id tenga al menos 1 fichero soportado indexado
+        params = {
+            "api": "SYNO.Foto.Browse.Item",
+            "method": "count",
+            "version": "4",
+            "folder_id": folder_id,
+        }
+        response = SESSION.get(url, params=params, verify=False)
+        response.raise_for_status()
+        data = response.json()
+        if not data["success"]:
+            LOGGER.warning(f"WARNING: Cannot count files in folder: '{album_name}' due to API call error. Skipped! ")
+            return -1
+
+        # Comprobar si hay fotos para añadir
+        num_files = data["data"]["count"]
+        if not num_files > 0:
+            LOGGER.warning(f"WARNING: Cannot find supported files in folder: '{album_name}'. Skipped! ")
+            return -1
+
+        # Obtenemos los ids de todos los ficheros de medios encontrados en folder_id
+        file_ids = []
+        offset = 0
+        limit = 5000
+        while True:
+            params = {
+                "api": "SYNO.Foto.Browse.Item",
+                "method": "list",
+                "version": "4",
+                "folder_id": folder_id,
+                "offset": offset,
+                "limit": limit
+            }
+            # Realizar la solicitud
+            response = SESSION.get(url, params=params, verify=False)
+            response.raise_for_status()
+            data = response.json()
+            if not data.get("success"):
+                LOGGER.warning(f"WARNING: Cannot list files in folder: '{album_name}' due to API call error. Skipped! ")
+                return -1
+            file_ids.extend([str(item["id"]) for item in data["data"]["list"] if "id" in item])
+            # Verificar si se han devuelto menos elementos que el límite
+            if len(data["data"]["list"]) < limit:
+                break
+            # Incrementar el offset para la siguiente página
+            offset += limit
+
+        # Ahora creamos el álbum con el mismo nombre que tiene su carpeta siempre y cuando la carpeta contenga ficheros soportados
+        if not len(file_ids) > 0:
+            LOGGER.warning(f"WARNING: Cannot find supported files in folder: '{album_name}'. Skipped! ")
+            return -1
+        params = {
+            "api": "SYNO.Foto.Browse.NormalAlbum",
+            "method": "create",
+            "version": "3",
+            "name": f'"{album_name}"',
+        }
+        response = SESSION.get(url, params=params, verify=False)
+        response.raise_for_status()
+        data = response.json()
+        if not data["success"]:
+            LOGGER.error(f"ERROR: Unable to create album '{album_name}': {data}")
+            return -1
+        album_id = data["data"]["album"]["id"]
+        LOGGER.info(f"INFO: Álbum '{album_name}' created with ID: {album_id}.")
+
+        # Finalmente, añadimos los ficheros al álbum en bloques de 100
+        batch_size = 100
+        total_added = 0
+
+        for i in range(0, len(file_ids), batch_size):
+            batch = file_ids[i:i + batch_size]  # Dividir en bloques de 100
+            items = ",".join(batch)  # Envía las fotos como una lista separada por comas
+            params = {
+                "api": "SYNO.Foto.Browse.NormalAlbum",
+                "method": "add_item",
+                "version": "1",
+                "id": album_id,
+                "item": f"[{items}]",
+            }
+
+            response = SESSION.get(url, params=params, verify=False)
+            response.raise_for_status()
+            data = response.json()
+
+            if not data["success"]:
+                LOGGER.warning(f"WARNING: Unable to add photos to album '{album_name}' (Batch {i // batch_size + 1}). Skipped!")
+                continue
+
+            total_added += len(batch)
+
+        return total_added
+
+    #######################
+    # END OF AUX FUNNCTIONS
+    #######################
+
+    # Check if albums_folder is inside ROOT_PHOTOS_PATH (This is necessary to process files within Albums with the indexed IDs.
+    albums_folder = Utils.remove_quotes(albums_folder)
+    if albums_folder.endswith(os.path.sep):
+        albums_folder=albums_folder[:-1]
+    if not os.path.isdir(albums_folder):
+        LOGGER.error(f"ERROR: Cannot find Album folder '{albums_folder}'. Exiting...")
+        sys.exit(-1)
+    LOGGER.info(f"INFO: Albums Folder Path: '{albums_folder}")
+    albums_folder_full_path = os.path.realpath(albums_folder)
+    ROOT_PHOTOS_PATH_full_path = os.path.realpath(ROOT_PHOTOS_PATH)
+    ROOT_PHOTOS_PATH_full_path = Utils.remove_server_name(ROOT_PHOTOS_PATH_full_path)
+    albums_folder_full_path = Utils.remove_server_name(albums_folder_full_path)
+    if ROOT_PHOTOS_PATH_full_path not in albums_folder_full_path:
+        LOGGER.error(f"ERROR: Albums folder: '{albums_folder_full_path}' should be inside ROOT_PHOTOS_PATH: '{ROOT_PHOTOS_PATH_full_path}'")
+        sys.exit(-1)
+
+    LOGGER.info(f"INFO: Reindexing Synology Photos database before to add content to it...")
+    if wait_for_reindexing_synology_photos():
+    # if True:
+        # El proceso consta de 4 pasos:
+        # 1. Primero obtenemos el id de la carpeta raiz de Synology Photos para el usuario autenticado
+        photos_root_folder_id = get_photos_root_folder_id ()
+        LOGGER.info(f"INFO: Synology Photos root folder ID: {photos_root_folder_id}")
+
+        # 2. Luego buscamos el id de la carpeta que contiene los albumes que queremos añadir
+        albums_folder_relative_path = os.path.relpath(albums_folder_full_path, ROOT_PHOTOS_PATH_full_path)
+        albums_folder_relative_path = "/"+os.path.normpath(albums_folder_relative_path).replace("\\", "/")
+        albums_folder_id = get_folder_id (search_in_folder_id=photos_root_folder_id, folder_name=os.path.basename(albums_folder))
+        LOGGER.info(f"INFO: Albums folder ID: {albums_folder_id}")
+        if not albums_folder_id:
+            LOGGER.error(f"ERROR: Cannot obtain ID for folder '{albums_folder_relative_path}/{albums_folder}'. Probably the folder has not been indexed yet. Try to force Indexing and try again.")
+            sys.exit(-1)
+
+        # Recorrer carpetas y crear álbumes
+        albums_crated = 0
+        albums_skipped = 0
+        assets_added = 0
+        LOGGER.info(f"INFO: Processing all Albums in folder '{albums_folder}' and Creating a new Album in Synology Photos with the same Folder Name...")
+        for album_folder in os.listdir(albums_folder):
+            # LOGGER.info(f"INFO: Processing Album: '{album_folder}'")
+
+            # 3. A continuación, por cada carpeta album_folder, buscamos el individual_folder_id dentro de la carpeta donde están los albumes que queremos crear
+            individual_album_folder_id = get_folder_id (search_in_folder_id=albums_folder_id, folder_name=os.path.basename(album_folder))
+            if not individual_album_folder_id:
+                LOGGER.error(f"ERROR: Cannot obtain ID for folder '{albums_folder_relative_path}/{album_folder}'. Probably the folder has not been indexed yet. Skipped this Album creation.")
+                albums_skipped += 1
+                continue
+
+            # 4. Por último añadimos todos los ficheros de fotos o videos encontrados en la carpeta del álbum, al álbum recién creado
+            res = add_photos_to_album(folder_id=individual_album_folder_id, album_name=album_folder)
+            if res==-1:
+                albums_skipped += 1
+            else:
+                albums_crated += 1
+                assets_added += res
+
+    LOGGER.info(f"INFO: Albums creation on Synology Photos Finished!.")
+    logout_synology()
+    return albums_crated, albums_skipped, assets_added
+
+# Function synology_download_albums()
+def synology_download_albums(albums_name='ALL'):
     #######################
     # AUXILIARY FUNCTIONS:
     #######################
@@ -563,186 +901,6 @@ def synology_extract_albums(albums_name='ALL'):
     LOGGER.info(f"INFO: Album(s) Extracted Successfully. You can find them in folder '{os.path.join(ROOT_PHOTOS_PATH, main_folder)}'")
     return albums_extracted, photos_extracted
 
-# Function synology_create_albums()
-def synology_create_albums(albums_folder):
-    """
-    Crea álbumes en Synology Photos basados en las carpetas en el NAS.
-
-    Args:
-        albums_folder (str): Ruta base en el NAS donde están las carpetas de los álbumes.
-
-    Returns:
-        None
-    """
-    # Importar logger e iniciar sesión en el NAS:
-    from LoggerConfig import LOGGER
-    login_synology()
-
-    #######################
-    # AUXILIARY FUNNCTIONS:
-    #######################
-    def add_photos_to_album(folder_id, album_name):
-        """Añade fotos de una carpeta a un álbum."""
-        url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
-
-        # Primero nos aseguramos de que la carpeta folder_id tenga al menos 1 fichero soportado indexado
-        params = {
-            "api": "SYNO.Foto.Browse.Item",
-            "method": "count",
-            "version": "4",
-            "folder_id": folder_id,
-        }
-        response = SESSION.get(url, params=params, verify=False)
-        response.raise_for_status()
-        data = response.json()
-        if not data["success"]:
-            LOGGER.warning(f"WARNING: Cannot count files in folder: '{album_name}' due to API call error. Skipped! ")
-            return -1
-
-        # Comprobar si hay fotos para añadir
-        num_files = data["data"]["count"]
-        if not num_files > 0:
-            LOGGER.warning(f"WARNING: Cannot find supported files in folder: '{album_name}'. Skipped! ")
-            return -1
-
-        # Obtenemos los ids de todos los ficheros de medios encontrados en folder_id
-        file_ids = []
-        offset = 0
-        limit = 5000
-        while True:
-            params = {
-                "api": "SYNO.Foto.Browse.Item",
-                "method": "list",
-                "version": "4",
-                "folder_id": folder_id,
-                "offset": offset,
-                "limit": limit
-            }
-            # Realizar la solicitud
-            response = SESSION.get(url, params=params, verify=False)
-            response.raise_for_status()
-            data = response.json()
-            if not data.get("success"):
-                LOGGER.warning(f"WARNING: Cannot list files in folder: '{album_name}' due to API call error. Skipped! ")
-                return -1
-            file_ids.extend([str(item["id"]) for item in data["data"]["list"] if "id" in item])
-            # Verificar si se han devuelto menos elementos que el límite
-            if len(data["data"]["list"]) < limit:
-                break
-            # Incrementar el offset para la siguiente página
-            offset += limit
-
-        # Ahora creamos el álbum con el mismo nombre que tiene su carpeta siempre y cuando la carpeta contenga ficheros soportados
-        if not len(file_ids) > 0:
-            LOGGER.warning(f"WARNING: Cannot find supported files in folder: '{album_name}'. Skipped! ")
-            return -1
-        params = {
-            "api": "SYNO.Foto.Browse.NormalAlbum",
-            "method": "create",
-            "version": "3",
-            "name": f'"{album_name}"',
-        }
-        response = SESSION.get(url, params=params, verify=False)
-        response.raise_for_status()
-        data = response.json()
-        if not data["success"]:
-            LOGGER.error(f"ERROR: Unable to create album '{album_name}': {data}")
-            return -1
-        album_id = data["data"]["album"]["id"]
-        LOGGER.info(f"INFO: Álbum '{album_name}' created with ID: {album_id}.")
-
-        # Finalmente, añadimos los ficheros al álbum en bloques de 100
-        batch_size = 100
-        total_added = 0
-
-        for i in range(0, len(file_ids), batch_size):
-            batch = file_ids[i:i + batch_size]  # Dividir en bloques de 100
-            items = ",".join(batch)  # Envía las fotos como una lista separada por comas
-            params = {
-                "api": "SYNO.Foto.Browse.NormalAlbum",
-                "method": "add_item",
-                "version": "1",
-                "id": album_id,
-                "item": f"[{items}]",
-            }
-
-            response = SESSION.get(url, params=params, verify=False)
-            response.raise_for_status()
-            data = response.json()
-
-            if not data["success"]:
-                LOGGER.warning(f"WARNING: Unable to add photos to album '{album_name}' (Batch {i // batch_size + 1}). Skipped!")
-                continue
-
-            total_added += len(batch)
-
-        return total_added
-
-    #######################
-    # END OF AUX FUNNCTIONS
-    #######################
-
-    # Check if albums_folder is inside ROOT_PHOTOS_PATH (This is necessary to process files within Albums with the indexed IDs.
-    albums_folder = Utils.remove_quotes(albums_folder)
-    if albums_folder.endswith(os.path.sep):
-        albums_folder=albums_folder[:-1]
-    if not os.path.isdir(albums_folder):
-        LOGGER.error(f"ERROR: Cannot find Album folder '{albums_folder}'. Exiting...")
-        sys.exit(-1)
-    LOGGER.info(f"INFO: Albums Folder Path: '{albums_folder}")
-    albums_folder_full_path = os.path.realpath(albums_folder)
-    ROOT_PHOTOS_PATH_full_path = os.path.realpath(ROOT_PHOTOS_PATH)
-    ROOT_PHOTOS_PATH_full_path = Utils.remove_server_name(ROOT_PHOTOS_PATH_full_path)
-    albums_folder_full_path = Utils.remove_server_name(albums_folder_full_path)
-    if ROOT_PHOTOS_PATH_full_path not in albums_folder_full_path:
-        LOGGER.error(f"ERROR: Albums folder: '{albums_folder_full_path}' should be inside ROOT_PHOTOS_PATH: '{ROOT_PHOTOS_PATH_full_path}'")
-        sys.exit(-1)
-
-    LOGGER.info(f"INFO: Reindexing Synology Photos database before to add content to it...")
-    if wait_for_reindexing_synology_photos():
-    # if True:
-        # El proceso consta de 4 pasos:
-        # 1. Primero obtenemos el id de la carpeta raiz de Synology Photos para el usuario autenticado
-        photos_root_folder_id = get_photos_root_folder_id ()
-        LOGGER.info(f"INFO: Synology Photos root folder ID: {photos_root_folder_id}")
-
-        # 2. Luego buscamos el id de la carpeta que contiene los albumes que queremos añadir
-        albums_folder_relative_path = os.path.relpath(albums_folder_full_path, ROOT_PHOTOS_PATH_full_path)
-        albums_folder_relative_path = "/"+os.path.normpath(albums_folder_relative_path).replace("\\", "/")
-        albums_folder_id = get_folder_id (search_in_folder_id=photos_root_folder_id, folder_name=os.path.basename(albums_folder))
-        LOGGER.info(f"INFO: Albums folder ID: {albums_folder_id}")
-        if not albums_folder_id:
-            LOGGER.error(f"ERROR: Cannot obtain ID for folder '{albums_folder_relative_path}/{albums_folder}'. Probably the folder has not been indexed yet. Try to force Indexing and try again.")
-            sys.exit(-1)
-
-        # Recorrer carpetas y crear álbumes
-        albums_crated = 0
-        albums_skipped = 0
-        photos_added = 0
-        LOGGER.info(f"INFO: Processing all Albums in folder '{albums_folder}' and Creating a new Album in Synology Photos with the same Folder Name...")
-        for album_folder in os.listdir(albums_folder):
-            # LOGGER.info(f"INFO: Processing Album: '{album_folder}'")
-
-            # 3. A continuación, por cada carpeta album_folder, buscamos el individual_folder_id dentro de la carpeta donde están los albumes que queremos crear
-            individual_album_folder_id = get_folder_id (search_in_folder_id=albums_folder_id, folder_name=os.path.basename(album_folder))
-            if not individual_album_folder_id:
-                LOGGER.error(f"ERROR: Cannot obtain ID for folder '{albums_folder_relative_path}/{album_folder}'. Probably the folder has not been indexed yet. Skipped this Album creation.")
-                albums_skipped += 1
-                continue
-
-            # 4. Por último añadimos todos los ficheros de fotos o videos encontrados en la carpeta del álbum, al álbum recién creado
-            res = add_photos_to_album(folder_id=individual_album_folder_id, album_name=album_folder)
-            if res==-1:
-                albums_skipped += 1
-            else:
-                albums_crated += 1
-                photos_added += res
-
-    LOGGER.info(f"INFO: Albums creation on Synology Photos Finished!.")
-    logout_synology()
-    return albums_crated, albums_skipped, photos_added
-
-
 # Function synology_delete_empty_albums()
 def synology_delete_empty_albums():
     """
@@ -823,130 +981,6 @@ def synology_delete_duplicates_albums():
     return albums_deleted
 
 
-# Function start_reindex_synology_photos_with_api()
-def start_reindex_synology_photos_with_api(type='basic'):
-    """
-    Inicia la indexación de una carpeta en Synology Photos.
-
-    Args:
-        type (str): 'basic' or 'thumbnail' 
-    """
-    from LoggerConfig import LOGGER  # Importación local del logger
-
-    login_synology()
-
-    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
-    params = {
-        "api": "SYNO.Foto.Index",
-        "version": 1,
-        "method": "reindex",
-        "runner": USERNAME,
-        "type": type
-    }
-    try:
-        result = SESSION.get(url, params=params, verify=False).json()
-        if result.get("success"):
-            if type=='basic':
-                LOGGER.info(f"INFO: Reindexing started in Synology Photos database for user: '{USERNAME}'.")
-                LOGGER.info(f"INFO: This process may take several minutes or even hours to finish (depending of number of files to index). Please be patient...")
-        else:
-            if result.get("error").get("code") == 105:
-                LOGGER.error(f"ERROR: The user '{USERNAME}' does not have sufficient privileges to start ReIndexing Services... You have to wait until the System Indexes the folder by itself before to add its content to Synology Photos Albums.")
-            else:
-                LOGGER.error(f"ERROR: Error Starting Reindex: {result.get('error')}")
-                start_reindex_synology_photos_with_command(type=type)
-        return result
-
-    except Exception as e:
-        LOGGER.error(f"Error: Connection error: {str(e)}")
-        return {"success": False, "error": str(e)}
-
-# Function start_reindex_synology_photos_with_command()
-def start_reindex_synology_photos_with_command(type='basic'):
-    """
-    Inicia la indexación de una carpeta en Synology Photos.
-
-    Args:
-        type (str): 'basic' or 'thumbnail'
-    """
-    from LoggerConfig import LOGGER  # Importación local del logger
-
-    command = [
-            'sudo',  # Ejecutar con privilegios de administrador
-            'synowebapi',
-            '--exec',
-            'api=SYNO.Foto.Index',
-            'method=reindex',
-            'version=1',
-            f'runner={USERNAME}',
-            f'type={type}'
-        ]
-    comando = " ".join(command)
-    if Utils.run_from_synology():
-        try:
-            resultado = subprocess.run(command, capture_output=True, text=True, check=True)
-            if type=='basic':
-                LOGGER.info(f"INFO: Reindexing started in Synology Photos database for user: '{USERNAME}'.")
-                LOGGER.info(f"INFO: This process may take several minutes or even hours to finish (depending of number of files tonindex). Please be patient...")
-                LOGGER.info(f"INFO: Starting Reindex with command: '{comando}'")
-        except subprocess.CalledProcessError as e:
-            LOGGER.error(f"ERROR: Execute Reindexing with command '{comando}'")
-            LOGGER.error(e.stderr)
-    else:
-        LOGGER.error(f"ERROR: Execute Reindexing with command '{comando}' is only available if you run the Script from a Synology NAS terminal.")
-
-# Function wait_for_reindexing_synology_photos()
-def wait_for_reindexing_synology_photos():
-    """
-    Espera hasta que la indexación haya terminado, consultando el estado cada 10 segundos.
-    Muestra el progreso de la indexación en el log.
-    """
-    from LoggerConfig import LOGGER  # Importación local del logger
-    import time  # Importación local de time
-    login_synology()
-    
-    start_reindex_synology_photos_with_api(type='basic')
-    # start_reindex_synology_photos_with_command(type='basic')
-
-    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
-    params = {
-        "api": "SYNO.Foto.Index",
-        "version": 1,
-        "method": "get"
-    }
-    time.sleep(5) # Espera 5 segundos para la primera consulta para que de tiempo a calcular los ficheros a indexar.
-    result = SESSION.get(url, params=params, verify=False).json()
-    if result.get("success"):
-        files_to_index = int(result["data"].get("basic"))
-        remaining_thumbnails_previous_step = files_to_index
-
-        with tqdm(total=files_to_index, smoothing=0.8,  desc=f"INFO: Reindexing files'", unit=" files") as pbar:
-            while True:
-                result = SESSION.get(url, params=params, verify=False).json()
-                if result.get("success"):
-                    remaining_files = int(result["data"].get("basic"))
-                    if remaining_files>files_to_index:
-                        files_to_index=remaining_files
-                        remaining_thumbnails_previous_step = files_to_index
-                        pbar.total = files_to_index
-                    step_indexed = remaining_thumbnails_previous_step-remaining_files
-                    remaining_thumbnails_previous_step=remaining_files
-                    pbar.update(step_indexed)
-                    if int(remaining_files) == 0:
-                        start_reindex_synology_photos_with_api(type='thumbnail')
-                        # start_reindex_synology_photos_with_command(type='thumbnail')
-                        time.sleep(10)
-                        return True
-                    else:
-                        time.sleep(5) # Espera 5 segundos antes de volver a consultar
-                else:
-                    LOGGER.error("ERROR: Error geting Reindex Status.")
-                    return False
-    else:
-        LOGGER.error("ERROR: Error geting Reindex Status.")
-        return False
-
-
 if __name__ == "__main__":
     # Create timestamp, and initialize LOGGER.
     from datetime import datetime
@@ -962,7 +996,7 @@ if __name__ == "__main__":
     albums_folder_path = r"r:\jaimetur_ftp\Photos\Albums"                 # For Windows
 
     # ExtractSynologyPhotosAlbums(album_name='ALL')
-    synology_extract_albums(albums_name='Cadiz')
+    synology_download_albums(albums_name='Cadiz')
 
     # result = wait_for_reindexing_synology_photos()
     # LOGGER.info(f"INFO: Index Result: {result}")

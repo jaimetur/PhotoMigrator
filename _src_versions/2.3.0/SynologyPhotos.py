@@ -43,7 +43,7 @@ def read_synology_config(config_file='Synology.config', show_info=True):
         # Intentar abrir el archivo
         with open(config_file, 'r') as file:
             for line in file:
-                line = line.split('#')[0].strip()  # Eliminar comentarios y espacios
+                line = line.split('#')[0].split('//')[0].strip()  # Eliminar comentarios y espacios
                 if line and '=' in line:
                     key, value = line.split('=', 1)
                     key = key.strip().upper()
@@ -124,7 +124,7 @@ def login_synology():
         return SESSION, SID
     else:
         LOGGER.error(f"ERROR: Unable to Authenticate in NAS with the providen data: {data}")
-        sys.exit(-1)
+        return -1,-1
 
 def logout_synology():
     global SESSION

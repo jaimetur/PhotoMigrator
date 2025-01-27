@@ -16,7 +16,7 @@
     <option name="ADD_CONTENT_ROOTS" value="false" />
     <option name="ADD_SOURCE_ROOTS" value="false" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/OrganizeTakeoutPhotos.py" />
-    <option name="PARAMETERS" value="" />
+    <option name="PARAMETERS" value="-iDA R:/jaimetur/download_all_test" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
