@@ -1,4 +1,4 @@
-## Download Latest Script:
+## Download Latest Stable Version:
 Download the script either Linux, MacOS or Windows version (for both x64/amd64 or arm64 architectures) as you prefeer directly from following links:
 
 **Linux:**:  
