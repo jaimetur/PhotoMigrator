@@ -30,31 +30,30 @@ from datetime import datetime
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # -----------------------------------------------------------------------------
-#                          VARIABLES GLOBALES
+#                          GLOBAL VARIABLES
 # -----------------------------------------------------------------------------
 
-CONFIG          = None  # Diccionario con info de config
-IMMICH_URL      = None  # p.e. "http://192.168.1.100:2283"
-API_KEY         = None  # API_KEY de Immich
-USERNAME        = None  # Usuario (email) de Immich
-PASSWORD        = None  # Contraseña de Immich
-SESSION_TOKEN   = None  # Token JWT devuelto tras login
-API_KEY_LOGIN   = False # Variable to define if we use API_KEY for login or not
-HEADERS         = {}    # Cabeceras que usaremos en cada petición
+CONFIG          = None  # Dictionary containing configuration information
+IMMICH_URL      = None  # e.g., "http://192.168.1.100:2283"
+API_KEY         = None  # Immich API_KEY
+USERNAME        = None  # Immich user (email)
+PASSWORD        = None  # Immich password
+SESSION_TOKEN   = None  # JWT token returned after login
+API_KEY_LOGIN   = False # Variable to determine if we use API_KEY for login
+HEADERS         = {}    # Headers used in each request
 
-# Lista de extensiones “compatibles” (ajústalo a tus necesidades)
+# List of “compatible” extensions (adjust as needed)
 ALLOWED_EXTENSIONS = {
     '.jpg', '.jpeg', '.png', '.gif', '.heic', '.heif', '.bmp',
     '.mp4', '.mov', '.avi', '.mkv', '.mts', '.m2ts', '.wmv'
 }
 
-#######################
-# AUXILIARY FUNNCTIONS:
-#######################
+##############################################################################
+#                           AUXILIARY FUNNCTIONS                             #
+##############################################################################
 # -----------------------------------------------------------------------------
 #                          CONFIGURATION READING
 # -----------------------------------------------------------------------------
-
 def read_immich_config(config_file='Immich.config', show_info=True):
     """
     Reads configuration (IMMICH_URL, USERNAME, PASSWORD) from a .config file,
@@ -452,9 +451,10 @@ def download_asset(asset_id, download_folder="Downloaded_Immich"):
     except Exception as e:
         LOGGER.error(f"ERROR: Failed to download asset {asset_id}: {e}")
         return False
-#######################
-# END OF AUX FUNCTIONS
-#######################
+
+##############################################################################
+#                           END OF AUX FUNCTIONS                             #
+##############################################################################
 # -----------------------------------------------------------------------------
 #           FUNCIONES PRINCIPALES PARA LLAMAR DESDE FUERA
 # -----------------------------------------------------------------------------
