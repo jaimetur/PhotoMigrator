@@ -44,7 +44,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
           The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
   
 
-- Added Support for Immich Photos. Following options are available to manage Immich Photos API:
+- Added Support for Immich Photos with the ollowing options to manage Immich API:
   - **-iuf, --immich-upload-folder <FOLDER>**    
           The script will look for all Photos/Videos within <FOLDER> and will upload them into Immich Photos.  
   - **-iua, --immich-upload-albums <ALBUMS_FOLDER>**  
