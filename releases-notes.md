@@ -52,13 +52,18 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
   - **-ida, --immich-download-albums <ALBUMS_NAME>**  
           The Script will connect to Immich Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Immich_Photos_Albums' within the Immich Photos root folder.  
           To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums" "album1", "album2", "album3".  
-          To download ALL Albums use "ALL" as <ALBUMS_NAME>.  
+          To download ALL Albums use "ALL" as <ALBUMS_NAME>.   
+  **-iDA, --immich-download-all <FOLDER>**  
+          The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <FOLDER>.  
+          - All Albums will be downloaded within a subfolder of <FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.  
+          Assets with no Albums associated will be downloaded withn a subfolder called <FOLDER>/Others/ and will have a year/month structure inside.
   - **-ide, --immich-delete-empty-albums**  
           The script will look for all Albums in Immich Photos database and if any
           Album is empty, will remove it from Immich Photos database.  
   - **-idd, --immich-delete-duplicates-albums**  
           The script will look for all Albums in Immich Photos database and if any
           Album is duplicated, will remove it from Immich Photos database.
+
 
 - Added support to include sidecar files when upload assts to Immich
 - Get Supported media tipe from Immich using API
