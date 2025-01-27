@@ -30,6 +30,10 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 
 
 - With those changes the support for Synology Photos has the following options:
+  - **-sde, --synology-delete-empty-albums**  
+          The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.  
+  - **-sdd, --synology-delete-duplicates-albums**  
+          The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
   - **-suf, --synology-upload-folder <FOLDER>**  
           The script will look for all Photos/Videos within <FOLDER> and will upload them into Synology Photos.
   - **-sua, --synology-upload-albums <ALBUMS_FOLDER>**  
@@ -38,13 +42,15 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
           The Script will connect to Synology Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the Synology Photos root folder.  
           To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums "album1", "album2", "album3".  
           To download ALL Albums use "ALL" as <ALBUMS_NAME>.  
-  - **-sde, --synology-delete-empty-albums**  
-          The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.  
-  - **-sdd, --synology-delete-duplicates-albums**  
-          The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
-  
+
 
 - Added Support for Immich Photos with the ollowing options to manage Immich API:
+  - **-ide, --immich-delete-empty-albums**  
+          The script will look for all Albums in Immich Photos database and if any
+          Album is empty, will remove it from Immich Photos database.  
+  - **-idd, --immich-delete-duplicates-albums**  
+          The script will look for all Albums in Immich Photos database and if any
+          Album is duplicated, will remove it from Immich Photos database.  
   - **-iuf, --immich-upload-folder <FOLDER>**    
           The script will look for all Photos/Videos within <FOLDER> and will upload them into Immich Photos.  
   - **-iua, --immich-upload-albums <ALBUMS_FOLDER>**  
@@ -57,12 +63,6 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
           The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <FOLDER>.  
           - Albums will be downloaded within a subfolder of <FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.  
           - Assets with no Albums associated will be downloaded withn a subfolder called <FOLDER>/Others/ and will have a year/month structure inside.
-  - **-ide, --immich-delete-empty-albums**  
-          The script will look for all Albums in Immich Photos database and if any
-          Album is empty, will remove it from Immich Photos database.  
-  - **-idd, --immich-delete-duplicates-albums**  
-          The script will look for all Albums in Immich Photos database and if any
-          Album is duplicated, will remove it from Immich Photos database.
 
 
 - Added support to include sidecar files when upload assts to Immich
