@@ -19,10 +19,10 @@
 
 ### DONE:
 - [x] Add Support for Immich Photos
-- [x] Add support to include sidecar files when upload assts to Immich
-- [x] Improve authentication speed in Immich
-- [x] Get Supported media type from Immich using API
-- [x] Translate into English all Immich fuctions
+    - [x] Add support to include sidecar files when upload assts to Immich
+    - [x] Improve authentication speed in Immich
+    - [x] Get Supported media type from Immich using API
+    - [x] Translate into English all Immich fuctions
 - [x] Add release-notes.md file to the distribution package.
 - [x] Renamed options of Synology Photos support to homogenize with Immich Photos support
 
