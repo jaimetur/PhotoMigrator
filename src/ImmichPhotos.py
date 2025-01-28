@@ -1,30 +1,24 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
 ImmichPhotos.py
 ---------------
-Módulo Python con ejemplos de funciones para interactuar con Immich:
-  - Configuración (leer Immich.config)
-  - Autenticación (login/logout)
-  - Listado y gestión de álbumes
-  - Listado, subida y descarga de assets
-  - Eliminación de álbumes vacíos o duplicados
-  - Funciones principales para llamar desde otros módulos:
-     - immich_upload_albums()
-     - immich_download_albums()
-     - immich_download_all()
+Python module with example functions to interact with Immich Photos, including followfing functions:
+  - Configuration (read config)
+  - Authentication (login/logout)
+  - Listing and managing albums
+  - Listing, uploading, and downloading assets
+  - Deleting empty or duplicate albums
+  - Main functions for use in other modules:
      - immich_delete_empty_albums()
      - immich_delete_duplicates_albums()
-
-Requisitos:
-  - requests
-  - tqdm
+     - immich_upload_folder()
+     - immich_upload_albums()
+     - immich_download_albums()
+     - immich_download_ALL()
 """
 
 import os
-from fileinput import filename
-
 import requests
 import json
 import urllib3
@@ -189,7 +183,6 @@ def read_immich_config(config_file='Immich.config', show_info=True):
 # -----------------------------------------------------------------------------
 #                          AUTHENTICATION / LOGOUT
 # -----------------------------------------------------------------------------
-
 def login_immich():
     """
     Logs into Immich and obtains a JWT token (SESSION_TOKEN).
@@ -289,7 +282,7 @@ def delete_album(album_id, album_name):
     try:
         response = requests.delete(url, headers=HEADERS, verify=False)
         if response.status_code == 200:
-            LOGGER.info(f"INFO: Album '{album_name}' with ID={album_id} deleted.")
+            # LOGGER.info(f"INFO: Album '{album_name}' with ID={album_id} deleted.")
             return True
         else:
             LOGGER.warning(f"WARNING: Failed to delete album {album_id}. Status: {response.status_code}")
@@ -352,24 +345,6 @@ def add_assets_to_album(album_id, asset_ids):
         LOGGER.error(f"ERROR: Failed to add assets to album {album_id}: {e}")
         return 0
 
-def get_assets_from_album(album_id):
-    """
-    Returns the list of assets that belong to a specific album (ID).
-    """
-    from LoggerConfig import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return []
-    url = f"{IMMICH_URL}/api/albums/{album_id}"
-    try:
-        response = requests.get(url, headers=HEADERS, verify=False)
-        response.raise_for_status()
-        data = response.json()  # List
-        assets = data.get("assets")
-        return assets
-    except Exception as e:
-        LOGGER.error(f"ERROR: Failed to retrieve assets from album ID={album_id}: {str(e)}")
-        return []
-
 def get_album_items_size(album_id):
     """
     Calculates the total size of all assets in an album by summing up exifInfo.fileSizeInByte (if available).
@@ -390,22 +365,72 @@ def get_album_items_size(album_id):
 # -----------------------------------------------------------------------------
 #                          ASSETS (FOTOS/VIDEOS) FUNCTIONS
 # -----------------------------------------------------------------------------
-def list_all_assets():
+def get_assets_by_search_filter():
     """
-    Returns a list of ALL assets (photos, videos) of the user in Immich.
-    Each item includes metadata such as { id, deviceAssetId, fileCreatedAt, exifInfo, etc. }
+    Returns the list of assets that belong to a specific album (ID).
     """
     from LoggerConfig import LOGGER  # Import global LOGGER
     if not login_immich():
         return []
-    url = f"{IMMICH_URL}/api/asset"
+    url = f"{IMMICH_URL}/api/search/metadata"
+    payload = json.dumps({
+      # "city": "string",
+      # "country": "string",
+      # "type": "IMAGE",
+      # "libraryId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "order": "desc",
+
+      "isNotInAlbum": True,
+      # "isArchived": True,
+      # "isEncoded": True,
+      # "isFavorite": True,
+      # "isMotion": True,
+      # "isOffline": True,
+      # "isVisible": True,
+      # "withArchived": False,
+      # "withDeleted": True,
+      # "withExif": True,
+      # "withPeople": True,
+      # "withStacked": True,
+
+      # "createdAfter": "string",
+      # "createdBefore": "string",
+      # "takenAfter": "string",
+      # "takenBefore": "string",
+      # "updatedAfter": "string",
+      # "updatedBefore": "string",
+
+      # "personIds": [
+      #   "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+      # ],
+
+    })
+    try:
+        response = requests.post(url, headers=HEADERS, data=payload, verify=False)
+        response.raise_for_status()
+        data = response.json()  # List
+        assets = data.get("assets")
+        return assets
+    except Exception as e:
+        LOGGER.error(f"ERROR: Failed to retrieve assets: {str(e)}")
+        return []
+
+def get_assets_from_album(album_id):
+    """
+    Returns the list of assets that belong to a specific album (ID).
+    """
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return []
+    url = f"{IMMICH_URL}/api/albums/{album_id}"
     try:
         response = requests.get(url, headers=HEADERS, verify=False)
         response.raise_for_status()
-        data = response.json()  # List of assets
-        return data
+        data = response.json()  # List
+        assets = data.get("assets")
+        return assets
     except Exception as e:
-        LOGGER.error(f"ERROR: Failed to retrieve asset list: {e}")
+        LOGGER.error(f"ERROR: Failed to retrieve assets from album ID={album_id}: {str(e)}")
         return []
 
 def upload_file_to_immich(file_path):
@@ -490,7 +515,7 @@ def upload_file_to_immich(file_path):
         LOGGER.error(f"ERROR: Failed to upload '{file_path}': {e}")
         return None
 
-def download_asset(asset_id, download_folder="Downloaded_Immich"):
+def download_asset(asset_id, asset_filename, download_folder="Downloaded_Immich"):
     """
     Downloads an asset (photo/video) from Immich and saves it to local disk.
     Uses GET /api/asset/:assetId/serve
@@ -500,17 +525,16 @@ def download_asset(asset_id, download_folder="Downloaded_Immich"):
     if not login_immich():
         return False
     os.makedirs(download_folder, exist_ok=True)
-    url = f"{IMMICH_URL}/api/asset/{asset_id}/serve"
+    url = f"{IMMICH_URL}/api/assets/{asset_id}/original"
     try:
         with requests.get(url, headers=HEADERS, verify=False, stream=True) as r:
             r.raise_for_status()
             # Attempt to deduce filename from the header
             content_disp = r.headers.get('Content-Disposition', '')
-            filename = f"{asset_id}"
             if 'filename=' in content_disp:
                 # attachment; filename="name.jpg"
-                filename = content_disp.split("filename=")[-1].strip('"; ')
-            out_path = os.path.join(download_folder, filename)
+                asset_filename = content_disp.split("filename=")[-1].strip('"; ')
+            out_path = os.path.join(download_folder, asset_filename)
             with open(out_path, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=8192):
                     f.write(chunk)
@@ -522,9 +546,64 @@ def download_asset(asset_id, download_folder="Downloaded_Immich"):
 ##############################################################################
 #                           END OF AUX FUNCTIONS                             #
 ##############################################################################
-# -----------------------------------------------------------------------------
-#           FUNCIONES PRINCIPALES PARA LLAMAR DESDE FUERA
-# -----------------------------------------------------------------------------
+
+##############################################################################
+#           MAIN FUNCTIONS TO CALL FROM OTHER MODULES                        #
+##############################################################################
+def immich_delete_empty_albums():
+    """
+    Deletes all albums that have no assets (are empty).
+    Returns the number of albums deleted.
+    """
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return 0
+    albums = list_albums()
+    if not albums:
+        LOGGER.info("INFO: No albums found.")
+        return 0
+    total_deleted_empty_albums = 0
+    for album in tqdm(albums, desc=f"INFO: Processing Albums", unit=" albums"):
+        album_id = album.get("id")
+        album_name = album.get("albumName")
+        assets_count = album.get("assetCount")
+        if assets_count == 0:
+            if delete_album(album_id, album_name):
+                # LOGGER.info(f"INFO: Empty album '{album_name}' (ID={album_id}) deleted.")
+                total_deleted_empty_albums += 1
+    LOGGER.info(f"INFO: Deleted {total_deleted_empty_albums} empty albums.")
+    return total_deleted_empty_albums
+
+def immich_delete_duplicates_albums():
+    """
+    Deletes albums that have the same number of assets and the same total size.
+    From each duplicate group, keeps the first one (smallest ID) and deletes the rest.
+    """
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return 0
+    albums = list_albums()
+    if not albums:
+        return 0
+    duplicates_map = {}
+    for album in tqdm(albums, desc=f"INFO: Processing Albums", unit=" albums"):
+        album_id = album.get("id")
+        album_name = album.get("albumName")
+        assets_count = album.get("assetCount")
+        size = get_album_items_size(album_id)
+        duplicates_map.setdefault((assets_count, size), []).append((album_id, album_name))
+    total_deleted_duplicated_albums = 0
+    for (assets_count, size), group in tqdm(duplicates_map.items(), desc=f"INFO: Deleting Duplicates Albums", unit=" albums"):
+        if len(group) > 1:
+            group_sorted = sorted(group, key=lambda x: x[1])
+            # The first album in the group is kept
+            to_delete = group_sorted[1:]
+            for album_id, album_name in to_delete:
+                if delete_album(album_id, album_name):
+                    total_deleted_duplicated_albums += 1
+    LOGGER.info(f"INFO: Deleted {total_deleted_duplicated_albums} duplicate albums.")
+    return total_deleted_duplicated_albums
+
 def immich_upload_folder(input_folder):
     """
     Recursively traverses 'input_folder' and its subfolders to upload all
@@ -544,14 +623,23 @@ def immich_upload_folder(input_folder):
     ALLOWED_SIDECAR_EXTENSIONS = get_supported_media_types(type='sidecar')
     # Initialize Counters
     total_uploaded = 0
-    # Recursively traverse the folder
-    for root, dirs, files in os.walk(input_folder):
-        for fname in files:
-            file_path = os.path.join(root, fname)
-            # Upload if the file is compatible
-            asset_id = upload_file_to_immich(file_path)
-            if asset_id:
-                total_uploaded += 1
+    total_files = 0
+    # Contar el total de carpetas
+    for _, dirs, files in os.walk(input_folder):
+        dirs[:] = [d for d in dirs if d != '@eaDir']
+        total_files += sum([len(files)])
+    # Show progress bar per assets
+    with tqdm(total=total_files, smoothing=0.1, desc=f"INFO: Uploading Assets", unit=" assets") as pbar:
+        # Recursively traverse the folder and excluding '@eaDir' folders
+        for root, dirs, files in os.walk(input_folder):
+            dirs[:] = [d for d in dirs if d != '@eaDir']
+            for fname in files:
+                pbar.update(1)
+                file_path = os.path.join(root, fname)
+                # Upload if the file is compatible
+                asset_id = upload_file_to_immich(file_path)
+                if asset_id:
+                    total_uploaded += 1
     LOGGER.info(f"INFO: Uploaded {total_uploaded} files (without album) from '{input_folder}'.")
     return total_uploaded
 
@@ -583,90 +671,47 @@ def immich_upload_albums(input_folder):
     albums_created = 0
     albums_skipped = 0
     assets_added = 0
-    # List direct subfolders
-    for item in os.listdir(input_folder):
-        subpath = os.path.join(input_folder, item)
-        if os.path.isdir(subpath):
-            # 'item' will be the name of the new album
-            album_name = item
-            album_id = create_album(album_name)
-            if not album_id:
-                LOGGER.warning(f"WARNING: Could not create album for subfolder '{item}'.")
-                albums_skipped += 1
-                continue
-            albums_created += 1
-            # Traverse files in this subfolder
-            assets_ids = []
-            for file_in_sub in os.listdir(subpath):
-                file_path = os.path.join(subpath, file_in_sub)
-                if os.path.isfile(file_path):
-                    # Upload if compatible
-                    asset_id = upload_file_to_immich(file_path)
-                    if asset_id:
-                        assets_ids.append(asset_id)
-                        assets_added += 1
-            # Associate files with the album
-            if assets_ids:
-                added_count = add_assets_to_album(album_id, assets_ids)
-                LOGGER.info(f"INFO: Added {added_count}/{len(assets_ids)} files to album '{album_name}'.")
+    total_files = 0
+    # Contar el total de carpetas
+    for _, dirs, files in os.walk(input_folder):
+        dirs[:] = [d for d in dirs if d != '@eaDir']
+        total_files += sum([len(dirs)])
+    # Show progress bar per assets
+    with tqdm(total=total_files, smoothing=0.1, desc=f"INFO: Uploading Albums", unit=" albums") as pbar:
+        # Recursively traverse the folder and excluding '@eaDir' folders
+        for root, dirs, files in os.walk(input_folder):
+            dirs[:] = [d for d in dirs if d != '@eaDir']
+            # List direct subfolders
+            for dir in dirs:
+                pbar.update(1)
+                subpath = os.path.join(root, dir)
+                if os.path.isdir(subpath):
+                    # 'item' will be the name of the new album
+                    album_name = dir
+                    album_id = create_album(album_name)
+                    if not album_id:
+                        LOGGER.warning(f"WARNING: Could not create album for subfolder '{dir}'.")
+                        albums_skipped += 1
+                        continue
+                    albums_created += 1
+                # Traverse files in this subfolder
+                for file in files:
+                    assets_ids = []
+                    file_path = os.path.join(subpath, file)
+                    if os.path.isfile(file_path):
+                        # Upload if compatible
+                        asset_id = upload_file_to_immich(file_path)
+                        if asset_id:
+                            assets_ids.append(asset_id)
+                            assets_added += 1
+                    # Associate files with the album
+                    if assets_ids:
+                        added_count = add_assets_to_album(album_id, assets_ids)
+                        LOGGER.info(f"INFO: Added {added_count}/{len(assets_ids)} files to album '{album_name}'.")
     LOGGER.info(f"INFO: Created {albums_created} album(s) from '{input_folder}'.")
     return albums_created, albums_skipped, assets_added
 
-def immich_delete_empty_albums():
-    """
-    Deletes all albums that have no assets (are empty).
-    Returns the number of albums deleted.
-    """
-    from LoggerConfig import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return 0
-    albums = list_albums()
-    if not albums:
-        LOGGER.info("INFO: No albums found.")
-        return 0
-    total_deleted_empty_albums = 0
-    for album in tqdm(albums, desc="Searching for empty albums", unit="album"):
-        album_id = album.get("id")
-        album_name = album.get("albumName")
-        assets_count = album.get("assetCount")
-        if assets_count == 0:
-            if delete_album(album_id, album_name):
-                LOGGER.info(f"INFO: Empty album '{album_name}' (ID={album_id}) deleted.")
-                total_deleted_empty_albums += 1
-    LOGGER.info(f"INFO: Deleted {total_deleted_empty_albums} empty albums.")
-    return total_deleted_empty_albums
-
-def immich_delete_duplicates_albums():
-    """
-    Deletes albums that have the same number of assets and the same total size.
-    From each duplicate group, keeps the first one (smallest ID) and deletes the rest.
-    """
-    from LoggerConfig import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return 0
-    albums = list_albums()
-    if not albums:
-        return 0
-    duplicates_map = {}
-    for album in tqdm(albums, desc="Searching for duplicate albums", unit="album"):
-        album_id = album.get("id")
-        album_name = album.get("albumName")
-        assets_count = album.get("assetCount")
-        size = get_album_items_size(album_id)
-        duplicates_map.setdefault((assets_count, size), []).append((album_id, album_name))
-    total_deleted_duplicated_albums = 0
-    for (assets_count, size), group in duplicates_map.items():
-        if len(group) > 1:
-            group_sorted = sorted(group, key=lambda x: x[1])
-            # The first album in the group is kept
-            to_delete = group_sorted[1:]
-            for album_id, album_name in to_delete:
-                if delete_album(album_id, album_name):
-                    total_deleted_duplicated_albums += 1
-    LOGGER.info(f"INFO: Deleted {total_deleted_duplicated_albums} duplicate albums.")
-    return total_deleted_duplicated_albums
-
-def immich_download_albums(album_name_or_id='ALL', output_folder="DownloadedAlbums"):
+def immich_download_albums(album_name_or_id='ALL', output_folder="Downloads_Immich"):
     """
     (Previously extract_photos_from_album)
     Downloads (extracts) all photos/videos from one or multiple albums:
@@ -679,6 +724,7 @@ def immich_download_albums(album_name_or_id='ALL', output_folder="DownloadedAlbu
     from LoggerConfig import LOGGER  # Import global LOGGER
     if not login_immich():
         return 0
+    output_folder = os.path.join(output_folder,"Albums")
     os.makedirs(output_folder, exist_ok=True)
     all_albums = list_albums()
     if not all_albums:
@@ -690,13 +736,17 @@ def immich_download_albums(album_name_or_id='ALL', output_folder="DownloadedAlbu
         albums_to_download = all_albums
         LOGGER.info(f"INFO: ALL albums ({len(all_albums)}) will be downloaded...")
     else:
+        # Convert to lowercase all the elements of album_name_or_id
+        album_name_or_id = [e.lower() for e in album_name_or_id]
         found_album = None
-        for alb in all_albums:
-            if str(alb.get("id")) == str(album_name_or_id):
-                found_album = alb
+        for album in all_albums:
+            album_id = album.get("id")
+            if album_id == str(album_name_or_id):
+                found_album = album
                 break
-            if alb.get("albumName", "").strip().lower() == album_name_or_id.strip().lower():
-                found_album = alb
+            album_name = album.get("albumName", "")
+            if album_name.strip().lower() in album_name_or_id:
+                found_album = album
                 break
         if found_album:
             albums_to_download = [found_album]
@@ -706,29 +756,78 @@ def immich_download_albums(album_name_or_id='ALL', output_folder="DownloadedAlbu
             return 0
     total_assets_downloaded = 0
     total_albums_downloaded = 0
+    total_albums = len(albums_to_download)
+    # for album in tqdm(albums_to_download, smoothing=0.1, desc=f"INFO: Downloading Albums", unit=" albums"):
     for album in albums_to_download:
         album_id = album.get("id")
         album_name = album.get("albumName", f"album_{album_id}")
         album_folder = os.path.join(output_folder, f"{album_name}_{album_id}")
         os.makedirs(album_folder, exist_ok=True)
-        assets = get_assets_from_album(album_id)
-        LOGGER.info(f"INFO: Album '{album_name}' (ID={album_id}) contains {len(assets)} asset(s).")
-        for asset in tqdm(assets, desc=f"Downloading '{album_name}'", unit="photos"):
-            aid = asset.get("id")
-            if aid:
-                ok = download_asset(aid, album_folder)
+        assets_in_album = get_assets_from_album(album_id)
+        # LOGGER.info(f"INFO: Album '{album_name}' (ID={album_id}) contains {len(assets)} asset(s).")
+        for asset in tqdm(assets_in_album, desc=f"INFO: Downloading '{album_name}'", unit=" assets"):
+            asset_id = asset.get("id")
+            asset_filename = os.path.basename(asset.get("originalPath"))
+            if asset_id:
+                ok = download_asset(asset_id, asset_filename, album_folder)
                 if ok:
                     total_assets_downloaded += 1
         total_albums_downloaded += 1
+        LOGGER.info(f"INFO: Downloaded Album '{album_name}'. {len(assets_in_album)} asset(s) have been downloaded.")
+        LOGGER.info(f"INFO: Downloaded Albums: {total_albums_downloaded}/{total_albums}")
     LOGGER.info(f"INFO: Download complete.")
-    LOGGER.info(f"Total Albums downloaded: {total_albums_downloaded}")
-    LOGGER.info(f"Total Assets downloaded: {total_assets_downloaded}")
+    LOGGER.info(f"INFO: Total Albums downloaded: {total_albums_downloaded}")
+    LOGGER.info(f"INFO: Total Assets downloaded: {total_assets_downloaded}")
     return total_albums_downloaded, total_assets_downloaded
+
+def immich_download_no_albums(output_folder="Downloads_Immich"):
+    """
+    (Previously extract_photos_from_album)
+    Downloads (extracts) all photos/videos from one or multiple albums:
+
+      - If album_name_or_id == 'ALL', all albums will be downloaded.
+      - If it matches an 'id' or 'albumName', only that album will be downloaded.
+
+    Returns the total number of assets downloaded.
+    """
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return 0
+    total_assets_downloaded = 0
+    downloaded_assets_set = set()
+    # 2) Assets without album -> output_folder/Others/yyyy/mm
+    all_assets = get_assets_by_search_filter()
+    all_assets_items = all_assets.get("items")
+    all_photos_path = os.path.join(output_folder, "Others")
+    os.makedirs(all_photos_path, exist_ok=True)
+    # all_assets_items = [a for a in all_assets if a.get("id") not in downloaded_assets_set]
+    LOGGER.info(f"INFO: Found {len(all_assets_items)} asset(s) not in any album.")
+    for asset in tqdm(all_assets_items, desc="Downloading assets without associated albums", unit="photos"):
+        asset_id = asset.get("id")
+        asset_filename = os.path.basename(asset.get("originalPath"))
+        if not asset_id:
+            continue
+        created_at_str = asset.get("fileCreatedAt", "")
+        try:
+            dt_created = datetime.fromisoformat(created_at_str.replace("Z", ""))
+        except:
+            dt_created = datetime.now()
+        year_str = dt_created.strftime("%Y")
+        month_str = dt_created.strftime("%m")
+        target_folder = os.path.join(all_photos_path, year_str, month_str)
+        os.makedirs(target_folder, exist_ok=True)
+        ok = download_asset(asset_id, asset_filename, target_folder)
+        if ok:
+            total_assets_downloaded += 1
+    LOGGER.info(f"INFO: Download complete.")
+    LOGGER.info(f"Total Assets downloaded: {total_assets_downloaded}")
+    return total_assets_downloaded
+
 
 # -----------------------------------------------------------------------------
 #          COMPLETE DOWNLOAD OF ALL ASSETS (Albums + Others)
 # -----------------------------------------------------------------------------
-def immich_download_all(output_folder="ImmichDownload"):
+def immich_download_ALL(output_folder="Downloads_Immich"):
     """
     (Previously download_all_assets_with_structure)
     Downloads ALL photos and videos from Immich into:
@@ -746,99 +845,136 @@ def immich_download_all(output_folder="ImmichDownload"):
     from LoggerConfig import LOGGER  # Import global LOGGER
     if not login_immich():
         return 0
-    os.makedirs(output_folder, exist_ok=True)
-    total_assets_downloaded = 0
-    total_albums_downloaded = 0
-    downloaded_assets_set = set()
-    # 1) Albums in output_folder/Albums
-    albums = list_albums()
-    albums_path = os.path.join(output_folder, "Albums")
-    os.makedirs(albums_path, exist_ok=True)
-    for album in albums:
-        album_id = album.get("id")
-        album_name = album.get("albumName", f"Album_{album_id}")
-        album_folder = os.path.join(albums_path, album_name)
-        os.makedirs(album_folder, exist_ok=True)
-        assets_in_album = get_assets_from_album(album_id)
-        LOGGER.info(f"INFO: Album '{album_name}' (ID={album_id}) contains {len(assets_in_album)} asset(s).")
-        for asset in tqdm(assets_in_album, desc=f"Album '{album_name}'", unit="photos"):
-            aid = asset.get("id")
-            if not aid:
-                continue
-            ok = download_asset(aid, album_folder)
-            if ok:
-                total_assets_downloaded += 1
-                downloaded_assets_set.add(aid)
-        total_albums_downloaded += 1
-    # 2) Assets without album -> output_folder/Others/yyyy/mm
-    all_assets = list_all_assets()
-    all_photos_path = os.path.join(output_folder, "Others")
-    os.makedirs(all_photos_path, exist_ok=True)
-    leftover_assets = [a for a in all_assets if a.get("id") not in downloaded_assets_set]
-    LOGGER.info(f"INFO: Found {len(leftover_assets)} asset(s) not in any album.")
-    for asset in tqdm(leftover_assets, desc="Downloading UNASSOCIATED assets", unit="photos"):
-        aid = asset.get("id")
-        if not aid:
-            continue
-        created_at_str = asset.get("fileCreatedAt", "")
-        try:
-            dt_created = datetime.fromisoformat(created_at_str.replace("Z", ""))
-        except:
-            dt_created = datetime.now()
-        year_str = dt_created.strftime("%Y")
-        month_str = dt_created.strftime("%m")
-        target_folder = os.path.join(all_photos_path, year_str, month_str)
-        os.makedirs(target_folder, exist_ok=True)
-        ok = download_asset(aid, target_folder)
-        if ok:
-            total_assets_downloaded += 1
+    total_albums_downloaded, total_assets_downloaded_within_albums = immich_download_albums(album_name_or_id='ALL', output_folder=output_folder)
+    total_assets_downloaded_without_albums = immich_download_no_albums(output_folder=output_folder)
+    total_assets_downloaded = total_assets_downloaded_within_albums + total_assets_downloaded_without_albums
     LOGGER.info(f"INFO: Download complete.")
-    LOGGER.info(f"Total Albums downloaded: {total_albums_downloaded}")
-    LOGGER.info(f"Total Assets downloaded: {total_assets_downloaded}")
+    LOGGER.info(f"Total Albums downloaded                   : {total_albums_downloaded}")
+    LOGGER.info(f"Total Assets downloaded                   : {total_assets_downloaded}")
+    LOGGER.info(f"   Total Assets downloaded within albums  : {total_assets_downloaded_within_albums}")
+    LOGGER.info(f"   Total Assets downloaded without albums : {total_assets_downloaded_without_albums}")
     return total_albums_downloaded, total_assets_downloaded
 
+# def immich_download_ALL_old(output_folder="Downloads_Immich"):
+#     """
+#     (Previously download_all_assets_with_structure)
+#     Downloads ALL photos and videos from Immich into:
+#         output_folder/
+#           ├─ Albums/
+#           │    ├─ albumName1/ (assets in the album)
+#           │    ├─ albumName2/ (assets in the album)
+#           │    ...
+#           └─ Others/
+#                └─ yyyy/
+#                    └─ mm/ (assets not in any album for that year/month)
+#
+#     Returns the total number of albums and assets downloaded.
+#     """
+#     from LoggerConfig import LOGGER  # Import global LOGGER
+#     if not login_immich():
+#         return 0
+#     os.makedirs(output_folder, exist_ok=True)
+#     total_assets_downloaded = 0
+#     total_albums_downloaded = 0
+#     downloaded_assets_set = set()
+#     # 1) Albums in output_folder/Albums
+#     albums_path = os.path.join(output_folder, "Albums")
+#     os.makedirs(albums_path, exist_ok=True)
+#     albums = list_albums()
+#     for album in tqdm(total=albums, smoothing=0.1, desc=f"INFO: Downloading Albums", unit=" albums"):
+#         album_id = album.get("id")
+#         album_name = album.get("albumName", f"Album_{album_id}")
+#         album_folder = os.path.join(albums_path, album_name)
+#         os.makedirs(album_folder, exist_ok=True)
+#         assets_in_album = get_assets_from_album(album_id)
+#         LOGGER.info(f"INFO: Album '{album_name}' (ID={album_id}) contains {len(assets_in_album)} asset(s).")
+#         for asset in tqdm(assets_in_album, desc=f"Album '{album_name}'", unit="photos"):
+#             aid = asset.get("id")
+#             if not aid:
+#                 continue
+#             ok = download_asset(aid, album_folder)
+#             if ok:
+#                 total_assets_downloaded += 1
+#                 downloaded_assets_set.add(aid)
+#         total_albums_downloaded += 1
+#     # 2) Assets without album -> output_folder/Others/yyyy/mm
+#     all_assets = get_assets_by_search_filter()
+#     all_photos_path = os.path.join(output_folder, "Others")
+#     os.makedirs(all_photos_path, exist_ok=True)
+#     assets_without_albums = [a for a in all_assets if a.get("id") not in downloaded_assets_set]
+#     LOGGER.info(f"INFO: Found {len(assets_without_albums)} asset(s) not in any album.")
+#     for asset in tqdm(assets_without_albums, desc="Downloading assets without associated albums", unit="photos"):
+#         aid = asset.get("id")
+#         if not aid:
+#             continue
+#         created_at_str = asset.get("fileCreatedAt", "")
+#         try:
+#             dt_created = datetime.fromisoformat(created_at_str.replace("Z", ""))
+#         except:
+#             dt_created = datetime.now()
+#         year_str = dt_created.strftime("%Y")
+#         month_str = dt_created.strftime("%m")
+#         target_folder = os.path.join(all_photos_path, year_str, month_str)
+#         os.makedirs(target_folder, exist_ok=True)
+#         ok = download_asset(aid, target_folder)
+#         if ok:
+#             total_assets_downloaded += 1
+#     LOGGER.info(f"INFO: Download complete.")
+#     LOGGER.info(f"Total Albums downloaded: {total_albums_downloaded}")
+#     LOGGER.info(f"Total Assets downloaded: {total_assets_downloaded}")
+#     return total_albums_downloaded, total_assets_downloaded
+##############################################################################
+#                           END OF MAIN FUNCTIONS                            #
+##############################################################################
 
-# -----------------------------------------------------------------------------
-#                          MAIN DE EJEMPLO
-# -----------------------------------------------------------------------------
-
+##############################################################################
+#                            MAIN TESTS FUNCTION                             #
+##############################################################################
 if __name__ == "__main__":
+    # Create timestamp, and initialize LOGGER.
+    from datetime import datetime
     from LoggerConfig import log_setup
-    LOGGER = log_setup()
+    TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_filename=f"ImmichPhotos_{TIMESTAMP}"
+    log_folder="Logs"
+    LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
+    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename)
 
-    # # 1) Leemos la config y hacemos login
-    # read_immich_config()
-    # login_immich()
+    # 0) Read configuration and log in
+    read_immich_config()
+    login_immich()
 
-    # 2) Ejemplo: Subir ficheros SIN asignarlos a álbum, desde 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Others'
-    print("\n=== EJEMPLO: upload_files_without_album ===")
-    big_folder = r"r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Others"
-    immich_upload_folder(big_folder)
+    # 1) Example: Delete empty albums
+    print("=== EXAMPLE: immich_delete_empty_albums() ===")
+    deleted = immich_delete_empty_albums()
+    print(f"[RESULT] Empty albums deleted: {deleted}\n")
 
-    # # 3) Ejemplo: Crear álbumes a partir de subcarpetas en 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums'
-    # print("\n=== EJEMPLO: immich_create_albums ===")
+    # # 2) Example: Delete duplicate albums
+    # print("=== EXAMPLE: immich_delete_duplicates_albums() ===")
+    # duplicates = immich_delete_duplicates_albums()
+    # print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
+
+    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Others'
+    # print("\n=== EXAMPLE: immich_upload_folder() ===")
+    # big_folder = r"r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Others"
+    # immich_upload_folder(big_folder)
+
+    # # 4) Example: Create albums from subfolders in 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums'
+    # print("\n=== EXAMPLE: immich_upload_albums() ===")
     # input_albums_folder = r"r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums"
     # immich_upload_albums(input_albums_folder)
 
-    # # 4) Ejemplo: Borrar álbumes vacíos
-    # print("=== EJEMPLO: Borrar álbumes vacíos ===")
-    # deleted = immich_delete_empty_albums()
-    # print(f"[RESULT] Álbumes vacíos borrados: {deleted}\n")
+    # # 5) Example: Download all photos from ALL albums
+    print("\n=== EXAMPLE: immich_download_albums() ===")
+    # total = immich_download_albums('ALL', output_folder="Downloads_Immich")
+    total = immich_download_albums("1994 - Recuerdos", output_folder="Downloads_Immich")
+    print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
-    # # 5) Ejemplo: Borrar álbumes duplicados
-    # print("=== EJEMPLO: Borrar álbumes duplicados ===")
-    # duplicates = immich_delete_duplicates_albums()
-    # print(f"[RESULT] Álbumes duplicados borrados: {duplicates}\n")
+    # 6) Example: Download everything in the structure /Albums/<albumName>/ + /ALL_PHOTOS/yyyy/mm
+    print("=== EXAMPLE: immich_download_ALL() ===")
+    # total_struct = immich_download_ALL(output_folder="Downloads_Immich")
+    total_albums_downloaded, total_assets_downloaded = immich_download_ALL(output_folder="Downloads_Immich")
+    print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\Total assets: {total_assets_downloaded}\n")
 
-    # # 6) Ejemplo: Descargar todas las fotos de TODOS los álbumes
-    # print("\n=== EJEMPLO: immich_extract_albums ===")
-    # total = immich_extract_albums('ALL', output_folder="MisDescargasALL")
-    # print(f"[RESULT] Se han descargado {total} assets en total.\n")
-
-    # # 7) Ejemplo: Descargar todos en estructura /Albums/<albumName>/ + /ALL_PHOTOS/yyyy/mm
-    # print("=== EJEMPLO: immich_download_all_with_structure ===")
-    # total_struct = immich_download_all_with_structure(output_folder="FullImmichDownload")
-    # print(f"[RESULT] Descarga masiva completada. Total assets: {total_struct}\n")
-
-    # 9) Logout local
+    # 7) Local logout
     logout_immich()

@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 import Utils
 import Fixers
 from Duplicates import find_duplicates, process_duplicates_actions
-from SynologyPhotos import read_synology_config, login_synology, synology_upload_folder, synology_upload_albums, synology_download_albums, synology_delete_empty_albums, synology_delete_duplicates_albums
-from ImmichPhotos import read_immich_config, login_immich, immich_upload_folder, immich_upload_albums, immich_download_albums, immich_delete_empty_albums, immich_delete_duplicates_albums, immich_download_all
+from SynologyPhotos import read_synology_config, login_synology, synology_delete_empty_albums, synology_delete_duplicates_albums, synology_upload_folder, synology_upload_albums, synology_download_albums, synology_download_ALL
+from ImmichPhotos import read_immich_config, login_immich, immich_delete_empty_albums, immich_delete_duplicates_albums, immich_upload_folder, immich_upload_albums, immich_download_albums, immich_download_ALL
 from CustomHelpFormatter import CustomHelpFormatter, PagedArgumentParser
 from LoggerConfig import log_setup
 
@@ -58,18 +58,19 @@ def set_help_texts():
     global HELP_MODE_RENAME_ALBUMS_FOLDERS
     global HELP_MODE_ALL_IN_ONE
 
+    global HELP_MODE_SYNOLOGY_DELETE_EMPTY_ALBUMS
+    global HELP_MODE_SYNOLOGY_DELETE_DUPLICATES_ALBUMS
     global HELP_MODE_SYNOLOGY_UPLOAD_FOLDER
     global HELP_MODE_SYNOLOGY_UPLOAD_ALBUMS
     global HELP_MODE_SYNOLOGY_DOWNLOAD_ALBUMS
-    global HELP_MODE_SYNOLOGY_DELETE_EMPTY_ALBUMS
-    global HELP_MODE_SYNOLOGY_DELETE_DUPLICATES_ALBUMS
+    global HELP_MODE_SYNOLOGY_DOWNLOAD_ALL
 
+    global HELP_MODE_IMMICH_DELETE_EMPTY_ALBUMS
+    global HELP_MODE_IMMICH_DELETE_DUPLICATES_ALBUMS
     global HELP_MODE_IMMICH_UPLOAD_FOLDER
     global HELP_MODE_IMMICH_UPLOAD_ALBUMS
     global HELP_MODE_IMMICH_DOWNLOAD_ALBUMS
     global HELP_MODE_IMMICH_DOWNLOAD_ALL
-    global HELP_MODE_IMMICH_DELETE_EMPTY_ALBUMS
-    global HELP_MODE_IMMICH_DELETE_DUPLICATES_ALBUMS
 
     HELP_MODE_NORMAL = ""
 
@@ -120,6 +121,16 @@ The script will extract all your Takeout Zip files (if found any .zip) from <INP
     ################################
     # EXTRA MODES: SYNOLOGY PHOTOS #
     ################################
+    HELP_MODE_SYNOLOGY_DELETE_EMPTY_ALBUMS = \
+f"""
+ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Empty Albums found in Synology Photos database.
+"""
+
+    HELP_MODE_SYNOLOGY_DELETE_DUPLICATES_ALBUMS = \
+f"""
+ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Duplicates Albums found in Synology Photos database.
+"""
+    
     HELP_MODE_SYNOLOGY_UPLOAD_FOLDER = \
 f"""
 ATTENTION!!!: This process will connect to your to your Synology Photos account and will upload all Photos/Videos found within <FOLDER> (including subfolders).
@@ -134,24 +145,34 @@ ATTENTION!!!: This process will connect to your to your Synology Photos account 
 
     HELP_MODE_SYNOLOGY_DOWNLOAD_ALBUMS = \
 f"""
-ATTENTION!!!: This process will connect to Synology Photos and extract those Album(s) whose name is in <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the Synology Photos root folder.
+ATTENTION!!!: This process will connect to Synology Photos and extract those Album(s) whose name is in <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the SYNOLOGY_ROOT_FOOLDER. 
+              If the file already exists, it will be OVERWRITTEN!!!
               To extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums "album1", "album2", "album3" 
               To extract ALL Albums within in Synology Photos database use 'ALL' as ALBUMS_NAME.
 """
-
-    HELP_MODE_SYNOLOGY_DELETE_EMPTY_ALBUMS = \
+    
+    HELP_MODE_SYNOLOGY_DOWNLOAD_ALL = \
 f"""
-ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Empty Albums found in Synology Photos database.
+ATTENTION!!!: This process will connect to Synology Photos and will download all the Album and Assets without Albums into the folder '<OUTPUT_FOLDER>' within the SYNOLOGY_ROOT_FOOLDER. 
+            If the file already exists, it will be OVERWRITTEN!!!
+              All Albums will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums' with the same name of the Album and all files will be flattened into it.
+              Assets with no Albums associated will be downloaded withn a subfolder '<OUTPUT_FOLDER>/Others' and will have a year/month structure inside.
 """
 
-    HELP_MODE_SYNOLOGY_DELETE_DUPLICATES_ALBUMS = \
-f"""
-ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Duplicates Albums found in Synology Photos database.
-"""
 
     ##############################
     # EXTRA MODES: IMMICH PHOTOS #
     ##############################
+    HELP_MODE_IMMICH_DELETE_EMPTY_ALBUMS = \
+f"""
+ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Empty Albums found in Immich Photos database.
+"""
+
+    HELP_MODE_IMMICH_DELETE_DUPLICATES_ALBUMS = \
+f"""
+ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Duplicates Albums found in Immich Photos database.
+"""
+    
     HELP_MODE_IMMICH_UPLOAD_FOLDER = \
 f"""
 ATTENTION!!!: This process will connect to your to your Immich Photos account and will upload all Photos/Videos found within <FOLDER> (including subfolders).
@@ -164,26 +185,19 @@ ATTENTION!!!: This process will connect to your to your Immich Photos account an
 
     HELP_MODE_IMMICH_DOWNLOAD_ALBUMS = \
 f"""
-ATTENTION!!!: This process will connect to Immich Photos and extract those Album(s) whose name is in <ALBUMS_NAME> to the folder 'Immich_Photos_Albums' within the Immich Photos root folder.
+ATTENTION!!!: This process will connect to Immich Photos and extract those Album(s) whose name is in <ALBUMS_NAME> to the folder './Downloads_Immich' within the Script execution folder. 
+              If the file already exists, it will be OVERWRITTEN!!!
               To extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums "album1", "album2", "album3" 
               To extract ALL Albums within in Immich Photos database use 'ALL' as ALBUMS_NAME.
 """
     HELP_MODE_IMMICH_DOWNLOAD_ALL = \
 f"""
-ATTENTION!!!: This process will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <FOLDER>..
-              All Albums will be downloaded within a subfolder of <FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.
-              Assets with no Albums associated will be downloaded withn a subfolder called <FOLDER>/Others/ and will have a year/month structure inside.
+ATTENTION!!!: This process will connect to Immich Photos and will download all the Album and Assets without Albums into the folder './<OUTPUT_FOLDER>'. 
+              If the file already exists, it will be OVERWRITTEN!!!.
+              All Albums will be downloaded within a subfolder of './<OUTPUT_FOLDER>/Albums' with the same name of the Album and all files will be flattened into it.
+              Assets with no Albums associated will be downloaded withn a subfolder './<OUTPUT_FOLDER>/Others' and will have a year/month structure inside.
 """
 
-    HELP_MODE_IMMICH_DELETE_EMPTY_ALBUMS = \
-f"""
-ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Empty Albums found in Immich Photos database.
-"""
-
-    HELP_MODE_IMMICH_DELETE_DUPLICATES_ALBUMS = \
-f"""
-ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Duplicates Albums found in Immich Photos database.
-"""
 
 def parse_arguments():
     def parse_folders(folders):
@@ -218,6 +232,20 @@ def parse_arguments():
             parser.exit()
 
     parser.add_argument("-v",  "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
+    parser.add_argument("-nl", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
+
+    # EXTRA MODES ARGUMENTS:
+    parser.add_argument("-fs", "--fix-symlinks-broken", metavar="<FOLDER_TO_FIX>", default="", help="The script will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_FOLDER and some Albums seems to be empty.")
+    parser.add_argument("-ra", "--rename-albums-folders", metavar="<ALBUMS_FOLDER>", default="", help="Rename all Albums folders found in <ALBUMS_FOLDER> to unificate the format.")
+    parser.add_argument("-fd", "--find-duplicates", metavar=f"<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]", nargs="+", default=["list", ""],
+        help="Find duplicates in specified folders."
+           "\n<ACTION> defines the action to take on duplicates ('move', 'delete' or 'list'). Default: 'list' "
+           "\n<DUPLICATES_FOLDER> are one or more folders (string or list), where the script will look for duplicates files. The order of this list is important to determine the principal file of a duplicates set. First folder will have higher priority."
+        )
+    parser.add_argument("-pd", "--process-duplicates-revised", metavar="<DUPLICATES_REVISED_CSV>", default="", help="Specify the Duplicates CSV file revised with specifics Actions in Action column, and the script will execute that Action for each duplicates found in CSV. Valid Actions: restore_duplicate / remove_duplicate / replace_duplicate.")
+    parser.add_argument("-ao", "--all-in-one", metavar="<INPUT_FOLDER>", default="", help="The Script will do the whole process (Zip extraction, Takeout Processing, Remove Duplicates, Synology Photos Albums creation) in just One Shot.")
+
+    # EXTRA MODES FOR GOOGLE PHOTOS
     parser.add_argument("-z",  "--zip-folder", metavar="<ZIP_FOLDER>", default="", help="Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files will be skipped.")
     parser.add_argument("-t",  "--takeout-folder", metavar="<TAKEOUT_FOLDER>", default="Takeout", help="Specify the Takeout folder to process. If -z, --zip-folder is present, this will be the folder to unzip input files. Default: 'Takeout'.")
     parser.add_argument("-s",  "--suffix", metavar="<SUFIX>", default="fixed", help="Specify the suffix for the output folder. Default: 'fixed'")
@@ -236,18 +264,6 @@ def parse_arguments():
     parser.add_argument("-it", "--ignore-takeout-structure", action="store_true", help="Ignore Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc..), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from them.")
     parser.add_argument("-mt", "--move-takeout-folder", action="store_true", help=f"Move original photos/videos from <TAKEOUT_FOLDER> to <OUTPUT_FOLDER>. \nCAUTION: Useful to avoid disk space duplication and improve execution speed, but you will lost your original unzipped files!!!.\nUse only if you keep the original zipped files or you have disk space limitations and you don't mind to lost your original unzipped files.")
     parser.add_argument("-rd", "--remove-duplicates-after-fixing", action="store_true", help="Remove Duplicates files in <OUTPUT_FOLDER> after fixing them.")
-    parser.add_argument("-nl", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
-
-    # EXTRA MODES ARGUMENTS:
-    parser.add_argument("-fs", "--fix-symlinks-broken", metavar="<FOLDER_TO_FIX>", default="", help="The script will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_FOLDER and some Albums seems to be empty.")
-    parser.add_argument("-ra", "--rename-albums-folders", metavar="<ALBUMS_FOLDER>", default="", help="Rename all Albums folders found in <ALBUMS_FOLDER> to unificate the format.")
-    parser.add_argument("-fd", "--find-duplicates", metavar=f"<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]", nargs="+", default=["list", ""],
-        help="Find duplicates in specified folders."
-           "\n<ACTION> defines the action to take on duplicates ('move', 'delete' or 'list'). Default: 'list' "
-           "\n<DUPLICATES_FOLDER> are one or more folders (string or list), where the script will look for duplicates files. The order of this list is important to determine the principal file of a duplicates set. First folder will have higher priority."
-        )
-    parser.add_argument("-pd", "--process-duplicates-revised", metavar="<DUPLICATES_REVISED_CSV>", default="", help="Specify the Duplicates CSV file revised with specifics Actions in Action column, and the script will execute that Action for each duplicates found in CSV. Valid Actions: restore_duplicate / remove_duplicate / replace_duplicate.")
-    parser.add_argument("-ao", "--all-in-one", metavar="<INPUT_FOLDER>", default="", help="The Script will do the whole process (Zip extraction, Takeout Processing, Remove Duplicates, Synology Photos Albums creation) in just One Shot.")
 
     # EXTRA MODES FOR SYNOLOGY PHOTOS
     parser.add_argument("-sde", "--synology-delete-empty-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.")
@@ -255,25 +271,29 @@ def parse_arguments():
     parser.add_argument("-suf", "--synology-upload-folder", metavar="<FOLDER>", default="", help="The script will look for all Photos/Videos within <FOLDER> and will upload them into Synology Photos.")
     parser.add_argument("-sua", "--synology-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Albums within <ALBUMS_FOLDER> and will create one Album per folder into Synology Photos.")
     parser.add_argument("-sda", "--synology-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
-        help="The Script will connect to Synology Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the Synology Photos root folder."
+        help="The Script will connect to Synology Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Download_Synology' within the Synology Photos root folder."
            '\nTo download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums "album1", "album2", "album3".'
            '\nTo download ALL Albums use "ALL" as <ALBUMS_NAME>.'
         )
-
+    parser.add_argument("-sdA", "--synology-download-ALL", metavar="<OUTPUT_FOLDER>", default="",
+        help="The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
+           '\nAll Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.'
+           '\nAssets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside.'
+        )
     # EXTRA MODES FOR IMMINCH PHOTOS
     parser.add_argument("-ide", "--immich-delete-empty-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.")
     parser.add_argument("-idd", "--immich-delete-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.")
     parser.add_argument("-iuf", "--immich-upload-folder", metavar="<FOLDER>", default="", help="The script will look for all Photos/Videos within <FOLDER> and will upload them into Immich Photos.")
     parser.add_argument("-iua", "--immich-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Albums within <ALBUMS_FOLDER> and will create one Album per folder into Immich Photos.")
     parser.add_argument("-ida", "--immich-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
-        help="The Script will connect to Immich Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Immich_Photos_Albums' within the Immich Photos root folder."
+        help="The Script will connect to Immich Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Download_Immich' within the script execution folder."
            '\nTo download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums" "album1", "album2", "album3".'
            '\nTo download ALL Albums use "ALL" as <ALBUMS_NAME>.'
         )
-    parser.add_argument("-iDA", "--immich-download-all", metavar="<FOLDER>", default="",
-        help="The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <FOLDER>."
-           '\nAll Albums will be downloaded within a subfolder of <FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.'
-           '\nAssets with no Albums associated will be downloaded withn a subfolder called <FOLDER>/Others/ and will have a year/month structure inside.'
+    parser.add_argument("-idA", "--immich-download-ALL", metavar="<OUTPUT_FOLDER>", default="",
+        help="The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
+           '\nAll Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.'
+           '\nAssets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside.'
         )
 
     args = parser.parse_args()
@@ -315,30 +335,35 @@ def get_and_run_execution_mode():
         EXECUTION_MODE = 'rename_albums_folders'
     elif args.all_in_one:
         EXECUTION_MODE = 'all_in_one'
+        
     # Synology Photos Modes:
+    elif args.synology_delete_empty_albums:
+        EXECUTION_MODE = 'synology_delete_empty_albums'
+    elif args.synology_delete_duplicates_albums:
+        EXECUTION_MODE = 'synology_delete_duplicates_albums'
     elif args.synology_upload_folder != "":
         EXECUTION_MODE = 'synology_upload_folder'
     elif args.synology_upload_albums != "":
         EXECUTION_MODE = 'synology_upload_albums'
     elif args.synology_download_albums != "":
         EXECUTION_MODE = 'synology_download_albums'
-    elif args.synology_delete_empty_albums:
-        EXECUTION_MODE = 'synology_delete_empty_albums'
-    elif args.synology_delete_duplicates_albums:
-        EXECUTION_MODE = 'synology_delete_duplicates_albums'
+    elif args.synology_download_ALL != "":
+        EXECUTION_MODE = 'synology_download_ALL'
+
     # Immich Photos Modes:
+    elif args.immich_delete_empty_albums:
+        EXECUTION_MODE = 'immich_delete_empty_albums'
+    elif args.immich_delete_duplicates_albums:
+        EXECUTION_MODE = 'immich_delete_duplicates_albums'
     elif args.immich_upload_folder != "":
         EXECUTION_MODE = 'immich_upload_folder'
     elif args.immich_upload_albums != "":
         EXECUTION_MODE = 'immich_upload_albums'
     elif args.immich_download_albums != "":
         EXECUTION_MODE = 'immich_download_albums'
-    elif args.immich_download_all != "":
-        EXECUTION_MODE = 'immich_download_all'
-    elif args.immich_delete_empty_albums:
-        EXECUTION_MODE = 'immich_delete_empty_albums'
-    elif args.immich_delete_duplicates_albums:
-        EXECUTION_MODE = 'immich_delete_duplicates_albums'
+    elif args.immich_download_ALL != "":
+        EXECUTION_MODE = 'immich_download_ALL'
+
     else:
         EXECUTION_MODE = 'normal'  # Opción por defecto si no se cumple ninguna condición
 
@@ -356,30 +381,34 @@ def get_and_run_execution_mode():
         mode_rename_albums_folders()
     elif EXECUTION_MODE == 'all_in_one':
         mode_all_in_one()
+
     # Synology Photos Modes:
+    elif EXECUTION_MODE == 'synology_delete_empty_albums':
+        mode_synology_delete_empty_albums()
+    elif EXECUTION_MODE == 'synology_delete_duplicates_albums':
+        mode_synology_delete_duplicates_albums()
     elif EXECUTION_MODE == 'synology_upload_folder':
         mode_synology_upload_folder()
     elif EXECUTION_MODE == 'synology_upload_albums':
         mode_synology_upload_albums()
     elif EXECUTION_MODE == 'synology_download_albums':
         mode_synology_download_albums()
-    elif EXECUTION_MODE == 'synology_delete_empty_albums':
-        mode_synology_delete_empty_albums()
-    elif EXECUTION_MODE == 'synology_delete_duplicates_albums':
-        mode_synology_delete_duplicates_albums()
+    elif EXECUTION_MODE == 'synology_download_ALL':
+        mode_synology_download_ALL()
+
     # Immich Photos Modes:
+    elif EXECUTION_MODE == 'immich_delete_empty_albums':
+        mode_immich_delete_empty_albums()
+    elif EXECUTION_MODE == 'immich_delete_duplicates_albums':
+        mode_immich_delete_duplicates_albums()
     elif EXECUTION_MODE == 'immich_upload_folder':
         mode_immich_upload_folder()
     elif EXECUTION_MODE == 'immich_upload_albums':
         mode_immich_upload_albums()
     elif EXECUTION_MODE == 'immich_download_albums':
         mode_immich_download_albums()
-    elif EXECUTION_MODE == 'immich_download_all':
-        mode_immich_download_all()
-    elif EXECUTION_MODE == 'immich_delete_empty_albums':
-        mode_immich_delete_empty_albums()
-    elif EXECUTION_MODE == 'immich_delete_duplicates_albums':
-        mode_immich_delete_duplicates_albums()
+    elif EXECUTION_MODE == 'immich_download_ALL':
+        mode_immich_download_ALL()
     else:
         print("Invalid execution mode.")
 
@@ -817,9 +846,105 @@ def mode_rename_albums_folders(user_confirmation=True):
     LOGGER.info("")
 
 
+def mode_all_in_one():
+    global OUTPUT_FOLDER
+    LOGGER.info(f"INFO: All-in-One Mode detected")
+    LOGGER.info(HELP_MODE_ALL_IN_ONE.replace('<INPUT_FOLDER>', f"'{args.all_in_one}'"))
+    if not Utils.confirm_continue():
+        LOGGER.info(f"INFO: Exiting program.")
+        sys.exit(0)
+
+    config = read_synology_config(show_info=False)
+    if not config['ROOT_PHOTOS_PATH']:
+        LOGGER.warning(f"WARNING: Caanot find 'ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
+    else:
+        OUTPUT_FOLDER = os.path.join(config['ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
+
+    res, _ = login_synology()
+    if res==-1:
+        LOGGER.warning(f"WARNING: Cannot connect to Synology Photos. Albums will not be created into Synology Photos database")
+
+    # Configure the Normal Execution Arguments and RUN Normal Execution
+    input_folder = args.all_in_one
+    need_unzip = Utils.contains_zip_files(input_folder)
+    if need_unzip:
+        args.zip_folder = input_folder
+        args.move_takeout_folder = True
+    else:
+        args.takeout_folder = input_folder
+    args.remove_duplicates_after_fixing = True
+    mode_normal(user_confirmation=False)
+
+    # Configure the Create_Synology_Albums and run create_synology_albums()
+    albums_folder = os.path.join(OUTPUT_FOLDER, f'Albums')
+    args.synology_upload_albums = albums_folder
+    LOGGER.info("")
+    mode_synology_upload_albums(user_confirmation=False)
+
+    # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
+    mode_synology_delete_duplicates_albums(user_confirmation=False)
+    mode_synology_delete_empty_albums(user_confirmation=False)
+
+
 #################################
 # EXTRA MODES: SYNOLOGY PHOTOS: #
 #################################
+def mode_synology_delete_empty_albums(user_confirmation=True):
+    if user_confirmation:
+        LOGGER.info(f"INFO: Flag detected '-sde, --synology-delete-empty-albums'.")
+        LOGGER.info(HELP_MODE_SYNOLOGY_DELETE_EMPTY_ALBUMS)
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO: Exiting program.")
+            sys.exit(0)
+        LOGGER.info(f"INFO: Synology Photos: 'Delete Empty Album' Mode detected. Only this module will be run!!!")
+        LOGGER.info(f"INFO: Flag detected '-sde, --synology-delete-empty-albums'. The Script will look for any empty album in Synology Photos database and will detelte them (if any enpty album is found).")
+    # Call the Funxtion
+    albums_deleted = synology_delete_empty_albums()
+    # FINAL SUMMARY
+    end_time = datetime.now()
+    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+    LOGGER.info("")
+    LOGGER.info("==================================================")
+    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+    LOGGER.info("==================================================")
+    LOGGER.info("")
+    LOGGER.info("==================================================")
+    LOGGER.info("                  FINAL SUMMARY:                  ")
+    LOGGER.info("==================================================")
+    LOGGER.info(f"Total Empty Albums deleted              : {albums_deleted}")
+    LOGGER.info("")
+    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+    LOGGER.info("==================================================")
+    LOGGER.info("")
+
+def mode_synology_delete_duplicates_albums(user_confirmation=True):
+    if user_confirmation:
+        LOGGER.info(f"INFO: Flag detected '-sdd, --synology-delete-deuplicates-albums'.")
+        LOGGER.info(HELP_MODE_SYNOLOGY_DELETE_DUPLICATES_ALBUMS)
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO: Exiting program.")
+            sys.exit(0)
+        LOGGER.info(f"INFO: Synology Photos: 'Delete Duplicates Album' Mode detected. Only this module will be run!!!")
+        LOGGER.info(f"INFO: Flag detected '-sdd, --synology-delete-duplicates-albums'. The Script will look for any duplicated album in Synology Photos database and will detelte them (if any duplicated album is found).")
+    # Call the Funxtion
+    albums_deleted = synology_delete_duplicates_albums()
+    # FINAL SUMMARY
+    end_time = datetime.now()
+    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+    LOGGER.info("")
+    LOGGER.info("==================================================")
+    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+    LOGGER.info("==================================================")
+    LOGGER.info("")
+    LOGGER.info("==================================================")
+    LOGGER.info("                  FINAL SUMMARY:                  ")
+    LOGGER.info("==================================================")
+    LOGGER.info(f"Total Duplicates Albums deleted         : {albums_deleted}")
+    LOGGER.info("")
+    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+    LOGGER.info("==================================================")
+    LOGGER.info("")
+
 def mode_synology_upload_folder(user_confirmation=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-suf, --synology-upload-folder'.")
@@ -914,17 +1039,52 @@ def mode_synology_download_albums(user_confirmation=True):
     LOGGER.info("==================================================")
     LOGGER.info("")
 
-def mode_synology_delete_empty_albums(user_confirmation=True):
+def mode_synology_download_ALL(user_confirmation=True):
     if user_confirmation:
-        LOGGER.info(f"INFO: Flag detected '-sde, --synology-delete-empty-albums'.")
-        LOGGER.info(HELP_MODE_SYNOLOGY_DELETE_EMPTY_ALBUMS)
+        LOGGER.info(f"INFO: Flag detected '-iDA, --immich-download-all'.")
+        LOGGER.info(HELP_MODE_SYNOLOGY_DOWNLOAD_ALL.replace('<OUTPUT_FOLDER>', f"{args.synology_download_ALL}"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
-        LOGGER.info(f"INFO: Synology Photos: 'Delete Empty Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO: Flag detected '-sde, --synology-delete-empty-albums'. The Script will look for any empty album in Synology Photos database and will detelte them (if any enpty album is found).")
+        LOGGER.info(f"INFO: Synology Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
+    LOGGER.info("")
+    # LOGGER.info(f"INFO: Find Albums in Folder    : {args.immich_upload_albums}")
+    LOGGER.info("")
     # Call the Funxtion
-    albums_deleted = synology_delete_empty_albums()
+    albums_downloaded, assets_downloaded = synology_download_ALL(args.synology_download_ALL)
+    # FINAL SUMMARY
+    end_time = datetime.now()
+    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+    LOGGER.info("")
+    LOGGER.info("==================================================")
+    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+    LOGGER.info("==================================================")
+    LOGGER.info("")
+    LOGGER.info("==================================================")
+    LOGGER.info("                  FINAL SUMMARY:                  ")
+    LOGGER.info("==================================================")
+    LOGGER.info(f"Total Albums downloaded                 : {albums_downloaded}")
+    LOGGER.info(f"Total Assets downloaded                 : {assets_downloaded}")
+    LOGGER.info("")
+    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+    LOGGER.info("==================================================")
+    LOGGER.info("")
+
+
+###############################
+# EXTRA MODES: IMMICH PHOTOS: #
+###############################
+def mode_immich_delete_empty_albums(user_confirmation=True):
+    if user_confirmation:
+        LOGGER.info(f"INFO: Flag detected '-ide, --immich-delete-empty-albums'.")
+        LOGGER.info(HELP_MODE_IMMICH_DELETE_EMPTY_ALBUMS)
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO: Exiting program.")
+            sys.exit(0)
+        LOGGER.info(f"INFO: Immich Photos: 'Delete Empty Album' Mode detected. Only this module will be run!!!")
+        LOGGER.info(f"INFO: Flag detected '-ide, --immich-delete-empty-albums'. The Script will look for any empty album in Immich Photos database and will detelte them (if any enpty album is found).")
+    # Call the Funxtion
+    albums_deleted = immich_delete_empty_albums()
     # FINAL SUMMARY
     end_time = datetime.now()
     formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -942,17 +1102,17 @@ def mode_synology_delete_empty_albums(user_confirmation=True):
     LOGGER.info("==================================================")
     LOGGER.info("")
 
-def mode_synology_delete_duplicates_albums(user_confirmation=True):
+def mode_immich_delete_duplicates_albums(user_confirmation=True):
     if user_confirmation:
-        LOGGER.info(f"INFO: Flag detected '-sdd, --synology-delete-deuplicates-albums'.")
-        LOGGER.info(HELP_MODE_SYNOLOGY_DELETE_DUPLICATES_ALBUMS)
+        LOGGER.info(f"INFO: Flag detected '-idd, --immich-delete-deuplicates-albums'.")
+        LOGGER.info(HELP_MODE_IMMICH_DELETE_DUPLICATES_ALBUMS)
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
-        LOGGER.info(f"INFO: Synology Photos: 'Delete Duplicates Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO: Flag detected '-sdd, --synology-delete-duplicates-albums'. The Script will look for any duplicated album in Synology Photos database and will detelte them (if any duplicated album is found).")
+        LOGGER.info(f"INFO: Immich Photos: 'Delete Duplicates Album' Mode detected. Only this module will be run!!!")
+        LOGGER.info(f"INFO: Flag detected '-idd, --immich-delete-duplicates-albums'. The Script will look for any duplicated album in Immich Photos database and will detelte them (if any duplicated album is found).")
     # Call the Funxtion
-    albums_deleted = synology_delete_duplicates_albums()
+    albums_deleted = immich_delete_duplicates_albums()
     # FINAL SUMMARY
     end_time = datetime.now()
     formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -970,10 +1130,6 @@ def mode_synology_delete_duplicates_albums(user_confirmation=True):
     LOGGER.info("==================================================")
     LOGGER.info("")
 
-
-###############################
-# EXTRA MODES: IMMICH PHOTOS: #
-###############################
 def mode_immich_upload_folder(user_confirmation=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-iua, --immich-upload-albums'.")
@@ -1067,10 +1223,10 @@ def mode_immich_download_albums(user_confirmation=True):
     LOGGER.info("==================================================")
     LOGGER.info("")
 
-def mode_immich_download_all(user_confirmation=True):
+def mode_immich_download_ALL(user_confirmation=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-iDA, --immich-download-all'.")
-        LOGGER.info(HELP_MODE_IMMICH_DOWNLOAD_ALL.replace('<FOLDER>', f"{args.immich_download_all}"))
+        LOGGER.info(HELP_MODE_IMMICH_DOWNLOAD_ALL.replace('<OUTPUT_FOLDER>', f"{args.immich_download_ALL}"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1079,7 +1235,7 @@ def mode_immich_download_all(user_confirmation=True):
     # LOGGER.info(f"INFO: Find Albums in Folder    : {args.immich_upload_albums}")
     LOGGER.info("")
     # Call the Funxtion
-    albums_downloaded, assets_downloaded = immich_download_all(args.immich_download_all)
+    albums_downloaded, assets_downloaded = immich_download_ALL(args.immich_download_ALL)
     # FINAL SUMMARY
     end_time = datetime.now()
     formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -1097,101 +1253,6 @@ def mode_immich_download_all(user_confirmation=True):
     LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
     LOGGER.info("==================================================")
     LOGGER.info("")
-
-def mode_immich_delete_empty_albums(user_confirmation=True):
-    if user_confirmation:
-        LOGGER.info(f"INFO: Flag detected '-ide, --immich-delete-empty-albums'.")
-        LOGGER.info(HELP_MODE_IMMICH_DELETE_EMPTY_ALBUMS)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO: Exiting program.")
-            sys.exit(0)
-        LOGGER.info(f"INFO: Immich Photos: 'Delete Empty Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO: Flag detected '-ide, --immich-delete-empty-albums'. The Script will look for any empty album in Immich Photos database and will detelte them (if any enpty album is found).")
-    # Call the Funxtion
-    albums_deleted = immich_delete_empty_albums()
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Empty Albums deleted              : {albums_deleted}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-
-def mode_immich_delete_duplicates_albums(user_confirmation=True):
-    if user_confirmation:
-        LOGGER.info(f"INFO: Flag detected '-idd, --immich-delete-deuplicates-albums'.")
-        LOGGER.info(HELP_MODE_IMMICH_DELETE_DUPLICATES_ALBUMS)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO: Exiting program.")
-            sys.exit(0)
-        LOGGER.info(f"INFO: Immich Photos: 'Delete Duplicates Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO: Flag detected '-idd, --immich-delete-duplicates-albums'. The Script will look for any duplicated album in Immich Photos database and will detelte them (if any duplicated album is found).")
-    # Call the Funxtion
-    albums_deleted = immich_delete_duplicates_albums()
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Duplicates Albums deleted         : {albums_deleted}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-
-def mode_all_in_one():
-    global OUTPUT_FOLDER
-    LOGGER.info(f"INFO: All-in-One Mode detected")
-    LOGGER.info(HELP_MODE_ALL_IN_ONE.replace('<INPUT_FOLDER>', f"'{args.all_in_one}'"))
-    if not Utils.confirm_continue():
-        LOGGER.info(f"INFO: Exiting program.")
-        sys.exit(0)
-
-    config = read_synology_config(show_info=False)
-    if not config['ROOT_PHOTOS_PATH']:
-        LOGGER.warning(f"WARNING: Caanot find 'ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
-    else:
-        OUTPUT_FOLDER = os.path.join(config['ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
-
-    res, _ = login_synology()
-    if res==-1:
-        LOGGER.warning(f"WARNING: Cannot connect to Synology Photos. Albums will not be created into Synology Photos database")
-
-    # Configure the Normal Execution Arguments and RUN Normal Execution
-    input_folder = args.all_in_one
-    need_unzip = Utils.contains_zip_files(input_folder)
-    if need_unzip:
-        args.zip_folder = input_folder
-        args.move_takeout_folder = True
-    else:
-        args.takeout_folder = input_folder
-    args.remove_duplicates_after_fixing = True
-    mode_normal(user_confirmation=False)
-
-    # Configure the Create_Synology_Albums and run create_synology_albums()
-    albums_folder = os.path.join(OUTPUT_FOLDER, f'Albums')
-    args.synology_upload_albums = albums_folder
-    LOGGER.info("")
-    mode_synology_upload_albums(user_confirmation=False)
-
-    # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
-    mode_synology_delete_duplicates_albums(user_confirmation=False)
-    mode_synology_delete_empty_albums(user_confirmation=False)
 
 
 if __name__ == "__main__":

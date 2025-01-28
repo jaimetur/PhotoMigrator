@@ -167,8 +167,9 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
         for _, dirs, files in os.walk(folder):
             dirs[:] = [d for d in dirs if d != '@eaDir']
             total_files += sum([len(files)])
-        # Mostrar la barra de progreso basada en carpetas
+        # Show progress bar per fies
         with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO: Processing files'", unit=" files") as pbar:
+            # Recursively traverse the folder and excluding '@eaDir' folders
             for path, dirs, files in os.walk(folder):
                 dirs[:] = [d for d in dirs if d != '@eaDir']
                 total_folders += len(dirs)

@@ -138,6 +138,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         # 5) Diccionario de tokens forzados
         force_new_line_for_tokens = {
             "[-sg]": False                # Salto de línea antes, pero sigue reagrupando
+            ,"[-sde]": False                # Salto de línea antes, pero sigue reagrupando
+            ,"[-ide]": False                # Salto de línea antes, pero sigue reagrupando
             ,"[-fs <FOLDER_TO_FIX>]": True  # # Va solo
             ,"[-fd <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]]": True  # Va solo
         }
@@ -185,16 +187,23 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 extra_description = procesar_saltos_de_linea(extra_description)
                 # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
                 parts.append(extra_description+'\n')
-            # Add EXTRA MODES for Synology Photos Management: after "The Script will do the whole process".
+            # Add EXTRA MODES for Google Photos Takeout Management: after "The Script will do the whole process".
             if help_text.find("The Script will do the whole process")!=-1:
+                parts.append(f"\n\n\nEXTRA MODES: Google Photos Takeout Management:\n----------------------------------------\n")
+                extra_description = f"Following Extra Modes allow you to interact with Google Photos Takeout Folder. \nIf more than one Extra Mode is detected, only the first one will be executed.\n"
+                extra_description = procesar_saltos_de_linea(extra_description)
+                # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
+                parts.append(extra_description+'\n')
+            # Add EXTRA MODES for Synology Photos Management: after "The Script will do the whole process".
+            if help_text.find("Remove Duplicates files in <OUTPUT_FOLDER> after fixing them")!=-1:
                 parts.append(f"\n\n\nEXTRA MODES: Synology Photos Management:\n----------------------------------------\n")
                 extra_description = f"Following Extra Modes allow you to interact with Synology Photos. \nIf more than one Extra Mode is detected, only the first one will be executed.\n"
                 extra_description = procesar_saltos_de_linea(extra_description)
                 # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
                 parts.append(extra_description+'\n')
             # Add EXTRA MODES for Immich Photos Management: after "any Album is duplicated, will remove it from Synology Photos database.".
-            if help_text.find("any Album is duplicated, will remove it from Synology Photos database.")!=-1:
-                parts.append(f"\n\n\nEXTRA MODES: Immich Photos Management: (Planned for version 3.0.0)\n--------------------------------------\n")
+            if help_text.find("The Script will connect to Synology Photos and will download all the")!=-1:
+                parts.append(f"\n\n\nEXTRA MODES: Immich Photos Management:\n--------------------------------------\n")
                 extra_description = f"Following Extra Modes allow you to interact with Immich Photos. \nIf more than one Extra Mode is detected, only the first one will be executed.\n"
                 extra_description = procesar_saltos_de_linea(extra_description)
                 # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
