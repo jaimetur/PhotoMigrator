@@ -66,7 +66,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 
 
 - Added support to include sidecar files when upload assts to Immich
-- Get Supported media tipe from Immich using API
+- Get Supported media type from Immich using API
 - Improved authentication speed in Immich
 - Included **release-notes.md** file in the distribution package.
 - Updated -h, --help to refflect the new changes.
