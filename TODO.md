@@ -3,6 +3,7 @@
 ## 2.4.0 (31/01/2025):
 ### TODO:
 - [ ] Change version to 2.4.0
+- [ ] Create local and remote branches for 2.4.0
 - [ ] Refactor release-notes.md to RELEASES-NOTES.md
 - [ ] Refactor TODO.md to ROADMAP.md
 - [ ] Refactor -iDA, --immich-download-all to -idA, --immich-download-ALL
@@ -31,7 +32,7 @@
 
 ## 3.0.0 (No estimated date):
 - [ ] Change repository name to PhotosMigrationTool or GooglePhotosMigration
-    - [ ] Change both, prod snd dev repos
+    - [ ] Change both, prod and dev repos
     - [ ] Change build.yml in dev repo to point to new prod repo
     - [ ] Change PyCharm origin in case of use a new repo instead of rename the current one
 - [ ] Include iCloud Support (just for downloading)
