@@ -2,11 +2,18 @@
 
 ## 2.4.0 (31/01/2025):
 ### TODO:
+- [ ] Replace ALL_PHOTOS by Others in all the project files (be careful)
 - [ ] Change -sda and -ida to support wildcards on Albums name to download
 - [ ] Unificate a single Config.conf file and include tags for the different purposses
 - [ ] Merge -z and -t options in just one -gtf, -google-photos-takeout-folder and detect if contains Takeout Zip files, in that case Unzip to Takeout folder, if not, make Takeout folder = Input folder
-- [ ] Allow user to choose between Synology Photos or Immich Photos in --all-in-one mode
-- [ ] Refactor -ao, --all-in-one-shot to -am, --automated-migration <SRC> <TGT> and identify if <SRC> is an <INPUT_FOLDER> or one of the ALLOWED_SOURCES=['google-photos', 'apple-photos', 'synology-photos', 'immich-photos']. If is 'google-photos' look for -t or -z arguments or prompt to the user to introduce the Google Takeout Folder
+- [ ] Create GLOBAL variables to map arguments into them in ParseArguments() or separate in a new function
+
+- [ ] DEPRECATE: Allow user to choose between Synology Photos or Immich Photos in --all-in-one mode
+- [ ] Refactor -ao, --all-in-one to -am, --automated-migration <SRC> <TGT> and identify if <SRC> is an <INPUT_FOLDER> or one of the ALLOWED_SOURCES=['google-photos', 'apple-photos', 'synology-photos', 'immich-photos']. If is 'google-photos' look for -t or -z arguments or prompt to the user to introduce the Google Takeout Folder
+- [ ] Refactor Google Photos arguments
+- [ ] Deep Test on Immich Support functions
+- [ ] Deep Test on Synology Support functions
+- [ ] Deep Test on Google Photos function
 
 ### DONE:
 - [x] Add Support for Immich Photos
@@ -25,10 +32,10 @@
 - [x] Put at the beginning the standard option (those that are not related to any Support mode)
 
 ## 2.5.0 (No estimated date):
-- [ ] Add -sdA, --synology-download-ALL
+- [x] Add -sdA, --synology-download-ALL
 - [ ] Allow users to choose the folder where dowonload the assets for option -ida (-sda does not allow this)
 - [ ] Try to upload folders outside Synology Photos ROOT folder
-- [ ] Complete function -suf to upload folders (without Albums) to Synology photos. Make sure than ignore @eaDir folders
+- [ ] Complete function -suf to upload external folders (without Albums) to Synology photos. Make sure than ignore @eaDir folders
 - [ ] Change -sdA to Download assets with no albums to an external folder
 - 
 ## 3.0.0 (No estimated date):
