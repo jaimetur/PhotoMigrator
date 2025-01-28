@@ -2,22 +2,15 @@
 
 ## 2.4.0 (31/01/2025):
 ### TODO:
-- [ ] Change version to 2.4.0
-- [ ] Create local and remote branches for 2.4.0
-- [ ] Refactor release-notes.md to RELEASES-NOTES.md
-- [ ] Refactor TODO.md to ROADMAP.md
-- [ ] Refactor -iDA, --immich-download-all to -idA, --immich-download-ALL
-
-- [ ] Ignore @eaDir folders on -suf, -sua, -iuf, -iua
 - [ ] Add TQDM support on ImmichPhotos.py
 - [ ] Test function -ida to download Albums from immich
+- [ ] Ignore @eaDir folders on -suf, -sua, -iuf, -iua
 - [ ] Change -sda and -ida to support wildcards on Albums name to download
-- [ ] Unificate a single Config.conf file and include tags for the different purposses
 - [ ] Complete function -suf to upload folders (without Albums) to Synology photos
+- [ ] Unificate a single Config.conf file and include tags for the different purposses
 - [ ] Merge -z and -t options in just one -gtf, -google-photos-takeout-folder and detect if contains Takeout Zip files, in that case Unzip to Takeout folder, if not, make Takeout folder = Input folder
 - [ ] Allow user to choose between Synology Photos or Immich Photos in --all-in-one mode
 - [ ] Refactor -ao, --all-in-one-shot to -am, --automated-migration <SRC> <TGT> and identify if <SRC> is an <INPUT_FOLDER> or one of the ALLOWED_SOURCES=['google-photos', 'apple-photos', 'synology-photos', 'immich-photos']. If is 'google-photos' look for -t or -z arguments or prompt to the user to introduce the Google Takeout Folder
-- [ ] Modify build.yml to update RELEASE-NOTES.md and ROADMAP.md into production repository
 
 ### DONE:
 - [x] Add Support for Immich Photos
@@ -25,7 +18,10 @@
     - [x] Improve authentication speed in Immich
     - [x] Get Supported media type from Immich using API
     - [x] Translate into English all Immich fuctions
-- [x] Add release-notes.md file to the distribution package.
+- [x] Change version to 2.4.0
+- [x] Create local and remote branches for 2.4.0, 2.5.0 and 3.0.0
+- [x] Add RELEASES-NOTES.md file to the distribution package.
+- [x] Modify build.yml to update RELEASE-NOTES.md and ROADMAP.md into production repository
 - [x] Renamed options of Synology Photos support to homogenize with Immich Photos support
 
 ## 2.5.0 (No estimated date):
