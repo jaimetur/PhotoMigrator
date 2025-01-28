@@ -773,8 +773,7 @@ def immich_download_albums(album_name_or_id='ALL', output_folder="Downloads_Immi
                 if ok:
                     total_assets_downloaded += 1
         total_albums_downloaded += 1
-        LOGGER.info(f"INFO: Downloaded Album '{album_name}'. {len(assets_in_album)} asset(s) have been downloaded.")
-        LOGGER.info(f"INFO: Downloaded Albums: {total_albums_downloaded}/{total_albums}")
+        LOGGER.info(f"INFO: Downloaded Album [{total_albums_downloaded}/{total_albums}] - '{album_name}'. {len(assets_in_album)} asset(s) have been downloaded.")
     LOGGER.info(f"INFO: Download complete.")
     LOGGER.info(f"INFO: Total Albums downloaded: {total_albums_downloaded}")
     LOGGER.info(f"INFO: Total Assets downloaded: {total_assets_downloaded}")
@@ -801,7 +800,7 @@ def immich_download_no_albums(output_folder="Downloads_Immich"):
     all_photos_path = os.path.join(output_folder, "Others")
     os.makedirs(all_photos_path, exist_ok=True)
     # all_assets_items = [a for a in all_assets if a.get("id") not in downloaded_assets_set]
-    LOGGER.info(f"INFO: Found {len(all_assets_items)} asset(s) not in any album.")
+    LOGGER.info(f"INFO: Found {len(all_assets_items)} asset(s) without any album associated.")
     for asset in tqdm(all_assets_items, desc="Downloading assets without associated albums", unit="photos"):
         asset_id = asset.get("id")
         asset_filename = os.path.basename(asset.get("originalPath"))
