@@ -31,6 +31,13 @@
 - [ ] Allow users to choose the folder where dowonload the assets for option -ida (-sda does not allow this)
 
 ## 3.0.0 (No estimated date):
+- [ ] Cange repository name to PhotosMigrationTool or GooglePhotosMigration
+    - [ ] Change both, prod snd dev repos
+    - [ ] Change build.yml in dev repo to point to new prod repo
+    - [ ] Change PyCharm origin in case of use a new repo instead of rename the current one
+- [ ] Include iCloud Support (just for downloading)
+    - [ ] -ada, --apple-download-albums
+    - [ ] -adA, --apple-download-ALL
 - [ ] Support for automated migration process with the following direction;
     - [ ] Add -msrc, --migration-source (any of the 4 supported sources)
     - [ ] Add -mtgt, --migration-target (any of the 2 supported target)
@@ -40,11 +47,4 @@
     - [ ] Apple Photos -> Immich Photos
     - [ ] Synology Photos -> Immich Photos
     - [ ] Immich Photos -> Synology Photos
-- [ ] Cange repository name to PhotosMigrationTool or GooglePhotosMigration
-    - [ ] Change both, prod snd dev repos
-    - [ ] Change build.yml in dev repo to point to new prod repo
-    - [ ] Change PyCharm origin in case of use a new repo instead of rename the current one
-- [ ] Include iCloud Support (just for downloading)
-    - [ ] -ada, --apple-download-albums
-    - [ ] -adA, --apple-download-ALL
 
