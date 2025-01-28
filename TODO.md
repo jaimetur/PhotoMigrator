@@ -2,6 +2,8 @@
 
 - [ ] Complete function -ida to download Albums from immich
 - [ ] Change -sda and -ida to support wildcards on Albums name to download
+- [ ] Add -sdA, --synology-download-ALL
+- [ ] refactor -iDA, --immich-download-all to -idA, --immich-download-ALL
 - [ ] Allow users to choose the folder where dowonload the assets for option -ida (-sda does not allow this)
 - [ ] Allow user to choose between Synology Photos or Immich Photos in --all-in-one mode
 - [ ] Add TQDM support on ImmichPhotos.py
