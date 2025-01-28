@@ -79,8 +79,8 @@ jobs:
           echo "::endgroup::"
         shell: bash
 
-      # 2. - Update README.md in prod repo with API
-      - name: 2. - Update README.md in Production Repository with API
+      # 2. - Update README.md, RELEASE-NOTES.md, ROADMAP.md in prod repo with API
+      - name: 2. - Update README.md, RELEASE-NOTES.md, ROADMAP.md in prod repo with API
         if: runner.os != 'Windows'
         run: |
          FILES_TO_ADD=("README.md", "RELEASE-NOTES.md", "ROADMAP.md")
