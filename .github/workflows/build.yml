@@ -83,7 +83,8 @@ jobs:
       - name: 2. - Update README.md in Production Repository with API
         if: runner.os != 'Windows'
         run: |
-          FILE_TO_ADD=README.md
+         FILES_TO_ADD=("README.md", "RELEASE-NOTES.md", "ROADMAP.md")
+         for FILE_TO_ADD in "${FILES_TO_ADD[@]}"; do
           echo "Uploading file '${FILE_TO_ADD}' to prod repository..."
           # Encode Artifact to Base64 (Linux/macOS)
           cat ${FILE_TO_ADD} | base64 | tr -d '\n' > artifact_base64.txt
@@ -118,6 +119,7 @@ jobs:
             # Limpiar el archivo temporal
             rm ${PAYLOAD_FILE}
           done
+         done
         shell: bash
 
       # 3a. Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Linux/macOS)
