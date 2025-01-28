@@ -3,8 +3,6 @@
 ## 2.4.0 (31/01/2025):
 ### TODO:
 - [ ] Change -sda and -ida to support wildcards on Albums name to download
-- [ ] Complete function -suf to upload folders (without Albums) to Synology photos
-- [ ] Change -sdA to Download assets with no albums to an external folder
 - [ ] Unificate a single Config.conf file and include tags for the different purposses
 - [ ] Merge -z and -t options in just one -gtf, -google-photos-takeout-folder and detect if contains Takeout Zip files, in that case Unzip to Takeout folder, if not, make Takeout folder = Input folder
 - [ ] Allow user to choose between Synology Photos or Immich Photos in --all-in-one mode
@@ -17,7 +15,7 @@
   - [x] Get Supported media type from Immich using API
   - [x] Translate into English all Immich fuctions
   - [x] Test function -ida to download Albums from immich
-- [x] Change version to 2.4.0
+- [x] Change version to 2.4.0-alpha
 - [x] Create local and remote branches for 2.4.0, 2.5.0 and 3.0.0
 - [x] Add TQDM support on ImmichPhotos.py
 - [x] Ignore @eaDir folders on -iuf, -iua, -sua
@@ -30,7 +28,9 @@
 - [ ] Add -sdA, --synology-download-ALL
 - [ ] Allow users to choose the folder where dowonload the assets for option -ida (-sda does not allow this)
 - [ ] Try to upload folders outside Synology Photos ROOT folder
-
+- [ ] Complete function -suf to upload folders (without Albums) to Synology photos. Make sure than ignore @eaDir folders
+- [ ] Change -sdA to Download assets with no albums to an external folder
+- 
 ## 3.0.0 (No estimated date):
 - [ ] Change repository name to PhotosMigrationTool or GooglePhotosMigration
     - [ ] Change both, prod and dev repos
