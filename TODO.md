@@ -2,17 +2,23 @@
 
 ## 2.4.0 (28/01/2025):
 ### TODO:
+- [ ] Change version to 2.4.0
+- [ ] Refactor release-notes.md to RELEASES-NOTES.md
 - [ ] Refactor TODO.md to ROADMAP.md
+- [ ] Refactor -iDA, --immich-download-all to -idA, --immich-download-ALL
+
 - [ ] Ignore @eaDir folders on -suf, -sua, -iuf, -iua
 - [ ] Allow user to choose between Synology Photos or Immich Photos in --all-in-one mode
-- [ ] Refactor -iDA, --immich-download-all to -idA, --immich-download-ALL
 - [ ] Add TQDM support on ImmichPhotos.py
 - [ ] Change -sda and -ida to support wildcards on Albums name to download
-- [ ] Complete function -ida to download Albums from immich
+- [ ] Test function -ida to download Albums from immich
 - [ ] Unificate a single Config.conf file and include tags for the different purposses
-- [ ] Change version to 2.4.0
+- [ ] Complete function -suf to upload folders (without Albums) to Synology photos
+    - [ ] Try to upload folders outside Synology Photos ROOT folder
+
 
 ### DONE:
+- [x] Add Support for Immich Photos
 - [x] Add support to include sidecar files when upload assts to Immich
 - [x] Improve authentication speed in Immich
 - [x] Get Supported media tipe from Immich using API
@@ -23,8 +29,6 @@
 ## 2.5.0 (No estimated date):
 - [ ] Add -sdA, --synology-download-ALL
 - [ ] Allow users to choose the folder where dowonload the assets for option -ida (-sda does not allow this)
-- [ ] Complete function -suf to upload folders (without Albums) to Synology photos
-    - [ ] Try to upload folders outside Synology Photos ROOT folder
 
 ## 3.0.0 (No estimated date):
 - [ ] Support for automated migration process with the following direction;
