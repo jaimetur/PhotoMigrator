@@ -16,7 +16,7 @@
 - [ ] Complete function -suf to upload folders (without Albums) to Synology photos
 - [ ] Merge -z and -t options in just one -gtf, -google-photos-takeout-folder and detect if contains Takeout Zip files, in that case Unzip to Takeout folder, if not, make Takeout folder = Input folder
 - [ ] Allow user to choose between Synology Photos or Immich Photos in --all-in-one mode
-- [ ] Refactor -ao, --all-in-one-shot to -ao, --automated-migration <SRC> <TGT> and identify if <SRC> is an <INPUT_FOLDER> or one of the ALLOWED_SOURCES=['google-photos', 'apple-photos', 'synology-photos', 'immich-photos']. If is 'google-photos' look for -t or -z arguments or prompt to the user to introduce the Google Takeout Folder
+- [ ] Refactor -ao, --all-in-one-shot to -am, --automated-migration <SRC> <TGT> and identify if <SRC> is an <INPUT_FOLDER> or one of the ALLOWED_SOURCES=['google-photos', 'apple-photos', 'synology-photos', 'immich-photos']. If is 'google-photos' look for -t or -z arguments or prompt to the user to introduce the Google Takeout Folder
 - [ ] Modify build.yml to update RELEASE-NOTES.md and ROADMAP.md into production repository
 
 ### DONE:
