@@ -83,43 +83,43 @@ jobs:
       - name: 2. - Update README.md, RELEASE-NOTES.md, ROADMAP.md in prod repo with API
         if: runner.os != 'Windows'
         run: |
-         FILES_TO_ADD=("README.md","RELEASE-NOTES.md","ROADMAP.md")
-         for FILE_TO_ADD in "${FILES_TO_ADD[@]}"; do
-          echo "Uploading file '${FILE_TO_ADD}' to prod repository..."
-          # Encode Artifact to Base64 (Linux/macOS)
-          cat ${FILE_TO_ADD} | base64 | tr -d '\n' > artifact_base64.txt
-          # Leer el contenido codificado en base64 desde el archivo
-          BASE64_ARTIFACT=$(cat artifact_base64.txt)
-          # Parameters
-          COMMIT_MESSAGE="Added from GitHub Actions"
-          REPOS=("OrganizeTakeoutPhotos")
-          for REPO in "${REPOS[@]}"; do
-            echo "Uploading to $REPO..."
-            URL=https://api.github.com/repos/jaimetur/$REPO/contents/${FILE_TO_ADD} 
-            # Extraer SHA si el archivo existe
-            command="curl -s -f -H 'Authorization: token ${{ secrets.GH_PAT }}' '${URL}' | grep '\"sha\"' | awk -F '\"' '{print \$4}' || echo \"\""
-            # echo "Command: ${command}"
-            SHA=$(eval ${command})
-            echo "SHA: ${SHA}"
-            # Crear archivo temporal para el payload
-            PAYLOAD_FILE=$(mktemp)
-            # Generar el contenido del JSON y guardarlo en el archivo temporal
-            echo "{
-              \"message\": \"${COMMIT_MESSAGE}\",
-              \"content\": \"${BASE64_ARTIFACT}\",
-              \"branch\": \"main\",
-              \"sha\": \"${SHA}\"
-            }" > ${PAYLOAD_FILE}
-            # Subir el archivo (crear o sobrescribir)
-            curl -X PUT \
-                -H "Authorization: token ${{ secrets.GH_PAT }}" \
-                -H "Content-Type: application/json" \
-                -d @${PAYLOAD_FILE} \
-                ${URL}
-            # Limpiar el archivo temporal
-            rm ${PAYLOAD_FILE}
+          FILES_TO_ADD=("README.md","RELEASE-NOTES.md","ROADMAP.md")
+          for FILE_TO_ADD in "${FILES_TO_ADD[@]}"; do
+            echo "Uploading file '${FILE_TO_ADD}' to prod repository..."
+            # Encode Artifact to Base64 (Linux/macOS)
+            cat ${FILE_TO_ADD} | base64 | tr -d '\n' > artifact_base64.txt
+            # Leer el contenido codificado en base64 desde el archivo
+            BASE64_ARTIFACT=$(cat artifact_base64.txt)
+            # Parameters
+            COMMIT_MESSAGE="Added from GitHub Actions"
+            REPOS=("OrganizeTakeoutPhotos")
+            for REPO in "${REPOS[@]}"; do
+              echo "Uploading to $REPO..."
+              URL=https://api.github.com/repos/jaimetur/$REPO/contents/${FILE_TO_ADD} 
+              # Extraer SHA si el archivo existe
+              command="curl -s -f -H 'Authorization: token ${{ secrets.GH_PAT }}' '${URL}' | grep '\"sha\"' | awk -F '\"' '{print \$4}' || echo \"\""
+              # echo "Command: ${command}"
+              SHA=$(eval ${command})
+              echo "SHA: ${SHA}"
+              # Crear archivo temporal para el payload
+              PAYLOAD_FILE=$(mktemp)
+              # Generar el contenido del JSON y guardarlo en el archivo temporal
+              echo "{
+                \"message\": \"${COMMIT_MESSAGE}\",
+                \"content\": \"${BASE64_ARTIFACT}\",
+                \"branch\": \"main\",
+                \"sha\": \"${SHA}\"
+              }" > ${PAYLOAD_FILE}
+              # Subir el archivo (crear o sobrescribir)
+              curl -X PUT \
+                  -H "Authorization: token ${{ secrets.GH_PAT }}" \
+                  -H "Content-Type: application/json" \
+                  -d @${PAYLOAD_FILE} \
+                  ${URL}
+              # Limpiar el archivo temporal
+              rm ${PAYLOAD_FILE}
+            done
           done
-         done
         shell: bash
 
       # 3a. Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Linux/macOS)
