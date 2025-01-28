@@ -24,7 +24,7 @@
 - [x] Get Supported media tipe from Immich using API
 - [x] Translate into English all Immich fuctions
 - [x] Add release-notes.md file to the distribution package.
-
+- [x] Renamed options of Synology Photos support to homogenize with Immich Photos support
 
 ## 2.5.0 (No estimated date):
 - [ ] Add -sdA, --synology-download-ALL
