@@ -1,6 +1,6 @@
 # ROADMAP:
 
-## 2.4.0 (28/01/2025):
+## 2.4.0 (31/01/2025):
 ### TODO:
 - [ ] Change version to 2.4.0
 - [ ] Refactor release-notes.md to RELEASES-NOTES.md
