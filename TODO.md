@@ -38,6 +38,11 @@
 - [ ] Include iCloud Support (just for downloading)
     - [ ] -ada, --apple-download-albums
     - [ ] -adA, --apple-download-ALL
+- [ ] Refactor and group All Google Takeout options in one block for Google Photos Takeout Support
+- [ ] Put at the beginning the standard option (thise that are not related to any Support mode)
+- [ ] Refactor normal_mode to google_takeout_mode
+- [ ] Change the logic to detect google_takeout_mode (former normal_mode)
+- [ ] Change README.md to reflect all changes and change Script description
 - [ ] Support for automated migration process with the following direction;
     - [ ] Add -msrc, --migration-source (any of the 4 supported sources)
     - [ ] Add -mtgt, --migration-target (any of the 2 supported target)
