@@ -1,5 +1,8 @@
+# ROADMAP:
+
 ## 2.4.0 (28/01/2025):
 ### TODO:
+- [ ] Refactor TODO.md to ROADMAP.md
 - [ ] Ignore @eaDir folders on -suf, -sua, -iuf, -iua
 - [ ] Allow user to choose between Synology Photos or Immich Photos in --all-in-one mode
 - [ ] Refactor -iDA, --immich-download-all to -idA, --immich-download-ALL
