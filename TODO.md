@@ -6,8 +6,12 @@
 - [ ] Allow user to choose between Synology Photos or Immich Photos in --all-in-one mode
 - [ ] Add TQDM support on ImmichPhotos.py
 - [ ] Ignore @eaDir folders on -suf, -sua, -iuf, -iua
+- [ ] Cange repository name to PhotosMigrationTool o GooglePhotosMigrator
+- [ ] Include iCloud Support (just for downloading)
+    - [ ] -ada, --apple-download-albums
+    - [ ] -adA, --apple-download-ALL
 - [ ] Complete function -suf to upload folders (without Albums) to Synology photos
-  - [ ] Try to upload folders outside Synology Photos ROOT folder
+    - [ ] Try to upload folders outside Synology Photos ROOT folder
 
 ## DONE:
 - [x] Add support to include sidecar files when upload assts to Immich
