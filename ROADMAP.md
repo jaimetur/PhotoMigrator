@@ -37,7 +37,7 @@
 - [ ] Try to upload folders outside Synology Photos ROOT folder
 - [ ] Complete function -suf to upload external folders (without Albums) to Synology photos. Make sure than ignore @eaDir folders
 - [ ] Change -sdA to Download assets with no albums to an external folder
-- 
+  
 ## 3.0.0 (No estimated date):
 - [ ] Change repository name to PhotosMigrationTool or GooglePhotosMigration
     - [ ] Change both, prod and dev repos
