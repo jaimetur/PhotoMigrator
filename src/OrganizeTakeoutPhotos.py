@@ -438,7 +438,7 @@ def main():
     OUTPUT_FOLDER = f"{args.takeout_folder}_{args.suffix}_{TIMESTAMP}"
 
     # Set a global variable for logger and Set up logger based on the skip-log argument
-    log_filename=f"execution_log_{TIMESTAMP}"
+    log_filename=f"{SCRIPT_NAME}_{TIMESTAMP}"
     log_folder="Logs"
     LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
     LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, skip_logfile=args.no_log_file, plain_log=False)

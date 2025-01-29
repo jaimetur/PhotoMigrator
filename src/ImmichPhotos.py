@@ -18,7 +18,7 @@ Python module with example functions to interact with Immich Photos, including f
      - immich_download_ALL()
 """
 
-import os
+import os, sys
 import requests
 import json
 import urllib3
@@ -866,7 +866,7 @@ if __name__ == "__main__":
     from datetime import datetime
     from LoggerConfig import log_setup
     TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
-    log_filename=f"ImmichPhotos_{TIMESTAMP}"
+    log_filename=f"{sys.argv[0]}{TIMESTAMP}"
     log_folder="Logs"
     LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
     LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename)
