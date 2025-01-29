@@ -1302,7 +1302,7 @@ if __name__ == "__main__":
     total = synology_download_albums(albums_name='Cadiz', output_folder="Downloads_Synology")
     print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
-    # 6) Example: Download everything in the structure /Albums/<albumName>/ + /ALL_PHOTOS/yyyy/mm
+    # 6) Example: Download everything in the structure /Albums/<albumName>/ + /Others/yyyy/mm
     print("=== EXAMPLE: synology_download_ALL() ===")
     total_struct = synology_download_ALL(output_folder="Downloads_Synology")
     print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")

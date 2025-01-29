@@ -901,7 +901,7 @@ if __name__ == "__main__":
     total = immich_download_albums("1994 - Recuerdos", output_folder="Downloads_Immich")
     print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
-    # 6) Example: Download everything in the structure /Albums/<albumName>/ + /ALL_PHOTOS/yyyy/mm
+    # 6) Example: Download everything in the structure /Albums/<albumName>/ + /Others/yyyy/mm
     print("=== EXAMPLE: immich_download_ALL() ===")
     # total_struct = immich_download_ALL(output_folder="Downloads_Immich")
     total_albums_downloaded, total_assets_downloaded = immich_download_ALL(output_folder="Downloads_Immich")

@@ -253,7 +253,7 @@ def parse_arguments():
                         , type=lambda s: s.lower()  # Convert input to lowercase
                         , choices=choices_for_folder_structure  # Valid choices
                         )
-    parser.add_argument("-ns", "--no-albums-structure", metavar=f"{choices_for_folder_structure}", default="year/month", help="Specify the type of folder structure for ALL_PHOTOS folder (Default: 'year/month')."
+    parser.add_argument("-ns", "--no-albums-structure", metavar=f"{choices_for_folder_structure}", default="year/month", help="Specify the type of folder structure for 'Others' folder (Default: 'year/month')."
                         , type=lambda s: s.lower()  # Convert input to lowercase
                         , choices=choices_for_folder_structure  # Valid choices
                         )
@@ -430,7 +430,7 @@ def main():
     args = parse_arguments()
 
     # List of Folder to Desprioritize when looking for duplicates.
-    DEPRIORITIZE_FOLDERS_PATTERNS = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS', '*Variad[oa]*', '*Vari[oa]*', '*Miscellaneous*', '*M[oó]vil*', r'\bfotos\b\s+(\w+)\s*$', r'fotos de \w y \w\s*$', r'fotos de \w\s*$', '*Fotos_de*', '*Fotos_con', '*Fotos de*', '*Fotos con*']
+    DEPRIORITIZE_FOLDERS_PATTERNS = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS', '*Others', '*Variad[oa]*', '*Vari[oa]*', '*Miscellaneous*', '*M[oó]vil*', r'\bfotos\b\s+(\w+)\s*$', r'fotos de \w y \w\s*$', r'fotos de \w\s*$', '*Fotos_de*', '*Fotos_con', '*Fotos de*', '*Fotos con*']
 
     # Create timestamp, start_time and define OUTPUT_FOLDER
     TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -492,7 +492,7 @@ def mode_normal(user_confirmation=True):
         if args.albums_structure.lower()!='flatten':
             LOGGER.warning(f"WARNING: Flag detected '-as, --albums-structure'. Folder structure '{args.albums_structure}' will be applied on each Album folder...")
         if args.no_albums_structure.lower()!='year/month':
-            LOGGER.warning(f"WARNING: Flag detected '-ns, --no-albums-structure'. Folder structure '{args.no_albums_structure}' will be applied on ALL_PHOTOS folder (Photos without Albums)...")
+            LOGGER.warning(f"WARNING: Flag detected '-ns, --no-albums-structure'. Folder structure '{args.no_albums_structure}' will be applied on 'Others' folder (Photos without Albums)...")
         if args.ignore_takeout_structure:
             LOGGER.warning(f"WARNING: Flag detected '-it, --ignore-takeout-structure'. All files in <TAKEOUT_FOLDER> will be processed ignoring Google Takeout Structure...")
         if args.remove_duplicates_after_fixing:
@@ -615,13 +615,13 @@ def mode_normal(user_confirmation=True):
         LOGGER.info(f"INFO: Creating Folder structure '{args.albums_structure.lower()}' for each Album folder...")
         basedir=OUTPUT_FOLDER
         type=args.albums_structure
-        exclude_subfolders=['ALL_PHOTOS']
+        exclude_subfolders=['Others']
         Utils.organize_files_by_date(input_folder=basedir, type=type, exclude_subfolders=exclude_subfolders)
     # For No Albums:
     if args.no_albums_structure.lower()!='flatten':
         LOGGER.info("")
-        LOGGER.info(f"INFO: Creating Folder structure '{args.no_albums_structure.lower()}' for ALL_PHOTOS folder...")
-        basedir=os.path.join(OUTPUT_FOLDER, 'ALL_PHOTOS')
+        LOGGER.info(f"INFO: Creating Folder structure '{args.no_albums_structure.lower()}' for 'Others' folder...")
+        basedir=os.path.join(OUTPUT_FOLDER, 'Others')
         type=args.no_albums_structure
         exclude_subfolders=[]
         Utils.organize_files_by_date(input_folder=basedir, type=type, exclude_subfolders=exclude_subfolders)
@@ -643,7 +643,7 @@ def mode_normal(user_confirmation=True):
     LOGGER.info("")
     if not args.skip_move_albums:
         step_start_time = datetime.now()
-        Utils.move_albums(OUTPUT_FOLDER, exclude_subfolder=["ALL_PHOTOS", "@eaDir"])
+        Utils.move_albums(OUTPUT_FOLDER, exclude_subfolder=['Others', '@eaDir'])
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time-step_start_time).seconds))
         LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
@@ -678,7 +678,7 @@ def mode_normal(user_confirmation=True):
         LOGGER.info(f"{STEP}. REMOVING DUPLICATES IN OUTPUT_FOLDER...")
         LOGGER.info("==========================================")
         LOGGER.info("")
-        LOGGER.info("INFO: Removing duplicates from OUTPUT_FOLDER (Files within any Album will have more priority than files within 'Photos from *' or 'ALL_PHOTOS' folders)...")
+        LOGGER.info("INFO: Removing duplicates from OUTPUT_FOLDER (Files within any Album will have more priority than files within 'Photos from *' or 'Others' folders)...")
         step_start_time = datetime.now()
         duplicates_found = find_duplicates(duplicates_action='remove', duplicates_folders=OUTPUT_FOLDER, deprioritize_folders_patterns=DEPRIORITIZE_FOLDERS_PATTERNS, timestamp=TIMESTAMP)
         step_end_time = datetime.now()
