@@ -1143,23 +1143,28 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
     # Import logger and log in to the NAS
     from LoggerConfig import LOGGER
     login_synology()
-    output_folder = os.path.join(output_folder, "Albums")
-    os.makedirs(output_folder, exist_ok=True)
     # Variables to return
     albums_downloaded = 0
     assets_downloaded = 0
+
     # Create or obtain the main folder 'Albums_Synology_Photos'
-    main_folder = output_folder
-    main_folder_id = get_folder_id_or_create_folder(main_folder)
+    main_folder_id = get_folder_id_or_create_folder(output_folder)
     if not main_folder_id:
-        LOGGER.error(f"ERROR: Failed to obtain or create the main folder '{main_folder}'.")
+        LOGGER.error(f"ERROR: Failed to obtain or create the main folder '{output_folder}'.")
         return albums_downloaded, assets_downloaded
+
+    parent_folder_id = get_folder_id_or_create_folder("Albums", parent_folder_id=main_folder_id)
+    if not parent_folder_id:
+        LOGGER.error(f"ERROR: Failed to obtain or create the folder 'Albums'.")
+        return albums_downloaded, assets_downloaded
+
+    download_folder = os.path.join(output_folder, 'Albums')
     # List own and shared albums
     all_albums = list_albums_own_and_shared()
     # Determine the albums to copy
     if isinstance(albums_name, str) and albums_name.strip().upper() == 'ALL':
-        albums_to_copy = all_albums
-        LOGGER.info(f"INFO: All albums ({len(albums_to_copy)}) from Synology Photos will be downloaded to the folder '{main_folder}'...")
+        albums_to_download = all_albums
+        LOGGER.info(f"INFO: All albums ({len(albums_to_download)}) from Synology Photos will be downloaded to the folder '{download_folder} within Synology Photos root folder'...")
     else:
         # Ensure album_name is a list if it's not a string
         if isinstance(albums_name, str):
@@ -1175,23 +1180,24 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
             LOGGER.error("ERROR: The parameter albums_name must be a string or a list of strings.")
             return albums_downloaded, assets_downloaded
 
-        albums_to_copy = []
+        albums_to_download = []
         for album in all_albums:
-            album_name = album['name'].strip().lower()
+            album_name = album['name']
             for pattern in albums_names:
                 # Search for the album by name or pattern (case-insensitive)
-                if fnmatch.fnmatch(album_name, pattern.lower().replace('*', '?')):
-                    albums_to_copy.append(album)
+                # TODO: La siguiente linea no encuentra ningún match.
+                if fnmatch.fnmatch(album_name.strip().lower(), pattern.lower()):
+                    albums_to_download.append(album)
                     break
 
-        if not albums_to_copy:
+        if not albums_to_download:
             LOGGER.error("ERROR: No albums found matching the provided patterns.")
             return albums_downloaded, assets_downloaded
-        LOGGER.info(f"INFO: {len(albums_to_copy)} albums from Synology Photos will be downloaded to '{main_folder}'...")
+        LOGGER.info(f"INFO: {len(albums_to_download)} albums from Synology Photos will be downloaded to '{download_folder}' within Synology Photos root folder...")
 
-    albums_downloaded = len(albums_to_copy)
+    albums_downloaded = len(albums_to_download)
     # Iterate over each album to copy
-    for album in tqdm(albums_to_copy, desc="INFO: Downloading Albums", unit=" albums"):
+    for album in tqdm(albums_to_download, desc="INFO: Downloading Albums", unit=" albums"):
         album_name = album['name']
         album_id = album['id']
         LOGGER.info(f"INFO: Processing album: '{album_name}' (ID: {album_id})")
@@ -1203,14 +1209,14 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
             continue
         # Create or obtain the destination folder for the album within output_folder/Albums
         target_folder_name = f'{album_name}'
-        target_folder_id = get_folder_id_or_create_folder(target_folder_name, parent_folder_id=main_folder_id)
+        target_folder_id = get_folder_id_or_create_folder(target_folder_name, parent_folder_id=parent_folder_id)
         if not target_folder_id:
             LOGGER.warning(f"WARNING: Failed to obtain or create the destination folder for the album '{album_name}'.")
             continue
         # Copy the photos to the destination folder
         assets_downloaded += download_assets(target_folder_id, target_folder_name, photos)
 
-    LOGGER.info(f"INFO: Album(s) downloaded successfully. You can find them in '{os.path.join(ROOT_PHOTOS_PATH, main_folder)}'")
+    LOGGER.info(f"INFO: Album(s) downloaded successfully. You can find them in '{os.path.join(ROOT_PHOTOS_PATH, download_folder)}'")
     return albums_downloaded, assets_downloaded
 
 
