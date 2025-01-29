@@ -2,8 +2,6 @@
 
 ## 2.4.0 (31/01/2025):
 ### TODO:
-- [ ] Replace ALL_PHOTOS by Others in all the project files (be careful)
-- [ ] Change -sda and -ida to support wildcards on Albums name to download
 - [ ] Unificate a single Config.conf file and include tags for the different purposses
 - [ ] Merge -z and -t options in just one -gtf, -google-photos-takeout-folder and detect if contains Takeout Zip files, in that case Unzip to Takeout folder, if not, make Takeout folder = Input folder
 - [ ] Create GLOBAL variables to map arguments into them in ParseArguments() or separate in a new function
@@ -26,7 +24,9 @@
 - [x] Create local and remote branches for 2.4.0, 2.5.0 and 3.0.0
 - [x] Add TQDM support on ImmichPhotos.py
 - [x] Ignore @eaDir folders on -iuf, -iua, -sua
+- [x] Replaced ALL_PHOTOS by Others in all the project files (be careful)
 - [x] Add RELEASES-NOTES.md file to the distribution package.
+- [x] Change -sda and -ida to support wildcards on Albums name to download
 - [x] Modify build.yml to update RELEASE-NOTES.md and ROADMAP.md into production repository
 - [x] Renamed options of Synology Photos support to homogenize with Immich Photos support
 - [x] Put at the beginning the standard option (those that are not related to any Support mode)

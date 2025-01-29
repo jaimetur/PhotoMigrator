@@ -24,6 +24,7 @@ import requests
 import urllib3
 import subprocess
 import Utils
+import fnmatch
 from tqdm import tqdm
 
 # -----------------------------------------------------------------------------
@@ -1129,7 +1130,7 @@ def synology_upload_albums(albums_folder):
 # Function to download albums from Synology Photos
 def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synology'):
     """
-    Downloads albums from Synology Photos to a specified folder.
+    Downloads albums from Synology Photos to a specified folder, supporting wildcard patterns.
 
     Args:
         albums_name (str or list): The name(s) of the album(s) to download. Use 'ALL' to download all albums.
@@ -1142,7 +1143,7 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
     # Import logger and log in to the NAS
     from LoggerConfig import LOGGER
     login_synology()
-    output_folder = os.path.join(output_folder,"Albums")
+    output_folder = os.path.join(output_folder, "Albums")
     os.makedirs(output_folder, exist_ok=True)
     # Variables to return
     albums_downloaded = 0
@@ -1175,19 +1176,19 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
             return albums_downloaded, assets_downloaded
 
         albums_to_copy = []
-        for album_name in albums_names:
-            # Search for the album by name (case-insensitive)
-            found_album = next((album for album in all_albums if album['name'].strip().lower() == album_name.lower()), None)
-
-            if found_album:
-                albums_to_copy.append(found_album)
-            else:
-                LOGGER.warning(f"WARNING: No album found with the name '{album_name}'.")
+        for album in all_albums:
+            album_name = album['name'].strip().lower()
+            for pattern in albums_names:
+                # Search for the album by name or pattern (case-insensitive)
+                if fnmatch.fnmatch(album_name, pattern.lower().replace('*', '?')):
+                    albums_to_copy.append(album)
+                    break
 
         if not albums_to_copy:
-            LOGGER.error("ERROR: No albums found with the provided names.")
+            LOGGER.error("ERROR: No albums found matching the provided patterns.")
             return albums_downloaded, assets_downloaded
-        LOGGER.info(f"INFO: {len(albums_to_copy)} albums from Synology Photos will be downloaded to the folder '{main_folder}'...")
+        LOGGER.info(f"INFO: {len(albums_to_copy)} albums from Synology Photos will be downloaded to '{main_folder}'...")
+
     albums_downloaded = len(albums_to_copy)
     # Iterate over each album to copy
     for album in tqdm(albums_to_copy, desc="INFO: Downloading Albums", unit=" albums"):
@@ -1208,8 +1209,10 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
             continue
         # Copy the photos to the destination folder
         assets_downloaded += download_assets(target_folder_id, target_folder_name, photos)
-    LOGGER.info(f"INFO: Album(s) downloaded successfully. You can find them in the folder '{os.path.join(ROOT_PHOTOS_PATH, main_folder)}'")
+
+    LOGGER.info(f"INFO: Album(s) downloaded successfully. You can find them in '{os.path.join(ROOT_PHOTOS_PATH, main_folder)}'")
     return albums_downloaded, assets_downloaded
+
 
 # Function to download albums from Synology Photos
 # TODO: CREAR LA FUNCIÓN synology_download_no_albums()

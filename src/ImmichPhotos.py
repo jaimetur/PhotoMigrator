@@ -22,6 +22,7 @@ import os, sys
 import requests
 import json
 import urllib3
+import fnmatch
 from tqdm import tqdm
 from datetime import datetime
 
@@ -711,60 +712,71 @@ def immich_upload_albums(input_folder):
     LOGGER.info(f"INFO: Created {albums_created} album(s) from '{input_folder}'.")
     return albums_created, albums_skipped, assets_added
 
-def immich_download_albums(album_name_or_id='ALL', output_folder="Downloads_Immich"):
+def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich"):
     """
-    (Previously extract_photos_from_album)
-    Downloads (extracts) all photos/videos from one or multiple albums:
+    Downloads (extracts) all photos/videos from one or multiple albums using name patterns:
 
       - If album_name_or_id == 'ALL', all albums will be downloaded.
       - If it matches an 'id' or 'albumName', only that album will be downloaded.
+      - If it contains wildcard patterns (e.g., "*jaime*", "jaime*"), it will download matching albums.
+      - If it is a list, it will check each item as an ID, exact name, or pattern.
 
     Returns the total number of albums and assets downloaded.
     """
     from LoggerConfig import LOGGER  # Import global LOGGER
+
     if not login_immich():
         return 0
-    output_folder = os.path.join(output_folder,"Albums")
+
+    output_folder = os.path.join(output_folder, "Albums")
     os.makedirs(output_folder, exist_ok=True)
+
     all_albums = list_albums()
     if not all_albums:
         LOGGER.warning("WARNING: No albums available or could not retrieve the list.")
         return 0
-    # Determine which album(s) to download
+
+    # Normalize album_name_or_id to a list if it's a string
+    if isinstance(albums_name, str):
+        albums_name = [albums_name]
+
     albums_to_download = []
-    if isinstance(album_name_or_id, str) and album_name_or_id.strip().upper() == 'ALL':
+    found_albums = []
+
+    if 'ALL' in [x.strip().upper() for x in albums_name]:
         albums_to_download = all_albums
         LOGGER.info(f"INFO: ALL albums ({len(all_albums)}) will be downloaded...")
     else:
-        # Convert to lowercase all the elements of album_name_or_id
-        album_name_or_id = [e.lower() for e in album_name_or_id]
-        found_album = None
         for album in all_albums:
             album_id = album.get("id")
-            if album_id == str(album_name_or_id):
-                found_album = album
-                break
             album_name = album.get("albumName", "")
-            if album_name.strip().lower() in album_name_or_id:
-                found_album = album
-                break
-        if found_album:
-            albums_to_download = [found_album]
-            LOGGER.info(f"INFO: Album to be downloaded: '{found_album.get('albumName')}' (ID={found_album.get('id')}).")
+
+            for pattern in albums_name:
+                if album_id == str(pattern):
+                    found_albums.append(album)
+                    break
+                if fnmatch.fnmatch(album_name.lower(), pattern.lower()):
+                    found_albums.append(album)
+                    break
+
+        if found_albums:
+            albums_to_download = found_albums
+            LOGGER.info(f"INFO: {len(found_albums)} album(s) matched pattern(s) '{albums_name}'.")
         else:
-            LOGGER.warning(f"WARNING: Album '{album_name_or_id}' not found.")
+            LOGGER.warning(f"WARNING: No albums found matching pattern(s) '{albums_name}'.")
             return 0
+
     total_assets_downloaded = 0
     total_albums_downloaded = 0
     total_albums = len(albums_to_download)
-    # for album in tqdm(albums_to_download, smoothing=0.1, desc=f"INFO: Downloading Albums", unit=" albums"):
+
     for album in albums_to_download:
         album_id = album.get("id")
         album_name = album.get("albumName", f"album_{album_id}")
         album_folder = os.path.join(output_folder, f"{album_name}_{album_id}")
         os.makedirs(album_folder, exist_ok=True)
+
         assets_in_album = get_assets_from_album(album_id)
-        # LOGGER.info(f"INFO: Album '{album_name}' (ID={album_id}) contains {len(assets)} asset(s).")
         for asset in tqdm(assets_in_album, desc=f"INFO: Downloading '{album_name}'", unit=" assets"):
             asset_id = asset.get("id")
             asset_filename = os.path.basename(asset.get("originalPath"))
@@ -772,11 +784,14 @@ def immich_download_albums(album_name_or_id='ALL', output_folder="Downloads_Immi
                 ok = download_asset(asset_id, asset_filename, album_folder)
                 if ok:
                     total_assets_downloaded += 1
+
         total_albums_downloaded += 1
         LOGGER.info(f"INFO: Downloaded Album [{total_albums_downloaded}/{total_albums}] - '{album_name}'. {len(assets_in_album)} asset(s) have been downloaded.")
+
     LOGGER.info(f"INFO: Download of Albums completed.")
     LOGGER.info(f"INFO: Total Albums downloaded: {total_albums_downloaded}")
     LOGGER.info(f"INFO: Total Assets downloaded: {total_assets_downloaded}")
+
     return total_albums_downloaded, total_assets_downloaded
 
 def immich_download_no_albums(output_folder="Downloads_Immich"):
@@ -844,7 +859,7 @@ def immich_download_ALL(output_folder="Downloads_Immich"):
     from LoggerConfig import LOGGER  # Import global LOGGER
     if not login_immich():
         return 0
-    total_albums_downloaded, total_assets_downloaded_within_albums = immich_download_albums(album_name_or_id='ALL', output_folder=output_folder)
+    total_albums_downloaded, total_assets_downloaded_within_albums = immich_download_albums(albums_name='ALL', output_folder=output_folder)
     total_assets_downloaded_without_albums = immich_download_no_albums(output_folder=output_folder)
     total_assets_downloaded = total_assets_downloaded_within_albums + total_assets_downloaded_without_albums
     LOGGER.info(f"INFO: Download of ALL assets completed.")
