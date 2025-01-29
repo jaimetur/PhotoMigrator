@@ -83,7 +83,7 @@ jobs:
       - name: 2. - Update README.md, RELEASES-NOTES.md, ROADMAP.md in prod repo with API
         if: runner.os != 'Windows'
         run: |
-          FILES_TO_ADD=("README.md","RELEASE-NOTES.md","ROADMAP.md")
+          FILES_TO_ADD=("README.md","RELEASES-NOTES.md","ROADMAP.md")
           for FILE_TO_ADD in "${FILES_TO_ADD[@]}"; do
             echo "Uploading file '${FILE_TO_ADD}' to prod repository..."
             # Encode Artifact to Base64 (Linux/macOS)
