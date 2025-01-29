@@ -80,7 +80,7 @@ jobs:
         shell: bash
 
       # 2. - Update README.md, RELEASE-NOTES.md, ROADMAP.md in prod repo with API
-      - name: 2. - Update README.md, RELEASE-NOTES.md, ROADMAP.md in prod repo with API
+      - name: 2. - Update README.md, RELEASES-NOTES.md, ROADMAP.md in prod repo with API
         if: runner.os != 'Windows'
         run: |
           FILES_TO_ADD=("README.md","RELEASE-NOTES.md","ROADMAP.md")
