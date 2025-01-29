@@ -16,7 +16,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 
 ## Release Notes:
 
-**Release**: 3.0.0  
+**Release**: 2.4.0  
 **Date**: 2025-01-31
 
 - Renamed options:
