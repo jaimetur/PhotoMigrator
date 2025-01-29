@@ -774,7 +774,7 @@ def immich_download_albums(album_name_or_id='ALL', output_folder="Downloads_Immi
                     total_assets_downloaded += 1
         total_albums_downloaded += 1
         LOGGER.info(f"INFO: Downloaded Album [{total_albums_downloaded}/{total_albums}] - '{album_name}'. {len(assets_in_album)} asset(s) have been downloaded.")
-    LOGGER.info(f"INFO: Download complete.")
+    LOGGER.info(f"INFO: Download of Albums completed.")
     LOGGER.info(f"INFO: Total Albums downloaded: {total_albums_downloaded}")
     LOGGER.info(f"INFO: Total Assets downloaded: {total_assets_downloaded}")
     return total_albums_downloaded, total_assets_downloaded
@@ -801,7 +801,7 @@ def immich_download_no_albums(output_folder="Downloads_Immich"):
     os.makedirs(all_photos_path, exist_ok=True)
     # all_assets_items = [a for a in all_assets if a.get("id") not in downloaded_assets_set]
     LOGGER.info(f"INFO: Found {len(all_assets_items)} asset(s) without any album associated.")
-    for asset in tqdm(all_assets_items, desc="Downloading assets without associated albums", unit="photos"):
+    for asset in tqdm(all_assets_items, desc="INFO: Downloading assets without associated albums", unit="photos"):
         asset_id = asset.get("id")
         asset_filename = os.path.basename(asset.get("originalPath"))
         if not asset_id:
@@ -818,8 +818,8 @@ def immich_download_no_albums(output_folder="Downloads_Immich"):
         ok = download_asset(asset_id, asset_filename, target_folder)
         if ok:
             total_assets_downloaded += 1
-    LOGGER.info(f"INFO: Download complete.")
-    LOGGER.info(f"Total Assets downloaded: {total_assets_downloaded}")
+    LOGGER.info(f"INFO: Download of assets without associated albums completed.")
+    LOGGER.info(f"INFO: Total Assets downloaded: {total_assets_downloaded}")
     return total_assets_downloaded
 
 
@@ -847,81 +847,13 @@ def immich_download_ALL(output_folder="Downloads_Immich"):
     total_albums_downloaded, total_assets_downloaded_within_albums = immich_download_albums(album_name_or_id='ALL', output_folder=output_folder)
     total_assets_downloaded_without_albums = immich_download_no_albums(output_folder=output_folder)
     total_assets_downloaded = total_assets_downloaded_within_albums + total_assets_downloaded_without_albums
-    LOGGER.info(f"INFO: Download complete.")
+    LOGGER.info(f"INFO: Download of ALL assets completed.")
     LOGGER.info(f"Total Albums downloaded                   : {total_albums_downloaded}")
     LOGGER.info(f"Total Assets downloaded                   : {total_assets_downloaded}")
-    LOGGER.info(f"   Total Assets downloaded within albums  : {total_assets_downloaded_within_albums}")
-    LOGGER.info(f"   Total Assets downloaded without albums : {total_assets_downloaded_without_albums}")
+    LOGGER.info(f"Total Assets downloaded within albums     : {total_assets_downloaded_within_albums}")
+    LOGGER.info(f"Total Assets downloaded without albums    : {total_assets_downloaded_without_albums}")
     return total_albums_downloaded, total_assets_downloaded
 
-# def immich_download_ALL_old(output_folder="Downloads_Immich"):
-#     """
-#     (Previously download_all_assets_with_structure)
-#     Downloads ALL photos and videos from Immich into:
-#         output_folder/
-#           ├─ Albums/
-#           │    ├─ albumName1/ (assets in the album)
-#           │    ├─ albumName2/ (assets in the album)
-#           │    ...
-#           └─ Others/
-#                └─ yyyy/
-#                    └─ mm/ (assets not in any album for that year/month)
-#
-#     Returns the total number of albums and assets downloaded.
-#     """
-#     from LoggerConfig import LOGGER  # Import global LOGGER
-#     if not login_immich():
-#         return 0
-#     os.makedirs(output_folder, exist_ok=True)
-#     total_assets_downloaded = 0
-#     total_albums_downloaded = 0
-#     downloaded_assets_set = set()
-#     # 1) Albums in output_folder/Albums
-#     albums_path = os.path.join(output_folder, "Albums")
-#     os.makedirs(albums_path, exist_ok=True)
-#     albums = list_albums()
-#     for album in tqdm(total=albums, smoothing=0.1, desc=f"INFO: Downloading Albums", unit=" albums"):
-#         album_id = album.get("id")
-#         album_name = album.get("albumName", f"Album_{album_id}")
-#         album_folder = os.path.join(albums_path, album_name)
-#         os.makedirs(album_folder, exist_ok=True)
-#         assets_in_album = get_assets_from_album(album_id)
-#         LOGGER.info(f"INFO: Album '{album_name}' (ID={album_id}) contains {len(assets_in_album)} asset(s).")
-#         for asset in tqdm(assets_in_album, desc=f"Album '{album_name}'", unit="photos"):
-#             aid = asset.get("id")
-#             if not aid:
-#                 continue
-#             ok = download_asset(aid, album_folder)
-#             if ok:
-#                 total_assets_downloaded += 1
-#                 downloaded_assets_set.add(aid)
-#         total_albums_downloaded += 1
-#     # 2) Assets without album -> output_folder/Others/yyyy/mm
-#     all_assets = get_assets_by_search_filter()
-#     all_photos_path = os.path.join(output_folder, "Others")
-#     os.makedirs(all_photos_path, exist_ok=True)
-#     assets_without_albums = [a for a in all_assets if a.get("id") not in downloaded_assets_set]
-#     LOGGER.info(f"INFO: Found {len(assets_without_albums)} asset(s) not in any album.")
-#     for asset in tqdm(assets_without_albums, desc="Downloading assets without associated albums", unit="photos"):
-#         aid = asset.get("id")
-#         if not aid:
-#             continue
-#         created_at_str = asset.get("fileCreatedAt", "")
-#         try:
-#             dt_created = datetime.fromisoformat(created_at_str.replace("Z", ""))
-#         except:
-#             dt_created = datetime.now()
-#         year_str = dt_created.strftime("%Y")
-#         month_str = dt_created.strftime("%m")
-#         target_folder = os.path.join(all_photos_path, year_str, month_str)
-#         os.makedirs(target_folder, exist_ok=True)
-#         ok = download_asset(aid, target_folder)
-#         if ok:
-#             total_assets_downloaded += 1
-#     LOGGER.info(f"INFO: Download complete.")
-#     LOGGER.info(f"Total Albums downloaded: {total_albums_downloaded}")
-#     LOGGER.info(f"Total Assets downloaded: {total_assets_downloaded}")
-#     return total_albums_downloaded, total_assets_downloaded
 ##############################################################################
 #                           END OF MAIN FUNCTIONS                            #
 ##############################################################################
