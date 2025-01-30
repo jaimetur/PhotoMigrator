@@ -21,12 +21,12 @@
 - [ ] Deep Test on Google Photos function
 
 ### DONE:
-- [x] Add Support for Immich Photos
-  - [x] Add support to include sidecar files when upload assts to Immich
-  - [x] Improve authentication speed in Immich
-  - [x] Get Supported media type from Immich using API
-  - [x] Translate into English all Immich fuctions
-  - [x] Test function -ida to download Albums from immich
+- [x] Added Support for Immich Photos
+  - [x] Added support to include sidecar files when upload assts to Immich
+  - [x] Improved authentication speed in Immich
+  - [x] Got Supported media type from Immich using API
+  - [x] Translated into English all Immich fuctions
+  - [x] Tested function -ida to download Albums from immich
 - [x] Changed version to 2.4.0-alpha
 - [x] Created local and remote branches for 2.4.0, 2.5.0 and 3.0.0
 - [x] Created GLOBAL variable ARG to map arguments into it in ParseArguments() in order to facilitate future refactoring of arguments.
@@ -36,7 +36,7 @@
 - [x] Added colors to --help text for a better visualization.
 - [X] Refactor normal_mode to google_takeout_mode
 - [x] Put at the beginning the standard option (those that are not related to any Support mode)
-- [x] Changed -sda and -ida to support wildcards on Albums name to download
+- [x] Changed -sda/-ida to support wildcards on Albums name to download
 - [x] Renamed options of Synology Photos support to homogenize with Immich Photos support
 - [x] Added RELEASES-NOTES.md file to the distribution package.
 - [x] Modified build.yml to update RELEASE-NOTES.md and ROADMAP.md into production repository
