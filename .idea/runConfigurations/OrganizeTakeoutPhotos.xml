@@ -16,7 +16,7 @@
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/OrganizeTakeoutPhotos.py" />
-    <option name="PARAMETERS" value="-fd list PP PO" />
+    <option name="PARAMETERS" value="-sda '*fluvial*' '*BRO'" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />

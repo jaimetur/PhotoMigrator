@@ -24,10 +24,6 @@ Script (based on GPTH Tool) to Process Google Takeout Photos and much more usefu
 (c) 2024-2025 by Jaime Tur (@jaimetur)
 """
 
-# Define Global varibale (dict) to store all arguments variables
-global ARGS
-ARGS = {}
-
 def check_OS_and_Terminal():
     # Detect the operating system
     current_os = platform.system()
@@ -204,7 +200,7 @@ ATTENTION!!!: This process will connect to Immich Photos and will download all t
               Assets with no Albums associated will be downloaded withn a subfolder './<OUTPUT_FOLDER>/Others' and will have a year/month structure inside.
 """
 
-def create_variables_from_args(args):
+def create_global_variable_from_args(args):
     """
     Crea una única variable global ARGS que contenga todos los argumentos proporcionados en un objeto Namespace.
     Se puede acceder a cada argumento mediante ARGS["nombre-argumento"] o ARGS.nombre_argumento.
@@ -322,16 +318,15 @@ def parse_arguments():
            "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside."
         )
 
-    args = parser.parse_args()
-    global ARGS
-    ARGS = create_variables_from_args(args)
-
     # Procesar la acción y las carpetas
     global DEFAULT_DUPLICATES_ACTION
 
+    # Obtain args from parser and create global variable ARGS to easier manipulation of argument variables using the same string as in the argument (this facilitates futures refactors on arguments names)
+    args = parser.parse_args()
+    ARGS = create_global_variable_from_args(args)
+
     ARGS['duplicates-folders'] = []
     ARGS['duplicates-action'] = ""
-
     for subarg in ARGS['find-duplicates']:
         if subarg.lower() in choices_for_remove_duplicates:
             ARGS['duplicates-action'] = subarg
@@ -350,7 +345,7 @@ def parse_arguments():
     ARGS['zip-folder'] = ARGS['zip-folder'].rstrip('/\\')
     ARGS['takeout-folder'] = ARGS['takeout-folder'].rstrip('/\\')
     ARGS['suffix'] = ARGS['suffix'].lstrip('_')
-    return args
+    return ARGS
 
 def get_and_run_execution_mode():
     global EXECUTION_MODE
@@ -452,13 +447,14 @@ def main():
     global LOG_FOLDER_FILENAME
     global DEFAULT_DUPLICATES_ACTION
     global DEPRIORITIZE_FOLDERS_PATTERNS
+    global ARGS
 
     # Limpiar la pantalla y parseamos argumentos de entrada
     os.system('cls' if os.name == 'nt' else 'clear')
 
     DEFAULT_DUPLICATES_ACTION = False
 
-    args = parse_arguments()
+    ARGS = parse_arguments()
 
     # List of Folder to Desprioritize when looking for duplicates.
     DEPRIORITIZE_FOLDERS_PATTERNS = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS', '*Others', '*Variad[oa]*', '*Vari[oa]*', '*Miscellaneous*', '*M[oó]vil*', r'\bfotos\b\s+(\w+)\s*$', r'fotos de \w y \w\s*$', r'fotos de \w\s*$', '*Fotos_de*', '*Fotos_con', '*Fotos de*', '*Fotos con*']
@@ -1292,5 +1288,5 @@ if __name__ == "__main__":
         # Agregar argumento predeterminado
         sys.argv.append("-z")
         sys.argv.append("Zip_folder")
-        print(f"INFO: No argument detected. Using default value '{sys.argv[2]}' for <ZIP_FOLDER'.")
+        print(f"INFO: No argument detected. Using default value '{sys.argv[2]}' for <ZIP_FOLDER>'.")
     main()
