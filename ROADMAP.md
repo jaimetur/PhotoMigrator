@@ -4,7 +4,6 @@
 ### TODO:
 - [ ] Unificate a single Config.conf file and include tags for the different purposses
 - [ ] Merge -z and -t options in just one -gtf, -google-photos-takeout-folder and detect if contains Takeout Zip files, in that case Unzip to Takeout folder, if not, make Takeout folder = Input folder
-- [ ] Create GLOBAL variables to map arguments into them in ParseArguments() or separate in a new function
 
 - [ ] DEPRECATE: Allow user to choose between Synology Photos or Immich Photos in --all-in-one mode
 - [ ] Refactor -ao, --all-in-one to -am, --automated-migration <SRC> <TGT> and identify if <SRC> is an <INPUT_FOLDER> or one of the ALLOWED_SOURCES=['google-photos', 'apple-photos', 'synology-photos', 'immich-photos']. If is 'google-photos' look for -t or -z arguments or prompt to the user to introduce the Google Takeout Folder
@@ -20,14 +19,16 @@
   - [x] Get Supported media type from Immich using API
   - [x] Translate into English all Immich fuctions
   - [x] Test function -ida to download Albums from immich
-- [x] Change version to 2.4.0-alpha
-- [x] Create local and remote branches for 2.4.0, 2.5.0 and 3.0.0
-- [x] Add TQDM support on ImmichPhotos.py
-- [x] Ignore @eaDir folders on -iuf, -iua, -sua
-- [x] Replaced ALL_PHOTOS by Others in all the project files (be careful)
-- [x] Add RELEASES-NOTES.md file to the distribution package.
-- [x] Change -sda and -ida to support wildcards on Albums name to download
-- [x] Modify build.yml to update RELEASE-NOTES.md and ROADMAP.md into production repository
+- [x] Changed version to 2.4.0-alpha
+- [x] Created local and remote branches for 2.4.0, 2.5.0 and 3.0.0
+- [x] Created GLOBAL variable ARG to map arguments into it in ParseArguments() in order to facilitate future refactoring of arguments.
+- [x] Added TQDM support on ImmichPhotos.py
+- [x] Ignored @eaDir folders on -iuf, -iua, -sua
+- [x] Replaced 'ALL_PHOTOS' by 'Others' as output subfolder for assets without any album associated (be careful if you already run the script with previous version because before, the folder for assets without albums was named 'ALL_PHOTOS')
+- [x] Added colors to --help text for a better visualization.
+- [x] Added RELEASES-NOTES.md file to the distribution package.
+- [x] Changed -sda and -ida to support wildcards on Albums name to download
+- [x] Modified build.yml to update RELEASE-NOTES.md and ROADMAP.md into production repository
 - [x] Renamed options of Synology Photos support to homogenize with Immich Photos support
 - [x] Put at the beginning the standard option (those that are not related to any Support mode)
 

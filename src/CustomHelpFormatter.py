@@ -3,6 +3,7 @@ import argparse
 import re
 import os, sys
 import platform
+from colorama import  Fore, Style
 
 if platform.system() == "Windows":
     try:
@@ -154,7 +155,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             first_line_indent = '',         # Sin espacios en la primera línea
             subsequent_indent = ' ' * ident_spaces    # 32 espacios en líneas siguientes, por ejemplo
         )
-        return usage
+        return f'{Fore.GREEN}{usage}{Style.RESET_ALL}'
 
     def _format_action(self, action):
         def procesar_saltos_de_linea(text, initial_indent="", subsequent_indent=""):
@@ -182,57 +183,59 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             parts.append(f"\n{help_text}")  # Salto de línea adicional
             # Add EXTRA MODES: after "Skip saving output messages to execution log file."
             if help_text.find('Skip saving output messages to execution log file.')!=-1:
-                parts.append(f"\n\n\nEXTRA MODES:\n------------\n")
+                parts.append(f"\n\n\n{Fore.YELLOW}EXTRA MODES:\n------------\n{Style.RESET_ALL}")
                 extra_description = f"Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes included. When an Extra Mode is detected only this module will be executed (ignoring the normal steps). If more than one Extra Mode is detected, only the first one will be executed.\n"
                 extra_description = procesar_saltos_de_linea(extra_description)
                 # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
                 parts.append(extra_description+'\n')
             # Add EXTRA MODES for Google Photos Takeout Management: after "The Script will do the whole process".
             if help_text.find("The Script will do the whole process")!=-1:
-                parts.append(f"\n\n\nEXTRA MODES: Google Photos Takeout Management:\n----------------------------------------\n")
+                parts.append(f"\n\n\n{Fore.YELLOW}EXTRA MODES: Google Photos Takeout Management:\n----------------------------------------------\n{Style.RESET_ALL}")
                 extra_description = f"Following Extra Modes allow you to interact with Google Photos Takeout Folder. \nIf more than one Extra Mode is detected, only the first one will be executed.\n"
                 extra_description = procesar_saltos_de_linea(extra_description)
                 # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
                 parts.append(extra_description+'\n')
             # Add EXTRA MODES for Synology Photos Management: after "The Script will do the whole process".
             if help_text.find("Remove Duplicates files in <OUTPUT_FOLDER> after fixing them")!=-1:
-                parts.append(f"\n\n\nEXTRA MODES: Synology Photos Management:\n----------------------------------------\n")
+                parts.append(f"\n\n\n{Fore.YELLOW}EXTRA MODES: Synology Photos Management:\n----------------------------------------\n{Style.RESET_ALL}")
                 extra_description = f"Following Extra Modes allow you to interact with Synology Photos. \nIf more than one Extra Mode is detected, only the first one will be executed.\n"
                 extra_description = procesar_saltos_de_linea(extra_description)
                 # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
                 parts.append(extra_description+'\n')
             # Add EXTRA MODES for Immich Photos Management: after "any Album is duplicated, will remove it from Synology Photos database.".
             if help_text.find("The Script will connect to Synology Photos and will download all the")!=-1:
-                parts.append(f"\n\n\nEXTRA MODES: Immich Photos Management:\n--------------------------------------\n")
+                parts.append(f"\n\n\n{Fore.YELLOW}EXTRA MODES: Immich Photos Management:\n--------------------------------------\n{Style.RESET_ALL}")
                 extra_description = f"Following Extra Modes allow you to interact with Immich Photos. \nIf more than one Extra Mode is detected, only the first one will be executed.\n"
                 extra_description = procesar_saltos_de_linea(extra_description)
                 # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
                 parts.append(extra_description+'\n')
 
         return "".join(parts)
-    def _format_action_invocation(self, action):
-        if not action.option_strings:
-            # Para argumentos posicionales
-            return super()._format_action_invocation(action)
-        else:
-            # Combina los argumentos cortos y largos con espacio adicional si es necesario
-            option_strings = []
-            for opt in action.option_strings:
-                # Argumento corto, agrega una coma detrás
-                if opt.startswith("-") and not opt.startswith("--"):
-                    if len(opt) == 4:
-                        option_strings.append(f"{opt},")
-                    elif len(opt) == 3:
-                        option_strings.append(f"{opt}, ")
-                    elif len(opt) == 2:
-                        option_strings.append(f"{opt},  ")
-                else:
-                    option_strings.append(f"{opt}")
 
-            # Combina los argumentos cortos y largos, y agrega el parámetro si aplica
-            formatted_options = " ".join(option_strings).rstrip(",")
-            metavar = f" {action.metavar}" if action.metavar else ""
-            return f"{formatted_options}{metavar}"
+    def _format_action_invocation(self, action):
+            if not action.option_strings:
+                # Para argumentos posicionales
+                return super()._format_action_invocation(action)
+            else:
+                # Combina los argumentos cortos y largos con espacio adicional si es necesario
+                option_strings = []
+                for opt in action.option_strings:
+                    # Argumento corto, agrega una coma detrás
+                    if opt.startswith("-") and not opt.startswith("--"):
+                        if len(opt) == 4:
+                            option_strings.append(f"{opt},")
+                        elif len(opt) == 3:
+                            option_strings.append(f"{opt}, ")
+                        elif len(opt) == 2:
+                            option_strings.append(f"{opt},  ")
+                    else:
+                        option_strings.append(f"{opt}")
+
+                # Combina los argumentos cortos y largos, y agrega el parámetro si aplica
+                formatted_options = " ".join(option_strings).rstrip(",")
+                metavar = f" {action.metavar}" if action.metavar else ""
+                return f"{Fore.GREEN}{formatted_options}{metavar}{Style.RESET_ALL}"
+
     def _join_parts(self, part_strings):
         # Asegura que cada argumento quede separado por un salto de línea
         return "\n".join(part for part in part_strings if part)
@@ -241,23 +244,70 @@ class PagedArgumentParser(argparse.ArgumentParser):
     """
     Sobrescribimos ArgumentParser para que 'print_help()' use un paginador.
     """
+    import re
+    import curses
+
+    import re
+    import curses
+
+    import re
+    import curses
+
     def custom_pager(self, text):
         """
         Paginador con curses que adapta dinámicamente el texto al tamaño de la terminal.
         """
+
+        from OrganizeTakeoutPhotos import SCRIPT_NAME_VERSION
+        # Expresión regular para detectar códigos ANSI
+        ANSI_ESCAPE = re.compile(r'\x1b\[[0-9;]*m')
+
         def pager(stdscr):
+            curses.start_color()
+            curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)   # Definir color verde (para argumentos)
+            curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK) # Definir color magenta (para líneas de guiones y anteriores)
             curses.curs_set(0)  # Ocultar el cursor
             lines = text.splitlines()
             total_lines = len(lines)
             page_size = curses.LINES - 2  # Altura de la terminal menos espacio para el mensaje
             index = 0
+            usage_finished = False
 
             while True:
                 # Asegurarse de que el número de líneas no exceda los límites
                 stdscr.clear()
+                prev_line = None  # Variable para almacenar la línea anterior
+
                 for i, line in enumerate(lines[index:index + page_size]):
                     try:
-                        stdscr.addstr(i, 0, line[:curses.COLS])  # Ajustar texto al ancho de la terminal
+                        clean_line = ANSI_ESCAPE.sub('', line)  # Eliminar secuencias ANSI de colorama
+
+                        # Detectar si ha terminado la parte de Usage detectando la variable SCRIPT_NAME_VERSION en la linea a escribir.
+                        usage_finished = usage_finished or clean_line.find(SCRIPT_NAME_VERSION)>=0
+
+                        # Si no ha terminado, pintamos el usage en verde.
+                        if not usage_finished:
+                            stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(1))  # Verde
+                        else:
+                            # Detectar si la línea actual es un separador (--- o más guiones)
+                            is_separator = re.match(r"^\s*-{3,}", clean_line)
+
+                            # Si encontramos un separador, pintamos también la línea anterior
+                            if is_separator and prev_line is not None:
+                                stdscr.addstr(i - 1, 0, prev_line[:curses.COLS], curses.color_pair(2))  # Magenta para la línea anterior
+
+                            # Pintar en verde si es un argumento (-arg, --arg)
+                            if re.match(r"^\s*-\w", clean_line):
+                                stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(1))  # Verde
+                            # Pintar en magenta si es un separador
+                            elif is_separator:
+                                stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(2))  # Magenta
+                            else:
+                                stdscr.addstr(i, 0, clean_line[:curses.COLS])  # Normal
+
+                            # Guardar la línea actual como la anterior para la siguiente iteración
+                            prev_line = clean_line
+
                     except curses.error:
                         pass  # Ignorar errores si la terminal no puede mostrar el texto completo
 
@@ -284,7 +334,7 @@ class PagedArgumentParser(argparse.ArgumentParser):
                 NUMPAD_DIVIDE   = [266, 458, 47]    # Codigos para NUMPAD_DIVIDE en LINUX, WINDOWS, MACOS
                 NUMPAD_ENTER    = [343, 459]        # Codigos para NUMPAD_ENTER en LINUX, WINDOWS, MACOS
                 BACKSPACE       = [263, 8, 127]     # Codigos para BACKSPACE en LINUX, WINDOWS, MACOS
-                                
+
                 # Leer entrada del usuario
                 key = stdscr.getch()
                 if key in [ord('q'), ord('Q'), 27]:  # Salir con 'q' o Esc
@@ -293,9 +343,9 @@ class PagedArgumentParser(argparse.ArgumentParser):
                     index = min(total_lines - 1, index + 1)
                 elif key == curses.KEY_UP:  # Retroceder 1 línea
                     index = max(0, index - 1)
-                elif key == curses.KEY_NPAGE or key in [ord(' '), ord('\n'), curses.KEY_ENTER, ord('+')] or key in NUMPAD_ENTER or key in NUMPAD_PLUS or key in NUMPAD_MULTIPLY:  # Avanzar 1 página
+                elif key in [curses.KEY_NPAGE, ord(' '), ord('\n'), curses.KEY_ENTER, ord('+')] or key in NUMPAD_ENTER or key in NUMPAD_PLUS or key in NUMPAD_MULTIPLY:  # Avanzar 1 página
                     index = min(total_lines - page_size, index + page_size)
-                elif key == curses.KEY_PPAGE or key in [curses.KEY_BACKSPACE, 8, ord('-')] or key in BACKSPACE or key in NUMPAD_MINUS or key in NUMPAD_DIVIDE:  # Retroceder 1 página
+                elif key in [curses.KEY_PPAGE, curses.KEY_BACKSPACE, ord('-')] or key in BACKSPACE or key in NUMPAD_MINUS or key in NUMPAD_DIVIDE:  # Retroceder 1 página
                     index = max(0, index - page_size)
 
         curses.wrapper(pager)

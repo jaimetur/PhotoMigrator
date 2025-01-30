@@ -323,7 +323,7 @@ def get_folder_id_or_create_folder(folder_name, parent_folder_id=None):
     # Check if the folder already exists
     folder_id = get_folder_id(search_in_folder_id=parent_folder_id, folder_name=folder_name)
     if folder_id:
-        LOGGER.warning(f"WARNING: The folder '{folder_name}' already exists.")
+        # LOGGER.warning(f"WARNING: The folder '{folder_name}' already exists.")
         return folder_id
 
     # If the folder does not exist, create it
@@ -426,7 +426,7 @@ def list_albums_own_and_shared():
     return album_list[0]
 
 
-def list_album_photos(album_name, album_id):
+def list_album_assets(album_name, album_id):
     """
     Lists photos in a specific album.
 
@@ -743,10 +743,10 @@ def download_assets(folder_id, folder_name, photos_list):
             }
             response = SESSION.get(url, params=params_copy, verify=False)
             data = response.json()
-            if data['success']:
-                LOGGER.info(f"INFO: Batch {i + 1}/{total_batches} of assets successfully copied to the folder '{folder_name}' (ID:{folder_id}).")
-            else:
+            if not data['success']:
                 LOGGER.error(f"ERROR: Failed to copy batch {i + 1}/{total_batches} of assets: {data}")
+                return 0
+            # LOGGER.info(f"INFO: Batch {i + 1}/{total_batches} of assets successfully downloaded to the folder '{folder_name}' (ID:{folder_id}).")
         extracted_photos = len(photos_list)
         return extracted_photos
     except Exception as e:
@@ -1153,8 +1153,8 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
         LOGGER.error(f"ERROR: Failed to obtain or create the main folder '{output_folder}'.")
         return albums_downloaded, assets_downloaded
 
-    parent_folder_id = get_folder_id_or_create_folder("Albums", parent_folder_id=main_folder_id)
-    if not parent_folder_id:
+    main_subfolder_id = get_folder_id_or_create_folder("Albums", parent_folder_id=main_folder_id)
+    if not main_subfolder_id:
         LOGGER.error(f"ERROR: Failed to obtain or create the folder 'Albums'.")
         return albums_downloaded, assets_downloaded
 
@@ -1185,7 +1185,6 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
             album_name = album['name']
             for pattern in albums_names:
                 # Search for the album by name or pattern (case-insensitive)
-                # TODO: La siguiente linea no encuentra ningún match.
                 if fnmatch.fnmatch(album_name.strip().lower(), pattern.lower()):
                     albums_to_download.append(album)
                     break
@@ -1200,20 +1199,20 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
     for album in tqdm(albums_to_download, desc="INFO: Downloading Albums", unit=" albums"):
         album_name = album['name']
         album_id = album['id']
-        LOGGER.info(f"INFO: Processing album: '{album_name}' (ID: {album_id})")
-        # List photos in the album
-        photos = list_album_photos(album_name, album_id)
-        LOGGER.info(f"INFO: Number of photos in the album '{album_name}': {len(photos)}")
+        # LOGGER.info(f"INFO: Processing album: '{album_name}' (ID: {album_id})")
+        # List assets in the album
+        photos = list_album_assets(album_name, album_id)
+        # LOGGER.info(f"INFO: Number of photos in the album '{album_name}': {len(photos)}")
         if not photos:
             LOGGER.warning(f"WARNING: No photos to download in the album '{album_name}'.")
             continue
         # Create or obtain the destination folder for the album within output_folder/Albums
         target_folder_name = f'{album_name}'
-        target_folder_id = get_folder_id_or_create_folder(target_folder_name, parent_folder_id=parent_folder_id)
+        target_folder_id = get_folder_id_or_create_folder(target_folder_name, parent_folder_id=main_subfolder_id)
         if not target_folder_id:
             LOGGER.warning(f"WARNING: Failed to obtain or create the destination folder for the album '{album_name}'.")
             continue
-        # Copy the photos to the destination folder
+        # Download the photos to the destination folder
         assets_downloaded += download_assets(target_folder_id, target_folder_name, photos)
 
     LOGGER.info(f"INFO: Album(s) downloaded successfully. You can find them in '{os.path.join(ROOT_PHOTOS_PATH, download_folder)}'")
