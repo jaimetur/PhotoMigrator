@@ -519,6 +519,14 @@ def mode_AUTOMATED_MIGRATION():
 
 
 def mode_google_takeout(user_confirmation=True):
+    # Configure default arguments for mode_google_takeout() execution
+    input_folder = ARGS['google-takeout-input-folder']
+    need_unzip = Utils.contains_zip_files(input_folder)
+    if need_unzip:
+        ARGS['google-input-zip-folder'] = input_folder
+    else:
+        ARGS['google-takeout-input-folder'] = input_folder
+    
     # Mensajes informativos
     if not ARGS['google-input-zip-folder']=="":
      LOGGER.info(f"INFO: Using Zip folder           : '{ARGS['google-input-zip-folder']}'")
@@ -559,17 +567,6 @@ def mode_google_takeout(user_confirmation=True):
             LOGGER.warning(f"WARNING: Flag detected '-grdf, --google-remove-duplicates-files'. All duplicates files within OUTPUT_FOLDER will be removed after fixing them...")
         if ARGS['no-log-file']:
             LOGGER.warning(f"WARNING: Flag detected '-nlog, --no-log-file'. Skipping saving output into log file...")
-
-    # TODO: COMPLETAR ESTA LÓGICA PARA DETERMINAR SI SE NECESITA DESCOMPRIMIR O NO.
-    # Configure default arguments for mode_google_takeout() execution and RUN it
-    input_folder = ARGS['AUTOMATED-MIGRATION']
-    need_unzip = Utils.contains_zip_files(input_folder)
-    if need_unzip:
-        ARGS['google-input-zip-folder'] = input_folder
-        ARGS['google-move-takeout-folder'] = True
-    else:
-        ARGS['google-takeout-input-folder'] = input_folder
-    ARGS['google-remove-duplicates-files'] = True
 
     # STEP 1: Unzip files
     STEP=1
