@@ -2,9 +2,9 @@
 
 ## 2.4.0 (31/01/2025):
 ### TODO:
-- [ ] Refactor and group All Google Takeout arguments in one block for 'Google Photos Takeout' Support
+- [x] Refactor and group All Google Takeout arguments in one block for 'Google Photos Takeout' Support
 - [ ] Merge -z and -t options in just one -gtf, -google-takeout-folder and detect if contains Takeout Zip files, in that case Unzip to Takeout folder, if not, make Takeout folder = Input folder
-- [ ] Change the logic to detect google_takeout_mode (former normal_mode)
+- [x] Change the logic to detect google_takeout_mode (former normal_mode)
 
 
 - [ ] Unificate a single Config.conf file and include tags for the different purposses
