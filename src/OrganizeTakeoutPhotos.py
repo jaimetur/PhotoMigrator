@@ -51,7 +51,7 @@ def check_OS_and_Terminal():
     LOGGER.info("")
 
 def set_help_texts():
-    global HELP_MODE_NORMAL
+    global HELP_MODE_GOOGLE_TAKEOUT
     global HELP_MODE_FIX_SYMLINKS
     global HELP_MODE_FIND_DUPLICATES
     global HELP_MODE_PROCESS_DUPLICATES
@@ -72,7 +72,7 @@ def set_help_texts():
     global HELP_MODE_IMMICH_DOWNLOAD_ALBUMS
     global HELP_MODE_IMMICH_DOWNLOAD_ALL
 
-    HELP_MODE_NORMAL = ""
+    HELP_MODE_GOOGLE_TAKEOUT = ""
 
     HELP_MODE_FIX_SYMLINKS = \
 f"""
@@ -391,12 +391,12 @@ def get_and_run_execution_mode():
         EXECUTION_MODE = 'immich_download_ALL'
 
     else:
-        EXECUTION_MODE = 'normal'  # Opción por defecto si no se cumple ninguna condición
+        EXECUTION_MODE = 'google-takeout'  # Opción por defecto si no se cumple ninguna condición
 
 
     # CALL THE DETECTED MODE:
-    if EXECUTION_MODE == 'normal':
-        mode_normal()
+    if EXECUTION_MODE == 'google-takeout':
+        mode_google_takeout()
     elif EXECUTION_MODE == 'fix_symlinks':
         mode_fix_symlinkgs()
     elif EXECUTION_MODE == 'find_duplicates':
@@ -487,7 +487,7 @@ def main():
     # Get the execution mode and run it.
     get_and_run_execution_mode()
 
-def mode_normal(user_confirmation=True):
+def mode_google_takeout(user_confirmation=True):
     # Mensajes informativos
     if not ARGS['zip-folder']=="": LOGGER.info(f"INFO: Using Zip folder           : '{ARGS['zip-folder']}'")
     LOGGER.info(f"INFO: Using Takeout folder       : '{ARGS['takeout-folder']}'")
@@ -500,7 +500,7 @@ def mode_normal(user_confirmation=True):
 
     LOGGER.info(f"")
     if user_confirmation:
-        LOGGER.info(HELP_MODE_NORMAL)
+        LOGGER.info(HELP_MODE_GOOGLE_TAKEOUT)
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -900,7 +900,7 @@ def mode_all_in_one():
     else:
         ARGS['takeout-folder'] = input_folder
     ARGS['remove-duplicates-after-fixing'] = True
-    mode_normal(user_confirmation=False)
+    mode_google_takeout(user_confirmation=False)
 
     # Configure the Create_Synology_Albums and run create_synology_albums()
     albums_folder = os.path.join(OUTPUT_FOLDER, f'Albums')
