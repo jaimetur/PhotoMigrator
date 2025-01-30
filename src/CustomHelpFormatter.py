@@ -158,7 +158,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         return f'{Fore.GREEN}{usage}{Style.RESET_ALL}'
 
     def _format_action(self, action):
-        def procesar_saltos_de_linea(text, initial_indent="", subsequent_indent=""):
+        def justificar_texto(text, initial_indent="", subsequent_indent=""):
             # 1. Separar en líneas
             lines = text.splitlines()
             # 2. Aplicar fill() a cada línea
@@ -175,40 +175,61 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             return "\n".join(wrapped_lines)
         # Encabezado del argumento
         parts = [self._format_action_invocation(action)]
+
         # Texto de ayuda, formateado e identado
         if action.help:
             ident_spaces = 8
-            help_text = procesar_saltos_de_linea(action.help, initial_indent=" " * ident_spaces, subsequent_indent=" " * ident_spaces)
-            # help_text = textwrap.fill(action.help, width=self._width, initial_indent=" " * ident_spaces, subsequent_indent=" " * ident_spaces)
+            help_text = justificar_texto(action.help, initial_indent=" " * ident_spaces, subsequent_indent=" " * ident_spaces)
             parts.append(f"\n{help_text}")  # Salto de línea adicional
-            # Add EXTRA MODES: after "Skip saving output messages to execution log file."
-            if help_text.find('Skip saving output messages to execution log file.')!=-1:
-                parts.append(f"\n\n\n{Fore.YELLOW}EXTRA MODES:\n------------\n{Style.RESET_ALL}")
-                extra_description = f"Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes included. When an Extra Mode is detected only this module will be executed (ignoring the normal steps). If more than one Extra Mode is detected, only the first one will be executed.\n"
-                extra_description = procesar_saltos_de_linea(extra_description)
-                # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
-                parts.append(extra_description+'\n')
-            # Add EXTRA MODES for Google Photos Takeout Management: after "The Script will do the whole process".
-            if help_text.find("The Script will do the whole process")!=-1:
-                parts.append(f"\n\n\n{Fore.YELLOW}EXTRA MODES: Google Photos Takeout Management:\n----------------------------------------------\n{Style.RESET_ALL}")
-                extra_description = f"Following Extra Modes allow you to interact with Google Photos Takeout Folder. \nIf more than one Extra Mode is detected, only the first one will be executed.\n"
-                extra_description = procesar_saltos_de_linea(extra_description)
-                # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
-                parts.append(extra_description+'\n')
-            # Add EXTRA MODES for Synology Photos Management: after "The Script will do the whole process".
-            if help_text.find("Remove Duplicates files in <OUTPUT_FOLDER> after fixing them")!=-1:
-                parts.append(f"\n\n\n{Fore.YELLOW}EXTRA MODES: Synology Photos Management:\n----------------------------------------\n{Style.RESET_ALL}")
-                extra_description = f"Following Extra Modes allow you to interact with Synology Photos. \nIf more than one Extra Mode is detected, only the first one will be executed.\n"
-                extra_description = procesar_saltos_de_linea(extra_description)
-                # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
-                parts.append(extra_description+'\n')
-            # Add EXTRA MODES for Immich Photos Management: after "any Album is duplicated, will remove it from Synology Photos database.".
-            if help_text.find("The Script will connect to Synology Photos and will download all the")!=-1:
-                parts.append(f"\n\n\n{Fore.YELLOW}EXTRA MODES: Immich Photos Management:\n--------------------------------------\n{Style.RESET_ALL}")
-                extra_description = f"Following Extra Modes allow you to interact with Immich Photos. \nIf more than one Extra Mode is detected, only the first one will be executed.\n"
-                extra_description = procesar_saltos_de_linea(extra_description)
-                # extra_description = textwrap.fill(extra_description, width=self._width, initial_indent="", subsequent_indent="")
-                parts.append(extra_description+'\n')
+
+            # EXTRA MODES for Google Photos Takeout Management: two lines before "Specify the Takeout folder to process."
+            # if help_text.find("Specify the Takeout folder to process.")!=-1:
+            if help_text.find("Specify the Zip folder where the Zip files are placed.")!=-1:
+                TEXT_TO_INSERT =textwrap.dedent(f"""
+                {Fore.YELLOW}
+                EXTRA MODES: Google Photos Takeout Management:
+                ----------------------------------------------{Style.RESET_ALL}
+                Following Extra Modes allow you to interact with Google Photos Takeout Folder. 
+                In this mode, you can use more than one optional arguments from the below list.
+                If only the argument -gtif, --google-takeout-input-folder <TAKEOUT_FOLDER> is detected, then the script will use the default values for the rest of the arguments for this extra mode.
+                """)
+                TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
+                parts.insert(-2,f"{TEXT_TO_INSERT}")
+
+            # EXTRA MODES for Synology Photos Management: two lines before "any Album is empty, will remove it from Synology Photos database."
+            if help_text.find("any Album is empty, will remove it from Synology Photos database.")!=-1:
+                TEXT_TO_INSERT =textwrap.dedent(f"""
+                {Fore.YELLOW}
+                EXTRA MODES: Synology Photos Takeout Management:
+                ------------------------------------------------{Style.RESET_ALL}
+                Following Extra Modes allow you to interact with Synology Photos. 
+                If more than one Extra Mode is detected, only the first one will be executed.
+                """)
+                TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
+                parts.insert(-2,f"{TEXT_TO_INSERT}")
+
+            # EXTRA MODES for Immich Photos Management: two lines before "Album is empty, will remove it from Immich Photos database."
+            if help_text.find("Album is empty, will remove it from Immich Photos database.")!=-1:
+                TEXT_TO_INSERT =textwrap.dedent(f"""
+                {Fore.YELLOW}
+                EXTRA MODES: Immich Photos Takeout Management:
+                ----------------------------------------------{Style.RESET_ALL}
+                Following Extra Modes allow you to interact with Immich Photos. 
+                If more than one Extra Mode is detected, only the first one will be executed.
+                """)
+                TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
+                parts.insert(-2,f"{TEXT_TO_INSERT}")
+
+            # OTHERS STAND-ALONE EXTRA MODES: two lines before "Find duplicates in specified folders."
+            if help_text.find("Find duplicates in specified folders.")!=-1:
+                TEXT_TO_INSERT =textwrap.dedent(f"""
+                {Fore.YELLOW}
+                OTHER STAND-ALONE EXTRA MODES:
+                ------------------------------{Style.RESET_ALL}
+                Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes included. When an Extra Mode is detected only this module will be executed (ignoring the normal steps). If more than one Extra Mode is detected, only the first one will be executed.
+                """)
+                TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
+                parts.insert(-2,f"{TEXT_TO_INSERT}")
 
         return "".join(parts)
 
@@ -222,12 +243,14 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 for opt in action.option_strings:
                     # Argumento corto, agrega una coma detrás
                     if opt.startswith("-") and not opt.startswith("--"):
-                        if len(opt) == 4:
+                        if len(opt) == 5:
                             option_strings.append(f"{opt},")
-                        elif len(opt) == 3:
+                        if len(opt) == 4:
                             option_strings.append(f"{opt}, ")
-                        elif len(opt) == 2:
+                        elif len(opt) == 3:
                             option_strings.append(f"{opt},  ")
+                        elif len(opt) == 2:
+                            option_strings.append(f"{opt},   ")
                     else:
                         option_strings.append(f"{opt}")
 

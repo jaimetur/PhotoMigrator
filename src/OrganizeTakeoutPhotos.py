@@ -87,7 +87,7 @@ ATTENTION!!!: This process will process all Duplicates files found in <DUPLICATE
 Possible duplicates-action are:
     - list   : This action is not dangerous, just list all duplicates files found in a Duplicates.csv file.
     - move   : This action could be dangerous but is easily reversible if you find that any duplicated file have been moved to Duplicates folder and you want to restore it later
-               You can easily restore it using option -pd, --process-duplicates-revised
+               You can easily restore it using option -pd, --process-duplicates
     - remove : This action could be dangerous and is irreversible, since the script will remove all duplicates found and will keep only a Principal file per each duplicates set. 
                The principal file is chosen carefilly based on some heuristhic methods
 """
@@ -205,7 +205,7 @@ def create_global_variable_from_args(args):
     Crea una única variable global ARGS que contenga todos los argumentos proporcionados en un objeto Namespace.
     Se puede acceder a cada argumento mediante ARGS["nombre-argumento"] o ARGS.nombre_argumento.
 
-    :param args: Namespace con los argumentos del parser
+    :param args: Namespace con los argumentos del PARSER
     """
     ARGS = {arg_name.replace("_", "-"): arg_value for arg_name, arg_value in vars(args).items()}
     return ARGS
@@ -234,13 +234,14 @@ def parse_arguments():
     choices_for_remove_duplicates = ['list', 'move', 'remove']
 
     # # Regular Parser without Pagination
-    # parser = argparse.ArgumentParser(
+    # PARSER = argparse.ArgumentParser(
     #         description=SCRIPT_DESCRIPTION,
     #         formatter_class=CustomHelpFormatter,  # Aplica el formatter
     # )
 
     # Parser with Pagination:
-    parser = PagedArgumentParser(
+    global PARSER
+    PARSER = PagedArgumentParser(
         description=SCRIPT_DESCRIPTION,
         formatter_class=CustomHelpFormatter,  # Aplica el formatter
     )
@@ -251,78 +252,83 @@ def parse_arguments():
             print(f"\n{SCRIPT_NAME} {SCRIPT_VERSION} {SCRIPT_DATE} by Jaime Tur (@jaimetur)\n")
             parser.exit()
 
-    parser.add_argument("-v",  "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
-    parser.add_argument("-nl", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
+    PARSER.add_argument("-vers", "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
+    PARSER.add_argument("-nlog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
+    PARSER.add_argument("-AUTO", "--AUTOMATED-MIGRATION", metavar="<INPUT_FOLDER>", default="", help="The Script will do the whole migration process (Zip extraction, Takeout Processing, Remove Duplicates, Synology Photos Albums creation) in just One Shot.")
 
-    # EXTRA MODES ARGUMENTS:
-    parser.add_argument("-fs", "--fix-symlinks-broken", metavar="<FOLDER_TO_FIX>", default="", help="The script will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_FOLDER and some Albums seems to be empty.")
-    parser.add_argument("-ra", "--rename-albums-folders", metavar="<ALBUMS_FOLDER>", default="", help="Rename all Albums folders found in <ALBUMS_FOLDER> to unificate the format.")
-    parser.add_argument("-fd", "--find-duplicates", metavar=f"<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]", nargs="+", default=["list", ""],
-        help="Find duplicates in specified folders."
-           "\n<ACTION> defines the action to take on duplicates ('move', 'delete' or 'list'). Default: 'list' "
-           "\n<DUPLICATES_FOLDER> are one or more folders (string or list), where the script will look for duplicates files. The order of this list is important to determine the principal file of a duplicates set. First folder will have higher priority."
-        )
-    parser.add_argument("-pd", "--process-duplicates-revised", metavar="<DUPLICATES_REVISED_CSV>", default="", help="Specify the Duplicates CSV file revised with specifics Actions in Action column, and the script will execute that Action for each duplicates found in CSV. Valid Actions: restore_duplicate / remove_duplicate / replace_duplicate.")
-    parser.add_argument("-ao", "--all-in-one", metavar="<INPUT_FOLDER>", default="", help="The Script will do the whole process (Zip extraction, Takeout Processing, Remove Duplicates, Synology Photos Albums creation) in just One Shot.")
-
-    # EXTRA MODES FOR GOOGLE PHOTOS
-    parser.add_argument("-z",  "--zip-folder", metavar="<ZIP_FOLDER>", default="", help="Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files will be skipped.")
-    parser.add_argument("-t",  "--takeout-folder", metavar="<TAKEOUT_FOLDER>", default="Takeout", help="Specify the Takeout folder to process. If -z, --zip-folder is present, this will be the folder to unzip input files. Default: 'Takeout'.")
-    parser.add_argument("-s",  "--suffix", metavar="<SUFIX>", default="fixed", help="Specify the suffix for the output folder. Default: 'fixed'")
-    parser.add_argument("-as", "--albums-structure", metavar=f"{choices_for_folder_structure}", default="flatten", help="Specify the type of folder structure for each Album folder (Default: 'flatten')."
+    # EXTRA MODES FOR GOOGLE PHOTOS:
+    # ------------------------------
+    PARSER.add_argument("-gizf", "--google-input-zip-folder", metavar="<ZIP_FOLDER>", default="", help="Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files will be skipped.")
+    PARSER.add_argument("-gtif", "--google-takeout-input-folder", metavar="<TAKEOUT_FOLDER>", default="Takeout", help="Specify the Takeout folder to process. If -z, --zip-folder is present, this will be the folder to unzip input files. Default: 'Takeout'.")
+    PARSER.add_argument("-gofs", "--google-output-folder-suffix", metavar="<SUFIX>", default="fixed", help="Specify the suffix for the output folder. Default: 'fixed'")
+    PARSER.add_argument("-gafs", "--google-albums-folders-structure", metavar=f"{choices_for_folder_structure}", default="flatten", help="Specify the type of folder structure for each Album folder (Default: 'flatten')."
                         , type=lambda s: s.lower()  # Convert input to lowercase
                         , choices=choices_for_folder_structure  # Valid choices
                         )
-    parser.add_argument("-ns", "--no-albums-structure", metavar=f"{choices_for_folder_structure}", default="year/month", help="Specify the type of folder structure for 'Others' folder (Default: 'year/month')."
+    PARSER.add_argument("-gnas", "--google-no-albums-folder-structure", metavar=f"{choices_for_folder_structure}", default="year/month", help="Specify the type of folder structure for 'Others' folder (Default: 'year/month')."
                         , type=lambda s: s.lower()  # Convert input to lowercase
                         , choices=choices_for_folder_structure  # Valid choices
                         )
-    parser.add_argument("-sg", "--skip-gpth-tool", action="store_true", help="Skip processing files with GPTH Tool. \nNOT RECOMMENDED!!! because this is the Core of the Script. \nUse this flag only for testing purposses.")
-    parser.add_argument("-se", "--skip-extras", action="store_true", help="Skip processing extra photos such as  -edited, -effects photos.")
-    parser.add_argument("-sm", "--skip-move-albums", action="store_true", help="Skip moving albums to Albums folder.")
-    parser.add_argument("-sa", "--symbolic-albums", action="store_true", help="Creates symbolic links for Albums instead of duplicate the files of each Album. (Useful to save disk space but may not be portable to other systems).")
-    parser.add_argument("-it", "--ignore-takeout-structure", action="store_true", help="Ignore Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc..), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from them.")
-    parser.add_argument("-mt", "--move-takeout-folder", action="store_true", help=f"Move original photos/videos from <TAKEOUT_FOLDER> to <OUTPUT_FOLDER>. \nCAUTION: Useful to avoid disk space duplication and improve execution speed, but you will lost your original unzipped files!!!.\nUse only if you keep the original zipped files or you have disk space limitations and you don't mind to lost your original unzipped files.")
-    parser.add_argument("-rd", "--remove-duplicates-after-fixing", action="store_true", help="Remove Duplicates files in <OUTPUT_FOLDER> after fixing them.")
+    PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skip processing files with GPTH Tool. \nNOT RECOMMENDED!!! because this is the Core of the Script. \nUse this flag only for testing purposses.")
+    PARSER.add_argument("-gsef", "--google-skip-extras-files", action="store_true", help="Skip processing extra photos such as  -edited, -effects photos.")
+    PARSER.add_argument("-gsma", "--google-skip-move-albums", action="store_true", help="Skip moving albums to Albums folder.")
+    PARSER.add_argument("-gcsa", "--google-create-symbolic-albums", action="store_true", help="Creates symbolic links for Albums instead of duplicate the files of each Album. (Useful to save disk space but may not be portable to other systems).")
+    PARSER.add_argument("-gics", "--google-ignore-check-structure", action="store_true", help="Ignore Google Takeout structure checking ('.json' files, 'Photos from ' sub-folders, etc..), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from them.")
+    PARSER.add_argument("-gmtf", "--google-move-takeout-folder", action="store_true", help=f"Move original photos/videos from <TAKEOUT_FOLDER> to <OUTPUT_FOLDER>. \nCAUTION: Useful to avoid disk space duplication and improve execution speed, but you will lost your original unzipped files!!!.\nUse only if you keep the original zipped files or you have disk space limitations and you don't mind to lost your original unzipped files.")
+    PARSER.add_argument("-grdf", "--google-remove-duplicates-files", action="store_true", help="Remove Duplicates files in <OUTPUT_FOLDER> after fixing them.")
 
-    # EXTRA MODES FOR SYNOLOGY PHOTOS
-    parser.add_argument("-sde", "--synology-delete-empty-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.")
-    parser.add_argument("-sdd", "--synology-delete-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.")
-    parser.add_argument("-suf", "--synology-upload-folder", metavar="<FOLDER>", default="", help="The script will look for all Photos/Videos within <FOLDER> and will upload them into Synology Photos.")
-    parser.add_argument("-sua", "--synology-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Albums within <ALBUMS_FOLDER> and will create one Album per folder into Synology Photos.")
-    parser.add_argument("-sda", "--synology-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
-        help="The Script will connect to Synology Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Download_Synology' within the Synology Photos root folder."
+    # EXTRA MODES FOR SYNOLOGY PHOTOS:
+    # --------------------------------
+    PARSER.add_argument("-sde", "--synology-delete-empty-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.")
+    PARSER.add_argument("-sdd", "--synology-delete-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.")
+    PARSER.add_argument("-suf", "--synology-upload-folder", metavar="<FOLDER>", default="", help="The script will look for all Photos/Videos within <FOLDER> and will upload them into Synology Photos.")
+    PARSER.add_argument("-sua", "--synology-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Albums within <ALBUMS_FOLDER> and will create one Album per folder into Synology Photos.")
+    PARSER.add_argument("-sda", "--synology-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
+                        help="The Script will connect to Synology Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Download_Synology' within the Synology Photos root folder."
            "\n- To extract all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: --synology-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
            "\n- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums 'album1', 'album2', 'album3'."
            "\n- To download ALL Albums use 'ALL' as <ALBUMS_NAME>."
-        )
-    parser.add_argument("-sdA", "--synology-download-ALL", metavar="<OUTPUT_FOLDER>", default="",
-        help="The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
+                        )
+    PARSER.add_argument("-sdA", "--synology-download-ALL", metavar="<OUTPUT_FOLDER>", default="",
+                        help="The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
            "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
            "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside."
-        )
-    # EXTRA MODES FOR IMMINCH PHOTOS
-    parser.add_argument("-ide", "--immich-delete-empty-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.")
-    parser.add_argument("-idd", "--immich-delete-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.")
-    parser.add_argument("-iuf", "--immich-upload-folder", metavar="<FOLDER>", default="", help="The script will look for all Photos/Videos within <FOLDER> and will upload them into Immich Photos.")
-    parser.add_argument("-iua", "--immich-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Albums within <ALBUMS_FOLDER> and will create one Album per folder into Immich Photos.")
-    parser.add_argument("-ida", "--immich-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
-        help="The Script will connect to Immich Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Download_Immich' within the script execution folder."
+                        )
+    
+    # EXTRA MODES FOR IMMINCH PHOTOS:
+    # -------------------------------
+    PARSER.add_argument("-ide", "--immich-delete-empty-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.")
+    PARSER.add_argument("-idd", "--immich-delete-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.")
+    PARSER.add_argument("-iuf", "--immich-upload-folder", metavar="<FOLDER>", default="", help="The script will look for all Photos/Videos within <FOLDER> and will upload them into Immich Photos.")
+    PARSER.add_argument("-iua", "--immich-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Albums within <ALBUMS_FOLDER> and will create one Album per folder into Immich Photos.")
+    PARSER.add_argument("-ida", "--immich-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
+                        help="The Script will connect to Immich Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Download_Immich' within the script execution folder."
            "\n- To extract all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: --immich-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
            "\n- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums 'album1', 'album2', 'album3'."
            "\n- To download ALL Albums use 'ALL' as <ALBUMS_NAME>."
-        )
-    parser.add_argument("-idA", "--immich-download-ALL", metavar="<OUTPUT_FOLDER>", default="",
-        help="The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
+                        )
+    PARSER.add_argument("-idA", "--immich-download-ALL", metavar="<OUTPUT_FOLDER>", default="",
+                        help="The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
            "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
            "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside."
-        )
+                        )
+
+    # OTHERS STAND-ALONE EXTRA MODES:
+    # -------------------------------
+    PARSER.add_argument("-fdup", "--find-duplicates", metavar=f"<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]", nargs="+", default=["list", ""],
+                        help="Find duplicates in specified folders."
+           "\n<ACTION> defines the action to take on duplicates ('move', 'delete' or 'list'). Default: 'list' "
+           "\n<DUPLICATES_FOLDER> are one or more folders (string or list), where the script will look for duplicates files. The order of this list is important to determine the principal file of a duplicates set. First folder will have higher priority."
+                        )
+    PARSER.add_argument("-pdup", "--process-duplicates", metavar="<DUPLICATES_REVISED_CSV>", default="", help="Specify the Duplicates CSV file revised with specifics Actions in Action column, and the script will execute that Action for each duplicates found in CSV. Valid Actions: restore_duplicate / remove_duplicate / replace_duplicate.")
+    PARSER.add_argument("-fsym", "--fix-symlinks-broken", metavar="<FOLDER_TO_FIX>", default="", help="The script will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_FOLDER and some Albums seems to be empty.")
+    PARSER.add_argument("-frcb", "--folders-rename-content-based", metavar="<ALBUMS_FOLDER>", default="", help="Usefull to rename all Albums folders found in <ALBUMS_FOLDER> based on the date content found homogenize the name.")
 
     # Procesar la acción y las carpetas
     global DEFAULT_DUPLICATES_ACTION
 
-    # Obtain args from parser and create global variable ARGS to easier manipulation of argument variables using the same string as in the argument (this facilitates futures refactors on arguments names)
-    args = parser.parse_args()
+    # Obtain args from PARSER and create global variable ARGS to easier manipulation of argument variables using the same string as in the argument (this facilitates futures refactors on arguments names)
+    args = PARSER.parse_args()
     ARGS = create_global_variable_from_args(args)
 
     ARGS['duplicates-folders'] = []
@@ -339,104 +345,88 @@ def parse_arguments():
 
     ARGS['duplicates-folders'] = parse_folders(ARGS['duplicates-folders'] )
 
-    # Eliminar el argumento original para evitar confusión
-    del ARGS['find-duplicates']
-
-    ARGS['zip-folder'] = ARGS['zip-folder'].rstrip('/\\')
-    ARGS['takeout-folder'] = ARGS['takeout-folder'].rstrip('/\\')
-    ARGS['suffix'] = ARGS['suffix'].lstrip('_')
+    ARGS['google-input-zip-folder'] = ARGS['google-input-zip-folder'].rstrip('/\\')
+    ARGS['google-takeout-input-folder'] = ARGS['google-takeout-input-folder'].rstrip('/\\')
+    ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
     return ARGS
 
-def get_and_run_execution_mode():
+# -------------------------------------------------------------
+# Determine the Execution mode based on the providen arguments:
+# -------------------------------------------------------------
+def detect_and_run_execution_mode():
     global EXECUTION_MODE
 
-    # Determine the Execution mode based on the providen arguments:
-    if ARGS['fix-symlinks-broken'] != "":
-        EXECUTION_MODE = 'fix_symlinks'
-    elif ARGS['duplicates-folders'] != []:
-        EXECUTION_MODE = 'find_duplicates'
-    elif ARGS['process-duplicates-revised'] != "":
-        EXECUTION_MODE = 'process_duplicates'
-    elif ARGS['rename-albums-folders'] != "":
-        EXECUTION_MODE = 'rename_albums_folders'
-    elif ARGS['all-in-one']:
-        EXECUTION_MODE = 'all_in_one'
+    # AUTOMATED-MIGRATION MODE:
+    if ARGS['AUTOMATED-MIGRATION']:
+        EXECUTION_MODE = 'AUTOMATED-MIGRATION'
+        mode_AUTOMATED_MIGRATION()
+
+    # Google Photos Mode:
+    elif "-gtif" in sys.argv or "--google-takeout-input-folder" in sys.argv:
+        EXECUTION_MODE = 'google-takeout'
+        mode_google_takeout()
+
 
     # Synology Photos Modes:
     elif ARGS['synology-delete-empty-albums']:
-        EXECUTION_MODE = 'synology_delete_empty_albums'
-    elif ARGS['synology-delete-duplicates-albums']:
-        EXECUTION_MODE = 'synology_delete_duplicates_albums'
-    elif ARGS['synology-upload-folder'] != "":
-        EXECUTION_MODE = 'synology_upload_folder'
-    elif ARGS['synology-upload-albums'] != "":
-        EXECUTION_MODE = 'synology_upload_albums'
-    elif ARGS['synology-download-albums'] != "":
-        EXECUTION_MODE = 'synology_download_albums'
-    elif ARGS['synology-download-ALL'] != "":
-        EXECUTION_MODE = 'synology_download_ALL'
-
-    # Immich Photos Modes:
-    elif ARGS['immich-delete-empty-albums']:
-        EXECUTION_MODE = 'immich_delete_empty_albums'
-    elif ARGS['immich-delete-duplicates-albums']:
-        EXECUTION_MODE = 'immich_delete_duplicates_albums'
-    elif ARGS['immich-upload-folder'] != "":
-        EXECUTION_MODE = 'immich_upload_folder'
-    elif ARGS['immich-upload-albums'] != "":
-        EXECUTION_MODE = 'immich_upload_albums'
-    elif ARGS['immich-download-albums'] != "":
-        EXECUTION_MODE = 'immich_download_albums'
-    elif ARGS['immich-download-ALL'] != "":
-        EXECUTION_MODE = 'immich_download_ALL'
-
-    else:
-        EXECUTION_MODE = 'google-takeout'  # Opción por defecto si no se cumple ninguna condición
-
-
-    # CALL THE DETECTED MODE:
-    if EXECUTION_MODE == 'google-takeout':
-        mode_google_takeout()
-    elif EXECUTION_MODE == 'fix_symlinks':
-        mode_fix_symlinkgs()
-    elif EXECUTION_MODE == 'find_duplicates':
-        mode_find_duplicates()
-    elif EXECUTION_MODE == 'process_duplicates':
-        mode_process_duplicates()
-    elif EXECUTION_MODE == 'rename_albums_folders':
-        mode_rename_albums_folders()
-    elif EXECUTION_MODE == 'all_in_one':
-        mode_all_in_one()
-
-    # Synology Photos Modes:
-    elif EXECUTION_MODE == 'synology_delete_empty_albums':
+        EXECUTION_MODE = 'synology-delete-empty-albums'
         mode_synology_delete_empty_albums()
-    elif EXECUTION_MODE == 'synology_delete_duplicates_albums':
+    elif ARGS['synology-delete-duplicates-albums']:
+        EXECUTION_MODE = 'synology-delete-duplicates-albums'
         mode_synology_delete_duplicates_albums()
-    elif EXECUTION_MODE == 'synology_upload_folder':
+    elif ARGS['synology-upload-folder'] != "":
+        EXECUTION_MODE = 'synology-upload-folder'
         mode_synology_upload_folder()
-    elif EXECUTION_MODE == 'synology_upload_albums':
+    elif ARGS['synology-upload-albums'] != "":
+        EXECUTION_MODE = 'synology-upload-albums'
         mode_synology_upload_albums()
-    elif EXECUTION_MODE == 'synology_download_albums':
+    elif ARGS['synology-download-albums'] != "":
+        EXECUTION_MODE = 'synology-download-albums'
         mode_synology_download_albums()
-    elif EXECUTION_MODE == 'synology_download_ALL':
+    elif ARGS['synology-download-ALL'] != "":
+        EXECUTION_MODE = 'synology-download-ALL'
         mode_synology_download_ALL()
 
     # Immich Photos Modes:
-    elif EXECUTION_MODE == 'immich_delete_empty_albums':
+    elif ARGS['immich-delete-empty-albums']:
+        EXECUTION_MODE = 'immich-delete-empty-albums'
         mode_immich_delete_empty_albums()
-    elif EXECUTION_MODE == 'immich_delete_duplicates_albums':
+    elif ARGS['immich-delete-duplicates-albums']:
+        EXECUTION_MODE = 'immich-delete-duplicates-albums'
         mode_immich_delete_duplicates_albums()
-    elif EXECUTION_MODE == 'immich_upload_folder':
+    elif ARGS['immich-upload-folder'] != "":
+        EXECUTION_MODE = 'immich-upload-folder'
         mode_immich_upload_folder()
-    elif EXECUTION_MODE == 'immich_upload_albums':
-        mode_immich_upload_albums()
-    elif EXECUTION_MODE == 'immich_download_albums':
+    elif ARGS['immich-upload-albums'] != "":
+        EXECUTION_MODE = 'immich-upload-albums'
+    elif ARGS['immich-download-albums'] != "":
+        EXECUTION_MODE = 'immich-download-albums'
         mode_immich_download_albums()
-    elif EXECUTION_MODE == 'immich_download_ALL':
+    elif ARGS['immich-download-ALL'] != "":
+        EXECUTION_MODE = 'immich-download-ALL'
         mode_immich_download_ALL()
+
+    # Other Stand-alone Extra Modes:
+    elif ARGS['fix-symlinks-broken'] != "":
+        EXECUTION_MODE = 'fix-symlinks'
+        mode_fix_symlinkgs()
+    elif ARGS['find-duplicates'] != ['list', '']:
+        EXECUTION_MODE = 'find_duplicates'
+        mode_find_duplicates()
+    elif ARGS['process-duplicates'] != "":
+        EXECUTION_MODE = 'process-duplicates'
+        mode_process_duplicates()
+    elif ARGS['folders-rename-content-based'] != "":
+        EXECUTION_MODE = 'folders-rename-content-based'
+        mode_folders_rename_content_based()
+
     else:
-        print("Invalid execution mode.")
+        EXECUTION_MODE = ''  # Opción por defecto si no se cumple ninguna condición
+        LOGGER.error("ERROR: Unable to detect any valid execution mode.")
+        LOGGER.error("ERROR: Please, read the --help to know more about how to invoke the Script.")
+        LOGGER.error("")
+        PARSER.print_help()
+        sys.exit(1)
 
 def main():
     global args
@@ -462,9 +452,9 @@ def main():
     # Create timestamp, start_time and define OUTPUT_FOLDER
     TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
     START_TIME = datetime.now()
-    OUTPUT_FOLDER = f"{ARGS['takeout-folder']}_{ARGS['suffix']}_{TIMESTAMP}"
+    OUTPUT_FOLDER = f"{ARGS['google-takeout-input-folder']}_{ARGS['google-output-folder-suffix']}_{TIMESTAMP}"
 
-    # Set a global variable for logger and Set up logger based on the skip-log argument
+    # Set a global variable for logger and Set up logger based on the no-log-file argument
     log_filename=f"{SCRIPT_NAME}_{TIMESTAMP}"
     log_folder="Logs"
     LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
@@ -485,16 +475,59 @@ def main():
     set_help_texts()
 
     # Get the execution mode and run it.
-    get_and_run_execution_mode()
+    detect_and_run_execution_mode()
+
+def mode_AUTOMATED_MIGRATION():
+    global OUTPUT_FOLDER
+    LOGGER.info(f"INFO: -AUTO, --AUTOMATED-MIGRATION Mode detected")
+    LOGGER.info(HELP_MODE_ALL_IN_ONE.replace('<INPUT_FOLDER>', f"'{ARGS['AUTOMATED-MIGRATION']}'"))
+    if not Utils.confirm_continue():
+        LOGGER.info(f"INFO: Exiting program.")
+        sys.exit(0)
+
+    config = read_synology_config(show_info=False)
+    if not config['ROOT_PHOTOS_PATH']:
+        LOGGER.warning(f"WARNING: Caanot find 'ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
+    else:
+        OUTPUT_FOLDER = os.path.join(config['ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
+
+    res, _ = login_synology()
+    if res==-1:
+        LOGGER.warning(f"WARNING: Cannot connect to Synology Photos. Albums will not be created into Synology Photos database")
+
+    # Configure default arguments for mode_google_takeout() execution and RUN it
+    input_folder = ARGS['AUTOMATED-MIGRATION']
+    need_unzip = Utils.contains_zip_files(input_folder)
+    if need_unzip:
+        ARGS['google-input-zip-folder'] = input_folder
+        ARGS['google-move-takeout-folder'] = True
+    else:
+        ARGS['google-takeout-input-folder'] = input_folder
+    ARGS['google-remove-duplicates-files'] = True
+    mode_google_takeout(user_confirmation=False)
+
+    # Configure the Create_Synology_Albums and run create_synology_albums()
+    albums_folder = os.path.join(OUTPUT_FOLDER, f'Albums')
+    ARGS['synology-upload-albums'] = albums_folder
+    LOGGER.info("")
+    mode_synology_upload_albums(user_confirmation=False)
+
+    # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
+    mode_synology_delete_duplicates_albums(user_confirmation=False)
+    mode_synology_delete_empty_albums(user_confirmation=False)
+
+
 
 def mode_google_takeout(user_confirmation=True):
     # Mensajes informativos
-    if not ARGS['zip-folder']=="": LOGGER.info(f"INFO: Using Zip folder           : '{ARGS['zip-folder']}'")
-    LOGGER.info(f"INFO: Using Takeout folder       : '{ARGS['takeout-folder']}'")
-    LOGGER.info(f"INFO: Using Suffix               : '{ARGS['suffix']}'")
+    if not ARGS['google-input-zip-folder']=="":
+     LOGGER.info(f"INFO: Using Zip folder           : '{ARGS['google-input-zip-folder']}'")
+
+    LOGGER.info(f"INFO: Using Input folder         : '{ARGS['google-takeout-input-folder']}'")
+    LOGGER.info(f"INFO: Using Suffix               : '{ARGS['google-output-folder-suffix']}'")
     LOGGER.info(f"INFO: Using Output folder        : '{OUTPUT_FOLDER}'")
-    LOGGER.info(f"INFO: Albums Folder Structure    : '{ARGS['albums-structure']}'")
-    LOGGER.info(f"INFO: No Albums Folder Structure : '{ARGS['no-albums-structure']}'")
+    LOGGER.info(f"INFO: Albums Folder Structure    : '{ARGS['google-albums-folders-structure']}'")
+    LOGGER.info(f"INFO: No Albums Folder Structure : '{ARGS['google-no-albums-folder-structure']}'")
     if not ARGS['no-log-file']:
         LOGGER.info(f"INFO: Execution Log file         : '{LOG_FOLDER_FILENAME}'")
 
@@ -504,29 +537,39 @@ def mode_google_takeout(user_confirmation=True):
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
-        if ARGS['zip-folder']=="":
-            LOGGER.warning(f"WARNING: No argument '-z or --zip-folder <ZIP_FOLDER>' detected. Skipping Unzipping files...")
-        if ARGS['move-takeout-folder']:
-            LOGGER.warning(f"WARNING: Flag detected '-mt, --move-takeout-folder'. Photos/Videos in <TAKEOUT_FOLDER> will be moved (instead of copied) to <OUTPUT_FOLDER>...")
-        if ARGS['symbolic-albums']:
-            LOGGER.warning(f"WARNING: Flag detected '-sa, --symbolic-albums'. Albums files will be symlinked to the original files instead of duplicate them.")
-        if ARGS['skip-gpth-tool']:
-            LOGGER.warning(f"WARNING: Flag detected '-sg, --skip-gpth-toot'. Skipping Processing photos with GPTH Tool...")
-        if ARGS['skip-extras']:
-            LOGGER.warning(f"WARNING: Flag detected '-se, --skip-extras'. Skipping Processing extra Photos from Google Photos such as -effects, -editted, etc...")
-        if ARGS['skip-move-albums']:
-            LOGGER.warning(f"WARNING: Flag detected '-sm, --skip-move-albums'. Skipping Moving Albums to Albums folder...")
-        if ARGS['albums-structure'].lower()!='flatten':
-            LOGGER.warning(f"WARNING: Flag detected '-as, --albums-structure'. Folder structure '{ARGS['albums-structure']}' will be applied on each Album folder...")
-        if ARGS['no-albums-structure'].lower()!='year/month':
-            LOGGER.warning(f"WARNING: Flag detected '-ns, --no-albums-structure'. Folder structure '{ARGS['no-albums-structure']}' will be applied on 'Others' folder (Photos without Albums)...")
-        if ARGS['ignore-takeout-structure']:
-            LOGGER.warning(f"WARNING: Flag detected '-it, --ignore-takeout-structure'. All files in <TAKEOUT_FOLDER> will be processed ignoring Google Takeout Structure...")
-        if ARGS['remove-duplicates-after-fixing']:
-            LOGGER.warning(f"WARNING: Flag detected '-rd, --remove-duplicates-after-fixing'. All duplicates files within OUTPUT_FOLDER will be removed after fixing them...")
+        if ARGS['google-input-zip-folder']=="":
+            LOGGER.warning(f"WARNING: No argument '-gizf or --google-input-zip-folder <ZIP_FOLDER>' detected. Skipping Unzipping files...")
+        if ARGS['google-albums-folders-structure'].lower()!='flatten':
+            LOGGER.warning(f"WARNING: Flag detected '-gafs, --google-albums-folders-structure'. Folder structure '{ARGS['google-albums-folders-structure']}' will be applied on each Album folder...")
+        if ARGS['google-no-albums-folder-structure'].lower()!='year/month':
+            LOGGER.warning(f"WARNING: Flag detected '-gnaf, --google-no-albums-folder-structure'. Folder structure '{ARGS['google-no-albums-folder-structure']}' will be applied on 'Others' folder (Photos without Albums)...")
+        if ARGS['google-skip-gpth-tool']:
+            LOGGER.warning(f"WARNING: Flag detected '-gsgt, --google-skip-gpth-tool'. Skipping Processing photos with GPTH Tool...")
+        if ARGS['google-skip-extras-files']:
+            LOGGER.warning(f"WARNING: Flag detected '-gsef, --google-skip-extras-files'. Skipping Processing extra Photos from Google Photos such as -effects, -editted, etc...")
+        if ARGS['google-skip-move-albums']:
+            LOGGER.warning(f"WARNING: Flag detected '-gsma, --google-skip-move-albums'. Skipping Moving Albums to Albums folder...")
+        if ARGS['google-create-symbolic-albums']:
+            LOGGER.warning(f"WARNING: Flag detected '-gcsa, --google-create-symbolic-albums'. Albums files will be symlinked to the original files instead of duplicate them.")
+        if ARGS['google-ignore-check-structure']:
+            LOGGER.warning(f"WARNING: Flag detected '-gics, --google-ignore-check-structure'. All files in <TAKEOUT_FOLDER> will be processed ignoring Google Takeout Structure...")
+        if ARGS['google-move-takeout-folder']:
+            LOGGER.warning(f"WARNING: Flag detected '-gmtf, --google-move-takeout-folder'. Photos/Videos in <TAKEOUT_FOLDER> will be moved (instead of copied) to <OUTPUT_FOLDER>...")
+        if ARGS['google-remove-duplicates-files']:
+            LOGGER.warning(f"WARNING: Flag detected '-grdf, --google-remove-duplicates-files'. All duplicates files within OUTPUT_FOLDER will be removed after fixing them...")
         if ARGS['no-log-file']:
-            LOGGER.warning(f"WARNING: Flag detected '-sl, --skip-log'. Skipping saving output into log file...")
+            LOGGER.warning(f"WARNING: Flag detected '-nlog, --no-log-file'. Skipping saving output into log file...")
 
+    # TODO: COMPLETAR ESTA LÓGICA PARA DETERMINAR SI SE NECESITA DESCOMPRIMIR O NO.
+    # Configure default arguments for mode_google_takeout() execution and RUN it
+    input_folder = ARGS['AUTOMATED-MIGRATION']
+    need_unzip = Utils.contains_zip_files(input_folder)
+    if need_unzip:
+        ARGS['google-input-zip-folder'] = input_folder
+        ARGS['google-move-takeout-folder'] = True
+    else:
+        ARGS['google-takeout-input-folder'] = input_folder
+    ARGS['google-remove-duplicates-files'] = True
 
     # STEP 1: Unzip files
     STEP=1
@@ -535,17 +578,17 @@ def mode_google_takeout(user_confirmation=True):
     LOGGER.info(f"{STEP}. UNPACKING TAKEOUT FOLDER...")
     LOGGER.info("==============================")
     LOGGER.info("")
-    if not ARGS['zip-folder']=="":
+    if not ARGS['google-input-zip-folder']=="":
         step_start_time = datetime.now()
-        Utils.unpack_zips(ARGS['zip-folder'], ARGS['takeout-folder'])
+        Utils.unpack_zips(ARGS['google-input-zip-folder'], ARGS['google-takeout-input-folder'])
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time-step_start_time).seconds))
         LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
     else:
-        LOGGER.warning("WARNING: Unzipping skipped (no argument '-z or --zip-folder <ZIP_FOLDER>' given or Running Mode All-in-One with input folder directly unzipped).")
+        LOGGER.warning("WARNING: Unzipping skipped (no argument '-gizf or --google-input-zip-folder <ZIP_FOLDER>' given or Running Mode All-in-One with input folder directly unzipped).")
 
-    if not os.path.isdir(ARGS['takeout-folder']):
-        LOGGER.error(f"ERROR: Cannot Find TAKEOUT_FOLDER: '{ARGS['takeout-folder']}'. Exiting...")
+    if not os.path.isdir(ARGS['google-takeout-input-folder']):
+        LOGGER.error(f"ERROR: Cannot Find INPUT_FOLDER: '{ARGS['google-takeout-input-folder']}'. Exiting...")
         sys.exit(-1)
 
     # STEP 2: Pre-Process Takeout folder
@@ -558,11 +601,11 @@ def mode_google_takeout(user_confirmation=True):
     step_start_time = datetime.now()
     # Delete hidden subgolders '€eaDir' (Synology metadata folder) if exists
     LOGGER.info("INFO: Deleting hidden subfolders '@eaDir' (Synology metadata folders) from Takeout Folder if exists...")
-    Utils.delete_subfolders(ARGS['takeout-folder'], "@eaDir")
+    Utils.delete_subfolders(ARGS['google-takeout-input-folder'], "@eaDir")
     # Look for .MP4 files extracted from Live pictures and create a .json for them in order to fix their date and time
     LOGGER.info("")
     LOGGER.info("INFO: Looking for .MP4 files from live pictures and asociate date and time with live picture file...")
-    Utils.fix_mp4_files(ARGS['takeout-folder'])
+    Utils.fix_mp4_files(ARGS['google-takeout-input-folder'])
     step_end_time = datetime.now()
     formatted_duration = str(timedelta(seconds=(step_end_time-step_start_time).seconds))
     LOGGER.info("")
@@ -575,40 +618,40 @@ def mode_google_takeout(user_confirmation=True):
     LOGGER.info(f"{STEP}. FIXING PHOTOS METADATA WITH GPTH TOOL...")
     LOGGER.info("===========================================")
     LOGGER.info("")
-    if not ARGS['skip-gpth-tool']:
-        if ARGS['ignore-takeout-structure']:
-            LOGGER.warning("WARNING: Ignore Google Takeout Structure detected ('-it, --ignore-takeout-structure' flag detected).")
+    if not ARGS['google-skip-gpth-tool']:
+        if ARGS['google-ignore-check-structure']:
+            LOGGER.warning("WARNING: Ignore Google Takeout Structure detected ('-it, --google-ignore-check-structure' flag detected).")
         step_start_time = datetime.now()
         Fixers.fix_metadata_with_gpth_tool(
-            input_folder=ARGS['takeout-folder'],
+            input_folder=ARGS['google-takeout-input-folder'],
             output_folder=OUTPUT_FOLDER,
-            symbolic_albums=ARGS['symbolic-albums'],
-            skip_extras=ARGS['skip-extras'],
-            move_takeout_folder=ARGS['move-takeout-folder'],
-            ignore_takeout_structure=ARGS['ignore-takeout-structure']
+            symbolic_albums=ARGS['google-create-symbolic-albums'],
+            skip_extras=ARGS['google-skip-extras-files'],
+            move_takeout_folder=ARGS['google-move-takeout-folder'],
+            ignore_takeout_structure=ARGS['google-ignore-check-structure']
         )
-        if ARGS['move-takeout-folder']:
-            Utils.force_remove_directory(ARGS['takeout-folder'])
+        if ARGS['google-move-takeout-folder']:
+            Utils.force_remove_directory(ARGS['google-takeout-input-folder'])
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time-step_start_time).seconds))
         LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
-    if ARGS['skip-gpth-tool'] or ARGS['ignore-takeout-structure']:
+    if ARGS['google-skip-gpth-tool'] or ARGS['google-ignore-check-structure']:
         LOGGER.info("")
         LOGGER.info("============================================")
         LOGGER.info(f"{STEP}b. COPYING/MOVING FILES TO OUTPUT FOLDER...")
         LOGGER.info("============================================")
         LOGGER.info("")
-        if ARGS['skip-gpth-tool']:
-            LOGGER.warning(f"WARNING: Metadata fixing with GPTH tool skipped ('-sg, --skip-gpth-tool' flag detected). Step {STEP}b is needed to copy files manually to output folder.")
-        elif ARGS['ignore-takeout-structure']:
-            LOGGER.warninf(f"WARNING: Flag to Ignore Google Takeout Structure have been detected ('-it, --ignore-takeout-structure'). Step {STEP}b is needed to copy/move files manually to output folder.")
-        if ARGS['move-takeout-folder']:
+        if ARGS['google-skip-gpth-tool']:
+            LOGGER.warning(f"WARNING: Metadata fixing with GPTH tool skipped ('-sg, --google-skip-gpth-tool' flag detected). Step {STEP}b is needed to copy files manually to output folder.")
+        elif ARGS['google-ignore-check-structure']:
+            LOGGER.warninf(f"WARNING: Flag to Ignore Google Takeout Structure have been detected ('-it, --google-ignore-check-structure'). Step {STEP}b is needed to copy/move files manually to output folder.")
+        if ARGS['google-move-takeout-folder']:
             LOGGER.info("INFO: Moving files from Takeout folder to Output folder manually...")
         else:
             LOGGER.info("INFO: Copying files from Takeout folder to Output folder manually...")
         step_start_time = datetime.now()
-        Utils.copy_move_folder (ARGS['takeout-folder'], OUTPUT_FOLDER, ignore_patterns=['*.json', '*.j'], move=ARGS['move-takeout-folder'])
-        if ARGS['move-takeout-folder']:
+        Utils.copy_move_folder (ARGS['google-takeout-input-folder'], OUTPUT_FOLDER, ignore_patterns=['*.json', '*.j'], move=ARGS['google-move-takeout-folder'])
+        if ARGS['google-move-takeout-folder']:
             Utils.force_remove_directory(ARGS['takeout-folder'])
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time-step_start_time).seconds))
@@ -637,25 +680,25 @@ def mode_google_takeout(user_confirmation=True):
     LOGGER.info("==========================================")
     step_start_time = datetime.now()
     # For Albums:
-    if ARGS['albums-structure'].lower()!='flatten':
+    if ARGS['google-albums-folders-structure'].lower()!='flatten':
         LOGGER.info("")
-        LOGGER.info(f"INFO: Creating Folder structure '{ARGS['albums-structure'].lower()}' for each Album folder...")
+        LOGGER.info(f"INFO: Creating Folder structure '{ARGS['google-albums-folders-structure'].lower()}' for each Album folder...")
         basedir=OUTPUT_FOLDER
-        type=ARGS['albums-structure']
+        type=ARGS['google-albums-folders-structure']
         exclude_subfolders=['Others']
         Utils.organize_files_by_date(input_folder=basedir, type=type, exclude_subfolders=exclude_subfolders)
     # For No Albums:
-    if ARGS['no-albums-structure'].lower()!='flatten':
+    if ARGS['google-no-albums-folder-structure'].lower()!='flatten':
         LOGGER.info("")
-        LOGGER.info(f"INFO: Creating Folder structure '{ARGS['no-albums-structure'].lower()}' for 'Others' folder...")
+        LOGGER.info(f"INFO: Creating Folder structure '{ARGS['google-no-albums-folder-structure'].lower()}' for 'Others' folder...")
         basedir=os.path.join(OUTPUT_FOLDER, 'Others')
-        type=ARGS['no-albums-structure']
+        type=ARGS['google-no-albums-folder-structure']
         exclude_subfolders=[]
         Utils.organize_files_by_date(input_folder=basedir, type=type, exclude_subfolders=exclude_subfolders)
     # If no fiolder structure is detected:
-    if ARGS['albums-structure'].lower()=='flatten' and ARGS['no-albums-structure'].lower()=='flatten' :
+    if ARGS['google-albums-folders-structure'].lower()=='flatten' and ARGS['google-no-albums-folder-structure'].lower()=='flatten' :
         LOGGER.info("")
-        LOGGER.warning("WARNING: No argument '-as, --albums-structure' and '-ns, --no-albums-structure' detected. All photos and videos will be flattened within their folders without any date organization.")
+        LOGGER.warning("WARNING: No argument '-as, --google-albums-folders-structure' and '-ns, --google-no-albums-folder-structure' detected. All photos and videos will be flattened within their folders without any date organization.")
     else:
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time-step_start_time).seconds))
@@ -668,14 +711,14 @@ def mode_google_takeout(user_confirmation=True):
     LOGGER.info(f"{STEP}. MOVING ALBUMS FOLDER...")
     LOGGER.info("==========================")
     LOGGER.info("")
-    if not ARGS['skip-move-albums']:
+    if not ARGS['google-skip-move-albums']:
         step_start_time = datetime.now()
         Utils.move_albums(OUTPUT_FOLDER, exclude_subfolder=['Others', '@eaDir'])
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time-step_start_time).seconds))
         LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
     else:
-        LOGGER.warning("WARNING: Moving albums to 'Albums' folder skipped ('-sm, --skip-move-albums' flag detected).")
+        LOGGER.warning("WARNING: Moving albums to 'Albums' folder skipped ('-sm, --google-skip-move-albums' flag detected).")
 
     # STEP 7: Fix Broken Symbolic Links after moving
     STEP+=1
@@ -686,7 +729,7 @@ def mode_google_takeout(user_confirmation=True):
     LOGGER.info(f"{STEP}. FIXING BROKEN SYMBOLIC LINKS AFTER MOVING...")
     LOGGER.info("===============================================")
     LOGGER.info("")
-    if ARGS['symbolic-albums']:
+    if ARGS['google-create-symbolic-albums']:
         LOGGER.info("INFO: Fixing broken symbolic links. This step is needed after moving any Folder structure...")
         step_start_time = datetime.now()
         symlink_fixed, symlink_not_fixed = Utils.fix_symlinks_broken(OUTPUT_FOLDER)
@@ -694,12 +737,12 @@ def mode_google_takeout(user_confirmation=True):
         formatted_duration = str(timedelta(seconds=(step_end_time-step_start_time).seconds))
         LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
     else:
-        LOGGER.warning("WARNING: Fixing broken symbolic links skipped ('-sa, --symbolic-albums' flag not detected, so this step is not needed.)")
+        LOGGER.warning("WARNING: Fixing broken symbolic links skipped ('-sa, --google-create-symbolic-albums' flag not detected, so this step is not needed.)")
 
     # STEP 8: Remove Duplicates in OUTPUT_FOLDER after Fixing
     STEP+=1
     duplicates_found = 0
-    if ARGS['remove-duplicates-after-fixing']:
+    if ARGS['google-remove-duplicates-files']:
         LOGGER.info("")
         LOGGER.info("==========================================")
         LOGGER.info(f"{STEP}. REMOVING DUPLICATES IN OUTPUT_FOLDER...")
@@ -725,10 +768,10 @@ def mode_google_takeout(user_confirmation=True):
     LOGGER.info("===============================================")
     LOGGER.info("                FINAL SUMMARY:                 ")
     LOGGER.info("===============================================")
-    LOGGER.info(f"Total files in Takeout folder        : {Utils.count_files_in_folder(ARGS['takeout-folder'])}")
+    LOGGER.info(f"Total files in Takeout folder        : {Utils.count_files_in_folder(ARGS['google-takeout-input-folder'])}")
     LOGGER.info(f"Total final files in Output folder   : {Utils.count_files_in_folder(OUTPUT_FOLDER)}")
     albums_found = 0
-    if not ARGS['skip-move-albums']:
+    if not ARGS['google-skip-move-albums']:
         album_folder = os.path.join(OUTPUT_FOLDER, 'Albums')
         if os.path.isdir(album_folder):
             albums_found = len(os.listdir(album_folder))
@@ -736,10 +779,10 @@ def mode_google_takeout(user_confirmation=True):
         if os.path.isdir(OUTPUT_FOLDER):
             albums_found = len(os.listdir(OUTPUT_FOLDER))-1
     LOGGER.info(f"Total Albums folders found           : {albums_found}")
-    if ARGS['symbolic-albums']:
+    if ARGS['google-create-symbolic-albums']:
         LOGGER.info(f"Total Symlinks Fixed                 : {symlink_fixed}")
         LOGGER.info(f"Total Symlinks Not Fixed             : {symlink_not_fixed}")
-    if ARGS['remove-duplicates-after-fixing']:
+    if ARGS['google-remove-duplicates-files']:
         LOGGER.info(f"Total Duplicates Removed             : {duplicates_found}")
     LOGGER.info("")
     LOGGER.info(f"Total time elapsed                   : {formatted_duration}")
@@ -814,9 +857,9 @@ def mode_process_duplicates(user_confirmation=True):
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
-        LOGGER.info(f"INFO: Flag detected '-pd, --process-duplicates-revised'. The Script will process the '{ARGS['process-duplicates-revised']}' file and do the specified action given on Action Column. ")
-    LOGGER.info(f"INFO: Processing Duplicates Files based on Actions given in {os.path.basename(ARGS['process-duplicates-revised'])} file...")
-    removed_duplicates, restored_duplicates, replaced_duplicates = process_duplicates_actions(ARGS['process-duplicates-revised'])
+        LOGGER.info(f"INFO: Flag detected '-pd, --process-duplicates'. The Script will process the '{ARGS['process-duplicates']}' file and do the specified action given on Action Column. ")
+    LOGGER.info(f"INFO: Processing Duplicates Files based on Actions given in {os.path.basename(ARGS['process-duplicates'])} file...")
+    removed_duplicates, restored_duplicates, replaced_duplicates = process_duplicates_actions(ARGS['process-duplicates'])
     # FINAL SUMMARY
     end_time = datetime.now()
     formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -837,7 +880,7 @@ def mode_process_duplicates(user_confirmation=True):
     LOGGER.info("")
 
 
-def mode_rename_albums_folders(user_confirmation=True):
+def mode_folders_rename_content_based(user_confirmation=True):
     LOGGER.info(SCRIPT_DESCRIPTION)
     LOGGER.info("")
     LOGGER.info("===================")
@@ -845,13 +888,13 @@ def mode_rename_albums_folders(user_confirmation=True):
     LOGGER.info("===================")
     LOGGER.info("")
     if user_confirmation:
-        LOGGER.info(HELP_MODE_RENAME_ALBUMS_FOLDERS.replace('<ALBUMS_FOLDER>', f"'{ARGS['rename-albums-folders']}'"))
+        LOGGER.info(HELP_MODE_RENAME_ALBUMS_FOLDERS.replace('<ALBUMS_FOLDER>', f"'{ARGS['folders-rename-content-based']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
         LOGGER.info(f"INFO: Rename Albums Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO: Flag detected '-ra, --rename-albums-folders'. The Script will look for any Subfolder in '{ARGS['rename-albums-folders']}' and will rename the folder name in order to unificate all the Albums names.")
-    renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = Utils.rename_album_folders(ARGS['rename-albums-folders'])
+        LOGGER.info(f"INFO: Flag detected '-ra, --folders-rename-content-based'. The Script will look for any Subfolder in '{ARGS['folders-rename-content-based']}' and will rename the folder name in order to unificate all the Albums names.")
+    renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = Utils.rename_album_folders(ARGS['folders-rename-content-based'])
     # FINAL SUMMARY
     end_time = datetime.now()
     formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -871,47 +914,6 @@ def mode_rename_albums_folders(user_confirmation=True):
     LOGGER.info(f"Total time elapsed                       : {formatted_duration}")
     LOGGER.info("==================================================")
     LOGGER.info("")
-
-
-def mode_all_in_one():
-    global OUTPUT_FOLDER
-    LOGGER.info(f"INFO: All-in-One Mode detected")
-    LOGGER.info(HELP_MODE_ALL_IN_ONE.replace('<INPUT_FOLDER>', f"'{ARGS['all-in-one']}'"))
-    if not Utils.confirm_continue():
-        LOGGER.info(f"INFO: Exiting program.")
-        sys.exit(0)
-
-    config = read_synology_config(show_info=False)
-    if not config['ROOT_PHOTOS_PATH']:
-        LOGGER.warning(f"WARNING: Caanot find 'ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
-    else:
-        OUTPUT_FOLDER = os.path.join(config['ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
-
-    res, _ = login_synology()
-    if res==-1:
-        LOGGER.warning(f"WARNING: Cannot connect to Synology Photos. Albums will not be created into Synology Photos database")
-
-    # Configure the Normal Execution Arguments and RUN Normal Execution
-    input_folder = ARGS['all-in-one']
-    need_unzip = Utils.contains_zip_files(input_folder)
-    if need_unzip:
-        ARGS['zip-folder'] = input_folder
-        ARGS['move-takeout-folder'] = True
-    else:
-        ARGS['takeout-folder'] = input_folder
-    ARGS['remove-duplicates-after-fixing'] = True
-    mode_google_takeout(user_confirmation=False)
-
-    # Configure the Create_Synology_Albums and run create_synology_albums()
-    albums_folder = os.path.join(OUTPUT_FOLDER, f'Albums')
-    ARGS['synology-upload-albums'] = albums_folder
-    LOGGER.info("")
-    mode_synology_upload_albums(user_confirmation=False)
-
-    # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
-    mode_synology_delete_duplicates_albums(user_confirmation=False)
-    mode_synology_delete_empty_albums(user_confirmation=False)
-
 
 #################################
 # EXTRA MODES: SYNOLOGY PHOTOS: #
@@ -1284,9 +1286,9 @@ def mode_immich_download_ALL(user_confirmation=True):
 
 if __name__ == "__main__":
     # Verificar si el script se ejecutó sin argumentos
-    if len(sys.argv) == 1:
-        # Agregar argumento predeterminado
-        sys.argv.append("-z")
-        sys.argv.append("Zip_folder")
-        print(f"INFO: No argument detected. Using default value '{sys.argv[2]}' for <ZIP_FOLDER>'.")
+    # if len(sys.argv) == 1:
+    #     # Agregar argumento predeterminado
+    #     sys.argv.append("-z")
+    #     sys.argv.append("Zip_folder")
+    #     print(f"INFO: No argument detected. Using default value '{sys.argv[2]}' for <ZIP_FOLDER>'.")
     main()
