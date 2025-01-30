@@ -9,9 +9,10 @@
 - [ ] _DEPRECATED_: Allow user to choose between Synology Photos or Immich Photos in --all-in-one mode
 - [ ] Refactor and group All Google Takeout arguments in one block for 'Google Photos Takeout' Support
 - [ ] Change the logic to detect google_takeout_mode (former normal_mode)
- 
+- [ ] Change Help for HELP_MODE_GOOGLE_TAKEOUT
 
-- [ ] Update README.md to reflect all changes and change Script description
+- [ ] Change Script description on README.md
+- [ ] Update README.md
 - [ ] Update RELEASES-NOTES.md
 - [ ] Create a New Release in Github Production Repo
 
@@ -49,7 +50,7 @@
   - current implementation of -sda does not allow this ==> Investigate other implementation
 - [ ] Complete function -suf to upload external folders (without Albums) to Synology photos. Make sure than ignore @eaDir folders
   - Try to upload folders outside Synology Photos ROOT folder (for -suf option)
-- [ ] Update README.md to reflect all changes and change Script description
+- [ ] Update README.md
 - [ ] Update RELEASES-NOTES.md
 - [ ] Create a New Release in Github Production Repo
   
@@ -61,7 +62,7 @@
 - [ ] Include iCloud Support (just for downloading)
     - [ ] -ada, --apple-download-albums
     - [ ] -adA, --apple-download-ALL
-- [ ] Update README.md to reflect all changes and change Script description
+- [ ] Update README.md
 - [ ] Update RELEASES-NOTES.md
 - [ ] Create a New Release in Github Production Repo
 
