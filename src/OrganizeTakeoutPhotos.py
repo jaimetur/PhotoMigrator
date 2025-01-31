@@ -12,7 +12,7 @@ from CustomHelpFormatter import CustomHelpFormatter, PagedArgumentParser
 from LoggerConfig import log_setup
 
 # Script version & date
-SCRIPT_NAME         = "OrganizeTakeoutPhotos"
+SCRIPT_NAME         = "CloudPhotoMigrator"
 SCRIPT_VERSION      = "v3.0.0-alpha"
 SCRIPT_DATE         = "2025-02-01"
 
