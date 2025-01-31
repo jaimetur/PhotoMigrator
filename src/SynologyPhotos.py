@@ -46,7 +46,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # -----------------------------------------------------------------------------
 #                          CONFIGURATION READING
 # -----------------------------------------------------------------------------
-def read_synology_config(config_file='Synology.config', show_info=True):
+def read_synology_config(config_file='Config.ini', show_info=True):
     """
     Reads the Synology configuration file and updates global variables.
     If the configuration file is not found, prompts the user to manually input required data.
@@ -70,10 +70,10 @@ def read_synology_config(config_file='Synology.config', show_info=True):
     CONFIG = load_config(config_file)
 
     # Extract specific values for Synology from CONFIG.
-    SYNOLOGY_URL = CONFIG.get('SYNOLOGY_URL', None)
-    SYNOLOGY_USERNAME = CONFIG.get('SYNOLOGY_USERNAME', None)
-    SYNOLOGY_PASSWORD = CONFIG.get('SYNOLOGY_PASSWORD', None)
-    SYNOLOGY_ROOT_PHOTOS_PATH = CONFIG.get('SYNOLOGY_ROOT_PHOTOS_PATH', None)
+    SYNOLOGY_URL                = CONFIG.get('SYNOLOGY_URL', None)
+    SYNOLOGY_USERNAME           = CONFIG.get('SYNOLOGY_USERNAME', None)
+    SYNOLOGY_PASSWORD           = CONFIG.get('SYNOLOGY_PASSWORD', None)
+    SYNOLOGY_ROOT_PHOTOS_PATH   = CONFIG.get('SYNOLOGY_ROOT_PHOTOS_PATH', None)
 
     # Verify required parameters and prompt on screen if missing
     if not SYNOLOGY_URL or SYNOLOGY_URL.strip()=='':
@@ -94,7 +94,9 @@ def read_synology_config(config_file='Synology.config', show_info=True):
         SYNOLOGY_ROOT_PHOTOS_PATH = CONFIG['SYNOLOGY_ROOT_PHOTOS_PATH']
 
     if show_info:
-        # Display global connection variables
+        LOGGER.info("")
+        LOGGER.info(f"INFO: Synology Config Read:")
+        LOGGER.info(f"INFO: ---------------------")
         masked_password = '*' * len(SYNOLOGY_PASSWORD)
         LOGGER.info(f"INFO: SYNOLOGY_URL              : {SYNOLOGY_URL}")
         LOGGER.info(f"INFO: SYNOLOGY_USERNAME         : {SYNOLOGY_USERNAME}")
@@ -121,6 +123,9 @@ def login_synology():
     # Read server configuration
     read_synology_config()
 
+    LOGGER.info("")
+    LOGGER.info(f"INFO: Authenticating on Synology Photos and getting Session...")
+
     SESSION = requests.Session()
     url = f"{SYNOLOGY_URL}/webapi/auth.cgi"
     params = {
@@ -136,7 +141,7 @@ def login_synology():
     data = response.json()
     if data.get("success"):
         SESSION.cookies.set("id", data["data"]["sid"])  # Set the SID as a cookie
-        LOGGER.info("INFO: Authentication successful: Session initiated successfully.")
+        LOGGER.info(f"INFO: Authentication Successfully with user/password found in Config file.")
         SID = data["data"]["sid"]
         return SESSION, SID
     else:
@@ -1245,23 +1250,13 @@ def synology_download_ALL(output_folder="Downloads_Synology"):
 if __name__ == "__main__":
     # Create initialize LOGGER.
     from CloudPhotoMigrator import log_init
-
-    # from datetime import datetime
-    # from LoggerConfig import log_setup
-    # TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
-    # script_name = os.path.splitext(os.path.basename(__file__))[0]
-    # log_filename=f"{script_name}_{TIMESTAMP}"
-    # log_folder="Logs"
-    # LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename)
-    # LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename)
-
-    # Initialize the logger.
     log_init()
-    # 0) Read configuration and log in
-    read_synology_config()
-    login_synology()
 
-    # # 1) Example: Delete empty albums
+    # # 0) Read configuration and log in
+    # read_synology_config('Config.ini')
+    # login_synology()
+    #
+    # # # 1) Example: Delete empty albums
     # print("=== EXAMPLE: synology_delete_empty_albums() ===")
     # deleted = synology_delete_empty_albums()
     # print(f"[RESULT] Empty albums deleted: {deleted}\n")
@@ -1292,10 +1287,10 @@ if __name__ == "__main__":
     # # 6) Example: Download everything in the structure /Albums/<albumName>/ + /Others/yyyy/mm
     # print("=== EXAMPLE: synology_download_ALL() ===")
     # total_struct = synology_download_ALL(output_folder="Downloads_Synology")
-    # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
-
-    # 7) Local logout
-    logout_synology()
+    # # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
+    #
+    # # 7) Local logout
+    # logout_synology()
 
 
     # Define albums_folder_path

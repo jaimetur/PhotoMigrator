@@ -490,7 +490,7 @@ def mode_AUTOMATED_MIGRATION():
         LOGGER.info(f"INFO: Exiting program.")
         sys.exit(0)
 
-    config = read_synology_config(show_info=False)
+    config = read_synology_config(config_file='Config.ini', show_info=False)
     if not config['SYNOLOGY_ROOT_PHOTOS_PATH']:
         LOGGER.warning(f"WARNING: Caanot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
     else:
