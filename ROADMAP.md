@@ -2,13 +2,6 @@
 
 ## 3.0.0 (10/02/2025):
 ### TODO:
-- [x] Change repository name to CloudPhotoMigrator
-    - [x] Change both, prod and dev repos
-    - [x] Change build.yml in dev repo to point to new prod repo
-    - [x] Change Script name
-    - [ ] Change Script file name
-    - [ ] Change PyCharm origin
-
 - [ ] Unificate a single Config.conf file and include tags for the different purposses
 - [ ] Create --AUTO-MODE and remove former -all-in-one mode
 - [ ] Test --AUTO-MODE
@@ -35,6 +28,12 @@
 - [ ] Deep Test on Google Photos function
 
 ### DONE:
+- - [x] Change repository name to CloudPhotoMigrator
+    - [x] Change both, prod and dev repos
+    - [x] Change build.yml in dev repo to point to new prod repo
+    - [x] Change Script name
+    - [x] Change Script file name
+    - [x] Change PyCharm origin
 - [x] New Script name 'CloudPhotoMigrator' (former 'GoogleTakeoutPhotos')
 - [x] Added Support for Immich Photos
   - [x] Added support to include sidecar files when upload assts to Immich

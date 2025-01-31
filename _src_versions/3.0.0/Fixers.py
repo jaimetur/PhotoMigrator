@@ -16,15 +16,15 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, 
     # Detect the operating system
     current_os = platform.system()
     # Determine the script name based on the OS
-    script_name = ""
+    tool_name = ""
     if current_os == "Linux":
-        script_name = "gpth_linux.bin"
+        tool_name = "gpth_linux.bin"
     elif current_os == "Darwin":
-        script_name = "gpth_macos.bin"
+        tool_name = "gpth_macos.bin"
     elif current_os == "Windows":
-        script_name = "gpth_windows.exe"
+        tool_name = "gpth_windows.exe"
     # Usar resource_path para acceder a archivos o directorios:
-    gpth_tool_path = resource_path(os.path.join("gpth_tool",script_name))
+    gpth_tool_path = resource_path(os.path.join("gpth_tool",tool_name))
     gpth_command = [
         gpth_tool_path,
         "--input", input_folder,
@@ -59,6 +59,13 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, 
     try:
         #print (" ".join(gpth_command))
         result = subprocess.run(gpth_command, check=True, capture_output=False)
+
+        # Rename folder 'ALL_PHOTOS' by 'Others'
+        all_photos_path = os.path.join(output_folder, 'ALL_PHOTOS')
+        others_path = os.path.join(output_folder, 'Others')
+        if os.path.exists(all_photos_path) and os.path.isdir(all_photos_path):
+            os.rename(all_photos_path, others_path)
+
         LOGGER.info(f"INFO: GPTH Tool finxing completed successfully.")
     except subprocess.CalledProcessError as e:
         LOGGER.error(f"ERROR: GPTH Tool fixing failed:\n{e.stderr}")
