@@ -1,6 +1,6 @@
 # ROADMAP:
 
-## 3.0.0 (07/02/2025):
+## 3.0.0 (10/02/2025):
 ### TODO:
 - [ ] Change repository name to PhotosMigrationTool or GooglePhotosMigration
     - [ ] Change both, prod and dev repos
