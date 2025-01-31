@@ -9,7 +9,7 @@
 - [ ] Unificate a single Config.conf file and include tags for the different purposses
 - [ ] Create --AUTO-MODE and remove former -all-in-one mode
 - [ ] Test --AUTO-MODE
-
+- [ ] Remove local and remote branches for 2.4.0 & 2.5.0
 - [ ] Change Script description on README.md
 - [ ] Update README.md
 - [ ] Update RELEASES-NOTES.md
@@ -42,8 +42,8 @@
 - [x] Added new option( -sdA, --synology-download-ALL') in Synology Photos Support to download ALL asets (with and without Albums assciated). 
 - [x] Renamed options of Synology Photos support to homogenize with Immich Photos support
 - [x] Changed -sda/-ida to support wildcards on Albums name to download
-- [x] Changed version to 2.4.0-alpha
-- [x] Created local and remote branches for 2.4.0, 2.5.0 and 3.0.0
+- [x] Changed version to 3.0.0-alpha
+- [x] Created local and remote branches for 3.0.0
 - [x] Created GLOBAL variable ARG to map arguments into it in ParseArguments() in order to facilitate future refactoring of arguments.
 - [x] Added TQDM support on ImmichPhotos.py
 - [x] Ignored @eaDir folders on -iuf, -iua, -sua
