@@ -35,6 +35,7 @@
 - [ ] Deep Test on Google Photos function
 
 ### DONE:
+- [x] New Script name 'CloudPhotoMigrator' (former 'GoogleTakeoutPhotos')
 - [x] Added Support for Immich Photos
   - [x] Added support to include sidecar files when upload assts to Immich
   - [x] Improved authentication speed in Immich
