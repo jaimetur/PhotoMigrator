@@ -2,10 +2,13 @@
 
 ## 3.0.0 (10/02/2025):
 ### TODO:
-- [ ] Change repository name to PhotosMigrationTool or GooglePhotosMigration
-    - [ ] Change both, prod and dev repos
-    - [ ] Change build.yml in dev repo to point to new prod repo
-    - [ ] Change PyCharm origin in case of use a new repo instead of rename the current one
+- [x] Change repository name to CloudPhotoMigrator
+    - [x] Change both, prod and dev repos
+    - [x] Change build.yml in dev repo to point to new prod repo
+    - [x] Change Script name
+    - [ ] Change Script file name
+    - [ ] Change PyCharm origin
+
 - [ ] Unificate a single Config.conf file and include tags for the different purposses
 - [ ] Create --AUTO-MODE and remove former -all-in-one mode
 - [ ] Test --AUTO-MODE
