@@ -2,10 +2,8 @@
 
 ## 2.4.0 (31/01/2025):
 ### TODO:
-- [ ] Merge -z and -t options in just one -gtf, -google-takeout-folder and detect if contains Takeout Zip files, in that case Unzip to Takeout folder, if not, make Takeout folder = Input folder
 - [ ] Unificate a single Config.conf file and include tags for the different purposses
 - [ ] _DEPRECATED_: Allow user to choose between Synology Photos or Immich Photos in --all-in-one mode
-- [ ] Change Help for HELP_MODE_GOOGLE_TAKEOUT
 
 - [ ] Change Script description on README.md
 - [ ] Update README.md
@@ -33,7 +31,9 @@
 - [x] Added colors to --help text for a better visualization.
 - [x] Refactor and group All Google Takeout arguments in one block for 'Google Photos Takeout' Support
 - [X] Refactor normal_mode to google_takeout_mode
-- [x] Change the logic to detect google_takeout_mode (former normal_mode)
+- [x] Merged -z and -t options in just one option ('-gitf, -google-input-takeout-folder') and detect if contains Takeout Zip files, in that case Zip files will be Unzipped to <TAKEOUT_FOLDER>_TIMESTAMP folder
+- [x] Changed Help for HELP_MODE_GOOGLE_TAKEOUT
+- [x] Changed the logic to detect google_takeout_mode (former normal_mode)
 - [x] Put at the beginning the standard option (those that are not related to any Support mode)
 - [x] Changed -sda/-ida to support wildcards on Albums name to download
 - [x] Renamed options of Synology Photos support to homogenize with Immich Photos support

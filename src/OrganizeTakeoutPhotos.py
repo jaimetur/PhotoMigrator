@@ -4,6 +4,7 @@ import platform
 from datetime import datetime, timedelta
 import Utils
 import Fixers
+import textwrap
 from Duplicates import find_duplicates, process_duplicates_actions
 from SynologyPhotos import read_synology_config, login_synology, synology_delete_empty_albums, synology_delete_duplicates_albums, synology_upload_folder, synology_upload_albums, synology_download_albums, synology_download_ALL
 from ImmichPhotos import read_immich_config, login_immich, immich_delete_empty_albums, immich_delete_duplicates_albums, immich_upload_folder, immich_upload_albums, immich_download_albums, immich_download_ALL
@@ -72,133 +73,119 @@ def set_help_texts():
     global HELP_MODE_IMMICH_DOWNLOAD_ALBUMS
     global HELP_MODE_IMMICH_DOWNLOAD_ALL
 
-    HELP_MODE_GOOGLE_TAKEOUT = ""
+    HELP_MODE_GOOGLE_TAKEOUT = textwrap.dedent(f"""
+        ATTENTION!!!: This process will process your <TAKEOUT_FOLDER> to fix metadata of all your asets and organize them according with the settings defined by user (above settings).
+        """)
 
-    HELP_MODE_FIX_SYMLINKS = \
-f"""
-ATTENTION!!!: This process will look for all Symbolic Links broken in <FOLDER_TO_FIX> and will try to find the destination file within the same folder.
-"""
+    HELP_MODE_FIX_SYMLINKS = textwrap.dedent(f"""
+        ATTENTION!!!: This process will look for all Symbolic Links broken in <FOLDER_TO_FIX> and will try to find the destination file within the same folder.
+        """)
 
-    HELP_MODE_FIND_DUPLICATES = \
-f"""
-ATTENTION!!!: This process will process all Duplicates files found in <DUPLICATES_FOLDER> and will apply the given action.
-              You must take into account that if not valid action is detected within the arguments of -fd, --find-duplicates, then 'list' will be the default action.
+    HELP_MODE_FIND_DUPLICATES = textwrap.dedent(f"""
+        ATTENTION!!!: This process will process all Duplicates files found in <DUPLICATES_FOLDER> and will apply the given action.
+                      You must take into account that if not valid action is detected within the arguments of -fd, --find-duplicates, then 'list' will be the default action.
+        
+        Possible duplicates-action are:
+            - list   : This action is not dangerous, just list all duplicates files found in a Duplicates.csv file.
+            - move   : This action could be dangerous but is easily reversible if you find that any duplicated file have been moved to Duplicates folder and you want to restore it later
+                       You can easily restore it using option -pd, --process-duplicates
+            - remove : This action could be dangerous and is irreversible, since the script will remove all duplicates found and will keep only a Principal file per each duplicates set. 
+                       The principal file is chosen carefilly based on some heuristhic methods
+        """)
 
-Possible duplicates-action are:
-    - list   : This action is not dangerous, just list all duplicates files found in a Duplicates.csv file.
-    - move   : This action could be dangerous but is easily reversible if you find that any duplicated file have been moved to Duplicates folder and you want to restore it later
-               You can easily restore it using option -pd, --process-duplicates
-    - remove : This action could be dangerous and is irreversible, since the script will remove all duplicates found and will keep only a Principal file per each duplicates set. 
-               The principal file is chosen carefilly based on some heuristhic methods
-"""
+    HELP_MODE_PROCESS_DUPLICATES = textwrap.dedent(f"""
+        ATTENTION!!!: This process will process all Duplicates files found with -fd, --find-duplicates <DUPLICATES_FOLDER> option based on the Action column value of Duplicates.csv file generated in 'Find Duplicates Mode'. 
+        
+        You can modify individually each Action column value for each duplicate found, but take into account that the below actions list are irreversible:
+        
+        Possible Actions in revised CSV file are:
+            - remove_duplicate  : Duplicated file moved to Duplicates folder will be permanentely removed
+            - restore_duplicate : Duplicated file moved to Duplicates folder will be restored to its original location
+            - replace_duplicate : This action can be used to replace the principal file chosen for each duplicates and select manually other principal file
+                                  Duplicated file moved to Duplicates folder will be restored to its original location as principal file
+                                  and Original Principal file detected by the Script will be removed permanently
+        """)
 
-    HELP_MODE_PROCESS_DUPLICATES = \
-f"""
-ATTENTION!!!: This process will process all Duplicates files found with -fd, --find-duplicates <DUPLICATES_FOLDER> option based on the Action column value of Duplicates.csv file generated in 'Find Duplicates Mode'. 
+    HELP_MODE_RENAME_ALBUMS_FOLDERS = textwrap.dedent(f"""
+        ATTENTION!!!: This process will clean each Subfolder found in <ALBUMS_FOLDER> with an homogeneous name starting with album year followed by a cleaned subfolder name without underscores nor middle dashes.
+        New Album name format: 'yyyy - Cleaned Subfolder name'
+        """)
 
-You can modify individually each Action column value for each duplicate found, but take into account that the below actions list are irreversible:
-
-Possible Actions in revised CSV file are:
-    - remove_duplicate  : Duplicated file moved to Duplicates folder will be permanentely removed
-    - restore_duplicate : Duplicated file moved to Duplicates folder will be restored to its original location
-    - replace_duplicate : This action can be used to replace the principal file chosen for each duplicates and select manually other principal file
-                          Duplicated file moved to Duplicates folder will be restored to its original location as principal file
-                          and Original Principal file detected by the Script will be removed permanently
-"""
-
-    HELP_MODE_RENAME_ALBUMS_FOLDERS = \
-f"""
-ATTENTION!!!: This process will clean each Subfolder found in <ALBUMS_FOLDER> with an homogeneous name starting with album year followed by a cleaned subfolder name without underscores nor middle dashes.
-New Album name format: 'yyyy - Cleaned Subfolder name'
-"""
-
-    HELP_MODE_ALL_IN_ONE = \
-f"""
-ATTENTION!!!: This process will do Automatically all the steps in One Shot.
-The script will extract all your Takeout Zip files (if found any .zip) from <INPUT_FOLDER>, after that, will process them, and finally will connect to Synology Photos database to create all Albums found in the Takeout and import all the other photos without any Albums associated.
-"""
+    HELP_MODE_ALL_IN_ONE = textwrap.dedent(f"""
+        ATTENTION!!!: This process will do Automatically all the steps in One Shot.
+        The script will extract all your Takeout Zip files (if found any .zip) from <INPUT_FOLDER>, after that, will process them, and finally will connect to Synology Photos database to create all Albums found in the Takeout and import all the other photos without any Albums associated.
+        """)
 
     ################################
     # EXTRA MODES: SYNOLOGY PHOTOS #
     ################################
-    HELP_MODE_SYNOLOGY_DELETE_EMPTY_ALBUMS = \
-f"""
-ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Empty Albums found in Synology Photos database.
-"""
+    HELP_MODE_SYNOLOGY_DELETE_EMPTY_ALBUMS = textwrap.dedent(f"""
+        ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Empty Albums found in Synology Photos database.
+        """)
 
-    HELP_MODE_SYNOLOGY_DELETE_DUPLICATES_ALBUMS = \
-f"""
-ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Duplicates Albums found in Synology Photos database.
-"""
+    HELP_MODE_SYNOLOGY_DELETE_DUPLICATES_ALBUMS = textwrap.dedent(f"""
+        ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Duplicates Albums found in Synology Photos database.
+        """)
     
-    HELP_MODE_SYNOLOGY_UPLOAD_FOLDER = \
-f"""
-ATTENTION!!!: This process will connect to your to your Synology Photos account and will upload all Photos/Videos found within <FOLDER> (including subfolders).
-              Due to Synology Photos limitations, o Upload any folder, it must be placed inside SYNOLOGY_ROOT_FOLDER and all its content must have been indexed before to add any asset to Synology Photos.
-"""
+    HELP_MODE_SYNOLOGY_UPLOAD_FOLDER = textwrap.dedent(f"""
+        ATTENTION!!!: This process will connect to your to your Synology Photos account and will upload all Photos/Videos found within <FOLDER> (including subfolders).
+                      Due to Synology Photos limitations, o Upload any folder, it must be placed inside SYNOLOGY_ROOT_FOLDER and all its content must have been indexed before to add any asset to Synology Photos.
+        """)
 
-    HELP_MODE_SYNOLOGY_UPLOAD_ALBUMS = \
-f"""
-ATTENTION!!!: This process will connect to your to your Synology Photos account and will create a new Album for each Subfolder found in <ALBUMS_FOLDER> and will include all Photos and Videos included in that Subfolder.
-              Due to Synology Photos limitations, to Upload any folder, it must be placed inside SYNOLOGY_ROOT_FOLDER and all its content must have been indexed before to add any asset to Synology Photos. 
-"""
+    HELP_MODE_SYNOLOGY_UPLOAD_ALBUMS = textwrap.dedent(f"""
+        ATTENTION!!!: This process will connect to your to your Synology Photos account and will create a new Album for each Subfolder found in <ALBUMS_FOLDER> and will include all Photos and Videos included in that Subfolder.
+                      Due to Synology Photos limitations, to Upload any folder, it must be placed inside SYNOLOGY_ROOT_FOLDER and all its content must have been indexed before to add any asset to Synology Photos. 
+        """)
 
-    HELP_MODE_SYNOLOGY_DOWNLOAD_ALBUMS = \
-f"""
-ATTENTION!!!: This process will connect to Synology Photos and extract those Album(s) whose name is in <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the SYNOLOGY_ROOT_FOOLDER. 
-              If the file already exists, it will be OVERWRITTEN!!!
-              To extract all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: dron* to download all albums starting with the word 'dron' followed by other(s) words.
-              To extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums "album1", "album2", "album3" 
-              To extract ALL Albums within in Synology Photos database use 'ALL' as ALBUMS_NAME.
-"""
+    HELP_MODE_SYNOLOGY_DOWNLOAD_ALBUMS = textwrap.dedent(f"""
+        ATTENTION!!!: This process will connect to Synology Photos and extract those Album(s) whose name is in <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the SYNOLOGY_ROOT_FOOLDER. 
+                      If the file already exists, it will be OVERWRITTEN!!!
+                      To extract all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: dron* to download all albums starting with the word 'dron' followed by other(s) words.
+                      To extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums "album1", "album2", "album3" 
+                      To extract ALL Albums within in Synology Photos database use 'ALL' as ALBUMS_NAME.
+        """)
     
-    HELP_MODE_SYNOLOGY_DOWNLOAD_ALL = \
-f"""
-ATTENTION!!!: This process will connect to Synology Photos and will download all the Album and Assets without Albums into the folder '<OUTPUT_FOLDER>' within the SYNOLOGY_ROOT_FOOLDER. 
-              If the file already exists, it will be OVERWRITTEN!!!
-              All Albums will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums' with the same name of the Album and all files will be flattened into it.
-              Assets with no Albums associated will be downloaded withn a subfolder '<OUTPUT_FOLDER>/Others' and will have a year/month structure inside.
-"""
+    HELP_MODE_SYNOLOGY_DOWNLOAD_ALL = textwrap.dedent(f"""
+        ATTENTION!!!: This process will connect to Synology Photos and will download all the Album and Assets without Albums into the folder '<OUTPUT_FOLDER>' within the SYNOLOGY_ROOT_FOOLDER. 
+                      If the file already exists, it will be OVERWRITTEN!!!
+                      All Albums will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums' with the same name of the Album and all files will be flattened into it.
+                      Assets with no Albums associated will be downloaded withn a subfolder '<OUTPUT_FOLDER>/Others' and will have a year/month structure inside.
+        """)
 
 
     ##############################
     # EXTRA MODES: IMMICH PHOTOS #
     ##############################
-    HELP_MODE_IMMICH_DELETE_EMPTY_ALBUMS = \
-f"""
-ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Empty Albums found in Immich Photos database.
-"""
+    HELP_MODE_IMMICH_DELETE_EMPTY_ALBUMS = textwrap.dedent(f"""
+        ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Empty Albums found in Immich Photos database.
+        """)
 
-    HELP_MODE_IMMICH_DELETE_DUPLICATES_ALBUMS = \
-f"""
-ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Duplicates Albums found in Immich Photos database.
-"""
+    HELP_MODE_IMMICH_DELETE_DUPLICATES_ALBUMS = textwrap.dedent(f"""
+        ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Duplicates Albums found in Immich Photos database.
+        """)
     
-    HELP_MODE_IMMICH_UPLOAD_FOLDER = \
-f"""
-ATTENTION!!!: This process will connect to your to your Immich Photos account and will upload all Photos/Videos found within <FOLDER> (including subfolders).
-"""
+    HELP_MODE_IMMICH_UPLOAD_FOLDER = textwrap.dedent(f"""
+        ATTENTION!!!: This process will connect to your to your Immich Photos account and will upload all Photos/Videos found within <FOLDER> (including subfolders).
+        """)
 
-    HELP_MODE_IMMICH_UPLOAD_ALBUMS = \
-f"""
-ATTENTION!!!: This process will connect to your to your Immich Photos account and will create a new Album for each Subfolder found in <ALBUMS_FOLDER> and will include all Photos and Videos included in that Subfolder.
-"""
+    HELP_MODE_IMMICH_UPLOAD_ALBUMS = textwrap.dedent(f"""
+        ATTENTION!!!: This process will connect to your to your Immich Photos account and will create a new Album for each Subfolder found in <ALBUMS_FOLDER> and will include all Photos and Videos included in that Subfolder.
+        """)
 
-    HELP_MODE_IMMICH_DOWNLOAD_ALBUMS = \
-f"""
-ATTENTION!!!: This process will connect to Immich Photos and extract those Album(s) whose name is in <ALBUMS_NAME> to the folder './Downloads_Immich' within the Script execution folder. 
-              If the file already exists, it will be OVERWRITTEN!!!
-              To extract all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: dron* to download all albums starting with the word 'dron' followed by other(s) words.
-              To extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums "album1", "album2", "album3" 
-              To extract ALL Albums within in Immich Photos database use 'ALL' as ALBUMS_NAME.
-"""
-    HELP_MODE_IMMICH_DOWNLOAD_ALL = \
-f"""
-ATTENTION!!!: This process will connect to Immich Photos and will download all the Album and Assets without Albums into the folder './<OUTPUT_FOLDER>'. 
-              If the file already exists, it will be OVERWRITTEN!!!.
-              All Albums will be downloaded within a subfolder of './<OUTPUT_FOLDER>/Albums' with the same name of the Album and all files will be flattened into it.
-              Assets with no Albums associated will be downloaded withn a subfolder './<OUTPUT_FOLDER>/Others' and will have a year/month structure inside.
-"""
+    HELP_MODE_IMMICH_DOWNLOAD_ALBUMS = textwrap.dedent(f"""
+        ATTENTION!!!: This process will connect to Immich Photos and extract those Album(s) whose name is in <ALBUMS_NAME> to the folder './Downloads_Immich' within the Script execution folder. 
+                      If the file already exists, it will be OVERWRITTEN!!!
+                      To extract all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: dron* to download all albums starting with the word 'dron' followed by other(s) words.
+                      To extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums "album1", "album2", "album3" 
+                      To extract ALL Albums within in Immich Photos database use 'ALL' as ALBUMS_NAME.
+        """)
+
+    HELP_MODE_IMMICH_DOWNLOAD_ALL = textwrap.dedent(f"""
+        ATTENTION!!!: This process will connect to Immich Photos and will download all the Album and Assets without Albums into the folder './<OUTPUT_FOLDER>'. 
+                      If the file already exists, it will be OVERWRITTEN!!!.
+                      All Albums will be downloaded within a subfolder of './<OUTPUT_FOLDER>/Albums' with the same name of the Album and all files will be flattened into it.
+                      Assets with no Albums associated will be downloaded withn a subfolder './<OUTPUT_FOLDER>/Others' and will have a year/month structure inside.
+        """)
 
 def create_global_variable_from_args(args):
     """
@@ -252,13 +239,13 @@ def parse_arguments():
             print(f"\n{SCRIPT_NAME} {SCRIPT_VERSION} {SCRIPT_DATE} by Jaime Tur (@jaimetur)\n")
             parser.exit()
 
-    PARSER.add_argument("-vers", "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
+    PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
     PARSER.add_argument("-nlog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
     PARSER.add_argument("-AUTO", "--AUTOMATED-MIGRATION", metavar="<INPUT_FOLDER>", default="", help="The Script will do the whole migration process (Zip extraction, Takeout Processing, Remove Duplicates, Synology Photos Albums creation) in just One Shot.")
 
     # EXTRA MODES FOR GOOGLE PHOTOS:
     # ------------------------------
-    PARSER.add_argument("-gizf", "--google-input-zip-folder", metavar="<ZIP_FOLDER>", default="", help="Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files will be skipped.")
+    # PARSER.add_argument("-gizf", "--google-input-zip-folder", metavar="<ZIP_FOLDER>", default="", help="Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files will be skipped.")
     PARSER.add_argument("-gitf", "--google-input-takeout-folder", metavar="<TAKEOUT_FOLDER>", default="Takeout", help="Specify the Takeout folder to process. If -z, --zip-folder is present, this will be the folder to unzip input files. Default: 'Takeout'.")
     PARSER.add_argument("-gofs", "--google-output-folder-suffix", metavar="<SUFIX>", default="fixed", help="Specify the suffix for the output folder. Default: 'fixed'")
     PARSER.add_argument("-gafs", "--google-albums-folders-structure", metavar=f"{choices_for_folder_structure}", default="flatten", help="Specify the type of folder structure for each Album folder (Default: 'flatten')."
@@ -269,13 +256,13 @@ def parse_arguments():
                         , type=lambda s: s.lower()  # Convert input to lowercase
                         , choices=choices_for_folder_structure  # Valid choices
                         )
-    PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skip processing files with GPTH Tool. \nNOT RECOMMENDED!!! because this is the Core of the Script. \nUse this flag only for testing purposses.")
-    PARSER.add_argument("-gsef", "--google-skip-extras-files", action="store_true", help="Skip processing extra photos such as  -edited, -effects photos.")
-    PARSER.add_argument("-gsma", "--google-skip-move-albums", action="store_true", help="Skip moving albums to Albums folder.")
     PARSER.add_argument("-gcsa", "--google-create-symbolic-albums", action="store_true", help="Creates symbolic links for Albums instead of duplicate the files of each Album. (Useful to save disk space but may not be portable to other systems).")
-    PARSER.add_argument("-gics", "--google-ignore-check-structure", action="store_true", help="Ignore Google Takeout structure checking ('.json' files, 'Photos from ' sub-folders, etc..), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from them.")
-    PARSER.add_argument("-gmtf", "--google-move-takeout-folder", action="store_true", help=f"Move original photos/videos from <TAKEOUT_FOLDER> to <OUTPUT_FOLDER>. \nCAUTION: Useful to avoid disk space duplication and improve execution speed, but you will lost your original unzipped files!!!.\nUse only if you keep the original zipped files or you have disk space limitations and you don't mind to lost your original unzipped files.")
+    PARSER.add_argument("-gics", "--google-ignore-check-structure", action="store_true", help="Ignore Check Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc..), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from them.")
+    PARSER.add_argument("-gmtf", "--google-move-takeout-folder", action="store_true", help=f"Move original assets to <OUTPUT_FOLDER>. \nCAUTION: Useful to avoid disk space duplication and improve execution speed, but you will lost your original unzipped files!!!.\nUse only if you keep the original zipped files or you have disk space limitations and you don't mind to lost your original unzipped files.")
     PARSER.add_argument("-grdf", "--google-remove-duplicates-files", action="store_true", help="Remove Duplicates files in <OUTPUT_FOLDER> after fixing them.")
+    PARSER.add_argument("-gsef", "--google-skip-extras-files", action="store_true", help="Skip processing extra photos such as  -edited, -effects photos.")
+    PARSER.add_argument("-gsma", "--google-skip-move-albums", action="store_true", help="Skip moving albums to 'Albums' folder.")
+    PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skip processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposses.")
 
     # EXTRA MODES FOR SYNOLOGY PHOTOS:
     # --------------------------------
@@ -345,7 +332,7 @@ def parse_arguments():
 
     ARGS['duplicates-folders'] = parse_folders(ARGS['duplicates-folders'] )
 
-    ARGS['google-input-zip-folder'] = ARGS['google-input-zip-folder'].rstrip('/\\')
+    # ARGS['google-input-zip-folder'] = ARGS['google-input-zip-folder'].rstrip('/\\')
     ARGS['google-input-takeout-folder'] = ARGS['google-input-takeout-folder'].rstrip('/\\')
     ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
     return ARGS
@@ -530,18 +517,33 @@ def mode_google_takeout(user_confirmation=True):
         LOGGER.info("")
     else:
         ARGS['google-input-takeout-folder'] = input_folder
-    
-    # Mensajes informativos
-    if not ARGS['google-input-zip-folder']=="":
-     LOGGER.info(f"INFO: Using Zipped Takeout folder  : '{ARGS['google-input-zip-folder']}'")
 
-    LOGGER.info(f"INFO: Using Unziped Takeout folder : '{ARGS['google-input-takeout-folder']}'")
-    LOGGER.info(f"INFO: Using Suffix                 : '{ARGS['google-output-folder-suffix']}'")
-    LOGGER.info(f"INFO: Using Output folder          : '{OUTPUT_FOLDER}'")
-    LOGGER.info(f"INFO: Albums Folder Structure      : '{ARGS['google-albums-folders-structure']}'")
-    LOGGER.info(f"INFO: No Albums Folder Structure   : '{ARGS['google-no-albums-folder-structure']}'")
+    # Mensajes informativos
+    LOGGER.info(f"Settings for Google Takeout Photos Module:")
+    LOGGER.info(f"------------------------------------------")
+    LOGGER.info(f"INFO: Using Suffix                             : '{ARGS['google-output-folder-suffix']}'")
+    LOGGER.info(f"INFO: Albums Folder Structure                  : '{ARGS['google-albums-folders-structure']}'")
+    LOGGER.info(f"INFO: No Albums Folder Structure               : '{ARGS['google-no-albums-folder-structure']}'")
+    LOGGER.info(f"INFO: Creates symbolic links for Albums        : '{ARGS['google-create-symbolic-albums']}'")
+    LOGGER.info(f"INFO: Ignore Check Google Takeout Structure    : '{ARGS['google-ignore-check-structure']}'")
+    LOGGER.info(f"INFO: Move Original Assets to Output Folder    : '{ARGS['google-move-takeout-folder']}'")
+    LOGGER.info(f"INFO: Remove Duplicates files in Output folder : '{ARGS['google-remove-duplicates-files']}'")
+    LOGGER.info(f"INFO: Skip Extra Assets (-edited,-effects...)  : '{ARGS['google-skip-extras-files']}'")
+    LOGGER.info(f"INFO: Skip Moving Albums to 'Albums' folder    : '{ARGS['google-skip-move-albums']}'")
+    LOGGER.info(f"INFO: Skip GPTH Tool                           : '{ARGS['google-skip-gpth-tool']}'")
+
+    LOGGER.info("")
+    LOGGER.info(f"Folders for Google Takeout Photos Module:")
+    LOGGER.info(f"------------------------------------------")
     if not ARGS['no-log-file']:
-        LOGGER.info(f"INFO: Execution Log file         : '{LOG_FOLDER_FILENAME}'")
+        LOGGER.info(f"INFO: Execution Log file                       : '{LOG_FOLDER_FILENAME}'")
+    if ARGS['google-input-zip-folder']!="":
+        LOGGER.info(f"INFO: Input Takeout folder (zipped detected)   : '{ARGS['google-input-zip-folder']}'")
+        LOGGER.info(f"INFO: Input Takeout will be unziped to folder  : '{ARGS['google-input-takeout-folder']}'")
+    else:
+        LOGGER.info(f"INFO: Input Takeout folder                     : '{ARGS['google-input-takeout-folder']}'")
+    LOGGER.info(f"INFO: OUTPUT folder                            : '{OUTPUT_FOLDER}'")
+
 
     LOGGER.info(f"")
     if user_confirmation:

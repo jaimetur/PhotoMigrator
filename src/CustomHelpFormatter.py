@@ -59,13 +59,13 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         return [('', tokens)]
 
     def _build_lines_with_forced_tokens(
-        self,
-        tokenized_usage,
-        forced_tokens,
-        width,
-        first_line_indent = '',
-        subsequent_indent = ' ' * 32
-    ):
+            self,
+            tokenized_usage,
+            forced_tokens,
+            width,
+            first_line_indent = '',
+            subsequent_indent = ' ' * 32
+        ):
         final_lines = []
         for (orig_indent, tokens) in tokenized_usage:
             if not tokens:
@@ -155,7 +155,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             first_line_indent = '',         # Sin espacios en la primera línea
             subsequent_indent = ' ' * ident_spaces    # 32 espacios en líneas siguientes, por ejemplo
         )
-        return f'{Fore.GREEN}{usage}{Style.RESET_ALL}'
+        usage = f'{Fore.GREEN}{usage}{Style.RESET_ALL}'
+        return usage
 
     def _format_action(self, action):
         def justificar_texto(text, initial_indent="", subsequent_indent=""):
@@ -180,21 +181,19 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         if action.help:
             ident_spaces = 8
             help_text = justificar_texto(action.help, initial_indent=" " * ident_spaces, subsequent_indent=" " * ident_spaces)
-            parts.append(f"\n{help_text}")  # Salto de línea adicional
 
             # EXTRA MODES for Google Photos Takeout Management: two lines before "Specify the Takeout folder to process."
-            # if help_text.find("Specify the Takeout folder to process.")!=-1:
-            if help_text.find("Specify the Zip folder where the Zip files are placed.")!=-1:
+            if help_text.find("Specify the Takeout folder to process.")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
                 EXTRA MODES: Google Photos Takeout Management:
                 ----------------------------------------------{Style.RESET_ALL}
-                Following Extra Modes allow you to interact with Google Photos Takeout Folder. 
+                Following arguments allow you to interact with Google Photos Takeout Folder. 
                 In this mode, you can use more than one optional arguments from the below list.
                 If only the argument -gtif, --google-takeout-input-folder <TAKEOUT_FOLDER> is detected, then the script will use the default values for the rest of the arguments for this extra mode.
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
-                parts.insert(-2,f"{TEXT_TO_INSERT}")
+                parts.insert(-1,f"{TEXT_TO_INSERT}")
 
             # EXTRA MODES for Synology Photos Management: two lines before "any Album is empty, will remove it from Synology Photos database."
             if help_text.find("any Album is empty, will remove it from Synology Photos database.")!=-1:
@@ -202,11 +201,11 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 {Fore.YELLOW}
                 EXTRA MODES: Synology Photos Takeout Management:
                 ------------------------------------------------{Style.RESET_ALL}
-                Following Extra Modes allow you to interact with Synology Photos. 
-                If more than one Extra Mode is detected, only the first one will be executed.
+                Following arguments allow you to interact with Synology Photos. 
+                If more than one optional arguments are detected, only the first one will be executed.
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
-                parts.insert(-2,f"{TEXT_TO_INSERT}")
+                parts.insert(-1,f"{TEXT_TO_INSERT}")
 
             # EXTRA MODES for Immich Photos Management: two lines before "Album is empty, will remove it from Immich Photos database."
             if help_text.find("Album is empty, will remove it from Immich Photos database.")!=-1:
@@ -214,11 +213,11 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 {Fore.YELLOW}
                 EXTRA MODES: Immich Photos Takeout Management:
                 ----------------------------------------------{Style.RESET_ALL}
-                Following Extra Modes allow you to interact with Immich Photos. 
-                If more than one Extra Mode is detected, only the first one will be executed.
+                Following arguments allow you to interact with Immich Photos. 
+                If more than one optional arguments are detected, only the first one will be executed.
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
-                parts.insert(-2,f"{TEXT_TO_INSERT}")
+                parts.insert(-1,f"{TEXT_TO_INSERT}")
 
             # OTHERS STAND-ALONE EXTRA MODES: two lines before "Find duplicates in specified folders."
             if help_text.find("Find duplicates in specified folders.")!=-1:
@@ -226,38 +225,49 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 {Fore.YELLOW}
                 OTHER STAND-ALONE EXTRA MODES:
                 ------------------------------{Style.RESET_ALL}
-                Following optional arguments can be used to execute the Script in any of the usefull additionals Extra Modes included. When an Extra Mode is detected only this module will be executed (ignoring the normal steps). If more than one Extra Mode is detected, only the first one will be executed.
+                Following arguments can be used to execute the Script in any of the usefull additionals Extra Modes included.
+                If more than one Extra Mode is detected, only the first one will be executed.
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
-                parts.insert(-2,f"{TEXT_TO_INSERT}")
+                parts.insert(-1,f"{TEXT_TO_INSERT}")
+
+            # if Detect CAUTION part on help_text, color it on Red
+            if help_text.find("CAUTION: ")!=-1:
+                start_index_for_color = help_text.find("CAUTION: ")
+                # end_index_for_color = help_text.find(" Use")
+                end_index_for_color = len(help_text)
+                TEXT_TO_INSERT = f"\n{help_text[0:start_index_for_color]}{Fore.RED}{help_text[start_index_for_color:end_index_for_color]}{Style.RESET_ALL}{help_text[end_index_for_color:]}"
+                parts.append(f"{TEXT_TO_INSERT}")
+            else:
+                parts.append(f"\n{help_text}")  # Salto de línea adicional
 
         return "".join(parts)
 
     def _format_action_invocation(self, action):
-            if not action.option_strings:
-                # Para argumentos posicionales
-                return super()._format_action_invocation(action)
-            else:
-                # Combina los argumentos cortos y largos con espacio adicional si es necesario
-                option_strings = []
-                for opt in action.option_strings:
-                    # Argumento corto, agrega una coma detrás
-                    if opt.startswith("-") and not opt.startswith("--"):
-                        if len(opt) == 5:
-                            option_strings.append(f"{opt},")
-                        if len(opt) == 4:
-                            option_strings.append(f"{opt}, ")
-                        elif len(opt) == 3:
-                            option_strings.append(f"{opt},  ")
-                        elif len(opt) == 2:
-                            option_strings.append(f"{opt},   ")
-                    else:
-                        option_strings.append(f"{opt}")
+        if not action.option_strings:
+            # Para argumentos posicionales
+            return super()._format_action_invocation(action)
+        else:
+            # Combina los argumentos cortos y largos con espacio adicional si es necesario
+            option_strings = []
+            for opt in action.option_strings:
+                # Argumento corto, agrega una coma detrás
+                if opt.startswith("-") and not opt.startswith("--"):
+                    if len(opt) == 5:
+                        option_strings.append(f"{opt},")
+                    if len(opt) == 4:
+                        option_strings.append(f"{opt}, ")
+                    elif len(opt) == 3:
+                        option_strings.append(f"{opt},  ")
+                    elif len(opt) == 2:
+                        option_strings.append(f"{opt},   ")
+                else:
+                    option_strings.append(f"{opt}")
 
-                # Combina los argumentos cortos y largos, y agrega el parámetro si aplica
-                formatted_options = " ".join(option_strings).rstrip(",")
-                metavar = f" {action.metavar}" if action.metavar else ""
-                return f"{Fore.GREEN}{formatted_options}{metavar}{Style.RESET_ALL}"
+            # Combina los argumentos cortos y largos, y agrega el parámetro si aplica
+            formatted_options = " ".join(option_strings).rstrip(",")
+            metavar = f" {action.metavar}" if action.metavar else ""
+            return f"{Fore.GREEN}{formatted_options}{metavar}{Style.RESET_ALL}"
 
     def _join_parts(self, part_strings):
         # Asegura que cada argumento quede separado por un salto de línea
@@ -267,14 +277,6 @@ class PagedArgumentParser(argparse.ArgumentParser):
     """
     Sobrescribimos ArgumentParser para que 'print_help()' use un paginador.
     """
-    import re
-    import curses
-
-    import re
-    import curses
-
-    import re
-    import curses
 
     def custom_pager(self, text):
         """
@@ -285,39 +287,77 @@ class PagedArgumentParser(argparse.ArgumentParser):
         # Expresión regular para detectar códigos ANSI
         ANSI_ESCAPE = re.compile(r'\x1b\[[0-9;]*m')
 
+        global usage_first_line, usage_last_line
+        usage_first_line = -1
+        usage_last_line = -1
+        caution_ranges = []  # Lista para almacenar rangos de líneas de "CAUTION:"
+        optional_arguments_line = -1  # Línea que contiene "optional arguments:"
+
+        lines = text.splitlines()
+
+        # Determinar los índices de inicio y fin de la sección "usage"
+        for i, line in enumerate(lines):
+            clean_line = ANSI_ESCAPE.sub('', line)  # Eliminar secuencias ANSI de colorama
+            if 'usage' in clean_line.lower() and usage_first_line == -1:  # Detectar la primera línea con "usage"
+                usage_first_line = i
+            if SCRIPT_NAME_VERSION in clean_line:  # Detectar la última línea de "usage" (pero NO pintarla en verde)
+                usage_last_line = i - 1  # Detener una línea antes de SCRIPT_NAME_VERSION
+                break  # No hace falta seguir buscando
+
+        # Determinar todos los bloques de "CAUTION:"
+        caution_start = -1
+        for i, line in enumerate(lines):
+            clean_line = ANSI_ESCAPE.sub('', line)
+            if 'CAUTION:' in clean_line:  # Detectar cualquier aparición de "CAUTION:"
+                if caution_start == -1:  # Si no hemos iniciado un bloque, marcar el inicio
+                    caution_start = i
+            elif caution_start != -1 and (re.match(r"^\s*-\w", clean_line) or clean_line.strip() == ""):
+                caution_ranges.append((caution_start, i - 1))  # Guardar el rango hasta la línea anterior
+                caution_start = -1  # Reiniciar para detectar más bloques
+
+        # Buscar la línea que contiene "optional arguments:"
+        for i, line in enumerate(lines):
+            clean_line = ANSI_ESCAPE.sub('', line)
+            if 'optional arguments:' in clean_line.lower():
+                optional_arguments_line = i
+                break  # No hace falta seguir buscando más de una vez
+
         def pager(stdscr):
             curses.start_color()
-            curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)   # Definir color verde (para argumentos)
-            curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK) # Definir color magenta (para líneas de guiones y anteriores)
+            curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)   # Verde (para argumentos y usage)
+            curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Magenta (para separadores y líneas anteriores)
+            curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)     # Rojo (para secciones de CAUTION)
+            curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_BLACK)   # Amarillo con fondo azul (para "optional arguments")
             curses.curs_set(0)  # Ocultar el cursor
-            lines = text.splitlines()
             total_lines = len(lines)
             page_size = curses.LINES - 2  # Altura de la terminal menos espacio para el mensaje
             index = 0
-            usage_finished = False
 
             while True:
-                # Asegurarse de que el número de líneas no exceda los límites
                 stdscr.clear()
                 prev_line = None  # Variable para almacenar la línea anterior
 
-                for i, line in enumerate(lines[index:index + page_size]):
+                for i, line in enumerate(lines[index:index+page_size]):
                     try:
                         clean_line = ANSI_ESCAPE.sub('', line)  # Eliminar secuencias ANSI de colorama
+                        line_number = index + i  # Línea absoluta en el texto
 
-                        # Detectar si ha terminado la parte de Usage detectando la variable SCRIPT_NAME_VERSION en la linea a escribir.
-                        usage_finished = usage_finished or clean_line.find(SCRIPT_NAME_VERSION)>=0
-
-                        # Si no ha terminado, pintamos el usage en verde.
-                        if not usage_finished:
+                        # Pintar todas las líneas dentro del bloque "usage" en verde (excepto la línea con SCRIPT_NAME_VERSION)
+                        if usage_first_line <= line_number <= usage_last_line:
                             stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(1))  # Verde
+                        # Pintar todas las líneas dentro de cualquier bloque "CAUTION:" en rojo
+                        elif any(start <= line_number <= end for start, end in caution_ranges):
+                            stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(3))  # Rojo
+                        # Pintar la línea que contiene "optional arguments:" en amarillo
+                        elif line_number == optional_arguments_line:
+                            stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(4))  # Amarillo
                         else:
                             # Detectar si la línea actual es un separador (--- o más guiones)
                             is_separator = re.match(r"^\s*-{3,}", clean_line)
 
                             # Si encontramos un separador, pintamos también la línea anterior
                             if is_separator and prev_line is not None:
-                                stdscr.addstr(i - 1, 0, prev_line[:curses.COLS], curses.color_pair(2))  # Magenta para la línea anterior
+                                stdscr.addstr(i - 1, 0, prev_line[:curses.COLS], curses.color_pair(2))  # Magenta
 
                             # Pintar en verde si es un argumento (-arg, --arg)
                             if re.match(r"^\s*-\w", clean_line):
@@ -375,6 +415,12 @@ class PagedArgumentParser(argparse.ArgumentParser):
 
         # Imprimir el texto de ayuda completo de nuevo fuera de curses para que se vea al salir
         print(text)
+
+        # # For debugging purposses
+        # print("Usage range:", usage_first_line, "-", usage_last_line)
+        # print("Caution ranges:", caution_ranges)
+        # print("Optional arguments line:", optional_arguments_line)
+
 
     def is_interactive(self):
         """
