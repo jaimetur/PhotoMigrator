@@ -107,7 +107,7 @@ jobs:
           BASE64_ARTIFACT=$(cat artifact_base64.txt)
           # Parameters
           COMMIT_MESSAGE="Added from GitHub Actions"
-          REPOS=("OrganizeTakeoutPhotos-dev" "OrganizeTakeoutPhotos")
+          REPOS=("CloudPhotoMigrator-dev" "CloudPhotoMigrator")
           for REPO in "${REPOS[@]}"; do
             echo "Uploading to $REPO..."
             URL=https://api.github.com/repos/jaimetur/$REPO/contents/${FILE_TO_ADD}
@@ -147,7 +147,7 @@ jobs:
           $BASE64_ARTIFACT = [Convert]::ToBase64String([IO.File]::ReadAllBytes("${FILE_TO_ADD}"))
           # Parameters
           $COMMIT_MESSAGE = "Added from GitHub Actions"
-          $REPOS = @("OrganizeTakeoutPhotos-dev", "OrganizeTakeoutPhotos")
+          $REPOS = @("CloudPhotoMigrator-dev", "CloudPhotoMigrator")
           foreach ($REPO in $REPOS) {
             Write-Host "Uploading to $REPO..."
             # Set URL
@@ -233,7 +233,7 @@ jobs:
             BASE64_ARTIFACT=$(cat artifact_base64.txt)
             # Parameters
             COMMIT_MESSAGE="Added from GitHub Actions"
-            REPOS=("OrganizeTakeoutPhotos")
+            REPOS=("CloudPhotoMigrator")
             for REPO in "${REPOS[@]}"; do
               echo "Uploading to $REPO..."
               URL=https://api.github.com/repos/jaimetur/$REPO/contents/${FILE_TO_ADD} 
