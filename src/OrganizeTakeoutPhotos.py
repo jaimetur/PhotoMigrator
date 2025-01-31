@@ -259,7 +259,7 @@ def parse_arguments():
     # EXTRA MODES FOR GOOGLE PHOTOS:
     # ------------------------------
     PARSER.add_argument("-gizf", "--google-input-zip-folder", metavar="<ZIP_FOLDER>", default="", help="Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files will be skipped.")
-    PARSER.add_argument("-gtif", "--google-takeout-input-folder", metavar="<TAKEOUT_FOLDER>", default="Takeout", help="Specify the Takeout folder to process. If -z, --zip-folder is present, this will be the folder to unzip input files. Default: 'Takeout'.")
+    PARSER.add_argument("-gitf", "--google-input-takeout-folder", metavar="<TAKEOUT_FOLDER>", default="Takeout", help="Specify the Takeout folder to process. If -z, --zip-folder is present, this will be the folder to unzip input files. Default: 'Takeout'.")
     PARSER.add_argument("-gofs", "--google-output-folder-suffix", metavar="<SUFIX>", default="fixed", help="Specify the suffix for the output folder. Default: 'fixed'")
     PARSER.add_argument("-gafs", "--google-albums-folders-structure", metavar=f"{choices_for_folder_structure}", default="flatten", help="Specify the type of folder structure for each Album folder (Default: 'flatten')."
                         , type=lambda s: s.lower()  # Convert input to lowercase
@@ -346,7 +346,7 @@ def parse_arguments():
     ARGS['duplicates-folders'] = parse_folders(ARGS['duplicates-folders'] )
 
     ARGS['google-input-zip-folder'] = ARGS['google-input-zip-folder'].rstrip('/\\')
-    ARGS['google-takeout-input-folder'] = ARGS['google-takeout-input-folder'].rstrip('/\\')
+    ARGS['google-input-takeout-folder'] = ARGS['google-input-takeout-folder'].rstrip('/\\')
     ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
     return ARGS
 
@@ -362,7 +362,7 @@ def detect_and_run_execution_mode():
         mode_AUTOMATED_MIGRATION()
 
     # Google Photos Mode:
-    elif "-gtif" in sys.argv or "--google-takeout-input-folder" in sys.argv:
+    elif "-gitf" in sys.argv or "--google-input-takeout-folder" in sys.argv:
         EXECUTION_MODE = 'google-takeout'
         mode_google_takeout()
 
@@ -452,7 +452,7 @@ def main():
     # Create timestamp, start_time and define OUTPUT_FOLDER
     TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
     START_TIME = datetime.now()
-    OUTPUT_FOLDER = f"{ARGS['google-takeout-input-folder']}_{ARGS['google-output-folder-suffix']}_{TIMESTAMP}"
+    OUTPUT_FOLDER = f"{ARGS['google-input-takeout-folder']}_{ARGS['google-output-folder-suffix']}_{TIMESTAMP}"
 
     # Set a global variable for logger and Set up logger based on the no-log-file argument
     log_filename=f"{SCRIPT_NAME}_{TIMESTAMP}"
@@ -500,9 +500,10 @@ def mode_AUTOMATED_MIGRATION():
     need_unzip = Utils.contains_zip_files(input_folder)
     if need_unzip:
         ARGS['google-input-zip-folder'] = input_folder
+        ARGS['google-input-takeout-folder'] = os.path.join(os.path.dirname(input_folder),f'Unzipped_Takeout_{TIMESTAMP}')
         ARGS['google-move-takeout-folder'] = True
     else:
-        ARGS['google-takeout-input-folder'] = input_folder
+        ARGS['google-input-takeout-folder'] = input_folder
     ARGS['google-remove-duplicates-files'] = True
     mode_google_takeout(user_confirmation=False)
 
@@ -520,22 +521,25 @@ def mode_AUTOMATED_MIGRATION():
 
 def mode_google_takeout(user_confirmation=True):
     # Configure default arguments for mode_google_takeout() execution
-    input_folder = ARGS['google-takeout-input-folder']
+    input_folder = ARGS['google-input-takeout-folder']
     need_unzip = Utils.contains_zip_files(input_folder)
     if need_unzip:
         ARGS['google-input-zip-folder'] = input_folder
+        ARGS['google-input-takeout-folder'] = os.path.join(os.path.dirname(input_folder),f'Unzipped_Takeout_{TIMESTAMP}')
+        LOGGER.info(f"INFO: ZIP files have been detected in {input_folder}'. Files will be unziped first...")
+        LOGGER.info("")
     else:
-        ARGS['google-takeout-input-folder'] = input_folder
+        ARGS['google-input-takeout-folder'] = input_folder
     
     # Mensajes informativos
     if not ARGS['google-input-zip-folder']=="":
-     LOGGER.info(f"INFO: Using Zip folder           : '{ARGS['google-input-zip-folder']}'")
+     LOGGER.info(f"INFO: Using Zipped Takeout folder  : '{ARGS['google-input-zip-folder']}'")
 
-    LOGGER.info(f"INFO: Using Input folder         : '{ARGS['google-takeout-input-folder']}'")
-    LOGGER.info(f"INFO: Using Suffix               : '{ARGS['google-output-folder-suffix']}'")
-    LOGGER.info(f"INFO: Using Output folder        : '{OUTPUT_FOLDER}'")
-    LOGGER.info(f"INFO: Albums Folder Structure    : '{ARGS['google-albums-folders-structure']}'")
-    LOGGER.info(f"INFO: No Albums Folder Structure : '{ARGS['google-no-albums-folder-structure']}'")
+    LOGGER.info(f"INFO: Using Unziped Takeout folder : '{ARGS['google-input-takeout-folder']}'")
+    LOGGER.info(f"INFO: Using Suffix                 : '{ARGS['google-output-folder-suffix']}'")
+    LOGGER.info(f"INFO: Using Output folder          : '{OUTPUT_FOLDER}'")
+    LOGGER.info(f"INFO: Albums Folder Structure      : '{ARGS['google-albums-folders-structure']}'")
+    LOGGER.info(f"INFO: No Albums Folder Structure   : '{ARGS['google-no-albums-folder-structure']}'")
     if not ARGS['no-log-file']:
         LOGGER.info(f"INFO: Execution Log file         : '{LOG_FOLDER_FILENAME}'")
 
@@ -577,15 +581,15 @@ def mode_google_takeout(user_confirmation=True):
     LOGGER.info("")
     if not ARGS['google-input-zip-folder']=="":
         step_start_time = datetime.now()
-        Utils.unpack_zips(ARGS['google-input-zip-folder'], ARGS['google-takeout-input-folder'])
+        Utils.unpack_zips(ARGS['google-input-zip-folder'], ARGS['google-input-takeout-folder'])
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time-step_start_time).seconds))
         LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
     else:
         LOGGER.warning("WARNING: Unzipping skipped (no argument '-gizf or --google-input-zip-folder <ZIP_FOLDER>' given or Running Mode All-in-One with input folder directly unzipped).")
 
-    if not os.path.isdir(ARGS['google-takeout-input-folder']):
-        LOGGER.error(f"ERROR: Cannot Find INPUT_FOLDER: '{ARGS['google-takeout-input-folder']}'. Exiting...")
+    if not os.path.isdir(ARGS['google-input-takeout-folder']):
+        LOGGER.error(f"ERROR: Cannot Find INPUT_FOLDER: '{ARGS['google-input-takeout-folder']}'. Exiting...")
         sys.exit(-1)
 
     # STEP 2: Pre-Process Takeout folder
@@ -598,11 +602,11 @@ def mode_google_takeout(user_confirmation=True):
     step_start_time = datetime.now()
     # Delete hidden subgolders '€eaDir' (Synology metadata folder) if exists
     LOGGER.info("INFO: Deleting hidden subfolders '@eaDir' (Synology metadata folders) from Takeout Folder if exists...")
-    Utils.delete_subfolders(ARGS['google-takeout-input-folder'], "@eaDir")
+    Utils.delete_subfolders(ARGS['google-input-takeout-folder'], "@eaDir")
     # Look for .MP4 files extracted from Live pictures and create a .json for them in order to fix their date and time
     LOGGER.info("")
     LOGGER.info("INFO: Looking for .MP4 files from live pictures and asociate date and time with live picture file...")
-    Utils.fix_mp4_files(ARGS['google-takeout-input-folder'])
+    Utils.fix_mp4_files(ARGS['google-input-takeout-folder'])
     step_end_time = datetime.now()
     formatted_duration = str(timedelta(seconds=(step_end_time-step_start_time).seconds))
     LOGGER.info("")
@@ -620,7 +624,7 @@ def mode_google_takeout(user_confirmation=True):
             LOGGER.warning("WARNING: Ignore Google Takeout Structure detected ('-it, --google-ignore-check-structure' flag detected).")
         step_start_time = datetime.now()
         Fixers.fix_metadata_with_gpth_tool(
-            input_folder=ARGS['google-takeout-input-folder'],
+            input_folder=ARGS['google-input-takeout-folder'],
             output_folder=OUTPUT_FOLDER,
             symbolic_albums=ARGS['google-create-symbolic-albums'],
             skip_extras=ARGS['google-skip-extras-files'],
@@ -628,7 +632,7 @@ def mode_google_takeout(user_confirmation=True):
             ignore_takeout_structure=ARGS['google-ignore-check-structure']
         )
         if ARGS['google-move-takeout-folder']:
-            Utils.force_remove_directory(ARGS['google-takeout-input-folder'])
+            Utils.force_remove_directory(ARGS['google-input-takeout-folder'])
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time-step_start_time).seconds))
         LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
@@ -647,7 +651,7 @@ def mode_google_takeout(user_confirmation=True):
         else:
             LOGGER.info("INFO: Copying files from Takeout folder to Output folder manually...")
         step_start_time = datetime.now()
-        Utils.copy_move_folder (ARGS['google-takeout-input-folder'], OUTPUT_FOLDER, ignore_patterns=['*.json', '*.j'], move=ARGS['google-move-takeout-folder'])
+        Utils.copy_move_folder (ARGS['google-input-takeout-folder'], OUTPUT_FOLDER, ignore_patterns=['*.json', '*.j'], move=ARGS['google-move-takeout-folder'])
         if ARGS['google-move-takeout-folder']:
             Utils.force_remove_directory(ARGS['takeout-folder'])
         step_end_time = datetime.now()
@@ -765,7 +769,7 @@ def mode_google_takeout(user_confirmation=True):
     LOGGER.info("===============================================")
     LOGGER.info("                FINAL SUMMARY:                 ")
     LOGGER.info("===============================================")
-    LOGGER.info(f"Total files in Takeout folder        : {Utils.count_files_in_folder(ARGS['google-takeout-input-folder'])}")
+    LOGGER.info(f"Total files in Takeout folder        : {Utils.count_files_in_folder(ARGS['google-input-takeout-folder'])}")
     LOGGER.info(f"Total final files in Output folder   : {Utils.count_files_in_folder(OUTPUT_FOLDER)}")
     albums_found = 0
     if not ARGS['google-skip-move-albums']:
