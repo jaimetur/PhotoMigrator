@@ -22,6 +22,9 @@
   - [x] Got Supported media type from Immich using API
   - [x] Translated into English all Immich fuctions
   - [x] Tested function -ida to download Albums from immich
+- [x] Added new option( -sdA, --synology-download-ALL') in Synology Photos Support to download ALL asets (with and without Albums assciated)
+- [x] Renamed options of Synology Photos support to homogenize with Immich Photos support
+- [x] Changed -sda/-ida to support wildcards on Albums name to download
 - [x] Changed version to 2.4.0-alpha
 - [x] Created local and remote branches for 2.4.0, 2.5.0 and 3.0.0
 - [x] Created GLOBAL variable ARG to map arguments into it in ParseArguments() in order to facilitate future refactoring of arguments.
@@ -34,14 +37,11 @@
 - [x] Merged -z and -t options in just one option ('-gitf, -google-input-takeout-folder') and detect if contains Takeout Zip files, in that case Zip files will be Unzipped to <TAKEOUT_FOLDER>_TIMESTAMP folder
 - [x] Changed Help for HELP_MODE_GOOGLE_TAKEOUT
 - [x] Changed the logic to detect google_takeout_mode (former normal_mode)
-- [x] Put at the beginning the standard option (those that are not related to any Support mode)
-- [x] Changed -sda/-ida to support wildcards on Albums name to download
-- [x] Renamed options of Synology Photos support to homogenize with Immich Photos support
+- [x] Put at the end of the help the standard option (those that are not related to any Support mode)
 - [x] Added RELEASES-NOTES.md file to the distribution package.
 - [x] Modified build.yml to update RELEASE-NOTES.md and ROADMAP.md into production repository
 
 ## 2.5.0 (No estimated date):
-- [x] Add -sdA, --synology-download-ALL
 - [ ] Allow users to choose the folder where dowonload the assets for option -ida/-sda and -idA/-sdA 
   - current implementation of -sda does not allow this ==> Investigate other implementation
 - [ ] Change -sdA to Download assets with no albums to an external folder
