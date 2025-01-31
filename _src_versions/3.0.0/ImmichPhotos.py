@@ -161,6 +161,7 @@ def read_immich_config(config_file='Config.ini', show_info=True):
     if show_info:
         LOGGER.info("")
         LOGGER.info(f"INFO: Immich Config Read:")
+        LOGGER.info(f"INFO: -------------------")
         LOGGER.info(f"INFO: IMMICH_URL     : {IMMICH_URL}")
         if API_KEY_LOGIN:
             masked_password = '*' * len(IMMICH_API_KEY)
@@ -873,21 +874,10 @@ def immich_download_ALL(output_folder="Downloads_Immich"):
 if __name__ == "__main__":
     # Create initialize LOGGER.
     from CloudPhotoMigrator import log_init
-
-    # from datetime import datetime
-    # from LoggerConfig import log_setup
-    # TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
-    # script_name = os.path.splitext(os.path.basename(__file__))[0]
-    # log_filename=f"{script_name}_{TIMESTAMP}"
-    # log_folder="Logs"
-    # LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename)
-    # LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename)
-
-    # Initialize the logger.
     log_init()
 
     # 0) Read configuration and log in
-    read_immich_config()
+    read_immich_config('Config.ini')
     login_immich()
 
     # 1) Example: Delete empty albums

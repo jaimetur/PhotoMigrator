@@ -13,12 +13,43 @@ def load_config(config_file='Config.ini'):
     if CONFIG:
         return CONFIG  # Configuration already read previously
 
-    CONFIG = {}
     LOGGER.info(f"INFO: Searching for configuration file '{config_file}'...")
+    if not os.path.exists(config_file):
+        LOGGER.error(f"ERROR: Configuration file '{config_file}' not found. Exiting...")
+        sys.exit(1)  # Termina el programa si no encuentra el archivo
 
+    CONFIG = {}
+    LOGGER.info(f"INFO: Configuration file found. Loading configuration...")
+
+    # Preprocesar el archivo para eliminar claves duplicadas antes de leerlo con ConfigParser
+    seen_keys = set()  # Conjunto para almacenar claves únicas
+    cleaned_lines = []
+
+    with open(config_file, 'r', encoding='utf-8') as f:
+        section = None
+        for line in f:
+            stripped_line = line.strip()
+            if stripped_line.startswith("[") and stripped_line.endswith("]"):  # Detectar sección
+                section = stripped_line
+                cleaned_lines.append(line)
+            elif "=" in stripped_line and section:  # Detectar clave dentro de una sección
+                key = stripped_line.split("=", 1)[0].strip()
+                unique_key = (section, key)  # Crear clave única combinando sección y clave
+                if unique_key in seen_keys:
+                    LOGGER.warning(f"WARNING: Duplicate key '{key}' in section {section}, keeping first.")
+                    continue  # Omitir clave duplicada
+                seen_keys.add(unique_key)
+                cleaned_lines.append(line)
+            else:
+                cleaned_lines.append(line)  # Mantener comentarios y líneas vacías
+
+    # Guardar el archivo limpio en memoria
+    cleaned_config = "\n".join(cleaned_lines)
+
+    # Cargar el archivo limpio con ConfigParser
     config = ConfigParser()
     config.optionxform = str  # Mantener sensibilidad a mayúsculas/minúsculas
-    config.read(config_file)
+    config.read_string(cleaned_config)  # Leer desde la cadena limpia
 
     # Remove in-line comments from config_file
     def clean_value(value):
@@ -26,7 +57,7 @@ def load_config(config_file='Config.ini'):
 
     # Define the Sections and Keys to find in config_file
     config_keys = {
-        'Synology Photos': ['SYNOLOGY_URL', 'SYNOLOGY_USERNAME', 'SYNOLOGY_PASSWORD', 'SYNOLOGY_ROOT_PHOTOS_PATH' ],
+        'Synology Photos': ['SYNOLOGY_URL', 'SYNOLOGY_USERNAME', 'SYNOLOGY_PASSWORD', 'SYNOLOGY_ROOT_PHOTOS_PATH'],
         'Immich Photos': ['IMMICH_URL', 'IMMICH_API_KEY', 'IMMICH_USERNAME', 'IMMICH_PASSWORD'],
         'Apple Photos': ['max_photos', 'appleid', 'applepwd', 'album', 'to_directory', 'date_from', 'date_to', 'asset_from', 'asset_to'],
         'TimeZone': ['timezone']

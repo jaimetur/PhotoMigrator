@@ -422,7 +422,7 @@ def log_init():
     global LOGGER
     global TIMESTAMP
     TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
-    script_name = os.path.splitext(os.path.basename(__file__))[0]
+    script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     log_filename=f"{script_name}_{TIMESTAMP}"
     log_folder="Logs"
     LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename)
@@ -490,7 +490,7 @@ def mode_AUTOMATED_MIGRATION():
         LOGGER.info(f"INFO: Exiting program.")
         sys.exit(0)
 
-    config = read_synology_config(show_info=False)
+    config = read_synology_config(config_file='Config.ini', show_info=False)
     if not config['SYNOLOGY_ROOT_PHOTOS_PATH']:
         LOGGER.warning(f"WARNING: Caanot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
     else:
