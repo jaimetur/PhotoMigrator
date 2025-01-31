@@ -415,6 +415,21 @@ def detect_and_run_execution_mode():
         PARSER.print_help()
         sys.exit(1)
 
+# -------------------------------------------------------------
+# Configure the LOGGER
+# -------------------------------------------------------------
+def log_init():
+    global LOGGER
+    global TIMESTAMP
+    TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
+    script_name = os.path.splitext(os.path.basename(__file__))[0]
+    log_filename=f"{script_name}_{TIMESTAMP}"
+    log_folder="Logs"
+    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename)
+
+# -------------------------------------------------------------
+# MAIN FUNCTION
+# -------------------------------------------------------------
 def main():
     global args
     global LOGGER
@@ -437,15 +452,18 @@ def main():
     DEPRIORITIZE_FOLDERS_PATTERNS = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS', '*Others', '*Variad[oa]*', '*Vari[oa]*', '*Miscellaneous*', '*M[oó]vil*', r'\bfotos\b\s+(\w+)\s*$', r'fotos de \w y \w\s*$', r'fotos de \w\s*$', '*Fotos_de*', '*Fotos_con', '*Fotos de*', '*Fotos con*']
 
     # Create timestamp, start_time and define OUTPUT_FOLDER
-    TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
     START_TIME = datetime.now()
     OUTPUT_FOLDER = f"{ARGS['google-input-takeout-folder']}_{ARGS['google-output-folder-suffix']}_{TIMESTAMP}"
 
-    # Set a global variable for logger and Set up logger based on the no-log-file argument
-    log_filename=f"{SCRIPT_NAME}_{TIMESTAMP}"
-    log_folder="Logs"
-    LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
-    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, skip_logfile=ARGS['no-log-file'], plain_log=False)
+    # # Set a global variable for logger and Set up logger based on the no-log-file argument
+    # TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
+    # log_filename=f"{SCRIPT_NAME}_{TIMESTAMP}"
+    # log_folder="Logs"
+    # LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
+    # LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, skip_logfile=ARGS['no-log-file'], plain_log=False)
+
+    # Initialize the logger.
+    log_init()
 
     # Print the Header (common for all modules)
     LOGGER.info(SCRIPT_DESCRIPTION)
@@ -473,10 +491,10 @@ def mode_AUTOMATED_MIGRATION():
         sys.exit(0)
 
     config = read_synology_config(show_info=False)
-    if not config['ROOT_PHOTOS_PATH']:
-        LOGGER.warning(f"WARNING: Caanot find 'ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
+    if not config['SYNOLOGY_ROOT_PHOTOS_PATH']:
+        LOGGER.warning(f"WARNING: Caanot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
     else:
-        OUTPUT_FOLDER = os.path.join(config['ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
+        OUTPUT_FOLDER = os.path.join(config['SYNOLOGY_ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
 
     res, _ = login_synology()
     if res==-1:

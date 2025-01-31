@@ -418,7 +418,7 @@ def detect_and_run_execution_mode():
 # -------------------------------------------------------------
 # Configure the LOGGER
 # -------------------------------------------------------------
-def logConfig():
+def log_init():
     global LOGGER
     global TIMESTAMP
     TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -461,6 +461,9 @@ def main():
     # log_folder="Logs"
     # LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
     # LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, skip_logfile=ARGS['no-log-file'], plain_log=False)
+
+    # Initialize the logger.
+    log_init()
 
     # Print the Header (common for all modules)
     LOGGER.info(SCRIPT_DESCRIPTION)

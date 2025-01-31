@@ -31,24 +31,19 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # -----------------------------------------------------------------------------
 #                          GLOBAL VARIABLES
 # -----------------------------------------------------------------------------
-global CONFIG
-global IMMICH_URL
-global API_KEY
-global USERNAME
-global PASSWORD
+global CONFIG, IMMICH_URL, IMMICH_API_KEY, IMMICH_USERNAME, IMMICH_PASSWORD, API_KEY_LOGIN
 global SESSION_TOKEN
-global API_KEY_LOGIN
 global HEADERS
 global ALLOWED_MEDIA_EXTENSIONS, ALLOWED_SIDECAR_EXTENSIONS
 
-CONFIG          = None  # Dictionary containing configuration information
-IMMICH_URL      = None  # e.g., "http://192.168.1.100:2283"
-API_KEY         = None  # Immich API_KEY
-USERNAME        = None  # Immich user (email)
-PASSWORD        = None  # Immich password
-SESSION_TOKEN   = None  # JWT token returned after login
-API_KEY_LOGIN   = False # Variable to determine if we use API_KEY for login
-HEADERS         = {}    # Headers used in each request
+CONFIG                      = None  # Dictionary containing configuration information
+IMMICH_URL                  = None  # e.g., "http://192.168.1.100:2283"
+IMMICH_API_KEY              = None  # Immich IMMICH_API_KEY
+IMMICH_USERNAME             = None  # Immich user (email)
+IMMICH_PASSWORD             = None  # Immich password
+SESSION_TOKEN               = None  # JWT token returned after login
+API_KEY_LOGIN               = False # Variable to determine if we use IMMICH_API_KEY for login
+HEADERS                     = {}    # Headers used in each request
 ALLOWED_MEDIA_EXTENSIONS    = None
 ALLOWED_SIDECAR_EXTENSIONS  = None
 
@@ -117,67 +112,63 @@ def get_supported_media_types(type='media'):
 # -----------------------------------------------------------------------------
 #                          CONFIGURATION READING
 # -----------------------------------------------------------------------------
-def read_immich_config(config_file='Immich.config', show_info=True):
+def read_immich_config(config_file='Config.ini', show_info=True):
     """
-    Reads configuration (IMMICH_URL, USERNAME, PASSWORD) from a .config file,
+    Reads configuration (IMMICH_URL, IMMICH_USERNAME, IMMICH_PASSWORD) from a .config file,
     for example:
 
         IMMICH_URL = http://192.168.1.100:2283
-        API_KEY    = YOUR_API_KEY
-        USERNAME   = user@example.com
-        PASSWORD   = 1234
+        IMMICH_API_KEY    = YOUR_API_KEY
+        IMMICH_USERNAME   = user@example.com
+        IMMICH_PASSWORD   = 1234
 
     If the file is not found, the data will be requested from the user interactively.
     """
-    global CONFIG, IMMICH_URL, API_KEY, USERNAME, PASSWORD, API_KEY_LOGIN
+    global CONFIG, IMMICH_URL, IMMICH_API_KEY, IMMICH_USERNAME, IMMICH_PASSWORD, API_KEY_LOGIN
     from LoggerConfig import LOGGER  # Iport global LOGGER
+    from Config import load_config
 
     if CONFIG:
         return CONFIG  # Configuration already read previously
 
+    # Load CONFIG from config_file
     CONFIG = {}
-    LOGGER.info(f"INFO: Searching for configuration file '{config_file}'...")
-    try:
-        with open(config_file, 'r') as file:
-            for line in file:
-                # Remove comments and extra spaces
-                line = line.split('#')[0].strip()
-                if line and '=' in line:
-                    key, value = line.split('=', 1)
-                    key = key.strip().upper()
-                    value = value.strip()
-                    if key not in CONFIG:
-                        CONFIG[key] = value
-    except FileNotFoundError:
-        LOGGER.info(f"WARNING: Configuration file '{config_file}' not found. Data will be requested interactively...")
+    CONFIG = load_config(config_file)
 
-    IMMICH_URL = CONFIG.get('IMMICH_URL', None)
-    API_KEY    = CONFIG.get('API_KEY', None)
-    USERNAME   = CONFIG.get('USERNAME', None)
-    PASSWORD   = CONFIG.get('PASSWORD', None)
-    # If any data is missing, prompt the user for it
-    if not IMMICH_URL:
+    # Extract specific values for Synology from CONFIG.
+    IMMICH_URL      = CONFIG.get('IMMICH_URL', None)
+    IMMICH_API_KEY  = CONFIG.get('IMMICH_API_KEY', None)
+    IMMICH_USERNAME = CONFIG.get('IMMICH_USERNAME', None)
+    IMMICH_PASSWORD = CONFIG.get('IMMICH_PASSWORD', None)
+
+    # Verify required parameters and prompt on screen if missing
+    if not IMMICH_URL or IMMICH_URL.strip()=='':
+        LOGGER.warning(f"WARNING: IMMICH_URL not found. It will be requested on screen.")
         CONFIG['IMMICH_URL'] = input("[PROMPT] Enter IMMICH_URL (e.g., http://192.168.1.100:2283): ")
         IMMICH_URL = CONFIG['IMMICH_URL']
-    if not API_KEY:
-        if not USERNAME:
-            CONFIG['USERNAME'] = input("[PROMPT] Enter USERNAME (Immich email): ")
-            USERNAME = CONFIG['USERNAME']
-        if not PASSWORD:
-            CONFIG['PASSWORD'] = input("[PROMPT] Enter PASSWORD: ")
-            PASSWORD = CONFIG['PASSWORD']
+    if not IMMICH_API_KEY or IMMICH_API_KEY.strip()=='':
+        if not IMMICH_USERNAME or IMMICH_USERNAME.strip()=='':
+            LOGGER.warning(f"WARNING: IMMICH_USERNAME not found. It will be requested on screen.")
+            CONFIG['IMMICH_USERNAME'] = input("[PROMPT] Enter IMMICH_USERNAME (Immich email): ")
+            IMMICH_USERNAME = CONFIG['IMMICH_USERNAME']
+        if not IMMICH_PASSWORD or IMMICH_PASSWORD.strip()=='':
+            LOGGER.warning(f"WARNING: IMMICH_PASSWORD not found. It will be requested on screen.")
+            CONFIG['IMMICH_PASSWORD'] = input("[PROMPT] Enter IMMICH_PASSWORD: ")
+            IMMICH_PASSWORD = CONFIG['IMMICH_PASSWORD']
     else:
         API_KEY_LOGIN = True
+
     if show_info:
-        LOGGER.info(f"INFO: Connecting to Immich:")
-        LOGGER.info(f"INFO: IMMICH_URL : {IMMICH_URL}")
+        LOGGER.info("")
+        LOGGER.info(f"INFO: Immich Config Read:")
+        LOGGER.info(f"INFO: IMMICH_URL     : {IMMICH_URL}")
         if API_KEY_LOGIN:
-            masked_password = '*' * len(API_KEY)
-            LOGGER.info(f"INFO: API_KEY : {masked_password}")
+            masked_password = '*' * len(IMMICH_API_KEY)
+            LOGGER.info(f"INFO: IMMICH_API_KEY : {masked_password}")
         else:
-            LOGGER.info(f"INFO: USERNAME   : {USERNAME}")
-            masked_password = '*' * len(PASSWORD)
-            LOGGER.info(f"INFO: PASSWORD   : {masked_password}")
+            LOGGER.info(f"INFO: IMMICH_USERNAME: {IMMICH_USERNAME}")
+            masked_password = '*' * len(IMMICH_PASSWORD)
+            LOGGER.info(f"INFO: IMMICH_PASSWORD: {masked_password}")
     return CONFIG
 
 
@@ -192,25 +183,28 @@ def login_immich():
     global SESSION_TOKEN, HEADERS
     from LoggerConfig import LOGGER  # Import global LOGGER
     # If there is already a token and headers, assume we are logged in
-    if len(HEADERS.keys())>0 and  (f"Bearer {SESSION_TOKEN}" or API_KEY in HEADERS.values()):
+    if len(HEADERS.keys())>0 and  (f"Bearer {SESSION_TOKEN}" or IMMICH_API_KEY in HEADERS.values()):
         return True
     # Ensure the configuration is read
     read_immich_config()
-    # Create Base headers for subsequent requests
-    # If detected API_KEY in Immich.config
+
+    LOGGER.info("")
+    LOGGER.info(f"INFO: Authenticating on Immich Photos and getting Session...")
+
+    # If detected IMMICH_API_KEY in Immich.config
     if API_KEY_LOGIN:
         HEADERS = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'x-api-key': API_KEY
+            'x-api-key': IMMICH_API_KEY
         }
-        LOGGER.info(f"INFO: API_KEY found in Immichc.config for authentication.")
-    # If not detected API_KEY in Immich.config
+        LOGGER.info(f"INFO: Authentication Successfully with IMMICH_API_KEY found in Config file.")
+    # If not detected IMMICH_API_KEY in Immich.config
     else:
         url = f"{IMMICH_URL}/api/auth/login"
         payload = json.dumps({
-          "email": USERNAME,
-          "password": PASSWORD
+          "email": IMMICH_USERNAME,
+          "password": IMMICH_PASSWORD
         })
         HEADERS = {
           'Content-Type': 'application/json',
@@ -232,7 +226,7 @@ def login_immich():
             'Accept': 'application/json',
             'Authorization': f'Bearer {SESSION_TOKEN}'
         }
-        LOGGER.info(f"INFO: Authentication with user/password successful. Bearer Token obtained.")
+        LOGGER.info(f"INFO: Authentication Successfully with user/password found in Config file.")
     return True
 
 def logout_immich():
@@ -458,7 +452,7 @@ def upload_file_to_immich(file_path):
     if API_KEY_LOGIN:
         header = {
             'Accept': 'application/json',
-            'x-api-key': API_KEY
+            'x-api-key': IMMICH_API_KEY
         }
     else:
         header = {
@@ -877,28 +871,34 @@ def immich_download_ALL(output_folder="Downloads_Immich"):
 #                            MAIN TESTS FUNCTION                             #
 ##############################################################################
 if __name__ == "__main__":
-    # Create timestamp, and initialize LOGGER.
-    from datetime import datetime
-    from LoggerConfig import log_setup
-    TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
-    log_filename=f"{sys.argv[0]}{TIMESTAMP}"
-    log_folder="Logs"
-    LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
-    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename)
+    # Create initialize LOGGER.
+    from CloudPhotoMigrator import log_init
+
+    # from datetime import datetime
+    # from LoggerConfig import log_setup
+    # TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
+    # script_name = os.path.splitext(os.path.basename(__file__))[0]
+    # log_filename=f"{script_name}_{TIMESTAMP}"
+    # log_folder="Logs"
+    # LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename)
+    # LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename)
+
+    # Initialize the logger.
+    log_init()
 
     # 0) Read configuration and log in
     read_immich_config()
     login_immich()
 
     # 1) Example: Delete empty albums
-    print("=== EXAMPLE: immich_delete_empty_albums() ===")
+    print("\n=== EXAMPLE: immich_delete_empty_albums() ===")
     deleted = immich_delete_empty_albums()
-    print(f"[RESULT] Empty albums deleted: {deleted}\n")
+    print(f"[RESULT] Empty albums deleted: {deleted}")
 
     # # 2) Example: Delete duplicate albums
-    # print("=== EXAMPLE: immich_delete_duplicates_albums() ===")
+    # print("\n=== EXAMPLE: immich_delete_duplicates_albums() ===")
     # duplicates = immich_delete_duplicates_albums()
-    # print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
+    # print(f"[RESULT] Duplicate albums deleted: {duplicates}")
 
     # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Others'
     # print("\n=== EXAMPLE: immich_upload_folder() ===")
@@ -913,14 +913,14 @@ if __name__ == "__main__":
     # # 5) Example: Download all photos from ALL albums
     print("\n=== EXAMPLE: immich_download_albums() ===")
     # total = immich_download_albums('ALL', output_folder="Downloads_Immich")
-    total = immich_download_albums("1994 - Recuerdos", output_folder="Downloads_Immich")
-    print(f"[RESULT] A total of {total} assets have been downloaded.\n")
+    total_albums, total_assets = immich_download_albums("1994 - Recuerdos", output_folder="Downloads_Immich")
+    print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums} different albbums.")
 
     # 6) Example: Download everything in the structure /Albums/<albumName>/ + /Others/yyyy/mm
-    print("=== EXAMPLE: immich_download_ALL() ===")
+    print("\n=== EXAMPLE: immich_download_ALL() ===")
     # total_struct = immich_download_ALL(output_folder="Downloads_Immich")
     total_albums_downloaded, total_assets_downloaded = immich_download_ALL(output_folder="Downloads_Immich")
-    print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\Total assets: {total_assets_downloaded}\n")
+    print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
 
     # 7) Local logout
     logout_immich()

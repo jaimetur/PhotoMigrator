@@ -1243,16 +1243,20 @@ def synology_download_ALL(output_folder="Downloads_Synology"):
 #                            MAIN TESTS FUNCTION                             #
 ##############################################################################
 if __name__ == "__main__":
-    # Create timestamp, and initialize LOGGER.
-    from datetime import datetime
-    from LoggerConfig import log_setup
-    TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
-    script_name = os.path.splitext(os.path.basename(__file__))[0]
-    log_filename=f"{script_name}_{TIMESTAMP}"
-    log_folder="Logs"
-    LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename)
-    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename)
+    # Create initialize LOGGER.
+    from CloudPhotoMigrator import log_init
 
+    # from datetime import datetime
+    # from LoggerConfig import log_setup
+    # TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
+    # script_name = os.path.splitext(os.path.basename(__file__))[0]
+    # log_filename=f"{script_name}_{TIMESTAMP}"
+    # log_folder="Logs"
+    # LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename)
+    # LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename)
+
+    # Initialize the logger.
+    log_init()
     # 0) Read configuration and log in
     read_synology_config()
     login_synology()
