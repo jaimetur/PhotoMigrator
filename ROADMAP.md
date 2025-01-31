@@ -22,7 +22,7 @@
   - [x] Got Supported media type from Immich using API
   - [x] Translated into English all Immich fuctions
   - [x] Tested function -ida to download Albums from immich
-- [x] Added new option( -syf, --synology-upload-folder') in Synology Photos Support to upload asets without a local folder without associate them to ant album. 
+- [x] Added new option( -suf, --synology-upload-folder') in Synology Photos Support to upload asets without a local folder without associate them to ant album. 
 - [x] Added new option( -sdA, --synology-download-ALL') in Synology Photos Support to download ALL asets (with and without Albums assciated). 
 - [x] Renamed options of Synology Photos support to homogenize with Immich Photos support
 - [x] Changed -sda/-ida to support wildcards on Albums name to download
