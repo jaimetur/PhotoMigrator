@@ -2,9 +2,7 @@
 
 ## 2.4.0 (31/01/2025):
 ### TODO:
-- [x] Refactor and group All Google Takeout arguments in one block for 'Google Photos Takeout' Support
 - [ ] Merge -z and -t options in just one -gtf, -google-takeout-folder and detect if contains Takeout Zip files, in that case Unzip to Takeout folder, if not, make Takeout folder = Input folder
-- [x] Change the logic to detect google_takeout_mode (former normal_mode)
 
 
 - [ ] Unificate a single Config.conf file and include tags for the different purposses
@@ -35,7 +33,9 @@
 - [x] Ignored @eaDir folders on -iuf, -iua, -sua
 - [x] Replaced 'ALL_PHOTOS' by 'Others' as output subfolder for assets without any album associated (be careful if you already run the script with previous version because before, the folder for assets without albums was named 'ALL_PHOTOS')
 - [x] Added colors to --help text for a better visualization.
+- [x] Refactor and group All Google Takeout arguments in one block for 'Google Photos Takeout' Support
 - [X] Refactor normal_mode to google_takeout_mode
+- [x] Change the logic to detect google_takeout_mode (former normal_mode)
 - [x] Put at the beginning the standard option (those that are not related to any Support mode)
 - [x] Changed -sda/-ida to support wildcards on Albums name to download
 - [x] Renamed options of Synology Photos support to homogenize with Immich Photos support
