@@ -30,14 +30,8 @@ from tqdm import tqdm
 # -----------------------------------------------------------------------------
 #                          GLOBAL VARIABLES
 # -----------------------------------------------------------------------------
-global CONFIG
-global NAS_IP
-global USERNAME
-global PASSWORD
-global ROOT_PHOTOS_PATH
-global SYNOLOGY_URL
-global SESSION
-global SID
+global CONFIG, SYNOLOGY_URL, SYNOLOGY_USERNAME, SYNOLOGY_PASSWORD, SYNOLOGY_ROOT_PHOTOS_PATH
+global SESSION, SID
 
 # Initialize global variables
 CONFIG = None
@@ -64,68 +58,48 @@ def read_synology_config(config_file='Synology.config', show_info=True):
     Returns:
         dict: The loaded configuration dictionary.
     """
-    global CONFIG
-    global NAS_IP
-    global USERNAME
-    global PASSWORD
-    global ROOT_PHOTOS_PATH
-    global SYNOLOGY_URL
+    global CONFIG, SYNOLOGY_URL, SYNOLOGY_USERNAME, SYNOLOGY_PASSWORD, SYNOLOGY_ROOT_PHOTOS_PATH
     from LoggerConfig import LOGGER  # Import the logger inside the function
+    from Config import load_config
 
     if CONFIG:
         return CONFIG
 
+    # Load CONFIG from config_file
     CONFIG = {}
-    LOGGER.info(f"INFO: Looking for Synology config file: '{config_file}'")
-    try:
-        # Try to open the file
-        with open(config_file, 'r') as file:
-            for line in file:
-                line = line.split('#')[0].strip()  # Remove comments and whitespace
-                if line and '=' in line:
-                    key, value = line.split('=', 1)
-                    key = key.strip().upper()
-                    value = value.strip()
-                    # Add only if the key does not already exist
-                    if key not in CONFIG:
-                        CONFIG[key] = value
-    except FileNotFoundError:
-        LOGGER.warning(f"WARNING: The file {config_file} was not found. You must introduce required data manually...")
+    CONFIG = load_config(config_file)
 
-    # Extract specific values
-    NAS_IP = CONFIG.get('NAS_IP')
-    USERNAME = CONFIG.get('USERNAME')
-    PASSWORD = CONFIG.get('PASSWORD')
-    ROOT_PHOTOS_PATH = CONFIG.get('ROOT_PHOTOS_PATH')
+    # Extract specific values for Synology from CONFIG.
+    SYNOLOGY_URL = CONFIG.get('SYNOLOGY_URL', None)
+    SYNOLOGY_USERNAME = CONFIG.get('SYNOLOGY_USERNAME', None)
+    SYNOLOGY_PASSWORD = CONFIG.get('SYNOLOGY_PASSWORD', None)
+    SYNOLOGY_ROOT_PHOTOS_PATH = CONFIG.get('SYNOLOGY_ROOT_PHOTOS_PATH', None)
 
     # Verify required parameters and prompt on screen if missing
-    if not NAS_IP:
-        LOGGER.warning(f"WARNING: NAS_IP not found. It will be requested on screen.")
-        CONFIG['NAS_IP'] = input("\nEnter NAS_IP: ")
-    if not USERNAME:
-        LOGGER.warning(f"WARNING: USERNAME not found. It will be requested on screen.")
-        CONFIG['USERNAME'] = input("\nEnter USERNAME: ")
-    if not PASSWORD:
-        LOGGER.warning(f"WARNING: PASSWORD not found. It will be requested on screen.")
-        CONFIG['PASSWORD'] = input("\nEnter PASSWORD: ")
-    if not ROOT_PHOTOS_PATH:
-        LOGGER.warning(f"WARNING: ROOT_PHOTOS_PATH not found. It will be requested on screen.")
-        CONFIG['ROOT_PHOTOS_PATH'] = input("\nEnter ROOT_PHOTOS_PATH: ")
-
-    # Update global connection variables
-    NAS_IP = CONFIG['NAS_IP']
-    USERNAME = CONFIG['USERNAME']
-    PASSWORD = CONFIG['PASSWORD']
-    ROOT_PHOTOS_PATH = CONFIG['ROOT_PHOTOS_PATH']
-    SYNOLOGY_URL = f"http://{NAS_IP}:5000"
+    if not SYNOLOGY_URL or SYNOLOGY_URL.strip()=='':
+        LOGGER.warning(f"WARNING: SYNOLOGY_URL not found. It will be requested on screen.")
+        CONFIG['SYNOLOGY_URL'] = input("\nEnter SYNOLOGY_URL: ")
+        SYNOLOGY_URL = CONFIG['SYNOLOGY_URL']
+    if not SYNOLOGY_USERNAME or SYNOLOGY_USERNAME.strip()=='':
+        LOGGER.warning(f"WARNING: SYNOLOGY_USERNAME not found. It will be requested on screen.")
+        CONFIG['SYNOLOGY_USERNAME'] = input("\nEnter SYNOLOGY_USERNAME: ")
+        SYNOLOGY_USERNAME = CONFIG['SYNOLOGY_USERNAME']
+    if not SYNOLOGY_PASSWORD or SYNOLOGY_PASSWORD.strip()=='':
+        LOGGER.warning(f"WARNING: SYNOLOGY_PASSWORD not found. It will be requested on screen.")
+        CONFIG['SYNOLOGY_PASSWORD'] = input("\nEnter SYNOLOGY_PASSWORD: ")
+        SYNOLOGY_PASSWORD = CONFIG['SYNOLOGY_PASSWORD']
+    if not SYNOLOGY_ROOT_PHOTOS_PATH or SYNOLOGY_ROOT_PHOTOS_PATH.strip()=='':
+        LOGGER.warning(f"WARNING: SYNOLOGY_ROOT_PHOTOS_PATH not found. It will be requested on screen.")
+        CONFIG['SYNOLOGY_ROOT_PHOTOS_PATH'] = input("\nEnter SYNOLOGY_ROOT_PHOTOS_PATH: ")
+        SYNOLOGY_ROOT_PHOTOS_PATH = CONFIG['SYNOLOGY_ROOT_PHOTOS_PATH']
 
     if show_info:
         # Display global connection variables
-        masked_password = '*' * len(PASSWORD)
-        LOGGER.info(f"INFO: NAS_IP           : {NAS_IP}")
-        LOGGER.info(f"INFO: USERNAME         : {USERNAME}")
-        LOGGER.info(f"INFO: PASSWORD         : {masked_password}")
-        LOGGER.info(f"INFO: ROOT_PHOTOS_PATH : {ROOT_PHOTOS_PATH}")
+        masked_password = '*' * len(SYNOLOGY_PASSWORD)
+        LOGGER.info(f"INFO: SYNOLOGY_URL              : {SYNOLOGY_URL}")
+        LOGGER.info(f"INFO: SYNOLOGY_USERNAME         : {SYNOLOGY_USERNAME}")
+        LOGGER.info(f"INFO: SYNOLOGY_PASSWORD         : {masked_password}")
+        LOGGER.info(f"INFO: SYNOLOGY_ROOT_PHOTOS_PATH : {SYNOLOGY_ROOT_PHOTOS_PATH}")
 
     return CONFIG
 
@@ -153,8 +127,8 @@ def login_synology():
         "api": "SYNO.API.Auth",
         "version": "6",
         "method": "login",
-        "account": USERNAME,
-        "passwd": PASSWORD,
+        "account": SYNOLOGY_USERNAME,
+        "passwd": SYNOLOGY_PASSWORD,
         "format": "sid",
     }
     response = SESSION.get(url, params=params, verify=False)
@@ -773,18 +747,18 @@ def start_reindex_synology_photos_with_api(type='basic'):
         "api": "SYNO.Foto.Index",
         "version": 1,
         "method": "reindex",
-        "runner": USERNAME,
+        "runner": SYNOLOGY_USERNAME,
         "type": type
     }
     try:
         result = SESSION.get(url, params=params, verify=False).json()
         if result.get("success"):
             if type == 'basic':
-                LOGGER.info(f"INFO: Reindexing started in Synology Photos database for user: '{USERNAME}'.")
+                LOGGER.info(f"INFO: Reindexing started in Synology Photos database for user: '{SYNOLOGY_USERNAME}'.")
                 LOGGER.info("INFO: This process may take several minutes or even hours to finish depending on the number of files to index. Please be patient...")
         else:
             if result.get("error").get("code") == 105:
-                LOGGER.error(f"ERROR: The user '{USERNAME}' does not have sufficient privileges to start reindexing services. Wait for the system to index the folder before adding its content to Synology Photos albums.")
+                LOGGER.error(f"ERROR: The user '{SYNOLOGY_USERNAME}' does not have sufficient privileges to start reindexing services. Wait for the system to index the folder before adding its content to Synology Photos albums.")
             else:
                 LOGGER.error(f"ERROR: Error starting reindexing: {result.get('error')}")
                 start_reindex_synology_photos_with_command(type=type)
@@ -812,7 +786,7 @@ def start_reindex_synology_photos_with_command(type='basic'):
         'api=SYNO.Foto.Index',
         'method=reindex',
         'version=1',
-        f'runner={USERNAME}',
+        f'runner={SYNOLOGY_USERNAME}',
         f'type={type}'
     ]
     command_str = " ".join(command)
@@ -820,7 +794,7 @@ def start_reindex_synology_photos_with_command(type='basic'):
         try:
             result = subprocess.run(command, capture_output=True, text=True, check=True)
             if type == 'basic':
-                LOGGER.info(f"INFO: Reindexing started in Synology Photos database for user: '{USERNAME}'.")
+                LOGGER.info(f"INFO: Reindexing started in Synology Photos database for user: '{SYNOLOGY_USERNAME}'.")
                 LOGGER.info("INFO: This process may take several minutes or even hours to finish depending on the number of files to index. Please be patient...")
                 LOGGER.info(f"INFO: Starting reindex with command: '{command_str}'")
         except subprocess.CalledProcessError as e:
@@ -988,7 +962,7 @@ def synology_upload_folder(folder):
     LOGGER.warning("WARNING: This mode is not yet supported. Exiting.")
     sys.exit(-1)
 
-    # # Check if albums_folder is inside ROOT_PHOTOS_PATH
+    # # Check if albums_folder is inside SYNOLOGY_ROOT_PHOTOS_PATH
     # folder = Utils.remove_quotes(folder)
     # if folder.endswith(os.path.sep):
     #     folder = folder[:-1]
@@ -997,11 +971,11 @@ def synology_upload_folder(folder):
     #     sys.exit(-1)
     # LOGGER.info(f"INFO: Folder Path: '{folder}'")
     # folder_full_path = os.path.realpath(folder)
-    # ROOT_PHOTOS_PATH_full_path = os.path.realpath(ROOT_PHOTOS_PATH)
+    # ROOT_PHOTOS_PATH_full_path = os.path.realpath(SYNOLOGY_ROOT_PHOTOS_PATH)
     # ROOT_PHOTOS_PATH_full_path = Utils.remove_server_name(ROOT_PHOTOS_PATH_full_path)
     # folder_full_path = Utils.remove_server_name(folder_full_path)
     # if ROOT_PHOTOS_PATH_full_path not in folder_full_path:
-    #     LOGGER.error(f"ERROR: Folder: '{folder_full_path}' should be inside ROOT_PHOTOS_PATH: '{ROOT_PHOTOS_PATH_full_path}'")
+    #     LOGGER.error(f"ERROR: Folder: '{folder_full_path}' should be inside SYNOLOGY_ROOT_PHOTOS_PATH: '{ROOT_PHOTOS_PATH_full_path}'")
     #     sys.exit(-1)
     #
     # LOGGER.info("INFO: Reindexing Synology Photos database before adding content...")
@@ -1066,7 +1040,7 @@ def synology_upload_albums(albums_folder):
     from LoggerConfig import LOGGER
     login_synology()
 
-    # Check if albums_folder is inside ROOT_PHOTOS_PATH
+    # Check if albums_folder is inside SYNOLOGY_ROOT_PHOTOS_PATH
     albums_folder = Utils.remove_quotes(albums_folder)
     if albums_folder.endswith(os.path.sep):
         albums_folder = albums_folder[:-1]
@@ -1075,11 +1049,11 @@ def synology_upload_albums(albums_folder):
         sys.exit(-1)
     LOGGER.info(f"INFO: Albums Folder Path: '{albums_folder}'")
     albums_folder_full_path = os.path.realpath(albums_folder)
-    ROOT_PHOTOS_PATH_full_path = os.path.realpath(ROOT_PHOTOS_PATH)
+    ROOT_PHOTOS_PATH_full_path = os.path.realpath(SYNOLOGY_ROOT_PHOTOS_PATH)
     ROOT_PHOTOS_PATH_full_path = Utils.remove_server_name(ROOT_PHOTOS_PATH_full_path)
     albums_folder_full_path = Utils.remove_server_name(albums_folder_full_path)
     if ROOT_PHOTOS_PATH_full_path not in albums_folder_full_path:
-        LOGGER.error(f"ERROR: Albums folder: '{albums_folder_full_path}' should be inside ROOT_PHOTOS_PATH: '{ROOT_PHOTOS_PATH_full_path}'")
+        LOGGER.error(f"ERROR: Albums folder: '{albums_folder_full_path}' should be inside SYNOLOGY_ROOT_PHOTOS_PATH: '{ROOT_PHOTOS_PATH_full_path}'")
         sys.exit(-1)
 
     LOGGER.info("INFO: Reindexing Synology Photos database before adding content...")
@@ -1215,7 +1189,7 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
         # Download the photos to the destination folder
         assets_downloaded += download_assets(target_folder_id, target_folder_name, photos)
 
-    LOGGER.info(f"INFO: Album(s) downloaded successfully. You can find them in '{os.path.join(ROOT_PHOTOS_PATH, download_folder)}'")
+    LOGGER.info(f"INFO: Album(s) downloaded successfully. You can find them in '{os.path.join(SYNOLOGY_ROOT_PHOTOS_PATH, download_folder)}'")
     return albums_downloaded, assets_downloaded
 
 
@@ -1273,47 +1247,48 @@ if __name__ == "__main__":
     from datetime import datetime
     from LoggerConfig import log_setup
     TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
-    log_filename=f"{sys.argv[0]}{TIMESTAMP}"
+    script_name = os.path.splitext(os.path.basename(__file__))[0]
+    log_filename=f"{script_name}_{TIMESTAMP}"
     log_folder="Logs"
-    LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
+    LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename)
     LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename)
 
     # 0) Read configuration and log in
     read_synology_config()
     login_synology()
 
-    # 1) Example: Delete empty albums
-    print("=== EXAMPLE: synology_delete_empty_albums() ===")
-    deleted = synology_delete_empty_albums()
-    print(f"[RESULT] Empty albums deleted: {deleted}\n")
-
-    # 2) Example: Delete duplicate albums
-    print("=== EXAMPLE: synology_delete_duplicates_albums() ===")
-    duplicates = synology_delete_duplicates_albums()
-    print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
-
-    # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Others'
-    print("\n=== EXAMPLE: synology_upload_folder() ===")
-    input_others_folder = "/volume1/homes/jaimetur_ftp/Photos/Others"     # For Linux (NAS)
-    input_others_folder = r"r:\jaimetur_ftp\Photos\Others"                # For Windows
-    synology_upload_folder(input_others_folder)
-
-    # 4) Example: Create albums from subfolders in 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums'
-    print("\n=== EXAMPLE: synology_upload_albums() ===")
-    input_albums_folder = "/volume1/homes/jaimetur_ftp/Photos/Albums"     # For Linux (NAS)
-    input_albums_folder = r"r:\jaimetur_ftp\Photos\Albums"                # For Windows
-    synology_upload_albums(input_albums_folder)
-
-    # 5) Example: Download all photos from ALL albums
-    print("\n=== EXAMPLE: synology_download_albums() ===")
-    # total = synology_download_albums('ALL', output_folder="Downloads_Synology")
-    total = synology_download_albums(albums_name='Cadiz', output_folder="Downloads_Synology")
-    print(f"[RESULT] A total of {total} assets have been downloaded.\n")
-
-    # 6) Example: Download everything in the structure /Albums/<albumName>/ + /Others/yyyy/mm
-    print("=== EXAMPLE: synology_download_ALL() ===")
-    total_struct = synology_download_ALL(output_folder="Downloads_Synology")
-    print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
+    # # 1) Example: Delete empty albums
+    # print("=== EXAMPLE: synology_delete_empty_albums() ===")
+    # deleted = synology_delete_empty_albums()
+    # print(f"[RESULT] Empty albums deleted: {deleted}\n")
+    #
+    # # 2) Example: Delete duplicate albums
+    # print("=== EXAMPLE: synology_delete_duplicates_albums() ===")
+    # duplicates = synology_delete_duplicates_albums()
+    # print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
+    #
+    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Others'
+    # print("\n=== EXAMPLE: synology_upload_folder() ===")
+    # input_others_folder = "/volume1/homes/jaimetur_ftp/Photos/Others"     # For Linux (NAS)
+    # input_others_folder = r"r:\jaimetur_ftp\Photos\Others"                # For Windows
+    # synology_upload_folder(input_others_folder)
+    #
+    # # 4) Example: Create albums from subfolders in 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums'
+    # print("\n=== EXAMPLE: synology_upload_albums() ===")
+    # input_albums_folder = "/volume1/homes/jaimetur_ftp/Photos/Albums"     # For Linux (NAS)
+    # input_albums_folder = r"r:\jaimetur_ftp\Photos\Albums"                # For Windows
+    # synology_upload_albums(input_albums_folder)
+    #
+    # # 5) Example: Download all photos from ALL albums
+    # print("\n=== EXAMPLE: synology_download_albums() ===")
+    # # total = synology_download_albums('ALL', output_folder="Downloads_Synology")
+    # total = synology_download_albums(albums_name='Cadiz', output_folder="Downloads_Synology")
+    # print(f"[RESULT] A total of {total} assets have been downloaded.\n")
+    #
+    # # 6) Example: Download everything in the structure /Albums/<albumName>/ + /Others/yyyy/mm
+    # print("=== EXAMPLE: synology_download_ALL() ===")
+    # total_struct = synology_download_ALL(output_folder="Downloads_Synology")
+    # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
 
     # 7) Local logout
     logout_synology()
