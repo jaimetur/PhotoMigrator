@@ -20,12 +20,8 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 **Date**: 2025-02-01
 
 - [x] New Script name '**CloudPhotoMigrator**' (former 'GoogleTakeoutPhotos')
+- [x] New Automated Migration Feature to perform Fully automated migration process between different Photo Cloud Services
 - [x] Added Support for Immich Photos
-    - [x] Added support to include sidecar files when upload assts to Immich
-    - [x] Improved authentication speed in Immich
-    - [x] Got Supported media type from Immich using API
-    - [x] Translated into English all Immich fuctions
-    - [x] Tested function -ida to download Albums from immich
 - [x] Replaced 'ALL_PHOTOS' by 'Others' as output subfolder for assets without any album associated (be careful if you already run the script with previous version because before, the folder for assets without albums was named 'ALL_PHOTOS')
 - [x] Added colors to --help text for a better visualization.
 - [x] Refactor and group All Google Takeout arguments in one block for 'Google Photos Takeout' Support
