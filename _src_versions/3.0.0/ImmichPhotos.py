@@ -488,7 +488,7 @@ def upload_file_to_immich(file_path):
     date_time_for_attributes = datetime.fromtimestamp(stats.st_mtime).strftime("%Y-%m-%dT%H:%M:%S.000Z")
     data = {
         'deviceAssetId': f'IMG_{date_time_for_filename}_{os.path.basename(file_path)}',
-        'deviceId': 'OrganizeTakeoutPhotos',
+        'deviceId': 'CloudPhotoMigrator',
         'fileCreatedAt': date_time_for_attributes,
         'fileModifiedAt': date_time_for_attributes,
         'fileSize': str(stats.st_size),
@@ -894,14 +894,14 @@ if __name__ == "__main__":
     # duplicates = immich_delete_duplicates_albums()
     # print(f"[RESULT] Duplicate albums deleted: {duplicates}")
 
-    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Others'
+    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder\Others'
     # print("\n=== EXAMPLE: immich_upload_folder() ===")
-    # big_folder = r"r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Others"
+    # big_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder\Others"
     # immich_upload_folder(big_folder)
 
-    # # 4) Example: Create albums from subfolders in 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums'
+    # # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder\Albums'
     # print("\n=== EXAMPLE: immich_upload_albums() ===")
-    # input_albums_folder = r"r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums"
+    # input_albums_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder\Albums"
     # immich_upload_albums(input_albums_folder)
 
     # # 5) Example: Download all photos from ALL albums

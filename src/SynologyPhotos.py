@@ -1267,13 +1267,13 @@ if __name__ == "__main__":
     # duplicates = synology_delete_duplicates_albums()
     # print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
     #
-    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Others'
+    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder\Others'
     # print("\n=== EXAMPLE: synology_upload_folder() ===")
     # input_others_folder = "/volume1/homes/jaimetur_ftp/Photos/Others"     # For Linux (NAS)
     # input_others_folder = r"r:\jaimetur_ftp\Photos\Others"                # For Windows
     # synology_upload_folder(input_others_folder)
     #
-    # # 4) Example: Create albums from subfolders in 'r:\jaimetur\OrganizeTakeoutPhotos\Upload_folder\Albums'
+    # # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder\Albums'
     # print("\n=== EXAMPLE: synology_upload_albums() ===")
     # input_albums_folder = "/volume1/homes/jaimetur_ftp/Photos/Albums"     # For Linux (NAS)
     # input_albums_folder = r"r:\jaimetur_ftp\Photos\Albums"                # For Windows

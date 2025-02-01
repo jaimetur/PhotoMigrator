@@ -2,8 +2,8 @@
 
 ## 3.0.0 (10/02/2025):
 ### TODO:
-- [ ] Change Script description on README.md
-- [ ] Update README.md
+- [x] Change Script description on README.md
+- [x] Update README.md
 - [ ] Update RELEASES-NOTES.md
 - [ ] Create a New Release in Github Production Repo
 
