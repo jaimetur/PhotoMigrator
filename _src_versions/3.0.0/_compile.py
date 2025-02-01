@@ -46,7 +46,7 @@ def include_file_and_folders_and_compress(input_file, output_file):
     temp_dir = Path(tempfile.mkdtemp())
     script_version_dir = os.path.join(temp_dir, SCRIPT_NAME_VERSION)
     print(script_version_dir)
-    zip_dir = os.path.join(script_version_dir, "Zip_files")
+    zip_dir = os.path.join(script_version_dir, "Takeout")
     print(zip_dir)
     os.makedirs(script_version_dir, exist_ok=True)
     os.makedirs(zip_dir, exist_ok=True)
