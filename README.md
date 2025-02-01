@@ -285,7 +285,7 @@ This step is useful if you want to Upload all your Albums to a new Cloud Service
 
 > [!NOTE]  
 >## <span style="color:green"> Fully Automated Migration Feature</span>
->From version 3.0.0 onwards,the script supports a new Extra Mode called -AUTO, --AUTOMATED-MIGRATION Mode. 
+>From version 3.0.0 onwards, the script supports a new Extra Mode called -AUTO, --AUTOMATED-MIGRATION Mode. 
 >
 >If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will automatically do the whole migration jon from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.
 >The script will do a FULLY-AUTOMATED job which has two steps:  
@@ -328,9 +328,9 @@ Withh this example, the script will do a FULLY-AUTOMATED job which has two
       upload all the assets processed in previous step, creating a new Album per each Album found in your Synology Photos and associating
       all the assets included in each Album in the same way that you had on your Synology Photos account.
 
-> [!NOTE]
-> ## <span style="color:green">Google Photos Takeout Support</span>
->The script can process your Google Takeout files to fix timestamp, geodata, organize files per year/month, organize assets within album(s) in subfolders, etc...
+>[!NOTE]
+>## <span style="color:green">Google Photos Support</span>
+>From version 1.0.0 onwards, the script can process your Google Photos Takeout files to fix timestamp, geodata, organize files per year/month, organize assets within album(s) in subfolders, etc...
 >
 >>#### <span style="color:green">Example 'Config.ini' for Synology Photos:</span>
 >>
