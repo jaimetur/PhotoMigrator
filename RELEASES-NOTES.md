@@ -19,6 +19,14 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 **Release**: 3.0.0  
 **Date**: 2025-02-01
 
+- New Script name 'CloudPhotoMigrator' (former 'GoogleTakeoutPhotos')
+- [x] Added Support for Immich Photos
+    - [x] Added support to include sidecar files when upload assts to Immich
+    - [x] Improved authentication speed in Immich
+    - [x] Got Supported media type from Immich using API
+    - [x] Translated into English all Immich fuctions
+    - [x] Tested function -ida to download Albums from immich
+
 - Renamed options:
   - -sea, --synology-extract-albums is now **-sda, --synology-download-albums**
   - -sca, --synology-create-albums is now **-sua, --synology-upload-albums**
