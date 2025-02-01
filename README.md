@@ -3,7 +3,7 @@
 Welcome to <span style="color:green">**CloudPhotoMigrator** </span>Tool:
 
 This tool has been designed to Interact and Manage different Photo Cloud Services. As of today, the Supported Photo Cloud Services are:
-- **Google Photos** (by means of Google Takeout Files)
+- **Google Photos**
 - **Synology Photos**
 - **Immich Photos**
 - **Apple Photos** (is on the ROADMAP.md for next release)
