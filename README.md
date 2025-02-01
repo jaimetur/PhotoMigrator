@@ -6,7 +6,7 @@ This tool has been designed to Interact and Manage different Photo Cloud Service
 - **Google Photos**
 - **Synology Photos**
 - **Immich Photos**
-- **Apple Photos** 
+- **Apple Photos**  
   (not available yet but is on the ROADMAP.md for next release)
 
 Apart from Interact with the different Photo Cloud Services, the Tool also contains some other useful features such as:
