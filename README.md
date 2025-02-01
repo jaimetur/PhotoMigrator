@@ -284,7 +284,7 @@ This step is useful if you want to Upload all your Albums to a new Cloud Service
 
 
 > [!NOTE]  
->## <span style="color:green"> Fully Automated Migration Feature</span>
+>## <span style="color:green">Automated Migration Feature</span>
 >From version 3.0.0 onwards, the script supports a new Extra Mode called -AUTO, --AUTOMATED-MIGRATION Mode. 
 >
 >If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will automatically do the whole migration jon from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.
