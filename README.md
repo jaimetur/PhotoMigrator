@@ -614,7 +614,7 @@ With this example, the script will connect to Immich Photos database and extract
 
 
 > [!NOTE]
-> ## <span style="color:green">ADDITIONAL STANDALONE EXTRA MODES</span>
+> ## <span style="color:green">Other Standalone Features</span>
 >Additionally, this script can be executed with 4 Standalone Extra Modes: 
 > 
 > - **Find Duplicates** (-fdup, --find-duplicates <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...])
