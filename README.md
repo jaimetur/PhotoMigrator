@@ -257,7 +257,7 @@ If more than one Extra Mode is detected, only the first one will be executed.
          based on the date content found.
 ---------------------------------------------------------------------------------------------------------
 ```
-Example of use:
+**Examples of use:**
 > [!NOTE]  
 > - **Example 1**:
 >> ```
@@ -304,7 +304,7 @@ If you configure properly the file 'Config.ini' and execute this Extra Mode, the
 To execute this Extra Mode, you can use the new Flag: '-AUTO, --AUTOMATED-MIGRATION \<SOURCE> \<TARGET>'
 
 
-Example of use:
+**Examples of use:**
 > [!NOTE]  
 > - **Example 1:**
 >> ```
