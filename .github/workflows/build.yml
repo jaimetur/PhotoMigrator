@@ -232,13 +232,13 @@ jobs:
             rm artifact_base64.txt
             echo "Archivo artifact_base64.txt eliminado de src."
           fi
-          if [ -f ${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
-            rm ${{ env.ARCHIVE_FINAL_PATH_NAME }}
-            echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
-          elif [ -f src/${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
-            rm ${{ env.ARCHIVE_FINAL_PATH_NAME }}
-            echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
-          fi
+          # if [ -f ${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
+            # rm ${{ env.ARCHIVE_FINAL_PATH_NAME }}
+            # echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
+          # elif [ -f src/${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
+            # rm ${{ env.ARCHIVE_FINAL_PATH_NAME }}
+            # echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
+          # fi
         shell: bash
 
       # 5b. - Cleanup (Windows)
@@ -263,42 +263,6 @@ jobs:
           }
         shell: pwsh
 
-
-#      # Upload artifact to GitHub repos with CLI (Cross-Platform)
-#      - name: Upload artifact to GitHub repos with CLI (Cross-Platform)
-#        run: |
-#          echo "Uploading file '${{ env.ARCHIVE_FINAL_PATH_NAME }}' to dev and prod repositories..."
-#
-#          git config --global user.email "github-actions@github.com"
-#          git config --global user.name "GitHub Actions"
-#
-#          COMMIT_MESSAGE="Added from GitHub Actions"
-#          REPOS=("OrganizeTakeoutPhotos-dev" "OrganizeTakeoutPhotos")
-#          FILE=${{ env.ARCHIVE_FINAL_PATH_NAME }}
-#
-#          for REPO in "${REPOS[@]}"; do
-#            echo "Uploading to $REPO..."
-#
-#            REPO_URL="https://${{ secrets.GH_PAT }}@github.com/jaimetur/$REPO.git"
-#
-#            if [ ! -d ".git" ]; then
-#              git init
-#            fi
-#
-#            # Sobrescribe la URL de origin sin añadir duplicados
-#            git remote set-url origin $REPO_URL
-#
-#            # Asegurar que estamos en la rama correcta
-#            git fetch origin ${{ github.ref_name }} || git checkout -b ${{ github.ref_name }}
-#            git checkout ${{ github.ref_name }}
-#
-#            # Añadir archivo y hacer commit
-#            git add $FILE
-#            git commit -m "$COMMIT_MESSAGE"
-#
-#            # Forzar el push (sobrescribe si es necesario)
-#            git push origin ${{ github.ref_name }} --force
-#          done
 
 #      # Upload the compiled compressed file to the Actions task
 #      - name: Archive Artifacts
