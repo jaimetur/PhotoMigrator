@@ -285,7 +285,7 @@ If more than one Extra Mode is detected, only the first one will be executed.
 >>homogeneus way.
 
 
-
+> [!NOTE]  
 >>## <span style="color:green">Extra Mode: AUTOMATED-MIGRATION:</span>
 >>From version 3.0.0 onwards, the script can be executed in  a FULLY-AUTOMATED MIGRATION Mode. 
 >>
