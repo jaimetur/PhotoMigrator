@@ -16,8 +16,8 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 
 ## Release Notes:
 
-**Release**: 2.4.0  
-**Date**: 2025-01-31
+**Release**: 3.0.0  
+**Date**: 2025-02-01
 
 - Renamed options:
   - -sea, --synology-extract-albums is now **-sda, --synology-download-albums**
@@ -42,7 +42,10 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
           The Script will connect to Synology Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the Synology Photos root folder.  
           To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums "album1", "album2", "album3".  
           To download ALL Albums use "ALL" as <ALBUMS_NAME>.  
-
+  - **-sdA, --synology-download-ALL <OUTPUT_FOLDER>**  
+          The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
+          - Albums will be downloaded within a subfolder '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
+          - Assets with no Albums associated will be downloaded within a subfolder 'OUTPUT_FOLDER/Others/' and will have a year/month structure inside.
 
 - Added Support for Immich Photos with the ollowing options to manage Immich API:
   - **-ide, --immich-delete-empty-albums**  
@@ -59,10 +62,10 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
           The Script will connect to Immich Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Immich_Photos_Albums' within the Immich Photos root folder.  
           To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums" "album1", "album2", "album3".  
           To download ALL Albums use "ALL" as <ALBUMS_NAME>.   
-  - **-iDA, --immich-download-all <FOLDER>**  
-          The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <FOLDER>.  
-          - Albums will be downloaded within a subfolder of <FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.  
-          - Assets with no Albums associated will be downloaded withn a subfolder called <FOLDER>/Others/ and will have a year/month structure inside.
+  - **-idA, --immich-download-ALL <OUTPUT_FOLDER>**  
+          The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
+          - Albums will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
+          - Assets with no Albums associated will be downloaded withn a subfolder called '<OUTPUT_FOLDER>/Others/' and will have a year/month structure inside.
 
 
 - Added support to include sidecar files when upload assts to Immich
