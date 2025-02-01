@@ -143,7 +143,7 @@ mode.
 
 
 EXTRA MODES: Synology Photos Management:
-------------------------------------------------
+----------------------------------------
 Following arguments allow you to interact with Synology Photos.
 If more than one optional arguments are detected, only the first one will be executed.
 
@@ -186,7 +186,7 @@ If more than one optional arguments are detected, only the first one will be exe
 
 
 EXTRA MODES: Immich Photos Management:
-----------------------------------------------
+--------------------------------------
 Following arguments allow you to interact with Immich Photos.
 If more than one optional arguments are detected, only the first one will be executed.
 
