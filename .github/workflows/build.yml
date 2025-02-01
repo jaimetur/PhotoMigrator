@@ -237,7 +237,7 @@ jobs:
             echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
           elif [ -f src/${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
             rm ${{ env.ARCHIVE_FINAL_PATH_NAME }}
-            echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
+            echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta src."
           fi
         shell: bash
 
