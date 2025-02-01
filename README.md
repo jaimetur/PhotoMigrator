@@ -507,9 +507,10 @@ With this example, the script will connect to Synology Photos database and extra
 >>```
 >># Configuration for Immich Photos
 >>[Immich Photos]
->>IMMICH_URL                = http://192.168.1.11:2283                      # Change this IP by the IP that contains the Immich server or by your valid Immich URL
->>IMMICH_USERNAME           = username                                      # Your username for Immich Photos
->>IMMICH_PASSWORD           = password                                      # Your password for Immich Photos
+>>IMMICH_URL                  = http://192.168.1.11:2283                      # Change this IP by the IP that contains the Immich server or by your valid Immich URL
+>>IMMICH_API_KEY              = YOUR_API_KEY                                  # Optional: Your API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
+>>IMMICH_USERNAME             = username                                      # Optional: Your username for Immich Photos (mandatory if not API_KEY is providen)
+>>IMMICH_PASSWORD             = password                                      # Optional: Your password for Immich Photos (mandatory if not API_KEY is providen)
 >>```
 
 ### <span style="color:blue">Delete Empty Albums in Immich Photos:</span>
