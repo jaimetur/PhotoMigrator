@@ -338,7 +338,7 @@ Withh this example, the script will do a FULLY-AUTOMATED job which has two
 >># Configuration for Google Photos
 >>[Google Photos]
 >>```
-For the time being, Google Photos Takeout support, does not need to include anything in the Config.ini, but it has it own section for futures features.
+>For the time being, Google Photos Takeout support, does not need to include anything in the Config.ini, but it has it own section for futures features.
 
 ### <span style="color:blue">Google Takeout Mode: Process Explained:</span>
 
@@ -384,8 +384,8 @@ The whole process took around **~8.5 hours** (or **~3 hours without last two opt
    
 NOTE: Step 8 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
 
-> [!NOTE]
-> ## <span style="color:green">Synology Photos Support</span>
+>[!NOTE]
+>## <span style="color:green">Synology Photos Support</span>
 >From version 2.0.0 onwards, the script can connect to your Synology NAS and login into Synology Photos App with your credentials. The credentials need to be loaded from 'Config.ini' file and will have this format:
 >
 >>#### <span style="color:green">Example 'Config.ini' for Synology Photos:</span>
@@ -398,6 +398,13 @@ NOTE: Step 8 is disabled by default, and is only recommended if you want to save
 >>SYNOLOGY_PASSWORD           = password                                      # Your password for Synology Photos
 >>SYNOLOGY_ROOT_PHOTOS_PATH   = /volume1/homes/your_username/Photos           # Your root path to Synology Photos main folder. Tipically is /volume1/homes/your_username/Photos
 >>```
+>### Features included:
+> - Delete Empty Albums
+> - Delete Duplicates Albums
+> - Upload Folder
+> - Upload Album(s)
+> - Download Album(s)
+> - Upload/Download ALL
 
 ### <span style="color:blue">Delete Empty Albums in Synology Photos:</span>
 From version 2.0.0 onwards, the script can be executed in 'Delete Empty Albums in Synology Photos' Mode. 
@@ -512,6 +519,13 @@ With this example, the script will connect to Synology Photos database and extra
 >>IMMICH_USERNAME             = username                                      # Optional: Your username for Immich Photos (mandatory if not API_KEY is providen)
 >>IMMICH_PASSWORD             = password                                      # Optional: Your password for Immich Photos (mandatory if not API_KEY is providen)
 >>```
+>### Features included:
+> - Delete Empty Albums
+> - Delete Duplicates Albums
+> - Upload Folder
+> - Upload Album(s)
+> - Download Album(s)
+> - Upload/Download ALL
 
 ### <span style="color:blue">Delete Empty Albums in Immich Photos:</span>
 From version 3.0.0 onwards, the script can be executed in 'Delete Empty Albums in Immich Photos' Mode. 
