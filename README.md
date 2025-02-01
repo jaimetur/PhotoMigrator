@@ -284,8 +284,8 @@ This step is useful if you want to Upload all your Albums to a new Cloud Service
 
 
 > [!NOTE]  
->## <span style="color:green">Extra Mode: AUTOMATED-MIGRATION:</span>
->From version 3.0.0 onwards, the script can be executed in  a FULLY-AUTOMATED MIGRATION Mode. 
+>## <span style="color:green"> Fully Automated Migration Feature</span>
+>From version 3.0.0 onwards,the script supports a new Extra Mode called -AUTO, --AUTOMATED-MIGRATION Mode. 
 >
 >If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will automatically do the whole migration jon from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.
 >The script will do a FULLY-AUTOMATED job which has two steps:  
@@ -500,7 +500,7 @@ With this example, the script will connect to Synology Photos database and extra
 
 > [!NOTE]
 > ## <span style="color:green">Immich Photos Support</span>
->From version 3.0.0 onwards, the script can connect to your Immich NAS and login into Immich Photos App with your credentials. The credentials need to be loaded from 'Config.ini' file and will have this format:
+>From version 3.0.0 onwards, the script can connect to your Immich Photos account with your credentials or API. The credentials/API need to be loaded from 'Config.ini' file and will have this format:
 >
 >>#### <span style="color:green">Example 'Config.ini' for Immich Photos:</span>
 >>
