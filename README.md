@@ -52,23 +52,23 @@ Then you just need to call it depending on your environment:
 ## Syntax:
 ```
 ---------------------------------------------------------------------------------------------------------
-usage: CloudPhotoMigrator.run/exe [-h] [-v] [-nlog] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
-                                    [-AUTO <SOURCE> <TARGET>]
-                                    [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFIX>]
-                                    [-gafs ['flatten', 'year', 'year/month', 'year-month']]
-                                    [-gnas ['flatten', 'year', 'year/month', 'year-month']]
-                                    [-gcsa] [-gics] [-gmtf] [-grdf] [-gsef] [-gsma] [-gsgt]
-                                    [-sde] [-sdd] [-suf <INPUT_FOLDER>]
-                                    [-sua <ALBUMS_FOLDER>] [-suA <INPUT_FOLDER>]
-                                    [-sda <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
-                                    [-sdA <OUTPUT_FOLDER>] [-ide] [-idd]
-                                    [-iuf <INPUT_FOLDER>] [-iua <ALBUMS_FOLDER>]
-                                    [-iuA <INPUT_FOLDER>]
-                                    [-ida <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
-                                    [-idA <OUTPUT_FOLDER>]
-                                    [-fdup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
-                                    [-pdup <DUPLICATES_REVISED_CSV>]
-                                    [-fsym <FOLDER_TO_FIX>] [-frcb <ALBUMS_FOLDER>]
+Usage: CloudPhotoMigrator.run/exe [-h] [-v] [-nlog] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
+                                  [-AUTO <SOURCE> <TARGET>]
+                                  [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFIX>]
+                                  [-gafs ['flatten', 'year', 'year/month', 'year-month']]
+                                  [-gnas ['flatten', 'year', 'year/month', 'year-month']]
+                                  [-gcsa] [-gics] [-gmtf] [-grdf] [-gsef] [-gsma] [-gsgt]
+                                  [-sde] [-sdd] [-suf <INPUT_FOLDER>]
+                                  [-sua <ALBUMS_FOLDER>] [-suA <INPUT_FOLDER>]
+                                  [-sda <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
+                                  [-sdA <OUTPUT_FOLDER>] [-ide] [-idd]
+                                  [-iuf <INPUT_FOLDER>] [-iua <ALBUMS_FOLDER>]
+                                  [-iuA <INPUT_FOLDER>]
+                                  [-ida <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
+                                  [-idA <OUTPUT_FOLDER>]
+                                  [-fdup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
+                                  [-pdup <DUPLICATES_REVISED_CSV>]
+                                  [-fsym <FOLDER_TO_FIX>] [-frcb <ALBUMS_FOLDER>]
 
 CloudPhotoMigrator v3.0.0-alpha - 2025-02-01
 
