@@ -2,13 +2,10 @@
 
 ## 3.0.0 (10/02/2025):
 ### TODO:
-- [x] Change Script description on README.md
-- [x] Update README.md
 - [ ] Update RELEASES-NOTES.md
 - [ ] Create a New Release in Github Production Repo
 
-
-- #### Testing:
+- #### Tests Pending:
 - [ ] Deep Test on Immich Support functions
 - [ ] Deep Test on Synology Support functions
 - [ ] Deep Test on Google Photos function
@@ -16,7 +13,7 @@
 
 
 ### DONE:
-- - [x] Change repository name to CloudPhotoMigrator
+- [x] Change repository name to CloudPhotoMigrator
       - [x] Change both, prod and dev repos
       - [x] Change build.yml in dev repo to point to new prod repo
       - [x] Change Script name
@@ -49,6 +46,8 @@
 - [x] Put at the end of the help the standard option (those that are not related to any Support mode)
 - [x] Added RELEASES-NOTES.md file to the distribution package.
 - [x] Modified build.yml to update RELEASE-NOTES.md and ROADMAP.md into production repository
+- [x] Change Script description on README.md
+- [x] Update README.md
 - #### Automated Migration:
 - [x] Create functions synology_upload_ALL(input_folder) and immich_upload_ALL(input_folder) to upload:
     - 1. Album folder (if exists) with synology_upload_albums() and immich_upload_albums()

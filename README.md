@@ -19,7 +19,9 @@ Apart from Interact with the different Photo Cloud Services, the Tool also conta
 - **Homogenize Albums folders name based on content**
 - **Remove Empty Albums in Photo Cloud Services** 
 - **Remove Duplicates Albums in Photo Cloud Services** 
-- ...
+
+The Script is Multi-Platform and Multi.Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), 
+so feel free to download the version according to your system.
 
 ## Download Latest Version:
 Download the script either Linux, MacOS or Windows version (for both x64/amd64 or arm64 architectures) as you prefeer directly from following links:
