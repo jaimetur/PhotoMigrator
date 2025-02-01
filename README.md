@@ -1,6 +1,6 @@
 # CloudPhotoMigrator
 
-Welcome to the powerful <span style="color:green">**CloudPhotoMigrator** </span>Tool:
+Welcome to <span style="color:green">**CloudPhotoMigrator** </span>Tool:
 
 This tool has been designed to Interact and Manage different Photo Cloud Services. As of today, the Supported Photo Cloud Services are:
 - **Google Photos** (by means of Google Takeout Files)
