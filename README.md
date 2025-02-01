@@ -286,18 +286,18 @@ If more than one Extra Mode is detected, only the first one will be executed.
 
 
 > [!NOTE]  
->>## <span style="color:green">Extra Mode: AUTOMATED-MIGRATION:</span>
->>From version 3.0.0 onwards, the script can be executed in  a FULLY-AUTOMATED MIGRATION Mode. 
->>
->>If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will automatically do the whole migration jon from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.
->>The script will do a FULLY-AUTOMATED job which has two steps:  
->>  - First, the script will Download all your assets from \<SOURCE> Cloud Service (if you have configured properly the Config.ini file), or process the \<SOURCE> folder in case that you specify a path.
->>    - In this step, the output will be a \<OUTPUT_FOLDER> containing two subfolders:
->>      - 'Albums': Contains all the assets associated to some Album(s) within your \<SOURCE> Cloud Service
->>      - 'Others': Contains all the assets with no Album(s) assciated within your \<SOURCE> Cloud Service
->>  - Second, the script will connect to yourto \<TARGET> Cloud Service (if you have configured properly the Config.ini file) and will 
->>    upload all the assets processed in previous step, creating a new Album per each Album found in your \<SOURCE> Cloud Service (or \<SOURCE> folder if you specifyy a path), 
->>    and will associate all the assets included in each Album in the same way that you had on your \<SOURCE> Cloud Service.
+>## <span style="color:green">Extra Mode: AUTOMATED-MIGRATION:</span>
+>From version 3.0.0 onwards, the script can be executed in  a FULLY-AUTOMATED MIGRATION Mode. 
+>
+>If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will automatically do the whole migration jon from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.
+>The script will do a FULLY-AUTOMATED job which has two steps:  
+>  - First, the script will Download all your assets from \<SOURCE> Cloud Service (if you have configured properly the Config.ini file), or process the \<SOURCE> folder in case that you specify a path.
+>    - In this step, the output will be a \<OUTPUT_FOLDER> containing two subfolders:
+>      - 'Albums': Contains all the assets associated to some Album(s) within your \<SOURCE> Cloud Service
+>      - 'Others': Contains all the assets with no Album(s) assciated within your \<SOURCE> Cloud Service
+>  - Second, the script will connect to yourto \<TARGET> Cloud Service (if you have configured properly the Config.ini file) and will 
+>    upload all the assets processed in previous step, creating a new Album per each Album found in your \<SOURCE> Cloud Service (or \<SOURCE> folder if you specifyy a path), 
+>    and will associate all the assets included in each Album in the same way that you had on your \<SOURCE> Cloud Service.
 
 To execute this Extra Mode, you can use the new Flag: '-AUTO, --AUTOMATED-MIGRATION \<SOURCE> \<TARGET>'
 
