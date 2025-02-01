@@ -19,13 +19,19 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 **Release**: 3.0.0  
 **Date**: 2025-02-01
 
-- New Script name 'CloudPhotoMigrator' (former 'GoogleTakeoutPhotos')
+- [x] New Script name '**CloudPhotoMigrator**' (former 'GoogleTakeoutPhotos')
 - [x] Added Support for Immich Photos
     - [x] Added support to include sidecar files when upload assts to Immich
     - [x] Improved authentication speed in Immich
     - [x] Got Supported media type from Immich using API
     - [x] Translated into English all Immich fuctions
     - [x] Tested function -ida to download Albums from immich
+- [x] Replaced 'ALL_PHOTOS' by 'Others' as output subfolder for assets without any album associated (be careful if you already run the script with previous version because before, the folder for assets without albums was named 'ALL_PHOTOS')
+- [x] Added colors to --help text for a better visualization.
+- [x] Refactor and group All Google Takeout arguments in one block for 'Google Photos Takeout' Support
+- [X] Refactor normal_mode to google_takeout_mode
+- [x] Merged -z and -t options in just one option ('-gitf, -google-input-takeout-folder') and detect if contains Takeout Zip files, in that case Zip files will be Unzipped to <TAKEOUT_FOLDER>_TIMESTAMP folder
+- [x] Unificated a single Config.ini file and included tags for the different configuration sections
 
 - Renamed options:
   - -sea, --synology-extract-albums is now **-sda, --synology-download-albums**
