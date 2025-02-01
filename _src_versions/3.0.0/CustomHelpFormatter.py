@@ -16,7 +16,7 @@ else:
 class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
     def __init__(self, *args, **kwargs):
         # Configura la anchura máxima del texto de ayuda
-        kwargs['width'] = 80  # Ancho total del texto de ayuda
+        kwargs['width'] = 88  # Ancho total del texto de ayuda
         kwargs['max_help_position'] = 55  # Ajusta la posición de inicio de las descripciones
         super().__init__(*args, **kwargs)
 
@@ -138,11 +138,9 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         tokenized = self._tokenize_usage(usage)
         # 5) Diccionario de tokens forzados
         force_new_line_for_tokens = {
-            "[-sg]": False                # Salto de línea antes, pero sigue reagrupando
-            ,"[-sde]": False                # Salto de línea antes, pero sigue reagrupando
-            ,"[-ide]": False                # Salto de línea antes, pero sigue reagrupando
-            ,"[-fs <FOLDER_TO_FIX>]": True  # # Va solo
-            ,"[-fd <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]]": True  # Va solo
+            "[-gitf <TAKEOUT_FOLDER>]": False   # Salto de línea antes, pero sigue reagrupando
+            ,"[-fsym <FOLDER_TO_FIX>]": False   # Salto de línea antes, pero sigue reagrupando
+            ,"[-fdup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]": True  # Va solo
         }
         # 6) Ancho real
         max_width = getattr(self, '_width', 90)
@@ -179,7 +177,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
 
         # Texto de ayuda, formateado e identado
         if action.help:
-            ident_spaces = 8
+            ident_spaces = 9
             help_text = justificar_texto(action.help, initial_indent=" " * ident_spaces, subsequent_indent=" " * ident_spaces)
 
             # EXTRA MODES for Google Photos Takeout Management: two lines before "Specify the Takeout folder to process."
@@ -195,8 +193,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
 
-            # EXTRA MODES for Synology Photos Management: two lines before "any Album is empty, will remove it from Synology Photos database."
-            if help_text.find("any Album is empty, will remove it from Synology Photos database.")!=-1:
+            # EXTRA MODES for Synology Photos Management: two lines before "Album is empty, will remove it from Synology Photos database."
+            if help_text.find("Album is empty, will remove it from Synology Photos database.")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
                 EXTRA MODES: Synology Photos Takeout Management:
@@ -207,8 +205,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
 
-            # EXTRA MODES for Immich Photos Management: two lines before "Album is empty, will remove it from Immich Photos database."
-            if help_text.find("Album is empty, will remove it from Immich Photos database.")!=-1:
+            # EXTRA MODES for Immich Photos Management: two lines before "is empty, will remove it from Immich Photos database."
+            if help_text.find("is empty, will remove it from Immich Photos database.")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
                 EXTRA MODES: Immich Photos Takeout Management:

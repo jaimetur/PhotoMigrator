@@ -7,6 +7,7 @@ import stat
 from datetime import datetime
 from tqdm import tqdm
 
+
 ######################
 # FUNCIONES AUXILIARES
 ######################
@@ -197,6 +198,13 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False):
     """
     from LoggerConfig import LOGGER
     try:
+        if not is_valid_path(src):
+            LOGGER.error(f"ERROR: The path '{src}' is not valid for the execution plattform. Cannot copy/move folders from it.")
+            return False
+        if not is_valid_path(dst):
+            LOGGER.error(f"ERROR: The path '{dst}' is not valid for the execution plattform. Cannot copy/move folders to it.")
+            return False
+
         def ignore_function(dir, files):
             if ignore_patterns:
                 # Convert to a list if a single pattern is provided
@@ -212,6 +220,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False):
             raise FileNotFoundError(f"Source folder does not exist: '{src}'")
         # Create the destination folder if it doesn't exist
         os.makedirs(dst, exist_ok=True)
+
         # Ignore function
         action = 'Moving' if move else 'Copying'
         if move:
@@ -242,8 +251,10 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False):
             # Copy the folder contents
             shutil.copytree(src, dst, dirs_exist_ok=True, ignore=ignore_function)
             LOGGER.info(f"INFO: Folder copied successfully from {src} to {dst}")
+            return True
     except Exception as e:
         LOGGER.error(f"ERROR: Error {action} folder: {e}")
+        return False
 
 
 def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None):
@@ -656,3 +667,24 @@ def force_remove_directory(path):
         LOGGER.info(f"INFO: The folder '{path}' and all its contant have been deleted.")
     else:
         print(f"WARNNING: Cannot delete the folder '{path}'.")
+
+def fix_paths(path):
+    fixed_path = path.replace('/', os.path.sep).replace('\\', os.path.sep)
+    return fixed_path
+
+def is_valid_path(path):
+    """
+    Verifica si la ruta es válida en la plataforma actual.
+    - Debe ser una ruta absoluta.
+    - No debe contener caracteres inválidos para el sistema operativo.
+    - No debe usar un formato incorrecto para la plataforma.
+    """
+    from pathvalidate import validate_filepath, ValidationError
+    from LoggerConfig import LOGGER
+    try:
+        # Verifica si `ruta` es válida como path en la plataforma actual.
+        validate_filepath(path, platform="auto")
+        return True
+    except ValidationError as e:
+        LOGGER.error(f"ERROR: Path validation error: {e}")
+        return False

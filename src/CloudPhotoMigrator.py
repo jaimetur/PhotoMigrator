@@ -52,17 +52,15 @@ def check_OS_and_Terminal():
     LOGGER.info("")
 
 def set_help_texts():
+    global HELP_MODE_AUTOMATED_MIGRATION
+
     global HELP_MODE_GOOGLE_TAKEOUT
-    global HELP_MODE_FIX_SYMLINKS
-    global HELP_MODE_FIND_DUPLICATES
-    global HELP_MODE_PROCESS_DUPLICATES
-    global HELP_MODE_RENAME_ALBUMS_FOLDERS
-    global HELP_MODE_ALL_IN_ONE
 
     global HELP_MODE_SYNOLOGY_DELETE_EMPTY_ALBUMS
     global HELP_MODE_SYNOLOGY_DELETE_DUPLICATES_ALBUMS
     global HELP_MODE_SYNOLOGY_UPLOAD_FOLDER
     global HELP_MODE_SYNOLOGY_UPLOAD_ALBUMS
+    global HELP_MODE_SYNOLOGY_UPLOAD_ALL
     global HELP_MODE_SYNOLOGY_DOWNLOAD_ALBUMS
     global HELP_MODE_SYNOLOGY_DOWNLOAD_ALL
 
@@ -70,50 +68,29 @@ def set_help_texts():
     global HELP_MODE_IMMICH_DELETE_DUPLICATES_ALBUMS
     global HELP_MODE_IMMICH_UPLOAD_FOLDER
     global HELP_MODE_IMMICH_UPLOAD_ALBUMS
+    global HELP_MODE_IMMICH_UPLOAD_ALL
     global HELP_MODE_IMMICH_DOWNLOAD_ALBUMS
     global HELP_MODE_IMMICH_DOWNLOAD_ALL
 
+    global HELP_MODE_FIX_SYMLINKS
+    global HELP_MODE_FIND_DUPLICATES
+    global HELP_MODE_PROCESS_DUPLICATES
+    global HELP_MODE_RENAME_ALBUMS_FOLDERS
+
+    ###################################
+    # EXTRA MODE: AUTOMATED-MIGRATION #
+    ###################################
+    HELP_MODE_AUTOMATED_MIGRATION = textwrap.dedent(f"""
+        ATTENTION!!!: This process will do an AUTOMATED-MIGRATION process, Downloading all your Assets (including Albums) from the <SOURCE> Cloud Service
+                      and Uploading them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service.
+        """)
+
+    ################################
+    # EXTRA MODE: GOOGLE PHOTOS #
+    ################################
     HELP_MODE_GOOGLE_TAKEOUT = textwrap.dedent(f"""
-        ATTENTION!!!: This process will process your <TAKEOUT_FOLDER> to fix metadata of all your asets and organize them according with the settings defined by user (above settings).
-        """)
-
-    HELP_MODE_FIX_SYMLINKS = textwrap.dedent(f"""
-        ATTENTION!!!: This process will look for all Symbolic Links broken in <FOLDER_TO_FIX> and will try to find the destination file within the same folder.
-        """)
-
-    HELP_MODE_FIND_DUPLICATES = textwrap.dedent(f"""
-        ATTENTION!!!: This process will process all Duplicates files found in <DUPLICATES_FOLDER> and will apply the given action.
-                      You must take into account that if not valid action is detected within the arguments of -fd, --find-duplicates, then 'list' will be the default action.
-        
-        Possible duplicates-action are:
-            - list   : This action is not dangerous, just list all duplicates files found in a Duplicates.csv file.
-            - move   : This action could be dangerous but is easily reversible if you find that any duplicated file have been moved to Duplicates folder and you want to restore it later
-                       You can easily restore it using option -pd, --process-duplicates
-            - remove : This action could be dangerous and is irreversible, since the script will remove all duplicates found and will keep only a Principal file per each duplicates set. 
-                       The principal file is chosen carefilly based on some heuristhic methods
-        """)
-
-    HELP_MODE_PROCESS_DUPLICATES = textwrap.dedent(f"""
-        ATTENTION!!!: This process will process all Duplicates files found with -fd, --find-duplicates <DUPLICATES_FOLDER> option based on the Action column value of Duplicates.csv file generated in 'Find Duplicates Mode'. 
-        
-        You can modify individually each Action column value for each duplicate found, but take into account that the below actions list are irreversible:
-        
-        Possible Actions in revised CSV file are:
-            - remove_duplicate  : Duplicated file moved to Duplicates folder will be permanentely removed
-            - restore_duplicate : Duplicated file moved to Duplicates folder will be restored to its original location
-            - replace_duplicate : This action can be used to replace the principal file chosen for each duplicates and select manually other principal file
-                                  Duplicated file moved to Duplicates folder will be restored to its original location as principal file
-                                  and Original Principal file detected by the Script will be removed permanently
-        """)
-
-    HELP_MODE_RENAME_ALBUMS_FOLDERS = textwrap.dedent(f"""
-        ATTENTION!!!: This process will clean each Subfolder found in <ALBUMS_FOLDER> with an homogeneous name starting with album year followed by a cleaned subfolder name without underscores nor middle dashes.
-        New Album name format: 'yyyy - Cleaned Subfolder name'
-        """)
-
-    HELP_MODE_ALL_IN_ONE = textwrap.dedent(f"""
-        ATTENTION!!!: This process will do Automatically all the steps in One Shot.
-        The script will extract all your Takeout Zip files (if found any .zip) from <INPUT_FOLDER>, after that, will process them, and finally will connect to Synology Photos database to create all Albums found in the Takeout and import all the other photos without any Albums associated.
+        ATTENTION!!!: This nodule will process your <TAKEOUT_FOLDER> to fix metadata of all your asets 
+                      and organize them according with the settings defined by user (above settings).
         """)
 
     ################################
@@ -128,12 +105,18 @@ def set_help_texts():
         """)
     
     HELP_MODE_SYNOLOGY_UPLOAD_FOLDER = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to your to your Synology Photos account and will upload all Photos/Videos found within <FOLDER> (including subfolders).
+        ATTENTION!!!: This process will connect to your to your Synology Photos account and will upload all Photos/Videos found within <FOLDER> (including subfolders, except 'Albums' subfolder).
                       Due to Synology Photos limitations, o Upload any folder, it must be placed inside SYNOLOGY_ROOT_FOLDER and all its content must have been indexed before to add any asset to Synology Photos.
         """)
 
     HELP_MODE_SYNOLOGY_UPLOAD_ALBUMS = textwrap.dedent(f"""
         ATTENTION!!!: This process will connect to your to your Synology Photos account and will create a new Album for each Subfolder found in <ALBUMS_FOLDER> and will include all Photos and Videos included in that Subfolder.
+                      Due to Synology Photos limitations, to Upload any folder, it must be placed inside SYNOLOGY_ROOT_FOLDER and all its content must have been indexed before to add any asset to Synology Photos. 
+        """)
+
+    HELP_MODE_SYNOLOGY_UPLOAD_ALL = textwrap.dedent(f"""
+        ATTENTION!!!: This process will connect to your to your Synology Photos account and will Upload all Assets found in <INPUT_FOLDER>.
+                      If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of Albums willl be associated to a new Album in Synology Photos with the same name as the subfolder
                       Due to Synology Photos limitations, to Upload any folder, it must be placed inside SYNOLOGY_ROOT_FOLDER and all its content must have been indexed before to add any asset to Synology Photos. 
         """)
 
@@ -165,11 +148,16 @@ def set_help_texts():
         """)
     
     HELP_MODE_IMMICH_UPLOAD_FOLDER = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to your to your Immich Photos account and will upload all Photos/Videos found within <FOLDER> (including subfolders).
+        ATTENTION!!!: This process will connect to your to your Immich Photos account and will upload all Photos/Videos found within <INPUT_FOLDER> (including subfolders, except 'Albums' subfolder).
         """)
 
     HELP_MODE_IMMICH_UPLOAD_ALBUMS = textwrap.dedent(f"""
         ATTENTION!!!: This process will connect to your to your Immich Photos account and will create a new Album for each Subfolder found in <ALBUMS_FOLDER> and will include all Photos and Videos included in that Subfolder.
+        """)
+
+    HELP_MODE_IMMICH_UPLOAD_ALL = textwrap.dedent(f"""
+        ATTENTION!!!: This process will connect to your to your Immich Photos account and will Upload all Assets found in <INPUT_FOLDER>.
+                      If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of Albums willl be associated to a new Album in Immich Photos with the same name as the subfolder
         """)
 
     HELP_MODE_IMMICH_DOWNLOAD_ALBUMS = textwrap.dedent(f"""
@@ -185,6 +173,46 @@ def set_help_texts():
                       If the file already exists, it will be OVERWRITTEN!!!.
                       All Albums will be downloaded within a subfolder of './<OUTPUT_FOLDER>/Albums' with the same name of the Album and all files will be flattened into it.
                       Assets with no Albums associated will be downloaded withn a subfolder './<OUTPUT_FOLDER>/Others' and will have a year/month structure inside.
+        """)
+
+    ##############################
+    # OTHER STANDALONE EXTRA MODES:
+    ##############################
+    HELP_MODE_FIX_SYMLINKS = textwrap.dedent(f"""
+        ATTENTION!!!: This process will look for all Symbolic Links broken in <FOLDER_TO_FIX> 
+                      and will try to find the destination file within the same folder.
+        """)
+
+    HELP_MODE_FIND_DUPLICATES = textwrap.dedent(f"""
+        ATTENTION!!!: This process will process all Duplicates files found in <DUPLICATES_FOLDER> and will apply the given action.
+                      You must take into account that if not valid action is detected within the arguments of '-fdup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>', then 'list' will be the default action.
+        
+        Possible duplicates-action are:
+            - list   : This action is not dangerous, just list all duplicates files found in a Duplicates.csv file.
+            - move   : This action could be dangerous but is easily reversible if you find that any duplicated file have been moved to Duplicates folder and you want to restore it later
+                       You can easily restore it using option -pd, --process-duplicates
+            - remove : This action could be dangerous and is irreversible, since the script will remove all duplicates found and will keep only a Principal file per each duplicates set. 
+                       The principal file is chosen carefilly based on some heuristhic methods
+        """)
+
+    HELP_MODE_PROCESS_DUPLICATES = textwrap.dedent(f"""
+        ATTENTION!!!: This process will process all Duplicates files found with '-fdup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>' option 
+                      based on the Action column value of 'Duplicates.csv' file generated in 'Find Duplicates Mode'. 
+        
+        You can modify individually each Action column value for each duplicate found, but take into account that the below actions list are irreversible:
+        
+        Possible Actions in revised CSV file are:
+            - remove_duplicate  : Duplicated file moved to Duplicates folder will be permanentely removed
+            - restore_duplicate : Duplicated file moved to Duplicates folder will be restored to its original location
+            - replace_duplicate : This action can be used to replace the principal file chosen for each duplicates and select manually other principal file
+                                  Duplicated file moved to Duplicates folder will be restored to its original location as principal file
+                                  and Original Principal file detected by the Script will be removed permanently
+        """)
+
+    HELP_MODE_RENAME_ALBUMS_FOLDERS = textwrap.dedent(f"""
+        ATTENTION!!!: This process will clean each Subfolder found in <ALBUMS_FOLDER> with an homogeneous name starting
+                      with album year followed by a cleaned subfolder name without underscores nor middle dashes.
+                      New Album name format: 'yyyy - Cleaned Subfolder name'
         """)
 
 def create_global_variable_from_args(args):
@@ -217,8 +245,10 @@ def parse_arguments():
         # Si no es ni lista ni string, devolver lista vacía
         return []
 
-    choices_for_folder_structure  = ['flatten', 'year', 'year/month', 'year-month']
-    choices_for_remove_duplicates = ['list', 'move', 'remove']
+    choices_for_folder_structure        = ['flatten', 'year', 'year/month', 'year-month']
+    choices_for_remove_duplicates       = ['list', 'move', 'remove']
+    choices_for_AUTOMATED_MIGRATION_SRC = ['google-photos', 'synology-photos', 'immich-photos']
+    choices_for_AUTOMATED_MIGRATION_TGT = ['synology-photos', 'immich-photos']
 
     # # Regular Parser without Pagination
     # PARSER = argparse.ArgumentParser(
@@ -241,12 +271,21 @@ def parse_arguments():
 
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
     PARSER.add_argument("-nlog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
-    PARSER.add_argument("-AUTO", "--AUTOMATED-MIGRATION", metavar="<INPUT_FOLDER>", default="", help="The Script will do the whole migration process (Zip extraction, Takeout Processing, Remove Duplicates, Synology Photos Albums creation) in just One Shot.")
+    PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
+    PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
+
+    PARSER.add_argument("-AUTO", "--AUTOMATED-MIGRATION", metavar=("<SOURCE>", "<TARGET>"), nargs=2, default="",
+                        help="This process will do an AUTOMATED-MIGRATION process to Download all your Assets (including Albums) from the <SOURCE> Cloud Service and Upload them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service."
+                           "\n"
+                           "\nPosible values for:"
+                           "\n    <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos']"
+                           "\n    <TARGET> : ['synology-photos', 'immich-photos']"
+                        )
 
     # EXTRA MODES FOR GOOGLE PHOTOS:
     # ------------------------------
     # PARSER.add_argument("-gizf", "--google-input-zip-folder", metavar="<ZIP_FOLDER>", default="", help="Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files will be skipped.")
-    PARSER.add_argument("-gitf", "--google-input-takeout-folder", metavar="<TAKEOUT_FOLDER>", default="Takeout", help="Specify the Takeout folder to process. If -z, --zip-folder is present, this will be the folder to unzip input files. Default: 'Takeout'.")
+    PARSER.add_argument("-gitf", "--google-input-takeout-folder", metavar="<TAKEOUT_FOLDER>", default="Takeout", help="Specify the Takeout folder to process. If any Zip file is found inside it, the Zip will be extracted to the folder 'Unzipped_Takeout_TIMESTAMP', and will use the that folder as input <TAKEOUT_FOLDER>. Default: 'Takeout'.")
     PARSER.add_argument("-gofs", "--google-output-folder-suffix", metavar="<SUFIX>", default="fixed", help="Specify the suffix for the output folder. Default: 'fixed'")
     PARSER.add_argument("-gafs", "--google-albums-folders-structure", metavar=f"{choices_for_folder_structure}", default="flatten", help="Specify the type of folder structure for each Album folder (Default: 'flatten')."
                         , type=lambda s: s.lower()  # Convert input to lowercase
@@ -258,8 +297,8 @@ def parse_arguments():
                         )
     PARSER.add_argument("-gcsa", "--google-create-symbolic-albums", action="store_true", help="Creates symbolic links for Albums instead of duplicate the files of each Album. (Useful to save disk space but may not be portable to other systems).")
     PARSER.add_argument("-gics", "--google-ignore-check-structure", action="store_true", help="Ignore Check Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc..), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from them.")
-    PARSER.add_argument("-gmtf", "--google-move-takeout-folder", action="store_true", help=f"Move original assets to <OUTPUT_FOLDER>. \nCAUTION: Useful to avoid disk space duplication and improve execution speed, but you will lost your original unzipped files!!!.\nUse only if you keep the original zipped files or you have disk space limitations and you don't mind to lost your original unzipped files.")
-    PARSER.add_argument("-grdf", "--google-remove-duplicates-files", action="store_true", help="Remove Duplicates files in <OUTPUT_FOLDER> after fixing them.")
+    PARSER.add_argument("-gmtf", "--google-move-takeout-folder", action="store_true", help=f"Move original assets to <OUTPUT_TAKEOUT_FOLDER>. \nCAUTION: Useful to avoid disk space duplication and improve execution speed, but you will lost your original unzipped files!!!.\nUse only if you keep the original zipped files or you have disk space limitations and you don't mind to lost your original unzipped files.")
+    PARSER.add_argument("-grdf", "--google-remove-duplicates-files", action="store_true", help="Remove Duplicates files in <OUTPUT_TAKEOUT_FOLDER> after fixing them.")
     PARSER.add_argument("-gsef", "--google-skip-extras-files", action="store_true", help="Skip processing extra photos such as  -edited, -effects photos.")
     PARSER.add_argument("-gsma", "--google-skip-move-albums", action="store_true", help="Skip moving albums to 'Albums' folder.")
     PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skip processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposses.")
@@ -268,47 +307,55 @@ def parse_arguments():
     # --------------------------------
     PARSER.add_argument("-sde", "--synology-delete-empty-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.")
     PARSER.add_argument("-sdd", "--synology-delete-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.")
-    PARSER.add_argument("-suf", "--synology-upload-folder", metavar="<FOLDER>", default="", help="The script will look for all Photos/Videos within <FOLDER> and will upload them into Synology Photos.")
+    PARSER.add_argument("-suf", "--synology-upload-folder", metavar="<INPUT_FOLDER>", default="", help="The script will look for all Photos/Videos within <INPUT_FOLDER> and will upload them into Synology Photos.")
     PARSER.add_argument("-sua", "--synology-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Albums within <ALBUMS_FOLDER> and will create one Album per folder into Synology Photos.")
+    PARSER.add_argument("-suA", "--synology-upload-ALL", metavar="<INPUT_FOLDER>", default="",
+                        help="The script will look for all Assets within <INPUT_FOLDER> and will upload them into Synology Photos."
+                           "\n- If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of Albums willl be associated to a new Album in Synology Photos with the same name as the subfolder"
+                        )
     PARSER.add_argument("-sda", "--synology-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
                         help="The Script will connect to Synology Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Download_Synology' within the Synology Photos root folder."
-           "\n- To extract all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: --synology-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
-           "\n- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums 'album1', 'album2', 'album3'."
-           "\n- To download ALL Albums use 'ALL' as <ALBUMS_NAME>."
+                           "\n- To extract all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: --synology-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
+                           "\n- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums 'album1', 'album2', 'album3'."
+                           "\n- To download ALL Albums use 'ALL' as <ALBUMS_NAME>."
                         )
     PARSER.add_argument("-sdA", "--synology-download-ALL", metavar="<OUTPUT_FOLDER>", default="",
                         help="The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
-           "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
-           "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside."
+                           "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
+                           "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside."
                         )
     
     # EXTRA MODES FOR IMMINCH PHOTOS:
     # -------------------------------
     PARSER.add_argument("-ide", "--immich-delete-empty-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.")
     PARSER.add_argument("-idd", "--immich-delete-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.")
-    PARSER.add_argument("-iuf", "--immich-upload-folder", metavar="<FOLDER>", default="", help="The script will look for all Photos/Videos within <FOLDER> and will upload them into Immich Photos.")
+    PARSER.add_argument("-iuf", "--immich-upload-folder", metavar="<INPUT_FOLDER>", default="", help="The script will look for all Photos/Videos within <INPUT_FOLDER> and will upload them into Immich Photos.")
     PARSER.add_argument("-iua", "--immich-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Albums within <ALBUMS_FOLDER> and will create one Album per folder into Immich Photos.")
+    PARSER.add_argument("-iuA", "--immich-upload-ALL", metavar="<INPUT_FOLDER>", default="",
+                        help="The script will look for all Assets within <INPUT_FOLDER> and will upload them into Immich Photos."
+                           "\n- If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of Albums willl be associated to a new Album in Synology Photos with the same name as the subfolder"
+                        )
     PARSER.add_argument("-ida", "--immich-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
                         help="The Script will connect to Immich Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Download_Immich' within the script execution folder."
-           "\n- To extract all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: --immich-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
-           "\n- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums 'album1', 'album2', 'album3'."
-           "\n- To download ALL Albums use 'ALL' as <ALBUMS_NAME>."
+                           "\n- To extract all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: --immich-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
+                           "\n- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums 'album1', 'album2', 'album3'."
+                           "\n- To download ALL Albums use 'ALL' as <ALBUMS_NAME>."
                         )
     PARSER.add_argument("-idA", "--immich-download-ALL", metavar="<OUTPUT_FOLDER>", default="",
                         help="The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
-           "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
-           "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside."
+                           "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
+                           "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside."
                         )
 
     # OTHERS STAND-ALONE EXTRA MODES:
     # -------------------------------
     PARSER.add_argument("-fdup", "--find-duplicates", metavar=f"<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]", nargs="+", default=["list", ""],
                         help="Find duplicates in specified folders."
-           "\n<ACTION> defines the action to take on duplicates ('move', 'delete' or 'list'). Default: 'list' "
-           "\n<DUPLICATES_FOLDER> are one or more folders (string or list), where the script will look for duplicates files. The order of this list is important to determine the principal file of a duplicates set. First folder will have higher priority."
+                           "\n<ACTION> defines the action to take on duplicates ('move', 'delete' or 'list'). Default: 'list' "
+                           "\n<DUPLICATES_FOLDER> are one or more folders (string or list), where the script will look for duplicates files. The order of this list is important to determine the principal file of a duplicates set. First folder will have higher priority."
                         )
     PARSER.add_argument("-pdup", "--process-duplicates", metavar="<DUPLICATES_REVISED_CSV>", default="", help="Specify the Duplicates CSV file revised with specifics Actions in Action column, and the script will execute that Action for each duplicates found in CSV. Valid Actions: restore_duplicate / remove_duplicate / replace_duplicate.")
-    PARSER.add_argument("-fsym", "--fix-symlinks-broken", metavar="<FOLDER_TO_FIX>", default="", help="The script will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_FOLDER and some Albums seems to be empty.")
+    PARSER.add_argument("-fsym", "--fix-symlinks-broken", metavar="<FOLDER_TO_FIX>", default="", help="The script will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_TAKEOUT_FOLDER and some Albums seems to be empty.")
     PARSER.add_argument("-frcb", "--folders-rename-content-based", metavar="<ALBUMS_FOLDER>", default="", help="Usefull to rename all Albums folders found in <ALBUMS_FOLDER> based on the date content found homogenize the name.")
 
     # Procesar la acción y las carpetas
@@ -318,6 +365,38 @@ def parse_arguments():
     args = PARSER.parse_args()
     ARGS = create_global_variable_from_args(args)
 
+    # Remove last / for all folders expected as arguments:
+    ARGS['input-folder'] = ARGS['input-folder'].lstrip('_')
+    ARGS['output-folder'] = ARGS['output-folder'].lstrip('_')
+    ARGS['google-input-takeout-folder'] = ARGS['google-input-takeout-folder'].rstrip('/\\')
+    ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
+
+    # Parse AUTOMATED-MIGRATION Arguments
+    ARGS['google-input-zip-folder'] = None
+    ARGS['SOURCE-TYPE-TAKEOUT-FOLDER'] = None
+    if len(ARGS['AUTOMATED-MIGRATION']) >0:
+        source = ARGS['AUTOMATED-MIGRATION'][0]
+        target = ARGS['AUTOMATED-MIGRATION'][1]
+        # If source is 'google-photos' we need to check if an valid <INPUT_FOLDER> have been given with argument -i <INPUT_FOLDER>
+        if source.lower() == 'google-photos':
+            input_folder = ARGS['input-folder']
+            if not os.path.isdir(input_folder):
+                print(f"ERROR: 'google-photos' detected as Source for the Automated Migration process, but not valid <INPUT_FOLDER> have been providen. ")
+                print(f"Please use -i <INPUT_FOLDER> to specify where your Google Photos Takeout is located.")
+        # If source is not in the list of valid sources choices, then if it is a valid Input Takeout Folder from Google Photos
+        elif source.lower() not in choices_for_AUTOMATED_MIGRATION_SRC:
+            print(f"WARNING: Source value '{source}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_SRC}...")
+            print(f"WARNING: Assuming that it is the input takeout folder for 'google-photos'")
+            if not os.path.isdir(source):
+                print(f"❌ ERROR: Source Path '{source}' is not a valid Input Takeout Folder for 'google-photos' migration. Exiting...")
+                exit(1)
+            ARGS['SOURCE-TYPE-TAKEOUT-FOLDER'] = True
+        # If the target is not in the list of valid targets choices, exit.
+        if target.lower() not in choices_for_AUTOMATED_MIGRATION_TGT:
+            print(f"❌ ERROR: Target value '{target}' is not valid. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT}")
+            exit(1)
+
+    # Parse duplicates-folders Arguments
     ARGS['duplicates-folders'] = []
     ARGS['duplicates-action'] = ""
     for subarg in ARGS['find-duplicates']:
@@ -332,9 +411,6 @@ def parse_arguments():
 
     ARGS['duplicates-folders'] = parse_folders(ARGS['duplicates-folders'] )
 
-    # ARGS['google-input-zip-folder'] = ARGS['google-input-zip-folder'].rstrip('/\\')
-    ARGS['google-input-takeout-folder'] = ARGS['google-input-takeout-folder'].rstrip('/\\')
-    ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
     return ARGS
 
 # -------------------------------------------------------------
@@ -367,6 +443,9 @@ def detect_and_run_execution_mode():
     elif ARGS['synology-upload-albums'] != "":
         EXECUTION_MODE = 'synology-upload-albums'
         mode_synology_upload_albums()
+    elif ARGS['synology-upload-ALL'] != "":
+        EXECUTION_MODE = 'synology-upload-ALL'
+        mode_synology_upload_ALL()
     elif ARGS['synology-download-albums'] != "":
         EXECUTION_MODE = 'synology-download-albums'
         mode_synology_download_albums()
@@ -386,6 +465,10 @@ def detect_and_run_execution_mode():
         mode_immich_upload_folder()
     elif ARGS['immich-upload-albums'] != "":
         EXECUTION_MODE = 'immich-upload-albums'
+        mode_immich_upload_albums()
+    elif ARGS['immich-upload-ALL'] != "":
+        EXECUTION_MODE = 'immich-upload-ALL'
+        mode_immich_upload_ALL()
     elif ARGS['immich-download-albums'] != "":
         EXECUTION_MODE = 'immich-download-albums'
         mode_immich_download_albums()
@@ -421,21 +504,22 @@ def detect_and_run_execution_mode():
 def log_init():
     global LOGGER
     global TIMESTAMP
+    global LOG_FOLDER_FILENAME
     TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
     script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     log_filename=f"{script_name}_{TIMESTAMP}"
     log_folder="Logs"
+    LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
     LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename)
 
 # -------------------------------------------------------------
 # MAIN FUNCTION
 # -------------------------------------------------------------
 def main():
-    global args
     global LOGGER
     global START_TIME
     global TIMESTAMP
-    global OUTPUT_FOLDER
+    global OUTPUT_TAKEOUT_FOLDER
     global LOG_FOLDER_FILENAME
     global DEFAULT_DUPLICATES_ACTION
     global DEPRIORITIZE_FOLDERS_PATTERNS
@@ -446,24 +530,21 @@ def main():
 
     DEFAULT_DUPLICATES_ACTION = False
 
+    # Set HELP Texts
+    set_help_texts()
+
+    # Obtain Input Arguments Parsed
     ARGS = parse_arguments()
+
+    # Initialize the logger.
+    log_init()
 
     # List of Folder to Desprioritize when looking for duplicates.
     DEPRIORITIZE_FOLDERS_PATTERNS = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS', '*Others', '*Variad[oa]*', '*Vari[oa]*', '*Miscellaneous*', '*M[oó]vil*', r'\bfotos\b\s+(\w+)\s*$', r'fotos de \w y \w\s*$', r'fotos de \w\s*$', '*Fotos_de*', '*Fotos_con', '*Fotos de*', '*Fotos con*']
 
-    # Create timestamp, start_time and define OUTPUT_FOLDER
+    # Create timestamp, start_time and define OUTPUT_TAKEOUT_FOLDER
     START_TIME = datetime.now()
-    OUTPUT_FOLDER = f"{ARGS['google-input-takeout-folder']}_{ARGS['google-output-folder-suffix']}_{TIMESTAMP}"
-
-    # # Set a global variable for logger and Set up logger based on the no-log-file argument
-    # TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
-    # log_filename=f"{SCRIPT_NAME}_{TIMESTAMP}"
-    # log_folder="Logs"
-    # LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
-    # LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, skip_logfile=ARGS['no-log-file'], plain_log=False)
-
-    # Initialize the logger.
-    log_init()
+    OUTPUT_TAKEOUT_FOLDER = f"{ARGS['google-input-takeout-folder']}_{ARGS['google-output-folder-suffix']}_{TIMESTAMP}"
 
     # Print the Header (common for all modules)
     LOGGER.info(SCRIPT_DESCRIPTION)
@@ -476,99 +557,143 @@ def main():
     # Check OS and Terminal
     check_OS_and_Terminal()
 
-    # Set HELP Texts
-    set_help_texts()
-
     # Get the execution mode and run it.
     detect_and_run_execution_mode()
 
-def mode_AUTOMATED_MIGRATION():
-    global OUTPUT_FOLDER
+def mode_AUTOMATED_MIGRATION(info_messages=True):
+    global OUTPUT_TAKEOUT_FOLDER
+
+    SOURCE = ARGS['AUTOMATED-MIGRATION'][0]
+    TARGET = ARGS['AUTOMATED-MIGRATION'][1]
+    intermediate_folder = ''
+
     LOGGER.info(f"INFO: -AUTO, --AUTOMATED-MIGRATION Mode detected")
-    LOGGER.info(HELP_MODE_ALL_IN_ONE.replace('<INPUT_FOLDER>', f"'{ARGS['AUTOMATED-MIGRATION']}'"))
+    if not ARGS['SOURCE-TYPE-TAKEOUT-FOLDER']:
+        LOGGER.info(HELP_MODE_AUTOMATED_MIGRATION.replace('<SOURCE>', f"'{ARGS['AUTOMATED-MIGRATION'][0]}'").replace('<TARGET>', f"'{ARGS['AUTOMATED-MIGRATION'][1]}'"))
+    else:
+        LOGGER.info(HELP_MODE_AUTOMATED_MIGRATION.replace('<SOURCE> Cloud Service', f"folder '{ARGS['AUTOMATED-MIGRATION'][0]}'").replace('<TARGET>', f"'{ARGS['AUTOMATED-MIGRATION'][1]}'").replace('Downloading', 'Analyzing and Fixing'))
+    LOGGER.info(f"INFO: Selected SOURCE : {SOURCE}")
+    LOGGER.info(f"INFO: Selected TARGET : {TARGET}")
+    LOGGER.info("")
     if not Utils.confirm_continue():
         LOGGER.info(f"INFO: Exiting program.")
         sys.exit(0)
 
-    config = read_synology_config(config_file='Config.ini', show_info=False)
-    if not config['SYNOLOGY_ROOT_PHOTOS_PATH']:
-        LOGGER.warning(f"WARNING: Caanot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
-    else:
-        OUTPUT_FOLDER = os.path.join(config['SYNOLOGY_ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
 
-    res, _ = login_synology()
-    if res==-1:
-        LOGGER.warning(f"WARNING: Cannot connect to Synology Photos. Albums will not be created into Synology Photos database")
+    # If the SOURCE is 'google-photos' or a valid Takeout Folder
+    if SOURCE.lower() == 'google-photos' or ARGS['SOURCE-TYPE-TAKEOUT-FOLDER']:
+        # Configure default arguments for mode_google_takeout() execution and RUN it
+        if SOURCE.lower() == 'google-photos':
+            input_folder = ARGS['input-folder']
+        elif ARGS['SOURCE-TYPE-TAKEOUT-FOLDER']:
+            input_folder = SOURCE
 
-    # Configure default arguments for mode_google_takeout() execution and RUN it
-    input_folder = ARGS['AUTOMATED-MIGRATION']
-    need_unzip = Utils.contains_zip_files(input_folder)
-    if need_unzip:
-        ARGS['google-input-zip-folder'] = input_folder
-        ARGS['google-input-takeout-folder'] = os.path.join(os.path.dirname(input_folder),f'Unzipped_Takeout_{TIMESTAMP}')
-        ARGS['google-move-takeout-folder'] = True
-    else:
-        ARGS['google-input-takeout-folder'] = input_folder
-    ARGS['google-remove-duplicates-files'] = True
-    mode_google_takeout(user_confirmation=False)
+        # For the time being we set the global OUTPUT_TAKEOUT_FOLDER within Synology Photos root folder (otherwise Synology Photos will not see it)
+        # TODO: Change this logic to avoid Synology Photos dependency
+        config = read_synology_config(config_file='Config.ini', show_info=False)
+        if not config['SYNOLOGY_ROOT_PHOTOS_PATH']:
+            LOGGER.warning(f"WARNING: Caanot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
+        else:
+            OUTPUT_TAKEOUT_FOLDER = os.path.join(config['SYNOLOGY_ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
+            intermediate_folder = OUTPUT_TAKEOUT_FOLDER
 
-    # Configure the Create_Synology_Albums and run create_synology_albums()
-    albums_folder = os.path.join(OUTPUT_FOLDER, f'Albums')
-    ARGS['synology-upload-albums'] = albums_folder
-    LOGGER.info("")
-    mode_synology_upload_albums(user_confirmation=False)
+        # Check if already exists an 'Albums' subfolder within input_folder, in that case, the input_folder have been already processed by CloudPhotoMigrator and no need to execute GPTH step again
+        # but in that case, we need to move the folder to the intermediate folder
+        if os.path.isdir(os.path.join(input_folder,'Albums')):
+            if not Utils.copy_move_folder(input_folder, intermediate_folder, move=False):
+                LOGGER.error(f"ERROR: Unable to copy Folder '{input_folder}' to '{intermediate_folder}'. Exiting...")
+                sys.exit(-1)
+        else:
+            ARGS['google-input-takeout-folder'] = input_folder
+            ARGS['google-remove-duplicates-files'] = True
+            need_unzip = Utils.contains_zip_files(input_folder)
+            if need_unzip:
+                ARGS['google-move-takeout-folder'] = True
+            mode_google_takeout(user_confirmation=False, info_messages=True)
 
-    # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
-    mode_synology_delete_duplicates_albums(user_confirmation=False)
-    mode_synology_delete_empty_albums(user_confirmation=False)
+    # If the SOURCE is 'synology-photos'
+    elif SOURCE.lower() == 'synology-photos':
+        # For the time being we set the global OUTPUT_TAKEOUT_FOLDER within Synology Photos root folder (otherwise Synology Photos will not see it)
+        # TODO: Change this logic to avoid Synology Photos dependency
+        config = read_synology_config(config_file='Config.ini', show_info=False)
+        if not config['SYNOLOGY_ROOT_PHOTOS_PATH']:
+            LOGGER.warning(f"WARNING: Caanot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
+        else:
+            ARGS['immich-synology-ALL'] = os.path.join(config['SYNOLOGY_ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
+            intermediate_folder = ARGS['immich-synology-ALL']
+        mode_synology_download_ALL(user_confirmation=False, info_messages=True)
+
+    # If the SOURCE is 'immich-photos'
+    elif SOURCE.lower() == 'immich-photos':
+        # For the time being we set the global OUTPUT_TAKEOUT_FOLDER within Synology Photos root folder (otherwise Synology Photos will not see it)
+        # TODO: Change this logic to avoid Synology Photos dependency
+        config = read_synology_config(config_file='Config.ini', show_info=False)
+        if not config['SYNOLOGY_ROOT_PHOTOS_PATH']:
+            LOGGER.warning(f"WARNING: Caanot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
+        else:
+            ARGS['immich-download-ALL'] = os.path.join(config['SYNOLOGY_ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
+            intermediate_folder = ARGS['immich-download-ALL']
+        mode_immich_download_ALL(user_confirmation=False, info_messages=False)
+
+    # if the TARGET is 'synology-photos'
+    if TARGET.lower() == 'synology-photos':
+        ARGS['synology-upload-ALL'] = intermediate_folder
+        mode_synology_upload_ALL(user_confirmation=False, info_messages=True)
+
+    # If the TARGET is 'immich-photos'
+    elif TARGET.lower() == 'immich-photos':
+        ARGS['immich-upload-ALL'] = intermediate_folder
+        mode_immich_upload_ALL(user_confirmation=False, info_messages=True)
 
 
-
-def mode_google_takeout(user_confirmation=True):
+def mode_google_takeout(user_confirmation=True, info_messages=True):
     # Configure default arguments for mode_google_takeout() execution
     input_folder = ARGS['google-input-takeout-folder']
     need_unzip = Utils.contains_zip_files(input_folder)
     if need_unzip:
         ARGS['google-input-zip-folder'] = input_folder
         ARGS['google-input-takeout-folder'] = os.path.join(os.path.dirname(input_folder),f'Unzipped_Takeout_{TIMESTAMP}')
+        LOGGER.info("")
         LOGGER.info(f"INFO: ZIP files have been detected in {input_folder}'. Files will be unziped first...")
         LOGGER.info("")
     else:
         ARGS['google-input-takeout-folder'] = input_folder
 
-    # Mensajes informativos
-    LOGGER.info(f"Settings for Google Takeout Photos Module:")
-    LOGGER.info(f"------------------------------------------")
-    LOGGER.info(f"INFO: Using Suffix                             : '{ARGS['google-output-folder-suffix']}'")
-    LOGGER.info(f"INFO: Albums Folder Structure                  : '{ARGS['google-albums-folders-structure']}'")
-    LOGGER.info(f"INFO: No Albums Folder Structure               : '{ARGS['google-no-albums-folder-structure']}'")
-    LOGGER.info(f"INFO: Creates symbolic links for Albums        : '{ARGS['google-create-symbolic-albums']}'")
-    LOGGER.info(f"INFO: Ignore Check Google Takeout Structure    : '{ARGS['google-ignore-check-structure']}'")
-    LOGGER.info(f"INFO: Move Original Assets to Output Folder    : '{ARGS['google-move-takeout-folder']}'")
-    LOGGER.info(f"INFO: Remove Duplicates files in Output folder : '{ARGS['google-remove-duplicates-files']}'")
-    LOGGER.info(f"INFO: Skip Extra Assets (-edited,-effects...)  : '{ARGS['google-skip-extras-files']}'")
-    LOGGER.info(f"INFO: Skip Moving Albums to 'Albums' folder    : '{ARGS['google-skip-move-albums']}'")
-    LOGGER.info(f"INFO: Skip GPTH Tool                           : '{ARGS['google-skip-gpth-tool']}'")
+    if info_messages:
+        # Mensajes informativos
+        LOGGER.info(f"Settings for Google Takeout Photos Module:")
+        LOGGER.info(f"------------------------------------------")
+        LOGGER.info(f"INFO: Using Suffix                             : '{ARGS['google-output-folder-suffix']}'")
+        LOGGER.info(f"INFO: Albums Folder Structure                  : '{ARGS['google-albums-folders-structure']}'")
+        LOGGER.info(f"INFO: No Albums Folder Structure               : '{ARGS['google-no-albums-folder-structure']}'")
+        LOGGER.info(f"INFO: Creates symbolic links for Albums        : '{ARGS['google-create-symbolic-albums']}'")
+        LOGGER.info(f"INFO: Ignore Check Google Takeout Structure    : '{ARGS['google-ignore-check-structure']}'")
+        LOGGER.info(f"INFO: Move Original Assets to Output Folder    : '{ARGS['google-move-takeout-folder']}'")
+        LOGGER.info(f"INFO: Remove Duplicates files in Output folder : '{ARGS['google-remove-duplicates-files']}'")
+        LOGGER.info(f"INFO: Skip Extra Assets (-edited,-effects...)  : '{ARGS['google-skip-extras-files']}'")
+        LOGGER.info(f"INFO: Skip Moving Albums to 'Albums' folder    : '{ARGS['google-skip-move-albums']}'")
+        LOGGER.info(f"INFO: Skip GPTH Tool                           : '{ARGS['google-skip-gpth-tool']}'")
 
-    LOGGER.info("")
-    LOGGER.info(f"Folders for Google Takeout Photos Module:")
-    LOGGER.info(f"------------------------------------------")
-    if not ARGS['no-log-file']:
-        LOGGER.info(f"INFO: Execution Log file                       : '{LOG_FOLDER_FILENAME}'")
-    if ARGS['google-input-zip-folder']!="":
-        LOGGER.info(f"INFO: Input Takeout folder (zipped detected)   : '{ARGS['google-input-zip-folder']}'")
-        LOGGER.info(f"INFO: Input Takeout will be unziped to folder  : '{ARGS['google-input-takeout-folder']}'")
-    else:
-        LOGGER.info(f"INFO: Input Takeout folder                     : '{ARGS['google-input-takeout-folder']}'")
-    LOGGER.info(f"INFO: OUTPUT folder                            : '{OUTPUT_FOLDER}'")
-
+        LOGGER.info("")
+        LOGGER.info(f"Folders for Google Takeout Photos Module:")
+        LOGGER.info(f"------------------------------------------")
+        if not ARGS['no-log-file']:
+            LOGGER.info(f"INFO: Execution Log file                       : '{LOG_FOLDER_FILENAME}'")
+        if ARGS['google-input-zip-folder']!="":
+            LOGGER.info(f"INFO: Input Takeout folder (zipped detected)   : '{ARGS['google-input-zip-folder']}'")
+            LOGGER.info(f"INFO: Input Takeout will be unziped to folder  : '{ARGS['google-input-takeout-folder']}'")
+        else:
+            LOGGER.info(f"INFO: Input Takeout folder                     : '{ARGS['google-input-takeout-folder']}'")
+        LOGGER.info(f"INFO: OUTPUT folder                            : '{OUTPUT_TAKEOUT_FOLDER}'")
 
     LOGGER.info(f"")
     if user_confirmation:
-        LOGGER.info(HELP_MODE_GOOGLE_TAKEOUT)
+        LOGGER.info(HELP_MODE_GOOGLE_TAKEOUT.replace('<TAKEOUT_FOLDER>',f"'{ARGS['google-input-takeout-folder']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
+
+    if info_messages:
         if ARGS['google-input-zip-folder']=="":
             LOGGER.warning(f"WARNING: No argument '-gizf or --google-input-zip-folder <ZIP_FOLDER>' detected. Skipping Unzipping files...")
         if ARGS['google-albums-folders-structure'].lower()!='flatten':
@@ -586,9 +711,9 @@ def mode_google_takeout(user_confirmation=True):
         if ARGS['google-ignore-check-structure']:
             LOGGER.warning(f"WARNING: Flag detected '-gics, --google-ignore-check-structure'. All files in <TAKEOUT_FOLDER> will be processed ignoring Google Takeout Structure...")
         if ARGS['google-move-takeout-folder']:
-            LOGGER.warning(f"WARNING: Flag detected '-gmtf, --google-move-takeout-folder'. Photos/Videos in <TAKEOUT_FOLDER> will be moved (instead of copied) to <OUTPUT_FOLDER>...")
+            LOGGER.warning(f"WARNING: Flag detected '-gmtf, --google-move-takeout-folder'. Photos/Videos in <TAKEOUT_FOLDER> will be moved (instead of copied) to <OUTPUT_TAKEOUT_FOLDER>...")
         if ARGS['google-remove-duplicates-files']:
-            LOGGER.warning(f"WARNING: Flag detected '-grdf, --google-remove-duplicates-files'. All duplicates files within OUTPUT_FOLDER will be removed after fixing them...")
+            LOGGER.warning(f"WARNING: Flag detected '-grdf, --google-remove-duplicates-files'. All duplicates files within OUTPUT_TAKEOUT_FOLDER will be removed after fixing them...")
         if ARGS['no-log-file']:
             LOGGER.warning(f"WARNING: Flag detected '-nlog, --no-log-file'. Skipping saving output into log file...")
 
@@ -599,7 +724,7 @@ def mode_google_takeout(user_confirmation=True):
     LOGGER.info(f"{STEP}. UNPACKING TAKEOUT FOLDER...")
     LOGGER.info("==============================")
     LOGGER.info("")
-    if not ARGS['google-input-zip-folder']=="":
+    if ARGS['google-input-zip-folder']:
         step_start_time = datetime.now()
         Utils.unpack_zips(ARGS['google-input-zip-folder'], ARGS['google-input-takeout-folder'])
         step_end_time = datetime.now()
@@ -645,7 +770,7 @@ def mode_google_takeout(user_confirmation=True):
         step_start_time = datetime.now()
         Fixers.fix_metadata_with_gpth_tool(
             input_folder=ARGS['google-input-takeout-folder'],
-            output_folder=OUTPUT_FOLDER,
+            output_folder=OUTPUT_TAKEOUT_FOLDER,
             symbolic_albums=ARGS['google-create-symbolic-albums'],
             skip_extras=ARGS['google-skip-extras-files'],
             move_takeout_folder=ARGS['google-move-takeout-folder'],
@@ -671,7 +796,7 @@ def mode_google_takeout(user_confirmation=True):
         else:
             LOGGER.info("INFO: Copying files from Takeout folder to Output folder manually...")
         step_start_time = datetime.now()
-        Utils.copy_move_folder (ARGS['google-input-takeout-folder'], OUTPUT_FOLDER, ignore_patterns=['*.json', '*.j'], move=ARGS['google-move-takeout-folder'])
+        Utils.copy_move_folder (ARGS['google-input-takeout-folder'], OUTPUT_TAKEOUT_FOLDER, ignore_patterns=['*.json', '*.j'], move=ARGS['google-move-takeout-folder'])
         if ARGS['google-move-takeout-folder']:
             Utils.force_remove_directory(ARGS['takeout-folder'])
         step_end_time = datetime.now()
@@ -687,7 +812,7 @@ def mode_google_takeout(user_confirmation=True):
     LOGGER.info("")
     step_start_time = datetime.now()
     LOGGER.info("INFO: Fixing Timestamps of '.MP4' file with Live pictures files (.HEIC, .JPG, .JPEG) if both files have the same name and are in the same folder...")
-    Utils.sync_mp4_timestamps_with_images(OUTPUT_FOLDER)
+    Utils.sync_mp4_timestamps_with_images(OUTPUT_TAKEOUT_FOLDER)
     step_end_time = datetime.now()
     formatted_duration = str(timedelta(seconds=(step_end_time-step_start_time).seconds))
     LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
@@ -704,7 +829,7 @@ def mode_google_takeout(user_confirmation=True):
     if ARGS['google-albums-folders-structure'].lower()!='flatten':
         LOGGER.info("")
         LOGGER.info(f"INFO: Creating Folder structure '{ARGS['google-albums-folders-structure'].lower()}' for each Album folder...")
-        basedir=OUTPUT_FOLDER
+        basedir=OUTPUT_TAKEOUT_FOLDER
         type=ARGS['google-albums-folders-structure']
         exclude_subfolders=['Others']
         Utils.organize_files_by_date(input_folder=basedir, type=type, exclude_subfolders=exclude_subfolders)
@@ -712,7 +837,7 @@ def mode_google_takeout(user_confirmation=True):
     if ARGS['google-no-albums-folder-structure'].lower()!='flatten':
         LOGGER.info("")
         LOGGER.info(f"INFO: Creating Folder structure '{ARGS['google-no-albums-folder-structure'].lower()}' for 'Others' folder...")
-        basedir=os.path.join(OUTPUT_FOLDER, 'Others')
+        basedir=os.path.join(OUTPUT_TAKEOUT_FOLDER, 'Others')
         type=ARGS['google-no-albums-folder-structure']
         exclude_subfolders=[]
         Utils.organize_files_by_date(input_folder=basedir, type=type, exclude_subfolders=exclude_subfolders)
@@ -734,7 +859,7 @@ def mode_google_takeout(user_confirmation=True):
     LOGGER.info("")
     if not ARGS['google-skip-move-albums']:
         step_start_time = datetime.now()
-        Utils.move_albums(OUTPUT_FOLDER, exclude_subfolder=['Others', '@eaDir'])
+        Utils.move_albums(OUTPUT_TAKEOUT_FOLDER, exclude_subfolder=['Others', '@eaDir'])
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time-step_start_time).seconds))
         LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
@@ -753,64 +878,65 @@ def mode_google_takeout(user_confirmation=True):
     if ARGS['google-create-symbolic-albums']:
         LOGGER.info("INFO: Fixing broken symbolic links. This step is needed after moving any Folder structure...")
         step_start_time = datetime.now()
-        symlink_fixed, symlink_not_fixed = Utils.fix_symlinks_broken(OUTPUT_FOLDER)
+        symlink_fixed, symlink_not_fixed = Utils.fix_symlinks_broken(OUTPUT_TAKEOUT_FOLDER)
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time-step_start_time).seconds))
         LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
     else:
         LOGGER.warning("WARNING: Fixing broken symbolic links skipped ('-sa, --google-create-symbolic-albums' flag not detected, so this step is not needed.)")
 
-    # STEP 8: Remove Duplicates in OUTPUT_FOLDER after Fixing
+    # STEP 8: Remove Duplicates in OUTPUT_TAKEOUT_FOLDER after Fixing
     STEP+=1
     duplicates_found = 0
     if ARGS['google-remove-duplicates-files']:
         LOGGER.info("")
         LOGGER.info("==========================================")
-        LOGGER.info(f"{STEP}. REMOVING DUPLICATES IN OUTPUT_FOLDER...")
+        LOGGER.info(f"{STEP}. REMOVING DUPLICATES IN OUTPUT_TAKEOUT_FOLDER...")
         LOGGER.info("==========================================")
         LOGGER.info("")
-        LOGGER.info("INFO: Removing duplicates from OUTPUT_FOLDER (Files within any Album will have more priority than files within 'Photos from *' or 'Others' folders)...")
+        LOGGER.info("INFO: Removing duplicates from OUTPUT_TAKEOUT_FOLDER (Files within any Album will have more priority than files within 'Photos from *' or 'Others' folders)...")
         step_start_time = datetime.now()
-        duplicates_found = find_duplicates(duplicates_action='remove', duplicates_folders=OUTPUT_FOLDER, deprioritize_folders_patterns=DEPRIORITIZE_FOLDERS_PATTERNS, timestamp=TIMESTAMP)
+        duplicates_found = find_duplicates(duplicates_action='remove', duplicates_folders=OUTPUT_TAKEOUT_FOLDER, deprioritize_folders_patterns=DEPRIORITIZE_FOLDERS_PATTERNS, timestamp=TIMESTAMP)
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time-step_start_time).seconds))
         LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
 
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info(f"INFO: All the Photos/Videos Fixed can be found on folder: '{OUTPUT_FOLDER}'")
-    LOGGER.info("")
-    LOGGER.info("===============================================")
-    LOGGER.info("                FINAL SUMMARY:                 ")
-    LOGGER.info("===============================================")
-    LOGGER.info(f"Total files in Takeout folder        : {Utils.count_files_in_folder(ARGS['google-input-takeout-folder'])}")
-    LOGGER.info(f"Total final files in Output folder   : {Utils.count_files_in_folder(OUTPUT_FOLDER)}")
-    albums_found = 0
-    if not ARGS['google-skip-move-albums']:
-        album_folder = os.path.join(OUTPUT_FOLDER, 'Albums')
-        if os.path.isdir(album_folder):
-            albums_found = len(os.listdir(album_folder))
-    else:
-        if os.path.isdir(OUTPUT_FOLDER):
-            albums_found = len(os.listdir(OUTPUT_FOLDER))-1
-    LOGGER.info(f"Total Albums folders found           : {albums_found}")
-    if ARGS['google-create-symbolic-albums']:
-        LOGGER.info(f"Total Symlinks Fixed                 : {symlink_fixed}")
-        LOGGER.info(f"Total Symlinks Not Fixed             : {symlink_not_fixed}")
-    if ARGS['google-remove-duplicates-files']:
-        LOGGER.info(f"Total Duplicates Removed             : {duplicates_found}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                   : {formatted_duration}")
-    LOGGER.info("===============================================")
-    LOGGER.info("")
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info(f"INFO: All the Photos/Videos Fixed can be found on folder: '{OUTPUT_TAKEOUT_FOLDER}'")
+        LOGGER.info("")
+        LOGGER.info("===============================================")
+        LOGGER.info("                FINAL SUMMARY:                 ")
+        LOGGER.info("===============================================")
+        LOGGER.info(f"Total files in Takeout folder        : {Utils.count_files_in_folder(ARGS['google-input-takeout-folder'])}")
+        LOGGER.info(f"Total final files in Output folder   : {Utils.count_files_in_folder(OUTPUT_TAKEOUT_FOLDER)}")
+        albums_found = 0
+        if not ARGS['google-skip-move-albums']:
+            album_folder = os.path.join(OUTPUT_TAKEOUT_FOLDER, 'Albums')
+            if os.path.isdir(album_folder):
+                albums_found = len(os.listdir(album_folder))
+        else:
+            if os.path.isdir(OUTPUT_TAKEOUT_FOLDER):
+                albums_found = len(os.listdir(OUTPUT_TAKEOUT_FOLDER)) - 1
+        LOGGER.info(f"Total Albums folders found           : {albums_found}")
+        if ARGS['google-create-symbolic-albums']:
+            LOGGER.info(f"Total Symlinks Fixed                 : {symlink_fixed}")
+            LOGGER.info(f"Total Symlinks Not Fixed             : {symlink_not_fixed}")
+        if ARGS['google-remove-duplicates-files']:
+            LOGGER.info(f"Total Duplicates Removed             : {duplicates_found}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                   : {formatted_duration}")
+        LOGGER.info("===============================================")
+        LOGGER.info("")
 
-def mode_fix_symlinkgs(user_confirmation=True):
+def mode_fix_symlinkgs(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(HELP_MODE_FIX_SYMLINKS.replace('<FOLDER_TO_FIX>', f"'{ARGS['fix-symlinks-broken']}'"))
         if not Utils.confirm_continue():
@@ -819,25 +945,27 @@ def mode_fix_symlinkgs(user_confirmation=True):
         LOGGER.info(f"INFO: Fixing broken symbolic links Mode detected. Only this module will be run!!!")
     LOGGER.info(f"INFO: Fixing broken symbolic links in folder '{ARGS['fix-symlinks-broken']}'...")
     symlinks_fixed, symlinks_not_fixed = Utils.fix_symlinks_broken(ARGS['fix-symlinks-broken'])
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Fixed Symbolic Links              : {symlinks_fixed}")
-    LOGGER.info(f"Total No Fixed Symbolic Links           : {symlinks_not_fixed}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
 
-def mode_find_duplicates(interactive_mode=True):
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Fixed Symbolic Links              : {symlinks_fixed}")
+        LOGGER.info(f"Total No Fixed Symbolic Links           : {symlinks_not_fixed}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+def mode_find_duplicates(interactive_mode=True, info_messages=True):
     LOGGER.info(f"INFO: Duplicates Action             : {ARGS['duplicates-action']}")
     LOGGER.info(f"INFO: Find Duplicates in Folders    : {ARGS['duplicates-folders']}")
     LOGGER.info("")
@@ -855,24 +983,25 @@ def mode_find_duplicates(interactive_mode=True):
         LOGGER.error("ERROR: Exiting because some of the folder(s) given in argument '-fd, --find-duplicates' does not exists.")
         sys.exit(-1)
 
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Duplicates Found                  : {duplicates_files_found}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Duplicates Found                  : {duplicates_files_found}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
 
-def mode_process_duplicates(user_confirmation=True):
+def mode_process_duplicates(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(HELP_MODE_PROCESS_DUPLICATES)
         if not Utils.confirm_continue():
@@ -881,27 +1010,29 @@ def mode_process_duplicates(user_confirmation=True):
         LOGGER.info(f"INFO: Flag detected '-pd, --process-duplicates'. The Script will process the '{ARGS['process-duplicates']}' file and do the specified action given on Action Column. ")
     LOGGER.info(f"INFO: Processing Duplicates Files based on Actions given in {os.path.basename(ARGS['process-duplicates'])} file...")
     removed_duplicates, restored_duplicates, replaced_duplicates = process_duplicates_actions(ARGS['process-duplicates'])
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Removed Duplicates                : {removed_duplicates}")
-    LOGGER.info(f"Total Restored Duplicates               : {restored_duplicates}")
-    LOGGER.info(f"Total Replaced Duplicates               : {replaced_duplicates}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
+
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Removed Duplicates                : {removed_duplicates}")
+        LOGGER.info(f"Total Restored Duplicates               : {restored_duplicates}")
+        LOGGER.info(f"Total Replaced Duplicates               : {replaced_duplicates}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
 
 
-def mode_folders_rename_content_based(user_confirmation=True):
+def mode_folders_rename_content_based(user_confirmation=True, info_messages=True):
     LOGGER.info(SCRIPT_DESCRIPTION)
     LOGGER.info("")
     LOGGER.info("===================")
@@ -916,30 +1047,32 @@ def mode_folders_rename_content_based(user_confirmation=True):
         LOGGER.info(f"INFO: Rename Albums Mode detected. Only this module will be run!!!")
         LOGGER.info(f"INFO: Flag detected '-ra, --folders-rename-content-based'. The Script will look for any Subfolder in '{ARGS['folders-rename-content-based']}' and will rename the folder name in order to unificate all the Albums names.")
     renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = Utils.rename_album_folders(ARGS['folders-rename-content-based'])
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Albums folders renamed             : {renamed_album_folders}")
-    LOGGER.info(f"Total Albums folders duplicated          : {duplicates_album_folders}")
-    LOGGER.info(f"Total Albums duplicated fully merged     : {duplicates_albums_fully_merged}")
-    LOGGER.info(f"Total Albums duplicated not fully merged : {duplicates_albums_not_fully_merged}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                       : {formatted_duration}")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
+
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Albums folders renamed             : {renamed_album_folders}")
+        LOGGER.info(f"Total Albums folders duplicated          : {duplicates_album_folders}")
+        LOGGER.info(f"Total Albums duplicated fully merged     : {duplicates_albums_fully_merged}")
+        LOGGER.info(f"Total Albums duplicated not fully merged : {duplicates_albums_not_fully_merged}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                       : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
 
 #################################
 # EXTRA MODES: SYNOLOGY PHOTOS: #
 #################################
-def mode_synology_delete_empty_albums(user_confirmation=True):
+def mode_synology_delete_empty_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-sde, --synology-delete-empty-albums'.")
         LOGGER.info(HELP_MODE_SYNOLOGY_DELETE_EMPTY_ALBUMS)
@@ -950,24 +1083,26 @@ def mode_synology_delete_empty_albums(user_confirmation=True):
         LOGGER.info(f"INFO: Flag detected '-sde, --synology-delete-empty-albums'. The Script will look for any empty album in Synology Photos database and will detelte them (if any enpty album is found).")
     # Call the Funxtion
     albums_deleted = synology_delete_empty_albums()
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Empty Albums deleted              : {albums_deleted}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
 
-def mode_synology_delete_duplicates_albums(user_confirmation=True):
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Empty Albums deleted              : {albums_deleted}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+def mode_synology_delete_duplicates_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-sdd, --synology-delete-deuplicates-albums'.")
         LOGGER.info(HELP_MODE_SYNOLOGY_DELETE_DUPLICATES_ALBUMS)
@@ -978,27 +1113,29 @@ def mode_synology_delete_duplicates_albums(user_confirmation=True):
         LOGGER.info(f"INFO: Flag detected '-sdd, --synology-delete-duplicates-albums'. The Script will look for any duplicated album in Synology Photos database and will detelte them (if any duplicated album is found).")
     # Call the Funxtion
     albums_deleted = synology_delete_duplicates_albums()
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Duplicates Albums deleted         : {albums_deleted}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
 
-def mode_synology_upload_folder(user_confirmation=True):
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Duplicates Albums deleted         : {albums_deleted}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+def mode_synology_upload_folder(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-suf, --synology-upload-folder'.")
-        LOGGER.info(HELP_MODE_SYNOLOGY_UPLOAD_FOLDER.replace('<FOLDER>', f"'{ARGS['synology-upload-folder']}'"))
+        LOGGER.info(HELP_MODE_SYNOLOGY_UPLOAD_FOLDER.replace('<INPUT_FOLDER>', f"'{ARGS['synology-upload-folder']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1008,25 +1145,27 @@ def mode_synology_upload_folder(user_confirmation=True):
     LOGGER.info("")
     # Call the Funxtion
     photos_added = synology_upload_folder(ARGS['synology-upload-folder'])
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Photos added to Albums            : {photos_added}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
+
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Photos added to Albums            : {photos_added}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
 
 
-def mode_synology_upload_albums(user_confirmation=True):
+def mode_synology_upload_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-sua, --synology-upload-albums'.")
         LOGGER.info(HELP_MODE_SYNOLOGY_UPLOAD_ALBUMS.replace('<ALBUMS_FOLDER>', f"'{ARGS['synology-upload-albums']}'"))
@@ -1039,26 +1178,90 @@ def mode_synology_upload_albums(user_confirmation=True):
     LOGGER.info("")
     # Call the Funxtion
     albums_crated, albums_skipped, photos_added = synology_upload_albums(ARGS['synology-upload-albums'])
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Albums created                    : {albums_crated}")
+        LOGGER.info(f"Total Albums skipped                    : {albums_skipped}")
+        LOGGER.info(f"Total Photos added to Albums            : {photos_added}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+def mode_synology_upload_ALL( user_confirmation=True, info_messages=True):
+    if user_confirmation:
+        LOGGER.info(f"INFO: Flag detected '-suA, --synology-upload-ALL'.")
+        LOGGER.info(HELP_MODE_IMMICH_UPLOAD_ALL.replace('<INPUT_FOLDER>', f"'{ARGS['synology-upload-ALL']}'"))
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO: Exiting program.")
+            sys.exit(0)
+        LOGGER.info(f"INFO: Synology Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
     LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Albums created                    : {albums_crated}")
-    LOGGER.info(f"Total Albums skipped                    : {albums_skipped}")
-    LOGGER.info(f"Total Photos added to Albums            : {photos_added}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-    LOGGER.info("==================================================")
+    LOGGER.info(f"INFO: Find Assets in Folder    : {ARGS['synology-upload-ALL']}")
     LOGGER.info("")
 
-def mode_synology_download_albums(user_confirmation=True):
+    input_folder = ARGS['synology-upload-ALL']
+
+    # Set the counters
+    photos_added_without_albums = 0
+    photos_added_within_albums = 0
+    albums_crated = 0
+    albums_skipped = 0
+
+    album_folder = os.path.join(input_folder,'Albums')
+    # if not exists input_folder exits, then upload all assets within input_folder without album creation ('Albums' subfolder will be skipped by this function)
+    if os.path.isdir(input_folder):
+        # TODO: synology_upload_folder() is not yet complete
+        LOGGER.info(f"INFO: Uploading Assets of '{input_folder}' (excluding 'Albums' subfolder) into Synology Photos...")
+        photos_added_without_albums = synology_upload_folder(input_folder)
+    # If 'Albums' folder exists within input_folder, then run upload_albums() function to create one album per subfolder
+    if os.path.isdir(album_folder):
+        LOGGER.info(f"INFO: Uploading Assets within '{album_folder}' into Synology Photos and associating them to the corresponding Album...")
+        albums_crated, albums_skipped, photos_added_within_albums = synology_upload_albums(album_folder)
+    else:
+        LOGGER.error(f"ERROR: The folder '{input_folder}' does not exist. We cannot execute Synology Upload Actions. Exiting...")
+        sys.exit(-1)
+    total_photos_added = photos_added_without_albums + photos_added_within_albums
+
+    # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
+    mode_synology_delete_duplicates_albums(user_confirmation=user_confirmation, info_messages=False)
+    mode_synology_delete_empty_albums(user_confirmation=user_confirmation, info_messages=False)
+
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Albums created                    : {albums_crated}")
+        LOGGER.info(f"Total Albums skipped                    : {albums_skipped}")
+        LOGGER.info(f"Total Photos added                      : {total_photos_added}")
+        LOGGER.info(f"Total Photos added to Albums            : {photos_added_within_albums}")
+        LOGGER.info(f"Total Photos added wihtout Albums       : {photos_added_without_albums}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+
+def mode_synology_download_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-sda, --synology-download-albums'.")
         LOGGER.info(HELP_MODE_SYNOLOGY_DOWNLOAD_ALBUMS.replace('<ALBUMS_NAME>', f"'{ARGS['synology-download-albums']}'"))
@@ -1071,27 +1274,29 @@ def mode_synology_download_albums(user_confirmation=True):
     LOGGER.info("")
     # Call the Funxtion
     albums_downloaded, photos_downloaded = synology_download_albums(ARGS['synology-download-albums'])
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Albums downloaded                 : {albums_downloaded}")
-    LOGGER.info(f"Total Photos downlaoded from Albums     : {photos_downloaded}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
 
-def mode_synology_download_ALL(user_confirmation=True):
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Albums downloaded                 : {albums_downloaded}")
+        LOGGER.info(f"Total Photos downlaoded from Albums     : {photos_downloaded}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+def mode_synology_download_ALL(user_confirmation=True, info_messages=True):
     if user_confirmation:
-        LOGGER.info(f"INFO: Flag detected '-iDA, --immich-download-all'.")
+        LOGGER.info(f"INFO: Flag detected '-idA, --immich-download-all'.")
         LOGGER.info(HELP_MODE_SYNOLOGY_DOWNLOAD_ALL.replace('<OUTPUT_FOLDER>', f"{ARGS['synology-download-ALL']}"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
@@ -1101,30 +1306,32 @@ def mode_synology_download_ALL(user_confirmation=True):
     # LOGGER.info(f"INFO: Find Albums in Folder    : {ARGS['immich-upload-albums']}")
     LOGGER.info("")
     # Call the Funxtion
-    albums_downloaded, assets_downloaded = synology_download_ALL(ARGS['synology-download-ALL'])
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Albums downloaded                 : {albums_downloaded}")
-    LOGGER.info(f"Total Assets downloaded                 : {assets_downloaded}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
+    albums_downloaded, assets_downloaded = synology_download_ALL(output_folder=ARGS['synology-download-ALL'])
+
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Albums downloaded                 : {albums_downloaded}")
+        LOGGER.info(f"Total Assets downloaded                 : {assets_downloaded}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
 
 
 ###############################
 # EXTRA MODES: IMMICH PHOTOS: #
 ###############################
-def mode_immich_delete_empty_albums(user_confirmation=True):
+def mode_immich_delete_empty_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-ide, --immich-delete-empty-albums'.")
         LOGGER.info(HELP_MODE_IMMICH_DELETE_EMPTY_ALBUMS)
@@ -1135,24 +1342,26 @@ def mode_immich_delete_empty_albums(user_confirmation=True):
         LOGGER.info(f"INFO: Flag detected '-ide, --immich-delete-empty-albums'. The Script will look for any empty album in Immich Photos database and will detelte them (if any enpty album is found).")
     # Call the Funxtion
     albums_deleted = immich_delete_empty_albums()
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Empty Albums deleted              : {albums_deleted}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
 
-def mode_immich_delete_duplicates_albums(user_confirmation=True):
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Empty Albums deleted              : {albums_deleted}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+def mode_immich_delete_duplicates_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-idd, --immich-delete-deuplicates-albums'.")
         LOGGER.info(HELP_MODE_IMMICH_DELETE_DUPLICATES_ALBUMS)
@@ -1163,27 +1372,29 @@ def mode_immich_delete_duplicates_albums(user_confirmation=True):
         LOGGER.info(f"INFO: Flag detected '-idd, --immich-delete-duplicates-albums'. The Script will look for any duplicated album in Immich Photos database and will detelte them (if any duplicated album is found).")
     # Call the Funxtion
     albums_deleted = immich_delete_duplicates_albums()
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Duplicates Albums deleted         : {albums_deleted}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
 
-def mode_immich_upload_folder(user_confirmation=True):
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Duplicates Albums deleted         : {albums_deleted}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+def mode_immich_upload_folder(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-iua, --immich-upload-albums'.")
-        LOGGER.info(HELP_MODE_IMMICH_UPLOAD_FOLDER.replace('<FOLDER>', f"'{ARGS['immich-upload-folder']}'"))
+        LOGGER.info(HELP_MODE_IMMICH_UPLOAD_FOLDER.replace('<INPUT_FOLDER>', f"'{ARGS['immich-upload-folder']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1193,24 +1404,26 @@ def mode_immich_upload_folder(user_confirmation=True):
     LOGGER.info("")
     # Call the Funxtion
     photos_added = immich_upload_folder(ARGS['immich-upload-folder'])
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Photos/Videos Uploaded            : {photos_added}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
 
-def mode_immich_upload_albums(user_confirmation=True):
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Photos/Videos Uploaded            : {photos_added}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+def mode_immich_upload_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-iua, --immich-upload-albums'.")
         LOGGER.info(HELP_MODE_IMMICH_UPLOAD_ALBUMS.replace('<ALBUMS_FOLDER>', f"'{ARGS['immich-upload-albums']}'"))
@@ -1223,26 +1436,94 @@ def mode_immich_upload_albums(user_confirmation=True):
     LOGGER.info("")
     # Call the Funxtion
     albums_crated, albums_skipped, photos_added = immich_upload_albums(ARGS['immich-upload-albums'])
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Albums created                    : {albums_crated}")
+        LOGGER.info(f"Total Albums skipped                    : {albums_skipped}")
+        LOGGER.info(f"Total Photos added to Albums            : {photos_added}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+def mode_immich_upload_ALL(user_confirmation=True, info_messages=True):
+    if user_confirmation:
+        LOGGER.info(f"INFO: Flag detected '-iuA, --immich-upload-ALL'.")
+        LOGGER.info(HELP_MODE_IMMICH_UPLOAD_ALL.replace('<INPUT_FOLDER>', f"'{ARGS['immich-upload-ALL']}'"))
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO: Exiting program.")
+            sys.exit(0)
+        LOGGER.info(f"INFO: Immich Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
     LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Albums created                    : {albums_crated}")
-    LOGGER.info(f"Total Albums skipped                    : {albums_skipped}")
-    LOGGER.info(f"Total Photos added to Albums            : {photos_added}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-    LOGGER.info("==================================================")
+    LOGGER.info(f"INFO: Find Assets in Folder    : {ARGS['immich-upload-ALL']}")
     LOGGER.info("")
 
-def mode_immich_download_albums(user_confirmation=True):
+    login_immich()
+
+    input_folder = ARGS['immich-upload-ALL']
+
+    # Set the counters
+    photos_added_without_albums = 0
+    photos_added_within_albums = 0
+    albums_crated = 0
+    albums_skipped = 0
+
+    album_folder = os.path.join(input_folder,'Albums')
+    # if not exists input_folder exits, then upload all assets within input_folder without album creation ('Albums' subfolder will be skipped by this function)
+    if os.path.isdir(input_folder):
+        LOGGER.info("")
+        LOGGER.info(f"INFO: Uploading Assets of '{input_folder}' (excluding 'Albums' subfolder) into Immich Photos...")
+        photos_added_without_albums = immich_upload_folder(input_folder)
+    # If 'Albums' folder exists within input_folder, then run upload_albums() function to create one album per subfolder
+    if os.path.isdir(album_folder):
+        LOGGER.info("")
+        LOGGER.info(f"INFO: Uploading Assets within '{album_folder}' into Immich Photos and associating them to the corresponding Album...")
+        albums_crated, albums_skipped, photos_added_within_albums = immich_upload_albums(album_folder)
+    else:
+        LOGGER.error(f"ERROR: The folder '{input_folder}' does not exist. We cannot execute Immich Upload Actions. Exiting...")
+        sys.exit(-1)
+    total_photos_added = photos_added_without_albums + photos_added_within_albums
+
+    # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
+    LOGGER.info("")
+    mode_immich_delete_duplicates_albums(user_confirmation=user_confirmation, info_messages=False)
+    LOGGER.info("")
+    mode_immich_delete_empty_albums(user_confirmation=user_confirmation, info_messages=False)
+
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Albums created                    : {albums_crated}")
+        LOGGER.info(f"Total Albums skipped                    : {albums_skipped}")
+        LOGGER.info(f"Total Photos added                      : {total_photos_added}")
+        LOGGER.info(f"Total Photos added to Albums            : {photos_added_within_albums}")
+        LOGGER.info(f"Total Photos added wihtout Albums       : {photos_added_without_albums}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+def mode_immich_download_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-ida, --immich-download-albums'.")
         LOGGER.info(HELP_MODE_IMMICH_DOWNLOAD_ALBUMS.replace('<ALBUMS_NAME>', f"{ARGS['immich-download-albums']}"))
@@ -1255,27 +1536,29 @@ def mode_immich_download_albums(user_confirmation=True):
     LOGGER.info("")
     # Call the Funxtion
     albums_downloaded, assets_downloaded = immich_download_albums(ARGS['immich-download-albums'])
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Albums downloaded                 : {albums_downloaded}")
-    LOGGER.info(f"Total Assets downloaded                 : {assets_downloaded}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
 
-def mode_immich_download_ALL(user_confirmation=True):
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Albums downloaded                 : {albums_downloaded}")
+        LOGGER.info(f"Total Assets downloaded                 : {assets_downloaded}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+def mode_immich_download_ALL(user_confirmation=True, info_messages=True):
     if user_confirmation:
-        LOGGER.info(f"INFO: Flag detected '-iDA, --immich-download-all'.")
+        LOGGER.info(f"INFO: Flag detected '-idA, --immich-download-ALL'.")
         LOGGER.info(HELP_MODE_IMMICH_DOWNLOAD_ALL.replace('<OUTPUT_FOLDER>', f"{ARGS['immich-download-ALL']}"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
@@ -1285,24 +1568,26 @@ def mode_immich_download_ALL(user_confirmation=True):
     # LOGGER.info(f"INFO: Find Albums in Folder    : {ARGS['immich-upload-albums']}")
     LOGGER.info("")
     # Call the Funxtion
-    albums_downloaded, assets_downloaded = immich_download_ALL(ARGS['immich-download-ALL'])
-    # FINAL SUMMARY
-    end_time = datetime.now()
-    formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
-    LOGGER.info("==================================================")
-    LOGGER.info("                  FINAL SUMMARY:                  ")
-    LOGGER.info("==================================================")
-    LOGGER.info(f"Total Albums downloaded                 : {albums_downloaded}")
-    LOGGER.info(f"Total Assets downloaded                 : {assets_downloaded}")
-    LOGGER.info("")
-    LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-    LOGGER.info("==================================================")
-    LOGGER.info("")
+    albums_downloaded, assets_downloaded = immich_download_ALL(output_folder=ARGS['immich-download-ALL'])
+
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Albums downloaded                 : {albums_downloaded}")
+        LOGGER.info(f"Total Assets downloaded                 : {assets_downloaded}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
 
 
 if __name__ == "__main__":

@@ -74,6 +74,7 @@ def read_synology_config(config_file='Config.ini', show_info=True):
     SYNOLOGY_USERNAME           = CONFIG.get('SYNOLOGY_USERNAME', None)
     SYNOLOGY_PASSWORD           = CONFIG.get('SYNOLOGY_PASSWORD', None)
     SYNOLOGY_ROOT_PHOTOS_PATH   = CONFIG.get('SYNOLOGY_ROOT_PHOTOS_PATH', None)
+    SYNOLOGY_ROOT_PHOTOS_PATH   = Utils.fix_paths(SYNOLOGY_ROOT_PHOTOS_PATH)
 
     # Verify required parameters and prompt on screen if missing
     if not SYNOLOGY_URL or SYNOLOGY_URL.strip()=='':

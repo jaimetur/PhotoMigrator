@@ -92,16 +92,16 @@ def get_supported_media_types(type='media'):
         sidecar = data.get("sidecar")
         if type.lower()=='media':
             supported_types = image + video
-            LOGGER.info(f"INFO: Supported media types: '{supported_types}'.")
+            # LOGGER.info(f"INFO: Supported media types: '{supported_types}'.")
         elif type.lower()=='image':
             supported_types = image
-            LOGGER.info(f"INFO: Supported image types: '{supported_types}'.")
+            # LOGGER.info(f"INFO: Supported image types: '{supported_types}'.")
         elif type.lower()=='video':
             supported_types = video
-            LOGGER.info(f"INFO: Supported video types: '{supported_types}'.")
+            # LOGGER.info(f"INFO: Supported video types: '{supported_types}'.")
         elif type.lower()=='sidecar':
             supported_types = sidecar
-            LOGGER.info(f"INFO: Supported sidecar types: '{supported_types}'.")
+            # LOGGER.info(f"INFO: Supported sidecar types: '{supported_types}'.")
         else:
             LOGGER.error(f"ERROR: Invalid type '{type}' to get supported media types. Types allowed are 'media', 'image', 'video' or 'sidecar'")
             return None
@@ -261,7 +261,7 @@ def create_album(album_name):
         response.raise_for_status()
         data = response.json()
         album_id = data.get("id")
-        LOGGER.info(f"INFO: Album '{album_name}' created with ID={album_id}.")
+        # LOGGER.info(f"INFO: Album '{album_name}' created with ID={album_id}.")
         return album_id
     except Exception as e:
         LOGGER.warning(f"WARNING: Cannot create album '{album_name}' due to API call error. Skipped!")
@@ -473,13 +473,13 @@ def upload_file_to_immich(file_path):
         # Check with file_path/filename.ext.sidecar_extension
         sidecar_path = f"{file_path}{sidecar_extension}"
         if os.path.isfile(sidecar_path):
-            LOGGER.info(f"INFO: Uploaded Sidecar: '{os.path.basename(sidecar_path)}' for file: '{os.path.basename(file_path)}'")
+            # LOGGER.info(f"INFO: Uploaded Sidecar: '{os.path.basename(sidecar_path)}' for file: '{os.path.basename(file_path)}'")
             files['sidecarData'] = open(sidecar_path, 'rb')
             break
         # Check with file_path/filename.sidecar_extension
         sidecar_path = f"{file_path.replace(ext, sidecar_extension)}"
         if os.path.isfile(sidecar_path):
-            LOGGER.info(f"INFO: Uploaded Sidecar: '{os.path.basename(sidecar_path)}' for file: '{os.path.basename(file_path)}'")
+            # LOGGER.info(f"INFO: Uploaded Sidecar: '{os.path.basename(sidecar_path)}' for file: '{os.path.basename(file_path)}'")
             files['sidecarData'] = open(sidecar_path, 'rb')
             break
 
@@ -505,7 +505,8 @@ def upload_file_to_immich(file_path):
         new_asset = response.json()
         asset_id = new_asset.get("id")
         if asset_id:
-            LOGGER.info(f"INFO: Uploaded '{os.path.basename(file_path)}' with asset_id={asset_id}")
+            # LOGGER.info(f"INFO: Uploaded '{os.path.basename(file_path)}' with asset_id={asset_id}")
+            pass
         return asset_id
     except Exception as e:
         LOGGER.error(f"ERROR: Failed to upload '{file_path}': {e}")
@@ -559,7 +560,7 @@ def immich_delete_empty_albums():
         LOGGER.info("INFO: No albums found.")
         return 0
     total_deleted_empty_albums = 0
-    for album in tqdm(albums, desc=f"INFO: Processing Albums", unit=" albums"):
+    for album in tqdm(albums, desc=f"INFO: Searchig for Empty Albums", unit=" albums"):
         album_id = album.get("id")
         album_name = album.get("albumName")
         assets_count = album.get("assetCount")
@@ -582,7 +583,7 @@ def immich_delete_duplicates_albums():
     if not albums:
         return 0
     duplicates_map = {}
-    for album in tqdm(albums, desc=f"INFO: Processing Albums", unit=" albums"):
+    for album in tqdm(albums, desc=f"INFO: Searchig for Duplicates Albums", unit=" albums"):
         album_id = album.get("id")
         album_name = album.get("albumName")
         assets_count = album.get("assetCount")
@@ -622,13 +623,13 @@ def immich_upload_folder(input_folder):
     total_files = 0
     # Contar el total de carpetas
     for _, dirs, files in os.walk(input_folder):
-        dirs[:] = [d for d in dirs if d != '@eaDir']
+        dirs[:] = [d for d in dirs if d != '@eaDir' and d != 'Albums']
         total_files += sum([len(files)])
     # Show progress bar per assets
     with tqdm(total=total_files, smoothing=0.1, desc=f"INFO: Uploading Assets", unit=" assets") as pbar:
         # Recursively traverse the folder and excluding '@eaDir' folders
         for root, dirs, files in os.walk(input_folder):
-            dirs[:] = [d for d in dirs if d != '@eaDir']
+            dirs[:] = [d for d in dirs if d != '@eaDir' and d != 'Albums']
             for fname in files:
                 pbar.update(1)
                 file_path = os.path.join(root, fname)
@@ -667,13 +668,14 @@ def immich_upload_albums(input_folder):
     albums_created = 0
     albums_skipped = 0
     assets_added = 0
-    total_files = 0
+    total_folders = 0
+    assets_ids = []
     # Contar el total de carpetas
     for _, dirs, files in os.walk(input_folder):
         dirs[:] = [d for d in dirs if d != '@eaDir']
-        total_files += sum([len(dirs)])
+        total_folders += sum([len(dirs)])
     # Show progress bar per assets
-    with tqdm(total=total_files, smoothing=0.1, desc=f"INFO: Uploading Albums", unit=" albums") as pbar:
+    with tqdm(total=total_folders, smoothing=0.1, desc=f"INFO: Uploading Albums", unit=" albums") as pbar:
         # Recursively traverse the folder and excluding '@eaDir' folders
         for root, dirs, files in os.walk(input_folder):
             dirs[:] = [d for d in dirs if d != '@eaDir']
@@ -690,21 +692,23 @@ def immich_upload_albums(input_folder):
                         albums_skipped += 1
                         continue
                     albums_created += 1
-                # Traverse files in this subfolder
-                for file in files:
-                    assets_ids = []
-                    file_path = os.path.join(subpath, file)
-                    if os.path.isfile(file_path):
-                        # Upload if compatible
-                        asset_id = upload_file_to_immich(file_path)
-                        if asset_id:
-                            assets_ids.append(asset_id)
-                            assets_added += 1
+                    # Ahora recorremos los archivos dentro de subpath
+                    for subroot, _, subfiles in os.walk(subpath):
+                        for file in subfiles:
+                            file_path = os.path.join(subpath, file)
+                            if os.path.isfile(file_path):
+                                # Upload if compatible
+                                asset_id = upload_file_to_immich(file_path)
+                                if asset_id:
+                                    assets_ids.append(asset_id)
+                                    assets_added += 1
                     # Associate files with the album
                     if assets_ids:
                         added_count = add_assets_to_album(album_id, assets_ids)
-                        LOGGER.info(f"INFO: Added {added_count}/{len(assets_ids)} files to album '{album_name}'.")
+                        # LOGGER.info(f"INFO: Added {added_count}/{len(assets_ids)} files to album '{album_name}'.")
+    LOGGER.info(f"INFO: Skipped {albums_skipped} album(s) from '{input_folder}'.")
     LOGGER.info(f"INFO: Created {albums_created} album(s) from '{input_folder}'.")
+    LOGGER.info(f"INFO: Uploaded {assets_added} asset(s) from '{input_folder}' to Albums.")
     return albums_created, albums_skipped, assets_added
 
 def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich"):

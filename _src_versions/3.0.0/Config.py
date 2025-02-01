@@ -23,6 +23,7 @@ def load_config(config_file='Config.ini'):
 
     # Preprocesar el archivo para eliminar claves duplicadas antes de leerlo con ConfigParser
     seen_keys = set()  # Conjunto para almacenar claves únicas
+    logged_warnings = set()  # Conjunto para evitar repetir advertencias de claves duplicadas
     cleaned_lines = []
 
     with open(config_file, 'r', encoding='utf-8') as f:
@@ -36,7 +37,9 @@ def load_config(config_file='Config.ini'):
                 key = stripped_line.split("=", 1)[0].strip()
                 unique_key = (section, key)  # Crear clave única combinando sección y clave
                 if unique_key in seen_keys:
-                    LOGGER.warning(f"WARNING: Duplicate key '{key}' in section {section}, keeping first.")
+                    if unique_key not in logged_warnings:  # Solo mostrar el mensaje una vez
+                        LOGGER.warning(f"WARNING: Duplicate key '{key}' in section {section}, keeping first.")
+                        logged_warnings.add(unique_key)  # Registrar que ya mostramos el mensaje
                     continue  # Omitir clave duplicada
                 seen_keys.add(unique_key)
                 cleaned_lines.append(line)
@@ -80,6 +83,7 @@ def load_config(config_file='Config.ini'):
 
     LOGGER.info(f"INFO: Configuration Read Successfully from '{config_file}'.")
     return CONFIG
+
 
 if __name__ == "__main__":
     # Create timestamp, and initialize LOGGER.
