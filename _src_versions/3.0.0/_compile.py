@@ -94,12 +94,12 @@ def compile():
     # Detect the operating system and architecture
     OPERATING_SYSTEM = platform.system().lower().replace('darwin','macos')
     ARCHITECTURE = platform.machine().lower().replace('x86_64','amd64').replace('aarch64', 'arm64')
-    SCRIPT_NAME = "OrganizeTakeoutPhotos"
+    SCRIPT_NAME = "CloudPhotoMigrator"
     SCRIPT_SOURCE_NAME = f"{SCRIPT_NAME}.py"
     SCRIPT_VERSION = get_script_version(SCRIPT_SOURCE_NAME)
     SCRIPT_VERSION_INT = get_clean_version(SCRIPT_VERSION)
     SCRIPT_NAME_VERSION = f"{SCRIPT_NAME}_{SCRIPT_VERSION}"
-    COPYRIGHT_TEXT = "(c) 2025 - Jaime Tur (@jaimetur)"
+    COPYRIGHT_TEXT = "(c) 2024-2025 - Jaime Tur (@jaimetur)"
 
     if SCRIPT_VERSION:
         print(f"SCRIPT_VERSION encontrado: {SCRIPT_VERSION}")
