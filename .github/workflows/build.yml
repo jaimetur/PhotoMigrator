@@ -80,7 +80,7 @@ jobs:
         shell: bash
 
       # 2a. Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Linux/macOS)
-      - name: 3a. Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Linux/macOS)
+      - name: 2a. Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
           ARCHIVE_PATH=$(cat src/filename.txt)
@@ -88,7 +88,7 @@ jobs:
           echo "ARCHIVE_FINAL_PATH_NAME (Linux/macOS): ${ARCHIVE_PATH}"
 
       # 2b. Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Windows)
-      - name: 3b. Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Windows)
+      - name: 2b. Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Windows)
         if: runner.os == 'Windows'
         run: |
           $path = Get-Content src/filename.txt | Select-String -Pattern "."
@@ -96,7 +96,7 @@ jobs:
           Write-Output "ARCHIVE_FINAL_PATH_NAME (Windows): $path"
 
       # 3a. - Upload artifact to GitHub repos with API (Linux/macOS)
-      - name: 4a. - Upload artifact to GitHub repos with API (Linux/macOS)
+      - name: 3a. - Upload artifact to GitHub repos with API (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
           FILE_TO_ADD=${{ env.ARCHIVE_FINAL_PATH_NAME }}
@@ -137,7 +137,7 @@ jobs:
         shell: bash
 
       # 3b. - Upload artifact to GitHub repos with API (Windows)
-      - name: 4b. - Upload artifact to GitHub repos with API (Windows)
+      - name: 3b. - Upload artifact to GitHub repos with API (Windows)
         if: runner.os == 'Windows'
         run: |
           $FILE_TO_ADD = $env:ARCHIVE_FINAL_PATH_NAME
@@ -178,50 +178,8 @@ jobs:
           }
         shell: pwsh
 
-      # 4a. - Cleanup (Linux/macOS)
-      - name: 5a. - Cleanup (Linux/macOS)
-        if: runner.os != 'Windows'
-        run: |
-          if [ -f artifact_base64.txt ]; then
-            rm artifact_base64.txt
-            echo "Archivo artifact_base64.txt eliminado de carpeta raiz."
-          elif [ -f src/artifact_base64.txt ]; then
-            rm artifact_base64.txt
-            echo "Archivo artifact_base64.txt eliminado de src."
-          fi
-          if [ -f ${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
-            rm ${{ env.ARCHIVE_FINAL_PATH_NAME }}
-            echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
-          elif [ -f src/${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
-            rm ${{ env.ARCHIVE_FINAL_PATH_NAME }}
-            echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
-          fi
-        shell: bash
-
-      # 4b. - Cleanup (Windows)
-      - name: 6b. - Cleanup (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          if (Test-Path "artifact_base64.txt") {
-            Remove-Item -Path "artifact_base64.txt"
-            Write-Host "Archivo artifact_base64.txt eliminado de carpeta raiz."
-          } 
-          elseif (Test-Path "src\artifact_base64.txt") {
-            Remove-Item -Path "src\artifact_base64.txt"
-            Write-Host "Archivo artifact_base64.txt eliminado de carpeta src\."
-          }
-          if (Test-Path "${{ env.ARCHIVE_FINAL_PATH_NAME }}") {
-            Remove-Item -Path "${{ env.ARCHIVE_FINAL_PATH_NAME }}"
-            Write-Host "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
-          } 
-          elseif (Test-Path "src\${{ env.ARCHIVE_FINAL_PATH_NAME }}") {
-            Remove-Item -Path "src\${{ env.ARCHIVE_FINAL_PATH_NAME }}"
-            Write-Host "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta src\."
-          }
-        shell: pwsh
-
-      # 5. - Update README.md, RELEASES-NOTES.md, ROADMAP.md in prod repo with API
-      - name: 5 - Update README.md, RELEASES-NOTES.md, ROADMAP.md in prod repo with API
+      # 4. - Update README.md, RELEASES-NOTES.md, ROADMAP.md in prod repo with API
+      - name: 4 - Update README.md, RELEASES-NOTES.md, ROADMAP.md in prod repo with API
         if: runner.os != 'Windows'
         run: |
           FILES_TO_ADD=("README.md" "RELEASES-NOTES.md" "ROADMAP.md")
@@ -263,6 +221,49 @@ jobs:
           done
         shell: bash
         
+      # 5a. - Cleanup (Linux/macOS)
+      - name: 5a. - Cleanup (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          if [ -f artifact_base64.txt ]; then
+            rm artifact_base64.txt
+            echo "Archivo artifact_base64.txt eliminado de carpeta raiz."
+          elif [ -f src/artifact_base64.txt ]; then
+            rm artifact_base64.txt
+            echo "Archivo artifact_base64.txt eliminado de src."
+          fi
+          if [ -f ${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
+            rm ${{ env.ARCHIVE_FINAL_PATH_NAME }}
+            echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
+          elif [ -f src/${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
+            rm ${{ env.ARCHIVE_FINAL_PATH_NAME }}
+            echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
+          fi
+        shell: bash
+
+      # 5b. - Cleanup (Windows)
+      - name: 5b. - Cleanup (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          if (Test-Path "artifact_base64.txt") {
+            Remove-Item -Path "artifact_base64.txt"
+            Write-Host "Archivo artifact_base64.txt eliminado de carpeta raiz."
+          } 
+          elseif (Test-Path "src\artifact_base64.txt") {
+            Remove-Item -Path "src\artifact_base64.txt"
+            Write-Host "Archivo artifact_base64.txt eliminado de carpeta src\."
+          }
+          if (Test-Path "${{ env.ARCHIVE_FINAL_PATH_NAME }}") {
+            Remove-Item -Path "${{ env.ARCHIVE_FINAL_PATH_NAME }}"
+            Write-Host "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
+          } 
+          elseif (Test-Path "src\${{ env.ARCHIVE_FINAL_PATH_NAME }}") {
+            Remove-Item -Path "src\${{ env.ARCHIVE_FINAL_PATH_NAME }}"
+            Write-Host "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta src\."
+          }
+        shell: pwsh
+
+
 #      # Upload artifact to GitHub repos with CLI (Cross-Platform)
 #      - name: Upload artifact to GitHub repos with CLI (Cross-Platform)
 #        run: |
