@@ -20,7 +20,7 @@ Apart from Interact with the different Photo Cloud Services, the Tool also conta
 - **Remove Empty Albums in Photo Cloud Services** 
 - **Remove Duplicates Albums in Photo Cloud Services** 
 
-The Script is Multi-Platform and Multi.Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), 
+The Script is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), 
 so feel free to download the version according to your system.
 
 ## Download Latest Version:
@@ -38,13 +38,10 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/raw/refs/heads/main/_built_versions/3.0.0-alpha/CloudPhotoMigrator_v3.0.0-alpha_windows_amd64.zip)  
 
 ## Instructions:
-You can copy and unzip the downloaded Script into any local folder or to any Shared folder of our Synology NAS.
-
-After that you have to download Takeout Zip's files from Google Takeout and paste the ZIP files onto the folder called '**Zip_files**' within the folder script which is the default folder to process Takeout ZIP files, or if you prefeer you can put them in any other subfolder and use the option _'-z, --zip-folder <folder_name>'_ to indicate it. (Note: paste all Zip files downloaded from Google Takeout directly on that folder, without subfolders inside it).
+You can copy and unzip the downloaded Script into any local folder or to any Shared folder of your server or Synology NAS.
 
 Then you just need to call it depending on your environment:
   - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**CloudPhotoMigrator.exe**'  
-
 
   - If you run it from Synology NAS (using SSH terminal) or from Linux/Mac, you have to call the master script '**CloudPhotoMigrator.run**'.  
     Minimum version required to run the script directly from your Synology NAS (using SSH terminal) is **DSM 7.0**.
@@ -144,7 +141,7 @@ mode.
          Photos Takeout Process. Use this flag only for testing purposses.
 
 
-EXTRA MODES: Synology Photos Takeout Management:
+EXTRA MODES: Synology Photos Management:
 ------------------------------------------------
 Following arguments allow you to interact with Synology Photos.
 If more than one optional arguments are detected, only the first one will be executed.
@@ -187,7 +184,7 @@ If more than one optional arguments are detected, only the first one will be exe
          <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside.
 
 
-EXTRA MODES: Immich Photos Takeout Management:
+EXTRA MODES: Immich Photos Management:
 ----------------------------------------------
 Following arguments allow you to interact with Immich Photos.
 If more than one optional arguments are detected, only the first one will be executed.
@@ -230,8 +227,8 @@ If more than one optional arguments are detected, only the first one will be exe
          <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside.
 
 
-OTHER STAND-ALONE EXTRA MODES:
-------------------------------
+OTHER STANDALONE EXTRA MODES:
+-----------------------------
 Following arguments can be used to execute the Script in any of the usefull additionals
 Extra Modes included.
 If more than one Extra Mode is detected, only the first one will be executed.
@@ -288,10 +285,10 @@ If more than one Extra Mode is detected, only the first one will be executed.
 
 
 
-## <span style="color:green">Extra Mode: AUTOMATED-MIGRATION:</span>
-From version 3.3.0 onwards, the script can be executed in  a FULLY-AUTOMATED MIGRATION Mode. 
-
-If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will automatically do the whole migration jon from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.
+>>## <span style="color:green">Extra Mode: AUTOMATED-MIGRATION:</span>
+>>From version 3.0.0 onwards, the script can be executed in  a FULLY-AUTOMATED MIGRATION Mode. 
+>>
+>>If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will automatically do the whole migration jon from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.
 >>The script will do a FULLY-AUTOMATED job which has two steps:  
 >>  - First, the script will Download all your assets from \<SOURCE> Cloud Service (if you have configured properly the Config.ini file), or process the \<SOURCE> folder in case that you specify a path.
 >>    - In this step, the output will be a \<OUTPUT_FOLDER> containing two subfolders:
