@@ -48,15 +48,15 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
           The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.  
   - **-sdd, --synology-delete-duplicates-albums**  
           The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
-  - **-suf, --synology-upload-folder <FOLDER>**  
+  - **-suf, --synology-upload-folder \<FOLDER>**  
           The script will look for all Photos/Videos within <FOLDER> and will upload them into Synology Photos.
-  - **-sua, --synology-upload-albums <ALBUMS_FOLDER>**  
+  - **-sua, --synology-upload-albums \<ALBUMS_FOLDER>**  
           The script will look for all Albums within <ALBUMS_FOLDER> and will create one Album per folder into Synology Photos.
-  - **-sda, --synology-download-albums <ALBUMS_NAME>**  
+  - **-sda, --synology-download-albums \<ALBUMS_NAME>**  
           The Script will connect to Synology Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the Synology Photos root folder.  
           To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums "album1", "album2", "album3".  
           To download ALL Albums use "ALL" as <ALBUMS_NAME>.  
-  - **-sdA, --synology-download-ALL <OUTPUT_FOLDER>**  
+  - **-sdA, --synology-download-ALL \<OUTPUT_FOLDER>**  
           The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
           - Albums will be downloaded within a subfolder '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
           - Assets with no Albums associated will be downloaded within a subfolder 'OUTPUT_FOLDER/Others/' and will have a year/month structure inside.
@@ -68,15 +68,15 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
   - **-idd, --immich-delete-duplicates-albums**  
           The script will look for all Albums in Immich Photos database and if any
           Album is duplicated, will remove it from Immich Photos database.  
-  - **-iuf, --immich-upload-folder <FOLDER>**    
+  - **-iuf, --immich-upload-folder \<FOLDER>**    
           The script will look for all Photos/Videos within <FOLDER> and will upload them into Immich Photos.  
-  - **-iua, --immich-upload-albums <ALBUMS_FOLDER>**  
+  - **-iua, --immich-upload-albums \<ALBUMS_FOLDER>**  
           The script will look for all Albums within <ALBUMS_FOLDER> and will create one Album per folder into Immich Photos.  
-  - **-ida, --immich-download-albums <ALBUMS_NAME>**  
+  - **-ida, --immich-download-albums \<ALBUMS_NAME>**  
           The Script will connect to Immich Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Immich_Photos_Albums' within the Immich Photos root folder.  
           To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums" "album1", "album2", "album3".  
           To download ALL Albums use "ALL" as <ALBUMS_NAME>.   
-  - **-idA, --immich-download-ALL <OUTPUT_FOLDER>**  
+  - **-idA, --immich-download-ALL |<OUTPUT_FOLDER>**  
           The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
           - Albums will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
           - Assets with no Albums associated will be downloaded withn a subfolder called '<OUTPUT_FOLDER>/Others/' and will have a year/month structure inside.
