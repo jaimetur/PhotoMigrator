@@ -28,11 +28,14 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 - [X] Refactor normal_mode to google_takeout_mode
 - [x] Merged -z and -t options in just one option ('-gitf, -google-input-takeout-folder') and detect if contains Takeout Zip files, in that case Zip files will be Unzipped to <TAKEOUT_FOLDER>_TIMESTAMP folder
 - [x] Unificated a single Config.ini file and included tags for the different configuration sections
+- [x] Included **release-notes.md** file in the distribution package.
+- [x] Updated -h, --help to refflect the new changes.
+- [x] [x] Code refactored.
+- [x] Minor Bug Fixing.
 
 - [x] Renamed options:
   - [x] -sea, --synology-extract-albums is now **-sda, --synology-download-albums**
   - [x] -sca, --synology-create-albums is now **-sua, --synology-upload-albums**
-
 
 - [x] Added new option to Synology Photos Support:
   - [x] **-suf, --synology-upload-folder \<FOLDER>**  
@@ -84,14 +87,6 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
   - [x] **-idas, --immich-delete-ALL-assets** to delete ALL assets in Immich Photos
   - [x] **-idal, --immich-delete-ALL-albums** to delete ALL Albums in Immich Photos (optinally all associated assets can be also deleted)
   - [x] **-iaa, --including-albums-assets** to delete ALL Albums in Immich Photos (optinally all associated assets can be also deleted)
-
-- [x] Added support to include sidecar files when upload assts to Immich
-- [x] Get Supported media type from Immich using API
-- [x] Improved authentication speed in Immich
-- [x] Included **release-notes.md** file in the distribution package.
-- [x] Updated -h, --help to refflect the new changes.
-- [x] [x] Code refactored.
-- [x] Minor Bug Fixing.
 
 ---
 
