@@ -669,7 +669,6 @@ def immich_upload_albums(input_folder):
     albums_skipped = 0
     assets_added = 0
     total_folders = 0
-    assets_ids = []
     # Contar el total de carpetas
     for _, dirs, files in os.walk(input_folder):
         dirs[:] = [d for d in dirs if d != '@eaDir']
@@ -683,6 +682,7 @@ def immich_upload_albums(input_folder):
             for dir in dirs:
                 pbar.update(1)
                 subpath = os.path.join(root, dir)
+                assets_ids = []
                 if os.path.isdir(subpath):
                     # 'item' will be the name of the new album
                     album_name = dir
