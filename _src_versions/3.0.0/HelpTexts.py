@@ -113,7 +113,7 @@ def set_help_texts():
 
     HELP_TEXTS["--immich-delete-all-albums"]  = textwrap.dedent(f"""
         CAUTION!!! The script will delete ALL your Albums from Immich database.
-                   Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-iaa, --including-albums-assets' argument.
+                   Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-iiaa, --immich-include-albums-assets' argument.
         """)
 
     ##############################

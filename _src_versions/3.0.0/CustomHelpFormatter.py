@@ -139,6 +139,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         # 5) Diccionario de tokens forzados
         force_new_line_for_tokens = {
             "[-gitf <TAKEOUT_FOLDER>]": False   # Salto de línea antes, pero sigue reagrupando
+            ,"[-idea]": False   # Salto de línea antes, pero sigue reagrupando
             ,"[-fsym <FOLDER_TO_FIX>]": False   # Salto de línea antes, pero sigue reagrupando
             ,"[-fdup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]": True  # Va solo
         }
@@ -251,14 +252,18 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             for opt in action.option_strings:
                 # Argumento corto, agrega una coma detrás
                 if opt.startswith("-") and not opt.startswith("--"):
-                    if len(opt) == 5:
+                    if len(opt) == 7:
                         option_strings.append(f"{opt},")
-                    if len(opt) == 4:
+                    if len(opt) == 6:
                         option_strings.append(f"{opt}, ")
-                    elif len(opt) == 3:
+                    if len(opt) == 5:
                         option_strings.append(f"{opt},  ")
-                    elif len(opt) == 2:
+                    if len(opt) == 4:
                         option_strings.append(f"{opt},   ")
+                    elif len(opt) == 3:
+                        option_strings.append(f"{opt},    ")
+                    elif len(opt) == 2:
+                        option_strings.append(f"{opt},     ")
                 else:
                     option_strings.append(f"{opt}")
 
