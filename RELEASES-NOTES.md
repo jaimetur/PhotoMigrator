@@ -79,7 +79,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
         - Albums will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
         - Assets with no Albums associated will be downloaded withn a subfolder called '<OUTPUT_FOLDER>/Others/' and will have a year/month structure inside.
   - [x] **-ido, --immich-delete-orphan-assets**  
-        In this process, the script will look for all Orphan Assets in Immich Database and will delete them. 
+        In this process, the script will look for all Orphan Assets in Immich Database and will delete them.  
         **IMPORTANT!**: This feature requires a valid ADMIN_API_KEY configured in Config.ini.
   - [x] **-idas, --immich-delete-ALL-assets** to delete ALL assets in Immich Photos
   - [x] **-idal, --immich-delete-ALL-albums** to delete ALL Albums in Immich Photos (optinally all associated assets can be also deleted)
