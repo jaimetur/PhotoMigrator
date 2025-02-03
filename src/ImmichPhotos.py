@@ -380,7 +380,7 @@ def get_album_items_size(album_id):
 # -----------------------------------------------------------------------------
 #                          ASSETS (FOTOS/VIDEOS) FUNCTIONS
 # -----------------------------------------------------------------------------
-def get_assets_by_search_filter():
+def get_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=None, createdAfter=None, createdBefore=None, country=None, city=None, personIds=None ):
     """
     Returns the list of assets that belong to a specific album (ID).
     """
@@ -388,38 +388,51 @@ def get_assets_by_search_filter():
     if not login_immich():
         return []
     url = f"{IMMICH_URL}/api/search/metadata"
-    payload = json.dumps({
-      # "city": "string",
-      # "country": "string",
-      # "type": "IMAGE",
-      # "libraryId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-      "order": "desc",
 
-      "isNotInAlbum": True,
-      # "isArchived": True,
-      # "isEncoded": True,
-      # "isFavorite": True,
-      # "isMotion": True,
-      # "isOffline": True,
-      # "isVisible": True,
-      # "withArchived": False,
-      # "withDeleted": True,
-      # "withExif": True,
-      # "withPeople": True,
-      # "withStacked": True,
+    payload_data = {
+        # "libraryId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "order": "desc",
+        # "country": "string",
+        # "city": "string",
+        # "type": "IMAGE",
+        # "isNotInAlbum": False,
+        # "isArchived": True,
+        # "isEncoded": True,
+        # "isFavorite": True,
+        # "isMotion": True,
+        # "isOffline": True,
+        # "isVisible": True,
+        # "withArchived": False,
+        # "withDeleted": True,
+        # "withExif": True,
+        # "withPeople": True,
+        # "withStacked": True,
 
-      # "createdAfter": "string",
-      # "createdBefore": "string",
-      # "takenAfter": "string",
-      # "takenBefore": "string",
-      # "updatedAfter": "string",
-      # "updatedBefore": "string",
+        # "createdAfter": "string",
+        # "createdBefore": "string",
+        # "takenAfter": "string",
+        # "takenBefore": "string",
+        # "updatedAfter": "string",
+        # "updatedBefore": "string",
 
-      # "personIds": [
-      #   "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-      # ],
+        # "personIds": [
+        #   "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        # ],
+    }
 
-    })
+    # Agregar isNotInAlbum solo si no es None
+    if type: payload_data["type"] = type
+    if isNotInAlbum: payload_data["isNotInAlbum"] = isNotInAlbum
+    if isArchived: payload_data["isArchived"] = isArchived
+    if createdAfter: payload_data["createdAfter"] = createdAfter
+    if createdBefore: payload_data["createdBefore"] = createdBefore
+    if country: payload_data["country"] = country
+    if city: payload_data["city"] = city
+    if personIds: payload_data["personIds"] = personIds
+
+    # Convert payload_data dict to JSON
+    payload = json.dumps(payload_data, indent=2)
+
     try:
         response = requests.post(url, headers=HEADERS, data=payload, verify=False)
         response.raise_for_status()
@@ -447,6 +460,31 @@ def get_assets_from_album(album_id):
     except Exception as e:
         LOGGER.error(f"ERROR: Failed to retrieve assets from album ID={album_id}: {str(e)}")
         return []
+
+def delete_assets(assets_ids):
+    """
+    Delete the list of assets providen by assets_ids.
+    """
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return []
+    url = f"{IMMICH_URL}/api/assets"
+    payload = json.dumps({
+      "force": True,
+      "ids": assets_ids
+    })
+    try:
+        response = requests.request("DELETE", url, headers=HEADERS, data=payload)
+        response.raise_for_status()
+        if response.ok:
+            return True
+        else:
+            LOGGER.error(f"ERROR: Failed to delete assets: {str(e)}")
+            return False
+    except Exception as e:
+        LOGGER.error(f"ERROR: Failed to delete assets: {str(e)}")
+        return False
+
 
 def upload_file_to_immich(file_path):
     """
@@ -702,29 +740,32 @@ def immich_upload_albums(input_folder):
                 pbar.update(1)
                 subpath = os.path.join(root, dir)
                 assets_ids = []
-                if os.path.isdir(subpath):
-                    # 'item' will be the name of the new album
-                    album_name = dir
-                    album_id = create_album(album_name)
-                    if not album_id:
-                        LOGGER.warning(f"WARNING: Could not create album for subfolder '{dir}'.")
-                        albums_skipped += 1
-                        continue
-                    albums_created += 1
-                    # Ahora recorremos los archivos dentro de subpath
-                    for subroot, _, subfiles in os.walk(subpath):
-                        for file in subfiles:
-                            file_path = os.path.join(subpath, file)
-                            if os.path.isfile(file_path):
-                                # Upload if compatible
-                                asset_id = upload_file_to_immich(file_path)
-                                if asset_id:
-                                    assets_ids.append(asset_id)
-                                    assets_added += 1
-                    # Associate files with the album
-                    if assets_ids:
-                        added_count = add_assets_to_album(album_id, assets_ids)
-                        # LOGGER.info(f"INFO: Added {added_count}/{len(assets_ids)} files to album '{album_name}'.")
+                if not os.path.isdir(subpath):
+                    LOGGER.warning(f"WARNING: Could not create album for subfolder '{subpath}'.")
+                    continue
+                # 'item' will be the name of the new album
+                album_name = dir
+                album_id = create_album(album_name)
+                if not album_id:
+                    LOGGER.warning(f"WARNING: Could not create album for subfolder '{dir}'.")
+                    albums_skipped += 1
+                    continue
+                albums_created += 1
+                # Ahora recorremos los archivos dentro de subpath
+                for subroot, _, subfiles in os.walk(subpath):
+                    for file in subfiles:
+                        file_path = os.path.join(subpath, file)
+                        if not os.path.isfile(file_path):
+                            continue
+                        # Upload if compatible
+                        asset_id = upload_file_to_immich(file_path)
+                        if asset_id:
+                            assets_ids.append(asset_id)
+                            assets_added += 1
+                # Associate files with the album
+                if assets_ids:
+                    added_count = add_assets_to_album(album_id, assets_ids)
+                    # LOGGER.info(f"INFO: Added {added_count}/{len(assets_ids)} files to album '{album_name}'.")
     LOGGER.info(f"INFO: Skipped {albums_skipped} album(s) from '{input_folder}'.")
     LOGGER.info(f"INFO: Created {albums_created} album(s) from '{input_folder}'.")
     LOGGER.info(f"INFO: Uploaded {assets_added} asset(s) from '{input_folder}' to Albums.")
@@ -828,7 +869,8 @@ def immich_download_no_albums(output_folder="Downloads_Immich"):
     total_assets_downloaded = 0
     downloaded_assets_set = set()
     # 2) Assets without album -> output_folder/Others/yyyy/mm
-    all_assets = get_assets_by_search_filter()
+    all_assets = get_assets_by_search_filter(isNotInAlbum=True)
+    # all_assets = get_assets_by_search_filter()
     all_assets_items = all_assets.get("items")
     all_photos_path = os.path.join(output_folder, "Others")
     os.makedirs(all_photos_path, exist_ok=True)
@@ -965,6 +1007,39 @@ def immich_delete_orphan_assets(user_confirmation=True):
     LOGGER.info(f"INFO: Orphaned media assets deleted successfully!")
     return deleted_assets
 
+# -----------------------------------------------------------------------------
+#          DELETE ALL ASSETS FROM IMMICH DATABASE
+# -----------------------------------------------------------------------------
+def immich_delete_all_assets():
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return 0
+    all_assets = get_assets_by_search_filter()
+    all_assets_items = all_assets.get("items")
+    total_assets_found = len(all_assets_items)
+    if total_assets_found == 0:
+        LOGGER.warning(f"WARNING: No Assets found in Immich Database.")
+        return 0,0
+    LOGGER.info(f"INFO: Found {total_assets_found} asset(s) to delete.")
+    assets_ids = []
+    assets_deleted = len(all_assets_items)
+    for asset in tqdm(all_assets_items, desc="INFO: Deleting assets", unit="assets"):
+        asset_id = asset.get("id")
+        if not asset_id:
+            continue
+        assets_ids.append(asset_id)
+
+    ok = delete_assets(assets_ids)
+    if ok:
+        albums_deleted = immich_delete_empty_albums()
+        LOGGER.info(f"INFO: Total Assets deleted: {assets_deleted}")
+        LOGGER.info(f"INFO: Total Albums deleted: {albums_deleted}")
+        return assets_deleted, albums_deleted
+    else:
+        LOGGER.error(f"ERROR: Failed to delete assets.")
+        return 0, 0
+
+
 ##############################################################################
 #                           END OF MAIN FUNCTIONS                            #
 ##############################################################################
@@ -1013,8 +1088,11 @@ if __name__ == "__main__":
     # total_albums_downloaded, total_assets_downloaded = immich_download_ALL(output_folder="Downloads_Immich")
     # print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
 
-    # 7) Example: Delete Orphan Assets
-    immich_delete_orphan_assets(user_confirmation=True)
+    # # 7) Example: Delete Orphan Assets
+    # immich_delete_orphan_assets(user_confirmation=True)
 
-    # 8) Local logout
+    # 8) Example: Delete ALL Assets
+    immich_delete_all_assets()
+
+    # 9) Local logout
     logout_immich()
