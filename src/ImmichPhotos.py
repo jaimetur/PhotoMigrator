@@ -758,6 +758,11 @@ def immich_upload_albums(input_folder):
                         file_path = os.path.join(subpath, file)
                         if not os.path.isfile(file_path):
                             continue
+                        # Obtener la extensión del archivo
+                        ext = os.path.splitext(file)[-1].lower()
+                        if ext not in ALLOWED_MEDIA_EXTENSIONS and ext not in ALLOWED_SIDECAR_EXTENSIONS:
+                          # LOGGER.warning(f"WARNING: Skipping unsupported file '{file_path}'.")
+                          continue  # No subir si la extensión no es compatible
                         # Upload if compatible
                         asset_id = upload_file_to_immich(file_path)
                         if asset_id:
