@@ -2,6 +2,12 @@
 
 ## 3.0.0 (10/02/2025):
 ### TODO:
+- [ ] Add option to remove orphan assets in Immich
+- [ ] Add option to remove All assets in Immich/Synology
+- [ ] Add option to remove Albums in Immich/Synology
+- [ ] Add option to filter by dates in all Immich Actions
+- [ ] Add option to filter by person in all Immich Actions
+- [ ] Add option to filter by place in all Immich Actions
 - [ ] Update RELEASES-NOTES.md
 - [ ] Create a New Release in Github Production Repo
 
