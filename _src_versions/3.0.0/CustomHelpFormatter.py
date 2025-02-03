@@ -197,8 +197,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             if help_text.find("Album is empty, will remove it from Synology Photos database.")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
-                EXTRA MODES: Synology Photos Takeout Management:
-                ------------------------------------------------{Style.RESET_ALL}
+                EXTRA MODES: Synology Photos Management:
+                ---------------------------------------{Style.RESET_ALL}
                 Following arguments allow you to interact with Synology Photos. 
                 If more than one optional arguments are detected, only the first one will be executed.
                 """)
@@ -209,20 +209,20 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             if help_text.find("is empty, will remove it from Immich Photos database.")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
-                EXTRA MODES: Immich Photos Takeout Management:
-                ----------------------------------------------{Style.RESET_ALL}
+                EXTRA MODES: Immich Photos Management:
+                --------------------------------------{Style.RESET_ALL}
                 Following arguments allow you to interact with Immich Photos. 
                 If more than one optional arguments are detected, only the first one will be executed.
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
 
-            # OTHERS STAND-ALONE EXTRA MODES: two lines before "Find duplicates in specified folders."
+            # OTHERS STANDALONE EXTRA MODES: two lines before "Find duplicates in specified folders."
             if help_text.find("Find duplicates in specified folders.")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
-                OTHER STAND-ALONE EXTRA MODES:
-                ------------------------------{Style.RESET_ALL}
+                OTHER STANDALONE EXTRA MODES:
+                -----------------------------{Style.RESET_ALL}
                 Following arguments can be used to execute the Script in any of the usefull additionals Extra Modes included.
                 If more than one Extra Mode is detected, only the first one will be executed.
                 """)

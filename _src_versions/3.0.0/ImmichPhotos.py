@@ -25,24 +25,27 @@ import urllib3
 import fnmatch
 from tqdm import tqdm
 from datetime import datetime
+from urllib.parse import urlparse
+from halo import Halo
+from tabulate import tabulate
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # -----------------------------------------------------------------------------
 #                          GLOBAL VARIABLES
 # -----------------------------------------------------------------------------
-global CONFIG, IMMICH_URL, IMMICH_API_KEY, IMMICH_USERNAME, IMMICH_PASSWORD, API_KEY_LOGIN
+global CONFIG, IMMICH_URL, IMMICH_USER_API_KEY, IMMICH_USERNAME, IMMICH_PASSWORD, API_KEY_LOGIN
 global SESSION_TOKEN
 global HEADERS
 global ALLOWED_MEDIA_EXTENSIONS, ALLOWED_SIDECAR_EXTENSIONS
 
 CONFIG                      = None  # Dictionary containing configuration information
 IMMICH_URL                  = None  # e.g., "http://192.168.1.100:2283"
-IMMICH_API_KEY              = None  # Immich IMMICH_API_KEY
+IMMICH_USER_API_KEY              = None  # Immich IMMICH_USER_API_KEY
 IMMICH_USERNAME             = None  # Immich user (email)
 IMMICH_PASSWORD             = None  # Immich password
 SESSION_TOKEN               = None  # JWT token returned after login
-API_KEY_LOGIN               = False # Variable to determine if we use IMMICH_API_KEY for login
+API_KEY_LOGIN               = False # Variable to determine if we use IMMICH_USER_API_KEY for login
 HEADERS                     = {}    # Headers used in each request
 ALLOWED_MEDIA_EXTENSIONS    = None
 ALLOWED_SIDECAR_EXTENSIONS  = None
@@ -118,13 +121,13 @@ def read_immich_config(config_file='Config.ini', show_info=True):
     for example:
 
         IMMICH_URL = http://192.168.1.100:2283
-        IMMICH_API_KEY    = YOUR_API_KEY
+        IMMICH_USER_API_KEY    = YOUR_API_KEY
         IMMICH_USERNAME   = user@example.com
         IMMICH_PASSWORD   = 1234
 
     If the file is not found, the data will be requested from the user interactively.
     """
-    global CONFIG, IMMICH_URL, IMMICH_API_KEY, IMMICH_USERNAME, IMMICH_PASSWORD, API_KEY_LOGIN
+    global CONFIG, IMMICH_URL, IMMICH_ADMIN_API_KEY, IMMICH_USER_API_KEY, IMMICH_USERNAME, IMMICH_PASSWORD, API_KEY_LOGIN, IMMICH_FILTER_ARCHIVE, IMMICH_FILTER_FROM, IMMICH_FILTER_TO, IMMICH_FILTER_COUNTRY, IMMICH_FILTER_CITY, IMMICH_FILTER_PERSON
     from LoggerConfig import LOGGER  # Iport global LOGGER
     from Config import load_config
 
@@ -136,17 +139,24 @@ def read_immich_config(config_file='Config.ini', show_info=True):
     CONFIG = load_config(config_file)
 
     # Extract specific values for Synology from CONFIG.
-    IMMICH_URL      = CONFIG.get('IMMICH_URL', None)
-    IMMICH_API_KEY  = CONFIG.get('IMMICH_API_KEY', None)
-    IMMICH_USERNAME = CONFIG.get('IMMICH_USERNAME', None)
-    IMMICH_PASSWORD = CONFIG.get('IMMICH_PASSWORD', None)
+    IMMICH_URL              = CONFIG.get('IMMICH_URL', None)
+    IMMICH_ADMIN_API_KEY    = CONFIG.get('IMMICH_ADMIN_API_KEY', None)
+    IMMICH_USER_API_KEY     = CONFIG.get('IMMICH_USER_API_KEY', None)
+    IMMICH_USERNAME         = CONFIG.get('IMMICH_USERNAME', None)
+    IMMICH_PASSWORD         = CONFIG.get('IMMICH_PASSWORD', None)
+    IMMICH_FILTER_ARCHIVE   = CONFIG.get('IMMICH_FILTER_ARCHIVE', None)
+    IMMICH_FILTER_FROM      = CONFIG.get('IMMICH_FILTER_FROM', None)
+    IMMICH_FILTER_TO        = CONFIG.get('IMMICH_FILTER_TO', None)
+    IMMICH_FILTER_COUNTRY   = CONFIG.get('IMMICH_FILTER_COUNTRY', None)
+    IMMICH_FILTER_CITY      = CONFIG.get('IMMICH_FILTER_CITY', None)
+    IMMICH_FILTER_PERSON    = CONFIG.get('IMMICH_FILTER_PERSON', None)
 
     # Verify required parameters and prompt on screen if missing
     if not IMMICH_URL or IMMICH_URL.strip()=='':
         LOGGER.warning(f"WARNING: IMMICH_URL not found. It will be requested on screen.")
         CONFIG['IMMICH_URL'] = input("[PROMPT] Enter IMMICH_URL (e.g., http://192.168.1.100:2283): ")
         IMMICH_URL = CONFIG['IMMICH_URL']
-    if not IMMICH_API_KEY or IMMICH_API_KEY.strip()=='':
+    if not IMMICH_USER_API_KEY or IMMICH_USER_API_KEY.strip()=='':
         if not IMMICH_USERNAME or IMMICH_USERNAME.strip()=='':
             LOGGER.warning(f"WARNING: IMMICH_USERNAME not found. It will be requested on screen.")
             CONFIG['IMMICH_USERNAME'] = input("[PROMPT] Enter IMMICH_USERNAME (Immich email): ")
@@ -162,14 +172,23 @@ def read_immich_config(config_file='Config.ini', show_info=True):
         LOGGER.info("")
         LOGGER.info(f"INFO: Immich Config Read:")
         LOGGER.info(f"INFO: -------------------")
-        LOGGER.info(f"INFO: IMMICH_URL     : {IMMICH_URL}")
+        LOGGER.info(f"INFO: IMMICH_URL            : {IMMICH_URL}")
         if API_KEY_LOGIN:
-            masked_password = '*' * len(IMMICH_API_KEY)
-            LOGGER.info(f"INFO: IMMICH_API_KEY : {masked_password}")
+            masked_admin_api = '*' * len(IMMICH_ADMIN_API_KEY)
+            masked_user_api = '*' * len(IMMICH_USER_API_KEY)
+            LOGGER.info(f"INFO: IMMICH_ADMIN_API_KEY  : {masked_admin_api}")
+            LOGGER.info(f"INFO: IMMICH_USER_API_KEY   : {masked_user_api}")
         else:
-            LOGGER.info(f"INFO: IMMICH_USERNAME: {IMMICH_USERNAME}")
+            LOGGER.info(f"INFO: IMMICH_USERNAME       : {IMMICH_USERNAME}")
             masked_password = '*' * len(IMMICH_PASSWORD)
-            LOGGER.info(f"INFO: IMMICH_PASSWORD: {masked_password}")
+            LOGGER.info(f"INFO: IMMICH_PASSWORD       : {masked_password}")
+        LOGGER.info(f"INFO: IMMICH_FILTER_ARCHIVE : {IMMICH_FILTER_ARCHIVE}")
+        LOGGER.info(f"INFO: IMMICH_FILTER_FROM    : {IMMICH_FILTER_FROM}")
+        LOGGER.info(f"INFO: IMMICH_FILTER_TO      : {IMMICH_FILTER_TO}")
+        LOGGER.info(f"INFO: IMMICH_FILTER_COUNTRY : {IMMICH_FILTER_COUNTRY}")
+        LOGGER.info(f"INFO: IMMICH_FILTER_CITY    : {IMMICH_FILTER_CITY}")
+        LOGGER.info(f"INFO: IMMICH_FILTER_PERSON  : {IMMICH_FILTER_PERSON}")
+
     return CONFIG
 
 
@@ -184,7 +203,7 @@ def login_immich():
     global SESSION_TOKEN, HEADERS
     from LoggerConfig import LOGGER  # Import global LOGGER
     # If there is already a token and headers, assume we are logged in
-    if len(HEADERS.keys())>0 and  (f"Bearer {SESSION_TOKEN}" or IMMICH_API_KEY in HEADERS.values()):
+    if len(HEADERS.keys())>0 and  (f"Bearer {SESSION_TOKEN}" or IMMICH_USER_API_KEY in HEADERS.values()):
         return True
     # Ensure the configuration is read
     read_immich_config()
@@ -192,15 +211,15 @@ def login_immich():
     LOGGER.info("")
     LOGGER.info(f"INFO: Authenticating on Immich Photos and getting Session...")
 
-    # If detected IMMICH_API_KEY in Immich.config
+    # If detected IMMICH_USER_API_KEY in Immich.config
     if API_KEY_LOGIN:
         HEADERS = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'x-api-key': IMMICH_API_KEY
+            'x-api-key': IMMICH_USER_API_KEY
         }
-        LOGGER.info(f"INFO: Authentication Successfully with IMMICH_API_KEY found in Config file.")
-    # If not detected IMMICH_API_KEY in Immich.config
+        LOGGER.info(f"INFO: Authentication Successfully with IMMICH_USER_API_KEY found in Config file.")
+    # If not detected IMMICH_USER_API_KEY in Immich.config
     else:
         url = f"{IMMICH_URL}/api/auth/login"
         payload = json.dumps({
@@ -361,7 +380,7 @@ def get_album_items_size(album_id):
 # -----------------------------------------------------------------------------
 #                          ASSETS (FOTOS/VIDEOS) FUNCTIONS
 # -----------------------------------------------------------------------------
-def get_assets_by_search_filter():
+def get_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=None, createdAfter=None, createdBefore=None, country=None, city=None, personIds=None ):
     """
     Returns the list of assets that belong to a specific album (ID).
     """
@@ -369,38 +388,51 @@ def get_assets_by_search_filter():
     if not login_immich():
         return []
     url = f"{IMMICH_URL}/api/search/metadata"
-    payload = json.dumps({
-      # "city": "string",
-      # "country": "string",
-      # "type": "IMAGE",
-      # "libraryId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-      "order": "desc",
 
-      "isNotInAlbum": True,
-      # "isArchived": True,
-      # "isEncoded": True,
-      # "isFavorite": True,
-      # "isMotion": True,
-      # "isOffline": True,
-      # "isVisible": True,
-      # "withArchived": False,
-      # "withDeleted": True,
-      # "withExif": True,
-      # "withPeople": True,
-      # "withStacked": True,
+    payload_data = {
+        # "libraryId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "order": "desc",
+        # "country": "string",
+        # "city": "string",
+        # "type": "IMAGE",
+        # "isNotInAlbum": False,
+        # "isArchived": True,
+        # "isEncoded": True,
+        # "isFavorite": True,
+        # "isMotion": True,
+        # "isOffline": True,
+        # "isVisible": True,
+        # "withArchived": False,
+        # "withDeleted": True,
+        # "withExif": True,
+        # "withPeople": True,
+        # "withStacked": True,
 
-      # "createdAfter": "string",
-      # "createdBefore": "string",
-      # "takenAfter": "string",
-      # "takenBefore": "string",
-      # "updatedAfter": "string",
-      # "updatedBefore": "string",
+        # "createdAfter": "string",
+        # "createdBefore": "string",
+        # "takenAfter": "string",
+        # "takenBefore": "string",
+        # "updatedAfter": "string",
+        # "updatedBefore": "string",
 
-      # "personIds": [
-      #   "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-      # ],
+        # "personIds": [
+        #   "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        # ],
+    }
 
-    })
+    # Agregar isNotInAlbum solo si no es None
+    if type: payload_data["type"] = type
+    if isNotInAlbum: payload_data["isNotInAlbum"] = isNotInAlbum
+    if isArchived: payload_data["isArchived"] = isArchived
+    if createdAfter: payload_data["createdAfter"] = createdAfter
+    if createdBefore: payload_data["createdBefore"] = createdBefore
+    if country: payload_data["country"] = country
+    if city: payload_data["city"] = city
+    if personIds: payload_data["personIds"] = personIds
+
+    # Convert payload_data dict to JSON
+    payload = json.dumps(payload_data, indent=2)
+
     try:
         response = requests.post(url, headers=HEADERS, data=payload, verify=False)
         response.raise_for_status()
@@ -429,6 +461,31 @@ def get_assets_from_album(album_id):
         LOGGER.error(f"ERROR: Failed to retrieve assets from album ID={album_id}: {str(e)}")
         return []
 
+def delete_assets(assets_ids):
+    """
+    Delete the list of assets providen by assets_ids.
+    """
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return []
+    url = f"{IMMICH_URL}/api/assets"
+    payload = json.dumps({
+      "force": True,
+      "ids": assets_ids
+    })
+    try:
+        response = requests.request("DELETE", url, headers=HEADERS, data=payload)
+        response.raise_for_status()
+        if response.ok:
+            return True
+        else:
+            LOGGER.error(f"ERROR: Failed to delete assets: {str(e)}")
+            return False
+    except Exception as e:
+        LOGGER.error(f"ERROR: Failed to delete assets: {str(e)}")
+        return False
+
+
 def upload_file_to_immich(file_path):
     """
     Uploads a local file (photo or video) to Immich using /api/asset/upload-file.
@@ -453,7 +510,7 @@ def upload_file_to_immich(file_path):
     if API_KEY_LOGIN:
         header = {
             'Accept': 'application/json',
-            'x-api-key': IMMICH_API_KEY
+            'x-api-key': IMMICH_USER_API_KEY
         }
     else:
         header = {
@@ -601,6 +658,7 @@ def immich_delete_duplicates_albums():
     LOGGER.info(f"INFO: Deleted {total_deleted_duplicated_albums} duplicate albums.")
     return total_deleted_duplicated_albums
 
+
 def immich_upload_folder(input_folder):
     """
     Recursively traverses 'input_folder' and its subfolders to upload all
@@ -669,7 +727,6 @@ def immich_upload_albums(input_folder):
     albums_skipped = 0
     assets_added = 0
     total_folders = 0
-    assets_ids = []
     # Contar el total de carpetas
     for _, dirs, files in os.walk(input_folder):
         dirs[:] = [d for d in dirs if d != '@eaDir']
@@ -683,29 +740,33 @@ def immich_upload_albums(input_folder):
             for dir in dirs:
                 pbar.update(1)
                 subpath = os.path.join(root, dir)
-                if os.path.isdir(subpath):
-                    # 'item' will be the name of the new album
-                    album_name = dir
-                    album_id = create_album(album_name)
-                    if not album_id:
-                        LOGGER.warning(f"WARNING: Could not create album for subfolder '{dir}'.")
-                        albums_skipped += 1
-                        continue
-                    albums_created += 1
-                    # Ahora recorremos los archivos dentro de subpath
-                    for subroot, _, subfiles in os.walk(subpath):
-                        for file in subfiles:
-                            file_path = os.path.join(subpath, file)
-                            if os.path.isfile(file_path):
-                                # Upload if compatible
-                                asset_id = upload_file_to_immich(file_path)
-                                if asset_id:
-                                    assets_ids.append(asset_id)
-                                    assets_added += 1
-                    # Associate files with the album
-                    if assets_ids:
-                        added_count = add_assets_to_album(album_id, assets_ids)
-                        # LOGGER.info(f"INFO: Added {added_count}/{len(assets_ids)} files to album '{album_name}'.")
+                assets_ids = []
+                if not os.path.isdir(subpath):
+                    LOGGER.warning(f"WARNING: Could not create album for subfolder '{subpath}'.")
+                    continue
+                # 'item' will be the name of the new album
+                album_name = dir
+                album_id = create_album(album_name)
+                if not album_id:
+                    LOGGER.warning(f"WARNING: Could not create album for subfolder '{dir}'.")
+                    albums_skipped += 1
+                    continue
+                albums_created += 1
+                # Ahora recorremos los archivos dentro de subpath
+                for subroot, _, subfiles in os.walk(subpath):
+                    for file in subfiles:
+                        file_path = os.path.join(subpath, file)
+                        if not os.path.isfile(file_path):
+                            continue
+                        # Upload if compatible
+                        asset_id = upload_file_to_immich(file_path)
+                        if asset_id:
+                            assets_ids.append(asset_id)
+                            assets_added += 1
+                # Associate files with the album
+                if assets_ids:
+                    added_count = add_assets_to_album(album_id, assets_ids)
+                    # LOGGER.info(f"INFO: Added {added_count}/{len(assets_ids)} files to album '{album_name}'.")
     LOGGER.info(f"INFO: Skipped {albums_skipped} album(s) from '{input_folder}'.")
     LOGGER.info(f"INFO: Created {albums_created} album(s) from '{input_folder}'.")
     LOGGER.info(f"INFO: Uploaded {assets_added} asset(s) from '{input_folder}' to Albums.")
@@ -809,7 +870,8 @@ def immich_download_no_albums(output_folder="Downloads_Immich"):
     total_assets_downloaded = 0
     downloaded_assets_set = set()
     # 2) Assets without album -> output_folder/Others/yyyy/mm
-    all_assets = get_assets_by_search_filter()
+    all_assets = get_assets_by_search_filter(isNotInAlbum=True)
+    # all_assets = get_assets_by_search_filter()
     all_assets_items = all_assets.get("items")
     all_photos_path = os.path.join(output_folder, "Others")
     os.makedirs(all_photos_path, exist_ok=True)
@@ -868,6 +930,157 @@ def immich_download_ALL(output_folder="Downloads_Immich"):
     LOGGER.info(f"Total Assets downloaded without albums    : {total_assets_downloaded_without_albums}")
     return total_albums_downloaded, total_assets_downloaded
 
+# -----------------------------------------------------------------------------
+#          DELETE ORPHANS ASSETS FROM IMMICH DATABASE
+# -----------------------------------------------------------------------------
+def immich_delete_orphan_assets(user_confirmation=True):
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return 0
+
+    def filter_entities(response_json, entity_type):
+        return [
+            {'pathValue': entity['pathValue'], 'entityId': entity['entityId'], 'entityType': entity['entityType']}
+            for entity in response_json.get('orphans', []) if entity.get('entityType') == entity_type
+        ]
+
+    if not IMMICH_ADMIN_API_KEY or not IMMICH_USER_API_KEY:
+        LOGGER.error(f"ERROR: Both admin and user API keys are required.")
+        return 0
+
+    immich_parsed_url = urlparse(IMMICH_URL)
+    base_url = f'{immich_parsed_url.scheme}://{immich_parsed_url.netloc}'
+    api_url = f'{base_url}/api'
+    file_report_url = api_url + '/reports'
+    headers = {'x-api-key': IMMICH_ADMIN_API_KEY}
+
+    print()
+    spinner = Halo(text='Retrieving list of orphaned media assets...', spinner='dots')
+    spinner.start()
+
+    deleted_assets = 0
+    try:
+        response = requests.get(file_report_url, headers=headers)
+        response.raise_for_status()
+        spinner.succeed('Success!')
+    except requests.exceptions.RequestException as e:
+        spinner.fail(f'Failed to fetch assets: {str(e)}')
+        return 0
+
+    orphan_media_assets = filter_entities(response.json(), 'asset')
+    num_entries = len(orphan_media_assets)
+
+    if num_entries == 0:
+        LOGGER.info(f"INFO: No orphaned media assets found.")
+        return deleted_assets
+
+    if user_confirmation:
+        table_data = [[asset['pathValue'], asset['entityId']] for asset in orphan_media_assets]
+        LOGGER.info(f"INFO: {tabulate(table_data, headers=['Path Value', 'Entity ID'], tablefmt='pretty')}")
+        LOGGER.info("")
+
+        summary = f'There {"is" if num_entries == 1 else "are"} {num_entries} orphaned media asset{"s" if num_entries != 1 else ""}. Would you like to delete {"them" if num_entries != 1 else "it"} from Immich? (yes/no): '
+        user_input = input(summary).lower()
+        LOGGER.info("")
+
+        if user_input not in ('y', 'yes'):
+            LOGGER.info(f"INFO: Exiting without making any changes.")
+            return 0
+
+    headers['x-api-key'] = IMMICH_USER_API_KEY  # Use user API key for deletion
+    with tqdm(total=num_entries, desc="Deleting orphaned media assets", unit="asset") as progress_bar:
+        for asset in orphan_media_assets:
+            entity_id = asset['entityId']
+            asset_url = f'{api_url}/assets'
+            delete_payload = json.dumps({'force': True, 'ids': [entity_id]})
+            headers = {'Content-Type': 'application/json', 'x-api-key': IMMICH_USER_API_KEY}
+            try:
+                response = requests.delete(asset_url, headers=headers, data=delete_payload)
+                response.raise_for_status()
+            except requests.exceptions.HTTPError as e:
+                if response.status_code == 400:
+                    LOGGER.warning(f"WARNING: Failed to delete asset {entity_id} due to potential API key mismatch. Ensure you're using the asset owners API key as the User API key.")
+                else:
+                    LOGGER.warning(f"WARNING: Failed to delete asset {entity_id}: {str(e)}")
+                continue
+            progress_bar.update(1)
+            deleted_assets += 1
+    LOGGER.info(f"INFO: Orphaned media assets deleted successfully!")
+    return deleted_assets
+
+# -----------------------------------------------------------------------------
+#          DELETE ALL ASSETS FROM IMMICH DATABASE
+# -----------------------------------------------------------------------------
+def immich_delete_all_assets():
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return 0
+    all_assets = get_assets_by_search_filter()
+    all_assets_items = all_assets.get("items")
+    total_assets_found = len(all_assets_items)
+    if total_assets_found == 0:
+        LOGGER.warning(f"WARNING: No Assets found in Immich Database.")
+        return 0,0
+    LOGGER.info(f"INFO: Found {total_assets_found} asset(s) to delete.")
+    assets_ids = []
+    assets_deleted = len(all_assets_items)
+    for asset in tqdm(all_assets_items, desc="INFO: Deleting assets", unit="assets"):
+        asset_id = asset.get("id")
+        if not asset_id:
+            continue
+        assets_ids.append(asset_id)
+
+    ok = delete_assets(assets_ids)
+    if ok:
+        albums_deleted = immich_delete_empty_albums()
+        LOGGER.info(f"INFO: Total Assets deleted: {assets_deleted}")
+        LOGGER.info(f"INFO: Total Albums deleted: {albums_deleted}")
+        return assets_deleted, albums_deleted
+    else:
+        LOGGER.error(f"ERROR: Failed to delete assets.")
+        return 0, 0
+
+# -----------------------------------------------------------------------------
+#          DELETE ALL ALL ALBUMS FROM IMMICH DATABASE
+# -----------------------------------------------------------------------------
+def immich_delete_all_albums(deleteAlbumsAssets=False):
+    """
+    Deletes all albums and optionally also its associated assets.
+    Returns the number of albums deleted and the number of assets deleted.
+    """
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return 0
+    albums = list_albums()
+    if not albums:
+        LOGGER.info("INFO: No albums found.")
+        return 0
+    total_deleted_albums = 0
+    total_deleted_assets = 0
+    for album in tqdm(albums, desc=f"INFO: Searchig for Albums to delete", unit=" albums"):
+        album_id = album.get("id")
+        album_name = album.get("albumName")
+        album_assets_ids = []
+        # if deleteAlbumsAssets is True, we have to delete also the assets associated to the album, album_id
+        if deleteAlbumsAssets:
+            album_assets = get_assets_from_album(album_id)
+            for asset in album_assets:
+                album_assets_ids.append(asset.get("id"))
+            delete_assets(album_assets_ids)
+            total_deleted_assets += len(album_assets_ids)
+
+        # Now we can delete the album
+        if delete_album(album_id, album_name):
+            # LOGGER.info(f"INFO: Empty album '{album_name}' (ID={album_id}) deleted.")
+            total_deleted_albums += 1
+
+    LOGGER.info(f"INFO: Deleted {total_deleted_albums} albums.")
+    if deleteAlbumsAssets:
+        LOGGER.info(f"INFO: Deleted {total_deleted_assets} assets associated to albums.")
+    return total_deleted_albums, total_deleted_assets
+
+
+
 ##############################################################################
 #                           END OF MAIN FUNCTIONS                            #
 ##############################################################################
@@ -880,14 +1093,14 @@ if __name__ == "__main__":
     from CloudPhotoMigrator import log_init
     log_init()
 
-    # 0) Read configuration and log in
-    read_immich_config('Config.ini')
-    login_immich()
+    # # 0) Read configuration and log in
+    # read_immich_config('Config.ini')
+    # login_immich()
 
-    # 1) Example: Delete empty albums
-    print("\n=== EXAMPLE: immich_delete_empty_albums() ===")
-    deleted = immich_delete_empty_albums()
-    print(f"[RESULT] Empty albums deleted: {deleted}")
+    # # 1) Example: Delete empty albums
+    # print("\n=== EXAMPLE: immich_delete_empty_albums() ===")
+    # deleted = immich_delete_empty_albums()
+    # print(f"[RESULT] Empty albums deleted: {deleted}")
 
     # # 2) Example: Delete duplicate albums
     # print("\n=== EXAMPLE: immich_delete_duplicates_albums() ===")
@@ -904,17 +1117,26 @@ if __name__ == "__main__":
     # input_albums_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder\Albums"
     # immich_upload_albums(input_albums_folder)
 
-    # # 5) Example: Download all photos from ALL albums
-    print("\n=== EXAMPLE: immich_download_albums() ===")
-    # total = immich_download_albums('ALL', output_folder="Downloads_Immich")
-    total_albums, total_assets = immich_download_albums("1994 - Recuerdos", output_folder="Downloads_Immich")
-    print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums} different albbums.")
+    # # # 5) Example: Download all photos from ALL albums
+    # print("\n=== EXAMPLE: immich_download_albums() ===")
+    # # total = immich_download_albums('ALL', output_folder="Downloads_Immich")
+    # total_albums, total_assets = immich_download_albums("1994 - Recuerdos", output_folder="Downloads_Immich")
+    # print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums} different albbums.")
 
-    # 6) Example: Download everything in the structure /Albums/<albumName>/ + /Others/yyyy/mm
-    print("\n=== EXAMPLE: immich_download_ALL() ===")
-    # total_struct = immich_download_ALL(output_folder="Downloads_Immich")
-    total_albums_downloaded, total_assets_downloaded = immich_download_ALL(output_folder="Downloads_Immich")
-    print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
+    # # 6) Example: Download everything in the structure /Albums/<albumName>/ + /Others/yyyy/mm
+    # print("\n=== EXAMPLE: immich_download_ALL() ===")
+    # # total_struct = immich_download_ALL(output_folder="Downloads_Immich")
+    # total_albums_downloaded, total_assets_downloaded = immich_download_ALL(output_folder="Downloads_Immich")
+    # print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
 
-    # 7) Local logout
+    # # 7) Example: Delete Orphan Assets
+    # immich_delete_orphan_assets(user_confirmation=True)
+
+    # # 8) Example: Delete ALL Assets
+    # immich_delete_all_assets()
+
+    # 9) Example: Delete ALL Assets
+    immich_delete_all_albums(deleteAlbumsAssets=True)
+
+    # 10) Local logout
     logout_immich()

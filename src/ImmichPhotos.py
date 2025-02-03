@@ -658,6 +658,7 @@ def immich_delete_duplicates_albums():
     LOGGER.info(f"INFO: Deleted {total_deleted_duplicated_albums} duplicate albums.")
     return total_deleted_duplicated_albums
 
+
 def immich_upload_folder(input_folder):
     """
     Recursively traverses 'input_folder' and its subfolders to upload all
@@ -1039,6 +1040,46 @@ def immich_delete_all_assets():
         LOGGER.error(f"ERROR: Failed to delete assets.")
         return 0, 0
 
+# -----------------------------------------------------------------------------
+#          DELETE ALL ALL ALBUMS FROM IMMICH DATABASE
+# -----------------------------------------------------------------------------
+def immich_delete_all_albums(deleteAlbumsAssets=False):
+    """
+    Deletes all albums and optionally also its associated assets.
+    Returns the number of albums deleted and the number of assets deleted.
+    """
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return 0
+    albums = list_albums()
+    if not albums:
+        LOGGER.info("INFO: No albums found.")
+        return 0
+    total_deleted_albums = 0
+    total_deleted_assets = 0
+    for album in tqdm(albums, desc=f"INFO: Searchig for Albums to delete", unit=" albums"):
+        album_id = album.get("id")
+        album_name = album.get("albumName")
+        album_assets_ids = []
+        # if deleteAlbumsAssets is True, we have to delete also the assets associated to the album, album_id
+        if deleteAlbumsAssets:
+            album_assets = get_assets_from_album(album_id)
+            for asset in album_assets:
+                album_assets_ids.append(asset.get("id"))
+            delete_assets(album_assets_ids)
+            total_deleted_assets += len(album_assets_ids)
+
+        # Now we can delete the album
+        if delete_album(album_id, album_name):
+            # LOGGER.info(f"INFO: Empty album '{album_name}' (ID={album_id}) deleted.")
+            total_deleted_albums += 1
+
+    LOGGER.info(f"INFO: Deleted {total_deleted_albums} albums.")
+    if deleteAlbumsAssets:
+        LOGGER.info(f"INFO: Deleted {total_deleted_assets} assets associated to albums.")
+    return total_deleted_albums, total_deleted_assets
+
+
 
 ##############################################################################
 #                           END OF MAIN FUNCTIONS                            #
@@ -1091,8 +1132,11 @@ if __name__ == "__main__":
     # # 7) Example: Delete Orphan Assets
     # immich_delete_orphan_assets(user_confirmation=True)
 
-    # 8) Example: Delete ALL Assets
-    immich_delete_all_assets()
+    # # 8) Example: Delete ALL Assets
+    # immich_delete_all_assets()
 
-    # 9) Local logout
+    # 9) Example: Delete ALL Assets
+    immich_delete_all_albums(deleteAlbumsAssets=True)
+
+    # 10) Local logout
     logout_immich()

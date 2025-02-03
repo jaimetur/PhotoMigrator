@@ -50,7 +50,7 @@ Then you just need to call it depending on your environment:
 ## Syntax:
 ```
 ---------------------------------------------------------------------------------------------------------
-Usage: CloudPhotoMigrator.run/exe [-h] [-v] [-nlog] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
+usage: CloudPhotoMigrator.run/exe [-h] [-v] [-nlog] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
                                   [-AUTO <SOURCE> <TARGET>]
                                   [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFIX>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
@@ -63,18 +63,18 @@ Usage: CloudPhotoMigrator.run/exe [-h] [-v] [-nlog] [-i <INPUT_FOLDER>] [-o <OUT
                                   [-iuf <INPUT_FOLDER>] [-iua <ALBUMS_FOLDER>]
                                   [-iuA <INPUT_FOLDER>]
                                   [-ida <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
-                                  [-idA <OUTPUT_FOLDER>]
+                                  [-idA <OUTPUT_FOLDER>] [-ido] [-idaa] [-idal] [-iaa]
                                   [-fdup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
                                   [-pdup <DUPLICATES_REVISED_CSV>]
                                   [-fsym <FOLDER_TO_FIX>] [-frcb <ALBUMS_FOLDER>]
 
-CloudPhotoMigrator v3.0.0-alpha - 2025-02-01
+CloudPhotoMigrator v3.0.0-alpha - 2025-02-03
 
 Script (based on GPTH Tool) to Process Google Takeout Photos and much more useful features
 (remove duplicates, fix metadata, organize per year/month folder, separate Albums, fix symlinks, etc...).
 (c) 2024-2025 by Jaime Tur (@jaimetur)
 
-options:
+optional arguments:
 
 -h,    --help
          show this help message and exit
@@ -143,7 +143,7 @@ mode.
 
 
 EXTRA MODES: Synology Photos Management:
-----------------------------------------
+---------------------------------------
 Following arguments allow you to interact with Synology Photos.
 If more than one optional arguments are detected, only the first one will be executed.
 
@@ -159,7 +159,7 @@ If more than one optional arguments are detected, only the first one will be exe
 -sua,  --synology-upload-albums <ALBUMS_FOLDER>
          The script will look for all Albums within <ALBUMS_FOLDER> and will create one
          Album per folder into Synology Photos.
--suA,  --synology-upload-ALL <INPUT_FOLDER>
+-suA,  --synology-upload-all <INPUT_FOLDER>
          The script will look for all Assets within <INPUT_FOLDER> and will upload them
          into Synology Photos.
          - If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets
@@ -176,7 +176,7 @@ If more than one optional arguments are detected, only the first one will be exe
          put the name between double quotes. i.e: --synology-download-albums 'album1',
          'album2', 'album3'.
          - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
--sdA,  --synology-download-ALL <OUTPUT_FOLDER>
+-sdA,  --synology-download-all <OUTPUT_FOLDER>
          The Script will connect to Synology Photos and will download all the Album and
          Assets without Albums into the folder <OUTPUT_FOLDER>.
          - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/
@@ -202,7 +202,7 @@ If more than one optional arguments are detected, only the first one will be exe
 -iua,  --immich-upload-albums <ALBUMS_FOLDER>
          The script will look for all Albums within <ALBUMS_FOLDER> and will create one
          Album per folder into Immich Photos.
--iuA,  --immich-upload-ALL <INPUT_FOLDER>
+-iuA,  --immich-upload-all <INPUT_FOLDER>
          The script will look for all Assets within <INPUT_FOLDER> and will upload them
          into Immich Photos.
          - If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets
@@ -219,13 +219,27 @@ If more than one optional arguments are detected, only the first one will be exe
          put the name between double quotes. i.e: --immich-download-albums 'album1',
          'album2', 'album3'.
          - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
--idA,  --immich-download-ALL <OUTPUT_FOLDER>
+-idA,  --immich-download-all <OUTPUT_FOLDER>
          The Script will connect to Immich Photos and will download all the Album and
          Assets without Albums into the folder <OUTPUT_FOLDER>.
          - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/
          with the same name of the Album and all files will be flattened into it.
          - Assets with no Albums associated will be downloaded withn a subfolder called
          <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside.
+-ido,  --immich-delete-orphan-assets
+         The script will look for all Orphan Assets in Immich Database and will delete
+         them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in
+         Config.ini.
+-idaa, --immich-delete-all-assets
+         CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also
+         ALL your Albums from Immich database.
+-idal, --immich-delete-all-albums
+         CAUTION!!! The script will delete ALL your Albums from Immich database.
+         Optionally ALL the Assets associated to each Album can be deleted If you also
+         include the argument '-iaa, --including-albums-assets' argument.
+-iaa,  --including-albums-assets
+         If used together with --immich-delete-all-albums, it will also delete the
+         assets (photos/videos) inside each album.
 
 
 OTHER STANDALONE EXTRA MODES:
@@ -251,7 +265,7 @@ If more than one Extra Mode is detected, only the first one will be executed.
          folder (Useful if you have move any folder from the OUTPUT_TAKEOUT_FOLDER and
          some Albums seems to be empty.
 -frcb, --folders-rename-content-based <ALBUMS_FOLDER>
-         Usefull to rename and homogenize all Albums folders found in <ALBUMS_FOLDER> 
+         Usefull to rename and homogenize all Albums folders found in <ALBUMS_FOLDER>
          based on the date content found.
 ---------------------------------------------------------------------------------------------------------
 ```
