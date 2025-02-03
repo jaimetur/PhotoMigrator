@@ -2,7 +2,6 @@
 
 ## 3.0.0 (10/02/2025):
 ### TODO:
-- [ ] Add option to remove orphan assets in Immich Photos
 - [ ] Add option to remove All assets in Immich/Synology Photos
 - [ ] Add option to remove Albums in Immich/Synology Photos
 - [ ] Update RELEASES-NOTES.md
@@ -19,8 +18,9 @@
 
 - [x] New Script name 'CloudPhotoMigrator' (former 'GoogleTakeoutPhotos')
 - [x] Added Support for Immich Photos
-- [x] Added new option( -suf, --synology-upload-folder') in Synology Photos Support to upload asets without a local folder without associate them to ant album. 
-- [x] Added new option( -sdA, --synology-download-ALL') in Synology Photos Support to download ALL asets (with and without Albums assciated). 
+- [x] Added new option ( -suf, --synology-upload-folder') in Synology Photos Support to upload asets without a local folder without associate them to ant album. 
+- [x] Added new option ( -sdA, --synology-download-ALL') in Synology Photos Support to download ALL asets (with and without Albums assciated). 
+- [x] Added new option ( -ido, --immich-delete-orphan-assets) to remove orphan assets in Immich Photos
 - [x] Renamed options of Synology Photos support to homogenize with Immich Photos support
 - [x] Changed -sda/-ida to support wildcards on Albums name to download
 - [x] Ignored @eaDir folders on -iuf, -iua, -sua

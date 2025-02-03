@@ -4,10 +4,10 @@ import platform
 from datetime import datetime, timedelta
 import Utils
 import Fixers
-import textwrap
+from HelpTexts import set_help_texts
 from Duplicates import find_duplicates, process_duplicates_actions
 from SynologyPhotos import read_synology_config, login_synology, synology_delete_empty_albums, synology_delete_duplicates_albums, synology_upload_folder, synology_upload_albums, synology_download_albums, synology_download_ALL
-from ImmichPhotos import read_immich_config, login_immich, immich_delete_empty_albums, immich_delete_duplicates_albums, immich_upload_folder, immich_upload_albums, immich_download_albums, immich_download_ALL
+from ImmichPhotos import read_immich_config, login_immich, logout_immich, immich_delete_empty_albums, immich_delete_duplicates_albums, immich_upload_folder, immich_upload_albums, immich_download_albums, immich_download_ALL, immich_delete_orphan_assets
 from CustomHelpFormatter import CustomHelpFormatter, PagedArgumentParser
 from LoggerConfig import log_setup
 
@@ -51,169 +51,6 @@ def check_OS_and_Terminal():
         LOGGER.info("INFO: Non-Interactive (Non-TTY) terminal detected for stdin")
     LOGGER.info("")
 
-def set_help_texts():
-    global HELP_MODE_AUTOMATED_MIGRATION
-
-    global HELP_MODE_GOOGLE_TAKEOUT
-
-    global HELP_MODE_SYNOLOGY_DELETE_EMPTY_ALBUMS
-    global HELP_MODE_SYNOLOGY_DELETE_DUPLICATES_ALBUMS
-    global HELP_MODE_SYNOLOGY_UPLOAD_FOLDER
-    global HELP_MODE_SYNOLOGY_UPLOAD_ALBUMS
-    global HELP_MODE_SYNOLOGY_UPLOAD_ALL
-    global HELP_MODE_SYNOLOGY_DOWNLOAD_ALBUMS
-    global HELP_MODE_SYNOLOGY_DOWNLOAD_ALL
-
-    global HELP_MODE_IMMICH_DELETE_EMPTY_ALBUMS
-    global HELP_MODE_IMMICH_DELETE_DUPLICATES_ALBUMS
-    global HELP_MODE_IMMICH_UPLOAD_FOLDER
-    global HELP_MODE_IMMICH_UPLOAD_ALBUMS
-    global HELP_MODE_IMMICH_UPLOAD_ALL
-    global HELP_MODE_IMMICH_DOWNLOAD_ALBUMS
-    global HELP_MODE_IMMICH_DOWNLOAD_ALL
-
-    global HELP_MODE_FIX_SYMLINKS
-    global HELP_MODE_FIND_DUPLICATES
-    global HELP_MODE_PROCESS_DUPLICATES
-    global HELP_MODE_RENAME_ALBUMS_FOLDERS
-
-    ###################################
-    # EXTRA MODE: AUTOMATED-MIGRATION #
-    ###################################
-    HELP_MODE_AUTOMATED_MIGRATION = textwrap.dedent(f"""
-        ATTENTION!!!: This process will do an AUTOMATED-MIGRATION process, Downloading all your Assets (including Albums) from the <SOURCE> Cloud Service
-                      and Uploading them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service.
-        """)
-
-    ################################
-    # EXTRA MODE: GOOGLE PHOTOS #
-    ################################
-    HELP_MODE_GOOGLE_TAKEOUT = textwrap.dedent(f"""
-        ATTENTION!!!: This nodule will process your <TAKEOUT_FOLDER> to fix metadata of all your asets 
-                      and organize them according with the settings defined by user (above settings).
-        """)
-
-    ################################
-    # EXTRA MODES: SYNOLOGY PHOTOS #
-    ################################
-    HELP_MODE_SYNOLOGY_DELETE_EMPTY_ALBUMS = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Empty Albums found in Synology Photos database.
-        """)
-
-    HELP_MODE_SYNOLOGY_DELETE_DUPLICATES_ALBUMS = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Duplicates Albums found in Synology Photos database.
-        """)
-    
-    HELP_MODE_SYNOLOGY_UPLOAD_FOLDER = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to your to your Synology Photos account and will upload all Photos/Videos found within <FOLDER> (including subfolders, except 'Albums' subfolder).
-                      Due to Synology Photos limitations, o Upload any folder, it must be placed inside SYNOLOGY_ROOT_FOLDER and all its content must have been indexed before to add any asset to Synology Photos.
-        """)
-
-    HELP_MODE_SYNOLOGY_UPLOAD_ALBUMS = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to your to your Synology Photos account and will create a new Album for each Subfolder found in <ALBUMS_FOLDER> and will include all Photos and Videos included in that Subfolder.
-                      Due to Synology Photos limitations, to Upload any folder, it must be placed inside SYNOLOGY_ROOT_FOLDER and all its content must have been indexed before to add any asset to Synology Photos. 
-        """)
-
-    HELP_MODE_SYNOLOGY_UPLOAD_ALL = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to your to your Synology Photos account and will Upload all Assets found in <INPUT_FOLDER>.
-                      If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of Albums willl be associated to a new Album in Synology Photos with the same name as the subfolder
-                      Due to Synology Photos limitations, to Upload any folder, it must be placed inside SYNOLOGY_ROOT_FOLDER and all its content must have been indexed before to add any asset to Synology Photos. 
-        """)
-
-    HELP_MODE_SYNOLOGY_DOWNLOAD_ALBUMS = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to Synology Photos and extract those Album(s) whose name is in <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the SYNOLOGY_ROOT_FOOLDER. 
-                      If the file already exists, it will be OVERWRITTEN!!!
-                      To extract all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: dron* to download all albums starting with the word 'dron' followed by other(s) words.
-                      To extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums "album1", "album2", "album3" 
-                      To extract ALL Albums within in Synology Photos database use 'ALL' as ALBUMS_NAME.
-        """)
-    
-    HELP_MODE_SYNOLOGY_DOWNLOAD_ALL = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to Synology Photos and will download all the Album and Assets without Albums into the folder '<OUTPUT_FOLDER>' within the SYNOLOGY_ROOT_FOOLDER. 
-                      If the file already exists, it will be OVERWRITTEN!!!
-                      All Albums will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums' with the same name of the Album and all files will be flattened into it.
-                      Assets with no Albums associated will be downloaded withn a subfolder '<OUTPUT_FOLDER>/Others' and will have a year/month structure inside.
-        """)
-
-
-    ##############################
-    # EXTRA MODES: IMMICH PHOTOS #
-    ##############################
-    HELP_MODE_IMMICH_DELETE_EMPTY_ALBUMS = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Empty Albums found in Immich Photos database.
-        """)
-
-    HELP_MODE_IMMICH_DELETE_DUPLICATES_ALBUMS = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Duplicates Albums found in Immich Photos database.
-        """)
-    
-    HELP_MODE_IMMICH_UPLOAD_FOLDER = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to your to your Immich Photos account and will upload all Photos/Videos found within <INPUT_FOLDER> (including subfolders, except 'Albums' subfolder).
-        """)
-
-    HELP_MODE_IMMICH_UPLOAD_ALBUMS = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to your to your Immich Photos account and will create a new Album for each Subfolder found in <ALBUMS_FOLDER> and will include all Photos and Videos included in that Subfolder.
-        """)
-
-    HELP_MODE_IMMICH_UPLOAD_ALL = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to your to your Immich Photos account and will Upload all Assets found in <INPUT_FOLDER>.
-                      If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of Albums willl be associated to a new Album in Immich Photos with the same name as the subfolder
-        """)
-
-    HELP_MODE_IMMICH_DOWNLOAD_ALBUMS = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to Immich Photos and extract those Album(s) whose name is in <ALBUMS_NAME> to the folder './Downloads_Immich' within the Script execution folder. 
-                      If the file already exists, it will be OVERWRITTEN!!!
-                      To extract all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: dron* to download all albums starting with the word 'dron' followed by other(s) words.
-                      To extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums "album1", "album2", "album3" 
-                      To extract ALL Albums within in Immich Photos database use 'ALL' as ALBUMS_NAME.
-        """)
-
-    HELP_MODE_IMMICH_DOWNLOAD_ALL = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to Immich Photos and will download all the Album and Assets without Albums into the folder './<OUTPUT_FOLDER>'. 
-                      If the file already exists, it will be OVERWRITTEN!!!.
-                      All Albums will be downloaded within a subfolder of './<OUTPUT_FOLDER>/Albums' with the same name of the Album and all files will be flattened into it.
-                      Assets with no Albums associated will be downloaded withn a subfolder './<OUTPUT_FOLDER>/Others' and will have a year/month structure inside.
-        """)
-
-    ##############################
-    # OTHER STANDALONE EXTRA MODES:
-    ##############################
-    HELP_MODE_FIX_SYMLINKS = textwrap.dedent(f"""
-        ATTENTION!!!: This process will look for all Symbolic Links broken in <FOLDER_TO_FIX> 
-                      and will try to find the destination file within the same folder.
-        """)
-
-    HELP_MODE_FIND_DUPLICATES = textwrap.dedent(f"""
-        ATTENTION!!!: This process will process all Duplicates files found in <DUPLICATES_FOLDER> and will apply the given action.
-                      You must take into account that if not valid action is detected within the arguments of '-fdup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>', then 'list' will be the default action.
-        
-        Possible duplicates-action are:
-            - list   : This action is not dangerous, just list all duplicates files found in a Duplicates.csv file.
-            - move   : This action could be dangerous but is easily reversible if you find that any duplicated file have been moved to Duplicates folder and you want to restore it later
-                       You can easily restore it using option -pd, --process-duplicates
-            - remove : This action could be dangerous and is irreversible, since the script will remove all duplicates found and will keep only a Principal file per each duplicates set. 
-                       The principal file is chosen carefilly based on some heuristhic methods
-        """)
-
-    HELP_MODE_PROCESS_DUPLICATES = textwrap.dedent(f"""
-        ATTENTION!!!: This process will process all Duplicates files found with '-fdup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>' option 
-                      based on the Action column value of 'Duplicates.csv' file generated in 'Find Duplicates Mode'. 
-        
-        You can modify individually each Action column value for each duplicate found, but take into account that the below actions list are irreversible:
-        
-        Possible Actions in revised CSV file are:
-            - remove_duplicate  : Duplicated file moved to Duplicates folder will be permanentely removed
-            - restore_duplicate : Duplicated file moved to Duplicates folder will be restored to its original location
-            - replace_duplicate : This action can be used to replace the principal file chosen for each duplicates and select manually other principal file
-                                  Duplicated file moved to Duplicates folder will be restored to its original location as principal file
-                                  and Original Principal file detected by the Script will be removed permanently
-        """)
-
-    HELP_MODE_RENAME_ALBUMS_FOLDERS = textwrap.dedent(f"""
-        ATTENTION!!!: This process will clean each Subfolder found in <ALBUMS_FOLDER> with an homogeneous name starting
-                      with album year followed by a cleaned subfolder name without underscores nor middle dashes.
-                      New Album name format: 'yyyy - Cleaned Subfolder name'
-        """)
 
 def create_global_variable_from_args(args):
     """
@@ -346,6 +183,7 @@ def parse_arguments():
                            "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
                            "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside."
                         )
+    PARSER.add_argument("-ido", "--immich-delete-orphan-assets", action="store_true", default="", help="The script will look for all Orphan Assets in Immich Database and will delete them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in Config.ini.")
 
     # OTHERS STAND-ALONE EXTRA MODES:
     # -------------------------------
@@ -475,6 +313,9 @@ def detect_and_run_execution_mode():
     elif ARGS['immich-download-ALL'] != "":
         EXECUTION_MODE = 'immich-download-ALL'
         mode_immich_download_ALL()
+    elif ARGS['immich-delete-orphan-assets'] != "":
+        EXECUTION_MODE = 'immich-delete-orphan-assets'
+        mode_immich_delete_orphan_assets()
 
     # Other Stand-alone Extra Modes:
     elif ARGS['fix-symlinks-broken'] != "":
@@ -524,6 +365,7 @@ def main():
     global DEFAULT_DUPLICATES_ACTION
     global DEPRIORITIZE_FOLDERS_PATTERNS
     global ARGS
+    global HELP_TEXTS
 
     # Limpiar la pantalla y parseamos argumentos de entrada
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -531,7 +373,7 @@ def main():
     DEFAULT_DUPLICATES_ACTION = False
 
     # Set HELP Texts
-    set_help_texts()
+    HELP_TEXTS = set_help_texts()
 
     # Obtain Input Arguments Parsed
     ARGS = parse_arguments()
@@ -569,9 +411,9 @@ def mode_AUTOMATED_MIGRATION(info_messages=True):
 
     LOGGER.info(f"INFO: -AUTO, --AUTOMATED-MIGRATION Mode detected")
     if not ARGS['SOURCE-TYPE-TAKEOUT-FOLDER']:
-        LOGGER.info(HELP_MODE_AUTOMATED_MIGRATION.replace('<SOURCE>', f"'{ARGS['AUTOMATED-MIGRATION'][0]}'").replace('<TARGET>', f"'{ARGS['AUTOMATED-MIGRATION'][1]}'"))
+        LOGGER.info(HELP_TEXTS["HELP_MODE_AUTOMATED_MIGRATION"].replace('<SOURCE>', f"'{ARGS['AUTOMATED-MIGRATION'][0]}'").replace('<TARGET>', f"'{ARGS['AUTOMATED-MIGRATION'][1]}'"))
     else:
-        LOGGER.info(HELP_MODE_AUTOMATED_MIGRATION.replace('<SOURCE> Cloud Service', f"folder '{ARGS['AUTOMATED-MIGRATION'][0]}'").replace('<TARGET>', f"'{ARGS['AUTOMATED-MIGRATION'][1]}'").replace('Downloading', 'Analyzing and Fixing'))
+        LOGGER.info(HELP_TEXTS["HELP_MODE_AUTOMATED_MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{ARGS['AUTOMATED-MIGRATION'][0]}'").replace('<TARGET>', f"'{ARGS['AUTOMATED-MIGRATION'][1]}'").replace('Downloading', 'Analyzing and Fixing'))
     LOGGER.info(f"INFO: Selected SOURCE : {SOURCE}")
     LOGGER.info(f"INFO: Selected TARGET : {TARGET}")
     LOGGER.info("")
@@ -688,7 +530,7 @@ def mode_google_takeout(user_confirmation=True, info_messages=True):
 
     LOGGER.info(f"")
     if user_confirmation:
-        LOGGER.info(HELP_MODE_GOOGLE_TAKEOUT.replace('<TAKEOUT_FOLDER>',f"'{ARGS['google-input-takeout-folder']}'"))
+        LOGGER.info(HELP_TEXTS["HELP_MODE_GOOGLE_TAKEOUT"].replace('<TAKEOUT_FOLDER>',f"'{ARGS['google-input-takeout-folder']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -938,7 +780,7 @@ def mode_google_takeout(user_confirmation=True, info_messages=True):
 
 def mode_fix_symlinkgs(user_confirmation=True, info_messages=True):
     if user_confirmation:
-        LOGGER.info(HELP_MODE_FIX_SYMLINKS.replace('<FOLDER_TO_FIX>', f"'{ARGS['fix-symlinks-broken']}'"))
+        LOGGER.info(HELP_TEXTS["HELP_MODE_FIX_SYMLINKS"].replace('<FOLDER_TO_FIX>', f"'{ARGS['fix-symlinks-broken']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -970,7 +812,7 @@ def mode_find_duplicates(interactive_mode=True, info_messages=True):
     LOGGER.info(f"INFO: Find Duplicates in Folders    : {ARGS['duplicates-folders']}")
     LOGGER.info("")
     if interactive_mode:
-        LOGGER.info(HELP_MODE_FIND_DUPLICATES.replace('<DUPLICATES_FOLDER>', f"'{ARGS['duplicates-folders']}'"))
+        LOGGER.info(HELP_TEXTS["HELP_MODE_FIND_DUPLICATES"].replace('<DUPLICATES_FOLDER>', f"'{ARGS['duplicates-folders']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1003,7 +845,7 @@ def mode_find_duplicates(interactive_mode=True, info_messages=True):
 
 def mode_process_duplicates(user_confirmation=True, info_messages=True):
     if user_confirmation:
-        LOGGER.info(HELP_MODE_PROCESS_DUPLICATES)
+        LOGGER.info(HELP_TEXTS["HELP_MODE_PROCESS_DUPLICATES"])
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1040,7 +882,7 @@ def mode_folders_rename_content_based(user_confirmation=True, info_messages=True
     LOGGER.info("===================")
     LOGGER.info("")
     if user_confirmation:
-        LOGGER.info(HELP_MODE_RENAME_ALBUMS_FOLDERS.replace('<ALBUMS_FOLDER>', f"'{ARGS['folders-rename-content-based']}'"))
+        LOGGER.info(HELP_TEXTS["HELP_MODE_RENAME_ALBUMS_FOLDERS"].replace('<ALBUMS_FOLDER>', f"'{ARGS['folders-rename-content-based']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1075,7 +917,7 @@ def mode_folders_rename_content_based(user_confirmation=True, info_messages=True
 def mode_synology_delete_empty_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-sde, --synology-delete-empty-albums'.")
-        LOGGER.info(HELP_MODE_SYNOLOGY_DELETE_EMPTY_ALBUMS)
+        LOGGER.info(HELP_TEXTS["HELP_MODE_SYNOLOGY_DELETE_EMPTY_ALBUMS"])
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1105,7 +947,7 @@ def mode_synology_delete_empty_albums(user_confirmation=True, info_messages=True
 def mode_synology_delete_duplicates_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-sdd, --synology-delete-deuplicates-albums'.")
-        LOGGER.info(HELP_MODE_SYNOLOGY_DELETE_DUPLICATES_ALBUMS)
+        LOGGER.info(HELP_TEXTS["HELP_MODE_SYNOLOGY_DELETE_DUPLICATES_ALBUMS"])
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1135,7 +977,7 @@ def mode_synology_delete_duplicates_albums(user_confirmation=True, info_messages
 def mode_synology_upload_folder(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-suf, --synology-upload-folder'.")
-        LOGGER.info(HELP_MODE_SYNOLOGY_UPLOAD_FOLDER.replace('<INPUT_FOLDER>', f"'{ARGS['synology-upload-folder']}'"))
+        LOGGER.info(HELP_TEXTS["HELP_MODE_SYNOLOGY_UPLOAD_FOLDER"].replace('<INPUT_FOLDER>', f"'{ARGS['synology-upload-folder']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1168,7 +1010,7 @@ def mode_synology_upload_folder(user_confirmation=True, info_messages=True):
 def mode_synology_upload_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-sua, --synology-upload-albums'.")
-        LOGGER.info(HELP_MODE_SYNOLOGY_UPLOAD_ALBUMS.replace('<ALBUMS_FOLDER>', f"'{ARGS['synology-upload-albums']}'"))
+        LOGGER.info(HELP_TEXTS["HELP_MODE_SYNOLOGY_UPLOAD_ALBUMS"].replace('<ALBUMS_FOLDER>', f"'{ARGS['synology-upload-albums']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1202,7 +1044,7 @@ def mode_synology_upload_albums(user_confirmation=True, info_messages=True):
 def mode_synology_upload_ALL( user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-suA, --synology-upload-ALL'.")
-        LOGGER.info(HELP_MODE_IMMICH_UPLOAD_ALL.replace('<INPUT_FOLDER>', f"'{ARGS['synology-upload-ALL']}'"))
+        LOGGER.info(HELP_TEXTS["HELP_MODE_IMMICH_UPLOAD_ALL"].replace('<INPUT_FOLDER>', f"'{ARGS['synology-upload-ALL']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1264,7 +1106,7 @@ def mode_synology_upload_ALL( user_confirmation=True, info_messages=True):
 def mode_synology_download_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-sda, --synology-download-albums'.")
-        LOGGER.info(HELP_MODE_SYNOLOGY_DOWNLOAD_ALBUMS.replace('<ALBUMS_NAME>', f"'{ARGS['synology-download-albums']}'"))
+        LOGGER.info(HELP_TEXTS["HELP_MODE_SYNOLOGY_DOWNLOAD_ALBUMS"].replace('<ALBUMS_NAME>', f"'{ARGS['synology-download-albums']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1297,7 +1139,7 @@ def mode_synology_download_albums(user_confirmation=True, info_messages=True):
 def mode_synology_download_ALL(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-idA, --immich-download-all'.")
-        LOGGER.info(HELP_MODE_SYNOLOGY_DOWNLOAD_ALL.replace('<OUTPUT_FOLDER>', f"{ARGS['synology-download-ALL']}"))
+        LOGGER.info(HELP_TEXTS["HELP_MODE_SYNOLOGY_DOWNLOAD_ALL"].replace('<OUTPUT_FOLDER>', f"{ARGS['synology-download-ALL']}"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1334,7 +1176,7 @@ def mode_synology_download_ALL(user_confirmation=True, info_messages=True):
 def mode_immich_delete_empty_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-ide, --immich-delete-empty-albums'.")
-        LOGGER.info(HELP_MODE_IMMICH_DELETE_EMPTY_ALBUMS)
+        LOGGER.info(HELP_TEXTS["HELP_MODE_IMMICH_DELETE_EMPTY_ALBUMS"])
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1342,6 +1184,7 @@ def mode_immich_delete_empty_albums(user_confirmation=True, info_messages=True):
         LOGGER.info(f"INFO: Flag detected '-ide, --immich-delete-empty-albums'. The Script will look for any empty album in Immich Photos database and will detelte them (if any enpty album is found).")
     # Call the Funxtion
     albums_deleted = immich_delete_empty_albums()
+    logout_immich()
 
     if info_messages:
         # FINAL SUMMARY
@@ -1364,7 +1207,7 @@ def mode_immich_delete_empty_albums(user_confirmation=True, info_messages=True):
 def mode_immich_delete_duplicates_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-idd, --immich-delete-deuplicates-albums'.")
-        LOGGER.info(HELP_MODE_IMMICH_DELETE_DUPLICATES_ALBUMS)
+        LOGGER.info(HELP_TEXTS["HELP_MODE_IMMICH_DELETE_DUPLICATES_ALBUMS"])
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1372,6 +1215,7 @@ def mode_immich_delete_duplicates_albums(user_confirmation=True, info_messages=T
         LOGGER.info(f"INFO: Flag detected '-idd, --immich-delete-duplicates-albums'. The Script will look for any duplicated album in Immich Photos database and will detelte them (if any duplicated album is found).")
     # Call the Funxtion
     albums_deleted = immich_delete_duplicates_albums()
+    logout_immich()
 
     if info_messages:
         # FINAL SUMMARY
@@ -1394,7 +1238,7 @@ def mode_immich_delete_duplicates_albums(user_confirmation=True, info_messages=T
 def mode_immich_upload_folder(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-iua, --immich-upload-albums'.")
-        LOGGER.info(HELP_MODE_IMMICH_UPLOAD_FOLDER.replace('<INPUT_FOLDER>', f"'{ARGS['immich-upload-folder']}'"))
+        LOGGER.info(HELP_TEXTS["HELP_MODE_IMMICH_UPLOAD_FOLDER"].replace('<INPUT_FOLDER>', f"'{ARGS['immich-upload-folder']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1404,6 +1248,7 @@ def mode_immich_upload_folder(user_confirmation=True, info_messages=True):
     LOGGER.info("")
     # Call the Funxtion
     photos_added = immich_upload_folder(ARGS['immich-upload-folder'])
+    logout_immich()
 
     if info_messages:
         # FINAL SUMMARY
@@ -1426,7 +1271,7 @@ def mode_immich_upload_folder(user_confirmation=True, info_messages=True):
 def mode_immich_upload_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-iua, --immich-upload-albums'.")
-        LOGGER.info(HELP_MODE_IMMICH_UPLOAD_ALBUMS.replace('<ALBUMS_FOLDER>', f"'{ARGS['immich-upload-albums']}'"))
+        LOGGER.info(HELP_TEXTS["HELP_MODE_IMMICH_UPLOAD_ALBUMS"].replace('<ALBUMS_FOLDER>', f"'{ARGS['immich-upload-albums']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1436,6 +1281,7 @@ def mode_immich_upload_albums(user_confirmation=True, info_messages=True):
     LOGGER.info("")
     # Call the Funxtion
     albums_crated, albums_skipped, photos_added = immich_upload_albums(ARGS['immich-upload-albums'])
+    logout_immich()
 
     if info_messages:
         # FINAL SUMMARY
@@ -1460,7 +1306,7 @@ def mode_immich_upload_albums(user_confirmation=True, info_messages=True):
 def mode_immich_upload_ALL(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-iuA, --immich-upload-ALL'.")
-        LOGGER.info(HELP_MODE_IMMICH_UPLOAD_ALL.replace('<INPUT_FOLDER>', f"'{ARGS['immich-upload-ALL']}'"))
+        LOGGER.info(HELP_TEXTS["HELP_MODE_IMMICH_UPLOAD_ALL"].replace('<INPUT_FOLDER>', f"'{ARGS['immich-upload-ALL']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1526,7 +1372,7 @@ def mode_immich_upload_ALL(user_confirmation=True, info_messages=True):
 def mode_immich_download_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-ida, --immich-download-albums'.")
-        LOGGER.info(HELP_MODE_IMMICH_DOWNLOAD_ALBUMS.replace('<ALBUMS_NAME>', f"{ARGS['immich-download-albums']}"))
+        LOGGER.info(HELP_TEXTS["HELP_MODE_IMMICH_DOWNLOAD_ALBUMS"].replace('<ALBUMS_NAME>', f"{ARGS['immich-download-albums']}"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1536,6 +1382,7 @@ def mode_immich_download_albums(user_confirmation=True, info_messages=True):
     LOGGER.info("")
     # Call the Funxtion
     albums_downloaded, assets_downloaded = immich_download_albums(ARGS['immich-download-albums'])
+    logout_immich()
 
     if info_messages:
         # FINAL SUMMARY
@@ -1559,7 +1406,7 @@ def mode_immich_download_albums(user_confirmation=True, info_messages=True):
 def mode_immich_download_ALL(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-idA, --immich-download-ALL'.")
-        LOGGER.info(HELP_MODE_IMMICH_DOWNLOAD_ALL.replace('<OUTPUT_FOLDER>', f"{ARGS['immich-download-ALL']}"))
+        LOGGER.info(HELP_TEXTS["HELP_MODE_IMMICH_DOWNLOAD_ALL"].replace('<OUTPUT_FOLDER>', f"{ARGS['immich-download-ALL']}"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1569,6 +1416,7 @@ def mode_immich_download_ALL(user_confirmation=True, info_messages=True):
     LOGGER.info("")
     # Call the Funxtion
     albums_downloaded, assets_downloaded = immich_download_ALL(output_folder=ARGS['immich-download-ALL'])
+    logout_immich()
 
     if info_messages:
         # FINAL SUMMARY
@@ -1584,6 +1432,39 @@ def mode_immich_download_ALL(user_confirmation=True, info_messages=True):
         LOGGER.info("==================================================")
         LOGGER.info(f"Total Albums downloaded                 : {albums_downloaded}")
         LOGGER.info(f"Total Assets downloaded                 : {assets_downloaded}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+def mode_immich_delete_orphan_assets(user_confirmation=True, info_messages=True):
+    if user_confirmation:
+        LOGGER.info(f"INFO: Flag detected '-ido, --immich-delete-orphan-assets'.")
+        LOGGER.info(HELP_TEXTS["HELP_MODE_IMMICH_DELETE_ORPHAN_ASSETS"])
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO: Exiting program.")
+            sys.exit(0)
+        LOGGER.info(f"INFO: Immich Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
+    LOGGER.info("")
+    # LOGGER.info(f"INFO: Find Albums in Folder    : {ARGS['immich-upload-albums']}")
+    LOGGER.info("")
+    # Call the Funxtion
+    delete_assets = immich_delete_orphan_assets(user_confirmation=user_confirmation)
+    logout_immich()
+
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Orphan Assets deleted             : {delete_assets}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
