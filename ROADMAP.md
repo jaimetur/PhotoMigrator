@@ -7,7 +7,8 @@
 - [ ] Add option to remove Albums in Immich/Synology
 - [ ] Add option to filter by dates in all Immich Actions
 - [ ] Add option to filter by person in all Immich Actions
-- [ ] Add option to filter by place in all Immich Actions
+- [ ] Add option to filter by city/country in all Immich Actions
+- [ ] Add option to filter Archive in all Immich Actions
 - [ ] Update RELEASES-NOTES.md
 - [ ] Create a New Release in Github Production Repo
 
