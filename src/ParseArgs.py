@@ -1,5 +1,6 @@
 from CustomHelpFormatter import CustomHelpFormatter, PagedArgumentParser
 import argparse
+import os
 
 def parse_arguments():
     global ARGS
