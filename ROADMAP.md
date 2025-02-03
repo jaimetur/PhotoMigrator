@@ -2,10 +2,12 @@
 
 ## 3.0.0 (10/02/2025):
 ### TODO:
-- [ ] Add option to remove All assets in Immich/Synology Photos
-- [ ] Add option to remove Albums in Immich/Synology Photos
+- [x] Add option to remove All assets in Immich Photos
+- [ ] Add option to remove Albums in Immich Photos
+- [ ] Add option to remove All assets in Synology Photos
+- [ ] Add option to remove Albums in Synology Photos
 - [ ] Update RELEASES-NOTES.md
-- [ ] Create a New Release in Github Production Repo
+- [ ] Create a New Release in GitHub Production Repo
 
 - #### Tests Pending:
 - [ ] Deep Test on Immich Support functions
