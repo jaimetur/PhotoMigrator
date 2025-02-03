@@ -4,8 +4,6 @@
 ### TODO:
 - [ ] Add option to remove All assets in Synology Photos
 - [ ] Add option to remove Albums in Synology Photos (optinally all associated assets can be also deleted)
-- [ ] Update RELEASES-NOTES.md
-- [ ] Create a New Release in GitHub Production Repo
 
 - #### Tests Pending:
 - [ ] Deep Test on Immich Support functions
@@ -35,8 +33,10 @@
 - [x] Added Help text for Google Photos Mode
 - [x] Changed the logic to detect google_takeout_mode (former normal_mode)
 - [x] Put at the end of the help the standard option (those that are not related to any Support mode)
-- [x] Added RELEASES-NOTES.md file to the distribution package.
 - [x] Updated README.md
+- [x] Update RELEASES-NOTES.md
+- [x] Create a New Release in GitHub Production Repo
+- [x] Added RELEASES-NOTES.md file to the distribution package.
 - #### Automated Migration:
 - [x] Created functions synology_upload_ALL(input_folder) and immich_upload_ALL(input_folder) to upload:
     - 1. Album folder (if exists) with synology_upload_albums() and immich_upload_albums()
