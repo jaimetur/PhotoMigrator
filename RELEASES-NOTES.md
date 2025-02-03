@@ -41,7 +41,6 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
   - [x] **-suf, --synology-upload-folder \<FOLDER>**  
         The script will look for all Photos/Videos within <FOLDER> and will upload them into Synology Photos.
 
-
 - [x] With those changes the support for Synology Photos has the following options:
   - [x] **-sde, --synology-delete-empty-albums**  
       The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.  
@@ -83,7 +82,6 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
         In this process, the script will look for all Orphan Assets in Immich Database and will delete them. 
           > [!IMPORTANT]
           > This feature requires a valid ADMIN_API_KEY configured in Config.ini.
-  - [x] **-ido, --immich-delete-orphan-assets** to delete orphan assets in Immich Photos
   - [x] **-idas, --immich-delete-ALL-assets** to delete ALL assets in Immich Photos
   - [x] **-idal, --immich-delete-ALL-albums** to delete ALL Albums in Immich Photos (optinally all associated assets can be also deleted)
   - [x] **-iaa, --including-albums-assets** to delete ALL Albums in Immich Photos (optinally all associated assets can be also deleted)
