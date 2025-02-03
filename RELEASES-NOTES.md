@@ -30,7 +30,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 - [x] Unificated a single Config.ini file and included tags for the different configuration sections
 - [x] Included **release-notes.md** file in the distribution package.
 - [x] Updated -h, --help to refflect the new changes.
-- [x] [x] Code refactored.
+- [x] Code refactored.
 - [x] Minor Bug Fixing.
 
 - [x] Renamed options:
