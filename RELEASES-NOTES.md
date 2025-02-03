@@ -17,7 +17,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 ## Release Notes:
 
 **Release**: 3.0.0  
-**Date**: 2025-02-01
+**Date**: 2025-02-03
 
 - [x] New Script name '**CloudPhotoMigrator**' (former 'GoogleTakeoutPhotos')
 - [x] New Automated Migration Feature to perform Fully automated migration process between different Photo Cloud Services
