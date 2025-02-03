@@ -729,13 +729,13 @@ def immich_upload_albums(input_folder):
     total_folders = 0
     # Contar el total de carpetas
     for _, dirs, files in os.walk(input_folder):
-        dirs[:] = [d for d in dirs if d != '@eaDir']
+        dirs[:] = [d for d in dirs if d != '@eaDir' and d != 'Others']
         total_folders += sum([len(dirs)])
     # Show progress bar per assets
     with tqdm(total=total_folders, smoothing=0.1, desc=f"INFO: Uploading Albums", unit=" albums") as pbar:
         # Recursively traverse the folder and excluding '@eaDir' folders
         for root, dirs, files in os.walk(input_folder):
-            dirs[:] = [d for d in dirs if d != '@eaDir']
+            dirs[:] = [d for d in dirs if d != '@eaDir' and d != 'Others']
             # List direct subfolders
             for dir in dirs:
                 pbar.update(1)
