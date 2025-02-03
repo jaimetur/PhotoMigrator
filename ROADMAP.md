@@ -2,13 +2,9 @@
 
 ## 3.0.0 (10/02/2025):
 ### TODO:
-- [ ] Add option to remove orphan assets in Immich
-- [ ] Add option to remove All assets in Immich/Synology
-- [ ] Add option to remove Albums in Immich/Synology
-- [ ] Add option to filter by dates in all Immich Actions
-- [ ] Add option to filter by person in all Immich Actions
-- [ ] Add option to filter by city/country in all Immich Actions
-- [ ] Add option to filter Archive in all Immich Actions
+- [ ] Add option to remove orphan assets in Immich Photos
+- [ ] Add option to remove All assets in Immich/Synology Photos
+- [ ] Add option to remove Albums in Immich/Synology Photos
 - [ ] Update RELEASES-NOTES.md
 - [ ] Create a New Release in Github Production Repo
 
@@ -75,7 +71,10 @@
   - current implementation of -sda does not allow this ==> Investigate other implementation
 - [ ] Complete function -suf to upload external folders (without Albums) to Synology photos. Make sure than ignore @eaDir folders
   - Try to upload folders outside Synology Photos ROOT folder (for -suf option)
-- [ ] Add options to delete All Albums and delete All Assets for Immich/Synology Photos
+- [ ] Add option to filter by dates in all Immich Actions
+- [ ] Add option to filter by person in all Immich Actions
+- [ ] Add option to filter by city/country in all Immich Actions
+- [ ] Add option to filter Archive in all Immich Actions
 - [ ] Update README.md
 - [ ] Update RELEASES-NOTES.md
 - [ ] Create a New Release in Github Production Repo
