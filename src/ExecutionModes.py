@@ -14,6 +14,7 @@ EXECUTION_MODE = "default"
 # -------------------------------------------------------------
 def detect_and_run_execution_mode():
     # from Globals import ARGS, PARSER
+    
     # AUTOMATED-MIGRATION MODE:
     if ARGS['AUTOMATED-MIGRATION']:
         EXECUTION_MODE = 'AUTOMATED-MIGRATION'
