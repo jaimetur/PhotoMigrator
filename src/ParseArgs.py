@@ -2,34 +2,16 @@ from CustomHelpFormatter import CustomHelpFormatter, PagedArgumentParser
 import argparse
 import os
 
+global TIMESTAMP, LOG_FOLDER_FILENAME, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE, SCRIPT_NAME_VERSION, SCRIPT_DESCRIPTION, HELP_TEXTS, START_TIME, OUTPUT_TAKEOUT_FOLDER, DEPRIORITIZE_FOLDERS_PATTERNS, ARGS, PARSER, DEFAULT_DUPLICATES_ACTION
+
+choices_for_folder_structure        = ['flatten', 'year', 'year/month', 'year-month']
+choices_for_remove_duplicates       = ['list', 'move', 'remove']
+choices_for_AUTOMATED_MIGRATION_SRC = ['google-photos', 'synology-photos', 'immich-photos']
+choices_for_AUTOMATED_MIGRATION_TGT = ['synology-photos', 'immich-photos']
+
 def parse_arguments():
     global ARGS
-    global PARSER
-    global DEFAULT_DUPLICATES_ACTION
-    from CloudPhotoMigrator import SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE, SCRIPT_NAME_VERSION, SCRIPT_DESCRIPTION
-
-    def parse_folders(folders):
-        # Si "folders" es un string, separar por comas o espacios
-        if isinstance(folders, str):
-            return folders.replace(',', ' ').split()
-
-        # Si "folders" es una lista, aplanar un nivel
-        if isinstance(folders, list):
-            flattened = []
-            for item in folders:
-                if isinstance(item, list):
-                    flattened.extend(item)
-                else:
-                    flattened.append(item)
-            return flattened
-
-        # Si no es ni lista ni string, devolver lista vacía
-        return []
-
-    choices_for_folder_structure        = ['flatten', 'year', 'year/month', 'year-month']
-    choices_for_remove_duplicates       = ['list', 'move', 'remove']
-    choices_for_AUTOMATED_MIGRATION_SRC = ['google-photos', 'synology-photos', 'immich-photos']
-    choices_for_AUTOMATED_MIGRATION_TGT = ['synology-photos', 'immich-photos']
+    from CloudPhotoMigrator import SCRIPT_DESCRIPTION
 
     # # Regular Parser without Pagination
     # PARSER = argparse.ArgumentParser(
@@ -46,7 +28,6 @@ def parse_arguments():
     # Acción personalizada para --version
     class VersionAction(argparse.Action):
         def __call__(self, parser, namespace, values, option_string=None):
-            global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE, SCRIPT_NAME_VERSION, SCRIPT_DESCRIPTION
             print(f"\n{SCRIPT_NAME} {SCRIPT_VERSION} {SCRIPT_DATE} by Jaime Tur (@jaimetur)\n")
             parser.exit()
 
@@ -72,7 +53,7 @@ def parse_arguments():
                         , type=lambda s: s.lower()  # Convert input to lowercase
                         , choices=choices_for_folder_structure  # Valid choices
                         )
-    PARSER.add_argument("-gnas", "--google-no-albums-folder-structure", metavar=f"{choices_for_folder_structure}", default="year/month", help="Specify the type of folder structure for 'Others' folder (Default: 'year/month')."
+    PARSER.add_argument("-gnas", "--google-no-albums-folder-structure", metavar=f"{choices_for_folder_structure}", default="year/month", help="Specify the type of folder structure for 'No-Albums' folder (Default: 'year/month')."
                         , type=lambda s: s.lower()  # Convert input to lowercase
                         , choices=choices_for_folder_structure  # Valid choices
                         )
@@ -154,6 +135,10 @@ def parse_arguments():
     args = PARSER.parse_args()
     ARGS = create_global_variable_from_args(args)
 
+
+def checkArgs():
+    global DEFAULT_DUPLICATES_ACTION
+
     # Remove last / for all folders expected as arguments:
     ARGS['input-folder'] = ARGS['input-folder'].lstrip('_')
     ARGS['output-folder'] = ARGS['output-folder'].lstrip('_')
@@ -203,7 +188,25 @@ def parse_arguments():
     if ARGS['immich-include-albums-assets'] and not ARGS['immich-delete-all-albums']:
         PARSER.error("--immich-include-albums-assets is a modifier of argument --immich-delete-all-albums and cannot work alone.")
 
-    return ARGS, PARSER
+    return ARGS
+
+def parse_folders(folders):
+    # Si "folders" es un string, separar por comas o espacios
+    if isinstance(folders, str):
+        return folders.replace(',', ' ').split()
+
+    # Si "folders" es una lista, aplanar un nivel
+    if isinstance(folders, list):
+        flattened = []
+        for item in folders:
+            if isinstance(item, list):
+                flattened.extend(item)
+            else:
+                flattened.append(item)
+        return flattened
+
+    # Si no es ni lista ni string, devolver lista vacía
+    return []
 
 def create_global_variable_from_args(args):
     """

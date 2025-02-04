@@ -280,6 +280,7 @@ class PagedArgumentParser(argparse.ArgumentParser):
     """
     Sobrescribimos ArgumentParser para que 'print_help()' use un paginador.
     """
+    global SCRIPT_DESCRIPTION
 
     def custom_pager(self, text):
         """

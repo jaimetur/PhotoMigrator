@@ -60,9 +60,9 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, 
         #print (" ".join(gpth_command))
         result = subprocess.run(gpth_command, check=True, capture_output=False)
 
-        # Rename folder 'ALL_PHOTOS' by 'Others'
+        # Rename folder 'ALL_PHOTOS' by 'No-Albums'
         all_photos_path = os.path.join(output_folder, 'ALL_PHOTOS')
-        others_path = os.path.join(output_folder, 'Others')
+        others_path = os.path.join(output_folder, 'No-Albums')
         if os.path.exists(all_photos_path) and os.path.isdir(all_photos_path):
             os.rename(all_photos_path, others_path)
 

@@ -1,4 +1,4 @@
-import os
+import os, sys
 import shutil
 import zipfile
 import fnmatch
@@ -6,13 +6,40 @@ import re
 import stat
 from datetime import datetime
 from tqdm import tqdm
-
+import platform
 
 ######################
 # FUNCIONES AUXILIARES
 ######################
 def run_from_synology():
     return os.path.exists('/etc.defaults/synoinfo.conf')
+
+def check_OS_and_Terminal():
+    from LoggerConfig import LOGGER
+    # Detect the operating system
+    current_os = platform.system()
+    # Determine the script name based on the OS
+    if current_os == "Linux":
+        if run_from_synology():
+            LOGGER.info(f"INFO: Script running on Linux System in a Synology NAS")
+        else:
+            LOGGER.info(f"INFO: Script running on Linux System")
+    elif current_os == "Darwin":
+        LOGGER.info(f"INFO: Script running on MacOS System")
+    elif current_os == "Windows":
+        LOGGER.info(f"INFO: Script running on Windows System")
+    else:
+        LOGGER.error(f"ERROR: Unsupported Operating System: {current_os}")
+
+    if sys.stdout.isatty():
+        LOGGER.info("INFO: Interactive (TTY) terminal detected for stdout")
+    else:
+        LOGGER.info("INFO: Non-Interactive (Non-TTY) terminal detected for stdout")
+    if sys.stdin.isatty():
+        LOGGER.info("INFO: Interactive (TTY) terminal detected for stdin")
+    else:
+        LOGGER.info("INFO: Non-Interactive (Non-TTY) terminal detected for stdin")
+    LOGGER.info("")
 
 def count_files_in_folder(folder_path):
     """Counts the number of files in a folder."""
@@ -282,7 +309,7 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None)
     albums_path = os.path.join(input_folder, albums_subfolder)
     exclude_subfolder_paths = [os.path.abspath(os.path.join(input_folder, sub)) for sub in (exclude_subfolder or [])]
     subfolders = os.listdir(input_folder)
-    subfolders = [subfolder for subfolder in subfolders if not subfolder=='@eaDir' and not subfolder=='Others']
+    subfolders = [subfolder for subfolder in subfolders if not subfolder=='@eaDir' and not subfolder=='No-Albums']
     for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"INFO: Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
         folder_path = os.path.join(input_folder, subfolder)
         if os.path.isdir(folder_path) and subfolder != albums_subfolder and os.path.abspath(folder_path) not in exclude_subfolder_paths:
@@ -688,3 +715,4 @@ def is_valid_path(path):
     except ValidationError as e:
         LOGGER.error(f"ERROR: Path validation error: {e}")
         return False
+

@@ -729,13 +729,13 @@ def immich_upload_albums(input_folder):
     total_folders = 0
     # Contar el total de carpetas
     for _, dirs, files in os.walk(input_folder):
-        dirs[:] = [d for d in dirs if d != '@eaDir' and d != 'Others']
+        dirs[:] = [d for d in dirs if d != '@eaDir' and d != 'No-Albums']
         total_folders += sum([len(dirs)])
     # Show progress bar per assets
     with tqdm(total=total_folders, smoothing=0.1, desc=f"INFO: Uploading Albums", unit=" albums") as pbar:
         # Recursively traverse the folder and excluding '@eaDir' folders
         for root, dirs, files in os.walk(input_folder):
-            dirs[:] = [d for d in dirs if d != '@eaDir' and d != 'Others']
+            dirs[:] = [d for d in dirs if d != '@eaDir' and d != 'No-Albums']
             # List direct subfolders
             for dir in dirs:
                 pbar.update(1)
@@ -878,7 +878,7 @@ def immich_download_no_albums(output_folder="Downloads_Immich"):
     all_assets = get_assets_by_search_filter(isNotInAlbum=True)
     # all_assets = get_assets_by_search_filter()
     all_assets_items = all_assets.get("items")
-    all_photos_path = os.path.join(output_folder, "Others")
+    all_photos_path = os.path.join(output_folder, 'No-Albums')
     os.makedirs(all_photos_path, exist_ok=True)
     # all_assets_items = [a for a in all_assets if a.get("id") not in downloaded_assets_set]
     LOGGER.info(f"INFO: Found {len(all_assets_items)} asset(s) without any album associated.")
@@ -905,12 +905,35 @@ def immich_download_no_albums(output_folder="Downloads_Immich"):
 
 
 # -----------------------------------------------------------------------------
+#          COMPLETE UPLOAD OF ALL ASSETS (Albums + Others)
+# -----------------------------------------------------------------------------
+def immich_upload_ALL(input_folder="Downloads_Immich"):
+    """
+    (Previously download_all_assets_with_structure)
+    Uploads ALL photos and videos from input_folder into Immich Photos:
+
+    Returns the total number of albums and assets uploaded.
+    """
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return 0
+    total_albums_uploaded, total_assets_uploaded_within_albums = immich_upload_albums(albums_name='ALL', input_folder=input_folder)
+    total_assets_uploaded_without_albums = immich_upload_folder(input_folder=input_folder)
+    total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
+    LOGGER.info(f"INFO: Download of ALL assets completed.")
+    LOGGER.info(f"Total Albums uploaded                     : {total_albums_uploaded}")
+    LOGGER.info(f"Total Assets uploaded                     : {total_assets_uploaded}")
+    LOGGER.info(f"Total Assets uploaded within albums       : {total_assets_uploaded_within_albums}")
+    LOGGER.info(f"Total Assets uploaded without albums      : {total_assets_uploaded_without_albums}")
+    return total_albums_uploaded, total_assets_uploaded
+
+
+# -----------------------------------------------------------------------------
 #          COMPLETE DOWNLOAD OF ALL ASSETS (Albums + Others)
 # -----------------------------------------------------------------------------
 def immich_download_ALL(output_folder="Downloads_Immich"):
     """
-    (Previously download_all_assets_with_structure)
-    Downloads ALL photos and videos from Immich into:
+    Downloads ALL photos and videos from Immich Photos into output_folder creating a Folder Structure like this:
         output_folder/
           ├─ Albums/
           │    ├─ albumName1/ (assets in the album)

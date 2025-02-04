@@ -117,7 +117,7 @@ mode.
            Specify the type of folder structure for each Album folder (Default:
            'flatten').
 -gnas,   --google-no-albums-folder-structure ['flatten', 'year', 'year/month', 'year-month']
-           Specify the type of folder structure for 'Others' folder (Default:
+           Specify the type of folder structure for 'No-Albums' folder (Default:
            'year/month').
 -gcsa,   --google-create-symbolic-albums
            Creates symbolic links for Albums instead of duplicate the files of each
@@ -309,7 +309,7 @@ This step is useful if you want to Upload all your Albums to a new Cloud Service
 >  - First, the script will Download all your assets from \<SOURCE> Cloud Service (if you have configured properly the Config.ini file), or process the \<SOURCE> folder in case that you specify a path.
 >    - In this step, the output will be a \<OUTPUT_FOLDER> containing two subfolders:
 >      - 'Albums': Contains all the assets associated to some Album(s) within your \<SOURCE> Cloud Service
->      - 'Others': Contains all the assets with no Album(s) assciated within your \<SOURCE> Cloud Service
+>      - 'No-Albums': Contains all the assets with no Album(s) assciated within your \<SOURCE> Cloud Service
 >  - Second, the script will connect to yourto \<TARGET> Cloud Service (if you have configured properly the Config.ini file) and will 
 >    upload all the assets processed in previous step, creating a new Album per each Album found in your \<SOURCE> Cloud Service (or \<SOURCE> folder if you specifyy a path), 
 >    and will associate all the assets included in each Album in the same way that you had on your \<SOURCE> Cloud Service.
@@ -383,7 +383,7 @@ The whole process will do the next actions if all flags are false (by default):
 The result will be a folder (NAMED '<INPUT_TAKEOUT_FOLDER>_{SUFIX}_{TIMESTAMP}' by default, but you can or change the default suffix _'fixed'_ by any other using the option _'-gofs, --google-output-folder-suffix <SUFIX>'_) 
 The final OUTPUT_FOLDER will include:
 - 'Albums' subfolder with all the Albums without year/month structure (by default).
-- 'Others' subfolder with all the photos with year/month structure (by default).
+- 'No-Albums' subfolder with all the photos with year/month structure (by default).
 
 Finally, if you want to use your processed assets within Synology Photos, you just need to move OUTPUT_FOLDER into your /home/Photos folder and let Synology index all files (it will take long time). After that you will be able to explore your photos chronologycally on the Synology Photos App, and all your Albums will be there when you explore the library by folder instead of chronologycally.
 
