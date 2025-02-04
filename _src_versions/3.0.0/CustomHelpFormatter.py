@@ -178,15 +178,15 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
 
         # Texto de ayuda, formateado e identado
         if action.help:
-            ident_spaces = 9
+            ident_spaces = 11
             help_text = justificar_texto(action.help, initial_indent=" " * ident_spaces, subsequent_indent=" " * ident_spaces)
 
             # EXTRA MODES for Google Photos Takeout Management: two lines before "Specify the Takeout folder to process."
             if help_text.find("Specify the Takeout folder to process.")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
-                EXTRA MODES: Google Photos Takeout Management:
-                ----------------------------------------------{Style.RESET_ALL}
+                GOOGLE PHOTOS TAKEOUT MANAGEMENT:
+                ---------------------------------{Style.RESET_ALL}
                 Following arguments allow you to interact with Google Photos Takeout Folder. 
                 In this mode, you can use more than one optional arguments from the below list.
                 If only the argument -gtif, --google-takeout-input-folder <TAKEOUT_FOLDER> is detected, then the script will use the default values for the rest of the arguments for this extra mode.
@@ -198,8 +198,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             if help_text.find("Album is empty, will remove it from Synology Photos database.")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
-                EXTRA MODES: Synology Photos Management:
-                ---------------------------------------{Style.RESET_ALL}
+                SYNOLOGY PHOTOS MANAGEMENT:
+                ---------------------------{Style.RESET_ALL}
                 Following arguments allow you to interact with Synology Photos. 
                 If more than one optional arguments are detected, only the first one will be executed.
                 """)
@@ -210,8 +210,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             if help_text.find("is empty, will remove it from Immich Photos database.")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
-                EXTRA MODES: Immich Photos Management:
-                --------------------------------------{Style.RESET_ALL}
+                IMMICH PHOTOS MANAGEMENT:
+                -------------------------{Style.RESET_ALL}
                 Following arguments allow you to interact with Immich Photos. 
                 If more than one optional arguments are detected, only the first one will be executed.
                 """)

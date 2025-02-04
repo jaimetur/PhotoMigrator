@@ -22,8 +22,9 @@ SCRIPT_NAME_VERSION = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
 SCRIPT_DESCRIPTION  = f"""
 {SCRIPT_NAME_VERSION} - {SCRIPT_DATE}
 
-Script (based on GPTH Tool) to Process Google Takeout Photos and much more useful features
-(remove duplicates, fix metadata, organize per year/month folder, separate Albums, fix symlinks, etc...).
+Multi-Platform/Multi-Arch toot designed to Interact and Manage different Photo Cloud 
+Services such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
+
 (c) 2024-2025 by Jaime Tur (@jaimetur)
 """
 
@@ -917,7 +918,7 @@ def mode_synology_upload_ALL( user_confirmation=True, info_messages=True):
 def mode_synology_download_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-sdAlb, --synology-download-albums'.")
-        LOGGER.info(HELP_TEXTS["--synology-download-albums"].replace('<ALBUMS_NAME>', f"'{ARGS['synology-download-albums']}'"))
+        LOGGER.info(HELP_TEXTS["--synology-download-albums"].replace("'<ALBUMS_NAME>'", f"'{ARGS['synology-download-albums']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1183,7 +1184,7 @@ def mode_immich_upload_ALL(user_confirmation=True, info_messages=True):
 def mode_immich_download_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-idAlb, --immich-download-albums'.")
-        LOGGER.info(HELP_TEXTS["--immich-download-albums"].replace('<ALBUMS_NAME>', f"{ARGS['immich-download-albums']}"))
+        LOGGER.info(HELP_TEXTS["--immich-download-albums"].replace("'<ALBUMS_NAME>'", f"{ARGS['immich-download-albums']}"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)

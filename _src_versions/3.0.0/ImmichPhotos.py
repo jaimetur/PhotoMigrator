@@ -729,13 +729,13 @@ def immich_upload_albums(input_folder):
     total_folders = 0
     # Contar el total de carpetas
     for _, dirs, files in os.walk(input_folder):
-        dirs[:] = [d for d in dirs if d != '@eaDir']
+        dirs[:] = [d for d in dirs if d != '@eaDir' and d != 'Others']
         total_folders += sum([len(dirs)])
     # Show progress bar per assets
     with tqdm(total=total_folders, smoothing=0.1, desc=f"INFO: Uploading Albums", unit=" albums") as pbar:
         # Recursively traverse the folder and excluding '@eaDir' folders
         for root, dirs, files in os.walk(input_folder):
-            dirs[:] = [d for d in dirs if d != '@eaDir']
+            dirs[:] = [d for d in dirs if d != '@eaDir' and d != 'Others']
             # List direct subfolders
             for dir in dirs:
                 pbar.update(1)
@@ -758,6 +758,11 @@ def immich_upload_albums(input_folder):
                         file_path = os.path.join(subpath, file)
                         if not os.path.isfile(file_path):
                             continue
+                        # Obtener la extensión del archivo
+                        ext = os.path.splitext(file)[-1].lower()
+                        if ext not in ALLOWED_MEDIA_EXTENSIONS and ext not in ALLOWED_SIDECAR_EXTENSIONS:
+                          # LOGGER.warning(f"WARNING: Skipping unsupported file '{file_path}'.")
+                          continue  # No subir si la extensión no es compatible
                         # Upload if compatible
                         asset_id = upload_file_to_immich(file_path)
                         if asset_id:
