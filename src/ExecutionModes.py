@@ -2,7 +2,6 @@ from Globals import *
 import os, sys
 from datetime import datetime, timedelta
 import Utils
-# from LoggerConfig import LOGGER
 import Fixers
 from Duplicates import find_duplicates, process_duplicates_actions
 from SynologyPhotos import read_synology_config, login_synology, synology_delete_empty_albums, synology_delete_duplicates_albums, synology_upload_folder, synology_upload_albums, synology_download_albums, synology_download_ALL
