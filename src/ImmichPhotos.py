@@ -34,14 +34,11 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # -----------------------------------------------------------------------------
 #                          GLOBAL VARIABLES
 # -----------------------------------------------------------------------------
-global CONFIG, IMMICH_URL, IMMICH_USER_API_KEY, IMMICH_USERNAME, IMMICH_PASSWORD, API_KEY_LOGIN
-global SESSION_TOKEN
-global HEADERS
-global ALLOWED_MEDIA_EXTENSIONS, ALLOWED_SIDECAR_EXTENSIONS
-
+# global CONFIG, IMMICH_URL, IMMICH_ADMIN_API_KEY, IMMICH_USER_API_KEY, IMMICH_USERNAME, IMMICH_PASSWORD, SESSION_TOKEN, API_KEY_LOGIN, HEADERS, ALLOWED_MEDIA_EXTENSIONS, ALLOWED_SIDECAR_EXTENSIONS
 CONFIG                      = None  # Dictionary containing configuration information
 IMMICH_URL                  = None  # e.g., "http://192.168.1.100:2283"
-IMMICH_USER_API_KEY              = None  # Immich IMMICH_USER_API_KEY
+IMMICH_ADMIN_API_KEY        = None  # Immich IMMICH_ADMIN_API_KEY
+IMMICH_USER_API_KEY         = None  # Immich IMMICH_USER_API_KEY
 IMMICH_USERNAME             = None  # Immich user (email)
 IMMICH_PASSWORD             = None  # Immich password
 SESSION_TOKEN               = None  # JWT token returned after login
