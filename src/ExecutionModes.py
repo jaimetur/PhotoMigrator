@@ -1,26 +1,20 @@
+from Globals import *
 import os, sys
 from datetime import datetime, timedelta
 import Utils
-from LoggerConfig import LOGGER
+# from LoggerConfig import LOGGER
 import Fixers
 from Duplicates import find_duplicates, process_duplicates_actions
 from SynologyPhotos import read_synology_config, login_synology, synology_delete_empty_albums, synology_delete_duplicates_albums, synology_upload_folder, synology_upload_albums, synology_download_albums, synology_download_ALL
 from ImmichPhotos import read_immich_config, login_immich, logout_immich, immich_delete_empty_albums, immich_delete_duplicates_albums, immich_upload_folder, immich_upload_albums, immich_download_albums, immich_download_ALL, immich_delete_orphan_assets, immich_delete_all_assets, immich_delete_all_albums
 
-global TIMESTAMP, LOG_FOLDER_FILENAME, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE, SCRIPT_NAME_VERSION, SCRIPT_DESCRIPTION, HELP_TEXTS, START_TIME, OUTPUT_TAKEOUT_FOLDER, DEPRIORITIZE_FOLDERS_PATTERNS, ARGS, PARSER, DEFAULT_DUPLICATES_ACTION
-
-
 DEFAULT_DUPLICATES_ACTION = False
-
-
+EXECUTION_MODE = "default"
 # -------------------------------------------------------------
 # Determine the Execution mode based on the providen arguments:
 # -------------------------------------------------------------
 def detect_and_run_execution_mode():
-    global EXECUTION_MODE
-    global ARGS
-    global PARSER
-
+    from Globals import ARGS, PARSER
     # AUTOMATED-MIGRATION MODE:
     if ARGS['AUTOMATED-MIGRATION']:
         EXECUTION_MODE = 'AUTOMATED-MIGRATION'
@@ -102,15 +96,13 @@ def detect_and_run_execution_mode():
 
     else:
         EXECUTION_MODE = ''  # Opción por defecto si no se cumple ninguna condición
-        LOGGER.error("ERROR: Unable to detect any valid execution mode.")
-        LOGGER.error("ERROR: Please, read the --help to know more about how to invoke the Script.")
+        LOGGER.error(f"ERROR: Unable to detect any valid execution mode.")
+        LOGGER.error(f"ERROR: Please, run '{os.path.basename(sys.argv[0])} --help' to know more about how to invoke the Script.")
         LOGGER.error("")
-        PARSER.print_help()
+        # PARSER.print_help()
         sys.exit(1)
 
 def mode_AUTOMATED_MIGRATION(info_messages=True):
-    global OUTPUT_TAKEOUT_FOLDER
-
     SOURCE = ARGS['AUTOMATED-MIGRATION'][0]
     TARGET = ARGS['AUTOMATED-MIGRATION'][1]
     intermediate_folder = ''
@@ -142,8 +134,8 @@ def mode_AUTOMATED_MIGRATION(info_messages=True):
         if not config['SYNOLOGY_ROOT_PHOTOS_PATH']:
             LOGGER.warning(f"WARNING: Caanot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
         else:
-            OUTPUT_TAKEOUT_FOLDER = os.path.join(config['SYNOLOGY_ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
-            intermediate_folder = OUTPUT_TAKEOUT_FOLDER
+            ARGS['output-folder'] = os.path.join(config['SYNOLOGY_ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
+            intermediate_folder = ARGS['output-folder']
 
         # Check if already exists an 'Albums' subfolder within input_folder, in that case, the input_folder have been already processed by CloudPhotoMigrator and no need to execute GPTH step again
         # but in that case, we need to move the folder to the intermediate folder
@@ -196,6 +188,11 @@ def mode_AUTOMATED_MIGRATION(info_messages=True):
 
 def mode_google_takeout(user_confirmation=True, info_messages=True):
     # Configure default arguments for mode_google_takeout() execution
+    if ARGS['output-folder']:
+        OUTPUT_TAKEOUT_FOLDER = ARGS['output-folder']
+    else:
+        OUTPUT_TAKEOUT_FOLDER = f"{ARGS['google-input-takeout-folder']}_{ARGS['google-output-folder-suffix']}_{TIMESTAMP}"
+
     input_folder = ARGS['google-input-takeout-folder']
     need_unzip = Utils.contains_zip_files(input_folder)
     if need_unzip:
@@ -211,7 +208,7 @@ def mode_google_takeout(user_confirmation=True, info_messages=True):
         # Mensajes informativos
         LOGGER.info(f"Settings for Google Takeout Photos Module:")
         LOGGER.info(f"------------------------------------------")
-        LOGGER.info(f"INFO: Using Suffix                             : '{ARGS['google-output-folder-suFldfix']}'")
+        LOGGER.info(f"INFO: Using Suffix                             : '{ARGS['google-output-folder-suffix']}'")
         LOGGER.info(f"INFO: Albums Folder Structure                  : '{ARGS['google-albums-folders-structure']}'")
         LOGGER.info(f"INFO: No Albums Folder Structure               : '{ARGS['google-no-albums-folder-structure']}'")
         LOGGER.info(f"INFO: Creates symbolic links for Albums        : '{ARGS['google-create-symbolic-albums']}'")
@@ -225,8 +222,6 @@ def mode_google_takeout(user_confirmation=True, info_messages=True):
         LOGGER.info("")
         LOGGER.info(f"Folders for Google Takeout Photos Module:")
         LOGGER.info(f"------------------------------------------")
-        if not ARGS['no-log-file']:
-            LOGGER.info(f"INFO: Execution Log file                       : '{LOG_FOLDER_FILENAME}'")
         if ARGS['google-input-zip-folder']!="":
             LOGGER.info(f"INFO: Input Takeout folder (zipped detected)   : '{ARGS['google-input-zip-folder']}'")
             LOGGER.info(f"INFO: Input Takeout will be unziped to folder  : '{ARGS['google-input-takeout-folder']}'")

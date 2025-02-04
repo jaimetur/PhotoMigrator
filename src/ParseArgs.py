@@ -1,18 +1,22 @@
+import Globals
 from CustomHelpFormatter import CustomHelpFormatter, PagedArgumentParser
 import argparse
 import os
-
-global TIMESTAMP, LOG_FOLDER_FILENAME, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE, SCRIPT_NAME_VERSION, SCRIPT_DESCRIPTION, HELP_TEXTS, START_TIME, OUTPUT_TAKEOUT_FOLDER, DEPRIORITIZE_FOLDERS_PATTERNS, ARGS, PARSER, DEFAULT_DUPLICATES_ACTION
 
 choices_for_folder_structure        = ['flatten', 'year', 'year/month', 'year-month']
 choices_for_remove_duplicates       = ['list', 'move', 'remove']
 choices_for_AUTOMATED_MIGRATION_SRC = ['google-photos', 'synology-photos', 'immich-photos']
 choices_for_AUTOMATED_MIGRATION_TGT = ['synology-photos', 'immich-photos']
 
-def parse_arguments():
-    global ARGS
-    from CloudPhotoMigrator import SCRIPT_DESCRIPTION
+PARSER = None
 
+def getParser():
+    global PARSER
+    return PARSER
+
+def parse_arguments():
+    from Globals import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
+    global PARSER
     # # Regular Parser without Pagination
     # PARSER = argparse.ArgumentParser(
     #         description=SCRIPT_DESCRIPTION,
@@ -48,7 +52,7 @@ def parse_arguments():
     # ------------------------------
     # PARSER.add_argument("-gizf", "--google-input-zip-folder", metavar="<ZIP_FOLDER>", default="", help="Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files will be skipped.")
     PARSER.add_argument("-gitf", "--google-input-takeout-folder", metavar="<TAKEOUT_FOLDER>", default="Takeout", help="Specify the Takeout folder to process. If any Zip file is found inside it, the Zip will be extracted to the folder 'Unzipped_Takeout_TIMESTAMP', and will use the that folder as input <TAKEOUT_FOLDER>. Default: 'Takeout'.")
-    PARSER.add_argument("-gofs", "--google-output-folder-suFldfix", metavar="<SUFIX>", default="fixed", help="Specify the suffix for the output folder. Default: 'fixed'")
+    PARSER.add_argument("-gofs", "--google-output-folder-suffix", metavar="<SUFIX>", default="fixed", help="Specify the suffix for the output folder. Default: 'fixed'")
     PARSER.add_argument("-gafs", "--google-albums-folders-structure", metavar=f"{choices_for_folder_structure}", default="flatten", help="Specify the type of folder structure for each Album folder (Default: 'flatten')."
                         , type=lambda s: s.lower()  # Convert input to lowercase
                         , choices=choices_for_folder_structure  # Valid choices
@@ -134,16 +138,17 @@ def parse_arguments():
     # Obtain args from PARSER and create global variable ARGS to easier manipulation of argument variables using the same string as in the argument (this facilitates futures refactors on arguments names)
     args = PARSER.parse_args()
     ARGS = create_global_variable_from_args(args)
+    return ARGS
 
 
-def checkArgs():
+def checkArgs(ARGS):
     global DEFAULT_DUPLICATES_ACTION
 
     # Remove last / for all folders expected as arguments:
     ARGS['input-folder'] = ARGS['input-folder'].lstrip('_')
     ARGS['output-folder'] = ARGS['output-folder'].lstrip('_')
     ARGS['google-input-takeout-folder'] = ARGS['google-input-takeout-folder'].rstrip('/\\')
-    ARGS['google-output-folder-suFldfix'] = ARGS['google-output-folder-suFldfix'].lstrip('_')
+    ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
 
     # Parse AUTOMATED-MIGRATION Arguments
     ARGS['google-input-zip-folder'] = None

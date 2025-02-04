@@ -287,7 +287,7 @@ class PagedArgumentParser(argparse.ArgumentParser):
         Paginador con curses que adapta dinámicamente el texto al tamaño de la terminal.
         """
 
-        from CloudPhotoMigrator import SCRIPT_NAME_VERSION
+        from Globals import SCRIPT_NAME_VERSION
         # Expresión regular para detectar códigos ANSI
         ANSI_ESCAPE = re.compile(r'\x1b\[[0-9;]*m')
 

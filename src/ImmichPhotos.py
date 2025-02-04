@@ -698,6 +698,7 @@ def immich_upload_folder(input_folder):
     LOGGER.info(f"INFO: Uploaded {total_uploaded} files (without album) from '{input_folder}'.")
     return total_uploaded
 
+
 def immich_upload_albums(input_folder):
     """
     Traverses the *subfolders* of 'input_folder', creating an album for each subfolder
@@ -776,6 +777,30 @@ def immich_upload_albums(input_folder):
     LOGGER.info(f"INFO: Created {albums_created} album(s) from '{input_folder}'.")
     LOGGER.info(f"INFO: Uploaded {assets_added} asset(s) from '{input_folder}' to Albums.")
     return albums_created, albums_skipped, assets_added
+
+# -----------------------------------------------------------------------------
+#          COMPLETE UPLOAD OF ALL ASSETS (Albums + Others)
+# -----------------------------------------------------------------------------
+def immich_upload_ALL(input_folder="Downloads_Immich"):
+    """
+    (Previously download_all_assets_with_structure)
+    Uploads ALL photos and videos from input_folder into Immich Photos:
+
+    Returns the total number of albums and assets uploaded.
+    """
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return 0
+    total_albums_uploaded, total_assets_uploaded_within_albums = immich_upload_albums(albums_name='ALL', input_folder=input_folder)
+    total_assets_uploaded_without_albums = immich_upload_folder(input_folder=input_folder)
+    total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
+    LOGGER.info(f"INFO: Download of ALL assets completed.")
+    LOGGER.info(f"Total Albums uploaded                     : {total_albums_uploaded}")
+    LOGGER.info(f"Total Assets uploaded                     : {total_assets_uploaded}")
+    LOGGER.info(f"Total Assets uploaded within albums       : {total_assets_uploaded_within_albums}")
+    LOGGER.info(f"Total Assets uploaded without albums      : {total_assets_uploaded_without_albums}")
+    return total_albums_uploaded, total_assets_uploaded
+
 
 def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich"):
     """
@@ -902,30 +927,6 @@ def immich_download_no_albums(output_folder="Downloads_Immich"):
     LOGGER.info(f"INFO: Download of assets without associated albums completed.")
     LOGGER.info(f"INFO: Total Assets downloaded: {total_assets_downloaded}")
     return total_assets_downloaded
-
-
-# -----------------------------------------------------------------------------
-#          COMPLETE UPLOAD OF ALL ASSETS (Albums + Others)
-# -----------------------------------------------------------------------------
-def immich_upload_ALL(input_folder="Downloads_Immich"):
-    """
-    (Previously download_all_assets_with_structure)
-    Uploads ALL photos and videos from input_folder into Immich Photos:
-
-    Returns the total number of albums and assets uploaded.
-    """
-    from LoggerConfig import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return 0
-    total_albums_uploaded, total_assets_uploaded_within_albums = immich_upload_albums(albums_name='ALL', input_folder=input_folder)
-    total_assets_uploaded_without_albums = immich_upload_folder(input_folder=input_folder)
-    total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
-    LOGGER.info(f"INFO: Download of ALL assets completed.")
-    LOGGER.info(f"Total Albums uploaded                     : {total_albums_uploaded}")
-    LOGGER.info(f"Total Assets uploaded                     : {total_assets_uploaded}")
-    LOGGER.info(f"Total Assets uploaded within albums       : {total_assets_uploaded_within_albums}")
-    LOGGER.info(f"Total Assets uploaded without albums      : {total_assets_uploaded_without_albums}")
-    return total_albums_uploaded, total_assets_uploaded
 
 
 # -----------------------------------------------------------------------------
