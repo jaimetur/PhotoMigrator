@@ -13,7 +13,7 @@ EXECUTION_MODE = "default"
 # Determine the Execution mode based on the providen arguments:
 # -------------------------------------------------------------
 def detect_and_run_execution_mode():
-    from Globals import ARGS, PARSER
+    # from Globals import ARGS, PARSER
     # AUTOMATED-MIGRATION MODE:
     if ARGS['AUTOMATED-MIGRATION']:
         EXECUTION_MODE = 'AUTOMATED-MIGRATION'
