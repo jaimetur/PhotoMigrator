@@ -109,6 +109,7 @@ def get_supported_media_types(type='media'):
     except Exception as e:
         LOGGER.error(f"ERROR: Cannot get Supported media types: {e}")
         return None
+        
 # -----------------------------------------------------------------------------
 #                          CONFIGURATION READING
 # -----------------------------------------------------------------------------
