@@ -89,16 +89,16 @@ def parse_arguments():
     PARSER.add_argument("-sdea", "--synology-delete-empty-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.")
     PARSER.add_argument("-sdda", "--synology-delete-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.")
     PARSER.add_argument("-suFld", "--synology-upload-folder", metavar="<INPUT_FOLDER>", default="", help="The script will look for all Photos/Videos within <INPUT_FOLDER> and will upload them into Synology Photos.")
-    PARSER.add_argument("-suAlb", "--synology-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Albums within <ALBUMS_FOLDER> and will create one Album per folder into Synology Photos.")
+    PARSER.add_argument("-suAlb", "--synology-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Synology Photos.")
     PARSER.add_argument("-sdAlb", "--synology-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
-                        help="The Script will connect to Synology Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Download_Synology' within the Synology Photos root folder."
-                           "\n- To extract all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: --synology-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
+                        help="The Script will connect to Synology Photos and download the Album whose name is '<ALBUMS_NAME>' to the folder 'Download_Synology' within the Synology Photos root folder."
+                           "\n- To extract all albums mathing any pattern you can use patterns in <ALBUMS_NAME>, i.e: --synology-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
                            "\n- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums 'album1', 'album2', 'album3'."
                            "\n- To download ALL Albums use 'ALL' as <ALBUMS_NAME>."
                         )
     PARSER.add_argument("-suAll", "--synology-upload-all", metavar="<INPUT_FOLDER>", default="",
                         help="The script will look for all Assets within <INPUT_FOLDER> and will upload them into Synology Photos."
-                           "\n- If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of Albums willl be associated to a new Album in Synology Photos with the same name as the subfolder"
+                           "\n- If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of 'Albums' willl be associated to a new Album in Synology Photos with the same name as the subfolder"
                         )
     PARSER.add_argument("-sdAll", "--synology-download-all", metavar="<OUTPUT_FOLDER>", default="",
                         help="The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
@@ -112,16 +112,16 @@ def parse_arguments():
     PARSER.add_argument("-idea", "--immich-delete-empty-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.")
     PARSER.add_argument("-idda", "--immich-delete-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.")
     PARSER.add_argument("-iuFld", "--immich-upload-folder", metavar="<INPUT_FOLDER>", default="", help="The script will look for all Photos/Videos within <INPUT_FOLDER> and will upload them into Immich Photos.")
-    PARSER.add_argument("-iuAlb", "--immich-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Albums within <ALBUMS_FOLDER> and will create one Album per folder into Immich Photos.")
+    PARSER.add_argument("-iuAlb", "--immich-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Immich Photos.")
     PARSER.add_argument("-idAlb", "--immich-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
-                        help="The Script will connect to Immich Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Download_Immich' within the script execution folder."
+                        help="The Script will connect to Immich Photos and download the Album whose name is '<ALBUMS_NAME>' to the folder 'Download_Immich' within the script execution folder."
                            "\n- To extract all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: --immich-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
                            "\n- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums 'album1', 'album2', 'album3'."
                            "\n- To download ALL Albums use 'ALL' as <ALBUMS_NAME>."
                         )
     PARSER.add_argument("-iuAll", "--immich-upload-all", metavar="<INPUT_FOLDER>", default="",
                         help="The script will look for all Assets within <INPUT_FOLDER> and will upload them into Immich Photos."
-                           "\n- If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of Albums willl be associated to a new Album in Synology Photos with the same name as the subfolder"
+                           "\n- If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of 'Albums' willl be associated to a new Album in Immich Photos with the same name as the subfolder"
                         )
     PARSER.add_argument("-idAll", "--immich-download-all", metavar="<OUTPUT_FOLDER>", default="",
                         help="The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
