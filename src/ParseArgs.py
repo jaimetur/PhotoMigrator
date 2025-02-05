@@ -88,7 +88,7 @@ def parse_arguments():
     PARSER.add_argument("-sdAll", "--synology-download-all", metavar="<OUTPUT_FOLDER>", default="",
                         help="The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
                            "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
-                           "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside."
+                           "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
                         )
 
 
@@ -111,7 +111,7 @@ def parse_arguments():
     PARSER.add_argument("-idAll", "--immich-download-all", metavar="<OUTPUT_FOLDER>", default="",
                         help="The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
                            "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
-                           "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside."
+                           "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
                         )
     PARSER.add_argument("-idoa", "--immich-delete-orphan-assets", action="store_true", default="", help="The script will look for all Orphan Assets in Immich Database and will delete them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in Config.ini.")
     PARSER.add_argument("-ideAll", "--immich-delete-all-assets", action="store_true", default="", help="CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Immich database.")
@@ -119,7 +119,7 @@ def parse_arguments():
                         help="CAUTION!!! The script will delete ALL your Albums from Immich database."
                            "\nOptionally ALL the Assets associated to each Album can be deleted If you also include the argument '-iiaa, --immich-include-albums-assets' argument."
                         )
-    PARSER.add_argument("-iiaa", "--immich-include-albums-assets", action="store_true", default="", help="If used together with --immich-delete-all-albums, it will also delete the assets (photos/videos) inside each album.")
+    PARSER.add_argument("-iiaa", "--immich-include-albums-assets", action="store_true", default=False, help="If used together with --immich-delete-all-albums, it will also delete the assets (photos/videos) inside each album.")
 
 
     # OTHERS STAND-ALONE EXTRA MODES:
@@ -144,11 +144,23 @@ def parse_arguments():
 def checkArgs(ARGS):
     global DEFAULT_DUPLICATES_ACTION
 
-    # Remove last / for all folders expected as arguments:
-    ARGS['input-folder'] = ARGS['input-folder'].lstrip('_')
-    ARGS['output-folder'] = ARGS['output-folder'].lstrip('_')
-    ARGS['google-input-takeout-folder'] = ARGS['google-input-takeout-folder'].rstrip('/\\')
+    # Remove '_' at the begining of the string in case it has it.
     ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
+
+    # Remove last / for all folders expected as arguments:
+    ARGS['input-folder']                    = ARGS['input-folder'].rstrip('/\\')
+    ARGS['output-folder']                   = ARGS['output-folder'].rstrip('/\\')
+    ARGS['google-input-takeout-folder']     = ARGS['google-input-takeout-folder'].rstrip('/\\')
+    ARGS['synology-upload-folder']          = ARGS['synology-upload-folder'].rstrip('/\\')
+    ARGS['synology-upload-albums']          = ARGS['synology-upload-albums'].rstrip('/\\')
+    ARGS['synology-upload-all']             = ARGS['synology-upload-all'].rstrip('/\\')
+    ARGS['synology-download-all']           = ARGS['synology-download-all'].rstrip('/\\')
+    ARGS['immich-upload-folder']            = ARGS['immich-upload-folder'].rstrip('/\\')
+    ARGS['immich-upload-albums']            = ARGS['immich-upload-albums'].rstrip('/\\')
+    ARGS['immich-upload-all']               = ARGS['immich-upload-all'].rstrip('/\\')
+    ARGS['immich-download-all']             = ARGS['immich-download-all'].rstrip('/\\')
+    ARGS['fix-symlinks-broken']             = ARGS['fix-symlinks-broken'].rstrip('/\\')
+    ARGS['folders-rename-content-based']    = ARGS['folders-rename-content-based'].rstrip('/\\')
 
     # Parse AUTOMATED-MIGRATION Arguments
     ARGS['google-input-zip-folder'] = None

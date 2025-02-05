@@ -184,6 +184,9 @@ def get_photos_root_folder_id():
     Returns:
         int: The ID of the folder (folder_id).
     """
+
+    from LoggerConfig import LOGGER  # Import the logger inside the function
+
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
     params = {
         "api": "SYNO.Foto.Browse.Folder",
@@ -218,6 +221,7 @@ def get_folder_id(search_in_folder_id, folder_name):
     Returns:
         int: The ID of the folder (folder_id), or None if not found.
     """
+    from LoggerConfig import LOGGER  # Import the logger inside the function
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
 
     # First, get folder_name for search_in_folder_id
@@ -334,6 +338,8 @@ def list_albums():
     Returns:
         dict: A dictionary with album IDs as keys and album names as values.
     """
+    from LoggerConfig import LOGGER  # Import the logger inside the function
+
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
     offset = 0
     limit = 5000
@@ -458,6 +464,7 @@ def delete_album(album_id, album_name):
         album_id (str): ID of the album to delete.
         album_name (str): Name of the album to delete.
     """
+    from LoggerConfig import LOGGER  # Import the logger inside the function
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
     params = {
         "api": "SYNO.Foto.Browse.Album",
@@ -484,6 +491,7 @@ def get_album_items_count(album_id, album_name):
     Returns:
         int: Number of items in the album.
     """
+    from LoggerConfig import LOGGER  # Import the logger inside the function
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
     params = {
         "api": "SYNO.Foto.Browse.Item",
@@ -512,6 +520,7 @@ def get_album_items_size(album_id, album_name):
     Returns:
         int: Total size of the items in the album in bytes.
     """
+    from LoggerConfig import LOGGER  # Import the logger inside the function
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
     offset = 0
     limit = 5000
@@ -555,6 +564,7 @@ def add_assets_to_album(folder_id, album_name):
     Returns:
         int: The total number of assets added to the album, or -1 in case of an error.
     """
+    from LoggerConfig import LOGGER  # Import the logger inside the function
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
 
     # Ensure the folder has at least one asset indexed
@@ -661,6 +671,7 @@ def upload_assets(file_path, album_name=None):
     Returns:
         int: Status code indicating success or failure.
     """
+    from LoggerConfig import LOGGER  # Import the logger inside the function
     stats = os.stat(file_path)
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
 
@@ -1267,10 +1278,10 @@ if __name__ == "__main__":
     # duplicates = synology_delete_duplicates_albums()
     # print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
     #
-    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder\Others'
+    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder\No-Albums'
     # print("\n=== EXAMPLE: synology_upload_folder() ===")
-    # input_others_folder = "/volume1/homes/jaimetur_ftp/Photos/Others"     # For Linux (NAS)
-    # input_others_folder = r"r:\jaimetur_ftp\Photos\Others"                # For Windows
+    # input_others_folder = "/volume1/homes/jaimetur_ftp/Photos/No-Albums"     # For Linux (NAS)
+    # input_others_folder = r"r:\jaimetur_ftp\Photos\No-Albums"                # For Windows
     # synology_upload_folder(input_others_folder)
     #
     # # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder\Albums'
@@ -1285,7 +1296,7 @@ if __name__ == "__main__":
     # total = synology_download_albums(albums_name='Cadiz', output_folder="Downloads_Synology")
     # print(f"[RESULT] A total of {total} assets have been downloaded.\n")
     #
-    # # 6) Example: Download everything in the structure /Albums/<albumName>/ + /Others/yyyy/mm
+    # # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
     # print("=== EXAMPLE: synology_download_ALL() ===")
     # total_struct = synology_download_ALL(output_folder="Downloads_Synology")
     # # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")

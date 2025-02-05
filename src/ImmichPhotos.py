@@ -34,7 +34,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # -----------------------------------------------------------------------------
 #                          GLOBAL VARIABLES
 # -----------------------------------------------------------------------------
-# global CONFIG, IMMICH_URL, IMMICH_ADMIN_API_KEY, IMMICH_USER_API_KEY, IMMICH_USERNAME, IMMICH_PASSWORD, SESSION_TOKEN, API_KEY_LOGIN, HEADERS, ALLOWED_MEDIA_EXTENSIONS, ALLOWED_SIDECAR_EXTENSIONS
+# global CONFIG, IMMICH_URL, IMMICH_ADMIN_API_KEY, IMMICH_USER_API_KEY, IMMICH_USERNAME, IMMICH_PASSWORD, SESSION_TOKEN, API_KEY_LOGIN, HEADERS, ALLOWED_IMMICH_MEDIA_EXTENSIONS, ALLOWED_IMMICH_SIDECAR_EXTENSIONS, ALLOWED_IMMICH_EXTENSIONS
 CONFIG                      = None  # Dictionary containing configuration information
 IMMICH_URL                  = None  # e.g., "http://192.168.1.100:2283"
 IMMICH_ADMIN_API_KEY        = None  # Immich IMMICH_ADMIN_API_KEY
@@ -44,8 +44,10 @@ IMMICH_PASSWORD             = None  # Immich password
 SESSION_TOKEN               = None  # JWT token returned after login
 API_KEY_LOGIN               = False # Variable to determine if we use IMMICH_USER_API_KEY for login
 HEADERS                     = {}    # Headers used in each request
-ALLOWED_MEDIA_EXTENSIONS    = None
-ALLOWED_SIDECAR_EXTENSIONS  = None
+ALLOWED_IMMICH_MEDIA_EXTENSIONS = None
+ALLOWED_IMMICH_SIDECAR_EXTENSIONS = None
+ALLOWED_IMMICH_EXTENSIONS = None
+
 
 ##############################################################################
 #                           AUXILIARY FUNNCTIONS                             #
@@ -198,7 +200,7 @@ def login_immich():
     Logs into Immich and obtains a JWT token (SESSION_TOKEN).
     Returns True if the connection was successful, False otherwise.
     """
-    global SESSION_TOKEN, HEADERS
+    global SESSION_TOKEN, HEADERS, ALLOWED_IMMICH_MEDIA_EXTENSIONS, ALLOWED_IMMICH_SIDECAR_EXTENSIONS, ALLOWED_IMMICH_EXTENSIONS
     from LoggerConfig import LOGGER  # Import global LOGGER
     # If there is already a token and headers, assume we are logged in
     if len(HEADERS.keys())>0 and  (f"Bearer {SESSION_TOKEN}" or IMMICH_USER_API_KEY in HEADERS.values()):
@@ -245,6 +247,11 @@ def login_immich():
             'Authorization': f'Bearer {SESSION_TOKEN}'
         }
         LOGGER.info(f"INFO: Authentication Successfully with user/password found in Config file.")
+
+    # get List of “compatible” media and sidecar extensions for Immich
+    ALLOWED_IMMICH_MEDIA_EXTENSIONS = get_supported_media_types()
+    ALLOWED_IMMICH_SIDECAR_EXTENSIONS = get_supported_media_types(type='sidecar')
+    ALLOWED_IMMICH_EXTENSIONS = ALLOWED_IMMICH_MEDIA_EXTENSIONS + ALLOWED_IMMICH_SIDECAR_EXTENSIONS
     return True
 
 def logout_immich():
@@ -329,7 +336,7 @@ def list_albums():
         LOGGER.error(f"ERROR: Error while listing albums: {e}")
         return []
 
-def add_assets_to_album(album_id, asset_ids):
+def add_assets_to_album(album_id, asset_ids, album_name=None):
     """
     Adds the list of asset_ids (photos/videos already uploaded) to the album with album_id.
     Returns the number of assets successfully added.
@@ -355,7 +362,10 @@ def add_assets_to_album(album_id, asset_ids):
                 total_added += 1
         return total_added
     except Exception as e:
-        LOGGER.error(f"ERROR: Failed to add assets to album {album_id}: {e}")
+        if album_name:
+            LOGGER.warning(f"WARNING: Error while adding assets to album '{album_name}' with ID={album_id}: {e}")
+        else:
+            LOGGER.warning(f"WARNING: Error while adding assets to album with ID={album_id}: {e}")
         return 0
 
 def get_album_items_size(album_id):
@@ -498,8 +508,8 @@ def upload_file_to_immich(file_path):
     # Get filename and ext for the given file
     filename, ext = os.path.splitext(file_path)
     # Check if the file extension is allowed
-    if ext.lower() not in ALLOWED_MEDIA_EXTENSIONS:
-        if ext.lower() in ALLOWED_SIDECAR_EXTENSIONS:
+    if ext.lower() not in ALLOWED_IMMICH_MEDIA_EXTENSIONS:
+        if ext.lower() in ALLOWED_IMMICH_SIDECAR_EXTENSIONS:
             return None
         else:
             LOGGER.warning(f"WARNING: File '{file_path}' has an unsupported extension. Skipped.")
@@ -524,7 +534,7 @@ def upload_file_to_immich(file_path):
     # ]
 
     # Check if a sidecar file is found on the same path, if so, then add it to files dict.
-    for sidecar_extension in ALLOWED_SIDECAR_EXTENSIONS:
+    for sidecar_extension in ALLOWED_IMMICH_SIDECAR_EXTENSIONS:
         # Check with file_path/filename.ext.sidecar_extension
         sidecar_path = f"{file_path}{sidecar_extension}"
         if os.path.isfile(sidecar_path):
@@ -657,129 +667,174 @@ def immich_delete_duplicates_albums():
     return total_deleted_duplicated_albums
 
 
-def immich_upload_folder(input_folder):
+def immich_upload_no_albums(input_folder, only_subfolders=None):
     """
-    Recursively traverses 'input_folder' and its subfolders to upload all
-    'compatible' files (photos/videos) to Immich, **without** associating them to any album.
+    Recursively traverses 'input_folder' and its only_subfolders to upload all
+    compatible files (photos/videos) to Immich without associating them to any album.
+
+    If 'only_subfolders' is provided (as a string or list of strings), only those
+    direct only_subfolders of 'input_folder' are processed (excluding any in SUBFOLDERS_EXCLUSIONS).
+    Otherwise, all only_subfolders except those listed in SUBFOLDERS_EXCLUSIONS are processed.
 
     Returns the number of files uploaded.
     """
-    from LoggerConfig import LOGGER  # Import global LOGGER
+    import os
+    from tqdm import tqdm
+    from LoggerConfig import LOGGER  # Global logger
+
+    # Verify Immich login
     if not login_immich():
         return 0
+
+    # Verify that the input folder exists
     if not os.path.isdir(input_folder):
         LOGGER.error(f"ERROR: The folder '{input_folder}' does not exist.")
         return 0
-    global ALLOWED_MEDIA_EXTENSIONS, ALLOWED_SIDECAR_EXTENSIONS
-    # get List of “compatible” media and sidecar extensions for Immich
-    ALLOWED_MEDIA_EXTENSIONS = get_supported_media_types()
-    ALLOWED_SIDECAR_EXTENSIONS = get_supported_media_types(type='sidecar')
-    # Initialize Counters
-    total_uploaded = 0
-    total_files = 0
-    # Contar el total de carpetas
-    for _, dirs, files in os.walk(input_folder):
-        dirs[:] = [d for d in dirs if d != '@eaDir' and d != 'Albums']
-        total_files += sum([len(files)])
-    # Show progress bar per assets
-    with tqdm(total=total_files, smoothing=0.1, desc=f"INFO: Uploading Assets", unit=" assets") as pbar:
-        # Recursively traverse the folder and excluding '@eaDir' folders
-        for root, dirs, files in os.walk(input_folder):
-            dirs[:] = [d for d in dirs if d != '@eaDir' and d != 'Albums']
-            for fname in files:
-                pbar.update(1)
-                file_path = os.path.join(root, fname)
-                # Upload if the file is compatible
-                asset_id = upload_file_to_immich(file_path)
-                if asset_id:
-                    total_uploaded += 1
-    LOGGER.info(f"INFO: Uploaded {total_uploaded} files (without album) from '{input_folder}'.")
-    return total_uploaded
+
+    # Process only_subfolders to obtain a list of only_subfolders names (if provided)
+    if isinstance(only_subfolders, str):
+        only_subfolders = [name.strip() for name in only_subfolders.replace(',', ' ').split() if name.strip()]
+    elif isinstance(only_subfolders, list):
+        only_subfolders = [name.strip() for item in only_subfolders if isinstance(item, str)
+                      for name in item.split(',') if name.strip()]
+    else:
+        only_subfolders = None
+
+    SUBFOLDERS_EXCLUSIONS = ['@eaDir', 'Albums']
+
+    # Exclude any SUBFOLDERS_EXCLUSIONS that match exclusions
+    if only_subfolders:
+        only_subfolders = [s for s in only_subfolders if s not in SUBFOLDERS_EXCLUSIONS]
+
+    # Collect all file paths based on subfolder criteria
+    def collect_files(input_folder, only_subfolders):
+        files_list = []
+        if only_subfolders:
+            # Process only the specified direct only_subfolders (if they exist)
+            for sub in only_subfolders:
+                sub_path = os.path.join(input_folder, sub)
+                if not os.path.isdir(sub_path):
+                    LOGGER.warning(f"WARNING: Subfolder '{sub}' does not exist in '{input_folder}'. Skipping.")
+                    continue
+                for root, dirs, files in os.walk(sub_path):
+                    # Exclude any directories matching the exclusions
+                    dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]
+                    files_list.extend(os.path.join(root, f) for f in files)
+        else:
+            # Process all only_subfolders except those in SUBFOLDERS_EXCLUSIONS (filtering at all levels)
+            for root, dirs, files in os.walk(input_folder):
+                dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]
+                files_list.extend(os.path.join(root, f) for f in files)
+        return files_list
+
+    # Collect all file paths to be processed
+    file_paths = collect_files(input_folder, only_subfolders)
+    total_files = len(file_paths)
+    total_assets_uploaded = 0
+
+    # Process each file with a progress bar
+    with tqdm(total=total_files, smoothing=0.1, desc="INFO: Uploading Assets", unit=" asset") as pbar:
+        for file_path in file_paths:
+            if upload_file_to_immich(file_path):
+                total_assets_uploaded += 1
+            pbar.update(1)
+
+    LOGGER.info(f"INFO: Uploaded {total_assets_uploaded} files (without album) from '{input_folder}'.")
+    return total_assets_uploaded
 
 
-def immich_upload_albums(input_folder):
+def immich_upload_albums(input_folder, only_subfolders=None):
     """
-    Traverses the *subfolders* of 'input_folder', creating an album for each subfolder
-    (name = name of the subfolder).
-    Within each subfolder, uploads all 'compatible' files (based on ALLOWED_EXTENSIONS)
-    and associates them with the newly created album.
-
+    Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on ALLOWED_IMMICH_EXTENSIONS) and associates them with the album.
     Example structure:
         input_folder/
-          ├─ Album1/   (compatible files for the album "Album1")
-          └─ Album2/   (compatible files for the album "Album2")
-
-    Returns albums_created, albums_skipped, assets_added
+            ├─ Album1/   (files for album "Album1")
+            └─ Album2/   (files for album "Album2")
+    Returns: albums_uploaded, albums_skipped, assets_uploaded
     """
     from LoggerConfig import LOGGER  # Import global LOGGER
+
     if not login_immich():
         return 0
     if not os.path.isdir(input_folder):
         LOGGER.error(f"ERROR: The folder '{input_folder}' does not exist.")
         return 0
-    global ALLOWED_MEDIA_EXTENSIONS, ALLOWED_SIDECAR_EXTENSIONS
-    # get List of “compatible” media and sidecar extensions for Immich
-    ALLOWED_MEDIA_EXTENSIONS = get_supported_media_types()
-    ALLOWED_SIDECAR_EXTENSIONS = get_supported_media_types(type='sidecar')
-    # Initialize Counters
-    albums_created = 0
+
+    # Process only_subfolders to obtain a list of inclusion names if provided
+    if isinstance(only_subfolders, str):
+        ONLY_SUBFOLDERS = [name.strip() for name in only_subfolders.replace(',', ' ').split() if name.strip()]
+    elif isinstance(only_subfolders, list):
+        ONLY_SUBFOLDERS = [name.strip() for item in only_subfolders if isinstance(item, str) for name in item.split(',') if name.strip()]
+    else:
+        ONLY_SUBFOLDERS = None
+
+    albums_uploaded = 0
     albums_skipped = 0
-    assets_added = 0
-    total_folders = 0
-    # Contar el total de carpetas
-    for _, dirs, files in os.walk(input_folder):
-        dirs[:] = [d for d in dirs if d != '@eaDir' and d != 'No-Albums']
-        total_folders += sum([len(dirs)])
-    # Show progress bar per assets
-    with tqdm(total=total_folders, smoothing=0.1, desc=f"INFO: Uploading Albums", unit=" albums") as pbar:
-        # Recursively traverse the folder and excluding '@eaDir' folders
-        for root, dirs, files in os.walk(input_folder):
-            dirs[:] = [d for d in dirs if d != '@eaDir' and d != 'No-Albums']
-            # List direct subfolders
-            for dir in dirs:
-                pbar.update(1)
-                subpath = os.path.join(root, dir)
-                assets_ids = []
-                if not os.path.isdir(subpath):
-                    LOGGER.warning(f"WARNING: Could not create album for subfolder '{subpath}'.")
+    assets_uploaded = 0
+    SUBFOLDERS_EXCLUSIONS = ['@eaDir', 'No-Albums']  # Directories to exclude
+
+    # Search for all valid Albums folders
+    valid_folders = []  # List to store valid folder paths
+    for root, dirs, _ in os.walk(input_folder):
+        dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]  # Exclude directories in the exclusion list
+        if ONLY_SUBFOLDERS:  # Apply ONLY_SUBFOLDERS filter if provided
+            rel_path = os.path.relpath(root, input_folder)
+            if rel_path == ".":
+                dirs[:] = [d for d in dirs if d in ONLY_SUBFOLDERS]
+            else:
+                first_dir = rel_path.split(os.sep)[0]
+                if first_dir not in ONLY_SUBFOLDERS:
+                    dirs[:] = []
+        for d in dirs:
+            valid_folders.append(os.path.join(root, d))
+
+    with tqdm(total=len(valid_folders), smoothing=0.1, desc="INFO: Uploading Albums from Folders", unit=" folders") as pbar:
+        for subpath in valid_folders:
+            pbar.update(1)
+            new_album_assets_ids = []
+            if not os.path.isdir(subpath):
+                LOGGER.warning(f"WARNING: Could not create album for subfolder '{subpath}'.")
+                albums_skipped += 1
+                continue
+            # Check if there is at least one file with an allowed extension in the subfolder
+            has_supported_files = any(os.path.splitext(file)[-1].lower() in ALLOWED_IMMICH_EXTENSIONS for file in os.listdir(subpath) if os.path.isfile(os.path.join(subpath, file)))
+            if not has_supported_files:
+                continue
+            relative_path = os.path.relpath(subpath, input_folder)
+            path_parts = relative_path.split(os.sep)
+            album_name = " - ".join(path_parts[1:]) if path_parts[0] == 'Albums' else " - ".join(path_parts)
+            album_id = create_album(album_name)
+            if not album_id:
+                LOGGER.warning(f"WARNING: Could not create album for subfolder '{subpath}'.")
+                albums_skipped += 1
+                continue
+            else:
+                albums_uploaded += 1
+            for file in os.listdir(subpath):
+                file_path = os.path.join(subpath, file)
+                if not os.path.isfile(file_path):
                     continue
-                # 'item' will be the name of the new album
-                album_name = dir
-                album_id = create_album(album_name)
-                if not album_id:
-                    LOGGER.warning(f"WARNING: Could not create album for subfolder '{dir}'.")
-                    albums_skipped += 1
+                ext = os.path.splitext(file)[-1].lower()
+                if ext not in ALLOWED_IMMICH_EXTENSIONS:
                     continue
-                albums_created += 1
-                # Ahora recorremos los archivos dentro de subpath
-                for subroot, _, subfiles in os.walk(subpath):
-                    for file in subfiles:
-                        file_path = os.path.join(subpath, file)
-                        if not os.path.isfile(file_path):
-                            continue
-                        # Obtener la extensión del archivo
-                        ext = os.path.splitext(file)[-1].lower()
-                        if ext not in ALLOWED_MEDIA_EXTENSIONS and ext not in ALLOWED_SIDECAR_EXTENSIONS:
-                          # LOGGER.warning(f"WARNING: Skipping unsupported file '{file_path}'.")
-                          continue  # No subir si la extensión no es compatible
-                        # Upload if compatible
-                        asset_id = upload_file_to_immich(file_path)
-                        if asset_id:
-                            assets_ids.append(asset_id)
-                            assets_added += 1
-                # Associate files with the album
-                if assets_ids:
-                    added_count = add_assets_to_album(album_id, assets_ids)
-                    # LOGGER.info(f"INFO: Added {added_count}/{len(assets_ids)} files to album '{album_name}'.")
+                asset_id = upload_file_to_immich(file_path)
+                assets_uploaded += 1
+                # Assign to Album only if extension is in ALLOWED_IMMICH_MEDIA_EXTENSIONS
+                if ext in ALLOWED_IMMICH_MEDIA_EXTENSIONS:
+                    new_album_assets_ids.append(asset_id)
+            if new_album_assets_ids:
+                add_assets_to_album(album_id, new_album_assets_ids, album_name=album_name)
+
     LOGGER.info(f"INFO: Skipped {albums_skipped} album(s) from '{input_folder}'.")
-    LOGGER.info(f"INFO: Created {albums_created} album(s) from '{input_folder}'.")
-    LOGGER.info(f"INFO: Uploaded {assets_added} asset(s) from '{input_folder}' to Albums.")
-    return albums_created, albums_skipped, assets_added
+    LOGGER.info(f"INFO: Uploaded {albums_uploaded} album(s) from '{input_folder}'.")
+    LOGGER.info(f"INFO: Uploaded {assets_uploaded} asset(s) from '{input_folder}' to Albums.")
+    return albums_uploaded, albums_skipped, assets_uploaded
+
 
 # -----------------------------------------------------------------------------
-#          COMPLETE UPLOAD OF ALL ASSETS (Albums + Others)
+#          COMPLETE UPLOAD OF ALL ASSETS (Albums + No-Albums)
 # -----------------------------------------------------------------------------
-def immich_upload_ALL(input_folder="Downloads_Immich"):
+def immich_upload_ALL(input_folder):
     """
     (Previously download_all_assets_with_structure)
     Uploads ALL photos and videos from input_folder into Immich Photos:
@@ -789,15 +844,18 @@ def immich_upload_ALL(input_folder="Downloads_Immich"):
     from LoggerConfig import LOGGER  # Import global LOGGER
     if not login_immich():
         return 0
-    total_albums_uploaded, total_assets_uploaded_within_albums = immich_upload_albums(albums_name='ALL', input_folder=input_folder)
-    total_assets_uploaded_without_albums = immich_upload_folder(input_folder=input_folder)
+
+    LOGGER.info("")
+    LOGGER.info(f"INFO: Uploading Assets and creating Albums into Immich Photos from '{input_folder}' (excluding 'No-Albums' subfolder)...")
+    total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums = immich_upload_albums(input_folder=input_folder)
+
+    LOGGER.info("")
+    LOGGER.info(f"INFO: Uploading Assets without Albums into Immich Photos from '{input_folder}' (including only subfolder 'No-Albums')...")
+    total_assets_uploaded_without_albums = immich_upload_no_albums(input_folder=input_folder, only_subfolders='No-Albums')
+
     total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
-    LOGGER.info(f"INFO: Download of ALL assets completed.")
-    LOGGER.info(f"Total Albums uploaded                     : {total_albums_uploaded}")
-    LOGGER.info(f"Total Assets uploaded                     : {total_assets_uploaded}")
-    LOGGER.info(f"Total Assets uploaded within albums       : {total_assets_uploaded_within_albums}")
-    LOGGER.info(f"Total Assets uploaded without albums      : {total_assets_uploaded_without_albums}")
-    return total_albums_uploaded, total_assets_uploaded
+
+    return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums
 
 
 def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich"):
@@ -897,7 +955,7 @@ def immich_download_no_albums(output_folder="Downloads_Immich"):
         return 0
     total_assets_downloaded = 0
     downloaded_assets_set = set()
-    # 2) Assets without album -> output_folder/Others/yyyy/mm
+    # 2) Assets without album -> output_folder/No-Albums/yyyy/mm
     all_assets = get_assets_by_search_filter(isNotInAlbum=True)
     # all_assets = get_assets_by_search_filter()
     all_assets_items = all_assets.get("items")
@@ -928,7 +986,7 @@ def immich_download_no_albums(output_folder="Downloads_Immich"):
 
 
 # -----------------------------------------------------------------------------
-#          COMPLETE DOWNLOAD OF ALL ASSETS (Albums + Others)
+#          COMPLETE DOWNLOAD OF ALL ASSETS (Albums + No-Albums)
 # -----------------------------------------------------------------------------
 def immich_download_ALL(output_folder="Downloads_Immich"):
     """
@@ -938,7 +996,7 @@ def immich_download_ALL(output_folder="Downloads_Immich"):
           │    ├─ albumName1/ (assets in the album)
           │    ├─ albumName2/ (assets in the album)
           │    ...
-          └─ Others/
+          └─ No-Albums/
                └─ yyyy/
                    └─ mm/ (assets not in any album for that year/month)
 
@@ -1041,7 +1099,7 @@ def immich_delete_orphan_assets(user_confirmation=True):
 def immich_delete_all_assets():
     from LoggerConfig import LOGGER  # Import global LOGGER
     if not login_immich():
-        return 0
+        return 0, 0
     all_assets = get_assets_by_search_filter()
     all_assets_items = all_assets.get("items")
     total_assets_found = len(all_assets_items)
@@ -1077,11 +1135,11 @@ def immich_delete_all_albums(deleteAlbumsAssets=False):
     """
     from LoggerConfig import LOGGER  # Import global LOGGER
     if not login_immich():
-        return 0
+        return 0, 0
     albums = list_albums()
     if not albums:
         LOGGER.info("INFO: No albums found.")
-        return 0
+        return 0, 0
     total_deleted_albums = 0
     total_deleted_assets = 0
     for album in tqdm(albums, desc=f"INFO: Searchig for Albums to delete", unit=" albums"):
@@ -1134,9 +1192,9 @@ if __name__ == "__main__":
     # duplicates = immich_delete_duplicates_albums()
     # print(f"[RESULT] Duplicate albums deleted: {duplicates}")
 
-    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder\Others'
+    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder\No-Albums'
     # print("\n=== EXAMPLE: immich_upload_folder() ===")
-    # big_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder\Others"
+    # big_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder\No-Albums"
     # immich_upload_folder(big_folder)
 
     # # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder\Albums'
@@ -1150,7 +1208,7 @@ if __name__ == "__main__":
     # total_albums, total_assets = immich_download_albums("1994 - Recuerdos", output_folder="Downloads_Immich")
     # print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums} different albbums.")
 
-    # # 6) Example: Download everything in the structure /Albums/<albumName>/ + /Others/yyyy/mm
+    # # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
     # print("\n=== EXAMPLE: immich_download_ALL() ===")
     # # total_struct = immich_download_ALL(output_folder="Downloads_Immich")
     # total_albums_downloaded, total_assets_downloaded = immich_download_ALL(output_folder="Downloads_Immich")

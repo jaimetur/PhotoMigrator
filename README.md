@@ -184,7 +184,7 @@ If more than one optional arguments are detected, only the first one will be exe
            - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/
            with the same name of the Album and all files will be flattened into it.
            - Assets with no Albums associated will be downloaded withn a subfolder
-           called <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside.
+           called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside.
 
 
 IMMICH PHOTOS MANAGEMENT:
@@ -227,7 +227,7 @@ If more than one optional arguments are detected, only the first one will be exe
            - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/
            with the same name of the Album and all files will be flattened into it.
            - Assets with no Albums associated will be downloaded withn a subfolder
-           called <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside.
+           called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside.
 -idoa,   --immich-delete-orphan-assets
            The script will look for all Orphan Assets in Immich Database and will delete
            them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in
@@ -281,7 +281,7 @@ If more than one Extra Mode is detected, only the first one will be executed.
  
 In this example, the script will Process you Takeout Files found in folder './MyTakeout' (Unzipping them if needed) and fix
 all files found to set the correct date and time, and identifying wich assets belongs to each Album created on Google Photos. 
-  - After that, the script will create a folder structure based on year/month for the folder '<OUTPUT_TAKEOUT_FOLDER>/Others' (by default).  
+  - After that, the script will create a folder structure based on year/month for the folder '<OUTPUT_TAKEOUT_FOLDER>/No-Albums' (by default).  
   - Also, the script will create a flatten folder structure for each Album subfolder found in '<OUTPUT_TAKEOUT_FOLDER>/Albums.'  
   - Finally, the output files will be placed into './MyTakeout_fixed_timestamp' folder whre timestamp is the timestamp of the execution.
 
@@ -373,7 +373,7 @@ The whole process will do the next actions if all flags are false (by default):
    - _'-gafs, --google-albums-folders-structure'_ <'flatten', 'year', 'year/month', 'year-month'>. Applies to each Album folder. Default is ‘flatten’ for Albums
    - _'gnas, --google-no-albums-folder-structure'_ <'flatten', 'year', 'year/month', 'year-month'> Applies to ALL_PHOTOS folder (Photos without any Albums). Default is ‘year/month’ for No-Albums. 
 
-6. Then all the Albums will be moved into Albums subfolder and the Photos that does not belong to any album will be moved to '<OUTPUT_FOLDER>/Others' folder. This step can be skipped using flag _'-gsma, --google-skip-move-albums'_
+6. Then all the Albums will be moved into Albums subfolder and the Photos that does not belong to any album will be moved to '<OUTPUT_FOLDER>/No-Albums' folder. This step can be skipped using flag _'-gsma, --google-skip-move-albums'_
 
 7. Finally, the script will look in <OUTPUT_TAKEOUT_FOLDER> for any symbolic link broken and will try to fix it by looking for the original file where the symlink is pointing to.
 

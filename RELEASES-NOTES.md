@@ -81,7 +81,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
   - **-sdAll,  --synology-download-all <OUTPUT_FOLDER>**  
     - The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
     - Albums will be downloaded within a subfolder '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
-    - Assets with no Albums associated will be downloaded within a subfolder 'OUTPUT_FOLDER/Others/' and will have a year/month structure inside.
+    - Assets with no Albums associated will be downloaded within a subfolder 'OUTPUT_FOLDER/No-Albums/' and will have a year/month structure inside.
 
 
 - [x] Added **_Immich Photos Support_** with the Following options to manage Immich API:
@@ -103,7 +103,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
   - **-idAll,  --immich-download-all <OUTPUT_FOLDER>>**  
     - The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
     - Albums will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
-    - Assets with no Albums associated will be downloaded withn a subfolder called '<OUTPUT_FOLDER>/Others/' and will have a year/month structure inside.
+    - Assets with no Albums associated will be downloaded withn a subfolder called '<OUTPUT_FOLDER>/No-Albums/' and will have a year/month structure inside.
   - **-idoa,   --immich-delete-orphan-assets**  
     - The script will look for all Orphan Assets in Immich Database and will delete them.  
     - **IMPORTANT!**: This feature requires a valid ADMIN_API_KEY configured in Config.ini.  
