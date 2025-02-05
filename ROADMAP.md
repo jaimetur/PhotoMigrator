@@ -8,6 +8,11 @@
 - -irAllAss
 - -irAllAlb
 
+- -srEmpAlb
+- -srDupAlb
+- -srAllAss
+- -srAllAlb
+
 - [ ] Replace -sdea to -srea and -synology-delete-empty-albums to -synology-remove-empty-albums
 - [ ] Replace -sdda to -srda and -synology-delete-duplicates-albums to -synology-remove-duplicates-albums
 - [ ] Replace -idea to -irea and -immich-delete-empty-albums to -immich-remove-empty-albums
