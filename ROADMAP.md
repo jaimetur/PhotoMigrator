@@ -2,11 +2,11 @@
 
 ## 3.0.0 (10/02/2025):
 ### TODO:
--irEmpAlb
--irDupAlb
--irOrphan
--irAllAss
--irAllAlb
+- -irEmpAlb
+- -irDupAlb
+- -irOrphan
+- -irAllAss
+- -irAllAlb
 
 - [ ] Replace -sdea to -srea and -synology-delete-empty-albums to -synology-remove-empty-albums
 - [ ] Replace -sdda to -srda and -synology-delete-duplicates-albums to -synology-remove-duplicates-albums
