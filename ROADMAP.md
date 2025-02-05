@@ -2,8 +2,19 @@
 
 ## 3.0.0 (10/02/2025):
 ### TODO:
-- [ ] Add option -sdeAll to remove All assets in Synology Photos
-- [ ] Add option -sdeAlb to remove Albums in Synology Photos (optionally all associated assets can be also deleted)
+- [ ] Replace -sdea to -srea and -synology-delete-empty-albums to -synology-remove-empty-albums
+- [ ] Replace -sdda to -srda and -synology-delete-duplicates-albums to -synology-remove-duplicates-albums
+- [ ] Replace -idea to -irea and -immich-delete-empty-albums to -immich-remove-empty-albums
+- [ ] Replace -idda to -irda and -immich-delete-duplicates-albums to -immich-remove-duplicates-albums
+- [ ] Replace -idoa to -iroa and -immich-delete-orphan-assets to -immich-remove-orphan-assets
+- [ ] Replace -ideAll to -irAll and -immich-delete-all-assets to -immich-remove-all-assets
+- [ ] Replace -ideAlb to -irAlb and -immich-delete-all-albums to -immich-remove-all-albums
+
+- [ ] Add option -srAll to remove All assets in Synology Photos
+- [ ] Add option -srAlb to remove Albums in Synology Photos (optionally all associated assets can be also deleted)
+
+- [ ] Check makes sense to keep current -suFld / iuFlt or is enough with the options -suAll / -iuAll
+
 - [ ] Allow users to choose the folder where dowonload the assets for option -idAlb/-sdAlb and -idAll/-sdAll 
   - current implementation of -sdAlb does not allow this ==> Investigate other implementation
 - [ ] Complete function -suFld to upload external folders (without Albums) to Synology photos. Make sure than ignore @eaDir folders
