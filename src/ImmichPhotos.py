@@ -334,7 +334,7 @@ def list_albums():
         return albums_data
     except Exception as e:
         LOGGER.error(f"ERROR: Error while listing albums: {e}")
-        return []
+        return None
 
 def add_assets_to_album(album_id, asset_ids, album_name=None):
     """
@@ -872,7 +872,7 @@ def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich"):
     from LoggerConfig import LOGGER  # Import global LOGGER
 
     if not login_immich():
-        return 0
+        return 0, 0
 
     output_folder = os.path.join(output_folder, "Albums")
     os.makedirs(output_folder, exist_ok=True)
@@ -880,7 +880,7 @@ def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich"):
     all_albums = list_albums()
     if not all_albums:
         LOGGER.warning("WARNING: No albums available or could not retrieve the list.")
-        return 0
+        return 0, 0
 
     # Normalize album_name_or_id to a list if it's a string
     if isinstance(albums_name, str):
@@ -910,7 +910,7 @@ def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich"):
             LOGGER.info(f"INFO: {len(found_albums)} album(s) matched pattern(s) '{albums_name}'.")
         else:
             LOGGER.warning(f"WARNING: No albums found matching pattern(s) '{albums_name}'.")
-            return 0
+            return 0, 0
 
     total_assets_downloaded = 0
     total_albums_downloaded = 0
@@ -919,7 +919,7 @@ def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich"):
     for album in albums_to_download:
         album_id = album.get("id")
         album_name = album.get("albumName", f"album_{album_id}")
-        album_folder = os.path.join(output_folder, f"{album_name}_{album_id}")
+        album_folder = os.path.join(output_folder, f"{album_name}")
         os.makedirs(album_folder, exist_ok=True)
 
         assets_in_album = get_assets_from_album(album_id)
@@ -963,7 +963,7 @@ def immich_download_no_albums(output_folder="Downloads_Immich"):
     os.makedirs(all_photos_path, exist_ok=True)
     # all_assets_items = [a for a in all_assets if a.get("id") not in downloaded_assets_set]
     LOGGER.info(f"INFO: Found {len(all_assets_items)} asset(s) without any album associated.")
-    for asset in tqdm(all_assets_items, desc="INFO: Downloading assets without associated albums", unit="photos"):
+    for asset in tqdm(all_assets_items, desc="INFO: Downloading assets without associated albums", unit=" photos"):
         asset_id = asset.get("id")
         asset_filename = os.path.basename(asset.get("originalPath"))
         if not asset_id:
@@ -1175,7 +1175,7 @@ def immich_delete_all_albums(deleteAlbumsAssets=False):
 ##############################################################################
 if __name__ == "__main__":
     # Create initialize LOGGER.
-    from CloudPhotoMigrator import log_init
+    from Globals import log_init
     log_init()
 
     # # 0) Read configuration and log in
@@ -1192,14 +1192,14 @@ if __name__ == "__main__":
     # duplicates = immich_delete_duplicates_albums()
     # print(f"[RESULT] Duplicate albums deleted: {duplicates}")
 
-    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder\No-Albums'
-    # print("\n=== EXAMPLE: immich_upload_folder() ===")
-    # big_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder\No-Albums"
-    # immich_upload_folder(big_folder)
+    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums'
+    # print("\n=== EXAMPLE: immich_upload_no_albums() ===")
+    # big_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums"
+    # immich_upload_no_albums(big_folder)
 
-    # # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder\Albums'
+    # # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums'
     # print("\n=== EXAMPLE: immich_upload_albums() ===")
-    # input_albums_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder\Albums"
+    # input_albums_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums"
     # immich_upload_albums(input_albums_folder)
 
     # # # 5) Example: Download all photos from ALL albums
@@ -1220,8 +1220,8 @@ if __name__ == "__main__":
     # # 8) Example: Delete ALL Assets
     # immich_delete_all_assets()
 
-    # 9) Example: Delete ALL Assets
-    immich_delete_all_albums(deleteAlbumsAssets=True)
+    # # 9) Example: Delete ALL Assets
+    # immich_delete_all_albums(deleteAlbumsAssets=True)
 
-    # 10) Local logout
-    logout_immich()
+    # # 10) Local logout
+    # logout_immich()

@@ -1261,7 +1261,7 @@ def synology_download_ALL(output_folder="Downloads_Synology"):
 ##############################################################################
 if __name__ == "__main__":
     # Create initialize LOGGER.
-    from CloudPhotoMigrator import log_init
+    from Globals import log_init
     log_init()
 
     # # 0) Read configuration and log in
