@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import Utils
 import Fixers
 from Duplicates import find_duplicates, process_duplicates_actions
-from SynologyPhotos import read_synology_config, login_synology, synology_delete_empty_albums, synology_delete_duplicates_albums, synology_upload_folder, synology_upload_albums, synology_download_albums, synology_download_ALL
+from SynologyPhotos import read_synology_config, login_synology, synology_delete_empty_albums, synology_delete_duplicates_albums, synology_upload_no_albums, synology_upload_albums, synology_download_albums, synology_download_ALL
 from ImmichPhotos import read_immich_config, login_immich, logout_immich, immich_delete_empty_albums, immich_delete_duplicates_albums, immich_upload_no_albums, immich_upload_albums, immich_upload_ALL, immich_download_albums, immich_download_ALL, immich_delete_orphan_assets, immich_delete_all_assets, immich_delete_all_albums
 
 DEFAULT_DUPLICATES_ACTION = False
@@ -687,7 +687,7 @@ def mode_synology_upload_folder(user_confirmation=True, info_messages=True):
     LOGGER.info(f"INFO: Upload Photos/Videos in Folder    : {ARGS['synology-upload-folder']}")
     LOGGER.info("")
     # Call the Funxtion
-    photos_added = synology_upload_folder(ARGS['synology-upload-folder'])
+    photos_added = synology_upload_no_albums(ARGS['synology-upload-folder'])
 
     if info_messages:
         # FINAL SUMMARY
@@ -767,7 +767,7 @@ def mode_synology_upload_ALL( user_confirmation=True, info_messages=True):
     if os.path.isdir(input_folder):
         # TODO: synology_upload_folder() is not yet complete
         LOGGER.info(f"INFO: Uploading Assets of '{input_folder}' (excluding 'Albums' subfolder) into Synology Photos...")
-        photos_added_without_albums = synology_upload_folder(input_folder)
+        photos_added_without_albums = synology_upload_no_albums(input_folder)
     # If 'Albums' folder exists within input_folder, then run upload_albums() function to create one album per subfolder
     if os.path.isdir(album_folder):
         LOGGER.info(f"INFO: Uploading Assets within '{album_folder}' into Synology Photos and associating them to the corresponding Album...")

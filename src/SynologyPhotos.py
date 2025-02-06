@@ -961,7 +961,7 @@ def synology_delete_empty_albums():
 
 # Function synology_upload_folder()
 # TODO: synology_upload_folder()
-def synology_upload_folder(folder):
+def synology_upload_no_albums(folder):
     """
     Upload folder into Synology Photos.
 
@@ -1264,53 +1264,57 @@ if __name__ == "__main__":
     from Globals import log_init
     log_init()
 
-    # # 0) Read configuration and log in
-    # read_synology_config('Config.ini')
-    # login_synology()
-    #
+    # 0) Read configuration and log in
+    read_synology_config('Config.ini')
+    login_synology()
+
     # # # 1) Example: Delete empty albums
     # print("=== EXAMPLE: synology_delete_empty_albums() ===")
     # deleted = synology_delete_empty_albums()
     # print(f"[RESULT] Empty albums deleted: {deleted}\n")
-    #
+
     # # 2) Example: Delete duplicate albums
     # print("=== EXAMPLE: synology_delete_duplicates_albums() ===")
     # duplicates = synology_delete_duplicates_albums()
     # print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
-    #
-    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder\No-Albums'
+
+    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur_share\Photos\Upload_folder\No-Albums'
+    # # TODO: Complete this function
     # print("\n=== EXAMPLE: synology_upload_folder() ===")
-    # input_others_folder = "/volume1/homes/jaimetur_ftp/Photos/No-Albums"     # For Linux (NAS)
-    # input_others_folder = r"r:\jaimetur_ftp\Photos\No-Albums"                # For Windows
-    # synology_upload_folder(input_others_folder)
-    #
-    # # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder\Albums'
-    # print("\n=== EXAMPLE: synology_upload_albums() ===")
-    # input_albums_folder = "/volume1/homes/jaimetur_ftp/Photos/Albums"     # For Linux (NAS)
-    # input_albums_folder = r"r:\jaimetur_ftp\Photos\Albums"                # For Windows
-    # synology_upload_albums(input_albums_folder)
-    #
+    # input_others_folder = r"r:\jaimetur_share\Photos\Upload_folder_for_testing"                # For Windows
+    # input_others_folder = "/volume1/homes/jaimetur_share/Photos/Upload_folder_for_testing"     # For Linux (NAS)
+    # synology_upload_no_albums(input_others_folder)
+
+    # 4) Example: Upload albums from subfolders in 'r:\jaimetur_share\Photos\Upload_folder_for_testing\Albums'
+    # TODO: Permitir subir una carpeta cualquiera sin que tenga que haber una carpeta 'Albums' dentro
+    print("\n=== EXAMPLE: synology_upload_albums() ===")
+    input_albums_folder = "/volume1/homes/jaimetur_share/Photos/Upload_folder_for_testing"     # For Linux (NAS)
+    input_albums_folder = r"r:\jaimetur_share\Photos\Upload_folder_for_testing"                # For Windows
+    synology_upload_albums(input_albums_folder)
+
     # # 5) Example: Download all photos from ALL albums
+    # # TODO: Completar esta función
     # print("\n=== EXAMPLE: synology_download_albums() ===")
     # # total = synology_download_albums('ALL', output_folder="Downloads_Synology")
     # total = synology_download_albums(albums_name='Cadiz', output_folder="Downloads_Synology")
     # print(f"[RESULT] A total of {total} assets have been downloaded.\n")
-    #
+
     # # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
+    # # TODO: Completar esta función
     # print("=== EXAMPLE: synology_download_ALL() ===")
     # total_struct = synology_download_ALL(output_folder="Downloads_Synology")
     # # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
+
+    # 7) Local logout
+    logout_synology()
+
+
+    # # Define albums_folder_path
+    # albums_folder_path = "/volume1/homes/jaimetur_share/Photos/Albums"     # For Linux (NAS)
+    # albums_folder_path = r"r:\jaimetur_share\Photos\Albums"                 # For Windows
     #
-    # # 7) Local logout
-    # logout_synology()
-
-
-    # Define albums_folder_path
-    albums_folder_path = "/volume1/homes/jaimetur_ftp/Photos/Albums"     # For Linux (NAS)
-    albums_folder_path = r"r:\jaimetur_ftp\Photos\Albums"                 # For Windows
-
-    # ExtractSynologyPhotosAlbums(album_name='ALL')
-    synology_download_albums(albums_name='Cadiz')
+    # # ExtractSynologyPhotosAlbums(album_name='ALL')
+    # synology_download_albums(albums_name='Cadiz')
 
     # result = wait_for_reindexing_synology_photos()
     # LOGGER.info(f"INFO: Index Result: {result}")
