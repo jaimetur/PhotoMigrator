@@ -115,7 +115,7 @@ def get_supported_media_types(type='media'):
 # -----------------------------------------------------------------------------
 #                          CONFIGURATION READING
 # -----------------------------------------------------------------------------
-def read_immich_config(config_file='Config.ini', show_info=True):
+def read_immich_config(config_file='CONFIG.ini', show_info=True):
     """
     Reads configuration (IMMICH_URL, IMMICH_USERNAME, IMMICH_PASSWORD) from a .config file,
     for example:
@@ -612,62 +612,7 @@ def download_asset(asset_id, asset_filename, download_folder="Downloaded_Immich"
 ##############################################################################
 #           MAIN FUNCTIONS TO CALL FROM OTHER MODULES                        #
 ##############################################################################
-def immich_delete_empty_albums():
-    """
-    Deletes all albums that have no assets (are empty).
-    Returns the number of albums deleted.
-    """
-    from LoggerConfig import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return 0
-    albums = list_albums()
-    if not albums:
-        LOGGER.info("INFO: No albums found.")
-        return 0
-    total_deleted_empty_albums = 0
-    for album in tqdm(albums, desc=f"INFO: Searchig for Empty Albums", unit=" albums"):
-        album_id = album.get("id")
-        album_name = album.get("albumName")
-        assets_count = album.get("assetCount")
-        if assets_count == 0:
-            if delete_album(album_id, album_name):
-                # LOGGER.info(f"INFO: Empty album '{album_name}' (ID={album_id}) deleted.")
-                total_deleted_empty_albums += 1
-    LOGGER.info(f"INFO: Deleted {total_deleted_empty_albums} empty albums.")
-    return total_deleted_empty_albums
-
-def immich_delete_duplicates_albums():
-    """
-    Deletes albums that have the same number of assets and the same total size.
-    From each duplicate group, keeps the first one (smallest ID) and deletes the rest.
-    """
-    from LoggerConfig import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return 0
-    albums = list_albums()
-    if not albums:
-        return 0
-    duplicates_map = {}
-    for album in tqdm(albums, desc=f"INFO: Searchig for Duplicates Albums", unit=" albums"):
-        album_id = album.get("id")
-        album_name = album.get("albumName")
-        assets_count = album.get("assetCount")
-        size = get_album_items_size(album_id)
-        duplicates_map.setdefault((assets_count, size), []).append((album_id, album_name))
-    total_deleted_duplicated_albums = 0
-    for (assets_count, size), group in tqdm(duplicates_map.items(), desc=f"INFO: Deleting Duplicates Albums", unit=" albums"):
-        if len(group) > 1:
-            group_sorted = sorted(group, key=lambda x: x[1])
-            # The first album in the group is kept
-            to_delete = group_sorted[1:]
-            for album_id, album_name in to_delete:
-                if delete_album(album_id, album_name):
-                    total_deleted_duplicated_albums += 1
-    LOGGER.info(f"INFO: Deleted {total_deleted_duplicated_albums} duplicate albums.")
-    return total_deleted_duplicated_albums
-
-
-def immich_upload_no_albums(input_folder, only_subfolders=None):
+def immich_upload_no_albums(input_folder, only_subfolders=None, exclude_albums_folder=True):
     """
     Recursively traverses 'input_folder' and its only_subfolders to upload all
     compatible files (photos/videos) to Immich without associating them to any album.
@@ -700,7 +645,9 @@ def immich_upload_no_albums(input_folder, only_subfolders=None):
     else:
         only_subfolders = None
 
-    SUBFOLDERS_EXCLUSIONS = ['@eaDir', 'Albums']
+    SUBFOLDERS_EXCLUSIONS = ['@eaDir']
+    if exclude_albums_folder:
+        SUBFOLDERS_EXCLUSIONS.append('Albums')
 
     # Exclude any SUBFOLDERS_EXCLUSIONS that match exclusions
     if only_subfolders:
@@ -834,7 +781,7 @@ def immich_upload_albums(input_folder, only_subfolders=None):
 # -----------------------------------------------------------------------------
 #          COMPLETE UPLOAD OF ALL ASSETS (Albums + No-Albums)
 # -----------------------------------------------------------------------------
-def immich_upload_ALL(input_folder):
+def immich_upload_ALL(input_folder, without_albums=False):
     """
     (Previously download_all_assets_with_structure)
     Uploads ALL photos and videos from input_folder into Immich Photos:
@@ -845,13 +792,21 @@ def immich_upload_ALL(input_folder):
     if not login_immich():
         return 0
 
-    LOGGER.info("")
-    LOGGER.info(f"INFO: Uploading Assets and creating Albums into Immich Photos from '{input_folder}' (excluding 'No-Albums' subfolder)...")
-    total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums = immich_upload_albums(input_folder=input_folder)
+    total_assets_uploaded_within_albums = 0
+    total_albums_uploaded = 0
+    total_albums_skipped = 0
 
-    LOGGER.info("")
-    LOGGER.info(f"INFO: Uploading Assets without Albums into Immich Photos from '{input_folder}' (including only subfolder 'No-Albums')...")
-    total_assets_uploaded_without_albums = immich_upload_no_albums(input_folder=input_folder, only_subfolders='No-Albums')
+    if without_albums:
+        LOGGER.info("")
+        LOGGER.info(f"INFO: Uploading Assets without Albums creation into Immich Photos from '{input_folder}'...")
+        total_assets_uploaded_without_albums = immich_upload_no_albums(input_folder=input_folder, exclude_albums_folder=False)
+    else:
+        LOGGER.info("")
+        LOGGER.info(f"INFO: Uploading Assets and creating Albums into Immich Photos from '{input_folder}' (excluding 'No-Albums' subfolder)...")
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums = immich_upload_albums(input_folder=input_folder)
+        LOGGER.info("")
+        LOGGER.info(f"INFO: Uploading Assets from 'No-Albums' subfolder without Albums creation into Immich Photos from '{input_folder}' (including only subfolder 'No-Albums')...")
+        total_assets_uploaded_without_albums = immich_upload_no_albums(input_folder=input_folder, only_subfolders='No-Albums')
 
     total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
 
@@ -1014,6 +969,67 @@ def immich_download_ALL(output_folder="Downloads_Immich"):
     LOGGER.info(f"Total Assets downloaded within albums     : {total_assets_downloaded_within_albums}")
     LOGGER.info(f"Total Assets downloaded without albums    : {total_assets_downloaded_without_albums}")
     return total_albums_downloaded, total_assets_downloaded
+
+
+# -----------------------------------------------------------------------------
+#          DELETE EMPTY ALBUMS FROM IMMICH DATABASE
+# -----------------------------------------------------------------------------
+def immich_delete_empty_albums():
+    """
+    Deletes all albums that have no assets (are empty).
+    Returns the number of albums deleted.
+    """
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return 0
+    albums = list_albums()
+    if not albums:
+        LOGGER.info("INFO: No albums found.")
+        return 0
+    total_deleted_empty_albums = 0
+    for album in tqdm(albums, desc=f"INFO: Searchig for Empty Albums", unit=" albums"):
+        album_id = album.get("id")
+        album_name = album.get("albumName")
+        assets_count = album.get("assetCount")
+        if assets_count == 0:
+            if delete_album(album_id, album_name):
+                # LOGGER.info(f"INFO: Empty album '{album_name}' (ID={album_id}) deleted.")
+                total_deleted_empty_albums += 1
+    LOGGER.info(f"INFO: Deleted {total_deleted_empty_albums} empty albums.")
+    return total_deleted_empty_albums
+
+# -----------------------------------------------------------------------------
+#          DELETE DUPLICATES ALBUMS FROM IMMICH DATABASE
+# -----------------------------------------------------------------------------
+def immich_delete_duplicates_albums():
+    """
+    Deletes albums that have the same number of assets and the same total size.
+    From each duplicate group, keeps the first one (smallest ID) and deletes the rest.
+    """
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return 0
+    albums = list_albums()
+    if not albums:
+        return 0
+    duplicates_map = {}
+    for album in tqdm(albums, desc=f"INFO: Searchig for Duplicates Albums", unit=" albums"):
+        album_id = album.get("id")
+        album_name = album.get("albumName")
+        assets_count = album.get("assetCount")
+        size = get_album_items_size(album_id)
+        duplicates_map.setdefault((assets_count, size), []).append((album_id, album_name))
+    total_deleted_duplicated_albums = 0
+    for (assets_count, size), group in tqdm(duplicates_map.items(), desc=f"INFO: Deleting Duplicates Albums", unit=" albums"):
+        if len(group) > 1:
+            group_sorted = sorted(group, key=lambda x: x[1])
+            # The first album in the group is kept
+            to_delete = group_sorted[1:]
+            for album_id, album_name in to_delete:
+                if delete_album(album_id, album_name):
+                    total_deleted_duplicated_albums += 1
+    LOGGER.info(f"INFO: Deleted {total_deleted_duplicated_albums} duplicate albums.")
+    return total_deleted_duplicated_albums
 
 # -----------------------------------------------------------------------------
 #          DELETE ORPHANS ASSETS FROM IMMICH DATABASE
@@ -1179,7 +1195,7 @@ if __name__ == "__main__":
     log_init()
 
     # # 0) Read configuration and log in
-    # read_immich_config('Config.ini')
+    # read_immich_config('CONFIG.ini')
     # login_immich()
 
     # # 1) Example: Delete empty albums

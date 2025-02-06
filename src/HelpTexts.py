@@ -22,11 +22,11 @@ def set_help_texts():
     # EXTRA MODES: SYNOLOGY PHOTOS #
     ################################
 
-    HELP_TEXTS["synology-delete-empty-albums"] = textwrap.dedent(f"""
+    HELP_TEXTS["synology-remove-empty-albums"] = textwrap.dedent(f"""
         ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Empty Albums found in Synology Photos database.
         """)
 
-    HELP_TEXTS["synology-delete-duplicates-albums"] = textwrap.dedent(f"""
+    HELP_TEXTS["synology-remove-duplicates-albums"] = textwrap.dedent(f"""
         ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Duplicates Albums found in Synology Photos database.
         """)
 
@@ -78,11 +78,11 @@ def set_help_texts():
     ##############################
     # EXTRA MODES: IMMICH PHOTOS #
     ##############################
-    HELP_TEXTS["immich-delete-empty-albums"] = textwrap.dedent(f"""
+    HELP_TEXTS["immich-remove-empty-albums"] = textwrap.dedent(f"""
         ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Empty Albums found in Immich Photos database.
         """)
 
-    HELP_TEXTS["immich-delete-duplicates-albums"] = textwrap.dedent(f"""
+    HELP_TEXTS["immich-remove-duplicates-albums"] = textwrap.dedent(f"""
         ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Duplicates Albums found in Immich Photos database.
         """)
 
@@ -124,20 +124,20 @@ def set_help_texts():
         Assets with no Albums associated will be downloaded withn a subfolder './<OUTPUT_FOLDER>/No-Albums' and will have a year/month structure inside.
         """)
 
-    HELP_TEXTS["immich-delete-orphan-assets"]  = textwrap.dedent(f"""
+    HELP_TEXTS["immich-remove-orphan-assets"]  = textwrap.dedent(f"""
         ATTENTION!!!: In this process, the script will look for all Orphan Assets in Immich Database and will delete them. 
         
-        IMPORTANT!!!: This feature requires a valid ADMIN_API_KEY configured in Config.ini.
+        IMPORTANT!!!: This feature requires a valid ADMIN_API_KEY configured in CONFIG.ini.
         """)
 
-    HELP_TEXTS["immich-delete-all-assets"]  = textwrap.dedent(f"""
+    HELP_TEXTS["immich-remove-all-assets"]  = textwrap.dedent(f"""
         CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Immich database.         
         """)
 
-    HELP_TEXTS["immich-delete-all-albums"]  = textwrap.dedent(f"""
+    HELP_TEXTS["immich-remove-all-albums"]  = textwrap.dedent(f"""
         CAUTION!!! The script will delete ALL your Albums from Immich database.
         
-        Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-iiaa, --immich-include-albums-assets' argument.
+        Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument.
         """)
 
     ##############################
@@ -146,7 +146,7 @@ def set_help_texts():
     HELP_TEXTS["find-duplicates"]  = textwrap.dedent(f"""
         ATTENTION!!!: This process will process all Duplicates files found in <DUPLICATES_FOLDER> and will apply the given action.
         
-        You must take into account that if not valid action is detected within the arguments of '-fdup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>', then 'list' will be the default action.
+        You must take into account that if not valid action is detected within the arguments of '-findDup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>', then 'list' will be the default action.
         
         Possible duplicates-action are:
             - list   : This action is not dangerous, just list all duplicates files found in a Duplicates.csv file.
@@ -157,7 +157,7 @@ def set_help_texts():
         """)
 
     HELP_TEXTS["process-duplicates"]  = textwrap.dedent(f"""
-        ATTENTION!!!: This process will process all Duplicates files found with option '-fdup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>' 
+        ATTENTION!!!: This process will process all Duplicates files found with option '-findDup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>' 
         based on the Action column value of 'Duplicates.csv' file generated in 'Find Duplicates Mode'. 
         
         You can modify individually each Action column value for each duplicate found, but take into account that the below actions list are irreversible:
@@ -174,7 +174,7 @@ def set_help_texts():
         ATTENTION!!!: This process will look for all Symbolic Links broken in <FOLDER_TO_FIX> and will try to find the destination file within the same folder.
         """)
 
-    HELP_TEXTS["folders-rename-content-based"]  = textwrap.dedent(f"""
+    HELP_TEXTS["rename-folders-content-based"]  = textwrap.dedent(f"""
         ATTENTION!!!: This process will clean each Subfolder found in <ALBUMS_FOLDER> with an homogeneous name starting with album year followed by a cleaned subfolder name without underscores nor middle dashes.
         
         New Album name format: 'yyyy - Cleaned Subfolder name'

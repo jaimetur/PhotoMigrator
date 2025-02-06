@@ -26,15 +26,12 @@ def detect_and_run_execution_mode():
         mode_google_takeout()
 
     # Synology Photos Modes:
-    elif ARGS['synology-delete-empty-albums']:
-        EXECUTION_MODE = 'synology-delete-empty-albums'
+    elif ARGS['synology-remove-empty-albums']:
+        EXECUTION_MODE = 'synology-remove-empty-albums'
         mode_synology_delete_empty_albums()
-    elif ARGS['synology-delete-duplicates-albums']:
-        EXECUTION_MODE = 'synology-delete-duplicates-albums'
+    elif ARGS['synology-remove-duplicates-albums']:
+        EXECUTION_MODE = 'synology-remove-duplicates-albums'
         mode_synology_delete_duplicates_albums()
-    elif ARGS['synology-upload-folder'] != "":
-        EXECUTION_MODE = 'synology-upload-folder'
-        mode_synology_upload_folder()
     elif ARGS['synology-upload-albums'] != "":
         EXECUTION_MODE = 'synology-upload-albums'
         mode_synology_upload_albums()
@@ -49,15 +46,12 @@ def detect_and_run_execution_mode():
         mode_synology_download_ALL()
 
     # Immich Photos Modes:
-    elif ARGS['immich-delete-empty-albums']:
-        EXECUTION_MODE = 'immich-delete-empty-albums'
+    elif ARGS['immich-remove-empty-albums']:
+        EXECUTION_MODE = 'immich-remove-empty-albums'
         mode_immich_delete_empty_albums()
-    elif ARGS['immich-delete-duplicates-albums']:
-        EXECUTION_MODE = 'immich-delete-duplicates-albums'
+    elif ARGS['immich-remove-duplicates-albums']:
+        EXECUTION_MODE = 'immich-remove-duplicates-albums'
         mode_immich_delete_duplicates_albums()
-    elif ARGS['immich-upload-folder'] != "":
-        EXECUTION_MODE = 'immich-upload-folder'
-        mode_immich_upload_folder()
     elif ARGS['immich-upload-albums'] != "":
         EXECUTION_MODE = 'immich-upload-albums'
         mode_immich_upload_albums()
@@ -70,14 +64,14 @@ def detect_and_run_execution_mode():
     elif ARGS['immich-download-all'] != "":
         EXECUTION_MODE = 'immich-download-all'
         mode_immich_download_ALL()
-    elif ARGS['immich-delete-orphan-assets'] != "":
-        EXECUTION_MODE = 'immich-delete-orphan-assets'
+    elif ARGS['immich-remove-orphan-assets'] != "":
+        EXECUTION_MODE = 'immich-remove-orphan-assets'
         mode_immich_delete_orphan_assets()
-    elif ARGS['immich-delete-all-assets'] != "":
-        EXECUTION_MODE = 'immich-delete-all-assets'
+    elif ARGS['immich-remove-all-assets'] != "":
+        EXECUTION_MODE = 'immich-remove-all-assets'
         mode_immich_delete_all_assets()
-    elif ARGS['immich-delete-all-albums'] != "":
-        EXECUTION_MODE = 'immich-delete-all-albums'
+    elif ARGS['immich-remove-all-albums'] != "":
+        EXECUTION_MODE = 'immich-remove-all-albums'
         mode_immich_delete_all_albums()
 
     # Other Stand-alone Extra Modes:
@@ -90,8 +84,8 @@ def detect_and_run_execution_mode():
     elif ARGS['process-duplicates'] != "":
         EXECUTION_MODE = 'process-duplicates'
         mode_process_duplicates()
-    elif ARGS['folders-rename-content-based'] != "":
-        EXECUTION_MODE = 'folders-rename-content-based'
+    elif ARGS['rename-folders-content-based'] != "":
+        EXECUTION_MODE = 'rename-folders-content-based'
         mode_folders_rename_content_based()
 
     else:
@@ -130,7 +124,7 @@ def mode_AUTOMATED_MIGRATION(info_messages=True):
 
         # For the time being we set the global OUTPUT_TAKEOUT_FOLDER within Synology Photos root folder (otherwise Synology Photos will not see it)
         # TODO: Change this logic to avoid Synology Photos dependency
-        config = read_synology_config(config_file='Config.ini', show_info=False)
+        config = read_synology_config(config_file='CONFIG.ini', show_info=False)
         if not config['SYNOLOGY_ROOT_PHOTOS_PATH']:
             LOGGER.warning(f"WARNING: Caanot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
         else:
@@ -155,7 +149,7 @@ def mode_AUTOMATED_MIGRATION(info_messages=True):
     elif SOURCE.lower() == 'synology-photos':
         # For the time being we set the global OUTPUT_TAKEOUT_FOLDER within Synology Photos root folder (otherwise Synology Photos will not see it)
         # TODO: Change this logic to avoid Synology Photos dependency
-        config = read_synology_config(config_file='Config.ini', show_info=False)
+        config = read_synology_config(config_file='CONFIG.ini', show_info=False)
         if not config['SYNOLOGY_ROOT_PHOTOS_PATH']:
             LOGGER.warning(f"WARNING: Caanot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
         else:
@@ -167,7 +161,7 @@ def mode_AUTOMATED_MIGRATION(info_messages=True):
     elif SOURCE.lower() == 'immich-photos':
         # For the time being we set the global OUTPUT_TAKEOUT_FOLDER within Synology Photos root folder (otherwise Synology Photos will not see it)
         # TODO: Change this logic to avoid Synology Photos dependency
-        config = read_synology_config(config_file='Config.ini', show_info=False)
+        config = read_synology_config(config_file='CONFIG.ini', show_info=False)
         if not config['SYNOLOGY_ROOT_PHOTOS_PATH']:
             LOGGER.warning(f"WARNING: Caanot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
         else:
@@ -583,13 +577,13 @@ def mode_folders_rename_content_based(user_confirmation=True, info_messages=True
     LOGGER.info("===================")
     LOGGER.info("")
     if user_confirmation:
-        LOGGER.info(HELP_TEXTS["folders-rename-content-based"].replace('<ALBUMS_FOLDER>', f"'{ARGS['folders-rename-content-based']}'"))
+        LOGGER.info(HELP_TEXTS["rename-folders-content-based"].replace('<ALBUMS_FOLDER>', f"'{ARGS['rename-folders-content-based']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
         LOGGER.info(f"INFO: Rename Albums Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO: Flag detected '-ra, --folders-rename-content-based'. The Script will look for any Subfolder in '{ARGS['folders-rename-content-based']}' and will rename the folder name in order to unificate all the Albums names.")
-    renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = Utils.rename_album_folders(ARGS['folders-rename-content-based'])
+        LOGGER.info(f"INFO: Flag detected '-ra, --rename-folders-content-based'. The Script will look for any Subfolder in '{ARGS['rename-folders-content-based']}' and will rename the folder name in order to unificate all the Albums names.")
+    renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = Utils.rename_album_folders(ARGS['rename-folders-content-based'])
 
     if info_messages:
         # FINAL SUMMARY
@@ -615,99 +609,6 @@ def mode_folders_rename_content_based(user_confirmation=True, info_messages=True
 #################################
 # EXTRA MODES: SYNOLOGY PHOTOS: #
 #################################
-def mode_synology_delete_empty_albums(user_confirmation=True, info_messages=True):
-    if user_confirmation:
-        LOGGER.info(f"INFO: Flag detected '-sdea, --synology-delete-empty-albums'.")
-        LOGGER.info(HELP_TEXTS["synology-delete-empty-albums"])
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO: Exiting program.")
-            sys.exit(0)
-        LOGGER.info(f"INFO: Synology Photos: 'Delete Empty Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO: Flag detected '-sdea, --synology-delete-empty-albums'. The Script will look for any empty album in Synology Photos database and will detelte them (if any enpty album is found).")
-    # Call the Funxtion
-    albums_deleted = synology_delete_empty_albums()
-
-    if info_messages:
-        # FINAL SUMMARY
-        end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("                  FINAL SUMMARY:                  ")
-        LOGGER.info("==================================================")
-        LOGGER.info(f"Total Empty Albums deleted              : {albums_deleted}")
-        LOGGER.info("")
-        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-
-def mode_synology_delete_duplicates_albums(user_confirmation=True, info_messages=True):
-    if user_confirmation:
-        LOGGER.info(f"INFO: Flag detected '-sdda, --synology-delete-deuplicates-albums'.")
-        LOGGER.info(HELP_TEXTS["synology-delete-duplicates-albums"])
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO: Exiting program.")
-            sys.exit(0)
-        LOGGER.info(f"INFO: Synology Photos: 'Delete Duplicates Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO: Flag detected '-sdda, --synology-delete-duplicates-albums'. The Script will look for any duplicated album in Synology Photos database and will detelte them (if any duplicated album is found).")
-    # Call the Funxtion
-    albums_deleted = synology_delete_duplicates_albums()
-
-    if info_messages:
-        # FINAL SUMMARY
-        end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("                  FINAL SUMMARY:                  ")
-        LOGGER.info("==================================================")
-        LOGGER.info(f"Total Duplicates Albums deleted         : {albums_deleted}")
-        LOGGER.info("")
-        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-
-def mode_synology_upload_folder(user_confirmation=True, info_messages=True):
-    if user_confirmation:
-        LOGGER.info(f"INFO: Flag detected '-suFld, --synology-upload-folder'.")
-        LOGGER.info(HELP_TEXTS["synology-upload-folder"].replace('<INPUT_FOLDER>', f"'{ARGS['synology-upload-folder']}'"))
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO: Exiting program.")
-            sys.exit(0)
-        LOGGER.info(f"INFO: Synology Photos: 'Upload Folder' Mode detected. Only this module will be run!!!")
-    LOGGER.info("")
-    LOGGER.info(f"INFO: Upload Photos/Videos in Folder    : {ARGS['synology-upload-folder']}")
-    LOGGER.info("")
-    # Call the Funxtion
-    photos_added = synology_upload_no_albums(ARGS['synology-upload-folder'])
-
-    if info_messages:
-        # FINAL SUMMARY
-        end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("                  FINAL SUMMARY:                  ")
-        LOGGER.info("==================================================")
-        LOGGER.info(f"Total Photos added to Albums            : {photos_added}")
-        LOGGER.info("")
-        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-
-
 def mode_synology_upload_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-suAlb, --synology-upload-albums'.")
@@ -870,22 +771,17 @@ def mode_synology_download_ALL(user_confirmation=True, info_messages=True):
         LOGGER.info("==================================================")
         LOGGER.info("")
 
-
-###############################
-# EXTRA MODES: IMMICH PHOTOS: #
-###############################
-def mode_immich_delete_empty_albums(user_confirmation=True, info_messages=True):
+def mode_synology_delete_empty_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
-        LOGGER.info(f"INFO: Flag detected '-idea, --immich-delete-empty-albums'.")
-        LOGGER.info(HELP_TEXTS["immich-delete-empty-albums"])
+        LOGGER.info(f"INFO: Flag detected '-srEmpAlb, --synology-remove-empty-albums'.")
+        LOGGER.info(HELP_TEXTS["synology-remove-empty-albums"])
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
-        LOGGER.info(f"INFO: Immich Photos: 'Delete Empty Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO: Flag detected '-idea, --immich-delete-empty-albums'. The Script will look for any empty album in Immich Photos database and will detelte them (if any enpty album is found).")
+        LOGGER.info(f"INFO: Synology Photos: 'Delete Empty Album' Mode detected. Only this module will be run!!!")
+        LOGGER.info(f"INFO: Flag detected '-srEmpAlb, --synology-remove-empty-albums'. The Script will look for any empty album in Synology Photos database and will detelte them (if any enpty album is found).")
     # Call the Funxtion
-    albums_deleted = immich_delete_empty_albums()
-    logout_immich()
+    albums_deleted = synology_delete_empty_albums()
 
     if info_messages:
         # FINAL SUMMARY
@@ -905,18 +801,17 @@ def mode_immich_delete_empty_albums(user_confirmation=True, info_messages=True):
         LOGGER.info("==================================================")
         LOGGER.info("")
 
-def mode_immich_delete_duplicates_albums(user_confirmation=True, info_messages=True):
+def mode_synology_delete_duplicates_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
-        LOGGER.info(f"INFO: Flag detected '-idda, --immich-delete-deuplicates-albums'.")
-        LOGGER.info(HELP_TEXTS["immich-delete-duplicates-albums"])
+        LOGGER.info(f"INFO: Flag detected '-srDupAlb, --synology-delete-deuplicates-albums'.")
+        LOGGER.info(HELP_TEXTS["synology-remove-duplicates-albums"])
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
-        LOGGER.info(f"INFO: Immich Photos: 'Delete Duplicates Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO: Flag detected '-idda, --immich-delete-duplicates-albums'. The Script will look for any duplicated album in Immich Photos database and will detelte them (if any duplicated album is found).")
+        LOGGER.info(f"INFO: Synology Photos: 'Delete Duplicates Album' Mode detected. Only this module will be run!!!")
+        LOGGER.info(f"INFO: Flag detected '-srDupAlb, --synology-remove-duplicates-albums'. The Script will look for any duplicated album in Synology Photos database and will detelte them (if any duplicated album is found).")
     # Call the Funxtion
-    albums_deleted = immich_delete_duplicates_albums()
-    logout_immich()
+    albums_deleted = synology_delete_duplicates_albums()
 
     if info_messages:
         # FINAL SUMMARY
@@ -936,39 +831,10 @@ def mode_immich_delete_duplicates_albums(user_confirmation=True, info_messages=T
         LOGGER.info("==================================================")
         LOGGER.info("")
 
-def mode_immich_upload_folder(user_confirmation=True, info_messages=True):
-    if user_confirmation:
-        LOGGER.info(f"INFO: Flag detected '-iuAlb, --immich-upload-albums'.")
-        LOGGER.info(HELP_TEXTS["immich-upload-folder"].replace('<INPUT_FOLDER>', f"'{ARGS['immich-upload-folder']}'"))
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO: Exiting program.")
-            sys.exit(0)
-        LOGGER.info(f"INFO: Immich Photos: 'Upload Folder' Mode detected. Only this module will be run!!!")
-    LOGGER.info("")
-    LOGGER.info(f"INFO: Upload Assets in Folder           : {ARGS['immich-upload-folder']}")
-    LOGGER.info("")
-    # Call the Funxtion
-    photos_added = immich_upload_no_albums(ARGS['immich-upload-folder'])
-    logout_immich()
 
-    if info_messages:
-        # FINAL SUMMARY
-        end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("                  FINAL SUMMARY:                  ")
-        LOGGER.info("==================================================")
-        LOGGER.info(f"Total Assets Uploaded                   : {photos_added}")
-        LOGGER.info("")
-        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-
+###############################
+# EXTRA MODES: IMMICH PHOTOS: #
+###############################
 def mode_immich_upload_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-iuAlb, --immich-upload-albums'.")
@@ -1005,8 +871,11 @@ def mode_immich_upload_albums(user_confirmation=True, info_messages=True):
         LOGGER.info("")
 
 def mode_immich_upload_ALL(user_confirmation=True, info_messages=True):
+    without_albums = ARGS['without-albums']
     if user_confirmation:
         LOGGER.info(f"INFO: Flag detected '-iuAll, --immich-upload-all'.")
+        if without_albums:
+            LOGGER.info(f"INFO: Flag detected '-woAlb, --without-albums'.")
         LOGGER.info(HELP_TEXTS["immich-upload-all"].replace('<INPUT_FOLDER>', f"'{ARGS['immich-upload-all']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
@@ -1016,7 +885,7 @@ def mode_immich_upload_ALL(user_confirmation=True, info_messages=True):
     LOGGER.info(f"INFO: Find Assets in Folder    : {ARGS['immich-upload-all']}")
     LOGGER.info("")
 
-    total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums = immich_upload_ALL (ARGS['immich-upload-all'])
+    total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums = immich_upload_ALL (ARGS['immich-upload-all'], without_albums=without_albums)
 
     # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
     LOGGER.info("")
@@ -1118,10 +987,72 @@ def mode_immich_download_ALL(user_confirmation=True, info_messages=True):
         LOGGER.info("==================================================")
         LOGGER.info("")
 
+def mode_immich_delete_empty_albums(user_confirmation=True, info_messages=True):
+    if user_confirmation:
+        LOGGER.info(f"INFO: Flag detected '-irEmpAlb, --immich-remove-empty-albums'.")
+        LOGGER.info(HELP_TEXTS["immich-remove-empty-albums"])
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO: Exiting program.")
+            sys.exit(0)
+        LOGGER.info(f"INFO: Immich Photos: 'Delete Empty Album' Mode detected. Only this module will be run!!!")
+        LOGGER.info(f"INFO: Flag detected '-irEmpAlb, --immich-remove-empty-albums'. The Script will look for any empty album in Immich Photos database and will detelte them (if any enpty album is found).")
+    # Call the Funxtion
+    albums_deleted = immich_delete_empty_albums()
+    logout_immich()
+
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Empty Albums deleted              : {albums_deleted}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+def mode_immich_delete_duplicates_albums(user_confirmation=True, info_messages=True):
+    if user_confirmation:
+        LOGGER.info(f"INFO: Flag detected '-irDupAlb, --immich-delete-deuplicates-albums'.")
+        LOGGER.info(HELP_TEXTS["immich-remove-duplicates-albums"])
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO: Exiting program.")
+            sys.exit(0)
+        LOGGER.info(f"INFO: Immich Photos: 'Delete Duplicates Album' Mode detected. Only this module will be run!!!")
+        LOGGER.info(f"INFO: Flag detected '-irDupAlb, --immich-remove-duplicates-albums'. The Script will look for any duplicated album in Immich Photos database and will detelte them (if any duplicated album is found).")
+    # Call the Funxtion
+    albums_deleted = immich_delete_duplicates_albums()
+    logout_immich()
+
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Duplicates Albums deleted         : {albums_deleted}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
 def mode_immich_delete_orphan_assets(user_confirmation=True, info_messages=True):
     if user_confirmation:
-        LOGGER.info(f"INFO: Flag detected '-idoa, --immich-delete-orphan-assets'.")
-        LOGGER.info(HELP_TEXTS["immich-delete-orphan-assets"])
+        LOGGER.info(f"INFO: Flag detected '-irOrphan, --immich-remove-orphan-assets'.")
+        LOGGER.info(HELP_TEXTS["immich-remove-orphan-assets"])
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1153,8 +1084,8 @@ def mode_immich_delete_orphan_assets(user_confirmation=True, info_messages=True)
 
 def mode_immich_delete_all_assets(user_confirmation=True, info_messages=True):
     if user_confirmation:
-        LOGGER.info(f"INFO: Flag detected '-ideAll, --immich-delete-all-assets'.")
-        LOGGER.info(HELP_TEXTS["immich-delete-all-assets"])
+        LOGGER.info(f"INFO: Flag detected '-irALL, --immich-remove-all-assets'.")
+        LOGGER.info(HELP_TEXTS["immich-remove-all-assets"])
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
@@ -1187,12 +1118,12 @@ def mode_immich_delete_all_assets(user_confirmation=True, info_messages=True):
 
 def mode_immich_delete_all_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
-        LOGGER.info(f"INFO: Flag detected '-ideAlb, --immich-delete-all-albums'.")
-        if ARGS['immich-include-albums-assets']:
-            LOGGER.info(f"INFO: Flag detected '-iiaa, --include-albums-assets'.")
-        LOGGER.info(HELP_TEXTS["immich-delete-all-albums"])
-        if ARGS['immich-include-albums-assets']:
-            LOGGER.info(f"Since, flag '-iiaa, --include-albums-assets' have been detected, ALL the Assets associated to any Albums will also be deleted.")
+        LOGGER.info(f"INFO: Flag detected '-irAllAlb, --immich-remove-all-albums'.")
+        if ARGS['remove-albums-assets']:
+            LOGGER.info(f"INFO: Flag detected '-rAlbAss, --include-albums-assets'.")
+        LOGGER.info(HELP_TEXTS["immich-remove-all-albums"])
+        if ARGS['remove-albums-assets']:
+            LOGGER.info(f"Since, flag '-rAlbAss, --include-albums-assets' have been detected, ALL the Assets associated to any Albums will also be deleted.")
             LOGGER.info("")
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
@@ -1202,7 +1133,7 @@ def mode_immich_delete_all_albums(user_confirmation=True, info_messages=True):
     # LOGGER.info(f"INFO: Find Albums in Folder    : {ARGS['immich-upload-albums']}")
     LOGGER.info("")
     # Call the Funxtion
-    delete_albums, delete_assets = immich_delete_all_albums(deleteAlbumsAssets = ARGS['immich-include-albums-assets'])
+    delete_albums, delete_assets = immich_delete_all_albums(deleteAlbumsAssets = ARGS['remove-albums-assets'])
     logout_immich()
 
     if info_messages:

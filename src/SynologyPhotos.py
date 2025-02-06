@@ -46,7 +46,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # -----------------------------------------------------------------------------
 #                          CONFIGURATION READING
 # -----------------------------------------------------------------------------
-def read_synology_config(config_file='Config.ini', show_info=True):
+def read_synology_config(config_file='CONFIG.ini', show_info=True):
     """
     Reads the Synology configuration file and updates global variables.
     If the configuration file is not found, prompts the user to manually input required data.
@@ -1265,7 +1265,7 @@ if __name__ == "__main__":
     log_init()
 
     # 0) Read configuration and log in
-    read_synology_config('Config.ini')
+    read_synology_config('CONFIG.ini')
     login_synology()
 
     # # # 1) Example: Delete empty albums

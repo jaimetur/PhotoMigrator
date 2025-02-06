@@ -3,7 +3,7 @@ import os, sys
 
 CONFIG = None
 
-def load_config(config_file='Config.ini'):
+def load_config(config_file='CONFIG.ini'):
     #
     # Load and Set Global CONFIG variable
     #
@@ -96,8 +96,8 @@ if __name__ == "__main__":
     LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename)
 
     if len(sys.argv[1:]) == 0:
-        CONFIG = load_config('Config.ini')
-        print("\nUsing Configuration File: ['Config.ini']\n")
+        CONFIG = load_config('CONFIG.ini')
+        print("\nUsing Configuration File: ['CONFIG.ini']\n")
     else:
         CONFIG = load_config(sys.argv[1:])
         print("\nUsing Configuration File:", sys.argv[1:], "\n")

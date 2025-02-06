@@ -43,7 +43,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 - [x] Changed the logic to detect google_takeout_mode (former normal_mode)
 - [x] Merged -z and -t options in just one option ('-gitf, -google-input-takeout-folder') and detect if contains Takeout Zip files, in that case Zip files will be Unzipped to <TAKEOUT_FOLDER>_TIMESTAMP folder
 - [x] Added Help texts for Google Photos Mode
-- [x] Unificate a single Config.ini file and included tags for the different configuration sections
+- [x] Unificate a single CONFIG.ini file and included tags for the different configuration sections
 - [x] Included _RELEASES-NOTES.md_ and _ROADMAP.md_ files to the distribution package.
 - [x] Moved at the end of the help the standard option (those that are not related to any Support mode)
 - [x] Updated -h, --help to refflect the new changes.
@@ -54,6 +54,9 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 - [x] Renamed optionss:
   - -sca, --synology-create-albums is now **suAlb,  --synology-upload-albums <ALBUMS_FOLDER>**
   - -sea, --synology-extract-albums is now **-sdAlb,  --synology-download-albums <ALBUMS_NAME>**
+  - -fsym, --fix-symlinks-broken <FOLDER_TO_FIX> is now **-fixSym --fix-symlinks-broken <FOLDER_TO_FIX>**
+  - -fdup, --find-duplicates <ACTION> <DUPLICATES_FOLDER> is now **-findDup --find-duplicates <ACTION> <DUPLICATES_FOLDER>**
+  - -pdup, --process-duplicates <DUPLICATES_REVISED> is now **-procdDup --process-duplicates <DUPLICATES_REVISED>**
 
 
 - [x] Added new option to Synology Photos Support:
@@ -62,10 +65,6 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 
 
 - [x] With those changes the **_Synology Photos Support_** has the following options:
-  - **-sdea,   --synology-delete-empty-albums**  
-    - The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.  
-  - **-sdda,   --synology-delete-duplicates-albums**  
-    - The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
   - **-suFld,  --synology-upload-folder <INPUT_FOLDER>**  
     - The script will look for all Photos/Videos within <INPUT_FOLDER> and will upload them into Synology Photos.
   - **-suAlb,  --synology-upload-albums <ALBUMS_FOLDER>**  
@@ -82,13 +81,12 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
     - The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
     - Albums will be downloaded within a subfolder '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
     - Assets with no Albums associated will be downloaded within a subfolder 'OUTPUT_FOLDER/No-Albums/' and will have a year/month structure inside.
-
+  - **-srEmpAlb,   --synology-remove-empty-albums**  
+    - The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.  
+  - **-srDupAlb,   --synology-remove-duplicates-albums**  
+    - The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
 
 - [x] Added **_Immich Photos Support_** with the Following options to manage Immich API:
-  - **-idea,   --immich-delete-empty-albums**  
-    - The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.  
-  - **-idda,   --immich-delete-duplicates-albums**  
-    - The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.  
   - **-iuFld,  --immich-upload-folder <INPUT_FOLDER>**    
     - The script will look for all Photos/Videos within <FOLDER> and will upload them into Immich Photos.  
   - **-iuAlb,  --immich-upload-albums <ALBUMS_FOLDER>**  
@@ -104,12 +102,16 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
     - The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
     - Albums will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
     - Assets with no Albums associated will be downloaded withn a subfolder called '<OUTPUT_FOLDER>/No-Albums/' and will have a year/month structure inside.
-  - **-idoa,   --immich-delete-orphan-assets**  
+  - **-irEmpAlb,   --immich-remove-empty-albums**  
+    - The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.  
+  - **-irDupAlb,   --immich-remove-duplicates-albums**  
+    - The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.  
+  - **-irOrphan,   --immich-remove-orphan-assets**  
     - The script will look for all Orphan Assets in Immich Database and will delete them.  
-    - **IMPORTANT!**: This feature requires a valid ADMIN_API_KEY configured in Config.ini.  
-  - **-ideAll, --immich-delete-all-assets** to delete ALL assets in Immich Photos
-  - **-ideAlb, --immich-delete-all-albums** to delete ALL Albums in Immich Photos (optinally all associated assets can be also deleted)
-  - **-iiaa,   --immich-include-albums-assets** to delete ALL Albums in Immich Photos (optinally all associated assets can be also deleted)
+    - **IMPORTANT!**: This feature requires a valid ADMIN_API_KEY configured in CONFIG.ini.  
+  - **-irALL, --immich-remove-all-assets** to delete ALL assets in Immich Photos
+  - **-irAllAlb, --immich-remove-all-albums** to delete ALL Albums in Immich Photos (optinally all associated assets can be also deleted)
+  - **-rAlbAss,   --remove-albums-assets** to delete ALL Albums in Immich Photos (optinally all associated assets can be also deleted)
 
 ---
 
@@ -120,8 +122,8 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 - Added new argument to show script version (-v, --version)
 - Added new argument to Extract Albums from Synology Photos (-sea, --synology-extract-albums)
 - Renamed argument -ca, --create-albums-synology-photos to -sca, --synology-create-albums
-- Renamed argument -de, --delete-empty-albums-synology-photos to -sde, --synology-delete-empty-albums
-- Renamed argument -dd, --delete-duplicates-albums-synology-photos to -sdd, --synology-delete-duplicates-albums
+- Renamed argument -de, --delete-empty-albums-synology-photos to -sde, --synology-remove-empty-albums
+- Renamed argument -dd, --delete-duplicates-albums-synology-photos to -sdd, --synology-remove-duplicates-albums
 - Added Pagination option to Help text
 - Code refactored
 - Minor Bug Fixing
