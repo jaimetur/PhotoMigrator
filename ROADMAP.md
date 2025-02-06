@@ -25,11 +25,11 @@
 - [ ] Add option -srAll to remove All assets in Synology Photos
 - [ ] Add option -srAlb to remove Albums in Synology Photos (optionally all associated assets can be also deleted)
 
-- [ ] Check makes sense to keep current -suFld / iuFlt or is enough with the options -suAll / -iuAll
+- [ ] Check if makes sense to keep current -suFld / iuFld, renaming them to -sunoAlb / -iunoAlb or is enough with the options -suAll / -iuAll adding a flag -woAlb, --without-albums to avoid create Albums
 
 - [ ] Allow users to choose the folder where dowonload the assets for option -idAlb/-sdAlb and -idAll/-sdAll 
   - current implementation of -sdAlb does not allow this ==> Investigate other implementation
-- [ ] Complete function -suFld to upload external folders (without Albums) to Synology photos. Make sure than ignore @eaDir folders
+- [ ] Complete function -suFld / -suAll to upload external folders (without Albums) to Synology photos. Make sure than ignore @eaDir folders
   - Try to upload folders outside Synology Photos ROOT folder (for -suf option)
 
 - #### Tests Pending:
