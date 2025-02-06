@@ -47,10 +47,12 @@
 - [ ] Include iCloud Support (just for downloading)
     - [ ] -adAlb, --apple-download-albums
     - [ ] -adAll, --apple-download-all
-- [ ] Add option to filter by dates in all Immich Actions
-- [ ] Add option to filter by person in all Immich Actions
-- [ ] Add option to filter by city/country in all Immich Actions
-- [ ] Add option to filter Archive in all Immich Actions
+- [ ] Add option to filter in all Immich Actions:
+    - [ ] by Dates
+    - [ ] by Country
+    - [ ] by City
+    - [ ] by Archive
+    - [ ] by Person
 - [ ] Update README.md
 - [ ] Update RELEASES-NOTES.md
 - [ ] Create a New Release in Github Production Repo
