@@ -5,13 +5,13 @@
 - -irEmpAlb
 - -irDupAlb
 - -irOrphan
-- -irAllAss
 - -irAllAlb
+- -irAllAss / -irALL
 
 - -srEmpAlb
 - -srDupAlb
-- -srAllAss
 - -srAllAlb
+- -srAllAss / -srALL
 
 - [ ] Replace -sdea to -srea and -synology-delete-empty-albums to -synology-remove-empty-albums
 - [ ] Replace -sdda to -srda and -synology-delete-duplicates-albums to -synology-remove-duplicates-albums
