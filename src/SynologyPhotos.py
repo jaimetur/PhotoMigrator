@@ -22,10 +22,13 @@ Python module with example functions to interact with Synology Photos, including
 import os, sys
 import requests
 import urllib3
+import json
 import subprocess
 import Utils
 import fnmatch
 from tqdm import tqdm
+from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
+import mimetypes
 
 # -----------------------------------------------------------------------------
 #                          GLOBAL VARIABLES
@@ -656,11 +659,77 @@ def add_assets_to_album(folder_id, album_name):
     return total_added
 
 
-
 # -----------------------------------------------------------------------------
 #                          ASSETS (FOTOS/VIDEOS) FUNCTIONS
 # -----------------------------------------------------------------------------
-def upload_assets(file_path, album_name=None):
+def upload_file_to_synology(file_path, album_name=None):
+    """
+    Uploads a file (photo or video) to a Synology Photos folder.
+
+    Args:
+        file_path (str): Path to the file to upload.
+        album_name (str, optional): Name of the album associated with the upload.
+
+    Returns:
+        int: Status code indicating success or failure.
+    """
+    from LoggerConfig import LOGGER  # Import the logger inside the function
+    stats = os.stat(file_path)
+    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+
+    # Verifica si el archivo existe antes de continuar
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"El archivo '{file_path}' no existe.")
+
+    # Obtiene la información del archivo
+    stats = os.stat(file_path)
+    mime_type = mimetypes.guess_type(file_path)[0] or 'application/octet-stream'
+
+    file = open(file_path, 'rb')
+    file.close()
+    files = {
+        'file': open(file_path, 'rb').close(),
+    }
+
+    api_path = 'SYNO.Foto.Upload.Item'
+    api_version = '1'
+    method = 'upload'
+    filename = os.path.basename(file_path)
+    # url = f'{url}/{api_path}?api={api_path}&version={api_version}&method={method}&_sid={SID}'
+
+
+    # Construcción del payload con el formato correcto
+    payload = {
+        'api': 'SYNO.Foto.Upload.Item',
+        'method': 'upload',
+        'version': '1',
+        'name': os.path.basename(file_path),  # 🔹 Ahora se asegura que `name` esté en los datos
+        'uploadDestination': 'timeline',
+        'duplicate': 'ignore',
+        'mtime': str(int(stats.st_mtime)),
+        'folder': '["PhotoLibrary"]'  # 🔹 Se mantiene en formato JSON-string
+    }
+
+    # Carga el archivo como binario en una tupla (clave, (nombre, contenido, tipo_mime))
+    files = {
+        'file': (os.path.basename(file_path), open(file_path, 'rb'), mime_type)
+    }
+
+    HEADERS = {'Content-Type': 'application/json; charset="UTF-8"'}
+
+    print(json.dumps(HEADERS, indent=4, ensure_ascii=False))
+    print(json.dumps(payload, indent=4, ensure_ascii=False))
+
+    # Envía la solicitud a la API
+    response = SESSION.post(url, headers=HEADERS, data=payload, files=files, verify=False)
+    response.raise_for_status()
+    data = response.json()
+    if not data["success"]:
+        LOGGER.warning(f"WARNING: Cannot upload asset: '{file_path}' due to API call error. Skipped!")
+        return -1
+
+
+def upload_file_to_synology_folder(file_path, album_name=None):
     """
     Uploads a file (photo or video) to a Synology Photos folder.
 
@@ -879,168 +948,6 @@ def wait_for_reindexing_synology_photos():
 ##############################################################################
 #           MAIN FUNCTIONS TO CALL FROM OTHER MODULES                        #
 ##############################################################################
-# Function to delete duplicate albums in Synology Photos
-def synology_delete_duplicates_albums():
-    """
-    Deletes all duplicate albums in Synology Photos.
-
-    Returns:
-        int: The number of duplicate albums deleted.
-    """
-
-    # Import logger and log in to the NAS
-    from LoggerConfig import LOGGER
-    login_synology()
-
-    # List albums and identify duplicates
-    albums_dict = list_albums()
-    albums_deleted = 0
-    albums_data = {}
-    if albums_dict != -1:
-        LOGGER.info("INFO: Looking for duplicate albums in Synology Photos...")
-        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, desc="INFO: Processing Albums", unit=" albums"):
-            item_count = get_album_items_count(album_id=album_id, album_name=album_name)
-            item_size = get_album_items_size(album_id=album_id, album_name=album_name)
-            albums_data.setdefault((item_count, item_size), []).append((album_id, album_name))
-
-        ids_to_delete = {}
-        for (item_count, item_size), duplicates in albums_data.items():
-            if len(duplicates) > 1:
-                min_id = 0
-                min_name = ""
-                for album_id, album_name in duplicates:
-                    if min_id == 0:
-                        min_id = album_id
-                        min_name = album_name
-                    elif int(album_id) < int(min_id):
-                        ids_to_delete.setdefault(min_id, []).append(min_name)
-                        min_id = album_id
-                        min_name = album_name
-                    else:
-                        ids_to_delete.setdefault(album_id, []).append(album_name)
-
-        for album_id, album_name in ids_to_delete.items():
-            LOGGER.info(f"INFO: Deleting duplicate album: '{album_name}' (ID: {album_id})")
-            delete_album(album_id=album_id, album_name=album_name)
-            albums_deleted += 1
-
-    LOGGER.info("INFO: Deleting duplicate albums process finished!")
-    logout_synology()
-    return albums_deleted
-
-
-# Function to delete empty albums in Synology Photos
-def synology_delete_empty_albums():
-    """
-    Deletes all empty albums in Synology Photos.
-
-    Returns:
-        int: The number of empty albums deleted.
-    """
-
-    # Import logger and log in to the NAS
-    from LoggerConfig import LOGGER
-    login_synology()
-
-    # List albums and identify empty ones
-    albums_dict = list_albums()
-    albums_deleted = 0
-    if albums_dict != -1:
-        LOGGER.info("INFO: Looking for empty albums in Synology Photos...")
-        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, desc="INFO: Processing Albums", unit=" albums"):
-            item_count = get_album_items_count(album_id=album_id, album_name=album_name)
-            if item_count == 0:
-                LOGGER.info(f"INFO: Deleting empty album: '{album_name}' (ID: {album_id})")
-                delete_album(album_id=album_id, album_name=album_name)
-                albums_deleted += 1
-
-    LOGGER.info("INFO: Deleting empty albums process finished!")
-    logout_synology()
-    return albums_deleted
-
-
-# Function synology_upload_folder()
-# TODO: synology_upload_folder()
-def synology_upload_no_albums(folder):
-    """
-    Upload folder into Synology Photos.
-
-    Args:
-        folder (str): Base path on the NAS where the album folders are located.
-
-    Returns:
-        tuple: folders_created, folders_skipped, assets_added
-    """
-
-    # Import logger and log in to the NAS
-    from LoggerConfig import LOGGER
-    login_synology()
-
-    LOGGER.warning("WARNING: This mode is not yet supported. Exiting.")
-    sys.exit(-1)
-
-    # # Check if albums_folder is inside SYNOLOGY_ROOT_PHOTOS_PATH
-    # folder = Utils.remove_quotes(folder)
-    # if folder.endswith(os.path.sep):
-    #     folder = folder[:-1]
-    # if not os.path.isdir(folder):
-    #     LOGGER.error(f"ERROR: Cannot find folder '{folder}'. Exiting...")
-    #     sys.exit(-1)
-    # LOGGER.info(f"INFO: Folder Path: '{folder}'")
-    # folder_full_path = os.path.realpath(folder)
-    # ROOT_PHOTOS_PATH_full_path = os.path.realpath(SYNOLOGY_ROOT_PHOTOS_PATH)
-    # ROOT_PHOTOS_PATH_full_path = Utils.remove_server_name(ROOT_PHOTOS_PATH_full_path)
-    # folder_full_path = Utils.remove_server_name(folder_full_path)
-    # if ROOT_PHOTOS_PATH_full_path not in folder_full_path:
-    #     LOGGER.error(f"ERROR: Folder: '{folder_full_path}' should be inside SYNOLOGY_ROOT_PHOTOS_PATH: '{ROOT_PHOTOS_PATH_full_path}'")
-    #     sys.exit(-1)
-    #
-    # LOGGER.info("INFO: Reindexing Synology Photos database before adding content...")
-    # if wait_for_reindexing_synology_photos():
-    #     # Step 1: Get the root folder ID of Synology Photos for the authenticated user
-    #     photos_root_folder_id = get_photos_root_folder_id()
-    #     LOGGER.info(f"INFO: Synology Photos root folder ID: {photos_root_folder_id}")
-    #
-    #     # Step 2: Get the folder ID of the directory containing the albums
-    #     folder_relative_path = os.path.relpath(folder_full_path, ROOT_PHOTOS_PATH_full_path)
-    #     folder_relative_path = "/" + os.path.normpath(folder_relative_path).replace("\\", "/")
-    #     folder_id = get_folder_id(search_in_folder_id=photos_root_folder_id, folder_name=os.path.basename(folder))
-    #     LOGGER.info(f"INFO: Folder ID: {folder_id}")
-    #     if not folder_id:
-    #         LOGGER.error(f"ERROR: Cannot obtain ID for folder '{folder_relative_path}/{folder}'. The folder may not have been indexed yet. Try forcing indexing and retry.")
-    #         sys.exit(-1)
-    #
-    #     # Process folders
-    #     folders_created = 0
-    #     folders_skipped = 0
-    #     assets_added = 0
-    #
-    #     # Filter albums_folder to exclude '@eaDir'
-    #     folder_filtered = os.listdir(folder)
-    #     folder_filtered[:] = [d for d in folder_filtered if d != '@eaDir']
-    #     LOGGER.info(f"INFO: Processing all subfolders in folder '{folder}' and uploading corresponding assets into Synology Photos...")
-    #     for folder in tqdm(folder_filtered, desc="INFO: Uploading Folder", unit=" folders"):
-    #         # Step 3: For each album folder, get the folder ID in the directory containing the albums
-    #         individual_folder_id = get_folder_id(search_in_folder_id=folder_id, folder_name=os.path.basename(folder))
-    #         if not individual_folder_id:
-    #             LOGGER.error(f"ERROR: Cannot obtain ID for folder '{folder_relative_path}/{folder}'. The folder may not have been indexed yet. Skipping this folder creation.")
-    #             folders_skipped += 1
-    #             continue
-    #
-    #         # Step 4: Add all photos or videos in the album folder to the newly created album
-    #         # TODO: ESTA PARTE SOBRA PORQUE NO QUIERO AÑADIR LOS ASSETS A NINGÚN ALBÚM, PERO SI NO HACEMOS ESTO, EN REALIDAD NO ESTAMOS HACIENDO NADA, YA QUE LA CARPETA A AÑADIR YA ESTÁ DENTRO DE SYNOLOGY PHOTOS Y POR TANTO ESTÁ SIENDO INDEXADA
-    #         # TODO: BUSCAR LA FORMA DE AÑADIR UNA CARPETA DESDE EL EXTERIOR DE SYNOOGY FOTOS.
-    #         res = add_assets_to_album(folder_id=individual_folder_id, album_name=folder)
-    #         if res == -1:
-    #             folders_skipped += 1
-    #         else:
-    #             folders_created += 1
-    #             assets_added += res
-    #
-    # LOGGER.info("INFO: Folder Uploaded into Synology Photos!")
-    # logout_synology()
-    # return folders_created, folders_skipped, assets_added
-
 # Function to upload albums to Synology Photos
 def synology_upload_albums(albums_folder):
     """
@@ -1116,6 +1023,123 @@ def synology_upload_albums(albums_folder):
     LOGGER.info("INFO: Album creation in Synology Photos completed!")
     logout_synology()
     return albums_created, albums_skipped, assets_added
+
+# Function synology_upload_folder()
+# TODO: synology_upload_folder()
+def synology_upload_no_albums(folder):
+    """
+    Upload folder into Synology Photos.
+
+    Args:
+        folder (str): Base path on the NAS where the album folders are located.
+
+    Returns:
+        tuple: folders_created, folders_skipped, assets_added
+    """
+
+    # Import logger and log in to the NAS
+    from LoggerConfig import LOGGER
+    login_synology()
+
+    LOGGER.warning("WARNING: This mode is not yet supported. Exiting.")
+    sys.exit(-1)
+
+    # Check if albums_folder is inside SYNOLOGY_ROOT_PHOTOS_PATH
+    folder = Utils.remove_quotes(folder)
+    if folder.endswith(os.path.sep):
+        folder = folder[:-1]
+    if not os.path.isdir(folder):
+        LOGGER.error(f"ERROR: Cannot find folder '{folder}'. Exiting...")
+        sys.exit(-1)
+    LOGGER.info(f"INFO: Folder Path: '{folder}'")
+    folder_full_path = os.path.realpath(folder)
+    ROOT_PHOTOS_PATH_full_path = os.path.realpath(SYNOLOGY_ROOT_PHOTOS_PATH)
+    ROOT_PHOTOS_PATH_full_path = Utils.remove_server_name(ROOT_PHOTOS_PATH_full_path)
+    folder_full_path = Utils.remove_server_name(folder_full_path)
+    if ROOT_PHOTOS_PATH_full_path not in folder_full_path:
+        LOGGER.error(f"ERROR: Folder: '{folder_full_path}' should be inside SYNOLOGY_ROOT_PHOTOS_PATH: '{ROOT_PHOTOS_PATH_full_path}'")
+        sys.exit(-1)
+
+    LOGGER.info("INFO: Reindexing Synology Photos database before adding content...")
+    if wait_for_reindexing_synology_photos():
+        # Step 1: Get the root folder ID of Synology Photos for the authenticated user
+        photos_root_folder_id = get_photos_root_folder_id()
+        LOGGER.info(f"INFO: Synology Photos root folder ID: {photos_root_folder_id}")
+
+        # Step 2: Get the folder ID of the directory containing the albums
+        folder_relative_path = os.path.relpath(folder_full_path, ROOT_PHOTOS_PATH_full_path)
+        folder_relative_path = "/" + os.path.normpath(folder_relative_path).replace("\\", "/")
+        folder_id = get_folder_id(search_in_folder_id=photos_root_folder_id, folder_name=os.path.basename(folder))
+        LOGGER.info(f"INFO: Folder ID: {folder_id}")
+        if not folder_id:
+            LOGGER.error(f"ERROR: Cannot obtain ID for folder '{folder_relative_path}/{folder}'. The folder may not have been indexed yet. Try forcing indexing and retry.")
+            sys.exit(-1)
+
+        # Process folders
+        folders_created = 0
+        folders_skipped = 0
+        assets_added = 0
+
+        # Filter albums_folder to exclude '@eaDir'
+        folder_filtered = os.listdir(folder)
+        folder_filtered[:] = [d for d in folder_filtered if d != '@eaDir']
+        LOGGER.info(f"INFO: Processing all subfolders in folder '{folder}' and uploading corresponding assets into Synology Photos...")
+        for folder in tqdm(folder_filtered, desc="INFO: Uploading Folder", unit=" folders"):
+            # Step 3: For each album folder, get the folder ID in the directory containing the albums
+            individual_folder_id = get_folder_id(search_in_folder_id=folder_id, folder_name=os.path.basename(folder))
+            if not individual_folder_id:
+                LOGGER.error(f"ERROR: Cannot obtain ID for folder '{folder_relative_path}/{folder}'. The folder may not have been indexed yet. Skipping this folder creation.")
+                folders_skipped += 1
+                continue
+
+            # Step 4: Add all photos or videos in the album folder to the newly created album
+            # TODO: ESTA PARTE SOBRA PORQUE NO QUIERO AÑADIR LOS ASSETS A NINGÚN ALBÚM, PERO SI NO HACEMOS ESTO, EN REALIDAD NO ESTAMOS HACIENDO NADA, YA QUE LA CARPETA A AÑADIR YA ESTÁ DENTRO DE SYNOLOGY PHOTOS Y POR TANTO ESTÁ SIENDO INDEXADA
+            # TODO: BUSCAR LA FORMA DE AÑADIR UNA CARPETA DESDE EL EXTERIOR DE SYNOOGY FOTOS.
+            res = add_assets_to_album(folder_id=individual_folder_id, album_name=folder)
+            if res == -1:
+                folders_skipped += 1
+            else:
+                folders_created += 1
+                assets_added += res
+
+    LOGGER.info("INFO: Folder Uploaded into Synology Photos!")
+    logout_synology()
+    return folders_created, folders_skipped, assets_added
+
+
+
+# -----------------------------------------------------------------------------
+#          COMPLETE UPLOAD OF ALL ASSETS (Albums + No-Albums)
+# -----------------------------------------------------------------------------
+def synology_upload_ALL(input_folder, without_albums=False):
+    """
+    (Previously download_all_assets_with_structure)
+    Uploads ALL photos and videos from input_folder into Immich Photos:
+
+    Returns the total number of albums and assets uploaded.
+    """
+    from LoggerConfig import LOGGER  # Import global LOGGER
+    login_synology()
+
+    total_assets_uploaded_within_albums = 0
+    total_albums_uploaded = 0
+    total_albums_skipped = 0
+
+    if without_albums:
+        LOGGER.info("")
+        LOGGER.info(f"INFO: Uploading Assets without Albums creation into Immich Photos from '{input_folder}'...")
+        total_assets_uploaded_without_albums = synology_upload_no_albums(input_folder=input_folder, exclude_albums_folder=False)
+    else:
+        LOGGER.info("")
+        LOGGER.info(f"INFO: Uploading Assets and creating Albums into Immich Photos from '{input_folder}' (excluding 'No-Albums' subfolder)...")
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums = synology_upload_albums(input_folder=input_folder)
+        LOGGER.info("")
+        LOGGER.info(f"INFO: Uploading Assets from 'No-Albums' subfolder without Albums creation into Immich Photos from '{input_folder}' (including only subfolder 'No-Albums')...")
+        total_assets_uploaded_without_albums = synology_upload_no_albums(input_folder=input_folder, only_subfolders='No-Albums')
+
+    total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
+
+    return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums
 
 
 # Function to download albums from Synology Photos
@@ -1252,6 +1276,83 @@ def synology_download_ALL(output_folder="Downloads_Synology"):
     synology_download_albums(albums_name='ALL', output_folder=output_folder)
     synology_download_no_albums(output_folder=output_folder)
 
+# Function to delete empty albums in Synology Photos
+def synology_delete_empty_albums():
+    """
+    Deletes all empty albums in Synology Photos.
+
+    Returns:
+        int: The number of empty albums deleted.
+    """
+
+    # Import logger and log in to the NAS
+    from LoggerConfig import LOGGER
+    login_synology()
+
+    # List albums and identify empty ones
+    albums_dict = list_albums()
+    albums_deleted = 0
+    if albums_dict != -1:
+        LOGGER.info("INFO: Looking for empty albums in Synology Photos...")
+        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, desc="INFO: Processing Albums", unit=" albums"):
+            item_count = get_album_items_count(album_id=album_id, album_name=album_name)
+            if item_count == 0:
+                LOGGER.info(f"INFO: Deleting empty album: '{album_name}' (ID: {album_id})")
+                delete_album(album_id=album_id, album_name=album_name)
+                albums_deleted += 1
+
+    LOGGER.info("INFO: Deleting empty albums process finished!")
+    logout_synology()
+    return albums_deleted
+
+# Function to delete duplicate albums in Synology Photos
+def synology_delete_duplicates_albums():
+    """
+    Deletes all duplicate albums in Synology Photos.
+
+    Returns:
+        int: The number of duplicate albums deleted.
+    """
+
+    # Import logger and log in to the NAS
+    from LoggerConfig import LOGGER
+    login_synology()
+
+    # List albums and identify duplicates
+    albums_dict = list_albums()
+    albums_deleted = 0
+    albums_data = {}
+    if albums_dict != -1:
+        LOGGER.info("INFO: Looking for duplicate albums in Synology Photos...")
+        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, desc="INFO: Processing Albums", unit=" albums"):
+            item_count = get_album_items_count(album_id=album_id, album_name=album_name)
+            item_size = get_album_items_size(album_id=album_id, album_name=album_name)
+            albums_data.setdefault((item_count, item_size), []).append((album_id, album_name))
+
+        ids_to_delete = {}
+        for (item_count, item_size), duplicates in albums_data.items():
+            if len(duplicates) > 1:
+                min_id = 0
+                min_name = ""
+                for album_id, album_name in duplicates:
+                    if min_id == 0:
+                        min_id = album_id
+                        min_name = album_name
+                    elif int(album_id) < int(min_id):
+                        ids_to_delete.setdefault(min_id, []).append(min_name)
+                        min_id = album_id
+                        min_name = album_name
+                    else:
+                        ids_to_delete.setdefault(album_id, []).append(album_name)
+
+        for album_id, album_name in ids_to_delete.items():
+            LOGGER.info(f"INFO: Deleting duplicate album: '{album_name}' (ID: {album_id})")
+            delete_album(album_id=album_id, album_name=album_name)
+            albums_deleted += 1
+
+    LOGGER.info("INFO: Deleting duplicate albums process finished!")
+    logout_synology()
+    return albums_deleted
 ##############################################################################
 #                           END OF MAIN FUNCTIONS                            #
 ##############################################################################
@@ -1278,6 +1379,11 @@ if __name__ == "__main__":
     # duplicates = synology_delete_duplicates_albums()
     # print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
 
+    # TODO: Complete this function
+    print("\n=== EXAMPLE: upload_file_to_synology() ===")
+    file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\2003.07 - Viaje a Almeria (Julio 2003)\En Almeria (Julio 2003)_17.JPG"                # For Windows
+    upload_file_to_synology(file_path)
+
     # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur_share\Photos\Upload_folder\No-Albums'
     # # TODO: Complete this function
     # print("\n=== EXAMPLE: synology_upload_folder() ===")
@@ -1285,12 +1391,12 @@ if __name__ == "__main__":
     # input_others_folder = "/volume1/homes/jaimetur_share/Photos/Upload_folder_for_testing"     # For Linux (NAS)
     # synology_upload_no_albums(input_others_folder)
 
-    # 4) Example: Upload albums from subfolders in 'r:\jaimetur_share\Photos\Upload_folder_for_testing\Albums'
-    # TODO: Permitir subir una carpeta cualquiera sin que tenga que haber una carpeta 'Albums' dentro
-    print("\n=== EXAMPLE: synology_upload_albums() ===")
-    input_albums_folder = "/volume1/homes/jaimetur_share/Photos/Upload_folder_for_testing"     # For Linux (NAS)
-    input_albums_folder = r"r:\jaimetur_share\Photos\Upload_folder_for_testing"                # For Windows
-    synology_upload_albums(input_albums_folder)
+    # # 4) Example: Upload albums from subfolders in 'r:\jaimetur_share\Photos\Upload_folder_for_testing\Albums'
+    # # TODO: Permitir subir una carpeta cualquiera sin que tenga que haber una carpeta 'Albums' dentro
+    # print("\n=== EXAMPLE: synology_upload_albums() ===")
+    # input_albums_folder = "/volume1/homes/jaimetur_share/Photos/Upload_folder_for_testing"     # For Linux (NAS)
+    # input_albums_folder = r"r:\jaimetur_share\Photos\Upload_folder_for_testing"                # For Windows
+    # synology_upload_albums(input_albums_folder)
 
     # # 5) Example: Download all photos from ALL albums
     # # TODO: Completar esta función

@@ -526,6 +526,7 @@ def upload_file_to_immich(file_path):
             'Authorization': f'Bearer {SESSION_TOKEN}'
         }
     url = f"{IMMICH_URL}/api/assets"
+
     files = {
         'assetData': open(file_path, 'rb')
     }
@@ -612,84 +613,6 @@ def download_asset(asset_id, asset_filename, download_folder="Downloaded_Immich"
 ##############################################################################
 #           MAIN FUNCTIONS TO CALL FROM OTHER MODULES                        #
 ##############################################################################
-def immich_upload_no_albums(input_folder, only_subfolders=None, exclude_albums_folder=True):
-    """
-    Recursively traverses 'input_folder' and its only_subfolders to upload all
-    compatible files (photos/videos) to Immich without associating them to any album.
-
-    If 'only_subfolders' is provided (as a string or list of strings), only those
-    direct only_subfolders of 'input_folder' are processed (excluding any in SUBFOLDERS_EXCLUSIONS).
-    Otherwise, all only_subfolders except those listed in SUBFOLDERS_EXCLUSIONS are processed.
-
-    Returns the number of files uploaded.
-    """
-    import os
-    from tqdm import tqdm
-    from LoggerConfig import LOGGER  # Global logger
-
-    # Verify Immich login
-    if not login_immich():
-        return 0
-
-    # Verify that the input folder exists
-    if not os.path.isdir(input_folder):
-        LOGGER.error(f"ERROR: The folder '{input_folder}' does not exist.")
-        return 0
-
-    # Process only_subfolders to obtain a list of only_subfolders names (if provided)
-    if isinstance(only_subfolders, str):
-        only_subfolders = [name.strip() for name in only_subfolders.replace(',', ' ').split() if name.strip()]
-    elif isinstance(only_subfolders, list):
-        only_subfolders = [name.strip() for item in only_subfolders if isinstance(item, str)
-                      for name in item.split(',') if name.strip()]
-    else:
-        only_subfolders = None
-
-    SUBFOLDERS_EXCLUSIONS = ['@eaDir']
-    if exclude_albums_folder:
-        SUBFOLDERS_EXCLUSIONS.append('Albums')
-
-    # Exclude any SUBFOLDERS_EXCLUSIONS that match exclusions
-    if only_subfolders:
-        only_subfolders = [s for s in only_subfolders if s not in SUBFOLDERS_EXCLUSIONS]
-
-    # Collect all file paths based on subfolder criteria
-    def collect_files(input_folder, only_subfolders):
-        files_list = []
-        if only_subfolders:
-            # Process only the specified direct only_subfolders (if they exist)
-            for sub in only_subfolders:
-                sub_path = os.path.join(input_folder, sub)
-                if not os.path.isdir(sub_path):
-                    LOGGER.warning(f"WARNING: Subfolder '{sub}' does not exist in '{input_folder}'. Skipping.")
-                    continue
-                for root, dirs, files in os.walk(sub_path):
-                    # Exclude any directories matching the exclusions
-                    dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]
-                    files_list.extend(os.path.join(root, f) for f in files)
-        else:
-            # Process all only_subfolders except those in SUBFOLDERS_EXCLUSIONS (filtering at all levels)
-            for root, dirs, files in os.walk(input_folder):
-                dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]
-                files_list.extend(os.path.join(root, f) for f in files)
-        return files_list
-
-    # Collect all file paths to be processed
-    file_paths = collect_files(input_folder, only_subfolders)
-    total_files = len(file_paths)
-    total_assets_uploaded = 0
-
-    # Process each file with a progress bar
-    with tqdm(total=total_files, smoothing=0.1, desc="INFO: Uploading Assets", unit=" asset") as pbar:
-        for file_path in file_paths:
-            if upload_file_to_immich(file_path):
-                total_assets_uploaded += 1
-            pbar.update(1)
-
-    LOGGER.info(f"INFO: Uploaded {total_assets_uploaded} files (without album) from '{input_folder}'.")
-    return total_assets_uploaded
-
-
 def immich_upload_albums(input_folder, only_subfolders=None):
     """
     Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on ALLOWED_IMMICH_EXTENSIONS) and associates them with the album.
@@ -777,6 +700,82 @@ def immich_upload_albums(input_folder, only_subfolders=None):
     LOGGER.info(f"INFO: Uploaded {assets_uploaded} asset(s) from '{input_folder}' to Albums.")
     return albums_uploaded, albums_skipped, assets_uploaded
 
+def immich_upload_no_albums(input_folder, only_subfolders=None, exclude_albums_folder=True):
+    """
+    Recursively traverses 'input_folder' and its only_subfolders to upload all
+    compatible files (photos/videos) to Immich without associating them to any album.
+
+    If 'only_subfolders' is provided (as a string or list of strings), only those
+    direct only_subfolders of 'input_folder' are processed (excluding any in SUBFOLDERS_EXCLUSIONS).
+    Otherwise, all only_subfolders except those listed in SUBFOLDERS_EXCLUSIONS are processed.
+
+    Returns the number of files uploaded.
+    """
+    import os
+    from tqdm import tqdm
+    from LoggerConfig import LOGGER  # Global logger
+
+    # Verify Immich login
+    if not login_immich():
+        return 0
+
+    # Verify that the input folder exists
+    if not os.path.isdir(input_folder):
+        LOGGER.error(f"ERROR: The folder '{input_folder}' does not exist.")
+        return 0
+
+    # Process only_subfolders to obtain a list of only_subfolders names (if provided)
+    if isinstance(only_subfolders, str):
+        only_subfolders = [name.strip() for name in only_subfolders.replace(',', ' ').split() if name.strip()]
+    elif isinstance(only_subfolders, list):
+        only_subfolders = [name.strip() for item in only_subfolders if isinstance(item, str)
+                      for name in item.split(',') if name.strip()]
+    else:
+        only_subfolders = None
+
+    SUBFOLDERS_EXCLUSIONS = ['@eaDir']
+    if exclude_albums_folder:
+        SUBFOLDERS_EXCLUSIONS.append('Albums')
+
+    # Exclude any SUBFOLDERS_EXCLUSIONS that match exclusions
+    if only_subfolders:
+        only_subfolders = [s for s in only_subfolders if s not in SUBFOLDERS_EXCLUSIONS]
+
+    # Collect all file paths based on subfolder criteria
+    def collect_files(input_folder, only_subfolders):
+        files_list = []
+        if only_subfolders:
+            # Process only the specified direct only_subfolders (if they exist)
+            for sub in only_subfolders:
+                sub_path = os.path.join(input_folder, sub)
+                if not os.path.isdir(sub_path):
+                    LOGGER.warning(f"WARNING: Subfolder '{sub}' does not exist in '{input_folder}'. Skipping.")
+                    continue
+                for root, dirs, files in os.walk(sub_path):
+                    # Exclude any directories matching the exclusions
+                    dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]
+                    files_list.extend(os.path.join(root, f) for f in files)
+        else:
+            # Process all only_subfolders except those in SUBFOLDERS_EXCLUSIONS (filtering at all levels)
+            for root, dirs, files in os.walk(input_folder):
+                dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]
+                files_list.extend(os.path.join(root, f) for f in files)
+        return files_list
+
+    # Collect all file paths to be processed
+    file_paths = collect_files(input_folder, only_subfolders)
+    total_files = len(file_paths)
+    total_assets_uploaded = 0
+
+    # Process each file with a progress bar
+    with tqdm(total=total_files, smoothing=0.1, desc="INFO: Uploading Assets", unit=" asset") as pbar:
+        for file_path in file_paths:
+            if upload_file_to_immich(file_path):
+                total_assets_uploaded += 1
+            pbar.update(1)
+
+    LOGGER.info(f"INFO: Uploaded {total_assets_uploaded} files (without album) from '{input_folder}'.")
+    return total_assets_uploaded
 
 # -----------------------------------------------------------------------------
 #          COMPLETE UPLOAD OF ALL ASSETS (Albums + No-Albums)
