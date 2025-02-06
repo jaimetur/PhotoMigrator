@@ -28,7 +28,7 @@
 - [ ] Check if makes sense to keep current -suFld / iuFld, renaming them to -sunoAlb / -iunoAlb or is enough with the options -suAll / -iuAll adding a flag -woAlb, --without-albums to avoid create Albums
 
 - [ ] Allow users to choose the folder where dowonload the assets for option -sdAlb and -sdAll 
-  - current implementation of -sdAlb / -sdAlb does not allow this ==> Investigate other implementation
+  - Current implementation of -sdAlb / -sdAll does not allow this ==> Investigate other implementation
 - [ ] Complete function -suFld / -suAlb / -suAll to upload external folders to Synology photos. Make sure than ignore @eaDir folders
   - Try to upload folders outside Synology Photos ROOT folder
 
