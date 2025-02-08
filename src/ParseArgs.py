@@ -1,4 +1,5 @@
-import Globals
+from Globals import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
+
 from CustomHelpFormatter import CustomHelpFormatter, PagedArgumentParser
 import argparse
 import os
@@ -10,13 +11,7 @@ choices_for_AUTOMATED_MIGRATION_TGT = ['synology-photos', 'immich-photos']
 
 PARSER = None
 
-def getParser():
-    global PARSER
-    return PARSER
-
 def parse_arguments():
-    from Globals import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
-    global PARSER
     # # Regular Parser without Pagination
     # PARSER = argparse.ArgumentParser(
     #         description=SCRIPT_DESCRIPTION,
@@ -38,8 +33,9 @@ def parse_arguments():
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
     PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
     PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
+    PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="+", help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
     PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False, help="If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums', it will also delete the assets (photos/videos) inside each album.")
-    PARSER.add_argument("-woAlb", "--without-albums", action="store_true", default=False, help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will avoid create an Album per each subfolder found in <INPUT_FOLDER>.")
+    # PARSER.add_argument("-woAlb", "--without-albums", action="store_true", default=False, help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will avoid create an Album per each subfolder found in <INPUT_FOLDER>.")
     PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
 
     PARSER.add_argument("-AUTO", "--AUTOMATED-MIGRATION", metavar=("<SOURCE>", "<TARGET>"), nargs=2, default="",
@@ -92,6 +88,8 @@ def parse_arguments():
                         )
     PARSER.add_argument("-srEmpAlb", "--synology-remove-empty-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.")
     PARSER.add_argument("-srDupAlb", "--synology-remove-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.")
+    PARSER.add_argument("-srALL", "--synology-remove-all-assets", action="store_true", default="", help="CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Synology database.")
+
 
     # EXTRA MODES FOR IMMINCH PHOTOS:
     # -------------------------------
@@ -186,6 +184,9 @@ def checkArgs(ARGS):
             print(f"❌ ERROR: Target value '{target}' is not valid. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT}")
             exit(1)
 
+    # Parse albums-folders Arguments to convert to a List if more than one Album folder is providen
+    ARGS['albums-folders'] = parse_folders(ARGS['albums-folders'])
+
     # Parse duplicates-folders Arguments
     ARGS['duplicates-folders'] = []
     ARGS['duplicates-action'] = ""
@@ -218,7 +219,7 @@ def parse_folders(folders):
             if isinstance(item, list):
                 flattened.extend(item)
             else:
-                flattened.append(item)
+                flattened.append(item.rstrip(','))
         return flattened
 
     # Si no es ni lista ni string, devolver lista vacía
@@ -233,3 +234,6 @@ def create_global_variable_from_args(args):
     """
     ARGS = {arg_name.replace("_", "-"): arg_value for arg_name, arg_value in vars(args).items()}
     return ARGS
+
+def getParser():
+    return PARSER

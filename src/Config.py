@@ -7,7 +7,7 @@ def load_config(config_file='CONFIG.ini'):
     #
     # Load and Set Global CONFIG variable
     #
-    from LoggerConfig import LOGGER  # Import global LOGGER
+    from Globals import LOGGER  # Import global LOGGER
     global CONFIG
 
     if CONFIG:

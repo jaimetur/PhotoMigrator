@@ -1,3 +1,5 @@
+from Globals import SCRIPT_NAME_VERSION
+
 import textwrap
 import argparse
 import re
@@ -291,7 +293,6 @@ class PagedArgumentParser(argparse.ArgumentParser):
         Paginador con curses que adapta dinámicamente el texto al tamaño de la terminal.
         """
 
-        from Globals import SCRIPT_NAME_VERSION
         # Expresión regular para detectar códigos ANSI
         ANSI_ESCAPE = re.compile(r'\x1b\[[0-9;]*m')
 

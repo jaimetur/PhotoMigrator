@@ -75,6 +75,10 @@ def set_help_texts():
         """)
 
 
+    HELP_TEXTS["synology-remove-all-assets"]  = textwrap.dedent(f"""
+        CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Synology database.         
+        """)
+
     ##############################
     # EXTRA MODES: IMMICH PHOTOS #
     ##############################

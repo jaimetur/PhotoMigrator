@@ -1,8 +1,7 @@
-import os,sys
 from Globals import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME
+import os,sys
 from Utils import check_OS_and_Terminal
 from ExecutionModes import detect_and_run_execution_mode
-
 
 # -------------------------------------------------------------
 # MAIN FUNCTION
@@ -21,7 +20,7 @@ def main():
     # Check OS and Terminal
     check_OS_and_Terminal()
     if not ARGS['no-log-file']:
-        LOGGER.info(f"INFO: Log File: '{LOG_FOLDER_FILENAME+'.log'}'")
+        LOGGER.info(f"INFO: Log File Location: '{LOG_FOLDER_FILENAME+'.log'}'")
         LOGGER.info("")
 
     # Get the execution mode and run it.
@@ -34,4 +33,6 @@ if __name__ == "__main__":
     #     sys.argv.append("-z")
     #     sys.argv.append("Zip_folder")
     #     print(f"INFO: No argument detected. Using default value '{sys.argv[2]}' for <ZIP_FOLDER>'.")
+    current_directory = os.getcwd()
+    print(current_directory)
     main()

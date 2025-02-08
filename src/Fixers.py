@@ -4,14 +4,14 @@ import subprocess
 
 def resource_path(relative_path):
     """Obtener la ruta absoluta al recurso, manejando el entorno de PyInstaller."""
-    from LoggerConfig import LOGGER
+    from Globals import LOGGER 
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.join(os.path.abspath("."), relative_path)
 
 def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, symbolic_albums=False, move_takeout_folder=False, ignore_takeout_structure=False):
     """Runs the GPTH Tool command to process photos."""
-    from LoggerConfig import LOGGER
+    from Globals import LOGGER 
     LOGGER.info(f"INFO: Running GPTH Tool from '{input_folder}' to '{output_folder}'...")
     # Detect the operating system
     current_os = platform.system()
@@ -72,7 +72,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, 
 
 def fix_metadata_with_exif_tool(output_folder):
     """Runs the EXIF Tool command to fix photo metadata."""
-    from LoggerConfig import LOGGER
+    from Globals import LOGGER 
     LOGGER.info(f"INFO: Fixing EXIF metadata in '{output_folder}'...")
     # Detect the operating system
     current_os = platform.system()

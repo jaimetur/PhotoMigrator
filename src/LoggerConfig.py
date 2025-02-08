@@ -1,17 +1,22 @@
 # LoggerConfig.py
-import os
+import os,sys
 import logging
 
-LOGGER = None  # Variable interna para el Singleton
-
-def log_setup(log_folder="Logs", log_filename="execution_log", skip_logfile=False, skip_console=False, detail_log=True, plain_log=False):
+def log_setup(log_folder="Logs", log_filename=None, timestamp=None, skip_logfile=False, skip_console=False, detail_log=True, plain_log=False):
     """
     Configures logger to a log file and console simultaneously.
     The console messages do not include timestamps.
     """
-    global LOGGER
+    if not log_filename:
+        script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+        if timestamp:
+            log_filename=f"{script_name}_{timestamp}"
+        else:
+            log_filename=script_name
 
     # Crear la carpeta de logs si no existe
+    current_directory = os.getcwd()
+    log_folder = os.path.join(current_directory, log_folder)
     os.makedirs(log_folder, exist_ok=True)
     log_level = logging.INFO
 
