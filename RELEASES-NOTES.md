@@ -78,7 +78,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
     - To download ALL Albums use 'ALL' as <ALBUMS_NAME>. 
   - **-suAll,  --synology-upload-all <INPUT_FOLDER>**  
     - The script will look for all Assets within <INPUT_FOLDER> and will upload them into Synology Photos.  
-    - If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of 'Albums' willl be associated to a new Album in Synology Photos with the same name as the subfolder
+    - If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of 'Albums' will be associated to a new Album in Synology Photos with the same name as the subfolder
   - **-sdAll,  --synology-download-all <OUTPUT_FOLDER>**  
     - The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
     - Albums will be downloaded within a subfolder '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
@@ -102,11 +102,11 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
     - To download ALL Albums use "ALL" as <ALBUMS_NAME>.   
   - **-iuAll,  --immich-upload-all <INPUT_FOLDER>**
     - The script will look for all Assets within <INPUT_FOLDER> and will upload them into Immich Photos.  
-    - If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of 'Albums' willl be associated to a new Album in Immich Photos with the same name as the subfolder
+    - If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of 'Albums' will be associated to a new Album in Immich Photos with the same name as the subfolder
   - **-idAll,  --immich-download-all <OUTPUT_FOLDER>>**  
     - The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
     - Albums will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
-    - Assets with no Albums associated will be downloaded withn a subfolder called '<OUTPUT_FOLDER>/No-Albums/' and will have a year/month structure inside.
+    - Assets with no Albums associated will be downloaded within a subfolder called '<OUTPUT_FOLDER>/No-Albums/' and will have a year/month structure inside.
   - **-irEmpAlb,   --immich-remove-empty-albums**  
     - The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.  
   - **-irDupAlb,   --immich-remove-duplicates-albums**  
@@ -194,7 +194,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 - Added Synology Photos Management options with three new Extra Modes:
   -- New flag -ca,  --create-albums-synology-photos <ALBUMS_FOLDER> to force Mode: 'Create Albums in Synology Photos'. The script will look for all Albums within ALBUM_FOLDER and will create one Album per folder into Synology Photos.
   -- New flag -de,  --delete-empty-albums-synology-photos tofForce Mode: 'Delete Empty Albums in Synology Photos'. The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database. 
-  -- New flag -dd,  --delete-duplicates-albums-synology-photos tofForce Mode: 'Delete Diplicates Albums in Synology Photos'. The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database. 
+  -- New flag -dd,  --delete-duplicates-albums-synology-photos tofForce Mode: 'Delete Duplicates Albums in Synology Photos'. The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database. 
 - New Flag: -ra, --rename-albums <ALBUMS_FOLDER> to rename all Albums subfolders and homogenize all your Albums names with this format: 'yyyy - Album Name' or 'yyyy-yyyy - Album Name', where yyyy is the year of the files contained in each Album folder (if more than one year is found, then yyyy-yyyy will indicate the range of years for the files contained in the Album folder.)  
 - Support to run on Synology NAS running DSM 7.0 or higher
 - Code refactored
@@ -207,9 +207,9 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 
 - Included new flag '-pd, --process-duplicates-revised' to process the Duplicates.csv output file after execute the 'Find Duplicates Mode' with 'duplicates-action=move'. In that case, the script will move all duplicates found to Duplicates folder and will generate a CSV file that can be revised and change the Action column values.
 Possible Actions in revised CSV file are:
-    - remove_duplicate  : Duplicated file moved to Duplicates folder will be permanentely removed
+    - remove_duplicate  : Duplicated file moved to Duplicates folder will be permanently removed
     - restore_duplicate : Duplicated file moved to Duplicates folder will be restored to its original location
-    - replace_duplicate : Use this action to replace the principal file chosen for each duplicates and select manually the principal file
+    - replace_duplicate : Use this action to replace the principal file chosen for each duplicate and select manually the principal file
         - Duplicated file moved to Duplicates folder will be restored to its original location as principal file
         - and Original Principal file detected by the Script will be removed permanently
 - Fixed some minor bugs.
@@ -219,7 +219,7 @@ Possible Actions in revised CSV file are:
 **Release**: 1.5.1  
 **Date**: 2024-12-17
 
-- Fixed logic of Find_Duplicates algorithm and include a new field in the Duplicates.csv output file to provide the reasson to decide principal file of a duplicates set.
+- Fixed logic of Find_Duplicates algorithm and include a new field in the Duplicates.csv output file to provide the reason to decide principal file of a duplicates set.
 - Improved performance in Find_Duplicates function..
 - Included progress bar in most of all the steps that consume more time during script execution.
 - Fixed some minor bugs.
@@ -243,9 +243,9 @@ Possible Actions in revised CSV file are:
 **Release**: 1.4.1  
 **Date**: 2024-12-10
 
-- Modified Duplicates.txt output file. Now is a CSV file and it has a new format with only one duplicate per row and one column to display the number of duplicates per each principal file and other column with the action taken with the duplicates. 
+- Modified Duplicates.txt output file. Now is a CSV file, and it has a new format with only one duplicate per row and one column to display the number of duplicates per each principal file and other column with the action taken with the duplicates. 
 - Modified default value for No-Albums-Structure, before this folder had a 'flatten' structure, now by default the structure is 'year/month' but you can change it with the flag '-ns, --no-albums-structure'.
-- Albums-Structure continues with 'flatten' value by default but you can change it with the flag '-as, --albums-structure'.
+- Albums-Structure continues with 'flatten' value by default, but you can change it with the flag '-as, --albums-structure'.
 - Change help to include the new changes.
 - Fixed some minor bugs.
 
