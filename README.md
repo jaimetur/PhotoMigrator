@@ -292,39 +292,13 @@ If more than one Extra Mode is detected, only the first one will be executed.
       
 ---------------------------------------------------------------------------------------------------------
 ```
-**Examples of use:**
-
-- **Example 1**:
-```
-./CloudPhotoMigrator.run --google-input-takeout-folder ./MyTakeout --google-remove-duplicates-files
-```
- 
-In this example, the script will Process you Takeout Files found in folder './MyTakeout' (Unzipping them if needed) and fix
-all files found to set the correct date and time, and identifying which assets belongs to each Album created on Google Photos. 
-  - After that, the script will create a folder structure based on year/month for the folder '<OUTPUT_TAKEOUT_FOLDER>/No-Albums' (by default).  
-  - Also, the script will create a flatten folder structure for each Album subfolder found in '<OUTPUT_TAKEOUT_FOLDER>/Albums.'  
-  - Finally, the output files will be placed into './MyTakeout_fixed_timestamp' folder where timestamp is the timestamp of the execution.
-
-
-- **Example 2**:
-```
-./CloudPhotoMigrator.run --rename-folders-content-based ./MyTakeout
-```
-
-In this example, the script will Process your Takeout or Library of photos in folder './MyTakeout' (need to be unzipped) and will rename
-all the subfolders found on to homogenize all the folder's name with the following template:
-  - '**yyyy - Cleaned Subfolder Name**' or '**yyyy-yyyy - Cleaned Subfolder Name**'
-  - where yyyy is the year of the assets found in that folder or yyyy-yyyy is the range of years for the assets found (if more than one year is found)
-  - and Cleaned Subfolder Name just make the folder name cleaner.  
-
-This step is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.
 
 
 > [!NOTE]  
 >## <span style="color:green">Automated Migration Feature</span>
->From version 3.0.0 onwards, the script supports a new Extra Mode called -AUTO, --AUTOMATED-MIGRATION Mode. 
+>From version 3.0.0 onwards, the script supports a new Extra Mode called '**AUTOMATED-MIGRATION**' Mode. 
 >
->If you configure properly the file 'CONFIG.ini' and execute this Extra Mode, the script will automatically do the whole migration jon from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.
+>If you configure properly the file 'CONFIG.ini' (included with the tool), and execute this Extra Mode, the script will automatically do the whole migration job from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.
 >The script will do a FULLY-AUTOMATED job which has two steps:  
 >  - First, the script will Download all your assets from \<SOURCE> Cloud Service (if you have configured properly the CONFIG.ini file), or process the \<SOURCE> folder in case that you specify a path.
 >    - In this step, the output will be a \<OUTPUT_FOLDER> containing two subfolders:
@@ -345,8 +319,10 @@ To execute this Extra Mode, you can use the new Flag: '-AUTO, --AUTOMATED-MIGRAT
 ```
 
 In this example, the script will do a FULLY-AUTOMATED job which has two steps:  
+
     - First, the script will process the folder './MyTakeout' (Unzipping them if needed), fixing all files found on it, to set the
-      correct date and time, and identifying which assets belongs to each Album created on Google Photos. 
+      correct date and time, and identifying which assets belongs to each Album created on Google Photos.  
+
     - Second, the script will connect to your Synology Photos account (if you have configured properly the CONFIG.ini file) and will 
       upload all the assets processed in previous step, creating a new Album per each Album found in your Takeout files and associating
       all the assets included in each Album in the same way that you had on your Google Photos account.
@@ -358,9 +334,11 @@ In this example, the script will do a FULLY-AUTOMATED job which has two steps:
 ./CloudPhotoMigrator.run --AUTOMATED-MIGRATION synology-photos immich-photos
 ```
 
-Withh this example, the script will do a FULLY-AUTOMATED job which has two 
+Withh this example, the script will do a FULLY-AUTOMATED job which has two steps:  
+
     - First, the script will process connect to your Synology Photos account (if you have configured properly the CONFIG.ini file) and 
-      download all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).
+      download all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
+
     - Second, the script will connect to your Immich Photos account (if you have configured properly the CONFIG.ini file) and 
       upload all the assets processed in previous step, creating a new Album per each Album found in your Synology Photos and associating
       all the assets included in each Album in the same way that you had on your Synology Photos account.
@@ -420,6 +398,21 @@ The whole process took around **~8.5 hours** (or **~3 hours without last two opt
 8. <span style="color:grey">(Optional) Remove Duplicates after fixing --> 3h</span>
    
 NOTE: Step 8 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
+
+
+**Examples of use:**
+
+- **Example:**
+```
+./CloudPhotoMigrator.run --google-input-takeout-folder ./MyTakeout --google-remove-duplicates-files
+```
+ 
+In this example, the script will Process you Takeout Files found in folder './MyTakeout' (Unzipping them if needed) and fix
+all files found to set the correct date and time, and identifying which assets belongs to each Album created on Google Photos. 
+  - After that, the script will create a folder structure based on year/month for the folder '<OUTPUT_TAKEOUT_FOLDER>/No-Albums' (by default).  
+  - Also, the script will create a flatten folder structure for each Album subfolder found in '<OUTPUT_TAKEOUT_FOLDER>/Albums.'  
+  - Finally, the output files will be placed into './MyTakeout_fixed_timestamp' folder where timestamp is the timestamp of the execution.
+
 
 >[!NOTE]
 >## <span style="color:green">Synology Photos Support</span>
@@ -755,9 +748,16 @@ Recommendation: Use this Extra Mode before to create Synology Photos Albums in o
 
 Example of use:
 ```
-./CloudPhotoMigrator.run ---rename-folders-content-based ./My_Albums_Folder
+./CloudPhotoMigrator.run ---rename-folders-content-based ./MyTakeout
 ```
-With this example, the script will rename all subfolders within ./My_Albums_Folder (only first subfolder level) according to the format described above. If the subfolder does not contain any file, the folder will not be renamed.
+In this example, the script will Process your Takeout or Library of photos in folder './MyTakeout' (need to be unzipped), 
+and will rename all the subfolders found on to homogenize all the folder's name with the following template:
+  - '**yyyy - Cleaned Subfolder Name**' or '**yyyy-yyyy - Cleaned Subfolder Name**'
+  - where yyyy is the year of the assets found in that folder or yyyy-yyyy is the range of years for the assets found (if more than one year is found)
+  - and Cleaned Subfolder Name just make the folder name cleaner.  
+
+This step is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.  
+
 
 
 > [!TIP]

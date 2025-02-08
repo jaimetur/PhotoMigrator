@@ -33,30 +33,30 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
                  <TARGET> : ['synology-photos', 'immich-photos']
       
 
-- [x] Added **_Immich Photos Support_**
-- [x] Wildcards support on <ALBUMS_NAME> argument on --synology-download-albums and --immich-download-albums
+- [x] Added **_Immich Photos Support_**.
+- [x] Wildcards support on <ALBUMS_NAME> argument on --synology-download-albums and --immich-download-albums options.
 - [x] Replaced 'ALL_PHOTOS' by 'No-Albums' as output subfolder for assets without any album associated (be careful if you already run the script with previous version because before, the folder for assets without albums was named 'ALL_PHOTOS')
 - [x] Added colors to --help text for a better visualization.
-- [x] Ignored @eaDir folders when upload assets to Synology/Immich Photos
-- [x] Refactor and group All Google Takeout arguments in one block for 'Google Photos Takeout' Support
-- [X] Refactor normal_mode to google_takeout_mode
+- [x] Ignored @eaDir folders when upload assets to Synology/Immich Photos.
+- [x] Refactor and group All Google Takeout arguments in one block for 'Google Photos Takeout' Support.
+- [X] Refactor normal_mode to google_takeout_mode.
 - [x] Changed the logic to detect google_takeout_mode (former normal_mode)
-- [x] Merged -z and -t options in just one option ('-gitf, -google-input-takeout-folder') and detect if contains Takeout Zip files, in that case Zip files will be Unzipped to <TAKEOUT_FOLDER>_TIMESTAMP folder
-- [x] Added Help texts for Google Photos Mode
-- [x] Unificate a single CONFIG.ini file and included tags for the different configuration sections
+- [x] Merged -z and -t options in just one option ('-gitf, -google-input-takeout-folder') and detect if contains Takeout Zip files, in that case Zip files will be Unzipped to <TAKEOUT_FOLDER>_TIMESTAMP folder.
+- [x] Added Help texts for Google Photos Mode.
+- [x] Unificate a single CONFIG.ini file and included tags for the different configuration sections.
 - [x] Included _RELEASES-NOTES.md_ and _ROADMAP.md_ files to the distribution package.
-- [x] Moved at the end of the help the standard option (those that are not related to any Support mode)
+- [x] Moved at the end of the help the standard option (those that are not related to any Support mode).
 - [x] Updated -h, --help to reflect the new changes.
 - [x] Code refactored.
 - [x] Minor Bug Fixing.
 
 
 - [x] Renamed options:
-  - -sca, --synology-create-albums is now **suAlb,  --synology-upload-albums <ALBUMS_FOLDER>**
-  - -sea, --synology-extract-albums is now **-sdAlb,  --synology-download-albums <ALBUMS_NAME>**
-  - -fsym, --fix-symlinks-broken <FOLDER_TO_FIX> is now **-fixSym --fix-symlinks-broken <FOLDER_TO_FIX>**
-  - -fdup, --find-duplicates <ACTION> <DUPLICATES_FOLDER> is now **-findDup --find-duplicates <ACTION> <DUPLICATES_FOLDER>**
-  - -pdup, --process-duplicates <DUPLICATES_REVISED> is now **-procdDup --process-duplicates <DUPLICATES_REVISED>**
+  - -sca,  --synology-create-albums is now **suAlb,  --synology-upload-albums <ALBUMS_FOLDER>**.
+  - -sea,  --synology-extract-albums is now **-sdAlb,  --synology-download-albums <ALBUMS_NAME>**.
+  - -fsym, --fix-symlinks-broken <FOLDER_TO_FIX> is now **-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>**.
+  - -fdup, --find-duplicates <ACTION> <DUPLICATES_FOLDER> is now **-findDup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>**.
+  - -pdup, --process-duplicates <DUPLICATES_REVISED> is now **-procdDup, --process-duplicates <DUPLICATES_REVISED>**.
 
 
 - [x] New Arguments Added: 
@@ -71,61 +71,61 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 
 
 - [x] Added new options to Synology Photos Support:
-  - **-suFld,    --synology-upload-folder <INPUT_FOLDER>**  
-  - **-sdAll,    --synology-download-all <OUTPUT_FOLDER>**
-  - **-srAll,    --synology-remove-all-assets** to remove All assets in Synology Photos
-  - **-srAllAlb, --synology-remove-all-albums** to remove Albums in Synology Photos (optionally all associated assets can be also deleted)
+  - **-suFld,    --synology-upload-folder <INPUT_FOLDER>**.  
+  - **-sdAll,    --synology-download-all <OUTPUT_FOLDER>**.
+  - **-srAll,    --synology-remove-all-assets** to remove All assets in Synology Photos.  
+  - **-srAllAlb, --synology-remove-all-albums** to remove Albums in Synology Photos (optionally all associated assets can be also deleted).  
 
 
 - [x] With those changes the **_Synology Photos Support_** has the following options:
-  - **-suFld,  --synology-upload-folder <INPUT_FOLDER>**  
+  - **-suFld,    --synology-upload-folder <INPUT_FOLDER>**  
     - The script will look for all Photos/Videos within <INPUT_FOLDER> and will upload them into Synology Photos.
-  - **-suAlb,  --synology-upload-albums <ALBUMS_FOLDER>**  
+  - **-suAlb,    --synology-upload-albums <ALBUMS_FOLDER>**  
     - The script will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Synology Photos.
-  - **-sdAlb,  --synology-download-albums <ALBUMS_NAME>**
+  - **-sdAlb,    --synology-download-albums <ALBUMS_NAME>**
     - The Script will connect to Synology Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Download_Synology' within the Synology Photos root folder.
     - To extract all albums mathing any pattern you can use patterns in <ALBUMS_NAME>, i.e: --synology-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words.
     - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums 'album1', 'album2', 'album3'.
     - To download ALL Albums use 'ALL' as <ALBUMS_NAME>. 
-  - **-suAll,  --synology-upload-all <INPUT_FOLDER>**  
+  - **-suAll,    --synology-upload-all <INPUT_FOLDER>**  
     - The script will look for all Assets within <INPUT_FOLDER> and will upload them into Synology Photos.  
     - If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of 'Albums' will be associated to a new Album in Synology Photos with the same name as the subfolder
-  - **-sdAll,  --synology-download-all <OUTPUT_FOLDER>**  
+  - **-sdAll,    --synology-download-all <OUTPUT_FOLDER>**  
     - The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
     - Albums will be downloaded within a subfolder '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
     - Assets with no Albums associated will be downloaded within a subfolder 'OUTPUT_FOLDER/No-Albums/' and will have a year/month structure inside.
-  - **-srEmpAlb,   --synology-remove-empty-albums**  
+  - **-srEmpAlb  --synology-remove-empty-albums**  
     - The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.  
-  - **-srDupAlb,   --synology-remove-duplicates-albums**  
+  - **-srDupAlb, --synology-remove-duplicates-albums**  
     - The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
   - **-srALL,    --synology-remove-all-assets** to delete ALL assets in Synology Photos
   - **-srAllAlb, --synology-remove-all-albums** to delete ALL Albums in Synology Photos (optionally all associated assets can be also deleted)
 
 
 - [x] Added **_Immich Photos Support_** with the Following options to manage Immich API:
-  - **-iuFld,  --immich-upload-folder <INPUT_FOLDER>**    
+  - **-iuFld,    --immich-upload-folder <INPUT_FOLDER>**    
     - The script will look for all Photos/Videos within <FOLDER> and will upload them into Immich Photos.  
-  - **-iuAlb,  --immich-upload-albums <ALBUMS_FOLDER>**  
+  - **-iuAlb,    --immich-upload-albums <ALBUMS_FOLDER>**  
     - The script will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Immich Photos.  
-  - **-idAlb,  --immich-download-albums <ALBUMS_NAME>**  
+  - **-idAlb,    --immich-download-albums <ALBUMS_NAME>**  
     - The Script will connect to Immich Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Immich_Photos_Albums' within the Immich Photos root folder.  
     - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums" "album1", "album2", "album3".  
     - To download ALL Albums use "ALL" as <ALBUMS_NAME>.   
-  - **-iuAll,  --immich-upload-all <INPUT_FOLDER>**
+  - **-iuAll,    --immich-upload-all <INPUT_FOLDER>**
     - The script will look for all Assets within <INPUT_FOLDER> and will upload them into Immich Photos.  
     - If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of 'Albums' will be associated to a new Album in Immich Photos with the same name as the subfolder
-  - **-idAll,  --immich-download-all <OUTPUT_FOLDER>>**  
+  - **-idAll,    --immich-download-all <OUTPUT_FOLDER>>**  
     - The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
     - Albums will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
     - Assets with no Albums associated will be downloaded within a subfolder called '<OUTPUT_FOLDER>/No-Albums/' and will have a year/month structure inside.
-  - **-irEmpAlb,   --immich-remove-empty-albums**  
+  - **-irEmpAlb, --immich-remove-empty-albums**  
     - The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.  
-  - **-irDupAlb,   --immich-remove-duplicates-albums**  
+  - **-irDupAlb  --immich-remove-duplicates-albums**  
     - The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.  
-  - **-irOrphan,   --immich-remove-orphan-assets**  
+  - **-irOrphan, --immich-remove-orphan-assets**  
     - The script will look for all Orphan Assets in Immich Database and will delete them.  
     - **IMPORTANT!**: This feature requires a valid ADMIN_API_KEY configured in CONFIG.ini.  
-  - **-irALL, --immich-remove-all-assets** to delete ALL assets in Immich Photos
+  - **-irALL,    --immich-remove-all-assets** to delete ALL assets in Immich Photos
   - **-irAllAlb, --immich-remove-all-albums** to delete ALL Albums in Immich Photos (optionally all associated assets can be also deleted)
 
 
