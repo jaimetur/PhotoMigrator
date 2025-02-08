@@ -13,4 +13,3 @@ zipp
 pathvalidate
 halo
 tabulate
-windows-curses
