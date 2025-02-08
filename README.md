@@ -322,9 +322,9 @@ This step is useful if you want to Upload all your Albums to a new Cloud Service
 
 > [!NOTE]  
 >## <span style="color:green">Automated Migration Feature</span>
->From version 3.0.0 onwards, the script supports a new Extra Mode called -AUTO, --AUTOMATED-MIGRATION Mode. 
+>From version 3.0.0 onwards, the script supports a new Extra Mode called '**AUTOMATED-MIGRATION**' Mode. 
 >
->If you configure properly the file 'CONFIG.ini' and execute this Extra Mode, the script will automatically do the whole migration jon from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.
+>If you configure properly the file 'CONFIG.ini' (included with the tool), and execute this Extra Mode, the script will automatically do the whole migration job from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.
 >The script will do a FULLY-AUTOMATED job which has two steps:  
 >  - First, the script will Download all your assets from \<SOURCE> Cloud Service (if you have configured properly the CONFIG.ini file), or process the \<SOURCE> folder in case that you specify a path.
 >    - In this step, the output will be a \<OUTPUT_FOLDER> containing two subfolders:
@@ -346,7 +346,7 @@ To execute this Extra Mode, you can use the new Flag: '-AUTO, --AUTOMATED-MIGRAT
 
 In this example, the script will do a FULLY-AUTOMATED job which has two steps:  
     - First, the script will process the folder './MyTakeout' (Unzipping them if needed), fixing all files found on it, to set the
-      correct date and time, and identifying which assets belongs to each Album created on Google Photos. 
+      correct date and time, and identifying which assets belongs to each Album created on Google Photos.  
     - Second, the script will connect to your Synology Photos account (if you have configured properly the CONFIG.ini file) and will 
       upload all the assets processed in previous step, creating a new Album per each Album found in your Takeout files and associating
       all the assets included in each Album in the same way that you had on your Google Photos account.
@@ -360,7 +360,7 @@ In this example, the script will do a FULLY-AUTOMATED job which has two steps:
 
 Withh this example, the script will do a FULLY-AUTOMATED job which has two 
     - First, the script will process connect to your Synology Photos account (if you have configured properly the CONFIG.ini file) and 
-      download all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).
+      download all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
     - Second, the script will connect to your Immich Photos account (if you have configured properly the CONFIG.ini file) and 
       upload all the assets processed in previous step, creating a new Album per each Album found in your Synology Photos and associating
       all the assets included in each Album in the same way that you had on your Synology Photos account.
