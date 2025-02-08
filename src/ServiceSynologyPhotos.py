@@ -1038,12 +1038,12 @@ def download_assets(folder_id, folder_name, photos_list):
 #           MAIN FUNCTIONS TO CALL FROM OTHER MODULES                        #
 ##############################################################################
 # Function to upload albums to Synology Photos
-def synology_upload_albums(albums_folder):
+def synology_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None):
     """
     Upload albums into Synology Photos based on folders in the NAS.
 
     Args:
-        albums_folder (str): Base path on the NAS where the album folders are located.
+        input_folder (str): Base path on the NAS where the album folders are located.
 
     Returns:
         tuple: albums_created, albums_skipped, assets_added
@@ -1054,14 +1054,14 @@ def synology_upload_albums(albums_folder):
     login_synology()
 
     # Check if albums_folder is inside SYNOLOGY_ROOT_PHOTOS_PATH
-    albums_folder = Utils.remove_quotes(albums_folder)
-    if albums_folder.endswith(os.path.sep):
-        albums_folder = albums_folder[:-1]
-    if not os.path.isdir(albums_folder):
-        LOGGER.error(f"ERROR: Cannot find album folder '{albums_folder}'. Exiting...")
+    input_folder = Utils.remove_quotes(input_folder)
+    if input_folder.endswith(os.path.sep):
+        input_folder = input_folder[:-1]
+    if not os.path.isdir(input_folder):
+        LOGGER.error(f"ERROR: Cannot find album folder '{input_folder}'. Exiting...")
         sys.exit(-1)
-    LOGGER.info(f"INFO: Albums Folder Path: '{albums_folder}'")
-    albums_folder_full_path = os.path.realpath(albums_folder)
+    LOGGER.info(f"INFO: Albums Folder Path: '{input_folder}'")
+    albums_folder_full_path = os.path.realpath(input_folder)
     ROOT_PHOTOS_PATH_full_path = os.path.realpath(SYNOLOGY_ROOT_PHOTOS_PATH)
     ROOT_PHOTOS_PATH_full_path = Utils.remove_server_name(ROOT_PHOTOS_PATH_full_path)
     albums_folder_full_path = Utils.remove_server_name(albums_folder_full_path)
@@ -1078,10 +1078,10 @@ def synology_upload_albums(albums_folder):
         # Step 2: Get the folder ID of the directory containing the albums
         albums_folder_relative_path = os.path.relpath(albums_folder_full_path, ROOT_PHOTOS_PATH_full_path)
         albums_folder_relative_path = "/" + os.path.normpath(albums_folder_relative_path).replace("\\", "/")
-        albums_folder_id = get_folder_id(search_in_folder_id=photos_root_folder_id, folder_name=os.path.basename(albums_folder))
+        albums_folder_id = get_folder_id(search_in_folder_id=photos_root_folder_id, folder_name=os.path.basename(input_folder))
         LOGGER.info(f"INFO: Albums folder ID: {albums_folder_id}")
         if not albums_folder_id:
-            LOGGER.error(f"ERROR: Cannot obtain ID for folder '{albums_folder_relative_path}/{albums_folder}'. The folder may not have been indexed yet. Try forcing indexing and retry.")
+            LOGGER.error(f"ERROR: Cannot obtain ID for folder '{albums_folder_relative_path}/{input_folder}'. The folder may not have been indexed yet. Try forcing indexing and retry.")
             sys.exit(-1)
 
         # Process folders and create albums
@@ -1090,9 +1090,9 @@ def synology_upload_albums(albums_folder):
         assets_added = 0
 
         # Filter albums_folder to exclude '@eaDir'
-        albums_folder_filtered = os.listdir(albums_folder)
+        albums_folder_filtered = os.listdir(input_folder)
         albums_folder_filtered[:] = [d for d in albums_folder_filtered if d != '@eaDir']
-        LOGGER.info(f"INFO: Processing all albums in folder '{albums_folder}' and creating corresponding albums into Synology Photos...")
+        LOGGER.info(f"INFO: Processing all albums in folder '{input_folder}' and creating corresponding albums into Synology Photos...")
         for album_folder in tqdm(albums_folder_filtered, desc="INFO: Uploading Albums", unit=" albums"):
             # Step 3: For each album folder, get the folder ID in the directory containing the albums
             individual_album_folder_id = get_folder_id(search_in_folder_id=albums_folder_id, folder_name=os.path.basename(album_folder))
@@ -1115,12 +1115,12 @@ def synology_upload_albums(albums_folder):
 
 # Function synology_upload_folder()
 # TODO: synology_upload_folder()
-def synology_upload_no_albums(folder):
+def synology_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None):
     """
     Upload folder into Synology Photos.
 
     Args:
-        folder (str): Base path on the NAS where the album folders are located.
+        input_folder (str): Base path on the NAS where the album folders are located.
 
     Returns:
         tuple: folders_created, folders_skipped, assets_added
@@ -1134,14 +1134,14 @@ def synology_upload_no_albums(folder):
     sys.exit(-1)
 
     # Check if albums_folder is inside SYNOLOGY_ROOT_PHOTOS_PATH
-    folder = Utils.remove_quotes(folder)
-    if folder.endswith(os.path.sep):
-        folder = folder[:-1]
-    if not os.path.isdir(folder):
-        LOGGER.error(f"ERROR: Cannot find folder '{folder}'. Exiting...")
+    input_folder = Utils.remove_quotes(input_folder)
+    if input_folder.endswith(os.path.sep):
+        input_folder = input_folder[:-1]
+    if not os.path.isdir(input_folder):
+        LOGGER.error(f"ERROR: Cannot find folder '{input_folder}'. Exiting...")
         sys.exit(-1)
-    LOGGER.info(f"INFO: Folder Path: '{folder}'")
-    folder_full_path = os.path.realpath(folder)
+    LOGGER.info(f"INFO: Folder Path: '{input_folder}'")
+    folder_full_path = os.path.realpath(input_folder)
     ROOT_PHOTOS_PATH_full_path = os.path.realpath(SYNOLOGY_ROOT_PHOTOS_PATH)
     ROOT_PHOTOS_PATH_full_path = Utils.remove_server_name(ROOT_PHOTOS_PATH_full_path)
     folder_full_path = Utils.remove_server_name(folder_full_path)
@@ -1158,10 +1158,10 @@ def synology_upload_no_albums(folder):
         # Step 2: Get the folder ID of the directory containing the albums
         folder_relative_path = os.path.relpath(folder_full_path, ROOT_PHOTOS_PATH_full_path)
         folder_relative_path = "/" + os.path.normpath(folder_relative_path).replace("\\", "/")
-        folder_id = get_folder_id(search_in_folder_id=photos_root_folder_id, folder_name=os.path.basename(folder))
+        folder_id = get_folder_id(search_in_folder_id=photos_root_folder_id, folder_name=os.path.basename(input_folder))
         LOGGER.info(f"INFO: Folder ID: {folder_id}")
         if not folder_id:
-            LOGGER.error(f"ERROR: Cannot obtain ID for folder '{folder_relative_path}/{folder}'. The folder may not have been indexed yet. Try forcing indexing and retry.")
+            LOGGER.error(f"ERROR: Cannot obtain ID for folder '{folder_relative_path}/{input_folder}'. The folder may not have been indexed yet. Try forcing indexing and retry.")
             sys.exit(-1)
 
         # Process folders
@@ -1170,21 +1170,21 @@ def synology_upload_no_albums(folder):
         assets_added = 0
 
         # Filter albums_folder to exclude '@eaDir'
-        folder_filtered = os.listdir(folder)
+        folder_filtered = os.listdir(input_folder)
         folder_filtered[:] = [d for d in folder_filtered if d != '@eaDir']
-        LOGGER.info(f"INFO: Processing all subfolders in folder '{folder}' and uploading corresponding assets into Synology Photos...")
-        for folder in tqdm(folder_filtered, desc="INFO: Uploading Folder", unit=" folders"):
+        LOGGER.info(f"INFO: Processing all subfolders in folder '{input_folder}' and uploading corresponding assets into Synology Photos...")
+        for input_folder in tqdm(folder_filtered, desc="INFO: Uploading Folder", unit=" folders"):
             # Step 3: For each album folder, get the folder ID in the directory containing the albums
-            individual_folder_id = get_folder_id(search_in_folder_id=folder_id, folder_name=os.path.basename(folder))
+            individual_folder_id = get_folder_id(search_in_folder_id=folder_id, folder_name=os.path.basename(input_folder))
             if not individual_folder_id:
-                LOGGER.error(f"ERROR: Cannot obtain ID for folder '{folder_relative_path}/{folder}'. The folder may not have been indexed yet. Skipping this folder creation.")
+                LOGGER.error(f"ERROR: Cannot obtain ID for folder '{folder_relative_path}/{input_folder}'. The folder may not have been indexed yet. Skipping this folder creation.")
                 folders_skipped += 1
                 continue
 
             # Step 4: Add all photos or videos in the album folder to the newly created album
             # TODO: ESTA PARTE SOBRA PORQUE NO QUIERO AÑADIR LOS ASSETS A NINGÚN ALBÚM, PERO SI NO HACEMOS ESTO, EN REALIDAD NO ESTAMOS HACIENDO NADA, YA QUE LA CARPETA A AÑADIR YA ESTÁ DENTRO DE SYNOLOGY PHOTOS Y POR TANTO ESTÁ SIENDO INDEXADA
             # TODO: BUSCAR LA FORMA DE AÑADIR UNA CARPETA DESDE EL EXTERIOR DE SYNOOGY FOTOS.
-            res = add_assets_to_album(folder_id=individual_folder_id, album_name=folder)
+            res = add_assets_to_album(folder_id=individual_folder_id, album_name=input_folder)
             if res == -1:
                 folders_skipped += 1
             else:

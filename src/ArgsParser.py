@@ -33,7 +33,7 @@ def parse_arguments():
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
     PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
     PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
-    PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="+", help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
+    PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
     PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False, help="If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums', it will also delete the assets (photos/videos) inside each album.")
     # PARSER.add_argument("-woAlb", "--without-albums", action="store_true", default=False, help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will avoid create an Album per each subfolder found in <INPUT_FOLDER>.")
     PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
@@ -187,8 +187,10 @@ def checkArgs(ARGS):
             print(f"❌ ERROR: Target value '{target}' is not valid. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT}")
             exit(1)
 
-    # Parse albums-folders Arguments to convert to a List if more than one Album folder is providen
+    # Parse albums-folders Arguments to convert to a List if more than one Album folder is provide
     ARGS['albums-folders'] = parse_folders(ARGS['albums-folders'])
+    if ARGS['albums-folders'] == []:
+        ARGS['albums-folders'] = 'Albums'
 
     # Parse duplicates-folders Arguments
     ARGS['duplicates-folders'] = []
