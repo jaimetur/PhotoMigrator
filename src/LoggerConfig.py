@@ -54,7 +54,7 @@ def log_setup(log_folder="Logs", log_filename=None, timestamp=None, skip_logfile
             file_handler_detailed.setLevel(log_level)
             # Formato personalizado para el manejador de ficheros detallado
             detailed_format = CustomFormatter(
-                fmt='%(asctime)s [%(levelname)-12s] - %(message)s',
+                fmt='%(asctime)s [%(levelname)-8s] - %(message)s',
                 datefmt='%Y-%m-%d %H:%M:%S'
             )
             file_handler_detailed.setFormatter(detailed_format)
