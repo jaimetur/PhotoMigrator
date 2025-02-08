@@ -33,6 +33,6 @@ if __name__ == "__main__":
     #     sys.argv.append("-z")
     #     sys.argv.append("Zip_folder")
     #     print(f"INFO: No argument detected. Using default value '{sys.argv[2]}' for <ZIP_FOLDER>'.")
-    current_directory = os.getcwd()
-    print(current_directory)
+    # current_directory = os.getcwd()
+    # print(current_directory)
     main()
