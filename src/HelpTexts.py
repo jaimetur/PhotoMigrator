@@ -53,7 +53,7 @@ def set_help_texts():
         """)
 
     HELP_TEXTS["synology-download-albums"] = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to Synology Photos and extract those Album(s) whose name is in <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the SYNOLOGY_ROOT_FOOLDER. 
+        ATTENTION!!!: This process will connect to Synology Photos and extract those Album(s) whose name is in <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the SYNOLOGY_ROOT_FOLDER. 
         
         If the file already exists, it will be OVERWRITTEN!!!
         
@@ -65,18 +65,23 @@ def set_help_texts():
         """)
 
     HELP_TEXTS["synology-download-all"] = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to Synology Photos and will download all the Album and Assets without Albums into the folder '<OUTPUT_FOLDER>' within the SYNOLOGY_ROOT_FOOLDER. 
+        ATTENTION!!!: This process will connect to Synology Photos and will download all the Album and Assets without Albums into the folder '<OUTPUT_FOLDER>' within the SYNOLOGY_ROOT_FOLDER. 
         
         If the file already exists, it will be OVERWRITTEN!!!
         
         All Albums will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums' with the same name of the Album and all files will be flattened into it.
         
-        Assets with no Albums associated will be downloaded withn a subfolder '<OUTPUT_FOLDER>/No-Albums' and will have a year/month structure inside.
+        Assets with no Albums associated will be downloaded within a subfolder '<OUTPUT_FOLDER>/No-Albums' and will have a year/month structure inside.
         """)
-
 
     HELP_TEXTS["synology-remove-all-assets"]  = textwrap.dedent(f"""
         CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Synology database.         
+        """)
+
+    HELP_TEXTS["synology-remove-all-albums"] = textwrap.dedent(f"""
+        CAUTION!!! The script will delete ALL your Albums from Synology database.
+
+        Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument.
         """)
 
     ##############################

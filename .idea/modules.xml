@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://P:/Python_Scripts_jaimetur/PycharmProjects/CloudPhotoMigrator-dev/.idea/CloudPhotoMigrator.iml" filepath="P:/Python_Scripts_jaimetur/PycharmProjects/CloudPhotoMigrator-dev/.idea/CloudPhotoMigrator.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/debug.iml" filepath="$PROJECT_DIR$/.idea/debug.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/CloudPhotoMigrator-dev.iml" filepath="$PROJECT_DIR$/.idea/CloudPhotoMigrator-dev.iml" />
     </modules>
   </component>
 </project>

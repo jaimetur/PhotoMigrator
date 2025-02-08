@@ -89,7 +89,10 @@ def parse_arguments():
     PARSER.add_argument("-srEmpAlb", "--synology-remove-empty-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.")
     PARSER.add_argument("-srDupAlb", "--synology-remove-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.")
     PARSER.add_argument("-srALL", "--synology-remove-all-assets", action="store_true", default="", help="CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Synology database.")
-
+    PARSER.add_argument("-srAllAlb", "--synology-remove-all-albums", action="store_true", default="",
+                        help="CAUTION!!! The script will delete ALL your Albums from Synology database."
+                           "\nOptionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
+                        )
 
     # EXTRA MODES FOR IMMINCH PHOTOS:
     # -------------------------------

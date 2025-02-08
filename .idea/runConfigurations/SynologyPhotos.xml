@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="SynologyPhotos" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
-    <module name="CloudPhotoMigrator" />
+    <module name="CloudPhotoMigrator-dev" />
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />

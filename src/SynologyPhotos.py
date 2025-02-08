@@ -43,7 +43,7 @@ SID = None
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 ##############################################################################
-#                           AUXILIARY FUNNCTIONS                             #
+#                            AUXILIARY FUNCTIONS                             #
 ##############################################################################
 # -----------------------------------------------------------------------------
 #                          CONFIGURATION READING
@@ -175,6 +175,132 @@ def logout_synology():
             SID = None
         else:
             LOGGER.error("ERROR: Unable to close session in Synology NAS.")
+
+# -----------------------------------------------------------------------------
+#                          INDEXING FUNCTIONS
+# -----------------------------------------------------------------------------
+# Function to start reindexing in Synology Photos using API
+def start_reindex_synology_photos_with_api(type='basic'):
+    """
+    Starts reindexing a folder in Synology Photos using the API.
+
+    Args:
+        type (str): 'basic' or 'thumbnail'.
+    """
+    from Globals import LOGGER  # Local import of the logger
+
+    login_synology()
+
+    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    params = {
+        "api": "SYNO.Foto.Index",
+        "version": 1,
+        "method": "reindex",
+        "runner": SYNOLOGY_USERNAME,
+        "type": type
+    }
+    try:
+        result = SESSION.get(url, params=params, verify=False).json()
+        if result.get("success"):
+            if type == 'basic':
+                LOGGER.info(f"INFO: Reindexing started in Synology Photos database for user: '{SYNOLOGY_USERNAME}'.")
+                LOGGER.info("INFO: This process may take several minutes or even hours to finish depending on the number of files to index. Please be patient...")
+        else:
+            if result.get("error").get("code") == 105:
+                LOGGER.error(f"ERROR: The user '{SYNOLOGY_USERNAME}' does not have sufficient privileges to start reindexing services. Wait for the system to index the folder before adding its content to Synology Photos albums.")
+            else:
+                LOGGER.error(f"ERROR: Error starting reindexing: {result.get('error')}")
+                start_reindex_synology_photos_with_command(type=type)
+        return result
+
+    except Exception as e:
+        LOGGER.error(f"ERROR: Connection error: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+# Function to start reindexing in Synology Photos using a command
+def start_reindex_synology_photos_with_command(type='basic'):
+    """
+    Starts reindexing a folder in Synology Photos using a shell command.
+
+    Args:
+        type (str): 'basic' or 'thumbnail'.
+    """
+    from Globals import LOGGER  # Local import of the logger
+
+    command = [
+        'sudo',  # Run with administrator privileges
+        'synowebapi',
+        '--exec',
+        'api=SYNO.Foto.Index',
+        'method=reindex',
+        'version=1',
+        f'runner={SYNOLOGY_USERNAME}',
+        f'type={type}'
+    ]
+    command_str = " ".join(command)
+    if Utils.run_from_synology():
+        try:
+            result = subprocess.run(command, capture_output=True, text=True, check=True)
+            if type == 'basic':
+                LOGGER.info(f"INFO: Reindexing started in Synology Photos database for user: '{SYNOLOGY_USERNAME}'.")
+                LOGGER.info("INFO: This process may take several minutes or even hours to finish depending on the number of files to index. Please be patient...")
+                LOGGER.info(f"INFO: Starting reindex with command: '{command_str}'")
+        except subprocess.CalledProcessError as e:
+            LOGGER.error(f"ERROR: Failed to execute reindexing with command '{command_str}'")
+            LOGGER.error(e.stderr)
+    else:
+        LOGGER.error(f"ERROR: The command '{command_str}' can only be executed from a Synology NAS terminal.")
+
+
+# Function to wait for Synology Photos reindexing to complete
+def wait_for_reindexing_synology_photos():
+    """
+    Waits for reindexing to complete by checking the status every 10 seconds.
+    Logs the reindexing progress.
+    """
+    from Globals import LOGGER  # Local import of the logger
+    import time  # Local import of time
+    login_synology()
+
+    start_reindex_synology_photos_with_api(type='basic')
+
+    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    params = {
+        "api": "SYNO.Foto.Index",
+        "version": 1,
+        "method": "get"
+    }
+    time.sleep(5)  # Wait 5 seconds for the first query to allow indexing calculations
+    result = SESSION.get(url, params=params, verify=False).json()
+    if result.get("success"):
+        files_to_index = int(result["data"].get("basic"))
+        remaining_files_previous_step = files_to_index
+
+        with tqdm(total=files_to_index, smoothing=0.8, desc="INFO: Reindexing files", unit=" files") as pbar:
+            while True:
+                result = SESSION.get(url, params=params, verify=False).json()
+                if result.get("success"):
+                    remaining_files = int(result["data"].get("basic"))
+                    if remaining_files > files_to_index:
+                        files_to_index = remaining_files
+                        remaining_files_previous_step = files_to_index
+                        pbar.total = files_to_index
+                    indexed_in_step = remaining_files_previous_step - remaining_files
+                    remaining_files_previous_step = remaining_files
+                    pbar.update(indexed_in_step)
+                    if remaining_files == 0:
+                        start_reindex_synology_photos_with_api(type='thumbnail')
+                        time.sleep(10)
+                        return True
+                    else:
+                        time.sleep(5)  # Wait 5 seconds before querying again
+                else:
+                    LOGGER.error("ERROR: Error getting reindex status.")
+                    return False
+    else:
+        LOGGER.error("ERROR: Error getting reindex status.")
+        return False
 
 # -----------------------------------------------------------------------------
 #                          FOLDERS FUNCTIONS
@@ -333,7 +459,50 @@ def get_folder_id_or_create_folder(folder_name, parent_folder_id=None):
 # -----------------------------------------------------------------------------
 #                          ALBUMS FUNCTIONS
 # -----------------------------------------------------------------------------
-def list_albums():
+def create_album(album_name):
+    # Create the album if the folder contains supported files
+    from Globals import LOGGER  # Import the logger inside the function
+    params = {
+        "api": "SYNO.Foto.Browse.NormalAlbum",
+        "method": "create",
+        "version": "3",
+        "name": f'"{album_name}"',
+    }
+    response = SESSION.get(url, params=params, verify=False)
+    response.raise_for_status()
+    data = response.json()
+    if not data["success"]:
+        LOGGER.error(f"ERROR: Unable to create album '{album_name}': {data}")
+        return -1
+    album_id = data["data"]["album"]["id"]
+    LOGGER.info(f"INFO: Album '{album_name}' created with ID: {album_id}.")
+    return album_id
+
+
+def delete_album(album_id, album_name):
+    """
+    Deletes an album in Synology Photos.
+
+    Args:
+        album_id (str): ID of the album to delete.
+        album_name (str): Name of the album to delete.
+    """
+    from Globals import LOGGER  # Import the logger inside the function
+    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    params = {
+        "api": "SYNO.Foto.Browse.Album",
+        "method": "delete",
+        "version": "3",
+        "id": f"[{album_id}]",
+        "name": album_name,
+    }
+    response = SESSION.get(url, params=params, verify=False)
+    response.raise_for_status()
+    data = response.json()
+    if not data["success"]:
+        LOGGER.warning(f"WARNING: Could not delete album {album_id}: ", data)
+
+def get_albums():
     """
     Lists all albums in Synology Photos.
 
@@ -371,7 +540,7 @@ def list_albums():
     return albums_dict
 
 
-def list_albums_own_and_shared():
+def get_albums_own_and_shared():
     """
     Lists both own and shared albums in Synology Photos.
 
@@ -412,74 +581,6 @@ def list_albums_own_and_shared():
             LOGGER.error("ERROR: Exception while listing own albums:", e)
             return []
     return album_list[0]
-
-
-def list_album_assets(album_name, album_id):
-    """
-    Lists photos in a specific album.
-
-    Args:
-        album_name (str): Name of the album.
-        album_id (str): ID of the album.
-
-    Returns:
-        list: A list of photos in the album.
-    """
-    from Globals import LOGGER
-    login_synology()
-    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
-    offset = 0
-    limit = 5000
-    album_items = []
-    while True:
-        params = {
-            'api': 'SYNO.Foto.Browse.Item',
-            'version': '4',
-            'method': 'list',
-            'album_id': album_id,
-            "offset": offset,
-            "limit": limit
-        }
-        try:
-            response = SESSION.get(url, params=params, verify=False)
-            data = response.json()
-            if not data.get("success"):
-                LOGGER.error(f"ERROR: Failed to list photos in the album '{album_name}'")
-                return []
-            album_items.append(data["data"]["list"])
-            # Check if fewer items than the limit were returned
-            if len(data["data"]["list"]) < limit:
-                break
-            # Increment offset for the next page
-            offset += limit
-        except Exception as e:
-            LOGGER.error(f"ERROR: Exception while listing photos in the album '{album_name}'", e)
-            return []
-    return album_items[0]
-
-
-def delete_album(album_id, album_name):
-    """
-    Deletes an album in Synology Photos.
-
-    Args:
-        album_id (str): ID of the album to delete.
-        album_name (str): Name of the album to delete.
-    """
-    from Globals import LOGGER  # Import the logger inside the function
-    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
-    params = {
-        "api": "SYNO.Foto.Browse.Album",
-        "method": "delete",
-        "version": "3",
-        "id": f"[{album_id}]",
-        "name": album_name,
-    }
-    response = SESSION.get(url, params=params, verify=False)
-    response.raise_for_status()
-    data = response.json()
-    if not data["success"]:
-        LOGGER.warning(f"WARNING: Could not delete album {album_id}: ", data)
 
 
 def get_album_items_count(album_id, album_name):
@@ -554,6 +655,95 @@ def get_album_items_size(album_id, album_name):
             album_size += item.get("filesize")
     return album_size
 
+# -----------------------------------------------------------------------------
+#                          ASSETS (FOTOS/VIDEOS) FUNCTIONS
+# -----------------------------------------------------------------------------
+
+def get_all_assets():
+    """
+    Lists photos in a specific album.
+
+    Args:
+        album_name (str): Name of the album.
+        album_id (str): ID of the album.
+
+    Returns:
+        list: A list of photos in the album.
+    """
+    from Globals import LOGGER
+    login_synology()
+    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    offset = 0
+    limit = 5000
+    all_assets = []
+    while True:
+        params = {
+            'api': 'SYNO.Foto.Browse.Item',
+            'version': '4',
+            'method': 'list',
+            "offset": offset,
+            "limit": limit
+        }
+        try:
+            response = SESSION.get(url, params=params, verify=False)
+            data = response.json()
+            if not data.get("success"):
+                LOGGER.error(f"ERROR: Failed to list assets")
+                return []
+            all_assets.append(data["data"]["list"])
+            # Check if fewer items than the limit were returned
+            if len(data["data"]["list"]) < limit:
+                break
+            # Increment offset for the next page
+            offset += limit
+        except Exception as e:
+            LOGGER.error(f"ERROR: Exception while listing assets", e)
+            return []
+    return all_assets[0]
+
+def get_assets_from_album(album_name, album_id):
+    """
+    Lists photos in a specific album.
+
+    Args:
+        album_name (str): Name of the album.
+        album_id (str): ID of the album.
+
+    Returns:
+        list: A list of photos in the album.
+    """
+    from Globals import LOGGER
+    login_synology()
+    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    offset = 0
+    limit = 5000
+    album_items = []
+    while True:
+        params = {
+            'api': 'SYNO.Foto.Browse.Item',
+            'version': '4',
+            'method': 'list',
+            'album_id': album_id,
+            "offset": offset,
+            "limit": limit
+        }
+        try:
+            response = SESSION.get(url, params=params, verify=False)
+            data = response.json()
+            if not data.get("success"):
+                LOGGER.error(f"ERROR: Failed to list photos in the album '{album_name}'")
+                return []
+            album_items.append(data["data"]["list"])
+            # Check if fewer items than the limit were returned
+            if len(data["data"]["list"]) < limit:
+                break
+            # Increment offset for the next page
+            offset += limit
+        except Exception as e:
+            LOGGER.error(f"ERROR: Exception while listing photos in the album '{album_name}'", e)
+            return []
+    return album_items[0]
+
 
 def add_assets_to_album(folder_id, album_name):
     """
@@ -616,24 +806,12 @@ def add_assets_to_album(folder_id, album_name):
         # Increment the offset for the next page
         offset += limit
 
-    # Create the album if the folder contains supported files
     if not len(file_ids) > 0:
         LOGGER.warning(f"WARNING: No supported assets found in folder: '{album_name}'. Skipped!")
         return -1
-    params = {
-        "api": "SYNO.Foto.Browse.NormalAlbum",
-        "method": "create",
-        "version": "3",
-        "name": f'"{album_name}"',
-    }
-    response = SESSION.get(url, params=params, verify=False)
-    response.raise_for_status()
-    data = response.json()
-    if not data["success"]:
-        LOGGER.error(f"ERROR: Unable to create album '{album_name}': {data}")
-        return -1
-    album_id = data["data"]["album"]["id"]
-    LOGGER.info(f"INFO: Album '{album_name}' created with ID: {album_id}.")
+
+    # Create new Album
+    album_id = create_album(album_name)
 
     # Add the files to the album in batches of 100
     batch_size = 100
@@ -652,57 +830,11 @@ def add_assets_to_album(folder_id, album_name):
         response.raise_for_status()
         data = response.json()
         if not data["success"]:
-            LOGGER.warning(f"WARNING: Unable to add assets to album '{album_name}' (Batch {i // batch_size + 1}). Skipped!")
+            LOGGER.warning(
+                f"WARNING: Unable to add assets to album '{album_name}' (Batch {i // batch_size + 1}). Skipped!")
             continue
         total_added += len(batch)
     return total_added
-
-
-# -----------------------------------------------------------------------------
-#                          ASSETS (FOTOS/VIDEOS) FUNCTIONS
-# -----------------------------------------------------------------------------
-
-def list_all_assets():
-    """
-    Lists photos in a specific album.
-
-    Args:
-        album_name (str): Name of the album.
-        album_id (str): ID of the album.
-
-    Returns:
-        list: A list of photos in the album.
-    """
-    from Globals import LOGGER
-    login_synology()
-    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
-    offset = 0
-    limit = 5000
-    all_assets = []
-    while True:
-        params = {
-            'api': 'SYNO.Foto.Browse.Item',
-            'version': '4',
-            'method': 'list',
-            "offset": offset,
-            "limit": limit
-        }
-        try:
-            response = SESSION.get(url, params=params, verify=False)
-            data = response.json()
-            if not data.get("success"):
-                LOGGER.error(f"ERROR: Failed to list assets")
-                return []
-            all_assets.append(data["data"]["list"])
-            # Check if fewer items than the limit were returned
-            if len(data["data"]["list"]) < limit:
-                break
-            # Increment offset for the next page
-            offset += limit
-        except Exception as e:
-            LOGGER.error(f"ERROR: Exception while listing assets", e)
-            return []
-    return all_assets[0]
 
 
 def delete_assets(asset_ids):
@@ -719,12 +851,19 @@ def delete_assets(asset_ids):
     from Globals import LOGGER
     login_synology()
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+
+
+    if not isinstance(asset_ids, list):
+        asset_ids = [asset_ids]
+
     params = {
         'api': 'SYNO.Foto.BackgroundTask.File',
         'version': '1',
         'method': 'delete',
-        'item_id': asset_ids
+        'item_id': f'{asset_ids}',
+        'folder_id': '[]'
     }
+    # params = json.dumps(params, indent=2)
     try:
         response = SESSION.get(url, params=params, verify=False)
         data = response.json()
@@ -888,131 +1027,6 @@ def download_assets(folder_id, folder_name, photos_list):
         LOGGER.error(f"ERROR: Exception while copying assets batches: {e}")
 
 
-# -----------------------------------------------------------------------------
-#                          INDEXING FUNCTIONS
-# -----------------------------------------------------------------------------
-# Function to start reindexing in Synology Photos using API
-def start_reindex_synology_photos_with_api(type='basic'):
-    """
-    Starts reindexing a folder in Synology Photos using the API.
-
-    Args:
-        type (str): 'basic' or 'thumbnail'.
-    """
-    from Globals import LOGGER  # Local import of the logger
-
-    login_synology()
-
-    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
-    params = {
-        "api": "SYNO.Foto.Index",
-        "version": 1,
-        "method": "reindex",
-        "runner": SYNOLOGY_USERNAME,
-        "type": type
-    }
-    try:
-        result = SESSION.get(url, params=params, verify=False).json()
-        if result.get("success"):
-            if type == 'basic':
-                LOGGER.info(f"INFO: Reindexing started in Synology Photos database for user: '{SYNOLOGY_USERNAME}'.")
-                LOGGER.info("INFO: This process may take several minutes or even hours to finish depending on the number of files to index. Please be patient...")
-        else:
-            if result.get("error").get("code") == 105:
-                LOGGER.error(f"ERROR: The user '{SYNOLOGY_USERNAME}' does not have sufficient privileges to start reindexing services. Wait for the system to index the folder before adding its content to Synology Photos albums.")
-            else:
-                LOGGER.error(f"ERROR: Error starting reindexing: {result.get('error')}")
-                start_reindex_synology_photos_with_command(type=type)
-        return result
-
-    except Exception as e:
-        LOGGER.error(f"ERROR: Connection error: {str(e)}")
-        return {"success": False, "error": str(e)}
-
-
-# Function to start reindexing in Synology Photos using a command
-def start_reindex_synology_photos_with_command(type='basic'):
-    """
-    Starts reindexing a folder in Synology Photos using a shell command.
-
-    Args:
-        type (str): 'basic' or 'thumbnail'.
-    """
-    from Globals import LOGGER  # Local import of the logger
-
-    command = [
-        'sudo',  # Run with administrator privileges
-        'synowebapi',
-        '--exec',
-        'api=SYNO.Foto.Index',
-        'method=reindex',
-        'version=1',
-        f'runner={SYNOLOGY_USERNAME}',
-        f'type={type}'
-    ]
-    command_str = " ".join(command)
-    if Utils.run_from_synology():
-        try:
-            result = subprocess.run(command, capture_output=True, text=True, check=True)
-            if type == 'basic':
-                LOGGER.info(f"INFO: Reindexing started in Synology Photos database for user: '{SYNOLOGY_USERNAME}'.")
-                LOGGER.info("INFO: This process may take several minutes or even hours to finish depending on the number of files to index. Please be patient...")
-                LOGGER.info(f"INFO: Starting reindex with command: '{command_str}'")
-        except subprocess.CalledProcessError as e:
-            LOGGER.error(f"ERROR: Failed to execute reindexing with command '{command_str}'")
-            LOGGER.error(e.stderr)
-    else:
-        LOGGER.error(f"ERROR: The command '{command_str}' can only be executed from a Synology NAS terminal.")
-
-
-# Function to wait for Synology Photos reindexing to complete
-def wait_for_reindexing_synology_photos():
-    """
-    Waits for reindexing to complete by checking the status every 10 seconds.
-    Logs the reindexing progress.
-    """
-    from Globals import LOGGER  # Local import of the logger
-    import time  # Local import of time
-    login_synology()
-
-    start_reindex_synology_photos_with_api(type='basic')
-
-    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
-    params = {
-        "api": "SYNO.Foto.Index",
-        "version": 1,
-        "method": "get"
-    }
-    time.sleep(5)  # Wait 5 seconds for the first query to allow indexing calculations
-    result = SESSION.get(url, params=params, verify=False).json()
-    if result.get("success"):
-        files_to_index = int(result["data"].get("basic"))
-        remaining_files_previous_step = files_to_index
-
-        with tqdm(total=files_to_index, smoothing=0.8, desc="INFO: Reindexing files", unit=" files") as pbar:
-            while True:
-                result = SESSION.get(url, params=params, verify=False).json()
-                if result.get("success"):
-                    remaining_files = int(result["data"].get("basic"))
-                    if remaining_files > files_to_index:
-                        files_to_index = remaining_files
-                        remaining_files_previous_step = files_to_index
-                        pbar.total = files_to_index
-                    indexed_in_step = remaining_files_previous_step - remaining_files
-                    remaining_files_previous_step = remaining_files
-                    pbar.update(indexed_in_step)
-                    if remaining_files == 0:
-                        start_reindex_synology_photos_with_api(type='thumbnail')
-                        time.sleep(10)
-                        return True
-                    else:
-                        time.sleep(5)  # Wait 5 seconds before querying again
-                else:
-                    LOGGER.error("ERROR: Error getting reindex status.")
-                    return False
-    else:
-        LOGGER.error("ERROR: Error getting reindex status.")
-        return False
 
 
 ##############################################################################
@@ -1250,7 +1264,7 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
 
     download_folder = os.path.join(output_folder, 'Albums')
     # List own and shared albums
-    all_albums = list_albums_own_and_shared()
+    all_albums = get_albums_own_and_shared()
     # Determine the albums to copy
     if isinstance(albums_name, str) and albums_name.strip().upper() == 'ALL':
         albums_to_download = all_albums
@@ -1291,7 +1305,7 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
         album_id = album['id']
         # LOGGER.info(f"INFO: Processing album: '{album_name}' (ID: {album_id})")
         # List assets in the album
-        photos = list_album_assets(album_name, album_id)
+        photos = get_assets_from_album(album_name, album_id)
         # LOGGER.info(f"INFO: Number of photos in the album '{album_name}': {len(photos)}")
         if not photos:
             LOGGER.warning(f"WARNING: No photos to download in the album '{album_name}'.")
@@ -1365,7 +1379,7 @@ def synology_remove_empty_albums():
     login_synology()
 
     # List albums and identify empty ones
-    albums_dict = list_albums()
+    albums_dict = get_albums()
     albums_deleted = 0
     if albums_dict != -1:
         LOGGER.info("INFO: Looking for empty albums in Synology Photos...")
@@ -1394,7 +1408,7 @@ def synology_remove_duplicates_albums():
     login_synology()
 
     # List albums and identify duplicates
-    albums_dict = list_albums()
+    albums_dict = get_albums()
     albums_deleted = 0
     albums_data = {}
     if albums_dict != -1:
@@ -1436,16 +1450,15 @@ def synology_remove_duplicates_albums():
 def synology_remove_all_assets():
     from Globals import LOGGER  # Import global LOGGER
     login_synology()
-    all_assets = list_all_assets()
-    all_assets_items = all_assets.get("items")
-    total_assets_found = len(all_assets_items)
+    all_assets = get_all_assets()
+    total_assets_found = len(all_assets)
     if total_assets_found == 0:
         LOGGER.warning(f"WARNING: No Assets found in Immich Database.")
         return 0,0
     LOGGER.info(f"INFO: Found {total_assets_found} asset(s) to delete.")
     assets_ids = []
-    assets_deleted = len(all_assets_items)
-    for asset in tqdm(all_assets_items, desc="INFO: Deleting assets", unit="assets"):
+    assets_deleted = len(all_assets)
+    for asset in tqdm(all_assets, desc="INFO: Deleting assets", unit="assets"):
         asset_id = asset.get("id")
         if not asset_id:
             continue
@@ -1460,6 +1473,44 @@ def synology_remove_all_assets():
     else:
         LOGGER.error(f"ERROR: Failed to delete assets.")
         return 0, 0
+
+# -----------------------------------------------------------------------------
+#          DELETE ALL ALL ALBUMS FROM SYNOLOGY DATABASE
+# -----------------------------------------------------------------------------
+def synology_remove_all_albums(deleteAlbumsAssets=False):
+    """
+    Deletes all albums and optionally also its associated assets.
+    Returns the number of albums deleted and the number of assets deleted.
+    """
+    from Globals import LOGGER  # Import global LOGGER
+    login_synology()
+    albums = get_albums()
+    if not albums:
+        LOGGER.info("INFO: No albums found.")
+        return 0, 0
+    total_deleted_albums = 0
+    total_deleted_assets = 0
+    for album in tqdm(albums, desc=f"INFO: Searching for Albums to delete", unit=" albums"):
+        album_id = album.get("id")
+        album_name = album.get("albumName")
+        album_assets_ids = []
+        # if deleteAlbumsAssets is True, we have to delete also the assets associated to the album, album_id
+        if deleteAlbumsAssets:
+            album_assets = get_assets_from_album(album_id)
+            for asset in album_assets:
+                album_assets_ids.append(asset.get("id"))
+            delete_assets(album_assets_ids)
+            total_deleted_assets += len(album_assets_ids)
+
+        # Now we can delete the album
+        if delete_album(album_id, album_name):
+            # LOGGER.info(f"INFO: Empty album '{album_name}' (ID={album_id}) deleted.")
+            total_deleted_albums += 1
+
+    LOGGER.info(f"INFO: Deleted {total_deleted_albums} albums.")
+    if deleteAlbumsAssets:
+        LOGGER.info(f"INFO: Deleted {total_deleted_assets} assets associated to albums.")
+    return total_deleted_albums, total_deleted_assets
 
 
 ##############################################################################

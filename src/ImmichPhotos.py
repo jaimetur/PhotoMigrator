@@ -310,7 +310,7 @@ def delete_album(album_id, album_name):
         LOGGER.error(f"ERROR: Error while deleting album {album_id}: {e}")
         return False
 
-def list_albums():
+def get_albums():
     """
     Returns the list of albums for the current user in Immich.
     Each item is a dictionary with at least:
@@ -335,38 +335,6 @@ def list_albums():
         LOGGER.error(f"ERROR: Error while listing albums: {e}")
         return None
 
-def add_assets_to_album(album_id, asset_ids, album_name=None):
-    """
-    Adds the list of asset_ids (photos/videos already uploaded) to the album with album_id.
-    Returns the number of assets successfully added.
-    """
-    from Globals import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return 0
-    if not asset_ids:
-        return 0
-
-    url = f"{IMMICH_URL}/api/albums/{album_id}/assets"
-    payload = json.dumps({
-              "ids": asset_ids
-            })
-    try:
-        response = requests.put(url, headers=HEADERS, data=payload, verify=False)
-        response.raise_for_status()
-        data = response.json()
-        total_files = len(data)
-        total_added = 0
-        for item in data:
-            if item.get("success"):
-                total_added += 1
-        return total_added
-    except Exception as e:
-        if album_name:
-            LOGGER.warning(f"WARNING: Error while adding assets to album '{album_name}' with ID={album_id}: {e}")
-        else:
-            LOGGER.warning(f"WARNING: Error while adding assets to album with ID={album_id}: {e}")
-        return 0
-
 def get_album_items_size(album_id):
     """
     Calculates the total size of all assets in an album by summing up exifInfo.fileSizeInByte (if available).
@@ -387,7 +355,7 @@ def get_album_items_size(album_id):
 # -----------------------------------------------------------------------------
 #                          ASSETS (FOTOS/VIDEOS) FUNCTIONS
 # -----------------------------------------------------------------------------
-def get_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=None, createdAfter=None, createdBefore=None, country=None, city=None, personIds=None ):
+def get_all_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=None, createdAfter=None, createdBefore=None, country=None, city=None, personIds=None):
     """
     Returns the list of assets that belong to a specific album (ID).
     """
@@ -467,6 +435,39 @@ def get_assets_from_album(album_id):
     except Exception as e:
         LOGGER.error(f"ERROR: Failed to retrieve assets from album ID={album_id}: {str(e)}")
         return []
+
+
+def add_assets_to_album(album_id, asset_ids, album_name=None):
+    """
+    Adds the list of asset_ids (photos/videos already uploaded) to the album with album_id.
+    Returns the number of assets successfully added.
+    """
+    from Globals import LOGGER  # Import global LOGGER
+    if not login_immich():
+        return 0
+    if not asset_ids:
+        return 0
+
+    url = f"{IMMICH_URL}/api/albums/{album_id}/assets"
+    payload = json.dumps({
+              "ids": asset_ids
+            })
+    try:
+        response = requests.put(url, headers=HEADERS, data=payload, verify=False)
+        response.raise_for_status()
+        data = response.json()
+        total_files = len(data)
+        total_added = 0
+        for item in data:
+            if item.get("success"):
+                total_added += 1
+        return total_added
+    except Exception as e:
+        if album_name:
+            LOGGER.warning(f"WARNING: Error while adding assets to album '{album_name}' with ID={album_id}: {e}")
+        else:
+            LOGGER.warning(f"WARNING: Error while adding assets to album with ID={album_id}: {e}")
+        return 0
 
 def delete_assets(assets_ids):
     """
@@ -848,7 +849,7 @@ def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich"):
     output_folder = os.path.join(output_folder, "Albums")
     os.makedirs(output_folder, exist_ok=True)
 
-    all_albums = list_albums()
+    all_albums = get_albums()
     if not all_albums:
         LOGGER.warning("WARNING: No albums available or could not retrieve the list.")
         return 0, 0
@@ -927,7 +928,7 @@ def immich_download_no_albums(output_folder="Downloads_Immich"):
     total_assets_downloaded = 0
     downloaded_assets_set = set()
     # 2) Assets without album -> output_folder/No-Albums/yyyy/mm
-    all_assets = get_assets_by_search_filter(isNotInAlbum=True)
+    all_assets = get_all_assets_by_search_filter(isNotInAlbum=True)
     # all_assets = get_assets_by_search_filter()
     all_assets_items = all_assets.get("items")
     all_photos_path = os.path.join(output_folder, 'No-Albums')
@@ -998,7 +999,7 @@ def immich_remove_empty_albums():
     from Globals import LOGGER  # Import global LOGGER
     if not login_immich():
         return 0
-    albums = list_albums()
+    albums = get_albums()
     if not albums:
         LOGGER.info("INFO: No albums found.")
         return 0
@@ -1025,7 +1026,7 @@ def immich_remove_duplicates_albums():
     from Globals import LOGGER  # Import global LOGGER
     if not login_immich():
         return 0
-    albums = list_albums()
+    albums = get_albums()
     if not albums:
         return 0
     duplicates_map = {}
@@ -1132,7 +1133,7 @@ def immich_remove_all_assets():
     from Globals import LOGGER  # Import global LOGGER
     if not login_immich():
         return 0, 0
-    all_assets = get_assets_by_search_filter()
+    all_assets = get_all_assets_by_search_filter()
     all_assets_items = all_assets.get("items")
     total_assets_found = len(all_assets_items)
     if total_assets_found == 0:
@@ -1168,13 +1169,13 @@ def immich_remove_all_albums(deleteAlbumsAssets=False):
     from Globals import LOGGER  # Import global LOGGER
     if not login_immich():
         return 0, 0
-    albums = list_albums()
+    albums = get_albums()
     if not albums:
         LOGGER.info("INFO: No albums found.")
         return 0, 0
     total_deleted_albums = 0
     total_deleted_assets = 0
-    for album in tqdm(albums, desc=f"INFO: Searchig for Albums to delete", unit=" albums"):
+    for album in tqdm(albums, desc=f"INFO: Searching for Albums to delete", unit=" albums"):
         album_id = album.get("id")
         album_name = album.get("albumName")
         album_assets_ids = []

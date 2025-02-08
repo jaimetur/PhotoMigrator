@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import Utils
 import Fixers
 from Duplicates import find_duplicates, process_duplicates_actions
-from SynologyPhotos import read_synology_config, login_synology, logout_synology, synology_upload_no_albums, synology_upload_albums, synology_upload_ALL, synology_download_albums, synology_download_ALL, synology_remove_empty_albums, synology_remove_duplicates_albums, synology_remove_all_assets
+from SynologyPhotos import read_synology_config, login_synology, logout_synology, synology_upload_no_albums, synology_upload_albums, synology_upload_ALL, synology_download_albums, synology_download_ALL, synology_remove_empty_albums, synology_remove_duplicates_albums, synology_remove_all_assets, synology_remove_all_albums
 from ImmichPhotos import read_immich_config, login_immich, logout_immich, immich_upload_no_albums, immich_upload_albums, immich_upload_ALL, immich_download_albums, immich_download_ALL, immich_remove_empty_albums, immich_remove_duplicates_albums, immich_remove_all_assets, immich_remove_all_albums, immich_remove_orphan_assets
 
 DEFAULT_DUPLICATES_ACTION = False
@@ -856,6 +856,46 @@ def mode_synology_remove_all_assets(user_confirmation=True, info_messages=True):
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
         LOGGER.info("")
+
+def mode_synology_remove_all_albums(user_confirmation=True, info_messages=True):
+    if user_confirmation:
+        LOGGER.info(f"INFO: Flag detected '-srAllAlb, --synology-remove-all-albums'.")
+        if ARGS['remove-albums-assets']:
+            LOGGER.info(f"INFO: Flag detected '-rAlbAss, --include-albums-assets'.")
+        LOGGER.info(HELP_TEXTS["synology-remove-all-albums"])
+        if ARGS['remove-albums-assets']:
+            LOGGER.info(f"Since, flag '-rAlbAss, --include-albums-assets' have been detected, ALL the Assets associated to any Albums will also be deleted.")
+            LOGGER.info("")
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO: Exiting program.")
+            sys.exit(0)
+        LOGGER.info(f"INFO: Synology Photos: 'Delete ALL Albums' Mode detected. Only this module will be run!!!")
+    LOGGER.info("")
+    # LOGGER.info(f"INFO: Find Albums in Folder    : {ARGS['immich-upload-albums']}")
+    LOGGER.info("")
+    # Call the Function
+    delete_albums, delete_assets = synology_remove_all_albums(deleteAlbumsAssets = ARGS['remove-albums-assets'])
+    logout_immich()
+
+    if info_messages:
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Albums deleted                    : {delete_albums}")
+        LOGGER.info(f"Total Assets deleted                    : {delete_assets}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
 
 ###############################
 # EXTRA MODES: IMMICH PHOTOS: #
