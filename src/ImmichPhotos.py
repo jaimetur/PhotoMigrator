@@ -800,7 +800,6 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
 # -----------------------------------------------------------------------------
 def immich_upload_ALL(input_folder, albums_folders=None):
     """
-    (Previously download_all_assets_with_structure)
     Uploads ALL photos and videos from input_folder into Immich Photos:
 
     Returns the total number of albums and assets uploaded.

@@ -115,12 +115,12 @@ def parse_arguments():
                         )
     PARSER.add_argument("-irEmpAlb", "--immich-remove-empty-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.")
     PARSER.add_argument("-irDupAlb", "--immich-remove-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.")
-    PARSER.add_argument("-irOrphan", "--immich-remove-orphan-assets", action="store_true", default="", help="The script will look for all Orphan Assets in Immich Database and will delete them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in CONFIG.ini.")
     PARSER.add_argument("-irALL", "--immich-remove-all-assets", action="store_true", default="", help="CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Immich database.")
     PARSER.add_argument("-irAllAlb", "--immich-remove-all-albums", action="store_true", default="",
                         help="CAUTION!!! The script will delete ALL your Albums from Immich database."
                            "\nOptionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
                         )
+    PARSER.add_argument("-irOrphan", "--immich-remove-orphan-assets", action="store_true", default="", help="The script will look for all Orphan Assets in Immich Database and will delete them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in CONFIG.ini.")
 
 
 

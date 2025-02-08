@@ -1200,10 +1200,9 @@ def synology_upload_no_albums(folder):
 # -----------------------------------------------------------------------------
 #          COMPLETE UPLOAD OF ALL ASSETS (Albums + No-Albums)
 # -----------------------------------------------------------------------------
-def synology_upload_ALL(input_folder, without_albums=False):
+def synology_upload_ALL(input_folder, albums_folders=None):
     """
-    (Previously download_all_assets_with_structure)
-    Uploads ALL photos and videos from input_folder into Immich Photos:
+    Uploads ALL photos and videos from input_folder into Synology Photos:
 
     Returns the total number of albums and assets uploaded.
     """
@@ -1214,17 +1213,17 @@ def synology_upload_ALL(input_folder, without_albums=False):
     total_albums_uploaded = 0
     total_albums_skipped = 0
 
-    if without_albums:
+    if albums_folders:
         LOGGER.info("")
-        LOGGER.info(f"INFO: Uploading Assets without Albums creation into Immich Photos from '{input_folder}'...")
-        total_assets_uploaded_without_albums = synology_upload_no_albums(input_folder=input_folder, exclude_albums_folder=False)
+        LOGGER.info(f"INFO: Uploading Assets and creating Albums into synology Photos from '{albums_folders}' subfolders...")
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums = synology_upload_albums(input_folder=input_folder, subfolders_inclusion=albums_folders)
+        LOGGER.info("")
+        LOGGER.info(f"INFO: Uploading Assets without Albums creation into synology Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
+        total_assets_uploaded_without_albums = synology_upload_no_albums(input_folder=input_folder, subfolders_exclusion=albums_folders)
     else:
         LOGGER.info("")
-        LOGGER.info(f"INFO: Uploading Assets and creating Albums into Immich Photos from '{input_folder}' (excluding 'No-Albums' subfolder)...")
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums = synology_upload_albums(input_folder=input_folder)
-        LOGGER.info("")
-        LOGGER.info(f"INFO: Uploading Assets from 'No-Albums' subfolder without Albums creation into Immich Photos from '{input_folder}' (including only subfolder 'No-Albums')...")
-        total_assets_uploaded_without_albums = synology_upload_no_albums(input_folder=input_folder, only_subfolders='No-Albums')
+        LOGGER.info(f"INFO: Uploading Assets without Albums creation into synology Photos from '{input_folder}'...")
+        total_assets_uploaded_without_albums = synology_upload_no_albums(input_folder=input_folder)
 
     total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
 
