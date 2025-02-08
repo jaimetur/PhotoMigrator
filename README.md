@@ -756,7 +756,8 @@ and will rename all the subfolders found on to homogenize all the folder's name 
   - where yyyy is the year of the assets found in that folder or yyyy-yyyy is the range of years for the assets found (if more than one year is found)
   - and Cleaned Subfolder Name just make the folder name cleaner.  
 
-This step is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.
+This step is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.  
+
 
 
 > [!TIP]
