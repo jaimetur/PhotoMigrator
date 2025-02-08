@@ -59,7 +59,18 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
   - -pdup, --process-duplicates <DUPLICATES_REVISED> is now **-procdDup --process-duplicates <DUPLICATES_REVISED>**
 
 
-- [x] Added new option to Synology Photos Support:
+- [x] New Arguments Added: 
+  - **-i,        --input-folder <INPUT_FOLDER>** Specify the input folder that you want to process.
+  - **-o,        --output-folder <OUTPUT_FOLDER>** Specify the output folder to save the result of the processing action.
+  - **-rAlbAss,  --remove-albums-assets** 
+    If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums',  
+    it will also delete the assets (photos/videos) inside each album.
+  - **-AlbFld,   --albums-folders <ALBUMS_FOLDER>**
+    If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich- upload-all', 
+    it will create an Album per each subfolder found in <ALBUMS_FOLDER>.
+
+
+- [x] Added new options to Synology Photos Support:
   - **-suFld,    --synology-upload-folder <INPUT_FOLDER>**  
   - **-sdAll,    --synology-download-all <OUTPUT_FOLDER>**
   - **-srAll,    --synology-remove-all-assets** to remove All assets in Synology Photos
@@ -118,18 +129,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
   - **-irAllAlb, --immich-remove-all-albums** to delete ALL Albums in Immich Photos (optionally all associated assets can be also deleted)
 
 
-- New Arguments Added: 
-  - **-i,        --input-folder <INPUT_FOLDER>** Specify the input folder that you want to process.
-  - **-o,        --output-folder <OUTPUT_FOLDER>** Specify the output folder to save the result of the processing action.
-  - **-rAlbAss,  --remove-albums-assets** 
-    If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums',  
-    it will also delete the assets (photos/videos) inside each album.
-  - **-AlbFld,   --albums-folders <ALBUMS_FOLDER>**
-    If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich- upload-all', 
-    it will create an Album per each subfolder found in <ALBUMS_FOLDER>.
-
-
-
+    
 ---
 
 **Release**: 2.3.0  
