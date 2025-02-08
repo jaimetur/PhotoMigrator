@@ -1,9 +1,7 @@
 from GLOBALS import LOGGER, ARGS, TIMESTAMP, START_TIME, HELP_TEXTS, DEPRIORITIZE_FOLDERS_PATTERNS, SCRIPT_DESCRIPTION
-
 import os, sys
 from datetime import datetime, timedelta
 import Utils
-import Fixers
 from Duplicates import find_duplicates, process_duplicates_actions
 from ServiceGooglePhotos import google_takeout_processor
 from ServiceSynologyPhotos import read_synology_config, logout_synology, synology_upload_albums, synology_upload_ALL, synology_download_albums, synology_download_ALL, synology_remove_empty_albums, synology_remove_duplicates_albums, synology_remove_all_assets, synology_remove_all_albums
@@ -12,7 +10,7 @@ from ServiceImmichPhotos import read_immich_config, logout_immich, immich_upload
 DEFAULT_DUPLICATES_ACTION = False
 EXECUTION_MODE = "default"
 # -------------------------------------------------------------
-# Determine the Execution mode based on the providen arguments:
+# Determine the Execution mode based on the provide arguments:
 # -------------------------------------------------------------
 def detect_and_run_execution_mode():
 
@@ -126,14 +124,14 @@ def mode_AUTOMATED_MIGRATION(info_messages=True):
         # Configure default arguments for mode_google_takeout() execution and RUN it
         if SOURCE.lower() == 'google-photos':
             input_folder = ARGS['input-folder']
-        elif ARGS['SOURCE-TYPE-TAKEOUT-FOLDER']:
+        else:
             input_folder = SOURCE
 
         # For the time being we set the global OUTPUT_TAKEOUT_FOLDER within Synology Photos root folder (otherwise Synology Photos will not see it)
         # TODO: Change this logic to avoid Synology Photos dependency
         config = read_synology_config(config_file='CONFIG.ini', show_info=False)
         if not config['SYNOLOGY_ROOT_PHOTOS_PATH']:
-            LOGGER.warning(f"WARNING: Cannot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
+            LOGGER.warning(f"WARNING: Cannot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'CONFIG.ini' file. Albums will not be created into Synology Photos database")
         else:
             ARGS['output-folder'] = os.path.join(config['SYNOLOGY_ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
             intermediate_folder = ARGS['output-folder']
@@ -158,7 +156,7 @@ def mode_AUTOMATED_MIGRATION(info_messages=True):
         # TODO: Change this logic to avoid Synology Photos dependency
         config = read_synology_config(config_file='CONFIG.ini', show_info=False)
         if not config['SYNOLOGY_ROOT_PHOTOS_PATH']:
-            LOGGER.warning(f"WARNING: Caanot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
+            LOGGER.warning(f"WARNING: Cannot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'CONFIG.ini' file. Albums will not be created into Synology Photos database")
         else:
             ARGS['immich-synology-ALL'] = os.path.join(config['SYNOLOGY_ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
             intermediate_folder = ARGS['immich-synology-ALL']
@@ -170,7 +168,7 @@ def mode_AUTOMATED_MIGRATION(info_messages=True):
         # TODO: Change this logic to avoid Synology Photos dependency
         config = read_synology_config(config_file='CONFIG.ini', show_info=False)
         if not config['SYNOLOGY_ROOT_PHOTOS_PATH']:
-            LOGGER.warning(f"WARNING: Caanot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'nas.config' file. Albums will not be created into Synology Photos database")
+            LOGGER.warning(f"WARNING: Cannot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'CONFIG.ini' file. Albums will not be created into Synology Photos database")
         else:
             ARGS['immich-download-all'] = os.path.join(config['SYNOLOGY_ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
             intermediate_folder = ARGS['immich-download-all']
@@ -365,7 +363,7 @@ def mode_synology_upload_ALL(user_confirmation=True, info_messages=True):
         LOGGER.info(f"Total Albums skipped                    : {total_albums_skipped}")
         LOGGER.info(f"Total Assets uploaded                   : {total_assets_uploaded}")
         LOGGER.info(f"Total Assets added to Albums            : {total_assets_uploaded_within_albums}")
-        LOGGER.info(f"Total Assets added wihtout Albums       : {total_assets_uploaded_without_albums}")
+        LOGGER.info(f"Total Assets added without Albums       : {total_assets_uploaded_without_albums}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -398,7 +396,7 @@ def mode_synology_download_albums(user_confirmation=True, info_messages=True):
         LOGGER.info("                  FINAL SUMMARY:                  ")
         LOGGER.info("==================================================")
         LOGGER.info(f"Total Albums downloaded                 : {albums_downloaded}")
-        LOGGER.info(f"Total Photos downlaoded from Albums     : {photos_downloaded}")
+        LOGGER.info(f"Total Photos downloaded from Albums     : {photos_downloaded}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -444,7 +442,7 @@ def mode_synology_remove_empty_albums(user_confirmation=True, info_messages=True
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
         LOGGER.info(f"INFO: Synology Photos: 'Delete Empty Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO: Flag detected '-srEmpAlb, --synology-remove-empty-albums'. The Script will look for any empty album in Synology Photos database and will detelte them (if any enpty album is found).")
+        LOGGER.info(f"INFO: Flag detected '-srEmpAlb, --synology-remove-empty-albums'. The Script will look for any empty album in Synology Photos database and will delete them (if any empty album is found).")
     # Call the Function
     albums_deleted = synology_remove_empty_albums()
     if info_messages:
@@ -467,13 +465,13 @@ def mode_synology_remove_empty_albums(user_confirmation=True, info_messages=True
 
 def mode_synology_remove_duplicates_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
-        LOGGER.info(f"INFO: Flag detected '-srDupAlb, --synology-delete-deuplicates-albums'.")
+        LOGGER.info(f"INFO: Flag detected '-srDupAlb, --synology-remove-duplicates-albums'.")
         LOGGER.info(HELP_TEXTS["synology-remove-duplicates-albums"])
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
         LOGGER.info(f"INFO: Synology Photos: 'Delete Duplicates Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO: Flag detected '-srDupAlb, --synology-remove-duplicates-albums'. The Script will look for any duplicated album in Synology Photos database and will detelte them (if any duplicated album is found).")
+        LOGGER.info(f"INFO: Flag detected '-srDupAlb, --synology-remove-duplicates-albums'. The Script will look for any duplicated album in Synology Photos database and will delete them (if any duplicated album is found).")
     # Call the Function
     albums_deleted = synology_remove_duplicates_albums()
     if info_messages:
@@ -724,7 +722,7 @@ def mode_immich_remove_empty_albums(user_confirmation=True, info_messages=True):
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
         LOGGER.info(f"INFO: Immich Photos: 'Delete Empty Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO: Flag detected '-irEmpAlb, --immich-remove-empty-albums'. The Script will look for any empty album in Immich Photos database and will detelte them (if any enpty album is found).")
+        LOGGER.info(f"INFO: Flag detected '-irEmpAlb, --immich-remove-empty-albums'. The Script will look for any empty album in Immich Photos database and will delete them (if any empty album is found).")
     # Call the Function
     albums_deleted = immich_remove_empty_albums()
     logout_immich()
@@ -748,13 +746,13 @@ def mode_immich_remove_empty_albums(user_confirmation=True, info_messages=True):
 
 def mode_immich_remove_duplicates_albums(user_confirmation=True, info_messages=True):
     if user_confirmation:
-        LOGGER.info(f"INFO: Flag detected '-irDupAlb, --immich-delete-deuplicates-albums'.")
+        LOGGER.info(f"INFO: Flag detected '-irDupAlb, --immich-remove-duplicates-albums'.")
         LOGGER.info(HELP_TEXTS["immich-remove-duplicates-albums"])
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO: Exiting program.")
             sys.exit(0)
         LOGGER.info(f"INFO: Immich Photos: 'Delete Duplicates Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO: Flag detected '-irDupAlb, --immich-remove-duplicates-albums'. The Script will look for any duplicated album in Immich Photos database and will detelte them (if any duplicated album is found).")
+        LOGGER.info(f"INFO: Flag detected '-irDupAlb, --immich-remove-duplicates-albums'. The Script will look for any duplicated album in Immich Photos database and will delete them (if any duplicated album is found).")
     # Call the Function
     albums_deleted = immich_remove_duplicates_albums()
     logout_immich()

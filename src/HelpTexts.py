@@ -15,7 +15,7 @@ def set_help_texts():
     # EXTRA MODE: GOOGLE PHOTOS #
     ################################
     HELP_TEXTS["google-photos-takeout"] = textwrap.dedent(f"""
-        ATTENTION!!!: This nodule will process your <TAKEOUT_FOLDER> to fix metadata of all your asets and organize them according with the settings defined by user (above settings).
+        ATTENTION!!!: This nodule will process your <TAKEOUT_FOLDER> to fix metadata of all your assets and organize them according with the settings defined by user (above settings).
         """)
 
     ################################
@@ -47,7 +47,7 @@ def set_help_texts():
         
         All the Subfolders with valid assets inside <INPUT_FOLDER> will be considered as an Album, and will create new Album in Synology Photos with the name of the Subfolder.
         
-        If the <INPUT_FOLDER> contains a Subfolder called 'No-Albums' then, all assets inside each that subfoledr will be uploaded without creating any Album for them.
+        If the <INPUT_FOLDER> contains a Subfolder called 'No-Albums' then, all assets inside each that subfolder will be uploaded without creating any Album for them.
         
         Due to Synology Photos limitations, to Upload any folder, it must be placed inside SYNOLOGY_ROOT_FOLDER and all its content must have been indexed before to add any asset to Synology Photos. 
         """)
@@ -108,7 +108,7 @@ def set_help_texts():
         
         All the Subfolders with valid assets inside <INPUT_FOLDER> will be considered as an Album, and will create new Album in Immich Photos with the name of the Subfolder.
         
-        If the <INPUT_FOLDER> contains a Subfolder called 'No-Albums' then, all assets inside each that subfoledr will be uploaded without creating any Album for them.
+        If the <INPUT_FOLDER> contains a Subfolder called 'No-Albums' then, all assets inside each that subfolder will be uploaded without creating any Album for them.
         """)
 
     HELP_TEXTS["immich-download-albums"]  = textwrap.dedent(f"""
@@ -162,7 +162,7 @@ def set_help_texts():
             - move   : This action could be dangerous but is easily reversible if you find that any duplicated file have been moved to Duplicates folder and you want to restore it later
                        You can easily restore it using option -pd, --process-duplicates
             - remove : This action could be dangerous and is irreversible, since the script will remove all duplicates found and will keep only a Principal file per each duplicates set. 
-                       The principal file is chosen carefilly based on some heuristhic methods
+                       The principal file is chosen carefully based on some heuristic methods
         """)
 
     HELP_TEXTS["process-duplicates"]  = textwrap.dedent(f"""
@@ -172,7 +172,7 @@ def set_help_texts():
         You can modify individually each Action column value for each duplicate found, but take into account that the below actions list are irreversible:
         
         Possible Actions in revised CSV file are:
-            - remove_duplicate  : Duplicated file moved to Duplicates folder will be permanentely removed
+            - remove_duplicate  : Duplicated file moved to Duplicates folder will be permanently removed
             - restore_duplicate : Duplicated file moved to Duplicates folder will be restored to its original location
             - replace_duplicate : This action can be used to replace the principal file chosen for each duplicates and select manually other principal file
                                   Duplicated file moved to Duplicates folder will be restored to its original location as principal file
