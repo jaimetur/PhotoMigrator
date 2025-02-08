@@ -402,7 +402,7 @@ NOTE: Step 8 is disabled by default, and is only recommended if you want to save
 
 **Examples of use:**
 
-- **Example:**
+- **Example 1:**
 ```
 ./CloudPhotoMigrator.run --google-input-takeout-folder ./MyTakeout --google-remove-duplicates-files
 ```
