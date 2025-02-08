@@ -1,36 +1,17 @@
+from GLOBALS import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
+
 from CustomHelpFormatter import CustomHelpFormatter, PagedArgumentParser
 import argparse
 import os
 
+choices_for_folder_structure        = ['flatten', 'year', 'year/month', 'year-month']
+choices_for_remove_duplicates       = ['list', 'move', 'remove']
+choices_for_AUTOMATED_MIGRATION_SRC = ['google-photos', 'synology-photos', 'immich-photos']
+choices_for_AUTOMATED_MIGRATION_TGT = ['synology-photos', 'immich-photos']
+
+PARSER = None
+
 def parse_arguments():
-    global ARGS
-    global PARSER
-    global DEFAULT_DUPLICATES_ACTION
-    from CloudPhotoMigrator import SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE, SCRIPT_NAME_VERSION, SCRIPT_DESCRIPTION
-
-    def parse_folders(folders):
-        # Si "folders" es un string, separar por comas o espacios
-        if isinstance(folders, str):
-            return folders.replace(',', ' ').split()
-
-        # Si "folders" es una lista, aplanar un nivel
-        if isinstance(folders, list):
-            flattened = []
-            for item in folders:
-                if isinstance(item, list):
-                    flattened.extend(item)
-                else:
-                    flattened.append(item)
-            return flattened
-
-        # Si no es ni lista ni string, devolver lista vacía
-        return []
-
-    choices_for_folder_structure        = ['flatten', 'year', 'year/month', 'year-month']
-    choices_for_remove_duplicates       = ['list', 'move', 'remove']
-    choices_for_AUTOMATED_MIGRATION_SRC = ['google-photos', 'synology-photos', 'immich-photos']
-    choices_for_AUTOMATED_MIGRATION_TGT = ['synology-photos', 'immich-photos']
-
     # # Regular Parser without Pagination
     # PARSER = argparse.ArgumentParser(
     #         description=SCRIPT_DESCRIPTION,
@@ -46,13 +27,15 @@ def parse_arguments():
     # Acción personalizada para --version
     class VersionAction(argparse.Action):
         def __call__(self, parser, namespace, values, option_string=None):
-            global SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE, SCRIPT_NAME_VERSION, SCRIPT_DESCRIPTION
             print(f"\n{SCRIPT_NAME} {SCRIPT_VERSION} {SCRIPT_DATE} by Jaime Tur (@jaimetur)\n")
             parser.exit()
 
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
     PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
     PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
+    PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="+", help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
+    PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False, help="If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums', it will also delete the assets (photos/videos) inside each album.")
+    # PARSER.add_argument("-woAlb", "--without-albums", action="store_true", default=False, help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will avoid create an Album per each subfolder found in <INPUT_FOLDER>.")
     PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
 
     PARSER.add_argument("-AUTO", "--AUTOMATED-MIGRATION", metavar=("<SOURCE>", "<TARGET>"), nargs=2, default="",
@@ -67,12 +50,12 @@ def parse_arguments():
     # ------------------------------
     # PARSER.add_argument("-gizf", "--google-input-zip-folder", metavar="<ZIP_FOLDER>", default="", help="Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files will be skipped.")
     PARSER.add_argument("-gitf", "--google-input-takeout-folder", metavar="<TAKEOUT_FOLDER>", default="Takeout", help="Specify the Takeout folder to process. If any Zip file is found inside it, the Zip will be extracted to the folder 'Unzipped_Takeout_TIMESTAMP', and will use the that folder as input <TAKEOUT_FOLDER>. Default: 'Takeout'.")
-    PARSER.add_argument("-gofs", "--google-output-folder-suFldfix", metavar="<SUFIX>", default="fixed", help="Specify the suffix for the output folder. Default: 'fixed'")
+    PARSER.add_argument("-gofs", "--google-output-folder-suffix", metavar="<SUFIX>", default="fixed", help="Specify the suffix for the output folder. Default: 'fixed'")
     PARSER.add_argument("-gafs", "--google-albums-folders-structure", metavar=f"{choices_for_folder_structure}", default="flatten", help="Specify the type of folder structure for each Album folder (Default: 'flatten')."
                         , type=lambda s: s.lower()  # Convert input to lowercase
                         , choices=choices_for_folder_structure  # Valid choices
                         )
-    PARSER.add_argument("-gnas", "--google-no-albums-folder-structure", metavar=f"{choices_for_folder_structure}", default="year/month", help="Specify the type of folder structure for 'Others' folder (Default: 'year/month')."
+    PARSER.add_argument("-gnas", "--google-no-albums-folder-structure", metavar=f"{choices_for_folder_structure}", default="year/month", help="Specify the type of folder structure for 'No-Albums' folder (Default: 'year/month')."
                         , type=lambda s: s.lower()  # Convert input to lowercase
                         , choices=choices_for_folder_structure  # Valid choices
                         )
@@ -86,9 +69,6 @@ def parse_arguments():
 
     # EXTRA MODES FOR SYNOLOGY PHOTOS:
     # --------------------------------
-    PARSER.add_argument("-sdea", "--synology-delete-empty-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.")
-    PARSER.add_argument("-sdda", "--synology-delete-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.")
-    PARSER.add_argument("-suFld", "--synology-upload-folder", metavar="<INPUT_FOLDER>", default="", help="The script will look for all Photos/Videos within <INPUT_FOLDER> and will upload them into Synology Photos.")
     PARSER.add_argument("-suAlb", "--synology-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Synology Photos.")
     PARSER.add_argument("-sdAlb", "--synology-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
                         help="The Script will connect to Synology Photos and download the Album whose name is '<ALBUMS_NAME>' to the folder 'Download_Synology' within the Synology Photos root folder."
@@ -98,20 +78,24 @@ def parse_arguments():
                         )
     PARSER.add_argument("-suAll", "--synology-upload-all", metavar="<INPUT_FOLDER>", default="",
                         help="The script will look for all Assets within <INPUT_FOLDER> and will upload them into Synology Photos."
-                           "\n- If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of 'Albums' willl be associated to a new Album in Synology Photos with the same name as the subfolder"
+                           "\n- The script will create a new Album per each Subfolder found (excluding 'No-Albums' folder and its subfolders) and all assets inside each subfolder willl be associated to a new Album in Immich Photos with the same name as the subfolder"
+                           "\n- If the argument '-woAlb, --without-albums' is also passed, then this function will avoid create an Album per each subfolder found in <INPUT_FOLDER>."
                         )
     PARSER.add_argument("-sdAll", "--synology-download-all", metavar="<OUTPUT_FOLDER>", default="",
                         help="The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
                            "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
-                           "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside."
+                           "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
                         )
-
+    PARSER.add_argument("-srEmpAlb", "--synology-remove-empty-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.")
+    PARSER.add_argument("-srDupAlb", "--synology-remove-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.")
+    PARSER.add_argument("-srALL", "--synology-remove-all-assets", action="store_true", default="", help="CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Synology database.")
+    PARSER.add_argument("-srAllAlb", "--synology-remove-all-albums", action="store_true", default="",
+                        help="CAUTION!!! The script will delete ALL your Albums from Synology database."
+                           "\nOptionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
+                        )
 
     # EXTRA MODES FOR IMMINCH PHOTOS:
     # -------------------------------
-    PARSER.add_argument("-idea", "--immich-delete-empty-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.")
-    PARSER.add_argument("-idda", "--immich-delete-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.")
-    PARSER.add_argument("-iuFld", "--immich-upload-folder", metavar="<INPUT_FOLDER>", default="", help="The script will look for all Photos/Videos within <INPUT_FOLDER> and will upload them into Immich Photos.")
     PARSER.add_argument("-iuAlb", "--immich-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Immich Photos.")
     PARSER.add_argument("-idAlb", "--immich-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
                         help="The Script will connect to Immich Photos and download the Album whose name is '<ALBUMS_NAME>' to the folder 'Download_Immich' within the script execution folder."
@@ -121,44 +105,62 @@ def parse_arguments():
                         )
     PARSER.add_argument("-iuAll", "--immich-upload-all", metavar="<INPUT_FOLDER>", default="",
                         help="The script will look for all Assets within <INPUT_FOLDER> and will upload them into Immich Photos."
-                           "\n- If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of 'Albums' willl be associated to a new Album in Immich Photos with the same name as the subfolder"
+                           "\n- The script will create a new Album per each Subfolder found (excluding 'No-Albums' folder and its subfolders) and all assets inside each subfolder willl be associated to a new Album in Immich Photos with the same name as the subfolder"
+                           "\n- If the argument '-woAlb, --without-albums' is also passed, then this function will avoid create an Album per each subfolder found in <INPUT_FOLDER>."
                         )
     PARSER.add_argument("-idAll", "--immich-download-all", metavar="<OUTPUT_FOLDER>", default="",
                         help="The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
                            "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
-                           "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/Others/ and will have a year/month structure inside."
+                           "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
                         )
-    PARSER.add_argument("-idoa", "--immich-delete-orphan-assets", action="store_true", default="", help="The script will look for all Orphan Assets in Immich Database and will delete them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in Config.ini.")
-    PARSER.add_argument("-ideAll", "--immich-delete-all-assets", action="store_true", default="", help="CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Immich database.")
-    PARSER.add_argument("-ideAlb", "--immich-delete-all-albums", action="store_true", default="",
+    PARSER.add_argument("-irEmpAlb", "--immich-remove-empty-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.")
+    PARSER.add_argument("-irDupAlb", "--immich-remove-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.")
+    PARSER.add_argument("-irALL", "--immich-remove-all-assets", action="store_true", default="", help="CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Immich database.")
+    PARSER.add_argument("-irAllAlb", "--immich-remove-all-albums", action="store_true", default="",
                         help="CAUTION!!! The script will delete ALL your Albums from Immich database."
-                           "\nOptionally ALL the Assets associated to each Album can be deleted If you also include the argument '-iiaa, --immich-include-albums-assets' argument."
+                           "\nOptionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
                         )
-    PARSER.add_argument("-iiaa", "--immich-include-albums-assets", action="store_true", default="", help="If used together with --immich-delete-all-albums, it will also delete the assets (photos/videos) inside each album.")
+    PARSER.add_argument("-irOrphan", "--immich-remove-orphan-assets", action="store_true", default="", help="The script will look for all Orphan Assets in Immich Database and will delete them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in CONFIG.ini.")
+
 
 
     # OTHERS STAND-ALONE EXTRA MODES:
     # -------------------------------
-    PARSER.add_argument("-fdup", "--find-duplicates", metavar=f"<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]", nargs="+", default=["list", ""],
+    PARSER.add_argument("-findDup", "--find-duplicates", metavar=f"<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]", nargs="+", default=["list", ""],
                         help="Find duplicates in specified folders."
                            "\n<ACTION> defines the action to take on duplicates ('move', 'delete' or 'list'). Default: 'list' "
                            "\n<DUPLICATES_FOLDER> are one or more folders (string or list), where the script will look for duplicates files. The order of this list is important to determine the principal file of a duplicates set. First folder will have higher priority."
                         )
-    PARSER.add_argument("-pdup", "--process-duplicates", metavar="<DUPLICATES_REVISED_CSV>", default="", help="Specify the Duplicates CSV file revised with specifics Actions in Action column, and the script will execute that Action for each duplicates found in CSV. Valid Actions: restore_duplicate / remove_duplicate / replace_duplicate.")
-    PARSER.add_argument("-fsym", "--fix-symlinks-broken", metavar="<FOLDER_TO_FIX>", default="", help="The script will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_TAKEOUT_FOLDER and some Albums seems to be empty.")
-    PARSER.add_argument("-frcb", "--folders-rename-content-based", metavar="<ALBUMS_FOLDER>", default="", help="Usefull to rename and homogenize all Albums folders found in <ALBUMS_FOLDER> based on the date content found.")
+    PARSER.add_argument("-procDup", "--process-duplicates", metavar="<DUPLICATES_REVISED_CSV>", default="", help="Specify the Duplicates CSV file revised with specifics Actions in Action column, and the script will execute that Action for each duplicates found in CSV. Valid Actions: restore_duplicate / remove_duplicate / replace_duplicate.")
+    PARSER.add_argument("-fixSym", "--fix-symlinks-broken", metavar="<FOLDER_TO_FIX>", default="", help="The script will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_TAKEOUT_FOLDER and some Albums seems to be empty.")
+    PARSER.add_argument("-renFldcb", "--rename-folders-content-based", metavar="<ALBUMS_FOLDER>", default="", help="Usefull to rename and homogenize all Albums folders found in <ALBUMS_FOLDER> based on the date content found.")
 
     # Procesar la acción y las carpetas
 
     # Obtain args from PARSER and create global variable ARGS to easier manipulation of argument variables using the same string as in the argument (this facilitates futures refactors on arguments names)
     args = PARSER.parse_args()
     ARGS = create_global_variable_from_args(args)
+    return ARGS
+
+
+def checkArgs(ARGS):
+    global DEFAULT_DUPLICATES_ACTION
+
+    # Remove '_' at the begining of the string in case it has it.
+    ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
 
     # Remove last / for all folders expected as arguments:
-    ARGS['input-folder'] = ARGS['input-folder'].lstrip('_')
-    ARGS['output-folder'] = ARGS['output-folder'].lstrip('_')
-    ARGS['google-input-takeout-folder'] = ARGS['google-input-takeout-folder'].rstrip('/\\')
-    ARGS['google-output-folder-suFldfix'] = ARGS['google-output-folder-suFldfix'].lstrip('_')
+    ARGS['input-folder']                    = ARGS['input-folder'].rstrip('/\\')
+    ARGS['output-folder']                   = ARGS['output-folder'].rstrip('/\\')
+    ARGS['google-input-takeout-folder']     = ARGS['google-input-takeout-folder'].rstrip('/\\')
+    ARGS['synology-upload-albums']          = ARGS['synology-upload-albums'].rstrip('/\\')
+    ARGS['synology-upload-all']             = ARGS['synology-upload-all'].rstrip('/\\')
+    ARGS['synology-download-all']           = ARGS['synology-download-all'].rstrip('/\\')
+    ARGS['immich-upload-albums']            = ARGS['immich-upload-albums'].rstrip('/\\')
+    ARGS['immich-upload-all']               = ARGS['immich-upload-all'].rstrip('/\\')
+    ARGS['immich-download-all']             = ARGS['immich-download-all'].rstrip('/\\')
+    ARGS['fix-symlinks-broken']             = ARGS['fix-symlinks-broken'].rstrip('/\\')
+    ARGS['rename-folders-content-based']    = ARGS['rename-folders-content-based'].rstrip('/\\')
 
     # Parse AUTOMATED-MIGRATION Arguments
     ARGS['google-input-zip-folder'] = None
@@ -185,6 +187,9 @@ def parse_arguments():
             print(f"❌ ERROR: Target value '{target}' is not valid. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT}")
             exit(1)
 
+    # Parse albums-folders Arguments to convert to a List if more than one Album folder is providen
+    ARGS['albums-folders'] = parse_folders(ARGS['albums-folders'])
+
     # Parse duplicates-folders Arguments
     ARGS['duplicates-folders'] = []
     ARGS['duplicates-action'] = ""
@@ -199,11 +204,29 @@ def parse_arguments():
         DEFAULT_DUPLICATES_ACTION = True
     ARGS['duplicates-folders'] = parse_folders(ARGS['duplicates-folders'] )
 
-    # Parse 'immich-delete-all-albums in combination with 'including-albums-assets'
-    if ARGS['immich-include-albums-assets'] and not ARGS['immich-delete-all-albums']:
-        PARSER.error("--immich-include-albums-assets is a modifier of argument --immich-delete-all-albums and cannot work alone.")
+    # Parse 'immich-remove-all-albums in combination with 'including-albums-assets'
+    if ARGS['remove-albums-assets'] and not ARGS['immich-remove-all-albums']:
+        PARSER.error("--remove-albums-assets is a modifier of argument --immich-remove-all-albums and cannot work alone.")
 
-    return ARGS, PARSER
+    return ARGS
+
+def parse_folders(folders):
+    # Si "folders" es un string, separar por comas o espacios
+    if isinstance(folders, str):
+        return folders.replace(',', ' ').split()
+
+    # Si "folders" es una lista, aplanar un nivel
+    if isinstance(folders, list):
+        flattened = []
+        for item in folders:
+            if isinstance(item, list):
+                flattened.extend(item)
+            else:
+                flattened.append(item.rstrip(','))
+        return flattened
+
+    # Si no es ni lista ni string, devolver lista vacía
+    return []
 
 def create_global_variable_from_args(args):
     """
@@ -214,3 +237,6 @@ def create_global_variable_from_args(args):
     """
     ARGS = {arg_name.replace("_", "-"): arg_value for arg_name, arg_value in vars(args).items()}
     return ARGS
+
+def getParser():
+    return PARSER

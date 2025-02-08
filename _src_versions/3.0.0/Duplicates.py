@@ -46,7 +46,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
     # ===========================
     # AUX FUNCTIONS
     # ===========================
-    from LoggerConfig import LOGGER
+    from GLOBALS import LOGGER
     def calculate_file_hash_optimized(path, full_hash=False, chunk_size=1024 * 1024):
         """
         Calculate the hash of a file. Optionally calculates a partial hash for speed.
@@ -451,7 +451,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
     return duplicates_counter
 
 def process_duplicates_actions(csv_revised: str):
-    from LoggerConfig import LOGGER
+    from GLOBALS import LOGGER
     import unicodedata
 
     def normalize_path(path: str) -> str:

@@ -1,3 +1,5 @@
+from GLOBALS import SCRIPT_NAME_VERSION
+
 import textwrap
 import argparse
 import re
@@ -139,9 +141,9 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         # 5) Diccionario de tokens forzados
         force_new_line_for_tokens = {
             "[-gitf <TAKEOUT_FOLDER>]": False   # Salto de línea antes, pero sigue reagrupando
-            ,"[-idea]": False   # Salto de línea antes, pero sigue reagrupando
-            ,"[-fsym <FOLDER_TO_FIX>]": False   # Salto de línea antes, pero sigue reagrupando
-            ,"[-fdup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]": True  # Va solo
+            ,"[-irEmpAlb]": False   # Salto de línea antes, pero sigue reagrupando
+            ,"[-fixSym <FOLDER_TO_FIX>]": False   # Salto de línea antes, pero sigue reagrupando
+            ,"[-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]": True  # Va solo
         }
         # 6) Ancho real
         max_width = getattr(self, '_width', 90)
@@ -178,7 +180,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
 
         # Texto de ayuda, formateado e identado
         if action.help:
-            ident_spaces = 11
+            ident_spaces = 13
             help_text = justificar_texto(action.help, initial_indent=" " * ident_spaces, subsequent_indent=" " * ident_spaces)
 
             # EXTRA MODES for Google Photos Takeout Management: two lines before "Specify the Takeout folder to process."
@@ -194,8 +196,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
 
-            # EXTRA MODES for Synology Photos Management: two lines before "Album is empty, will remove it from Synology Photos database."
-            if help_text.find("Album is empty, will remove it from Synology Photos database.")!=-1:
+            # EXTRA MODES for Synology Photos Management: two lines before the string
+            if help_text.find("and will create one Album per subfolder into Synology Photos.")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
                 SYNOLOGY PHOTOS MANAGEMENT:
@@ -206,8 +208,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
 
-            # EXTRA MODES for Immich Photos Management: two lines before "is empty, will remove it from Immich Photos database."
-            if help_text.find("is empty, will remove it from Immich Photos database.")!=-1:
+            # EXTRA MODES for Immich Photos Management: two lines before the string
+            if help_text.find("and will create one Album per subfolder into Immich Photos.")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
                 IMMICH PHOTOS MANAGEMENT:
@@ -252,18 +254,22 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             for opt in action.option_strings:
                 # Argumento corto, agrega una coma detrás
                 if opt.startswith("-") and not opt.startswith("--"):
-                    if len(opt) == 7:
+                    if len(opt) == 9:
                         option_strings.append(f"{opt},")
-                    if len(opt) == 6:
+                    if len(opt) == 8:
                         option_strings.append(f"{opt}, ")
-                    if len(opt) == 5:
+                    if len(opt) == 7:
                         option_strings.append(f"{opt},  ")
-                    if len(opt) == 4:
+                    if len(opt) == 6:
                         option_strings.append(f"{opt},   ")
-                    elif len(opt) == 3:
+                    if len(opt) == 5:
                         option_strings.append(f"{opt},    ")
-                    elif len(opt) == 2:
+                    if len(opt) == 4:
                         option_strings.append(f"{opt},     ")
+                    elif len(opt) == 3:
+                        option_strings.append(f"{opt},      ")
+                    elif len(opt) == 2:
+                        option_strings.append(f"{opt},       ")
                 else:
                     option_strings.append(f"{opt}")
 
@@ -280,13 +286,13 @@ class PagedArgumentParser(argparse.ArgumentParser):
     """
     Sobrescribimos ArgumentParser para que 'print_help()' use un paginador.
     """
+    global SCRIPT_DESCRIPTION
 
     def custom_pager(self, text):
         """
         Paginador con curses que adapta dinámicamente el texto al tamaño de la terminal.
         """
 
-        from CloudPhotoMigrator import SCRIPT_NAME_VERSION
         # Expresión regular para detectar códigos ANSI
         ANSI_ESCAPE = re.compile(r'\x1b\[[0-9;]*m')
 
