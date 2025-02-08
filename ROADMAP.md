@@ -1,20 +1,18 @@
 # ROADMAP:
 
-## 3.0.0 (10/02/2025):
+## 3.0.0 (14/02/2025):
 ### TODO:
-- [ ] Add option -srAll to remove All assets in Synology Photos
-- [ ] Add option -srAlb to remove Albums in Synology Photos (optionally all associated assets can be also deleted)
 
 - [ ] Complete function -suFld/-suAlb/-suAll to upload external folders to Synology photos. Make sure to ignore @eaDir folders in all of them
   - Try to upload folders outside Synology Photos ROOT folder
-- [ ] Allow users to choose the folder where dowonload the assets for option -sdAlb and -sdAll 
+- [ ] Allow users to choose the folder where download the assets for option -sdAlb and -sdAll 
   - Current implementation of -sdAlb / -sdAll does not allow this ==> Investigate other implementation
 
 - #### Tests Pending:
 - [x] Deep Test on Immich Support functions
 - [ ] Deep Test on Synology Support functions
 - [ ] Deep Test on Google Photos function
-- [ ] Deep Test on --AUTOMATED-MiGRATION MODE
+- [ ] Deep Test on --AUTOMATED-MIGRATION MODE
 
 
 ### DONE:

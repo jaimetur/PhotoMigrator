@@ -33,11 +33,11 @@ SCRIPT_DESCRIPTION              = textwrap.dedent(f"""
                                 )
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# FUCNTIONS TO INITIALIZE GLOBAL VARIABLES THAT DEPENDS OF OTHER MODULES
-# Since we cannot import other modules directly on the Globals.py module to avoid circular references, we need to initialize those variables using independent functions.
+# FUNCTIONS TO INITIALIZE GLOBAL VARIABLES THAT DEPENDS OF OTHER MODULES
+# Since we cannot import other modules directly on the GLOBALS.py module to avoid circular references, we need to initialize those variables using independent functions.
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 def set_ARGS_PARSER():
-    from ParseArgs import parse_arguments, checkArgs, getParser
+    from ArgsParser import parse_arguments, checkArgs, getParser
     global ARGS, PARSER
     ARGS = checkArgs(parse_arguments())
     PARSER = getParser()

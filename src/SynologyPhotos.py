@@ -61,7 +61,7 @@ def read_synology_config(config_file='CONFIG.ini', show_info=True):
         dict: The loaded configuration dictionary.
     """
     global CONFIG, SYNOLOGY_URL, SYNOLOGY_USERNAME, SYNOLOGY_PASSWORD, SYNOLOGY_ROOT_PHOTOS_PATH
-    from Globals import LOGGER  # Import the logger inside the function
+    from GLOBALS import LOGGER  # Import the logger inside the function
     from Config import load_config
 
     if CONFIG:
@@ -117,7 +117,7 @@ def login_synology():
     """
     global SESSION
     global SID
-    from Globals import LOGGER
+    from GLOBALS import LOGGER
 
     # If a session is already active, return it instead of creating a new one
     if SESSION and SID:
@@ -157,7 +157,7 @@ def logout_synology():
     """
     global SESSION
     global SID
-    from Globals import LOGGER
+    from GLOBALS import LOGGER
 
     if SESSION and SID:
         url = f"{SYNOLOGY_URL}/webapi/auth.cgi"
@@ -187,7 +187,7 @@ def start_reindex_synology_photos_with_api(type='basic'):
     Args:
         type (str): 'basic' or 'thumbnail'.
     """
-    from Globals import LOGGER  # Local import of the logger
+    from GLOBALS import LOGGER  # Local import of the logger
 
     login_synology()
 
@@ -226,7 +226,7 @@ def start_reindex_synology_photos_with_command(type='basic'):
     Args:
         type (str): 'basic' or 'thumbnail'.
     """
-    from Globals import LOGGER  # Local import of the logger
+    from GLOBALS import LOGGER  # Local import of the logger
 
     command = [
         'sudo',  # Run with administrator privileges
@@ -259,7 +259,7 @@ def wait_for_reindexing_synology_photos():
     Waits for reindexing to complete by checking the status every 10 seconds.
     Logs the reindexing progress.
     """
-    from Globals import LOGGER  # Local import of the logger
+    from GLOBALS import LOGGER  # Local import of the logger
     import time  # Local import of time
     login_synology()
 
@@ -313,7 +313,7 @@ def get_photos_root_folder_id():
         int: The ID of the folder (folder_id).
     """
 
-    from Globals import LOGGER  # Import the logger inside the function
+    from GLOBALS import LOGGER  # Import the logger inside the function
 
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
     params = {
@@ -349,7 +349,7 @@ def get_folder_id(search_in_folder_id, folder_name):
     Returns:
         int: The ID of the folder (folder_id), or None if not found.
     """
-    from Globals import LOGGER  # Import the logger inside the function
+    from GLOBALS import LOGGER  # Import the logger inside the function
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
 
     # First, get folder_name for search_in_folder_id
@@ -422,7 +422,7 @@ def get_folder_id_or_create_folder(folder_name, parent_folder_id=None):
     Returns:
         str: The folder ID if found or successfully created, otherwise None.
     """
-    from Globals import LOGGER
+    from GLOBALS import LOGGER
     login_synology()
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
 
@@ -461,7 +461,7 @@ def get_folder_id_or_create_folder(folder_name, parent_folder_id=None):
 # -----------------------------------------------------------------------------
 def create_album(album_name):
     # Create the album if the folder contains supported files
-    from Globals import LOGGER  # Import the logger inside the function
+    from GLOBALS import LOGGER  # Import the logger inside the function
     params = {
         "api": "SYNO.Foto.Browse.NormalAlbum",
         "method": "create",
@@ -487,7 +487,7 @@ def delete_album(album_id, album_name):
         album_id (str): ID of the album to delete.
         album_name (str): Name of the album to delete.
     """
-    from Globals import LOGGER  # Import the logger inside the function
+    from GLOBALS import LOGGER  # Import the logger inside the function
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
     params = {
         "api": "SYNO.Foto.Browse.Album",
@@ -509,7 +509,7 @@ def get_albums():
     Returns:
         dict: A dictionary with album IDs as keys and album names as values.
     """
-    from Globals import LOGGER  # Import the logger inside the function
+    from GLOBALS import LOGGER  # Import the logger inside the function
 
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
     offset = 0
@@ -547,7 +547,7 @@ def get_albums_own_and_shared():
     Returns:
         list: A list of albums.
     """
-    from Globals import LOGGER
+    from GLOBALS import LOGGER
     login_synology()
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
     offset = 0
@@ -594,7 +594,7 @@ def get_album_items_count(album_id, album_name):
     Returns:
         int: Number of items in the album.
     """
-    from Globals import LOGGER  # Import the logger inside the function
+    from GLOBALS import LOGGER  # Import the logger inside the function
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
     params = {
         "api": "SYNO.Foto.Browse.Item",
@@ -623,7 +623,7 @@ def get_album_items_size(album_id, album_name):
     Returns:
         int: Total size of the items in the album in bytes.
     """
-    from Globals import LOGGER  # Import the logger inside the function
+    from GLOBALS import LOGGER  # Import the logger inside the function
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
     offset = 0
     limit = 5000
@@ -670,7 +670,7 @@ def get_all_assets():
     Returns:
         list: A list of photos in the album.
     """
-    from Globals import LOGGER
+    from GLOBALS import LOGGER
     login_synology()
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
     offset = 0
@@ -712,7 +712,7 @@ def get_assets_from_album(album_name, album_id):
     Returns:
         list: A list of photos in the album.
     """
-    from Globals import LOGGER
+    from GLOBALS import LOGGER
     login_synology()
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
     offset = 0
@@ -756,7 +756,7 @@ def add_assets_to_album(folder_id, album_name):
     Returns:
         int: The total number of assets added to the album, or -1 in case of an error.
     """
-    from Globals import LOGGER  # Import the logger inside the function
+    from GLOBALS import LOGGER  # Import the logger inside the function
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
 
     # Ensure the folder has at least one asset indexed
@@ -848,7 +848,7 @@ def delete_assets(asset_ids):
     Returns:
         list: A list of photos in the album.
     """
-    from Globals import LOGGER
+    from GLOBALS import LOGGER
     login_synology()
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
 
@@ -887,7 +887,7 @@ def upload_file_to_synology(file_path, album_name=None):
     Returns:
         int: Status code indicating success or failure.
     """
-    from Globals import LOGGER  # Import the logger inside the function
+    from GLOBALS import LOGGER  # Import the logger inside the function
     stats = os.stat(file_path)
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
 
@@ -954,7 +954,7 @@ def upload_file_to_synology_folder(file_path, album_name=None):
     Returns:
         int: Status code indicating success or failure.
     """
-    from Globals import LOGGER  # Import the logger inside the function
+    from GLOBALS import LOGGER  # Import the logger inside the function
     stats = os.stat(file_path)
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
 
@@ -993,7 +993,7 @@ def download_assets(folder_id, folder_name, photos_list):
     Returns:
         int: Number of photos successfully copied.
     """
-    from Globals import LOGGER
+    from GLOBALS import LOGGER
     from math import ceil
     login_synology()
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
@@ -1050,7 +1050,7 @@ def synology_upload_albums(albums_folder):
     """
 
     # Import logger and log in to the NAS
-    from Globals import LOGGER
+    from GLOBALS import LOGGER
     login_synology()
 
     # Check if albums_folder is inside SYNOLOGY_ROOT_PHOTOS_PATH
@@ -1127,7 +1127,7 @@ def synology_upload_no_albums(folder):
     """
 
     # Import logger and log in to the NAS
-    from Globals import LOGGER
+    from GLOBALS import LOGGER
     login_synology()
 
     LOGGER.warning("WARNING: This mode is not yet supported. Exiting.")
@@ -1207,7 +1207,7 @@ def synology_upload_ALL(input_folder, without_albums=False):
 
     Returns the total number of albums and assets uploaded.
     """
-    from Globals import LOGGER  # Import global LOGGER
+    from GLOBALS import LOGGER  # Import global LOGGER
     login_synology()
 
     total_assets_uploaded_within_albums = 0
@@ -1245,7 +1245,7 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
     """
 
     # Import logger and log in to the NAS
-    from Globals import LOGGER
+    from GLOBALS import LOGGER
     login_synology()
     # Variables to return
     albums_downloaded = 0
@@ -1337,7 +1337,7 @@ def synology_download_no_albums(output_folder='Downloads_Synology'):
     """
 
     # Import logger and log in to the NAS
-    from Globals import LOGGER
+    from GLOBALS import LOGGER
     login_synology()
     output_folder = os.path.join(output_folder,"Albums")
     os.makedirs(output_folder, exist_ok=True)
@@ -1356,7 +1356,7 @@ def synology_download_no_albums(output_folder='Downloads_Synology'):
 # Function synology_download_ALL()
 def synology_download_ALL(output_folder="Downloads_Synology"):
     # Import logger and log in to the NAS
-    from Globals import LOGGER
+    from GLOBALS import LOGGER
     login_synology()
 
     LOGGER.warning("WARNING: This mode is not yet supported. Exiting.")
@@ -1375,7 +1375,7 @@ def synology_remove_empty_albums():
     """
 
     # Import logger and log in to the NAS
-    from Globals import LOGGER
+    from GLOBALS import LOGGER
     login_synology()
 
     # List albums and identify empty ones
@@ -1404,7 +1404,7 @@ def synology_remove_duplicates_albums():
     """
 
     # Import logger and log in to the NAS
-    from Globals import LOGGER
+    from GLOBALS import LOGGER
     login_synology()
 
     # List albums and identify duplicates
@@ -1448,7 +1448,7 @@ def synology_remove_duplicates_albums():
 #          DELETE ALL ASSETS FROM SYNOLOGY DATABASE
 # -----------------------------------------------------------------------------
 def synology_remove_all_assets():
-    from Globals import LOGGER  # Import global LOGGER
+    from GLOBALS import LOGGER  # Import global LOGGER
     login_synology()
     all_assets = get_all_assets()
     total_assets_found = len(all_assets)
@@ -1482,7 +1482,7 @@ def synology_remove_all_albums(deleteAlbumsAssets=False):
     Deletes all albums and optionally also its associated assets.
     Returns the number of albums deleted and the number of assets deleted.
     """
-    from Globals import LOGGER  # Import global LOGGER
+    from GLOBALS import LOGGER  # Import global LOGGER
     login_synology()
     albums = get_albums()
     if not albums:
@@ -1522,7 +1522,7 @@ def synology_remove_all_albums(deleteAlbumsAssets=False):
 ##############################################################################
 if __name__ == "__main__":
     # Create initialize LOGGER.
-    from Globals import set_ARGS_PARSER
+    from GLOBALS import set_ARGS_PARSER
     set_ARGS_PARSER()
 
     # 0) Read configuration and log in

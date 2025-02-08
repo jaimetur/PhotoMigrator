@@ -1,4 +1,4 @@
-from Globals import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
+from GLOBALS import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
 
 from CustomHelpFormatter import CustomHelpFormatter, PagedArgumentParser
 import argparse

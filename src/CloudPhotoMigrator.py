@@ -1,4 +1,4 @@
-from Globals import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME
+from GLOBALS import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME
 import os,sys
 from Utils import check_OS_and_Terminal
 from ExecutionModes import detect_and_run_execution_mode

@@ -1,4 +1,4 @@
-from Globals import SCRIPT_NAME_VERSION
+from GLOBALS import SCRIPT_NAME_VERSION
 
 import textwrap
 import argparse
