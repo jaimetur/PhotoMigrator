@@ -1,6 +1,37 @@
 # LoggerConfig.py
 import os,sys
 import logging
+from colorama import Fore, Style
+
+# Clase personalizada para formatear solo el manejador detallado
+class CustomFormatter(logging.Formatter):
+    """Formato personalizado con colores ANSI."""
+    COLORS = {
+        "DEBUG": Fore.BLUE,
+        "INFO": Fore.GREEN,
+        "WARNING": Fore.YELLOW,
+        "ERROR": Fore.RED,
+        "CRITICAL": Fore.MAGENTA,
+        }
+    def format(self, record):
+        # Aplicamos el color segun el nivel de logging
+        color = self.COLORS.get(record.levelname, "")
+        record.msg = f"{color}{record.msg}{Style.RESET_ALL}"
+        
+        # Crear una copia del mensaje para evitar modificar record.msg globalmente 
+        # y quitamos las palabras INFO:, WARNING: y ERROR: de la cadena del mensaje 
+        # para evitar redundancia en el log (los dejaremos solo para logs en texto plano)
+        original_msg = record.msg
+        if record.levelname == "INFO":
+            record.msg = record.msg.replace("INFO: ", "")
+        elif record.levelname == "WARNING":
+            record.msg = record.msg.replace("WARNING: ", "")
+        elif record.levelname == "ERROR":
+            record.msg = record.msg.replace("ERROR: ", "")
+        formatted_message = super().format(record)
+        # Restaurar el mensaje original
+        record.msg = original_msg
+        return formatted_message
 
 def log_setup(log_folder="Logs", log_filename=None, timestamp=None, skip_logfile=False, skip_console=False, detail_log=True, plain_log=False):
     """
@@ -34,21 +65,7 @@ def log_setup(log_folder="Logs", log_filename=None, timestamp=None, skip_logfile
     if not skip_logfile:
         if detail_log:
             # Set up file handler (detailed output with timestamps)
-            # Clase personalizada para formatear solo el manejador detallado
-            class CustomFormatter(logging.Formatter):
-                def format(self, record):
-                    # Crear una copia del mensaje para evitar modificar record.msg globalmente
-                    original_msg = record.msg
-                    if record.levelname == "INFO":
-                        record.msg = record.msg.replace("INFO: ", "")
-                    elif record.levelname == "WARNING":
-                        record.msg = record.msg.replace("WARNING: ", "")
-                    elif record.levelname == "ERROR":
-                        record.msg = record.msg.replace("ERROR: ", "")
-                    formatted_message = super().format(record)
-                    # Restaurar el mensaje original
-                    record.msg = original_msg
-                    return formatted_message
+
             log_file = os.path.join(log_folder, log_filename + '.log')
             file_handler_detailed = logging.FileHandler(log_file, encoding="utf-8")
             file_handler_detailed.setLevel(log_level)
