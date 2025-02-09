@@ -409,6 +409,7 @@ def get_folder_id(search_in_folder_id, folder_name):
 
 
 # Function to obtain or create a folder
+# TODO: refactor this function to create_folder
 def get_folder_id_or_create_folder(folder_name, parent_folder_id=None):
     """
     Retrieves the folder ID of a given folder name within a parent folder in Synology Photos.
@@ -455,6 +456,15 @@ def get_folder_id_or_create_folder(folder_name, parent_folder_id=None):
         LOGGER.error(f"ERROR: Failed to create the folder: '{folder_name}'")
         return None
 
+# Function to delete a folder
+# TODO: Complete this function
+def delete_folder(folder_id):
+  pass
+
+# Function to return the number of files within a folder
+# TODO: Complete this function
+def get_folder_items_count(folder_id, folder_name):
+  pass
 
 # -----------------------------------------------------------------------------
 #                          ALBUMS FUNCTIONS
@@ -658,7 +668,6 @@ def get_album_items_size(album_id, album_name):
 # -----------------------------------------------------------------------------
 #                          ASSETS (FOTOS/VIDEOS) FUNCTIONS
 # -----------------------------------------------------------------------------
-
 def get_all_assets():
     """
     Lists photos in a specific album.
@@ -700,6 +709,7 @@ def get_all_assets():
             LOGGER.error(f"ERROR: Exception while listing assets", e)
             return []
     return all_assets[0]
+
 
 def get_assets_from_album(album_name, album_id):
     """
@@ -875,7 +885,7 @@ def delete_assets(asset_ids):
         return False
     return True
 
-
+# TODO: Refactor to upload_asset()
 def upload_file_to_synology(file_path, album_name=None):
     """
     Uploads a file (photo or video) to a Synology Photos folder.
@@ -942,7 +952,7 @@ def upload_file_to_synology(file_path, album_name=None):
         LOGGER.warning(f"WARNING: Cannot upload asset: '{file_path}' due to API call error. Skipped!")
         return -1
 
-
+# TODO: Refactor to add_asset_to_folder() and ise the id that returns upload_asset() to associate it to a folder
 def upload_file_to_synology_folder(file_path, album_name=None):
     """
     Uploads a file (photo or video) to a Synology Photos folder.
@@ -1025,9 +1035,6 @@ def download_assets(folder_id, folder_name, photos_list):
         return extracted_photos
     except Exception as e:
         LOGGER.error(f"ERROR: Exception while copying assets batches: {e}")
-
-
-
 
 ##############################################################################
 #                           END OF AUX FUNCTIONS                             #
