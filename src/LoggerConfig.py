@@ -18,7 +18,7 @@ def log_setup(log_folder="Logs", log_filename=None, timestamp=None, skip_logfile
     current_directory = os.getcwd()
     log_folder = os.path.join(current_directory, log_folder)
     os.makedirs(log_folder, exist_ok=True)
-    log_level = logging.INFO
+    log_level = logging.DEBUG
 
     # Clear existing handlers to avoid duplicate logs
     LOGGER = logging.getLogger()

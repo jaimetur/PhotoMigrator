@@ -33,6 +33,13 @@ if __name__ == "__main__":
     #     sys.argv.append("-z")
     #     sys.argv.append("Zip_folder")
     #     print(f"INFO: No argument detected. Using default value '{sys.argv[2]}' for <ZIP_FOLDER>'.")
-    current_directory = os.getcwd()
-    print(current_directory)
+
+    # Definir la ruta de trabajo deseada
+    target_directory = r"R:\jaimetur\CloudPhotoMigrator"
+    # Verificar si la carpeta existe y cambiar a ella si existe
+    if os.path.exists(target_directory) and os.path.isdir(target_directory):
+        os.chdir(target_directory)
+        print(f"Directorio cambiado a: {os.getcwd()}")
+        current_directory = os.getcwd()
+        print(current_directory)
     main()
