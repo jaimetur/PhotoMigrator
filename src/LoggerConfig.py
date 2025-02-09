@@ -1,11 +1,11 @@
 # LoggerConfig.py
 import os,sys
 import logging
+from colorama import Fore, Style
 
 # Clase personalizada para formatear solo el manejador detallado
 class CustomFormatter(logging.Formatter):
     """Formato personalizado con colores ANSI."""
-    from colorama import Fore, Style
     COLORS = {
         "DEBUG": Fore.BLUE,
         "INFO": Fore.GREEN,
@@ -65,7 +65,6 @@ def log_setup(log_folder="Logs", log_filename=None, timestamp=None, skip_logfile
     if not skip_logfile:
         if detail_log:
             # Set up file handler (detailed output with timestamps)
-
             log_file = os.path.join(log_folder, log_filename + '.log')
             file_handler_detailed = logging.FileHandler(log_file, encoding="utf-8")
             file_handler_detailed.setLevel(log_level)
