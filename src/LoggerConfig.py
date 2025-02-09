@@ -1,11 +1,11 @@
 # LoggerConfig.py
 import os,sys
 import logging
-from colorama import Fore, Style
 
 # Clase personalizada para formatear solo el manejador detallado
 class CustomFormatter(logging.Formatter):
     """Formato personalizado con colores ANSI."""
+    from colorama import Fore, Style
     COLORS = {
         "DEBUG": Fore.BLUE,
         "INFO": Fore.GREEN,
