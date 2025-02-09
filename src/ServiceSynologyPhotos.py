@@ -885,7 +885,7 @@ def delete_assets(asset_ids):
         return False
     return True
 
-
+# TODO: Refactor to upload_asset()
 def upload_file_to_synology(file_path, album_name=None):
     """
     Uploads a file (photo or video) to a Synology Photos folder.
@@ -952,7 +952,7 @@ def upload_file_to_synology(file_path, album_name=None):
         LOGGER.warning(f"WARNING: Cannot upload asset: '{file_path}' due to API call error. Skipped!")
         return -1
 
-
+# TODO: Refactor to add_asset_to_folder() and ise the id that returns upload_asset() to associate it to a folder
 def upload_file_to_synology_folder(file_path, album_name=None):
     """
     Uploads a file (photo or video) to a Synology Photos folder.
@@ -1035,9 +1035,6 @@ def download_assets(folder_id, folder_name, photos_list):
         return extracted_photos
     except Exception as e:
         LOGGER.error(f"ERROR: Exception while copying assets batches: {e}")
-
-
-
 
 ##############################################################################
 #                           END OF AUX FUNCTIONS                             #
