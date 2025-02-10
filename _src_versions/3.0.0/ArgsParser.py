@@ -1,6 +1,7 @@
-from GLOBALS import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
+from GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
 
-from CustomHelpFormatter import CustomHelpFormatter, PagedArgumentParser
+from CustomHelpFormatter import CustomHelpFormatter
+from CustomPager import PagedParser
 import argparse
 import os
 
@@ -19,7 +20,7 @@ def parse_arguments():
     # )
 
     # Parser with Pagination:
-    PARSER = PagedArgumentParser(
+    PARSER = PagedParser(
         description=SCRIPT_DESCRIPTION,
         formatter_class=CustomHelpFormatter,  # Aplica el formatter
     )
@@ -33,7 +34,7 @@ def parse_arguments():
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
     PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
     PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
-    PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="+", help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
+    PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
     PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False, help="If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums', it will also delete the assets (photos/videos) inside each album.")
     # PARSER.add_argument("-woAlb", "--without-albums", action="store_true", default=False, help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will avoid create an Album per each subfolder found in <INPUT_FOLDER>.")
     PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
@@ -172,23 +173,25 @@ def checkArgs(ARGS):
         if source.lower() == 'google-photos':
             input_folder = ARGS['input-folder']
             if not os.path.isdir(input_folder):
-                print(f"ERROR: 'google-photos' detected as Source for the Automated Migration process, but not valid <INPUT_FOLDER> have been providen. ")
+                print(f"ERROR   : 'google-photos' detected as Source for the Automated Migration process, but not valid <INPUT_FOLDER> have been providen. ")
                 print(f"Please use -i <INPUT_FOLDER> to specify where your Google Photos Takeout is located.")
         # If source is not in the list of valid sources choices, then if it is a valid Input Takeout Folder from Google Photos
         elif source.lower() not in choices_for_AUTOMATED_MIGRATION_SRC:
-            print(f"WARNING: Source value '{source}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_SRC}...")
-            print(f"WARNING: Assuming that it is the input takeout folder for 'google-photos'")
+            print(f"WARNING : Source value '{source}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_SRC}...")
+            print(f"WARNING : Assuming that it is the input takeout folder for 'google-photos'")
             if not os.path.isdir(source):
-                print(f"❌ ERROR: Source Path '{source}' is not a valid Input Takeout Folder for 'google-photos' migration. Exiting...")
+                print(f"❌ ERROR   : Source Path '{source}' is not a valid Input Takeout Folder for 'google-photos' migration. Exiting...")
                 exit(1)
             ARGS['SOURCE-TYPE-TAKEOUT-FOLDER'] = True
         # If the target is not in the list of valid targets choices, exit.
         if target.lower() not in choices_for_AUTOMATED_MIGRATION_TGT:
-            print(f"❌ ERROR: Target value '{target}' is not valid. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT}")
+            print(f"❌ ERROR   : Target value '{target}' is not valid. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT}")
             exit(1)
 
-    # Parse albums-folders Arguments to convert to a List if more than one Album folder is providen
+    # Parse albums-folders Arguments to convert to a List if more than one Album folder is provide
     ARGS['albums-folders'] = parse_folders(ARGS['albums-folders'])
+    if ARGS['albums-folders'] == []:
+        ARGS['albums-folders'] = 'Albums'
 
     # Parse duplicates-folders Arguments
     ARGS['duplicates-folders'] = []

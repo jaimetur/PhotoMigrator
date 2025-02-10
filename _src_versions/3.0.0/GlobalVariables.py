@@ -21,6 +21,7 @@ LOGGER                          = None
 
 # List of Folder to Deprioritize when looking for duplicates.
 DEPRIORITIZE_FOLDERS_PATTERNS   = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS', '*No-Albums', '*Others', '*Variad[oa]*', '*Vari[oa]*', '*Miscellaneous*', '*M[oó]vil*', r'\bfotos\b\s+(\w+)\s*$', r'fotos de \w y \w\s*$', r'fotos de \w\s*$', '*Fotos_de*', '*Fotos_con', '*Fotos de*', '*Fotos con*']
+
 # Script description
 SCRIPT_DESCRIPTION              = textwrap.dedent(f"""
                                 {SCRIPT_NAME_VERSION} - {SCRIPT_DATE}
@@ -34,7 +35,7 @@ SCRIPT_DESCRIPTION              = textwrap.dedent(f"""
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS TO INITIALIZE GLOBAL VARIABLES THAT DEPENDS OF OTHER MODULES
-# Since we cannot import other modules directly on the GLOBALS.py module to avoid circular references, we need to initialize those variables using independent functions.
+# Since we cannot import other modules directly on the GlobalVariables.py module to avoid circular references, we need to initialize those variables using independent functions.
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 def set_ARGS_PARSER():
     from ArgsParser import parse_arguments, checkArgs, getParser

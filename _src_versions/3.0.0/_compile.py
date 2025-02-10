@@ -41,7 +41,7 @@ def include_file_and_folders_and_compress(input_file, output_file):
         print("Uso: compress_file_and_folders(input_file, output_file)")
         sys.exit(1)
     if not Path(input_file).is_file():
-        print(f"Error: El archivo de entrada '{input_file}' no existe.")
+        print(f"ERROR   : El archivo de entrada '{input_file}' no existe.")
         sys.exit(1)
     temp_dir = Path(tempfile.mkdtemp())
     script_version_dir = os.path.join(temp_dir, SCRIPT_NAME_VERSION)
@@ -60,13 +60,13 @@ def include_file_and_folders_and_compress(input_file, output_file):
 
 def get_script_version(file):
     if not Path(file).is_file():
-        print(f"Error: El archivo {file} no existe.")
+        print(f"ERROR   : El archivo {file} no existe.")
         return None
     with open(file, 'r') as f:
         for line in f:
             if line.startswith("SCRIPT_VERSION"):
                 return line.split('"')[1]
-    print("Error: No se encontró un valor entre comillas después de SCRIPT_VERSION.")
+    print("ERROR   : No se encontró un valor entre comillas después de SCRIPT_VERSION.")
     return None
 
 
@@ -96,7 +96,7 @@ def compile():
     ARCHITECTURE = platform.machine().lower().replace('x86_64','amd64').replace('aarch64', 'arm64')
     SCRIPT_NAME = "CloudPhotoMigrator"
     SCRIPT_SOURCE_NAME = f"{SCRIPT_NAME}.py"
-    SCRIPT_VERSION = get_script_version('GLOBALS.py')
+    SCRIPT_VERSION = get_script_version('GlobalVariables.py')
     SCRIPT_VERSION_INT = get_clean_version(SCRIPT_VERSION)
     SCRIPT_NAME_VERSION = f"{SCRIPT_NAME}_{SCRIPT_VERSION}"
     COPYRIGHT_TEXT = "(c) 2024-2025 - Jaime Tur (@jaimetur)"

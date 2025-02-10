@@ -15,7 +15,7 @@ def run_from_synology():
     return os.path.exists('/etc.defaults/synoinfo.conf')
 
 def check_OS_and_Terminal():
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     # Detect the operating system
     current_os = platform.system()
     # Determine the script name based on the OS
@@ -43,7 +43,7 @@ def check_OS_and_Terminal():
 
 def count_files_in_folder(folder_path):
     """Counts the number of files in a folder."""
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     total_files = 0
     for path, dirs, files in os.walk(folder_path):
         total_files += len(files)
@@ -51,7 +51,7 @@ def count_files_in_folder(folder_path):
 
 def unpack_zips(zip_folder, takeout_folder):
     """Unzips all ZIP files from a folder into another."""
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     if not os.path.exists(zip_folder):
         LOGGER.error(f"ERROR   : ZIP folder '{zip_folder}' does not exist.")
         return
@@ -72,7 +72,7 @@ def fix_mp4_files(input_folder):
     If found any, then copy the .json file of the original Live picture and change its name to the name of the .MP4 file
     """
     # Traverse all subdirectories in the input folder
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     
     # Contar el total de carpetas
     mp4_files = []
@@ -119,7 +119,7 @@ def sync_mp4_timestamps_with_images(input_folder):
     Look for .MP4 files with the same name of any Live Picture file (.HEIC, .JPG, .JPEG) in the same folder.
     If found, then set the date and time of the .MP4 file to the same date and time of the original Live Picture.
     """
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     
     # Contar el total de carpetas
     total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
@@ -173,7 +173,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[]):
     Raises:
         ValueERROR   : If the value of `type` is invalid.
     """
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     if type not in ['year', 'year/month', 'year-month']:
         raise ValueError("The 'type' parameter must be 'year' or 'year/month'.")
     
@@ -223,7 +223,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False):
     :param move: If True, moves the files instead of copying them.
     :return: None
     """
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     try:
         if not is_valid_path(src):
             LOGGER.error(f"ERROR   : The path '{src}' is not valid for the execution plattform. Cannot copy/move folders from it.")
@@ -294,7 +294,7 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None)
         exclude_subfolder (str or list, optional): Subfolder(s) to exclude. Can be a single string or a list of strings.
     """
     # Ensure exclude_subfolder is a list, even if a single string is passed
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     def safe_move(folder_path, albums_path):
         destination = os.path.join(albums_path, os.path.basename(folder_path))
         if os.path.exists(destination):
@@ -331,7 +331,7 @@ def change_file_extension(input_folder, current_extension, new_extension):
     Returns:
         None
     """
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     
     # Contar el total de carpetas
     total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
@@ -359,7 +359,7 @@ def delete_subfolders(input_folder, folder_name_to_delete):
         input_folder (str): The path to the base directory to start the search from.
         folder_name_to_delete (str): The name of the subdirectories to delete.
     """
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     
     # Contar el total de carpetas
     total_dirs = sum([len(dirs) for _, dirs, _ in os.walk(input_folder)])
@@ -381,7 +381,7 @@ def remove_empty_dirs(input_folder):
     """
     Remove empty directories recursively.
     """
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     for path, dirs, files in os.walk(input_folder, topdown=False):
         filtered_dirnames = [d for d in dirs if d != '@eaDir']
         if not filtered_dirnames and not files:
@@ -400,7 +400,7 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
         input_folder (str): Path to the folder to process.
         exclude_subfolders (list or None): List of folder name patterns (using wildcards) to exclude from flattening.
     """
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     # Count number of sep of input_folder
     sep_input = input_folder.count(os.sep)
     # Convert wildcard patterns to regex patterns for matching
@@ -458,7 +458,7 @@ def fix_symlinks_broken(input_folder):
     :param input_folder: Path (relative or absolute) to the main directory where the links should be searched and fixed.
     :return: A tuple containing the number of corrected symlinks and the number of symlinks that could not be corrected.
     """
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     # ===========================
     # AUX FUNCTIONS
     # ===========================
@@ -540,7 +540,7 @@ def fix_symlinks_broken(input_folder):
 
 
 def rename_album_folders(input_folder: str):
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     # ===========================
     # AUXILIARY FUNCTIONS
     # ===========================
@@ -572,7 +572,7 @@ def rename_album_folders(input_folder: str):
     def get_year_range(folder: str) -> str:
         import os
         from datetime import datetime
-        from GLOBALS import LOGGER
+        from GlobalVariables import LOGGER
         try:
             files = [os.path.join(folder, f) for f in os.listdir(folder)]
             files = [f for f in files if os.path.isfile(f)]
@@ -651,7 +651,7 @@ def rename_album_folders(input_folder: str):
     return renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged
 
 def confirm_continue():
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     while True:
         response = input("Do you want to continue? (yes/no): ").strip().lower()
         if response in ['yes', 'y']:
@@ -683,7 +683,7 @@ def remove_server_name(path):
     return path
 
 def force_remove_directory(path):
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     def onerror(func, path, exc_info):
         # Cambia los permisos y vuelve a intentar
         os.chmod(path, stat.S_IWRITE)
@@ -707,7 +707,7 @@ def is_valid_path(path):
     - No debe usar un formato incorrecto para la plataforma.
     """
     from pathvalidate import validate_filepath, ValidationError
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     try:
         # Verifica si `ruta` es válida como path en la plataforma actual.
         validate_filepath(path, platform="auto")

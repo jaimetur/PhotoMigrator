@@ -1,4 +1,4 @@
-from GLOBALS import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
+from GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
 
 from CustomHelpFormatter import CustomHelpFormatter
 from CustomPager import PagedParser

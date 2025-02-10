@@ -9,7 +9,7 @@ if os.path.exists(target_directory) and os.path.isdir(target_directory):
     current_directory = os.getcwd()
     print(current_directory)
 
-from GLOBALS import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME
+from GlobalVariables import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME
 from Utils import check_OS_and_Terminal
 from ExecutionModes import detect_and_run_execution_mode
 

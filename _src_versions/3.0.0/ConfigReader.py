@@ -7,19 +7,19 @@ def load_config(config_file='CONFIG.ini'):
     #
     # Load and Set Global CONFIG variable
     #
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     global CONFIG
 
     if CONFIG:
         return CONFIG  # Configuration already read previously
 
-    LOGGER.info(f"INFO: Searching for configuration file '{config_file}'...")
+    LOGGER.info(f"INFO    : Searching for configuration file '{config_file}'...")
     if not os.path.exists(config_file):
-        LOGGER.error(f"ERROR: Configuration file '{config_file}' not found. Exiting...")
+        LOGGER.error(f"ERROR   : Configuration file '{config_file}' not found. Exiting...")
         sys.exit(1)  # Termina el programa si no encuentra el archivo
 
     CONFIG = {}
-    LOGGER.info(f"INFO: Configuration file found. Loading configuration...")
+    LOGGER.info(f"INFO    : Configuration file found. Loading configuration...")
 
     # Preprocesar el archivo para eliminar claves duplicadas antes de leerlo con ConfigParser
     seen_keys = set()  # Conjunto para almacenar claves únicas
@@ -38,7 +38,7 @@ def load_config(config_file='CONFIG.ini'):
                 unique_key = (section, key)  # Crear clave única combinando sección y clave
                 if unique_key in seen_keys:
                     if unique_key not in logged_warnings:  # Solo mostrar el mensaje una vez
-                        LOGGER.warning(f"WARNING: Duplicate key '{key}' in section {section}, keeping first.")
+                        LOGGER.warning(f"WARNING : Duplicate key '{key}' in section {section}, keeping first.")
                         logged_warnings.add(unique_key)  # Registrar que ya mostramos el mensaje
                     continue  # Omitir clave duplicada
                 seen_keys.add(unique_key)
@@ -72,28 +72,29 @@ def load_config(config_file='CONFIG.ini'):
             if config.has_option(section, key):
                 CONFIG[key] = clean_value(config.get(section, key, raw=True))
                 if CONFIG[key].strip() == '':
-                    LOGGER.warning(f"WARNING: Missing value for key '{key}' in section '{section}', skipping.")
+                    LOGGER.warning(f"WARNING : Missing value for key '{key}' in section '{section}', skipping.")
             else:
-                LOGGER.warning(f"WARNING: Missing key '{key}' in section '{section}', skipping.")
+                LOGGER.warning(f"WARNING : Missing key '{key}' in section '{section}', skipping.")
 
     # Additional default values to add to CONFIG
     CONFIG['downloadedphotos'] = 0
     CONFIG['skippedphotos'] = 0
     CONFIG['photofileexists'] = 0
 
-    LOGGER.info(f"INFO: Configuration Read Successfully from '{config_file}'.")
+    LOGGER.info(f"INFO    : Configuration Read Successfully from '{config_file}'.")
     return CONFIG
 
 
 if __name__ == "__main__":
     # Create timestamp, and initialize LOGGER.
     from datetime import datetime
-    from LoggerConfig import log_setup
+    from CustomLogger import log_setup
+    import logging
     TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
     log_filename = f"{sys.argv[0]}_{TIMESTAMP}"
     log_folder = "Logs"
     LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
-    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename)
+    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=logging.DEBUG)
 
     if len(sys.argv[1:]) == 0:
         CONFIG = load_config('CONFIG.ini')

@@ -96,7 +96,7 @@ def compile():
     ARCHITECTURE = platform.machine().lower().replace('x86_64','amd64').replace('aarch64', 'arm64')
     SCRIPT_NAME = "CloudPhotoMigrator"
     SCRIPT_SOURCE_NAME = f"{SCRIPT_NAME}.py"
-    SCRIPT_VERSION = get_script_version('GLOBALS.py')
+    SCRIPT_VERSION = get_script_version('GlobalVariables.py')
     SCRIPT_VERSION_INT = get_clean_version(SCRIPT_VERSION)
     SCRIPT_NAME_VERSION = f"{SCRIPT_NAME}_{SCRIPT_VERSION}"
     COPYRIGHT_TEXT = "(c) 2024-2025 - Jaime Tur (@jaimetur)"

@@ -1,5 +1,15 @@
-from GLOBALS import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME
 import os,sys
+
+# Definir la ruta de trabajo deseada
+target_directory = r"R:\jaimetur\CloudPhotoMigrator"
+# Verificar si la carpeta existe y cambiar a ella si existe
+if os.path.exists(target_directory) and os.path.isdir(target_directory):
+    os.chdir(target_directory)
+    print(f"Directorio cambiado a: {os.getcwd()}")
+    current_directory = os.getcwd()
+    print(current_directory)
+
+from GlobalVariables import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME
 from Utils import check_OS_and_Terminal
 from ExecutionModes import detect_and_run_execution_mode
 
@@ -20,7 +30,7 @@ def main():
     # Check OS and Terminal
     check_OS_and_Terminal()
     if not ARGS['no-log-file']:
-        LOGGER.info(f"INFO: Log File Location: '{LOG_FOLDER_FILENAME+'.log'}'")
+        LOGGER.info(f"INFO    : Log File Location: '{LOG_FOLDER_FILENAME+'.log'}'")
         LOGGER.info("")
 
     # Get the execution mode and run it.
@@ -32,7 +42,5 @@ if __name__ == "__main__":
     #     # Agregar argumento predeterminado
     #     sys.argv.append("-z")
     #     sys.argv.append("Zip_folder")
-    #     print(f"INFO: No argument detected. Using default value '{sys.argv[2]}' for <ZIP_FOLDER>'.")
-    # current_directory = os.getcwd()
-    # print(current_directory)
+    #     print(f"INFO    : No argument detected. Using default value '{sys.argv[2]}' for <ZIP_FOLDER>'.")
     main()

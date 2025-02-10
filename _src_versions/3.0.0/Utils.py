@@ -15,35 +15,35 @@ def run_from_synology():
     return os.path.exists('/etc.defaults/synoinfo.conf')
 
 def check_OS_and_Terminal():
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     # Detect the operating system
     current_os = platform.system()
     # Determine the script name based on the OS
     if current_os == "Linux":
         if run_from_synology():
-            LOGGER.info(f"INFO: Script running on Linux System in a Synology NAS")
+            LOGGER.info(f"INFO    : Script running on Linux System in a Synology NAS")
         else:
-            LOGGER.info(f"INFO: Script running on Linux System")
+            LOGGER.info(f"INFO    : Script running on Linux System")
     elif current_os == "Darwin":
-        LOGGER.info(f"INFO: Script running on MacOS System")
+        LOGGER.info(f"INFO    : Script running on MacOS System")
     elif current_os == "Windows":
-        LOGGER.info(f"INFO: Script running on Windows System")
+        LOGGER.info(f"INFO    : Script running on Windows System")
     else:
-        LOGGER.error(f"ERROR: Unsupported Operating System: {current_os}")
+        LOGGER.error(f"ERROR   : Unsupported Operating System: {current_os}")
 
     if sys.stdout.isatty():
-        LOGGER.info("INFO: Interactive (TTY) terminal detected for stdout")
+        LOGGER.info("INFO    : Interactive (TTY) terminal detected for stdout")
     else:
-        LOGGER.info("INFO: Non-Interactive (Non-TTY) terminal detected for stdout")
+        LOGGER.info("INFO    : Non-Interactive (Non-TTY) terminal detected for stdout")
     if sys.stdin.isatty():
-        LOGGER.info("INFO: Interactive (TTY) terminal detected for stdin")
+        LOGGER.info("INFO    : Interactive (TTY) terminal detected for stdin")
     else:
-        LOGGER.info("INFO: Non-Interactive (Non-TTY) terminal detected for stdin")
+        LOGGER.info("INFO    : Non-Interactive (Non-TTY) terminal detected for stdin")
     LOGGER.info("")
 
 def count_files_in_folder(folder_path):
     """Counts the number of files in a folder."""
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     total_files = 0
     for path, dirs, files in os.walk(folder_path):
         total_files += len(files)
@@ -51,9 +51,9 @@ def count_files_in_folder(folder_path):
 
 def unpack_zips(zip_folder, takeout_folder):
     """Unzips all ZIP files from a folder into another."""
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     if not os.path.exists(zip_folder):
-        LOGGER.error(f"ERROR: ZIP folder '{zip_folder}' does not exist.")
+        LOGGER.error(f"ERROR   : ZIP folder '{zip_folder}' does not exist.")
         return
     os.makedirs(takeout_folder, exist_ok=True)
     for zip_file in os.listdir(zip_folder):
@@ -61,10 +61,10 @@ def unpack_zips(zip_folder, takeout_folder):
             zip_path = os.path.join(zip_folder, zip_file)
             try:
                 with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                    LOGGER.info(f"INFO: Unzipping: {zip_file}")
+                    LOGGER.info(f"INFO    : Unzipping: {zip_file}")
                     zip_ref.extractall(takeout_folder)
             except zipfile.BadZipFile:
-                LOGGER.error(f"ERROR: Could not unzip file: {zip_file}")
+                LOGGER.error(f"ERROR   : Could not unzip file: {zip_file}")
 
 def fix_mp4_files(input_folder):
     """
@@ -72,7 +72,7 @@ def fix_mp4_files(input_folder):
     If found any, then copy the .json file of the original Live picture and change its name to the name of the .MP4 file
     """
     # Traverse all subdirectories in the input folder
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     
     # Contar el total de carpetas
     mp4_files = []
@@ -82,7 +82,7 @@ def fix_mp4_files(input_folder):
                 mp4_files.append(file)
     total_files = len(mp4_files)
     # Mostrar la barra de progreso basada en carpetas
-    with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO: Fixing .MP4 files in '{input_folder}'", unit=" files") as pbar:
+    with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : Fixing .MP4 files in '{input_folder}'", unit=" files") as pbar:
         for path, _, files in os.walk(input_folder):
             # Filter files with .mp4 extension (case-insensitive)
             mp4_files = [f for f in files if f.lower().endswith('.mp4')]
@@ -108,10 +108,10 @@ def fix_mp4_files(input_folder):
                         if not os.path.exists(new_json_path):
                             # Copy the original JSON file to the new file
                             shutil.copy(json_path, new_json_path)
-                            # LOGGER.info(f"INFO: Fixed: {json_path} -> {new_json_path}")
+                            # LOGGER.info(f"INFO    : Fixed: {json_path} -> {new_json_path}")
                         else:
                             pass
-                            # LOGGER.info(f"INFO: Skipped: {new_json_path} already exists")
+                            # LOGGER.info(f"INFO    : Skipped: {new_json_path} already exists")
 
 
 def sync_mp4_timestamps_with_images(input_folder):
@@ -119,12 +119,12 @@ def sync_mp4_timestamps_with_images(input_folder):
     Look for .MP4 files with the same name of any Live Picture file (.HEIC, .JPG, .JPEG) in the same folder.
     If found, then set the date and time of the .MP4 file to the same date and time of the original Live Picture.
     """
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     
     # Contar el total de carpetas
     total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
     # Mostrar la barra de progreso basada en carpetas
-    with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO: Synchronizing .MP4 files with Live Pictures in '{input_folder}'", unit=" files") as pbar:
+    with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : Synchronizing .MP4 files with Live Pictures in '{input_folder}'", unit=" files") as pbar:
         for path, _, files in os.walk(input_folder):
             # Crear un diccionario que mapea nombres base a extensiones y nombres de archivos
             file_dict = {}
@@ -153,11 +153,11 @@ def sync_mp4_timestamps_with_images(input_folder):
                             mtime = image_stats.st_mtime  # Tiempo de última modificación
                             # Aplicar los tiempos al archivo .MP4
                             os.utime(mp4_file_path, (atime, mtime))
-                            # LOGGER.info(f"INFO: Date and time attributes synched for: {os.path.relpath(mp4_file_path,input_folder)} using:  {os.path.relpath(image_file_path,input_folder)}")
+                            # LOGGER.info(f"INFO    : Date and time attributes synched for: {os.path.relpath(mp4_file_path,input_folder)} using:  {os.path.relpath(image_file_path,input_folder)}")
                             image_file_found = True
                             break  # Salir después de encontrar el primer archivo de imagen disponible
                     if not image_file_found:
-                        #LOGGER.warning(f"WARNING: Cannot find Live picture file to sync with: {os.path.relpath(mp4_file_path,input_folder)}")
+                        #LOGGER.warning(f"WARNING : Cannot find Live picture file to sync with: {os.path.relpath(mp4_file_path,input_folder)}")
                         pass
 
 
@@ -171,9 +171,9 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[]):
         exclude_subfolders (list): A list of subfolder names to exclude from processing.
 
     Raises:
-        ValueError: If the value of `type` is invalid.
+        ValueERROR   : If the value of `type` is invalid.
     """
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     if type not in ['year', 'year/month', 'year-month']:
         raise ValueError("The 'type' parameter must be 'year' or 'year/month'.")
     
@@ -183,7 +183,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[]):
         dirs[:] = [d for d in dirs if d not in exclude_subfolders]
         total_files += sum([len(files)])
     # Mostrar la barra de progreso basada en carpetas
-    with tqdm(total=total_files, smoothing=0.1, desc=f"INFO: Organizing files with {type} structure in '{input_folder}'", unit=" files") as pbar:
+    with tqdm(total=total_files, smoothing=0.1, file=LOGGER.tqdm_stream, desc=f"INFO    : Organizing files with {type} structure in '{input_folder}'", unit=" files") as pbar:
         for path, dirs, files in os.walk(input_folder, topdown=True):
             # Exclude specified subfolders
             dirs[:] = [d for d in dirs if d not in exclude_subfolders]
@@ -209,7 +209,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[]):
                 os.makedirs(target_dir, exist_ok=True)
                 # Move the file to the target directory
                 shutil.move(file_path, os.path.join(target_dir, file))
-    LOGGER.info(f"INFO: Organization completed. Folder structure per {type} have been created in '{input_folder}'.")
+    LOGGER.info(f"INFO    : Organization completed. Folder structure per {type} have been created in '{input_folder}'.")
 
 
 def copy_move_folder(src, dst, ignore_patterns=None, move=False):
@@ -223,13 +223,13 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False):
     :param move: If True, moves the files instead of copying them.
     :return: None
     """
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     try:
         if not is_valid_path(src):
-            LOGGER.error(f"ERROR: The path '{src}' is not valid for the execution plattform. Cannot copy/move folders from it.")
+            LOGGER.error(f"ERROR   : The path '{src}' is not valid for the execution plattform. Cannot copy/move folders from it.")
             return False
         if not is_valid_path(dst):
-            LOGGER.error(f"ERROR: The path '{dst}' is not valid for the execution plattform. Cannot copy/move folders to it.")
+            LOGGER.error(f"ERROR   : The path '{dst}' is not valid for the execution plattform. Cannot copy/move folders to it.")
             return False
 
         def ignore_function(dir, files):
@@ -254,7 +254,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False):
             # Contar el total de carpetas
             total_files = sum([len(files) for _, _, files in os.walk(src)])
             # Mostrar la barra de progreso basada en carpetas
-            with tqdm(total=total_files, ncols=120, smoothing=0.1,  desc=f"INFO: {action} Folders in '{src}' to Folder '{dst}'", unit=" files") as pbar:
+            with tqdm(total=total_files, ncols=120, smoothing=0.1,  desc=f"INFO    : {action} Folders in '{src}' to Folder '{dst}'", unit=" files") as pbar:
                 for path, dirs, files in os.walk(src, topdown=True):
                     pbar.update(1)
                     # Compute relative path
@@ -273,14 +273,14 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False):
                             src_file = os.path.join(path, file)
                             dst_file = os.path.join(dest_path, file)
                             shutil.move(src_file, dst_file)
-                LOGGER.info(f"INFO: Folder moved successfully from {src} to {dst}")
+                LOGGER.info(f"INFO    : Folder moved successfully from {src} to {dst}")
         else:
             # Copy the folder contents
             shutil.copytree(src, dst, dirs_exist_ok=True, ignore=ignore_function)
-            LOGGER.info(f"INFO: Folder copied successfully from {src} to {dst}")
+            LOGGER.info(f"INFO    : Folder copied successfully from {src} to {dst}")
             return True
     except Exception as e:
-        LOGGER.error(f"ERROR: Error {action} folder: {e}")
+        LOGGER.error(f"ERROR   : Error {action} folder: {e}")
         return False
 
 
@@ -294,7 +294,7 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None)
         exclude_subfolder (str or list, optional): Subfolder(s) to exclude. Can be a single string or a list of strings.
     """
     # Ensure exclude_subfolder is a list, even if a single string is passed
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     def safe_move(folder_path, albums_path):
         destination = os.path.join(albums_path, os.path.basename(folder_path))
         if os.path.exists(destination):
@@ -310,10 +310,10 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None)
     exclude_subfolder_paths = [os.path.abspath(os.path.join(input_folder, sub)) for sub in (exclude_subfolder or [])]
     subfolders = os.listdir(input_folder)
     subfolders = [subfolder for subfolder in subfolders if not subfolder=='@eaDir' and not subfolder=='No-Albums']
-    for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"INFO: Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
+    for subfolder in tqdm(subfolders, smoothing=0.1, file=LOGGER.tqdm_stream, desc=f"INFO    : Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
         folder_path = os.path.join(input_folder, subfolder)
         if os.path.isdir(folder_path) and subfolder != albums_subfolder and os.path.abspath(folder_path) not in exclude_subfolder_paths:
-            # LOGGER.info(f"INFO: Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")
+            # LOGGER.info(f"INFO    : Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")
             os.makedirs(albums_path, exist_ok=True)
             safe_move(folder_path, albums_path)
 
@@ -331,12 +331,12 @@ def change_file_extension(input_folder, current_extension, new_extension):
     Returns:
         None
     """
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     
     # Contar el total de carpetas
     total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
     # Mostrar la barra de progreso basada en carpetas
-    with tqdm(total=total_files, ncols=120, smoothing=0.1, desc=f"INFO: Changing File Extensions in '{input_folder}'", unit=" files") as pbar:
+    with tqdm(total=total_files, ncols=120, smoothing=0.1, file=LOGGER.tqdm_stream, desc=f"INFO    : Changing File Extensions in '{input_folder}'", unit=" files") as pbar:
         for path, dirs, files in os.walk(input_folder):
             for file in files:
                 pbar.update(1)
@@ -347,7 +347,7 @@ def change_file_extension(input_folder, current_extension, new_extension):
                     new_file = os.path.join(path, file.replace(current_extension, new_extension))
                     # Rename the file
                     os.rename(original_file, new_file)
-                    # LOGGER.info(f"INFO: Renamed: {original_file} -> {new_file}")
+                    # LOGGER.info(f"INFO    : Renamed: {original_file} -> {new_file}")
 
 
 def delete_subfolders(input_folder, folder_name_to_delete):
@@ -359,12 +359,12 @@ def delete_subfolders(input_folder, folder_name_to_delete):
         input_folder (str): The path to the base directory to start the search from.
         folder_name_to_delete (str): The name of the subdirectories to delete.
     """
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     
     # Contar el total de carpetas
     total_dirs = sum([len(dirs) for _, dirs, _ in os.walk(input_folder)])
     # Mostrar la barra de progreso basada en carpetas
-    with tqdm(total=total_dirs, smoothing=0.1, desc=f"INFO: Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
+    with tqdm(total=total_dirs, smoothing=0.1, file=LOGGER.tqdm_stream, desc=f"INFO    : Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
         for path, dirs, files in os.walk(input_folder, topdown=False):
             for folder in dirs:
                 pbar.update(1)
@@ -372,22 +372,22 @@ def delete_subfolders(input_folder, folder_name_to_delete):
                     dir_path = os.path.join(path, folder)
                     try:
                         shutil.rmtree(dir_path)
-                        # LOGGER.info(f"INFO: Deleted directory: {dir_path}")
+                        # LOGGER.info(f"INFO    : Deleted directory: {dir_path}")
                     except Exception as e:
-                        LOGGER.error(f"ERROR: Error deleting {dir_path}: {e}")
+                        LOGGER.error(f"ERROR   : Error deleting {dir_path}: {e}")
 
 
 def remove_empty_dirs(input_folder):
     """
     Remove empty directories recursively.
     """
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     for path, dirs, files in os.walk(input_folder, topdown=False):
         filtered_dirnames = [d for d in dirs if d != '@eaDir']
         if not filtered_dirnames and not files:
             try:
                 os.rmdir(path)
-                LOGGER.info(f"INFO: Removed empty directory {path}")
+                LOGGER.info(f"INFO    : Removed empty directory {path}")
             except OSError:
                 pass
 
@@ -400,12 +400,12 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
         input_folder (str): Path to the folder to process.
         exclude_subfolders (list or None): List of folder name patterns (using wildcards) to exclude from flattening.
     """
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     # Count number of sep of input_folder
     sep_input = input_folder.count(os.sep)
     # Convert wildcard patterns to regex patterns for matching
     exclude_patterns = [re.compile(fnmatch.translate(pattern)) for pattern in exclude_subfolders]
-    for path, dirs, files in tqdm(os.walk(input_folder, topdown=True), ncols=120, smoothing=0.1, desc=f"INFO: Flattening Subfolders in '{input_folder}'", unit=" subfolders"):
+    for path, dirs, files in tqdm(os.walk(input_folder, topdown=True), ncols=120, smoothing=0.1, file=LOGGER.tqdm_stream, desc=f"INFO    : Flattening Subfolders in '{input_folder}'", unit=" subfolders"):
         # Count number of sep of root folder
         sep_root = int(path.count(os.sep))
         depth = sep_root - sep_input
@@ -427,10 +427,10 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
                 continue
             # Skip processing if the current directory matches any exclude pattern
             if any(pattern.match(os.path.basename(folder)) for pattern in exclude_patterns):
-                # LOGGER.warning(f"WARNING: Folder: '{dir_name}' not flattened due to is one of the exclude subfolder given in '{exclude_subfolders}'")
+                # LOGGER.warning(f"WARNING : Folder: '{dir_name}' not flattened due to is one of the exclude subfolder given in '{exclude_subfolders}'")
                 continue
             subfolder_path = os.path.join(path, folder)
-            # LOGGER.info(f"INFO: Flattening folder: '{dir_name}'")
+            # LOGGER.info(f"INFO    : Flattening folder: '{dir_name}'")
             for sub_root, _, sub_files in os.walk(subfolder_path):
                 for file_name in sub_files:
                     file_path = os.path.join(sub_root, file_name)
@@ -458,7 +458,7 @@ def fix_symlinks_broken(input_folder):
     :param input_folder: Path (relative or absolute) to the main directory where the links should be searched and fixed.
     :return: A tuple containing the number of corrected symlinks and the number of symlinks that could not be corrected.
     """
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     # ===========================
     # AUX FUNCTIONS
     # ===========================
@@ -471,7 +471,7 @@ def fix_symlinks_broken(input_folder):
         # Contar el total de carpetas
         total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
         # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO: Building Index files in '{input_folder}'", unit=" files") as pbar:
+        with tqdm(total=total_files, smoothing=0.1, file=LOGGER.tqdm_stream, desc=f"INFO    : Building Index files in '{input_folder}'", unit=" files") as pbar:
             for path, _, files in os.walk(input_folder):
                 for fname in files:
                     pbar.update(1)
@@ -502,7 +502,7 @@ def fix_symlinks_broken(input_folder):
     failed_count = 0
     # Validate the directory existence
     if not os.path.isdir(input_folder):
-        LOGGER.error(f"ERROR: The directory '{input_folder}' does not exist or is not valid.")
+        LOGGER.error(f"ERROR   : The directory '{input_folder}' does not exist or is not valid.")
         return 0, 0
 
     # Step 1: Index all real non-symbolic files
@@ -511,7 +511,7 @@ def fix_symlinks_broken(input_folder):
     # Step 2: Search for broken symbolic links and fix them using the index
     already_warned = False
     total_files = sum([len(files) for _, _, files in os.walk(input_folder)]) # Contar el total de carpetas
-    with tqdm(total=total_files, smoothing=0.1, desc=f"INFO: Fixing Symbolic Links in '{input_folder}'", unit=" files") as pbar: # Mostrar la barra de progreso basada en carpetas
+    with tqdm(total=total_files, smoothing=0.1, file=LOGGER.tqdm_stream, desc=f"INFO    : Fixing Symbolic Links in '{input_folder}'", unit=" files") as pbar: # Mostrar la barra de progreso basada en carpetas
         for path, _, files in os.walk(input_folder):
             for file in files:
                 pbar.update(1)
@@ -519,14 +519,14 @@ def fix_symlinks_broken(input_folder):
                 if os.path.islink(file_path) and not os.path.exists(file_path):
                     # It's a broken symbolic link
                     target = os.readlink(file_path)
-                    # LOGGER.info(f"INFO: Broken link found: {file_path} -> {target}")
+                    # LOGGER.info(f"INFO    : Broken link found: {file_path} -> {target}")
                     target_name = os.path.basename(target)
 
                     fixed_path = find_real_file(file_index, target_name)
                     if fixed_path:
                         # Create the correct symbolic link
                         relative_path = os.path.relpath(fixed_path, start=os.path.dirname(file_path))
-                        # LOGGER.info(f"INFO: Fixing link: {file_path} -> {relative_path}")
+                        # LOGGER.info(f"INFO    : Fixing link: {file_path} -> {relative_path}")
                         os.unlink(file_path)
                         os.symlink(relative_path, file_path)
                         corrected_count += 1
@@ -534,13 +534,13 @@ def fix_symlinks_broken(input_folder):
                         if not already_warned:
                             LOGGER.warning("")
                             already_warned=True
-                        LOGGER.warning(f"WARNING: Could not find the file for {file_path} within {input_folder}")
+                        LOGGER.warning(f"WARNING : Could not find the file for {file_path} within {input_folder}")
                         failed_count += 1
     return corrected_count, failed_count
 
 
 def rename_album_folders(input_folder: str):
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     # ===========================
     # AUXILIARY FUNCTIONS
     # ===========================
@@ -572,7 +572,7 @@ def rename_album_folders(input_folder: str):
     def get_year_range(folder: str) -> str:
         import os
         from datetime import datetime
-        from GLOBALS import LOGGER
+        from GlobalVariables import LOGGER
         try:
             files = [os.path.join(folder, f) for f in os.listdir(folder)]
             files = [f for f in files if os.path.isfile(f)]
@@ -583,13 +583,13 @@ def rename_album_folders(input_folder: str):
                 latest_year = datetime.fromtimestamp(os.path.getmtime(latest_file)).year
                 # Return a single year if oldest and latest match
                 if oldest_year == latest_year:
-                    # LOGGER.info(f"INFO: Single year {oldest_year} obtained from {folder}")
+                    # LOGGER.info(f"INFO    : Single year {oldest_year} obtained from {folder}")
                     return str(oldest_year)
                 else:
-                    # LOGGER.info(f"INFO: Year range {oldest_year}-{latest_year} obtained from {folder}")
+                    # LOGGER.info(f"INFO    : Year range {oldest_year}-{latest_year} obtained from {folder}")
                     return f"{oldest_year}-{latest_year}"
         except Exception as e:
-            LOGGER.error(f"ERROR: Error obtaining year range: {e}")
+            LOGGER.error(f"ERROR   : Error obtaining year range: {e}")
         return None
     # ===========================
     # END AUX FUNCTIONS
@@ -603,7 +603,7 @@ def rename_album_folders(input_folder: str):
     total_folders = os.listdir(input_folder)
     info_actions = []
     warning_actions = []
-    for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"INFO: Renaming Albums folders in '{input_folder}'", unit=" folders"):
+    for original_folder_name in tqdm(total_folders, smoothing=0.1, file=LOGGER.tqdm_stream, desc=f"INFO    : Renaming Albums folders in '{input_folder}'", unit=" folders"):
         item_path = os.path.join(input_folder, original_folder_name)
         if os.path.isdir(item_path):
             cleaned_folder_name = clean_name(original_folder_name)
@@ -612,13 +612,13 @@ def rename_album_folders(input_folder: str):
                 year_range = get_year_range(item_path)
                 if year_range:
                     cleaned_folder_name = f"{year_range} - {cleaned_folder_name}"
-                    info_actions.append(f"INFO: Added year prefix '{year_range}' to folder: '{os.path.basename(cleaned_folder_name)}'")
+                    info_actions.append(f"INFO    : Added year prefix '{year_range}' to folder: '{os.path.basename(cleaned_folder_name)}'")
             # Skip renaming if the clean name is the same as the original
             if cleaned_folder_name != original_folder_name:
                 new_folder_path = os.path.join(input_folder, cleaned_folder_name)
                 if os.path.exists(new_folder_path):
                     duplicates_album_folders += 1
-                    warning_actions.append(f"WARNING: Folder '{new_folder_path}' already exists. Merging contents...")
+                    warning_actions.append(f"WARNING : Folder '{new_folder_path}' already exists. Merging contents...")
                     for item in os.listdir(item_path):
                         src = os.path.join(item_path, item)
                         dst = os.path.join(new_folder_path, item)
@@ -626,22 +626,22 @@ def rename_album_folders(input_folder: str):
                             # Compare file sizes to decide if the original should be deleted
                             if os.path.isfile(dst) and os.path.getsize(src) == os.path.getsize(dst):
                                 os.remove(src)
-                                info_actions.append(f"INFO: Deleted duplicate file: '{src}'")
+                                info_actions.append(f"INFO    : Deleted duplicate file: '{src}'")
                         else:
                             shutil.move(src, dst)
-                            info_actions.append(f"INFO: Moved '{src}' → '{dst}'")
+                            info_actions.append(f"INFO    : Moved '{src}' → '{dst}'")
                     # Check if the folder is empty before removing it
                     if not os.listdir(item_path):
                         os.rmdir(item_path)
-                        info_actions.append(f"INFO: Removed empty folder: '{item_path}'")
+                        info_actions.append(f"INFO    : Removed empty folder: '{item_path}'")
                         duplicates_albums_fully_merged += 1
                     else:
-                        # LOGGER.warning(f"WARNING: Folder not empty, skipping removal: {item_path}")
+                        # LOGGER.warning(f"WARNING : Folder not empty, skipping removal: {item_path}")
                         duplicates_albums_not_fully_merged += 1
                 else:
                     if item_path != new_folder_path:
                         os.rename(item_path, new_folder_path)
-                        info_actions.append(f"INFO: Renamed folder: '{os.path.basename(item_path)}' → '{os.path.basename(new_folder_path)}'")
+                        info_actions.append(f"INFO    : Renamed folder: '{os.path.basename(item_path)}' → '{os.path.basename(new_folder_path)}'")
                         renamed_album_folders += 1
     for info_action in info_actions:
         LOGGER.info(info_action)
@@ -651,17 +651,17 @@ def rename_album_folders(input_folder: str):
     return renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged
 
 def confirm_continue():
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     while True:
         response = input("Do you want to continue? (yes/no): ").strip().lower()
         if response in ['yes', 'y']:
-            LOGGER.info(f"INFO: Continuing...")
+            LOGGER.info(f"INFO    : Continuing...")
             return True
         elif response in ['no', 'n']:
-            LOGGER.info(f"INFO: Operation canceled.")
+            LOGGER.info(f"INFO    : Operation canceled.")
             return False
         else:
-            LOGGER.warning(f"WARNING: Invalid input. Please enter 'yes' or 'no'.")
+            LOGGER.warning(f"WARNING : Invalid input. Please enter 'yes' or 'no'.")
 
 def remove_quotes(s: str) -> str:
     """
@@ -683,7 +683,7 @@ def remove_server_name(path):
     return path
 
 def force_remove_directory(path):
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     def onerror(func, path, exc_info):
         # Cambia los permisos y vuelve a intentar
         os.chmod(path, stat.S_IWRITE)
@@ -691,7 +691,7 @@ def force_remove_directory(path):
 
     if os.path.exists(path):
         shutil.rmtree(path, onerror=onerror)
-        LOGGER.info(f"INFO: The folder '{path}' and all its contant have been deleted.")
+        LOGGER.info(f"INFO    : The folder '{path}' and all its contant have been deleted.")
     else:
         print(f"WARNNING: Cannot delete the folder '{path}'.")
 
@@ -707,12 +707,12 @@ def is_valid_path(path):
     - No debe usar un formato incorrecto para la plataforma.
     """
     from pathvalidate import validate_filepath, ValidationError
-    from GLOBALS import LOGGER
+    from GlobalVariables import LOGGER
     try:
         # Verifica si `ruta` es válida como path en la plataforma actual.
         validate_filepath(path, platform="auto")
         return True
     except ValidationError as e:
-        LOGGER.error(f"ERROR: Path validation error: {e}")
+        LOGGER.error(f"ERROR   : Path validation ERROR   : {e}")
         return False
 

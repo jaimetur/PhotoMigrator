@@ -2,11 +2,11 @@ import Utils
 import os, sys
 from datetime import datetime, timedelta
 from Duplicates import find_duplicates
-import Fixers
+import ExifFixers
 
 def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER):
-    from GLOBALS import LOGGER  # Import global LOGGER
-    from GLOBALS import ARGS, TIMESTAMP, DEPRIORITIZE_FOLDERS_PATTERNS
+    from GlobalVariables import LOGGER  # Import global LOGGER
+    from GlobalVariables import ARGS, TIMESTAMP, DEPRIORITIZE_FOLDERS_PATTERNS
 
     # STEP 1: Unzip files
     STEP = 1

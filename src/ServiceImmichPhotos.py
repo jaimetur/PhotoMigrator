@@ -58,7 +58,7 @@ def get_user_id():
     """
     Return the user_id for the logged user
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return []
     url = f"{IMMICH_URL}/api/users/me"
@@ -79,7 +79,7 @@ def get_supported_media_types(type='media'):
     """
     Return the user_id for the logged user
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return []
     url = f"{IMMICH_URL}/api/server/media-types"
@@ -127,7 +127,7 @@ def read_immich_config(config_file='CONFIG.ini', show_info=True):
     If the file is not found, the data will be requested from the user interactively.
     """
     global CONFIG, IMMICH_URL, IMMICH_ADMIN_API_KEY, IMMICH_USER_API_KEY, IMMICH_USERNAME, IMMICH_PASSWORD, API_KEY_LOGIN, IMMICH_FILTER_ARCHIVE, IMMICH_FILTER_FROM, IMMICH_FILTER_TO, IMMICH_FILTER_COUNTRY, IMMICH_FILTER_CITY, IMMICH_FILTER_PERSON
-    from GLOBALS import LOGGER  # Iport global LOGGER
+    from GlobalVariables import LOGGER  # Iport global LOGGER
     from ConfigReader import load_config
 
     if CONFIG:
@@ -200,7 +200,7 @@ def login_immich():
     Returns True if the connection was successful, False otherwise.
     """
     global SESSION_TOKEN, HEADERS, ALLOWED_IMMICH_MEDIA_EXTENSIONS, ALLOWED_IMMICH_SIDECAR_EXTENSIONS, ALLOWED_IMMICH_EXTENSIONS
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     # If there is already a token and headers, assume we are logged in
     if len(HEADERS.keys())>0 and  (f"Bearer {SESSION_TOKEN}" or IMMICH_USER_API_KEY in HEADERS.values()):
         return True
@@ -259,7 +259,7 @@ def logout_immich():
     (Currently, Immich does not provide an official /logout endpoint).
     """
     global SESSION_TOKEN, HEADERS
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     SESSION_TOKEN = None
     HEADERS = {}
     LOGGER.info("INFO    : Session closed locally (Bearer Token discarded).")
@@ -272,7 +272,7 @@ def create_album(album_name):
     Creates an album in Immich with the name 'album_name'.
     Returns the ID of the created album or None if it fails.
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return None
     url = f"{IMMICH_URL}/api/albums"
@@ -294,7 +294,7 @@ def delete_album(album_id, album_name):
     """
     Deletes an album from Immich by its ID. Returns True if deleted successfully, False otherwise.
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return False
     url = f"{IMMICH_URL}/api/albums/{album_id}"
@@ -322,7 +322,7 @@ def get_albums():
           ...
         }
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return []
     url = f"{IMMICH_URL}/api/albums"
@@ -359,7 +359,7 @@ def get_all_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=Non
     """
     Returns the list of assets that belong to a specific album (ID).
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return []
     url = f"{IMMICH_URL}/api/search/metadata"
@@ -422,7 +422,7 @@ def get_assets_from_album(album_id):
     """
     Returns the list of assets that belong to a specific album (ID).
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return []
     url = f"{IMMICH_URL}/api/albums/{album_id}"
@@ -442,7 +442,7 @@ def add_assets_to_album(album_id, asset_ids, album_name=None):
     Adds the list of asset_ids (photos/videos already uploaded) to the album with album_id.
     Returns the number of assets successfully added.
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return 0
     if not asset_ids:
@@ -473,7 +473,7 @@ def delete_assets(assets_ids):
     """
     Delete the list of assets providen by assets_ids.
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return []
     url = f"{IMMICH_URL}/api/assets"
@@ -499,7 +499,7 @@ def upload_file_to_immich(file_path):
     Uploads a local file (photo or video) to Immich using /api/asset/upload-file.
     Returns the 'id' of the created asset, or None if the upload fails.
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return None
     if not os.path.isfile(file_path):
@@ -584,7 +584,7 @@ def download_asset(asset_id, asset_filename, download_folder="Downloaded_Immich"
     Uses GET /api/asset/:assetId/serve
     Returns True if the download was successful, False otherwise.
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return False
     os.makedirs(download_folder, exist_ok=True)
@@ -622,7 +622,7 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
             └─ Album2/   (files for album "Album2")
     Returns: albums_uploaded, albums_skipped, assets_uploaded
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
 
     if not login_immich():
         return 0
@@ -730,7 +730,7 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
     """
     import os
     from tqdm import tqdm
-    from GLOBALS import LOGGER  # Global logger
+    from GlobalVariables import LOGGER  # Global logger
 
     # Verify Immich login
     if not login_immich():
@@ -804,7 +804,7 @@ def immich_upload_ALL(input_folder, albums_folders=None):
 
     Returns the total number of albums and assets uploaded.
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return 0
 
@@ -840,7 +840,7 @@ def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich"):
 
     Returns the total number of albums and assets downloaded.
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
 
     if not login_immich():
         return 0, 0
@@ -921,7 +921,7 @@ def immich_download_no_albums(output_folder="Downloads_Immich"):
 
     Returns the total number of assets downloaded.
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return 0
     total_assets_downloaded = 0
@@ -973,7 +973,7 @@ def immich_download_ALL(output_folder="Downloads_Immich"):
 
     Returns the total number of albums and assets downloaded.
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return 0
     total_albums_downloaded, total_assets_downloaded_within_albums = immich_download_albums(albums_name='ALL', output_folder=output_folder)
@@ -995,7 +995,7 @@ def immich_remove_empty_albums():
     Deletes all albums that have no assets (are empty).
     Returns the number of albums deleted.
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return 0
     albums = get_albums()
@@ -1022,7 +1022,7 @@ def immich_remove_duplicates_albums():
     Deletes albums that have the same number of assets and the same total size.
     From each duplicate group, keeps the first one (smallest ID) and deletes the rest.
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return 0
     albums = get_albums()
@@ -1051,7 +1051,7 @@ def immich_remove_duplicates_albums():
 #          DELETE ORPHANS ASSETS FROM IMMICH DATABASE
 # -----------------------------------------------------------------------------
 def immich_remove_orphan_assets(user_confirmation=True):
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return 0
 
@@ -1129,7 +1129,7 @@ def immich_remove_orphan_assets(user_confirmation=True):
 #          DELETE ALL ASSETS FROM IMMICH DATABASE
 # -----------------------------------------------------------------------------
 def immich_remove_all_assets():
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return 0, 0
     all_assets = get_all_assets_by_search_filter()
@@ -1165,7 +1165,7 @@ def immich_remove_all_albums(deleteAlbumsAssets=False):
     Deletes all albums and optionally also its associated assets.
     Returns the number of albums deleted and the number of assets deleted.
     """
-    from GLOBALS import LOGGER  # Import global LOGGER
+    from GlobalVariables import LOGGER  # Import global LOGGER
     if not login_immich():
         return 0, 0
     albums = get_albums()
@@ -1207,7 +1207,7 @@ def immich_remove_all_albums(deleteAlbumsAssets=False):
 ##############################################################################
 if __name__ == "__main__":
     # Create initialize LOGGER.
-    from GLOBALS import set_ARGS_PARSER
+    from GlobalVariables import set_ARGS_PARSER
     set_ARGS_PARSER()
 
     # # 0) Read configuration and log in
