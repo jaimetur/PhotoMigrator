@@ -128,7 +128,7 @@ def read_immich_config(config_file='CONFIG.ini', show_info=True):
     """
     global CONFIG, IMMICH_URL, IMMICH_ADMIN_API_KEY, IMMICH_USER_API_KEY, IMMICH_USERNAME, IMMICH_PASSWORD, API_KEY_LOGIN, IMMICH_FILTER_ARCHIVE, IMMICH_FILTER_FROM, IMMICH_FILTER_TO, IMMICH_FILTER_COUNTRY, IMMICH_FILTER_CITY, IMMICH_FILTER_PERSON
     from GLOBALS import LOGGER  # Iport global LOGGER
-    from Config import load_config
+    from ConfigReader import load_config
 
     if CONFIG:
         return CONFIG  # Configuration already read previously

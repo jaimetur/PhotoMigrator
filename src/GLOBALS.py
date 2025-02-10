@@ -43,7 +43,7 @@ def set_ARGS_PARSER():
     PARSER = getParser()
 
 def set_LOGGER():
-    from LoggerConfig import log_setup
+    from CustomLogger import log_setup
     global LOGGER, LOG_FOLDER_FILENAME
     script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     current_directory = os.getcwd()

@@ -88,7 +88,7 @@ def load_config(config_file='CONFIG.ini'):
 if __name__ == "__main__":
     # Create timestamp, and initialize LOGGER.
     from datetime import datetime
-    from LoggerConfig import log_setup
+    from CustomLogger import log_setup
     TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
     log_filename = f"{sys.argv[0]}_{TIMESTAMP}"
     log_folder = "Logs"

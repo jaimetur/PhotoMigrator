@@ -1,6 +1,7 @@
 from GLOBALS import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
 
-from CustomHelpFormatter import CustomHelpFormatter, PagedArgumentParser
+from CustomHelpFormatter import CustomHelpFormatter
+from CustomPager import PagedParser
 import argparse
 import os
 
@@ -19,7 +20,7 @@ def parse_arguments():
     # )
 
     # Parser with Pagination:
-    PARSER = PagedArgumentParser(
+    PARSER = PagedParser(
         description=SCRIPT_DESCRIPTION,
         formatter_class=CustomHelpFormatter,  # Aplica el formatter
     )

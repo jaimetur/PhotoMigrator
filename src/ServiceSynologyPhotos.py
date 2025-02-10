@@ -62,7 +62,7 @@ def read_synology_config(config_file='CONFIG.ini', show_info=True):
     """
     global CONFIG, SYNOLOGY_URL, SYNOLOGY_USERNAME, SYNOLOGY_PASSWORD, SYNOLOGY_ROOT_PHOTOS_PATH
     from GLOBALS import LOGGER  # Import the logger inside the function
-    from Config import load_config
+    from ConfigReader import load_config
 
     if CONFIG:
         return CONFIG
