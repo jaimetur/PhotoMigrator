@@ -41,7 +41,7 @@ def include_file_and_folders_and_compress(input_file, output_file):
         print("Uso: compress_file_and_folders(input_file, output_file)")
         sys.exit(1)
     if not Path(input_file).is_file():
-        print(f"Error: El archivo de entrada '{input_file}' no existe.")
+        print(f"ERROR   : El archivo de entrada '{input_file}' no existe.")
         sys.exit(1)
     temp_dir = Path(tempfile.mkdtemp())
     script_version_dir = os.path.join(temp_dir, SCRIPT_NAME_VERSION)
@@ -60,13 +60,13 @@ def include_file_and_folders_and_compress(input_file, output_file):
 
 def get_script_version(file):
     if not Path(file).is_file():
-        print(f"Error: El archivo {file} no existe.")
+        print(f"ERROR   : El archivo {file} no existe.")
         return None
     with open(file, 'r') as f:
         for line in f:
             if line.startswith("SCRIPT_VERSION"):
                 return line.split('"')[1]
-    print("Error: No se encontró un valor entre comillas después de SCRIPT_VERSION.")
+    print("ERROR   : No se encontró un valor entre comillas después de SCRIPT_VERSION.")
     return None
 
 

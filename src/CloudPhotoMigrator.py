@@ -20,7 +20,7 @@ def main():
     # Check OS and Terminal
     check_OS_and_Terminal()
     if not ARGS['no-log-file']:
-        LOGGER.info(f"INFO: Log File Location: '{LOG_FOLDER_FILENAME+'.log'}'")
+        LOGGER.info(f"INFO    : Log File Location: '{LOG_FOLDER_FILENAME+'.log'}'")
         LOGGER.info("")
 
     # Get the execution mode and run it.
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     #     # Agregar argumento predeterminado
     #     sys.argv.append("-z")
     #     sys.argv.append("Zip_folder")
-    #     print(f"INFO: No argument detected. Using default value '{sys.argv[2]}' for <ZIP_FOLDER>'.")
+    #     print(f"INFO    : No argument detected. Using default value '{sys.argv[2]}' for <ZIP_FOLDER>'.")
 
     # Definir la ruta de trabajo deseada
     target_directory = r"R:\jaimetur\CloudPhotoMigrator"

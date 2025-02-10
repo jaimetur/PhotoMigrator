@@ -36,7 +36,8 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 - [x] Added **_Immich Photos Support_**.
 - [x] Wildcards support on <ALBUMS_NAME> argument on --synology-download-albums and --immich-download-albums options.
 - [x] Replaced 'ALL_PHOTOS' by 'No-Albums' as output subfolder for assets without any album associated (be careful if you already run the script with previous version because before, the folder for assets without albums was named 'ALL_PHOTOS')
-- [x] Added colors to --help text for a better visualization.
+- [x] Support for colors in --help text for a better visualization.
+- [x] Support for colors in logger for a better visualization.
 - [x] Ignored @eaDir folders when upload assets to Synology/Immich Photos.
 - [x] Refactor and group All Google Takeout arguments in one block for 'Google Photos Takeout' Support.
 - [X] Refactor normal_mode to google_takeout_mode.

@@ -173,19 +173,19 @@ def checkArgs(ARGS):
         if source.lower() == 'google-photos':
             input_folder = ARGS['input-folder']
             if not os.path.isdir(input_folder):
-                print(f"ERROR: 'google-photos' detected as Source for the Automated Migration process, but not valid <INPUT_FOLDER> have been providen. ")
+                print(f"ERROR   : 'google-photos' detected as Source for the Automated Migration process, but not valid <INPUT_FOLDER> have been providen. ")
                 print(f"Please use -i <INPUT_FOLDER> to specify where your Google Photos Takeout is located.")
         # If source is not in the list of valid sources choices, then if it is a valid Input Takeout Folder from Google Photos
         elif source.lower() not in choices_for_AUTOMATED_MIGRATION_SRC:
-            print(f"WARNING: Source value '{source}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_SRC}...")
-            print(f"WARNING: Assuming that it is the input takeout folder for 'google-photos'")
+            print(f"WARNING : Source value '{source}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_SRC}...")
+            print(f"WARNING : Assuming that it is the input takeout folder for 'google-photos'")
             if not os.path.isdir(source):
-                print(f"❌ ERROR: Source Path '{source}' is not a valid Input Takeout Folder for 'google-photos' migration. Exiting...")
+                print(f"❌ ERROR   : Source Path '{source}' is not a valid Input Takeout Folder for 'google-photos' migration. Exiting...")
                 exit(1)
             ARGS['SOURCE-TYPE-TAKEOUT-FOLDER'] = True
         # If the target is not in the list of valid targets choices, exit.
         if target.lower() not in choices_for_AUTOMATED_MIGRATION_TGT:
-            print(f"❌ ERROR: Target value '{target}' is not valid. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT}")
+            print(f"❌ ERROR   : Target value '{target}' is not valid. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT}")
             exit(1)
 
     # Parse albums-folders Arguments to convert to a List if more than one Album folder is provide

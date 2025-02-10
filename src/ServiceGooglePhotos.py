@@ -20,13 +20,13 @@ def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER):
         Utils.unpack_zips(ARGS['google-input-zip-folder'], ARGS['google-input-takeout-folder'])
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
-        LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
+        LOGGER.info(f"INFO    : Step {STEP} completed in {formatted_duration}.")
     else:
         LOGGER.warning(
-            "WARNING: Unzipping skipped (no argument '-gizf or --google-input-zip-folder <ZIP_FOLDER>' given or Running Mode All-in-One with input folder directly unzipped).")
+            "WARNING : Unzipping skipped (no argument '-gizf or --google-input-zip-folder <ZIP_FOLDER>' given or Running Mode All-in-One with input folder directly unzipped).")
 
     if not os.path.isdir(ARGS['google-input-takeout-folder']):
-        LOGGER.error(f"ERROR: Cannot Find INPUT_FOLDER: '{ARGS['google-input-takeout-folder']}'. Exiting...")
+        LOGGER.error(f"ERROR   : Cannot Find INPUT_FOLDER: '{ARGS['google-input-takeout-folder']}'. Exiting...")
         sys.exit(-1)
 
     # STEP 2: Pre-Process Takeout folder
@@ -39,16 +39,16 @@ def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER):
     step_start_time = datetime.now()
     # Delete hidden subgolders '€eaDir' (Synology metadata folder) if exists
     LOGGER.info(
-        "INFO: Deleting hidden subfolders '@eaDir' (Synology metadata folders) from Takeout Folder if exists...")
+        "INFO    : Deleting hidden subfolders '@eaDir' (Synology metadata folders) from Takeout Folder if exists...")
     Utils.delete_subfolders(ARGS['google-input-takeout-folder'], "@eaDir")
     # Look for .MP4 files extracted from Live pictures and create a .json for them in order to fix their date and time
     LOGGER.info("")
-    LOGGER.info("INFO: Looking for .MP4 files from live pictures and asociate date and time with live picture file...")
+    LOGGER.info("INFO    : Looking for .MP4 files from live pictures and asociate date and time with live picture file...")
     Utils.fix_mp4_files(ARGS['google-input-takeout-folder'])
     step_end_time = datetime.now()
     formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
     LOGGER.info("")
-    LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
+    LOGGER.info(f"INFO    : Step {STEP} completed in {formatted_duration}.")
 
     # STEP 3: Process photos with GPTH Tool or copy directly to output folder if GPTH tool is skipped
     STEP += 1
@@ -60,7 +60,7 @@ def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER):
     if not ARGS['google-skip-gpth-tool']:
         if ARGS['google-ignore-check-structure']:
             LOGGER.warning(
-                "WARNING: Ignore Google Takeout Structure detected ('-it, --google-ignore-check-structure' flag detected).")
+                "WARNING : Ignore Google Takeout Structure detected ('-it, --google-ignore-check-structure' flag detected).")
         step_start_time = datetime.now()
         Fixers.fix_metadata_with_gpth_tool(
             input_folder=ARGS['google-input-takeout-folder'],
@@ -74,7 +74,7 @@ def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER):
             Utils.force_remove_directory(ARGS['google-input-takeout-folder'])
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
-        LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
+        LOGGER.info(f"INFO    : Step {STEP} completed in {formatted_duration}.")
     if ARGS['google-skip-gpth-tool'] or ARGS['google-ignore-check-structure']:
         LOGGER.info("")
         LOGGER.info("============================================")
@@ -83,14 +83,14 @@ def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER):
         LOGGER.info("")
         if ARGS['google-skip-gpth-tool']:
             LOGGER.warning(
-                f"WARNING: Metadata fixing with GPTH tool skipped ('-sg, --google-skip-gpth-tool' flag detected). Step {STEP}b is needed to copy files manually to output folder.")
+                f"WARNING : Metadata fixing with GPTH tool skipped ('-sg, --google-skip-gpth-tool' flag detected). Step {STEP}b is needed to copy files manually to output folder.")
         elif ARGS['google-ignore-check-structure']:
             LOGGER.warninf(
-                f"WARNING: Flag to Ignore Google Takeout Structure have been detected ('-it, --google-ignore-check-structure'). Step {STEP}b is needed to copy/move files manually to output folder.")
+                f"WARNING : Flag to Ignore Google Takeout Structure have been detected ('-it, --google-ignore-check-structure'). Step {STEP}b is needed to copy/move files manually to output folder.")
         if ARGS['google-move-takeout-folder']:
-            LOGGER.info("INFO: Moving files from Takeout folder to Output folder manually...")
+            LOGGER.info("INFO    : Moving files from Takeout folder to Output folder manually...")
         else:
-            LOGGER.info("INFO: Copying files from Takeout folder to Output folder manually...")
+            LOGGER.info("INFO    : Copying files from Takeout folder to Output folder manually...")
         step_start_time = datetime.now()
         Utils.copy_move_folder(ARGS['google-input-takeout-folder'], OUTPUT_TAKEOUT_FOLDER,
                                ignore_patterns=['*.json', '*.j'], move=ARGS['google-move-takeout-folder'])
@@ -98,7 +98,7 @@ def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER):
             Utils.force_remove_directory(ARGS['takeout-folder'])
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
-        LOGGER.info(f"INFO: Step {STEP}b completed in {formatted_duration}.")
+        LOGGER.info(f"INFO    : Step {STEP}b completed in {formatted_duration}.")
 
     # STEP 4: Sync .MP4 live pictures timestamp
     STEP += 1
@@ -109,11 +109,11 @@ def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER):
     LOGGER.info("")
     step_start_time = datetime.now()
     LOGGER.info(
-        "INFO: Fixing Timestamps of '.MP4' file with Live pictures files (.HEIC, .JPG, .JPEG) if both files have the same name and are in the same folder...")
+        "INFO    : Fixing Timestamps of '.MP4' file with Live pictures files (.HEIC, .JPG, .JPEG) if both files have the same name and are in the same folder...")
     Utils.sync_mp4_timestamps_with_images(OUTPUT_TAKEOUT_FOLDER)
     step_end_time = datetime.now()
     formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
-    LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
+    LOGGER.info(f"INFO    : Step {STEP} completed in {formatted_duration}.")
 
     # STEP 5: Create Folders Year/Month or Year only structure
     STEP += 1
@@ -126,7 +126,7 @@ def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER):
     if ARGS['google-albums-folders-structure'].lower() != 'flatten':
         LOGGER.info("")
         LOGGER.info(
-            f"INFO: Creating Folder structure '{ARGS['google-albums-folders-structure'].lower()}' for each Album folder...")
+            f"INFO    : Creating Folder structure '{ARGS['google-albums-folders-structure'].lower()}' for each Album folder...")
         basedir = OUTPUT_TAKEOUT_FOLDER
         type = ARGS['google-albums-folders-structure']
         exclude_subfolders = ['No-Albums']
@@ -135,7 +135,7 @@ def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER):
     if ARGS['google-no-albums-folder-structure'].lower() != 'flatten':
         LOGGER.info("")
         LOGGER.info(
-            f"INFO: Creating Folder structure '{ARGS['google-no-albums-folder-structure'].lower()}' for 'No-Albums' folder...")
+            f"INFO    : Creating Folder structure '{ARGS['google-no-albums-folder-structure'].lower()}' for 'No-Albums' folder...")
         basedir = os.path.join(OUTPUT_TAKEOUT_FOLDER, 'No-Albums')
         type = ARGS['google-no-albums-folder-structure']
         exclude_subfolders = []
@@ -145,11 +145,11 @@ def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER):
         'google-no-albums-folder-structure'].lower() == 'flatten':
         LOGGER.info("")
         LOGGER.warning(
-            "WARNING: No argument '-as, --google-albums-folders-structure' and '-ns, --google-no-albums-folder-structure' detected. All photos and videos will be flattened within their folders without any date organization.")
+            "WARNING : No argument '-as, --google-albums-folders-structure' and '-ns, --google-no-albums-folder-structure' detected. All photos and videos will be flattened within their folders without any date organization.")
     else:
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
-        LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
+        LOGGER.info(f"INFO    : Step {STEP} completed in {formatted_duration}.")
 
     # STEP 6: Move albums
     STEP += 1
@@ -163,9 +163,9 @@ def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER):
         Utils.move_albums(OUTPUT_TAKEOUT_FOLDER, exclude_subfolder=['No-Albums', '@eaDir'])
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
-        LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
+        LOGGER.info(f"INFO    : Step {STEP} completed in {formatted_duration}.")
     else:
-        LOGGER.warning("WARNING: Moving albums to 'Albums' folder skipped ('-sm, --google-skip-move-albums' flag detected).")
+        LOGGER.warning("WARNING : Moving albums to 'Albums' folder skipped ('-sm, --google-skip-move-albums' flag detected).")
     albums_found = 0
     if not ARGS['google-skip-move-albums']:
         album_folder = os.path.join(OUTPUT_TAKEOUT_FOLDER, 'Albums')
@@ -185,15 +185,15 @@ def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER):
     LOGGER.info("===============================================")
     LOGGER.info("")
     if ARGS['google-create-symbolic-albums']:
-        LOGGER.info("INFO: Fixing broken symbolic links. This step is needed after moving any Folder structure...")
+        LOGGER.info("INFO    : Fixing broken symbolic links. This step is needed after moving any Folder structure...")
         step_start_time = datetime.now()
         symlink_fixed, symlink_not_fixed = Utils.fix_symlinks_broken(OUTPUT_TAKEOUT_FOLDER)
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
-        LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
+        LOGGER.info(f"INFO    : Step {STEP} completed in {formatted_duration}.")
     else:
         LOGGER.warning(
-            "WARNING: Fixing broken symbolic links skipped ('-sa, --google-create-symbolic-albums' flag not detected, so this step is not needed.)")
+            "WARNING : Fixing broken symbolic links skipped ('-sa, --google-create-symbolic-albums' flag not detected, so this step is not needed.)")
 
     # STEP 8: Remove Duplicates in OUTPUT_TAKEOUT_FOLDER after Fixing
     STEP += 1
@@ -205,14 +205,14 @@ def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER):
         LOGGER.info("==========================================")
         LOGGER.info("")
         LOGGER.info(
-            "INFO: Removing duplicates from OUTPUT_TAKEOUT_FOLDER (Files within any Album will have more priority than files within 'Photos from *' or 'No-Albums' folders)...")
+            "INFO    : Removing duplicates from OUTPUT_TAKEOUT_FOLDER (Files within any Album will have more priority than files within 'Photos from *' or 'No-Albums' folders)...")
         step_start_time = datetime.now()
         duplicates_found = find_duplicates(duplicates_action='remove', duplicates_folders=OUTPUT_TAKEOUT_FOLDER,
                                            deprioritize_folders_patterns=DEPRIORITIZE_FOLDERS_PATTERNS,
                                            timestamp=TIMESTAMP)
         step_end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
-        LOGGER.info(f"INFO: Step {STEP} completed in {formatted_duration}.")
+        LOGGER.info(f"INFO    : Step {STEP} completed in {formatted_duration}.")
 
     # Return Outputs
     return albums_found, symlink_fixed, symlink_not_fixed, duplicates_found

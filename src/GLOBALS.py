@@ -44,12 +44,13 @@ def set_ARGS_PARSER():
 
 def set_LOGGER():
     from CustomLogger import log_setup
+    import logging
     global LOGGER, LOG_FOLDER_FILENAME
     script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     current_directory = os.getcwd()
     log_folder="Logs"
     log_filename=f"{script_name}_{TIMESTAMP}"
-    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename)
+    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=logging.INFO)
     LOG_FOLDER_FILENAME = os.path.join(current_directory, log_folder, log_filename)
 
 def set_HELP_TEXT():

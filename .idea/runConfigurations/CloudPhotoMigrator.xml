@@ -15,7 +15,7 @@
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/CloudPhotoMigrator.py" />
     <option name="PARAMETERS" value="-suAll R:/jaimetur_share/Photos/Upload_folder_for_testing/ --albums-folders" />
     <option name="SHOW_COMMAND_LINE" value="false" />
-    <option name="EMULATE_TERMINAL" value="false" />
+    <option name="EMULATE_TERMINAL" value="true" />
     <option name="MODULE_MODE" value="false" />
     <option name="REDIRECT_INPUT" value="false" />
     <option name="INPUT_FILE" value="" />

@@ -12,7 +12,7 @@ def resource_path(relative_path):
 def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, symbolic_albums=False, move_takeout_folder=False, ignore_takeout_structure=False):
     """Runs the GPTH Tool command to process photos."""
     from GLOBALS import LOGGER
-    LOGGER.info(f"INFO: Running GPTH Tool from '{input_folder}' to '{output_folder}'...")
+    LOGGER.info(f"INFO    : Running GPTH Tool from '{input_folder}' to '{output_folder}'...")
     # Detect the operating system
     current_os = platform.system()
     # Determine the script name based on the OS
@@ -37,7 +37,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, 
     # Append --albums shortcut / duplicate-copy based on value of flag -sa, --symbolic-albums
     gpth_command.append("--albums")
     if symbolic_albums:
-        LOGGER.info(f"INFO: Symbolic Albums will be created with links to the original files...")
+        LOGGER.info(f"INFO    : Symbolic Albums will be created with links to the original files...")
         gpth_command.append("shortcut")
     else:
         gpth_command.append("duplicate-copy")
@@ -66,14 +66,14 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, 
         if os.path.exists(all_photos_path) and os.path.isdir(all_photos_path):
             os.rename(all_photos_path, others_path)
 
-        LOGGER.info(f"INFO: GPTH Tool finxing completed successfully.")
+        LOGGER.info(f"INFO    : GPTH Tool finxing completed successfully.")
     except subprocess.CalledProcessError as e:
-        LOGGER.error(f"ERROR: GPTH Tool fixing failed:\n{e.stderr}")
+        LOGGER.error(f"ERROR   : GPTH Tool fixing failed:\n{e.stderr}")
 
 def fix_metadata_with_exif_tool(output_folder):
     """Runs the EXIF Tool command to fix photo metadata."""
     from GLOBALS import LOGGER
-    LOGGER.info(f"INFO: Fixing EXIF metadata in '{output_folder}'...")
+    LOGGER.info(f"INFO    : Fixing EXIF metadata in '{output_folder}'...")
     # Detect the operating system
     current_os = platform.system()
     # Determine the script name based on the OS
@@ -98,6 +98,6 @@ def fix_metadata_with_exif_tool(output_folder):
     try:
         # print (" ".join(exif_command))
         result = subprocess.run(exif_command, check=False)
-        LOGGER.info(f"INFO: EXIF Tool fixing completed successfully.")
+        LOGGER.info(f"INFO    : EXIF Tool fixing completed successfully.")
     except subprocess.CalledProcessError as e:
-        LOGGER.error(f"ERROR: EXIF Tool fixing failed:\n{e.stderr}")
+        LOGGER.error(f"ERROR   : EXIF Tool fixing failed:\n{e.stderr}")
