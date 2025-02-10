@@ -18,7 +18,6 @@ HELP_TEXTS                      = None
 ARGS                            = None
 PARSER                          = None
 LOGGER                          = None
-TQDM_LOGGER                     = None
 
 # List of Folder to Deprioritize when looking for duplicates.
 DEPRIORITIZE_FOLDERS_PATTERNS   = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS', '*No-Albums', '*Others', '*Variad[oa]*', '*Vari[oa]*', '*Miscellaneous*', '*M[oó]vil*', r'\bfotos\b\s+(\w+)\s*$', r'fotos de \w y \w\s*$', r'fotos de \w\s*$', '*Fotos_de*', '*Fotos_con', '*Fotos de*', '*Fotos con*']
@@ -53,8 +52,7 @@ def set_LOGGER():
     log_folder="Logs"
     log_filename=f"{script_name}_{TIMESTAMP}"
     LOG_FOLDER_FILENAME = os.path.join(current_directory, log_folder, log_filename)
-    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=log_level)
-    # TQDM_LOGGER = TqdmToLogger(LOGGER, log_level=log_level)
+    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=log_level, plain_log=True)
 
 def set_HELP_TEXT():
     from HelpTexts import set_help_texts
