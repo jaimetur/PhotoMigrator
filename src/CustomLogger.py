@@ -54,6 +54,20 @@ class CustomLogFormatter(logging.Formatter):
         record.msg = original_msg
         return formatted_message
 
+# Integrar tqdm con el logger
+class TqdmToLogger:
+    """Clase para redirigir los mensajes de tqdm al logger."""
+    def __init__(self, logger, log_level=logging.INFO):
+        self.logger = logger
+        self.level = log_level
+    def write(self, msg):
+        # Evita mensajes vacíos
+        if msg.strip():
+            self.logger.log(self.level, msg.strip())
+    def flush(self):
+        pass  # Requerido por tqdm, pero no es necesario implementar
+
+
 def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, timestamp=None, skip_logfile=False, skip_console=False, detail_log=True, plain_log=False):
     """
     Configures logger to a log file and console simultaneously.
@@ -76,44 +90,32 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, time
     if LOGGER.hasHandlers():
         LOGGER.handlers.clear()
 
-    # Formato personalizado para el manejador de mensajes por pantalla
-    console_format = CustomConsoleFormatter(
-        fmt='%(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
-    # Formato personalizado para el manejador de ficheros de Logs planos en .txt
-    txtfile_format = CustomTxtFormatter(
-        fmt='[%(levelname)-8s] - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
-    # Formato personalizado para el manejador de ficheros de Logs en formato .log
-    logfile_format = CustomLogFormatter(
-        fmt='%(asctime)s [%(levelname)-8s] - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
-
     if not skip_console:
-        # Set up console handler (simple output without timestamps)
+        # Set up console handler (simple output without asctime and levelname)
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(log_level)
-        console_handler.setFormatter(console_format)
+        console_handler.setFormatter(CustomConsoleFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
         LOGGER.addHandler(console_handler)
     if not skip_logfile:
         if detail_log:
-            # Set up logfile handler (detailed output with timestamps and levelname)
+            # Set up logfile handler (detailed output with asctime and levelname)
             log_file = os.path.join(log_folder, log_filename + '.log')
             file_handler_detailed = logging.FileHandler(log_file, encoding="utf-8")
             file_handler_detailed.setLevel(log_level)
-            file_handler_detailed.setFormatter(logfile_format)
+            file_handler_detailed.setFormatter(CustomLogFormatter(fmt='%(asctime)s [%(levelname)-8s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
             LOGGER.addHandler(file_handler_detailed)
         if plain_log:
-            # Set up txt file handler (output without timestamps and levelname)
-            log_file = os.path.join(log_folder, 'plain_' + log_filename + '.txt')
+            # Set up txt file handler (output without asctime and levelname)
+            log_file = os.path.join(log_folder, log_filename + '.txt')
             file_handler_plain = logging.FileHandler(log_file, encoding="utf-8")
             file_handler_plain.setLevel(log_level)
             # Formato estándar para el manejador de ficheros plano
-            file_handler_plain.setFormatter(txtfile_format)
+            file_handler_plain.setFormatter(CustomTxtFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
             LOGGER.addHandler(file_handler_plain)
+
+    # Añadir TqdmToLogger como atributo al logger
+    LOGGER.tqdm_stream = TqdmToLogger(LOGGER, log_level=logging.INFO)
+
     # Set the log level for the root logger
     LOGGER.setLevel(log_level)
     return LOGGER

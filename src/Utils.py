@@ -183,7 +183,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[]):
         dirs[:] = [d for d in dirs if d not in exclude_subfolders]
         total_files += sum([len(files)])
     # Mostrar la barra de progreso basada en carpetas
-    with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : Organizing files with {type} structure in '{input_folder}'", unit=" files") as pbar:
+    with tqdm(total=total_files, smoothing=0.1, file=LOGGER.tqdm_stream, desc=f"INFO    : Organizing files with {type} structure in '{input_folder}'", unit=" files") as pbar:
         for path, dirs, files in os.walk(input_folder, topdown=True):
             # Exclude specified subfolders
             dirs[:] = [d for d in dirs if d not in exclude_subfolders]
@@ -310,7 +310,7 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None)
     exclude_subfolder_paths = [os.path.abspath(os.path.join(input_folder, sub)) for sub in (exclude_subfolder or [])]
     subfolders = os.listdir(input_folder)
     subfolders = [subfolder for subfolder in subfolders if not subfolder=='@eaDir' and not subfolder=='No-Albums']
-    for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"INFO    : Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
+    for subfolder in tqdm(subfolders, smoothing=0.1, file=LOGGER.tqdm_stream, desc=f"INFO    : Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
         folder_path = os.path.join(input_folder, subfolder)
         if os.path.isdir(folder_path) and subfolder != albums_subfolder and os.path.abspath(folder_path) not in exclude_subfolder_paths:
             # LOGGER.info(f"INFO    : Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")
@@ -336,7 +336,7 @@ def change_file_extension(input_folder, current_extension, new_extension):
     # Contar el total de carpetas
     total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
     # Mostrar la barra de progreso basada en carpetas
-    with tqdm(total=total_files, ncols=120, smoothing=0.1, desc=f"INFO    : Changing File Extensions in '{input_folder}'", unit=" files") as pbar:
+    with tqdm(total=total_files, ncols=120, smoothing=0.1, file=LOGGER.tqdm_stream, desc=f"INFO    : Changing File Extensions in '{input_folder}'", unit=" files") as pbar:
         for path, dirs, files in os.walk(input_folder):
             for file in files:
                 pbar.update(1)
@@ -364,7 +364,7 @@ def delete_subfolders(input_folder, folder_name_to_delete):
     # Contar el total de carpetas
     total_dirs = sum([len(dirs) for _, dirs, _ in os.walk(input_folder)])
     # Mostrar la barra de progreso basada en carpetas
-    with tqdm(total=total_dirs, smoothing=0.1, desc=f"INFO    : Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
+    with tqdm(total=total_dirs, smoothing=0.1, file=LOGGER.tqdm_stream, desc=f"INFO    : Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
         for path, dirs, files in os.walk(input_folder, topdown=False):
             for folder in dirs:
                 pbar.update(1)
@@ -405,7 +405,7 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
     sep_input = input_folder.count(os.sep)
     # Convert wildcard patterns to regex patterns for matching
     exclude_patterns = [re.compile(fnmatch.translate(pattern)) for pattern in exclude_subfolders]
-    for path, dirs, files in tqdm(os.walk(input_folder, topdown=True), ncols=120, smoothing=0.1, desc=f"INFO    : Flattening Subfolders in '{input_folder}'", unit=" subfolders"):
+    for path, dirs, files in tqdm(os.walk(input_folder, topdown=True), ncols=120, smoothing=0.1, file=LOGGER.tqdm_stream, desc=f"INFO    : Flattening Subfolders in '{input_folder}'", unit=" subfolders"):
         # Count number of sep of root folder
         sep_root = int(path.count(os.sep))
         depth = sep_root - sep_input
@@ -471,7 +471,7 @@ def fix_symlinks_broken(input_folder):
         # Contar el total de carpetas
         total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
         # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : Building Index files in '{input_folder}'", unit=" files") as pbar:
+        with tqdm(total=total_files, smoothing=0.1, file=LOGGER.tqdm_stream, desc=f"INFO    : Building Index files in '{input_folder}'", unit=" files") as pbar:
             for path, _, files in os.walk(input_folder):
                 for fname in files:
                     pbar.update(1)
@@ -511,7 +511,7 @@ def fix_symlinks_broken(input_folder):
     # Step 2: Search for broken symbolic links and fix them using the index
     already_warned = False
     total_files = sum([len(files) for _, _, files in os.walk(input_folder)]) # Contar el total de carpetas
-    with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : Fixing Symbolic Links in '{input_folder}'", unit=" files") as pbar: # Mostrar la barra de progreso basada en carpetas
+    with tqdm(total=total_files, smoothing=0.1, file=LOGGER.tqdm_stream, desc=f"INFO    : Fixing Symbolic Links in '{input_folder}'", unit=" files") as pbar: # Mostrar la barra de progreso basada en carpetas
         for path, _, files in os.walk(input_folder):
             for file in files:
                 pbar.update(1)
@@ -603,7 +603,7 @@ def rename_album_folders(input_folder: str):
     total_folders = os.listdir(input_folder)
     info_actions = []
     warning_actions = []
-    for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"INFO    : Renaming Albums folders in '{input_folder}'", unit=" folders"):
+    for original_folder_name in tqdm(total_folders, smoothing=0.1, file=LOGGER.tqdm_stream, desc=f"INFO    : Renaming Albums folders in '{input_folder}'", unit=" folders"):
         item_path = os.path.join(input_folder, original_folder_name)
         if os.path.isdir(item_path):
             cleaned_folder_name = clean_name(original_folder_name)

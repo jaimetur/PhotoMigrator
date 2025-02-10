@@ -277,7 +277,7 @@ def wait_for_reindexing_synology_photos():
         files_to_index = int(result["data"].get("basic"))
         remaining_files_previous_step = files_to_index
 
-        with tqdm(total=files_to_index, smoothing=0.8, desc="INFO    : Reindexing files", unit=" files") as pbar:
+        with tqdm(total=files_to_index, smoothing=0.8, file=LOGGER.tqdm_stream, desc="INFO    : Reindexing files", unit=" files") as pbar:
             while True:
                 result = SESSION.get(url, params=params, verify=False).json()
                 if result.get("success"):
@@ -1077,6 +1077,12 @@ def synology_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfo
         sys.exit(-1)
 
     LOGGER.info("INFO    : Reindexing Synology Photos database before adding content...")
+
+    # Process folders and create albums
+    albums_created = 0
+    albums_skipped = 0
+    assets_added = 0
+
     if wait_for_reindexing_synology_photos():
         # Step 1: Get the root folder ID of Synology Photos for the authenticated user
         photos_root_folder_id = get_photos_root_folder_id()
@@ -1091,16 +1097,11 @@ def synology_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfo
             LOGGER.error(f"ERROR   : Cannot obtain ID for folder '{albums_folder_relative_path}/{input_folder}'. The folder may not have been indexed yet. Try forcing indexing and retry.")
             sys.exit(-1)
 
-        # Process folders and create albums
-        albums_created = 0
-        albums_skipped = 0
-        assets_added = 0
-
         # Filter albums_folder to exclude '@eaDir'
         albums_folder_filtered = os.listdir(input_folder)
         albums_folder_filtered[:] = [d for d in albums_folder_filtered if d != '@eaDir']
         LOGGER.info(f"INFO    : Processing all albums in folder '{input_folder}' and creating corresponding albums into Synology Photos...")
-        for album_folder in tqdm(albums_folder_filtered, desc="INFO    : Uploading Albums", unit=" albums"):
+        for album_folder in tqdm(albums_folder_filtered, file=LOGGER.tqdm_stream, desc="INFO    : Uploading Albums", unit=" albums"):
             # Step 3: For each album folder, get the folder ID in the directory containing the albums
             individual_album_folder_id = get_folder_id(search_in_folder_id=albums_folder_id, folder_name=os.path.basename(album_folder))
             if not individual_album_folder_id:
@@ -1180,7 +1181,7 @@ def synology_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfo
         folder_filtered = os.listdir(input_folder)
         folder_filtered[:] = [d for d in folder_filtered if d != '@eaDir']
         LOGGER.info(f"INFO    : Processing all subfolders in folder '{input_folder}' and uploading corresponding assets into Synology Photos...")
-        for input_folder in tqdm(folder_filtered, desc="INFO    : Uploading Folder", unit=" folders"):
+        for input_folder in tqdm(folder_filtered, file=LOGGER.tqdm_stream, desc="INFO    : Uploading Folder", unit=" folders"):
             # Step 3: For each album folder, get the folder ID in the directory containing the albums
             individual_folder_id = get_folder_id(search_in_folder_id=folder_id, folder_name=os.path.basename(input_folder))
             if not individual_folder_id:
@@ -1306,7 +1307,7 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
 
     albums_downloaded = len(albums_to_download)
     # Iterate over each album to copy
-    for album in tqdm(albums_to_download, desc="INFO    : Downloading Albums", unit=" albums"):
+    for album in tqdm(albums_to_download, file=LOGGER.tqdm_stream, desc="INFO    : Downloading Albums", unit=" albums"):
         album_name = album['name']
         album_id = album['id']
         # LOGGER.info(f"INFO    : Processing album: '{album_name}' (ID: {album_id})")
@@ -1389,7 +1390,7 @@ def synology_remove_empty_albums():
     albums_deleted = 0
     if albums_dict != -1:
         LOGGER.info("INFO    : Looking for empty albums in Synology Photos...")
-        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, desc="INFO    : Processing Albums", unit=" albums"):
+        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, file=LOGGER.tqdm_stream, desc="INFO    : Processing Albums", unit=" albums"):
             item_count = get_album_items_count(album_id=album_id, album_name=album_name)
             if item_count == 0:
                 LOGGER.info(f"INFO    : Deleting empty album: '{album_name}' (ID: {album_id})")
@@ -1419,7 +1420,7 @@ def synology_remove_duplicates_albums():
     albums_data = {}
     if albums_dict != -1:
         LOGGER.info("INFO    : Looking for duplicate albums in Synology Photos...")
-        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, desc="INFO    : Processing Albums", unit=" albums"):
+        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, file=LOGGER.tqdm_stream, desc="INFO    : Processing Albums", unit=" albums"):
             item_count = get_album_items_count(album_id=album_id, album_name=album_name)
             item_size = get_album_items_size(album_id=album_id, album_name=album_name)
             albums_data.setdefault((item_count, item_size), []).append((album_id, album_name))
@@ -1464,7 +1465,7 @@ def synology_remove_all_assets():
     LOGGER.info(f"INFO    : Found {total_assets_found} asset(s) to delete.")
     assets_ids = []
     assets_deleted = len(all_assets)
-    for asset in tqdm(all_assets, desc="INFO    : Deleting assets", unit="assets"):
+    for asset in tqdm(all_assets, file=LOGGER.tqdm_stream, desc="INFO    : Deleting assets", unit="assets"):
         asset_id = asset.get("id")
         if not asset_id:
             continue
@@ -1496,7 +1497,7 @@ def synology_remove_all_albums(deleteAlbumsAssets=False):
         return 0, 0
     total_deleted_albums = 0
     total_deleted_assets = 0
-    for album in tqdm(albums, desc=f"INFO    : Searching for Albums to delete", unit=" albums"):
+    for album in tqdm(albums, file=LOGGER.tqdm_stream, desc=f"INFO    : Searching for Albums to delete", unit=" albums"):
         album_id = album.get("id")
         album_name = album.get("albumName")
         album_assets_ids = []

@@ -679,7 +679,7 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
     if subfolders_inclusion:
         first_level_folders = first_level_folders + subfolders_inclusion
 
-    with tqdm(total=len(valid_folders), smoothing=0.1, desc="INFO    : Uploading Albums from Folders", unit=" folders") as pbar:
+    with tqdm(total=len(valid_folders), smoothing=0.1, file=LOGGER.tqdm_stream, desc="INFO    : Uploading Albums from Folders", unit=" folders") as pbar:
         for subpath in valid_folders:
             pbar.update(1)
             new_album_assets_ids = []
@@ -786,7 +786,7 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
     total_assets_uploaded = 0
 
     # Process each file with a progress bar
-    with tqdm(total=total_files, smoothing=0.1, desc="INFO    : Uploading Assets", unit=" asset") as pbar:
+    with tqdm(total=total_files, smoothing=0.1, file=LOGGER.tqdm_stream, desc="INFO    : Uploading Assets", unit=" asset") as pbar:
         for file_path in file_paths:
             if upload_file_to_immich(file_path):
                 total_assets_uploaded += 1
@@ -894,7 +894,7 @@ def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich"):
         os.makedirs(album_folder, exist_ok=True)
 
         assets_in_album = get_assets_from_album(album_id)
-        for asset in tqdm(assets_in_album, desc=f"INFO    : Downloading '{album_name}'", unit=" assets"):
+        for asset in tqdm(assets_in_album, file=LOGGER.tqdm_stream, desc=f"INFO    : Downloading '{album_name}'", unit=" assets"):
             asset_id = asset.get("id")
             asset_filename = os.path.basename(asset.get("originalPath"))
             if asset_id:
@@ -934,7 +934,7 @@ def immich_download_no_albums(output_folder="Downloads_Immich"):
     os.makedirs(all_photos_path, exist_ok=True)
     # all_assets_items = [a for a in all_assets if a.get("id") not in downloaded_assets_set]
     LOGGER.info(f"INFO    : Found {len(all_assets_items)} asset(s) without any album associated.")
-    for asset in tqdm(all_assets_items, desc="INFO    : Downloading assets without associated albums", unit=" photos"):
+    for asset in tqdm(all_assets_items, file=LOGGER.tqdm_stream, desc="INFO    : Downloading assets without associated albums", unit=" photos"):
         asset_id = asset.get("id")
         asset_filename = os.path.basename(asset.get("originalPath"))
         if not asset_id:
@@ -1003,7 +1003,7 @@ def immich_remove_empty_albums():
         LOGGER.info("INFO    : No albums found.")
         return 0
     total_deleted_empty_albums = 0
-    for album in tqdm(albums, desc=f"INFO    : Searchig for Empty Albums", unit=" albums"):
+    for album in tqdm(albums, file=LOGGER.tqdm_stream, desc=f"INFO    : Searchig for Empty Albums", unit=" albums"):
         album_id = album.get("id")
         album_name = album.get("albumName")
         assets_count = album.get("assetCount")
@@ -1029,14 +1029,14 @@ def immich_remove_duplicates_albums():
     if not albums:
         return 0
     duplicates_map = {}
-    for album in tqdm(albums, desc=f"INFO    : Searchig for Duplicates Albums", unit=" albums"):
+    for album in tqdm(albums, file=LOGGER.tqdm_stream, desc=f"INFO    : Searchig for Duplicates Albums", unit=" albums"):
         album_id = album.get("id")
         album_name = album.get("albumName")
         assets_count = album.get("assetCount")
         size = get_album_items_size(album_id)
         duplicates_map.setdefault((assets_count, size), []).append((album_id, album_name))
     total_deleted_duplicated_albums = 0
-    for (assets_count, size), group in tqdm(duplicates_map.items(), desc=f"INFO    : Deleting Duplicates Albums", unit=" albums"):
+    for (assets_count, size), group in tqdm(duplicates_map.items(), file=LOGGER.tqdm_stream, desc=f"INFO    : Deleting Duplicates Albums", unit=" albums"):
         if len(group) > 1:
             group_sorted = sorted(group, key=lambda x: x[1])
             # The first album in the group is kept
@@ -1105,7 +1105,7 @@ def immich_remove_orphan_assets(user_confirmation=True):
             return 0
 
     headers['x-api-key'] = IMMICH_USER_API_KEY  # Use user API key for deletion
-    with tqdm(total=num_entries, desc="Deleting orphaned media assets", unit="asset") as progress_bar:
+    with tqdm(total=num_entries, file=LOGGER.tqdm_stream, desc="Deleting orphaned media assets", unit="asset") as progress_bar:
         for asset in orphan_media_assets:
             entity_id = asset['entityId']
             asset_url = f'{api_url}/assets'
@@ -1141,7 +1141,7 @@ def immich_remove_all_assets():
     LOGGER.info(f"INFO    : Found {total_assets_found} asset(s) to delete.")
     assets_ids = []
     assets_deleted = len(all_assets_items)
-    for asset in tqdm(all_assets_items, desc="INFO    : Deleting assets", unit="assets"):
+    for asset in tqdm(all_assets_items, file=LOGGER.tqdm_stream, desc="INFO    : Deleting assets", unit="assets"):
         asset_id = asset.get("id")
         if not asset_id:
             continue
@@ -1174,7 +1174,7 @@ def immich_remove_all_albums(deleteAlbumsAssets=False):
         return 0, 0
     total_deleted_albums = 0
     total_deleted_assets = 0
-    for album in tqdm(albums, desc=f"INFO    : Searching for Albums to delete", unit=" albums"):
+    for album in tqdm(albums, file=LOGGER.tqdm_stream, desc=f"INFO    : Searching for Albums to delete", unit=" albums"):
         album_id = album.get("id")
         album_name = album.get("albumName")
         album_assets_ids = []
