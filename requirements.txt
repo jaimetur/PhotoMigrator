@@ -13,3 +13,4 @@ zipp
 pathvalidate
 halo
 tabulate
+requests-toolbelt

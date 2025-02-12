@@ -689,28 +689,33 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
                 continue
             relative_path = os.path.relpath(subpath, input_folder)
             path_parts = relative_path.split(os.sep)
-            album_name = " - ".join(path_parts[1:]) if path_parts[0] in first_level_folders else " - ".join(path_parts)
-            album_id = create_album(album_name)
-            if not album_id:
-                LOGGER.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
-                albums_skipped += 1
-                continue
+            # Create album_name
+            if len(path_parts) == 1:
+                album_name = path_parts[0]
             else:
-                albums_uploaded += 1
-            for file in os.listdir(subpath):
-                file_path = os.path.join(subpath, file)
-                if not os.path.isfile(file_path):
+                album_name = " - ".join(path_parts[1:]) if path_parts[0] in first_level_folders else " - ".join(path_parts)
+            if album_name != '':
+                album_id = create_album(album_name)
+                if not album_id:
+                    LOGGER.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
+                    albums_skipped += 1
                     continue
-                ext = os.path.splitext(file)[-1].lower()
-                if ext not in ALLOWED_IMMICH_EXTENSIONS:
-                    continue
-                asset_id = upload_asset(file_path)
-                assets_uploaded += 1
-                # Assign to Album only if extension is in ALLOWED_IMMICH_MEDIA_EXTENSIONS
-                if ext in ALLOWED_IMMICH_MEDIA_EXTENSIONS:
-                    new_album_assets_ids.append(asset_id)
-            if new_album_assets_ids:
-                add_assets_to_album(album_id, new_album_assets_ids, album_name=album_name)
+                else:
+                    albums_uploaded += 1
+                for file in os.listdir(subpath):
+                    file_path = os.path.join(subpath, file)
+                    if not os.path.isfile(file_path):
+                        continue
+                    ext = os.path.splitext(file)[-1].lower()
+                    if ext not in ALLOWED_IMMICH_EXTENSIONS:
+                        continue
+                    asset_id = upload_asset(file_path)
+                    assets_uploaded += 1
+                    # Assign to Album only if extension is in ALLOWED_IMMICH_MEDIA_EXTENSIONS
+                    if ext in ALLOWED_IMMICH_MEDIA_EXTENSIONS:
+                        new_album_assets_ids.append(asset_id)
+                if new_album_assets_ids:
+                    add_assets_to_album(album_id, new_album_assets_ids, album_name=album_name)
 
     LOGGER.info(f"INFO    : Skipped {albums_skipped} album(s) from '{input_folder}'.")
     LOGGER.info(f"INFO    : Uploaded {albums_uploaded} album(s) from '{input_folder}'.")
@@ -1145,9 +1150,9 @@ def immich_remove_all_assets():
             continue
         assets_ids.append(asset_id)
 
+    albums_deleted = immich_remove_empty_albums()
     ok = delete_assets(assets_ids)
     if ok:
-        albums_deleted = immich_remove_empty_albums()
         LOGGER.info(f"INFO    : Total Assets deleted: {assets_deleted}")
         LOGGER.info(f"INFO    : Total Albums deleted: {albums_deleted}")
         return assets_deleted, albums_deleted
