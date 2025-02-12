@@ -183,5 +183,5 @@ class PagedParser(argparse.ArgumentParser):
         if self.is_interactive():
             self.custom_pager(help_text)
         else:
-            # Muestra todo el texto directamente si no es interactivo
+            # Muestra el texto directamente si no es interactivo
             print(help_text)

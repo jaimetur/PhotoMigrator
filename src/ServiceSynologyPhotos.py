@@ -24,10 +24,10 @@ import requests
 import urllib3
 import json
 import subprocess
-import Utils
 import fnmatch
 from tqdm import tqdm
 import mimetypes
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 # -----------------------------------------------------------------------------
 #                          GLOBAL VARIABLES
@@ -39,6 +39,7 @@ global SESSION, SID
 CONFIG = None
 SESSION = None
 SID = None
+SYNO_TOKEN = None
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -63,6 +64,7 @@ def read_synology_config(config_file='CONFIG.ini', show_info=True):
     global CONFIG, SYNOLOGY_URL, SYNOLOGY_USERNAME, SYNOLOGY_PASSWORD, SYNOLOGY_ROOT_PHOTOS_PATH
     from GlobalVariables import LOGGER  # Import the logger inside the function
     from ConfigReader import load_config
+    import Utils 
 
     if CONFIG:
         return CONFIG
@@ -104,6 +106,7 @@ def read_synology_config(config_file='CONFIG.ini', show_info=True):
         LOGGER.info(f"INFO    : SYNOLOGY_URL              : {SYNOLOGY_URL}")
         LOGGER.info(f"INFO    : SYNOLOGY_USERNAME         : {SYNOLOGY_USERNAME}")
         LOGGER.info(f"INFO    : SYNOLOGY_PASSWORD         : {masked_password}")
+        LOGGER.info(f"INFO    : SYNOLOGY_PASSWORD         : {SYNOLOGY_PASSWORD}")
         LOGGER.info(f"INFO    : SYNOLOGY_ROOT_PHOTOS_PATH : {SYNOLOGY_ROOT_PHOTOS_PATH}")
 
     return CONFIG
@@ -115,13 +118,12 @@ def login_synology():
     """
     Logs into the NAS and returns the active session with the SID and Synology DSM URL.
     """
-    global SESSION
-    global SID
+    global SESSION, SID, SYNO_TOKEN
     from GlobalVariables import LOGGER
 
     # If a session is already active, return it instead of creating a new one
-    if SESSION and SID:
-        return SESSION, SID
+    if SESSION and SID and SYNO_TOKEN:
+        return SESSION, SID, SYNO_TOKEN
 
     # Read server configuration
     read_synology_config()
@@ -137,16 +139,20 @@ def login_synology():
         "method": "login",
         "account": SYNOLOGY_USERNAME,
         "passwd": SYNOLOGY_PASSWORD,
+        "enable_syno_token": "yes",
         "format": "sid",
     }
     response = SESSION.get(url, params=params, verify=False)
     response.raise_for_status()
     data = response.json()
     if data.get("success"):
-        SESSION.cookies.set("id", data["data"]["sid"])  # Set the SID as a cookie
+        # SESSION.cookies.set("id", data["data"]["sid"])  # Set the SID as a cookie
+        # SESSION.cookies.set("did", data["data"]["did"])  # Set the DID as a cookie
+        # SESSION.cookies.set("stay_login", "1")  # Set Stay_login as 1 in the cookie
         LOGGER.info(f"INFO    : Authentication Successfully with user/password found in Config file.")
         SID = data["data"]["sid"]
-        return SESSION, SID
+        SYNO_TOKEN = data["data"]["synotoken"]
+        return SESSION, SID, SYNO_TOKEN
     else:
         LOGGER.error(f"ERROR   : Unable to authenticate with the provided NAS data: {data}")
         sys.exit(-1)
@@ -409,8 +415,7 @@ def get_folder_id(search_in_folder_id, folder_name):
 
 
 # Function to obtain or create a folder
-# TODO: refactor this function to create_folder
-def get_folder_id_or_create_folder(folder_name, parent_folder_id=None):
+def create_folder(folder_name, parent_folder_id=None):
     """
     Retrieves the folder ID of a given folder name within a parent folder in Synology Photos.
     If the folder does not exist, it will be created.
@@ -457,12 +462,12 @@ def get_folder_id_or_create_folder(folder_name, parent_folder_id=None):
         return None
 
 # Function to delete a folder
-# TODO: Complete this function
+# TODO: Complete and Check this function
 def delete_folder(folder_id):
   pass
 
 # Function to return the number of files within a folder
-# TODO: Complete this function
+# TODO: Complete and Check this function
 def get_folder_items_count(folder_id, folder_name):
   pass
 
@@ -885,75 +890,9 @@ def delete_assets(asset_ids):
         return False
     return True
 
-# TODO: Refactor to upload_asset()
-def upload_file_to_synology(file_path, album_name=None):
-    """
-    Uploads a file (photo or video) to a Synology Photos folder.
 
-    Args:
-        file_path (str): Path to the file to upload.
-        album_name (str, optional): Name of the album associated with the upload.
-
-    Returns:
-        int: Status code indicating success or failure.
-    """
-    from GlobalVariables import LOGGER  # Import the logger inside the function
-    stats = os.stat(file_path)
-    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
-
-    # Verifica si el archivo existe antes de continuar
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"El archivo '{file_path}' no existe.")
-
-    # Obtiene la información del archivo
-    stats = os.stat(file_path)
-    mime_type = mimetypes.guess_type(file_path)[0] or 'application/octet-stream'
-
-    file = open(file_path, 'rb')
-    file.close()
-    files = {
-        'file': open(file_path, 'rb').close(),
-    }
-
-    api_path = 'SYNO.Foto.Upload.Item'
-    api_version = '1'
-    method = 'upload'
-    filename = os.path.basename(file_path)
-    # url = f'{url}/{api_path}?api={api_path}&version={api_version}&method={method}&_sid={SID}'
-
-
-    # Construcción del payload con el formato correcto
-    payload = {
-        'api': 'SYNO.Foto.Upload.Item',
-        'method': 'upload',
-        'version': '1',
-        'name': os.path.basename(file_path),  # 🔹 Ahora se asegura que `name` esté en los datos
-        'uploadDestination': 'timeline',
-        'duplicate': 'ignore',
-        'mtime': str(int(stats.st_mtime)),
-        'folder': '["PhotoLibrary"]'  # 🔹 Se mantiene en formato JSON-string
-    }
-
-    # Carga el archivo como binario en una tupla (clave, (nombre, contenido, tipo_mime))
-    files = {
-        'file': (os.path.basename(file_path), open(file_path, 'rb'), mime_type)
-    }
-
-    HEADERS = {'Content-Type': 'application/json; charset="UTF-8"'}
-
-    print(json.dumps(HEADERS, indent=4, ensure_ascii=False))
-    print(json.dumps(payload, indent=4, ensure_ascii=False))
-
-    # Envía la solicitud a la API
-    response = SESSION.post(url, headers=HEADERS, data=payload, files=files, verify=False)
-    response.raise_for_status()
-    data = response.json()
-    if not data["success"]:
-        LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
-        return -1
-
-# TODO: Refactor to add_asset_to_folder() and ise the id that returns upload_asset() to associate it to a folder
-def upload_file_to_synology_folder(file_path, album_name=None):
+# TODO: Use the id that returns upload_asset() to associate it to a folder
+def add_asset_to_folder(file_path, album_name=None):
     """
     Uploads a file (photo or video) to a Synology Photos folder.
 
@@ -991,6 +930,231 @@ def upload_file_to_synology_folder(file_path, album_name=None):
         return -1
 
 
+def upload_asset(file_path):
+    """Subir un archivo a Synology Photos replicando la solicitud del navegador."""
+
+    from GlobalVariables import LOGGER  # Import the logger inside the function
+    global SYNOLOGY_URL, SID, SYNO_TOKEN
+    login_synology()
+    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+
+    # Verifica si el archivo existe antes de continuar
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"El archivo '{file_path}' no existe.")
+
+    # 🔹 Crear sesión persistente
+    SESSION = requests.Session()
+
+    # 🔹 URL de Synology Photos (ahora con los parámetros en la URL, no en el body)
+    SYNOLOGY_URL = (
+        "http://192.168.1.11:5000/webapi/entry.cgi/SYNO.Foto.Upload.Item"
+        "?api=SYNO.Foto.Upload.Item"
+        "&method=upload"
+        "&version=1"
+    )
+
+    # 🔹 Configurar cookies exactamente como en Wireshark
+    SESSION.cookies.set("id", SID)
+    # SESSION.cookies.set("stay_login", "0")
+    # SESSION.cookies.set("_SSID", "NKrWw882xrwyKWODR0fCmtCjtJOee4DP6osmUWxp5Hc")
+    # SESSION.cookies.set("did", "7Kgf7soUG2WMV_MNTbowexic3TaneHFvCYSII3SvdJGssk4pMKGYU-JKCr2jlua442IubEWX3J8DuzVuRu7dyw")
+    # SESSION.cookies.set("ViewType", "timeline")
+    # SESSION.cookies.set("io", "eCQC6mRJ0JacVeokAAAo")
+
+    # 🔹 Obtener MIME type del archivo
+    mime_type = mimetypes.guess_type(file_path)[0] or "application/octet-stream"
+
+    # 🔹 **Forzar `multipart/form-data` asegurando que `name` sea `text/plain`**
+    with open(file_path, "rb") as file:
+        filename = os.path.basename(file_path)
+        # multipart_data = MultipartEncoder(
+        #     fields={
+        #         "file": (os.path.basename(file_path), file, mime_type),
+        #         "uploadDestination": "timeline",
+        #         "duplicate": "ignore",
+        #         "name": (None, os.path.basename(file_path), "text/plain"),
+        #         "mtime": (None, str(int(os.stat(file_path).st_mtime)), "text/plain"),
+        #         "folder": (None, json.dumps(["PhotoLibrary"]), "application/json")
+        #     },
+        #     boundary="----WebKitFormBoundaryi5jn6ufF0HdGM2jG"
+        #     # ✅ **Usamos el `boundary` exacto capturado en Wireshark**
+        # )
+
+        multipart_data = MultipartEncoder({
+            'file': (filename, file, mime_type),
+            'uploadDestination': 'timeline',
+            'duplicate': 'ignore',
+            'name': filename,
+            'mtime': str(int(os.stat(file_path).st_mtime)),
+            'folder': json.dumps(['PhotoLibrary']),
+        })
+
+        # 🔹 Cabeceras idénticas a las del navegador
+        headers = {
+            "X-SYNO-TOKEN": SYNO_TOKEN,
+            "Content-Type": multipart_data.content_type,
+            # "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
+            # "Accept": "*/*",
+            # "Origin": "http://192.168.1.11:5000",
+            # "Referer": f"http://192.168.1.11:5000/?launchApp=SYNO.Foto.AppInstance&SynoToken={SYNO_TOKEN}",
+            # "Connection": "keep-alive",
+        }
+
+        # 🔹 Enviar la solicitud con `multipart/form-data`
+        response = SESSION.post(
+            SYNOLOGY_URL,  # ✅ **Los parámetros ahora están en la URL**
+            data=multipart_data,
+            headers=headers,
+            verify=False
+        )
+
+    # 🔹 Ver respuesta
+    print("Código de estado:", response.status_code)
+    print("Respuesta JSON:", response.json())
+
+    # SYNOLOGY_URL = "http://192.168.1.11:5000/webapi/entry.cgi/SYNO.Foto.Upload.Item"
+    # SYNOLOGY_URL = "http://192.168.1.11:5000/webapi/entry.cgi"
+
+    # data = {
+    #     "api": "SYNO.Foto.Upload.Item",
+    #     "method": "upload",
+    #     "version": "1",
+    #     "uploadDestination": "timeline",  # 🔹 Confirmado en el payload
+    #     "duplicate": "ignore",
+    #     "name": os.path.basename(file_path),
+    #     "mtime": str(int(os.stat(file_path).st_mtime)),  # Convertir a timestamp UNIX
+    #     "folder": json.dumps(["PhotoLibrary"]),  # 🔹 Debe enviarse como string JSON
+    #     "_sid": SID  # Se incluye para autenticación
+    # }
+    # print(json.dumps(data, indent=4, ensure_ascii=False))
+    #
+    # headers = {
+    #     "X-Syno-Token": SYNO_TOKEN,  # 🔹 Si Synology lo requiere
+    #     # "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",  # Simular navegador
+    #     # "Accept": "*/*",
+    #     # "Connection": "keep-alive"
+    # }
+    #
+    #
+    # with open(file_path, "rb") as file:
+    #     files = {"file": (os.path.basename(file_path), file, "image/png")}  # Asegurar MIME-Type
+    #
+    #     response = SESSION.post(
+    #         SYNOLOGY_URL,
+    #         data=data,  # Enviar parámetros como `form-data`
+    #         files=files,  # Archivo binario en `multipart/form-data`
+    #         headers=headers,
+    #         verify=False
+    #     )
+    #     response.raise_for_status()
+    #     data = response.json()
+    #     if not data["success"]:
+    #         LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
+    #         return -1
+
+
+
+    # # Obtiene la información del archivo
+    # stats = os.stat(file_path)
+    # mime_type = mimetypes.guess_type(file_path)[0] or 'application/octet-stream'
+    #
+    # import base64
+    # with open(file_path, "rb") as file:
+    #     encoded_file = base64.b64encode(file.read()).decode("utf-8")
+    #
+    # # Construcción del params con el formato correcto
+    # params = {
+    #     "api": "SYNO.Foto.Upload.Item",
+    #     "method": "upload",
+    #     "version": "1",
+    #     # "file": encoded_file,
+    #     # "file": open(file_path, 'rb'),
+    #     "uploadDestination": "timeline",
+    #     "duplicate": "ignore",
+    #     "name": 'prueba',
+    #     # "mtime": str(int(stats.st_mtime)),
+    #     "mtime": 1675097820,
+    #     # "_sid": SID,
+    #     "folder": '["PhotoLibrary"]'
+    # }
+    #
+    # files = {
+    #     'file': open(file_path, 'rb'),
+    #     'name': os.path.basename(file_path)
+    # }
+    #
+    # params = {
+    #     "api": "SYNO.Foto.Upload.Item",
+    #     "method": "upload",
+    #     "version": "1",
+    #     "uploadDestination": "timeline",
+    #     "duplicate": "ignore",
+    #     "mtime": 1675097820,  # ✅ Dejar como entero
+    #     "folder": json.dumps(["PhotoLibrary"])  # ✅ Formato JSON válido
+    # }
+    #
+    # files = {
+    #     "file": (os.path.basename(file_path), open(file_path, "rb"), "application/octet-stream"),
+    #     "name": (None, os.path.basename(file_path))  # ✅ `None` indica que no es un archivo
+    # }
+
+    # print(json.dumps(params, indent=4, ensure_ascii=False))
+
+    # Carga el archivo como binario en una tupla (clave, (nombre, contenido, tipo_mime))
+    # files = {
+    #     'file': (os.path.basename(file_path), open(file_path, 'rb'), mime_type)
+    # }
+
+    # **Archivo en `files` incluyendo `name`**
+    # files = [
+    #     ("file", (os.path.basename(file_path), open(file_path, "rb"), "application/octet-stream")),
+    #     ("name", (None, os.path.basename(file_path)))  # 🔹 Se envía `name` como un campo separado
+    # ]
+
+    # files = [
+    #     ('file', (os.path.basename(file_path), open(file_path, 'rb'), 'application/octet-stream'))
+    # ]
+
+    # files = {
+    #     'file': open(file_path, 'rb')
+    # }
+
+    # HEADERS = {
+    #     'Content-Type': 'multipart/form-data',
+    #     'Accept': 'application/json'
+    # }
+    #
+    # HEADERS = {'Content-Type': 'application/json; charset="UTF-8"'}
+    # HEADERS = {'Content-Type': 'application/json'}
+    # HEADERS = {
+    #     "X-Syno-Token": SYNO_TOKEN  # Si la API requiere un token adicional
+    # }
+    # print(json.dumps(HEADERS, indent=4, ensure_ascii=False))
+
+    # response = SESSION.post(url, data=params, files=files, verify=False)
+    # data = response.json()
+    # if not data["success"]:
+    #     LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
+    #     return -1
+
+    # # Envía la solicitud a la API
+    # with open(file_path, "rb") as file:
+    #     files = {"file": (os.path.basename(file_path), file, "image/jpeg")}  # Asegurar MIME-Type
+    #
+    #     response = SESSION.post(url, data=params, verify=False)
+    #
+    #     # response = requests.post(url, data=params, verify=False)
+    #     # response = SESSION.post(url, data=params, verify=False)
+    #     # response = SESSION.post(url, headers=HEADERS, data=params, verify=False)
+    #     # response = requests.post(url, data=params, verify=False)
+    #     # response = SESSION.post(url, headers=HEADERS, params=params, files=files, verify=False)
+    #     # response = SESSION.post(url, headers=HEADERS, params=params, verify=False)
+    #     response.raise_for_status()
+    #     data = response.json()
+    #     if not data["success"]:
+    #         LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
+    #         return -1
+
 def download_assets(folder_id, folder_name, photos_list):
     """
     Copies a list of photos to a specified folder in Synology Photos.
@@ -1016,7 +1180,7 @@ def download_assets(folder_id, folder_name, photos_list):
             # Get the current batch
             batch = photos_list[i * batch_size:(i + 1) * batch_size]
             items_id = ','.join([str(photo['id']) for photo in batch])
-            params_copy = {
+            params = {
                 'api': 'SYNO.Foto.BackgroundTask.File',
                 'version': '1',
                 'method': 'copy',
@@ -1025,7 +1189,7 @@ def download_assets(folder_id, folder_name, photos_list):
                 "folder_id": "[]",  # This can be adjusted based on specific use case
                 'action': 'skip'
             }
-            response = SESSION.get(url, params=params_copy, verify=False)
+            response = SESSION.get(url, params=params, verify=False)
             data = response.json()
             if not data['success']:
                 LOGGER.error(f"ERROR   : Failed to copy batch {i + 1}/{total_batches} of assets: {data}")
@@ -1121,8 +1285,8 @@ def synology_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfo
     logout_synology()
     return albums_created, albums_skipped, assets_added
 
-# Function synology_upload_folder()
-# TODO: synology_upload_folder()
+# Function synology_upload_no_albums()
+# TODO: Complete and Check this function
 def synology_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None):
     """
     Upload folder into Synology Photos.
@@ -1259,12 +1423,12 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
     assets_downloaded = 0
 
     # Create or obtain the main folder 'Albums_Synology_Photos'
-    main_folder_id = get_folder_id_or_create_folder(output_folder)
+    main_folder_id = create_folder(output_folder)
     if not main_folder_id:
         LOGGER.error(f"ERROR   : Failed to obtain or create the main folder '{output_folder}'.")
         return albums_downloaded, assets_downloaded
 
-    main_subfolder_id = get_folder_id_or_create_folder("Albums", parent_folder_id=main_folder_id)
+    main_subfolder_id = create_folder("Albums", parent_folder_id=main_folder_id)
     if not main_subfolder_id:
         LOGGER.error(f"ERROR   : Failed to obtain or create the folder 'Albums'.")
         return albums_downloaded, assets_downloaded
@@ -1319,7 +1483,7 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
             continue
         # Create or obtain the destination folder for the album within output_folder/Albums
         target_folder_name = f'{album_name}'
-        target_folder_id = get_folder_id_or_create_folder(target_folder_name, parent_folder_id=main_subfolder_id)
+        target_folder_id = create_folder(target_folder_name, parent_folder_id=main_subfolder_id)
         if not target_folder_id:
             LOGGER.warning(f"WARNING : Failed to obtain or create the destination folder for the album '{album_name}'.")
             continue
@@ -1352,7 +1516,7 @@ def synology_download_no_albums(output_folder='Downloads_Synology'):
     assets_downloaded = 0
     # Create or obtain the main folder 'Albums_Synology_Photos'
     main_folder = output_folder
-    main_folder_id = get_folder_id_or_create_folder(main_folder)
+    main_folder_id = create_folder(main_folder)
     if not main_folder_id:
         LOGGER.error(f"ERROR   : Failed to obtain or create the main folder '{main_folder}'.")
         return  assets_downloaded
@@ -1528,6 +1692,10 @@ def synology_remove_all_albums(deleteAlbumsAssets=False):
 #                            MAIN TESTS FUNCTION                             #
 ##############################################################################
 if __name__ == "__main__":
+    # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
+    import Utils
+    Utils.change_workingdir()
+
     # Create initialize LOGGER.
     from GlobalVariables import set_ARGS_PARSER
     set_ARGS_PARSER()
@@ -1547,9 +1715,10 @@ if __name__ == "__main__":
     # print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
 
     # TODO: Complete this function
-    print("\n=== EXAMPLE: upload_file_to_synology() ===")
+    print("\n=== EXAMPLE: upload_asset() ===")
     file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\2003.07 - Viaje a Almeria (Julio 2003)\En Almeria (Julio 2003)_17.JPG"                # For Windows
-    upload_file_to_synology(file_path)
+    file_path = r"g:\My Drive\Google Drive\_PERSONAL\DOCUMENTS\MIS PÁGINAS WEBS\jtg.webservices.com\logo\30-01-2023_17-53-05.png"                # For Windows
+    upload_asset(file_path)
 
     # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur_share\Photos\Upload_folder\No-Albums'
     # # TODO: Complete this function

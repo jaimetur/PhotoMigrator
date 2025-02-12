@@ -8,9 +8,20 @@ from datetime import datetime
 from tqdm import tqdm
 import platform
 
+WORKING_DIR = r"R:\jaimetur\CloudPhotoMigrator"
+
 ######################
 # FUNCIONES AUXILIARES
 ######################
+def change_workingdir():
+    # Definir la ruta de trabajo deseada
+    # Verificar si la carpeta existe y cambiar a ella si existe
+    if os.path.exists(WORKING_DIR) and os.path.isdir(WORKING_DIR):
+        os.chdir(WORKING_DIR)
+        print(f"Directorio cambiado a: {os.getcwd()}")
+        current_directory = os.getcwd()
+        print(current_directory)
+
 def run_from_synology():
     return os.path.exists('/etc.defaults/synoinfo.conf')
 

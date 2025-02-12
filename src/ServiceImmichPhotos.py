@@ -1206,6 +1206,10 @@ def immich_remove_all_albums(deleteAlbumsAssets=False):
 #                            MAIN TESTS FUNCTION                             #
 ##############################################################################
 if __name__ == "__main__":
+    # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
+    import Utils
+    Utils.change_workingdir()
+
     # Create initialize LOGGER.
     from GlobalVariables import set_ARGS_PARSER
     set_ARGS_PARSER()
