@@ -98,7 +98,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
   - **-srDupAlb, --synology-remove-duplicates-albums**  
     - The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
   - **-srALL,    --synology-remove-all-assets** to delete ALL assets in Synology Photos
-  - **-srAllAlb, --synology-remove-all-albums** to delete ALL Albums in Synology Photos (optionally all associated assets can be also deleted)
+  - **-srAllAlb, --synology-remove-all-albums** to delete ALL Albums in Synology Photos (optionally all associated assets can be also deleted).
 
 
 - [x] Added **_Immich Photos Support_** with the Following options to manage Immich API:
@@ -119,12 +119,11 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
     - The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.  
   - **-irDupAlb  --immich-remove-duplicates-albums**  
     - The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.  
+  - **-irALL,    --immich-remove-all-assets** to delete ALL assets in Immich Photos
+  - **-irAllAlb, --immich-remove-all-albums** to delete ALL Albums in Immich Photos (optionally all associated assets can be also deleted).  
   - **-irOrphan, --immich-remove-orphan-assets**  
     - The script will look for all Orphan Assets in Immich Database and will delete them.  
     - **IMPORTANT!**: This feature requires a valid ADMIN_API_KEY configured in CONFIG.ini.  
-  - **-irALL,    --immich-remove-all-assets** to delete ALL assets in Immich Photos
-  - **-irAllAlb, --immich-remove-all-albums** to delete ALL Albums in Immich Photos (optionally all associated assets can be also deleted)
-
 
     
 ---
