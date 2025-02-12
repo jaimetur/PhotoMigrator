@@ -301,7 +301,7 @@ def wait_for_reindexing_synology_photos():
         files_to_index = int(result["data"].get("basic"))
         remaining_files_previous_step = files_to_index
 
-        with tqdm(total=files_to_index, smoothing=0.8, file=LOGGER.tqdm_stream, desc="INFO    : Reindexing files", unit=" files") as pbar:
+        with S(total=files_to_index, smoothing=0.8, desc="INFO    : Reindexing files", unit=" files") as pbar:
             while True:
                 result = SESSION.get(url, params=params, verify=False).json()
                 if result.get("success"):
@@ -1167,7 +1167,8 @@ def synology_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfo
     if subfolders_inclusion:
         first_level_folders = first_level_folders + subfolders_inclusion
 
-    with tqdm(total=len(valid_folders), smoothing=0.1, file=LOGGER.tqdm_stream, desc="INFO    : Uploading Albums from Folders", unit=" folders") as pbar:
+    # with tqdm(total=len(valid_folders), smoothing=0.1, file=LOGGER.tqdm_stream, desc="INFO    : Uploading Albums from Folders", unit=" folders") as pbar:
+    with tqdm(total=len(valid_folders), smoothing=0.1, desc="INFO    : Uploading Albums from Folders", unit=" folders") as pbar:
         for subpath in valid_folders:
             pbar.update(1)
             new_album_assets_ids = []
@@ -1277,7 +1278,7 @@ def synology_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfo
     total_assets_uploaded = 0
 
     # Process each file with a progress bar
-    with tqdm(total=total_files, smoothing=0.1, file=LOGGER.tqdm_stream, desc="INFO    : Uploading Assets", unit=" asset") as pbar:
+    with tqdm(total=total_files, smoothing=0.1, desc="INFO    : Uploading Assets", unit=" asset") as pbar:
         for file_path in file_paths:
             if upload_asset(file_path):
                 total_assets_uploaded += 1
@@ -1396,7 +1397,7 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
 
     albums_downloaded = len(albums_to_download)
     # Iterate over each album to copy
-    for album in tqdm(albums_to_download, file=LOGGER.tqdm_stream, desc="INFO    : Downloading Albums", unit=" albums"):
+    for album in tqdm(albums_to_download, desc="INFO    : Downloading Albums", unit=" albums"):
         album_name = album['name']
         album_id = album['id']
         # LOGGER.info(f"INFO    : Processing album: '{album_name}' (ID: {album_id})")
@@ -1481,7 +1482,7 @@ def synology_remove_empty_albums(show_info_messages=True):
     if albums_dict != -1:
         if show_info_messages:
             LOGGER.info("INFO    : Looking for empty albums in Synology Photos...")
-        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, file=LOGGER.tqdm_stream, desc="INFO    : Processing Albums", unit=" albums"):
+        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, desc="INFO    : Processing Albums", unit=" albums"):
             item_count = get_album_items_count(album_id=album_id, album_name=album_name)
             if item_count == 0:
                 if show_info_messages:
@@ -1513,7 +1514,7 @@ def synology_remove_duplicates_albums(show_info_messages=True):
     if albums_dict != -1:
         if show_info_messages:
             LOGGER.info("INFO    : Looking for duplicate albums in Synology Photos...")
-        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, file=LOGGER.tqdm_stream, desc="INFO    : Processing Albums", unit=" albums"):
+        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, desc="INFO    : Processing Albums", unit=" albums"):
             item_count = get_album_items_count(album_id=album_id, album_name=album_name)
             item_size = get_album_items_size(album_id=album_id, album_name=album_name)
             albums_data.setdefault((item_count, item_size), []).append((album_id, album_name))
@@ -1558,7 +1559,7 @@ def synology_remove_all_assets(show_info_messages=True):
     if show_info_messages:
         LOGGER.info(f"INFO    : Found {total_assets_found} asset(s) to delete.")
     assets_ids = []
-    for asset in tqdm(all_assets, file=LOGGER.tqdm_stream, desc="INFO    : Deleting assets", unit=" assets"):
+    for asset in tqdm(all_assets, desc="INFO    : Deleting assets", unit=" assets"):
         asset_id = asset.get("id")
         if not asset_id:
             continue
@@ -1593,7 +1594,7 @@ def synology_remove_all_albums(deleteAlbumsAssets=False, show_info_messages=True
         return 0, 0
     total_deleted_albums = 0
     total_deleted_assets = 0
-    for album in tqdm(albums, file=LOGGER.tqdm_stream, desc=f"INFO    : Searching for Albums to delete", unit=" albums"):
+    for album in tqdm(albums, desc=f"INFO    : Searching for Albums to delete", unit=" albums"):
         album_id = album.get("id")
         album_name = album.get("albumName")
         album_assets_ids = []

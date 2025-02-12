@@ -230,7 +230,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
             hash_dict = {}
 
             LOGGER.info(f"INFO    : Calculating Partial Hashes (chunk_size={round(CHUNK_SIZE / 1024, 0)} KB) for {len(sizes_with_duplicates_dict)} groups of sizes with more than one file")
-            for file_size, paths in tqdm(sizes_with_duplicates_dict.items(), smoothing=0, file=LOGGER.tqdm_stream, desc="INFO    : Partial Hashing Progress", unit=" groups"):
+            for file_size, paths in tqdm(sizes_with_duplicates_dict.items(), smoothing=0, desc="INFO    : Partial Hashing Progress", unit=" groups"):
                 for path in paths:
                     try:
                         partial_hash = calculate_file_hash_optimized(path, full_hash=False, chunk_size=CHUNK_SIZE)
@@ -244,7 +244,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
             LOGGER.info(f"INFO    : Groups with same Partial Hash found: {len(partial_hash_with_duplicates_dict)}")
             if len(partial_hash_with_duplicates_dict)>0:
                 LOGGER.info(f"INFO    : Calculating Full Hashes for {len(partial_hash_with_duplicates_dict)} groups of partial hashes with more than one file")
-                for partial_hash, paths in tqdm(partial_hash_with_duplicates_dict.items(), smoothing=0, file=LOGGER.tqdm_stream, desc="INFO    : Full Hashing Progress", unit=" groups"):
+                for partial_hash, paths in tqdm(partial_hash_with_duplicates_dict.items(), smoothing=0, desc="INFO    : Full Hashing Progress", unit=" groups"):
                     for path in paths:
                         try:
                             full_hash = calculate_file_hash_optimized(path, full_hash=True)
@@ -256,7 +256,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
         else:
             LOGGER.info("INFO    : Hashing files with same size")
             hash_dict = {}
-            for file_size, paths in tqdm(sizes_with_duplicates_dict.items(), smoothing=0, file=LOGGER.tqdm_stream, desc="INFO    : Full Hashing Progress", unit=" groups"):
+            for file_size, paths in tqdm(sizes_with_duplicates_dict.items(), smoothing=0, desc="INFO    : Full Hashing Progress", unit=" groups"):
                 for path in paths:
                     try:
                         full_hash = calculate_file_hash_optimized(path, full_hash=True)

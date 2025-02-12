@@ -14,7 +14,8 @@ class CustomConsoleFormatter(logging.Formatter):
         """Formato personalizado con colores ANSI."""
         COLORS = {
             "DEBUG": Fore.BLUE,
-            "INFO": Fore.GREEN,
+            # "INFO": Fore.GREEN,
+            "INFO": Fore.WHITE,
             "WARNING": Fore.YELLOW,
             "ERROR": Fore.RED,
             "CRITICAL": Fore.MAGENTA,

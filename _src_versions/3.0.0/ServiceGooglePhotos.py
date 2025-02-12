@@ -2,7 +2,7 @@ import Utils
 import os, sys
 from datetime import datetime, timedelta
 from Duplicates import find_duplicates
-import Fixers
+import ExifFixers
 
 def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER):
     from GlobalVariables import LOGGER  # Import global LOGGER

@@ -24,10 +24,10 @@ import requests
 import urllib3
 import json
 import subprocess
-import Utils
 import fnmatch
 from tqdm import tqdm
 import mimetypes
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 # -----------------------------------------------------------------------------
 #                          GLOBAL VARIABLES
@@ -39,6 +39,11 @@ global SESSION, SID
 CONFIG = None
 SESSION = None
 SID = None
+SYNO_TOKEN_HEADER = {}
+ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS = ['.BMP', '.GIF', '.JPG', '.JPEG', '.PNG', '.3fr', '.arw', '.cr2', '.cr3', '.crw', '.dcr', '.dng', '.erf', '.k25', '.kdc', '.mef', '.mos', '.mrw', '.nef', '.orf', '.ptx', '.pef', '.raf', '.raw', '.rw2', '.sr2', '.srf', '.TIFF', '.HEIC', '.3G2', '.3GP', '.ASF', '.AVI', '.DivX', '.FLV', '.M4V', '.MOV', '.MP4', '.MPEG', '.MPG', '.MTS', '.M2TS', '.M2T', '.QT', '.WMV', '.XviD']
+ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS = [ext.lower() for ext in ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS]
+ALLOWED_SYNOLOGY_SIDECAR_EXTENSIONS = None
+ALLOWED_SYNOLOGY_EXTENSIONS = ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -48,14 +53,14 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # -----------------------------------------------------------------------------
 #                          CONFIGURATION READING
 # -----------------------------------------------------------------------------
-def read_synology_config(config_file='CONFIG.ini', show_info=True):
+def read_synology_config(config_file='CONFIG.ini', show_info_messages=True):
     """
     Reads the Synology configuration file and updates global variables.
     If the configuration file is not found, prompts the user to manually input required data.
 
     Args:
         config_file (str): The path to the Synology configuration file. Default is 'Synology.config'.
-        show_info (bool): Whether to display the loaded configuration information. Default is True.
+        show_info_messages (bool): Whether to display the loaded configuration information. Default is True.
 
     Returns:
         dict: The loaded configuration dictionary.
@@ -63,6 +68,7 @@ def read_synology_config(config_file='CONFIG.ini', show_info=True):
     global CONFIG, SYNOLOGY_URL, SYNOLOGY_USERNAME, SYNOLOGY_PASSWORD, SYNOLOGY_ROOT_PHOTOS_PATH
     from GlobalVariables import LOGGER  # Import the logger inside the function
     from ConfigReader import load_config
+    import Utils 
 
     if CONFIG:
         return CONFIG
@@ -75,8 +81,8 @@ def read_synology_config(config_file='CONFIG.ini', show_info=True):
     SYNOLOGY_URL                = CONFIG.get('SYNOLOGY_URL', None)
     SYNOLOGY_USERNAME           = CONFIG.get('SYNOLOGY_USERNAME', None)
     SYNOLOGY_PASSWORD           = CONFIG.get('SYNOLOGY_PASSWORD', None)
-    SYNOLOGY_ROOT_PHOTOS_PATH   = CONFIG.get('SYNOLOGY_ROOT_PHOTOS_PATH', None)
-    SYNOLOGY_ROOT_PHOTOS_PATH   = Utils.fix_paths(SYNOLOGY_ROOT_PHOTOS_PATH)
+    # SYNOLOGY_ROOT_PHOTOS_PATH   = CONFIG.get('SYNOLOGY_ROOT_PHOTOS_PATH', None)
+    # SYNOLOGY_ROOT_PHOTOS_PATH   = Utils.fix_paths(SYNOLOGY_ROOT_PHOTOS_PATH)
 
     # Verify required parameters and prompt on screen if missing
     if not SYNOLOGY_URL or SYNOLOGY_URL.strip()=='':
@@ -91,12 +97,12 @@ def read_synology_config(config_file='CONFIG.ini', show_info=True):
         LOGGER.warning(f"WARNING : SYNOLOGY_PASSWORD not found. It will be requested on screen.")
         CONFIG['SYNOLOGY_PASSWORD'] = input("\nEnter SYNOLOGY_PASSWORD: ")
         SYNOLOGY_PASSWORD = CONFIG['SYNOLOGY_PASSWORD']
-    if not SYNOLOGY_ROOT_PHOTOS_PATH or SYNOLOGY_ROOT_PHOTOS_PATH.strip()=='':
-        LOGGER.warning(f"WARNING : SYNOLOGY_ROOT_PHOTOS_PATH not found. It will be requested on screen.")
-        CONFIG['SYNOLOGY_ROOT_PHOTOS_PATH'] = input("\nEnter SYNOLOGY_ROOT_PHOTOS_PATH: ")
-        SYNOLOGY_ROOT_PHOTOS_PATH = CONFIG['SYNOLOGY_ROOT_PHOTOS_PATH']
+    # if not SYNOLOGY_ROOT_PHOTOS_PATH or SYNOLOGY_ROOT_PHOTOS_PATH.strip()=='':
+    #     LOGGER.warning(f"WARNING : SYNOLOGY_ROOT_PHOTOS_PATH not found. It will be requested on screen.")
+    #     CONFIG['SYNOLOGY_ROOT_PHOTOS_PATH'] = input("\nEnter SYNOLOGY_ROOT_PHOTOS_PATH: ")
+    #     SYNOLOGY_ROOT_PHOTOS_PATH = CONFIG['SYNOLOGY_ROOT_PHOTOS_PATH']
 
-    if show_info:
+    if show_info_messages:
         LOGGER.info("")
         LOGGER.info(f"INFO    : Synology Config Read:")
         LOGGER.info(f"INFO    : ---------------------")
@@ -104,30 +110,32 @@ def read_synology_config(config_file='CONFIG.ini', show_info=True):
         LOGGER.info(f"INFO    : SYNOLOGY_URL              : {SYNOLOGY_URL}")
         LOGGER.info(f"INFO    : SYNOLOGY_USERNAME         : {SYNOLOGY_USERNAME}")
         LOGGER.info(f"INFO    : SYNOLOGY_PASSWORD         : {masked_password}")
-        LOGGER.info(f"INFO    : SYNOLOGY_ROOT_PHOTOS_PATH : {SYNOLOGY_ROOT_PHOTOS_PATH}")
+        # LOGGER.info(f"INFO    : SYNOLOGY_ROOT_PHOTOS_PATH : {SYNOLOGY_ROOT_PHOTOS_PATH}")
 
     return CONFIG
 
 # -----------------------------------------------------------------------------
 #                          AUTHENTICATION / LOGOUT
 # -----------------------------------------------------------------------------
-def login_synology():
+def login_synology(use_syno_token=False, show_info_messages=True):
     """
     Logs into the NAS and returns the active session with the SID and Synology DSM URL.
     """
-    global SESSION
-    global SID
+    global SESSION, SID, SYNO_TOKEN_HEADER
     from GlobalVariables import LOGGER
 
     # If a session is already active, return it instead of creating a new one
-    if SESSION and SID:
+    if SESSION and SID and SYNO_TOKEN_HEADER:
+        return SESSION, SID, SYNO_TOKEN_HEADER
+    elif SESSION and SID:
         return SESSION, SID
 
     # Read server configuration
-    read_synology_config()
+    read_synology_config(show_info_messages=show_info_messages)
 
-    LOGGER.info("")
-    LOGGER.info(f"INFO    : Authenticating on Synology Photos and getting Session...")
+    if show_info_messages:
+        LOGGER.info("")
+        LOGGER.info(f"INFO    : Authenticating on Synology Photos and getting Session...")
 
     SESSION = requests.Session()
     url = f"{SYNOLOGY_URL}/webapi/auth.cgi"
@@ -139,24 +147,35 @@ def login_synology():
         "passwd": SYNOLOGY_PASSWORD,
         "format": "sid",
     }
+    if use_syno_token:
+        params.update({"enable_syno_token": "yes"})
+
     response = SESSION.get(url, params=params, verify=False)
     response.raise_for_status()
     data = response.json()
     if data.get("success"):
-        SESSION.cookies.set("id", data["data"]["sid"])  # Set the SID as a cookie
-        LOGGER.info(f"INFO    : Authentication Successfully with user/password found in Config file.")
         SID = data["data"]["sid"]
-        return SESSION, SID
+        SESSION.cookies.set("id", SID)  # Set the SID as a cookie
+        if show_info_messages:
+            LOGGER.info(f"INFO    : Authentication Successfully with user/password found in Config file. Cookie properly set with session id.")
+        if use_syno_token:
+            if show_info_messages:
+                LOGGER.info(f"INFO    : SYNO_TOKEN_HEADER created as global variable. You must include 'SYNO_TOKEN_HEADER' in your request to work with this session.")
+            SYNO_TOKEN_HEADER = {
+                "X-SYNO-TOKEN": data["data"]["synotoken"],
+            }
+            return SESSION, SID, SYNO_TOKEN_HEADER
+        else:
+            return SESSION, SID
     else:
         LOGGER.error(f"ERROR   : Unable to authenticate with the provided NAS data: {data}")
         sys.exit(-1)
 
-def logout_synology():
+def logout_synology(show_info_messages=True):
     """
     Logs out from the Synology NAS and clears the active session and SID.
     """
-    global SESSION
-    global SID
+    global SESSION, SID, SYNO_TOKEN_HEADER
     from GlobalVariables import LOGGER
 
     if SESSION and SID:
@@ -170,9 +189,11 @@ def logout_synology():
         response.raise_for_status()
         data = response.json()
         if data.get("success"):
-            LOGGER.info("INFO    : Session closed successfully.")
+            if show_info_messages:
+                LOGGER.info("INFO    : Session closed successfully.")
             SESSION = None
             SID = None
+            SYNO_TOKEN_HEADER = {}
         else:
             LOGGER.error("ERROR   : Unable to close session in Synology NAS.")
 
@@ -188,7 +209,7 @@ def start_reindex_synology_photos_with_api(type='basic'):
         type (str): 'basic' or 'thumbnail'.
     """
     from GlobalVariables import LOGGER  # Local import of the logger
-
+    # login into Synology Photos if the session if not yet started
     login_synology()
 
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
@@ -227,6 +248,8 @@ def start_reindex_synology_photos_with_command(type='basic'):
         type (str): 'basic' or 'thumbnail'.
     """
     from GlobalVariables import LOGGER  # Local import of the logger
+    # login into Synology Photos if the session if not yet started
+    login_synology()
 
     command = [
         'sudo',  # Run with administrator privileges
@@ -244,7 +267,7 @@ def start_reindex_synology_photos_with_command(type='basic'):
             result = subprocess.run(command, capture_output=True, text=True, check=True)
             if type == 'basic':
                 LOGGER.info(f"INFO    : Reindexing started in Synology Photos database for user: '{SYNOLOGY_USERNAME}'.")
-                LOGGER.info("INFO    : This process may take several minutes or even hours to finish depending on the number of files to index. Please be patient...")
+                LOGGER.info(f"INFO    : This process may take several minutes or even hours to finish depending on the number of files to index. Please be patient...")
                 LOGGER.info(f"INFO    : Starting reindex with command: '{command_str}'")
         except subprocess.CalledProcessError as e:
             LOGGER.error(f"ERROR   : Failed to execute reindexing with command '{command_str}'")
@@ -261,6 +284,7 @@ def wait_for_reindexing_synology_photos():
     """
     from GlobalVariables import LOGGER  # Local import of the logger
     import time  # Local import of time
+    # login into Synology Photos if the session if not yet started
     login_synology()
 
     start_reindex_synology_photos_with_api(type='basic')
@@ -277,7 +301,7 @@ def wait_for_reindexing_synology_photos():
         files_to_index = int(result["data"].get("basic"))
         remaining_files_previous_step = files_to_index
 
-        with tqdm(total=files_to_index, smoothing=0.8, file=LOGGER.tqdm_stream, desc="INFO    : Reindexing files", unit=" files") as pbar:
+        with S(total=files_to_index, smoothing=0.8, desc="INFO    : Reindexing files", unit=" files") as pbar:
             while True:
                 result = SESSION.get(url, params=params, verify=False).json()
                 if result.get("success"):
@@ -305,24 +329,30 @@ def wait_for_reindexing_synology_photos():
 # -----------------------------------------------------------------------------
 #                          FOLDERS FUNCTIONS
 # -----------------------------------------------------------------------------
-def get_photos_root_folder_id():
+def get_photos_root_folder_id(show_info_messages=True):
     """
     Retrieves the folder_id of the root folder in Synology Photos.
 
     Returns:
         int: The ID of the folder (folder_id).
     """
-
     from GlobalVariables import LOGGER  # Import the logger inside the function
-
+    # login into Synology Photos if the session if not yet started
+    login_synology()
+    # Define the url for the request
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+    headers = {}
+    if SYNO_TOKEN_HEADER:
+        headers.update(SYNO_TOKEN_HEADER)
+    # Define the params for the API request
     params = {
         "api": "SYNO.Foto.Browse.Folder",
         "method": "get",
         "version": "2",
     }
     # Make the request
-    response = SESSION.get(url, params=params, verify=False)
+    response = SESSION.get(url, params=params, headers=headers, verify=False)
     response.raise_for_status()
     data = response.json()
     if not data.get("success"):
@@ -337,7 +367,7 @@ def get_photos_root_folder_id():
     return folder_id
 
 
-def get_folder_id(search_in_folder_id, folder_name):
+def get_folder_id(search_in_folder_id, folder_name, show_info_messages=False):
     """
     Retrieves the folder_id of a folder in Synology Photos given the parent folder ID
     and the name of the folder to search for.
@@ -350,8 +380,14 @@ def get_folder_id(search_in_folder_id, folder_name):
         int: The ID of the folder (folder_id), or None if not found.
     """
     from GlobalVariables import LOGGER  # Import the logger inside the function
+    # login into Synology Photos if the session if not yet started
+    login_synology()
+    # Define the url for the request
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
-
+    # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+    headers = {}
+    if SYNO_TOKEN_HEADER:
+        headers.update(SYNO_TOKEN_HEADER)
     # First, get folder_name for search_in_folder_id
     params = {
         "api": "SYNO.Foto.Browse.Folder",
@@ -360,7 +396,7 @@ def get_folder_id(search_in_folder_id, folder_name):
         "id": search_in_folder_id,
     }
     # Make the request
-    response = SESSION.get(url, params=params, verify=False)
+    response = SESSION.get(url, params=params, headers=headers, verify=False)
     data = response.json()
     if not data.get("success"):
         LOGGER.error(f"ERROR   : Cannot obtain name for folder ID '{search_in_folder_id}' due to an error in the API call.")
@@ -380,7 +416,7 @@ def get_folder_id(search_in_folder_id, folder_name):
             "limit": limit
         }
         # Make the request
-        response = SESSION.get(url, params=params, verify=False)
+        response = SESSION.get(url, params=params, headers=headers, verify=False)
         response.raise_for_status()
         data = response.json()
         if not data.get("success"):
@@ -409,8 +445,7 @@ def get_folder_id(search_in_folder_id, folder_name):
 
 
 # Function to obtain or create a folder
-# TODO: refactor this function to create_folder
-def get_folder_id_or_create_folder(folder_name, parent_folder_id=None):
+def create_folder(folder_name, parent_folder_id=None, show_info_messages=True):
     """
     Retrieves the folder ID of a given folder name within a parent folder in Synology Photos.
     If the folder does not exist, it will be created.
@@ -424,21 +459,24 @@ def get_folder_id_or_create_folder(folder_name, parent_folder_id=None):
         str: The folder ID if found or successfully created, otherwise None.
     """
     from GlobalVariables import LOGGER
+    # login into Synology Photos if the session if not yet started
     login_synology()
+    # Define the url for the request
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
-
+    # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+    headers = {}
+    if SYNO_TOKEN_HEADER:
+        headers.update(SYNO_TOKEN_HEADER)
     # Use Synology Photos root folder if no parent folder ID is provided
     if not parent_folder_id:
         photos_root_folder_id = get_photos_root_folder_id()
         parent_folder_id = photos_root_folder_id
-        LOGGER.info(f"INFO    : Parent Folder ID not provided, using Synology Photos root folder ID: '{photos_root_folder_id}' as parent folder.")
-
+        LOGGER.warning(f"WARNING : Parent Folder ID not provided, using Synology Photos root folder ID: '{photos_root_folder_id}' as parent folder.")
     # Check if the folder already exists
     folder_id = get_folder_id(search_in_folder_id=parent_folder_id, folder_name=folder_name)
     if folder_id:
         # LOGGER.warning(f"WARNING : The folder '{folder_name}' already exists.")
         return folder_id
-
     # If the folder does not exist, create it
     params = {
         'api': 'SYNO.Foto.Browse.Folder',
@@ -447,49 +485,59 @@ def get_folder_id_or_create_folder(folder_name, parent_folder_id=None):
         'target_id': parent_folder_id,
         'name': folder_name
     }
-    response = SESSION.get(url, params=params, verify=False)
+    response = SESSION.get(url, params=params, headers=headers, verify=False)
     data = response.json()
     if data.get("success"):
-        LOGGER.info(f"INFO    : Folder '{folder_name}' successfully created.")
+        if show_info_messages:
+            LOGGER.info(f"INFO    : Folder '{folder_name}' successfully created.")
         return data['data']['folder']['id']
     else:
         LOGGER.error(f"ERROR   : Failed to create the folder: '{folder_name}'")
         return None
 
 # Function to delete a folder
-# TODO: Complete this function
-def delete_folder(folder_id):
+# TODO: Complete and Check this function
+def delete_folder(folder_id, show_info_messages=True):
   pass
 
 # Function to return the number of files within a folder
-# TODO: Complete this function
-def get_folder_items_count(folder_id, folder_name):
+# TODO: Complete and Check this function
+def get_folder_items_count(folder_id, folder_name, show_info_messages=True):
   pass
 
 # -----------------------------------------------------------------------------
 #                          ALBUMS FUNCTIONS
 # -----------------------------------------------------------------------------
-def create_album(album_name):
+def create_album(album_name, show_info_messages=True):
     # Create the album if the folder contains supported files
     from GlobalVariables import LOGGER  # Import the logger inside the function
+    # login into Synology Photos if the session if not yet started
+    login_synology()
+    # Define the url for the request
+    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+    headers = {}
+    if SYNO_TOKEN_HEADER:
+        headers.update(SYNO_TOKEN_HEADER)
     params = {
         "api": "SYNO.Foto.Browse.NormalAlbum",
         "method": "create",
         "version": "3",
         "name": f'"{album_name}"',
     }
-    response = SESSION.get(url, params=params, verify=False)
+    response = SESSION.get(url, params=params, headers=headers, verify=False)
     response.raise_for_status()
     data = response.json()
     if not data["success"]:
         LOGGER.error(f"ERROR   : Unable to create album '{album_name}': {data}")
         return -1
     album_id = data["data"]["album"]["id"]
-    LOGGER.info(f"INFO    : Album '{album_name}' created with ID: {album_id}.")
+    if show_info_messages:
+        LOGGER.info(f"INFO    : Album '{album_name}' created with ID: {album_id}.")
     return album_id
 
 
-def delete_album(album_id, album_name):
+def delete_album(album_id, album_name, show_info_messages=True):
     """
     Deletes an album in Synology Photos.
 
@@ -498,7 +546,14 @@ def delete_album(album_id, album_name):
         album_name (str): Name of the album to delete.
     """
     from GlobalVariables import LOGGER  # Import the logger inside the function
+    # login into Synology Photos if the session if not yet started
+    login_synology()
+    # Define the url for the request
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+    headers = {}
+    if SYNO_TOKEN_HEADER:
+        headers.update(SYNO_TOKEN_HEADER)
     params = {
         "api": "SYNO.Foto.Browse.Album",
         "method": "delete",
@@ -506,13 +561,13 @@ def delete_album(album_id, album_name):
         "id": f"[{album_id}]",
         "name": album_name,
     }
-    response = SESSION.get(url, params=params, verify=False)
+    response = SESSION.get(url, params=params, headers=headers, verify=False)
     response.raise_for_status()
     data = response.json()
     if not data["success"]:
         LOGGER.warning(f"WARNING : Could not delete album {album_id}: ", data)
 
-def get_albums():
+def get_albums(show_info_messages=True):
     """
     Lists all albums in Synology Photos.
 
@@ -520,8 +575,14 @@ def get_albums():
         dict: A dictionary with album IDs as keys and album names as values.
     """
     from GlobalVariables import LOGGER  # Import the logger inside the function
-
+    # login into Synology Photos if the session if not yet started
+    login_synology()
+    # Define the url for the request
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+    headers = {}
+    if SYNO_TOKEN_HEADER:
+        headers.update(SYNO_TOKEN_HEADER)
     offset = 0
     limit = 5000
     albums_dict = []
@@ -533,7 +594,7 @@ def get_albums():
             "offset": offset,
             "limit": limit
         }
-        response = SESSION.get(url, params=params, verify=False)
+        response = SESSION.get(url, params=params, headers=headers, verify=False)
         response.raise_for_status()
         data = response.json()
         if data["success"]:
@@ -550,7 +611,7 @@ def get_albums():
     return albums_dict
 
 
-def get_albums_own_and_shared():
+def get_albums_own_and_shared(show_info_messages=True):
     """
     Lists both own and shared albums in Synology Photos.
 
@@ -558,8 +619,14 @@ def get_albums_own_and_shared():
         list: A list of albums.
     """
     from GlobalVariables import LOGGER
+    # login into Synology Photos if the session if not yet started
     login_synology()
+    # Define the url for the request
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+    headers = {}
+    if SYNO_TOKEN_HEADER:
+        headers.update(SYNO_TOKEN_HEADER)
     offset = 0
     limit = 5000
     album_list = []
@@ -576,7 +643,7 @@ def get_albums_own_and_shared():
             "limit": limit
         }
         try:
-            response = SESSION.get(url, params=params, verify=False)
+            response = SESSION.get(url, params=params, headers=headers, verify=False)
             data = response.json()
             if not data.get("success"):
                 LOGGER.error("ERROR   : Failed to list own albums:", data)
@@ -593,7 +660,7 @@ def get_albums_own_and_shared():
     return album_list[0]
 
 
-def get_album_items_count(album_id, album_name):
+def get_album_items_count(album_id, album_name, show_info_messages=True):
     """
     Gets the number of items in an album.
 
@@ -605,14 +672,21 @@ def get_album_items_count(album_id, album_name):
         int: Number of items in the album.
     """
     from GlobalVariables import LOGGER  # Import the logger inside the function
+    # login into Synology Photos if the session if not yet started
+    login_synology()
+    # Define the url for the request
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+    headers = {}
+    if SYNO_TOKEN_HEADER:
+        headers.update(SYNO_TOKEN_HEADER)
     params = {
         "api": "SYNO.Foto.Browse.Item",
         "method": "count",
         "version": "4",
         "album_id": album_id,
     }
-    response = SESSION.get(url, params=params, verify=False)
+    response = SESSION.get(url, params=params, headers=headers, verify=False)
     response.raise_for_status()
     data = response.json()
     if not data["success"]:
@@ -622,7 +696,7 @@ def get_album_items_count(album_id, album_name):
     return num_files
 
 
-def get_album_items_size(album_id, album_name):
+def get_album_items_size(album_id, album_name, show_info_messages=True):
     """
     Gets the total size of items in an album.
 
@@ -634,7 +708,14 @@ def get_album_items_size(album_id, album_name):
         int: Total size of the items in the album in bytes.
     """
     from GlobalVariables import LOGGER  # Import the logger inside the function
+    # login into Synology Photos if the session if not yet started
+    login_synology()
+    # Define the url for the request
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+    headers = {}
+    if SYNO_TOKEN_HEADER:
+        headers.update(SYNO_TOKEN_HEADER)
     offset = 0
     limit = 5000
     album_size = 0
@@ -648,7 +729,7 @@ def get_album_items_size(album_id, album_name):
             "offset": offset,
             "limit": limit
         }
-        response = SESSION.get(url, params=params, verify=False)
+        response = SESSION.get(url, params=params, headers=headers, verify=False)
         response.raise_for_status()
         data = response.json()
         if not data["success"]:
@@ -668,7 +749,7 @@ def get_album_items_size(album_id, album_name):
 # -----------------------------------------------------------------------------
 #                          ASSETS (FOTOS/VIDEOS) FUNCTIONS
 # -----------------------------------------------------------------------------
-def get_all_assets():
+def get_all_assets(show_info_messages=True):
     """
     Lists photos in a specific album.
 
@@ -680,8 +761,14 @@ def get_all_assets():
         list: A list of photos in the album.
     """
     from GlobalVariables import LOGGER
+    # login into Synology Photos if the session if not yet started
     login_synology()
+    # Define the url for the request
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+    headers = {}
+    if SYNO_TOKEN_HEADER:
+        headers.update(SYNO_TOKEN_HEADER)
     offset = 0
     limit = 5000
     all_assets = []
@@ -694,7 +781,7 @@ def get_all_assets():
             "limit": limit
         }
         try:
-            response = SESSION.get(url, params=params, verify=False)
+            response = SESSION.get(url, params=params, headers=headers, verify=False)
             data = response.json()
             if not data.get("success"):
                 LOGGER.error(f"ERROR   : Failed to list assets")
@@ -711,7 +798,7 @@ def get_all_assets():
     return all_assets[0]
 
 
-def get_assets_from_album(album_name, album_id):
+def get_assets_from_album(album_name, album_id, show_info_messages=True):
     """
     Lists photos in a specific album.
 
@@ -723,8 +810,14 @@ def get_assets_from_album(album_name, album_id):
         list: A list of photos in the album.
     """
     from GlobalVariables import LOGGER
+    # login into Synology Photos if the session if not yet started
     login_synology()
+    # Define the url for the request
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+    headers = {}
+    if SYNO_TOKEN_HEADER:
+        headers.update(SYNO_TOKEN_HEADER)
     offset = 0
     limit = 5000
     album_items = []
@@ -738,7 +831,7 @@ def get_assets_from_album(album_name, album_id):
             "limit": limit
         }
         try:
-            response = SESSION.get(url, params=params, verify=False)
+            response = SESSION.get(url, params=params, headers=headers, verify=False)
             data = response.json()
             if not data.get("success"):
                 LOGGER.error(f"ERROR   : Failed to list photos in the album '{album_name}'")
@@ -755,99 +848,54 @@ def get_assets_from_album(album_name, album_id):
     return album_items[0]
 
 
-def add_assets_to_album(folder_id, album_name):
+def add_assets_to_album(album_id, asset_ids, album_name, show_info_messages=False):
     """
     Adds photos from a folder to an album.
 
     Args:
-        folder_id (str): The ID of the folder containing the assets.
+        album_id (str): The ID of the folder containing the assets.
         album_name (str): The name of the album to create or add assets to.
 
     Returns:
         int: The total number of assets added to the album, or -1 in case of an error.
     """
     from GlobalVariables import LOGGER  # Import the logger inside the function
+    # login into Synology Photos if the session if not yet started
+    login_synology()
+    # Define the url for the request
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+    headers = {}
+    if SYNO_TOKEN_HEADER:
+        headers.update(SYNO_TOKEN_HEADER)
 
-    # Ensure the folder has at least one asset indexed
+    # Check if there are assets to add
+    total_added = len(asset_ids)
+    if not total_added > 0:
+        LOGGER.warning(f"WARNING : No assets found to add to Album: '{album_name}'. Skipped!")
+        return -1
+
+    # Define params for the API query
     params = {
-        "api": "SYNO.Foto.Browse.Item",
-        "method": "count",
-        "version": "4",
-        "folder_id": folder_id,
+        "api": "SYNO.Foto.Browse.NormalAlbum",
+        "method": "add_item",
+        "version": "1",
+        "id": album_id,
+        "item": f"{asset_ids}"
     }
-    response = SESSION.get(url, params=params, verify=False)
+    # Make the request
+    response = SESSION.get(url, params=params, headers=headers, verify=False)
     response.raise_for_status()
     data = response.json()
     if not data["success"]:
-        LOGGER.warning(f"WARNING : Cannot count files in folder: '{album_name}' due to API call error. Skipped!")
+        LOGGER.warning(f"WARNING : Cannot add assets to album: '{album_name}' due to API call error. Skipped!")
         return -1
-
-    # Check if there are assets to add
-    num_files = data["data"]["count"]
-    if not num_files > 0:
-        LOGGER.warning(f"WARNING : No supported assets found in folder: '{album_name}'. Skipped!")
-        return -1
-
-    # Retrieve the IDs of all assets in the folder
-    file_ids = []
-    offset = 0
-    limit = 5000
-    while True:
-        params = {
-            "api": "SYNO.Foto.Browse.Item",
-            "method": "list",
-            "version": "4",
-            "folder_id": folder_id,
-            "offset": offset,
-            "limit": limit
-        }
-        # Make the request
-        response = SESSION.get(url, params=params, verify=False)
-        response.raise_for_status()
-        data = response.json()
-        if not data["success"]:
-            LOGGER.warning(f"WARNING : Cannot list files in folder: '{album_name}' due to API call error. Skipped!")
-            return -1
-        file_ids.extend([str(item["id"]) for item in data["data"]["list"] if "id" in item])
-        # Check if fewer items than the limit were returned
-        if len(data["data"]["list"]) < limit:
-            break
-        # Increment the offset for the next page
-        offset += limit
-
-    if not len(file_ids) > 0:
-        LOGGER.warning(f"WARNING : No supported assets found in folder: '{album_name}'. Skipped!")
-        return -1
-
-    # Create new Album
-    album_id = create_album(album_name)
-
-    # Add the files to the album in batches of 100
-    batch_size = 100
-    total_added = 0
-    for i in range(0, len(file_ids), batch_size):
-        batch = file_ids[i:i + batch_size]  # Divide into batches of 100
-        items = ",".join(batch)  # Send the photos as a comma-separated list
-        params = {
-            "api": "SYNO.Foto.Browse.NormalAlbum",
-            "method": "add_item",
-            "version": "1",
-            "id": album_id,
-            "item": f"[{items}]",
-        }
-        response = SESSION.get(url, params=params, verify=False)
-        response.raise_for_status()
-        data = response.json()
-        if not data["success"]:
-            LOGGER.warning(
-                f"WARNING : Unable to add assets to album '{album_name}' (Batch {i // batch_size + 1}). Skipped!")
-            continue
-        total_added += len(batch)
+    if show_info_messages:
+        LOGGER.info(f"INFO    : {total_added} Assets successfully added to album: '{album_name}'.")
     return total_added
 
 
-def delete_assets(asset_ids):
+def delete_assets(asset_ids, show_info_messages=True):
     """
     Lists photos in a specific album.
 
@@ -859,9 +907,14 @@ def delete_assets(asset_ids):
         list: A list of photos in the album.
     """
     from GlobalVariables import LOGGER
+    # login into Synology Photos if the session if not yet started
     login_synology()
+    # Define the url for the request
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
-
+    # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+    headers = {}
+    if SYNO_TOKEN_HEADER:
+        headers.update(SYNO_TOKEN_HEADER)
 
     if not isinstance(asset_ids, list):
         asset_ids = [asset_ids]
@@ -875,18 +928,19 @@ def delete_assets(asset_ids):
     }
     # params = json.dumps(params, indent=2)
     try:
-        response = SESSION.get(url, params=params, verify=False)
+        response = SESSION.get(url, params=params, headers=headers, verify=False)
         data = response.json()
         if not data.get("success"):
             LOGGER.error(f"ERROR   : Failed to list assets")
-            return False
+            return 0
     except Exception as e:
         LOGGER.error(f"ERROR   : Exception while listing assets", e)
-        return False
-    return True
+        return 0
+    return len(asset_ids)
 
-# TODO: Refactor to upload_asset()
-def upload_file_to_synology(file_path, album_name=None):
+
+# TODO: Review this function because I think it does not work. Use the id that returns upload_asset() to associate it to a folder
+def add_asset_to_folder(file_path, album_name=None, show_info_messages=True):
     """
     Uploads a file (photo or video) to a Synology Photos folder.
 
@@ -898,76 +952,16 @@ def upload_file_to_synology(file_path, album_name=None):
         int: Status code indicating success or failure.
     """
     from GlobalVariables import LOGGER  # Import the logger inside the function
-    stats = os.stat(file_path)
+    # login into Synology Photos if the session if not yet started
+    login_synology()
+    # Define the url for the request
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+    headers = {}
+    if SYNO_TOKEN_HEADER:
+        headers.update(SYNO_TOKEN_HEADER)
 
-    # Verifica si el archivo existe antes de continuar
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"El archivo '{file_path}' no existe.")
-
-    # Obtiene la información del archivo
     stats = os.stat(file_path)
-    mime_type = mimetypes.guess_type(file_path)[0] or 'application/octet-stream'
-
-    file = open(file_path, 'rb')
-    file.close()
-    files = {
-        'file': open(file_path, 'rb').close(),
-    }
-
-    api_path = 'SYNO.Foto.Upload.Item'
-    api_version = '1'
-    method = 'upload'
-    filename = os.path.basename(file_path)
-    # url = f'{url}/{api_path}?api={api_path}&version={api_version}&method={method}&_sid={SID}'
-
-
-    # Construcción del payload con el formato correcto
-    payload = {
-        'api': 'SYNO.Foto.Upload.Item',
-        'method': 'upload',
-        'version': '1',
-        'name': os.path.basename(file_path),  # 🔹 Ahora se asegura que `name` esté en los datos
-        'uploadDestination': 'timeline',
-        'duplicate': 'ignore',
-        'mtime': str(int(stats.st_mtime)),
-        'folder': '["PhotoLibrary"]'  # 🔹 Se mantiene en formato JSON-string
-    }
-
-    # Carga el archivo como binario en una tupla (clave, (nombre, contenido, tipo_mime))
-    files = {
-        'file': (os.path.basename(file_path), open(file_path, 'rb'), mime_type)
-    }
-
-    HEADERS = {'Content-Type': 'application/json; charset="UTF-8"'}
-
-    print(json.dumps(HEADERS, indent=4, ensure_ascii=False))
-    print(json.dumps(payload, indent=4, ensure_ascii=False))
-
-    # Envía la solicitud a la API
-    response = SESSION.post(url, headers=HEADERS, data=payload, files=files, verify=False)
-    response.raise_for_status()
-    data = response.json()
-    if not data["success"]:
-        LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
-        return -1
-
-# TODO: Refactor to add_asset_to_folder() and ise the id that returns upload_asset() to associate it to a folder
-def upload_file_to_synology_folder(file_path, album_name=None):
-    """
-    Uploads a file (photo or video) to a Synology Photos folder.
-
-    Args:
-        file_path (str): Path to the file to upload.
-        album_name (str, optional): Name of the album associated with the upload.
-
-    Returns:
-        int: Status code indicating success or failure.
-    """
-    from GlobalVariables import LOGGER  # Import the logger inside the function
-    stats = os.stat(file_path)
-    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
-
     # Ensure the folder has at least one supported file indexed
     params = {
         "api": "SYNO.Foto.Upload.Item",
@@ -983,7 +977,7 @@ def upload_file_to_synology_folder(file_path, album_name=None):
     files = {
         'assetData': open(file_path, 'rb')
     }
-    response = SESSION.post(url, data=params, files=files, verify=False)
+    response = SESSION.post(url, data=params, headers=headers, files=files, verify=False)
     response.raise_for_status()
     data = response.json()
     if not data["success"]:
@@ -991,32 +985,94 @@ def upload_file_to_synology_folder(file_path, album_name=None):
         return -1
 
 
-def download_assets(folder_id, folder_name, photos_list):
+def upload_asset(file_path, show_info_messages=True):
+    """Upload an Asset to Synology Photos."""
+    from GlobalVariables import LOGGER  # Import the logger inside the function
+
+    # Check if file exists
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"El archivo '{file_path}' no existe.")
+
+    # login into Synology Photos if the session if not yet started
+    login_synology()
+    # Define the url for the request
+    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+    headers = {}
+    if SYNO_TOKEN_HEADER:
+        headers.update(SYNO_TOKEN_HEADER)
+
+    # URL for Synology Photos with api, method and version within the URL (needed when data is sent as MultipartEncoder object.
+    api = "SYNO.Foto.Upload.Item"
+    method = "upload"
+    version = "1"
+    url = f"{SYNOLOGY_URL}/webapi/entry.cgi/SYNO.Foto.Upload.Item?api={api}&method={method}&version={version}"
+
+    # Obtain MIME type from file
+    mime_type = mimetypes.guess_type(file_path)[0] or "application/octet-stream"
+
+    # Force `multipart/form-data`
+    with open(file_path, "rb") as file:
+        multipart_data = MultipartEncoder(
+            fields=[
+                ("api", f'{api}'),
+                ("method", f'{method}'),
+                ("version", f'{version}'),
+                ("file", (os.path.basename(file_path), file, mime_type)),
+                ("uploadDestination", '"timeline"'),
+                ("duplicate", '"ignore"'),
+                ("name", f'"{os.path.basename(file_path)}"'),
+                ("mtime", f'{str(int(os.stat(file_path).st_mtime))}'),
+                ("folder", f'"{json.dumps(["PhotoLibrary"])}"'),
+            ],
+        )
+        # We need to include Content-Type in the header
+        headers.update({"Content-Type": multipart_data.content_type})
+
+        # Send request with `multipart/form-data`
+        response = SESSION.post(url, data=multipart_data, headers=headers, verify=False)
+
+    response.raise_for_status()
+    data = response.json()
+    if not data["success"]:
+        LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
+        return None
+    else:
+        asset_id = data["data"].get("id")
+        return asset_id
+
+def download_assets(folder_id, folder_name, assets_list, show_info_messages=True):
     """
     Copies a list of photos to a specified folder in Synology Photos.
 
     Args:
         folder_id (str): ID of the target folder.
         folder_name (str): Name of the target folder.
-        photos_list (list): List of photo objects to copy.
+        assets_list (list): List of photo objects to copy.
 
     Returns:
         int: Number of photos successfully copied.
     """
     from GlobalVariables import LOGGER
     from math import ceil
+    # login into Synology Photos if the session if not yet started
     login_synology()
+    # Define the url for the request
     url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+    headers = {}
+    if SYNO_TOKEN_HEADER:
+        headers.update(SYNO_TOKEN_HEADER)
 
     # Split the photo list into batches of 100
     batch_size = 100
-    total_batches = ceil(len(photos_list) / batch_size)
+    total_batches = ceil(len(assets_list) / batch_size)
     try:
         for i in range(total_batches):
             # Get the current batch
-            batch = photos_list[i * batch_size:(i + 1) * batch_size]
+            batch = assets_list[i * batch_size:(i + 1) * batch_size]
             items_id = ','.join([str(photo['id']) for photo in batch])
-            params_copy = {
+            params = {
                 'api': 'SYNO.Foto.BackgroundTask.File',
                 'version': '1',
                 'method': 'copy',
@@ -1025,13 +1081,13 @@ def download_assets(folder_id, folder_name, photos_list):
                 "folder_id": "[]",  # This can be adjusted based on specific use case
                 'action': 'skip'
             }
-            response = SESSION.get(url, params=params_copy, verify=False)
+            response = SESSION.get(url, params=params, headers=headers, verify=False)
             data = response.json()
             if not data['success']:
                 LOGGER.error(f"ERROR   : Failed to copy batch {i + 1}/{total_batches} of assets: {data}")
                 return 0
             # LOGGER.info(f"INFO    : Batch {i + 1}/{total_batches} of assets successfully downloaded to the folder '{folder_name}' (ID:{folder_id}).")
-        extracted_photos = len(photos_list)
+        extracted_photos = len(assets_list)
         return extracted_photos
     except Exception as e:
         LOGGER.error(f"ERROR   : Exception while copying assets batches: {e}")
@@ -1045,170 +1101,197 @@ def download_assets(folder_id, folder_name, photos_list):
 #           MAIN FUNCTIONS TO CALL FROM OTHER MODULES                        #
 ##############################################################################
 # Function to upload albums to Synology Photos
-def synology_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None):
+def synology_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, show_info_messages=True):
     """
-    Upload albums into Synology Photos based on folders in the NAS.
-
-    Args:
-        input_folder (str): Base path on the NAS where the album folders are located.
-
-    Returns:
-        tuple: albums_created, albums_skipped, assets_added
+    Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on SYNOLOGY_EXTENSIONS) and associates them with the album.
+    Example structure:
+        input_folder/
+            ├─ Album1/   (files for album "Album1")
+            └─ Album2/   (files for album "Album2")
+    Returns: albums_uploaded, albums_skipped, assets_uploaded
     """
+    from GlobalVariables import LOGGER  # Import global LOGGER
 
-    # Import logger and log in to the NAS
-    from GlobalVariables import LOGGER
     login_synology()
 
-    # Check if albums_folder is inside SYNOLOGY_ROOT_PHOTOS_PATH
-    input_folder = Utils.remove_quotes(input_folder)
-    if input_folder.endswith(os.path.sep):
-        input_folder = input_folder[:-1]
     if not os.path.isdir(input_folder):
-        LOGGER.error(f"ERROR   : Cannot find album folder '{input_folder}'. Exiting...")
-        sys.exit(-1)
-    LOGGER.info(f"INFO    : Albums Folder Path: '{input_folder}'")
-    albums_folder_full_path = os.path.realpath(input_folder)
-    ROOT_PHOTOS_PATH_full_path = os.path.realpath(SYNOLOGY_ROOT_PHOTOS_PATH)
-    ROOT_PHOTOS_PATH_full_path = Utils.remove_server_name(ROOT_PHOTOS_PATH_full_path)
-    albums_folder_full_path = Utils.remove_server_name(albums_folder_full_path)
-    if ROOT_PHOTOS_PATH_full_path not in albums_folder_full_path:
-        LOGGER.error(f"ERROR   : Albums folder: '{albums_folder_full_path}' should be inside SYNOLOGY_ROOT_PHOTOS_PATH: '{ROOT_PHOTOS_PATH_full_path}'")
-        sys.exit(-1)
+        LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
+        return 0
 
-    LOGGER.info("INFO    : Reindexing Synology Photos database before adding content...")
+    # Process subfolders_exclusion to obtain a list of inclusion names if provided
+    if isinstance(subfolders_exclusion, str):
+        subfolders_exclusion = [name.strip() for name in subfolders_exclusion.replace(',', ' ').split() if name.strip()]
+    elif isinstance(subfolders_exclusion, list):
+        subfolders_exclusion = [name.strip() for item in subfolders_exclusion if isinstance(item, str) for name in item.split(',') if name.strip()]
+    else:
+        subfolders_exclusion = None
 
-    # Process folders and create albums
-    albums_created = 0
+    # Process subfolders_inclusion to obtain a list of inclusion names if provided
+    if isinstance(subfolders_inclusion, str):
+        subfolders_inclusion = [name.strip() for name in subfolders_inclusion.replace(',', ' ').split() if name.strip()]
+    elif isinstance(subfolders_inclusion, list):
+        subfolders_inclusion = [name.strip() for item in subfolders_inclusion if isinstance(item, str) for name in item.split(',') if name.strip()]
+    else:
+        subfolders_inclusion = None
+
+    albums_uploaded = 0
     albums_skipped = 0
-    assets_added = 0
+    assets_uploaded = 0
 
-    if wait_for_reindexing_synology_photos():
-        # Step 1: Get the root folder ID of Synology Photos for the authenticated user
-        photos_root_folder_id = get_photos_root_folder_id()
-        LOGGER.info(f"INFO    : Synology Photos root folder ID: {photos_root_folder_id}")
+    # Directories to exclude
+    SUBFOLDERS_EXCLUSIONS = ['@eaDir']
+    for subfolder in subfolders_exclusion:
+        SUBFOLDERS_EXCLUSIONS.append(subfolder)
 
-        # Step 2: Get the folder ID of the directory containing the albums
-        albums_folder_relative_path = os.path.relpath(albums_folder_full_path, ROOT_PHOTOS_PATH_full_path)
-        albums_folder_relative_path = "/" + os.path.normpath(albums_folder_relative_path).replace("\\", "/")
-        albums_folder_id = get_folder_id(search_in_folder_id=photos_root_folder_id, folder_name=os.path.basename(input_folder))
-        LOGGER.info(f"INFO    : Albums folder ID: {albums_folder_id}")
-        if not albums_folder_id:
-            LOGGER.error(f"ERROR   : Cannot obtain ID for folder '{albums_folder_relative_path}/{input_folder}'. The folder may not have been indexed yet. Try forcing indexing and retry.")
-            sys.exit(-1)
+    # Search for all valid Albums folders
+    valid_folders = []  # List to store valid folder paths
+    for root, dirs, _ in os.walk(input_folder):
+        dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]  # Exclude directories in the exclusion list
+        if subfolders_inclusion:  # Apply SUBFOLDERS_INCLUSION filter if provided
+            rel_path = os.path.relpath(root, input_folder)
+            if rel_path == ".":
+                dirs[:] = [d for d in dirs if d in subfolders_inclusion]
+            else:
+                first_dir = rel_path.split(os.sep)[0]
+                if first_dir not in subfolders_inclusion:
+                    dirs[:] = []
+        for dir in dirs:
+            dir_path = os.path.join(root, dir)
+            # Check if there is at least one file with an allowed extension in the subfolder
+            has_supported_files = any(os.path.splitext(file)[-1].lower() in ALLOWED_SYNOLOGY_EXTENSIONS for file in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, file)))
+            if not has_supported_files:
+                continue
+            valid_folders.append(dir_path)
 
-        # Filter albums_folder to exclude '@eaDir'
-        albums_folder_filtered = os.listdir(input_folder)
-        albums_folder_filtered[:] = [d for d in albums_folder_filtered if d != '@eaDir']
-        LOGGER.info(f"INFO    : Processing all albums in folder '{input_folder}' and creating corresponding albums into Synology Photos...")
-        for album_folder in tqdm(albums_folder_filtered, file=LOGGER.tqdm_stream, desc="INFO    : Uploading Albums", unit=" albums"):
-            # Step 3: For each album folder, get the folder ID in the directory containing the albums
-            individual_album_folder_id = get_folder_id(search_in_folder_id=albums_folder_id, folder_name=os.path.basename(album_folder))
-            if not individual_album_folder_id:
-                LOGGER.error(f"ERROR   : Cannot obtain ID for folder '{albums_folder_relative_path}/{album_folder}'. The folder may not have been indexed yet. Skipping this album creation.")
+    first_level_folders = os.listdir(input_folder)
+    if subfolders_inclusion:
+        first_level_folders = first_level_folders + subfolders_inclusion
+
+    # with tqdm(total=len(valid_folders), smoothing=0.1, file=LOGGER.tqdm_stream, desc="INFO    : Uploading Albums from Folders", unit=" folders") as pbar:
+    with tqdm(total=len(valid_folders), smoothing=0.1, desc="INFO    : Uploading Albums from Folders", unit=" folders") as pbar:
+        for subpath in valid_folders:
+            pbar.update(1)
+            new_album_assets_ids = []
+            if not os.path.isdir(subpath):
+                LOGGER.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
                 albums_skipped += 1
                 continue
-
-            # Step 4: Add all photos or videos in the album folder to the newly created album
-            res = add_assets_to_album(folder_id=individual_album_folder_id, album_name=album_folder)
-            if res == -1:
-                albums_skipped += 1
+            relative_path = os.path.relpath(subpath, input_folder)
+            path_parts = relative_path.split(os.sep)
+            # Create album_name
+            if len(path_parts) == 1:
+                album_name = path_parts[0]
             else:
-                albums_created += 1
-                assets_added += res
+                album_name = " - ".join(path_parts[1:]) if path_parts[0] in first_level_folders else " - ".join(path_parts)
+            if album_name != '':
+                album_id = create_album(album_name, show_info_messages=False)
+                if not album_id:
+                    LOGGER.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
+                    albums_skipped += 1
+                    continue
+                else:
+                    albums_uploaded += 1
+                for file in os.listdir(subpath):
+                    file_path = os.path.join(subpath, file)
+                    if not os.path.isfile(file_path):
+                        continue
+                    ext = os.path.splitext(file)[-1].lower()
+                    if ext not in ALLOWED_SYNOLOGY_EXTENSIONS:
+                        continue
+                    asset_id = upload_asset(file_path)
+                    assets_uploaded += 1
+                    # Assign to Album only if extension is in ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS
+                    if ext in ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS:
+                        new_album_assets_ids.append(asset_id)
+            if new_album_assets_ids:
+                add_assets_to_album(album_id, new_album_assets_ids, album_name=album_name, show_info_messages=False)
 
-    LOGGER.info("INFO    : Album creation in Synology Photos completed!")
-    logout_synology()
-    return albums_created, albums_skipped, assets_added
+    if show_info_messages:
+        LOGGER.info(f"INFO    : Skipped {albums_skipped} album(s) from '{input_folder}'.")
+        LOGGER.info(f"INFO    : Uploaded {albums_uploaded} album(s) from '{input_folder}'.")
+        LOGGER.info(f"INFO    : Uploaded {assets_uploaded} asset(s) from '{input_folder}' to Albums.")
+    return albums_uploaded, albums_skipped, assets_uploaded
 
-# Function synology_upload_folder()
-# TODO: synology_upload_folder()
-def synology_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None):
+# Function synology_upload_no_albums()
+def synology_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, show_info_messages=True):
     """
-    Upload folder into Synology Photos.
+    Recursively traverses 'input_folder' and its subfolders_inclusion to upload all
+    compatible files (photos/videos) to Synology without associating them to any album.
 
-    Args:
-        input_folder (str): Base path on the NAS where the album folders are located.
+    If 'subfolders_inclusion' is provided (as a string or list of strings), only those
+    direct subfolders_inclusion of 'input_folder' are processed (excluding any in SUBFOLDERS_EXCLUSIONS).
+    Otherwise, all subfolders_inclusion except those listed in SUBFOLDERS_EXCLUSIONS are processed.
 
-    Returns:
-        tuple: folders_created, folders_skipped, assets_added
+    Returns the number of files uploaded.
     """
 
     # Import logger and log in to the NAS
     from GlobalVariables import LOGGER
     login_synology()
 
-    LOGGER.warning("WARNING : This mode is not yet supported. Exiting.")
-    sys.exit(-1)
-
-    # Check if albums_folder is inside SYNOLOGY_ROOT_PHOTOS_PATH
-    input_folder = Utils.remove_quotes(input_folder)
-    if input_folder.endswith(os.path.sep):
-        input_folder = input_folder[:-1]
+    # Verify that the input folder exists
     if not os.path.isdir(input_folder):
-        LOGGER.error(f"ERROR   : Cannot find folder '{input_folder}'. Exiting...")
-        sys.exit(-1)
-    LOGGER.info(f"INFO    : Folder Path: '{input_folder}'")
-    folder_full_path = os.path.realpath(input_folder)
-    ROOT_PHOTOS_PATH_full_path = os.path.realpath(SYNOLOGY_ROOT_PHOTOS_PATH)
-    ROOT_PHOTOS_PATH_full_path = Utils.remove_server_name(ROOT_PHOTOS_PATH_full_path)
-    folder_full_path = Utils.remove_server_name(folder_full_path)
-    if ROOT_PHOTOS_PATH_full_path not in folder_full_path:
-        LOGGER.error(f"ERROR   : Folder: '{folder_full_path}' should be inside SYNOLOGY_ROOT_PHOTOS_PATH: '{ROOT_PHOTOS_PATH_full_path}'")
-        sys.exit(-1)
+        LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
+        return 0
 
-    LOGGER.info("INFO    : Reindexing Synology Photos database before adding content...")
-    if wait_for_reindexing_synology_photos():
-        # Step 1: Get the root folder ID of Synology Photos for the authenticated user
-        photos_root_folder_id = get_photos_root_folder_id()
-        LOGGER.info(f"INFO    : Synology Photos root folder ID: {photos_root_folder_id}")
+    # Process subfolders_inclusion to obtain a list of subfolders_inclusion names (if provided)
+    if isinstance(subfolders_inclusion, str):
+        subfolders_inclusion = [name.strip() for name in subfolders_inclusion.replace(',', ' ').split() if name.strip()]
+    elif isinstance(subfolders_inclusion, list):
+        subfolders_inclusion = [name.strip() for item in subfolders_inclusion if isinstance(item, str) for name in item.split(',') if name.strip()]
+    else:
+        subfolders_inclusion = None
 
-        # Step 2: Get the folder ID of the directory containing the albums
-        folder_relative_path = os.path.relpath(folder_full_path, ROOT_PHOTOS_PATH_full_path)
-        folder_relative_path = "/" + os.path.normpath(folder_relative_path).replace("\\", "/")
-        folder_id = get_folder_id(search_in_folder_id=photos_root_folder_id, folder_name=os.path.basename(input_folder))
-        LOGGER.info(f"INFO    : Folder ID: {folder_id}")
-        if not folder_id:
-            LOGGER.error(f"ERROR   : Cannot obtain ID for folder '{folder_relative_path}/{input_folder}'. The folder may not have been indexed yet. Try forcing indexing and retry.")
-            sys.exit(-1)
+    # List of Subfolders to exclude
+    SUBFOLDERS_EXCLUSIONS = ['@eaDir']
+    for subfolder in subfolders_exclusion:
+        SUBFOLDERS_EXCLUSIONS.append(subfolder)
 
-        # Process folders
-        folders_created = 0
-        folders_skipped = 0
-        assets_added = 0
+    # Exclude any SUBFOLDERS_EXCLUSIONS that match exclusions
+    if subfolders_inclusion:
+        subfolders_inclusion = [s for s in subfolders_inclusion if s not in SUBFOLDERS_EXCLUSIONS]
 
-        # Filter albums_folder to exclude '@eaDir'
-        folder_filtered = os.listdir(input_folder)
-        folder_filtered[:] = [d for d in folder_filtered if d != '@eaDir']
-        LOGGER.info(f"INFO    : Processing all subfolders in folder '{input_folder}' and uploading corresponding assets into Synology Photos...")
-        for input_folder in tqdm(folder_filtered, file=LOGGER.tqdm_stream, desc="INFO    : Uploading Folder", unit=" folders"):
-            # Step 3: For each album folder, get the folder ID in the directory containing the albums
-            individual_folder_id = get_folder_id(search_in_folder_id=folder_id, folder_name=os.path.basename(input_folder))
-            if not individual_folder_id:
-                LOGGER.error(f"ERROR   : Cannot obtain ID for folder '{folder_relative_path}/{input_folder}'. The folder may not have been indexed yet. Skipping this folder creation.")
-                folders_skipped += 1
-                continue
+    # Collect all file paths based on subfolder criteria
+    def collect_files(input_folder, only_subfolders):
+        files_list = []
+        if only_subfolders:
+            # Process only the specified direct subfolders_inclusion (if they exist)
+            for sub in only_subfolders:
+                sub_path = os.path.join(input_folder, sub)
+                if not os.path.isdir(sub_path):
+                    LOGGER.warning(f"WARNING : Subfolder '{sub}' does not exist in '{input_folder}'. Skipping.")
+                    continue
+                for root, dirs, files in os.walk(sub_path):
+                    # Exclude any directories matching the exclusions
+                    dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]
+                    files_list.extend(os.path.join(root, f) for f in files)
+        else:
+            # Process all subfolders_inclusion except those in SUBFOLDERS_EXCLUSIONS (filtering at all levels)
+            for root, dirs, files in os.walk(input_folder):
+                dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]
+                files_list.extend(os.path.join(root, f) for f in files)
+        return files_list
 
-            # Step 4: Add all photos or videos in the album folder to the newly created album
-            # TODO: ESTA PARTE SOBRA PORQUE NO QUIERO AÑADIR LOS ASSETS A NINGÚN ALBÚM, PERO SI NO HACEMOS ESTO, EN REALIDAD NO ESTAMOS HACIENDO NADA, YA QUE LA CARPETA A AÑADIR YA ESTÁ DENTRO DE SYNOLOGY PHOTOS Y POR TANTO ESTÁ SIENDO INDEXADA
-            # TODO: BUSCAR LA FORMA DE AÑADIR UNA CARPETA DESDE EL EXTERIOR DE SYNOOGY FOTOS.
-            res = add_assets_to_album(folder_id=individual_folder_id, album_name=input_folder)
-            if res == -1:
-                folders_skipped += 1
-            else:
-                folders_created += 1
-                assets_added += res
+    # Collect all file paths to be processed
+    file_paths = collect_files(input_folder, subfolders_inclusion)
+    total_files = len(file_paths)
+    total_assets_uploaded = 0
 
-    LOGGER.info("INFO    : Folder Uploaded into Synology Photos!")
-    logout_synology()
-    return folders_created, folders_skipped, assets_added
-
+    # Process each file with a progress bar
+    with tqdm(total=total_files, smoothing=0.1, desc="INFO    : Uploading Assets", unit=" asset") as pbar:
+        for file_path in file_paths:
+            if upload_asset(file_path):
+                total_assets_uploaded += 1
+            pbar.update(1)
+    if show_info_messages:
+        LOGGER.info(f"INFO    : Uploaded {total_assets_uploaded} files (without album) from '{input_folder}'.")
+    return total_assets_uploaded
 
 
 # -----------------------------------------------------------------------------
 #          COMPLETE UPLOAD OF ALL ASSETS (Albums + No-Albums)
 # -----------------------------------------------------------------------------
-def synology_upload_ALL(input_folder, albums_folders=None):
+def synology_upload_ALL(input_folder, albums_folders=None, show_info_messages=True):
     """
     Uploads ALL photos and videos from input_folder into Synology Photos:
 
@@ -1222,16 +1305,19 @@ def synology_upload_ALL(input_folder, albums_folders=None):
     total_albums_skipped = 0
 
     if albums_folders:
-        LOGGER.info("")
-        LOGGER.info(f"INFO    : Uploading Assets and creating Albums into synology Photos from '{albums_folders}' subfolders...")
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums = synology_upload_albums(input_folder=input_folder, subfolders_inclusion=albums_folders)
-        LOGGER.info("")
-        LOGGER.info(f"INFO    : Uploading Assets without Albums creation into synology Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
-        total_assets_uploaded_without_albums = synology_upload_no_albums(input_folder=input_folder, subfolders_exclusion=albums_folders)
+        if show_info_messages:
+            LOGGER.info("")
+            LOGGER.info(f"INFO    : Uploading Assets and creating Albums into synology Photos from '{albums_folders}' subfolders...")
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums = synology_upload_albums(input_folder=input_folder, subfolders_inclusion=albums_folders, show_info_messages=False)
+        if show_info_messages:
+            LOGGER.info("")
+            LOGGER.info(f"INFO    : Uploading Assets without Albums creation into synology Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
+        total_assets_uploaded_without_albums = synology_upload_no_albums(input_folder=input_folder, subfolders_exclusion=albums_folders, show_info_messages=False)
     else:
-        LOGGER.info("")
-        LOGGER.info(f"INFO    : Uploading Assets without Albums creation into synology Photos from '{input_folder}'...")
-        total_assets_uploaded_without_albums = synology_upload_no_albums(input_folder=input_folder)
+        if show_info_messages:
+            LOGGER.info("")
+            LOGGER.info(f"INFO    : Uploading Assets without Albums creation into synology Photos from '{input_folder}'...")
+        total_assets_uploaded_without_albums = synology_upload_no_albums(input_folder=input_folder, show_info_messages=False)
 
     total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
 
@@ -1239,7 +1325,7 @@ def synology_upload_ALL(input_folder, albums_folders=None):
 
 
 # Function to download albums from Synology Photos
-def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synology'):
+def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synology', show_info_messages=True):
     """
     Downloads albums from Synology Photos to a specified folder, supporting wildcard patterns.
 
@@ -1259,12 +1345,12 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
     assets_downloaded = 0
 
     # Create or obtain the main folder 'Albums_Synology_Photos'
-    main_folder_id = get_folder_id_or_create_folder(output_folder)
+    main_folder_id = create_folder(output_folder)
     if not main_folder_id:
         LOGGER.error(f"ERROR   : Failed to obtain or create the main folder '{output_folder}'.")
         return albums_downloaded, assets_downloaded
 
-    main_subfolder_id = get_folder_id_or_create_folder("Albums", parent_folder_id=main_folder_id)
+    main_subfolder_id = create_folder("Albums", parent_folder_id=main_folder_id)
     if not main_subfolder_id:
         LOGGER.error(f"ERROR   : Failed to obtain or create the folder 'Albums'.")
         return albums_downloaded, assets_downloaded
@@ -1275,7 +1361,8 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
     # Determine the albums to copy
     if isinstance(albums_name, str) and albums_name.strip().upper() == 'ALL':
         albums_to_download = all_albums
-        LOGGER.info(f"INFO    : All albums ({len(albums_to_download)}) from Synology Photos will be downloaded to the folder '{download_folder} within Synology Photos root folder'...")
+        if show_info_messages:
+            LOGGER.info(f"INFO    : All albums ({len(albums_to_download)}) from Synology Photos will be downloaded to the folder '{download_folder} within Synology Photos root folder'...")
     else:
         # Ensure album_name is a list if it's not a string
         if isinstance(albums_name, str):
@@ -1289,6 +1376,7 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
                     albums_names.extend([name.strip() for name in item.split(',') if name.strip()])
         else:
             LOGGER.error("ERROR   : The parameter albums_name must be a string or a list of strings.")
+            logout_synology()
             return albums_downloaded, assets_downloaded
 
         albums_to_download = []
@@ -1302,12 +1390,14 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
 
         if not albums_to_download:
             LOGGER.error("ERROR   : No albums found matching the provided patterns.")
+            logout_synology()
             return albums_downloaded, assets_downloaded
-        LOGGER.info(f"INFO    : {len(albums_to_download)} albums from Synology Photos will be downloaded to '{download_folder}' within Synology Photos root folder...")
+        if show_info_messages:
+            LOGGER.info(f"INFO    : {len(albums_to_download)} albums from Synology Photos will be downloaded to '{download_folder}' within Synology Photos root folder...")
 
     albums_downloaded = len(albums_to_download)
     # Iterate over each album to copy
-    for album in tqdm(albums_to_download, file=LOGGER.tqdm_stream, desc="INFO    : Downloading Albums", unit=" albums"):
+    for album in tqdm(albums_to_download, desc="INFO    : Downloading Albums", unit=" albums"):
         album_name = album['name']
         album_id = album['id']
         # LOGGER.info(f"INFO    : Processing album: '{album_name}' (ID: {album_id})")
@@ -1319,20 +1409,22 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
             continue
         # Create or obtain the destination folder for the album within output_folder/Albums
         target_folder_name = f'{album_name}'
-        target_folder_id = get_folder_id_or_create_folder(target_folder_name, parent_folder_id=main_subfolder_id)
+        target_folder_id = create_folder(target_folder_name, parent_folder_id=main_subfolder_id)
         if not target_folder_id:
             LOGGER.warning(f"WARNING : Failed to obtain or create the destination folder for the album '{album_name}'.")
             continue
         # Download the photos to the destination folder
         assets_downloaded += download_assets(target_folder_id, target_folder_name, photos)
 
-    LOGGER.info(f"INFO    : Album(s) downloaded successfully. You can find them in '{os.path.join(SYNOLOGY_ROOT_PHOTOS_PATH, download_folder)}'")
+    if show_info_messages:
+        LOGGER.info(f"INFO    : Album(s) downloaded successfully. You can find them in '{os.path.join(SYNOLOGY_ROOT_PHOTOS_PATH, download_folder)}'")
+    logout_synology()
     return albums_downloaded, assets_downloaded
 
 
 # Function to download albums from Synology Photos
 # TODO: CREAR LA FUNCIÓN synology_download_no_albums()
-def synology_download_no_albums(output_folder='Downloads_Synology'):
+def synology_download_no_albums(output_folder='Downloads_Synology', show_info_messages=True):
     """
     Downloads assets no associated to any albums from Synology Photos to a specified folder.
 
@@ -1352,16 +1444,15 @@ def synology_download_no_albums(output_folder='Downloads_Synology'):
     assets_downloaded = 0
     # Create or obtain the main folder 'Albums_Synology_Photos'
     main_folder = output_folder
-    main_folder_id = get_folder_id_or_create_folder(main_folder)
+    main_folder_id = create_folder(main_folder)
+    logout_synology()
     if not main_folder_id:
         LOGGER.error(f"ERROR   : Failed to obtain or create the main folder '{main_folder}'.")
-        return  assets_downloaded
-
     return  assets_downloaded
 
 
 # Function synology_download_ALL()
-def synology_download_ALL(output_folder="Downloads_Synology"):
+def synology_download_ALL(output_folder="Downloads_Synology", show_info_messages=True):
     # Import logger and log in to the NAS
     from GlobalVariables import LOGGER
     login_synology()
@@ -1369,11 +1460,11 @@ def synology_download_ALL(output_folder="Downloads_Synology"):
     LOGGER.warning("WARNING : This mode is not yet supported. Exiting.")
     sys.exit(-1)
 
-    synology_download_albums(albums_name='ALL', output_folder=output_folder)
-    synology_download_no_albums(output_folder=output_folder)
+    synology_download_albums(albums_name='ALL', output_folder=output_folder, show_info_messages=False)
+    synology_download_no_albums(output_folder=output_folder, show_info_messages=False)
 
 # Function to delete empty albums in Synology Photos
-def synology_remove_empty_albums():
+def synology_remove_empty_albums(show_info_messages=True):
     """
     Deletes all empty albums in Synology Photos.
 
@@ -1389,20 +1480,22 @@ def synology_remove_empty_albums():
     albums_dict = get_albums()
     albums_deleted = 0
     if albums_dict != -1:
-        LOGGER.info("INFO    : Looking for empty albums in Synology Photos...")
-        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, file=LOGGER.tqdm_stream, desc="INFO    : Processing Albums", unit=" albums"):
+        if show_info_messages:
+            LOGGER.info("INFO    : Looking for empty albums in Synology Photos...")
+        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, desc="INFO    : Processing Albums", unit=" albums"):
             item_count = get_album_items_count(album_id=album_id, album_name=album_name)
             if item_count == 0:
-                LOGGER.info(f"INFO    : Deleting empty album: '{album_name}' (ID: {album_id})")
+                if show_info_messages:
+                    LOGGER.info(f"INFO    : Deleting empty album: '{album_name}' (ID: {album_id})")
                 delete_album(album_id=album_id, album_name=album_name)
                 albums_deleted += 1
-
-    LOGGER.info("INFO    : Deleting empty albums process finished!")
+    if show_info_messages:
+        LOGGER.info("INFO    : Deleting empty albums process finished!")
     logout_synology()
     return albums_deleted
 
 # Function to delete duplicate albums in Synology Photos
-def synology_remove_duplicates_albums():
+def synology_remove_duplicates_albums(show_info_messages=True):
     """
     Deletes all duplicate albums in Synology Photos.
 
@@ -1419,8 +1512,9 @@ def synology_remove_duplicates_albums():
     albums_deleted = 0
     albums_data = {}
     if albums_dict != -1:
-        LOGGER.info("INFO    : Looking for duplicate albums in Synology Photos...")
-        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, file=LOGGER.tqdm_stream, desc="INFO    : Processing Albums", unit=" albums"):
+        if show_info_messages:
+            LOGGER.info("INFO    : Looking for duplicate albums in Synology Photos...")
+        for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, desc="INFO    : Processing Albums", unit=" albums"):
             item_count = get_album_items_count(album_id=album_id, album_name=album_name)
             item_size = get_album_items_size(album_id=album_id, album_name=album_name)
             albums_data.setdefault((item_count, item_size), []).append((album_id, album_name))
@@ -1442,11 +1536,12 @@ def synology_remove_duplicates_albums():
                         ids_to_delete.setdefault(album_id, []).append(album_name)
 
         for album_id, album_name in ids_to_delete.items():
-            LOGGER.info(f"INFO    : Deleting duplicate album: '{album_name}' (ID: {album_id})")
+            if show_info_messages:
+                LOGGER.info(f"INFO    : Deleting duplicate album: '{album_name}' (ID: {album_id})")
             delete_album(album_id=album_id, album_name=album_name)
             albums_deleted += 1
-
-    LOGGER.info("INFO    : Deleting duplicate albums process finished!")
+    if show_info_messages:
+        LOGGER.info("INFO    : Deleting duplicate albums process finished!")
     logout_synology()
     return albums_deleted
 
@@ -1454,37 +1549,38 @@ def synology_remove_duplicates_albums():
 # -----------------------------------------------------------------------------
 #          DELETE ALL ASSETS FROM SYNOLOGY DATABASE
 # -----------------------------------------------------------------------------
-def synology_remove_all_assets():
+def synology_remove_all_assets(show_info_messages=True):
     from GlobalVariables import LOGGER  # Import global LOGGER
     login_synology()
     all_assets = get_all_assets()
     total_assets_found = len(all_assets)
     if total_assets_found == 0:
-        LOGGER.warning(f"WARNING : No Assets found in Immich Database.")
-        return 0,0
-    LOGGER.info(f"INFO    : Found {total_assets_found} asset(s) to delete.")
+        LOGGER.warning(f"WARNING : No Assets found in Synology Database.")
+    if show_info_messages:
+        LOGGER.info(f"INFO    : Found {total_assets_found} asset(s) to delete.")
     assets_ids = []
-    assets_deleted = len(all_assets)
-    for asset in tqdm(all_assets, file=LOGGER.tqdm_stream, desc="INFO    : Deleting assets", unit="assets"):
+    for asset in tqdm(all_assets, desc="INFO    : Deleting assets", unit=" assets"):
         asset_id = asset.get("id")
         if not asset_id:
             continue
         assets_ids.append(asset_id)
 
-    ok = delete_assets(assets_ids)
-    if ok:
-        albums_deleted = synology_remove_empty_albums()
+    assets_deleted = 0
+    albums_deleted = 0
+    if assets_ids:
+        assets_deleted = delete_assets(assets_ids, show_info_messages=False)
+        albums_deleted = synology_remove_empty_albums(show_info_messages=False)
+    logout_synology()
+    if show_info_messages:
         LOGGER.info(f"INFO    : Total Assets deleted: {assets_deleted}")
         LOGGER.info(f"INFO    : Total Albums deleted: {albums_deleted}")
-        return assets_deleted, albums_deleted
-    else:
-        LOGGER.error(f"ERROR   : Failed to delete assets.")
-        return 0, 0
+    return assets_deleted, albums_deleted
+
 
 # -----------------------------------------------------------------------------
 #          DELETE ALL ALL ALBUMS FROM SYNOLOGY DATABASE
 # -----------------------------------------------------------------------------
-def synology_remove_all_albums(deleteAlbumsAssets=False):
+def synology_remove_all_albums(deleteAlbumsAssets=False, show_info_messages=True):
     """
     Deletes all albums and optionally also its associated assets.
     Returns the number of albums deleted and the number of assets deleted.
@@ -1494,10 +1590,11 @@ def synology_remove_all_albums(deleteAlbumsAssets=False):
     albums = get_albums()
     if not albums:
         LOGGER.info("INFO    : No albums found.")
+        logout_synology()
         return 0, 0
     total_deleted_albums = 0
     total_deleted_assets = 0
-    for album in tqdm(albums, file=LOGGER.tqdm_stream, desc=f"INFO    : Searching for Albums to delete", unit=" albums"):
+    for album in tqdm(albums, desc=f"INFO    : Searching for Albums to delete", unit=" albums"):
         album_id = album.get("id")
         album_name = album.get("albumName")
         album_assets_ids = []
@@ -1514,9 +1611,11 @@ def synology_remove_all_albums(deleteAlbumsAssets=False):
             # LOGGER.info(f"INFO    : Empty album '{album_name}' (ID={album_id}) deleted.")
             total_deleted_albums += 1
 
-    LOGGER.info(f"INFO    : Deleted {total_deleted_albums} albums.")
-    if deleteAlbumsAssets:
-        LOGGER.info(f"INFO    : Deleted {total_deleted_assets} assets associated to albums.")
+    if show_info_messages:
+        LOGGER.info(f"INFO    : Deleted {total_deleted_albums} albums.")
+        if deleteAlbumsAssets:
+            LOGGER.info(f"INFO    : Deleted {total_deleted_assets} assets associated to albums.")
+    logout_synology()
     return total_deleted_albums, total_deleted_assets
 
 
@@ -1528,13 +1627,18 @@ def synology_remove_all_albums(deleteAlbumsAssets=False):
 #                            MAIN TESTS FUNCTION                             #
 ##############################################################################
 if __name__ == "__main__":
+    # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
+    import Utils
+    Utils.change_workingdir()
+
     # Create initialize LOGGER.
     from GlobalVariables import set_ARGS_PARSER
     set_ARGS_PARSER()
 
     # 0) Read configuration and log in
-    read_synology_config('CONFIG.ini')
-    login_synology()
+    # read_synology_config('CONFIG.ini')
+    login_synology(use_syno_token=True)
+    # login_synology(use_syno_token=False)
 
     # # # 1) Example: Delete empty albums
     # print("=== EXAMPLE: synology_delete_empty_albums() ===")
@@ -1546,10 +1650,14 @@ if __name__ == "__main__":
     # duplicates = synology_delete_duplicates_albums()
     # print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
 
-    # TODO: Complete this function
-    print("\n=== EXAMPLE: upload_file_to_synology() ===")
-    file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\2003.07 - Viaje a Almeria (Julio 2003)\En Almeria (Julio 2003)_17.JPG"                # For Windows
-    upload_file_to_synology(file_path)
+    # print("\n=== EXAMPLE: upload_asset() ===")
+    # file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\2003.07 - Viaje a Almeria (Julio 2003)\En Almeria (Julio 2003)_17.JPG"                # For Windows
+    # file_path = r"g:\My Drive\Google Drive\_PERSONAL\DOCUMENTS\MIS PÁGINAS WEBS\jtg.webservices.com\logo\30-01-2023_17-53-05.png"                # For Windows
+    # asset_id = upload_asset(file_path)
+    # if not asset_id:
+    #     print(f"Error uploading asset '{file_path}'.")
+    # else:
+    #     print(f"New Asset uploaded successfully with id: {asset_id}")
 
     # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur_share\Photos\Upload_folder\No-Albums'
     # # TODO: Complete this function
@@ -1578,7 +1686,12 @@ if __name__ == "__main__":
     # total_struct = synology_download_ALL(output_folder="Downloads_Synology")
     # # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
 
-    # 7) Local logout
+    # # 7) Test: get_photos_root_folder_id()
+    # print("=== EXAMPLE: get_photos_root_folder_id() ===")
+    # root_folder_id = get_photos_root_folder_id()
+    # print (root_folder_id)
+
+    # 8) Local logout
     logout_synology()
 
 
