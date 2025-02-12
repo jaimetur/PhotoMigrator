@@ -72,15 +72,13 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 
 
 - [x] Added new options to Synology Photos Support:
-  - **-suFld,    --synology-upload-folder <INPUT_FOLDER>**.  
+  - **-suAll,    --synology-upload-all <INPUT_FOLDER>**.  
   - **-sdAll,    --synology-download-all <OUTPUT_FOLDER>**.
   - **-srAll,    --synology-remove-all-assets** to remove All assets in Synology Photos.  
   - **-srAllAlb, --synology-remove-all-albums** to remove Albums in Synology Photos (optionally all associated assets can be also deleted).  
 
 
 - [x] With those changes the **_Synology Photos Support_** has the following options:
-  - **-suFld,    --synology-upload-folder <INPUT_FOLDER>**  
-    - The script will look for all Photos/Videos within <INPUT_FOLDER> and will upload them into Synology Photos.
   - **-suAlb,    --synology-upload-albums <ALBUMS_FOLDER>**  
     - The script will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Synology Photos.
   - **-sdAlb,    --synology-download-albums <ALBUMS_NAME>**
@@ -104,8 +102,6 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 
 
 - [x] Added **_Immich Photos Support_** with the Following options to manage Immich API:
-  - **-iuFld,    --immich-upload-folder <INPUT_FOLDER>**    
-    - The script will look for all Photos/Videos within <FOLDER> and will upload them into Immich Photos.  
   - **-iuAlb,    --immich-upload-albums <ALBUMS_FOLDER>**  
     - The script will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Immich Photos.  
   - **-idAlb,    --immich-download-albums <ALBUMS_NAME>**  
