@@ -59,8 +59,7 @@ def get_user_id(show_info_messages=True):
     Return the user_id for the logged user
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return []
+    login_immich()
     url = f"{IMMICH_URL}/api/users/me"
     payload = {}
     try:
@@ -81,8 +80,7 @@ def get_supported_media_types(type='media', show_info_messages=True):
     Return the user_id for the logged user
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return []
+    login_immich()
     url = f"{IMMICH_URL}/api/server/media-types"
     payload = {}
     try:
@@ -282,8 +280,7 @@ def create_album(album_name, show_info_messages=True):
     Returns the ID of the created album or None if it fails.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return None
+    login_immich()
     url = f"{IMMICH_URL}/api/albums"
     payload = json.dumps({
         "albumName": album_name,
@@ -304,8 +301,7 @@ def delete_album(album_id, album_name, show_info_messages=True):
     Deletes an album from Immich by its ID. Returns True if deleted successfully, False otherwise.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return False
+    login_immich()
     url = f"{IMMICH_URL}/api/albums/{album_id}"
     try:
         response = requests.delete(url, headers=HEADERS, verify=False)
@@ -332,8 +328,7 @@ def get_albums(show_info_messages=True):
         }
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return []
+    login_immich()
     url = f"{IMMICH_URL}/api/albums"
     try:
         response = requests.get(url, headers=HEADERS, verify=False)
@@ -348,8 +343,7 @@ def get_album_items_size(album_id, show_info_messages=True):
     """
     Calculates the total size of all assets in an album by summing up exifInfo.fileSizeInByte (if available).
     """
-    if not login_immich():
-        return 0
+    login_immich()
     try:
         assets = get_assets_from_album(album_id)
         total_size = 0
@@ -369,8 +363,7 @@ def get_all_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=Non
     Returns the list of assets that belong to a specific album (ID).
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return []
+    login_immich()
     url = f"{IMMICH_URL}/api/search/metadata"
 
     payload_data = {
@@ -432,8 +425,7 @@ def get_assets_from_album(album_id, show_info_messages=True):
     Returns the list of assets that belong to a specific album (ID).
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return []
+    login_immich()
     url = f"{IMMICH_URL}/api/albums/{album_id}"
     try:
         response = requests.get(url, headers=HEADERS, verify=False)
@@ -452,8 +444,7 @@ def add_assets_to_album(album_id, asset_ids, album_name=None, show_info_messages
     Returns the number of assets successfully added.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return 0
+    login_immich()
     if not asset_ids:
         return 0
 
@@ -483,8 +474,7 @@ def delete_assets(assets_ids, show_info_messages=True):
     Delete the list of assets providen by assets_ids.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return []
+    login_immich()
     url = f"{IMMICH_URL}/api/assets"
     payload = json.dumps({
       "force": True,
@@ -509,8 +499,8 @@ def upload_asset(file_path, show_info_messages=True):
     Returns the 'id' of the created asset, or None if the upload fails.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return None
+    login_immich()
+
     if not os.path.isfile(file_path):
         LOGGER.error(f"ERROR   : File not found: {file_path}")
         return None
@@ -591,8 +581,7 @@ def download_asset(asset_id, asset_filename, download_folder="Downloaded_Immich"
     Returns True if the download was successful, False otherwise.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return False
+    login_immich()
     os.makedirs(download_folder, exist_ok=True)
     url = f"{IMMICH_URL}/api/assets/{asset_id}/original"
     try:
@@ -629,9 +618,8 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
     Returns: albums_uploaded, albums_skipped, assets_uploaded
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
+    login_immich()
 
-    if not login_immich():
-        return 0
     if not os.path.isdir(input_folder):
         LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
         return 0
@@ -741,10 +729,7 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
     Returns the number of files uploaded.
     """
     from GlobalVariables import LOGGER  # Global logger
-
-    # Verify Immich login
-    if not login_immich():
-        return 0
+    login_immich()
 
     # Verify that the input folder exists
     if not os.path.isdir(input_folder):
@@ -815,8 +800,7 @@ def immich_upload_ALL(input_folder, albums_folders=None, show_info_messages=Fals
     Returns the total number of albums and assets uploaded.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return 0
+    login_immich()
 
     total_assets_uploaded_within_albums = 0
     total_albums_uploaded = 0
@@ -854,9 +838,7 @@ def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich", 
     Returns the total number of albums and assets downloaded.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-
-    if not login_immich():
-        return 0, 0
+    login_immich()
 
     output_folder = os.path.join(output_folder, "Albums")
     os.makedirs(output_folder, exist_ok=True)
@@ -939,8 +921,7 @@ def immich_download_no_albums(output_folder="Downloads_Immich", show_info_messag
     Returns the total number of assets downloaded.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return 0
+    login_immich()
     total_assets_downloaded = 0
     downloaded_assets_set = set()
     # 2) Assets without album -> output_folder/No-Albums/yyyy/mm
@@ -993,8 +974,7 @@ def immich_download_ALL(output_folder="Downloads_Immich", show_info_messages=Fal
     Returns the total number of albums and assets downloaded.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return 0
+    login_immich()
     total_albums_downloaded, total_assets_downloaded_within_albums = immich_download_albums(albums_name='ALL', output_folder=output_folder, show_info_messages=False)
     total_assets_downloaded_without_albums = immich_download_no_albums(output_folder=output_folder, show_info_messages=False)
     total_assets_downloaded = total_assets_downloaded_within_albums + total_assets_downloaded_without_albums
@@ -1016,8 +996,7 @@ def immich_remove_empty_albums(show_info_messages=True):
     Returns the number of albums deleted.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return 0
+    login_immich()
     albums = get_albums()
     if not albums:
         LOGGER.info("INFO    : No albums found.")
@@ -1044,8 +1023,7 @@ def immich_remove_duplicates_albums(show_info_messages=True):
     From each duplicate group, keeps the first one (smallest ID) and deletes the rest.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return 0
+    login_immich()
     albums = get_albums()
     if not albums:
         return 0
@@ -1074,8 +1052,7 @@ def immich_remove_duplicates_albums(show_info_messages=True):
 # -----------------------------------------------------------------------------
 def immich_remove_orphan_assets(user_confirmation=True, show_info_messages=True):
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return 0
+    login_immich()
 
     def filter_entities(response_json, entity_type):
         return [
@@ -1154,34 +1131,33 @@ def immich_remove_orphan_assets(user_confirmation=True, show_info_messages=True)
 # -----------------------------------------------------------------------------
 def immich_remove_all_assets(show_info_messages=True):
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return 0, 0
+    login_immich()
     all_assets = get_all_assets_by_search_filter()
     all_assets_items = all_assets.get("items")
     total_assets_found = len(all_assets_items)
     if total_assets_found == 0:
         LOGGER.warning(f"WARNING : No Assets found in Immich Database.")
-        return 0,0
     if show_info_messages:
         LOGGER.info(f"INFO    : Found {total_assets_found} asset(s) to delete.")
     assets_ids = []
     assets_deleted = len(all_assets_items)
-    for asset in tqdm(all_assets_items, file=LOGGER.tqdm_stream, desc="INFO    : Deleting assets", unit="assets"):
+    for asset in tqdm(all_assets_items, file=LOGGER.tqdm_stream, desc="INFO    : Deleting assets", unit=" assets"):
         asset_id = asset.get("id")
         if not asset_id:
             continue
         assets_ids.append(asset_id)
 
-    albums_deleted = immich_remove_empty_albums()
-    ok = delete_assets(assets_ids)
-    if ok:
-        if show_info_messages:
-            LOGGER.info(f"INFO    : Total Assets deleted: {assets_deleted}")
-            LOGGER.info(f"INFO    : Total Albums deleted: {albums_deleted}")
-        return assets_deleted, albums_deleted
-    else:
-        LOGGER.error(f"ERROR   : Failed to delete assets.")
-        return 0, 0
+    assets_deleted = 0
+    albums_deleted = 0
+    if assets_ids:
+        assets_deleted = delete_assets(assets_ids, show_info_messages=False)
+        albums_deleted = immich_remove_empty_albums(show_info_messages=False)
+    logout_immich()
+    if show_info_messages:
+        LOGGER.info(f"INFO    : Total Assets deleted: {assets_deleted}")
+        LOGGER.info(f"INFO    : Total Albums deleted: {albums_deleted}")
+    return assets_deleted, albums_deleted
+
 
 # -----------------------------------------------------------------------------
 #          DELETE ALL ALL ALBUMS FROM IMMICH DATABASE
@@ -1192,8 +1168,7 @@ def immich_remove_all_albums(deleteAlbumsAssets=False, show_info_messages=True):
     Returns the number of albums deleted and the number of assets deleted.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    if not login_immich():
-        return 0, 0
+    login_immich()
     albums = get_albums()
     if not albums:
         if show_info_messages:

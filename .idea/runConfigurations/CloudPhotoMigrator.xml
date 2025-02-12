@@ -13,7 +13,7 @@
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/CloudPhotoMigrator.py" />
-    <option name="PARAMETERS" value="-suAlb r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\" />
+    <option name="PARAMETERS" value="-srALL" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="true" />
     <option name="MODULE_MODE" value="false" />

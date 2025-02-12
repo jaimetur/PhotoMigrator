@@ -501,9 +501,6 @@ def mode_synology_remove_all_assets(user_confirmation=True, show_info_messages=T
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
         LOGGER.info(f"INFO    : Synology Photos: 'Remove ALL Assets' Mode detected. Only this module will be run!!!")
-    LOGGER.info("")
-    # LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
-    LOGGER.info("")
     # Call the Function
     assets_removed, albums_removed = synology_remove_all_assets(show_info_messages=False)
     logout_immich()

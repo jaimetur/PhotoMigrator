@@ -932,11 +932,11 @@ def delete_assets(asset_ids, show_info_messages=True):
         data = response.json()
         if not data.get("success"):
             LOGGER.error(f"ERROR   : Failed to list assets")
-            return False
+            return 0
     except Exception as e:
         LOGGER.error(f"ERROR   : Exception while listing assets", e)
-        return False
-    return True
+        return 0
+    return len(asset_ids)
 
 
 # TODO: Review this function because I think it does not work. Use the id that returns upload_asset() to associate it to a folder
@@ -1555,29 +1555,26 @@ def synology_remove_all_assets(show_info_messages=True):
     total_assets_found = len(all_assets)
     if total_assets_found == 0:
         LOGGER.warning(f"WARNING : No Assets found in Synology Database.")
-        logout_synology()
-        return 0,0
     if show_info_messages:
         LOGGER.info(f"INFO    : Found {total_assets_found} asset(s) to delete.")
     assets_ids = []
-    assets_deleted = len(all_assets)
-    for asset in tqdm(all_assets, file=LOGGER.tqdm_stream, desc="INFO    : Deleting assets", unit="assets"):
+    for asset in tqdm(all_assets, file=LOGGER.tqdm_stream, desc="INFO    : Deleting assets", unit=" assets"):
         asset_id = asset.get("id")
         if not asset_id:
             continue
         assets_ids.append(asset_id)
 
-    albums_deleted = synology_remove_empty_albums()
-    ok = delete_assets(assets_ids)
+    assets_deleted = 0
+    albums_deleted = 0
+    if assets_ids:
+        assets_deleted = delete_assets(assets_ids, show_info_messages=False)
+        albums_deleted = synology_remove_empty_albums(show_info_messages=False)
     logout_synology()
-    if ok:
-        if show_info_messages:
-            LOGGER.info(f"INFO    : Total Assets deleted: {assets_deleted}")
-            LOGGER.info(f"INFO    : Total Albums deleted: {albums_deleted}")
-        return assets_deleted, albums_deleted
-    else:
-        LOGGER.error(f"ERROR   : Failed to delete assets.")
-        return 0, 0
+    if show_info_messages:
+        LOGGER.info(f"INFO    : Total Assets deleted: {assets_deleted}")
+        LOGGER.info(f"INFO    : Total Albums deleted: {albums_deleted}")
+    return assets_deleted, albums_deleted
+
 
 # -----------------------------------------------------------------------------
 #          DELETE ALL ALL ALBUMS FROM SYNOLOGY DATABASE
