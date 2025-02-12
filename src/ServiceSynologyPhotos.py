@@ -146,9 +146,7 @@ def login_synology():
     response.raise_for_status()
     data = response.json()
     if data.get("success"):
-        # SESSION.cookies.set("id", data["data"]["sid"])  # Set the SID as a cookie
-        # SESSION.cookies.set("did", data["data"]["did"])  # Set the DID as a cookie
-        # SESSION.cookies.set("stay_login", "1")  # Set Stay_login as 1 in the cookie
+        SESSION.cookies.set("id", data["data"]["sid"])  # Set the SID as a cookie
         LOGGER.info(f"INFO    : Authentication Successfully with user/password found in Config file.")
         SID = data["data"]["sid"]
         SYNO_TOKEN = data["data"]["synotoken"]
@@ -936,224 +934,58 @@ def upload_asset(file_path):
     from GlobalVariables import LOGGER  # Import the logger inside the function
     global SYNOLOGY_URL, SID, SYNO_TOKEN
     login_synology()
-    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
 
     # Verifica si el archivo existe antes de continuar
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"El archivo '{file_path}' no existe.")
 
-    # 🔹 Crear sesión persistente
-    SESSION = requests.Session()
-
-    # 🔹 URL de Synology Photos (ahora con los parámetros en la URL, no en el body)
-    SYNOLOGY_URL = (
-        "http://192.168.1.11:5000/webapi/entry.cgi/SYNO.Foto.Upload.Item"
-        "?api=SYNO.Foto.Upload.Item"
-        "&method=upload"
-        "&version=1"
-    )
-
-    # 🔹 Configurar cookies exactamente como en Wireshark
-    SESSION.cookies.set("id", SID)
-    # SESSION.cookies.set("stay_login", "0")
-    # SESSION.cookies.set("_SSID", "NKrWw882xrwyKWODR0fCmtCjtJOee4DP6osmUWxp5Hc")
-    # SESSION.cookies.set("did", "7Kgf7soUG2WMV_MNTbowexic3TaneHFvCYSII3SvdJGssk4pMKGYU-JKCr2jlua442IubEWX3J8DuzVuRu7dyw")
-    # SESSION.cookies.set("ViewType", "timeline")
-    # SESSION.cookies.set("io", "eCQC6mRJ0JacVeokAAAo")
+    # 🔹 URL de Synology Photos con los parámetros en la URL
+    api = "SYNO.Foto.Upload.Item"
+    method = "upload"
+    version = "1"
+    url = f"{SYNOLOGY_URL}/webapi/entry.cgi/SYNO.Foto.Upload.Item?api={api}&method={method}&version={version}"
 
     # 🔹 Obtener MIME type del archivo
     mime_type = mimetypes.guess_type(file_path)[0] or "application/octet-stream"
 
-    # 🔹 **Forzar `multipart/form-data` asegurando que `name` sea `text/plain`**
+    # 🔹 **Forzar `multipart/form-data` asegurando que los valores estén entre comillas**
     with open(file_path, "rb") as file:
-        filename = os.path.basename(file_path)
-        # multipart_data = MultipartEncoder(
-        #     fields={
-        #         "file": (os.path.basename(file_path), file, mime_type),
-        #         "uploadDestination": "timeline",
-        #         "duplicate": "ignore",
-        #         "name": (None, os.path.basename(file_path), "text/plain"),
-        #         "mtime": (None, str(int(os.stat(file_path).st_mtime)), "text/plain"),
-        #         "folder": (None, json.dumps(["PhotoLibrary"]), "application/json")
-        #     },
-        #     boundary="----WebKitFormBoundaryi5jn6ufF0HdGM2jG"
-        #     # ✅ **Usamos el `boundary` exacto capturado en Wireshark**
-        # )
-
-        multipart_data = MultipartEncoder({
-            'file': (filename, file, mime_type),
-            'uploadDestination': 'timeline',
-            'duplicate': 'ignore',
-            'name': filename,
-            'mtime': str(int(os.stat(file_path).st_mtime)),
-            'folder': json.dumps(['PhotoLibrary']),
-        })
+        multipart_data = MultipartEncoder(
+            fields=[
+                ("api", f'{api}'),
+                ("method", f'{method}'),
+                ("version", f'{version}'),
+                ("file", (os.path.basename(file_path), file, mime_type)),
+                ("uploadDestination", '"timeline"'),
+                ("duplicate", '"ignore"'),
+                ("name", f'"{os.path.basename(file_path)}"'),
+                ("mtime", f'{str(int(os.stat(file_path).st_mtime))}'),
+                ("folder", f'"{json.dumps(["PhotoLibrary"])}"'),
+            ],
+        )
 
         # 🔹 Cabeceras idénticas a las del navegador
         headers = {
             "X-SYNO-TOKEN": SYNO_TOKEN,
             "Content-Type": multipart_data.content_type,
-            # "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
-            # "Accept": "*/*",
-            # "Origin": "http://192.168.1.11:5000",
-            # "Referer": f"http://192.168.1.11:5000/?launchApp=SYNO.Foto.AppInstance&SynoToken={SYNO_TOKEN}",
-            # "Connection": "keep-alive",
         }
 
         # 🔹 Enviar la solicitud con `multipart/form-data`
         response = SESSION.post(
-            SYNOLOGY_URL,  # ✅ **Los parámetros ahora están en la URL**
+            url,  # ✅ **Los parámetros ahora están en la URL**
             data=multipart_data,
             headers=headers,
             verify=False
         )
 
-    # 🔹 Ver respuesta
-    print("Código de estado:", response.status_code)
-    print("Respuesta JSON:", response.json())
-
-    # SYNOLOGY_URL = "http://192.168.1.11:5000/webapi/entry.cgi/SYNO.Foto.Upload.Item"
-    # SYNOLOGY_URL = "http://192.168.1.11:5000/webapi/entry.cgi"
-
-    # data = {
-    #     "api": "SYNO.Foto.Upload.Item",
-    #     "method": "upload",
-    #     "version": "1",
-    #     "uploadDestination": "timeline",  # 🔹 Confirmado en el payload
-    #     "duplicate": "ignore",
-    #     "name": os.path.basename(file_path),
-    #     "mtime": str(int(os.stat(file_path).st_mtime)),  # Convertir a timestamp UNIX
-    #     "folder": json.dumps(["PhotoLibrary"]),  # 🔹 Debe enviarse como string JSON
-    #     "_sid": SID  # Se incluye para autenticación
-    # }
-    # print(json.dumps(data, indent=4, ensure_ascii=False))
-    #
-    # headers = {
-    #     "X-Syno-Token": SYNO_TOKEN,  # 🔹 Si Synology lo requiere
-    #     # "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",  # Simular navegador
-    #     # "Accept": "*/*",
-    #     # "Connection": "keep-alive"
-    # }
-    #
-    #
-    # with open(file_path, "rb") as file:
-    #     files = {"file": (os.path.basename(file_path), file, "image/png")}  # Asegurar MIME-Type
-    #
-    #     response = SESSION.post(
-    #         SYNOLOGY_URL,
-    #         data=data,  # Enviar parámetros como `form-data`
-    #         files=files,  # Archivo binario en `multipart/form-data`
-    #         headers=headers,
-    #         verify=False
-    #     )
-    #     response.raise_for_status()
-    #     data = response.json()
-    #     if not data["success"]:
-    #         LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
-    #         return -1
-
-
-
-    # # Obtiene la información del archivo
-    # stats = os.stat(file_path)
-    # mime_type = mimetypes.guess_type(file_path)[0] or 'application/octet-stream'
-    #
-    # import base64
-    # with open(file_path, "rb") as file:
-    #     encoded_file = base64.b64encode(file.read()).decode("utf-8")
-    #
-    # # Construcción del params con el formato correcto
-    # params = {
-    #     "api": "SYNO.Foto.Upload.Item",
-    #     "method": "upload",
-    #     "version": "1",
-    #     # "file": encoded_file,
-    #     # "file": open(file_path, 'rb'),
-    #     "uploadDestination": "timeline",
-    #     "duplicate": "ignore",
-    #     "name": 'prueba',
-    #     # "mtime": str(int(stats.st_mtime)),
-    #     "mtime": 1675097820,
-    #     # "_sid": SID,
-    #     "folder": '["PhotoLibrary"]'
-    # }
-    #
-    # files = {
-    #     'file': open(file_path, 'rb'),
-    #     'name': os.path.basename(file_path)
-    # }
-    #
-    # params = {
-    #     "api": "SYNO.Foto.Upload.Item",
-    #     "method": "upload",
-    #     "version": "1",
-    #     "uploadDestination": "timeline",
-    #     "duplicate": "ignore",
-    #     "mtime": 1675097820,  # ✅ Dejar como entero
-    #     "folder": json.dumps(["PhotoLibrary"])  # ✅ Formato JSON válido
-    # }
-    #
-    # files = {
-    #     "file": (os.path.basename(file_path), open(file_path, "rb"), "application/octet-stream"),
-    #     "name": (None, os.path.basename(file_path))  # ✅ `None` indica que no es un archivo
-    # }
-
-    # print(json.dumps(params, indent=4, ensure_ascii=False))
-
-    # Carga el archivo como binario en una tupla (clave, (nombre, contenido, tipo_mime))
-    # files = {
-    #     'file': (os.path.basename(file_path), open(file_path, 'rb'), mime_type)
-    # }
-
-    # **Archivo en `files` incluyendo `name`**
-    # files = [
-    #     ("file", (os.path.basename(file_path), open(file_path, "rb"), "application/octet-stream")),
-    #     ("name", (None, os.path.basename(file_path)))  # 🔹 Se envía `name` como un campo separado
-    # ]
-
-    # files = [
-    #     ('file', (os.path.basename(file_path), open(file_path, 'rb'), 'application/octet-stream'))
-    # ]
-
-    # files = {
-    #     'file': open(file_path, 'rb')
-    # }
-
-    # HEADERS = {
-    #     'Content-Type': 'multipart/form-data',
-    #     'Accept': 'application/json'
-    # }
-    #
-    # HEADERS = {'Content-Type': 'application/json; charset="UTF-8"'}
-    # HEADERS = {'Content-Type': 'application/json'}
-    # HEADERS = {
-    #     "X-Syno-Token": SYNO_TOKEN  # Si la API requiere un token adicional
-    # }
-    # print(json.dumps(HEADERS, indent=4, ensure_ascii=False))
-
-    # response = SESSION.post(url, data=params, files=files, verify=False)
-    # data = response.json()
-    # if not data["success"]:
-    #     LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
-    #     return -1
-
-    # # Envía la solicitud a la API
-    # with open(file_path, "rb") as file:
-    #     files = {"file": (os.path.basename(file_path), file, "image/jpeg")}  # Asegurar MIME-Type
-    #
-    #     response = SESSION.post(url, data=params, verify=False)
-    #
-    #     # response = requests.post(url, data=params, verify=False)
-    #     # response = SESSION.post(url, data=params, verify=False)
-    #     # response = SESSION.post(url, headers=HEADERS, data=params, verify=False)
-    #     # response = requests.post(url, data=params, verify=False)
-    #     # response = SESSION.post(url, headers=HEADERS, params=params, files=files, verify=False)
-    #     # response = SESSION.post(url, headers=HEADERS, params=params, verify=False)
-    #     response.raise_for_status()
-    #     data = response.json()
-    #     if not data["success"]:
-    #         LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
-    #         return -1
+    response.raise_for_status()
+    data = response.json()
+    if not data["success"]:
+        LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
+        return None
+    else:
+        asset_id = data["data"].get("id")
+        return asset_id
 
 def download_assets(folder_id, folder_name, photos_list):
     """
@@ -1718,7 +1550,11 @@ if __name__ == "__main__":
     print("\n=== EXAMPLE: upload_asset() ===")
     file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\2003.07 - Viaje a Almeria (Julio 2003)\En Almeria (Julio 2003)_17.JPG"                # For Windows
     file_path = r"g:\My Drive\Google Drive\_PERSONAL\DOCUMENTS\MIS PÁGINAS WEBS\jtg.webservices.com\logo\30-01-2023_17-53-05.png"                # For Windows
-    upload_asset(file_path)
+    asset_id = upload_asset(file_path)
+    if not asset_id:
+        print(f"Error uploading asset '{file_path}'.")
+    else:
+        print(f"New Asset uploaded successfully with id: {asset_id}")
 
     # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur_share\Photos\Upload_folder\No-Albums'
     # # TODO: Complete this function
