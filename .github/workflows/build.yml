@@ -232,13 +232,13 @@ jobs:
             rm artifact_base64.txt
             echo "Archivo artifact_base64.txt eliminado de src."
           fi
-          if [ -f ${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
-            rm ${{ env.ARCHIVE_FINAL_PATH_NAME }}
-            echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
-          elif [ -f src/${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
-            rm ${{ env.ARCHIVE_FINAL_PATH_NAME }}
-            echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta src."
-          fi
+          # if [ -f ${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
+            # rm ${{ env.ARCHIVE_FINAL_PATH_NAME }}
+            # echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
+          # elif [ -f src/${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
+            # rm ${{ env.ARCHIVE_FINAL_PATH_NAME }}
+            # echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta src."
+          # fi
         shell: bash
 
       # 5b. - Cleanup (Windows)
