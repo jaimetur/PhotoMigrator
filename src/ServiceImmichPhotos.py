@@ -494,7 +494,7 @@ def delete_assets(assets_ids):
         return False
 
 
-def upload_file_to_immich(file_path):
+def upload_asset(file_path):
     """
     Uploads a local file (photo or video) to Immich using /api/asset/upload-file.
     Returns the 'id' of the created asset, or None if the upload fails.
@@ -704,7 +704,7 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
                 ext = os.path.splitext(file)[-1].lower()
                 if ext not in ALLOWED_IMMICH_EXTENSIONS:
                     continue
-                asset_id = upload_file_to_immich(file_path)
+                asset_id = upload_asset(file_path)
                 assets_uploaded += 1
                 # Assign to Album only if extension is in ALLOWED_IMMICH_MEDIA_EXTENSIONS
                 if ext in ALLOWED_IMMICH_MEDIA_EXTENSIONS:
@@ -728,8 +728,6 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
 
     Returns the number of files uploaded.
     """
-    import os
-    from tqdm import tqdm
     from GlobalVariables import LOGGER  # Global logger
 
     # Verify Immich login
@@ -788,7 +786,7 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
     # Process each file with a progress bar
     with tqdm(total=total_files, smoothing=0.1, file=LOGGER.tqdm_stream, desc="INFO    : Uploading Assets", unit=" asset") as pbar:
         for file_path in file_paths:
-            if upload_file_to_immich(file_path):
+            if upload_asset(file_path):
                 total_assets_uploaded += 1
             pbar.update(1)
 
