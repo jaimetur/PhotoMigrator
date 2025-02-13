@@ -1592,7 +1592,7 @@ def synology_remove_all_assets(log_level=logging.INFO):
         logout_synology(log_level=logging.WARNING)
         LOGGER.info(f"INFO    : Total Assets removed : {assets_removed}")
         LOGGER.info(f"INFO    : Total Albums removed : {albums_removed}")
-        LOGGER.info(f"INFO    : Total Folders removed: {albums_removed}")
+        LOGGER.info(f"INFO    : Total Folders removed: {folders_removed}")
         return assets_removed, albums_removed
 
 
