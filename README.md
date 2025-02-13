@@ -325,11 +325,11 @@ If more than one Extra Mode is detected, only the first one will be executed.
 >    upload all the assets processed in previous step, creating a new Album per each Album found in your \<SOURCE> Cloud Service (or \<SOURCE> folder if you specify a path), 
 >    and will associate all the assets included in each Album in the same way that you had on your \<SOURCE> Cloud Service.
 >  - Posible values for:
->    - <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos'] or <INPUT_FOLDER>
->    - <TARGET> : ['synology-photos', 'immich-photos'] or <OUTPUT_FOLDER>
+>    - \<SOURCE\> : ['google-photos', 'synology-photos', 'immich-photos'] or <INPUT_FOLDER>
+>    - \<TARGET\> : ['synology-photos', 'immich-photos'] or <OUTPUT_FOLDER>
 >  - The idea is complete above list to allow:
->    - <SOURCE> : ['google-photos', 'apple-photos', 'synology-photos', 'immich-photos'] or <INPUT_FOLDER>
->    - <TARGET> : ['google-photos', 'apple-photos', 'synology-photos', 'immich-photos'] or <OUTPUT_FOLDER>
+>    - \<SOURCE\> : ['google-photos', 'apple-photos', 'synology-photos', 'immich-photos'] or <INPUT_FOLDER>
+>    - \<TARGET\> : ['google-photos', 'apple-photos', 'synology-photos', 'immich-photos'] or <OUTPUT_FOLDER>
 
 
 To execute this Extra Mode, you can use the new Flag: '-AUTO, --AUTOMATED-MIGRATION \<SOURCE> \<TARGET>'
