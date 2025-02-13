@@ -193,15 +193,15 @@ def checkArgs(ARGS):
             exit(1)
 
     # Parse messages-levels
-    if ARGS['messages-levels'].lower() == 'debug':
+    if ARGS['messages-level'].lower() == 'debug':
         LOG_LEVEL = logging.DEBUG
-    elif ARGS['messages-levels'].lower() == 'info':
+    elif ARGS['messages-level'].lower() == 'info':
         LOG_LEVEL = logging.INFO
-    elif ARGS['messages-levels'].lower() == 'warning':
+    elif ARGS['messages-level'].lower() == 'warning':
         LOG_LEVEL = logging.WARNING
-    elif ARGS['messages-levels'].lower() == 'error':
+    elif ARGS['messages-level'].lower() == 'error':
         LOG_LEVEL = logging.ERROR
-    elif ARGS['messages-levels'].lower() == 'critical':
+    elif ARGS['messages-level'].lower() == 'critical':
         LOG_LEVEL = logging.CRITICAL
 
 
