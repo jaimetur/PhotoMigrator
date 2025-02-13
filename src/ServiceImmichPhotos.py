@@ -27,6 +27,8 @@ from datetime import datetime
 from urllib.parse import urlparse
 from halo import Halo
 from tabulate import tabulate
+import logging
+from CustomLogger import set_log_level
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -54,7 +56,7 @@ ALLOWED_IMMICH_EXTENSIONS = None
 # -----------------------------------------------------------------------------
 #                          GENERAL FUNCTIONS
 # -----------------------------------------------------------------------------
-def get_user_id(show_info_messages=True):
+def get_user_id(show_info_messages=True, log_level=logging.INFO):
     """
     Return the user_id for the logged user
     """
@@ -75,7 +77,7 @@ def get_user_id(show_info_messages=True):
         LOGGER.error(f"ERROR   : Cannot find User ID for user '{user_mail}': {e}")
         return None
 
-def get_supported_media_types(type='media', show_info_messages=True):
+def get_supported_media_types(type='media', show_info_messages=True, log_level=logging.INFO):
     """
     Return the user_id for the logged user
     """
@@ -117,7 +119,7 @@ def get_supported_media_types(type='media', show_info_messages=True):
 # -----------------------------------------------------------------------------
 #                          CONFIGURATION READING
 # -----------------------------------------------------------------------------
-def read_immich_config(config_file='CONFIG.ini', show_info_messages=True):
+def read_immich_config(config_file='Config.ini', show_info_messages=True, log_level=logging.INFO):
     """
     Reads configuration (IMMICH_URL, IMMICH_USERNAME, IMMICH_PASSWORD) from a .config file,
     for example:
@@ -197,7 +199,7 @@ def read_immich_config(config_file='CONFIG.ini', show_info_messages=True):
 # -----------------------------------------------------------------------------
 #                          AUTHENTICATION / LOGOUT
 # -----------------------------------------------------------------------------
-def login_immich(show_info_messages=True):
+def login_immich(show_info_messages=True, log_level=logging.INFO):
     """
     Logs into Immich and obtains a JWT token (SESSION_TOKEN).
     Returns True if the connection was successful, False otherwise.
@@ -254,12 +256,12 @@ def login_immich(show_info_messages=True):
             LOGGER.info(f"INFO    : Authentication Successfully with user/password found in Config file.")
 
     # get List of “compatible” media and sidecar extensions for Immich
-    ALLOWED_IMMICH_MEDIA_EXTENSIONS = get_supported_media_types(show_info_messages=False)
-    ALLOWED_IMMICH_SIDECAR_EXTENSIONS = get_supported_media_types(type='sidecar', show_info_messages=False)
+    ALLOWED_IMMICH_MEDIA_EXTENSIONS = get_supported_media_types(show_info_messages=False, log_level=logging.WARNING)
+    ALLOWED_IMMICH_SIDECAR_EXTENSIONS = get_supported_media_types(type='sidecar', show_info_messages=False, log_level=logging.WARNING)
     ALLOWED_IMMICH_EXTENSIONS = ALLOWED_IMMICH_MEDIA_EXTENSIONS + ALLOWED_IMMICH_SIDECAR_EXTENSIONS
     return True
 
-def logout_immich(show_info_messages=True):
+def logout_immich(show_info_messages=True, log_level=logging.INFO):
     """
     "Logs out" locally by discarding the token.
     (Currently, Immich does not provide an official /logout endpoint).
@@ -274,7 +276,7 @@ def logout_immich(show_info_messages=True):
 # -----------------------------------------------------------------------------
 #                          ALBUMS FUNCTIONS
 # -----------------------------------------------------------------------------
-def create_album(album_name, show_info_messages=True):
+def create_album(album_name, show_info_messages=True, log_level=logging.INFO):
     """
     Creates an album in Immich with the name 'album_name'.
     Returns the ID of the created album or None if it fails.
@@ -296,7 +298,7 @@ def create_album(album_name, show_info_messages=True):
         LOGGER.warning(f"WARNING : Cannot create album '{album_name}' due to API call error. Skipped!")
         return None
 
-def delete_album(album_id, album_name, show_info_messages=True):
+def delete_album(album_id, album_name, show_info_messages=True, log_level=logging.INFO):
     """
     Deletes an album from Immich by its ID. Returns True if deleted successfully, False otherwise.
     """
@@ -315,7 +317,7 @@ def delete_album(album_id, album_name, show_info_messages=True):
         LOGGER.error(f"ERROR   : Error while deleting album '{album_name}' with ID:  {album_id}: {e}")
         return False
 
-def get_albums(show_info_messages=True):
+def get_albums(show_info_messages=True, log_level=logging.INFO):
     """
     Returns the list of albums for the current user in Immich.
     Each item is a dictionary with at least:
@@ -339,7 +341,7 @@ def get_albums(show_info_messages=True):
         LOGGER.error(f"ERROR   : Error while listing albums: {e}")
         return None
 
-def get_album_items_size(album_id, show_info_messages=True):
+def get_album_items_size(album_id, show_info_messages=True, log_level=logging.INFO):
     """
     Calculates the total size of all assets in an album by summing up exifInfo.fileSizeInByte (if available).
     """
@@ -358,7 +360,7 @@ def get_album_items_size(album_id, show_info_messages=True):
 # -----------------------------------------------------------------------------
 #                          ASSETS (FOTOS/VIDEOS) FUNCTIONS
 # -----------------------------------------------------------------------------
-def get_all_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=None, createdAfter=None, createdBefore=None, country=None, city=None, personIds=None, show_info_messages=True):
+def get_all_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=None, createdAfter=None, createdBefore=None, country=None, city=None, personIds=None, show_info_messages=True, log_level=logging.INFO):
     """
     Returns the list of assets that belong to a specific album (ID).
     """
@@ -420,7 +422,7 @@ def get_all_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=Non
         LOGGER.error(f"ERROR   : Failed to retrieve assets: {str(e)}")
         return []
 
-def get_assets_from_album(album_id, show_info_messages=True):
+def get_assets_from_album(album_id, show_info_messages=True, log_level=logging.INFO):
     """
     Returns the list of assets that belong to a specific album (ID).
     """
@@ -438,7 +440,7 @@ def get_assets_from_album(album_id, show_info_messages=True):
         return []
 
 
-def add_assets_to_album(album_id, asset_ids, album_name=None, show_info_messages=True):
+def add_assets_to_album(album_id, asset_ids, album_name=None, show_info_messages=True, log_level=logging.INFO):
     """
     Adds the list of asset_ids (photos/videos already uploaded) to the album with album_id.
     Returns the number of assets successfully added.
@@ -469,7 +471,7 @@ def add_assets_to_album(album_id, asset_ids, album_name=None, show_info_messages
             LOGGER.warning(f"WARNING : Error while adding assets to album with ID={album_id}: {e}")
         return 0
 
-def delete_assets(assets_ids, show_info_messages=True):
+def delete_assets(assets_ids, show_info_messages=True, log_level=logging.INFO):
     """
     Delete the list of assets providen by assets_ids.
     """
@@ -493,7 +495,7 @@ def delete_assets(assets_ids, show_info_messages=True):
         return False
 
 
-def upload_asset(file_path, show_info_messages=True):
+def upload_asset(file_path, show_info_messages=True, log_level=logging.INFO):
     """
     Uploads a local file (photo or video) to Immich using /api/asset/upload-file.
     Returns the 'id' of the created asset, or None if the upload fails.
@@ -574,7 +576,7 @@ def upload_asset(file_path, show_info_messages=True):
         LOGGER.error(f"ERROR   : Failed to upload '{file_path}': {e}")
         return None
 
-def download_asset(asset_id, asset_filename, download_folder="Downloaded_Immich", show_info_messages=True):
+def download_asset(asset_id, asset_filename, download_folder="Downloaded_Immich", show_info_messages=True, log_level=logging.INFO):
     """
     Downloads an asset (photo/video) from Immich and saves it to local disk.
     Uses GET /api/asset/:assetId/serve
@@ -608,7 +610,7 @@ def download_asset(asset_id, asset_filename, download_folder="Downloaded_Immich"
 ##############################################################################
 #           MAIN FUNCTIONS TO CALL FROM OTHER MODULES                        #
 ##############################################################################
-def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, show_info_messages=False):
+def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, show_info_messages=False, log_level=logging.WARNING):
     """
     Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on ALLOWED_IMMICH_EXTENSIONS) and associates them with the album.
     Example structure:
@@ -793,7 +795,7 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
 # -----------------------------------------------------------------------------
 #          COMPLETE UPLOAD OF ALL ASSETS (Albums + No-Albums)
 # -----------------------------------------------------------------------------
-def immich_upload_ALL(input_folder, albums_folders=None, show_info_messages=False):
+def immich_upload_ALL(input_folder, albums_folders=None, show_info_messages=False, log_level=logging.WARNING):
     """
     Uploads ALL photos and videos from input_folder into Immich Photos:
 
@@ -826,7 +828,7 @@ def immich_upload_ALL(input_folder, albums_folders=None, show_info_messages=Fals
     return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums
 
 
-def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich", show_info_messages=False):
+def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich", show_info_messages=False, log_level=logging.WARNING):
     """
     Downloads (extracts) all photos/videos from one or multiple albums using name patterns:
 
@@ -910,7 +912,7 @@ def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich", 
 
     return total_albums_downloaded, total_assets_downloaded
 
-def immich_download_no_albums(output_folder="Downloads_Immich", show_info_messages=False):
+def immich_download_no_albums(output_folder="Downloads_Immich", show_info_messages=False, log_level=logging.WARNING):
     """
     (Previously extract_photos_from_album)
     Downloads (extracts) all photos/videos from one or multiple albums:
@@ -959,7 +961,7 @@ def immich_download_no_albums(output_folder="Downloads_Immich", show_info_messag
 # -----------------------------------------------------------------------------
 #          COMPLETE DOWNLOAD OF ALL ASSETS (Albums + No-Albums)
 # -----------------------------------------------------------------------------
-def immich_download_ALL(output_folder="Downloads_Immich", show_info_messages=False):
+def immich_download_ALL(output_folder="Downloads_Immich", show_info_messages=False, log_level=logging.WARNING):
     """
     Downloads ALL photos and videos from Immich Photos into output_folder creating a Folder Structure like this:
         output_folder/
@@ -975,8 +977,8 @@ def immich_download_ALL(output_folder="Downloads_Immich", show_info_messages=Fal
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     login_immich()
-    total_albums_downloaded, total_assets_downloaded_within_albums = immich_download_albums(albums_name='ALL', output_folder=output_folder, show_info_messages=False)
-    total_assets_downloaded_without_albums = immich_download_no_albums(output_folder=output_folder, show_info_messages=False)
+    total_albums_downloaded, total_assets_downloaded_within_albums = immich_download_albums(albums_name='ALL', output_folder=output_folder, show_info_messages=False, log_level=logging.WARNING)
+    total_assets_downloaded_without_albums = immich_download_no_albums(output_folder=output_folder, show_info_messages=False, log_level=logging.WARNING)
     total_assets_downloaded = total_assets_downloaded_within_albums + total_assets_downloaded_without_albums
     if show_info_messages:
         LOGGER.info(f"INFO    : Download of ALL assets completed.")
@@ -990,7 +992,7 @@ def immich_download_ALL(output_folder="Downloads_Immich", show_info_messages=Fal
 # -----------------------------------------------------------------------------
 #          DELETE EMPTY ALBUMS FROM IMMICH DATABASE
 # -----------------------------------------------------------------------------
-def immich_remove_empty_albums(show_info_messages=True):
+def immich_remove_empty_albums(show_info_messages=True, log_level=logging.INFO):
     """
     Deletes all albums that have no assets (are empty).
     Returns the number of albums deleted.
@@ -1017,7 +1019,7 @@ def immich_remove_empty_albums(show_info_messages=True):
 # -----------------------------------------------------------------------------
 #          DELETE DUPLICATES ALBUMS FROM IMMICH DATABASE
 # -----------------------------------------------------------------------------
-def immich_remove_duplicates_albums(show_info_messages=True):
+def immich_remove_duplicates_albums(show_info_messages=True, log_level=logging.INFO):
     """
     Deletes albums that have the same number of assets and the same total size.
     From each duplicate group, keeps the first one (smallest ID) and deletes the rest.
@@ -1050,7 +1052,7 @@ def immich_remove_duplicates_albums(show_info_messages=True):
 # -----------------------------------------------------------------------------
 #          DELETE ORPHANS ASSETS FROM IMMICH DATABASE
 # -----------------------------------------------------------------------------
-def immich_remove_orphan_assets(user_confirmation=True, show_info_messages=True):
+def immich_remove_orphan_assets(user_confirmation=True, show_info_messages=True, log_level=logging.INFO):
     from GlobalVariables import LOGGER  # Import global LOGGER
     login_immich()
 
@@ -1129,7 +1131,7 @@ def immich_remove_orphan_assets(user_confirmation=True, show_info_messages=True)
 # -----------------------------------------------------------------------------
 #          DELETE ALL ASSETS FROM IMMICH DATABASE
 # -----------------------------------------------------------------------------
-def immich_remove_all_assets(show_info_messages=True):
+def immich_remove_all_assets(show_info_messages=True, log_level=logging.INFO):
     from GlobalVariables import LOGGER  # Import global LOGGER
     login_immich()
     all_assets = get_all_assets_by_search_filter()
@@ -1150,8 +1152,8 @@ def immich_remove_all_assets(show_info_messages=True):
     assets_deleted = 0
     albums_deleted = 0
     if assets_ids:
-        assets_deleted = delete_assets(assets_ids, show_info_messages=False)
-        albums_deleted = immich_remove_empty_albums(show_info_messages=False)
+        assets_deleted = delete_assets(assets_ids, show_info_messages=False, log_level=logging.WARNING)
+        albums_deleted = immich_remove_empty_albums(show_info_messages=False, log_level=logging.WARNING)
     logout_immich()
     if show_info_messages:
         LOGGER.info(f"INFO    : Total Assets deleted: {assets_deleted}")
@@ -1162,7 +1164,7 @@ def immich_remove_all_assets(show_info_messages=True):
 # -----------------------------------------------------------------------------
 #          DELETE ALL ALL ALBUMS FROM IMMICH DATABASE
 # -----------------------------------------------------------------------------
-def immich_remove_all_albums(deleteAlbumsAssets=False, show_info_messages=True):
+def immich_remove_all_albums(deleteAlbumsAssets=False, show_info_messages=True, log_level=logging.INFO):
     """
     Deletes all albums and optionally also its associated assets.
     Returns the number of albums deleted and the number of assets deleted.
@@ -1218,7 +1220,7 @@ if __name__ == "__main__":
     set_ARGS_PARSER()
 
     # # 0) Read configuration and log in
-    # read_immich_config('CONFIG.ini')
+    # read_immich_config('Config.ini')
     # login_immich()
 
     # # 1) Example: Delete empty albums

@@ -44,7 +44,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 - [x] Changed the logic to detect google_takeout_mode (former normal_mode)
 - [x] Merged -z and -t options in just one option ('-gitf, -google-input-takeout-folder') and detect if contains Takeout Zip files, in that case Zip files will be Unzipped to <TAKEOUT_FOLDER>_TIMESTAMP folder.
 - [x] Added Help texts for Google Photos Mode.
-- [x] Unificate a single CONFIG.ini file and included tags for the different configuration sections.
+- [x] Unificate a single Config.ini file and included tags for the different configuration sections.
 - [x] Included _RELEASES-NOTES.md_ and _ROADMAP.md_ files to the distribution package.
 - [x] Moved at the end of the help the standard option (those that are not related to any Support mode).
 - [x] Updated -h, --help to reflect the new changes.
@@ -63,6 +63,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 - [x] New Arguments Added: 
   - **-i,        --input-folder <INPUT_FOLDER>** Specify the input folder that you want to process.
   - **-o,        --output-folder <OUTPUT_FOLDER>** Specify the output folder to save the result of the processing action.
+  - **-msglevel, --messages-level ['debug', 'info', 'warning', 'error', 'critical']** Specify the message level for logging and screen outputs.  
   - **-rAlbAss,  --remove-albums-assets** 
     If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums',  
     it will also delete the assets (photos/videos) inside each album.
@@ -97,7 +98,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
     - The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.  
   - **-srDupAlb, --synology-remove-duplicates-albums**  
     - The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
-  - **-srALL,    --synology-remove-all-assets** to delete ALL assets in Synology Photos
+  - **-srAll,    --synology-remove-all-assets** to delete ALL assets in Synology Photos
   - **-srAllAlb, --synology-remove-all-albums** to delete ALL Albums in Synology Photos (optionally all associated assets can be also deleted).
 
 
@@ -119,11 +120,11 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
     - The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.  
   - **-irDupAlb  --immich-remove-duplicates-albums**  
     - The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.  
-  - **-irALL,    --immich-remove-all-assets** to delete ALL assets in Immich Photos
+  - **-irAll,    --immich-remove-all-assets** to delete ALL assets in Immich Photos
   - **-irAllAlb, --immich-remove-all-albums** to delete ALL Albums in Immich Photos (optionally all associated assets can be also deleted).  
   - **-irOrphan, --immich-remove-orphan-assets**  
     - The script will look for all Orphan Assets in Immich Database and will delete them.  
-    - **IMPORTANT!**: This feature requires a valid ADMIN_API_KEY configured in CONFIG.ini.  
+    - **IMPORTANT!**: This feature requires a valid ADMIN_API_KEY configured in Config.ini.  
 
     
 ---

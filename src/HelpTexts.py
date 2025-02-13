@@ -43,13 +43,11 @@ def set_help_texts():
         """)
 
     HELP_TEXTS["synology-upload-all"] = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to your to your Synology Photos account and will Upload all Assets found in <INPUT_FOLDER> 
+        ATTENTION!!!: This process will connect to your Synology Photos account and will Upload all Assets found in <INPUT_FOLDER> 
         
         All the Subfolders with valid assets inside <INPUT_FOLDER> will be considered as an Album, and will create new Album in Synology Photos with the name of the Subfolder.
         
         If the <INPUT_FOLDER> contains a Subfolder called 'No-Albums' then, all assets inside each that subfolder will be uploaded without creating any Album for them.
-        
-        Due to Synology Photos limitations, to Upload any folder, it must be placed inside SYNOLOGY_ROOT_FOLDER and all its content must have been indexed before to add any asset to Synology Photos. 
         """)
 
     HELP_TEXTS["synology-download-albums"] = textwrap.dedent(f"""
@@ -136,7 +134,7 @@ def set_help_texts():
     HELP_TEXTS["immich-remove-orphan-assets"]  = textwrap.dedent(f"""
         ATTENTION!!!: In this process, the script will look for all Orphan Assets in Immich Database and will delete them. 
         
-        IMPORTANT!!!: This feature requires a valid ADMIN_API_KEY configured in CONFIG.ini.
+        IMPORTANT!!!: This feature requires a valid ADMIN_API_KEY configured in Config.ini.
         """)
 
     HELP_TEXTS["immich-remove-all-assets"]  = textwrap.dedent(f"""

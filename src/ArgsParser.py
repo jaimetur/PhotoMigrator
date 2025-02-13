@@ -1,3 +1,5 @@
+import logging
+
 from GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
 
 from CustomHelpFormatter import CustomHelpFormatter
@@ -5,6 +7,7 @@ from CustomPager import PagedParser
 import argparse
 import os
 
+choices_for_message_levels          = ['debug', 'info', 'warning', 'error', 'critical']
 choices_for_folder_structure        = ['flatten', 'year', 'year/month', 'year-month']
 choices_for_remove_duplicates       = ['list', 'move', 'remove']
 choices_for_AUTOMATED_MIGRATION_SRC = ['google-photos', 'synology-photos', 'immich-photos']
@@ -37,6 +40,7 @@ def parse_arguments():
     PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
     PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False, help="If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums', it will also delete the assets (photos/videos) inside each album.")
     # PARSER.add_argument("-woAlb", "--without-albums", action="store_true", default=False, help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will avoid create an Album per each subfolder found in <INPUT_FOLDER>.")
+    PARSER.add_argument("-msglevel", "--messages-level", metavar=f"{choices_for_message_levels}", choices=choices_for_message_levels, default="info", help="Specify the message level for logging and screen outputs.")
     PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
 
     PARSER.add_argument("-AUTO", "--AUTOMATED-MIGRATION", metavar=("<SOURCE>", "<TARGET>"), nargs=2, default="",
@@ -89,7 +93,7 @@ def parse_arguments():
                         )
     PARSER.add_argument("-srEmpAlb", "--synology-remove-empty-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.")
     PARSER.add_argument("-srDupAlb", "--synology-remove-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.")
-    PARSER.add_argument("-srALL", "--synology-remove-all-assets", action="store_true", default="", help="CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Synology database.")
+    PARSER.add_argument("-srAll", "--synology-remove-all-assets", action="store_true", default="", help="CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Synology database.")
     PARSER.add_argument("-srAllAlb", "--synology-remove-all-albums", action="store_true", default="",
                         help="CAUTION!!! The script will delete ALL your Albums from Synology database."
                            "\nOptionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
@@ -116,12 +120,12 @@ def parse_arguments():
                         )
     PARSER.add_argument("-irEmpAlb", "--immich-remove-empty-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.")
     PARSER.add_argument("-irDupAlb", "--immich-remove-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.")
-    PARSER.add_argument("-irALL", "--immich-remove-all-assets", action="store_true", default="", help="CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Immich database.")
+    PARSER.add_argument("-irAll", "--immich-remove-all-assets", action="store_true", default="", help="CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Immich database.")
     PARSER.add_argument("-irAllAlb", "--immich-remove-all-albums", action="store_true", default="",
                         help="CAUTION!!! The script will delete ALL your Albums from Immich database."
                            "\nOptionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
                         )
-    PARSER.add_argument("-irOrphan", "--immich-remove-orphan-assets", action="store_true", default="", help="The script will look for all Orphan Assets in Immich Database and will delete them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in CONFIG.ini.")
+    PARSER.add_argument("-irOrphan", "--immich-remove-orphan-assets", action="store_true", default="", help="The script will look for all Orphan Assets in Immich Database and will delete them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in Config.ini.")
 
 
 
@@ -145,7 +149,7 @@ def parse_arguments():
 
 
 def checkArgs(ARGS):
-    global DEFAULT_DUPLICATES_ACTION
+    global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
 
     # Remove '_' at the begining of the string in case it has it.
     ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
@@ -187,6 +191,19 @@ def checkArgs(ARGS):
         if target.lower() not in choices_for_AUTOMATED_MIGRATION_TGT:
             print(f"❌ ERROR   : Target value '{target}' is not valid. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT}")
             exit(1)
+
+    # Parse messages-levels
+    if ARGS['messages-levels'].lower() == 'debug':
+        LOG_LEVEL = logging.DEBUG
+    elif ARGS['messages-levels'].lower() == 'info':
+        LOG_LEVEL = logging.INFO
+    elif ARGS['messages-levels'].lower() == 'warning':
+        LOG_LEVEL = logging.WARNING
+    elif ARGS['messages-levels'].lower() == 'error':
+        LOG_LEVEL = logging.ERROR
+    elif ARGS['messages-levels'].lower() == 'critical':
+        LOG_LEVEL = logging.CRITICAL
+
 
     # Parse albums-folders Arguments to convert to a List if more than one Album folder is provide
     ARGS['albums-folders'] = parse_folders(ARGS['albums-folders'])

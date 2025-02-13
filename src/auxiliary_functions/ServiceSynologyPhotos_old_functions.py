@@ -1,0 +1,187 @@
+# -*- coding: utf-8 -*-
+
+"""
+ServiceSynologyPhotos.py
+---------------
+Python module with example functions to interact with Synology Photos, including followfing functions:
+  - Configuration (read config)
+  - Authentication (login/logout)
+  - Indexing and Reindexing functions
+  - Listing and managing albums
+  - Listing, uploading, and downloading assets
+  - Deleting empty or duplicate albums
+  - Main functions for use in other modules:
+     - synology_delete_empty_albums()
+     - synology_delete_duplicates_albums()
+     - synology_upload_folder()
+     - synology_upload_albums()
+     - synology_download_albums()
+     - synology_download_ALL()
+"""
+
+import os, sys
+import requests
+import urllib3
+import json
+import subprocess
+import fnmatch
+import logging
+from tqdm import tqdm
+import mimetypes
+from requests_toolbelt.multipart.encoder import MultipartEncoder
+
+# -----------------------------------------------------------------------------
+#                          GLOBAL VARIABLES
+# -----------------------------------------------------------------------------
+global CONFIG, SYNOLOGY_URL, SYNOLOGY_USERNAME, SYNOLOGY_PASSWORD, SYNOLOGY_ROOT_PHOTOS_PATH
+global SESSION, SID
+
+# Initialize global variables
+CONFIG = None
+SESSION = None
+SID = None
+SYNO_TOKEN_HEADER = {}
+ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS = ['.BMP', '.GIF', '.JPG', '.JPEG', '.PNG', '.3fr', '.arw', '.cr2', '.cr3', '.crw', '.dcr', '.dng', '.erf', '.k25', '.kdc', '.mef', '.mos', '.mrw', '.nef', '.orf', '.ptx', '.pef', '.raf', '.raw', '.rw2', '.sr2', '.srf', '.TIFF', '.HEIC', '.3G2', '.3GP', '.ASF', '.AVI', '.DivX', '.FLV', '.M4V', '.MOV', '.MP4', '.MPEG', '.MPG', '.MTS', '.M2TS', '.M2T', '.QT', '.WMV', '.XviD']
+ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS = [ext.lower() for ext in ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS]
+ALLOWED_SYNOLOGY_SIDECAR_EXTENSIONS = None
+ALLOWED_SYNOLOGY_EXTENSIONS = ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+##############################################################################
+#                            AUXILIARY FUNCTIONS                             #
+##############################################################################
+
+# -----------------------------------------------------------------------------
+#                          INDEXING FUNCTIONS
+# -----------------------------------------------------------------------------
+# Function to start reindexing in Synology Photos using API
+def start_reindex_synology_photos_with_api(type='basic'):
+    """
+    Starts reindexing a folder in Synology Photos using the API.
+
+    Args:
+        type (str): 'basic' or 'thumbnail'.
+    """
+    from GlobalVariables import LOGGER  # Local import of the logger
+    # login into Synology Photos if the session if not yet started
+    login_synology()
+
+    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    params = {
+        "api": "SYNO.Foto.Index",
+        "version": 1,
+        "method": "reindex",
+        "runner": SYNOLOGY_USERNAME,
+        "type": type
+    }
+    try:
+        result = SESSION.get(url, params=params, verify=False).json()
+        if result.get("success"):
+            if type == 'basic':
+                LOGGER.info(f"INFO    : Reindexing started in Synology Photos database for user: '{SYNOLOGY_USERNAME}'.")
+                LOGGER.info("INFO    : This process may take several minutes or even hours to finish depending on the number of files to index. Please be patient...")
+        else:
+            if result.get("error").get("code") == 105:
+                LOGGER.error(f"ERROR   : The user '{SYNOLOGY_USERNAME}' does not have sufficient privileges to start reindexing services. Wait for the system to index the folder before adding its content to Synology Photos albums.")
+            else:
+                LOGGER.error(f"ERROR   : Error starting reindexing: {result.get('error')}")
+                start_reindex_synology_photos_with_command(type=type)
+        return result
+
+    except Exception as e:
+        LOGGER.error(f"ERROR   : Connection ERROR   : {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+# Function to start reindexing in Synology Photos using a command
+def start_reindex_synology_photos_with_command(type='basic'):
+    """
+    Starts reindexing a folder in Synology Photos using a shell command.
+
+    Args:
+        type (str): 'basic' or 'thumbnail'.
+    """
+    from GlobalVariables import LOGGER  # Local import of the logger
+    # login into Synology Photos if the session if not yet started
+    login_synology()
+
+    command = [
+        'sudo',  # Run with administrator privileges
+        'synowebapi',
+        '--exec',
+        'api=SYNO.Foto.Index',
+        'method=reindex',
+        'version=1',
+        f'runner={SYNOLOGY_USERNAME}',
+        f'type={type}'
+    ]
+    command_str = " ".join(command)
+    if Utils.run_from_synology():
+        try:
+            result = subprocess.run(command, capture_output=True, text=True, check=True)
+            if type == 'basic':
+                LOGGER.info(f"INFO    : Reindexing started in Synology Photos database for user: '{SYNOLOGY_USERNAME}'.")
+                LOGGER.info(f"INFO    : This process may take several minutes or even hours to finish depending on the number of files to index. Please be patient...")
+                LOGGER.info(f"INFO    : Starting reindex with command: '{command_str}'")
+        except subprocess.CalledProcessError as e:
+            LOGGER.error(f"ERROR   : Failed to execute reindexing with command '{command_str}'")
+            LOGGER.error(e.stderr)
+    else:
+        LOGGER.error(f"ERROR   : The command '{command_str}' can only be executed from a Synology NAS terminal.")
+
+
+# Function to wait for Synology Photos reindexing to complete
+def wait_for_reindexing_synology_photos():
+    """
+    Waits for reindexing to complete by checking the status every 10 seconds.
+    Logs the reindexing progress.
+    """
+    from GlobalVariables import LOGGER  # Local import of the logger
+    import time  # Local import of time
+    # login into Synology Photos if the session if not yet started
+    login_synology()
+
+    start_reindex_synology_photos_with_api(type='basic')
+
+    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    params = {
+        "api": "SYNO.Foto.Index",
+        "version": 1,
+        "method": "get"
+    }
+    time.sleep(5)  # Wait 5 seconds for the first query to allow indexing calculations
+    result = SESSION.get(url, params=params, verify=False).json()
+    if result.get("success"):
+        files_to_index = int(result["data"].get("basic"))
+        remaining_files_previous_step = files_to_index
+
+        with S(total=files_to_index, smoothing=0.8, desc="INFO    : Reindexing files", unit=" files") as pbar:
+            while True:
+                result = SESSION.get(url, params=params, verify=False).json()
+                if result.get("success"):
+                    remaining_files = int(result["data"].get("basic"))
+                    if remaining_files > files_to_index:
+                        files_to_index = remaining_files
+                        remaining_files_previous_step = files_to_index
+                        pbar.total = files_to_index
+                    indexed_in_step = remaining_files_previous_step - remaining_files
+                    remaining_files_previous_step = remaining_files
+                    pbar.update(indexed_in_step)
+                    if remaining_files == 0:
+                        start_reindex_synology_photos_with_api(type='thumbnail')
+                        time.sleep(10)
+                        return True
+                    else:
+                        time.sleep(5)  # Wait 5 seconds before querying again
+                else:
+                    LOGGER.error("ERROR   : Error getting reindex status.")
+                    return False
+    else:
+        LOGGER.error("ERROR   : Error getting reindex status.")
+        return False
+
+
+##############################################################################
+#                           END OF AUX FUNCTIONS                             #
+##############################################################################
