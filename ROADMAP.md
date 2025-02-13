@@ -4,9 +4,9 @@
 ### TODO:
 
 - [ ] Set Log levels per functions and include '-msglevel, --messages-level' argument to set it up.
-- [ ] Upload assets to PhotoLibrary folder
 - [ ] Remove empty folders when delete assets
 - [ ] Removed SYNOLOGY_PHOTOS_ROOT_FOLDER from Config.ini file (not needed anymore)
+- [x] Upload assets to PhotoLibrary folder
 - [x] Remove Indexing Functions on ServiceSynology file
 - [x] Complete function -suAlb/-suAll to upload external folders to Synology photos. Make sure to ignore @eaDir folders in all of them
 - [ ] Support to upload/download assets from/to any folder (no need to be indexed within the Synology Photos root Folder

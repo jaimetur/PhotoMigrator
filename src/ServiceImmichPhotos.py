@@ -506,9 +506,8 @@ def upload_asset(file_path, show_info_messages=True, log_level=logging.INFO):
     if not os.path.isfile(file_path):
         LOGGER.error(f"ERROR   : File not found: {file_path}")
         return None
-    # Get filename and ext for the given file
-    filename, ext = os.path.splitext(file_path)
     # Check if the file extension is allowed
+    filename, ext = os.path.splitext(file_path)
     if ext.lower() not in ALLOWED_IMMICH_MEDIA_EXTENSIONS:
         if ext.lower() in ALLOWED_IMMICH_SIDECAR_EXTENSIONS:
             return None
@@ -737,6 +736,14 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
     if not os.path.isdir(input_folder):
         LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
         return 0
+
+    # Process subfolders_exclusion to obtain a list of inclusion names if provided
+    if isinstance(subfolders_exclusion, str):
+        subfolders_exclusion = [name.strip() for name in subfolders_exclusion.replace(',', ' ').split() if name.strip()]
+    elif isinstance(subfolders_exclusion, list):
+        subfolders_exclusion = [name.strip() for item in subfolders_exclusion if isinstance(item, str) for name in item.split(',') if name.strip()]
+    else:
+        subfolders_exclusion = None
 
     # Process subfolders_inclusion to obtain a list of subfolders_inclusion names (if provided)
     if isinstance(subfolders_inclusion, str):

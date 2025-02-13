@@ -44,7 +44,7 @@ SID = None
 SYNO_TOKEN_HEADER = {}
 ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS = ['.BMP', '.GIF', '.JPG', '.JPEG', '.PNG', '.3fr', '.arw', '.cr2', '.cr3', '.crw', '.dcr', '.dng', '.erf', '.k25', '.kdc', '.mef', '.mos', '.mrw', '.nef', '.orf', '.ptx', '.pef', '.raf', '.raw', '.rw2', '.sr2', '.srf', '.TIFF', '.HEIC', '.3G2', '.3GP', '.ASF', '.AVI', '.DivX', '.FLV', '.M4V', '.MOV', '.MP4', '.MPEG', '.MPG', '.MTS', '.M2TS', '.M2T', '.QT', '.WMV', '.XviD']
 ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS = [ext.lower() for ext in ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS]
-ALLOWED_SYNOLOGY_SIDECAR_EXTENSIONS = None
+ALLOWED_SYNOLOGY_SIDECAR_EXTENSIONS = []
 ALLOWED_SYNOLOGY_EXTENSIONS = ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -873,12 +873,21 @@ def upload_asset(file_path, log_level=logging.INFO):
     """Upload an Asset to Synology Photos."""
     from GlobalVariables import LOGGER  # Import the logger inside the function
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        # login into Synology Photos if the session if not yet started
+        login_synology(log_level=log_level)
+
         # Check if file exists
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"El archivo '{file_path}' no existe.")
+        # Check if the file extension is allowed
+        filename, ext = os.path.splitext(file_path)
+        if ext.lower() not in ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS:
+            if ext.lower() in ALLOWED_SYNOLOGY_SIDECAR_EXTENSIONS:
+                return None
+            else:
+                LOGGER.warning(f"WARNING : File '{file_path}' has an unsupported extension. Skipped.")
+                return None
 
-        # login into Synology Photos if the session if not yet started
-        login_synology(log_level=log_level)
         # Define the url for the request
         url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
         # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
@@ -907,7 +916,8 @@ def upload_asset(file_path, log_level=logging.INFO):
                     ("duplicate", '"ignore"'),
                     ("name", f'"{os.path.basename(file_path)}"'),
                     ("mtime", f'{str(int(os.stat(file_path).st_mtime))}'),
-                    ("folder", f'"{json.dumps(["PhotoLibrary"])}"'),
+                    # ("folder", f'"{json.dumps(["PhotoLibrary"])}"'),
+                    ("folder", f'["PhotoLibrary"]'),
                 ],
             )
             # We need to include Content-Type in the header
@@ -1120,6 +1130,14 @@ def synology_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfo
         if not os.path.isdir(input_folder):
             LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
             return 0
+
+        # Process subfolders_exclusion to obtain a list of subfolders_exclusion names (if provided)
+        if isinstance(subfolders_exclusion, str):
+            subfolders_exclusion = [name.strip() for name in subfolders_exclusion.replace(',', ' ').split() if name.strip()]
+        elif isinstance(subfolders_exclusion, list):
+            subfolders_exclusion = [name.strip() for item in subfolders_exclusion if isinstance(item, str) for name in item.split(',') if name.strip()]
+        else:
+            subfolders_exclusion = None
 
         # Process subfolders_inclusion to obtain a list of subfolders_inclusion names (if provided)
         if isinstance(subfolders_inclusion, str):
@@ -1520,21 +1538,22 @@ if __name__ == "__main__":
     from GlobalVariables import set_ARGS_PARSER
     set_ARGS_PARSER()
 
-    # 0) Read configuration and log in
-    # read_synology_config('Config.ini')
+    # Read configuration and log in
+    read_synology_config('Config.ini')
     login_synology(use_syno_token=True)
     # login_synology(use_syno_token=False)
 
-    # # # 1) Example: Delete empty albums
+    # # Example: synology_delete_empty_albums()
     # print("=== EXAMPLE: synology_delete_empty_albums() ===")
     # deleted = synology_delete_empty_albums()
     # print(f"[RESULT] Empty albums deleted: {deleted}\n")
 
-    # # 2) Example: Delete duplicate albums
+    # # Example: synology_delete_duplicates_albums()
     # print("=== EXAMPLE: synology_delete_duplicates_albums() ===")
     # duplicates = synology_delete_duplicates_albums()
     # print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
 
+    # # Example: Upload_asset()
     # print("\n=== EXAMPLE: upload_asset() ===")
     # file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\2003.07 - Viaje a Almeria (Julio 2003)\En Almeria (Julio 2003)_17.JPG"                # For Windows
     # file_path = r"g:\My Drive\Google Drive\_PERSONAL\DOCUMENTS\MIS PÁGINAS WEBS\jtg.webservices.com\logo\30-01-2023_17-53-05.png"                # For Windows
@@ -1544,39 +1563,43 @@ if __name__ == "__main__":
     # else:
     #     print(f"New Asset uploaded successfully with id: {asset_id}")
 
-    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur_share\Photos\Upload_folder\No-Albums'
-    # # TODO: Complete this function
-    # print("\n=== EXAMPLE: synology_upload_folder() ===")
-    # input_others_folder = r"r:\jaimetur_share\Photos\Upload_folder_for_testing"                # For Windows
-    # input_others_folder = "/volume1/homes/jaimetur_share/Photos/Upload_folder_for_testing"     # For Linux (NAS)
-    # synology_upload_no_albums(input_others_folder)
+    # # Example: synology_upload_no_albums()
+    # print("\n=== EXAMPLE: synology_upload_no_albums() ===")
+    # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    # input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    # synology_upload_no_albums(input_folder)
 
-    # # 4) Example: Upload albums from subfolders in 'r:\jaimetur_share\Photos\Upload_folder_for_testing\Albums'
-    # # TODO: Permitir subir una carpeta cualquiera sin que tenga que haber una carpeta 'Albums' dentro
+    # # Example: synology_upload_albums()
     # print("\n=== EXAMPLE: synology_upload_albums() ===")
-    # input_albums_folder = "/volume1/homes/jaimetur_share/Photos/Upload_folder_for_testing"     # For Linux (NAS)
-    # input_albums_folder = r"r:\jaimetur_share\Photos\Upload_folder_for_testing"                # For Windows
-    # synology_upload_albums(input_albums_folder)
+    # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    # input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    # synology_upload_albums(input_folder)
 
-    # # 5) Example: Download all photos from ALL albums
+    # Example: synology_upload_ALL()
+    print("\n=== EXAMPLE: synology_upload_ALL() ===")
+    input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    synology_upload_ALL(input_folder)
+
+    # # Example: Download all photos from ALL albums
     # # TODO: Completar esta función
     # print("\n=== EXAMPLE: synology_download_albums() ===")
     # # total = synology_download_albums('ALL', output_folder="Downloads_Synology")
     # total = synology_download_albums(albums_name='Cadiz', output_folder="Downloads_Synology")
     # print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
-    # # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
+    # # Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
     # # TODO: Completar esta función
     # print("=== EXAMPLE: synology_download_ALL() ===")
     # total_struct = synology_download_ALL(output_folder="Downloads_Synology")
     # # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
 
-    # # 7) Test: get_photos_root_folder_id()
+    # # Test: get_photos_root_folder_id()
     # print("=== EXAMPLE: get_photos_root_folder_id() ===")
     # root_folder_id = get_photos_root_folder_id()
     # print (root_folder_id)
 
-    # 8) Local logout
+    # logout_synology()
     logout_synology(log_level=log_level)
 
 
