@@ -30,8 +30,14 @@
 - [ ] Include Apple Support (just for downloading)
     - [ ] -adAlb, --apple-download-albums
     - [ ] -adAll, --apple-download-all
+    - [ ] -auAlb, --apple-upload-albums
+    - [ ] -auAll, --apple-upload-all
 - [ ] Include native support for Google Photos through API
     - See: https://max-coding.medium.com/loading-photos-and-metadata-using-google-photos-api-with-python-7fb5bd8886ef
+    - [ ] -gdAlb, --google-download-albums
+    - [ ] -gdAll, --google-download-all
+    - [ ] -guAlb, --google-upload-albums
+    - [ ] -guAll, --google-upload-all
 - [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATED-MODE
 - [ ] Add option to filter in all Immich Actions:
     - [ ] by Dates
