@@ -204,7 +204,6 @@ def checkArgs(ARGS):
     elif ARGS['messages-level'].lower() == 'critical':
         LOG_LEVEL = logging.CRITICAL
 
-
     # Parse albums-folders Arguments to convert to a List if more than one Album folder is provide
     ARGS['albums-folders'] = parse_folders(ARGS['albums-folders'])
     if ARGS['albums-folders'] == []:

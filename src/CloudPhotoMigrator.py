@@ -4,7 +4,7 @@ from Utils import check_OS_and_Terminal, change_workingdir
 # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
 change_workingdir()
 
-from GlobalVariables import LOGGER, LOG_LEVEL, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME
+from GlobalVariables import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME
 from ExecutionModes import detect_and_run_execution_mode
 
 # -------------------------------------------------------------
@@ -23,7 +23,7 @@ def main():
     LOGGER.info("")
     # Check OS and Terminal
     check_OS_and_Terminal()
-    LOGGER.info(f"INFO    : Messages Level      : '{LOG_LEVEL}'")
+    LOGGER.info(f"INFO    : Messages Level      : '{ARGS['messages-level']}'")
     if not ARGS['no-log-file']:
         LOGGER.info(f"INFO    : Log File Location   : '{LOG_FOLDER_FILENAME+'.log'}'")
         LOGGER.info("")

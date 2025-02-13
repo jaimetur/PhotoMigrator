@@ -330,7 +330,7 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
         LOGGER.info(f"INFO    : Flag detected '-suAll, --synology-upload-all'.")
         if albums_folders:
-            LOGGER.info(f"INFO    : Flag detected '-AlbFld, --albums-folders'.")
+            LOGGER.info(f"INFO    : Flag detected '-AlbFld, --albums-folders' = ['{albums_folders}'].")
         LOGGER.info(HELP_TEXTS["synology-upload-all"].replace('<INPUT_FOLDER>', f"'{ARGS['synology-upload-all']}'"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
@@ -345,9 +345,9 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums = synology_upload_ALL (ARGS['synology-upload-all'], albums_folders=albums_folders, log_level=logging.INFO)
         # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
         LOGGER.info("")
-        synology_remove_duplicates_albums()
+        synology_remove_duplicates_albums(log_level=logging.WARNING)
         LOGGER.info("")
-        synology_remove_empty_albums()
+        synology_remove_empty_albums(log_level=logging.WARNING)
         # logout from Synology Photos.
         LOGGER.info("")
         logout_synology()
