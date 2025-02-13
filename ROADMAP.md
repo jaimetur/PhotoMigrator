@@ -3,12 +3,17 @@
 ## 3.0.0 (14/02/2025):
 ### TODO:
 
-- [x] Complete function -suAlb/-suAll to upload external folders to Synology photos. Make sure to ignore @eaDir folders in all of them
-- [ ] Allow users to choose the folder where download the assets for option -sdAlb and -sdAll 
-  - Current implementation of -sdAlb / -sdAll does not allow this ==> Investigate other implementation
 - [ ] Set Log levels per functions
 - [ ] Upload assets to PhotoLibrary folder
 - [ ] Remove empty folders when delete assets
+- [ ] Support to upload/download assets from/to any folder (no need to be indexed within the Synology Photos root Folder
+- [ ] Refactor -suAll, -sdAll, -iuAll, -idAll
+- [ ] Removed SYNOLOGY_PHOTOS_ROOT_FOLDER from CONFIG.ini file (not needed anymore)
+- [ ] Refactor CONFIG.ini to config.ini
+- [ ] Remove Indexing Functions on ServiceSynology file
+- [x] Complete function -suAlb/-suAll to upload external folders to Synology photos. Make sure to ignore @eaDir folders in all of them
+- [ ] Allow users to choose the folder where download the assets for option -sdAlb and -sdAll 
+  - Current implementation of -sdAlb / -sdAll does not allow this ==> Investigate other implementation
 
 - #### Tests Pending:
 - [x] Deep Test on Immich Support functions
