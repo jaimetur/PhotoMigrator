@@ -1599,9 +1599,9 @@ def synology_remove_all_assets(log_level=logging.INFO):
 # -----------------------------------------------------------------------------
 #          DELETE ALL ALL ALBUMS FROM SYNOLOGY DATABASE
 # -----------------------------------------------------------------------------
-def synology_remove_all_albums(deleteAlbumsAssets=False, log_level=logging.INFO):
+def synology_remove_all_albums(removeAlbumsAssets=False, log_level=logging.INFO):
     """
-    Deletes all albums and optionally also its associated assets.
+    Removes all albums and optionally also its associated assets.
     Returns the number of albums deleted and the number of assets deleted.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
@@ -1614,29 +1614,31 @@ def synology_remove_all_albums(deleteAlbumsAssets=False, log_level=logging.INFO)
             logout_synology(log_level=log_level)
             return 0, 0
         total_deleted_albums = 0
-        total_deleted_assets = 0
-        for album in tqdm(albums, desc=f"INFO    : Searching for Albums to delete", unit=" albums"):
+        total_removed_assets = 0
+        for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
             album_id = album.get("id")
             album_name = album.get("albumName")
             album_assets_ids = []
             # if deleteAlbumsAssets is True, we have to delete also the assets associated to the album, album_id
-            if deleteAlbumsAssets:
+            if removeAlbumsAssets:
                 album_assets = get_assets_from_album(album_id)
                 for asset in album_assets:
                     album_assets_ids.append(asset.get("id"))
                 remove_assets(album_assets_ids)
-                total_deleted_assets += len(album_assets_ids)
+                total_removed_assets += len(album_assets_ids)
 
             # Now we can delete the album
             if delete_album(album_id, album_name, log_level=logging.WARNING):
                 # LOGGER.info(f"INFO    : Empty album '{album_name}' (ID={album_id}) deleted.")
                 total_deleted_albums += 1
 
-        LOGGER.info(f"INFO    : Deleted {total_deleted_albums} albums.")
-        if deleteAlbumsAssets:
-            LOGGER.info(f"INFO    : Deleted {total_deleted_assets} assets associated to albums.")
+        LOGGER.info(f"INFO    : Removed {total_deleted_albums} albums.")
+        if removeAlbumsAssets:
+            total_folders_removed = remove_empty_folders(log_level == logging.WARNING)
+            LOGGER.info(f"INFO    : Removed {total_removed_assets} assets associated to albums.")
+            LOGGER.info(f"INFO    : Removed {total_folders_removed} empty folders.")
         logout_synology(log_level=log_level)
-        return total_deleted_albums, total_deleted_assets
+        return total_deleted_albums, total_removed_assets
 
 
 ##############################################################################

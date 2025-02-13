@@ -544,7 +544,7 @@ def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.IN
         # LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
         LOGGER.info("")
         # Call the Function
-        albums_removed, assets_removed = synology_remove_all_albums(deleteAlbumsAssets = ARGS['remove-albums-assets'], log_level=logging.WARNING)
+        albums_removed, assets_removed = synology_remove_all_albums(removeAlbumsAssets= ARGS['remove-albums-assets'], log_level=logging.WARNING)
         logout_immich()
         # FINAL SUMMARY
         end_time = datetime.now()
