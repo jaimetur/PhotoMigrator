@@ -26,7 +26,7 @@
 
 - Done tasks have been already moved to RELEASES-NOTES.md
 
-## 3.1.0 (No estimated date):
+## 4.0.0 (No estimated date):
 - [ ] Include Apple Support (just for downloading)
     - [ ] -adAlb, --apple-download-albums
     - [ ] -adAll, --apple-download-all
