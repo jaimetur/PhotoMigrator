@@ -473,20 +473,21 @@ def remove_empty_folders(log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Cambia el nivel de registro
         # Iniciar sesión en Synology Photos si no hay una sesión activa
         login_synology(log_level=log_level)
-        def remove_empty_folders_recursive(folder_id, folder_name):
+        def remove_empty_folders_recursive(folder_id, folder_name, log_lever=logging.INFO):
             """Recorre y elimina las carpetas vacías de manera recursiva."""
-            folders_dict = get_folders(folder_id, log_level=log_level)
-            item_count = len(folders_dict)
-            deleted_count = 0
-            if item_count == 0:
-                LOGGER.info("")
-                LOGGER.info(f"INFO    : Removing empty folder: '{folder_name}' (ID: {folder_id}) within Synology Photos")
-                remove_folder(folder_id=folder_id, folder_name=folder_name, log_level=log_level)
-                deleted_count += 1
-            for subfolder_id, subfolder_name in tqdm(folders_dict.items(), smoothing=0.1, desc=f"INFO    : Looking for empty subfolders in '{folder_name}'", unit=" folders"):
-                # Recursive call to process subfolders first
-                deleted_count += remove_empty_folders_recursive(subfolder_id, subfolder_name)
-            return deleted_count
+            with set_log_level(LOGGER, log_level):  # Cambia el nivel de registro
+                folders_dict = get_folders(folder_id, log_level=log_level)
+                item_count = len(folders_dict)
+                deleted_count = 0
+                if item_count == 0:
+                    LOGGER.info("")
+                    LOGGER.info(f"INFO    : Removing empty folder: '{folder_name}' (ID: {folder_id}) within Synology Photos")
+                    remove_folder(folder_id=folder_id, folder_name=folder_name, log_level=log_level)
+                    deleted_count += 1
+                for subfolder_id, subfolder_name in tqdm(folders_dict.items(), smoothing=0.1, desc=f"INFO    : Looking for empty subfolders in '{folder_name}'", unit=" folders"):
+                    # Recursive call to process subfolders first
+                    deleted_count += remove_empty_folders_recursive(subfolder_id, subfolder_name)
+                return deleted_count
         LOGGER.info("INFO    : Starting empty folder removing from Synology Photos...")
         # Obtener el ID de la carpeta raíz
         root_folder_id = get_photos_root_folder_id(log_level=log_level)
