@@ -927,7 +927,6 @@ def remove_assets(asset_ids, log_level=logging.INFO):
         }
         try:
             response = SESSION.get(url, params=params, headers=headers, verify=False)
-            remove_empty_folders(log_level=log_level)
             data = response.json()
             if not data.get("success"):
                 LOGGER.error(f"ERROR   : Failed to list assets")
@@ -1584,15 +1583,17 @@ def synology_remove_all_assets(log_level=logging.INFO):
                 continue
             assets_ids.append(asset_id)
 
-        assets_deleted = 0
-        albums_deleted = 0
+        assets_removed = 0
+        albums_removed = 0
         if assets_ids:
-            assets_deleted = remove_assets(assets_ids, log_level=logging.WARNING)
-            albums_deleted = synology_remove_empty_albums(log_level=logging.WARNING)
+            assets_removed = remove_assets(assets_ids, log_level=logging.WARNING)
+            albums_removed = synology_remove_empty_albums(log_level=logging.WARNING)
+            folders_removed = remove_empty_folders(log_level==logging.WARNING)
         logout_synology(log_level=logging.WARNING)
-        LOGGER.info(f"INFO    : Total Assets deleted: {assets_deleted}")
-        LOGGER.info(f"INFO    : Total Albums deleted: {albums_deleted}")
-        return assets_deleted, albums_deleted
+        LOGGER.info(f"INFO    : Total Assets removed : {assets_removed}")
+        LOGGER.info(f"INFO    : Total Albums removed : {albums_removed}")
+        LOGGER.info(f"INFO    : Total Folders removed: {albums_removed}")
+        return assets_removed, albums_removed
 
 
 # -----------------------------------------------------------------------------

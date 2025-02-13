@@ -38,6 +38,10 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 - [x] Replaced 'ALL_PHOTOS' by 'No-Albums' as output subfolder for assets without any album associated (be careful if you already run the script with previous version because before, the folder for assets without albums was named 'ALL_PHOTOS')
 - [x] Support for colors in --help text for a better visualization.
 - [x] Support for colors in logger for a better visualization.
+- [x] Support to upload assets from/to any folder into Synology Photos (no need to be indexed within the Synology Photos root Folder)
+- [x] Set Log levels per functions and include '-msglevel, --messages-level' argument to set it up.
+- [x] Added function to Remove empty folders when delete assets in Synology Photos
+- [x] Removed Indexing Functions on ServiceSynology file (not needed anymore)
 - [x] Ignored @eaDir folders when upload assets to Synology/Immich Photos.
 - [x] Refactor and group All Google Takeout arguments in one block for 'Google Photos Takeout' Support.
 - [X] Refactor normal_mode to google_takeout_mode.

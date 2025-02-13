@@ -3,13 +3,8 @@
 ## 3.0.0 (14/02/2025):
 ### TODO:
 
-- [ ] Set Log levels per functions and include '-msglevel, --messages-level' argument to set it up.
-- [ ] Remove empty folders when delete assets
 - [ ] Removed SYNOLOGY_PHOTOS_ROOT_FOLDER from Config.ini file (not needed anymore)
-- [x] Upload assets to PhotoLibrary folder
-- [x] Remove Indexing Functions on ServiceSynology file
-- [x] Complete function -suAlb/-suAll to upload external folders to Synology photos. Make sure to ignore @eaDir folders in all of them
-- [ ] Support to upload/download assets from/to any folder (no need to be indexed within the Synology Photos root Folder
+- [ ] Support to download assets from/to any folder (no need to be indexed within the Synology Photos root Folder)
 - [ ] Allow users to choose the folder where download the assets for option -sdAlb and -sdAll 
   - Current implementation of -sdAlb / -sdAll does not allow this ==> Investigate other implementation
 
