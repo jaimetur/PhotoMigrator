@@ -27,9 +27,12 @@
 - Done tasks have been already moved to RELEASES-NOTES.md
 
 ## 3.1.0 (No estimated date):
-- [ ] Include iCloud Support (just for downloading)
+- [ ] Include Apple Support (just for downloading)
     - [ ] -adAlb, --apple-download-albums
     - [ ] -adAll, --apple-download-all
+- [ ] Include native support for Google Photos through API
+    - See: https://max-coding.medium.com/loading-photos-and-metadata-using-google-photos-api-with-python-7fb5bd8886ef
+- [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATED-MODE
 - [ ] Add option to filter in all Immich Actions:
     - [ ] by Dates
     - [ ] by Country
