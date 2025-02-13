@@ -473,7 +473,7 @@ def remove_empty_folders(log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Cambia el nivel de registro
         # Iniciar sesión en Synology Photos si no hay una sesión activa
         login_synology(log_level=log_level)
-        def remove_empty_folders_recursive(folder_id, folder_name, log_lever=logging.INFO):
+        def remove_empty_folders_recursive(folder_id, folder_name, log_level=logging.INFO):
             """Recorre y elimina las carpetas vacías de manera recursiva."""
             with set_log_level(LOGGER, log_level):  # Cambia el nivel de registro
                 folders_dict = get_folders(folder_id, log_level=log_level)
@@ -1463,9 +1463,11 @@ def synology_remove_empty_albums(log_level=logging.INFO):
                     LOGGER.info(f"INFO    : Deleting empty album: '{album_name}' (ID: {album_id})")
                     remove_album(album_id=album_id, album_name=album_name, log_level=logging.WARNING)
                     albums_deleted += 1
+        if albums_deleted>0:
+            folders_removed = remove_empty_folders(log_level=logging.WARNING)
         LOGGER.info("INFO    : Deleting empty albums process finished!")
         logout_synology(log_level=log_level)
-        return albums_deleted
+        return albums_deleted, folders_removed
 
 # Function to delete duplicate albums in Synology Photos
 def synology_remove_duplicates_albums(log_level=logging.INFO):
@@ -1513,9 +1515,11 @@ def synology_remove_duplicates_albums(log_level=logging.INFO):
                 LOGGER.info(f"INFO    : Deleting duplicate album: '{album_name}' (ID: {album_id})")
                 remove_album(album_id=album_id, album_name=album_name, log_level=logging.WARNING)
                 albums_deleted += 1
+        if albums_deleted>0:
+            folders_removed = remove_empty_folders(log_level=logging.WARNING)
         LOGGER.info("INFO    : Deleting duplicate albums process finished!")
         logout_synology(log_level=log_level)
-        return albums_deleted
+        return albums_deleted, folders_removed
 
 
 # -----------------------------------------------------------------------------
@@ -1549,7 +1553,7 @@ def synology_remove_all_assets(log_level=logging.INFO):
         LOGGER.info(f"INFO    : Total Assets removed : {assets_removed}")
         LOGGER.info(f"INFO    : Total Albums removed : {albums_removed}")
         LOGGER.info(f"INFO    : Total Folders removed: {folders_removed}")
-        return assets_removed, albums_removed
+        return assets_removed, albums_removed, folders_removed
 
 
 # -----------------------------------------------------------------------------
@@ -1569,8 +1573,9 @@ def synology_remove_all_albums(removeAlbumsAssets=False, log_level=logging.INFO)
             LOGGER.info("INFO    : No albums found.")
             logout_synology(log_level=log_level)
             return 0, 0
-        total_deleted_albums = 0
-        total_removed_assets = 0
+        total_assets_removed = 0
+        total_albums_removed = 0
+        total_folders_removed = 0
         for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
             album_id = album.get("id")
             album_name = album.get("albumName")
@@ -1581,20 +1586,21 @@ def synology_remove_all_albums(removeAlbumsAssets=False, log_level=logging.INFO)
                 for asset in album_assets:
                     album_assets_ids.append(asset.get("id"))
                 remove_assets(album_assets_ids)
-                total_removed_assets += len(album_assets_ids)
+                total_assets_removed += len(album_assets_ids)
 
             # Now we can delete the album
             if remove_album(album_id, album_name, log_level=logging.WARNING):
                 # LOGGER.info(f"INFO    : Empty album '{album_name}' (ID={album_id}) deleted.")
-                total_deleted_albums += 1
+                total_albums_removed += 1
 
-        LOGGER.info(f"INFO    : Removed {total_deleted_albums} albums.")
+        LOGGER.info(f"INFO    : Removed {total_albums_removed} albums.")
         if removeAlbumsAssets:
             total_folders_removed = remove_empty_folders(log_level == logging.WARNING)
-            LOGGER.info(f"INFO    : Removed {total_removed_assets} assets associated to albums.")
+            LOGGER.info(f"INFO    : Removed {total_assets_removed} assets associated to albums.")
+            LOGGER.info(f"INFO    : Removed {total_albums_removed} albums.")
             LOGGER.info(f"INFO    : Removed {total_folders_removed} empty folders.")
         logout_synology(log_level=log_level)
-        return total_deleted_albums, total_removed_assets
+        return total_assets_removed, total_albums_removed, total_folders_removed
 
 
 ##############################################################################
@@ -1696,5 +1702,5 @@ if __name__ == "__main__":
 
     # if wait_for_reindexing_synology_photos():
     #     delete_synology_photos_duplicates_albums()
-    #     delete_synology_phptos_empty_albums()
+    #     delete_synology_photos_empty_albums()
     #     create_synology_photos_albums(albums_folder_path)

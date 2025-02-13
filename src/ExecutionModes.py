@@ -415,7 +415,6 @@ def mode_synology_download_ALL(user_confirmation=True, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Synology Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
         LOGGER.info("")
-        # LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
         LOGGER.info("")
         # Call the Function
         albums_downloaded, assets_downloaded = synology_download_ALL(output_folder=ARGS['synology-download-all'], log_level=logging.WARNING)
@@ -448,7 +447,7 @@ def mode_synology_remove_empty_albums(user_confirmation=True, log_level=logging.
         LOGGER.info(f"INFO    : Synology Photos: 'Remove Empty Album' Mode detected. Only this module will be run!!!")
         LOGGER.info(f"INFO    : Flag detected '-srEmpAlb, --synology-remove-empty-albums'. The Script will look for any empty album in Synology Photos database and will delete them (if any empty album is found).")
         # Call the Function
-        albums_removed = synology_remove_empty_albums(log_level=logging.WARNING)
+        albums_removed, folders_removed = synology_remove_empty_albums(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -461,6 +460,7 @@ def mode_synology_remove_empty_albums(user_confirmation=True, log_level=logging.
         LOGGER.info("                  FINAL SUMMARY:                  ")
         LOGGER.info("==================================================")
         LOGGER.info(f"Total Empty Albums removed              : {albums_removed}")
+        LOGGER.info(f"Total Folders removed                   : {folders_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -477,7 +477,7 @@ def mode_synology_remove_duplicates_albums(user_confirmation=True, log_level=log
         LOGGER.info(f"INFO    : Synology Photos: 'Remove Duplicates Album' Mode detected. Only this module will be run!!!")
         LOGGER.info(f"INFO    : Flag detected '-srDupAlb, --synology-remove-duplicates-albums'. The Script will look for any duplicated album in Synology Photos database and will delete them (if any duplicated album is found).")
         # Call the Function
-        albums_removed = synology_remove_duplicates_albums(log_level=logging.WARNING)
+        albums_removed, folders_removed = synology_remove_duplicates_albums(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -490,6 +490,7 @@ def mode_synology_remove_duplicates_albums(user_confirmation=True, log_level=log
         LOGGER.info("                  FINAL SUMMARY:                  ")
         LOGGER.info("==================================================")
         LOGGER.info(f"Total Duplicates Albums removed         : {albums_removed}")
+        LOGGER.info(f"Total Folders removed                   : {folders_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -506,7 +507,7 @@ def mode_synology_remove_all_assets(user_confirmation=True, log_level=logging.IN
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Synology Photos: 'Remove ALL Assets' Mode detected. Only this module will be run!!!")
         # Call the Function
-        assets_removed, albums_removed = synology_remove_all_assets(log_level=logging.WARNING)
+        assets_removed, albums_removed, folders_removed = synology_remove_all_assets(log_level=logging.WARNING)
         logout_immich()
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -521,6 +522,7 @@ def mode_synology_remove_all_assets(user_confirmation=True, log_level=logging.IN
         LOGGER.info("==================================================")
         LOGGER.info(f"Total Assets removed                    : {assets_removed}")
         LOGGER.info(f"Total Albums removed                    : {albums_removed}")
+        LOGGER.info(f"Total Folders removed                   : {folders_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -541,10 +543,9 @@ def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.IN
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Synology Photos: 'Delete ALL Albums' Mode detected. Only this module will be run!!!")
         LOGGER.info("")
-        # LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
         LOGGER.info("")
         # Call the Function
-        albums_removed, assets_removed = synology_remove_all_albums(removeAlbumsAssets= ARGS['remove-albums-assets'], log_level=logging.WARNING)
+        assets_removed, albums_removed, folders_removed = synology_remove_all_albums(removeAlbumsAssets= ARGS['remove-albums-assets'], log_level=logging.WARNING)
         logout_immich()
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -557,8 +558,9 @@ def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.IN
         LOGGER.info("==================================================")
         LOGGER.info("                  FINAL SUMMARY:                  ")
         LOGGER.info("==================================================")
-        LOGGER.info(f"Total Albums removed                    : {albums_removed}")
         LOGGER.info(f"Total Assets removed                    : {assets_removed}")
+        LOGGER.info(f"Total Albums removed                    : {albums_removed}")
+        LOGGER.info(f"Total Folders removed                   : {folders_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
