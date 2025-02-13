@@ -1540,6 +1540,7 @@ def synology_remove_all_assets(log_level=logging.INFO):
 
         assets_removed = 0
         albums_removed = 0
+        folders_removed = 0
         if assets_ids:
             assets_removed = remove_assets(assets_ids, log_level=logging.WARNING)
             albums_removed = synology_remove_empty_albums(log_level=logging.WARNING)
