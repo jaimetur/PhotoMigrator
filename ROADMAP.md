@@ -3,7 +3,8 @@
 ## 3.0.0 (14/02/2025):
 ### TODO:
 
-- [ ] Removed SYNOLOGY_PHOTOS_ROOT_FOLDER from Config.ini file (not needed anymore)
+- [ ] Review date and EXIF properties of downloaded assets (photos and videos)
+- [ ] Removed SYNOLOGY_ROOT_PHOTOS_PATH from Config.ini file (not needed anymore)
 - [ ] Support to download assets from/to any folder (no need to be indexed within the Synology Photos root Folder)
 - [ ] Allow users to choose the folder where download the assets for option -sdAlb and -sdAll 
   - Current implementation of -sdAlb / -sdAll does not allow this ==> Investigate other implementation

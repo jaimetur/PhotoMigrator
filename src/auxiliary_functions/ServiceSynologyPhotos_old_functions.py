@@ -231,6 +231,153 @@ def add_asset_to_folder(file_path, album_name=None, log_level=logging.INFO):
             return -1
 
 
+def download_assets(folder_id, folder_name, assets_list, show_info_messages=True):
+    """
+    Copies a list of photos to a specified folder in Synology Photos.
+
+    Args:
+        folder_id (str): ID of the target folder.
+        folder_name (str): Name of the target folder.
+        assets_list (list): List of photo objects to copy.
+
+    Returns:
+        int: Number of photos successfully copied.
+    """
+    from GlobalVariables import LOGGER
+    from math import ceil
+    # login into Synology Photos if the session if not yet started
+    login_synology()
+    # Define the url for the request
+    url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+    # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+    headers = {}
+    if SYNO_TOKEN_HEADER:
+        headers.update(SYNO_TOKEN_HEADER)
+
+    # Split the photo list into batches of 100
+    batch_size = 100
+    total_batches = ceil(len(assets_list) / batch_size)
+    try:
+        for i in range(total_batches):
+            # Get the current batch
+            batch = assets_list[i * batch_size:(i + 1) * batch_size]
+            items_id = ','.join([str(photo['id']) for photo in batch])
+            params = {
+                'api': 'SYNO.Foto.BackgroundTask.File',
+                'version': '1',
+                'method': 'copy',
+                'target_folder_id': folder_id,
+                "item_id": f"[{items_id}]",
+                "folder_id": "[]",  # This can be adjusted based on specific use case
+                'action': 'skip'
+            }
+            response = SESSION.get(url, params=params, headers=headers, verify=False)
+            data = response.json()
+            if not data['success']:
+                LOGGER.error(f"ERROR   : Failed to copy batch {i + 1}/{total_batches} of assets: {data}")
+                return 0
+            # LOGGER.info(f"INFO    : Batch {i + 1}/{total_batches} of assets successfully downloaded to the folder '{folder_name}' (ID:{folder_id}).")
+        extracted_photos = len(assets_list)
+        return extracted_photos
+    except Exception as e:
+        LOGGER.error(f"ERROR   : Exception while copying assets batches: {e}")
+
 ##############################################################################
 #                           END OF AUX FUNCTIONS                             #
 ##############################################################################
+# Function to download albums from Synology Photos
+def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synology', show_info_messages=True):
+    """
+    Downloads albums from Synology Photos to a specified folder, supporting wildcard patterns.
+
+    Args:
+        albums_name (str or list): The name(s) of the album(s) to download. Use 'ALL' to download all albums.
+        output_folder (str): The output folder where download the assets.
+
+    Returns:
+        tuple: albums_downloaded, assets_downloaded
+    """
+
+    # Import logger and log in to the NAS
+    from GlobalVariables import LOGGER
+    login_synology()
+    # Variables to return
+    albums_downloaded = 0
+    assets_downloaded = 0
+
+    # Create or obtain the main folder 'Albums_Synology_Photos'
+    main_folder_id = create_folder(output_folder)
+    if not main_folder_id:
+        LOGGER.error(f"ERROR   : Failed to obtain or create the main folder '{output_folder}'.")
+        return albums_downloaded, assets_downloaded
+
+    main_subfolder_id = create_folder("Albums", parent_folder_id=main_folder_id)
+    if not main_subfolder_id:
+        LOGGER.error(f"ERROR   : Failed to obtain or create the folder 'Albums'.")
+        return albums_downloaded, assets_downloaded
+
+    download_folder = os.path.join(output_folder, 'Albums')
+    # List own and shared albums
+    all_albums = get_albums_own_and_shared()
+    # Determine the albums to copy
+    if isinstance(albums_name, str) and albums_name.strip().upper() == 'ALL':
+        albums_to_download = all_albums
+        if show_info_messages:
+            LOGGER.info(f"INFO    : All albums ({len(albums_to_download)}) from Synology Photos will be downloaded to the folder '{download_folder} within Synology Photos root folder'...")
+    else:
+        # Ensure album_name is a list if it's not a string
+        if isinstance(albums_name, str):
+            # Split album names by commas or spaces
+            albums_names = [name.strip() for name in albums_name.replace(',', ' ').split() if name.strip()]
+        elif isinstance(albums_name, list):
+            # Flatten and clean up the list, splitting on commas within each item
+            albums_names = []
+            for item in albums_name:
+                if isinstance(item, str):
+                    albums_names.extend([name.strip() for name in item.split(',') if name.strip()])
+        else:
+            LOGGER.error("ERROR   : The parameter albums_name must be a string or a list of strings.")
+            logout_synology()
+            return albums_downloaded, assets_downloaded
+
+        albums_to_download = []
+        for album in all_albums:
+            album_name = album['name']
+            for pattern in albums_names:
+                # Search for the album by name or pattern (case-insensitive)
+                if fnmatch.fnmatch(album_name.strip().lower(), pattern.lower()):
+                    albums_to_download.append(album)
+                    break
+
+        if not albums_to_download:
+            LOGGER.error("ERROR   : No albums found matching the provided patterns.")
+            logout_synology()
+            return albums_downloaded, assets_downloaded
+        if show_info_messages:
+            LOGGER.info(f"INFO    : {len(albums_to_download)} albums from Synology Photos will be downloaded to '{download_folder}' within Synology Photos root folder...")
+
+    albums_downloaded = len(albums_to_download)
+    # Iterate over each album to copy
+    for album in tqdm(albums_to_download, desc="INFO    : Downloading Albums", unit=" albums"):
+        album_name = album['name']
+        album_id = album['id']
+        # LOGGER.info(f"INFO    : Processing album: '{album_name}' (ID: {album_id})")
+        # List assets in the album
+        photos = get_assets_from_album(album_name, album_id)
+        # LOGGER.info(f"INFO    : Number of photos in the album '{album_name}': {len(photos)}")
+        if not photos:
+            LOGGER.warning(f"WARNING : No photos to download in the album '{album_name}'.")
+            continue
+        # Create or obtain the destination folder for the album within output_folder/Albums
+        target_folder_name = f'{album_name}'
+        target_folder_id = create_folder(target_folder_name, parent_folder_id=main_subfolder_id)
+        if not target_folder_id:
+            LOGGER.warning(f"WARNING : Failed to obtain or create the destination folder for the album '{album_name}'.")
+            continue
+        # Download the photos to the destination folder
+        assets_downloaded += download_assets(target_folder_id, target_folder_name, photos)
+
+    if show_info_messages:
+        LOGGER.info(f"INFO    : Album(s) downloaded successfully. You can find them in '{os.path.join(SYNOLOGY_ROOT_PHOTOS_PATH, download_folder)}'")
+    logout_synology()
+    return albums_downloaded, assets_downloaded

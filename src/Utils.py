@@ -7,6 +7,9 @@ import stat
 from datetime import datetime
 from tqdm import tqdm
 import platform
+import piexif
+import subprocess
+from PIL import Image
 
 WORKING_DIR = r"R:\jaimetur\CloudPhotoMigrator"
 
@@ -726,4 +729,138 @@ def is_valid_path(path):
     except ValidationError as e:
         LOGGER.error(f"ERROR   : Path validation ERROR   : {e}")
         return False
+
+def get_unique_items(list1, list2, key='filename'):
+    """
+    Returns items that are in list1 but not in list2 based on a specified key.
+
+    Args:
+        list1 (list): First list of dictionaries.
+        list2 (list): Second list of dictionaries.
+        key (str): Key to compare between both lists.
+
+    Returns:
+        list: Items present in list1 but not in list2.
+    """
+    set2 = {item[key] for item in list2}  # Create a set of filenames from list2
+    unique_items = [item for item in list1 if item[key] not in set2]
+    return unique_items
+
+
+def update_metadata(file_path, date_time):
+    """
+    Updates the metadata of a file (image, video, etc.) to set the creation date.
+
+    Args:
+        file_path (str): Path to the file.
+        date_time (str): Date and time in 'YYYY-MM-DD HH:MM:SS' format.
+    """
+    from GlobalVariables import LOGGER
+    from ServiceSynologyPhotos import ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS, ALLOWED_SYNOLOGY_VIDEO_EXTENSIONS
+    file_ext = os.path.splitext(file_path)[1].lower()
+
+    try:
+        if file_ext in ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS:
+            update_exif_date(file_path, date_time)
+        elif file_ext in ALLOWED_SYNOLOGY_VIDEO_EXTENSIONS:
+            update_video_metadata(file_path, date_time)
+
+        LOGGER.info(f"INFO    : Metadata updated for {file_path} with timestamp {date_time}")
+
+    except Exception as e:
+        LOGGER.error(f"ERROR   : Failed to update metadata for {file_path}. {e}")
+
+
+def update_exif_date(image_path, asset_time):
+    """
+    Updates the EXIF metadata of an image to set the DateTimeOriginal and related fields.
+
+    Args:
+        image_path (str): Path to the image file.
+        asset_time (int): Timestamp in UNIX Epoch format.
+    """
+    from GlobalVariables import LOGGER
+
+    try:
+        # Si asset_time es una cadena en formato 'YYYY-MM-DD HH:MM:SS', conviértelo a timestamp UNIX
+        if isinstance(asset_time, str):
+            try:
+                asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
+            except ValueError:
+                LOGGER.error(f"ERROR   : Invalid date format for asset_time: {asset_time}")
+                return
+
+        # Convertir el timestamp UNIX a formato EXIF "YYYY:MM:DD HH:MM:SS"
+        date_time_exif = datetime.fromtimestamp(asset_time).strftime("%Y:%m:%d %H:%M:%S")
+        date_time_bytes = date_time_exif.encode('utf-8')
+
+        # Backup original timestamps
+        original_times = os.stat(image_path)
+        original_atime = original_times.st_atime
+        original_mtime = original_times.st_mtime
+
+        # Load EXIF data
+        exif_dict = piexif.load(image_path)
+
+        # Update EXIF metadata fields
+        exif_dict["0th"][piexif.ImageIFD.DateTime] = date_time_bytes  # General metadata
+        exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal] = date_time_bytes  # Fecha de creación original
+        exif_dict["Exif"][piexif.ExifIFD.DateTimeDigitized] = date_time_bytes  # Fecha de digitalización
+
+        if "Exif" in exif_dict and piexif.ExifIFD.DateTimeOriginal in exif_dict["Exif"]:
+            exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal] = date_time_bytes
+
+        # Dump and insert updated EXIF data
+        exif_bytes = piexif.dump(exif_dict)
+        piexif.insert(exif_bytes, image_path)
+
+        # Restore original file timestamps
+        os.utime(image_path, (original_atime, original_mtime))
+
+        LOGGER.info(f"INFO    : EXIF metadata updated for {image_path} with timestamp {date_time_exif}")
+
+    except Exception as e:
+        LOGGER.error(f"ERROR   : Failed to update EXIF metadata for {image_path}. {e}")
+
+
+def update_video_metadata(video_path, asset_time):
+    """
+    Updates the metadata of a video file to set the creation date without modifying file timestamps.
+
+    Args:
+        video_path (str): Path to the video file.
+        asset_time (int): Timestamp in UNIX Epoch format.
+    """
+    from GlobalVariables import LOGGER
+
+    try:
+        # Convert asset_time (UNIX timestamp) to format used by FFmpeg (YYYY-MM-DDTHH:MM:SS)
+        formatted_date = datetime.fromtimestamp(asset_time).strftime("%Y-%m-%dT%H:%M:%S")
+
+        # Backup original file timestamps
+        original_times = os.stat(video_path)
+        original_atime = original_times.st_atime
+        original_mtime = original_times.st_mtime
+
+        temp_file = video_path + "_temp.mp4"
+
+        command = [
+            "ffmpeg", "-i", video_path,
+            "-metadata", f"creation_time={formatted_date}",
+            "-metadata", f"modify_time={formatted_date}",
+            "-metadata", f"date_time_original={formatted_date}",
+            "-codec", "copy", temp_file
+        ]
+
+        subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+
+        os.replace(temp_file, video_path)  # Replace original file with updated one
+
+        # Restore original file timestamps
+        os.utime(video_path, (original_atime, original_mtime))
+
+        LOGGER.info(f"INFO    : Video metadata updated for {video_path} with timestamp {formatted_date}")
+
+    except Exception as e:
+        LOGGER.error(f"ERROR   : Failed to update video metadata for {video_path}. {e}")
 

@@ -306,6 +306,9 @@ def mode_synology_upload_albums(user_confirmation=True, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Call the Function
         albums_crated, albums_skipped, photos_added = synology_upload_albums(ARGS['synology-upload-albums'], log_level=logging.WARNING)
+        # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
+        LOGGER.info("")
+        total_duplicates_albums_removed = synology_remove_duplicates_albums(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -320,6 +323,7 @@ def mode_synology_upload_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"Total Albums created                    : {albums_crated}")
         LOGGER.info(f"Total Albums skipped                    : {albums_skipped}")
         LOGGER.info(f"Total Photos added to Albums            : {photos_added}")
+        LOGGER.info(f"Total Duplicated Albums removed         : {total_duplicates_albums_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -345,9 +349,7 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums = synology_upload_ALL (ARGS['synology-upload-all'], albums_folders=albums_folders, log_level=logging.INFO)
         # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
         LOGGER.info("")
-        synology_remove_duplicates_albums(log_level=logging.WARNING)
-        LOGGER.info("")
-        synology_remove_empty_albums(log_level=logging.WARNING)
+        total_duplicates_albums_removed = synology_remove_duplicates_albums(log_level=logging.WARNING)
         # logout from Synology Photos.
         LOGGER.info("")
         logout_synology()
@@ -367,6 +369,7 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"Total Assets uploaded                   : {total_assets_uploaded}")
         LOGGER.info(f"Total Assets added to Albums            : {total_assets_uploaded_within_albums}")
         LOGGER.info(f"Total Assets added without Albums       : {total_assets_uploaded_without_albums}")
+        LOGGER.info(f"Total Duplicated Albums removed         : {total_duplicates_albums_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -447,7 +450,7 @@ def mode_synology_remove_empty_albums(user_confirmation=True, log_level=logging.
         LOGGER.info(f"INFO    : Synology Photos: 'Remove Empty Album' Mode detected. Only this module will be run!!!")
         LOGGER.info(f"INFO    : Flag detected '-srEmpAlb, --synology-remove-empty-albums'. The Script will look for any empty album in Synology Photos database and will delete them (if any empty album is found).")
         # Call the Function
-        albums_removed, folders_removed = synology_remove_empty_albums(log_level=logging.WARNING)
+        albums_removed = synology_remove_empty_albums(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -460,7 +463,6 @@ def mode_synology_remove_empty_albums(user_confirmation=True, log_level=logging.
         LOGGER.info("                  FINAL SUMMARY:                  ")
         LOGGER.info("==================================================")
         LOGGER.info(f"Total Empty Albums removed              : {albums_removed}")
-        LOGGER.info(f"Total Folders removed                   : {folders_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -729,7 +731,7 @@ def mode_immich_remove_empty_albums(user_confirmation=True, log_level=logging.IN
         LOGGER.info(f"INFO    : Immich Photos: 'Delete Empty Album' Mode detected. Only this module will be run!!!")
         LOGGER.info(f"INFO    : Flag detected '-irEmpAlb, --immich-remove-empty-albums'. The Script will look for any empty album in Immich Photos database and will delete them (if any empty album is found).")
         # Call the Function
-        albums_deleted = immich_remove_empty_albums(log_level=logging.WARNING)
+        albums_removed = immich_remove_empty_albums(log_level=logging.WARNING)
         logout_immich()
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -742,7 +744,7 @@ def mode_immich_remove_empty_albums(user_confirmation=True, log_level=logging.IN
         LOGGER.info("==================================================")
         LOGGER.info("                  FINAL SUMMARY:                  ")
         LOGGER.info("==================================================")
-        LOGGER.info(f"Total Empty Albums deleted              : {albums_deleted}")
+        LOGGER.info(f"Total Empty Albums removed              : {albums_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -759,7 +761,7 @@ def mode_immich_remove_duplicates_albums(user_confirmation=True, log_level=loggi
         LOGGER.info(f"INFO    : Immich Photos: 'Delete Duplicates Album' Mode detected. Only this module will be run!!!")
         LOGGER.info(f"INFO    : Flag detected '-irDupAlb, --immich-remove-duplicates-albums'. The Script will look for any duplicated album in Immich Photos database and will delete them (if any duplicated album is found).")
         # Call the Function
-        albums_deleted = immich_remove_duplicates_albums(log_level=logging.WARNING)
+        albums_removed = immich_remove_duplicates_albums(log_level=logging.WARNING)
         logout_immich()
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -772,7 +774,7 @@ def mode_immich_remove_duplicates_albums(user_confirmation=True, log_level=loggi
         LOGGER.info("==================================================")
         LOGGER.info("                  FINAL SUMMARY:                  ")
         LOGGER.info("==================================================")
-        LOGGER.info(f"Total Duplicates Albums deleted         : {albums_deleted}")
+        LOGGER.info(f"Total Duplicates Albums removed         : {albums_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -791,7 +793,7 @@ def mode_immich_remove_orphan_assets(user_confirmation=True, log_level=logging.I
         # LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
         LOGGER.info("")
         # Call the Function
-        delete_assets = immich_remove_orphan_assets(user_confirmation=user_confirmation, log_level=logging.WARNING)
+        assets_removed = immich_remove_orphan_assets(user_confirmation=user_confirmation, log_level=logging.WARNING)
         logout_immich()
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -804,7 +806,7 @@ def mode_immich_remove_orphan_assets(user_confirmation=True, log_level=logging.I
         LOGGER.info("==================================================")
         LOGGER.info("                  FINAL SUMMARY:                  ")
         LOGGER.info("==================================================")
-        LOGGER.info(f"Total Orphan Assets deleted             : {delete_assets}")
+        LOGGER.info(f"Total Orphan Assets removed             : {assets_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -823,7 +825,7 @@ def mode_immich_remove_all_assets(user_confirmation=True, log_level=logging.INFO
         # LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
         LOGGER.info("")
         # Call the Function
-        deleted_assets, deleted_albums = immich_remove_all_assets(log_level=logging.WARNING)
+        assets_removed, albums_removed = immich_remove_all_assets(log_level=logging.WARNING)
         logout_immich()
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -836,8 +838,8 @@ def mode_immich_remove_all_assets(user_confirmation=True, log_level=logging.INFO
         LOGGER.info("==================================================")
         LOGGER.info("                  FINAL SUMMARY:                  ")
         LOGGER.info("==================================================")
-        LOGGER.info(f"Total Assets deleted                    : {deleted_assets}")
-        LOGGER.info(f"Total Albums deleted                    : {deleted_albums}")
+        LOGGER.info(f"Total Assets removed                    : {assets_removed}")
+        LOGGER.info(f"Total Albums removed                    : {albums_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -861,7 +863,7 @@ def mode_immich_remove_all_albums(user_confirmation=True, log_level=logging.INFO
         # LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
         LOGGER.info("")
         # Call the Function
-        delete_albums, delete_assets = immich_remove_all_albums(deleteAlbumsAssets = ARGS['remove-albums-assets'], log_level=logging.WARNING)
+        albums_removed, assets_removed = immich_remove_all_albums(deleteAlbumsAssets = ARGS['remove-albums-assets'], log_level=logging.WARNING)
         logout_immich()
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -874,8 +876,8 @@ def mode_immich_remove_all_albums(user_confirmation=True, log_level=logging.INFO
         LOGGER.info("==================================================")
         LOGGER.info("                  FINAL SUMMARY:                  ")
         LOGGER.info("==================================================")
-        LOGGER.info(f"Total Albums deleted                    : {delete_albums}")
-        LOGGER.info(f"Total Assets deleted                    : {delete_assets}")
+        LOGGER.info(f"Total Assets removed                    : {assets_removed}")
+        LOGGER.info(f"Total Albums removed                    : {albums_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
