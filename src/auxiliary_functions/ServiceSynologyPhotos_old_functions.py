@@ -181,6 +181,55 @@ def wait_for_reindexing_synology_photos():
         LOGGER.error("ERROR   : Error getting reindex status.")
         return False
 
+# -----------------------------------------------------------------------------
+#                          ASSETS (FOTOS/VIDEOS) FUNCTIONS
+# -----------------------------------------------------------------------------
+# TODO: Review this function because I think it does not work. Use the id that returns upload_asset() to associate it to a folder
+def add_asset_to_folder(file_path, album_name=None, log_level=logging.INFO):
+    """
+    Uploads a file (photo or video) to a Synology Photos folder.
+
+    Args:
+        file_path (str): Path to the file to upload.
+        album_name (str, optional): Name of the album associated with the upload.
+
+    Returns:
+        int: Status code indicating success or failure.
+    """
+    from GlobalVariables import LOGGER  # Import the logger inside the function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        # login into Synology Photos if the session if not yet started
+        login_synology(log_level=log_level)
+        # Define the url for the request
+        url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+        # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+        headers = {}
+        if SYNO_TOKEN_HEADER:
+            headers.update(SYNO_TOKEN_HEADER)
+
+        stats = os.stat(file_path)
+        # Ensure the folder has at least one supported file indexed
+        params = {
+            "api": "SYNO.Foto.Upload.Item",
+            "method": "upload_to_folder",
+            "version": "1",
+            "duplicate": "ignore",
+            "name": os.path.basename(file_path),
+            "mtime": stats.st_mtime,
+            "folder_id": 10234,  # Replace with the appropriate folder ID
+            "file": 454          # Replace with the appropriate file ID if needed
+        }
+
+        files = {
+            'assetData': open(file_path, 'rb')
+        }
+        response = SESSION.post(url, data=params, headers=headers, files=files, verify=False)
+        response.raise_for_status()
+        data = response.json()
+        if not data["success"]:
+            LOGGER.warning(f"WARNING : Cannot upload assets to folder: '{album_name}' due to API call error. Skipped!")
+            return -1
+
 
 ##############################################################################
 #                           END OF AUX FUNCTIONS                             #

@@ -473,24 +473,24 @@ def remove_empty_folders(log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Cambia el nivel de registro
         # Iniciar sesión en Synology Photos si no hay una sesión activa
         login_synology(log_level=log_level)
-        def delete_empty_folders_recursive(folder_id, folder_name):
+        def remove_empty_folders_recursive(folder_id, folder_name):
             """Recorre y elimina las carpetas vacías de manera recursiva."""
             folders_dict = get_folders(folder_id, log_level=log_level)
             item_count = len(folders_dict)
             deleted_count = 0
             if item_count == 0:
                 LOGGER.info("")
-                LOGGER.info(f"INFO: Removing empty folder: '{folder_name}' (ID: {folder_id}) within Synology Photos")
-                remove_folder(folder_id=folder_id, folder_name=folder_name, log_level=logging.WARNING)
+                LOGGER.info(f"INFO    : Removing empty folder: '{folder_name}' (ID: {folder_id}) within Synology Photos")
+                remove_folder(folder_id=folder_id, folder_name=folder_name, log_level=log_level)
                 deleted_count += 1
             for subfolder_id, subfolder_name in tqdm(folders_dict.items(), smoothing=0.1, desc=f"INFO    : Looking for empty subfolders in '{folder_name}'", unit=" folders"):
                 # Recursive call to process subfolders first
-                deleted_count += delete_empty_folders_recursive(subfolder_id, subfolder_name)
+                deleted_count += remove_empty_folders_recursive(subfolder_id, subfolder_name)
             return deleted_count
         LOGGER.info("INFO    : Starting empty folder removing from Synology Photos...")
         # Obtener el ID de la carpeta raíz
         root_folder_id = get_photos_root_folder_id(log_level=log_level)
-        total_removed = delete_empty_folders_recursive(folder_id=root_folder_id, folder_name='/')
+        total_removed = remove_empty_folders_recursive(folder_id=root_folder_id, folder_name='/', log_level=log_level)
         LOGGER.info(f"INFO    : Process Remove empty folders from Synology Photos finished. Total removed folders: {total_removed}")
         logout_synology(log_level=log_level)
         return total_removed
@@ -499,36 +499,7 @@ def remove_empty_folders(log_level=logging.INFO):
 # -----------------------------------------------------------------------------
 #                          ALBUMS FUNCTIONS
 # -----------------------------------------------------------------------------
-def create_album(album_name, log_level=logging.INFO):
-    # Create the album if the folder contains supported files
-    from GlobalVariables import LOGGER  # Import the logger inside the function
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # login into Synology Photos if the session if not yet started
-        login_synology(log_level=log_level)
-        # Define the url for the request
-        url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
-        # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
-        headers = {}
-        if SYNO_TOKEN_HEADER:
-            headers.update(SYNO_TOKEN_HEADER)
-        params = {
-            "api": "SYNO.Foto.Browse.NormalAlbum",
-            "method": "create",
-            "version": "3",
-            "name": f'"{album_name}"',
-        }
-        response = SESSION.get(url, params=params, headers=headers, verify=False)
-        response.raise_for_status()
-        data = response.json()
-        if not data["success"]:
-            LOGGER.error(f"ERROR   : Unable to create album '{album_name}': {data}")
-            return -1
-        album_id = data["data"]["album"]["id"]
-        LOGGER.info(f"INFO    : Album '{album_name}' created with ID: {album_id}.")
-        return album_id
-
-
-def delete_album(album_id, album_name, log_level=logging.INFO):
+def remove_album(album_id, album_name, log_level=logging.INFO):
     """
     Deletes an album in Synology Photos.
 
@@ -558,6 +529,36 @@ def delete_album(album_id, album_name, log_level=logging.INFO):
         data = response.json()
         if not data["success"]:
             LOGGER.warning(f"WARNING : Could not delete album {album_id}: ", data)
+
+
+def create_album(album_name, log_level=logging.INFO):
+    # Create the album if the folder contains supported files
+    from GlobalVariables import LOGGER  # Import the logger inside the function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        # login into Synology Photos if the session if not yet started
+        login_synology(log_level=log_level)
+        # Define the url for the request
+        url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
+        # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
+        headers = {}
+        if SYNO_TOKEN_HEADER:
+            headers.update(SYNO_TOKEN_HEADER)
+        params = {
+            "api": "SYNO.Foto.Browse.NormalAlbum",
+            "method": "create",
+            "version": "3",
+            "name": f'"{album_name}"',
+        }
+        response = SESSION.get(url, params=params, headers=headers, verify=False)
+        response.raise_for_status()
+        data = response.json()
+        if not data["success"]:
+            LOGGER.error(f"ERROR   : Unable to create album '{album_name}': {data}")
+            return -1
+        album_id = data["data"]["album"]["id"]
+        LOGGER.info(f"INFO    : Album '{album_name}' created with ID: {album_id}.")
+        return album_id
+
 
 def get_albums(log_level=logging.INFO):
     """
@@ -935,53 +936,6 @@ def remove_assets(asset_ids, log_level=logging.INFO):
             LOGGER.error(f"ERROR   : Exception while listing assets", e)
             return 0
         return len(asset_ids)
-
-
-# TODO: Review this function because I think it does not work. Use the id that returns upload_asset() to associate it to a folder
-def add_asset_to_folder(file_path, album_name=None, log_level=logging.INFO):
-    """
-    Uploads a file (photo or video) to a Synology Photos folder.
-
-    Args:
-        file_path (str): Path to the file to upload.
-        album_name (str, optional): Name of the album associated with the upload.
-
-    Returns:
-        int: Status code indicating success or failure.
-    """
-    from GlobalVariables import LOGGER  # Import the logger inside the function
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # login into Synology Photos if the session if not yet started
-        login_synology(log_level=log_level)
-        # Define the url for the request
-        url = f"{SYNOLOGY_URL}/webapi/entry.cgi"
-        # Define the headers and add SYNO_TOKEN to it if session was initiated with SYNO_TOKEN
-        headers = {}
-        if SYNO_TOKEN_HEADER:
-            headers.update(SYNO_TOKEN_HEADER)
-
-        stats = os.stat(file_path)
-        # Ensure the folder has at least one supported file indexed
-        params = {
-            "api": "SYNO.Foto.Upload.Item",
-            "method": "upload_to_folder",
-            "version": "1",
-            "duplicate": "ignore",
-            "name": os.path.basename(file_path),
-            "mtime": stats.st_mtime,
-            "folder_id": 10234,  # Replace with the appropriate folder ID
-            "file": 454          # Replace with the appropriate file ID if needed
-        }
-
-        files = {
-            'assetData': open(file_path, 'rb')
-        }
-        response = SESSION.post(url, data=params, headers=headers, files=files, verify=False)
-        response.raise_for_status()
-        data = response.json()
-        if not data["success"]:
-            LOGGER.warning(f"WARNING : Cannot upload assets to folder: '{album_name}' due to API call error. Skipped!")
-            return -1
 
 
 def upload_asset(file_path, log_level=logging.INFO):
@@ -1506,7 +1460,7 @@ def synology_remove_empty_albums(log_level=logging.INFO):
                 item_count = get_album_items_count(album_id=album_id, album_name=album_name, log_level=logging.WARNING)
                 if item_count == 0:
                     LOGGER.info(f"INFO    : Deleting empty album: '{album_name}' (ID: {album_id})")
-                    delete_album(album_id=album_id, album_name=album_name, log_level=logging.WARNING)
+                    remove_album(album_id=album_id, album_name=album_name, log_level=logging.WARNING)
                     albums_deleted += 1
         LOGGER.info("INFO    : Deleting empty albums process finished!")
         logout_synology(log_level=log_level)
@@ -1556,7 +1510,7 @@ def synology_remove_duplicates_albums(log_level=logging.INFO):
 
             for album_id, album_name in ids_to_delete.items():
                 LOGGER.info(f"INFO    : Deleting duplicate album: '{album_name}' (ID: {album_id})")
-                delete_album(album_id=album_id, album_name=album_name, log_level=logging.WARNING)
+                remove_album(album_id=album_id, album_name=album_name, log_level=logging.WARNING)
                 albums_deleted += 1
         LOGGER.info("INFO    : Deleting duplicate albums process finished!")
         logout_synology(log_level=log_level)
@@ -1588,7 +1542,7 @@ def synology_remove_all_assets(log_level=logging.INFO):
         if assets_ids:
             assets_removed = remove_assets(assets_ids, log_level=logging.WARNING)
             albums_removed = synology_remove_empty_albums(log_level=logging.WARNING)
-            folders_removed = remove_empty_folders(log_level==logging.WARNING)
+            folders_removed = remove_empty_folders(log_level=logging.WARNING)
         logout_synology(log_level=logging.WARNING)
         LOGGER.info(f"INFO    : Total Assets removed : {assets_removed}")
         LOGGER.info(f"INFO    : Total Albums removed : {albums_removed}")
@@ -1628,7 +1582,7 @@ def synology_remove_all_albums(removeAlbumsAssets=False, log_level=logging.INFO)
                 total_removed_assets += len(album_assets_ids)
 
             # Now we can delete the album
-            if delete_album(album_id, album_name, log_level=logging.WARNING):
+            if remove_album(album_id, album_name, log_level=logging.WARNING):
                 # LOGGER.info(f"INFO    : Empty album '{album_name}' (ID={album_id}) deleted.")
                 total_deleted_albums += 1
 
