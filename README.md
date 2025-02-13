@@ -2,10 +2,27 @@
 
 Welcome to <span style="color:green">**CloudPhotoMigrator** </span>Tool:
 
-This tool has been designed to Interact and Manage different Photo Cloud Services. As of today, the Supported Photo Cloud Services are:
+This tool has been designed to Interact and Manage different Photos Cloud Services. As of today, the Supported Photo Cloud Services are:
 - **Google Photos**
-- **Synology Photos**
-- **Immich Photos**
+- **Synology Photos** - Features included:
+  - Upload Album(s)
+  - Upload ALL (from folder)
+  - Download Album(s)
+  - Download ALL (into folder)
+  - Remove ALL Assets
+  - Remove ALL Albums
+  - Remove Empty Albums
+  - Remove Duplicates Albums
+- **Immich Photos** - Features included:
+  - Upload Album(s)
+  - Upload ALL (from folder)
+  - Download Album(s)
+  - Download ALL (into folder)
+  - Remove ALL Assets
+  - Remove ALL Albums
+  - Remove Empty Albums
+  - Remove Duplicates Albums
+  - Remove Orphans Assets
 - **Apple Photos**  
   (not available yet but is on the ROADMAP.md for next release)
 
@@ -71,7 +88,7 @@ Usage: CloudPhotoMigrator.run/exe [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLD
 
 CloudPhotoMigrator v3.0.0-alpha - 2025-02-03
 
-Multi-Platform/Multi-Arch toot designed to Interact and Manage different Photo Cloud
+Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud
 Services such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
 
 (c) 2024-2025 by Jaime Tur (@jaimetur)
