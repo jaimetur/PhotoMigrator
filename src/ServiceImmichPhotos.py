@@ -29,6 +29,7 @@ from halo import Halo
 from tabulate import tabulate
 import logging
 from CustomLogger import set_log_level
+from Utils import convert_to_list
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -202,57 +203,58 @@ def login_immich(log_level=logging.INFO):
     """
     global SESSION_TOKEN, HEADERS, ALLOWED_IMMICH_MEDIA_EXTENSIONS, ALLOWED_IMMICH_SIDECAR_EXTENSIONS, ALLOWED_IMMICH_EXTENSIONS
     from GlobalVariables import LOGGER  # Import global LOGGER
-    # If there is already a token and headers, assume we are logged in
-    if len(HEADERS.keys())>0 and  (f"Bearer {SESSION_TOKEN}" or IMMICH_USER_API_KEY in HEADERS.values()):
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        # If there is already a token and headers, assume we are logged in
+        if len(HEADERS.keys())>0 and  (f"Bearer {SESSION_TOKEN}" or IMMICH_USER_API_KEY in HEADERS.values()):
+            return True
+        # Ensure the configuration is read
+        read_immich_config()
+
+        LOGGER.info("")
+        LOGGER.info(f"INFO    : Authenticating on Immich Photos and getting Session...")
+
+        # If detected IMMICH_USER_API_KEY in Immich.config
+        if API_KEY_LOGIN:
+            HEADERS = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'x-api-key': IMMICH_USER_API_KEY
+            }
+            LOGGER.info(f"INFO    : Authentication Successfully with IMMICH_USER_API_KEY found in Config file.")
+        # If not detected IMMICH_USER_API_KEY in Immich.config
+        else:
+            url = f"{IMMICH_URL}/api/auth/login"
+            payload = json.dumps({
+              "email": IMMICH_USERNAME,
+              "password": IMMICH_PASSWORD
+            })
+            HEADERS = {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            }
+            try:
+                response = requests.post(url, headers=HEADERS, data=payload)
+                response.raise_for_status()  # Raises exception if 4xx or 5xx
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception occurred during Immich login: {str(e)}")
+                return False
+            data = response.json()
+            SESSION_TOKEN = data.get("accessToken", None)
+            if not SESSION_TOKEN:
+                LOGGER.error(f"ERROR   : 'accessToken' not found in the response: {data}")
+                return False
+            HEADERS = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': f'Bearer {SESSION_TOKEN}'
+            }
+            LOGGER.info(f"INFO    : Authentication Successfully with user/password found in Config file.")
+
+        # get List of “compatible” media and sidecar extensions for Immich
+        ALLOWED_IMMICH_MEDIA_EXTENSIONS = get_supported_media_types(log_level=logging.WARNING)
+        ALLOWED_IMMICH_SIDECAR_EXTENSIONS = get_supported_media_types(type='sidecar', log_level=logging.WARNING)
+        ALLOWED_IMMICH_EXTENSIONS = ALLOWED_IMMICH_MEDIA_EXTENSIONS + ALLOWED_IMMICH_SIDECAR_EXTENSIONS
         return True
-    # Ensure the configuration is read
-    read_immich_config()
-
-    LOGGER.info("")
-    LOGGER.info(f"INFO    : Authenticating on Immich Photos and getting Session...")
-
-    # If detected IMMICH_USER_API_KEY in Immich.config
-    if API_KEY_LOGIN:
-        HEADERS = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'x-api-key': IMMICH_USER_API_KEY
-        }
-        LOGGER.info(f"INFO    : Authentication Successfully with IMMICH_USER_API_KEY found in Config file.")
-    # If not detected IMMICH_USER_API_KEY in Immich.config
-    else:
-        url = f"{IMMICH_URL}/api/auth/login"
-        payload = json.dumps({
-          "email": IMMICH_USERNAME,
-          "password": IMMICH_PASSWORD
-        })
-        HEADERS = {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-        try:
-            response = requests.post(url, headers=HEADERS, data=payload)
-            response.raise_for_status()  # Raises exception if 4xx or 5xx
-        except Exception as e:
-            LOGGER.error(f"ERROR   : Exception occurred during Immich login: {str(e)}")
-            return False
-        data = response.json()
-        SESSION_TOKEN = data.get("accessToken", None)
-        if not SESSION_TOKEN:
-            LOGGER.error(f"ERROR   : 'accessToken' not found in the response: {data}")
-            return False
-        HEADERS = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': f'Bearer {SESSION_TOKEN}'
-        }
-        LOGGER.info(f"INFO    : Authentication Successfully with user/password found in Config file.")
-
-    # get List of “compatible” media and sidecar extensions for Immich
-    ALLOWED_IMMICH_MEDIA_EXTENSIONS = get_supported_media_types(log_level=logging.WARNING)
-    ALLOWED_IMMICH_SIDECAR_EXTENSIONS = get_supported_media_types(type='sidecar', log_level=logging.WARNING)
-    ALLOWED_IMMICH_EXTENSIONS = ALLOWED_IMMICH_MEDIA_EXTENSIONS + ALLOWED_IMMICH_SIDECAR_EXTENSIONS
-    return True
 
 def logout_immich(log_level=logging.INFO):
     """
@@ -484,17 +486,18 @@ def delete_assets(assets_ids, log_level=logging.INFO):
           "force": True,
           "ids": assets_ids
         })
+        deleted_assets = len(assets_ids)
         try:
             response = requests.request("DELETE", url, headers=HEADERS, data=payload)
             response.raise_for_status()
             if response.ok:
-                return True
+                return deleted_assets
             else:
                 LOGGER.error(f"ERROR   : Failed to delete assets due to API error")
-                return False
+                return 0
         except Exception as e:
             LOGGER.error(f"ERROR   : Failed to delete assets: {str(e)}")
-            return False
+            return 0
 
 
 def upload_asset(file_path, log_level=logging.INFO):
@@ -624,27 +627,16 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        login_immich()
+        # login into Immich Photos if the session if not yet started
+        login_immich(log_level=log_level)
 
         if not os.path.isdir(input_folder):
             LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
             return 0
 
-        # Process subfolders_exclusion to obtain a list of inclusion names if provided
-        if isinstance(subfolders_exclusion, str):
-            subfolders_exclusion = [name.strip() for name in subfolders_exclusion.replace(',', ' ').split() if name.strip()]
-        elif isinstance(subfolders_exclusion, list):
-            subfolders_exclusion = [name.strip() for item in subfolders_exclusion if isinstance(item, str) for name in item.split(',') if name.strip()]
-        else:
-            subfolders_exclusion = None
-
-        # Process subfolders_inclusion to obtain a list of inclusion names if provided
-        if isinstance(subfolders_inclusion, str):
-            subfolders_inclusion = [name.strip() for name in subfolders_inclusion.replace(',', ' ').split() if name.strip()]
-        elif isinstance(subfolders_inclusion, list):
-            subfolders_inclusion = [name.strip() for item in subfolders_inclusion if isinstance(item, str) for name in item.split(',') if name.strip()]
-        else:
-            subfolders_inclusion = None
+        # Process subfolders_exclusion and subfolders_inclusion to convert into list
+        subfolders_exclusion = convert_to_list(subfolders_exclusion)
+        subfolders_inclusion = convert_to_list(subfolders_inclusion)
 
         albums_uploaded = 0
         albums_skipped = 0
@@ -742,22 +734,9 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
             LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
             return 0
 
-        # Process subfolders_exclusion to obtain a list of inclusion names if provided
-        if isinstance(subfolders_exclusion, str):
-            subfolders_exclusion = [name.strip() for name in subfolders_exclusion.replace(',', ' ').split() if name.strip()]
-        elif isinstance(subfolders_exclusion, list):
-            subfolders_exclusion = [name.strip() for item in subfolders_exclusion if isinstance(item, str) for name in item.split(',') if name.strip()]
-        else:
-            subfolders_exclusion = None
-
-        # Process subfolders_inclusion to obtain a list of subfolders_inclusion names (if provided)
-        if isinstance(subfolders_inclusion, str):
-            subfolders_inclusion = [name.strip() for name in subfolders_inclusion.replace(',', ' ').split() if name.strip()]
-        elif isinstance(subfolders_inclusion, list):
-            subfolders_inclusion = [name.strip() for item in subfolders_inclusion if isinstance(item, str)
-                                    for name in item.split(',') if name.strip()]
-        else:
-            subfolders_inclusion = None
+        # Process subfolders_exclusion and subfolders_inclusion to convert into list
+        subfolders_exclusion = convert_to_list(subfolders_exclusion)
+        subfolders_inclusion = convert_to_list(subfolders_inclusion)
 
         # List of Subfolders to exclude
         SUBFOLDERS_EXCLUSIONS = ['@eaDir']
@@ -817,24 +796,31 @@ def immich_upload_ALL(input_folder, albums_folders=None, log_level=logging.WARNI
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         login_immich()
 
-        total_assets_uploaded_within_albums = 0
-        total_albums_uploaded = 0
-        total_albums_skipped = 0
+        # Convert input_folder to realpath
+        input_folder = os.path.realpath(input_folder)
 
-        if albums_folders:
-            LOGGER.info("")
-            LOGGER.info(f"INFO    : Uploading Assets and creating Albums into Immich Photos from '{albums_folders}' subfolders...")
-            total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums = immich_upload_albums(input_folder=input_folder, subfolders_inclusion=albums_folders)
-            LOGGER.info("")
-            LOGGER.info(f"INFO    : Uploading Assets without Albums creation into Immich Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
-            total_assets_uploaded_without_albums = immich_upload_no_albums(input_folder=input_folder, subfolders_exclusion=albums_folders)
-        else:
-            LOGGER.info("")
-            LOGGER.info(f"INFO    : Uploading Assets without Albums creation into Immich Photos from '{input_folder}'...")
-            total_assets_uploaded_without_albums = immich_upload_no_albums(input_folder=input_folder)
+        # Process albums_folders to convert into list
+        albums_folders = convert_to_list(albums_folders)
+
+        # If 'Albums' is not part of the albums_folders, add it.
+        albums_folder_included = False
+        for subfolder in albums_folders:
+            subfolder_real_path = os.path.realpath(os.path.join(input_folder,subfolder))
+            relative_path = os.path.relpath(subfolder_real_path, input_folder)
+            if relative_path.lower() == 'albums':
+                albums_folder_included = True
+        if not albums_folder_included:
+            albums_folders.append('Albums')
+
+        LOGGER.info("")
+        LOGGER.info(f"INFO    : Uploading Assets and creating Albums into immich Photos from '{albums_folders}' subfolders...")
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums = immich_upload_albums(input_folder=input_folder, subfolders_inclusion=albums_folders, log_level=logging.WARNING)
+        LOGGER.info("")
+        LOGGER.info(f"INFO    : Uploading Assets without Albums creation into immich Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
+        total_assets_uploaded_without_albums = immich_upload_no_albums(input_folder=input_folder, subfolders_exclusion=albums_folders, log_level=logging.WARNING)
+
 
         total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
-
         return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums
 
 
@@ -998,7 +984,7 @@ def immich_download_ALL(output_folder="Downloads_Immich", log_level=logging.WARN
 # -----------------------------------------------------------------------------
 #          DELETE EMPTY ALBUMS FROM IMMICH DATABASE
 # -----------------------------------------------------------------------------
-def immich_remove_empty_albums(log_level=logging.INFO):
+def immich_remove_empty_albums(log_level=logging.WARNING):
     """
     Deletes all albums that have no assets (are empty).
     Returns the number of albums deleted.
@@ -1025,7 +1011,7 @@ def immich_remove_empty_albums(log_level=logging.INFO):
 # -----------------------------------------------------------------------------
 #          DELETE DUPLICATES ALBUMS FROM IMMICH DATABASE
 # -----------------------------------------------------------------------------
-def immich_remove_duplicates_albums(log_level=logging.INFO):
+def immich_remove_duplicates_albums(log_level=logging.WARNING):
     """
     Deletes albums that have the same number of assets and the same total size.
     From each duplicate group, keeps the first one (smallest ID) and deletes the rest.
@@ -1058,7 +1044,7 @@ def immich_remove_duplicates_albums(log_level=logging.INFO):
 # -----------------------------------------------------------------------------
 #          DELETE ORPHANS ASSETS FROM IMMICH DATABASE
 # -----------------------------------------------------------------------------
-def immich_remove_orphan_assets(user_confirmation=True, log_level=logging.INFO):
+def immich_remove_orphan_assets(user_confirmation=True, log_level=logging.WARNING):
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         login_immich()
@@ -1136,7 +1122,7 @@ def immich_remove_orphan_assets(user_confirmation=True, log_level=logging.INFO):
 # -----------------------------------------------------------------------------
 #          DELETE ALL ASSETS FROM IMMICH DATABASE
 # -----------------------------------------------------------------------------
-def immich_remove_all_assets(log_level=logging.INFO):
+def immich_remove_all_assets(log_level=logging.WARNING):
     from GlobalVariables import LOGGER  # Import global LOGGER
     login_immich()
     all_assets = get_all_assets_by_search_filter()
@@ -1166,7 +1152,7 @@ def immich_remove_all_assets(log_level=logging.INFO):
 # -----------------------------------------------------------------------------
 #          DELETE ALL ALL ALBUMS FROM IMMICH DATABASE
 # -----------------------------------------------------------------------------
-def immich_remove_all_albums(deleteAlbumsAssets=False, log_level=logging.INFO):
+def immich_remove_all_albums(deleteAlbumsAssets=False, log_level=logging.WARNING):
     """
     Deletes all albums and optionally also its associated assets.
     Returns the number of albums deleted and the number of assets deleted.
@@ -1176,8 +1162,7 @@ def immich_remove_all_albums(deleteAlbumsAssets=False, log_level=logging.INFO):
         login_immich()
         albums = get_albums()
         if not albums:
-            if show_info_messages:
-                LOGGER.info("INFO    : No albums found.")
+            LOGGER.info("INFO    : No albums found.")
             return 0, 0
         total_deleted_albums = 0
         total_deleted_assets = 0
@@ -1197,11 +1182,9 @@ def immich_remove_all_albums(deleteAlbumsAssets=False, log_level=logging.INFO):
             if delete_album(album_id, album_name):
                 # LOGGER.info(f"INFO    : Empty album '{album_name}' (ID={album_id}) deleted.")
                 total_deleted_albums += 1
-        if show_info_messages:
-            LOGGER.info(f"INFO    : Deleted {total_deleted_albums} albums.")
+        LOGGER.info(f"INFO    : Deleted {total_deleted_albums} albums.")
         if deleteAlbumsAssets:
-            if show_info_messages:
-                LOGGER.info(f"INFO    : Deleted {total_deleted_assets} assets associated to albums.")
+            LOGGER.info(f"INFO    : Deleted {total_deleted_assets} assets associated to albums.")
         return total_deleted_albums, total_deleted_assets
 
 

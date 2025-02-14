@@ -35,7 +35,7 @@ from Utils import update_metadata, convert_to_list, get_unique_items, organize_f
 # -----------------------------------------------------------------------------
 #                          GLOBAL VARIABLES
 # -----------------------------------------------------------------------------
-global CONFIG, SYNOLOGY_URL, SYNOLOGY_USERNAME, SYNOLOGY_PASSWORD, SYNOLOGY_ROOT_PHOTOS_PATH
+global CONFIG, SYNOLOGY_URL, SYNOLOGY_USERNAME, SYNOLOGY_PASSWORD
 global SESSION, SID
 
 # Initialize global variables
@@ -70,26 +70,19 @@ def read_synology_config(config_file='Config.ini', log_level=logging.INFO):
     Returns:
         dict: The loaded configuration dictionary.
     """
-    global CONFIG, SYNOLOGY_URL, SYNOLOGY_USERNAME, SYNOLOGY_PASSWORD, SYNOLOGY_ROOT_PHOTOS_PATH
+    global CONFIG, SYNOLOGY_URL, SYNOLOGY_USERNAME, SYNOLOGY_PASSWORD
     from GlobalVariables import LOGGER  # Import the logger inside the function
     from ConfigReader import load_config
-
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         if CONFIG:
             return CONFIG
-    
         # Load CONFIG from config_file
         CONFIG = {}
         CONFIG = load_config(config_file)
-    
         # Extract specific values for Synology from CONFIG.
         SYNOLOGY_URL                = CONFIG.get('SYNOLOGY_URL', None)
         SYNOLOGY_USERNAME           = CONFIG.get('SYNOLOGY_USERNAME', None)
         SYNOLOGY_PASSWORD           = CONFIG.get('SYNOLOGY_PASSWORD', None)
-        # SYNOLOGY_ROOT_PHOTOS_PATH   = CONFIG.get('SYNOLOGY_ROOT_PHOTOS_PATH', None)
-        # import Utils
-        # SYNOLOGY_ROOT_PHOTOS_PATH   = Utils.fix_paths(SYNOLOGY_ROOT_PHOTOS_PATH)
-    
         # Verify required parameters and prompt on screen if missing
         if not SYNOLOGY_URL or SYNOLOGY_URL.strip()=='':
             LOGGER.warning(f"WARNING : SYNOLOGY_URL not found. It will be requested on screen.")
@@ -103,11 +96,6 @@ def read_synology_config(config_file='Config.ini', log_level=logging.INFO):
             LOGGER.warning(f"WARNING : SYNOLOGY_PASSWORD not found. It will be requested on screen.")
             CONFIG['SYNOLOGY_PASSWORD'] = input("\nEnter SYNOLOGY_PASSWORD: ")
             SYNOLOGY_PASSWORD = CONFIG['SYNOLOGY_PASSWORD']
-        # if not SYNOLOGY_ROOT_PHOTOS_PATH or SYNOLOGY_ROOT_PHOTOS_PATH.strip()=='':
-        #     LOGGER.warning(f"WARNING : SYNOLOGY_ROOT_PHOTOS_PATH not found. It will be requested on screen.")
-        #     CONFIG['SYNOLOGY_ROOT_PHOTOS_PATH'] = input("\nEnter SYNOLOGY_ROOT_PHOTOS_PATH: ")
-        #     SYNOLOGY_ROOT_PHOTOS_PATH = CONFIG['SYNOLOGY_ROOT_PHOTOS_PATH']
-    
         LOGGER.info("")
         LOGGER.info(f"INFO    : Synology Config Read:")
         LOGGER.info(f"INFO    : ---------------------")
@@ -115,8 +103,6 @@ def read_synology_config(config_file='Config.ini', log_level=logging.INFO):
         LOGGER.info(f"INFO    : SYNOLOGY_URL              : {SYNOLOGY_URL}")
         LOGGER.info(f"INFO    : SYNOLOGY_USERNAME         : {SYNOLOGY_USERNAME}")
         LOGGER.info(f"INFO    : SYNOLOGY_PASSWORD         : {masked_password}")
-        # LOGGER.info(f"INFO    : SYNOLOGY_ROOT_PHOTOS_PATH : {SYNOLOGY_ROOT_PHOTOS_PATH}")
-    
         return CONFIG
 
 # -----------------------------------------------------------------------------
@@ -1047,7 +1033,6 @@ def download_asset(asset_id, asset_name, asset_time, destination_folder, log_lev
         str: Path of the downloaded file if successful, None if it fails.
     """
     from GlobalVariables import LOGGER
-
     with set_log_level(LOGGER, log_level):  # Temporarily change log level
         login_synology(log_level=log_level)  # Log in if necessary
 
@@ -1124,7 +1109,7 @@ def download_asset(asset_id, asset_name, asset_time, destination_folder, log_lev
 #           MAIN FUNCTIONS TO CALL FROM OTHER MODULES                        #
 ##############################################################################
 # Function to upload albums to Synology Photos
-def synology_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=[], log_level=logging.INFO):
+def synology_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=[], log_level=logging.WARNING):
     """
     Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on SYNOLOGY_EXTENSIONS) and associates them with the album.
     Example structure:
@@ -1235,7 +1220,7 @@ def synology_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfo
         return albums_uploaded, albums_skipped, assets_uploaded
 
 # Function synology_upload_no_albums()
-def synology_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfolders_inclusion=[], log_level=logging.INFO):
+def synology_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfolders_inclusion=[], log_level=logging.WARNING):
     """
     Recursively traverses 'input_folder' and its subfolders_inclusion to upload all
     compatible files (photos/videos) to Synology without associating them to any album.
@@ -1321,10 +1306,6 @@ def synology_upload_ALL(input_folder, albums_folders=None, log_level=logging.INF
         # login into Synology Photos if the session if not yet started
         login_synology(log_level=log_level)
 
-        total_assets_uploaded_within_albums = 0
-        total_albums_uploaded = 0
-        total_albums_skipped = 0
-
         # Convert input_folder to realpath
         input_folder = os.path.realpath(input_folder)
 
@@ -1354,7 +1335,7 @@ def synology_upload_ALL(input_folder, albums_folders=None, log_level=logging.INF
 
 
 # Function to download albums from Synology Photos
-def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synology', log_level=logging.INFO):
+def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synology', log_level=logging.WARNING):
     """
     Downloads albums from Synology Photos to a specified folder, supporting wildcard patterns.
 
@@ -1451,7 +1432,7 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
 
 
 # Function to download Assets without Albums from Synology Photos
-def synology_download_no_albums(output_folder='Downloads_Synology', log_level=logging.INFO):
+def synology_download_no_albums(output_folder='Downloads_Synology', log_level=logging.WARNING):
     """
     Downloads assets no associated to any albums from Synology Photos to a specified folder, supporting wildcard patterns.
 
@@ -1511,21 +1492,22 @@ def synology_download_ALL(output_folder="Downloads_Immich", show_info_messages=F
     Returns the total number of albums and assets downloaded.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
-    login_synology(log_level=log_level)
-    total_albums_downloaded, total_assets_downloaded_within_albums = synology_download_albums(albums_name='ALL', output_folder=output_folder, log_level=logging.WARNING)
-    total_assets_downloaded_without_albums = synology_download_no_albums(output_folder=output_folder, log_level=logging.WARNING)
-    total_assets_downloaded = total_assets_downloaded_within_albums + total_assets_downloaded_without_albums
-    if show_info_messages:
-        LOGGER.info(f"INFO    : Download of ALL assets completed.")
-        LOGGER.info(f"Total Albums downloaded                   : {total_albums_downloaded}")
-        LOGGER.info(f"Total Assets downloaded                   : {total_assets_downloaded}")
-        LOGGER.info(f"Total Assets downloaded within albums     : {total_assets_downloaded_within_albums}")
-        LOGGER.info(f"Total Assets downloaded without albums    : {total_assets_downloaded_without_albums}")
-    return total_albums_downloaded, total_assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        login_synology(log_level=log_level)
+        total_albums_downloaded, total_assets_downloaded_within_albums = synology_download_albums(albums_name='ALL', output_folder=output_folder, log_level=logging.WARNING)
+        total_assets_downloaded_without_albums = synology_download_no_albums(output_folder=output_folder, log_level=logging.WARNING)
+        total_assets_downloaded = total_assets_downloaded_within_albums + total_assets_downloaded_without_albums
+        if show_info_messages:
+            LOGGER.info(f"INFO    : Download of ALL assets completed.")
+            LOGGER.info(f"Total Albums downloaded                   : {total_albums_downloaded}")
+            LOGGER.info(f"Total Assets downloaded                   : {total_assets_downloaded}")
+            LOGGER.info(f"Total Assets downloaded within albums     : {total_assets_downloaded_within_albums}")
+            LOGGER.info(f"Total Assets downloaded without albums    : {total_assets_downloaded_without_albums}")
+        return total_albums_downloaded, total_assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums
 
 
 # Function to delete empty albums in Synology Photos
-def synology_remove_empty_albums(log_level=logging.INFO):
+def synology_remove_empty_albums(log_level=logging.WARNING):
     """
     Deletes all empty albums in Synology Photos.
 
@@ -1555,7 +1537,7 @@ def synology_remove_empty_albums(log_level=logging.INFO):
         return albums_removed
 
 # Function to delete duplicate albums in Synology Photos
-def synology_remove_duplicates_albums(log_level=logging.INFO):
+def synology_remove_duplicates_albums(log_level=logging.WARNING):
     """
     Deletes all duplicate albums in Synology Photos.
 
@@ -1608,7 +1590,7 @@ def synology_remove_duplicates_albums(log_level=logging.INFO):
 # -----------------------------------------------------------------------------
 #          DELETE ALL ASSETS FROM SYNOLOGY DATABASE
 # -----------------------------------------------------------------------------
-def synology_remove_all_assets(log_level=logging.INFO):
+def synology_remove_all_assets(log_level=logging.WARNING):
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # login into Synology Photos if the session if not yet started
@@ -1628,7 +1610,7 @@ def synology_remove_all_assets(log_level=logging.INFO):
         assets_removed = 0
         if assets_ids:
             assets_removed = remove_assets(assets_ids, log_level=logging.WARNING)
-        waiting_time = 30
+        waiting_time = 5
         LOGGER.info(f"INFO    : Waiting {waiting_time} seconds before to remove empty folders for Synology to Reindex them.")
         time.sleep(waiting_time)
         albums_removed = synology_remove_empty_albums(log_level=logging.WARNING)
@@ -1643,7 +1625,7 @@ def synology_remove_all_assets(log_level=logging.INFO):
 # -----------------------------------------------------------------------------
 #          DELETE ALL ALL ALBUMS FROM SYNOLOGY DATABASE
 # -----------------------------------------------------------------------------
-def synology_remove_all_albums(removeAlbumsAssets=False, log_level=logging.INFO):
+def synology_remove_all_albums(removeAlbumsAssets=False, log_level=logging.WARNING):
     """
     Removes all albums and optionally also its associated assets.
     Returns the number of albums deleted and the number of assets deleted.
@@ -1676,7 +1658,7 @@ def synology_remove_all_albums(removeAlbumsAssets=False, log_level=logging.INFO)
                 # LOGGER.info(f"INFO    : Empty album '{album_name}' (ID={album_id}) deleted.")
                 total_albums_removed += 1
 
-        waiting_time = 30
+        waiting_time = 5
         LOGGER.info(f"INFO    : Waiting {waiting_time} seconds before to remove empty folders for Synology to Reindex them.")
         time.sleep(waiting_time)
         total_folders_removed = remove_empty_folders(log_level == logging.WARNING)
