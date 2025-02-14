@@ -4,13 +4,9 @@
 ### TODO:
 
 - [ ] Review date and EXIF properties of downloaded assets (photos and videos)
-- [ ] Removed SYNOLOGY_ROOT_PHOTOS_PATH from Config.ini file (not needed anymore)
-- [ ] Support to download assets from/to any folder (no need to be indexed within the Synology Photos root Folder)
-- [ ] Allow users to choose the folder where download the assets for option -sdAlb and -sdAll 
-  - Current implementation of -sdAlb / -sdAll does not allow this ==> Investigate other implementation
 
 - #### Tests Pending:
-- [x] Deep Test on Immich Support functions
+- [ ] Deep Test on Immich Support functions
 - [ ] Deep Test on Synology Support functions
 - [ ] Deep Test on Google Photos function
 - [ ] Deep Test on --AUTOMATED-MIGRATION MODE
