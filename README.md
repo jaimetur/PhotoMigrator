@@ -67,33 +67,36 @@ Then you just need to call it depending on your environment:
 ## Syntax:
 ```
 ---------------------------------------------------------------------------------------------------------
-Usage: CloudPhotoMigrator.run/exe [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
-                                  [-AlbFld <ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]
-                                  [-rAlbAss] [-nolog] [-AUTO <SOURCE> <TARGET>]
-                                  [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFIX>]
+
+usage: CloudPhotoMigrator.run/exe [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
+                                  [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
+                                  [-rAlbAss]
+                                  [-msglevel ['debug', 'info', 'warning', 'error', 'critical']]
+                                  [-nolog] [-AUTO <SOURCE> <TARGET>]
+                                  [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gnas ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gcsa] [-gics] [-gmtf] [-grdf] [-gsef] [-gsma] [-gsgt]
-                                  [-suAlb <ALBUMS_FOLDER>]
+                                  [-suAlb <ALBUMS_FOLDER>] [-suAll <INPUT_FOLDER>]
                                   [-sdAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
-                                  [-suAll <INPUT_FOLDER>] [-sdAll <OUTPUT_FOLDER>]
-                                  [-srEmpAlb] [-srDupAlb] [-srAll] [-srAllAlb]
-                                  [-iuAlb <ALBUMS_FOLDER>]
+                                  [-sdAll <OUTPUT_FOLDER>] [-srEmpAlb] [-srDupAlb]
+                                  [-srAll] [-srAllAlb] [-iuAlb <ALBUMS_FOLDER>]
+                                  [-iuAll <INPUT_FOLDER>]
                                   [-idAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
-                                  [-iuAll <INPUT_FOLDER>] [-idAll <OUTPUT_FOLDER>]
-                                  [-irEmpAlb] [-irDupAlb] [-irAll] [-irAllAlb] [-irOrphan] 
+                                  [-idAll <OUTPUT_FOLDER>]
+                                  [-irEmpAlb] [-irDupAlb] [-irAll] [-irAllAlb] [-irOrphan]
                                   [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
                                   [-procDup <DUPLICATES_REVISED_CSV>]
                                   [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
 
-CloudPhotoMigrator v3.0.0-alpha - 2025-02-03
+CloudPhotoMigrator v3.0.0-beta-01 - 2025-02-14
 
-Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud
+Multi-Platform/Multi-Arch toot designed to Interact and Manage different Photo Cloud
 Services such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
 
 (c) 2024-2025 by Jaime Tur (@jaimetur)
 
-Optional arguments:
+optional arguments:
 
 -h,        --help
              show this help message and exit
@@ -111,6 +114,8 @@ Optional arguments:
              If used together with '-srAllAlb, --synology-remove-all-albums' or
              '-irAllAlb, --immich-remove-all-albums', it will also delete the assets
              (photos/videos) inside each album.
+-msglevel, --messages-level ['debug', 'info', 'warning', 'error', 'critical']
+             Specify the message level for logging and screen outputs.
 -nolog,    --no-log-file
              Skip saving output messages to execution log file.
 -AUTO,     --AUTOMATED-MIGRATION ('<SOURCE>', '<TARGET>')
@@ -178,34 +183,33 @@ If more than one optional arguments are detected, only the first one will be exe
 -suAlb,    --synology-upload-albums <ALBUMS_FOLDER>
              The script will look for all Subfolders with assets within <ALBUMS_FOLDER>
              and will create one Album per subfolder into Synology Photos.
+-suAll,    --synology-upload-all <INPUT_FOLDER>
+             The script will look for all Assets within <INPUT_FOLDER> and will upload
+             them into Synology Photos.
+             - The script will create a new Album per each Subfolder found in 'Albums'
+             subfolder and all assets inside each subfolder will be associated to a new
+             Album in Synology Photos with the same name as the subfolder.
+             - If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also
+             passed, then this function will create Albums also for each subfolder found
+             in <ALBUMS_FOLDER>.
 -sdAlb,    --synology-download-albums <ALBUMS_NAME>
              The Script will connect to Synology Photos and download the Album whose
-             name is '<ALBUMS_NAME>' to the folder 'Download_Synology' within the
-             Synology Photos root folder.
-             - To extract all albums mathing any pattern you can use patterns in
+             name is '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the argument
+             '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this mode).
+             - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
+             - To download all albums mathing any pattern you can use patterns in
              <ALBUMS_NAME>, i.e: --synology-download-albums 'dron*' to download all
              albums starting with the word 'dron' followed by other(s) words.
              - To download several albums you can separate their names by comma or space
              and put the name between double quotes. i.e: --synology-download-albums
              'album1', 'album2', 'album3'.
-             - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
--suAll,    --synology-upload-all <INPUT_FOLDER>
-             The script will look for all Assets within <INPUT_FOLDER> and will upload
-             them into Synology Photos.
-             - The script will create a new Album per each Subfolder found (excluding
-             'No-Albums' folder and its subfolders) and all assets inside each subfolder
-             willl be associated to a new Album in Immich Photos with the same name as
-             the subfolder
-             - If the argument '-woAlb, --without-albums' is also passed, then this
-             function will avoid create an Album per each subfolder found in
-             <INPUT_FOLDER>.
 -sdAll,    --synology-download-all <OUTPUT_FOLDER>
              The Script will connect to Synology Photos and will download all the Album
              and Assets without Albums into the folder <OUTPUT_FOLDER>.
              - All Albums will be downloaded within a subfolder of
              <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will
              be flattened into it.
-             - Assets with no Albums associated will be downloaded withn a subfolder
+             - Assets with no Albums associated will be downloaded within a subfolder
              called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure
              inside.
 -srEmpAlb, --synology-remove-empty-albums
@@ -231,34 +235,33 @@ If more than one optional arguments are detected, only the first one will be exe
 -iuAlb,    --immich-upload-albums <ALBUMS_FOLDER>
              The script will look for all Subfolders with assets within <ALBUMS_FOLDER>
              and will create one Album per subfolder into Immich Photos.
+-iuAll,    --immich-upload-all <INPUT_FOLDER>
+             The script will look for all Assets within <INPUT_FOLDER> and will upload
+             them into Immich Photos.
+             - The script will create a new Album per each Subfolder found in 'Albums'
+             subfolder and all assets inside each subfolder will be associated to a new
+             Album in Immich Photos with the same name as the subfolder.
+             - If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also
+             passed, then this function will create Albums also for each subfolder found
+             in <ALBUMS_FOLDER>.
 -idAlb,    --immich-download-albums <ALBUMS_NAME>
              The Script will connect to Immich Photos and download the Album whose name
-             is '<ALBUMS_NAME>' to the folder 'Download_Immich' within the script
-             execution folder.
-             - To extract all albums mathing any pattern you can use patterns in
+             is '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the argument '-o,
+             --output-folder <OUTPUT_FOLDER>' (mandatory argument for this mode).
+             - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
+             - To download all albums mathing any pattern you can use patterns in
              ALBUMS_NAME, i.e: --immich-download-albums 'dron*' to download all albums
              starting with the word 'dron' followed by other(s) words.
              - To download several albums you can separate their names by comma or space
              and put the name between double quotes. i.e: --immich-download-albums
              'album1', 'album2', 'album3'.
-             - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
--iuAll,    --immich-upload-all <INPUT_FOLDER>
-             The script will look for all Assets within <INPUT_FOLDER> and will upload
-             them into Immich Photos.
-             - The script will create a new Album per each Subfolder found (excluding
-             'No-Albums' folder and its subfolders) and all assets inside each subfolder
-             willl be associated to a new Album in Immich Photos with the same name as
-             the subfolder
-             - If the argument '-woAlb, --without-albums' is also passed, then this
-             function will avoid create an Album per each subfolder found in
-             <INPUT_FOLDER>.
 -idAll,    --immich-download-all <OUTPUT_FOLDER>
              The Script will connect to Immich Photos and will download all the Album
              and Assets without Albums into the folder <OUTPUT_FOLDER>.
              - All Albums will be downloaded within a subfolder of
              <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will
              be flattened into it.
-             - Assets with no Albums associated will be downloaded withn a subfolder
+             - Assets with no Albums associated will be downloaded within a subfolder
              called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure
              inside.
 -irEmpAlb, --immich-remove-empty-albums
@@ -278,7 +281,7 @@ If more than one optional arguments are detected, only the first one will be exe
              The script will look for all Orphan Assets in Immich Database and will
              delete them. IMPORTANT: This feature requires a valid ADMIN_API_KEY
              configured in Config.ini.
-             
+
 
 OTHER STANDALONE EXTRA MODES:
 -----------------------------
