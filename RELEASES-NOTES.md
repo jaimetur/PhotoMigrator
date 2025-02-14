@@ -1,16 +1,16 @@
 ## Download Latest Version:
-Download the script either Linux, MacOS or Windows version (for both x64/amd64 or arm64 architectures) as you prefeer directly from following links:
+Download the script either Linux, MacOS or Windows version (for both x64/amd64 or arm64 architectures) as you prefer directly from following links:
 
 **Linux:**:  
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/raw/refs/heads/main/_built_versions/3.0.0-alpha/CloudPhotoMigrator_v3.0.0-alpha_linux_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/raw/refs/heads/main/_built_versions/3.0.0-alpha/CloudPhotoMigrator_v3.0.0-alpha_linux_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/raw/refs/heads/main/_built_versions/3.0.0-beta-01/CloudPhotoMigrator_v3.0.0-beta-01_linux_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/raw/refs/heads/main/_built_versions/3.0.0-beta-01/CloudPhotoMigrator_v3.0.0-beta-01_linux_arm64.zip)  
 
 **Mac OS:**
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/raw/refs/heads/main/_built_versions/3.0.0-alpha/CloudPhotoMigrator_v3.0.0-alpha_macos_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/raw/refs/heads/main/_built_versions/3.0.0-alpha/CloudPhotoMigrator_v3.0.0-alpha_macos_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/raw/refs/heads/main/_built_versions/3.0.0-beta-01/CloudPhotoMigrator_v3.0.0-beta-01_macos_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/raw/refs/heads/main/_built_versions/3.0.0-beta-01/CloudPhotoMigrator_v3.0.0-beta-01_macos_arm64.zip)  
 
 **Windows:**  
-- [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/raw/refs/heads/main/_built_versions/3.0.0-alpha/CloudPhotoMigrator_v3.0.0-alpha_windows_amd64.zip)  
+- [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/raw/refs/heads/main/_built_versions/3.0.0-beta-01/CloudPhotoMigrator_v3.0.0-beta-01_windows_amd64.zip)  
 
 ---
 
