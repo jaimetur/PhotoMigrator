@@ -51,6 +51,7 @@ Download the script either Linux, MacOS or Windows version (for both x64/amd64 o
 - [x] Unificate a single Config.ini file and included tags for the different configuration sections.
 - [x] Included _RELEASES-NOTES.md_ and _ROADMAP.md_ files to the distribution package.
 - [x] Moved at the end of the help the standard option (those that are not related to any Support mode).
+- [x] Removed SYNOLOGY_ROOT_PHOTOS_PATH from Config.ini, since it is not needed anymore.
 - [x] Updated -h, --help to reflect the new changes.
 - [x] Code refactored.
 - [x] Minor Bug Fixing.

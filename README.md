@@ -450,7 +450,6 @@ all files found to set the correct date and time, and identifying which assets b
 >>SYNOLOGY_URL                = http://192.168.1.11:5000                      # Change this IP by the IP that contains the Synology server or by your valid Synology URL
 >>SYNOLOGY_USERNAME           = username                                      # Your username for Synology Photos
 >>SYNOLOGY_PASSWORD           = password                                      # Your password for Synology Photos
->>SYNOLOGY_ROOT_PHOTOS_PATH   = /volume1/homes/your_username/Photos           # Your root path to Synology Photos main folder. Tipically is /volume1/homes/your_username/Photos
 >>```
 >### Features included:
 > - Upload Album(s)
@@ -576,11 +575,11 @@ With this example, the script will connect to Synology Photos database and extra
 >>IMMICH_USERNAME             = username                                      # Optional: Your username for Immich Photos (mandatory if not API_KEY is providen)
 >>IMMICH_PASSWORD             = password                                      # Optional: Your password for Immich Photos (mandatory if not API_KEY is providen)
 >>IMMICH_FILTER_ARCHIVE       = False                                         # Optional: Used as Filter Criteria for Assets downloading (True/False)
->>IMMICH_FILTER_FROM          =                                               # Optional: Used as Filter Criteria for Assets downloading (i.e: 2024-10-01)
->>IMMICH_FILTER_TO            =                                               # Optional: Used as Filter Criteria for Assets downloading (i.e: 2024-10-01)
->>IMMICH_FILTER_COUNTRY       =                                               # Optional: Used as Filter Criteria for Assets downloading (i.e: Spain)
->>IMMICH_FILTER_CITY          =                                               # Optional: Used as Filter Criteria for Assets downloading (i.e: ['Madrid', 'Málaga'])
->>IMMICH_FILTER_PERSON        =                                               # Optional: Used as Filter Criteria for Assets downloading (i.e: ['Mery', 'James'])
+>>IMMICH_FILTER_FROM          = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: 2024-10-01)
+>>IMMICH_FILTER_TO            = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: 2024-10-01)
+>>IMMICH_FILTER_COUNTRY       = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: Spain)
+>>IMMICH_FILTER_CITY          = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: ['Madrid', 'Málaga'])
+>>IMMICH_FILTER_PERSON        = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: ['Mery', 'James'])
 >>```
 >### Features included:
 > - Upload Album(s)
