@@ -377,19 +377,17 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
 
 
 def mode_synology_download_albums(user_confirmation=True, log_level=logging.INFO):
+    LOGGER.info(f"INFO    : Synology Photos: 'Download Albums' Mode detected. Only this module will be run!!!")
+    LOGGER.info(f"INFO    : Albums to extract   : {ARGS['synology-download-albums']}")
     if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-sdAlb, --synology-download-albums'.")
-        LOGGER.info(HELP_TEXTS["synology-download-albums"].replace("'<ALBUMS_NAME>'", f"'{ARGS['synology-download-albums']}'"))
+        LOGGER.info(f"INFO    : Flag detected '-sdAlb, --synology-download-albums <ALBUMS_NAME>'.".replace("'<ALBUMS_NAME>'", f"{ARGS['synology-download-albums']}"))
+        LOGGER.info(HELP_TEXTS["synology-download-albums"].replace("'<ALBUMS_NAME>'", f"{ARGS['synology-download-albums']}").replace("<OUTPUT_FOLDER>", ARGS['output-folder']))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Synology Photos: 'Download Albums' Mode detected. Only this module will be run!!!")
-        LOGGER.info("")
-        LOGGER.info(f"INFO    : Albums to extract       : {ARGS['synology-download-albums']}")
-        LOGGER.info("")
         # Call the Function
-        albums_downloaded, photos_downloaded = synology_download_albums(ARGS['synology-download-albums'], log_level=logging.WARNING)
+        albums_downloaded, photos_downloaded = synology_download_albums(albums_name=ARGS['synology-download-albums'], output_folder=ARGS['output-folder'], log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -409,18 +407,16 @@ def mode_synology_download_albums(user_confirmation=True, log_level=logging.INFO
         LOGGER.info("")
 
 def mode_synology_download_ALL(user_confirmation=True, log_level=logging.INFO):
+    LOGGER.info(f"INFO    : Synology Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
     if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-idAll, --immich-download-all'.")
+        LOGGER.info(f"INFO    : Flag detected '-sdAll, --synology-download-all'.")
         LOGGER.info(HELP_TEXTS["synology-download-all"].replace('<OUTPUT_FOLDER>', f"{ARGS['synology-download-all']}"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Synology Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
-        LOGGER.info("")
-        LOGGER.info("")
         # Call the Function
-        albums_downloaded, assets_downloaded = synology_download_ALL(output_folder=ARGS['synology-download-all'], log_level=logging.WARNING)
+        albums_downloaded, assets_downloaded, assets_downloaded_within_albums, assets_downloaded_without_albums = synology_download_ALL(output_folder=ARGS['synology-download-all'], log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -434,6 +430,8 @@ def mode_synology_download_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("==================================================")
         LOGGER.info(f"Total Albums downloaded                 : {albums_downloaded}")
         LOGGER.info(f"Total Assets downloaded                 : {assets_downloaded}")
+        LOGGER.info(f"Total Assets downloaded within albums   : {assets_downloaded_within_albums}")
+        LOGGER.info(f"Total Assets downloaded without albums  : {assets_downloaded_without_albums}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -653,19 +651,17 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("")
 
 def mode_immich_download_albums(user_confirmation=True, log_level=logging.INFO):
+    LOGGER.info(f"INFO    : Immich Photos: 'Download Albums' Mode detected. Only this module will be run!!!")
+    LOGGER.info(f"INFO    : Albums to extract   : {ARGS['immich-download-albums']}")
     if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-idAlb, --immich-download-albums'.")
-        LOGGER.info(HELP_TEXTS["immich-download-albums"].replace("'<ALBUMS_NAME>'", f"{ARGS['immich-download-albums']}"))
+        LOGGER.info(f"INFO    : Flag detected '-idAlb, --immich-download-albums <ALBUMS_NAME>'.".replace("'<ALBUMS_NAME>'", f"{ARGS['immich-download-albums']}"))
+        LOGGER.info(HELP_TEXTS["immich-download-albums"].replace("'<ALBUMS_NAME>'", f"{ARGS['immich-download-albums']}").replace("<OUTPUT_FOLDER>", ARGS['output-folder']))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Immich Photos: 'Download Albums' Mode detected. Only this module will be run!!!")
-        LOGGER.info("")
-        # LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
-        LOGGER.info("")
         # Call the Function
-        albums_downloaded, assets_downloaded = immich_download_albums(ARGS['immich-download-albums'], log_level=logging.WARNING)
+        albums_downloaded, assets_downloaded = immich_download_albums(albums_name=ARGS['immich-download-albums'], output_folder=ARGS['output-folder'], log_level=logging.WARNING)
         logout_immich()
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -686,6 +682,7 @@ def mode_immich_download_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("")
 
 def mode_immich_download_ALL(user_confirmation=True, log_level=logging.INFO):
+    LOGGER.info(f"INFO    : Immich Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
     if user_confirmation:
         LOGGER.info(f"INFO    : Flag detected '-idAll, --immich-download-all'.")
         LOGGER.info(HELP_TEXTS["immich-download-all"].replace('<OUTPUT_FOLDER>', f"{ARGS['immich-download-all']}"))
@@ -693,10 +690,6 @@ def mode_immich_download_ALL(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Immich Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
-        LOGGER.info("")
-        # LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
-        LOGGER.info("")
         # Call the Function
         albums_downloaded, assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums = immich_download_ALL(output_folder=ARGS['immich-download-all'], log_level=logging.WARNING)
         logout_immich()

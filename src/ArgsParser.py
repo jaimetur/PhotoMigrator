@@ -75,21 +75,21 @@ def parse_arguments():
     # EXTRA MODES FOR SYNOLOGY PHOTOS:
     # --------------------------------
     PARSER.add_argument("-suAlb", "--synology-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Synology Photos.")
-    PARSER.add_argument("-sdAlb", "--synology-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
-                        help="The Script will connect to Synology Photos and download the Album whose name is '<ALBUMS_NAME>' to the folder 'Download_Synology' within the Synology Photos root folder."
-                           "\n- To extract all albums mathing any pattern you can use patterns in <ALBUMS_NAME>, i.e: --synology-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
-                           "\n- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums 'album1', 'album2', 'album3'."
-                           "\n- To download ALL Albums use 'ALL' as <ALBUMS_NAME>."
-                        )
     PARSER.add_argument("-suAll", "--synology-upload-all", metavar="<INPUT_FOLDER>", default="",
                         help="The script will look for all Assets within <INPUT_FOLDER> and will upload them into Synology Photos."
-                           "\n- The script will create a new Album per each Subfolder found (excluding 'No-Albums' folder and its subfolders) and all assets inside each subfolder willl be associated to a new Album in Immich Photos with the same name as the subfolder"
-                           "\n- If the argument '-woAlb, --without-albums' is also passed, then this function will avoid create an Album per each subfolder found in <INPUT_FOLDER>."
+                           "\n- The script will create a new Album per each Subfolder found in 'Albums' subfolder and all assets inside each subfolder will be associated to a new Album in Synology Photos with the same name as the subfolder."
+                           "\n- If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also passed, then this function will create Albums also for each subfolder found in <ALBUMS_FOLDER>."
+                        )
+    PARSER.add_argument("-sdAlb", "--synology-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
+                        help="The Script will connect to Synology Photos and download the Album whose name is '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument to use this mode)."
+                           "\n- To download ALL Albums use 'ALL' as <ALBUMS_NAME>."
+                           "\n- To download all albums mathing any pattern you can use patterns in <ALBUMS_NAME>, i.e: --synology-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
+                           "\n- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums 'album1', 'album2', 'album3'."
                         )
     PARSER.add_argument("-sdAll", "--synology-download-all", metavar="<OUTPUT_FOLDER>", default="",
                         help="The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
                            "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
-                           "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
+                           "\n- Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
                         )
     PARSER.add_argument("-srEmpAlb", "--synology-remove-empty-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.")
     PARSER.add_argument("-srDupAlb", "--synology-remove-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.")
@@ -102,21 +102,21 @@ def parse_arguments():
     # EXTRA MODES FOR IMMINCH PHOTOS:
     # -------------------------------
     PARSER.add_argument("-iuAlb", "--immich-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Immich Photos.")
-    PARSER.add_argument("-idAlb", "--immich-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
-                        help="The Script will connect to Immich Photos and download the Album whose name is '<ALBUMS_NAME>' to the folder 'Download_Immich' within the script execution folder."
-                           "\n- To extract all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: --immich-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
-                           "\n- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums 'album1', 'album2', 'album3'."
-                           "\n- To download ALL Albums use 'ALL' as <ALBUMS_NAME>."
-                        )
     PARSER.add_argument("-iuAll", "--immich-upload-all", metavar="<INPUT_FOLDER>", default="",
                         help="The script will look for all Assets within <INPUT_FOLDER> and will upload them into Immich Photos."
-                           "\n- The script will create a new Album per each Subfolder found (excluding 'No-Albums' folder and its subfolders) and all assets inside each subfolder willl be associated to a new Album in Immich Photos with the same name as the subfolder"
-                           "\n- If the argument '-woAlb, --without-albums' is also passed, then this function will avoid create an Album per each subfolder found in <INPUT_FOLDER>."
+                           "\n- The script will create a new Album per each Subfolder found in 'Albums' subfolder and all assets inside each subfolder will be associated to a new Album in Immich Photos with the same name as the subfolder."
+                           "\n- If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also passed, then this function will create Albums also for each subfolder found in <ALBUMS_FOLDER>."
+                        )
+    PARSER.add_argument("-idAlb", "--immich-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
+                        help="The Script will connect to Immich Photos and download the Album whose name is '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument to use this mode)."
+                           "\n- To download ALL Albums use 'ALL' as <ALBUMS_NAME>."
+                           "\n- To download all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: --immich-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
+                           "\n- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums 'album1', 'album2', 'album3'."
                         )
     PARSER.add_argument("-idAll", "--immich-download-all", metavar="<OUTPUT_FOLDER>", default="",
                         help="The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
                            "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
-                           "\n- Assets with no Albums associated will be downloaded withn a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
+                           "\n- Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
                         )
     PARSER.add_argument("-irEmpAlb", "--immich-remove-empty-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.")
     PARSER.add_argument("-irDupAlb", "--immich-remove-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.")
@@ -204,10 +204,18 @@ def checkArgs(ARGS):
     elif ARGS['messages-level'].lower() == 'critical':
         LOG_LEVEL = logging.CRITICAL
 
+    # Parse synology-download-albums and immich-download-albums to ensure than ARGS['output-folder'] is used to specify <OUTPUT_FOLDER>
+    if ARGS['synology-download-albums'] != "" and ARGS['output-folder'] == "":
+        print(f"❌ ERROR   : When use flag -sdAlb, --synology-download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>")
+        exit(1)
+    if ARGS['immich-download-albums'] != "" and ARGS['output-folder'] == "":
+        print(f"❌ ERROR   : When use flag -idAlb, --immich-download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>")
+        exit(1)
+
     # Parse albums-folders Arguments to convert to a List if more than one Album folder is provide
     ARGS['albums-folders'] = parse_folders(ARGS['albums-folders'])
-    if ARGS['albums-folders'] == []:
-        ARGS['albums-folders'] = 'Albums'
+    # if ARGS['albums-folders'] == []:
+    #     ARGS['albums-folders'] = 'Albums'
 
     # Parse duplicates-folders Arguments
     ARGS['duplicates-folders'] = []

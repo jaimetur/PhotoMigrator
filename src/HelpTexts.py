@@ -51,25 +51,20 @@ def set_help_texts():
         """)
 
     HELP_TEXTS["synology-download-albums"] = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to Synology Photos and extract those Album(s) whose name is in <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the SYNOLOGY_ROOT_FOLDER. 
-        
-        If the file already exists, it will be OVERWRITTEN!!!
-        
-        To extract all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: dron* to download all albums starting with the word 'dron' followed by other(s) words.
-        
-        To extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums "album1", "album2", "album3" 
-        
-        To extract ALL Albums within in Synology Photos database use 'ALL' as ALBUMS_NAME.
+        ATTENTION!!!: This process will connect to Synology Photos and download those Album(s) whose name is in: '<ALBUMS_NAME>' 
+        to the output folder: '<OUTPUT_FOLDER>'. If the file already exists, it will be OVERWRITTEN!!!
+
+        - To download ALL Albums within in Synology Photos database use 'ALL' as ALBUMS_NAME.
+        - To download all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: dron* to download all albums starting with the word 'dron' followed by other(s) words.
+        - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums "album1", "album2", "album3" 
         """)
 
     HELP_TEXTS["synology-download-all"] = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to Synology Photos and will download all the Album and Assets without Albums into the folder '<OUTPUT_FOLDER>' within the SYNOLOGY_ROOT_FOLDER. 
+        ATTENTION!!!: This process will connect to Synology Photos and will download all the Albums Assets and also 
+        Assets without Albums into the folder '<OUTPUT_FOLDER>'. If the file already exists, it will be OVERWRITTEN!!!
         
-        If the file already exists, it will be OVERWRITTEN!!!
-        
-        All Albums will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums' with the same name of the Album and all files will be flattened into it.
-        
-        Assets with no Albums associated will be downloaded within a subfolder '<OUTPUT_FOLDER>/No-Albums' and will have a year/month structure inside.
+        - All Albums Assets will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums' with the same name of the Album and all files will be flattened into it.
+        - All Assets with no Albums associated will be downloaded within a subfolder '<OUTPUT_FOLDER>/No-Albums' and will have a year/month structure inside.
         """)
 
     HELP_TEXTS["synology-remove-all-assets"]  = textwrap.dedent(f"""
@@ -110,25 +105,20 @@ def set_help_texts():
         """)
 
     HELP_TEXTS["immich-download-albums"]  = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to Immich Photos and extract those Album(s) whose name is in <ALBUMS_NAME> to the folder './Downloads_Immich' within the Script execution folder. 
+        ATTENTION!!!: This process will connect to Immich Photos and download those Album(s) whose name is in: '<ALBUMS_NAME>' 
+        to the output folder: '<OUTPUT_FOLDER>'.  If the file already exists, it will be OVERWRITTEN!!!
        
-        If the file already exists, it will be OVERWRITTEN!!!
-       
-        To extract all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: dron* to download all albums starting with the word 'dron' followed by other(s) words.
-       
-        To extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums "album1", "album2", "album3" 
-       
-        To extract ALL Albums within in Immich Photos database use 'ALL' as ALBUMS_NAME.
+        - To download ALL Albums within in Immich Photos database use 'ALL' as ALBUMS_NAME.
+        - To download all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: dron* to download all albums starting with the word 'dron' followed by other(s) words.
+        - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums "album1", "album2", "album3"        
         """)
 
     HELP_TEXTS["immich-download-all"]  = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to Immich Photos and will download all the Album and Assets without Albums into the folder './<OUTPUT_FOLDER>'. 
-       
-        If the file already exists, it will be OVERWRITTEN!!!.
-       
-        All Albums will be downloaded within a subfolder of './<OUTPUT_FOLDER>/Albums' with the same name of the Album and all files will be flattened into it.
-       
-        Assets with no Albums associated will be downloaded withn a subfolder './<OUTPUT_FOLDER>/No-Albums' and will have a year/month structure inside.
+        ATTENTION!!!: This process will connect to Immich Photos and will download all the Albums Assets and also 
+        Assets without Albums into the folder '<OUTPUT_FOLDER>'. If the file already exists, it will be OVERWRITTEN!!!
+        
+        - All Albums Assets will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums' with the same name of the Album and all files will be flattened into it.
+        - All Assets with no Albums associated will be downloaded within a subfolder '<OUTPUT_FOLDER>/No-Albums' and will have a year/month structure inside.
         """)
 
     HELP_TEXTS["immich-remove-orphan-assets"]  = textwrap.dedent(f"""

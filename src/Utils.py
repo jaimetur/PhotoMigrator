@@ -5,6 +5,7 @@ import fnmatch
 import re
 import stat
 from datetime import datetime
+import ctypes
 from tqdm import tqdm
 import platform
 import piexif
@@ -707,7 +708,7 @@ def force_remove_directory(path):
         shutil.rmtree(path, onerror=onerror)
         LOGGER.info(f"INFO    : The folder '{path}' and all its contant have been deleted.")
     else:
-        print(f"WARNNING: Cannot delete the folder '{path}'.")
+        LOGGER.warning(f"WARNING : Cannot delete the folder '{path}'.")
 
 def fix_paths(path):
     fixed_path = path.replace('/', os.path.sep).replace('\\', os.path.sep)
@@ -764,10 +765,11 @@ def update_metadata(file_path, date_time):
             update_exif_date(file_path, date_time)
         elif file_ext in ALLOWED_SYNOLOGY_VIDEO_EXTENSIONS:
             update_video_metadata(file_path, date_time)
-
-        LOGGER.info(f"INFO    : Metadata updated for {file_path} with timestamp {date_time}")
+        LOGGER.debug("")
+        LOGGER.debug(f"DEBUG   : Metadata updated for {file_path} with timestamp {date_time}")
 
     except Exception as e:
+        LOGGER.error("")
         LOGGER.error(f"ERROR   : Failed to update metadata for {file_path}. {e}")
 
 
@@ -787,6 +789,7 @@ def update_exif_date(image_path, asset_time):
             try:
                 asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
             except ValueError:
+                LOGGER.error("")
                 LOGGER.error(f"ERROR   : Invalid date format for asset_time: {asset_time}")
                 return
 
@@ -816,14 +819,62 @@ def update_exif_date(image_path, asset_time):
 
         # Restore original file timestamps
         os.utime(image_path, (original_atime, original_mtime))
-
-        LOGGER.info(f"INFO    : EXIF metadata updated for {image_path} with timestamp {date_time_exif}")
+        LOGGER.debug("")
+        LOGGER.debug(f"DEBUG   : EXIF metadata updated for {image_path} with timestamp {date_time_exif}")
 
     except Exception as e:
+        LOGGER.error("")
         LOGGER.error(f"ERROR   : Failed to update EXIF metadata for {image_path}. {e}")
 
 
 def update_video_metadata(video_path, asset_time):
+    """
+    Updates the file system timestamps of a video file to set the creation and modification dates.
+
+    This does NOT modify embedded metadata within the file, only the timestamps visible to the OS.
+
+    Args:
+        video_path (str): Path to the video file.
+        asset_time (int | str): Timestamp in UNIX Epoch format or a string in 'YYYY-MM-DD HH:MM:SS' format.
+    """
+    from GlobalVariables import LOGGER
+    try:
+        # Convert asset_time to UNIX timestamp if it's in string format
+        if isinstance(asset_time, str):
+            try:
+                asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
+            except ValueError:
+                LOGGER.error("")
+                LOGGER.error(f"ERROR   : Invalid date format for asset_time: {asset_time}")
+                return
+        # Convert timestamp to system format
+        mod_time = asset_time
+        create_time = asset_time
+        # Update last modified and last accessed time (works on all OS)
+        os.utime(video_path, (mod_time, mod_time))
+        # Update file creation time (Windows only)
+        if platform.system() == "Windows":
+            try:
+                # Convert timestamp to Windows FILETIME format (100-nanosecond intervals since 1601-01-01)
+                windows_time = int((create_time + 11644473600) * 10000000)
+                # Open the file handle
+                handle = ctypes.windll.kernel32.CreateFileW(video_path, 256, 0, None, 3, 128, None)
+                if handle != -1:
+                    ctypes.windll.kernel32.SetFileTime(handle, ctypes.byref(ctypes.c_int64(windows_time)), None, None)
+                    ctypes.windll.kernel32.CloseHandle(handle)
+                    LOGGER.debug("")
+                    LOGGER.debug(f"DEBUG     : File creation time updated for {video_path}")
+            except Exception as e:
+                LOGGER.error("")
+                LOGGER.error(f"ERROR   : Failed to update file creation time on Windows. {e}")
+        LOGGER.debug("")
+        LOGGER.debug(f"DEBUG   : File system timestamps updated for {video_path} with timestamp {datetime.fromtimestamp(mod_time)}")
+    except Exception as e:
+        LOGGER.error("")
+        LOGGER.error(f"ERROR   : Failed to update video metadata for {video_path}. {e}")
+
+
+def update_video_metadata_with_ffmpeg(video_path, asset_time):
     """
     Updates the metadata of a video file to set the creation date without modifying file timestamps.
 
@@ -832,18 +883,22 @@ def update_video_metadata(video_path, asset_time):
         asset_time (int): Timestamp in UNIX Epoch format.
     """
     from GlobalVariables import LOGGER
-
     try:
+        # Si asset_time es una cadena en formato 'YYYY-MM-DD HH:MM:SS', conviértelo a timestamp UNIX
+        if isinstance(asset_time, str):
+            try:
+                asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
+            except ValueError:
+                LOGGER.error("")
+                LOGGER.error(f"ERROR   : Invalid date format for asset_time: {asset_time}")
+                return
         # Convert asset_time (UNIX timestamp) to format used by FFmpeg (YYYY-MM-DDTHH:MM:SS)
         formatted_date = datetime.fromtimestamp(asset_time).strftime("%Y-%m-%dT%H:%M:%S")
-
         # Backup original file timestamps
         original_times = os.stat(video_path)
         original_atime = original_times.st_atime
         original_mtime = original_times.st_mtime
-
         temp_file = video_path + "_temp.mp4"
-
         command = [
             "ffmpeg", "-i", video_path,
             "-metadata", f"creation_time={formatted_date}",
@@ -851,16 +906,25 @@ def update_video_metadata(video_path, asset_time):
             "-metadata", f"date_time_original={formatted_date}",
             "-codec", "copy", temp_file
         ]
-
         subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
-
         os.replace(temp_file, video_path)  # Replace original file with updated one
-
         # Restore original file timestamps
         os.utime(video_path, (original_atime, original_mtime))
-
-        LOGGER.info(f"INFO    : Video metadata updated for {video_path} with timestamp {formatted_date}")
-
+        LOGGER.debug("")
+        LOGGER.debug(f"DEBUG   : Video metadata updated for {video_path} with timestamp {formatted_date}")
     except Exception as e:
+        LOGGER.error("")
         LOGGER.error(f"ERROR   : Failed to update video metadata for {video_path}. {e}")
 
+# Convert to list
+def convert_to_list(input):
+    ''' Convert a String to List'''
+    output=input
+    # Process subfolders_exclusion to obtain a list of inclusion names if provided
+    if isinstance(output, str):
+        output = [name.strip() for name in output.replace(',', ' ').split() if name.strip()]
+    elif isinstance(output, list):
+        output = [name.strip() for item in output if isinstance(item, str) for name in item.split(',') if name.strip()]
+    else:
+        output = []
+    return output
