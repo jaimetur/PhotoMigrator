@@ -2,6 +2,7 @@
 from datetime import datetime
 import textwrap
 import os,sys
+import logging
 
 #---------------------------------------
 # GLOBAL VARIABLES FOR THE WHOLE PROJECT
@@ -9,7 +10,7 @@ import os,sys
 
 SCRIPT_NAME                     = "CloudPhotoMigrator"
 SCRIPT_VERSION                  = "v3.0.0-beta-01"
-SCRIPT_DATE                     = "2025-02-10"
+SCRIPT_DATE                     = "2025-02-12"
 SCRIPT_NAME_VERSION             = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
 LOG_FOLDER_FILENAME             = ""
 START_TIME                      = datetime.now()
@@ -18,6 +19,7 @@ HELP_TEXTS                      = None
 ARGS                            = None
 PARSER                          = None
 LOGGER                          = None
+LOG_LEVEL                       = logging.INFO
 
 # List of Folder to Deprioritize when looking for duplicates.
 DEPRIORITIZE_FOLDERS_PATTERNS   = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS', '*No-Albums', '*Others', '*Variad[oa]*', '*Vari[oa]*', '*Miscellaneous*', '*M[oó]vil*', r'\bfotos\b\s+(\w+)\s*$', r'fotos de \w y \w\s*$', r'fotos de \w\s*$', '*Fotos_de*', '*Fotos_con', '*Fotos de*', '*Fotos con*']
@@ -45,15 +47,13 @@ def set_ARGS_PARSER():
 
 def set_LOGGER():
     from CustomLogger import log_setup, TqdmToLogger
-    import logging
     global LOGGER, TQDM_LOGGER, LOG_FOLDER_FILENAME
-    log_level = logging.INFO
     script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     current_directory = os.getcwd()
     log_folder="Logs"
     log_filename=f"{script_name}_{TIMESTAMP}"
     LOG_FOLDER_FILENAME = os.path.join(current_directory, log_folder, log_filename)
-    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=log_level, plain_log=True)
+    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=LOG_LEVEL, plain_log=True)
 
 def set_HELP_TEXT():
     from HelpTexts import set_help_texts

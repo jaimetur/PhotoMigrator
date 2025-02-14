@@ -3,7 +3,7 @@ import os, sys
 
 CONFIG = None
 
-def load_config(config_file='CONFIG.ini'):
+def load_config(config_file='Config.ini'):
     #
     # Load and Set Global CONFIG variable
     #
@@ -90,15 +90,16 @@ if __name__ == "__main__":
     from datetime import datetime
     from CustomLogger import log_setup
     import logging
+    from GlobalVariables import LOG_LEVEL
     TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
     log_filename = f"{sys.argv[0]}_{TIMESTAMP}"
     log_folder = "Logs"
     LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
-    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=logging.DEBUG)
+    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=LOG_LEVEL)
 
     if len(sys.argv[1:]) == 0:
-        CONFIG = load_config('CONFIG.ini')
-        print("\nUsing Configuration File: ['CONFIG.ini']\n")
+        CONFIG = load_config('Config.ini')
+        print("\nUsing Configuration File: ['Config.ini']\n")
     else:
         CONFIG = load_config(sys.argv[1:])
         print("\nUsing Configuration File:", sys.argv[1:], "\n")

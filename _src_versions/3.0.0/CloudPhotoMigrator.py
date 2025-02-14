@@ -23,8 +23,9 @@ def main():
     LOGGER.info("")
     # Check OS and Terminal
     check_OS_and_Terminal()
+    LOGGER.info(f"INFO    : Messages Level      : '{ARGS['messages-level']}'")
     if not ARGS['no-log-file']:
-        LOGGER.info(f"INFO    : Log File Location: '{LOG_FOLDER_FILENAME+'.log'}'")
+        LOGGER.info(f"INFO    : Log File Location   : '{LOG_FOLDER_FILENAME+'.log'}'")
         LOGGER.info("")
 
     # Get the execution mode and run it.

@@ -2,6 +2,7 @@
 import os,sys
 import logging
 from colorama import Fore, Style
+from contextlib import contextmanager
 
 # Clase personalizada para formatear los mensajes que van a la consola (Añadimos colorees según el nivel del mensaje)
 class CustomConsoleFormatter(logging.Formatter):
@@ -15,7 +16,8 @@ class CustomConsoleFormatter(logging.Formatter):
         COLORS = {
             "DEBUG": Fore.BLUE,
             # "INFO": Fore.GREEN,
-            "INFO": Fore.WHITE,
+            # "INFO": Fore.WHITE,
+            "INFO": Fore.LIGHTWHITE_EX,
             "WARNING": Fore.YELLOW,
             "ERROR": Fore.RED,
             "CRITICAL": Fore.MAGENTA,
@@ -120,3 +122,13 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, time
     # Set the log level for the root logger
     LOGGER.setLevel(log_level)
     return LOGGER
+
+# Crear un contexto para cambiar el nivel del logger temporalmente
+@contextmanager
+def set_log_level(logger, level):
+    old_level = logger.level  # Guardar nivel actual
+    logger.setLevel(level)  # Cambiar nivel
+    try:
+        yield
+    finally:
+        logger.setLevel(old_level)  # Restaurar nivel original
