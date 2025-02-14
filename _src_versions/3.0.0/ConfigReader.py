@@ -60,7 +60,7 @@ def load_config(config_file='Config.ini'):
 
     # Define the Sections and Keys to find in config_file
     config_keys = {
-        'Synology Photos': ['SYNOLOGY_URL', 'SYNOLOGY_USERNAME', 'SYNOLOGY_PASSWORD', 'SYNOLOGY_ROOT_PHOTOS_PATH'],
+        'Synology Photos': ['SYNOLOGY_URL', 'SYNOLOGY_USERNAME', 'SYNOLOGY_PASSWORD'],
         'Immich Photos': ['IMMICH_URL', 'IMMICH_ADMIN_API_KEY', 'IMMICH_USER_API_KEY', 'IMMICH_USERNAME', 'IMMICH_PASSWORD', 'IMMICH_FILTER_ARCHIVE', 'IMMICH_FILTER_FROM', 'IMMICH_FILTER_TO', 'IMMICH_FILTER_COUNTRY', 'IMMICH_FILTER_CITY', 'IMMICH_FILTER_PERSON'],
         'Apple Photos': ['max_photos', 'appleid', 'applepwd', 'album', 'to_directory', 'date_from', 'date_to', 'asset_from', 'asset_to'],
         'TimeZone': ['timezone']
