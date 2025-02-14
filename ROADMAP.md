@@ -3,7 +3,7 @@
 ## 3.0.0 (14/02/2025):
 ### TODO:
 
-- [ ] Review date and EXIF properties of downloaded assets (photos and videos)
+- [ ] Review date and EXIF properties of downloaded assets (photos and videos) in Immich download_asset
 
 - #### Tests Pending:
 - [ ] Deep Test on Immich Support functions
