@@ -67,8 +67,10 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, 
             os.rename(all_photos_path, others_path)
 
         LOGGER.info(f"INFO    : GPTH Tool finxing completed successfully.")
+        return True
     except subprocess.CalledProcessError as e:
         LOGGER.error(f"ERROR   : GPTH Tool fixing failed:\n{e.stderr}")
+        return False
 
 def fix_metadata_with_exif_tool(output_folder):
     """Runs the EXIF Tool command to fix photo metadata."""

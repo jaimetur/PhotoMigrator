@@ -65,7 +65,7 @@ def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER, log_level=logging.INFO):
                 LOGGER.warning(
                     "WARNING : Ignore Google Takeout Structure detected ('-it, --google-ignore-check-structure' flag detected).")
             step_start_time = datetime.now()
-            ExifFixers.fix_metadata_with_gpth_tool(
+            result = ExifFixers.fix_metadata_with_gpth_tool(
                 input_folder=ARGS['google-input-takeout-folder'],
                 output_folder=OUTPUT_TAKEOUT_FOLDER,
                 symbolic_albums=ARGS['google-create-symbolic-albums'],
@@ -73,6 +73,9 @@ def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER, log_level=logging.INFO):
                 move_takeout_folder=ARGS['google-move-takeout-folder'],
                 ignore_takeout_structure=ARGS['google-ignore-check-structure']
             )
+            if not result:
+                LOGGER.warning(f"WARNING : Metadata fixing didn't finish properly due to GPTH error.")
+                LOGGER.warning(f"WARNING : If your Takeout does not contains Year/Month folder structure, you can use the flag '-gics, --google-ignore-check-structure' to avoid this check.")
             if ARGS['google-move-takeout-folder']:
                 Utils.force_remove_directory(ARGS['google-input-takeout-folder'])
             step_end_time = datetime.now()
