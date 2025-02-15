@@ -97,7 +97,7 @@ jobs:
           Write-Output "ARCHIVE_FINAL_PATH_NAME (Windows): $path"
 
       # 3. Upload ARCHIVE_FINAL_PATH_NAME to Releases
-      - name: Release with Notes
+      - name: Upload Artifact to Releases
         uses: softprops/action-gh-release@v1
         with:
           files: |
