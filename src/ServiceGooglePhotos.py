@@ -88,7 +88,7 @@ def google_takeout_processor(OUTPUT_TAKEOUT_FOLDER, log_level=logging.INFO):
                 LOGGER.warning(
                     f"WARNING : Metadata fixing with GPTH tool skipped ('-sg, --google-skip-gpth-tool' flag detected). Step {STEP}b is needed to copy files manually to output folder.")
             elif ARGS['google-ignore-check-structure']:
-                LOGGER.warninf(
+                LOGGER.warning(
                     f"WARNING : Flag to Ignore Google Takeout Structure have been detected ('-it, --google-ignore-check-structure'). Step {STEP}b is needed to copy/move files manually to output folder.")
             if ARGS['google-move-takeout-folder']:
                 LOGGER.info("INFO    : Moving files from Takeout folder to Output folder manually...")
