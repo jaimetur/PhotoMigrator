@@ -275,9 +275,9 @@ jobs:
         shell: pwsh
 
 
-      # Upload the compiled compressed file to the Actions task
-      - name: Archive Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ARCHIVE_NAME }}
-          path: ${{ env.ARCHIVE_FINAL_PATH }}
+#      # Upload the compiled compressed file to the Actions task
+#      - name: Archive Artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ${{ env.ARCHIVE_NAME }}
+#          path: ${{ env.ARCHIVE_FINAL_PATH }}
