@@ -1,1 +1,2 @@
-v3.0.0-beta-01_built_versions/3.0.0-beta-01/CloudPhotoMigrator_v3.0.0-beta-01_linux_amd64.zip
+v3.0.0-beta-01
+_built_versions/3.0.0-beta-01/CloudPhotoMigrator_v3.0.0-beta-01_linux_amd64.zip

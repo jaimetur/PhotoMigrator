@@ -135,12 +135,12 @@ jobs:
         env:
           TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
 
-      # 4. Create Release
-      - name: Upload Artifact to Releases
+      # 4. Create Release and Upload Artifact to it
+      - name: 4. Create Release and Upload Artifact to it
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.SCRIPT_VERSION }}
-          # draft: true
+          draft: true
           # generate_release_notes: true
           # body_path: misc/release/notes.tmpl
           files: |

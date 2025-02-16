@@ -221,8 +221,8 @@ def compile():
     relative_path = os.path.relpath(script_zip_file, root_dir)
     # Guardar el resultado en un fichero de texto
     with open('script_info.txt', 'w') as file:
-        file.write(SCRIPT_VERSION)
-        file.write(relative_path)
+        file.write(SCRIPT_VERSION + '\n')
+        file.write(relative_path + '\n')
     print(f'El path relativo es: {relative_path}')
     return relative_path
 
