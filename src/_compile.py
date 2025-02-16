@@ -78,16 +78,40 @@ def get_clean_version(version: str):
 def extract_release_section(input_file, output_file):
     with open(input_file, 'r', encoding='utf-8') as infile:
         lines = infile.readlines()
-    count = 0
-    extracted_lines = []
-    for line in lines:
-        extracted_lines.append(line)
-        if '**Release**' in line:
-            count += 1
-            if count == 2:
-                break
+    # Buscar la sección de Release Notes
+    release_notes_index = None
+    for i, line in enumerate(lines):
+        if line.strip() == "## Release Notes:":
+            release_notes_index = i
+            break
+    if release_notes_index is None:
+        print("No se encontró la sección '## Release Notes:'.")
+        return
+    # Separar el contenido antes de Release Notes y después
+    header_section = lines[:release_notes_index]  # Todo antes de ## Release Notes:
+    main_section = lines[release_notes_index:]  # Desde ## Release Notes: en adelante
+    # Reemplazar "Download Latest Version" por "Download this Release"
+    header_section = [line.replace("Download Latest Version", "Download this Release") for line in header_section]
+    # Crear el nuevo contenido con el header movido al final
+    new_content = main_section + ["\n"] + header_section
+    # Guardar en el nuevo archivo
     with open(output_file, 'w', encoding='utf-8') as outfile:
-        outfile.writelines(extracted_lines)
+        outfile.writelines(new_content)
+
+# def extract_release_section(input_file, output_file):
+#     with open(input_file, 'r', encoding='utf-8') as infile:
+#         lines = infile.readlines()
+#     count = 0
+#     extracted_lines = []
+#     for line in lines:
+#         extracted_lines.append(line)
+#         if '**Release**' in line:
+#             count += 1
+#             if count == 2:
+#                 break
+#     with open(output_file, 'w', encoding='utf-8') as outfile:
+#         outfile.writelines(extracted_lines)
+
 
 def compile():
     global SCRIPT_NAME
