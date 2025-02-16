@@ -21,8 +21,10 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]  # os list
-        arch: [x86_64, arm64]  # arch list
+#        os: [ubuntu-latest, macos-latest, windows-latest]  # os list
+        os: [ubuntu-latest]  # os list
+#        arch: [x86_64, arm64]  # arch list
+        arch: [x86_64]  # arch list
         exclude:
           - os: windows-latest
             arch: arm64  # Windows is only compiled for x86 (32/64-bit)
@@ -31,7 +33,11 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
+      # Checkout Repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.TOKEN_GITHUB }}
 
       # Set up Python
       - name: Set up Python
@@ -126,6 +132,8 @@ jobs:
           message: 'SCRIPT_VERSION: ${{ env.SCRIPT_VERSION }}'
           tag: ${{ env.SCRIPT_VERSION }}
           push: true
+        env:
+          TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
 
       # 4. Create Release
       - name: Upload Artifact to Releases
@@ -138,7 +146,7 @@ jobs:
           files: |
             ${{ env.ARCHIVE_PATH }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
 #      # 3a. - Upload artifact to GitHub repos with API (Linux/macOS)
 #      - name: 3a. - Upload artifact to GitHub repos with API (Linux/macOS)
@@ -157,7 +165,7 @@ jobs:
 #            echo "Uploading to $REPO..."
 #            URL=https://api.github.com/repos/jaimetur/$REPO/contents/${FILE_TO_ADD}
 #            # Extraer SHA si el archivo existe
-#            command="curl -s -f -H 'Authorization: token ${{ secrets.GH_PAT }}' '${URL}' | grep '\"sha\"' | awk -F '\"' '{print \$4}' || echo \"\""
+#            command="curl -s -f -H 'Authorization: token ${{ secrets.TOKEN_GITHUB }}' '${URL}' | grep '\"sha\"' | awk -F '\"' '{print \$4}' || echo \"\""
 #            # echo "Command: ${command}"
 #            SHA=$(eval ${command})
 #            echo "SHA: ${SHA}"
@@ -172,7 +180,7 @@ jobs:
 #            }" > ${PAYLOAD_FILE}
 #            # Subir el archivo (crear o sobrescribir)
 #            curl -X PUT \
-#                -H "Authorization: token ${{ secrets.GH_PAT }}" \
+#                -H "Authorization: token ${{ secrets.TOKEN_GITHUB }}" \
 #                -H "Content-Type: application/json" \
 #                -d @${PAYLOAD_FILE} \
 #                ${URL}
@@ -199,7 +207,7 @@ jobs:
 #            $URL = "https://api.github.com/repos/jaimetur/$REPO/contents/${FILE_TO_ADD}"
 #            # Try to get the SHA of the existing file (if it exists)
 #            try {
-#              $SHA = (Invoke-RestMethod -Uri $URL -Headers @{Authorization="token ${{ secrets.GH_PAT }}"} -ErrorAction Stop).sha
+#              $SHA = (Invoke-RestMethod -Uri $URL -Headers @{Authorization="token ${{ secrets.TOKEN_GITHUB }}"} -ErrorAction Stop).sha
 #            } catch {
 #              # If the file does not exist, SHA should be empty
 #              $SHA = $null
@@ -218,7 +226,7 @@ jobs:
 #            # Convert payload to JSON
 #            $PayloadJson = $Payload | ConvertTo-Json -Compress
 #            # Upload the file (create or overwrite)
-#            Invoke-RestMethod -Method Put -Uri $URL -Headers @{Authorization="token ${{ secrets.GH_PAT }}"} -Body $PayloadJson
+#            Invoke-RestMethod -Method Put -Uri $URL -Headers @{Authorization="token ${{ secrets.TOKEN_GITHUB }}"} -Body $PayloadJson
 #            Write-Host "File uploaded to $REPO successfully."
 #          }
 #        shell: pwsh
@@ -241,7 +249,7 @@ jobs:
 #              echo "Uploading to $REPO..."
 #              URL=https://api.github.com/repos/jaimetur/$REPO/contents/${FILE_TO_ADD}
 #              # Extraer SHA si el archivo existe
-#              command="curl -s -f -H 'Authorization: token ${{ secrets.GH_PAT }}' '${URL}' | grep '\"sha\"' | awk -F '\"' '{print \$4}' || echo \"\""
+#              command="curl -s -f -H 'Authorization: token ${{ secrets.TOKEN_GITHUB }}' '${URL}' | grep '\"sha\"' | awk -F '\"' '{print \$4}' || echo \"\""
 #              # echo "Command: ${command}"
 #              SHA=$(eval ${command})
 #              echo "SHA: ${SHA}"
@@ -256,7 +264,7 @@ jobs:
 #              }" > ${PAYLOAD_FILE}
 #              # Subir el archivo (crear o sobrescribir)
 #              curl -X PUT \
-#                  -H "Authorization: token ${{ secrets.GH_PAT }}" \
+#                  -H "Authorization: token ${{ secrets.TOKEN_GITHUB }}" \
 #                  -H "Content-Type: application/json" \
 #                  -d @${PAYLOAD_FILE} \
 #                  ${URL}
