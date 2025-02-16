@@ -124,16 +124,16 @@ jobs:
           Write-Output "ARCHIVE_PATH (Windows)  : $ARCHIVE_PATH"
 
       # 3. Commit and tag
-      - name: 3. Commit and tag
-        id: push-tag
-        uses: EndBug/add-and-commit@v9
-        with:
-          default_author: github_actions
-          message: 'SCRIPT_VERSION: ${{ env.SCRIPT_VERSION }}'
-          tag: ${{ env.SCRIPT_VERSION }}
-          push: true
-        env:
-          TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
+#      - name: 3. Commit and tag
+#        id: push-tag
+#        uses: EndBug/add-and-commit@v9
+#        with:
+#          default_author: github_actions
+#          message: 'SCRIPT_VERSION: ${{ env.SCRIPT_VERSION }}'
+#          tag: ${{ env.SCRIPT_VERSION }}
+#          push: true
+#        env:
+#          TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
 
       # 4. Create Release and Upload Artifact to it
       - name: 4. Create Release and Upload Artifact to it
@@ -322,4 +322,4 @@ jobs:
 #        uses: actions/upload-artifact@v4
 #        with:
 #          name: ${{ env.ARCHIVE_NAME }}
-#          path: ${{ env.ARCHIVE_FINAL_PATH }}
+#          path: ${{ env.ARCHIVE_PATH }}
