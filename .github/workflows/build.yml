@@ -91,10 +91,10 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           # Read SCRIPT_VERSION from the first line
-          SCRIPT_VERSION=$(sed -n '1p' src/script_info.txt)
+          SCRIPT_VERSION=$(sed -n '1p' script_info.txt)
 
           # Read ARCHIVE_PATH from the second line
-          ARCHIVE_PATH=$(sed -n '2p' src/script_info.txt)
+          ARCHIVE_PATH=$(sed -n '2p' script_info.txt)
 
           # Save both variables on GitHub Actions environment
           echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> $GITHUB_ENV
@@ -109,11 +109,11 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           # Read SCRIPT_VERSION from the first line
-          $SCRIPT_VERSION = Get-Content src/script_info.txt | Select-Object -First 1
+          $SCRIPT_VERSION = Get-Content script_info.txt | Select-Object -First 1
 
           # Read ARCHIVE_PATH from the second line
-          $ARCHIVE_PATH = Get-Content src/script_info.txt | Select-Object -Skip 1 -First 1
-          # $ARCHIVE_PATH = Get-Content src/script_info.txt | Select-String -Pattern "."
+          $ARCHIVE_PATH = Get-Content script_info.txt | Select-Object -Skip 1 -First 1
+          # $ARCHIVE_PATH = Get-Content script_info.txt | Select-String -Pattern "."
 
           # Save both variables on GitHub Actions environment
           echo "SCRIPT_VERSION=$SCRIPT_VERSION" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append

@@ -232,18 +232,14 @@ def compile():
     root_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
     # Calcular el path relativo
     relative_path = os.path.relpath(script_zip_file, root_dir)
-
-    # Ruta del archivo de entrada y salida
+    # Ruta del archivo de RELEASES-NOTES.md y CURRENT-RELEASE.md
     releases_filepath = os.path.join(root_dir,'RELEASES-NOTES.md')
     current_release_filepath = os.path.join(root_dir,'CURRENT-RELEASE.md')
-
-    # Ejecutar la función
+    # Extraer el cuerpo de la Release actual de RELEASES-NOTES.md
     extract_release_section(releases_filepath, current_release_filepath)
-
     print(f"Archivo {current_release_filepath} creado correctamente.")
-
-    # Guardar el resultado en un fichero de texto
-    with open('script_info.txt', 'w') as file:
+    # Guardar script_info.txt en un fichero de texto
+    with open(os.path.join(root_dir,'script_info.txt'), 'w') as file:
         file.write(SCRIPT_VERSION_INT + '\n')
         file.write(relative_path + '\n')
     print(f'El path relativo es: {relative_path}')
