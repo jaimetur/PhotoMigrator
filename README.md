@@ -800,7 +800,8 @@ Enjoy it!
     - [ ] -adAll, --apple-download-all
     - [ ] -auAlb, --apple-upload-albums
     - [ ] -auAll, --apple-upload-all
-- [ ] Include native support for Google Photos through API (See: https://max-coding.medium.com/loading-photos-and-metadata-using-google-photos-api-with-python-7fb5bd8886ef)
+- [ ] Include native support for Google Photos through API  
+  (See: https://max-coding.medium.com/loading-photos-and-metadata-using-google-photos-api-with-python-7fb5bd8886ef)
     - [ ] -gdAlb, --google-download-albums
     - [ ] -gdAll, --google-download-all
     - [ ] -guAlb, --google-upload-albums
