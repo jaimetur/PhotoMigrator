@@ -56,7 +56,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0/CloudPhotoMigrator_v3.0.0-beta-01_windows_amd64.zip)  
 
 ## Instructions to execute from compiled version:
-You can copy and unzip the downloaded Script into any local folder or to any Shared folder of your server or Synology NAS.
+You can copy and unzip the downloaded compiled tool into any local folder or to any Shared folder of your server or Synology NAS.
 
 Then you just need to call it depending on your environment:
   - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**CloudPhotoMigrator.exe**'  
@@ -64,7 +64,7 @@ Then you just need to call it depending on your environment:
   - If you run it from Synology NAS (using SSH terminal) or from Linux/Mac, you have to call the master script '**CloudPhotoMigrator.run**'.  
     Minimum version required to run the script directly from your Synology NAS (using SSH terminal) is **DSM 7.0**.
 
-## Instructions to execute from source:
+## Instructions to execute from source repository:
 Here are simple instructions to clone the GitHub repository, create a Python virtual environment, install dependencies, and run the main script:
 
 1. Clone the repository
