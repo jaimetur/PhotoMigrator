@@ -67,48 +67,44 @@ Then you just need to call it depending on your environment:
 ## Instructions to execute from source:
 Here are simple instructions to clone the GitHub repository, create a Python virtual environment, install dependencies, and run the main script:
 
-1. Clone the repository
+- 1. Clone the repository
 
-Open a terminal and run:
-
-git clone https://github.com/jaimetur/CloudPhotoMigrator.git
-cd CloudPhotoMigrator
+  Open a terminal and run:
+   '''
+   git clone https://github.com/jaimetur/CloudPhotoMigrator.git
+   cd CloudPhotoMigrator
+   '''
 
 2. Create a virtual environment
-
-Run the following command to create a virtual environment named venv:
-
-python3 -m venv venv
+   '''
+   python3 -m venv venv
+   '''
 
 3. Activate the virtual environment
-	•	On macOS/Linux:
+  - On macOS/Linux:
+   '''
+   source venv/bin/activate
+   '''
 
-source venv/bin/activate
+  - On Windows (Command Prompt):
+   '''
+   venv\Scripts\activate
+   '''
 
-
-	•	On Windows (Command Prompt):
-
-venv\Scripts\activate
-
-
-	•	On Windows (PowerShell):
-
-venv\Scripts\Activate.ps1
-
-
+  - On Windows (PowerShell):
+   '''
+   venv\Scripts\Activate.ps1
+   '''
 
 4. Install dependencies
-
-Run:
-
-pip install -r requirements.txt
+   '''
+   pip install -r requirements.txt
+   '''
 
 5. Run the main script
-
-Execute the script with:
-
-python3 CloudPhotoMigrator.py
-
+   '''
+   python3 CloudPhotoMigrator.py
+   '''
 
 
 ## Syntax:
