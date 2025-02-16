@@ -79,17 +79,17 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
    ```
 
 3. Activate the virtual environment:  
-  - On macOS/Linux:  
+   On macOS/Linux:  
    ```
    source venv/bin/activate
    ```
 
-  - On Windows (Command Prompt):  
+   On Windows (Command Prompt):  
    ```
    venv\Scripts\activate
    ```
 
-  - On Windows (PowerShell):  
+   On Windows (PowerShell):  
    ```
    venv\Scripts\Activate.ps1
    ```
