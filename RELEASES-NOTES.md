@@ -43,7 +43,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] Set Log levels per functions and include '-msglevel, --messages-level' argument to set it up.
 - [x] Added function to Remove empty folders when delete assets in Synology Photos
 - [x] Removed Indexing Functions on ServiceSynology file (not needed anymore)
-- [x] Ignored \@eaDir folders when upload assets to Synology/Immich Photos.
+- [x] Ignored `@eaDir` folders when upload assets to Synology/Immich Photos.
 - [x] Refactor and group All Google Takeout arguments in one block for 'Google Photos Takeout' Support.
 - [X] Refactor normal_mode to google_takeout_mode.
 - [x] Changed the logic to detect google_takeout_mode (former normal_mode)
