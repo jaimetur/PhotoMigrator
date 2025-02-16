@@ -112,7 +112,8 @@ jobs:
           $SCRIPT_VERSION = Get-Content script_info.txt | Select-Object -First 1
 
           # Read ARCHIVE_PATH from the second line
-          $ARCHIVE_PATH = Get-Content script_info.txt | Select-Object -Skip 1 -First 1
+          $ARCHIVE_PATH = (Get-Content script_info.txt | Select-Object -Skip 1 -First 1) -replace '\\', '/'
+          # $ARCHIVE_PATH = Get-Content script_info.txt | Select-Object -Skip 1 -First 1
           # $ARCHIVE_PATH = Get-Content script_info.txt | Select-String -Pattern "."
 
           # Save both variables on GitHub Actions environment
