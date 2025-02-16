@@ -80,37 +80,71 @@ jobs:
         shell: bash
 
 
-      # 2a. Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Linux/macOS)
-      - name: 2a. Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Linux/macOS)
+      # 2a. Read SCRIPT_VERSION and ARCHIVE_PATH from script_info.txt (Linux/macOS)
+      - name: 2a. Read SCRIPT_VERSION and ARCHIVE_PATH from script_info.txt (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
-          ARCHIVE_PATH=$(cat src/filename.txt)
-          echo "ARCHIVE_FINAL_PATH_NAME=${ARCHIVE_PATH}" >> $GITHUB_ENV
-          echo "ARCHIVE_FINAL_PATH_NAME (Linux/macOS): ${ARCHIVE_PATH}"
+          # Read SCRIPT_VERSION from the first line
+          SCRIPT_VERSION=$(sed -n '1p' src/script_info.txt)
 
-      # 2b. Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Windows)
-      - name: 2b. Extract ARCHIVE_FINAL_PATH_NAME from filename.txt (Windows)
+          # Read ARCHIVE_PATH from the second line
+          ARCHIVE_PATH=$(sed -n '2p' src/script_info.txt)
+
+          # Save both variables on GitHub Actions environment
+          echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> $GITHUB_ENV
+          echo "ARCHIVE_PATH=${ARCHIVE_PATH}" >> $GITHUB_ENV
+
+          # Print both variables on screen
+          echo "SCRIPT_VERSION (Linux/macOS): ${SCRIPT_VERSION}"
+          echo "ARCHIVE_PATH (Linux/macOS)  : ${ARCHIVE_PATH}"
+
+      # 2b. Read SCRIPT_VERSION and ARCHIVE_PATH from script_info.txt (Windows)
+      - name: 2b. Read SCRIPT_VERSION and ARCHIVE_PATH from script_info.txt (Windows)
         if: runner.os == 'Windows'
         run: |
-          $path = Get-Content src/filename.txt | Select-String -Pattern "."
-          echo "ARCHIVE_FINAL_PATH_NAME=$path" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Output "ARCHIVE_FINAL_PATH_NAME (Windows): $path"
+          # Read SCRIPT_VERSION from the first line
+          $SCRIPT_VERSION = Get-Content src/script_info.txt | Select-Object -First 1
 
-#      # 3. Upload ARCHIVE_FINAL_PATH_NAME to Releases
-#      - name: Upload Artifact to Releases
-#        uses: softprops/action-gh-release@v1
-#        with:
-#          files: |
-#            ${{ env.ARCHIVE_FINAL_PATH_NAME }}
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          # Read ARCHIVE_PATH from the second line
+          $ARCHIVE_PATH = Get-Content src/script_info.txt | Select-Object -Skip 1 -First 1
+          # $ARCHIVE_PATH = Get-Content src/script_info.txt | Select-String -Pattern "."
 
+          # Save both variables on GitHub Actions environment
+          echo "SCRIPT_VERSION=$SCRIPT_VERSION" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "ARCHIVE_PATH=$ARCHIVE_PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          # Print both variables on screen
+          Write-Output "SCRIPT_VERSION (Windows): $SCRIPT_VERSION"
+          Write-Output "ARCHIVE_PATH (Windows)  : $ARCHIVE_PATH"
+
+      # 3. Commit and tag
+      - name: 3. Commit and tag
+        id: push-tag
+        uses: EndBug/add-and-commit@v9
+        with:
+          default_author: github_actions
+          message: 'SCRIPT_VERSION: ${{ env.SCRIPT_VERSION }}'
+          tag: ${{ env.SCRIPT_VERSION }}
+          push: true
+
+      # 4. Create Release
+      - name: Upload Artifact to Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.SCRIPT_VERSION }}
+          # draft: true
+          # generate_release_notes: true
+          # body_path: misc/release/notes.tmpl
+          files: |
+            ${{ env.ARCHIVE_PATH }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
 #      # 3a. - Upload artifact to GitHub repos with API (Linux/macOS)
 #      - name: 3a. - Upload artifact to GitHub repos with API (Linux/macOS)
 #        if: runner.os != 'Windows'
 #        run: |
-#          FILE_TO_ADD=${{ env.ARCHIVE_FINAL_PATH_NAME }}
+#          FILE_TO_ADD=${{ env.ARCHIVE_PATH }}
 #          echo "Uploading file '${FILE_TO_ADD}' to dev and prod repositories..."
 #          # Encode Artifact to Base64 (Linux/macOS)
 #          cat ${FILE_TO_ADD} | base64 | tr -d '\n' > artifact_base64.txt
@@ -151,7 +185,7 @@ jobs:
 #      - name: 3b. - Upload artifact to GitHub repos with API (Windows)
 #        if: runner.os == 'Windows'
 #        run: |
-#          $FILE_TO_ADD = $env:ARCHIVE_FINAL_PATH_NAME
+#          $FILE_TO_ADD = $env:ARCHIVE_PATH
 #          Write-Host "Uploading file '${FILE_TO_ADD}' to dev and prod repositories..."
 #
 #          # Encode Artifact to Base64 (Windows)
@@ -243,12 +277,12 @@ jobs:
             rm artifact_base64.txt
             echo "Archivo artifact_base64.txt eliminado de src."
           fi
-          # if [ -f ${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
-            # rm ${{ env.ARCHIVE_FINAL_PATH_NAME }}
-            # echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
-          # elif [ -f src/${{ env.ARCHIVE_FINAL_PATH_NAME }} ]; then
-            # rm ${{ env.ARCHIVE_FINAL_PATH_NAME }}
-            # echo "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta src."
+          # if [ -f ${{ env.ARCHIVE_PATH }} ]; then
+            # rm ${{ env.ARCHIVE_PATH }}
+            # echo "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta raiz."
+          # elif [ -f src/${{ env.ARCHIVE_PATH }} ]; then
+            # rm ${{ env.ARCHIVE_PATH }}
+            # echo "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta src."
           # fi
         shell: bash
 
@@ -264,13 +298,13 @@ jobs:
             Remove-Item -Path "src\artifact_base64.txt"
             Write-Host "Archivo artifact_base64.txt eliminado de carpeta src\."
           }
-          if (Test-Path "${{ env.ARCHIVE_FINAL_PATH_NAME }}") {
-            Remove-Item -Path "${{ env.ARCHIVE_FINAL_PATH_NAME }}"
-            Write-Host "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta raiz."
+          if (Test-Path "${{ env.ARCHIVE_PATH }}") {
+            Remove-Item -Path "${{ env.ARCHIVE_PATH }}"
+            Write-Host "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta raiz."
           } 
-          elseif (Test-Path "src\${{ env.ARCHIVE_FINAL_PATH_NAME }}") {
-            Remove-Item -Path "src\${{ env.ARCHIVE_FINAL_PATH_NAME }}"
-            Write-Host "Archivo '${{ env.ARCHIVE_FINAL_PATH_NAME }}' eliminado de carpeta src\."
+          elseif (Test-Path "src\${{ env.ARCHIVE_PATH }}") {
+            Remove-Item -Path "src\${{ env.ARCHIVE_PATH }}"
+            Write-Host "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta src\."
           }
         shell: pwsh
 
