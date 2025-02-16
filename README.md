@@ -96,12 +96,12 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
 
 4. Install dependencies:  
    ```
-   pip install -r requirements.txt
+   pip3 install -r requirements.txt
    ```
 
 5. Run the main script:  
    ```
-   python3 CloudPhotoMigrator.py
+   python3 ./src/CloudPhotoMigrator.py
    ```
 
 
