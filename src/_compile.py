@@ -75,6 +75,19 @@ def get_clean_version(version: str):
     clean_version = version.lstrip('v')
     return clean_version
 
+def extract_release_section(input_file, output_file):
+    with open(input_file, 'r', encoding='utf-8') as infile:
+        lines = infile.readlines()
+    count = 0
+    extracted_lines = []
+    for line in lines:
+        extracted_lines.append(line)
+        if '**Release**' in line:
+            count += 1
+            if count == 2:
+                break
+    with open(output_file, 'w', encoding='utf-8') as outfile:
+        outfile.writelines(extracted_lines)
 
 def compile():
     global SCRIPT_NAME
@@ -219,6 +232,16 @@ def compile():
     root_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
     # Calcular el path relativo
     relative_path = os.path.relpath(script_zip_file, root_dir)
+
+    # Ruta del archivo de entrada y salida
+    releases_filepath = os.path.join(root_dir,'RELEASES-NOTES.md')
+    current_release_filepath = os.path.join(root_dir,'RELEASES.md')
+
+    # Ejecutar la función
+    extract_release_section(releases_filepath, current_release_filepath)
+
+    print(f"Archivo {current_release_filepath} creado correctamente.")
+
     # Guardar el resultado en un fichero de texto
     with open('script_info.txt', 'w') as file:
         file.write(SCRIPT_VERSION_INT + '\n')
