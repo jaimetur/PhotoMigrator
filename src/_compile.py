@@ -34,7 +34,6 @@ def comprimir_directorio(temp_dir, output_file):
                     zipf.write(dir_path, dir_path.relative_to(temp_dir))
     print(f"Archivo comprimido correctamente: {output_file}")
 
-
 def include_file_and_folders_and_compress(input_file, output_file):
     extra_files = ["./Config.ini", "../README.md", "../RELEASES-NOTES.md", "../ROADMAP.md"]
     if not input_file or not output_file:
@@ -57,7 +56,6 @@ def include_file_and_folders_and_compress(input_file, output_file):
     comprimir_directorio(temp_dir, output_file)
     shutil.rmtree(temp_dir)
 
-
 def get_script_version(file):
     if not Path(file).is_file():
         print(f"ERROR   : El archivo {file} no existe.")
@@ -69,13 +67,12 @@ def get_script_version(file):
     print("ERROR   : No se encontró un valor entre comillas después de SCRIPT_VERSION.")
     return None
 
-
 def get_clean_version(version: str):
     # Elimina la 'v' si existe al principio
     clean_version = version.lstrip('v')
     return clean_version
 
-def extract_and_rearrange_release_notes(input_file, output_file):
+def extract_release_body(input_file, output_file):
     """Extracts two specific sections from the release notes file, modifies a header, and rearranges them."""
     # Open the file and read its content into a list
     with open(input_file, 'r', encoding='utf-8') as infile:
@@ -116,7 +113,7 @@ def extract_and_rearrange_release_notes(input_file, output_file):
         outfile.writelines(new_content)
 
 
-# def extract_release_section(input_file, output_file):
+# def extract_release_body(input_file, output_file):
 #     with open(input_file, 'r', encoding='utf-8') as infile:
 #         lines = infile.readlines()
 #     count = 0
@@ -278,7 +275,7 @@ def compile():
     releases_filepath = os.path.join(root_dir,'RELEASES-NOTES.md')
     current_release_filepath = os.path.join(root_dir,'CURRENT-RELEASE.md')
     # Extraer el cuerpo de la Release actual de RELEASES-NOTES.md
-    extract_release_section(releases_filepath, current_release_filepath)
+    extract_release_body(releases_filepath, current_release_filepath)
     print(f"Archivo {current_release_filepath} creado correctamente.")
     # Guardar script_info.txt en un fichero de texto
     with open(os.path.join(root_dir,'script_info.txt'), 'w') as file:
