@@ -283,8 +283,10 @@ def compile():
         file.write(SCRIPT_VERSION_INT + '\n')
         file.write(relative_path + '\n')
     print(f'El path relativo es: {relative_path}')
-    return relative_path
+    return True
 
 if __name__ == "__main__":
-    result = compile()
+    ok = compile()
+    if ok:
+        print(f'COMPILATION FINISHED SUCCESSFULLY!')
     sys.exit(0)
