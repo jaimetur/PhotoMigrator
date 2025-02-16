@@ -45,10 +45,10 @@ def include_file_and_folders_and_compress(input_file, output_file):
     temp_dir = Path(tempfile.mkdtemp())
     script_version_dir = os.path.join(temp_dir, SCRIPT_NAME_VERSION)
     print(script_version_dir)
-    zip_dir = os.path.join(script_version_dir, "Takeout")
-    print(zip_dir)
+    takeout_dir = os.path.join(script_version_dir, "Takeout")
+    print(takeout_dir)
     os.makedirs(script_version_dir, exist_ok=True)
-    os.makedirs(zip_dir, exist_ok=True)
+    os.makedirs(takeout_dir, exist_ok=True)
     shutil.copy(input_file, script_version_dir)
     for file in extra_files:
         shutil.copy(file, script_version_dir)
