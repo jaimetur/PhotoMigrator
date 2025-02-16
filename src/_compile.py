@@ -235,7 +235,7 @@ def compile():
 
     # Ruta del archivo de entrada y salida
     releases_filepath = os.path.join(root_dir,'RELEASES-NOTES.md')
-    current_release_filepath = os.path.join(root_dir,'RELEASES.md')
+    current_release_filepath = os.path.join(root_dir,'CURRENT-RELEASE.md')
 
     # Ejecutar la función
     extract_release_section(releases_filepath, current_release_filepath)
