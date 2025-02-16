@@ -21,10 +21,10 @@ jobs:
   build:
     strategy:
       matrix:
-#        os: [ubuntu-latest, macos-latest, windows-latest]  # os list
-        os: [ubuntu-latest]  # os list
-#        arch: [x86_64, arm64]  # arch list
-        arch: [x86_64]  # arch list
+        os: [ubuntu-latest, macos-latest, windows-latest]  # os list
+#        os: [ubuntu-latest]  # os list
+        arch: [x86_64, arm64]  # arch list
+#        arch: [x86_64]  # arch list
         exclude:
           - os: windows-latest
             arch: arm64  # Windows is only compiled for x86 (32/64-bit)
@@ -123,7 +123,7 @@ jobs:
           Write-Output "SCRIPT_VERSION (Windows): $SCRIPT_VERSION"
           Write-Output "ARCHIVE_PATH (Windows)  : $ARCHIVE_PATH"
 
-      # 3. Commit and tag
+#      # 3. Commit and tag
 #      - name: 3. Commit and tag
 #        id: push-tag
 #        uses: EndBug/add-and-commit@v9
@@ -135,8 +135,8 @@ jobs:
 #        env:
 #          TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
 
-      # 4. Create Release and Upload Artifact to it
-      - name: 4. Create Release and Upload Artifact to it
+      # 3. Create Release and Upload Artifact to it
+      - name: 3. Create Release and Upload Artifact to it
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.SCRIPT_VERSION }}
@@ -148,8 +148,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
-#      # 3a. - Upload artifact to GitHub repos with API (Linux/macOS)
-#      - name: 3a. - Upload artifact to GitHub repos with API (Linux/macOS)
+#      # 4a. - Upload artifact to GitHub repos with API (Linux/macOS)
+#      - name: 4a. - Upload artifact to GitHub repos with API (Linux/macOS)
 #        if: runner.os != 'Windows'
 #        run: |
 #          FILE_TO_ADD=${{ env.ARCHIVE_PATH }}
@@ -189,8 +189,8 @@ jobs:
 #          done
 #        shell: bash
 #
-#      # 3b. - Upload artifact to GitHub repos with API (Windows)
-#      - name: 3b. - Upload artifact to GitHub repos with API (Windows)
+#      # 4b. - Upload artifact to GitHub repos with API (Windows)
+#      - name: 4b. - Upload artifact to GitHub repos with API (Windows)
 #        if: runner.os == 'Windows'
 #        run: |
 #          $FILE_TO_ADD = $env:ARCHIVE_PATH
@@ -231,8 +231,8 @@ jobs:
 #          }
 #        shell: pwsh
 #
-#      # 4. - Update README.md, RELEASES-NOTES.md, ROADMAP.md in prod repo with API
-#      - name: 4 - Update README.md, RELEASES-NOTES.md, ROADMAP.md in prod repo with API
+#      # 5. - Update README.md, RELEASES-NOTES.md, ROADMAP.md in prod repo with API
+#      - name: 5 - Update README.md, RELEASES-NOTES.md, ROADMAP.md in prod repo with API
 #        if: runner.os != 'Windows'
 #        run: |
 #          FILES_TO_ADD=("README.md" "RELEASES-NOTES.md" "ROADMAP.md")
@@ -274,8 +274,8 @@ jobs:
 #          done
 #        shell: bash
         
-      # 5a. - Cleanup (Linux/macOS)
-      - name: 5a. - Cleanup (Linux/macOS)
+      # 4a. - Cleanup (Linux/macOS)
+      - name: 4a. - Cleanup (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
           if [ -f artifact_base64.txt ]; then
@@ -294,8 +294,8 @@ jobs:
           # fi
         shell: bash
 
-      # 5b. - Cleanup (Windows)
-      - name: 5b. - Cleanup (Windows)
+      # 4b. - Cleanup (Windows)
+      - name: 4b. - Cleanup (Windows)
         if: runner.os == 'Windows'
         run: |
           if (Test-Path "artifact_base64.txt") {
@@ -315,7 +315,6 @@ jobs:
             Write-Host "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta src\."
           }
         shell: pwsh
-
 
 #      # Upload the compiled compressed file to the Actions task
 #      - name: Archive Artifacts

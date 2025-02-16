@@ -101,7 +101,7 @@ def extract_release_body(input_file, output_file):
         print("Required sections not found in the file.")
         return
     # Extract content from "## Release Notes:" to the second "**Release**"
-    release_section = lines[release_notes_index:second_release_index + 1]
+    release_section = lines[release_notes_index:second_release_index]
     # Extract content from "## Download Latest Version" to "## Release Notes:"
     download_section = lines[download_section_index:release_notes_index]
     # Replace "Download Latest Version" with "Download this Release"
