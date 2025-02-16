@@ -55,7 +55,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 **Windows:**  
 - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0/CloudPhotoMigrator_v3.0.0-beta-01_windows_amd64.zip)  
 
-## Instructions to execute compiled version:
+## Instructions to execute from compiled version:
 You can copy and unzip the downloaded Script into any local folder or to any Shared folder of your server or Synology NAS.
 
 Then you just need to call it depending on your environment:
@@ -79,20 +79,20 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
    ```
 
 3. Activate the virtual environment:  
-   On macOS/Linux:  
-   ```
-   source venv/bin/activate
-   ```
+   - On macOS/Linux:  
+     ```
+     source venv/bin/activate
+     ```
 
-   On Windows (Command Prompt):  
-   ```
-   venv\Scripts\activate
-   ```
+   - On Windows (Command Prompt):  
+     ```
+     venv\Scripts\activate
+     ```
 
-   On Windows (PowerShell):  
-   ```
-   venv\Scripts\Activate.ps1
-   ```
+   - On Windows (PowerShell):  
+     ```
+     venv\Scripts\Activate.ps1
+     ```
 
 4. Install dependencies:  
    ```
