@@ -46,7 +46,7 @@ def parse_arguments():
     PARSER.add_argument("-AUTO", "--AUTOMATED-MIGRATION", metavar=("<SOURCE>", "<TARGET>"), nargs=2, default="",
                         help="This process will do an AUTOMATED-MIGRATION process to Download all your Assets (including Albums) from the <SOURCE> Cloud Service and Upload them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service."
                            "\n"
-                           "\nPosible values for:"
+                           "\npossible values for:"
                            "\n    <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos']"
                            "\n    <TARGET> : ['synology-photos', 'immich-photos']"
                         )

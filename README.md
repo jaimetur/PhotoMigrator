@@ -165,7 +165,7 @@ optional arguments:
              to the <TARGET> Cloud Service (including all Albums that you may have on
              the <SOURCE> Cloud Service.
 
-             Posible values for:
+             possible values for:
                  <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos']
                  <TARGET> : ['synology-photos', 'immich-photos']
 
@@ -368,7 +368,7 @@ If more than one Extra Mode is detected, only the first one will be executed.
 >  - Second, the script will connect to your \<TARGET> Cloud Service (if you have configured properly the Config.ini file) and will 
 >    upload all the assets processed in previous step, creating a new Album per each Album found in your \<SOURCE> Cloud Service (or \<SOURCE> folder if you specify a path), 
 >    and will associate all the assets included in each Album in the same way that you had on your \<SOURCE> Cloud Service.
->  - Posible values for:
+>  - possible values for:
 >    - **\<SOURCE\>** : ['google-photos', 'synology-photos', 'immich-photos'] or <INPUT_FOLDER>
 >    - **\<TARGET\>** : ['synology-photos', 'immich-photos'] or <OUTPUT_FOLDER>
 >  - The idea is complete above list to allow:
