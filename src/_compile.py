@@ -75,28 +75,46 @@ def get_clean_version(version: str):
     clean_version = version.lstrip('v')
     return clean_version
 
-def extract_release_section(input_file, output_file):
+def extract_and_rearrange_release_notes(input_file, output_file):
+    """Extracts two specific sections from the release notes file, modifies a header, and rearranges them."""
+    # Open the file and read its content into a list
     with open(input_file, 'r', encoding='utf-8') as infile:
         lines = infile.readlines()
-    # Buscar la sección de Release Notes
+    # Initialize key indices and counter
     release_notes_index = None
+    second_release_index = None
+    download_section_index = None
+    release_count = 0
+    # Loop through lines to find the start of the "Release Notes" section and locate the second occurrence of "**Release**"
     for i, line in enumerate(lines):
         if line.strip() == "## Release Notes:":
             release_notes_index = i
+        if "**Release**" in line:
+            release_count += 1
+            if release_count == 2:
+                second_release_index = i
+                break
+    # Loop through lines to find the "Download Latest Version" section
+    for i, line in enumerate(lines):
+        if line.strip().startswith("## Download Latest Version"):
+            download_section_index = i
             break
-    if release_notes_index is None:
-        print("No se encontró la sección '## Release Notes:'.")
+    # Validate that all required sections exist
+    if release_notes_index is None or second_release_index is None or download_section_index is None:
+        print("Required sections not found in the file.")
         return
-    # Separar el contenido antes de Release Notes y después
-    header_section = lines[:release_notes_index]  # Todo antes de ## Release Notes:
-    main_section = lines[release_notes_index:]  # Desde ## Release Notes: en adelante
-    # Reemplazar "Download Latest Version" por "Download this Release"
-    header_section = [line.replace("Download Latest Version", "Download this Release") for line in header_section]
-    # Crear el nuevo contenido con el header movido al final
-    new_content = main_section + ["\n"] + header_section
-    # Guardar en el nuevo archivo
+    # Extract content from "## Release Notes:" to the second "**Release**"
+    release_section = lines[release_notes_index:second_release_index + 1]
+    # Extract content from "## Download Latest Version" to "## Release Notes:"
+    download_section = lines[download_section_index:release_notes_index]
+    # Replace "Download Latest Version" with "Download this Release"
+    download_section = [line.replace("Download Latest Version", "Download this Release") for line in download_section]
+    # Rearrange sections: first the extracted release notes, then the modified download section
+    new_content = release_section + ["\n"] + download_section
+    # Write the modified content to the output file
     with open(output_file, 'w', encoding='utf-8') as outfile:
         outfile.writelines(new_content)
+
 
 # def extract_release_section(input_file, output_file):
 #     with open(input_file, 'r', encoding='utf-8') as infile:

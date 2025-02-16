@@ -1729,28 +1729,24 @@ if __name__ == "__main__":
     # synology_upload_ALL(input_folder)
 
     # # Example: download_asset()
-    # # TODO: Completar esta función
     # print("\n=== EXAMPLE: download_asset() ===")
     # download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
     # downloaded_assets = download_asset(1252870, 'ppppp', download_folder)
     # print(f"[RESULT] A total of {downloaded_assets} assets have been downloaded.\n")
 
     # # Example: synology_download_albums()
-    # # TODO: Completar esta función
     # print("\n=== EXAMPLE: synology_download_albums() ===")
     # download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
     # total = synology_download_albums(albums_name='ALL', output_folder=download_folder)
     # print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
     # Example: synology_download_no_albums()
-    # TODO: Completar esta función
     print("\n=== EXAMPLE: synology_download_albums() ===")
     download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
     total = synology_download_no_albums(output_folder=download_folder)
     print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
     # # Example: synology_download_ALL
-    # # TODO: Completar esta función
     # print("=== EXAMPLE: synology_download_ALL() ===")
     # total_struct = synology_download_ALL(output_folder="Downloads_Synology")
     # # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
