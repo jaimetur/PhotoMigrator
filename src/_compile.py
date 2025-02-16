@@ -93,19 +93,20 @@ def extract_release_body(input_file, output_file):
                 break
     # Loop through lines to find the "Download Latest Version" section
     for i, line in enumerate(lines):
-        if line.strip().startswith("## Download Latest Version"):
+        if line.strip().startswith("## Download:"):
             download_section_index = i
             break
     # Validate that all required sections exist
-    if release_notes_index is None or second_release_index is None or download_section_index is None:
+    if release_notes_index is None or download_section_index is None:
         print("Required sections not found in the file.")
         return
     # Extract content from "## Release Notes:" to the second "**Release**"
-    release_section = lines[release_notes_index:second_release_index]
-    # Extract content from "## Download Latest Version" to "## Release Notes:"
+    if second_release_index is not None:
+        release_section = lines[release_notes_index:second_release_index]
+    else:
+        release_section = lines[release_notes_index:]
+    # Extract content from "## Download:" to "## Release Notes:"
     download_section = lines[download_section_index:release_notes_index]
-    # Replace "Download Latest Version" with "Download this Release"
-    download_section = [line.replace("Download Latest Version", "Download this Release") for line in download_section]
     # Rearrange sections: first the extracted release notes, then the modified download section
     new_content = release_section + ["\n"] + download_section
     # Write the modified content to the output file

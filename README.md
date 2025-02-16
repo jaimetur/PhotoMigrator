@@ -41,8 +41,8 @@ Apart from Interact with the different Photo Cloud Services, the Tool also conta
 The Script is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), 
 so feel free to download the version according to your system.
 
-## Download Latest Version:
-Download the script either Linux, MacOS or Windows version (for both x64/amd64 or arm64 architectures) as you prefer directly from following links:
+## Download:
+Download the tool either for Linux, MacOS or Windows version (for both x64/amd64 or arm64 architectures) as you prefer directly from following links:
 
 **Linux:**:  
   - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0/CloudPhotoMigrator_v3.0.0-beta-01_linux_amd64.zip)  
