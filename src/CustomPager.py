@@ -61,12 +61,27 @@ class PagedParser(argparse.ArgumentParser):
                 optional_arguments_line = i
                 break  # No hace falta seguir buscando más de una vez
 
-        def pager(stdscr):
+        # Check if terminal supports colors
+        def check_color_support():
             curses.start_color()
-            curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)   # Verde (para argumentos y usage)
-            curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Magenta (para separadores y líneas anteriores)
-            curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)     # Rojo (para secciones de CAUTION)
-            curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Amarillo con fondo azul (para "optional arguments")
+            if not curses.has_colors():
+                LOGGER.warning(f'WARNING : Your terminal does not support colors')
+                return False
+            max_pairs = curses.COLOR_PAIRS
+            if max_pairs < 4:
+                LOGGER.warning(f'WARNING : Your terminal only support {max_pairs} color pairs. The tool need 4')
+                return False
+            return True
+
+        def pager(stdscr):
+            # Check if terminal supports colors
+            color_support = check_color_support()
+            if color_support:
+                curses.start_color()
+                curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)   # Verde (para argumentos y usage)
+                curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Magenta (para separadores y líneas anteriores)
+                curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)     # Rojo (para secciones de CAUTION)
+                curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Amarillo con fondo azul (para "optional arguments")
             curses.curs_set(0)  # Ocultar el cursor
             total_lines = len(lines)
             page_size = curses.LINES - 2  # Altura de la terminal menos espacio para el mensaje
@@ -80,35 +95,38 @@ class PagedParser(argparse.ArgumentParser):
                     try:
                         clean_line = ANSI_ESCAPE.sub('', line)  # Eliminar secuencias ANSI de colorama
                         line_number = index + i  # Línea absoluta en el texto
-
-                        # Pintar todas las líneas dentro del bloque "usage" en verde (excepto la línea con SCRIPT_NAME_VERSION)
-                        if usage_first_line <= line_number <= usage_last_line:
-                            stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(1))  # Verde
-                        # Pintar todas las líneas dentro de cualquier bloque "CAUTION:" en rojo
-                        elif any(start <= line_number <= end for start, end in caution_ranges):
-                            stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(3))  # Rojo
-                        # Pintar la línea que contiene "optional arguments:" en amarillo
-                        elif line_number == optional_arguments_line:
-                            stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(4))  # Amarillo
-                        else:
-                            # Detectar si la línea actual es un separador (--- o más guiones)
-                            is_separator = re.match(r"^\s*-{3,}", clean_line)
-
-                            # Si encontramos un separador, pintamos también la línea anterior
-                            if is_separator and prev_line is not None:
-                                stdscr.addstr(i - 1, 0, prev_line[:curses.COLS], curses.color_pair(2))  # Magenta
-
-                            # Pintar en verde si es un argumento (-arg, --arg)
-                            if re.match(r"^\s*-\w", clean_line):
+                        if color_support:
+                            # Pintar todas las líneas dentro del bloque "usage" en verde (excepto la línea con SCRIPT_NAME_VERSION)
+                            if usage_first_line <= line_number <= usage_last_line:
                                 stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(1))  # Verde
-                            # Pintar en magenta si es un separador
-                            elif is_separator:
-                                stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(2))  # Magenta
+                            # Pintar todas las líneas dentro de cualquier bloque "CAUTION:" en rojo
+                            elif any(start <= line_number <= end for start, end in caution_ranges):
+                                stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(3))  # Rojo
+                            # Pintar la línea que contiene "optional arguments:" en amarillo
+                            elif line_number == optional_arguments_line:
+                                stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(4))  # Amarillo
                             else:
-                                stdscr.addstr(i, 0, clean_line[:curses.COLS])  # Normal
+                                # Detectar si la línea actual es un separador (--- o más guiones)
+                                is_separator = re.match(r"^\s*-{3,}", clean_line)
 
-                            # Guardar la línea actual como la anterior para la siguiente iteración
-                            prev_line = clean_line
+                                # Si encontramos un separador, pintamos también la línea anterior
+                                if is_separator and prev_line is not None:
+                                    stdscr.addstr(i - 1, 0, prev_line[:curses.COLS], curses.color_pair(2))  # Magenta
+
+                                # Pintar en verde si es un argumento (-arg, --arg)
+                                if re.match(r"^\s*-\w", clean_line):
+                                    stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(1))  # Verde
+                                # Pintar en magenta si es un separador
+                                elif is_separator:
+                                    stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(2))  # Magenta
+                                else:
+                                    stdscr.addstr(i, 0, clean_line[:curses.COLS])  # Normal
+
+                                # Guardar la línea actual como la anterior para la siguiente iteración
+                                prev_line = clean_line
+                        # if terminal does not support colors
+                        else:
+                            stdscr.addstr(i, 0, clean_line[:curses.COLS])
 
                     except curses.error:
                         pass  # Ignorar errores si la terminal no puede mostrar el texto completo
@@ -175,23 +193,11 @@ class PagedParser(argparse.ArgumentParser):
         Detecta si el script se está ejecutando en un entorno interactivo.
         """
         return sys.stdout.isatty()
-    
-    # Check if terminal support colors
-    def check_color_support()
-        curses.start_color()
-        if not curses.has_colors():
-            LOGGER.warning(f'WARNING : Your yerminal does not support colors')
-            return False
-        max_pairs = curses.COLOR_PAIRS
-        if max_pairs < 4:
-            LOGGER.warning(f'WARNING : Your terminal only support {max_pairs} color pairs. The tool need 4')
-            return False
-        return True
         
     def print_help(self, file=None):
         # Genera el texto de ayuda usando el formatter_class (CustomHelpFormatter).
         help_text = self.format_help()
-        if self.is_interactive() and check_color_support():
+        if self.is_interactive():
             self.custom_pager(help_text)
         else:
             # Muestra el texto directamente si no es interactivo
