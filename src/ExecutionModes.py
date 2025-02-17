@@ -106,7 +106,7 @@ def detect_and_run_execution_mode():
 def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
     SOURCE = ARGS['AUTOMATED-MIGRATION'][0]
     TARGET = ARGS['AUTOMATED-MIGRATION'][1]
-    intermediate_folder = ''
+    INTERMEDIATE_FOLDER = ''
 
     LOGGER.info(f"INFO    : -AUTO, --AUTOMATED-MIGRATION Mode detected")
     if not ARGS['SOURCE-TYPE-TAKEOUT-FOLDER']:
@@ -121,6 +121,10 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
         sys.exit(0)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        # =========================
+        # FIRST PROCESS THE SOURCE:
+        # =========================
+        LOGGER.info(f'INFO    : Downloading/Processing Asset from SOURCE...')
         # If the SOURCE is 'google-photos' or a valid Takeout Folder
         if SOURCE.lower() == 'google-photos' or ARGS['SOURCE-TYPE-TAKEOUT-FOLDER']:
             # Configure default arguments for mode_google_takeout() execution and RUN it
@@ -129,61 +133,66 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
             else:
                 input_folder = SOURCE
 
-            # For the time being we set the global OUTPUT_TAKEOUT_FOLDER within Synology Photos root folder (otherwise Synology Photos will not see it)
-            # TODO: Change this logic to avoid Synology Photos dependency
-            config = read_synology_config(config_file='Config.ini', log_level=logging.WARNING)
-            if not config['SYNOLOGY_ROOT_PHOTOS_PATH']:
-                LOGGER.warning(f"WARNING : Cannot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'Config.ini' file. Albums will not be created into Synology Photos database")
+            # Define the INTERMEDIATE_FOLDER
+            if ARGS['output-folder']:
+                INTERMEDIATE_FOLDER = ARGS['output-folder']
             else:
-                ARGS['output-folder'] = os.path.join(config['SYNOLOGY_ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
-                intermediate_folder = ARGS['output-folder']
+                INTERMEDIATE_FOLDER = f"{ARGS['input-folder']}_{TIMESTAMP}"
+            # Set ARGS['output-folder'] to INTERMEDIATE_FOLDER
+            ARGS['output-folder'] = INTERMEDIATE_FOLDER
 
             # Check if already exists an 'Albums' subfolder within input_folder, in that case, the input_folder have been already processed by CloudPhotoMigrator and no need to execute GPTH step again
             # but in that case, we need to move the folder to the intermediate folder
             if os.path.isdir(os.path.join(input_folder,'Albums')):
-                if not Utils.copy_move_folder(input_folder, intermediate_folder, move=False):
-                    LOGGER.error(f"ERROR   : Unable to copy Folder '{input_folder}' to '{intermediate_folder}'. Exiting...")
+                if not Utils.copy_move_folder(input_folder, INTERMEDIATE_FOLDER, move=False):
+                    LOGGER.error(f"ERROR   : Unable to copy Folder '{input_folder}' to '{INTERMEDIATE_FOLDER}'. Exiting...")
                     sys.exit(-1)
             else:
+                # Set other settings for mode_google_takeout()
                 ARGS['google-input-takeout-folder'] = input_folder
                 ARGS['google-remove-duplicates-files'] = True
                 need_unzip = Utils.contains_zip_files(input_folder)
                 if need_unzip:
                     ARGS['google-move-takeout-folder'] = True
+                # Execute Mode mode_google_takeout()
                 mode_google_takeout(user_confirmation=False, log_level=logging.INFO)
 
         # If the SOURCE is 'synology-photos'
         elif SOURCE.lower() == 'synology-photos':
-            # For the time being we set the global OUTPUT_TAKEOUT_FOLDER within Synology Photos root folder (otherwise Synology Photos will not see it)
-            # TODO: Change this logic to avoid Synology Photos dependency
-            config = read_synology_config(config_file='Config.ini', log_level=logging.WARNING)
-            if not config['SYNOLOGY_ROOT_PHOTOS_PATH']:
-                LOGGER.warning(f"WARNING : Cannot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'Config.ini' file. Albums will not be created into Synology Photos database")
+            # Define the INTERMEDIATE_FOLDER
+            if ARGS['output-folder']:
+                INTERMEDIATE_FOLDER = ARGS['output-folder']
             else:
-                ARGS['immich-synology-ALL'] = os.path.join(config['SYNOLOGY_ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
-                intermediate_folder = ARGS['immich-synology-ALL']
+                INTERMEDIATE_FOLDER = f"Synology_Download_ALL_{TIMESTAMP}"
+            # Set ARGS['synology-download-all'] to INTERMEDIATE_FOLDER
+            ARGS['synology-download-all'] = INTERMEDIATE_FOLDER
+            # Execute Mode mode_synology_download_ALL()
             mode_synology_download_ALL(user_confirmation=False, log_level=logging.INFO)
 
         # If the SOURCE is 'immich-photos'
         elif SOURCE.lower() == 'immich-photos':
-            # For the time being we set the global OUTPUT_TAKEOUT_FOLDER within Synology Photos root folder (otherwise Synology Photos will not see it)
-            # TODO: Change this logic to avoid Synology Photos dependency
-            config = read_synology_config(config_file='Config.ini', log_level=logging.WARNING)
-            if not config['SYNOLOGY_ROOT_PHOTOS_PATH']:
-                LOGGER.warning(f"WARNING : Cannot find 'SYNOLOGY_ROOT_PHOTOS_PATH' info in 'Config.ini' file. Albums will not be created into Synology Photos database")
+            # Define the INTERMEDIATE_FOLDER
+            if ARGS['output-folder']:
+                INTERMEDIATE_FOLDER = ARGS['output-folder']
             else:
-                ARGS['immich-download-all'] = os.path.join(config['SYNOLOGY_ROOT_PHOTOS_PATH'], f'Google Photos_{TIMESTAMP}')
-                intermediate_folder = ARGS['immich-download-all']
+                INTERMEDIATE_FOLDER = f"Immich_Download_ALL_{TIMESTAMP}"
+            # Set ARGS['immich-download-all'] to INTERMEDIATE_FOLDER
+            ARGS['immich-download-all'] = INTERMEDIATE_FOLDER
+            # Execute Mode mode_immich_download_ALL()
             mode_immich_download_ALL(user_confirmation=False, log_level=logging.WARNING)
 
+        # =========================
+        # SECOND PROCESS THE TARGET:
+        # =========================
+        LOGGER.info(f'INFO    : Uploading/Processing Asset to TARGET...')
         # if the TARGET is 'synology-photos'
         if TARGET.lower() == 'synology-photos':
-            ARGS['synology-upload-all'] = intermediate_folder
+            ARGS['synology-upload-all'] = INTERMEDIATE_FOLDER
             mode_synology_upload_ALL(user_confirmation=False, log_level=logging.INFO)
 
         # If the TARGET is 'immich-photos'
         elif TARGET.lower() == 'immich-photos':
-            ARGS['immich-upload-all'] = intermediate_folder
+            ARGS['immich-upload-all'] = INTERMEDIATE_FOLDER
             mode_immich_upload_ALL(user_confirmation=False, log_level=logging.INFO)
 
 

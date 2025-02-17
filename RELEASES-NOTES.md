@@ -40,7 +40,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] Support for colors in --help text for a better visualization.
 - [x] Support for colors in logger for a better visualization.
 - [x] Support to upload assets from/to any folder into Synology Photos (no need to be indexed within the Synology Photos root Folder)
-- [x] Set Log levels per functions and include '-msglevel, --messages-level' argument to set it up.
+- [x] Set Log levels per functions and include '-loglevel, --log-level' argument to set it up.
 - [x] Added function to Remove empty folders when delete assets in Synology Photos
 - [x] Removed Indexing Functions on ServiceSynology file (not needed anymore)
 - [x] Ignored `@eaDir` folders when upload assets to Synology/Immich Photos.
@@ -69,7 +69,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] New Arguments Added: 
   - **-i,        --input-folder <INPUT_FOLDER>** Specify the input folder that you want to process.
   - **-o,        --output-folder <OUTPUT_FOLDER>** Specify the output folder to save the result of the processing action.
-  - **-msglevel, --messages-level ['debug', 'info', 'warning', 'error', 'critical']** Specify the message level for logging and screen outputs.  
+  - **-loglevel, --log-level ['debug', 'info', 'warning', 'error', 'critical']** Specify the message level for logging and screen outputs.  
   - **-rAlbAss,  --remove-albums-assets** 
     If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums',  
     it will also delete the assets (photos/videos) inside each album.

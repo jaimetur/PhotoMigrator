@@ -98,7 +98,7 @@ if __name__ == "__main__":
     LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=LOG_LEVEL)
 
     if len(sys.argv[1:]) == 0:
-        CONFIG = load_config('Config.ini')
+        CONFIG = load_config('../Config.ini')
         print("\nUsing Configuration File: ['Config.ini']\n")
     else:
         CONFIG = load_config(sys.argv[1:])

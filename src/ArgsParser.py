@@ -40,7 +40,7 @@ def parse_arguments():
     PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
     PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False, help="If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums', it will also delete the assets (photos/videos) inside each album.")
     # PARSER.add_argument("-woAlb", "--without-albums", action="store_true", default=False, help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will avoid create an Album per each subfolder found in <INPUT_FOLDER>.")
-    PARSER.add_argument("-msglevel", "--messages-level", metavar=f"{choices_for_message_levels}", choices=choices_for_message_levels, default="info", help="Specify the message level for logging and screen outputs.")
+    PARSER.add_argument("-loglevel", "--log-level", metavar=f"{choices_for_message_levels}", choices=choices_for_message_levels, default="info", help="Specify the message level for logging and screen outputs.")
     PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
 
     PARSER.add_argument("-AUTO", "--AUTOMATED-MIGRATION", metavar=("<SOURCE>", "<TARGET>"), nargs=2, default="",
@@ -99,7 +99,7 @@ def parse_arguments():
                            "\nOptionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
                         )
 
-    # EXTRA MODES FOR IMMINCH PHOTOS:
+    # EXTRA MODES FOR IMMICH PHOTOS:
     # -------------------------------
     PARSER.add_argument("-iuAlb", "--immich-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Immich Photos.")
     PARSER.add_argument("-iuAll", "--immich-upload-all", metavar="<INPUT_FOLDER>", default="",
@@ -192,16 +192,16 @@ def checkArgs(ARGS):
             print(f"❌ ERROR   : Target value '{target}' is not valid. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT}")
             exit(1)
 
-    # Parse messages-levels
-    if ARGS['messages-level'].lower() == 'debug':
+    # Parse log-levels
+    if ARGS['log-level'].lower() == 'debug':
         LOG_LEVEL = logging.DEBUG
-    elif ARGS['messages-level'].lower() == 'info':
+    elif ARGS['log-level'].lower() == 'info':
         LOG_LEVEL = logging.INFO
-    elif ARGS['messages-level'].lower() == 'warning':
+    elif ARGS['log-level'].lower() == 'warning':
         LOG_LEVEL = logging.WARNING
-    elif ARGS['messages-level'].lower() == 'error':
+    elif ARGS['log-level'].lower() == 'error':
         LOG_LEVEL = logging.ERROR
-    elif ARGS['messages-level'].lower() == 'critical':
+    elif ARGS['log-level'].lower() == 'critical':
         LOG_LEVEL = logging.CRITICAL
 
     # Parse synology-download-albums and immich-download-albums to ensure than ARGS['output-folder'] is used to specify <OUTPUT_FOLDER>

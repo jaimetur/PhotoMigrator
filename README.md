@@ -112,7 +112,7 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
 usage: CloudPhotoMigrator.run/exe [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
                                   [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
                                   [-rAlbAss]
-                                  [-msglevel ['debug', 'info', 'warning', 'error', 'critical']]
+                                  [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
                                   [-nolog] [-AUTO <SOURCE> <TARGET>]
                                   [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
@@ -155,7 +155,7 @@ optional arguments:
              If used together with '-srAllAlb, --synology-remove-all-albums' or
              '-irAllAlb, --immich-remove-all-albums', it will also delete the assets
              (photos/videos) inside each album.
--msglevel, --messages-level ['debug', 'info', 'warning', 'error', 'critical']
+-loglevel, --log-level ['debug', 'info', 'warning', 'error', 'critical']
              Specify the message level for logging and screen outputs.
 -nolog,    --no-log-file
              Skip saving output messages to execution log file.

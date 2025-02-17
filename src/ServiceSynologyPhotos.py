@@ -1686,7 +1686,7 @@ if __name__ == "__main__":
     set_ARGS_PARSER()
 
     # Read configuration and log in
-    read_synology_config('Config.ini')
+    read_synology_config('../Config.ini')
     login_synology(use_syno_token=True)
     # login_synology(use_syno_token=False)
 
