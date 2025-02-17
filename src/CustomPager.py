@@ -66,7 +66,7 @@ class PagedParser(argparse.ArgumentParser):
             curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)   # Verde (para argumentos y usage)
             curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Magenta (para separadores y líneas anteriores)
             curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)     # Rojo (para secciones de CAUTION)
-            curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_BLACK)   # Amarillo con fondo azul (para "optional arguments")
+            curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Amarillo con fondo azul (para "optional arguments")
             curses.curs_set(0)  # Ocultar el cursor
             total_lines = len(lines)
             page_size = curses.LINES - 2  # Altura de la terminal menos espacio para el mensaje
