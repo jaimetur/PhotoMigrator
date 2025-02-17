@@ -175,11 +175,23 @@ class PagedParser(argparse.ArgumentParser):
         Detecta si el script se está ejecutando en un entorno interactivo.
         """
         return sys.stdout.isatty()
-
+    
+    # Check if terminal support colors
+    def check_color_support()
+        curses.start_color()
+        if not curses.has_colors():
+            LOGGER.warning(f'WARNING : Your yerminal does not support colors')
+            return False
+        max_pairs = curses.COLOR_PAIRS
+        if max_pairs < 4:
+            LOGGER.warning(f'WARNING : Your terminal only support {max_pairs} color pairs. The tool need 4')
+            return False
+        return True
+        
     def print_help(self, file=None):
         # Genera el texto de ayuda usando el formatter_class (CustomHelpFormatter).
         help_text = self.format_help()
-        if self.is_interactive():
+        if self.is_interactive() and check_color_support():
             self.custom_pager(help_text)
         else:
             # Muestra el texto directamente si no es interactivo
