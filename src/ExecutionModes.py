@@ -179,7 +179,7 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
             # Set ARGS['immich-download-all'] to INTERMEDIATE_FOLDER
             ARGS['immich-download-all'] = INTERMEDIATE_FOLDER
             # Execute Mode mode_immich_download_ALL()
-            mode_immich_download_ALL(user_confirmation=False, log_level=logging.WARNING)
+            mode_immich_download_ALL(user_confirmation=False, log_level=logging.INFO)
 
         # =========================
         # SECOND PROCESS THE TARGET:
