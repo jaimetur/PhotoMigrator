@@ -160,13 +160,6 @@ class PagedParser(argparse.ArgumentParser):
         # print("Caution ranges:", caution_ranges)
         # print("Optional arguments line:", optional_arguments_line)
 
-
-    def is_interactive(self):
-        """
-        Detecta si el script se está ejecutando en un entorno interactivo.
-        """
-        return sys.stdout.isatty()
-
     def get_terminal_height(self, default_height=20):
         """
         Obtiene la altura de la terminal para ajustar el número de líneas mostradas.
@@ -176,6 +169,12 @@ class PagedParser(argparse.ArgumentParser):
             return os.get_terminal_size().lines - 2  # Resta 2 para dejar espacio al mensaje custom
         except OSError:
             return default_height  # Si no se puede obtener, usa el valor predeterminado
+    
+    def is_interactive(self):
+        """
+        Detecta si el script se está ejecutando en un entorno interactivo.
+        """
+        return sys.stdout.isatty()
 
     def print_help(self, file=None):
         # Genera el texto de ayuda usando el formatter_class (CustomHelpFormatter).
