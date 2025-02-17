@@ -69,7 +69,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] New Arguments Added: 
   - **-i,        --input-folder <INPUT_FOLDER>** Specify the input folder that you want to process.
   - **-o,        --output-folder <OUTPUT_FOLDER>** Specify the output folder to save the result of the processing action.
-  - **-loglevel, --log-level ['debug', 'info', 'warning', 'error', 'critical']** Specify the message level for logging and screen outputs.  
+  - **-loglevel, --log-level ['debug', 'info', 'warning', 'error', 'critical']** Specify the log level for logging and screen messages.  
   - **-rAlbAss,  --remove-albums-assets** 
     If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums',  
     it will also delete the assets (photos/videos) inside each album.

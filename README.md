@@ -156,7 +156,7 @@ optional arguments:
              '-irAllAlb, --immich-remove-all-albums', it will also delete the assets
              (photos/videos) inside each album.
 -loglevel, --log-level ['debug', 'info', 'warning', 'error', 'critical']
-             Specify the message level for logging and screen outputs.
+             Specify the log level for logging and screen messages.
 -nolog,    --no-log-file
              Skip saving output messages to execution log file.
 -AUTO,     --AUTOMATED-MIGRATION ('<SOURCE>', '<TARGET>')
