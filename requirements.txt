@@ -16,4 +16,4 @@ tabulate
 requests-toolbelt
 piexif
 pillow
-windows-curses
+windows-curses; sys_platform == "Windows"
