@@ -3,6 +3,7 @@ import os,sys
 import logging
 from colorama import Fore, Style
 from contextlib import contextmanager
+from Utils import check_color_support
 
 # Clase personalizada para formatear los mensajes que van a la consola (Añadimos colorees según el nivel del mensaje)
 class CustomConsoleFormatter(logging.Formatter):
@@ -12,19 +13,21 @@ class CustomConsoleFormatter(logging.Formatter):
         formatted_message = super().format(record)
         # Restaurar el mensaje original
         record.msg = original_msg
-        """Formato personalizado con colores ANSI."""
-        COLORS = {
-            "DEBUG": Fore.BLUE,
-            # "INFO": Fore.GREEN,
-            # "INFO": Fore.WHITE,
-            "INFO": Fore.LIGHTWHITE_EX,
-            "WARNING": Fore.YELLOW,
-            "ERROR": Fore.RED,
-            "CRITICAL": Fore.MAGENTA,
-        }
-        # Aplicamos el color según el nivel de logging
-        color = COLORS.get(record.levelname, "")
-        formatted_message = f"{color}{formatted_message}{Style.RESET_ALL}"
+        color_support = check_color_support()
+        if color_support:
+            """Formato personalizado con colores ANSI."""
+            COLORS = {
+                "DEBUG": Fore.BLUE,
+                # "INFO": Fore.GREEN,
+                # "INFO": Fore.WHITE,
+                "INFO": Fore.LIGHTWHITE_EX,
+                "WARNING": Fore.YELLOW,
+                "ERROR": Fore.RED,
+                "CRITICAL": Fore.MAGENTA,
+            }
+            # Aplicamos el color según el nivel de logging
+            color = COLORS.get(record.levelname, "")
+            formatted_message = f"{color}{formatted_message}{Style.RESET_ALL}"
         return formatted_message
 
 # Clase personalizada para formatear los mensajes que van al fichero plano txt (sin colores)

@@ -928,3 +928,12 @@ def convert_to_list(input):
     else:
         output = []
     return output
+
+# Detectar si la terminal es compatible
+def check_color_support():
+    if sys.stdout.isatty():  # Verifica si es un terminal interactivo
+        term = os.getenv("TERM", "")
+        if term in ("dumb", "linux", "xterm-mono"):  # Terminales sin colores
+            return False
+        return True
+    return False

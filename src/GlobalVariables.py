@@ -10,7 +10,7 @@ import logging
 
 SCRIPT_NAME                     = "CloudPhotoMigrator"
 SCRIPT_VERSION                  = "v3.0.0-beta-01"
-SCRIPT_DATE                     = "2025-02-16"
+SCRIPT_DATE                     = "2025-02-17"
 SCRIPT_NAME_VERSION             = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
 LOG_FOLDER_FILENAME             = ""
 START_TIME                      = datetime.now()
@@ -28,8 +28,8 @@ DEPRIORITIZE_FOLDERS_PATTERNS   = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS',
 SCRIPT_DESCRIPTION              = textwrap.dedent(f"""
                                 {SCRIPT_NAME_VERSION} - {SCRIPT_DATE}
                                 
-                                Multi-Platform/Multi-Arch toot designed to Interact and Manage different Photo Cloud 
-                                Services such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
+                                Multi-Platform/Multi-Arch toot designed to Interact and Manage different Photo Cloud Services
+                                such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
                                 
                                 (c) 2024-2025 by Jaime Tur (@jaimetur)
                                 """

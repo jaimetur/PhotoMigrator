@@ -17,7 +17,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 ## Release Notes:
 
 **Release**: 3.0.0-beta-01  
-**Date**: 2025-02-16
+**Date**: 2025-02-17
 
 - [x] New Script name '**CloudPhotoMigrator**' (former 'GoogleTakeoutPhotos')
 - [x] The Tool is now Open Source (all contributors that want to collaborate on this project are more than welcome)

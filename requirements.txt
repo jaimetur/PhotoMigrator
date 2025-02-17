@@ -16,3 +16,4 @@ tabulate
 requests-toolbelt
 piexif
 pillow
+windows-curses
