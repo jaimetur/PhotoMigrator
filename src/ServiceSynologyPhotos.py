@@ -996,7 +996,7 @@ def upload_asset(file_path, log_level=logging.INFO):
     from GlobalVariables import LOGGER  # Import the logger inside the function
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # login into Synology Photos if the session is not yet started
-        login_synology(log_level=log_level
+        login_synology(log_level=log_level)
         # Check if file exists
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"El archivo '{file_path}' no existe.")
