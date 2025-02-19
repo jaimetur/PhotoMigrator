@@ -804,8 +804,10 @@ def update_exif_date(image_path, asset_time):
         try:
             exif_dict = piexif.load(image_path)
         except Exception:
-            LOGGER.warning(f"WARNING : No EXIF metadata found in {image_path}. Creating new EXIF data.")
-            exif_dict = {"0th": {}, "Exif": {}, "GPS": {}, "Interop": {}, "1st": {}, "thumbnail": None}
+            # LOGGER.warning(f"WARNING : No EXIF metadata found in {image_path}. Creating new EXIF data.")
+            LOGGER.warning(f"WARNING : No EXIF metadata found in {image_path}. Skipping it....")
+            return
+            # exif_dict = {"0th": {}, "Exif": {}, "GPS": {}, "Interop": {}, "1st": {}, "thumbnail": None}
 
         # Actualizar solo si existen las secciones
         if "0th" in exif_dict:
