@@ -1726,7 +1726,7 @@ if __name__ == "__main__":
 
     # Example: Upload_asset()
     print("\n=== EXAMPLE: upload_asset() ===")
-    file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\2003.07 - Viaje a Almeria (Julio 2003)\En Almeria (Julio 2003)_17.JPG"                # For Windows
+    file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\1994 - Recuerdos\169859_10150125237566327_578986326_8330690_6545.jpg"                # For Windows
     asset_id = upload_asset(file_path)
     if not asset_id:
         print(f"Error uploading asset '{file_path}'.")
