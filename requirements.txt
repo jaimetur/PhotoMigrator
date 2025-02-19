@@ -16,4 +16,5 @@ tabulate
 requests-toolbelt
 piexif
 pillow
+python-dateutil
 windows-curses; sys_platform == "win32"

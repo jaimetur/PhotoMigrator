@@ -24,6 +24,7 @@ import urllib3
 import fnmatch
 from tqdm import tqdm
 from datetime import datetime
+from dateutil import parser
 from urllib.parse import urlparse
 from halo import Halo
 from tabulate import tabulate
@@ -37,7 +38,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # -----------------------------------------------------------------------------
 #                          GLOBAL VARIABLES
 # -----------------------------------------------------------------------------
-# global CONFIG, IMMICH_URL, IMMICH_ADMIN_API_KEY, IMMICH_USER_API_KEY, IMMICH_USERNAME, IMMICH_PASSWORD, SESSION_TOKEN, API_KEY_LOGIN, HEADERS, ALLOWED_IMMICH_MEDIA_EXTENSIONS, ALLOWED_IMMICH_SIDECAR_EXTENSIONS, ALLOWED_IMMICH_EXTENSIONS
 CONFIG                              = None  # Dictionary containing configuration information
 IMMICH_URL                          = None  # e.g., "http://192.168.1.100:2283"
 IMMICH_ADMIN_API_KEY                = None  # Immich IMMICH_ADMIN_API_KEY
@@ -559,7 +559,7 @@ def download_asset(asset_id, asset_filename, asset_time, download_folder="Downlo
         os.makedirs(download_folder, exist_ok=True)
         # If asset_time is str, convert to UNIX timestamp
         if isinstance(asset_time, str):
-            asset_time = datetime.fromisoformat(asset_time).timestamp()
+            asset_time = parser.isoparse(asset_time).timestamp()
         # Convert UNIX timestamp to datetime
         if asset_time > 0:
             asset_datetime = datetime.fromtimestamp(asset_time)
