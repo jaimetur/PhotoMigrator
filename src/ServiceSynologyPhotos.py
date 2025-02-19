@@ -39,6 +39,9 @@ global CONFIG, SYNOLOGY_URL, SYNOLOGY_USERNAME, SYNOLOGY_PASSWORD
 global SESSION, SID
 
 # Initialize global variables
+CONFIG = None
+SESSION = None
+SID = None
 SYNO_TOKEN_HEADER = {}
 ALLOWED_SYNOLOGY_SIDECAR_EXTENSIONS = []
 ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS   = ['.BMP', '.GIF', '.JPG', '.JPEG', '.PNG', '.3fr', '.arw', '.cr2', '.cr3', '.crw', '.dcr', '.dng', '.erf', '.k25', '.kdc', '.mef', '.mos', '.mrw', '.nef', '.orf', '.ptx', '.pef', '.raf', '.raw', '.rw2', '.sr2', '.srf', '.TIFF', '.HEIC']
