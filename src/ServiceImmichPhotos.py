@@ -17,7 +17,7 @@ Python module with example functions to interact with Immich Photos, including f
      - immich_download_albums()
      - immich_download_ALL()
 """
-import os, sys
+import os
 import requests
 import json
 import urllib3
@@ -27,6 +27,7 @@ from datetime import datetime
 from urllib.parse import urlparse
 from halo import Halo
 from tabulate import tabulate
+from pathlib import Path
 import logging
 from CustomLogger import set_log_level
 from Utils import update_metadata, convert_to_list
@@ -37,18 +38,18 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 #                          GLOBAL VARIABLES
 # -----------------------------------------------------------------------------
 # global CONFIG, IMMICH_URL, IMMICH_ADMIN_API_KEY, IMMICH_USER_API_KEY, IMMICH_USERNAME, IMMICH_PASSWORD, SESSION_TOKEN, API_KEY_LOGIN, HEADERS, ALLOWED_IMMICH_MEDIA_EXTENSIONS, ALLOWED_IMMICH_SIDECAR_EXTENSIONS, ALLOWED_IMMICH_EXTENSIONS
-CONFIG                      = None  # Dictionary containing configuration information
-IMMICH_URL                  = None  # e.g., "http://192.168.1.100:2283"
-IMMICH_ADMIN_API_KEY        = None  # Immich IMMICH_ADMIN_API_KEY
-IMMICH_USER_API_KEY         = None  # Immich IMMICH_USER_API_KEY
-IMMICH_USERNAME             = None  # Immich user (email)
-IMMICH_PASSWORD             = None  # Immich password
-SESSION_TOKEN               = None  # JWT token returned after login
-API_KEY_LOGIN               = False # Variable to determine if we use IMMICH_USER_API_KEY for login
-HEADERS_WITH_CREDENTIALS          = {}    # Headers used in each request
-ALLOWED_IMMICH_MEDIA_EXTENSIONS = None
-ALLOWED_IMMICH_SIDECAR_EXTENSIONS = None
-ALLOWED_IMMICH_EXTENSIONS = None
+CONFIG                              = None  # Dictionary containing configuration information
+IMMICH_URL                          = None  # e.g., "http://192.168.1.100:2283"
+IMMICH_ADMIN_API_KEY                = None  # Immich IMMICH_ADMIN_API_KEY
+IMMICH_USER_API_KEY                 = None  # Immich IMMICH_USER_API_KEY
+IMMICH_USERNAME                     = None  # Immich user (email)
+IMMICH_PASSWORD                     = None  # Immich password
+SESSION_TOKEN                       = None  # JWT token returned after login
+API_KEY_LOGIN                       = False # Variable to determine if we use IMMICH_USER_API_KEY for login
+HEADERS_WITH_CREDENTIALS            = {}    # Headers used in each request
+ALLOWED_IMMICH_MEDIA_EXTENSIONS     = []    # Allowed Immich Media Extensions
+ALLOWED_IMMICH_SIDECAR_EXTENSIONS   = []    # Allowed Immich Sidecar Extensions
+ALLOWED_IMMICH_EXTENSIONS           = []    # Allowed Immich Extensions
 
 
 ##############################################################################
@@ -224,7 +225,7 @@ def create_album(album_name, log_level=logging.INFO):
             album_id = data.get("id")
             # LOGGER.info(f"INFO    : Album '{album_name}' created with ID={album_id}.")
             return album_id
-        except Exception as e:
+        except Exception:
             LOGGER.warning(f"WARNING : Cannot create album '{album_name}' due to API call error. Skipped!")
             return None
 
@@ -406,7 +407,6 @@ def add_assets_to_album(album_id, asset_ids, album_name=None, log_level=logging.
             response = requests.put(url, headers=HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
             response.raise_for_status()
             data = response.json()
-            total_files = len(data)
             total_added = 0
             for item in data:
                 if item.get("success"):
@@ -694,19 +694,22 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
             SUBFOLDERS_EXCLUSIONS.append(subfolder)
         # Search for all valid Albums folders
         valid_folders = []  # List to store valid folder paths
-        for root, dirs, _ in os.walk(input_folder):
-            dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]  # Exclude directories in the exclusion list
+        for root, folders, _ in os.walk(input_folder):
+            folders[:] = [d for d in folders if d not in SUBFOLDERS_EXCLUSIONS]  # Exclude directories in the exclusion list
             if subfolders_inclusion:  # Apply SUBFOLDERS_INCLUSION filter if provided
                 rel_path = os.path.relpath(root, input_folder)
                 if rel_path == ".":
-                    dirs[:] = [d for d in dirs if d in subfolders_inclusion]
+                    folders[:] = [d for d in folders if d in subfolders_inclusion]
                 else:
                     first_dir = rel_path.split(os.sep)[0]
                     if first_dir not in subfolders_inclusion:
-                        dirs[:] = []
-            for dir in dirs:
-                dir_path = os.path.join(root, dir)
+                        folders[:] = []
+            for folder in folders:
+                dir_path = os.path.join(root, folder)
                 # Check if there is at least one file with an allowed extension in the subfolder
+                if isinstance(dir_path, bytes):
+                    dir_path = dir_path.decode()  # Convertir bytes a str
+                dir_path = Path(dir_path)  # Asegurarnos de que es un Path
                 has_supported_files = any(os.path.splitext(file)[-1].lower() in ALLOWED_IMMICH_EXTENSIONS for file in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, file)))
                 if not has_supported_files:
                     continue
@@ -796,14 +799,14 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
         if subfolders_inclusion:
             subfolders_inclusion = [s for s in subfolders_inclusion if s not in SUBFOLDERS_EXCLUSIONS]
         # Collect all file paths based on subfolder criteria
-        def collect_files(input_folder, only_subfolders):
+        def collect_files(input_folders, only_subfolders):
             files_list = []
             if only_subfolders:
                 # Process only the specified direct subfolders_inclusion (if they exist)
                 for sub in only_subfolders:
-                    sub_path = os.path.join(input_folder, sub)
+                    sub_path = os.path.join(str(input_folders), sub)
                     if not os.path.isdir(sub_path):
-                        LOGGER.warning(f"WARNING : Subfolder '{sub}' does not exist in '{input_folder}'. Skipping.")
+                        LOGGER.warning(f"WARNING : Subfolder '{sub}' does not exist in '{input_folders}'. Skipping.")
                         continue
                     for root, dirs, files in os.walk(sub_path):
                         # Exclude any directories matching the exclusions
@@ -811,7 +814,7 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
                         files_list.extend(os.path.join(root, f) for f in files)
             else:
                 # Process all subfolders_inclusion except those in SUBFOLDERS_EXCLUSIONS (filtering at all levels)
-                for root, dirs, files in os.walk(input_folder):
+                for root, dirs, files in os.walk(input_folders):
                     dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]
                     files_list.extend(os.path.join(root, f) for f in files)
             return files_list
@@ -905,7 +908,6 @@ def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich", 
         # Normalize album_name_or_id to a list if it's a string
         if isinstance(albums_name, str):
             albums_name = [albums_name]
-        albums_to_download = []
         found_albums = []
         if 'ALL' in [x.strip().upper() for x in albums_name]:
             albums_to_download = all_albums
@@ -971,14 +973,12 @@ def immich_download_no_albums(output_folder="Downloads_Immich", log_level=loggin
         # login_immich
         login_immich(log_level=log_level)
         total_assets_downloaded = 0
-        downloaded_assets_set = set()
         # 2) Assets without album -> output_folder/No-Albums/yyyy/mm
         all_assets = get_all_assets_by_search_filter(isNotInAlbum=True)
         # all_assets = get_assets_by_search_filter()
         all_assets_items = all_assets.get("items")
         all_photos_path = os.path.join(output_folder, 'No-Albums')
         os.makedirs(all_photos_path, exist_ok=True)
-        # all_assets_items = [a for a in all_assets if a.get("id") not in downloaded_assets_set]
         LOGGER.info(f"INFO    : Found {len(all_assets_items)} asset(s) without any album associated.")
         for asset in tqdm(all_assets_items, desc="INFO    : Downloading assets without associated albums", unit=" photos"):
             asset_id = asset.get("id")
@@ -1096,7 +1096,8 @@ def immich_remove_duplicates_albums(log_level=logging.WARNING):
             size = get_album_items_size(album_id)
             duplicates_map.setdefault((assets_count, size), []).append((album_id, album_name))
         total_deleted_duplicated_albums = 0
-        for (assets_count, size), group in tqdm(duplicates_map.items(), desc=f"INFO    : Deleting Duplicates Albums", unit=" albums"):
+        for (item_assets_count, size), group in tqdm(duplicates_map.items(), desc=f"INFO    : Deleting Duplicates Albums", unit=" albums"):
+            LOGGER.debug(f'DEBUG   : Assets Count: {item_assets_count}. Size: {size}.')
             if len(group) > 1:
                 group_sorted = sorted(group, key=lambda x: x[1])
                 # The first album in the group is kept

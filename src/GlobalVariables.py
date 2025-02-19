@@ -46,8 +46,8 @@ def set_ARGS_PARSER():
     PARSER = getParser()
 
 def set_LOGGER():
-    from CustomLogger import log_setup, TqdmToLogger
-    global LOGGER, TQDM_LOGGER, LOG_FOLDER_FILENAME
+    from CustomLogger import log_setup
+    global LOGGER, LOG_FOLDER_FILENAME
     script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     current_directory = os.getcwd()
     log_folder="Logs"

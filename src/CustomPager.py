@@ -14,19 +14,18 @@ else:
 
 class PagedParser(argparse.ArgumentParser):
     """
-    Sobrescribimos ArgumentParser para que 'print_help()' use un paginador.
+    Sobrescribimos ArgumentParser para que print_help() use un paginador.
     """
-    global SCRIPT_DESCRIPTION
 
     def custom_pager(self, text):
         """
         Paginador con curses que adapta dinámicamente el texto al tamaño de la terminal.
         """
+        from GlobalVariables import LOGGER  # Global logger
 
         # Expresión regular para detectar códigos ANSI
         ANSI_ESCAPE = re.compile(r'\x1b\[[0-9;]*m')
 
-        global usage_first_line, usage_last_line
         usage_first_line = -1
         usage_last_line = -1
         caution_ranges = []  # Lista para almacenar rangos de líneas de "CAUTION:"

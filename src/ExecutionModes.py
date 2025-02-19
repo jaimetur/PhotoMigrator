@@ -15,7 +15,6 @@ EXECUTION_MODE = "default"
 # Determine the Execution mode based on the provide arguments:
 # -------------------------------------------------------------
 def detect_and_run_execution_mode():
-
     # AUTOMATED-MIGRATION MODE:
     if ARGS['AUTOMATED-MIGRATION']:
         EXECUTION_MODE = 'AUTOMATED-MIGRATION'
@@ -268,7 +267,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         if ARGS['no-log-file']:
             LOGGER.warning(f"WARNING : Flag detected '-nolog, --no-log-file'. Skipping saving output into log file...")
         # Call the Function
-        albums_found, symlink_fixed, symlink_not_fixed, duplicates_found = google_takeout_processor(OUTPUT_TAKEOUT_FOLDER=OUTPUT_TAKEOUT_FOLDER)
+        albums_found, symlink_fixed, symlink_not_fixed, duplicates_found = google_takeout_processor(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
