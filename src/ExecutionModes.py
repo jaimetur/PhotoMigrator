@@ -591,7 +591,7 @@ def mode_immich_upload_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
         LOGGER.info("")
         # Call the Function
-        albums_crated, albums_skipped, photos_added = immich_upload_albums(ARGS['immich-upload-albums'], log_level=logging.WARNING)
+        albums_crated, albums_skipped, photos_added, duplicates_assets_removed = immich_upload_albums(ARGS['immich-upload-albums'], log_level=logging.WARNING)
         logout_immich()
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -607,6 +607,7 @@ def mode_immich_upload_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"Total Albums created                    : {albums_crated}")
         LOGGER.info(f"Total Albums skipped                    : {albums_skipped}")
         LOGGER.info(f"Total Photos added to Albums            : {photos_added}")
+        LOGGER.info(f"Total Duplicated Assets removed         : {duplicates_assets_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
