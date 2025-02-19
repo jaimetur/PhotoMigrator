@@ -654,6 +654,7 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"Total Assets added to Albums            : {total_assets_uploaded_within_albums}")
         LOGGER.info(f"Total Assets added without Albums       : {total_assets_uploaded_without_albums}")
         LOGGER.info(f"Total Duplicated Albums removed         : {total_duplicates_albums_removed}")
+        LOGGER.info(f"Total Duplicated Assets removed         : {duplicates_assets_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
