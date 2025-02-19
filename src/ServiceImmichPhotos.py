@@ -620,15 +620,15 @@ def download_asset(asset_id, asset_filename, asset_time, download_folder="Downlo
                 with open(file_path, 'wb') as f:
                     for chunk in r.iter_content(chunk_size=8192):
                         f.write(chunk)
-                    # Update file timestamps using UNIX timestamp
-                    os.utime(file_path, (asset_time, asset_time))
 
-                    # Check if file extension is in ALLOWED_IMMICH_MEDIA_EXTENSIONS
-                    if file_ext in ALLOWED_IMMICH_MEDIA_EXTENSIONS:
-                        update_metadata(file_path, asset_datetime.strftime("%Y-%m-%d %H:%M:%S"))
-                    LOGGER.debug("")
-                    LOGGER.debug(f"DEBUG   : Asset '{asset_filename}' downloaded and saved at {file_path}")
-                    return 1
+                # Update file timestamps using UNIX timestamp
+                os.utime(file_path, (asset_time, asset_time))
+                # Check if file extension is in ALLOWED_IMMICH_MEDIA_EXTENSIONS
+                if file_ext in ALLOWED_IMMICH_MEDIA_EXTENSIONS:
+                    update_metadata(file_path, asset_datetime.strftime("%Y-%m-%d %H:%M:%S"))
+                LOGGER.debug("")
+                LOGGER.debug(f"DEBUG   : Asset '{asset_filename}' downloaded and saved at {file_path}")
+                return 1
             return True
         except Exception as e:
             LOGGER.error(f"ERROR   : Failed to download asset {asset_id}: {e}")
