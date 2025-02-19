@@ -140,7 +140,7 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
             if ARGS['output-folder']:
                 INTERMEDIATE_FOLDER = ARGS['output-folder']
             else:
-                INTERMEDIATE_FOLDER = f"{os.path.basename(input_folder)}_{TIMESTAMP}"
+                INTERMEDIATE_FOLDER = f"{os.path.basename(os.path.normpath(input_folder))}_{TIMESTAMP}"
             # Set ARGS['output-folder'] to INTERMEDIATE_FOLDER
             ARGS['output-folder'] = INTERMEDIATE_FOLDER
 
