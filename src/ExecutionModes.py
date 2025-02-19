@@ -128,7 +128,10 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
         if SOURCE.lower() == 'google-photos' or ARGS['SOURCE-TYPE-TAKEOUT-FOLDER']:
             # Configure default arguments for mode_google_takeout() execution and RUN it
             if SOURCE.lower() == 'google-photos':
-                input_folder = ARGS['input-folder']
+                if ARGS['input-folder'] != '':
+                    input_folder = ARGS['input-folder']
+                else:
+                    input_folder = SOURCE
             else:
                 input_folder = SOURCE
 
@@ -136,7 +139,7 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
             if ARGS['output-folder']:
                 INTERMEDIATE_FOLDER = ARGS['output-folder']
             else:
-                INTERMEDIATE_FOLDER = f"{ARGS['input-folder']}_{TIMESTAMP}"
+                INTERMEDIATE_FOLDER = f"{input_folder}_{TIMESTAMP}"
             # Set ARGS['output-folder'] to INTERMEDIATE_FOLDER
             ARGS['output-folder'] = INTERMEDIATE_FOLDER
 
@@ -357,7 +360,7 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Synology Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
         LOGGER.info("")
-        LOGGER.info(f"INFO    : Find Assets in Folder    : {ARGS['synology-upload-all']}")
+        LOGGER.info(f"INFO    : Uploading Assets in Folder    : {ARGS['synology-upload-all']}")
         # login_synology
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
@@ -706,7 +709,7 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
         LOGGER.info("")
-        LOGGER.info(f"INFO    : Find Assets in Folder    : {ARGS['immich-upload-all']}")
+        LOGGER.info(f"INFO    : Uploading Assets in Folder    : {ARGS['immich-upload-all']}")
         # login_immich
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")

@@ -943,7 +943,8 @@ def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich", 
             assets_in_album = get_assets_from_album(album_id)
             for asset in tqdm(assets_in_album, desc=f"INFO    : Downloading '{album_name}'", unit=" assets"):
                 asset_id = asset.get("id")
-                asset_filename = os.path.basename(asset.get("originalPath"))
+                # asset_filename = os.path.basename(asset.get("originalPath"))
+                asset_filename = os.path.basename(asset.get("originalFileName"))
                 if asset_id:
                     asset_time = asset.get('fileCreatedAt')
                     ok = download_asset(asset_id, asset_filename, asset_time, album_folder)
@@ -982,7 +983,8 @@ def immich_download_no_albums(output_folder="Downloads_Immich", log_level=loggin
         LOGGER.info(f"INFO    : Found {len(all_assets_items)} asset(s) without any album associated.")
         for asset in tqdm(all_assets_items, desc="INFO    : Downloading assets without associated albums", unit=" photos"):
             asset_id = asset.get("id")
-            asset_filename = os.path.basename(asset.get("originalPath"))
+            # asset_filename = os.path.basename(asset.get("originalPath"))
+            asset_filename = os.path.basename(asset.get("originalFileName"))
             if not asset_id:
                 continue
             created_at_str = asset.get("fileCreatedAt", "")
@@ -1223,7 +1225,7 @@ def immich_remove_all_assets(log_level=logging.WARNING):
     if assets_ids:
         assets_deleted = remove_assets(assets_ids, log_level=logging.WARNING)
         albums_deleted = immich_remove_empty_albums(log_level=logging.WARNING)
-    logout_immich()
+    logout_immich(log_level=log_level)
     LOGGER.info(f"INFO    : Total Assets deleted: {assets_deleted}")
     LOGGER.info(f"INFO    : Total Albums deleted: {albums_deleted}")
     return assets_deleted, albums_deleted

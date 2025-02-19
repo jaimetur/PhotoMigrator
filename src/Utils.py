@@ -779,17 +779,14 @@ def update_exif_date(image_path, asset_time):
 
     Args:
         image_path (str): Path to the image file.
-        asset_time (int): Timestamp in UNIX Epoch format.
+        asset_time (int or str): Timestamp in UNIX Epoch format or a date string in "YYYY-MM-DD HH:MM:SS".
     """
-    from GlobalVariables import LOGGER
-
     try:
         # Si asset_time es una cadena en formato 'YYYY-MM-DD HH:MM:SS', conviértelo a timestamp UNIX
         if isinstance(asset_time, str):
             try:
                 asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
             except ValueError:
-                LOGGER.error("")
                 LOGGER.error(f"ERROR   : Invalid date format for asset_time: {asset_time}")
                 return
 
@@ -802,28 +799,35 @@ def update_exif_date(image_path, asset_time):
         original_atime = original_times.st_atime
         original_mtime = original_times.st_mtime
 
-        # Load EXIF data
-        exif_dict = piexif.load(image_path)
+        # Cargar EXIF data o crear un diccionario vacío si no tiene metadatos
+        try:
+            exif_dict = piexif.load(image_path)
+        except Exception:
+            LOGGER.warning(f"WARNING : No EXIF metadata found in {image_path}. Creating new EXIF data.")
+            exif_dict = {"0th": {}, "Exif": {}, "GPS": {}, "Interop": {}, "1st": {}, "thumbnail": None}
 
-        # Update EXIF metadata fields
-        exif_dict["0th"][piexif.ImageIFD.DateTime] = date_time_bytes  # General metadata
-        exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal] = date_time_bytes  # Fecha de creación original
-        exif_dict["Exif"][piexif.ExifIFD.DateTimeDigitized] = date_time_bytes  # Fecha de digitalización
-
-        if "Exif" in exif_dict and piexif.ExifIFD.DateTimeOriginal in exif_dict["Exif"]:
+        # Actualizar solo si existen las secciones
+        if "0th" in exif_dict:
+            exif_dict["0th"][piexif.ImageIFD.DateTime] = date_time_bytes
+        if "Exif" in exif_dict:
             exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal] = date_time_bytes
+            exif_dict["Exif"][piexif.ExifIFD.DateTimeDigitized] = date_time_bytes
+
+        # Verificar y corregir valores incorrectos antes de insertar
+        for ifd_name in ["0th", "Exif"]:
+            for tag, value in exif_dict.get(ifd_name, {}).items():
+                if isinstance(value, int):
+                    exif_dict[ifd_name][tag] = str(value).encode('utf-8')
 
         # Dump and insert updated EXIF data
         exif_bytes = piexif.dump(exif_dict)
         piexif.insert(exif_bytes, image_path)
 
-        # Restore original file timestamps
+        # Restaurar timestamps originales del archivo
         os.utime(image_path, (original_atime, original_mtime))
-        LOGGER.debug("")
         LOGGER.debug(f"DEBUG   : EXIF metadata updated for {image_path} with timestamp {date_time_exif}")
 
     except Exception as e:
-        LOGGER.error("")
         LOGGER.error(f"ERROR   : Failed to update EXIF metadata for {image_path}. {e}")
 
 
