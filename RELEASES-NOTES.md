@@ -16,8 +16,8 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
 ## Release Notes:
 
-**Release**: 3.0.0-beta-01  
-**Date**: 2025-02-17
+**Release**: 3.0.0-beta-02  
+**Date**: 2025-02-19
 
 - [x] New Script name '**CloudPhotoMigrator**' (former 'GoogleTakeoutPhotos')
 - [x] The Tool is now Open Source (all contributors that want to collaborate on this project are more than welcome)
@@ -37,6 +37,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] Added **_Immich Photos Support_**.
 - [x] Wildcards support on <ALBUMS_NAME> argument on --synology-download-albums and --immich-download-albums options.
 - [x] Replaced 'ALL_PHOTOS' by 'No-Albums' as output subfolder for assets without any album associated (be careful if you already run the script with previous version because before, the folder for assets without albums was named 'ALL_PHOTOS')
+- [x] Remove Dupplicates Assets in Immich Photos after upload any Asset. 
 - [x] Support for colors in --help text for a better visualization.
 - [x] Support for colors in logger for a better visualization.
 - [x] Support to upload assets from/to any folder into Synology Photos (no need to be indexed within the Synology Photos root Folder)
