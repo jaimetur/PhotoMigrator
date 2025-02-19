@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/CloudPhotoMigrator-dev.iml" filepath="$PROJECT_DIR$/.idea/CloudPhotoMigrator-dev.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/CloudPhotoMigrator.iml" filepath="$PROJECT_DIR$/.idea/CloudPhotoMigrator.iml" />
     </modules>
   </component>
 </project>
