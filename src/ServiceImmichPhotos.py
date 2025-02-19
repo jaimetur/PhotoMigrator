@@ -45,7 +45,7 @@ IMMICH_USERNAME             = None  # Immich user (email)
 IMMICH_PASSWORD             = None  # Immich password
 SESSION_TOKEN               = None  # JWT token returned after login
 API_KEY_LOGIN               = False # Variable to determine if we use IMMICH_USER_API_KEY for login
-HEADERS                     = {}    # Headers used in each request
+HEADERS_WITH_TOKEN          = {}    # Headers used in each request
 ALLOWED_IMMICH_MEDIA_EXTENSIONS = None
 ALLOWED_IMMICH_SIDECAR_EXTENSIONS = None
 ALLOWED_IMMICH_EXTENSIONS = None
@@ -67,7 +67,7 @@ def get_user_id(log_level=logging.INFO):
         url = f"{IMMICH_URL}/api/users/me"
         payload = {}
         try:
-            response = requests.request("GET", url, headers=HEADERS, data=payload)
+            response = requests.request("GET", url, headers=HEADERS_WITH_TOKEN, data=payload)
             response.raise_for_status()
             data = response.json()
             user_id = data.get("id")
@@ -88,7 +88,7 @@ def get_supported_media_types(type='media', log_level=logging.INFO):
         url = f"{IMMICH_URL}/api/server/media-types"
         payload = {}
         try:
-            response = requests.request("GET", url, headers=HEADERS, data=payload)
+            response = requests.request("GET", url, headers=HEADERS_WITH_TOKEN, data=payload)
             response.raise_for_status()
             data = response.json()
             image = data.get("image")
@@ -201,11 +201,11 @@ def login_immich(log_level=logging.INFO):
     Logs into Immich and obtains a JWT token (SESSION_TOKEN).
     Returns True if the connection was successful, False otherwise.
     """
-    global SESSION_TOKEN, HEADERS, ALLOWED_IMMICH_MEDIA_EXTENSIONS, ALLOWED_IMMICH_SIDECAR_EXTENSIONS, ALLOWED_IMMICH_EXTENSIONS
+    global SESSION_TOKEN, HEADERS_WITH_TOKEN, ALLOWED_IMMICH_MEDIA_EXTENSIONS, ALLOWED_IMMICH_SIDECAR_EXTENSIONS, ALLOWED_IMMICH_EXTENSIONS
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # If there is already a token and headers, assume we are logged in
-        if len(HEADERS.keys())>0 and  (f"Bearer {SESSION_TOKEN}" or IMMICH_USER_API_KEY in HEADERS.values()):
+        if len(HEADERS_WITH_TOKEN.keys())>0 and  (f"Bearer {SESSION_TOKEN}" or IMMICH_USER_API_KEY in HEADERS_WITH_TOKEN.values()):
             return True
         # Ensure the configuration is read
         read_immich_config()
@@ -215,7 +215,7 @@ def login_immich(log_level=logging.INFO):
 
         # If detected IMMICH_USER_API_KEY in Immich.config
         if API_KEY_LOGIN:
-            HEADERS = {
+            HEADERS_WITH_TOKEN = {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'x-api-key': IMMICH_USER_API_KEY
@@ -228,12 +228,12 @@ def login_immich(log_level=logging.INFO):
               "email": IMMICH_USERNAME,
               "password": IMMICH_PASSWORD
             })
-            HEADERS = {
+            HEADERS_WITH_TOKEN = {
               'Content-Type': 'application/json',
               'Accept': 'application/json'
             }
             try:
-                response = requests.post(url, headers=HEADERS, data=payload)
+                response = requests.post(url, headers=HEADERS_WITH_TOKEN, data=payload)
                 response.raise_for_status()  # Raises exception if 4xx or 5xx
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception occurred during Immich login: {str(e)}")
@@ -243,7 +243,7 @@ def login_immich(log_level=logging.INFO):
             if not SESSION_TOKEN:
                 LOGGER.error(f"ERROR   : 'accessToken' not found in the response: {data}")
                 return False
-            HEADERS = {
+            HEADERS_WITH_TOKEN = {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'Authorization': f'Bearer {SESSION_TOKEN}'
@@ -261,11 +261,11 @@ def logout_immich(log_level=logging.INFO):
     "Logs out" locally by discarding the token.
     (Currently, Immich does not provide an official /logout endpoint).
     """
-    global SESSION_TOKEN, HEADERS
+    global SESSION_TOKEN, HEADERS_WITH_TOKEN
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         SESSION_TOKEN = None
-        HEADERS = {}
+        HEADERS_WITH_TOKEN = {}
         LOGGER.info("INFO    : Session closed locally (Bearer Token discarded).")
 
 # -----------------------------------------------------------------------------
@@ -284,7 +284,7 @@ def create_album(album_name, log_level=logging.INFO):
             "albumName": album_name,
         })
         try:
-            response = requests.post(url, headers=HEADERS, data=payload, verify=False)
+            response = requests.post(url, headers=HEADERS_WITH_TOKEN, data=payload, verify=False)
             response.raise_for_status()
             data = response.json()
             album_id = data.get("id")
@@ -303,7 +303,7 @@ def delete_album(album_id, album_name, log_level=logging.INFO):
         login_immich()
         url = f"{IMMICH_URL}/api/albums/{album_id}"
         try:
-            response = requests.delete(url, headers=HEADERS, verify=False)
+            response = requests.delete(url, headers=HEADERS_WITH_TOKEN, verify=False)
             if response.status_code == 200:
                 # LOGGER.info(f"INFO    : Album '{album_name}' with ID={album_id} deleted.")
                 return True
@@ -331,7 +331,7 @@ def get_albums(show_info_messages=True, log_level=logging.INFO):
         login_immich()
         url = f"{IMMICH_URL}/api/albums"
         try:
-            response = requests.get(url, headers=HEADERS, verify=False)
+            response = requests.get(url, headers=HEADERS_WITH_TOKEN, verify=False)
             response.raise_for_status()
             albums_data = response.json()  # A list
             return albums_data
@@ -360,6 +360,17 @@ def get_album_items_size(album_id, log_level=logging.INFO):
 # -----------------------------------------------------------------------------
 #                          ASSETS (FOTOS/VIDEOS) FUNCTIONS
 # -----------------------------------------------------------------------------
+def get_duplicates_assets(log_level=logging.INFO):
+    from GlobalVariables import LOGGER  # Import global LOGGER
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        login_immich()
+        url = f"{IMMICH_URL}/api/duplicates"
+        payload = {}
+        response = requests.request("GET", url, headers=HEADERS_WITH_TOKEN, data=payload)
+        response.raise_for_status()
+        duplicates_asets = response.json()  # List
+        return duplicates_asets
+
 def get_all_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=None, createdAfter=None, createdBefore=None, country=None, city=None, personIds=None, log_level=logging.INFO):
     """
     Returns the list of assets that belong to a specific album (ID).
@@ -414,7 +425,7 @@ def get_all_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=Non
         payload = json.dumps(payload_data, indent=2)
 
         try:
-            response = requests.post(url, headers=HEADERS, data=payload, verify=False)
+            response = requests.post(url, headers=HEADERS_WITH_TOKEN, data=payload, verify=False)
             response.raise_for_status()
             data = response.json()  # List
             assets = data.get("assets")
@@ -432,7 +443,7 @@ def get_assets_from_album(album_id, log_level=logging.INFO):
         login_immich()
         url = f"{IMMICH_URL}/api/albums/{album_id}"
         try:
-            response = requests.get(url, headers=HEADERS, verify=False)
+            response = requests.get(url, headers=HEADERS_WITH_TOKEN, verify=False)
             response.raise_for_status()
             data = response.json()  # List
             assets = data.get("assets")
@@ -458,7 +469,7 @@ def add_assets_to_album(album_id, asset_ids, album_name=None, log_level=logging.
                   "ids": asset_ids
                 })
         try:
-            response = requests.put(url, headers=HEADERS, data=payload, verify=False)
+            response = requests.put(url, headers=HEADERS_WITH_TOKEN, data=payload, verify=False)
             response.raise_for_status()
             data = response.json()
             total_files = len(data)
@@ -474,9 +485,9 @@ def add_assets_to_album(album_id, asset_ids, album_name=None, log_level=logging.
                 LOGGER.warning(f"WARNING : Error while adding assets to album with ID={album_id}: {e}")
             return 0
 
-def delete_assets(assets_ids, log_level=logging.INFO):
+def remove_assets(assets_ids, log_level=logging.INFO):
     """
-    Delete the list of assets providen by assets_ids.
+    Delete the list of assets provide by assets_ids.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -488,7 +499,7 @@ def delete_assets(assets_ids, log_level=logging.INFO):
         })
         deleted_assets = len(assets_ids)
         try:
-            response = requests.request("DELETE", url, headers=HEADERS, data=payload)
+            response = requests.request("DELETE", url, headers=HEADERS_WITH_TOKEN, data=payload)
             response.raise_for_status()
             if response.ok:
                 return deleted_assets
@@ -499,11 +510,30 @@ def delete_assets(assets_ids, log_level=logging.INFO):
             LOGGER.error(f"ERROR   : Failed to delete assets: {str(e)}")
             return 0
 
+def remove_duplicates_assets(log_level=logging.INFO):
+    """
+    Remove Duplicates Asset in Immich Database
+    """
+    from GlobalVariables import LOGGER  # Import global LOGGER
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        login_immich()
+        # Check for duplicates assets and remove them if exists.
+        # TODO: Check if the duplicate duplicates_set contains some metadata and assign them to the duplicates_set to keep.
+        duplicates_assets = get_duplicates_assets(log_level=log_level)
+        duplicates_ids = []
+        for duplicates_set in duplicates_assets:
+            duplicates_assets_in_set = duplicates_set.get('assets')
+            for duplicate_asset_in_set in duplicates_assets_in_set[1:]:
+                duplicate_id = duplicate_asset_in_set.get('id')
+                duplicates_ids.append(duplicate_id)
+        LOGGER.info(f"INFO    : Removing Duplicates Assets...")
+        duplicates_assets_removed = remove_assets(duplicates_ids)
+        return duplicates_assets_removed
 
 def upload_asset(file_path, log_level=logging.INFO):
     """
-    Uploads a local file (photo or video) to Immich using /api/asset/upload-file.
-    Returns the 'id' of the created asset, or None if the upload fails.
+    Uploads a local file (photo or video) to Immich using /api/duplicates_set/upload-file.
+    Returns the 'id' of the created duplicates_set, or None if the upload fails.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -556,7 +586,7 @@ def upload_asset(file_path, log_level=logging.INFO):
         date_time_for_filename = datetime.fromtimestamp(stats.st_mtime).strftime("%Y%m%d_%H%M%S")
         date_time_for_attributes = datetime.fromtimestamp(stats.st_mtime).strftime("%Y-%m-%dT%H:%M:%S.000Z")
         data = {
-            'deviceAssetId': f'IMG_{date_time_for_filename}_{os.path.basename(file_path)}',
+            'deviceAssetId': f'{date_time_for_filename}_{os.path.basename(file_path)}',
             'deviceId': 'CloudPhotoMigrator',
             'fileCreatedAt': date_time_for_attributes,
             'fileModifiedAt': date_time_for_attributes,
@@ -574,7 +604,7 @@ def upload_asset(file_path, log_level=logging.INFO):
             new_asset = response.json()
             asset_id = new_asset.get("id")
             if asset_id:
-                # LOGGER.info(f"INFO    : Uploaded '{os.path.basename(file_path)}' with asset_ids={asset_ids}")
+                LOGGER.debug(f"DEBUG   : Uploaded '{os.path.basename(file_path)}' with asset_id={asset_id}")
                 pass
             return asset_id
         except Exception as e:
@@ -609,7 +639,7 @@ def download_asset(asset_id, asset_filename, asset_time, download_folder="Downlo
 
         url = f"{IMMICH_URL}/api/assets/{asset_id}/original"
         try:
-            with requests.get(url, headers=HEADERS, verify=False, stream=True) as r:
+            with requests.get(url, headers=HEADERS_WITH_TOKEN, verify=False, stream=True) as r:
                 r.raise_for_status()
                 # Attempt to deduce filename from the header
                 content_disp = r.headers.get('Content-Disposition', '')
@@ -734,9 +764,13 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
                     if new_album_assets_ids:
                         add_assets_to_album(album_id, new_album_assets_ids, album_name=album_name)
 
+        # Finally remove duplicates_asset in Immich Database
+        duplicates_assets_removed = remove_duplicates_assets(log_level=log_level)
+
         LOGGER.info(f"INFO    : Skipped {albums_skipped} album(s) from '{input_folder}'.")
         LOGGER.info(f"INFO    : Uploaded {albums_uploaded} album(s) from '{input_folder}'.")
         LOGGER.info(f"INFO    : Uploaded {assets_uploaded} asset(s) from '{input_folder}' to Albums.")
+        LOGGER.info(f"INFO    : Removed {duplicates_assets_removed} duplicates asset(s) from Immich Database.")
         return albums_uploaded, albums_skipped, assets_uploaded
 
 def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, log_level=logging.WARNING):
@@ -805,7 +839,11 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
                     total_assets_uploaded += 1
                 pbar.update(1)
 
+        # Finally remove duplicates_asset in Immich Database
+        duplicates_assets_removed = remove_duplicates_assets(log_level=log_level)
+
         LOGGER.info(f"INFO    : Uploaded {total_assets_uploaded} files (without album) from '{input_folder}'.")
+        LOGGER.info(f"INFO    : Removed {duplicates_assets_removed} duplicates asset(s) from Immich Database.")
         return total_assets_uploaded
 
 # -----------------------------------------------------------------------------
@@ -1168,7 +1206,7 @@ def immich_remove_all_assets(log_level=logging.WARNING):
     assets_deleted = 0
     albums_deleted = 0
     if assets_ids:
-        assets_deleted = delete_assets(assets_ids, log_level=logging.WARNING)
+        assets_deleted = remove_assets(assets_ids, log_level=logging.WARNING)
         albums_deleted = immich_remove_empty_albums(log_level=logging.WARNING)
     logout_immich()
     LOGGER.info(f"INFO    : Total Assets deleted: {assets_deleted}")
@@ -1202,7 +1240,7 @@ def immich_remove_all_albums(deleteAlbumsAssets=False, log_level=logging.WARNING
                 album_assets = get_assets_from_album(album_id)
                 for asset in album_assets:
                     album_assets_ids.append(asset.get("id"))
-                delete_assets(album_assets_ids)
+                remove_assets(album_assets_ids)
                 total_deleted_assets += len(album_assets_ids)
 
             # Now we can delete the album
