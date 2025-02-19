@@ -628,7 +628,7 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"INFO    : Find Assets in Folder    : {ARGS['immich-upload-all']}")
         LOGGER.info("")
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums = immich_upload_ALL (ARGS['immich-upload-all'], albums_folders=albums_folders, log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed = immich_upload_ALL(ARGS['immich-upload-all'], albums_folders=albums_folders, log_level=logging.WARNING)
         # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
         LOGGER.info("")
         total_duplicates_albums_removed = immich_remove_duplicates_albums(log_level=logging.WARNING)

@@ -771,7 +771,7 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
         LOGGER.info(f"INFO    : Uploaded {albums_uploaded} album(s) from '{input_folder}'.")
         LOGGER.info(f"INFO    : Uploaded {assets_uploaded} asset(s) from '{input_folder}' to Albums.")
         LOGGER.info(f"INFO    : Removed {duplicates_assets_removed} duplicates asset(s) from Immich Database.")
-        return albums_uploaded, albums_skipped, assets_uploaded
+        return albums_uploaded, albums_skipped, assets_uploaded, duplicates_assets_removed
 
 def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, log_level=logging.WARNING):
     """
@@ -844,7 +844,7 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
 
         LOGGER.info(f"INFO    : Uploaded {total_assets_uploaded} files (without album) from '{input_folder}'.")
         LOGGER.info(f"INFO    : Removed {duplicates_assets_removed} duplicates asset(s) from Immich Database.")
-        return total_assets_uploaded
+        return total_assets_uploaded, duplicates_assets_removed
 
 # -----------------------------------------------------------------------------
 #          COMPLETE UPLOAD OF ALL ASSETS (Albums + No-Albums)
@@ -875,16 +875,17 @@ def immich_upload_ALL(input_folder, albums_folders=None, log_level=logging.WARNI
         if not albums_folder_included:
             albums_folders.append('Albums')
 
+        duplicates_assets_removed = 0
         LOGGER.info("")
         LOGGER.info(f"INFO    : Uploading Assets and creating Albums into immich Photos from '{albums_folders}' subfolders...")
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums = immich_upload_albums(input_folder=input_folder, subfolders_inclusion=albums_folders, log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, duplicates_assets_removed_1 = immich_upload_albums(input_folder=input_folder, subfolders_inclusion=albums_folders, log_level=logging.WARNING)
         LOGGER.info("")
         LOGGER.info(f"INFO    : Uploading Assets without Albums creation into immich Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
-        total_assets_uploaded_without_albums = immich_upload_no_albums(input_folder=input_folder, subfolders_exclusion=albums_folders, log_level=logging.WARNING)
-
+        total_assets_uploaded_without_albums, duplicates_assets_removed_2 = immich_upload_no_albums(input_folder=input_folder, subfolders_exclusion=albums_folders, log_level=logging.WARNING)
 
         total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
-        return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums
+        duplicates_assets_removed = duplicates_assets_removed_1 + duplicates_assets_removed_2
+        return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed
 
 
 def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich", log_level=logging.WARNING):
