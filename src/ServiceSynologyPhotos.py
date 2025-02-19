@@ -1082,7 +1082,8 @@ def download_asset(asset_id, asset_name, asset_time, destination_folder, log_lev
         timestamp_str = asset_datetime.strftime("%Y%m%d_%H%M%S")
         # Get file extension
         file_ext = os.path.splitext(asset_name)[1].lower()
-        new_asset_name = f"{timestamp_str}_{asset_name}"
+        # new_asset_name = f"{timestamp_str}_{asset_name}" # Use this if you want to append the original asset name to the downloaded filename
+        new_asset_name = f"{timestamp_str}"
         # Define the file path to save
         file_path = os.path.join(destination_folder, new_asset_name)
         # Define the request URL

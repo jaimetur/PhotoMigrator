@@ -38,7 +38,7 @@ def load_config(config_file='Config.ini'):
                 unique_key = (section, key)  # Crear clave única combinando sección y clave
                 if unique_key in seen_keys:
                     if unique_key not in logged_warnings:  # Solo mostrar el mensaje una vez
-                        LOGGER.warning(f"WARNING : Duplicate key '{key}' in section {section}, keeping first.")
+                        LOGGER.warning(f"WARNING : Duplicate key found in '{config_file}. Key: '{key}' in section {section}, keeping first.")
                         logged_warnings.add(unique_key)  # Registrar que ya mostramos el mensaje
                     continue  # Omitir clave duplicada
                 seen_keys.add(unique_key)
