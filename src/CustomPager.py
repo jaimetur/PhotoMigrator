@@ -28,7 +28,7 @@ class PagedParser(argparse.ArgumentParser):
 
         usage_first_line = -1
         usage_last_line = -1
-        caution_ranges = []  # Lista para almacenar rangos de líneas de "CAUTION:"
+        caution_ranges = []  # Lista para almacenar rangos de líneas de “CAUTION:”
         optional_arguments_line = -1  # Línea que contiene "optional arguments:"
 
         lines = text.splitlines()
@@ -36,9 +36,9 @@ class PagedParser(argparse.ArgumentParser):
         # Determinar los índices de inicio y fin de la sección "usage"
         for i, line in enumerate(lines):
             clean_line = ANSI_ESCAPE.sub('', line)  # Eliminar secuencias ANSI de colorama
-            if 'usage' in clean_line.lower() and usage_first_line == -1:  # Detectar la primera línea con "usage"
+            if 'usage' in clean_line.lower() and usage_first_line == -1:  # Detectar la primera línea con usage
                 usage_first_line = i
-            if SCRIPT_NAME_VERSION in clean_line:  # Detectar la última línea de "usage" (pero NO pintarla en verde)
+            if SCRIPT_NAME_VERSION in clean_line:  # Detectar la última línea de usage (pero NO pintarla en verde)
                 usage_last_line = i - 1  # Detener una línea antes de SCRIPT_NAME_VERSION
                 break  # No hace falta seguir buscando
 
@@ -46,7 +46,7 @@ class PagedParser(argparse.ArgumentParser):
         caution_start = -1
         for i, line in enumerate(lines):
             clean_line = ANSI_ESCAPE.sub('', line)
-            if 'CAUTION:' in clean_line:  # Detectar cualquier aparición de "CAUTION:"
+            if 'CAUTION:' in clean_line:  # Detectar cualquier aparición de “CAUTION:”
                 if caution_start == -1:  # Si no hemos iniciado un bloque, marcar el inicio
                     caution_start = i
             elif caution_start != -1 and (re.match(r"^\s*-\w", clean_line) or clean_line.strip() == ""):
@@ -80,7 +80,7 @@ class PagedParser(argparse.ArgumentParser):
                 curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)   # Verde (para argumentos y usage)
                 curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Magenta (para separadores y líneas anteriores)
                 curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)     # Rojo (para secciones de CAUTION)
-                curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Amarillo con fondo azul (para "optional arguments")
+                curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Amarillo con fondo azul (para optional arguments)
             curses.curs_set(0)  # Ocultar el cursor
             total_lines = len(lines)
             page_size = curses.LINES - 2  # Altura de la terminal menos espacio para el mensaje
@@ -95,13 +95,13 @@ class PagedParser(argparse.ArgumentParser):
                         clean_line = ANSI_ESCAPE.sub('', line)  # Eliminar secuencias ANSI de colorama
                         line_number = index + i  # Línea absoluta en el texto
                         if color_support:
-                            # Pintar todas las líneas dentro del bloque "usage" en verde (excepto la línea con SCRIPT_NAME_VERSION)
+                            # Pintar todas las líneas dentro del bloque usage en verde (excepto la línea con SCRIPT_NAME_VERSION)
                             if usage_first_line <= line_number <= usage_last_line:
                                 stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(1))  # Verde
-                            # Pintar todas las líneas dentro de cualquier bloque "CAUTION:" en rojo
+                            # Pintar todas las líneas dentro de cualquier bloque “CAUTION:” en rojo
                             elif any(start <= line_number <= end for start, end in caution_ranges):
                                 stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(3))  # Rojo
-                            # Pintar la línea que contiene "optional arguments:" en amarillo
+                            # Pintar la línea que contiene “optional arguments:” en amarillo
                             elif line_number == optional_arguments_line:
                                 stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(4))  # Amarillo
                             else:

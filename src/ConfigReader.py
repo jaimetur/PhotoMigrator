@@ -89,7 +89,6 @@ if __name__ == "__main__":
     # Create timestamp, and initialize LOGGER.
     from datetime import datetime
     from CustomLogger import log_setup
-    import logging
     from GlobalVariables import LOG_LEVEL
     TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
     log_filename = f"{sys.argv[0]}_{TIMESTAMP}"
@@ -101,7 +100,7 @@ if __name__ == "__main__":
         CONFIG = load_config('../Config.ini')
         print("\nUsing Configuration File: ['Config.ini']\n")
     else:
-        CONFIG = load_config(sys.argv[1:])
+        CONFIG = load_config(sys.argv[1])
         print("\nUsing Configuration File:", sys.argv[1:], "\n")
 
     # Imprimir cada clave-valor en líneas separadas
