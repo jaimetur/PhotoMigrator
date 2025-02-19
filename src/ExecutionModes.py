@@ -309,7 +309,6 @@ def mode_synology_upload_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"INFO    : Synology Photos: 'Upload Albums' Mode detected. Only this module will be run!!!")
     LOGGER.info("")
     LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['synology-upload-albums']}")
-    LOGGER.info("")
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # login_synology
@@ -359,7 +358,6 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"INFO    : Synology Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
         LOGGER.info("")
         LOGGER.info(f"INFO    : Find Assets in Folder    : {ARGS['synology-upload-all']}")
-        LOGGER.info("")
         # login_synology
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
@@ -603,7 +601,6 @@ def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.IN
             sys.exit(0)
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Synology Photos: 'Delete ALL Albums' Mode detected. Only this module will be run!!!")
-        LOGGER.info("")
         # login_synology
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
@@ -950,7 +947,6 @@ def mode_immich_remove_orphan_assets(user_confirmation=True, log_level=logging.I
             sys.exit(0)
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
-        LOGGER.info("")
         # login_immich
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
@@ -987,7 +983,6 @@ def mode_immich_remove_all_assets(user_confirmation=True, log_level=logging.INFO
             sys.exit(0)
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Delete ALL Assets' Mode detected. Only this module will be run!!!")
-        LOGGER.info("")
         # login_immich
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
@@ -1030,7 +1025,6 @@ def mode_immich_remove_all_albums(user_confirmation=True, log_level=logging.INFO
             sys.exit(0)
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Delete ALL Albums' Mode detected. Only this module will be run!!!")
-        LOGGER.info("")
         # login_immich
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
