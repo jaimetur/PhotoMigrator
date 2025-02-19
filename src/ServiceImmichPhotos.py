@@ -671,7 +671,7 @@ def download_asset(asset_id, asset_filename, asset_time, download_folder="Downlo
 ##############################################################################
 #           MAIN FUNCTIONS TO CALL FROM OTHER MODULES                        #
 ##############################################################################
-def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, log_level=logging.WARNING):
+def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
     """
     Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on ALLOWED_IMMICH_EXTENSIONS) and associates them with the album.
     Example structure:
@@ -765,7 +765,10 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
                         add_assets_to_album(album_id, new_album_assets_ids, album_name=album_name)
 
         # Finally remove duplicates_asset in Immich Database
-        duplicates_assets_removed = remove_duplicates_assets(log_level=log_level)
+        duplicates_assets_removed = 0
+        if remove_duplicates:
+            LOGGER.info("INFO    : Removing Duplicates Assets...")
+            duplicates_assets_removed = remove_duplicates_assets(log_level=log_level)
 
         LOGGER.info(f"INFO    : Skipped {albums_skipped} album(s) from '{input_folder}'.")
         LOGGER.info(f"INFO    : Uploaded {albums_uploaded} album(s) from '{input_folder}'.")
@@ -773,7 +776,7 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
         LOGGER.info(f"INFO    : Removed {duplicates_assets_removed} duplicates asset(s) from Immich Database.")
         return albums_uploaded, albums_skipped, assets_uploaded, duplicates_assets_removed
 
-def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, log_level=logging.WARNING):
+def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
     """
     Recursively traverses 'input_folder' and its subfolders_inclusion to upload all
     compatible files (photos/videos) to Immich without associating them to any album.
@@ -840,7 +843,10 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
                 pbar.update(1)
 
         # Finally remove duplicates_asset in Immich Database
-        duplicates_assets_removed = remove_duplicates_assets(log_level=log_level)
+        duplicates_assets_removed = 0
+        if remove_duplicates:
+            LOGGER.info("INFO    : Removing Duplicates Assets...")
+            duplicates_assets_removed = remove_duplicates_assets(log_level=log_level)
 
         LOGGER.info(f"INFO    : Uploaded {total_assets_uploaded} files (without album) from '{input_folder}'.")
         LOGGER.info(f"INFO    : Removed {duplicates_assets_removed} duplicates asset(s) from Immich Database.")
@@ -849,7 +855,7 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
 # -----------------------------------------------------------------------------
 #          COMPLETE UPLOAD OF ALL ASSETS (Albums + No-Albums)
 # -----------------------------------------------------------------------------
-def immich_upload_ALL(input_folder, albums_folders=None, log_level=logging.WARNING):
+def immich_upload_ALL(input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
     """
     Uploads ALL photos and videos from input_folder into Immich Photos:
 
@@ -875,16 +881,20 @@ def immich_upload_ALL(input_folder, albums_folders=None, log_level=logging.WARNI
         if not albums_folder_included:
             albums_folders.append('Albums')
 
-        duplicates_assets_removed = 0
         LOGGER.info("")
         LOGGER.info(f"INFO    : Uploading Assets and creating Albums into immich Photos from '{albums_folders}' subfolders...")
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, duplicates_assets_removed_1 = immich_upload_albums(input_folder=input_folder, subfolders_inclusion=albums_folders, log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, duplicates_assets_removed_1 = immich_upload_albums(input_folder=input_folder, subfolders_inclusion=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
         LOGGER.info("")
         LOGGER.info(f"INFO    : Uploading Assets without Albums creation into immich Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
-        total_assets_uploaded_without_albums, duplicates_assets_removed_2 = immich_upload_no_albums(input_folder=input_folder, subfolders_exclusion=albums_folders, log_level=logging.WARNING)
-
+        total_assets_uploaded_without_albums, duplicates_assets_removed_2 = immich_upload_no_albums(input_folder=input_folder, subfolders_exclusion=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
         total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
-        duplicates_assets_removed = duplicates_assets_removed_1 + duplicates_assets_removed_2
+
+        # Finally remove duplicates assets from Immich Database
+        duplicates_assets_removed = 0
+        if remove_duplicates:
+            LOGGER.info("INFO    : Removing Duplicates Assets...")
+            duplicates_assets_removed = remove_duplicates_assets(log_level=logging.WARNING)
+
         return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed
 
 
@@ -1063,7 +1073,7 @@ def immich_remove_empty_albums(log_level=logging.WARNING):
             LOGGER.info("INFO    : No albums found.")
             return 0
         total_deleted_empty_albums = 0
-        for album in tqdm(albums, desc=f"INFO    : Searchig for Empty Albums", unit=" albums"):
+        for album in tqdm(albums, desc=f"INFO    : Searching for Empty Albums", unit=" albums"):
             album_id = album.get("id")
             album_name = album.get("albumName")
             assets_count = album.get("assetCount")
@@ -1089,7 +1099,7 @@ def immich_remove_duplicates_albums(log_level=logging.WARNING):
         if not albums:
             return 0
         duplicates_map = {}
-        for album in tqdm(albums, desc=f"INFO    : Searchig for Duplicates Albums", unit=" albums"):
+        for album in tqdm(albums, desc=f"INFO    : Searching for Duplicates Albums", unit=" albums"):
             album_id = album.get("id")
             album_name = album.get("albumName")
             assets_count = album.get("assetCount")

@@ -6,8 +6,8 @@ import logging
 from CustomLogger import set_log_level
 from Duplicates import find_duplicates, process_duplicates_actions
 from ServiceGooglePhotos import google_takeout_processor
-from ServiceSynologyPhotos import read_synology_config, logout_synology, synology_upload_albums, synology_upload_ALL, synology_download_albums, synology_download_ALL, synology_remove_empty_albums, synology_remove_duplicates_albums, synology_remove_all_assets, synology_remove_all_albums
-from ServiceImmichPhotos import read_immich_config, logout_immich, immich_upload_albums, immich_upload_ALL, immich_download_albums, immich_download_ALL, immich_remove_empty_albums, immich_remove_duplicates_albums, immich_remove_all_assets, immich_remove_all_albums, immich_remove_orphan_assets
+from ServiceSynologyPhotos import logout_synology, synology_upload_albums, synology_upload_ALL, synology_download_albums, synology_download_ALL, synology_remove_empty_albums, synology_remove_duplicates_albums, synology_remove_all_assets, synology_remove_all_albums
+from ServiceImmichPhotos import logout_immich, immich_upload_albums, immich_upload_ALL, immich_download_albums, immich_download_ALL, immich_remove_empty_albums, immich_remove_duplicates_albums, immich_remove_all_assets, immich_remove_all_albums, immich_remove_orphan_assets, remove_duplicates_assets
 
 DEFAULT_DUPLICATES_ACTION = False
 EXECUTION_MODE = "default"
@@ -629,12 +629,19 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"INFO    : Find Assets in Folder    : {ARGS['immich-upload-all']}")
         LOGGER.info("")
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed = immich_upload_ALL(ARGS['immich-upload-all'], albums_folders=albums_folders, log_level=logging.WARNING)
-        # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed = immich_upload_ALL(ARGS['immich-upload-all'], albums_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
+        # Execute mode_delete_duplicates_albums
         LOGGER.info("")
+        LOGGER.info("INFO    : Removing Duplicates Albums...")
         total_duplicates_albums_removed = immich_remove_duplicates_albums(log_level=logging.WARNING)
+        # Execute mode_delete_empty_albums
         LOGGER.info("")
-        immich_remove_empty_albums()
+        LOGGER.info("INFO    : Removing Empty Albums...")
+        immich_remove_empty_albums(log_level=logging.WARNING)
+        # Execute remove_duplicates_assets
+        LOGGER.info("")
+        LOGGER.info("INFO    : Removing Duplicates Assets...")
+        duplicates_assets_removed = remove_duplicates_assets(log_level=logging.WARNING)
         # logout from Immich Photos.
         LOGGER.info("")
         logout_immich()
