@@ -124,6 +124,7 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
         # FIRST PROCESS THE SOURCE:
         # =========================
         LOGGER.info(f'INFO    : Downloading/Processing Asset from {SOURCE}...')
+        LOGGER.info("")
         # If the SOURCE is 'google-photos' or a valid Takeout Folder
         if SOURCE.lower() == 'google-photos' or ARGS['SOURCE-TYPE-TAKEOUT-FOLDER']:
             # Configure default arguments for mode_google_takeout() execution and RUN it
@@ -139,7 +140,7 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
             if ARGS['output-folder']:
                 INTERMEDIATE_FOLDER = ARGS['output-folder']
             else:
-                INTERMEDIATE_FOLDER = f"{input_folder}_{TIMESTAMP}"
+                INTERMEDIATE_FOLDER = f"{os.path.basename(input_folder)}_{TIMESTAMP}"
             # Set ARGS['output-folder'] to INTERMEDIATE_FOLDER
             ARGS['output-folder'] = INTERMEDIATE_FOLDER
 
