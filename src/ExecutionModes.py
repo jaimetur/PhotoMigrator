@@ -323,7 +323,7 @@ def mode_synology_upload_albums(user_confirmation=True, log_level=logging.INFO):
         total_duplicates_albums_removed = synology_remove_duplicates_albums(log_level=logging.WARNING)
         # logout_synology
         LOGGER.info("")
-        LOGGER.info("INFO    : Logout from Synology Photos...")
+        LOGGER.info("INFO    : Logged out from Synology Photos...")
         logout_synology(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -371,7 +371,7 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         total_duplicates_albums_removed = synology_remove_duplicates_albums(log_level=logging.WARNING)
         # logout_synology
         LOGGER.info("")
-        LOGGER.info("INFO    : Logout from Synology Photos...")
+        LOGGER.info("INFO    : Logged out from Synology Photos...")
         LOGGER.info("")
         # logout_synology
         logout_synology(log_level=logging.WARNING)
@@ -416,7 +416,7 @@ def mode_synology_download_albums(user_confirmation=True, log_level=logging.INFO
         albums_downloaded, photos_downloaded = synology_download_albums(albums_name=ARGS['synology-download-albums'], output_folder=ARGS['output-folder'], log_level=logging.WARNING)
         # logout_synology
         LOGGER.info("")
-        LOGGER.info("INFO    : Logout from Synology Photos...")
+        LOGGER.info("INFO    : Logged out from Synology Photos...")
         logout_synology(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -453,7 +453,7 @@ def mode_synology_download_ALL(user_confirmation=True, log_level=logging.INFO):
         albums_downloaded, assets_downloaded, assets_downloaded_within_albums, assets_downloaded_without_albums = synology_download_ALL(output_folder=ARGS['synology-download-all'], log_level=logging.WARNING)
         # logout_synology
         LOGGER.info("")
-        LOGGER.info("INFO    : Logout from Synology Photos...")
+        LOGGER.info("INFO    : Logged out from Synology Photos...")
         logout_synology(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -493,7 +493,7 @@ def mode_synology_remove_empty_albums(user_confirmation=True, log_level=logging.
         albums_removed = synology_remove_empty_albums(log_level=logging.WARNING)
         # logout_synology
         LOGGER.info("")
-        LOGGER.info("INFO    : Logout from Synology Photos...")
+        LOGGER.info("INFO    : Logged out from Synology Photos...")
         logout_synology(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -530,7 +530,7 @@ def mode_synology_remove_duplicates_albums(user_confirmation=True, log_level=log
         albums_removed, folders_removed = synology_remove_duplicates_albums(log_level=logging.WARNING)
         # logout_synology
         LOGGER.info("")
-        LOGGER.info("INFO    : Logout from Synology Photos...")
+        LOGGER.info("INFO    : Logged out from Synology Photos...")
         logout_synology(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -568,7 +568,7 @@ def mode_synology_remove_all_assets(user_confirmation=True, log_level=logging.IN
         assets_removed, albums_removed, folders_removed = synology_remove_all_assets(log_level=logging.WARNING)
         # logout_synology
         LOGGER.info("")
-        LOGGER.info("INFO    : Logout from Synology Photos...")
+        LOGGER.info("INFO    : Logged out from Synology Photos...")
         logout_synology(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -612,7 +612,7 @@ def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.IN
         assets_removed, albums_removed, folders_removed = synology_remove_all_albums(removeAlbumsAssets= ARGS['remove-albums-assets'], log_level=logging.WARNING)
         # logout_synology
         LOGGER.info("")
-        LOGGER.info("INFO    : Logout from Synology Photos...")
+        LOGGER.info("INFO    : Logged out from Synology Photos...")
         logout_synology(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -671,7 +671,7 @@ def mode_immich_upload_albums(user_confirmation=True, log_level=logging.INFO):
         duplicates_assets_removed = remove_duplicates_assets(log_level=logging.WARNING)
         # logout_immich
         LOGGER.info("")
-        LOGGER.info("INFO    : Logout from Immich Photos...")
+        LOGGER.info("INFO    : Logged out from Immich Photos...")
         logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -734,7 +734,7 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("")
         # logout_immich
         LOGGER.info("")
-        LOGGER.info("INFO    : Logout from Immich Photos...")
+        LOGGER.info("INFO    : Logged out from Immich Photos...")
         logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -793,7 +793,7 @@ def mode_immich_download_albums(user_confirmation=True, log_level=logging.INFO):
         albums_downloaded, assets_downloaded = immich_download_albums(albums_name=ARGS['immich-download-albums'], output_folder=ARGS['output-folder'], log_level=logging.WARNING)
         # logout_immich
         LOGGER.info("")
-        LOGGER.info("INFO    : Logout from Immich Photos...")
+        LOGGER.info("INFO    : Logged out from Immich Photos...")
         logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -845,7 +845,7 @@ def mode_immich_download_ALL(user_confirmation=True, log_level=logging.INFO):
         albums_downloaded, assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums = immich_download_ALL(output_folder=ARGS['immich-download-all'], log_level=logging.WARNING)
         # logout_immich
         LOGGER.info("")
-        LOGGER.info("INFO    : Logout from Immich Photos...")
+        LOGGER.info("INFO    : Logged out from Immich Photos...")
         logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -885,7 +885,7 @@ def mode_immich_remove_empty_albums(user_confirmation=True, log_level=logging.IN
         albums_removed = immich_remove_empty_albums(log_level=logging.WARNING)
         # logout_immich
         LOGGER.info("")
-        LOGGER.info("INFO    : Logout from Immich Photos...")
+        LOGGER.info("INFO    : Logged out from Immich Photos...")
         logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -922,7 +922,7 @@ def mode_immich_remove_duplicates_albums(user_confirmation=True, log_level=loggi
         albums_removed = immich_remove_duplicates_albums(log_level=logging.WARNING)
         # logout_immich
         LOGGER.info("")
-        LOGGER.info("INFO    : Logout from Immich Photos...")
+        LOGGER.info("INFO    : Logged out from Immich Photos...")
         logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -959,7 +959,7 @@ def mode_immich_remove_orphan_assets(user_confirmation=True, log_level=logging.I
         assets_removed = immich_remove_orphan_assets(user_confirmation=user_confirmation, log_level=logging.WARNING)
         #logout_immich
         LOGGER.info("")
-        LOGGER.info("INFO    : Logout from Immich Photos...")
+        LOGGER.info("INFO    : Logged out from Immich Photos...")
         logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -996,7 +996,7 @@ def mode_immich_remove_all_assets(user_confirmation=True, log_level=logging.INFO
         assets_removed, albums_removed = immich_remove_all_assets(log_level=logging.WARNING)
         # logout_immich
         LOGGER.info("")
-        LOGGER.info("INFO    : Logout from Immich Photos...")
+        LOGGER.info("INFO    : Logged out from Immich Photos...")
         logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -1039,7 +1039,7 @@ def mode_immich_remove_all_albums(user_confirmation=True, log_level=logging.INFO
         albums_removed, assets_removed = immich_remove_all_albums(deleteAlbumsAssets = ARGS['remove-albums-assets'], log_level=logging.WARNING)
         # logout_immich
         LOGGER.info("")
-        LOGGER.info("INFO    : Logout from Immich Photos...")
+        LOGGER.info("INFO    : Logged out from Immich Photos...")
         logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
