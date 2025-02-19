@@ -781,13 +781,14 @@ def update_exif_date(image_path, asset_time):
         image_path (str): Path to the image file.
         asset_time (int or str): Timestamp in UNIX Epoch format or a date string in "YYYY-MM-DD HH:MM:SS".
     """
+    from GlobalVariables import LOGGER
     try:
         # Si asset_time es una cadena en formato 'YYYY-MM-DD HH:MM:SS', conviértelo a timestamp UNIX
         if isinstance(asset_time, str):
             try:
                 asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
             except ValueError:
-                LOGGER.error(f"ERROR   : Invalid date format for asset_time: {asset_time}")
+                LOGGER.warning(f"WARNING : Invalid date format for asset_time: {asset_time}")
                 return
 
         # Convertir el timestamp UNIX a formato EXIF "YYYY:MM:DD HH:MM:SS"
@@ -828,7 +829,7 @@ def update_exif_date(image_path, asset_time):
         LOGGER.debug(f"DEBUG   : EXIF metadata updated for {image_path} with timestamp {date_time_exif}")
 
     except Exception as e:
-        LOGGER.error(f"ERROR   : Failed to update EXIF metadata for {image_path}. {e}")
+        LOGGER.warning(f"WARNING : Failed to update EXIF metadata for {image_path}. {e}")
 
 
 def update_video_metadata(video_path, asset_time):
@@ -848,8 +849,7 @@ def update_video_metadata(video_path, asset_time):
             try:
                 asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
             except ValueError:
-                LOGGER.error("")
-                LOGGER.error(f"ERROR   : Invalid date format for asset_time: {asset_time}")
+                LOGGER.warning(f"WARNING : Invalid date format for asset_time: {asset_time}")
                 return
         # Convert timestamp to system format
         mod_time = asset_time
@@ -866,16 +866,12 @@ def update_video_metadata(video_path, asset_time):
                 if handle != -1:
                     ctypes.windll.kernel32.SetFileTime(handle, ctypes.byref(ctypes.c_int64(windows_time)), None, None)
                     ctypes.windll.kernel32.CloseHandle(handle)
-                    LOGGER.debug("")
                     LOGGER.debug(f"DEBUG     : File creation time updated for {video_path}")
             except Exception as e:
-                LOGGER.error("")
-                LOGGER.error(f"ERROR   : Failed to update file creation time on Windows. {e}")
-        LOGGER.debug("")
+                LOGGER.warning(f"WARNING : Failed to update file creation time on Windows. {e}")
         LOGGER.debug(f"DEBUG   : File system timestamps updated for {video_path} with timestamp {datetime.fromtimestamp(mod_time)}")
     except Exception as e:
-        LOGGER.error("")
-        LOGGER.error(f"ERROR   : Failed to update video metadata for {video_path}. {e}")
+        LOGGER.warning(f"WARNING : Failed to update video metadata for {video_path}. {e}")
 
 
 def update_video_metadata_with_ffmpeg(video_path, asset_time):
@@ -893,8 +889,7 @@ def update_video_metadata_with_ffmpeg(video_path, asset_time):
             try:
                 asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
             except ValueError:
-                LOGGER.error("")
-                LOGGER.error(f"ERROR   : Invalid date format for asset_time: {asset_time}")
+                LOGGER.warning(f"WARNING : Invalid date format for asset_time: {asset_time}")
                 return
         # Convert asset_time (UNIX timestamp) to format used by FFmpeg (YYYY-MM-DDTHH:MM:SS)
         formatted_date = datetime.fromtimestamp(asset_time).strftime("%Y-%m-%dT%H:%M:%S")
@@ -914,11 +909,9 @@ def update_video_metadata_with_ffmpeg(video_path, asset_time):
         os.replace(temp_file, video_path)  # Replace original file with updated one
         # Restore original file timestamps
         os.utime(video_path, (original_atime, original_mtime))
-        LOGGER.debug("")
         LOGGER.debug(f"DEBUG   : Video metadata updated for {video_path} with timestamp {formatted_date}")
     except Exception as e:
-        LOGGER.error("")
-        LOGGER.error(f"ERROR   : Failed to update video metadata for {video_path}. {e}")
+        LOGGER.warning(f"WARNING : Failed to update video metadata for {video_path}. {e}")
 
 # Convert to list
 def convert_to_list(input):
