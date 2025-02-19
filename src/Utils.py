@@ -239,6 +239,8 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False):
     :return: None
     """
     from GlobalVariables import LOGGER
+    # Ignore function
+    action = 'Moving' if move else 'Copying'
     try:
         if not is_valid_path(src):
             LOGGER.error(f"ERROR   : The path '{src}' is not valid for the execution plattform. Cannot copy/move folders from it.")
@@ -247,7 +249,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False):
             LOGGER.error(f"ERROR   : The path '{dst}' is not valid for the execution plattform. Cannot copy/move folders to it.")
             return False
 
-        def ignore_function(dir, files):
+        def ignore_function(files, ignore_patterns):
             if ignore_patterns:
                 # Convert to a list if a single pattern is provided
                 patterns = ignore_patterns if isinstance(ignore_patterns, list) else [ignore_patterns]
@@ -263,8 +265,6 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False):
         # Create the destination folder if it doesn't exist
         os.makedirs(dst, exist_ok=True)
 
-        # Ignore function
-        action = 'Moving' if move else 'Copying'
         if move:
             # Contar el total de carpetas
             total_files = sum([len(files) for _, _, files in os.walk(src)])
@@ -277,7 +277,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False):
                     # Destination path
                     dest_path = os.path.join(dst, rel_path) if rel_path != '.' else dst
                     # Apply ignore function to files and dirs
-                    ignore = ignore_function(path, files + dirs)
+                    ignore = ignore_function(files + dirs, ignore_patterns=ignore_patterns)
                     # Filter dirs in-place to skip ignored directories
                     dirs[:] = [d for d in dirs if d not in ignore]
                     # Create destination directory
