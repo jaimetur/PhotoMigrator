@@ -571,11 +571,11 @@ def download_asset(asset_id, asset_filename, asset_time, download_folder="Downlo
         try:
             with requests.get(url, headers=HEADERS_WITH_CREDENTIALS, verify=False, stream=True) as request:
                 request.raise_for_status()
-                # Attempt to deduce filename from the header
-                content_disp = request.headers.get('Content-Disposition', '')
-                if 'filename=' in content_disp:
-                    # attachment; filename="name.jpg"
-                    asset_filename = content_disp.split("filename=")[-1].strip('"; ')
+                # # Attempt to deduce filename from the header
+                # content_disp = request.headers.get('Content-Disposition', '')
+                # if 'filename=' in content_disp:
+                #     # attachment; filename="name.jpg"
+                #     asset_filename = content_disp.split("filename=")[-1].strip('"; ')
                 file_path = os.path.join(download_folder, asset_filename)
                 with open(file_path, 'wb') as f:
                     for chunk in request.iter_content(chunk_size=8192):
