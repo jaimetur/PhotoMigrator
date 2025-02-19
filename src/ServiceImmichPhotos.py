@@ -29,7 +29,7 @@ from halo import Halo
 from tabulate import tabulate
 import logging
 from CustomLogger import set_log_level
-from Utils import convert_to_list
+from Utils import update_metadata, convert_to_list
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -581,7 +581,7 @@ def upload_asset(file_path, log_level=logging.INFO):
             LOGGER.error(f"ERROR   : Failed to upload '{file_path}': {e}")
             return None
 
-def download_asset(asset_id, asset_filename, download_folder="Downloaded_Immich", log_level=logging.INFO):
+def download_asset(asset_id, asset_filename, asset_time, download_folder="Downloaded_Immich", log_level=logging.INFO):
     """
     Downloads an asset (photo/video) from Immich and saves it to local disk.
     Uses GET /api/asset/:assetId/serve
@@ -590,7 +590,23 @@ def download_asset(asset_id, asset_filename, download_folder="Downloaded_Immich"
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         login_immich()
+
+        # Ensure the destination folder exists
         os.makedirs(download_folder, exist_ok=True)
+
+        # If asset_time is str, convert to UNIX timestamp
+        if isinstance(asset_time, str):
+            asset_time = datetime.fromisoformat(asset_time).timestamp()
+
+        # Convert UNIX timestamp to datetime
+        if asset_time > 0:
+            asset_datetime = datetime.fromtimestamp(asset_time)
+        else:
+            asset_datetime = datetime.now()
+
+        # Get file extension
+        file_ext = os.path.splitext(asset_filename)[1].lower()
+
         url = f"{IMMICH_URL}/api/assets/{asset_id}/original"
         try:
             with requests.get(url, headers=HEADERS, verify=False, stream=True) as r:
@@ -600,10 +616,19 @@ def download_asset(asset_id, asset_filename, download_folder="Downloaded_Immich"
                 if 'filename=' in content_disp:
                     # attachment; filename="name.jpg"
                     asset_filename = content_disp.split("filename=")[-1].strip('"; ')
-                out_path = os.path.join(download_folder, asset_filename)
-                with open(out_path, 'wb') as f:
+                file_path = os.path.join(download_folder, asset_filename)
+                with open(file_path, 'wb') as f:
                     for chunk in r.iter_content(chunk_size=8192):
                         f.write(chunk)
+                    # Update file timestamps using UNIX timestamp
+                    os.utime(file_path, (asset_time, asset_time))
+
+                    # Check if file extension is in ALLOWED_IMMICH_MEDIA_EXTENSIONS
+                    if file_ext in ALLOWED_IMMICH_MEDIA_EXTENSIONS:
+                        update_metadata(file_path, asset_datetime.strftime("%Y-%m-%d %H:%M:%S"))
+                    LOGGER.debug("")
+                    LOGGER.debug(f"DEBUG   : Asset '{asset_filename}' downloaded and saved at {file_path}")
+                    return 1
             return True
         except Exception as e:
             LOGGER.error(f"ERROR   : Failed to download asset {asset_id}: {e}")
@@ -892,7 +917,8 @@ def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich", 
                 asset_id = asset.get("id")
                 asset_filename = os.path.basename(asset.get("originalPath"))
                 if asset_id:
-                    ok = download_asset(asset_id, asset_filename, album_folder)
+                    asset_time = asset.get('fileCreatedAt')
+                    ok = download_asset(asset_id, asset_filename, asset_time, album_folder)
                     if ok:
                         total_assets_downloaded += 1
 
@@ -942,7 +968,8 @@ def immich_download_no_albums(output_folder="Downloads_Immich", log_level=loggin
             month_str = dt_created.strftime("%m")
             target_folder = os.path.join(all_photos_path, year_str, month_str)
             os.makedirs(target_folder, exist_ok=True)
-            ok = download_asset(asset_id, asset_filename, target_folder)
+            asset_time = asset.get('fileCreatedAt')
+            ok = download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=target_folder)
             if ok:
                 total_assets_downloaded += 1
         LOGGER.info(f"INFO    : Download of assets without associated albums completed.")

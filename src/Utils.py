@@ -799,6 +799,7 @@ def update_exif_date(image_path, asset_time):
 
         # Backup original timestamps
         original_times = os.stat(image_path)
+        # TODO: When download All from Immich, it seems that the assets don't have those attributes properly set
         original_atime = original_times.st_atime
         original_mtime = original_times.st_mtime
 

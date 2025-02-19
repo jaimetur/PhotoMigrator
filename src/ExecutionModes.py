@@ -124,7 +124,7 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
         # =========================
         # FIRST PROCESS THE SOURCE:
         # =========================
-        LOGGER.info(f'INFO    : Downloading/Processing Asset from SOURCE...')
+        LOGGER.info(f'INFO    : Downloading/Processing Asset from {SOURCE}...')
         # If the SOURCE is 'google-photos' or a valid Takeout Folder
         if SOURCE.lower() == 'google-photos' or ARGS['SOURCE-TYPE-TAKEOUT-FOLDER']:
             # Configure default arguments for mode_google_takeout() execution and RUN it
@@ -184,7 +184,7 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
         # =========================
         # SECOND PROCESS THE TARGET:
         # =========================
-        LOGGER.info(f'INFO    : Uploading/Processing Asset to TARGET...')
+        LOGGER.info(f'INFO    : Uploading/Processing Asset to {TARGET}...')
         # if the TARGET is 'synology-photos'
         if TARGET.lower() == 'synology-photos':
             ARGS['synology-upload-all'] = INTERMEDIATE_FOLDER
@@ -348,14 +348,13 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
-
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Synology Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
         LOGGER.info("")
         LOGGER.info(f"INFO    : Find Assets in Folder    : {ARGS['synology-upload-all']}")
         LOGGER.info("")
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums = synology_upload_ALL (ARGS['synology-upload-all'], albums_folders=albums_folders, log_level=logging.INFO)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums = synology_upload_ALL (ARGS['synology-upload-all'], albums_folders=albums_folders, log_level=logging.WARNING)
         # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
         LOGGER.info("")
         total_duplicates_albums_removed = synology_remove_duplicates_albums(log_level=logging.WARNING)
@@ -632,7 +631,7 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums = immich_upload_ALL (ARGS['immich-upload-all'], albums_folders=albums_folders, log_level=logging.WARNING)
         # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
         LOGGER.info("")
-        immich_remove_duplicates_albums()
+        total_duplicates_albums_removed = immich_remove_duplicates_albums(log_level=logging.WARNING)
         LOGGER.info("")
         immich_remove_empty_albums()
         # logout from Immich Photos.
@@ -653,7 +652,8 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"Total Albums skipped                    : {total_albums_skipped}")
         LOGGER.info(f"Total Assets uploaded                   : {total_assets_uploaded}")
         LOGGER.info(f"Total Assets added to Albums            : {total_assets_uploaded_within_albums}")
-        LOGGER.info(f"Total Assets added wihtout Albums       : {total_assets_uploaded_without_albums}")
+        LOGGER.info(f"Total Assets added without Albums       : {total_assets_uploaded_without_albums}")
+        LOGGER.info(f"Total Duplicated Albums removed         : {total_duplicates_albums_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
