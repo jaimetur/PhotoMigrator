@@ -8,6 +8,7 @@ from Duplicates import find_duplicates, process_duplicates_actions
 from ServiceGooglePhotos import google_takeout_processor
 from ServiceSynologyPhotos import logout_synology, synology_upload_albums, synology_upload_ALL, synology_download_albums, synology_download_ALL, synology_remove_empty_albums, synology_remove_duplicates_albums, synology_remove_all_assets, synology_remove_all_albums
 from ServiceImmichPhotos import logout_immich, immich_upload_albums, immich_upload_ALL, immich_download_albums, immich_download_ALL, immich_remove_empty_albums, immich_remove_duplicates_albums, immich_remove_all_assets, immich_remove_all_albums, immich_remove_orphan_assets, remove_duplicates_assets
+from src.ServiceImmichPhotos import login_immich
 
 DEFAULT_DUPLICATES_ACTION = False
 EXECUTION_MODE = "default"
@@ -516,7 +517,7 @@ def mode_synology_remove_all_assets(user_confirmation=True, log_level=logging.IN
         LOGGER.info(f"INFO    : Synology Photos: 'Remove ALL Assets' Mode detected. Only this module will be run!!!")
         # Call the Function
         assets_removed, albums_removed, folders_removed = synology_remove_all_assets(log_level=logging.WARNING)
-        logout_immich()
+        logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -554,7 +555,7 @@ def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.IN
         LOGGER.info("")
         # Call the Function
         assets_removed, albums_removed, folders_removed = synology_remove_all_albums(removeAlbumsAssets= ARGS['remove-albums-assets'], log_level=logging.WARNING)
-        logout_immich()
+        logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -590,21 +591,27 @@ def mode_immich_upload_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("")
         LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
         LOGGER.info("")
+        # login_immich
+        login_immich(log_level=logging.WARNING)
         # Call the Function
         total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed = immich_upload_albums(ARGS['immich-upload-albums'], log_level=logging.WARNING)
-        # Execute mode_delete_duplicates_albums
+        # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("")
-        LOGGER.info("INFO    : Removing Duplicates Albums...")
-        total_duplicates_albums_removed = immich_remove_duplicates_albums(log_level=logging.WARNING)
+        LOGGER.info("INFO    : Cleaning-up Immich Photos database (Removing Empty/Duplicates Albums and Duplicates Assets...")
         # Execute mode_delete_empty_albums
         LOGGER.info("")
         LOGGER.info("INFO    : Removing Empty Albums...")
         total_empty_albums_removed = immich_remove_empty_albums(log_level=logging.WARNING)
+        # Execute mode_delete_duplicates_albums
+        LOGGER.info("")
+        LOGGER.info("INFO    : Removing Duplicates Albums...")
+        total_duplicates_albums_removed = immich_remove_duplicates_albums(log_level=logging.WARNING)
         # Execute remove_duplicates_assets
         LOGGER.info("")
         LOGGER.info("INFO    : Removing Duplicates Assets...")
         duplicates_assets_removed = remove_duplicates_assets(log_level=logging.WARNING)
-        logout_immich()
+        # logout_immich
+        logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -643,23 +650,28 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("")
         LOGGER.info(f"INFO    : Find Assets in Folder    : {ARGS['immich-upload-all']}")
         LOGGER.info("")
+        # login_immich
+        login_immich(log_level=logging.WARNING)
         # Call the Function
         total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed = immich_upload_ALL(ARGS['immich-upload-all'], albums_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
-        # Execute mode_delete_duplicates_albums
+        # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("")
-        LOGGER.info("INFO    : Removing Duplicates Albums...")
-        total_duplicates_albums_removed = immich_remove_duplicates_albums(log_level=logging.WARNING)
+        LOGGER.info("INFO    : Cleaning-up Immich Photos database (Removing Empty/Duplicates Albums and Duplicates Assets...")
         # Execute mode_delete_empty_albums
         LOGGER.info("")
         LOGGER.info("INFO    : Removing Empty Albums...")
         total_empty_albums_removed = immich_remove_empty_albums(log_level=logging.WARNING)
+        # Execute mode_delete_duplicates_albums
+        LOGGER.info("")
+        LOGGER.info("INFO    : Removing Duplicates Albums...")
+        total_duplicates_albums_removed = immich_remove_duplicates_albums(log_level=logging.WARNING)
         # Execute remove_duplicates_assets
         LOGGER.info("")
         LOGGER.info("INFO    : Removing Duplicates Assets...")
         duplicates_assets_removed = remove_duplicates_assets(log_level=logging.WARNING)
-        # logout from Immich Photos.
         LOGGER.info("")
-        logout_immich()
+        # logout from Immich Photos.
+        logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -694,25 +706,27 @@ def mode_immich_download_albums(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        # login_immich
+        login_immich(log_level=logging.WARNING)
         # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("")
         LOGGER.info("INFO    : Cleaning-up Immich Photos database (Removing Empty/Duplicates Albums and Duplicates Assets...")
-        # Execute mode_delete_duplicates_albums
-        LOGGER.info("")
-        LOGGER.info("INFO    : Removing Duplicates Albums...")
-        total_duplicates_albums_removed = immich_remove_duplicates_albums(log_level=logging.WARNING)
         # Execute mode_delete_empty_albums
         LOGGER.info("")
         LOGGER.info("INFO    : Removing Empty Albums...")
         total_empty_albums_removed = immich_remove_empty_albums(log_level=logging.WARNING)
+        # Execute mode_delete_duplicates_albums
+        LOGGER.info("")
+        LOGGER.info("INFO    : Removing Duplicates Albums...")
+        total_duplicates_albums_removed = immich_remove_duplicates_albums(log_level=logging.WARNING)
         # Execute remove_duplicates_assets
         LOGGER.info("")
         LOGGER.info("INFO    : Removing Duplicates Assets...")
         duplicates_assets_removed = remove_duplicates_assets(log_level=logging.WARNING)
-
         # Call the Function
         albums_downloaded, assets_downloaded = immich_download_albums(albums_name=ARGS['immich-download-albums'], output_folder=ARGS['output-folder'], log_level=logging.WARNING)
-        logout_immich()
+        # logout_immich(log_level=logging.WARNING)
+        logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -740,25 +754,27 @@ def mode_immich_download_ALL(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        # login_immich
+        login_immich(log_level=logging.WARNING)
         # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("")
         LOGGER.info("INFO    : Cleaning-up Immich Photos database (Removing Empty/Duplicates Albums and Duplicates Assets...")
-        # Execute mode_delete_duplicates_albums
-        LOGGER.info("")
-        LOGGER.info("INFO    : Removing Duplicates Albums...")
-        total_duplicates_albums_removed = immich_remove_duplicates_albums(log_level=logging.WARNING)
         # Execute mode_delete_empty_albums
         LOGGER.info("")
         LOGGER.info("INFO    : Removing Empty Albums...")
         total_empty_albums_removed = immich_remove_empty_albums(log_level=logging.WARNING)
+        # Execute mode_delete_duplicates_albums
+        LOGGER.info("")
+        LOGGER.info("INFO    : Removing Duplicates Albums...")
+        total_duplicates_albums_removed = immich_remove_duplicates_albums(log_level=logging.WARNING)
         # Execute remove_duplicates_assets
         LOGGER.info("")
         LOGGER.info("INFO    : Removing Duplicates Assets...")
         duplicates_assets_removed = remove_duplicates_assets(log_level=logging.WARNING)
-
         # Call the Function
         albums_downloaded, assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums = immich_download_ALL(output_folder=ARGS['immich-download-all'], log_level=logging.WARNING)
-        logout_immich()
+        # logout_immich
+        logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -789,9 +805,12 @@ def mode_immich_remove_empty_albums(user_confirmation=True, log_level=logging.IN
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Delete Empty Album' Mode detected. Only this module will be run!!!")
         LOGGER.info(f"INFO    : Flag detected '-irEmpAlb, --immich-remove-empty-albums'. The Script will look for any empty album in Immich Photos database and will delete them (if any empty album is found).")
+        # login_immich
+        login_immich(log_level=logging.WARNING)
         # Call the Function
         albums_removed = immich_remove_empty_albums(log_level=logging.WARNING)
-        logout_immich()
+        # logout_immich
+        logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -819,9 +838,12 @@ def mode_immich_remove_duplicates_albums(user_confirmation=True, log_level=loggi
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Delete Duplicates Album' Mode detected. Only this module will be run!!!")
         LOGGER.info(f"INFO    : Flag detected '-irDupAlb, --immich-remove-duplicates-albums'. The Script will look for any duplicated album in Immich Photos database and will delete them (if any duplicated album is found).")
+        # login_immich
+        login_immich(log_level=logging.WARNING)
         # Call the Function
         albums_removed = immich_remove_duplicates_albums(log_level=logging.WARNING)
-        logout_immich()
+        # logout_immich
+        logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -849,11 +871,12 @@ def mode_immich_remove_orphan_assets(user_confirmation=True, log_level=logging.I
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
         LOGGER.info("")
-        # LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
-        LOGGER.info("")
+        # login_immich
+        login_immich(log_level=logging.WARNING)
         # Call the Function
         assets_removed = immich_remove_orphan_assets(user_confirmation=user_confirmation, log_level=logging.WARNING)
-        logout_immich()
+        #logout_immich
+        logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -881,11 +904,11 @@ def mode_immich_remove_all_assets(user_confirmation=True, log_level=logging.INFO
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Delete ALL Assets' Mode detected. Only this module will be run!!!")
         LOGGER.info("")
-        # LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
-        LOGGER.info("")
+        # login_immich
+        login_immich(log_level=logging.WARNING)
         # Call the Function
         assets_removed, albums_removed = immich_remove_all_assets(log_level=logging.WARNING)
-        logout_immich()
+        logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -919,11 +942,12 @@ def mode_immich_remove_all_albums(user_confirmation=True, log_level=logging.INFO
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Delete ALL Albums' Mode detected. Only this module will be run!!!")
         LOGGER.info("")
-        # LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
-        LOGGER.info("")
+        # login_immich
+        login_immich(log_level=logging.WARNING)
         # Call the Function
         albums_removed, assets_removed = immich_remove_all_albums(deleteAlbumsAssets = ARGS['remove-albums-assets'], log_level=logging.WARNING)
-        logout_immich()
+        # logout_immich
+        logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
