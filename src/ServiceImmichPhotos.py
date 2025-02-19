@@ -497,11 +497,11 @@ def remove_assets(assets_ids, log_level=logging.INFO):
           "force": True,
           "ids": assets_ids
         })
-        deleted_assets = len(assets_ids)
         try:
             response = requests.request("DELETE", url, headers=HEADERS_WITH_TOKEN, data=payload)
             response.raise_for_status()
             if response.ok:
+                deleted_assets = len(assets_ids)
                 return deleted_assets
             else:
                 LOGGER.error(f"ERROR   : Failed to delete assets due to API error")
