@@ -695,6 +695,8 @@ def mode_immich_download_albums(user_confirmation=True, log_level=logging.INFO):
             sys.exit(0)
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
+        LOGGER.info("")
+        LOGGER.info("INFO    : Cleaning-up Immich Photos database (Removing Empty/Duplicates Albums and Duplicates Assets...")
         # Execute mode_delete_duplicates_albums
         LOGGER.info("")
         LOGGER.info("INFO    : Removing Duplicates Albums...")
@@ -739,6 +741,8 @@ def mode_immich_download_ALL(user_confirmation=True, log_level=logging.INFO):
             sys.exit(0)
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
+        LOGGER.info("")
+        LOGGER.info("INFO    : Cleaning-up Immich Photos database (Removing Empty/Duplicates Albums and Duplicates Assets...")
         # Execute mode_delete_duplicates_albums
         LOGGER.info("")
         LOGGER.info("INFO    : Removing Duplicates Albums...")
