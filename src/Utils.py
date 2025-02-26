@@ -19,16 +19,18 @@ WORKING_DIR = r"R:\jaimetur\CloudPhotoMigrator"
 ######################
 def change_workingdir(log_level=logging.INFO):
     """ Definir la ruta de trabajo deseada """
+    from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Verificar si la carpeta existe y cambiar a ella si existe
         if os.path.exists(WORKING_DIR) and os.path.isdir(WORKING_DIR):
             os.chdir(WORKING_DIR)
-            print(f"Directorio cambiado a: {os.getcwd()}")
+            LOGGER.info(f"INFO    : Directorio cambiado a: {os.getcwd()}")
             current_directory = os.getcwd()
             print(current_directory)
 
 def run_from_synology(log_level=logging.INFO):
     """ Check if the srcript is running from a Synology NAS """
+    from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         return os.path.exists('/etc.defaults/synoinfo.conf')
 
@@ -494,6 +496,7 @@ def fix_symlinks_broken(input_folder, log_level=logging.INFO):
         Index all non-symbolic files in the directory and its subdirectories by their filename.
         Returns a dictionary where keys are filenames and values are lists of their full paths.
         """
+        from GlobalVariables import LOGGER
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             file_index = {}
             # Contar el total de carpetas
@@ -519,6 +522,7 @@ def fix_symlinks_broken(input_folder, log_level=logging.INFO):
         If multiple matches exist, return the first found.
         If none is found, return None.
         """
+        from GlobalVariables import LOGGER
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             if target_name in file_index and file_index[target_name]:
                 return file_index[target_name][0]
@@ -576,6 +580,7 @@ def rename_album_folders(input_folder: str, log_level=logging.INFO):
     # ===========================
     def clean_name(input_string: str, log_level=logging.INFO) -> str:
         import re
+        from GlobalVariables import LOGGER
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             input_string = input_string.strip()
             # Remove leading underscores or hyphens
@@ -700,10 +705,12 @@ def remove_quotes(input_string: str, log_level=logging.INFO) -> str:
     """
     Elimina todas las comillas simples y dobles al inicio o fin de la cadena.
     """
+    from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         return input_string.strip('\'"')
 
 def contains_zip_files(input_folder, log_level=logging.INFO):
+    from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         for file in os.listdir(input_folder):
             if file.endswith('.zip'):
@@ -711,6 +718,7 @@ def contains_zip_files(input_folder, log_level=logging.INFO):
         return False
 
 def remove_server_name(path, log_level=logging.INFO):
+    from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Expresión regular para rutas Linux (///servidor/)
         path = re.sub(r'///[^/]+/', '///', path)
@@ -767,6 +775,7 @@ def get_unique_items(list1, list2, key='filename', log_level=logging.INFO):
     Returns:
         list: Items present in list1 but not in list2.
     """
+    from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         set2 = {item[key] for item in list2}  # Create a set of filenames from list2
         unique_items = [item for item in list1 if item[key] not in set2]
@@ -781,8 +790,8 @@ def update_metadata(file_path, date_time, log_level=logging.INFO):
         file_path (str): Path to the file.
         date_time (str): Date and time in 'YYYY-MM-DD HH:MM:SS' format.
     """
-    from GlobalVariables import LOGGER
     from ServiceSynologyPhotos import ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS, ALLOWED_SYNOLOGY_VIDEO_EXTENSIONS
+    from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         file_ext = os.path.splitext(file_path)[1].lower()
 
@@ -947,6 +956,7 @@ def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=logging.
 # Convert to list
 def convert_to_list(input, log_level=logging.INFO):
     """ Convert a String to List"""
+    from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         output=input
         # Process subfolders_exclusion to obtain a list of inclusion names if provided
@@ -960,6 +970,7 @@ def convert_to_list(input, log_level=logging.INFO):
 
 # Detectar si la terminal es compatible
 def check_color_support(log_level=logging.INFO):
+    from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         if sys.stdout.isatty():  # Verifica si es un terminal interactivo
             term = os.getenv("TERM", "")

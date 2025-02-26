@@ -11,6 +11,7 @@ def resource_path(relative_path, log_level=logging.INFO):
         return os.path.join(os.path.abspath("."), relative_path)
 
 def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, symbolic_albums=False, move_takeout_folder=False, ignore_takeout_structure=False, log_level=logging.INFO):
+    from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         """Runs the GPTH Tool command to process photos."""
         from GlobalVariables import LOGGER
