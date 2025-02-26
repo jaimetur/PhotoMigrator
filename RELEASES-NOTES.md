@@ -21,6 +21,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
 - [x] New Script name '**CloudPhotoMigrator**' (former 'GoogleTakeoutPhotos')
 - [x] The Tool is now Open Source (all contributors that want to collaborate on this project are more than welcome)
+- [x] Added **_Immich Photos Support_**.
 - [x] New Automated Migration Feature to perform Fully automated migration process between different Photo Cloud Services
   - #### AUTOMATED MIGRATION FEATURE:
     - **-AUTO,   --AUTOMATED-MIGRATION \<SOURCE> \<TARGET>**  
@@ -34,7 +35,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
                  <TARGET> : ['synology-photos', 'immich-photos']
       
 
-- [x] Added **_Immich Photos Support_**.
+- [x] Fixed limit of 250 when search for Immich assets.
 - [x] Wildcards support on <ALBUMS_NAME> argument on --synology-download-albums and --immich-download-albums options.
 - [x] Replaced 'ALL_PHOTOS' by 'No-Albums' as output subfolder for assets without any album associated (be careful if you already run the script with previous version because before, the folder for assets without albums was named 'ALL_PHOTOS')
 - [x] Remove Dupplicates Assets in Immich Photos after upload any Asset. 
