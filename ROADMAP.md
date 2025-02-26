@@ -37,7 +37,6 @@
     - [ ] by Person
 - [ ] Update README.md
 - [ ] Update RELEASES-NOTES.md
-- [ ] Create a New Release in GitHub Production Repo
 
 
 
