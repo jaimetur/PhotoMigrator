@@ -122,18 +122,22 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
         """
         Remove empty directories recursively.
         """
+        removed_folders = 0
         for dirpath, dirnames, filenames in os.walk(root_dir, topdown=False):
             filtered_dirnames = [d for d in dirnames if d != '@eaDir']
             if not filtered_dirnames and not filenames:
                 try:
                     os.rmdir(dirpath)
+                    removed_folders += 1
                     LOGGER.info(f"INFO    : Removed empty directory in path {dirpath}")
                 except OSError:
                     pass
+        return removed_folders
 
     # ===========================
     # INITIALIZATION AND SETUP
     # ===========================
+    removed_empty_folders = 0
     if deprioritize_folders_patterns is None:
         deprioritize_folders_patterns = []
     if isinstance(duplicates_folders, str):
@@ -194,7 +198,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
     LOGGER.info(f"INFO    : Total Symbolic Links files found: {total_symlinks}")
     LOGGER.info(f"INFO    : Total files (not Symbolic Links) found: {total_files-total_symlinks}")
     LOGGER.info(f"INFO    : Total Groups of different files size found: {len(size_dict)}")
-    LOGGER.info("INFO    : Filtering out groups with only one file with the same size")
+    LOGGER.info(f"INFO    : Filtering out groups with only one file with the same size")
     sizes_with_duplicates_dict = {size: paths for size, paths in size_dict.items() if len(paths) > 1}
     LOGGER.info(f"INFO    : Groups with more than one file with the same size found: {len(sizes_with_duplicates_dict)}")
     del size_dict  # Liberar memoria anticipadamente
@@ -445,10 +449,10 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
             if duplicates_action in ('move', 'remove'):
                 LOGGER.info("INFO    : Removing empty directories in original folders.")
                 for folder in input_folders_list:
-                    remove_empty_dirs(folder)
+                    removed_empty_folders += remove_empty_dirs(folder)
 
     LOGGER.info(f"INFO    : Finished processing. Total duplicates (excluding principals): {duplicates_counter}")
-    return duplicates_counter
+    return duplicates_counter, removed_empty_folders
 
 def process_duplicates_actions(csv_revised: str):
     from GlobalVariables import LOGGER

@@ -60,6 +60,9 @@ def google_takeout_processor(output_takeout_folder, log_level=logging.INFO):
         LOGGER.info(f"{step}. FIXING PHOTOS METADATA WITH GPTH TOOL...")
         LOGGER.info("===========================================")
         LOGGER.info("")
+        # Number of files in the original takeout folder
+        initial_takeout_numfiles = Utils.count_files_in_folder (ARGS['google-input-takeout-folder'])
+
         if not ARGS['google-skip-gpth-tool']:
             if ARGS['google-ignore-check-structure']:
                 LOGGER.warning("WARNING : Ignore Google Takeout Structure detected ('-gics, --google-ignore-check-structure' flag detected).")
@@ -203,6 +206,7 @@ def google_takeout_processor(output_takeout_folder, log_level=logging.INFO):
         # step 8: Remove Duplicates in OUTPUT_TAKEOUT_FOLDER after Fixing
         step += 1
         duplicates_found = 0
+        removed_empty_folders = 0
         if ARGS['google-remove-duplicates-files']:
             LOGGER.info("")
             LOGGER.info("==========================================")
@@ -212,14 +216,14 @@ def google_takeout_processor(output_takeout_folder, log_level=logging.INFO):
             LOGGER.info(
                 "INFO    : Removing duplicates from OUTPUT_TAKEOUT_FOLDER (Files within any Album will have more priority than files within 'Photos from *' or 'No-Albums' folders)...")
             step_start_time = datetime.now()
-            duplicates_found = find_duplicates(duplicates_action='remove', duplicates_folders=output_takeout_folder,
-                                               deprioritize_folders_patterns=DEPRIORITIZE_FOLDERS_PATTERNS,
-                                               timestamp=TIMESTAMP)
+            duplicates_found, removed_empty_folders = find_duplicates(duplicates_action='remove', duplicates_folders=output_takeout_folder,
+                                                        deprioritize_folders_patterns=DEPRIORITIZE_FOLDERS_PATTERNS,
+                                                        timestamp=TIMESTAMP)
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             LOGGER.info(f"INFO    : step {step} completed in {formatted_duration}.")
 
         # Return Outputs
-        return albums_found, symlink_fixed, symlink_not_fixed, duplicates_found
+        return albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders
 
 

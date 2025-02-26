@@ -123,8 +123,12 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
         # =========================
         # FIRST PROCESS THE SOURCE:
         # =========================
-        LOGGER.info(f'INFO    : Downloading/Processing Asset from {SOURCE}...')
+        LOGGER.info(f'============================================================================')
+        LOGGER.info(f'INFO    : STEP 1 - DOWNLOAD/PROCESS ASSETS FROM: {SOURCE}')
+        LOGGER.info(f'============================================================================')
         LOGGER.info("")
+        LOGGER.info(f'INFO    : Downloading/Processing Assets to: {SOURCE}...')
+
         # If the SOURCE is 'google-photos' or a valid Takeout Folder
         if SOURCE.lower() == 'google-photos' or ARGS['SOURCE-TYPE-TAKEOUT-FOLDER']:
             # Configure default arguments for mode_google_takeout() execution and RUN it
@@ -187,7 +191,12 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
         # =========================
         # SECOND PROCESS THE TARGET:
         # =========================
-        LOGGER.info(f'INFO    : Uploading/Processing Asset to {TARGET}...')
+        LOGGER.info(f'============================================================================')
+        LOGGER.info(f'INFO    : STEP 2 - UPLOAD/PROCESS ASSETS TO: {TARGET}')
+        LOGGER.info(f'============================================================================')
+        LOGGER.info("")
+        LOGGER.info(f'INFO    : Uploading/Processing Assets to: {TARGET}...')
+
         # if the TARGET is 'synology-photos'
         if TARGET.lower() == 'synology-photos':
             ARGS['synology-upload-all'] = INTERMEDIATE_FOLDER
@@ -271,7 +280,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         if ARGS['no-log-file']:
             LOGGER.warning(f"WARNING : Flag detected '-nolog, --no-log-file'. Skipping saving output into log file...")
         # Call the Function
-        albums_found, symlink_fixed, symlink_not_fixed, duplicates_found = google_takeout_processor(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER)
+        albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders = google_takeout_processor(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -285,8 +294,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("===============================================")
         LOGGER.info("                FINAL SUMMARY:                 ")
         LOGGER.info("===============================================")
-        if not ARGS['google-move-takeout-folder']:
-            LOGGER.info(f"Total files in Takeout folder        : {Utils.count_files_in_folder(ARGS['google-input-takeout-folder'])}")
+        LOGGER.info(f"Total files in Takeout folder        : {initial_takeout_numfiles}")
         LOGGER.info(f"Total final files in Output folder   : {Utils.count_files_in_folder(OUTPUT_TAKEOUT_FOLDER)}")
         LOGGER.info(f"Total Albums folders found           : {albums_found}")
         if ARGS['google-create-symbolic-albums']:
@@ -294,6 +302,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info(f"Total Symlinks Not Fixed             : {symlink_not_fixed}")
         if ARGS['google-remove-duplicates-files']:
             LOGGER.info(f"Total Duplicates Removed             : {duplicates_found}")
+            LOGGER.info(f"Total Empty Folders Removed          : {removed_empty_folders}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                   : {formatted_duration}")
         LOGGER.info("===============================================")
@@ -1103,7 +1112,7 @@ def mode_find_duplicates(user_confirmation=True, log_level=logging.INFO):
         if DEFAULT_DUPLICATES_ACTION:
             LOGGER.warning(f"WARNING : Detected Flag '-fd, --find-duplicates' but no valid <DUPLICATED_ACTION> have been detected. Using 'list' as default <DUPLICATED_ACTION>")
             LOGGER.warning("")
-        duplicates_files_found = find_duplicates(duplicates_action=ARGS['duplicates-action'], duplicates_folders=ARGS['duplicates-folders'], deprioritize_folders_patterns=DEPRIORITIZE_FOLDERS_PATTERNS)
+        duplicates_files_found, removed_empty_folders = find_duplicates(duplicates_action=ARGS['duplicates-action'], duplicates_folders=ARGS['duplicates-folders'], deprioritize_folders_patterns=DEPRIORITIZE_FOLDERS_PATTERNS)
         if duplicates_files_found == -1:
             LOGGER.error("ERROR   : Exiting because some of the folder(s) given in argument '-fd, --find-duplicates' does not exists.")
             sys.exit(-1)
@@ -1119,6 +1128,7 @@ def mode_find_duplicates(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("                  FINAL SUMMARY:                  ")
         LOGGER.info("==================================================")
         LOGGER.info(f"Total Duplicates Found                  : {duplicates_files_found}")
+        LOGGER.info(f"Total Empty Folders Removed             : {removed_empty_folders}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
