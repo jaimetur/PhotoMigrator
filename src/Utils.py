@@ -11,6 +11,7 @@ import platform
 import piexif
 import subprocess
 import logging
+from CustomLogger import set_log_level
 from PIL import Image
 
 WORKING_DIR = r"R:\jaimetur\CloudPhotoMigrator"
