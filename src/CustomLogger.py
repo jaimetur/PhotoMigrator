@@ -3,7 +3,15 @@ import os,sys
 import logging
 from colorama import Fore, Style
 from contextlib import contextmanager
-from Utils import check_color_support
+
+def check_color_support(log_level=logging.INFO):
+    """ Detect if Terminal has supports colors """
+    if sys.stdout.isatty():  # Verifica si es un terminal interactivo
+        term = os.getenv("TERM", "")
+        if term in ("dumb", "linux", "xterm-mono"):  # Terminales sin colores
+            return False
+        return True
+    return False
 
 # Clase personalizada para formatear los mensajes que van a la consola (Añadimos colorees según el nivel del mensaje)
 class CustomConsoleFormatter(logging.Formatter):

@@ -969,14 +969,3 @@ def convert_to_list(input, log_level=logging.INFO):
         else:
             output = []
         return output
-
-# Detectar si la terminal es compatible
-def check_color_support(log_level=logging.INFO):
-    from GlobalVariables import LOGGER
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        if sys.stdout.isatty():  # Verifica si es un terminal interactivo
-            term = os.getenv("TERM", "")
-            if term in ("dumb", "linux", "xterm-mono"):  # Terminales sin colores
-                return False
-            return True
-        return False
