@@ -7,7 +7,6 @@ import logging
 #---------------------------------------
 # GLOBAL VARIABLES FOR THE WHOLE PROJECT
 #---------------------------------------
-
 SCRIPT_NAME                     = "CloudPhotoMigrator"
 SCRIPT_VERSION                  = "v3.0.0-beta-03"
 SCRIPT_DATE                     = "2025-02-19"
