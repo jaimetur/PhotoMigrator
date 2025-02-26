@@ -18,6 +18,7 @@ def google_takeout_processor(output_takeout_folder, log_level=logging.INFO):
         LOGGER.info(f"{step}. UNPACKING TAKEOUT FOLDER...")
         LOGGER.info("==============================")
         LOGGER.info("")
+
         if ARGS['google-input-zip-folder']:
             step_start_time = datetime.now()
             Utils.unpack_zips(ARGS['google-input-zip-folder'], ARGS['google-input-takeout-folder'])
@@ -25,8 +26,7 @@ def google_takeout_processor(output_takeout_folder, log_level=logging.INFO):
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             LOGGER.info(f"INFO    : step {step} completed in {formatted_duration}.")
         else:
-            LOGGER.warning(
-                "WARNING : Unzipping skipped (no argument '-gizf or --google-input-zip-folder <ZIP_FOLDER>' given or Running Mode All-in-One with input folder directly unzipped).")
+            LOGGER.info(f"INFO    : Unzipping skipped (no ZIP files detected in INPUT_FOLDER).")
 
         if not os.path.isdir(ARGS['google-input-takeout-folder']):
             LOGGER.error(f"ERROR   : Cannot Find INPUT_FOLDER: '{ARGS['google-input-takeout-folder']}'. Exiting...")
@@ -213,12 +213,12 @@ def google_takeout_processor(output_takeout_folder, log_level=logging.INFO):
             LOGGER.info(f"{step}. REMOVING DUPLICATES IN OUTPUT_TAKEOUT_FOLDER...")
             LOGGER.info("==========================================")
             LOGGER.info("")
-            LOGGER.info(
-                "INFO    : Removing duplicates from OUTPUT_TAKEOUT_FOLDER (Files within any Album will have more priority than files within 'Photos from *' or 'No-Albums' folders)...")
+            LOGGER.info(f"INFO    : Removing duplicates from OUTPUT_TAKEOUT_FOLDER (Files within any Album will have more priority than files within 'Photos from *' or 'No-Albums' folders)...")
             step_start_time = datetime.now()
             duplicates_found, removed_empty_folders = find_duplicates(duplicates_action='remove', duplicates_folders=output_takeout_folder,
-                                                        deprioritize_folders_patterns=DEPRIORITIZE_FOLDERS_PATTERNS,
-                                                        timestamp=TIMESTAMP)
+                                                                      deprioritize_folders_patterns=DEPRIORITIZE_FOLDERS_PATTERNS,
+                                                                      timestamp=TIMESTAMP,
+                                                                      log_level=logging.INFO)
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             LOGGER.info(f"INFO    : step {step} completed in {formatted_duration}.")
