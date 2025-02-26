@@ -1043,7 +1043,7 @@ def mode_immich_remove_all_albums(user_confirmation=True, log_level=logging.INFO
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
         login_immich(log_level=logging.WARNING)
         # Call the Function
-        albums_removed, assets_removed = immich_remove_all_albums(deleteAlbumsAssets = ARGS['remove-albums-assets'], log_level=logging.WARNING)
+        albums_removed, assets_removed = immich_remove_all_albums(removeAlbumsAssets= ARGS['remove-albums-assets'], log_level=logging.WARNING)
         # logout_immich
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")

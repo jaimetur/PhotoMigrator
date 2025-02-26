@@ -26,9 +26,8 @@ def change_workingdir(log_level=logging.INFO):
         # Verificar si la carpeta existe y cambiar a ella si existe
         if os.path.exists(WORKING_DIR) and os.path.isdir(WORKING_DIR):
             os.chdir(WORKING_DIR)
-            LOGGER.info(f"INFO    : Directorio cambiado a: {os.getcwd()}")
             current_directory = os.getcwd()
-            print(current_directory)
+            LOGGER.info(f"INFO    : Directorio cambiado a: {os.getcwd()}")
 
 def run_from_synology(log_level=logging.INFO):
     """ Check if the srcript is running from a Synology NAS """

@@ -8,10 +8,10 @@ Python module with example functions to interact with Immich Photos, including f
   - Authentication (login/logout)
   - Listing and managing albums
   - Listing, uploading, and downloading assets
-  - Deleting empty or duplicate albums
+  - Removing empty or duplicate albums
   - Main functions for use in other modules:
-     - immich_delete_empty_albums()
-     - immich_delete_duplicates_albums()
+     - immich_remove_empty_albums()
+     - immich_remove_duplicates_albums()
      - immich_upload_folder()
      - immich_upload_albums()
      - immich_download_albums()
@@ -229,9 +229,9 @@ def create_album(album_name, log_level=logging.INFO):
             LOGGER.warning(f"WARNING : Cannot create album '{album_name}' due to API call error. Skipped!")
             return None
 
-def delete_album(album_id, album_name, log_level=logging.INFO):
+def remove_album(album_id, album_name, log_level=logging.INFO):
     """
-    Deletes an album from Immich by its ID. Returns True if deleted successfully, False otherwise.
+    Removes an album from Immich by its ID. Returns True if removed successfully, False otherwise.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -239,12 +239,12 @@ def delete_album(album_id, album_name, log_level=logging.INFO):
         login_immich(log_level=log_level)
         url = f"{IMMICH_URL}/api/albums/{album_id}"
         try:
-            response = requests.delete(url, headers=HEADERS_WITH_CREDENTIALS, verify=False)
+            response = requests.remove(url, headers=HEADERS_WITH_CREDENTIALS, verify=False)
             if response.status_code == 200:
-                # LOGGER.info(f"INFO    : Album '{album_name}' with ID={album_id} deleted.")
+                # LOGGER.info(f"INFO    : Album '{album_name}' with ID={album_id} removed.")
                 return True
             else:
-                LOGGER.warning(f"WARNING : Failed to delete album: '{album_name}' with ID: {album_id}. Status: {response.status_code}")
+                LOGGER.warning(f"WARNING : Failed to remove album: '{album_name}' with ID: {album_id}. Status: {response.status_code}")
                 return False
         except Exception as e:
             LOGGER.error(f"ERROR   : Error while deleting album '{album_name}' with ID:  {album_id}: {e}")
@@ -319,54 +319,65 @@ def get_all_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=Non
         # login_immich
         login_immich(log_level=log_level)
         url = f"{IMMICH_URL}/api/search/metadata"
-        payload_data = {
-            # "libraryId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-            "order": "desc",
-            # "country": "string",
-            # "city": "string",
-            # "type": "IMAGE",
-            # "isNotInAlbum": False,
-            # "isArchived": True,
-            # "isEncoded": True,
-            # "isFavorite": True,
-            # "isMotion": True,
-            # "isOffline": True,
-            # "isVisible": True,
-            # "withArchived": False,
-            # "withDeleted": True,
-            # "withExif": True,
-            # "withPeople": True,
-            # "withStacked": True,
-            # "createdAfter": "string",
-            # "createdBefore": "string",
-            # "takenAfter": "string",
-            # "takenBefore": "string",
-            # "updatedAfter": "string",
-            # "updatedBefore": "string",
-            # "personIds": [
-            #   "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            # ],
-        }
-        # Agregar isNotInAlbum solo si no es None
-        if type: payload_data["type"] = type
-        if isNotInAlbum: payload_data["isNotInAlbum"] = isNotInAlbum
-        if isArchived: payload_data["isArchived"] = isArchived
-        if createdAfter: payload_data["createdAfter"] = createdAfter
-        if createdBefore: payload_data["createdBefore"] = createdBefore
-        if country: payload_data["country"] = country
-        if city: payload_data["city"] = city
-        if personIds: payload_data["personIds"] = personIds
-        # Convert payload_data dict to JSON
-        payload = json.dumps(payload_data, indent=2)
-        try:
-            response = requests.post(url, headers=HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
-            response.raise_for_status()
-            data = response.json()  # List
-            assets = data.get("assets")
-            return assets
-        except Exception as e:
-            LOGGER.error(f"ERROR   : Failed to retrieve assets: {str(e)}")
-            return []
+
+        nextPage = 1
+        all_assets = []
+        while True:
+            payload_data = {
+                # "libraryId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                "page": nextPage,
+                "order": "desc",
+                # "country": "string",
+                # "city": "string",
+                # "type": "IMAGE",
+                # "isNotInAlbum": False,
+                # "isArchived": True,
+                # "isEncoded": True,
+                # "isFavorite": True,
+                # "isMotion": True,
+                # "isOffline": True,
+                # "isVisible": True,
+                # "withArchived": False,
+                # "withRemoved": True,
+                # "withExif": True,
+                # "withPeople": True,
+                # "withStacked": True,
+                # "createdAfter": "string",
+                # "createdBefore": "string",
+                # "takenAfter": "string",
+                # "takenBefore": "string",
+                # "updatedAfter": "string",
+                # "updatedBefore": "string",
+                # "personIds": [
+                #   "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                # ],
+            }
+            if type: payload_data["type"] = type
+            if isNotInAlbum: payload_data["isNotInAlbum"] = isNotInAlbum
+            if isArchived: payload_data["isArchived"] = isArchived
+            if createdAfter: payload_data["createdAfter"] = createdAfter
+            if createdBefore: payload_data["createdBefore"] = createdBefore
+            if country: payload_data["country"] = country
+            if city: payload_data["city"] = city
+            if personIds: payload_data["personIds"] = personIds
+            # Convert payload_data dict to JSON
+
+            payload = json.dumps(payload_data, indent=2)
+            try:
+                response = requests.post(url, headers=HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
+                response.raise_for_status()
+                data = response.json()  # List
+                assets = data.get("assets").get("items")
+                all_assets.extend(assets)
+                nextPage = data.get("assets").get("nextPage")
+                if nextPage != None:
+                    nextPage = int(nextPage)
+                else:
+                    break
+
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Failed to retrieve assets: {str(e)}")
+        return all_assets
 
 def get_assets_from_album(album_id, log_level=logging.INFO):
     """
@@ -421,7 +432,7 @@ def add_assets_to_album(album_id, asset_ids, album_name=None, log_level=logging.
 
 def remove_assets(assets_ids, log_level=logging.INFO):
     """
-    Delete the list of assets provide by assets_ids.
+    Remove the list of assets provide by assets_ids.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -436,13 +447,13 @@ def remove_assets(assets_ids, log_level=logging.INFO):
             response = requests.request("DELETE", url, headers=HEADERS_WITH_CREDENTIALS, data=payload)
             response.raise_for_status()
             if response.ok:
-                deleted_assets = len(assets_ids)
-                return deleted_assets
+                removed_assets = len(assets_ids)
+                return removed_assets
             else:
-                LOGGER.error(f"ERROR   : Failed to delete assets due to API error")
+                LOGGER.error(f"ERROR   : Failed to remove assets due to API error")
                 return 0
         except Exception as e:
-            LOGGER.error(f"ERROR   : Failed to delete assets: {str(e)}")
+            LOGGER.error(f"ERROR   : Failed to remove assets: {str(e)}")
             return 0
 
 def remove_duplicates_assets(log_level=logging.INFO):
@@ -975,9 +986,9 @@ def immich_download_no_albums(output_folder="Downloads_Immich", log_level=loggin
         login_immich(log_level=log_level)
         total_assets_downloaded = 0
         # 2) Assets without album -> output_folder/No-Albums/yyyy/mm
-        all_assets = get_all_assets_by_search_filter(isNotInAlbum=True)
+        all_assets_items = get_all_assets_by_search_filter(isNotInAlbum=True)
         # all_assets = get_assets_by_search_filter()
-        all_assets_items = all_assets.get("items")
+        # all_assets_items = all_assets.get("items")
         all_photos_path = os.path.join(output_folder, 'No-Albums')
         os.makedirs(all_photos_path, exist_ok=True)
         LOGGER.info(f"INFO    : Found {len(all_assets_items)} asset(s) without any album associated.")
@@ -1046,8 +1057,8 @@ def immich_download_ALL(output_folder="Downloads_Immich", log_level=logging.WARN
 # -----------------------------------------------------------------------------
 def immich_remove_empty_albums(log_level=logging.WARNING):
     """
-    Deletes all albums that have no assets (are empty).
-    Returns the number of albums deleted.
+    Removes all albums that have no assets (are empty).
+    Returns the number of albums removed.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -1059,27 +1070,27 @@ def immich_remove_empty_albums(log_level=logging.WARNING):
             # logout_immich
             logout_immich(log_level=log_level)
             return 0
-        total_deleted_empty_albums = 0
+        total_removed_empty_albums = 0
         for album in tqdm(albums, desc=f"INFO    : Searching for Empty Albums", unit=" albums"):
             album_id = album.get("id")
             album_name = album.get("albumName")
             assets_count = album.get("assetCount")
             if assets_count == 0:
-                if delete_album(album_id, album_name):
-                    # LOGGER.info(f"INFO    : Empty album '{album_name}' (ID={album_id}) deleted.")
-                    total_deleted_empty_albums += 1
-        LOGGER.info(f"INFO    : Deleted {total_deleted_empty_albums} empty albums.")
+                if remove_album(album_id, album_name):
+                    # LOGGER.info(f"INFO    : Empty album '{album_name}' (ID={album_id}) removed.")
+                    total_removed_empty_albums += 1
+        LOGGER.info(f"INFO    : Removed {total_removed_empty_albums} empty albums.")
         # logout_immich
         logout_immich(log_level=log_level)
-        return total_deleted_empty_albums
+        return total_removed_empty_albums
 
 # -----------------------------------------------------------------------------
 #          DELETE DUPLICATES ALBUMS FROM IMMICH DATABASE
 # -----------------------------------------------------------------------------
 def immich_remove_duplicates_albums(log_level=logging.WARNING):
     """
-    Deletes albums that have the same number of assets and the same total size.
-    From each duplicate group, keeps the first one (smallest ID) and deletes the rest.
+    Removes albums that have the same number of assets and the same total size.
+    From each duplicate group, keeps the first one (smallest ID) and removes the rest.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -1097,20 +1108,20 @@ def immich_remove_duplicates_albums(log_level=logging.WARNING):
             assets_count = album.get("assetCount")
             size = get_album_items_size(album_id)
             duplicates_map.setdefault((assets_count, size), []).append((album_id, album_name))
-        total_deleted_duplicated_albums = 0
-        for (item_assets_count, size), group in tqdm(duplicates_map.items(), desc=f"INFO    : Deleting Duplicates Albums", unit=" albums"):
+        total_removed_duplicated_albums = 0
+        for (item_assets_count, size), group in tqdm(duplicates_map.items(), desc=f"INFO    : Removing Duplicates Albums", unit=" albums"):
             LOGGER.debug(f'DEBUG   : Assets Count: {item_assets_count}. Size: {size}.')
             if len(group) > 1:
                 group_sorted = sorted(group, key=lambda x: x[1])
                 # The first album in the group is kept
-                to_delete = group_sorted[1:]
-                for album_id, album_name in to_delete:
-                    if delete_album(album_id, album_name):
-                        total_deleted_duplicated_albums += 1
-        LOGGER.info(f"INFO    : Deleted {total_deleted_duplicated_albums} duplicate albums.")
+                to_remove = group_sorted[1:]
+                for album_id, album_name in to_remove:
+                    if remove_album(album_id, album_name):
+                        total_removed_duplicated_albums += 1
+        LOGGER.info(f"INFO    : Removed {total_removed_duplicated_albums} duplicate albums.")
         # logout_immich
         logout_immich(log_level=log_level)
-        return total_deleted_duplicated_albums
+        return total_removed_duplicated_albums
 
 # -----------------------------------------------------------------------------
 #          DELETE ORPHANS ASSETS FROM IMMICH DATABASE
@@ -1142,7 +1153,7 @@ def immich_remove_orphan_assets(user_confirmation=True, log_level=logging.WARNIN
         spinner = Halo(text='Retrieving list of orphaned media assets...', spinner='dots')
         spinner.start()
 
-        deleted_assets = 0
+        removed_assets = 0
         try:
             response = requests.get(file_report_url, headers=headers)
             response.raise_for_status()
@@ -1160,14 +1171,14 @@ def immich_remove_orphan_assets(user_confirmation=True, log_level=logging.WARNIN
             LOGGER.info(f"INFO    : No orphaned media assets found.")
             # logout_immich
             logout_immich(log_level=log_level)
-            return deleted_assets
+            return removed_assets
 
         if user_confirmation:
             table_data = [[asset['pathValue'], asset['entityId']] for asset in orphan_media_assets]
             LOGGER.info(f"INFO    : {tabulate(table_data, headers=['Path Value', 'Entity ID'], tablefmt='pretty')}")
             LOGGER.info("")
 
-            summary = f'There {"is" if num_entries == 1 else "are"} {num_entries} orphaned media asset{"s" if num_entries != 1 else ""}. Would you like to delete {"them" if num_entries != 1 else "it"} from Immich? (yes/no): '
+            summary = f'There {"is" if num_entries == 1 else "are"} {num_entries} orphaned media asset{"s" if num_entries != 1 else ""}. Would you like to remove {"them" if num_entries != 1 else "it"} from Immich? (yes/no): '
             user_input = input(summary).lower()
             LOGGER.info("")
 
@@ -1178,27 +1189,27 @@ def immich_remove_orphan_assets(user_confirmation=True, log_level=logging.WARNIN
                 return 0
 
         headers['x-api-key'] = IMMICH_USER_API_KEY  # Use user API key for deletion
-        with tqdm(total=num_entries, desc="INFO    : Deleting orphaned media assets", unit="asset") as progress_bar:
+        with tqdm(total=num_entries, desc="INFO    : Removing orphaned media assets", unit="asset") as progress_bar:
             for asset in orphan_media_assets:
                 entity_id = asset['entityId']
                 asset_url = f'{api_url}/assets'
-                delete_payload = json.dumps({'force': True, 'ids': [entity_id]})
+                remove_payload = json.dumps({'force': True, 'ids': [entity_id]})
                 headers = {'Content-Type': 'application/json', 'x-api-key': IMMICH_USER_API_KEY}
                 try:
-                    response = requests.delete(asset_url, headers=headers, data=delete_payload)
+                    response = requests.remove(asset_url, headers=headers, data=remove_payload)
                     response.raise_for_status()
                 except requests.exceptions.HTTPError as e:
                     if response.status_code == 400:
-                        LOGGER.warning(f"WARNING : Failed to delete asset {entity_id} due to potential API key mismatch. Ensure you're using the asset owners API key as the User API key.")
+                        LOGGER.warning(f"WARNING : Failed to remove asset {entity_id} due to potential API key mismatch. Ensure you're using the asset owners API key as the User API key.")
                     else:
-                        LOGGER.warning(f"WARNING : Failed to delete asset {entity_id}: {str(e)}")
+                        LOGGER.warning(f"WARNING : Failed to remove asset {entity_id}: {str(e)}")
                     continue
                 progress_bar.update(1)
-                deleted_assets += 1
-        LOGGER.info(f"INFO    : Orphaned media assets deleted successfully!")
+                removed_assets += 1
+        LOGGER.info(f"INFO    : Orphaned media assets removed successfully!")
         # logout_immich
         logout_immich(log_level=log_level)
-        return deleted_assets
+        return removed_assets
 
 # -----------------------------------------------------------------------------
 #          DELETE ALL ASSETS FROM IMMICH DATABASE
@@ -1207,37 +1218,48 @@ def immich_remove_all_assets(log_level=logging.WARNING):
     from GlobalVariables import LOGGER  # Import global LOGGER
     # login_immich
     login_immich(log_level=log_level)
-    all_assets = get_all_assets_by_search_filter()
-    all_assets_items = all_assets.get("items")
+    LOGGER.info(f"INFO    : Getting list of asset(s) to remove...")
+    all_assets_items = get_all_assets_by_search_filter()
+    # all_assets_items = all_assets.get("items")
     total_assets_found = len(all_assets_items)
     if total_assets_found == 0:
         LOGGER.warning(f"WARNING : No Assets found in Immich Database.")
     LOGGER.info(f"INFO    : Found {total_assets_found} asset(s) to remove.")
     assets_ids = []
-    for asset in tqdm(all_assets_items, desc="INFO    : Removing assets", unit=" assets"):
+    for asset in all_assets_items:
         asset_id = asset.get("id")
         if not asset_id:
             continue
         assets_ids.append(asset_id)
 
-    assets_deleted = 0
-    albums_deleted = 0
+    assets_removed = 0
+    albums_removed = 0
+    BATCH_SIZE = 250
     if assets_ids:
-        assets_deleted = remove_assets(assets_ids, log_level=logging.WARNING)
-        albums_deleted = immich_remove_empty_albums(log_level=logging.WARNING)
+        total_batches = (len(assets_ids) + BATCH_SIZE - 1) // BATCH_SIZE  # Calcula el número total de lotes
+        with tqdm(total=total_assets_found, desc="INFO    : Removing assets", unit=" assets") as pbar:
+            for i in range(0, len(assets_ids), BATCH_SIZE):
+                batch = assets_ids[i:i + BATCH_SIZE]
+                assets_removed += remove_assets(batch, log_level=logging.WARNING)
+                pbar.update(BATCH_SIZE)
+        LOGGER.info(f"INFO    : Getting empty albums to remove...")
+        albums_removed = immich_remove_empty_albums(log_level=logging.WARNING)
+
     logout_immich(log_level=log_level)
-    LOGGER.info(f"INFO    : Total Assets deleted: {assets_deleted}")
-    LOGGER.info(f"INFO    : Total Albums deleted: {albums_deleted}")
-    return assets_deleted, albums_deleted
+    LOGGER.info(f"INFO    : Total Assets removed: {assets_removed}")
+    LOGGER.info(f"INFO    : Total Albums removed: {albums_removed}")
+
+    return assets_removed, albums_removed
+
 
 
 # -----------------------------------------------------------------------------
 #          DELETE ALL ALL ALBUMS FROM IMMICH DATABASE
 # -----------------------------------------------------------------------------
-def immich_remove_all_albums(deleteAlbumsAssets=False, log_level=logging.WARNING):
+def immich_remove_all_albums(removeAlbumsAssets=False, log_level=logging.WARNING):
     """
-    Deletes all albums and optionally also its associated assets.
-    Returns the number of albums deleted and the number of assets deleted.
+    Removes all albums and optionally also its associated assets.
+    Returns the number of albums removed and the number of assets removed.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -1247,28 +1269,28 @@ def immich_remove_all_albums(deleteAlbumsAssets=False, log_level=logging.WARNING
         if not albums:
             LOGGER.info("INFO    : No albums found.")
             return 0, 0
-        total_deleted_albums = 0
-        total_deleted_assets = 0
-        for album in tqdm(albums, desc=f"INFO    : Searching for Albums to delete", unit=" albums"):
+        total_removed_albums = 0
+        total_removed_assets = 0
+        for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
             album_id = album.get("id")
             album_name = album.get("albumName")
             album_assets_ids = []
-            # if deleteAlbumsAssets is True, we have to delete also the assets associated to the album, album_id
-            if deleteAlbumsAssets:
+            # if removeAlbumsAssets is True, we have to remove also the assets associated to the album, album_id
+            if removeAlbumsAssets:
                 album_assets = get_assets_from_album(album_id)
                 for asset in album_assets:
                     album_assets_ids.append(asset.get("id"))
                 remove_assets(album_assets_ids)
-                total_deleted_assets += len(album_assets_ids)
+                total_removed_assets += len(album_assets_ids)
 
-            # Now we can delete the album
-            if delete_album(album_id, album_name):
-                # LOGGER.info(f"INFO    : Empty album '{album_name}' (ID={album_id}) deleted.")
-                total_deleted_albums += 1
-        LOGGER.info(f"INFO    : Deleted {total_deleted_albums} albums.")
-        if deleteAlbumsAssets:
-            LOGGER.info(f"INFO    : Deleted {total_deleted_assets} assets associated to albums.")
-        return total_deleted_albums, total_deleted_assets
+            # Now we can remove the album
+            if remove_album(album_id, album_name):
+                # LOGGER.info(f"INFO    : Empty album '{album_name}' (ID={album_id}) removed.")
+                total_removed_albums += 1
+        LOGGER.info(f"INFO    : Removed {total_removed_albums} albums.")
+        if removeAlbumsAssets:
+            LOGGER.info(f"INFO    : Removed {total_removed_assets} assets associated to albums.")
+        return total_removed_albums, total_removed_assets
 
 
 ##############################################################################
@@ -1291,15 +1313,15 @@ if __name__ == "__main__":
     # read_immich_config('Config.ini')
     # login_immich()
 
-    # # 1) Example: Delete empty albums
-    # print("\n=== EXAMPLE: immich_delete_empty_albums() ===")
-    # deleted = immich_delete_empty_albums()
-    # print(f"[RESULT] Empty albums deleted: {deleted}")
+    # # 1) Example: Remove empty albums
+    # print("\n=== EXAMPLE: immich_remove_empty_albums() ===")
+    # removed = immich_remove_empty_albums()
+    # print(f"[RESULT] Empty albums removed: {removed}")
 
-    # # 2) Example: Delete duplicate albums
-    # print("\n=== EXAMPLE: immich_delete_duplicates_albums() ===")
-    # duplicates = immich_delete_duplicates_albums()
-    # print(f"[RESULT] Duplicate albums deleted: {duplicates}")
+    # # 2) Example: Remove duplicate albums
+    # print("\n=== EXAMPLE: immich_remove_duplicates_albums() ===")
+    # duplicates = immich_remove_duplicates_albums()
+    # print(f"[RESULT] Duplicate albums removed: {duplicates}")
 
     # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums'
     # print("\n=== EXAMPLE: immich_upload_no_albums() ===")
@@ -1323,14 +1345,14 @@ if __name__ == "__main__":
     # total_albums_downloaded, total_assets_downloaded = immich_download_ALL(output_folder="Downloads_Immich")
     # print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
 
-    # # 7) Example: Delete Orphan Assets
-    # immich_delete_orphan_assets(user_confirmation=True)
+    # # 7) Example: Remove Orphan Assets
+    # immich_remove_orphan_assets(user_confirmation=True)
 
-    # # 8) Example: Delete ALL Assets
-    # immich_delete_all_assets()
+    # # 8) Example: Remove ALL Assets
+    # immich_remove_all_assets()
 
-    # # 9) Example: Delete ALL Assets
-    # immich_delete_all_albums(deleteAlbumsAssets=True)
+    # # 9) Example: Remove ALL Assets
+    # immich_remove_all_albums(removeAlbumsAssets=True)
 
     # # 10) Local logout
     # logout_immich()

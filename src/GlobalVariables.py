@@ -53,7 +53,7 @@ def set_LOGGER():
     log_folder="Logs"
     log_filename=f"{script_name}_{TIMESTAMP}"
     LOG_FOLDER_FILENAME = os.path.join(current_directory, log_folder, log_filename)
-    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=LOG_LEVEL, plain_log=True)
+    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=LOG_LEVEL, plain_log=False)
 
 def set_HELP_TEXT():
     from HelpTexts import set_help_texts
