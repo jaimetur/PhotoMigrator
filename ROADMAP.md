@@ -1,15 +1,15 @@
 # ROADMAP:
 
-## 3.0.0 (14/02/2025):
+## 3.0.0 (26/02/2025):
 ### TODO:
 
-- [ ] Review date and EXIF properties of downloaded assets (photos and videos) in Immich download_asset
+- [x] Review date and EXIF properties of downloaded assets (photos and videos) in Immich download_asset
 
 - #### Tests Pending:
-- [ ] Deep Test on Immich Support functions
-- [ ] Deep Test on Synology Support functions
-- [ ] Deep Test on Google Photos function
-- [ ] Deep Test on --AUTOMATED-MIGRATION MODE
+- [x] Deep Test on Immich Support functions
+- [x] Deep Test on Synology Support functions
+- [x] Deep Test on Google Photos function
+- [x] Deep Test on --AUTOMATED-MIGRATION MODE
 
 
 ### DONE:
