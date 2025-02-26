@@ -1212,9 +1212,9 @@ def immich_remove_all_assets(log_level=logging.WARNING):
     total_assets_found = len(all_assets_items)
     if total_assets_found == 0:
         LOGGER.warning(f"WARNING : No Assets found in Immich Database.")
-    LOGGER.info(f"INFO    : Found {total_assets_found} asset(s) to delete.")
+    LOGGER.info(f"INFO    : Found {total_assets_found} asset(s) to remove.")
     assets_ids = []
-    for asset in tqdm(all_assets_items, desc="INFO    : Deleting assets", unit=" assets"):
+    for asset in tqdm(all_assets_items, desc="INFO    : Removing assets", unit=" assets"):
         asset_id = asset.get("id")
         if not asset_id:
             continue
