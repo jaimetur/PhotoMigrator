@@ -6,6 +6,7 @@ import hashlib
 import fnmatch
 import shutil
 import re
+import logging
 from tqdm import tqdm
 from Utils import delete_subfolders, remove_empty_dirs
 

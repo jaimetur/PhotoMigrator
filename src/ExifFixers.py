@@ -1,6 +1,7 @@
 import os,sys
 import platform
 import subprocess
+import logging
 
 def resource_path(relative_path, log_level=logging.INFO):
     """Obtener la ruta absoluta al recurso, manejando el entorno de PyInstaller."""

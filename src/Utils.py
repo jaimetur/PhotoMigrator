@@ -10,6 +10,7 @@ from tqdm import tqdm
 import platform
 import piexif
 import subprocess
+import logging
 from PIL import Image
 
 WORKING_DIR = r"R:\jaimetur\CloudPhotoMigrator"
