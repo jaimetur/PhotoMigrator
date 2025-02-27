@@ -1029,3 +1029,16 @@ def tqdm(*args, **kwargs):
     if 'file' not in kwargs:  # Si no se especifica `file`, usar stdout por defecto
         kwargs['file'] = sys.stdout
     return original_tqdm(*args, **kwargs)
+
+def sha1_checksum(file_path):
+    """Calcula el SHA-1 hash de un archivo y devuelve tanto en formato HEX como Base64"""
+    sha1 = hashlib.sha1()  # Crear un objeto SHA-1
+
+    with open(file_path, "rb") as f:  # Leer el archivo en modo binario
+        while chunk := f.read(8192):  # Leer en bloques de 8 KB para eficiencia
+            sha1.update(chunk)
+
+    sha1_hex = sha1.hexdigest()  # Obtener en formato HEX
+    sha1_base64 = base64.b64encode(sha1.digest()).decode("utf-8")  # Convertir a Base64
+
+    return sha1_hex, sha1_base64

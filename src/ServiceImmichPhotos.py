@@ -30,7 +30,7 @@ from tabulate import tabulate
 from pathlib import Path
 import logging
 from CustomLogger import set_log_level
-from Utils import update_metadata, convert_to_list, tqdm
+from Utils import update_metadata, convert_to_list, tqdm, sha1_checksum
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -507,6 +507,10 @@ def upload_asset(file_path, log_level=logging.INFO):
         if not os.path.isfile(file_path):
             LOGGER.error(f"ERROR   : File not found: {file_path}")
             return None
+
+        # Obtain SHA1 File Checksum to avoid upload duplicates
+        hex_checksum, base64_checksum = sha1_checksum(file_path)
+
         # Check if the file extension is allowed
         filename, ext = os.path.splitext(file_path)
         if ext.lower() not in ALLOWED_IMMICH_MEDIA_EXTENSIONS:
@@ -519,11 +523,13 @@ def upload_asset(file_path, log_level=logging.INFO):
         if API_KEY_LOGIN:
             header = {
                 'Accept': 'application/json',
+                'x-immich-checksum': base64_checksum,
                 'x-api-key': IMMICH_USER_API_KEY
             }
         else:
             header = {
                 'Accept': 'application/json',
+                'x-immich-checksum': base64_checksum,
                 'Authorization': f'Bearer {SESSION_TOKEN}'
             }
         url = f"{IMMICH_URL}/api/assets"
