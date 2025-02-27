@@ -400,7 +400,6 @@ def get_folders(parent_folder_id, log_level=logging.INFO):
         return folders_dict
 
 # Function to remove a folder
-# TODO: Complete and Check this function
 def remove_folder(folder_id, folder_name, log_level=logging.INFO):
     """
     Lists photos in a specific album.

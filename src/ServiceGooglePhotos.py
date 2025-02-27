@@ -73,7 +73,6 @@ def google_takeout_processor(output_takeout_folder, log_level=logging.INFO):
                     LOGGER.warning(f"WARNING : No Takeout structure detected in input folder. The tool will process the folder ignoring Takeout structure.")
                     ARGS['google-ignore-check-structure'] = True
             step_start_time = datetime.now()
-            # TODO: Remove DEBUG
             ok = ExifFixers.fix_metadata_with_gpth_tool(
                 input_folder=ARGS['google-input-takeout-folder'],
                 output_folder=output_takeout_folder,
@@ -81,7 +80,7 @@ def google_takeout_processor(output_takeout_folder, log_level=logging.INFO):
                 skip_extras=ARGS['google-skip-extras-files'],
                 move_takeout_folder=ARGS['google-move-takeout-folder'],
                 ignore_takeout_structure=ARGS['google-ignore-check-structure'],
-                log_level=logging.DEBUG
+                log_level=logging.WARNING
             )
             if not ok:
                 LOGGER.warning(f"WARNING : Metadata fixing didn't finish properly due to GPTH error.")
