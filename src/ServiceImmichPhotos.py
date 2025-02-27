@@ -228,15 +228,15 @@ def create_album(album_name, user_id, log_level=logging.INFO):
         url = f"{IMMICH_URL}/api/albums"
         payload = json.dumps({
             "albumName": album_name,
-            "albumUsers": [
-                {
-                    "role": "editor",
-                    "userId": user_id
-                }
-            ],
+            # "albumUsers": [
+            #     {
+            #         "role": "editor",
+            #         "userId": user_id
+            #     }
+            # ]
         })
         try:
-            response = requests.request("POST", url, headers=HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
+            response = requests.post(url, headers=HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
             response.raise_for_status()
             data = response.json()
             album_id = data.get("id")
