@@ -523,13 +523,13 @@ def upload_asset(file_path, log_level=logging.INFO):
         if API_KEY_LOGIN:
             header = {
                 'Accept': 'application/json',
-                'x-immich-checksum': base64_checksum,
+                'x-immich-checksum': hex_checksum,
                 'x-api-key': IMMICH_USER_API_KEY
             }
         else:
             header = {
                 'Accept': 'application/json',
-                'x-immich-checksum': base64_checksum,
+                'x-immich-checksum': hex_checksum,
                 'Authorization': f'Bearer {SESSION_TOKEN}'
             }
         url = f"{IMMICH_URL}/api/assets"
