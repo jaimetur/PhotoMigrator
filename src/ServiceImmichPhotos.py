@@ -531,6 +531,7 @@ def upload_asset(file_path, log_level=logging.INFO):
         files = {
             'assetData': open(file_path, 'rb')
         }
+
         # Check if a sidecar file is found on the same path, if so, then add it to files dict.
         for sidecar_extension in ALLOWED_IMMICH_SIDECAR_EXTENSIONS:
             # Check with file_path/filename.ext.sidecar_extension
@@ -562,7 +563,7 @@ def upload_asset(file_path, log_level=logging.INFO):
         }
         try:
             # On upload, 'Content-Type' is automatically generated with multipart
-            response = requests.post(url, headers=header, data=data, files=files)
+            response = requests.post(url, headers=HEADERS_WITH_CREDENTIALS, data=data, files=files)
             response.raise_for_status()
             new_asset = response.json()
             asset_id = new_asset.get("id")
