@@ -13,6 +13,8 @@ import subprocess
 import logging
 from CustomLogger import set_log_level
 from PIL import Image
+import hashlib
+import base64
 
 WORKING_DIR = r"R:\jaimetur\CloudPhotoMigrator"
 
