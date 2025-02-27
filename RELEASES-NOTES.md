@@ -2,27 +2,27 @@
 Download the tool either for Linux, MacOS or Windows version (for both x64/amd64 or arm64 architectures) as you prefer directly from following links:
 
 **Linux:**:  
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-03/CloudPhotoMigrator_v3.0.0-beta-03_linux_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-03/CloudPhotoMigrator_v3.0.0-beta-03_linux_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-04/CloudPhotoMigrator_v3.0.0-beta-04_linux_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-04/CloudPhotoMigrator_v3.0.0-beta-04_linux_arm64.zip)  
 
 **Mac OS:**
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-03/CloudPhotoMigrator_v3.0.0-beta-03_macos_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-03/CloudPhotoMigrator_v3.0.0-beta-03_macos_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-04/CloudPhotoMigrator_v3.0.0-beta-04_macos_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-04/CloudPhotoMigrator_v3.0.0-beta-04_macos_arm64.zip)  
 
 **Windows:**  
-- [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-03/CloudPhotoMigrator_v3.0.0-beta-03_windows_amd64.zip)  
+- [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-04/CloudPhotoMigrator_v3.0.0-beta-04_windows_amd64.zip)  
 
 ---
 
 ## Release Notes:
 
-**Release**: 3.0.0-beta-03  
-**Date**: 2025-02-26
+**Release**: 3.0.0-beta-04  
+**Date**: 2025-02-27
 
 - [x] New Script name '**CloudPhotoMigrator**' (former 'GoogleTakeoutPhotos')
 - [x] The Tool is now Open Source (all contributors that want to collaborate on this project are more than welcome)
 - [x] Added **_Immich Photos Support_**.
-- [x] New Automated Migration Feature to perform Fully automated migration process between different Photo Cloud Services
+- [x] aDDED **_New Automated Migration Feature_** to perform Fully Automated Migration Process between different Photo Cloud Services
   - #### AUTOMATED MIGRATION FEATURE:
     - **-AUTO,   --AUTOMATED-MIGRATION \<SOURCE> \<TARGET>**  
       This process will do an AUTOMATED-MIGRATION process to Download all your Assets
@@ -31,17 +31,17 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
              Cloud Service.
       
              possible values for:
-                 <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos']
+                 <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos'] or <INPUT_FOLDER>
                  <TARGET> : ['synology-photos', 'immich-photos']
       
 
 - [x] Fixed limit of 250 when search for Immich assets.
+- [x] Fixed Remove Albums API call on Immich Photos to adapt to the new API changes.
 - [x] Wildcards support on <ALBUMS_NAME> argument on --synology-download-albums and --immich-download-albums options.
 - [x] Replaced 'ALL_PHOTOS' by 'No-Albums' as output subfolder for assets without any album associated (be careful if you already run the script with previous version because before, the folder for assets without albums was named 'ALL_PHOTOS')
 - [x] Remove Dupplicates Assets in Immich Photos after upload any Asset. 
 - [x] Support to upload assets from/to any folder into Synology Photos (no need to be indexed within the Synology Photos root Folder)
 - [x] Added function to Remove empty folders when delete assets in Synology Photos
-- [x] Removed Indexing Functions on ServiceSynology file (not needed anymore)
 - [x] Ignored `@eaDir` folders when upload assets to Synology/Immich Photos.
 - [x] Refactor and group All Google Takeout arguments in one block for 'Google Photos Takeout' Support.
 - [X] Refactor normal_mode to google_takeout_mode.
@@ -49,6 +49,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] Merged -z and -t options in just one option ('-gitf, -google-input-takeout-folder') and detect if contains Takeout Zip files, in that case Zip files will be Unzipped to <TAKEOUT_FOLDER>_TIMESTAMP folder.
 - [x] Unificate a single Config.ini file and included tags for the different configuration sections.
 - [x] Removed SYNOLOGY_ROOT_PHOTOS_PATH from Config.ini, since it is not needed anymore.
+- [x] Removed Indexing Functions on ServiceSynology file (not needed anymore)
 - [x] Included _RELEASES-NOTES.md_ and _ROADMAP.md_ files to the distribution package.
 - [x] Set Log levels per functions and include '-loglevel, --log-level' argument to set it up.
 - [x] Support for colors in --help text for a better visualization.
