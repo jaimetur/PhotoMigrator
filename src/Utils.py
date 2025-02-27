@@ -6,7 +6,7 @@ import re
 import stat
 from datetime import datetime
 import ctypes
-from tqdm import tqdm
+from tqdm import tqdm as original_tqdm
 import platform
 import piexif
 import subprocess
@@ -19,15 +19,13 @@ WORKING_DIR = r"R:\jaimetur\CloudPhotoMigrator"
 ######################
 # FUNCIONES AUXILIARES
 ######################
-def change_workingdir(log_level=logging.INFO):
+def change_workingdir():
     """ Definir la ruta de trabajo deseada """
-    from GlobalVariables import LOGGER
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Verificar si la carpeta existe y cambiar a ella si existe
-        if os.path.exists(WORKING_DIR) and os.path.isdir(WORKING_DIR):
-            os.chdir(WORKING_DIR)
-            current_directory = os.getcwd()
-            LOGGER.info(f"INFO    : Directorio cambiado a: {os.getcwd()}")
+    # Verificar si la carpeta existe y cambiar a ella si existe
+    if os.path.exists(WORKING_DIR) and os.path.isdir(WORKING_DIR):
+        os.chdir(WORKING_DIR)
+        current_directory = os.getcwd()
+        print(f"INFO    : Directorio cambiado a: {os.getcwd()}")
 
 def run_from_synology(log_level=logging.INFO):
     """ Check if the srcript is running from a Synology NAS """
@@ -344,6 +342,64 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None,
                 LOGGER.debug(f"DEBUG   : Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")
                 os.makedirs(albums_path, exist_ok=True)
                 safe_move(folder_path, albums_path)
+        # Finally Move Albums to Albums root folder (removing 'Takeout' and 'Google Fotos' / 'Google Photos' folders if exists
+        move_albums_to_root(albums_path, log_level=logging.INFO)
+
+
+def move_albums_to_root(albums_root, log_level=logging.INFO):
+    """
+    Moves all albums from nested subdirectories ('Takeout/Google Fotos' or 'Takeout/Google Photos')
+    directly into the 'Albums' folder, removing unnecessary intermediate folders.
+    """
+    from GlobalVariables import LOGGER
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        possible_google_folders = ["Google Fotos", "Google Photos"]
+        takeout_path = os.path.join(albums_root, "Takeout")
+
+        # Check if 'Takeout' exists
+        if not os.path.exists(takeout_path):
+            LOGGER.debug(f"DEBUG   : 'Takeout' folder not found at {takeout_path}. Exiting.")
+            return
+
+        # Find the actual Google Photos folder name
+        google_photos_path = None
+        for folder in possible_google_folders:
+            path = os.path.join(takeout_path, folder)
+            if os.path.exists(path):
+                google_photos_path = path
+                break
+
+        if not google_photos_path:
+            LOGGER.debug(f"DEBUG   : No valid 'Google Fotos' or 'Google Photos' folder found inside 'Takeout'. Exiting.")
+            return
+
+        LOGGER.debug(f"DEBUG   : Found Google Photos folder: {google_photos_path}")
+
+        LOGGER.info(f"INFO    : Moving Albums to Albums root folder...")
+        # Move albums to the root 'Albums' directory
+        for album in os.listdir(google_photos_path):
+            album_path = os.path.join(google_photos_path, album)
+            target_path = os.path.join(albums_root, album)
+
+            if os.path.isdir(album_path):  # Ensure it's a directory (album)
+                new_target_path = target_path
+                count = 1
+
+                # Handle naming conflicts by adding a suffix
+                while os.path.exists(new_target_path):
+                    new_target_path = f"{target_path}_{count}"
+                    count += 1
+
+                # Move the album
+                shutil.move(album_path, new_target_path)
+                LOGGER.debug(f"DEBUG   : Moved: {album_path} → {new_target_path}")
+
+        # Attempt to remove empty folders
+        try:
+            shutil.rmtree(takeout_path)
+            LOGGER.debug(f"DEBUG   : 'Takeout' folder successfully removed.")
+        except Exception as e:
+            LOGGER.error(f"ERROR   : Failed to remove 'Takeout': {e}")
 
 
 def change_file_extension(input_folder, current_extension, new_extension, log_level=logging.INFO):
@@ -968,3 +1024,8 @@ def convert_to_list(input, log_level=logging.INFO):
         else:
             output = []
         return output
+
+def tqdm(*args, **kwargs):
+    if 'file' not in kwargs:  # Si no se especifica `file`, usar stdout por defecto
+        kwargs['file'] = sys.stdout
+    return original_tqdm(*args, **kwargs)

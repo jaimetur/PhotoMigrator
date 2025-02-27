@@ -8,8 +8,7 @@ import shutil
 import re
 import logging
 from CustomLogger import set_log_level
-from tqdm import tqdm
-from Utils import delete_subfolders, remove_empty_dirs
+from Utils import delete_subfolders, remove_empty_dirs, tqdm
 
 # ========================
 # Find Duolicates Function

@@ -21,7 +21,6 @@ Python module with example functions to interact with Synology Photos, including
 
 import os, sys
 import fnmatch
-from tqdm import tqdm
 from datetime import datetime
 import requests
 import urllib3
@@ -30,7 +29,7 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 import time
 import logging
 from CustomLogger import set_log_level
-from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date
+from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm
 
 # -----------------------------------------------------------------------------
 #                          GLOBAL VARIABLES

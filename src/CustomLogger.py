@@ -25,10 +25,10 @@ class CustomConsoleFormatter(logging.Formatter):
         if color_support:
             """Formato personalizado con colores ANSI."""
             COLORS = {
-                "DEBUG": Fore.BLUE,
+                "DEBUG": Fore.CYAN,
                 # "INFO": Fore.GREEN,
-                # "INFO": Fore.WHITE,
-                "INFO": Fore.LIGHTWHITE_EX,
+                "INFO": Fore.WHITE,
+                # "INFO": Fore.LIGHTWHITE_EX,
                 "WARNING": Fore.YELLOW,
                 "ERROR": Fore.RED,
                 "CRITICAL": Fore.MAGENTA,
@@ -128,7 +128,7 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, time
             LOGGER.addHandler(file_handler_plain)
 
     # Añadir TqdmToLogger como atributo al logger
-    LOGGER.tqdm_stream = TqdmToLogger(LOGGER, log_level=logging.INFO)
+    # LOGGER.tqdm_stream = TqdmToLogger(LOGGER, log_level=logging.INFO)
 
     # Set the log level for the root logger
     LOGGER.setLevel(log_level)

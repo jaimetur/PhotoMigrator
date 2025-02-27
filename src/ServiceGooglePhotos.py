@@ -66,14 +66,22 @@ def google_takeout_processor(output_takeout_folder, log_level=logging.INFO):
         if not ARGS['google-skip-gpth-tool']:
             if ARGS['google-ignore-check-structure']:
                 LOGGER.warning("WARNING : Ignore Google Takeout Structure detected ('-gics, --google-ignore-check-structure' flag detected).")
+            else:
+                # Check if ARGS['google-input-takeout-folder'] contains a valid Takeout Structure, if not, set ignore_takeout_structure=True
+                has_takeout_structure = contains_takeout_structure(ARGS['google-input-takeout-folder'])
+                if not has_takeout_structure:
+                    LOGGER.warning(f"WARNING : No Takeout structure detected in input folder. The tool will process the folder ignoring Takeout structure.")
+                    ARGS['google-ignore-check-structure'] = True
             step_start_time = datetime.now()
+            # TODO: Remove DEBUG
             ok = ExifFixers.fix_metadata_with_gpth_tool(
                 input_folder=ARGS['google-input-takeout-folder'],
                 output_folder=output_takeout_folder,
                 symbolic_albums=ARGS['google-create-symbolic-albums'],
                 skip_extras=ARGS['google-skip-extras-files'],
                 move_takeout_folder=ARGS['google-move-takeout-folder'],
-                ignore_takeout_structure=ARGS['google-ignore-check-structure']
+                ignore_takeout_structure=ARGS['google-ignore-check-structure'],
+                log_level=logging.DEBUG
             )
             if not ok:
                 LOGGER.warning(f"WARNING : Metadata fixing didn't finish properly due to GPTH error.")
@@ -91,17 +99,16 @@ def google_takeout_processor(output_takeout_folder, log_level=logging.INFO):
             LOGGER.info("")
             if ARGS['google-skip-gpth-tool']:
                 LOGGER.warning(
-                    f"WARNING : Metadata fixing with GPTH tool skipped ('-sg, --google-skip-gpth-tool' flag detected). step {step}b is needed to copy files manually to output folder.")
+                    f"WARNING : Metadata fixing with GPTH tool skipped ('-gsgt, --google-skip-gpth-tool' flag detected). step {step}b is needed to copy files manually to output folder.")
             elif ARGS['google-ignore-check-structure']:
                 LOGGER.warning(
-                    f"WARNING : Flag to Ignore Google Takeout Structure have been detected ('-it, --google-ignore-check-structure'). step {step}b is needed to copy/move files manually to output folder.")
+                    f"WARNING : Flag to Ignore Google Takeout Structure have been detected ('-gics, --google-ignore-check-structure'). step {step}b is needed to copy/move files manually to output folder.")
             if ARGS['google-move-takeout-folder']:
-                LOGGER.info("INFO    : Moving files from Takeout folder to Output folder manually...")
+                LOGGER.info("INFO    : Moving files from Takeout folder to Output folder...")
             else:
-                LOGGER.info("INFO    : Copying files from Takeout folder to Output folder manually...")
+                LOGGER.info("INFO    : Copying files from Takeout folder to Output folder...")
             step_start_time = datetime.now()
-            Utils.copy_move_folder(ARGS['google-input-takeout-folder'], output_takeout_folder,
-                                   ignore_patterns=['*.json', '*.j'], move=ARGS['google-move-takeout-folder'])
+            Utils.copy_move_folder(ARGS['google-input-takeout-folder'], output_takeout_folder, ignore_patterns=['*.json', '*.j'], move=ARGS['google-move-takeout-folder'])
             if ARGS['google-move-takeout-folder']:
                 Utils.force_remove_directory(ARGS['takeout-folder'])
             step_end_time = datetime.now()
@@ -226,4 +233,19 @@ def google_takeout_processor(output_takeout_folder, log_level=logging.INFO):
         # Return Outputs
         return albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders
 
+def contains_takeout_structure(input_folder):
+    """
+    Recursively traverses all subfolders in the given input directory and checks
+    if any subfolder starts with 'Photos from ' followed by four digits.
 
+    Parameters:
+    input_folder (str): The path of the directory to search.
+
+    Returns:
+    bool: True if at least one matching subfolder is found, False otherwise.
+    """
+    for root, dirs, _ in os.walk(input_folder):
+        for folder in dirs:
+            if folder.startswith("Photos from ") and len(folder) >= 15 and folder[12:16].isdigit():
+                return True  # Found a matching folder
+    return False  # No matching folders found

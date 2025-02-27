@@ -123,6 +123,7 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
         # =========================
         # FIRST PROCESS THE SOURCE:
         # =========================
+        LOGGER.info("")
         LOGGER.info(f'============================================================================')
         LOGGER.info(f'INFO    : STEP 1 - DOWNLOAD/PROCESS ASSETS FROM: {SOURCE}')
         LOGGER.info(f'============================================================================')
@@ -191,6 +192,7 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
         # =========================
         # SECOND PROCESS THE TARGET:
         # =========================
+        LOGGER.info("")
         LOGGER.info(f'============================================================================')
         LOGGER.info(f'INFO    : STEP 2 - UPLOAD/PROCESS ASSETS TO: {TARGET}')
         LOGGER.info(f'============================================================================')
@@ -320,14 +322,14 @@ def mode_synology_upload_albums(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
         LOGGER.info(f"INFO    : Synology Photos: 'Upload Albums' Mode detected. Only this module will be run!!!")
-    LOGGER.info("")
-    LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['synology-upload-albums']}")
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # login_synology
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
         login_synology(log_level=logging.WARNING)
+        LOGGER.info("")
+        LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['synology-upload-albums']}")
         # Call the Function
         albums_crated, albums_skipped, photos_added = synology_upload_albums(ARGS['synology-upload-albums'], log_level=logging.WARNING)
         # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
@@ -369,12 +371,14 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
             sys.exit(0)
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Synology Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
-        LOGGER.info("")
-        LOGGER.info(f"INFO    : Uploading Assets in Folder    : {ARGS['synology-upload-all']}")
         # login_synology
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
         login_synology(log_level=logging.WARNING)
+
+        LOGGER.info("")
+        LOGGER.info(f"INFO    : Uploading Assets in Folder    : {ARGS['synology-upload-all']}")
+
         # Call the Function
         total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums = synology_upload_ALL (ARGS['synology-upload-all'], albums_folders=albums_folders, log_level=logging.WARNING)
         # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
@@ -656,12 +660,14 @@ def mode_immich_upload_albums(user_confirmation=True, log_level=logging.INFO):
             sys.exit(0)
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Upload Albums' Mode detected. Only this module will be run!!!")
-        LOGGER.info("")
-        LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
         # login_immich
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
         login_immich(log_level=logging.WARNING)
+
+        LOGGER.info("")
+        LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
+
         # Call the Function
         total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed = immich_upload_albums(ARGS['immich-upload-albums'], log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
@@ -718,14 +724,18 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
             sys.exit(0)
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
-        LOGGER.info("")
-        LOGGER.info(f"INFO    : Uploading Assets in Folder    : {ARGS['immich-upload-all']}")
         # login_immich
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
         login_immich(log_level=logging.WARNING)
+
+        LOGGER.info("")
+        LOGGER.info(f"INFO    : Uploading Assets in Folder    : {ARGS['immich-upload-all']}")
+
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed = immich_upload_ALL(ARGS['immich-upload-all'], albums_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
+        # TODO: Remove DEBUG
+        # total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed = immich_upload_ALL(ARGS['immich-upload-all'], albums_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed = immich_upload_ALL(ARGS['immich-upload-all'], albums_folders=albums_folders, remove_duplicates=False, log_level=logging.DEBUG)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("")
         LOGGER.info("INFO    : Cleaning-up Immich Photos database (Removing Empty/Duplicates Albums and Duplicates Assets)...")

@@ -12,14 +12,19 @@ def resource_path(relative_path, log_level=logging.INFO):
             return os.path.join(sys._MEIPASS, relative_path)
         return os.path.join(os.path.abspath("."), relative_path)
 
+
+
 def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, symbolic_albums=False, move_takeout_folder=False, ignore_takeout_structure=False, log_level=logging.INFO):
     from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         """Runs the GPTH Tool command to process photos."""
-        from GlobalVariables import LOGGER
+        input_folder = os.path.abspath(input_folder)
+        output_folder = os.path.abspath(output_folder)
         LOGGER.info(f"INFO    : Running GPTH Tool from '{input_folder}' to '{output_folder}'...")
+
         # Detect the operating system
         current_os = platform.system()
+
         # Determine the script name based on the OS
         tool_name = ""
         if current_os == "Linux":
@@ -28,14 +33,17 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, 
             tool_name = "gpth_macos.bin"
         elif current_os == "Windows":
             tool_name = "gpth_windows.exe"
+
         # Usar resource_path para acceder a archivos o directorios:
-        gpth_tool_path = resource_path(os.path.join("gpth_tool",tool_name))
-        gpth_command = [
-            gpth_tool_path,
-            "--input", input_folder,
-            "--output", output_folder,
-            "--no-interactive"
-        ]
+        gpth_tool_path = resource_path(os.path.join("gpth_tool", tool_name))
+
+        gpth_command = [gpth_tool_path, "--input", input_folder, "--output", output_folder, "--no-interactive"]
+
+        # If ignore_takeout_structure is True, we append --fix input_folder to the gpth tool call
+        if ignore_takeout_structure:
+            gpth_command.append("--fix")
+            gpth_command.append(input_folder)
+
         # By default force --no-divide-to-dates and the script will create date structure if needed
         gpth_command.append("--no-divide-to-dates")
 
@@ -57,12 +65,9 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, 
         else:
             gpth_command.append("--copy")
 
-        # If ignore_takeout_structure is True, we append --fix input_folder to the gpth tool call
-        if ignore_takeout_structure:
-            gpth_command.append("--fix")
-            gpth_command.append(input_folder)
         try:
-            #print (" ".join(gpth_command))
+            command = ' '.join(gpth_command)
+            LOGGER.debug(f"DEBUG   : Command: {command}")
             result = subprocess.run(gpth_command, check=True, capture_output=False)
 
             # Rename folder 'ALL_PHOTOS' by 'No-Albums'

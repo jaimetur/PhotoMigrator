@@ -22,7 +22,6 @@ import requests
 import json
 import urllib3
 import fnmatch
-from tqdm import tqdm
 from datetime import datetime
 from dateutil import parser
 from urllib.parse import urlparse
@@ -31,7 +30,7 @@ from tabulate import tabulate
 from pathlib import Path
 import logging
 from CustomLogger import set_log_level
-from Utils import update_metadata, convert_to_list
+from Utils import update_metadata, convert_to_list, tqdm
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -149,6 +148,18 @@ def login_immich(log_level=logging.INFO):
         LOGGER.info(f"INFO    : Authenticating on Immich Photos and getting Session...")
         # If detected IMMICH_USER_API_KEY in Immich.config
         if API_KEY_LOGIN:
+            url = f"{IMMICH_URL}/api/auth/validateToken"
+            payload = {}
+            headers = {
+                'Accept': 'application/json',
+                'x-api-key': IMMICH_USER_API_KEY
+            }
+            try:
+                response = requests.post(url, headers=headers, data=payload)
+                response.raise_for_status()  # Raises exception if 4xx or 5xx
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception occurred during Immich login: {str(e)}")
+                return False
             HEADERS_WITH_CREDENTIALS = {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
@@ -205,7 +216,7 @@ def logout_immich(log_level=logging.INFO):
 # -----------------------------------------------------------------------------
 #                          ALBUMS FUNCTIONS
 # -----------------------------------------------------------------------------
-def create_album(album_name, log_level=logging.INFO):
+def create_album(album_name, user_id, log_level=logging.INFO):
     """
     Creates an album in Immich with the name 'album_name'.
     Returns the ID of the created album or None if it fails.
@@ -217,16 +228,22 @@ def create_album(album_name, log_level=logging.INFO):
         url = f"{IMMICH_URL}/api/albums"
         payload = json.dumps({
             "albumName": album_name,
+            "albumUsers": [
+                {
+                    "role": "editor",
+                    "userId": user_id
+                }
+            ],
         })
         try:
-            response = requests.post(url, headers=HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
+            response = requests.request("POST", url, headers=HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
             response.raise_for_status()
             data = response.json()
             album_id = data.get("id")
-            # LOGGER.info(f"INFO    : Album '{album_name}' created with ID={album_id}.")
+            LOGGER.debug(f"DEBUG   : Album '{album_name}' created with ID: {album_id}")
             return album_id
-        except Exception:
-            LOGGER.warning(f"WARNING : Cannot create album '{album_name}' due to API call error. Skipped!")
+        except Exception as e:
+            LOGGER.warning(f"WARNING : Cannot create album '{album_name}' due to API call error. Skipped!", e)
             return None
 
 def remove_album(album_id, album_name, log_level=logging.INFO):
@@ -421,6 +438,7 @@ def add_assets_to_album(album_id, asset_ids, album_name=None, log_level=logging.
             total_added = 0
             for item in data:
                 if item.get("success"):
+                    LOGGER.debug(f"DEBUG   : Asset ID: {asset_ids} successful added to Album ID: {album_id}")
                     total_added += 1
             return total_added
         except Exception as e:
@@ -649,16 +667,16 @@ def get_supported_media_types(type='media', log_level=logging.INFO):
             sidecar = data.get("sidecar")
             if type.lower() == 'media':
                 supported_types = image + video
-                LOGGER.info(f"INFO    : Supported media types: '{supported_types}'.")
+                LOGGER.debug(f"DEBUG   : Supported media types: '{supported_types}'.")
             elif type.lower() == 'image':
                 supported_types = image
-                LOGGER.info(f"INFO    : Supported image types: '{supported_types}'.")
+                LOGGER.debug(f"DEBUG   : Supported image types: '{supported_types}'.")
             elif type.lower() == 'video':
                 supported_types = video
-                LOGGER.info(f"INFO    : Supported video types: '{supported_types}'.")
+                LOGGER.debug(f"DEBUG   : Supported video types: '{supported_types}'.")
             elif type.lower() == 'sidecar':
                 supported_types = sidecar
-                LOGGER.info(f"INFO    : Supported sidecar types: '{supported_types}'.")
+                LOGGER.debug(f"DEBUG   : Supported sidecar types: '{supported_types}'.")
             else:
                 LOGGER.error(f"ERROR   : Invalid type '{type}' to get supported media types. Types allowed are 'media', 'image', 'video' or 'sidecar'")
                 return None
@@ -703,6 +721,10 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
         SUBFOLDERS_EXCLUSIONS = ['@eaDir']
         for subfolder in subfolders_exclusion:
             SUBFOLDERS_EXCLUSIONS.append(subfolder)
+
+        # Get current user_id
+        user_id = get_user_id(log_level=log_level)
+
         # Search for all valid Albums folders
         valid_folders = []  # List to store valid folder paths
         for root, folders, _ in os.walk(input_folder):
@@ -744,12 +766,13 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
                 else:
                     album_name = " - ".join(path_parts[1:]) if path_parts[0] in first_level_folders else " - ".join(path_parts)
                 if album_name != '':
-                    album_id = create_album(album_name)
+                    album_id = create_album(album_name, user_id=user_id, log_level=log_level)
                     if not album_id:
                         LOGGER.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
                         albums_skipped += 1
                         continue
                     else:
+                        LOGGER.debug(f"DEBUG   : Album '{album_name}' created with ID: {album_id}")
                         albums_uploaded += 1
                     for file in os.listdir(subpath):
                         file_path = os.path.join(subpath, file)
@@ -758,13 +781,14 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
                         ext = os.path.splitext(file)[-1].lower()
                         if ext not in ALLOWED_IMMICH_EXTENSIONS:
                             continue
-                        asset_id = upload_asset(file_path)
+                        asset_id = upload_asset(file_path, log_level=log_level)
+                        LOGGER.debug(f"DEBUG   : Asset ID: {asset_id} uploaded to Immich Photos")
                         assets_uploaded += 1
                         # Assign to Album only if extension is in ALLOWED_IMMICH_MEDIA_EXTENSIONS
                         if ext in ALLOWED_IMMICH_MEDIA_EXTENSIONS:
                             new_album_assets_ids.append(asset_id)
                     if new_album_assets_ids:
-                        add_assets_to_album(album_id, new_album_assets_ids, album_name=album_name)
+                        add_assets_to_album(album_id, new_album_assets_ids, album_name=album_name, log_level=log_level)
         # Finally remove duplicates_asset in Immich Database
         duplicates_assets_removed = 0
         if remove_duplicates:
@@ -836,7 +860,7 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
         # Process each file with a progress bar
         with tqdm(total=total_files, smoothing=0.1, desc="INFO    : Uploading Assets", unit=" asset") as pbar:
             for file_path in file_paths:
-                if upload_asset(file_path):
+                if upload_asset(file_path, log_level=log_level):
                     total_assets_uploaded += 1
                 pbar.update(1)
         # Finally remove duplicates_asset in Immich Database
@@ -878,7 +902,9 @@ def immich_upload_ALL(input_folder, albums_folders=None, remove_duplicates=False
             albums_folders.append('Albums')
         LOGGER.info("")
         LOGGER.info(f"INFO    : Uploading Assets and creating Albums into immich Photos from '{albums_folders}' subfolders...")
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, duplicates_assets_removed_1 = immich_upload_albums(input_folder=input_folder, subfolders_inclusion=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
+        # TODO: Remove DEBUG
+        # total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, duplicates_assets_removed_1 = immich_upload_albums(input_folder=input_folder, subfolders_inclusion=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, duplicates_assets_removed_1 = immich_upload_albums(input_folder=input_folder, subfolders_inclusion=albums_folders, remove_duplicates=False, log_level=logging.DEBUG)
         LOGGER.info("")
         LOGGER.info(f"INFO    : Uploading Assets without Albums creation into immich Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
         total_assets_uploaded_without_albums, duplicates_assets_removed_2 = immich_upload_no_albums(input_folder=input_folder, subfolders_exclusion=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
