@@ -239,7 +239,7 @@ def remove_album(album_id, album_name, log_level=logging.INFO):
         login_immich(log_level=log_level)
         url = f"{IMMICH_URL}/api/albums/{album_id}"
         try:
-            response = requests.remove(url, headers=HEADERS_WITH_CREDENTIALS, verify=False)
+            response = requests.request("DELETE", url, headers=HEADERS_WITH_CREDENTIALS, verify=False)
             if response.status_code == 200:
                 # LOGGER.info(f"INFO    : Album '{album_name}' with ID={album_id} removed.")
                 return True
@@ -247,7 +247,7 @@ def remove_album(album_id, album_name, log_level=logging.INFO):
                 LOGGER.warning(f"WARNING : Failed to remove album: '{album_name}' with ID: {album_id}. Status: {response.status_code}")
                 return False
         except Exception as e:
-            LOGGER.error(f"ERROR   : Error while deleting album '{album_name}' with ID:  {album_id}: {e}")
+            LOGGER.error(f"ERROR   : Error while removing album '{album_name}' with ID:  {album_id}: {e}")
             return False
 
 def get_albums(log_level=logging.INFO):
@@ -1077,7 +1077,7 @@ def immich_remove_empty_albums(log_level=logging.WARNING):
             assets_count = album.get("assetCount")
             if assets_count == 0:
                 if remove_album(album_id, album_name):
-                    # LOGGER.info(f"INFO    : Empty album '{album_name}' (ID={album_id}) removed.")
+                    LOGGER.info(f"INFO    : Empty album '{album_name}' (ID={album_id}) removed.")
                     total_removed_empty_albums += 1
         LOGGER.info(f"INFO    : Removed {total_removed_empty_albums} empty albums.")
         # logout_immich
@@ -1153,7 +1153,7 @@ def immich_remove_orphan_assets(user_confirmation=True, log_level=logging.WARNIN
         spinner = Halo(text='Retrieving list of orphaned media assets...', spinner='dots')
         spinner.start()
 
-        removed_assets = 0
+        total_removed_assets = 0
         try:
             response = requests.get(file_report_url, headers=headers)
             response.raise_for_status()
@@ -1171,7 +1171,7 @@ def immich_remove_orphan_assets(user_confirmation=True, log_level=logging.WARNIN
             LOGGER.info(f"INFO    : No orphaned media assets found.")
             # logout_immich
             logout_immich(log_level=log_level)
-            return removed_assets
+            return total_removed_assets
 
         if user_confirmation:
             table_data = [[asset['pathValue'], asset['entityId']] for asset in orphan_media_assets]
@@ -1205,11 +1205,11 @@ def immich_remove_orphan_assets(user_confirmation=True, log_level=logging.WARNIN
                         LOGGER.warning(f"WARNING : Failed to remove asset {entity_id}: {str(e)}")
                     continue
                 progress_bar.update(1)
-                removed_assets += 1
+                total_removed_assets += 1
         LOGGER.info(f"INFO    : Orphaned media assets removed successfully!")
         # logout_immich
         logout_immich(log_level=log_level)
-        return removed_assets
+        return total_removed_assets
 
 # -----------------------------------------------------------------------------
 #          DELETE ALL ASSETS FROM IMMICH DATABASE
@@ -1232,24 +1232,24 @@ def immich_remove_all_assets(log_level=logging.WARNING):
             continue
         assets_ids.append(asset_id)
 
-    assets_removed = 0
-    albums_removed = 0
+    total_removed_assets = 0
+    total_removed_albums = 0
     BATCH_SIZE = 250
     if assets_ids:
         total_batches = (len(assets_ids) + BATCH_SIZE - 1) // BATCH_SIZE  # Calcula el número total de lotes
         with tqdm(total=total_assets_found, desc="INFO    : Removing assets", unit=" assets") as pbar:
             for i in range(0, len(assets_ids), BATCH_SIZE):
                 batch = assets_ids[i:i + BATCH_SIZE]
-                assets_removed += remove_assets(batch, log_level=logging.WARNING)
+                total_removed_assets += remove_assets(batch, log_level=logging.WARNING)
                 pbar.update(BATCH_SIZE)
-        LOGGER.info(f"INFO    : Getting empty albums to remove...")
-        albums_removed = immich_remove_empty_albums(log_level=logging.WARNING)
+    LOGGER.info(f"INFO    : Getting empty albums to remove...")
+    total_removed_albums = immich_remove_empty_albums(log_level=logging.WARNING)
 
     logout_immich(log_level=log_level)
-    LOGGER.info(f"INFO    : Total Assets removed: {assets_removed}")
-    LOGGER.info(f"INFO    : Total Albums removed: {albums_removed}")
+    LOGGER.info(f"INFO    : Total Assets removed: {total_removed_assets}")
+    LOGGER.info(f"INFO    : Total Albums removed: {total_removed_albums}")
 
-    return assets_removed, albums_removed
+    return total_removed_assets, total_removed_albums
 
 
 
@@ -1287,9 +1287,14 @@ def immich_remove_all_albums(removeAlbumsAssets=False, log_level=logging.WARNING
             if remove_album(album_id, album_name):
                 # LOGGER.info(f"INFO    : Empty album '{album_name}' (ID={album_id}) removed.")
                 total_removed_albums += 1
+
+        LOGGER.info(f"INFO    : Getting empty albums to remove...")
+        total_removed_albums += immich_remove_empty_albums(log_level=logging.WARNING)
+
         LOGGER.info(f"INFO    : Removed {total_removed_albums} albums.")
         if removeAlbumsAssets:
             LOGGER.info(f"INFO    : Removed {total_removed_assets} assets associated to albums.")
+
         return total_removed_albums, total_removed_assets
 
 

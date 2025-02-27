@@ -38,10 +38,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] Wildcards support on <ALBUMS_NAME> argument on --synology-download-albums and --immich-download-albums options.
 - [x] Replaced 'ALL_PHOTOS' by 'No-Albums' as output subfolder for assets without any album associated (be careful if you already run the script with previous version because before, the folder for assets without albums was named 'ALL_PHOTOS')
 - [x] Remove Dupplicates Assets in Immich Photos after upload any Asset. 
-- [x] Support for colors in --help text for a better visualization.
-- [x] Support for colors in logger for a better visualization.
 - [x] Support to upload assets from/to any folder into Synology Photos (no need to be indexed within the Synology Photos root Folder)
-- [x] Set Log levels per functions and include '-loglevel, --log-level' argument to set it up.
 - [x] Added function to Remove empty folders when delete assets in Synology Photos
 - [x] Removed Indexing Functions on ServiceSynology file (not needed anymore)
 - [x] Ignored `@eaDir` folders when upload assets to Synology/Immich Photos.
@@ -49,11 +46,14 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [X] Refactor normal_mode to google_takeout_mode.
 - [x] Changed the logic to detect google_takeout_mode (former normal_mode)
 - [x] Merged -z and -t options in just one option ('-gitf, -google-input-takeout-folder') and detect if contains Takeout Zip files, in that case Zip files will be Unzipped to <TAKEOUT_FOLDER>_TIMESTAMP folder.
-- [x] Added Help texts for Google Photos Mode.
 - [x] Unificate a single Config.ini file and included tags for the different configuration sections.
-- [x] Included _RELEASES-NOTES.md_ and _ROADMAP.md_ files to the distribution package.
-- [x] Moved at the end of the help the standard option (those that are not related to any Support mode).
 - [x] Removed SYNOLOGY_ROOT_PHOTOS_PATH from Config.ini, since it is not needed anymore.
+- [x] Included _RELEASES-NOTES.md_ and _ROADMAP.md_ files to the distribution package.
+- [x] Set Log levels per functions and include '-loglevel, --log-level' argument to set it up.
+- [x] Support for colors in --help text for a better visualization.
+- [x] Support for colors in logger for a better visualization.
+- [x] Added Help texts for Google Photos Mode.
+- [x] Moved at the end of the help the standard option (those that are not related to any Support mode).
 - [x] Updated -h, --help to reflect the new changes.
 - [x] Code refactored.
 - [x] Minor Bug Fixing.
