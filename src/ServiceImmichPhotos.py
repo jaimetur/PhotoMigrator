@@ -569,7 +569,7 @@ def upload_asset(file_path, log_level=logging.INFO):
         }
         try:
             # On upload, 'Content-Type' is automatically generated with multipart
-            response = requests.post(url, headers=HEADERS_WITH_CREDENTIALS, data=data, files=files)
+            response = requests.post(url, headers=header, data=data, files=files)
             response.raise_for_status()
             new_asset = response.json()
             asset_id = new_asset.get("id")
@@ -1265,7 +1265,7 @@ def immich_remove_all_assets(log_level=logging.WARNING):
 
     total_removed_assets = 0
     total_removed_albums = 0
-    BATCH_SIZE = 250
+    BATCH_SIZE = min(250, len(assets_ids))
     if assets_ids:
         total_batches = (len(assets_ids) + BATCH_SIZE - 1) // BATCH_SIZE  # Calcula el número total de lotes
         with tqdm(total=total_assets_found, desc="INFO    : Removing assets", unit=" assets") as pbar:
