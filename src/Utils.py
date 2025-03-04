@@ -73,6 +73,104 @@ def count_files_in_folder(folder_path, log_level=logging.INFO):
             total_files += len(files)
         return total_files
 
+
+def count_images_in_folder(folder_path, log_level=logging.INFO):
+    """
+    Counts the number of image files in a folder, considering
+    as images only those files with extensions defined in
+    the global variable IMAGE_EXT (in lowercase).
+    """
+    from GlobalVariables import LOGGER, IMAGE_EXT
+    with set_log_level(LOGGER, log_level):  # Change log level temporarily
+        total_images = 0
+        for path, dirs, files in os.walk(folder_path):
+            for file_name in files:
+                # Extract the file extension in lowercase
+                _, extension = os.path.splitext(file_name)
+                if extension.lower() in IMAGE_EXT:
+                    total_images += 1
+        return total_images
+
+def count_videos_in_folder(folder_path, log_level=logging.INFO):
+    """
+    Counts the number of video files in a folder, considering
+    as videos only those files with extensions defined in
+    the global variable VIDEO_EXT (in lowercase).
+    """
+    from GlobalVariables import LOGGER, VIDEO_EXT
+    with set_log_level(LOGGER, log_level):  # Change log level temporarily
+        total_videos = 0
+        for path, dirs, files in os.walk(folder_path):
+            for file_name in files:
+                # Extract the file extension in lowercase
+                _, extension = os.path.splitext(file_name)
+                if extension.lower() in VIDEO_EXT:
+                    total_videos += 1
+        return total_videos
+
+def count_videos_in_folder(folder_path, log_level=logging.INFO):
+    """
+    Counts the number of video files in a folder, considering
+    as videos only those files with extensions defined in
+    the global variable VIDEO_EXT (in lowercase).
+    """
+    from GlobalVariables import LOGGER, VIDEO_EXT
+    with set_log_level(LOGGER, log_level):  # Change log level temporarily
+        total_videos = 0
+        for path, dirs, files in os.walk(folder_path):
+            for file_name in files:
+                # Extract the file extension in lowercase
+                _, extension = os.path.splitext(file_name)
+                if extension.lower() in VIDEO_EXT:
+                    total_videos += 1
+        return total_videos
+
+def count_sidecars_in_folder(folder_path, log_level=logging.INFO):
+    """
+    Counts the number of sidecar files in a folder. A file is considered a sidecar if:
+    1. Its extension is listed in the global variable SIDECAR_EXT (in lowercase).
+    2. It shares the same base name as an image file in the same directory.
+    3. The sidecar file name may include the image extension before the sidecar extension.
+    """
+    from GlobalVariables import LOGGER, IMAGE_EXT, SIDECAR_EXT
+    with set_log_level(LOGGER, log_level):  # Change log level temporarily
+        total_sidecars = 0
+        for path, dirs, files in os.walk(folder_path):
+            # Extract base names of image files without extensions
+            image_base_names = set()
+            for file_name in files:
+                base_name, ext = os.path.splitext(file_name)
+                if ext.lower() in IMAGE_EXT:
+                    image_base_names.add(base_name)
+            # Count valid sidecar files
+            for file_name in files:
+                base_name, ext = os.path.splitext(file_name)
+                if ext.lower() in SIDECAR_EXT:
+                    # Check if there's a matching image file (direct match or with image extension included)
+                    if any(base_name.startswith(image_name) for image_name in image_base_names):
+                        total_sidecars += 1
+        return total_sidecars
+
+
+def count_valid_albums(folder_path, log_level=logging.INFO):
+    """
+    Counts the number of subfolders within folder_path and its sublevels
+    that contain at least one valid image or video file.
+
+    A folder is considered valid if it contains at least one file with an extension
+    defined in IMAGE_EXT or VIDEO_EXT.
+    """
+    import os
+    from GlobalVariables import LOGGER, IMAGE_EXT, VIDEO_EXT
+    with set_log_level(LOGGER, log_level):  # Change log level temporarily
+        valid_albums = 0
+        for root, dirs, files in os.walk(folder_path):
+            # Check if there's at least one valid image or video file
+            if any(os.path.splitext(file)[1].lower() in IMAGE_EXT or os.path.splitext(file)[1].lower() in VIDEO_EXT for file in files):
+                valid_albums += 1
+        return valid_albums
+
+
 def unpack_zips(zip_folder, takeout_folder, log_level=logging.INFO):
     """ Unzips all ZIP files from a folder into another """
     from GlobalVariables import LOGGER

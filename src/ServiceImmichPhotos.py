@@ -506,7 +506,7 @@ def upload_asset(file_path, log_level=logging.INFO):
         login_immich(log_level=log_level)
         if not os.path.isfile(file_path):
             LOGGER.error(f"ERROR   : File not found: {file_path}")
-            return None
+            return None, None
 
         # Obtain SHA1 File Checksum to avoid upload duplicates
         hex_checksum, base64_checksum = sha1_checksum(file_path)
@@ -515,10 +515,10 @@ def upload_asset(file_path, log_level=logging.INFO):
         filename, ext = os.path.splitext(file_path)
         if ext.lower() not in ALLOWED_IMMICH_MEDIA_EXTENSIONS:
             if ext.lower() in ALLOWED_IMMICH_SIDECAR_EXTENSIONS:
-                return None
+                return None, None
             else:
                 LOGGER.warning(f"WARNING : File '{file_path}' has an unsupported extension. Skipped.")
-                return None
+                return None, None
         # This API requires special headers without 'Content-Type': 'application/json'
         if API_KEY_LOGIN:
             header = {
@@ -573,13 +573,14 @@ def upload_asset(file_path, log_level=logging.INFO):
             response.raise_for_status()
             new_asset = response.json()
             asset_id = new_asset.get("id")
+            is_duplicated = new_asset.get("status") == 'duplicate'
             if asset_id:
                 LOGGER.debug(f"DEBUG   : Uploaded '{os.path.basename(file_path)}' with asset_id={asset_id}")
                 pass
-            return asset_id
+            return asset_id, is_duplicated
         except Exception as e:
             LOGGER.error(f"ERROR   : Failed to upload '{file_path}': {e}")
-            return None
+            return None, None
 
 def download_asset(asset_id, asset_filename, asset_time, download_folder="Downloaded_Immich", log_level=logging.INFO):
     """
@@ -707,7 +708,7 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
         input_folder/
             ├─ Album1/   (files for album "Album1")
             └─ Album2/   (files for album "Album2")
-    Returns: albums_uploaded, albums_skipped, assets_uploaded
+    Returns: total_albums_uploaded, total_albums_skipped, total_assets_uploaded
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -721,9 +722,9 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
         # Process subfolders_exclusion and subfolders_inclusion to convert into list
         subfolders_exclusion = convert_to_list(subfolders_exclusion)
         subfolders_inclusion = convert_to_list(subfolders_inclusion)
-        albums_uploaded = 0
-        albums_skipped = 0
-        assets_uploaded = 0
+        total_albums_uploaded = 0
+        total_albums_skipped = 0
+        total_assets_uploaded = 0
         # Directories to exclude
         SUBFOLDERS_EXCLUSIONS = ['@eaDir']
         for subfolder in subfolders_exclusion:
@@ -757,13 +758,14 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
         first_level_folders = os.listdir(input_folder)
         if subfolders_inclusion:
             first_level_folders = first_level_folders + subfolders_inclusion
+        total_dupplicated_assets_skipped = 0
         with tqdm(total=len(valid_folders), smoothing=0.1, desc="INFO    : Uploading Albums from Folders", unit=" folders") as pbar:
             for subpath in valid_folders:
                 pbar.update(1)
                 new_album_assets_ids = []
                 if not os.path.isdir(subpath):
                     LOGGER.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
-                    albums_skipped += 1
+                    total_albums_skipped += 1
                     continue
                 relative_path = os.path.relpath(subpath, input_folder)
                 path_parts = relative_path.split(os.sep)
@@ -776,11 +778,11 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
                     album_id = create_album(album_name, user_id=user_id, log_level=log_level)
                     if not album_id:
                         LOGGER.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
-                        albums_skipped += 1
+                        total_albums_skipped += 1
                         continue
                     else:
                         LOGGER.debug(f"DEBUG   : Album '{album_name}' created with ID: {album_id}")
-                        albums_uploaded += 1
+                        total_albums_uploaded += 1
                     for file in os.listdir(subpath):
                         file_path = os.path.join(subpath, file)
                         if not os.path.isfile(file_path):
@@ -788,26 +790,31 @@ def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfold
                         ext = os.path.splitext(file)[-1].lower()
                         if ext not in ALLOWED_IMMICH_EXTENSIONS:
                             continue
-                        asset_id = upload_asset(file_path, log_level=log_level)
-                        LOGGER.debug(f"DEBUG   : Asset ID: {asset_id} uploaded to Immich Photos")
-                        assets_uploaded += 1
+                        asset_id, is_duplicated = upload_asset(file_path, log_level=log_level)
+                        if is_duplicated:
+                            total_dupplicated_assets_skipped += 1
+                            LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} skipped")
+                        else:
+                            LOGGER.debug(f"DEBUG   : Asset ID: {asset_id} uploaded to Immich Photos")
+                            total_assets_uploaded += 1
                         # Assign to Album only if extension is in ALLOWED_IMMICH_MEDIA_EXTENSIONS
                         if ext in ALLOWED_IMMICH_MEDIA_EXTENSIONS:
                             new_album_assets_ids.append(asset_id)
                     if new_album_assets_ids:
                         add_assets_to_album(album_id, new_album_assets_ids, album_name=album_name, log_level=log_level)
         # Finally remove duplicates_asset in Immich Database
-        duplicates_assets_removed = 0
+        total_duplicates_assets_removed = 0
         if remove_duplicates:
             LOGGER.info("INFO    : Removing Duplicates Assets...")
-            duplicates_assets_removed = remove_duplicates_assets(log_level=log_level)
-        LOGGER.info(f"INFO    : Skipped {albums_skipped} album(s) from '{input_folder}'.")
-        LOGGER.info(f"INFO    : Uploaded {albums_uploaded} album(s) from '{input_folder}'.")
-        LOGGER.info(f"INFO    : Uploaded {assets_uploaded} asset(s) from '{input_folder}' to Albums.")
-        LOGGER.info(f"INFO    : Removed {duplicates_assets_removed} duplicates asset(s) from Immich Database.")
+            total_duplicates_assets_removed = remove_duplicates_assets(log_level=log_level)
+        LOGGER.info(f"INFO    : Skipped {total_albums_skipped} album(s) from '{input_folder}'.")
+        LOGGER.info(f"INFO    : Uploaded {total_albums_uploaded} album(s) from '{input_folder}'.")
+        LOGGER.info(f"INFO    : Uploaded {total_assets_uploaded} asset(s) from '{input_folder}' to Albums.")
+        LOGGER.info(f"INFO    : Skipped {total_dupplicated_assets_skipped} duplicated asset(s) from '{input_folder}' to Albums.")
+        LOGGER.info(f"INFO    : Removed {total_duplicates_assets_removed} duplicates asset(s) from Immich Database.")
         # logout_immich
         logout_immich(log_level=log_level)
-        return albums_uploaded, albums_skipped, assets_uploaded, duplicates_assets_removed
+        return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed
 
 def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
     """
@@ -864,10 +871,16 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
         file_paths = collect_files(input_folder, subfolders_inclusion)
         total_files = len(file_paths)
         total_assets_uploaded = 0
+        total_dupplicated_assets_skipped = 0
         # Process each file with a progress bar
         with tqdm(total=total_files, smoothing=0.1, desc="INFO    : Uploading Assets", unit=" asset") as pbar:
             for file_path in file_paths:
-                if upload_asset(file_path, log_level=log_level):
+                asset_id, is_duplicated = upload_asset(file_path, log_level=log_level)
+                if is_duplicated:
+                    total_dupplicated_assets_skipped += 1
+                    LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} skipped")
+                else:
+                    LOGGER.debug(f"DEBUG   : Asset ID: {asset_id} uploaded to Immich Photos")
                     total_assets_uploaded += 1
                 pbar.update(1)
         # Finally remove duplicates_asset in Immich Database
@@ -876,6 +889,7 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
             LOGGER.info("INFO    : Removing Duplicates Assets...")
             duplicates_assets_removed = remove_duplicates_assets(log_level=log_level)
         LOGGER.info(f"INFO    : Uploaded {total_assets_uploaded} files (without album) from '{input_folder}'.")
+        LOGGER.info(f"INFO    : Skipped {total_dupplicated_assets_skipped} duplicated asset(s) from '{input_folder}'.")
         LOGGER.info(f"INFO    : Removed {duplicates_assets_removed} duplicates asset(s) from Immich Database.")
         # logout_immich
         logout_immich(log_level=log_level)

@@ -180,14 +180,15 @@ def google_takeout_processor(output_takeout_folder, log_level=logging.INFO):
             LOGGER.info(f"INFO    : step {step} completed in {formatted_duration}.")
         else:
             LOGGER.warning("WARNING : Moving albums to 'Albums' folder skipped ('-sm, --google-skip-move-albums' flag detected).")
-        albums_found = 0
+        valid_albums_found = 0
         if not ARGS['google-skip-move-albums']:
             album_folder = os.path.join(output_takeout_folder, 'Albums')
             if os.path.isdir(album_folder):
-                albums_found = len(os.listdir(album_folder))
+                valid_albums_found = Utils.count_valid_albums(album_folder)
+
         else:
             if os.path.isdir(output_takeout_folder):
-                albums_found = len(os.listdir(output_takeout_folder)) - 1
+                valid_albums_found = Utils.count_valid_albums(output_takeout_folder)
 
         # step 7: Fix Broken Symbolic Links after moving
         step += 1
@@ -230,7 +231,7 @@ def google_takeout_processor(output_takeout_folder, log_level=logging.INFO):
             LOGGER.info(f"INFO    : step {step} completed in {formatted_duration}.")
 
         # Return Outputs
-        return albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders
+        return valid_albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders
 
 def contains_takeout_structure(input_folder):
     """
