@@ -672,32 +672,25 @@ def mode_immich_upload_albums(user_confirmation=True, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Upload Albums' Mode detected. Only this module will be run!!!")
         # login_immich
-        LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
         login_immich(log_level=logging.WARNING)
 
-        LOGGER.info("")
         LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
 
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed = immich_upload_albums(ARGS['immich-upload-albums'], log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_dupplicated_assets_skipped, duplicates_assets_removed = immich_upload_albums(ARGS['immich-upload-albums'], log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
-        LOGGER.info("")
         LOGGER.info("INFO    : Cleaning-up Immich Photos database (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
-        LOGGER.info("")
         LOGGER.info("INFO    : Removing Empty Albums...")
         total_empty_albums_removed = immich_remove_empty_albums(log_level=logging.WARNING)
         # Execute mode_delete_duplicates_albums
-        LOGGER.info("")
         LOGGER.info("INFO    : Removing Duplicates Albums...")
         total_duplicates_albums_removed = immich_remove_duplicates_albums(log_level=logging.WARNING)
         # Execute remove_duplicates_assets
-        LOGGER.info("")
         LOGGER.info("INFO    : Removing Duplicates Assets...")
         duplicates_assets_removed = remove_duplicates_assets(log_level=logging.WARNING)
         # logout_immich
-        LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
         logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
@@ -713,6 +706,7 @@ def mode_immich_upload_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("==================================================")
         LOGGER.info(f"Total Assets uploaded                   : {total_assets_uploaded}")
         LOGGER.info(f"Total Albums uploaded                   : {total_albums_uploaded}")
+        LOGGER.info(f"Total Duplicated Assets skipped         : {total_dupplicated_assets_skipped}")
         LOGGER.info(f"Total Albums skipped                    : {total_albums_skipped}")
         LOGGER.info(f"Total Assets added to Albums            : {total_assets_uploaded}")
         LOGGER.info(f"Total Empty Albums removed              : {total_empty_albums_removed}")
@@ -736,33 +730,25 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
         # login_immich
-        LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
         login_immich(log_level=logging.WARNING)
 
-        LOGGER.info("")
         LOGGER.info(f"INFO    : Uploading Assets in Folder    : {ARGS['immich-upload-all']}")
 
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed = immich_upload_ALL(ARGS['immich-upload-all'], albums_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_dupplicated_assets_skipped, duplicates_assets_removed = immich_upload_ALL(ARGS['immich-upload-all'], albums_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
-        LOGGER.info("")
         LOGGER.info("INFO    : Cleaning-up Immich Photos database (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
-        LOGGER.info("")
         LOGGER.info("INFO    : Removing Empty Albums...")
         total_empty_albums_removed = immich_remove_empty_albums(log_level=logging.WARNING)
         # Execute mode_delete_duplicates_albums
-        LOGGER.info("")
         LOGGER.info("INFO    : Removing Duplicates Albums...")
         total_duplicates_albums_removed = immich_remove_duplicates_albums(log_level=logging.WARNING)
         # Execute remove_duplicates_assets
-        LOGGER.info("")
         LOGGER.info("INFO    : Removing Duplicates Assets...")
         duplicates_assets_removed = remove_duplicates_assets(log_level=logging.WARNING)
-        LOGGER.info("")
         # logout_immich
-        LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
         logout_immich(log_level=logging.WARNING)
         # FINAL SUMMARY
@@ -778,6 +764,7 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("==================================================")
         LOGGER.info(f"Total Assets uploaded                   : {total_assets_uploaded}")
         LOGGER.info(f"Total Albums uploaded                   : {total_albums_uploaded}")
+        LOGGER.info(f"Total Duplicated Assets skipped         : {total_dupplicated_assets_skipped}")
         LOGGER.info(f"Total Albums skipped                    : {total_albums_skipped}")
         LOGGER.info(f"Total Assets added to Albums            : {total_assets_uploaded_within_albums}")
         LOGGER.info(f"Total Assets added without Albums       : {total_assets_uploaded_without_albums}")
