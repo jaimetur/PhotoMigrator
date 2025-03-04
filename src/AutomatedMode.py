@@ -17,14 +17,13 @@ from rich.live import Live
 import time
 import random
 import threading
+import queue
 
 
 ####################################
 # EXTRA MODE: AUTOMATED-MIGRATION: #
 ####################################
 def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
-    SOURCE = ARGS['AUTOMATED-MIGRATION'][0]
-    TARGET = ARGS['AUTOMATED-MIGRATION'][1]
 
     console = Console()
 
@@ -161,62 +160,55 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
         thread2.join()
 
 
-    INTERMEDIATE_FOLDER = ''
 
-    LOGGER.info(f"INFO    : -AUTO, --AUTOMATED-MIGRATION Mode detected")
-    if not ARGS['SOURCE-TYPE-TAKEOUT-FOLDER']:
-        LOGGER.info(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE>', f"'{ARGS['AUTOMATED-MIGRATION'][0]}'").replace('<TARGET>', f"'{ARGS['AUTOMATED-MIGRATION'][1]}'"))
-    else:
-        LOGGER.info(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{ARGS['AUTOMATED-MIGRATION'][0]}'").replace('<TARGET>', f"'{ARGS['AUTOMATED-MIGRATION'][1]}'").replace('Downloading', 'Analyzing and Fixing'))
-    LOGGER.info(f"INFO    : Selected SOURCE : {SOURCE}")
-    LOGGER.info(f"INFO    : Selected TARGET : {TARGET}")
-    LOGGER.info("")
-    if not Utils.confirm_continue():
-        LOGGER.info(f"INFO    : Exiting program.")
-        sys.exit(0)
+# Simulated functions
+def download_asset(asset_id, download_queue):
+    """Simulates downloading an asset and puts it into the upload queue."""
+    time.sleep(random.uniform(0.5, 2))  # Simulate network delay
+    print(f"✅ Downloaded asset {asset_id}")
+    download_queue.put(asset_id)  # Add to upload queue
 
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # ===================
-        # PROCESS THE SOURCE:
-        # ===================
-        LOGGER.info(f'INFO    : Downloading/Processing Assets to: {SOURCE}...')
+def upload_asset(asset_id):
+    """Simulates uploading an asset."""
+    time.sleep(random.uniform(0.5, 2))  # Simulate network delay
+    print(f"📤 Uploaded asset {asset_id}")
 
-        # If the SOURCE is 'synology-photos'
-        if SOURCE.lower() == 'synology-photos':
-            # Define the INTERMEDIATE_FOLDER
-            if ARGS['output-folder']:
-                INTERMEDIATE_FOLDER = ARGS['output-folder']
-            else:
-                INTERMEDIATE_FOLDER = f"Synology_Download_ALL_{TIMESTAMP}"
-            # Set ARGS['synology-download-all'] to INTERMEDIATE_FOLDER
-            ARGS['synology-download-all'] = INTERMEDIATE_FOLDER
-            # Execute Mode mode_synology_download_ALL()
-            mode_synology_download_ALL(user_confirmation=False, log_level=logging.INFO)
+def download_worker(download_queue, asset_ids):
+    """Thread worker that downloads assets and puts them into the queue."""
+    for asset_id in asset_ids:
+        download_asset(asset_id, download_queue)
 
-        # If the SOURCE is 'immich-photos'
-        elif SOURCE.lower() == 'immich-photos':
-            # Define the INTERMEDIATE_FOLDER
-            if ARGS['output-folder']:
-                INTERMEDIATE_FOLDER = ARGS['output-folder']
-            else:
-                INTERMEDIATE_FOLDER = f"Immich_Download_ALL_{TIMESTAMP}"
-            # Set ARGS['immich-download-all'] to INTERMEDIATE_FOLDER
-            ARGS['immich-download-all'] = INTERMEDIATE_FOLDER
-            # Execute Mode mode_immich_download_ALL()
-            mode_immich_download_ALL(user_confirmation=False, log_level=logging.INFO)
+    # Signal that all downloads are done
+    download_queue.put(None)
 
-        # ===================
-        # PROCESS THE TARGET:
-        # ===================
-        LOGGER.info(f'INFO    : Uploading/Processing Assets to: {TARGET}...')
+def upload_worker(download_queue):
+    """Thread worker that uploads assets from the queue."""
+    while True:
+        asset_id = download_queue.get()
+        if asset_id is None:  # Exit signal
+            break
+        upload_asset(asset_id)
 
-        # if the TARGET is 'synology-photos'
-        if TARGET.lower() == 'synology-photos':
-            ARGS['synology-upload-all'] = INTERMEDIATE_FOLDER
-            mode_synology_upload_ALL(user_confirmation=False, log_level=logging.INFO)
+# Main execution
+def main():
+    asset_ids = range(1, 21)  # Simulated asset list
+    download_queue = queue.Queue()
 
-        # If the TARGET is 'immich-photos'
-        elif TARGET.lower() == 'immich-photos':
-            ARGS['immich-upload-all'] = INTERMEDIATE_FOLDER
-            mode_immich_upload_ALL(user_confirmation=False, log_level=logging.INFO)
+    # Create threads
+    download_thread = threading.Thread(target=download_worker, args=(download_queue, asset_ids))
+    upload_thread = threading.Thread(target=upload_worker, args=(download_queue,))
+
+    # Start threads
+    download_thread.start()
+    upload_thread.start()
+
+    # Wait for completion
+    download_thread.join()
+    upload_thread.join()
+
+    print("🚀 All assets downloaded and uploaded successfully!")
+
+if __name__ == "__main__":
+    # main()
+    mode_AUTOMATED_MIGRATION()
 
