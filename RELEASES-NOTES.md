@@ -22,7 +22,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] New Script name '**CloudPhotoMigrator**' (former 'GoogleTakeoutPhotos')
 - [x] The Tool is now Open Source (all contributors that want to collaborate on this project are more than welcome)
 - [x] Added **_Immich Photos Support_**.
-- [x] aDDED **_New Automated Migration Feature_** to perform Fully Automated Migration Process between different Photo Cloud Services
+- [x] Added **_New Automated Migration Feature_** to perform Fully Automated Migration Process between different Photo Cloud Services
   - #### AUTOMATED MIGRATION FEATURE:
     - **-AUTO,   --AUTOMATED-MIGRATION \<SOURCE> \<TARGET>**  
       This process will do an AUTOMATED-MIGRATION process to Download all your Assets
