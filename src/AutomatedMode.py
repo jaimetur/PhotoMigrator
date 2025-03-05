@@ -12,7 +12,7 @@ from ServiceImmichPhotos import login_immich, logout_immich, immich_upload_album
 ####################################
 # EXTRA MODE: AUTOMATED-MIGRATION: #
 ####################################
-def mode_DASHBOARD_AUTOMATED_MIGRATION(log_level=logging.INFO):
+def mode_DASHBOARD_AUTOMATED_MIGRATION(input_info=None, log_level=logging.INFO):
     import time, random, threading
     from rich.console import Console
     from rich.layout import Layout
@@ -23,6 +23,14 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(log_level=logging.INFO):
     from rich.table import Table
 
     global log_panel
+
+    total_assets = input_info.get('total_assets')
+    total_photos = input_info.get('total_photos')
+    total_videos = input_info.get('total_videos')
+    total_albums = input_info.get('total_albums')
+    total_metadata = input_info.get('total_metadata')
+    total_sidecar = input_info.get('total_sidecar')
+    total_unsopported = input_info.get('total_unsopported')
 
     console = Console()
     # Reduce total height by 1 line so the output doesn't overflow
@@ -58,17 +66,16 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(log_level=logging.INFO):
     # ─────────────────────────────────────────────────────────────────────────
     # 2) Input Analysis Panel
     # ─────────────────────────────────────────────────────────────────────────
-    analysis_data = [
-        ("📊 Total Assets", 5000),
-        ("📷 Total Photos", 4000),
-        ("🎥 Total Videos", 800),
-        ("📂 Total Albums", 200),
-        ("📑 Total Metadata", 4500),
-        ("📑 Total Sidecars", 300),
-        ("🚫 Unsupported Files", 50),
-    ]
-
     def build_analysis_panel():
+        analysis_data = [
+            ("📊 Total Assets", total_assets),
+            ("📷 Total Photos", total_photos),
+            ("🎥 Total Videos", total_videos),
+            ("📂 Total Albums", total_albums),
+            ("📑 Total Metadata", total_metadata),
+            ("📑 Total Sidecars", total_sidecar),
+            ("🚫 Unsupported Files", total_unsopported),
+        ]
         table = Table.grid(expand=True)
         table.add_column(justify="left", width=20)
         table.add_column(justify="right")
@@ -94,26 +101,28 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(log_level=logging.INFO):
         """
         Creates a bar with a longer width and displays 'X / total items' in color.
         """
+        counter = f"{{task.completed}}/{{task.total}}"
         return Progress(
             BarColumn(
                 bar_width=100,           # longer bar for better visuals
-                style=color,
-                complete_style="bar.complete",
-                finished_style="bar.finished",
+                style=f"{color} dim",
+                complete_style=f"{color} bold",
+                finished_style=f"{color} bold",
                 pulse_style="bar.pulse"
-                # pulse_style=f"{color} dim"
+                # pulse_style=f"{color} bold"
             ),
-            TextColumn(f"[{color}]{{task.completed}}/{{task.total}}[/{color}]"),
+
+            TextColumn(f"[{color}]{counter:>15}[/{color}]"),
             console=console,
             expand=True
         )
 
     # DOWNLOADS (Cyan)
     download_bars = {
-        "📊 Downloaded Assets": create_progress_bar("cyan"),
-        "📷 Downloaded Photos": create_progress_bar("cyan"),
-        "🎥 Downloaded Videos": create_progress_bar("cyan"),
-        "📂 Downloaded Albums": create_progress_bar("cyan"),
+        "📊 Downloaded Assets": (create_progress_bar("cyan"), total_assets),
+        "📷 Downloaded Photos": (create_progress_bar("cyan"), total_photos),
+        "🎥 Downloaded Videos": (create_progress_bar("cyan"), total_videos),
+        "📂 Downloaded Albums": (create_progress_bar("cyan"), total_albums),
     }
     failed_downloads = {
         "Assets Failed": 0,
@@ -122,15 +131,15 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(log_level=logging.INFO):
         "Albums Failed": 0,
     }
     download_tasks = {}
-    for label, bar in download_bars.items():
-        download_tasks[label] = bar.add_task(label, total=5000)
+    for label, (bar, total) in download_bars.items():
+        download_tasks[label] = bar.add_task(label, total=total)
 
     # UPLOADS (Green)
     upload_bars = {
-        "📊 Uploaded Assets": create_progress_bar("green"),
-        "📷 Uploaded Photos": create_progress_bar("green"),
-        "🎥 Uploaded Videos": create_progress_bar("green"),
-        "📂 Uploaded Albums": create_progress_bar("green"),
+        "📊 Uploaded Assets": (create_progress_bar("green"), total_assets),
+        "📷 Uploaded Photos": (create_progress_bar("green"), total_photos),
+        "🎥 Uploaded Videos": (create_progress_bar("green"), total_videos),
+        "📂 Uploaded Albums": (create_progress_bar("green"), total_albums),
     }
     failed_uploads = {
         "Assets Failed": 0,
@@ -139,8 +148,8 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(log_level=logging.INFO):
         "Albums Failed": 0,
     }
     upload_tasks = {}
-    for label, bar in upload_bars.items():
-        upload_tasks[label] = bar.add_task(label, total=5000)
+    for label, (bar, total) in upload_bars.items():
+        upload_tasks[label] = bar.add_task(label, total=total)
 
     # ─────────────────────────────────────────────────────────────────────────
     # 4) Build the Download/Upload Panels
@@ -150,7 +159,7 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(log_level=logging.INFO):
         table.add_column(justify="left", width=25)
         table.add_column(justify="right")
 
-        for label, bar in download_bars.items():
+        for label, (bar, total) in download_bars.items():
             table.add_row(f"[cyan]{label:<20}:[/cyan]", bar)
 
         for label, val in failed_downloads.items():
@@ -163,7 +172,7 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(log_level=logging.INFO):
         table.add_column(justify="left", width=23)
         table.add_column(justify="right")
 
-        for label, bar in upload_bars.items():
+        for label, (bar, total) in upload_bars.items():
             table.add_row(f"[green]{label:<18}:[/green]", bar)
 
         for label, val in failed_uploads.items():
@@ -185,7 +194,7 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(log_level=logging.INFO):
     def simulate_downloads():
         for _ in range(100):
             time.sleep(random.uniform(0.05, 0.2))
-            for label, bar in download_bars.items():
+            for label, (bar, total) in download_bars.items():
                 bar.advance(download_tasks[label], random.randint(1, 50))
 
             failed_downloads["Assets Failed"] += random.randint(0, 5)
@@ -198,7 +207,7 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(log_level=logging.INFO):
     def simulate_uploads():
         for _ in range(100):
             time.sleep(random.uniform(0.05, 0.2))
-            for label, bar in upload_bars.items():
+            for label, (bar, total) in upload_bars.items():
                 bar.advance(upload_tasks[label], random.randint(1, 50))
 
             failed_uploads["Assets Failed"] += random.randint(0, 5)
@@ -218,19 +227,19 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(log_level=logging.INFO):
         layout["uploads"].update(build_upload_panel())
         layout["logs"].update(log_panel)
 
-        thread_d = threading.Thread(target=simulate_downloads)
-        thread_u = threading.Thread(target=simulate_uploads)
-        thread_d.start()
-        thread_u.start()
+        thread_downloads = threading.Thread(target=simulate_downloads)
+        thread_uploads = threading.Thread(target=simulate_uploads)
+        thread_downloads.start()
+        thread_uploads.start()
 
-        while thread_d.is_alive() or thread_u.is_alive():
+        while thread_downloads.is_alive() or thread_uploads.is_alive():
             time.sleep(0.1)
             layout["downloads"].update(build_download_panel())
             layout["uploads"].update(build_upload_panel())
             layout["logs"].update(log_panel)
 
-        thread_d.join()
-        thread_u.join()
+        thread_downloads.join()
+        thread_uploads.join()
 
 
 
@@ -284,5 +293,14 @@ def main():
 if __name__ == "__main__":
     os.system('cls' if os.name == 'nt' else 'clear')
     # main()
-    mode_DASHBOARD_AUTOMATED_MIGRATION()
+    input_info = {
+        "total_assets": 2000,
+        "total_photos": 1400,
+        "total_videos": 600,
+        "total_albums": 200,
+        "total_metadata": 180,
+        "total_sidecar": 23,
+        "total_unsopported": 58
+    }
+    mode_DASHBOARD_AUTOMATED_MIGRATION(input_info)
 
