@@ -327,7 +327,7 @@ def get_duplicates_assets(log_level=logging.INFO):
         duplicates_assets = response.json()  # List
         return duplicates_assets
 
-def get_all_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=None, createdAfter=None, createdBefore=None, country=None, city=None, personIds=None, log_level=logging.INFO):
+def get_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=None, createdAfter=None, createdBefore=None, country=None, city=None, personIds=None, withDeleted=None, log_level=logging.INFO):
     """
     Returns the list of assets that belong to a specific album (ID).
     """
@@ -337,50 +337,53 @@ def get_all_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=Non
         login_immich(log_level=log_level)
         url = f"{IMMICH_URL}/api/search/metadata"
 
-        nextPage = 1
-        all_assets = []
-        while True:
-            payload_data = {
-                # "libraryId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                "page": nextPage,
-                "order": "desc",
-                # "country": "string",
-                # "city": "string",
-                # "type": "IMAGE",
-                # "isNotInAlbum": False,
-                # "isArchived": True,
-                # "isEncoded": True,
-                # "isFavorite": True,
-                # "isMotion": True,
-                # "isOffline": True,
-                # "isVisible": True,
-                # "withArchived": False,
-                # "withRemoved": True,
-                # "withExif": True,
-                # "withPeople": True,
-                # "withStacked": True,
-                # "createdAfter": "string",
-                # "createdBefore": "string",
-                # "takenAfter": "string",
-                # "takenBefore": "string",
-                # "updatedAfter": "string",
-                # "updatedBefore": "string",
-                # "personIds": [
-                #   "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-                # ],
-            }
-            if type: payload_data["type"] = type
-            if isNotInAlbum: payload_data["isNotInAlbum"] = isNotInAlbum
-            if isArchived: payload_data["isArchived"] = isArchived
-            if createdAfter: payload_data["createdAfter"] = createdAfter
-            if createdBefore: payload_data["createdBefore"] = createdBefore
-            if country: payload_data["country"] = country
-            if city: payload_data["city"] = city
-            if personIds: payload_data["personIds"] = personIds
-            # Convert payload_data dict to JSON
 
-            payload = json.dumps(payload_data, indent=2)
-            try:
+        all_assets = []
+        try:
+            nextPage = 1
+            while True:
+                payload_data = {
+                    # "libraryId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "page": nextPage,
+                    "order": "desc",
+                    # "withArchived": False,
+                    # "withDeleted": False,
+                    # "country": "string",
+                    # "city": "string",
+                    # "type": "IMAGE",
+                    # "isNotInAlbum": False,
+                    # "isArchived": True,
+                    # "isOffline": isOffline,
+                    # "isEncoded": True,
+                    # "isFavorite": True,
+                    # "isMotion": True,
+                    # "isVisible": True,
+                    # "withRemoved": True,
+                    # "withExif": True,
+                    # "withPeople": True,
+                    # "withStacked": True,
+                    # "createdAfter": "string",
+                    # "createdBefore": "string",
+                    # "takenAfter": "string",
+                    # "takenBefore": "string",
+                    # "updatedAfter": "string",
+                    # "updatedBefore": "string",
+                    # "personIds": [
+                    #   "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    # ],
+                }
+                if type: payload_data["type"] = type
+                if isNotInAlbum: payload_data["isNotInAlbum"] = isNotInAlbum
+                if isArchived: payload_data["isArchived"] = isArchived
+                if createdAfter: payload_data["createdAfter"] = createdAfter
+                if createdBefore: payload_data["createdBefore"] = createdBefore
+                if country: payload_data["country"] = country
+                if city: payload_data["city"] = city
+                if personIds: payload_data["personIds"] = personIds
+                if withDeleted : payload_data["withDeleted"] = withDeleted
+
+                # Convert payload_data dict to JSON
+                payload = json.dumps(payload_data, indent=2)
                 response = requests.post(url, headers=HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
                 response.raise_for_status()
                 data = response.json()  # List
@@ -391,9 +394,8 @@ def get_all_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=Non
                     nextPage = int(nextPage)
                 else:
                     break
-
-            except Exception as e:
-                LOGGER.error(f"ERROR   : Failed to retrieve assets: {str(e)}")
+        except Exception as e:
+            LOGGER.error(f"ERROR   : Failed to retrieve assets: {str(e)}")
         return all_assets
 
 def get_assets_from_album(album_id, log_level=logging.INFO):
@@ -552,10 +554,10 @@ def upload_asset(file_path, log_level=logging.INFO):
             'fileModifiedAt': date_time_for_attributes,
             'fileSize': str(stats.st_size),
             'isFavorite': 'false',
+            "isVisible": "true",
             # 'x-immich-checksum': hex_checksum,
             # You can add other optional fields if needed, such as:
             # "isArchived": "false",
-            # "isVisible": "true",
             # ...
         }
 
@@ -563,19 +565,19 @@ def upload_asset(file_path, log_level=logging.INFO):
         if API_KEY_LOGIN:
             header = {
                 'Accept': 'application/json',
-                'x-immich-checksum': hex_checksum,
-                'x-api-key': IMMICH_USER_API_KEY
+                'x-api-key': IMMICH_USER_API_KEY,
+                # 'x-immich-checksum': hex_checksum
             }
         else:
             header = {
                 'Accept': 'application/json',
-                'x-immich-checksum': hex_checksum,
-                'Authorization': f'Bearer {SESSION_TOKEN}'
+                'Authorization': f'Bearer {SESSION_TOKEN}',
+                # 'x-immich-checksum': hex_checksum
             }
 
         try:
             # On upload, 'Content-Type' is automatically generated with multipart
-            response = requests.post(url, headers=header, data=data, files=files)
+            response = requests.request("POST", url, headers=header, data=data, files=files)
             response.raise_for_status()
             new_asset = response.json()
             asset_id = new_asset.get("id")
@@ -1048,7 +1050,7 @@ def immich_download_no_albums(output_folder="Downloads_Immich", log_level=loggin
         login_immich(log_level=log_level)
         total_assets_downloaded = 0
         # 2) Assets without album -> output_folder/No-Albums/yyyy/mm
-        all_assets_items = get_all_assets_by_search_filter(isNotInAlbum=True)
+        all_assets_items = get_assets_by_search_filter(isNotInAlbum=True)
         # all_assets = get_assets_by_search_filter()
         # all_assets_items = all_assets.get("items")
         all_photos_path = os.path.join(output_folder, 'No-Albums')
@@ -1281,8 +1283,9 @@ def immich_remove_all_assets(log_level=logging.WARNING):
     # login_immich
     login_immich(log_level=log_level)
     LOGGER.info(f"INFO    : Getting list of asset(s) to remove...")
-    all_assets_items = get_all_assets_by_search_filter()
-    # all_assets_items = all_assets.get("items")
+    all_assets_items = get_assets_by_search_filter()
+    all_assets_items_withDeleted = get_assets_by_search_filter(withDeleted=True)
+    all_assets_items.extend(all_assets_items_withDeleted)
     total_assets_found = len(all_assets_items)
     if total_assets_found == 0:
         LOGGER.warning(f"WARNING : No Assets found in Immich Database.")
@@ -1382,44 +1385,44 @@ if __name__ == "__main__":
 
     # # 1) Example: Remove empty albums
     # print("\n=== EXAMPLE: immich_remove_empty_albums() ===")
-    # removed = immich_remove_empty_albums()
+    # removed = immich_remove_empty_albums(log_level=logging.DEBUG)
     # print(f"[RESULT] Empty albums removed: {removed}")
 
     # # 2) Example: Remove duplicate albums
     # print("\n=== EXAMPLE: immich_remove_duplicates_albums() ===")
-    # duplicates = immich_remove_duplicates_albums()
+    # duplicates = immich_remove_duplicates_albums(log_level=logging.DEBUG)
     # print(f"[RESULT] Duplicate albums removed: {duplicates}")
 
     # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums'
     # print("\n=== EXAMPLE: immich_upload_no_albums() ===")
     # big_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums"
-    # immich_upload_no_albums(big_folder)
+    # immich_upload_no_albums(big_folder, log_level=logging.DEBUG)
 
     # # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums'
     # print("\n=== EXAMPLE: immich_upload_albums() ===")
     # input_albums_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums"
-    # immich_upload_albums(input_albums_folder)
+    # immich_upload_albums(input_albums_folder, log_level=logging.DEBUG)
 
     # # # 5) Example: Download all photos from ALL albums
     # print("\n=== EXAMPLE: immich_download_albums() ===")
     # # total = immich_download_albums('ALL', output_folder="Downloads_Immich")
-    # total_albums, total_assets = immich_download_albums("1994 - Recuerdos", output_folder="Downloads_Immich")
+    # total_albums, total_assets = immich_download_albums("1994 - Recuerdos", output_folder="Downloads_Immich", log_level=logging.DEBUG)
     # print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums} different albbums.")
 
     # # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
     # print("\n=== EXAMPLE: immich_download_ALL() ===")
     # # total_struct = immich_download_ALL(output_folder="Downloads_Immich")
-    # total_albums_downloaded, total_assets_downloaded = immich_download_ALL(output_folder="Downloads_Immich")
+    # total_albums_downloaded, total_assets_downloaded = immich_download_ALL(output_folder="Downloads_Immich", log_level=logging.DEBUG)
     # print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
 
     # # 7) Example: Remove Orphan Assets
-    # immich_remove_orphan_assets(user_confirmation=True)
+    # immich_remove_orphan_assets(user_confirmation=True, log_level=logging.DEBUG)
 
-    # # 8) Example: Remove ALL Assets
-    # immich_remove_all_assets()
+    # 8) Example: Remove ALL Assets
+    immich_remove_all_assets(log_level=logging.DEBUG)
 
     # # 9) Example: Remove ALL Assets
-    # immich_remove_all_albums(removeAlbumsAssets=True)
+    # immich_remove_all_albums(removeAlbumsAssets=True, log_level=logging.DEBUG)
 
     # # 10) Local logout
     # logout_immich()

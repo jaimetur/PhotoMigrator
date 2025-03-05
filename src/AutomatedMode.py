@@ -24,22 +24,29 @@ import queue
 # EXTRA MODE: AUTOMATED-MIGRATION: #
 ####################################
 def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
+    global log_panel
 
     console = Console()
 
     # Layout structure
     layout = Layout()
 
+    # Get terminal width dynamically
+    terminal_width = console.width
+
     # Header at full width
     layout.split(
         Layout(name="header", size=3),
-        Layout(name="content"),
+        Layout(name="content", ratio=10),
         Layout(name="logs", size=12)
     )
 
+    # Logs Panel
+    log_panel = Panel("", title="📜 Logs", border_style="red", expand=True)
+
     # Splitting content into three columns with enough space
     layout["content"].split_row(
-        Layout(name="input_analysis", ratio=2),
+        Layout(name="input_analysis", ratio=3),
         Layout(name="downloads", ratio=3),
         Layout(name="uploads", ratio=3)
     )
@@ -50,7 +57,7 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
     # Input Analysis Panel (Static Information)
     input_analysis_data = """\
     📊 Total Assets:     5000
-    🖼️ Total Images:     4000
+    🖼️ Total Photos:     4000
     🎥 Total Videos:      800
     📂 Total Albums:      200
     📑 Total Metadata:   4500
@@ -59,8 +66,32 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
     """
 
     # Progress bars for downloads
-    download_progress = Progress(
-        TextColumn("[cyan]📥 Downloads:[/]"),
+    downloaded_assets_progress = Progress(
+        TextColumn("[cyan]📊 Downloaded Assets:[/]"),
+        BarColumn(),
+        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+        console=console,
+        expand=True
+    )
+
+    downloaded_images_progress = Progress(
+        TextColumn("[cyan]🖼️ Downloaded Photos:[/]"),
+        BarColumn(),
+        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+        console=console,
+        expand=True
+    )
+
+    downloaded_videos_progress = Progress(
+        TextColumn("[cyan]🖼🎥 Downloaded Videos:[/]"),
+        BarColumn(),
+        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+        console=console,
+        expand=True
+    )
+
+    downloaded_albums_progress = Progress(
+        TextColumn("[cyan]🖼📂 Downloaded Albums:[/]"),
         BarColumn(),
         TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
         console=console,
@@ -77,28 +108,26 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
     )
 
     # Adding tasks for tracking progress
-    task_assets_downloaded = download_progress.add_task("✅ Assets", total=5000)
-    task_photos_downloaded = download_progress.add_task("✅ Images", total=4000)
-    task_videos_downloaded = download_progress.add_task("✅ Videos", total=800)
-    task_albums_downloaded = download_progress.add_task("✅ Albums", total=200)
-    task_metadata_downloaded = download_progress.add_task("✅ Metadata", total=4500)
-    task_assets_failed = download_progress.add_task("❌ Assets Failed", total=5000)
-    task_photos_failed = download_progress.add_task("❌ Images Failed", total=4000)
-    task_videos_failed = download_progress.add_task("❌ Videos Failed", total=800)
-    task_albums_failed = download_progress.add_task("❌ Albums Failed", total=200)
+    task_downloaded_assets = downloaded_assets_progress.add_task("📊 Assets", total=5000)
+    task_downloaded_photos = downloaded_images_progress.add_task("🖼️ Photos", total=4000)
+    task_downloaded_videos = downloaded_videos_progress.add_task("🎥 Videos", total=800)
+    task_downloaded_albums = downloaded_albums_progress.add_task("📂 Albums", total=200)
+    task_downloaded_metadata = downloaded_assets_progress.add_task("📑 Metadata", total=4500)
+    task_failed_assets = downloaded_assets_progress.add_task("❌ Assets Failed", total=5000)
+    task_failed_photos = downloaded_assets_progress.add_task("❌ Photos Failed", total=4000)
+    task_failed_videos = downloaded_assets_progress.add_task("❌ Videos Failed", total=800)
+    task_failed_albums = downloaded_assets_progress.add_task("❌ Albums Failed", total=200)
 
-    task_assets_uploaded = upload_progress.add_task("✅ Assets", total=5000)
-    task_photos_uploaded = upload_progress.add_task("✅ Images", total=4000)
-    task_videos_uploaded = upload_progress.add_task("✅ Videos", total=800)
-    task_albums_uploaded = upload_progress.add_task("✅ Albums", total=200)
-    task_metadata_uploaded = upload_progress.add_task("✅ Metadata", total=4500)
+    task_assets_uploaded = upload_progress.add_task("📊 Assets", total=5000)
+    task_photos_uploaded = upload_progress.add_task("🖼️ Photos", total=4000)
+    task_videos_uploaded = upload_progress.add_task("🎥 Videos", total=800)
+    task_albums_uploaded = upload_progress.add_task("📂 Albums", total=200)
+    task_metadata_uploaded = upload_progress.add_task("📑 Metadata", total=4500)
     task_assets_failed_upload = upload_progress.add_task("❌ Assets Failed", total=5000)
-    task_photos_failed_upload = upload_progress.add_task("❌ Images Failed", total=4000)
+    task_photos_failed_upload = upload_progress.add_task("❌ Photos Failed", total=4000)
     task_videos_failed_upload = upload_progress.add_task("❌ Videos Failed", total=800)
     task_albums_failed_upload = upload_progress.add_task("❌ Albums Failed", total=200)
 
-    # Logs Panel
-    log_panel = Panel("", title="📜 Logs", border_style="red")
 
     # Function to update logs
     def log_message(message):
@@ -110,17 +139,17 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
     def simulate_downloads():
         for _ in range(100):
             time.sleep(random.uniform(0.05, 0.2))
-            download_progress.advance(task_assets_downloaded, 50)
-            download_progress.advance(task_photos_downloaded, 40)
-            download_progress.advance(task_videos_downloaded, 8)
-            download_progress.advance(task_albums_downloaded, 2)
-            download_progress.advance(task_metadata_downloaded, 45)
+            downloaded_assets_progress.advance(task_downloaded_assets, 50)
+            downloaded_assets_progress.advance(task_downloaded_photos, 40)
+            downloaded_assets_progress.advance(task_downloaded_videos, 8)
+            downloaded_assets_progress.advance(task_downloaded_albums, 2)
+            downloaded_assets_progress.advance(task_downloaded_metadata, 45)
 
             # Simulate failed assets
-            download_progress.advance(task_assets_failed, 5)
-            download_progress.advance(task_photos_failed, 4)
-            download_progress.advance(task_videos_failed, 1)
-            download_progress.advance(task_albums_failed, 1)
+            downloaded_assets_progress.advance(task_failed_assets, 5)
+            downloaded_assets_progress.advance(task_failed_photos, 4)
+            downloaded_assets_progress.advance(task_failed_videos, 1)
+            downloaded_assets_progress.advance(task_failed_albums, 1)
 
             log_message("[cyan]Downloading asset...[/cyan]")
 
@@ -144,9 +173,9 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
 
     # Live display in the terminal
     with Live(layout, refresh_per_second=10, console=console):
-        layout["input_analysis"].update(Panel(input_analysis_data, title="📊 Input Analysis", border_style="blue", expand=True))
-        layout["downloads"].update(Panel(download_progress, title="📥 Synology Photos Downloads", border_style="cyan", expand=True))
-        layout["uploads"].update(Panel(upload_progress, title="📤 Immich Photos Uploads", border_style="green", expand=True))
+        layout["input_analysis"].update(Panel(input_analysis_data, title="📊 Input Analysis", border_style="blue", expand=True, width=terminal_width // 3))
+        layout["downloads"].update(Panel(downloaded_assets_progress, title="📥 Synology Photos Downloads", border_style="cyan", expand=True, width=terminal_width // 3))
+        layout["uploads"].update(Panel(upload_progress, title="📤 Immich Photos Uploads", border_style="green", expand=True, width=terminal_width // 3))
         layout["logs"].update(log_panel)
 
         # Start downloads and uploads in separate threads
@@ -209,6 +238,7 @@ def main():
     print("🚀 All assets downloaded and uploaded successfully!")
 
 if __name__ == "__main__":
+    os.system('cls' if os.name == 'nt' else 'clear')
     # main()
     mode_AUTOMATED_MIGRATION()
 
