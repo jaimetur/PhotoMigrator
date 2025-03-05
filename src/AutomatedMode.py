@@ -14,10 +14,11 @@ from rich.layout import Layout
 from rich.panel import Panel
 from rich.progress import Progress, BarColumn, TextColumn
 from rich.live import Live
+from rich.text import Text
+from rich.table import Table
+import threading
 import time
 import random
-import threading
-import queue
 
 
 ####################################
@@ -28,33 +29,29 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
 
     console = Console()
 
-    # Layout structure
+    # Prepare main layout
     layout = Layout()
 
-    # Get terminal width dynamically
-    terminal_width = console.width
-
-    # Header at full width
     layout.split(
         Layout(name="header", size=3),
         Layout(name="content", ratio=10),
         Layout(name="logs", size=12)
     )
 
-    # Logs Panel
-    log_panel = Panel("", title="📜 Logs", border_style="red", expand=True)
-
-    # Splitting content into three columns with enough space
     layout["content"].split_row(
         Layout(name="input_analysis", ratio=3),
-        Layout(name="downloads", ratio=3),
-        Layout(name="uploads", ratio=3)
+        Layout(name="downloads", ratio=4),
+        Layout(name="uploads", ratio=4)
     )
 
-    # Header Panel
-    layout["header"].update(Panel("[bold cyan]📂 Synology Photos → Immich Photos Migration[/bold cyan]", expand=True))
+    log_panel = Panel("", title="📜 Logs", border_style="red", expand=True)
 
-    # Input Analysis Panel (Static Information)
+    # Header
+    layout["header"].update(
+        Panel("[bold cyan]📂 Synology Photos → Immich Photos Migration[/bold cyan]", expand=True)
+    )
+
+    # Static info for Input Analysis
     input_analysis_data = """\
     📊 Total Assets:     5000
     🖼️ Total Photos:     4000
@@ -65,129 +62,163 @@ def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
     🚫 Unsupported Files:  50
     """
 
-    # Progress bars for downloads
-    downloaded_assets_progress = Progress(
-        TextColumn("[cyan]📊 Downloaded Assets:[/]"),
-        BarColumn(),
-        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-        console=console,
-        expand=True
-    )
+    # Function to create a progress bar + task
+    def create_progress_bar(title):
+        bar = Progress(
+            TextColumn(f"[cyan]{title}:[/]"),
+            BarColumn(),
+            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            console=console,
+            expand=True
+        )
+        return bar, title
 
-    downloaded_images_progress = Progress(
-        TextColumn("[cyan]🖼️ Downloaded Photos:[/]"),
-        BarColumn(),
-        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-        console=console,
-        expand=True
-    )
+    # Download progress bars
+    download_bars = [
+        create_progress_bar("📊 Downloaded Assets"),
+        create_progress_bar("🖼️ Downloaded Photos"),
+        create_progress_bar("🎥 Downloaded Videos"),
+        create_progress_bar("📂 Downloaded Albums"),
+        create_progress_bar("📑 Downloaded Metadata"),
+    ]
 
-    downloaded_videos_progress = Progress(
-        TextColumn("[cyan]🖼🎥 Downloaded Videos:[/]"),
-        BarColumn(),
-        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-        console=console,
-        expand=True
-    )
+    # Upload progress bars
+    upload_bars = [
+        create_progress_bar("📊 Uploaded Assets"),
+        create_progress_bar("🖼️ Uploaded Photos"),
+        create_progress_bar("🎥 Uploaded Videos"),
+        create_progress_bar("📂 Uploaded Albums"),
+        create_progress_bar("📑 Uploaded Metadata"),
+    ]
 
-    downloaded_albums_progress = Progress(
-        TextColumn("[cyan]🖼📂 Downloaded Albums:[/]"),
-        BarColumn(),
-        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-        console=console,
-        expand=True
-    )
+    # Counters for failed items
+    failed_downloads = {
+        "❌ Assets Failed": 0,
+        "❌ Photos Failed": 0,
+        "❌ Videos Failed": 0,
+        "❌ Albums Failed": 0,
+    }
 
-    # Progress bars for uploads
-    upload_progress = Progress(
-        TextColumn("[green]📤 Uploads:[/]"),
-        BarColumn(),
-        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-        console=console,
-        expand=True
-    )
+    failed_uploads = {
+        "❌ Assets Failed": 0,
+        "❌ Photos Failed": 0,
+        "❌ Videos Failed": 0,
+        "❌ Albums Failed": 0,
+    }
 
-    # Adding tasks for tracking progress
-    task_downloaded_assets = downloaded_assets_progress.add_task("📊 Assets", total=5000)
-    task_downloaded_photos = downloaded_images_progress.add_task("🖼️ Photos", total=4000)
-    task_downloaded_videos = downloaded_videos_progress.add_task("🎥 Videos", total=800)
-    task_downloaded_albums = downloaded_albums_progress.add_task("📂 Albums", total=200)
-    task_downloaded_metadata = downloaded_assets_progress.add_task("📑 Metadata", total=4500)
-    task_failed_assets = downloaded_assets_progress.add_task("❌ Assets Failed", total=5000)
-    task_failed_photos = downloaded_assets_progress.add_task("❌ Photos Failed", total=4000)
-    task_failed_videos = downloaded_assets_progress.add_task("❌ Videos Failed", total=800)
-    task_failed_albums = downloaded_assets_progress.add_task("❌ Albums Failed", total=200)
+    # Create task references
+    download_tasks = {}
+    for bar, title in download_bars:
+        download_tasks[title] = bar.add_task(title, total=5000)
 
-    task_assets_uploaded = upload_progress.add_task("📊 Assets", total=5000)
-    task_photos_uploaded = upload_progress.add_task("🖼️ Photos", total=4000)
-    task_videos_uploaded = upload_progress.add_task("🎥 Videos", total=800)
-    task_albums_uploaded = upload_progress.add_task("📂 Albums", total=200)
-    task_metadata_uploaded = upload_progress.add_task("📑 Metadata", total=4500)
-    task_assets_failed_upload = upload_progress.add_task("❌ Assets Failed", total=5000)
-    task_photos_failed_upload = upload_progress.add_task("❌ Photos Failed", total=4000)
-    task_videos_failed_upload = upload_progress.add_task("❌ Videos Failed", total=800)
-    task_albums_failed_upload = upload_progress.add_task("❌ Albums Failed", total=200)
+    upload_tasks = {}
+    for bar, title in upload_bars:
+        upload_tasks[title] = bar.add_task(title, total=5000)
 
-
-    # Function to update logs
+    # Logging function
     def log_message(message):
         global log_panel
-        log_text = log_panel.renderable if log_panel.renderable else ""
-        log_panel = Panel(f"{log_text}\n{message}", title="📜 Logs", border_style="red")
+        log_text = log_panel.renderable or ""
+        new_text = f"{log_text}\n{message}"
+        log_panel = Panel(new_text, title="📜 Logs", border_style="red")
 
-    # Simulated download function
+    # Simulated downloads
     def simulate_downloads():
         for _ in range(100):
             time.sleep(random.uniform(0.05, 0.2))
-            downloaded_assets_progress.advance(task_downloaded_assets, 50)
-            downloaded_assets_progress.advance(task_downloaded_photos, 40)
-            downloaded_assets_progress.advance(task_downloaded_videos, 8)
-            downloaded_assets_progress.advance(task_downloaded_albums, 2)
-            downloaded_assets_progress.advance(task_downloaded_metadata, 45)
+            # Advance each download bar
+            for bar, title in download_bars:
+                bar.advance(download_tasks[title], random.randint(1, 50))
 
-            # Simulate failed assets
-            downloaded_assets_progress.advance(task_failed_assets, 5)
-            downloaded_assets_progress.advance(task_failed_photos, 4)
-            downloaded_assets_progress.advance(task_failed_videos, 1)
-            downloaded_assets_progress.advance(task_failed_albums, 1)
+            # Simulate failures
+            failed_downloads["❌ Assets Failed"] += random.randint(0, 5)
+            failed_downloads["❌ Photos Failed"] += random.randint(0, 4)
+            failed_downloads["❌ Videos Failed"] += random.randint(0, 2)
+            failed_downloads["❌ Albums Failed"] += random.randint(0, 1)
 
             log_message("[cyan]Downloading asset...[/cyan]")
 
-    # Simulated upload function
+    # Simulated uploads
     def simulate_uploads():
         for _ in range(100):
             time.sleep(random.uniform(0.05, 0.2))
-            upload_progress.advance(task_assets_uploaded, 50)
-            upload_progress.advance(task_photos_uploaded, 40)
-            upload_progress.advance(task_videos_uploaded, 8)
-            upload_progress.advance(task_albums_uploaded, 2)
-            upload_progress.advance(task_metadata_uploaded, 45)
+            # Advance each upload bar
+            for bar, title in upload_bars:
+                bar.advance(upload_tasks[title], random.randint(1, 50))
 
-            # Simulate failed uploads
-            upload_progress.advance(task_assets_failed_upload, 5)
-            upload_progress.advance(task_photos_failed_upload, 4)
-            upload_progress.advance(task_videos_failed_upload, 1)
-            upload_progress.advance(task_albums_failed_upload, 1)
+            # Simulate failures
+            failed_uploads["❌ Assets Failed"] += random.randint(0, 5)
+            failed_uploads["❌ Photos Failed"] += random.randint(0, 4)
+            failed_uploads["❌ Videos Failed"] += random.randint(0, 2)
+            failed_uploads["❌ Albums Failed"] += random.randint(0, 1)
 
             log_message("[green]Uploading asset...[/green]")
 
-    # Live display in the terminal
+    # Build panels with Table (1 column) to place bars + counters vertically
+    def make_download_panel():
+        table = Table.grid(expand=True)
+        table.add_column()
+        # Add all download bars in rows
+        for bar, _ in download_bars:
+            table.add_row(bar)
+
+        # Add the failed counters
+        for title, count in failed_downloads.items():
+            table.add_row(Text(f"[cyan]{title}:[/] {count}"))
+
+        return Panel(
+            table,
+            title="📥 Synology Photos Downloads",
+            border_style="cyan",
+            expand=True
+        )
+
+    def make_upload_panel():
+        table = Table.grid(expand=True)
+        table.add_column()
+        # Add all upload bars in rows
+        for bar, _ in upload_bars:
+            table.add_row(bar)
+
+        # Add the failed counters
+        for title, count in failed_uploads.items():
+            table.add_row(Text(f"[green]{title}:[/] {count}"))
+
+        return Panel(
+            table,
+            title="📤 Immich Photos Uploads",
+            border_style="green",
+            expand=True
+        )
+
     with Live(layout, refresh_per_second=10, console=console):
-        layout["input_analysis"].update(Panel(input_analysis_data, title="📊 Input Analysis", border_style="blue", expand=True, width=terminal_width // 3))
-        layout["downloads"].update(Panel(downloaded_assets_progress, title="📥 Synology Photos Downloads", border_style="cyan", expand=True, width=terminal_width // 3))
-        layout["uploads"].update(Panel(upload_progress, title="📤 Immich Photos Uploads", border_style="green", expand=True, width=terminal_width // 3))
+        # Input Analysis
+        layout["input_analysis"].update(
+            Panel(input_analysis_data, title="📊 Input Analysis", border_style="blue", expand=True)
+        )
+
+        # Initialize panels
+        layout["downloads"].update(make_download_panel())
+        layout["uploads"].update(make_upload_panel())
         layout["logs"].update(log_panel)
 
-        # Start downloads and uploads in separate threads
+        # Start threads
         thread1 = threading.Thread(target=simulate_downloads)
         thread2 = threading.Thread(target=simulate_uploads)
 
         thread1.start()
         thread2.start()
 
+        # Continuously refresh the panels
+        while thread1.is_alive() or thread2.is_alive():
+            time.sleep(0.1)
+            # Re-render updated panels (to show updated counters)
+            layout["downloads"].update(make_download_panel())
+            layout["uploads"].update(make_upload_panel())
+            layout["logs"].update(log_panel)
+
         thread1.join()
         thread2.join()
-
 
 
 # Simulated functions
