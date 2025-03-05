@@ -12,7 +12,7 @@ from ServiceImmichPhotos import login_immich, logout_immich, immich_upload_album
 ####################################
 # EXTRA MODE: AUTOMATED-MIGRATION: #
 ####################################
-def mode_DASHBOARD_AUTOMATED_MIGRATION(input_info=None, log_level=logging.INFO):
+def showDashboard(input_info=None, log_level=logging.INFO):
     import time, random, threading
     from rich.console import Console
     from rich.layout import Layout
@@ -242,42 +242,79 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(input_info=None, log_level=logging.INFO):
         thread_uploads.join()
 
 
-
-# Simulated functions
-def download_asset(asset_id, download_queue):
-    """Simulates downloading an asset and puts it into the upload queue."""
-    time.sleep(random.uniform(0.5, 2))  # Simulate network delay
-    print(f"✅ Downloaded asset {asset_id}")
-    download_queue.put(asset_id)  # Add to upload queue
-
-def upload_asset(asset_id):
-    """Simulates uploading an asset."""
-    time.sleep(random.uniform(0.5, 2))  # Simulate network delay
-    print(f"📤 Uploaded asset {asset_id}")
-
-def download_worker(download_queue, asset_ids):
-    """Thread worker that downloads assets and puts them into the queue."""
-    for asset_id in asset_ids:
-        download_asset(asset_id, download_queue)
-
-    # Signal that all downloads are done
-    download_queue.put(None)
-
-def upload_worker(download_queue):
-    """Thread worker that uploads assets from the queue."""
-    while True:
-        asset_id = download_queue.get()
-        if asset_id is None:  # Exit signal
-            break
-        upload_asset(asset_id)
-
 # Main execution
-def main():
-    asset_ids = range(1, 21)  # Simulated asset list
+def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
+    # Simulated functions
+    def download_asset(asset, download_queue):
+        """Simulates downloading an asset and puts it into the upload queue."""
+        # time.sleep(random.uniform(0.5, 2))  # Simulate network delay
+        asset_id = asset.get('id')
+        asset_name = asset.get('filename')
+        asset_time = asset.get('time')
+
+        ServiceSynologyPhotos.download_asset(asset_id=asset_id, asset_name=asset_name, asset_time=asset_time, destination_folder=temp_folder, log_level=logging.WARNING)
+        # showDashboard(input_info)
+        file_path = os.path.join(temp_folder,asset_name)
+        print(f"✅ Downloaded asset: '{asset_name}'")
+        download_queue.put(file_path)  # Add to upload queue
+
+    def upload_asset(file_path):
+        """Simulates uploading an asset."""
+        # time.sleep(random.uniform(0.5, 2))  # Simulate network delay
+        ServiceImmichPhotos.upload_asset(file_path=file_path, log_level=logging.WARNING)
+        os.remove(file_path)
+        # showDashboard(input_info)
+        print(f"✅ Uploaded asset: '{os.path.basename(file_path)}'")
+
+    def download_worker(download_queue, all_assets):
+        """Thread worker that downloads assets and puts them into the queue."""
+        for asset in all_assets:
+            download_asset(asset, download_queue)
+
+        # Signal that all downloads are done
+        download_queue.put(None)
+
+    def upload_worker(download_queue):
+        """Thread worker that uploads assets from the queue."""
+        while True:
+            file_path = download_queue.get()
+            if file_path is None:  # Exit signal
+                break
+            upload_asset(file_path)
+
+    import ServiceSynologyPhotos
+    import ServiceImmichPhotos
+    import queue
+    import threading
+    import time
+    import random
+    from Utils import check_OS_and_Terminal, change_workingdir
+
+    # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
+    change_workingdir()
+
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+    all_albums = ServiceSynologyPhotos.get_albums()
+    all_assets = ServiceSynologyPhotos.get_all_assets()
+    all_photos = [asset for asset in all_assets if asset['type'] == 'photo']
+    all_videos = [asset for asset in all_assets if asset['type'] == 'video']
+    input_info = {
+        "total_assets": len(all_assets),
+        "total_photos": len(all_photos),
+        "total_videos": len(all_videos),
+        "total_albums": len(all_albums),
+        "total_metadata": 0,
+        "total_sidecar": 0,
+        "total_unsopported": 0
+    }
+    # showDashboard(input_info)
+
+    # all_assets = range(1, 21)  # Simulated asset list
     download_queue = queue.Queue()
 
     # Create threads
-    download_thread = threading.Thread(target=download_worker, args=(download_queue, asset_ids))
+    download_thread = threading.Thread(target=download_worker, args=(download_queue, all_assets))
     upload_thread = threading.Thread(target=upload_worker, args=(download_queue,))
 
     # Start threads
@@ -291,16 +328,29 @@ def main():
     print("🚀 All assets downloaded and uploaded successfully!")
 
 if __name__ == "__main__":
-    os.system('cls' if os.name == 'nt' else 'clear')
-    # main()
+    import ServiceSynologyPhotos
+    import ServiceImmichPhotos
+    from Utils import check_OS_and_Terminal, change_workingdir
+
+    # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
+    change_workingdir()
+
+    temp_folder = './Temp_folder'
+    mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder)
+    os.rmdir(temp_folder)
+
+    all_albums = ServiceSynologyPhotos.get_albums()
+    all_assets = ServiceSynologyPhotos.get_all_assets()
+    all_photos = [asset for asset in all_assets if asset['type'] == 'photo']
+    all_videos = [asset for asset in all_assets if asset['type'] == 'video']
     input_info = {
-        "total_assets": 2000,
-        "total_photos": 1400,
-        "total_videos": 600,
-        "total_albums": 200,
-        "total_metadata": 180,
-        "total_sidecar": 23,
-        "total_unsopported": 58
+        "total_assets": len(all_assets),
+        "total_photos": len(all_photos),
+        "total_videos": len(all_videos),
+        "total_albums": len(all_albums),
+        "total_metadata": 0,
+        "total_sidecar": 0,
+        "total_unsopported": 0
     }
-    mode_DASHBOARD_AUTOMATED_MIGRATION(input_info)
+    showDashboard(input_info)
 
