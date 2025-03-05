@@ -49,14 +49,14 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(log_level=logging.INFO):
     log_panel = Panel("", title="📜 Logs", border_style="red", expand=True)
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 1) Header
+    # 1) Header Panel
     # ─────────────────────────────────────────────────────────────────────────
     layout["header"].update(
         Panel("[bold cyan]📂 Synology Photos → Immich Photos Migration[/bold cyan]", expand=True)
     )
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 2) Input Analysis (Magenta)
+    # 2) Input Analysis Panel
     # ─────────────────────────────────────────────────────────────────────────
     analysis_data = [
         ("📊 Total Assets", 5000),
@@ -143,7 +143,35 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(log_level=logging.INFO):
         upload_tasks[label] = bar.add_task(label, total=5000)
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 4) Logging
+    # 4) Build the Download/Upload Panels
+    # ─────────────────────────────────────────────────────────────────────────
+    def build_download_panel():
+        table = Table.grid(expand=True)
+        table.add_column(justify="left", width=25)
+        table.add_column(justify="right")
+
+        for label, bar in download_bars.items():
+            table.add_row(f"[cyan]{label:<20}:[/cyan]", bar)
+
+        for label, val in failed_downloads.items():
+            table.add_row(f"[cyan]❌ {label:<18}:[/cyan]", f"[cyan]{val}[/cyan]")
+
+        return Panel(table, title="📥 Synology Photos Downloads", border_style="cyan", expand=True)
+
+    def build_upload_panel():
+        table = Table.grid(expand=True)
+        table.add_column(justify="left", width=23)
+        table.add_column(justify="right")
+
+        for label, bar in upload_bars.items():
+            table.add_row(f"[green]{label:<18}:[/green]", bar)
+
+        for label, val in failed_uploads.items():
+            table.add_row(f"[green]❌ {label:<16}:[/green]", f"[green]{val}[/green]")
+
+        return Panel(table, title="📤 Immich Photos Uploads", border_style="green", expand=True)
+    # ─────────────────────────────────────────────────────────────────────────
+    # 5) Logging Panel
     # ─────────────────────────────────────────────────────────────────────────
     def log_message(message: str):
         global log_panel
@@ -180,34 +208,6 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(log_level=logging.INFO):
 
             log_message("[green]Uploading asset...[/green]")
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 6) Build the Download/Upload Panels
-    # ─────────────────────────────────────────────────────────────────────────
-    def build_download_panel():
-        table = Table.grid(expand=True)
-        table.add_column(justify="left", width=25)
-        table.add_column(justify="right")
-
-        for label, bar in download_bars.items():
-            table.add_row(f"[cyan]{label:<20}:[/cyan]", bar)
-
-        for label, val in failed_downloads.items():
-            table.add_row(f"[cyan]❌ {label:<18}:[/cyan]", f"[cyan]{val}[/cyan]")
-
-        return Panel(table, title="📥 Synology Photos Downloads", border_style="cyan", expand=True)
-
-    def build_upload_panel():
-        table = Table.grid(expand=True)
-        table.add_column(justify="left", width=23)
-        table.add_column(justify="right")
-
-        for label, bar in upload_bars.items():
-            table.add_row(f"[green]{label:<18}:[/green]", bar)
-
-        for label, val in failed_uploads.items():
-            table.add_row(f"[green]❌ {label:<16}:[/green]", f"[green]{val}[/green]")
-
-        return Panel(table, title="📤 Immich Photos Uploads", border_style="green", expand=True)
 
     # ─────────────────────────────────────────────────────────────────────────
     # 7) Main Live Loop
