@@ -281,8 +281,10 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
             LOGGER.warning(f"WARNING : Flag detected '-grdf, --google-remove-duplicates-files'. All duplicates files within OUTPUT_TAKEOUT_FOLDER will be removed after fixing them...")
         if ARGS['no-log-file']:
             LOGGER.warning(f"WARNING : Flag detected '-nolog, --no-log-file'. Skipping saving output into log file...")
+        # Create the Object
+        takeout = ClassGoogleTakeout()
         # Call the Function
-        albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders = google_takeout_processor(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER)
+        albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders = takeout.google_takeout_processor(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER)
         # FINAL SUMMARY
         end_time = datetime.now()
         # Count Files in Output Folder
