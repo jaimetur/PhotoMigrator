@@ -53,7 +53,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
   - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.1.0/CloudPhotoMigrator_v3.1.0_macos_arm64.zip)  
 
 **Windows:**  
-- [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.1.0/CloudPhotoMigrator_v3.1.0_windows_amd64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.1.0/CloudPhotoMigrator_v3.1.0_windows_amd64.zip)  
 
 
 ## Instructions to execute from compiled version:
