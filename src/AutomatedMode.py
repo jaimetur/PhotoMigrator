@@ -433,7 +433,7 @@ def automated_migration(source_client, target_client, temp_folder):
     for _ in range(num_upload_threads):
         upload_queue.put(None)
 
-    # Esperamos a que la cola termine de procesar todo
+    # Esperamos a que la cola termine de procesarse
     upload_queue.join()
 
     # Finalmente, borrar carpetas vacías que queden en temp_folder
