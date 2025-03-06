@@ -33,7 +33,6 @@ class ClassGoogleTakeout:
         Constructor that imports the global LOGGER and other relevant variables from GlobalVariables,
         storing them as attributes for use inside methods.
         """
-        # Import the global LOGGER, ARGS, TIMESTAMP, DEPRIORITIZE_FOLDERS_PATTERNS from GlobalVariables
         from GlobalVariables import LOGGER, ARGS, TIMESTAMP, DEPRIORITIZE_FOLDERS_PATTERNS
         self.logger = LOGGER
         self.ARGS = ARGS

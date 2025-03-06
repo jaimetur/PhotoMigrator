@@ -80,14 +80,14 @@ def count_images_in_folder(folder_path, log_level=logging.INFO):
     as images only those files with extensions defined in
     the global variable IMAGE_EXT (in lowercase).
     """
-    from GlobalVariables import LOGGER, PHOTO_EXT
+    from GlobalVariables import LOGGER, IMAGE_EXT
     with set_log_level(LOGGER, log_level):  # Change log level temporarily
         total_images = 0
         for path, dirs, files in os.walk(folder_path):
             for file_name in files:
                 # Extract the file extension in lowercase
                 _, extension = os.path.splitext(file_name)
-                if extension.lower() in PHOTO_EXT:
+                if extension.lower() in IMAGE_EXT:
                     total_images += 1
         return total_images
 
@@ -132,7 +132,7 @@ def count_sidecars_in_folder(folder_path, log_level=logging.INFO):
     2. It shares the same base name as an image file in the same directory.
     3. The sidecar file name may include the image extension before the sidecar extension.
     """
-    from GlobalVariables import LOGGER, PHOTO_EXT, SIDECAR_EXT
+    from GlobalVariables import LOGGER, IMAGE_EXT, SIDECAR_EXT
     with set_log_level(LOGGER, log_level):  # Change log level temporarily
         total_sidecars = 0
         for path, dirs, files in os.walk(folder_path):
@@ -140,7 +140,7 @@ def count_sidecars_in_folder(folder_path, log_level=logging.INFO):
             image_base_names = set()
             for file_name in files:
                 base_name, ext = os.path.splitext(file_name)
-                if ext.lower() in PHOTO_EXT:
+                if ext.lower() in IMAGE_EXT:
                     image_base_names.add(base_name)
             # Count valid sidecar files
             for file_name in files:
@@ -161,12 +161,12 @@ def count_valid_albums(folder_path, log_level=logging.INFO):
     defined in IMAGE_EXT or VIDEO_EXT.
     """
     import os
-    from GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT
+    from GlobalVariables import LOGGER, IMAGE_EXT, VIDEO_EXT
     with set_log_level(LOGGER, log_level):  # Change log level temporarily
         valid_albums = 0
         for root, dirs, files in os.walk(folder_path):
             # Check if there's at least one valid image or video file
-            if any(os.path.splitext(file)[1].lower() in PHOTO_EXT or os.path.splitext(file)[1].lower() in VIDEO_EXT for file in files):
+            if any(os.path.splitext(file)[1].lower() in IMAGE_EXT or os.path.splitext(file)[1].lower() in VIDEO_EXT for file in files):
                 valid_albums += 1
         return valid_albums
 
@@ -947,15 +947,16 @@ def update_metadata(file_path, date_time, log_level=logging.INFO):
         file_path (str): Path to the file.
         date_time (str): Date and time in 'YYYY-MM-DD HH:MM:SS' format.
     """
-    from GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT
+    from ClassSynologyPhotos import ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS, ALLOWED_SYNOLOGY_VIDEO_EXTENSIONS
+    from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         file_ext = os.path.splitext(file_path)[1].lower()
 
         try:
-            if file_ext in PHOTO_EXT:
-                update_exif_date(file_path, date_time, log_level=log_level)
-            elif file_ext in VIDEO_EXT:
-                update_video_metadata(file_path, date_time, log_level=log_level)
+            if file_ext in ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS:
+                update_exif_date(file_path, date_time)
+            elif file_ext in ALLOWED_SYNOLOGY_VIDEO_EXTENSIONS:
+                update_video_metadata(file_path, date_time)
             LOGGER.debug("")
             LOGGER.debug(f"DEBUG   : Metadata updated for {file_path} with timestamp {date_time}")
 
