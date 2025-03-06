@@ -71,7 +71,7 @@ class ClassImmichPhotos:
         """
         Constructor that initializes what used to be global variables.
         """
-        # We continue importing the global LOGGER from your existing GlobalVariables
+        # Import the global LOGGER from GlobalVariables
         from GlobalVariables import LOGGER
         self.logger = LOGGER
         
