@@ -235,6 +235,42 @@ class ClassSynologyPhotos:
 
 
     ###########################################################################
+    #                           GENERAL UTILITY                               #
+    ###########################################################################
+    def get_supported_media_types(self, type='media', log_level=logging.INFO):
+        """
+        Returns the supported media/sidecar extensions as for Synology Photos
+        """
+        with set_log_level(self.logger, log_level):
+            try:
+                if type.lower() == 'media':
+                    supported_types = self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS
+                    self.logger.debug(f"DEBUG   : Supported media types: '{supported_types}'.")
+                elif type.lower() == 'image':
+                    supported_types = self.ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS
+                    self.logger.debug(f"DEBUG   : Supported image types: '{supported_types}'.")
+                elif type.lower() == 'video':
+                    supported_types = self.ALLOWED_SYNOLOGY_VIDEO_EXTENSIONS
+                    self.logger.debug(f"DEBUG   : Supported video types: '{supported_types}'.")
+                elif type.lower() == 'sidecar':
+                    supported_types = self.ALLOWED_SYNOLOGY_SIDECAR_EXTENSIONS
+                    self.logger.debug(f"DEBUG   : Supported sidecar types: '{supported_types}'.")
+                else:
+                    self.logger.error(f"ERROR   : Invalid type '{type}' to get supported media types. Types allowed are 'media', 'image', 'video' or 'sidecar'")
+                    return None
+                return supported_types
+            except Exception as e:
+                self.logger.error(f"ERROR   : Cannot get Supported media types: {e}")
+                return None
+
+    def get_user_id(self, log_level=logging.INFO):
+        """
+        Returns the user_id of the currently logged-in user.
+        """
+        with set_log_level(self.logger, log_level):
+            return None
+
+    ###########################################################################
     #                            ALBUMS FUNCTIONS                             #
     ###########################################################################
     def remove_album(self, album_id, album_name, log_level=logging.INFO):
@@ -351,7 +387,7 @@ class ClassSynologyPhotos:
             return albums_dict
 
 
-    def get_albums_own_and_shared(self, log_level=logging.INFO):
+    def get_albums_including_shared(self, log_level=logging.INFO):
         """
         Lists both own and shared albums in Synology Photos.
 
@@ -397,7 +433,7 @@ class ClassSynologyPhotos:
                     self.logger.error("ERROR   : Exception while listing own albums:", e)
                     return []
             # Because we appended all pages to album_list, it might be nested.
-            # Typically it's one big list inside album_list[0], if there's only one iteration.
+            # Typically, it's one big list inside album_list[0], if there's only one iteration.
             # Flatten if needed.
             combined = []
             for chunk in album_list:
@@ -405,7 +441,7 @@ class ClassSynologyPhotos:
             return combined
 
 
-    def get_album_items_size(self, album_id, album_name, log_level=logging.INFO):
+    def get_album_assets_size(self, album_id, album_name, log_level=logging.INFO):
         """
         Gets the total size (bytes) of items in an album.
 
@@ -458,7 +494,7 @@ class ClassSynologyPhotos:
             return album_size
 
 
-    def get_album_items_count(self, album_id, album_name, log_level=logging.INFO):
+    def get_album_assets_count(self, album_id, album_name, log_level=logging.INFO):
         """
         Gets the number of items in an album.
 
@@ -545,8 +581,27 @@ class ClassSynologyPhotos:
                 combined_assets.extend(chunk)
             return combined_assets
 
+    def get_no_albums_assets(self, log_level=logging.WARNING):
+        """
+        Get assets not associated to any album from Synology Photos.
 
-    def get_assets_from_album(self, album_id, album_name, log_level=logging.INFO):
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns assets_without_albums
+        """
+        with set_log_level(self.logger, log_level):
+            self.login(log_level=log_level)
+            all_assets = self.get_all_assets(log_level=logging.INFO)
+            album_asset = self.get_all_albums_assets(log_level=logging.INFO)
+            # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
+            assets_without_albums = get_unique_items(all_assets, album_asset, key='filename')
+            self.logger.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
+            self.logout(log_level=log_level)
+            return assets_without_albums
+
+
+    def get_album_assets(self, album_id, album_name=None, log_level=logging.INFO):
         """
         Lists photos in a specific album.
 
@@ -583,7 +638,10 @@ class ClassSynologyPhotos:
                     resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
                     data = resp.json()
                     if not data.get("success"):
-                        self.logger.error(f"ERROR   : Failed to list photos in the album '{album_name}'")
+                        if album_name:
+                            self.logger.error(f"ERROR   : Failed to list photos in the album '{album_name}'")
+                        else:
+                            self.logger.error(f"ERROR   : Failed to list photos in the album ID={album_id}")
                         return []
                     album_items.append(data["data"]["list"])
 
@@ -591,7 +649,10 @@ class ClassSynologyPhotos:
                         break
                     offset += limit
                 except Exception as e:
-                    self.logger.error(f"ERROR   : Exception while listing photos in the album '{album_name}' {e}")
+                    if album_name:
+                        self.logger.error(f"ERROR   : Exception while listing photos in the album '{album_name}' {e}")
+                    else:
+                        self.logger.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                     return []
 
             for c in album_items:
@@ -599,7 +660,7 @@ class ClassSynologyPhotos:
             return combined_items
 
 
-    def get_all_asset_from_all_albums(self, log_level=logging.WARNING):
+    def get_all_albums_assets(self, log_level=logging.WARNING):
         """
         Gathers assets from all known albums, merges them into a single list.
 
@@ -620,7 +681,7 @@ class ClassSynologyPhotos:
             if all_albums == -1:
                 return []
             for album_id, album_name in all_albums.items():
-                album_assets = self.get_assets_from_album(album_id, album_name, log_level=log_level)
+                album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
                 combined_assets.extend(album_assets)
             return combined_assets
 
@@ -679,6 +740,12 @@ class ClassSynologyPhotos:
                 self.logger.info(f"INFO    : {total_added} Assets successfully added to album ID: '{album_id}'.")
             return total_added
 
+    def get_duplicates_assets(self, log_level=logging.INFO):
+        """
+        Returns the list of duplicate assets from Synology
+        """
+        with set_log_level(self.logger, log_level):
+            return []
 
     def remove_assets(self, asset_ids, log_level=logging.INFO):
         """
@@ -724,61 +791,12 @@ class ClassSynologyPhotos:
             self.wait_for_remove_task(task_id, log_level=log_level)
             return removed_count
 
-
-    # def wait_for_remove_task(self, task_id, log_level=logging.INFO):
-    #     """
-    #     Internal helper to poll a background remove task until done.
-    #
-    #     Args:
-    #         log_level (logging.LEVEL): log_level for logs and console
-    #     """
-    #     with set_log_level(self.logger, log_level):
-    #         while True:
-    #             status = self.check_background_remove_task_finished(task_id, log_level=log_level)
-    #             if status == 'done' or status is True:
-    #                 self.logger.info(f'INFO    : Waiting for removing assets to finish...')
-    #                 time.sleep(5)
-    #                 break
-    #             else:
-    #                 self.logger.debug(f"DEBUG   : Task not finished yet. Waiting 5 seconds more.")
-    #                 time.sleep(5)
-    #
-    #
-    # def check_background_remove_task_finished(self, task_id, log_level=logging.INFO):
-    #     """
-    #     Checks whether a background removal task is finished.
-    #
-    #     Args:
-    #         log_level (logging.LEVEL): log_level for logs and console
-    #     """
-    #     with set_log_level(self.logger, log_level):
-    #         self.login(log_level=log_level)
-    #         url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-    #         headers = {}
-    #         if self.SYNO_TOKEN_HEADER:
-    #             headers.update(self.SYNO_TOKEN_HEADER)
-    #
-    #         params = {
-    #             'api': 'SYNO.Foto.BackgroundTask.Info',
-    #             'version': '1',
-    #             'method': 'get_status',
-    #             'id': f'[{task_id}]'
-    #         }
-    #         try:
-    #             resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
-    #             data = resp.json()
-    #             if not data.get("success"):
-    #                 self.logger.error(f"ERROR   : Failed to get removing assets status")
-    #                 return False
-    #             lst = data['data'].get('list', [])
-    #             if len(lst) > 0:
-    #                 return lst[0].get('status')
-    #             else:
-    #                 return True
-    #         except Exception as e:
-    #             self.logger.error(f"ERROR   : Exception while checking removing assets status {e}")
-    #             return False
-
+    def remove_duplicates_assets(self, log_level=logging.INFO):
+        """
+        Removes duplicate assets in the Immich database. Returns how many duplicates got removed.
+        """
+        with set_log_level(self.logger, log_level):
+            return 0
 
     def upload_asset(self, file_path, log_level=logging.INFO):
         """
@@ -1165,7 +1183,7 @@ class ClassSynologyPhotos:
             if isinstance(albums_name, str):
                 albums_name = [albums_name]
 
-            all_albums = self.get_albums_own_and_shared(log_level=log_level)
+            all_albums = self.get_albums_including_shared(log_level=log_level)
 
             if 'ALL' in [x.strip().upper() for x in albums_name]:
                 albums_to_download = all_albums
@@ -1197,7 +1215,7 @@ class ClassSynologyPhotos:
                 album_name = album.get('name')
                 album_id = album.get('id')
                 self.logger.info(f"INFO    : Processing album: '{album_name}' (ID: {album_id})")
-                album_assets = self.get_assets_from_album(album_id, album_name, log_level=log_level)
+                album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
                 self.logger.info(f"INFO    : Number of album_assets in the album '{album_name}': {len(album_assets)}")
                 if not album_assets:
                     self.logger.warning(f"WARNING : No album_assets to download in the album '{album_name}'.")
@@ -1238,7 +1256,7 @@ class ClassSynologyPhotos:
             os.makedirs(output_folder, exist_ok=True)
 
             all_assets = self.get_all_assets(log_level=logging.INFO)
-            album_asset = self.get_all_asset_from_all_albums(log_level=logging.INFO)
+            album_asset = self.get_all_albums_assets(log_level=logging.INFO)
 
             # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
             assets_without_albums = get_unique_items(all_assets, album_asset, key='filename')
@@ -1370,7 +1388,7 @@ class ClassSynologyPhotos:
             if albums_dict != -1:
                 self.logger.info("INFO    : Looking for empty albums in Synology Photos...")
                 for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, desc="INFO    : Removing Empty Albums", unit=" albums"):
-                    item_count = self.get_album_items_count(album_id, album_name, log_level=logging.WARNING)
+                    item_count = self.get_album_assets_count(album_id, album_name, log_level=logging.WARNING)
                     if item_count == 0:
                         self.logger.info(f"INFO    : Removing empty album: '{album_name}' (ID: {album_id})")
                         self.remove_album(album_id, album_name, log_level=logging.WARNING)
@@ -1404,8 +1422,8 @@ class ClassSynologyPhotos:
             self.logger.info("INFO    : Looking for duplicate albums in Synology Photos...")
             albums_data = {}
             for album_id, album_name in tqdm(albums_dict.items(), smoothing=0.1, desc="INFO    : Removing Duplicates Albums", unit=" albums"):
-                item_count = self.get_album_items_count(album_id, album_name, log_level=log_level)
-                item_size = self.get_album_items_size(album_id, album_name, log_level=log_level)
+                item_count = self.get_album_assets_count(album_id, album_name, log_level=log_level)
+                item_size = self.get_album_assets_size(album_id, album_name, log_level=log_level)
                 albums_data.setdefault((item_count, item_size), []).append((album_id, album_name))
 
             for (item_count, item_size), duplicates in albums_data.items():
@@ -1422,6 +1440,12 @@ class ClassSynologyPhotos:
             self.logout(log_level=log_level)
             return albums_deleted
 
+    # -----------------------------------------------------------------------------
+    #          DELETE ORPHANS ASSETS FROM IMMICH DATABASE
+    # -----------------------------------------------------------------------------
+    def remove_orphan_assets(user_confirmation=True, log_level=logging.WARNING):
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+            return 0
 
     ###########################################################################
     #                   MISC: REMOVE ALL ASSETS, ETC.                         #
@@ -1464,6 +1488,49 @@ class ClassSynologyPhotos:
 
             self.logout(log_level=log_level)
             return (removed_assets, removed_folders, removed_albums)
+
+    def remove_all_albums(self, removeAlbumsAssets=False, log_level=logging.WARNING):
+        """
+        Removes all albums and optionally also all their associated assets.
+        Returns (#albums_removed, #assets_removed).
+        """
+        with set_log_level(self.logger, log_level):
+            self.login(log_level=log_level)
+            albums = self.get_albums(log_level=log_level)
+            if not albums:
+                self.logger.info("INFO    : No albums found.")
+                self.logout(log_level=log_level)
+                return 0, 0
+
+            total_removed_albums = 0
+            total_removed_assets = 0
+
+            for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
+                album_id = album.get("id")
+                album_name = album.get("albumName", "")
+                album_assets_ids = []
+
+                if removeAlbumsAssets:
+                    album_assets = self.get_album_assets(album_id, log_level=log_level)
+                    for asset in album_assets:
+                        asset_id = asset.get("id")
+                        if asset_id:
+                            album_assets_ids.append(asset_id)
+                    self.remove_assets(album_assets_ids, log_level=logging.WARNING)
+                    total_removed_assets += len(album_assets_ids)
+
+                if self.remove_album(album_id, album_name, log_level=logging.WARNING):
+                    total_removed_albums += 1
+
+            self.logger.info(f"INFO    : Getting empty albums to remove...")
+            total_removed_albums += self.remove_empty_albums(log_level=logging.WARNING)
+
+            self.logger.info(f"INFO    : Removed {total_removed_albums} albums.")
+            if removeAlbumsAssets:
+                self.logger.info(f"INFO    : Removed {total_removed_assets} assets associated to albums.")
+
+            self.logout(log_level=log_level)
+            return total_removed_albums, total_removed_assets
 
 ##############################################################################
 #                                END OF CLASS                                #

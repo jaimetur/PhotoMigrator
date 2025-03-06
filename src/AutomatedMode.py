@@ -243,6 +243,232 @@ def showDashboard(input_info=None, log_level=logging.INFO):
 
 
 # Main execution
+def automated_migration(source_client, target_client, temp_folder):
+    """
+    Sincroniza fotos y vídeos entre un 'source_client' y un 'destination_client',
+    descargando álbumes y assets desde la fuente, y luego subiéndolos a destino,
+    de forma concurrente mediante una cola de proceso.
+
+    Parámetros:
+    -----------
+    source_client: objeto con los métodos:
+        - get_albums() -> [ { 'id': ..., 'name': ... }, ... ]
+        - get_album_assets(album_id) -> [ { 'id': ..., 'date': ..., 'type': ... }, ... ]
+        - get_assets_without_albums() -> [ { 'id': ..., 'date': ..., 'type': ... }, ... ]
+        - download_asset(asset_id, download_path) -> str (ruta local del archivo descargado)
+
+    target_client: objeto con los métodos:
+        - create_album(album_name) -> album_id
+        - album_exists(album_name) -> (bool, album_id_o_None)
+        - upload_asset(file_path, date) -> asset_id
+        - add_asset_to_album(album_id, asset_id) -> None
+
+    temp_folder: str
+        Carpeta temporal donde se descargarán los assets antes de subirse.
+    """
+    import os
+    import shutil
+    import threading
+    from queue import Queue
+
+    # Preparar la cola que compartiremos entre descargas y subidas
+    upload_queue = Queue()
+
+    # Diccionario para marcar álbumes procesados (ya contados y/o creados en el destino)
+    processed_albums = {}
+
+    # Contadores globales
+    counters = {
+        'total_downloaded_assets': 0,
+        'total_downloaded_photos': 0,
+        'total_downloaded_videos': 0,
+        'total_downloaded_albums': 0,
+
+        'total_uploaded_assets': 0,
+        'total_uploaded_photos': 0,
+        'total_uploaded_videos': 0,
+        'total_uploaded_albums': 0,
+    }
+
+    # ----------------------------------------------------------------------------
+    # 1) Función Worker para SUBIR (consumir de la cola)
+    # ----------------------------------------------------------------------------
+    def upload_worker():
+        while True:
+            item = upload_queue.get()
+            if item is None:
+                # Si recibimos None, significa que ya no hay más trabajo
+                upload_queue.task_done()
+                break
+
+            file_path = item['file_path']
+            date = item['date']
+            album_name = item['album_name']
+
+            # SUBIR el asset
+            asset_id = target_client.upload_asset(file_path, date)
+
+            # Actualizar contadores de subida
+            counters['total_uploaded_assets'] += 1
+            # Asumimos que item['type'] es 'photo' o 'video', si hiciera falta
+            if item.get('type') == 'video':
+                counters['total_uploaded_videos'] += 1
+            else:
+                counters['total_uploaded_photos'] += 1
+
+            # Borrar asset de la carpeta temp_folder tras subir
+            if os.path.exists(file_path):
+                os.remove(file_path)
+
+            # Si existe album_name, manejar álbum en destino
+            if album_name:
+                # Comprobamos si ya procesamos antes este álbum
+                if album_name not in processed_albums:
+                    processed_albums[album_name] = None  # Marcamos que se procesó
+                    counters['total_uploaded_albums'] += 1
+
+                # Si el álbum no existe en destino, lo creamos
+                album_exists, album_id_dest = target_client.album_exists(album_name)
+                if not album_exists:
+                    album_id_dest = target_client.create_album(album_name)
+
+                # Añadir el asset al álbum
+                target_client.add_asset_to_album(album_id_dest, asset_id)
+
+                # Verificar si la carpeta local del álbum está vacía y borrarla
+                album_folder_path = os.path.join(temp_folder, album_name)
+                if os.path.exists(album_folder_path):
+                    # Si la carpeta está vacía (o solo hay subcarpetas vacías), la borramos
+                    try:
+                        os.rmdir(album_folder_path)
+                    except OSError:
+                        # Si no está vacía, ignoramos el error
+                        pass
+
+            upload_queue.task_done()
+
+    # ----------------------------------------------------------------------------
+    # 2) Iniciar uno o varios hilos para manejar la subida concurrente
+    # ----------------------------------------------------------------------------
+    num_upload_threads = 2  # Ajustar según tus necesidades
+    for _ in range(num_upload_threads):
+        t = threading.Thread(target=upload_worker, daemon=True)
+        t.start()
+
+    # ----------------------------------------------------------------------------
+    # 3) DESCARGAS: Obtener álbumes y sus assets, descargar y poner en cola
+    # ----------------------------------------------------------------------------
+
+    # 3.1) Descarga de álbumes
+    albums = source_client.get_albums()
+    for album in albums:
+        album_id = album['id']
+        album_name = album['name']
+
+        # Descargar todos los assets de este álbum
+        album_assets = source_client.get_album_assets(album_id)
+
+        # Incrementamos contador de álbumes descargados
+        counters['total_downloaded_albums'] += 1
+
+        for asset in album_assets:
+            asset_id = asset['id']
+            asset_date = asset['date']
+            asset_type = asset['type']  # 'photo' o 'video', según convenga
+
+            # Crear carpeta del álbum dentro de temp_folder
+            album_folder = os.path.join(temp_folder, album_name)
+            os.makedirs(album_folder, exist_ok=True)
+
+            # Descargar el asset
+            local_file_path = source_client.download_asset(asset_id, album_folder)
+
+            # Contadores de descargas
+            counters['total_downloaded_assets'] += 1
+            if asset_type == 'video':
+                counters['total_downloaded_videos'] += 1
+            else:
+                counters['total_downloaded_photos'] += 1
+
+            # Enviar a la cola con la información necesaria para la subida
+            item_dict = {
+                'file_path': local_file_path,
+                'date': asset_date,
+                'album_name': album_name,  # incluido en el path
+                'type': asset_type
+            }
+            upload_queue.put(item_dict)
+
+    # 3.2) Descarga de assets sin álbum
+    assets_no_album = source_client.get_assets_without_albums()
+    for asset in assets_no_album:
+        asset_id = asset['id']
+        asset_date = asset['date']
+        asset_type = asset['type']  # 'photo' o 'video'
+
+        # Descargar directamente en temp_folder
+        local_file_path = source_client.download_asset(asset_id, temp_folder)
+
+        # Contadores
+        counters['total_downloaded_assets'] += 1
+        if asset_type == 'video':
+            counters['total_downloaded_videos'] += 1
+        else:
+            counters['total_downloaded_photos'] += 1
+
+        # Enviar a la cola sin album_name
+        item_dict = {
+            'file_path': local_file_path,
+            'date': asset_date,
+            'album_name': None,
+            'type': asset_type
+        }
+        upload_queue.put(item_dict)
+
+    # ----------------------------------------------------------------------------
+    # 4) Finalizar subidas y limpiar carpetas vacías
+    # ----------------------------------------------------------------------------
+
+    # Enviamos tantos None como hilos de subida para avisar que finalicen
+    for _ in range(num_upload_threads):
+        upload_queue.put(None)
+
+    # Esperamos a que la cola termine de procesar todo
+    upload_queue.join()
+
+    # Finalmente, borrar carpetas vacías que queden en temp_folder
+    _remove_empty_folders(temp_folder)
+
+    # En este punto todas las subidas están listas y la cola está vacía
+
+    # ----------------------------------------------------------------------------
+    # 5) Mostrar o retornar contadores
+    # ----------------------------------------------------------------------------
+    print("----- SINCRONIZACIÓN FINALIZADA -----")
+    print(f"Álbumes descargados: {counters['total_downloaded_albums']}")
+    print(f"Assets descargados: {counters['total_downloaded_assets']} "
+          f"(Fotos: {counters['total_downloaded_photos']}, Videos: {counters['total_downloaded_videos']})")
+    print(f"Álbumes subidos: {counters['total_uploaded_albums']}")
+    print(f"Assets subidos: {counters['total_uploaded_assets']} "
+          f"(Fotos: {counters['total_uploaded_photos']}, Videos: {counters['total_uploaded_videos']})")
+
+    return counters
+
+
+def _remove_empty_folders(folder_path):
+    """
+    Borra recursivamente las carpetas vacías dentro de folder_path.
+    """
+    # Recorremos cada carpeta dentro de folder_path
+    for root, dirs, files in os.walk(folder_path, topdown=False):
+        # Si no hay ficheros y no hay subcarpetas, intentamos borrarla
+        if not dirs and not files:
+            try:
+                os.rmdir(root)
+            except OSError:
+                pass
+
+
 def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
     # Simulated functions
     def download_asset(asset, download_queue):
@@ -330,17 +556,23 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
 if __name__ == "__main__":
     import ClassSynologyPhotos
     import ClassImmichPhotos
+    from ClassSynologyPhotos import ClassSynologyPhotos
+    from ClassImmichPhotos import ClassImmichPhotos
     from Utils import check_OS_and_Terminal, change_workingdir
 
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
     change_workingdir()
 
+    # Define the Temporary Folder for the downloaded assets.
     temp_folder = './Temp_folder'
-    mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder)
-    os.rmdir(temp_folder)
 
-    all_albums = ClassSynologyPhotos.get_albums()
-    all_assets = ClassSynologyPhotos.get_all_assets()
+    # Create the Objects for source and target
+    source = ClassSynologyPhotos()
+    target = ClassImmichPhotos()
+
+    # Get source client statistics:
+    all_albums = source.get_albums()
+    all_assets = source.get_all_assets()
     all_photos = [asset for asset in all_assets if asset['type'] == 'photo']
     all_videos = [asset for asset in all_assets if asset['type'] == 'video']
     input_info = {
@@ -352,5 +584,13 @@ if __name__ == "__main__":
         "total_sidecar": 0,
         "total_unsopported": 0
     }
-    showDashboard(input_info)
+    print (input_info)
+
+    # Call the automated_migration module to do the whole migration process
+    automated_migration(source_client=source, target_client=target, temp_folder=temp_folder)
+
+    # mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder)
+    # os.rmdir(temp_folder)
+    #
+    # showDashboard(input_info)
 
