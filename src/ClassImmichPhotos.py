@@ -45,19 +45,6 @@ from Utils import update_metadata, convert_to_list, tqdm, sha1_checksum
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-################################################################################
-#                     EJEMPLO DE UTILIDADES (PLACEHOLDERS)                     #
-################################################################################
-# Crear un contexto para cambiar el nivel del logger temporalmente
-# @contextmanager
-# def set_log_level(logger, level):
-#     old_level = logger.level  # Guardar nivel actual
-#     logger.setLevel(level)  # Cambiar nivel
-#     try:
-#         yield
-#     finally:
-#         logger.setLevel(old_level)  # Restaurar nivel original
-
 ##############################################################################
 #                              START OF CLASS                                #
 ##############################################################################
@@ -383,15 +370,27 @@ class ClassImmichPhotos:
                 self.logger.error(f"ERROR   : Error while listing albums: {e}")
                 return None
 
+    def get_albums_including_shared(self, log_level=logging.INFO):
+        """
+        Lists both own and shared albums in Synology Photos.
 
-    def get_album_items_size(self, album_id, log_level=logging.INFO):
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            list: A list of albums (each item is a dict describing an album).
+        """
+        with set_log_level(self.logger, log_level):
+            return self.get_albums(log_level=log_level)
+
+    def get_album_assets_size(self, album_id, log_level=logging.INFO):
         """
         Calculates the total size of all assets in an album, summing exifInfo.fileSizeInByte if available.
         """
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             try:
-                assets = self.get_assets_from_album(album_id, log_level=log_level)
+                assets = self.get_album_assets(album_id, log_level=log_level)
                 total_size = 0
                 for asset in assets:
                     exif_info = asset.get("exifInfo", {})
@@ -401,14 +400,14 @@ class ClassImmichPhotos:
             except Exception:
                 return 0
 
-    def get_album_items_count(self, album_id, log_level=logging.INFO):
+    def get_album_assets_count(self, album_id, log_level=logging.INFO):
         """
         Gets the number of items in an album.
         """
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             try:
-                assets = self.get_assets_from_album(album_id, log_level=log_level)
+                assets = self.get_album_assets(album_id, log_level=log_level)
                 return len(assets)
             except Exception:
                 return 0
@@ -416,7 +415,26 @@ class ClassImmichPhotos:
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
-    def get_assets_from_album(self, album_id, log_level=logging.INFO):
+    def get_no_albums_assets(self, log_level=logging.WARNING):
+        """
+        Get assets not associated to any album from Immich Photos.
+
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns assets_without_albums
+        """
+        with set_log_level(self.logger, log_level):
+            self.login(log_level=log_level)
+            all_assets = self.get_all_assets(log_level=logging.INFO)
+            album_asset = self.get_all_albums_assets(log_level=logging.INFO)
+            # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
+            assets_without_albums = get_unique_items(all_assets, album_asset, key='filename')
+            self.logger.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
+            self.logout(log_level=log_level)
+            return assets_without_albums
+
+    def get_album_assets(self, album_id, album_name=None, log_level=logging.INFO):
         """
         Returns the list of assets belonging to a given album ID.
         """
@@ -429,8 +447,32 @@ class ClassImmichPhotos:
                 data = resp.json()
                 return data.get("assets", [])
             except Exception as e:
-                self.logger.error(f"ERROR   : Failed to retrieve assets from album ID={album_id}: {str(e)}")
+                if album_name:
+                    self.logger.error(f"ERROR   : Failed to retrieve assets from album '{album_name}': {str(e)}")
+                else:
+                    self.logger.error(f"ERROR   : Failed to retrieve assets from album ID={album_id}: {str(e)}")
                 return []
+
+    def get_all_albums_assets(self, log_level=logging.WARNING):
+        """
+        Gathers assets from all known albums, merges them into a single list.
+
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            list: Albums Assets
+        """
+        with set_log_level(self.logger, log_level):
+            self.login(log_level=log_level)
+            all_albums = self.get_albums(log_level=log_level)
+            combined_assets = []
+            if all_albums == -1:
+                return []
+            for album_id, album_name in all_albums.items():
+                album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
+                combined_assets.extend(album_assets)
+            return combined_assets
 
 
     def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=logging.INFO):
@@ -640,11 +682,11 @@ class ClassImmichPhotos:
 
 
     ###########################################################################
-    #                 ASSET SEARCH / FILTER (e.g. get_assets_by_search_filter)
+    #                 ASSET SEARCH / FILTER (e.g. get_all_assets)
     ###########################################################################
-    def get_assets_by_search_filter(self, type=None, isNotInAlbum=None, isArchived=None,
-                                    createdAfter=None, createdBefore=None, country=None,
-                                    city=None, personIds=None, withDeleted=None, log_level=logging.INFO):
+    def get_all_assets(self, type=None, isNotInAlbum=None, isArchived=None,
+                       createdAfter=None, createdBefore=None, country=None,
+                       city=None, personIds=None, withDeleted=None, log_level=logging.INFO):
         """
         Calls /api/search/metadata with filters, collecting pages of results.
         Returns the resulting list of assets.
@@ -1001,7 +1043,7 @@ class ClassImmichPhotos:
                 alb_folder = os.path.join(output_folder, alb_name)
                 os.makedirs(alb_folder, exist_ok=True)
 
-                assets_in_album = self.get_assets_from_album(alb_id, log_level=log_level)
+                assets_in_album = self.get_album_assets(alb_id, log_level=log_level)
                 for asset in tqdm(assets_in_album, desc=f"INFO    : Downloading '{alb_name}'", unit=" assets"):
                     asset_id = asset.get("id")
                     asset_filename = os.path.basename(asset.get("originalFileName", "unknown"))
@@ -1032,7 +1074,7 @@ class ClassImmichPhotos:
             self.login(log_level=log_level)
             total_assets_downloaded = 0
 
-            all_assets_items = self.get_assets_by_search_filter(isNotInAlbum=True, log_level=log_level)
+            all_assets_items = self.get_all_assets(isNotInAlbum=True, log_level=log_level)
             no_albums_folder = os.path.join(output_folder, 'No-Albums')
             os.makedirs(no_albums_folder, exist_ok=True)
 
@@ -1099,8 +1141,21 @@ class ClassImmichPhotos:
 
 
     ###########################################################################
-    #                   REMOVE EMPTY / DUPLICATES ALBUMS                       #
+    #                   REMOVE EMPTY / DUPLICATES ALBUMS                      #
     ###########################################################################
+    def remove_empty_folders(self, log_level=logging.INFO):
+        """
+        Recursively removes all empty folders and subfolders in Synology Photos,
+        considering folders empty if they only contain '@eaDir'.
+
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            int: The number of empty folders removed.
+        """
+        return 0
+
     def remove_empty_albums(self, log_level=logging.WARNING):
         """
         Removes all albums that have no assets (are empty).
@@ -1146,7 +1201,7 @@ class ClassImmichPhotos:
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
                 assets_count = album.get("assetCount")
-                size = self.get_album_items_size(album_id, log_level=log_level)
+                size = self.get_album_assets_size(album_id, log_level=log_level)
                 duplicates_map.setdefault((assets_count, size), []).append((album_id, album_name))
 
             total_removed_duplicated_albums = 0
@@ -1166,6 +1221,93 @@ class ClassImmichPhotos:
             self.logout(log_level=log_level)
             return total_removed_duplicated_albums
 
+    # -----------------------------------------------------------------------------
+    #          DELETE ORPHANS ASSETS FROM IMMICH DATABASE
+    # -----------------------------------------------------------------------------
+    def remove_orphan_assets(user_confirmation=True, log_level=logging.WARNING):
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+            # login_immich
+            self.login(log_level=log_level)
+
+            def filter_entities(response_json, entity_type):
+                return [
+                    {'pathValue': entity['pathValue'], 'entityId': entity['entityId'], 'entityType': entity['entityType']}
+                    for entity in response_json.get('orphans', []) if entity.get('entityType') == entity_type
+                ]
+
+            if not IMMICH_ADMIN_API_KEY or not IMMICH_USER_API_KEY:
+                self.logger.error(f"ERROR   : Both admin and user API keys are required.")
+                # logout_immich
+                self.logout(log_level=log_level)
+                return 0
+
+            immich_parsed_url = urlparse(self.IMMICH_URL)
+            base_url = f'{immich_parsed_url.scheme}://{immich_parsed_url.netloc}'
+            api_url = f'{base_url}/api'
+            file_report_url = api_url + '/reports'
+            headers = {'x-api-key': self.IMMICH_ADMIN_API_KEY}
+
+            print()
+            spinner = Halo(text='Retrieving list of orphaned media assets...', spinner='dots')
+            spinner.start()
+
+            total_removed_assets = 0
+            try:
+                response = requests.get(file_report_url, headers=headers)
+                response.raise_for_status()
+                spinner.succeed('Success!')
+            except requests.exceptions.RequestException as e:
+                spinner.fail(f'Failed to fetch assets: {str(e)}')
+                # logout_immich
+                self.logout(log_level=log_level)
+                return 0
+
+            orphan_media_assets = filter_entities(response.json(), 'asset')
+            num_entries = len(orphan_media_assets)
+
+            if num_entries == 0:
+                self.logger.info(f"INFO    : No orphaned media assets found.")
+                # logout_immich
+                self.logout(log_level=log_level)
+                return total_removed_assets
+
+            if user_confirmation:
+                table_data = [[asset['pathValue'], asset['entityId']] for asset in orphan_media_assets]
+                self.logger.info(f"INFO    : {tabulate(table_data, headers=['Path Value', 'Entity ID'], tablefmt='pretty')}")
+                self.logger.info("")
+
+                summary = f'There {"is" if num_entries == 1 else "are"} {num_entries} orphaned media asset{"s" if num_entries != 1 else ""}. Would you like to remove {"them" if num_entries != 1 else "it"} from Immich? (yes/no): '
+                user_input = input(summary).lower()
+                self.logger.info("")
+
+                if user_input not in ('y', 'yes'):
+                    self.logger.info(f"INFO    : Exiting without making any changes.")
+                    # logout_immich
+                    self.logout(log_level=log_level)
+                    return 0
+
+            headers['x-api-key'] = self.IMMICH_USER_API_KEY  # Use user API key for deletion
+            with tqdm(total=num_entries, desc="INFO    : Removing orphaned media assets", unit="asset") as progress_bar:
+                for asset in orphan_media_assets:
+                    entity_id = asset['entityId']
+                    asset_url = f'{api_url}/assets'
+                    remove_payload = json.dumps({'force': True, 'ids': [entity_id]})
+                    headers = {'Content-Type': 'application/json', 'x-api-key': self.IMMICH_USER_API_KEY}
+                    try:
+                        response = requests.remove(asset_url, headers=headers, data=remove_payload)
+                        response.raise_for_status()
+                    except requests.exceptions.HTTPError as e:
+                        if response.status_code == 400:
+                            self.logger.warning(f"WARNING : Failed to remove asset {entity_id} due to potential API key mismatch. Ensure you're using the asset owners API key as the User API key.")
+                        else:
+                            self.logger.warning(f"WARNING : Failed to remove asset {entity_id}: {str(e)}")
+                        continue
+                    progress_bar.update(1)
+                    total_removed_assets += 1
+            self.logger.info(f"INFO    : Orphaned media assets removed successfully!")
+            # logout_immich
+            self.logout(log_level=log_level)
+            return total_removed_assets
 
     ###########################################################################
     #                     REMOVE ALL ASSETS / ALL ALBUMS                      #
@@ -1180,8 +1322,8 @@ class ClassImmichPhotos:
             self.logger.info(f"INFO    : Getting list of asset(s) to remove...")
 
             # Collect
-            all_assets_items = self.get_assets_by_search_filter(log_level=log_level)
-            all_assets_items_withDeleted = self.get_assets_by_search_filter(withDeleted=True, log_level=log_level)
+            all_assets_items = self.get_all_assets(log_level=log_level)
+            all_assets_items_withDeleted = self.get_all_assets(withDeleted=True, log_level=log_level)
             all_assets_items.extend(all_assets_items_withDeleted)
 
             total_assets_found = len(all_assets_items)
@@ -1241,7 +1383,7 @@ class ClassImmichPhotos:
                 album_assets_ids = []
 
                 if removeAlbumsAssets:
-                    album_assets = self.get_assets_from_album(album_id, log_level=log_level)
+                    album_assets = self.get_album_assets(album_id, log_level=log_level)
                     for asset in album_assets:
                         asset_id = asset.get("id")
                         if asset_id:
@@ -1316,7 +1458,7 @@ if __name__ == "__main__":
     # print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
     #
     # # 7) Example: Remove Orphan Assets
-    # immich.immich_remove_orphan_assets(user_confirmation=True, log_level=logging.DEBUG)
+    # immich.remove_orphan_assets(user_confirmation=True, log_level=logging.DEBUG)
     #
     # # 8) Example: Remove ALL Assets
     # immich.remove_all_assets(log_level=logging.DEBUG)
