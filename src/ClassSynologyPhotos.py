@@ -528,6 +528,20 @@ class ClassSynologyPhotos:
                 return -1
             return data["data"]["count"]
 
+    def album_exists(self, album_name, log_level=logging.INFO):
+        """
+        Gets the number of items in an album.
+
+        Args:
+            album_name (str): Album Name
+            log_level (logging.LEVEL): log_level for logs and console
+        Returns:
+             bool: True if Album exists. False if Album does not exist.
+        """
+        with set_log_level(self.logger, log_level):
+            albums = self.get_albums(log_level=log_level).values()
+            return album_name in albums
+
 
     ###########################################################################
     #                  ASSETS (PHOTOS/VIDEOS) FUNCTIONS                       #
