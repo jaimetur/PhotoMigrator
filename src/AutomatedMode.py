@@ -254,7 +254,7 @@ def automated_migration(source_client, target_client, temp_folder):
     source_client: objeto con los métodos:
         - get_albums() -> [ { 'id': ..., 'name': ... }, ... ]
         - get_album_assets(album_id) -> [ { 'id': ..., 'date': ..., 'type': ... }, ... ]
-        - get_assets_without_albums() -> [ { 'id': ..., 'date': ..., 'type': ... }, ... ]
+        - get_no_albums_assets() -> [ { 'id': ..., 'date': ..., 'type': ... }, ... ]
         - download_asset(asset_id, download_path) -> str (ruta local del archivo descargado)
 
     target_client: objeto con los métodos:
@@ -400,7 +400,7 @@ def automated_migration(source_client, target_client, temp_folder):
             upload_queue.put(item_dict)
 
     # 3.2) Descarga de assets sin álbum
-    assets_no_album = source_client.get_assets_without_albums()
+    assets_no_album = source_client.get_no_albums_assets()
     for asset in assets_no_album:
         asset_id = asset['id']
         asset_date = asset['date']
