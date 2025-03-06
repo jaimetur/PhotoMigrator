@@ -62,6 +62,8 @@ class ClassSynologyPhotos:
         Constructor that initializes what were previously global variables.
         Also imports the global LOGGER from GlobalVariables.
         """
+        # Import the global LOGGER from GlobalVariables
+        from GlobalVariables import LOGGER
         self.logger = LOGGER
 
         # Variables that were previously global:
