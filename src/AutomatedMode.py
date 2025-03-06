@@ -5,9 +5,9 @@ import Utils
 import logging
 from CustomLogger import set_log_level
 from Duplicates import find_duplicates, process_duplicates_actions
-from ServiceGooglePhotos import google_takeout_processor
-from ServiceSynologyPhotos import login_synology, logout_synology, synology_upload_albums, synology_upload_ALL, synology_download_albums, synology_download_ALL, synology_remove_empty_albums, synology_remove_duplicates_albums, synology_remove_all_assets, synology_remove_all_albums
-from ServiceImmichPhotos import login_immich, logout_immich, immich_upload_albums, immich_upload_ALL, immich_download_albums, immich_download_ALL, immich_remove_empty_albums, immich_remove_duplicates_albums, immich_remove_all_assets, immich_remove_all_albums, immich_remove_orphan_assets, remove_duplicates_assets
+from ClassGoogleTakeout import google_takeout_processor
+from ClassSynologyPhotos import login_synology, logout_synology, synology_upload_albums, synology_upload_ALL, synology_download_albums, synology_download_ALL, synology_remove_empty_albums, synology_remove_duplicates_albums, synology_remove_all_assets, synology_remove_all_albums
+from ClassImmichPhotos import login_immich, logout_immich, immich_upload_albums, immich_upload_ALL, immich_download_albums, immich_download_ALL, immich_remove_empty_albums, immich_remove_duplicates_albums, immich_remove_all_assets, immich_remove_all_albums, immich_remove_orphan_assets, remove_duplicates_assets
 
 ####################################
 # EXTRA MODE: AUTOMATED-MIGRATION: #
@@ -252,7 +252,7 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
         asset_name = asset.get('filename')
         asset_time = asset.get('time')
 
-        ServiceSynologyPhotos.download_asset(asset_id=asset_id, asset_name=asset_name, asset_time=asset_time, destination_folder=temp_folder, log_level=logging.WARNING)
+        ClassSynologyPhotos.download_asset(asset_id=asset_id, asset_name=asset_name, asset_time=asset_time, destination_folder=temp_folder, log_level=logging.WARNING)
         # showDashboard(input_info)
         file_path = os.path.join(temp_folder,asset_name)
         print(f"✅ Downloaded asset: '{asset_name}'")
@@ -261,7 +261,7 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
     def upload_asset(file_path):
         """Simulates uploading an asset."""
         # time.sleep(random.uniform(0.5, 2))  # Simulate network delay
-        ServiceImmichPhotos.upload_asset(file_path=file_path, log_level=logging.WARNING)
+        ClassImmichPhotos.upload_asset(file_path=file_path, log_level=logging.WARNING)
         os.remove(file_path)
         # showDashboard(input_info)
         print(f"✅ Uploaded asset: '{os.path.basename(file_path)}'")
@@ -282,8 +282,8 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
                 break
             upload_asset(file_path)
 
-    import ServiceSynologyPhotos
-    import ServiceImmichPhotos
+    import ClassSynologyPhotos
+    import ClassImmichPhotos
     import queue
     import threading
     import time
@@ -295,7 +295,7 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
 
     os.system('cls' if os.name == 'nt' else 'clear')
 
-    all_albums = ServiceSynologyPhotos.get_albums()
+    all_albums = ClassSynologyPhotos.get_albums()
     all_assets = ServiceSynologyPhotos.get_all_assets()
     all_photos = [asset for asset in all_assets if asset['type'] == 'photo']
     all_videos = [asset for asset in all_assets if asset['type'] == 'video']
@@ -328,8 +328,8 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
     print("🚀 All assets downloaded and uploaded successfully!")
 
 if __name__ == "__main__":
-    import ServiceSynologyPhotos
-    import ServiceImmichPhotos
+    import ClassSynologyPhotos
+    import ClassImmichPhotos
     from Utils import check_OS_and_Terminal, change_workingdir
 
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
@@ -339,8 +339,8 @@ if __name__ == "__main__":
     mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder)
     os.rmdir(temp_folder)
 
-    all_albums = ServiceSynologyPhotos.get_albums()
-    all_assets = ServiceSynologyPhotos.get_all_assets()
+    all_albums = ClassSynologyPhotos.get_albums()
+    all_assets = ClassSynologyPhotos.get_all_assets()
     all_photos = [asset for asset in all_assets if asset['type'] == 'photo']
     all_videos = [asset for asset in all_assets if asset['type'] == 'video']
     input_info = {

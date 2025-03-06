@@ -947,7 +947,7 @@ def update_metadata(file_path, date_time, log_level=logging.INFO):
         file_path (str): Path to the file.
         date_time (str): Date and time in 'YYYY-MM-DD HH:MM:SS' format.
     """
-    from ServiceSynologyPhotos import ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS, ALLOWED_SYNOLOGY_VIDEO_EXTENSIONS
+    from ClassSynologyPhotos import ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS, ALLOWED_SYNOLOGY_VIDEO_EXTENSIONS
     from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         file_ext = os.path.splitext(file_path)[1].lower()
