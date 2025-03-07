@@ -384,11 +384,12 @@ def automated_migration(source_client, target_client, temp_folder):
             os.makedirs(album_folder, exist_ok=True)
 
             # Descargar el asset
+            # TODO: VOY POR AQUI
             local_file_path = source_client.download_asset(asset_id, album_folder)
 
             # Contadores de descargas
             counters['total_downloaded_assets'] += 1
-            if asset_type == 'video':
+            if asset_type.lower() == 'video':
                 counters['total_downloaded_videos'] += 1
             else:
                 counters['total_downloaded_photos'] += 1
@@ -567,8 +568,11 @@ if __name__ == "__main__":
     temp_folder = './Temp_folder'
 
     # Create the Objects for source and target
-    source = ClassSynologyPhotos()
-    target = ClassImmichPhotos()
+    # source = ClassSynologyPhotos()
+    # target = ClassImmichPhotos()
+
+    source = ClassImmichPhotos()
+    target = ClassSynologyPhotos()
 
     # Get source client statistics:
     all_albums = source.get_albums_including_shared_with_user()
