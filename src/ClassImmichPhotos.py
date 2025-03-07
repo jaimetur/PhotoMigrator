@@ -1074,6 +1074,8 @@ class ClassImmichPhotos:
         """
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
+
+            total_duplicates_assets_removed = 0
             input_folder = os.path.realpath(input_folder)
             albums_folders = convert_to_list(albums_folders)
 
@@ -1085,10 +1087,7 @@ class ClassImmichPhotos:
             self.logger.info("")
             self.logger.info(f"INFO    : Uploading Assets and creating Albums into immich Photos from '{albums_folders}' subfolders...")
 
-            (total_albums_uploaded, total_albums_skipped,
-             total_assets_uploaded_within_albums,
-             total_duplicates_assets_removed_1,
-             total_dupplicated_assets_skipped_1) = self.upload_albums(
+            (total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed_1, total_dupplicated_assets_skipped_1) = self.upload_albums(
                  input_folder=input_folder,
                  subfolders_inclusion=albums_folders,
                  remove_duplicates=False,
@@ -1098,22 +1097,19 @@ class ClassImmichPhotos:
             self.logger.info("")
             self.logger.info(f"INFO    : Uploading Assets without Albums creation into immich Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
 
-            (total_assets_uploaded_without_albums,
-             total_dupplicated_assets_skipped_2,
-             total_duplicates_assets_removed_2) = self.upload_no_albums(
+            (total_assets_uploaded_without_albums, total_dupplicated_assets_skipped_2, total_duplicates_assets_removed_2) = self.upload_no_albums(
                  input_folder=input_folder,
                  subfolders_exclusion=albums_folders,
                  remove_duplicates=False,
                  log_level=logging.WARNING
             )
-
+            total_duplicates_assets_removed = total_duplicates_assets_removed_1 + total_duplicates_assets_removed_2
             total_dupplicated_assets_skipped = total_dupplicated_assets_skipped_1 + total_dupplicated_assets_skipped_2
             total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
 
-            total_duplicates_assets_removed = 0
             if remove_duplicates:
                 self.logger.info("INFO    : Removing Duplicates Assets...")
-                total_duplicates_assets_removed = self.remove_duplicates_assets(log_level=logging.WARNING)
+                total_duplicates_assets_removed += self.remove_duplicates_assets(log_level=logging.WARNING)
 
             self.logout(log_level=log_level)
             return (total_albums_uploaded,

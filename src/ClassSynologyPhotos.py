@@ -1168,6 +1168,7 @@ class ClassSynologyPhotos:
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
 
+            total_duplicates_assets_removed = 0
             input_folder = os.path.realpath(input_folder)
             albums_folders = convert_to_list(albums_folders) if albums_folders else []
 
@@ -1178,9 +1179,10 @@ class ClassSynologyPhotos:
             self.logger.info("")
             self.logger.info(f"INFO    : Uploading Assets and creating Albums into synology Photos from '{albums_folders}' subfolders...")
 
-            (total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums) = self.upload_albums(
+            (total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed) = self.upload_albums(
                 input_folder=input_folder,
                 subfolders_inclusion=albums_folders,
+                remove_duplicates=False,
                 log_level=logging.WARNING
             )
 
@@ -1195,10 +1197,9 @@ class ClassSynologyPhotos:
 
             total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
 
-            total_duplicates_assets_removed = 0
             if remove_duplicates:
                 self.logger.info("INFO    : Removing Duplicates Assets...")
-                total_duplicates_assets_removed = self.remove_duplicates_assets(log_level=logging.WARNING)
+                total_duplicates_assets_removed += self.remove_duplicates_assets(log_level=logging.WARNING)
 
             return (
                 total_albums_uploaded,
