@@ -277,6 +277,7 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
 
     from GlobalVariables import LOGGER
     logger_download = LOGGER
+
     # parent_log_level = get_caller_log_level()
     with set_log_level(logger_download, log_level):  # Change Log Level to log_level for this function
 
@@ -332,14 +333,14 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
                     if asset_id:
                         if isDuplicated:
                             counters['total_upload_duplicates_assets'] += 1
-                            logger_upload.info(f"INFO    : Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
+                            print(f"INFO    : Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
                         else:
                             counters['total_uploaded_assets'] += 1
                             if asset_type== 'video':
                                 counters['total_uploaded_videos'] += 1
                             else:
                                 counters['total_uploaded_photos'] += 1
-                            logger_upload.info(f"INFO    : Asset Uploaded: '{os.path.basename(asset_file_path)}'")
+                            print(f"INFO    : Asset Uploaded: '{os.path.basename(asset_file_path)}'")
                     else:
                         counters['total_upload_skipped_assets'] += 1
 
@@ -360,7 +361,7 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
                         if album_name not in processed_albums:
                             processed_albums[album_name] = None  # Marcamos que se procesó
                             counters['total_uploaded_albums'] += 1
-                            logger_upload.info(f"INFO    : Album Uploaded: '{album_name}'")
+                            print(f"INFO    : Album Uploaded: '{album_name}'")
 
                         # Si el álbum no existe en destino, lo creamos
                         album_exists, album_id_dest = target_client.album_exists(album_name=album_name, log_level=logging.WARNING)
@@ -385,6 +386,8 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
                                 pass
 
                     upload_queue.task_done()
+                    sys.stdout.flush()
+                    sys.stderr.flush()
 
         # ----------------------------------------------------------------------------
         # 2) Iniciar uno o varios hilos para manejar la subida concurrente
@@ -424,7 +427,7 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
                 downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=album_folder, log_level=logging.WARNING)
                 local_file_path = os.path.join(album_folder, asset_filename)
 
-                logger_download.info(f"INFO    : Asset Downloaded: '{os.path.basename(asset_filename)}'")
+                print(f"INFO    : Asset Downloaded: '{os.path.basename(asset_filename)}'")
 
                 # Actualizamos Contadores de descargas
                 if downloaded_assets>0:
@@ -445,7 +448,10 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
                     'album_name': album_name,
                 }
                 upload_queue.put(item_dict)
-            logger_download.info(f"INFO    : Album Downloaded: '{album_name}'")
+                sys.stdout.flush()
+                sys.stderr.flush()
+            print(f"INFO    : Album Downloaded: '{album_name}'")
+
 
         # 3.2) Descarga de assets sin álbum
         assets_no_album = source_client.get_no_albums_assets()
@@ -459,7 +465,7 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
             downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
 
             local_file_path = os.path.join(temp_folder, asset_filename)
-            logger_download.info(f"INFO    : Asset Downloaded: '{os.path.basename(asset_filename)}'")
+            print(f"INFO    : Asset Downloaded: '{os.path.basename(asset_filename)}'")
 
             # Actualizamos Contadores de descargas
             if downloaded_assets > 0:
@@ -480,6 +486,8 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
                 'album_name': None,
             }
             upload_queue.put(item_dict)
+            sys.stdout.flush()
+            sys.stderr.flush()
 
         # ----------------------------------------------------------------------------
         # 4) Finalizar subidas y limpiar carpetas vacías
@@ -500,13 +508,13 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
         # ----------------------------------------------------------------------------
         # 5) Mostrar o retornar contadores
         # ----------------------------------------------------------------------------
-        logger_download.info(f"")
-        logger_download.info(f"INFO    : ----- SINCRONIZACIÓN FINALIZADA -----")
-        logger_download.info(f"INFO    : {source_client.get_client_name()} --> {target_client.get_client_name()}")
-        logger_download.info(f"INFO    : Downloaded Albums : {counters['total_downloaded_albums']}")
-        logger_download.info(f"INFO    : Uploaded Albums   : {counters['total_uploaded_albums']}")
-        logger_download.info(f"INFO    : Downloaded Assets : {counters['total_downloaded_assets']} (Fotos: {counters['total_downloaded_photos']}, Videos: {counters['total_downloaded_videos']})")
-        logger_download.info(f"INFO    : Uploaded Assets   : {counters['total_uploaded_assets']} (Fotos: {counters['total_uploaded_photos']}, Videos: {counters['total_uploaded_videos']})")
+        print(f"")
+        print(f"INFO    : ----- SINCRONIZACIÓN FINALIZADA -----")
+        print(f"INFO    : {source_client.get_client_name()} --> {target_client.get_client_name()}")
+        print(f"INFO    : Downloaded Albums : {counters['total_downloaded_albums']}")
+        print(f"INFO    : Uploaded Albums   : {counters['total_uploaded_albums']}")
+        print(f"INFO    : Downloaded Assets : {counters['total_downloaded_assets']} (Fotos: {counters['total_downloaded_photos']}, Videos: {counters['total_downloaded_videos']})")
+        print(f"INFO    : Uploaded Assets   : {counters['total_uploaded_assets']} (Fotos: {counters['total_uploaded_photos']}, Videos: {counters['total_uploaded_videos']})")
 
         return counters
 
@@ -640,7 +648,7 @@ if __name__ == "__main__":
         "total_sidecar": 0,
         "total_unsopported": 0
     }
-    print(json.dumps(input_info, indent=4))
+    # print(json.dumps(input_info, indent=4))
 
     # Call the automated_migration module to do the whole migration process
     automated_migration(source_client=source, target_client=target, temp_folder=temp_folder)
