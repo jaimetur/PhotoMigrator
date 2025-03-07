@@ -363,6 +363,7 @@ class ClassImmichPhotos:
             try:
                 response = requests.delete(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
                 if response.status_code == 200:
+                    LOGGER.info(f"INFO    : Album '{album_name}' with ID={album_id} removed.")
                     return True
                 else:
                     self.logger.warning(f"WARNING : Failed to remove album: '{album_name}' with ID: {album_id}. Status: {response.status_code}")
@@ -760,7 +761,7 @@ class ClassImmichPhotos:
 
         Args:
             asset_id (int): ID of the asset to download.
-            asset_name (str): Name of the file to save.
+            asset_filename (str): filename of the asset to download.
             asset_time (int or str): UNIX epoch or ISO string time of the asset.
             destination_folder (str): Path where the file will be saved.
             log_level (logging.LEVEL): log_level for logs and console
@@ -830,6 +831,31 @@ class ClassImmichPhotos:
                     payload_data = {
                         "page": next_page,
                         "order": "desc",
+                        # "withArchived": False,
+                        # "withDeleted": False,
+                        # "country": "string",
+                        # "city": "string",
+                        # "type": "IMAGE",
+                        # "isNotInAlbum": False,
+                        # "isArchived": True,
+                        # "isOffline": isOffline,
+                        # "isEncoded": True,
+                        # "isFavorite": True,
+                        # "isMotion": True,
+                        # "isVisible": True,
+                        # "withRemoved": True,
+                        # "withExif": True,
+                        # "withPeople": True,
+                        # "withStacked": True,
+                        # "createdAfter": "string",
+                        # "createdBefore": "string",
+                        # "takenAfter": "string",
+                        # "takenBefore": "string",
+                        # "updatedAfter": "string",
+                        # "updatedBefore": "string",
+                        # "personIds": [
+                        #   "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                        # ],
                     }
                     if type: payload_data["type"] = type
                     if isNotInAlbum: payload_data["isNotInAlbum"] = isNotInAlbum
@@ -867,6 +893,11 @@ class ClassImmichPhotos:
         Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals
         the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on
         self.ALLOWED_IMMICH_EXTENSIONS) and associates them with the album.
+        
+        Example structure:
+        input_folder/
+            ├─ Album1/   (files for album "Album1")
+            └─ Album2/   (files for album "Album2")
 
         Args:
             input_folder (str): Input folder
@@ -999,8 +1030,14 @@ class ClassImmichPhotos:
                          remove_duplicates=True,
                          log_level=logging.WARNING):
         """
-        Recursively uploads all supported files from 'input_folder' without assigning to any album.
-        Preserves the original logger texts.
+        Recursively traverses 'input_folder' and its subfolders_inclusion to upload all
+        compatible files (photos/videos) to Immich without associating them to any album.
+
+        If 'subfolders_inclusion' is provided (as a string or list of strings), only those
+        direct subfolders_inclusion of 'input_folder' are processed (excluding any in SUBFOLDERS_EXCLUSIONS).
+        Otherwise, all subfolders_inclusion except those listed in SUBFOLDERS_EXCLUSIONS are processed.
+
+        Returns total_assets_uploaded, total_dupplicated_assets_skipped, duplicates_assets_removed.
         """
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
@@ -1273,6 +1310,8 @@ class ClassImmichPhotos:
         Args:
             output_folder (str): Output folder
             log_level (logging.LEVEL): log_level for logs and console
+            
+        Returns total_albums_downloaded, total_assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums.
         """
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
