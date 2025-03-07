@@ -131,7 +131,7 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLD
                                   [-procDup <DUPLICATES_REVISED_CSV>]
                                   [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
 
-CloudPhotoMigrator v3.1.0 - 2025-03-08
+CloudPhotoMigrator v3.1.0 - 2025-03-31
 
 Multi-Platform/Multi-Arch toot designed to Interact and Manage different Photo Cloud
 Services such as Google Photos, Synology Photos, Immich Photos & Apple Photos.

@@ -41,8 +41,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
       
              possible values for:
                  <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos'] or <INPUT_FOLDER>
-                 <TARGET> : ['synology-photos', 'immich-photos']
-      
+                 <TARGET> : ['synology-photos', 'immich-photos']  
 
 - [x] Fixed limit of 250 when search for Immich assets.
 - [x] Fixed Remove Albums API call on Immich Photos to adapt to the new API changes.
@@ -67,16 +66,14 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] Moved at the end of the help the standard option (those that are not related to any Support mode).
 - [x] Updated -h, --help to reflect the new changes.
 - [x] Code refactored.
-- [x] Minor Bug Fixing.
-
+- [x] Minor Bug Fixing.  
 
 - [x] Renamed options:
   - -sca,  --synology-create-albums is now **suAlb,  --synology-upload-albums <ALBUMS_FOLDER>**.
   - -sea,  --synology-extract-albums is now **-sdAlb,  --synology-download-albums <ALBUMS_NAME>**.
   - -fsym, --fix-symlinks-broken <FOLDER_TO_FIX> is now **-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>**.
   - -fdup, --find-duplicates <ACTION> <DUPLICATES_FOLDER> is now **-findDup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>**.
-  - -pdup, --process-duplicates <DUPLICATES_REVISED> is now **-procdDup, --process-duplicates <DUPLICATES_REVISED>**.
-
+  - -pdup, --process-duplicates <DUPLICATES_REVISED> is now **-procdDup, --process-duplicates <DUPLICATES_REVISED>**.  
 
 - [x] New Arguments Added: 
   - **-i,        --input-folder <INPUT_FOLDER>** Specify the input folder that you want to process.
@@ -87,15 +84,13 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
     it will also delete the assets (photos/videos) inside each album.
   - **-AlbFld,   --albums-folders <ALBUMS_FOLDER>**
     If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich- upload-all', 
-    it will create an Album per each subfolder found in <ALBUMS_FOLDER>.
-
+    it will create an Album per each subfolder found in <ALBUMS_FOLDER>.  
 
 - [x] Added new options to Synology Photos Support:
   - **-suAll,    --synology-upload-all <INPUT_FOLDER>**.  
   - **-sdAll,    --synology-download-all <OUTPUT_FOLDER>**.
   - **-srAll,    --synology-remove-all-assets** to remove All assets in Synology Photos.  
-  - **-srAllAlb, --synology-remove-all-albums** to remove Albums in Synology Photos (optionally all associated assets can be also deleted).  
-
+  - **-srAllAlb, --synology-remove-all-albums** to remove Albums in Synology Photos (optionally all associated assets can be also deleted).   
 
 - [x] With those changes the **_Synology Photos Support_** has the following options:
   - **-suAlb,    --synology-upload-albums <ALBUMS_FOLDER>**  
@@ -117,8 +112,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
   - **-srDupAlb, --synology-remove-duplicates-albums**  
     - The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
   - **-srAll,    --synology-remove-all-assets** to delete ALL assets in Synology Photos
-  - **-srAllAlb, --synology-remove-all-albums** to delete ALL Albums in Synology Photos (optionally all associated assets can be also deleted).
-
+  - **-srAllAlb, --synology-remove-all-albums** to delete ALL Albums in Synology Photos (optionally all associated assets can be also deleted).  
 
 - [x] Added **_Immich Photos Support_** with the Following options to manage Immich API:
   - **-iuAlb,    --immich-upload-albums <ALBUMS_FOLDER>**  
