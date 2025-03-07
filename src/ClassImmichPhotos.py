@@ -406,7 +406,6 @@ class ClassImmichPhotos:
                 self.logger.error(f"ERROR   : Error while listing albums: {e}")
                 return None
 
-    # TODO: Test this method
     def get_albums_including_shared_with_user(self, log_level=logging.INFO):
         """
         Get both own and shared albums in Immich Photos.
