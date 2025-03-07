@@ -5,9 +5,12 @@ import Utils
 import logging
 from CustomLogger import set_log_level
 from Duplicates import find_duplicates, process_duplicates_actions
-from ClassGoogleTakeout import google_takeout_processor
-from ClassSynologyPhotos import login_synology, logout_synology, synology_upload_albums, synology_upload_ALL, synology_download_albums, synology_download_ALL, synology_remove_empty_albums, synology_remove_duplicates_albums, synology_remove_all_assets, synology_remove_all_albums
-from ClassImmichPhotos import login_immich, logout_immich, immich_upload_albums, immich_upload_ALL, immich_download_albums, immich_download_ALL, immich_remove_empty_albums, immich_remove_duplicates_albums, immich_remove_all_assets, immich_remove_all_albums, immich_remove_orphan_assets, remove_duplicates_assets
+from ClassGoogleTakeout import ClassGoogleTakeout
+from ClassSynologyPhotos import ClassSynologyPhotos
+from ClassImmichPhotos import ClassImmichPhotos
+# from ClassGoogleTakeout import google_takeout_processor
+# from ClassSynologyPhotos import login_synology, logout_synology, synology_upload_albums, synology_upload_ALL, synology_download_albums, synology_download_ALL, synology_remove_empty_albums, synology_remove_duplicates_albums, synology_remove_all_assets, synology_remove_all_albums
+# from ClassImmichPhotos import login_immich, logout_immich, immich_upload_albums, immich_upload_ALL, immich_download_albums, immich_download_ALL, immich_remove_empty_albums, immich_remove_duplicates_albums, immich_remove_all_assets, immich_remove_all_albums, immich_remove_orphan_assets, remove_duplicates_assets
 
 ####################################
 # EXTRA MODE: AUTOMATED-MIGRATION: #
@@ -554,11 +557,8 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
     print("🚀 All assets downloaded and uploaded successfully!")
 
 if __name__ == "__main__":
-    import ClassSynologyPhotos
-    import ClassImmichPhotos
-    from ClassSynologyPhotos import ClassSynologyPhotos
-    from ClassImmichPhotos import ClassImmichPhotos
     from Utils import check_OS_and_Terminal, change_workingdir
+    import json
 
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
     change_workingdir()
@@ -573,7 +573,7 @@ if __name__ == "__main__":
     # Get source client statistics:
     all_albums = source.get_albums_including_shared_with_user()
     all_assets = source.get_all_assets()
-    all_photos = [asset for asset in all_assets if asset['type'] == 'photo']
+    all_photos = [asset for asset in all_assets if asset['type'] in ['photo', 'live']]
     all_videos = [asset for asset in all_assets if asset['type'] == 'video']
     input_info = {
         "total_assets": len(all_assets),
@@ -584,7 +584,7 @@ if __name__ == "__main__":
         "total_sidecar": 0,
         "total_unsopported": 0
     }
-    print (input_info)
+    print(json.dumps(input_info, indent=4))
 
     # Call the automated_migration module to do the whole migration process
     automated_migration(source_client=source, target_client=target, temp_folder=temp_folder)
