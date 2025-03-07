@@ -620,11 +620,11 @@ if __name__ == "__main__":
     temp_folder = './Temp_folder'
 
     # Create the Objects for source and target
-    # source = ClassSynologyPhotos()
-    # target = ClassImmichPhotos()
+    source = ClassSynologyPhotos()
+    target = ClassImmichPhotos()
 
-    source = ClassImmichPhotos()
-    target = ClassSynologyPhotos()
+    # source = ClassImmichPhotos()
+    # target = ClassSynologyPhotos()
 
     # Get source client statistics:
     all_albums = source.get_albums_including_shared_with_user()
