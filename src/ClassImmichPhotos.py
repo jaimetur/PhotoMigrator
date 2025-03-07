@@ -885,7 +885,7 @@ class ClassImmichPhotos:
 
             SUBFOLDERS_EXCLUSIONS = ['@eaDir'] + subfolders_exclusion
 
-            user_id = self.get_user_id(log_level=log_level)
+            # user_id = self.get_user_id(log_level=log_level)
             valid_folders = []
 
             for root, folders, _ in os.walk(input_folder):
@@ -954,7 +954,7 @@ class ClassImmichPhotos:
                                 album_assets_ids.append(asset_id)
 
                     if album_assets_ids:
-                        album_id = self.create_album(album_name, user_id, log_level=log_level)
+                        album_id = self.create_album(album_name, log_level=log_level)
                         if not album_id:
                             self.logger.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
                             total_albums_skipped += 1
