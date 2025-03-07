@@ -795,7 +795,7 @@ class ClassImmichPhotos:
                     os.utime(file_path, (asset_time, asset_time))
                     # If extension is recognized, update metadata
                     if file_ext in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
-                        update_metadata(file_path, asset_datetime.strftime("%Y-%m-%d %H:%M:%S"))
+                        update_metadata(file_path, asset_datetime.strftime("%Y-%m-%d %H:%M:%S"), log_level=logging.ERROR)
 
                     self.logger.debug("")
                     self.logger.debug(f"DEBUG   : Asset '{asset_filename}' downloaded and saved at {file_path}")

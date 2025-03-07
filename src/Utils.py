@@ -953,9 +953,9 @@ def update_metadata(file_path, date_time, log_level=logging.INFO):
 
         try:
             if file_ext in PHOTO_EXT:
-                update_exif_date(file_path, date_time)
+                update_exif_date(file_path, date_time, log_level=log_level)
             elif file_ext in VIDEO_EXT:
-                update_video_metadata(file_path, date_time)
+                update_video_metadata(file_path, date_time, log_level=log_level)
             LOGGER.debug("")
             LOGGER.debug(f"DEBUG   : Metadata updated for {file_path} with timestamp {date_time}")
 
