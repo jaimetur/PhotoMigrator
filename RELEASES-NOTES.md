@@ -16,7 +16,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 ## Release Notes:
 
 **Release**: 3.1.0  
-**Date**: 2025-03-31 (estimated release date)
+**Date**: (estimated release date: 2025-03-31)
 
 - [ ] Included Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization.
 - [x] Added Threads suppport on AUTOMATED MIGRATION MODE to parallelize Downloads and Uploads and avoid to download All assets before to upload them (this will safe disk space and improve performance).
