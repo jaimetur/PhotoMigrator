@@ -616,7 +616,7 @@ class ClassSynologyPhotos:
                     if not data.get("success"):
                         self.logger.error(f"ERROR   : Failed to list assets")
                         return []
-                    all_assets.append(data["data"]["list"])
+                    all_assets.extend(data["data"]["list"])
                     if len(data["data"]["list"]) < limit:
                         break
                     offset += limit
@@ -624,10 +624,7 @@ class ClassSynologyPhotos:
                     self.logger.error(f"ERROR   : Exception while listing assets {e}")
                     return []
 
-            # Flatten
-            for chunk in all_assets:
-                combined_assets.extend(chunk)
-            return combined_assets
+            return all_assets
 
 
     def get_no_albums_assets(self, log_level=logging.WARNING):
@@ -692,7 +689,7 @@ class ClassSynologyPhotos:
                         else:
                             self.logger.error(f"ERROR   : Failed to list photos in the album ID={album_id}")
                         return []
-                    album_items.append(data["data"]["list"])
+                    album_items.extend(data["data"]["list"])
 
                     if len(data["data"]["list"]) < limit:
                         break
@@ -704,9 +701,7 @@ class ClassSynologyPhotos:
                         self.logger.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                     return []
 
-            for c in album_items:
-                combined_items.extend(c)
-            return combined_items
+            return album_items
 
 
     def get_all_albums_assets(self, log_level=logging.WARNING):
@@ -1332,11 +1327,12 @@ class ClassSynologyPhotos:
             output_folder = os.path.join(output_folder, 'No-Albums')
             os.makedirs(output_folder, exist_ok=True)
 
-            all_assets = self.get_all_assets(log_level=logging.INFO)
-            album_asset = self.get_all_albums_assets(log_level=logging.INFO)
+            # all_assets = self.get_all_assets(log_level=logging.INFO)
+            # album_asset = self.get_all_albums_assets(log_level=logging.INFO)
+            # # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
+            # assets_without_albums = get_unique_items(all_assets, album_asset, key='filename')
 
-            # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
-            assets_without_albums = get_unique_items(all_assets, album_asset, key='filename')
+            assets_without_albums = self.get_no_albums_assets(log_level=loggin.INFO)
 
             self.logger.info(f"INFO    : Number of all_assets without Albums associated to download: {len(all_assets)}")
             if not all_assets:
