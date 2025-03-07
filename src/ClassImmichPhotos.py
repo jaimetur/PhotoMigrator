@@ -38,6 +38,7 @@ from dateutil import parser
 from urllib.parse import urlparse
 from pathlib import Path
 from contextlib import contextmanager
+import inspect
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
@@ -92,8 +93,22 @@ class ClassImmichPhotos:
     #                           CLASS PROPERTIES GETS                         #
     ###########################################################################
     def get_client_name(self, log_level=logging.INFO):
+        # parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):  # Change Log Level to log_level for this function
             return self.CLIENT_NAME
+
+
+    ###########################################################################
+    #                           OBTAIN CALLER LOG_LEVEL                       #
+    ###########################################################################
+    def get_caller_log_level(self):
+        """Obtiene el nivel de log del llamador en la pila de ejecución."""
+        stack = inspect.stack()
+        for frame in stack[1:]:  # Ignora el primer frame (la función actual)
+            caller_locals = frame.frame.f_locals
+            if 'log_level' in caller_locals:  # Verifica si la función llamadora tiene log_level
+                return caller_locals['log_level']
+        return self.logger.level  # Si no encuentra, devuelve el nivel actual del logger
 
 
     ###########################################################################
@@ -112,6 +127,7 @@ class ClassImmichPhotos:
             dict: The loaded configuration dictionary.
         """
         from ConfigReader import load_config
+        # parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):  # Change Log Level to log_level for this function
             if self.CONFIG:
                 return self.CONFIG  # Configuration already read previously
@@ -165,6 +181,7 @@ class ClassImmichPhotos:
                 self.logger.info(f"INFO    : IMMICH_FILTER_COUNTRY : {self.IMMICH_FILTER_COUNTRY}")
                 self.logger.info(f"INFO    : IMMICH_FILTER_CITY    : {self.IMMICH_FILTER_CITY}")
                 self.logger.info(f"INFO    : IMMICH_FILTER_PERSON  : {self.IMMICH_FILTER_PERSON}")
+
             return self.CONFIG
 
 
@@ -181,6 +198,7 @@ class ClassImmichPhotos:
 
         Returns True if successful, False otherwise.
         """
+        parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             # If there's already a token/headers, assume logged in
             if (self.HEADERS_WITH_CREDENTIALS and
@@ -206,6 +224,9 @@ class ClassImmichPhotos:
                 except Exception as e:
                     self.logger.error(f"ERROR   : Exception occurred during Immich login: {str(e)}")
                     return False
+                finally:
+                    # Restore log_level of the parent method
+                    self.logger.setLevel(log_level)
 
                 self.HEADERS_WITH_CREDENTIALS = {
                     'Content-Type': 'application/json',
@@ -230,6 +251,9 @@ class ClassImmichPhotos:
                 except Exception as e:
                     self.logger.error(f"ERROR   : Exception occurred during Immich login: {str(e)}")
                     return False
+                finally:
+                    # Restore log_level of the parent method
+                    self.logger.setLevel(log_level)
 
                 data = response.json()
                 self.SESSION_TOKEN = data.get("accessToken", None)
@@ -249,6 +273,8 @@ class ClassImmichPhotos:
             self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS = self.get_supported_media_types(type='sidecar', log_level=logging.WARNING)
             self.ALLOWED_IMMICH_EXTENSIONS = self.ALLOWED_IMMICH_MEDIA_EXTENSIONS + self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS
 
+            # Restore log_level of the parent method
+            self.logger.setLevel(log_level)
             return True
 
 
@@ -259,6 +285,7 @@ class ClassImmichPhotos:
         Args:
             log_level (logging.LEVEL): log_level for logs and console
         """
+        # parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.SESSION_TOKEN = None
             self.HEADERS_WITH_CREDENTIALS = {}
@@ -272,6 +299,7 @@ class ClassImmichPhotos:
         """
         Returns the supported media/sidecar extensions as reported by Immich (via /api/server/media-types).
         """
+        parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/server/media-types"
@@ -302,12 +330,16 @@ class ClassImmichPhotos:
             except Exception as e:
                 self.logger.error(f"ERROR   : Cannot get Supported media types: {e}")
                 return None
+            finally:
+                # Restore log_level of the parent method
+                self.logger.setLevel(log_level)
 
 
     def get_user_id(self, log_level=logging.INFO):
         """
         Returns the user_id of the currently logged-in user.
         """
+        parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/users/me"
@@ -323,6 +355,9 @@ class ClassImmichPhotos:
             except Exception as e:
                 self.logger.error(f"ERROR   : Cannot find User ID for user '{self.IMMICH_USERNAME}': {e}")
                 return None
+            finally:
+                # Restore log_level of the parent method
+                self.logger.setLevel(log_level)
 
 
     ###########################################################################
@@ -339,6 +374,7 @@ class ClassImmichPhotos:
         Returns:
             str: New album ID or None if it fails
         """
+        parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/albums"
@@ -354,6 +390,9 @@ class ClassImmichPhotos:
             except Exception as e:
                 self.logger.warning(f"WARNING : Cannot create album '{album_name}' due to API call error. Skipped! {e}")
                 return None
+            finally:
+                # Restore log_level of the parent method
+                self.logger.setLevel(log_level)
 
 
     def remove_album(self, album_id, album_name, log_level=logging.INFO):
@@ -367,6 +406,7 @@ class ClassImmichPhotos:
 
         Returns True on success, False otherwise.
         """
+        parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/albums/{album_id}"
@@ -381,6 +421,9 @@ class ClassImmichPhotos:
             except Exception as e:
                 self.logger.error(f"ERROR   : Error while removing album '{album_name}' with ID:  {album_id}: {e}")
                 return False
+            finally:
+                # Restore log_level of the parent method
+                self.logger.setLevel(log_level)
 
 
     def get_albums_owned_by_user(self, log_level=logging.INFO):
@@ -400,6 +443,7 @@ class ClassImmichPhotos:
                     }
             None on error
         """
+        parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/albums"
@@ -416,6 +460,9 @@ class ClassImmichPhotos:
             except Exception as e:
                 self.logger.error(f"ERROR   : Error while listing albums: {e}")
                 return None
+            finally:
+                # Restore log_level of the parent method
+                self.logger.setLevel(log_level)
 
     def get_albums_including_shared_with_user(self, log_level=logging.INFO):
         """
@@ -434,6 +481,7 @@ class ClassImmichPhotos:
                     }
             None on error
         """
+        parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/albums"
@@ -444,6 +492,9 @@ class ClassImmichPhotos:
             except Exception as e:
                 self.logger.error(f"ERROR   : Error while listing albums: {e}")
                 return None
+            finally:
+                # Restore log_level of the parent method
+                self.logger.setLevel(log_level)
 
 
     def get_album_assets_size(self, album_id, log_level=logging.INFO):
@@ -458,6 +509,7 @@ class ClassImmichPhotos:
         Returns:
             int: Album Size or -1 on error.
         """
+        parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             try:
@@ -470,6 +522,9 @@ class ClassImmichPhotos:
                 return total_size
             except Exception:
                 return -1
+            finally:
+                # Restore log_level of the parent method
+                self.logger.setLevel(log_level)
 
 
     def get_album_assets_count(self, album_id, log_level=logging.INFO):
@@ -483,6 +538,7 @@ class ClassImmichPhotos:
         Returns:
              int: Album Items Count or -1 on error.
         """
+        parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             try:
@@ -490,6 +546,9 @@ class ClassImmichPhotos:
                 return len(assets)
             except Exception:
                 return -1
+            finally:
+                # Restore log_level of the parent method
+                self.logger.setLevel(log_level)
 
 
     # TODO: Test this method
@@ -504,6 +563,7 @@ class ClassImmichPhotos:
              bool: True if Album exists. False if Album does not exists.
              album_id (str): album_id if Album  exists. None if Album does not exists.
         """
+        # parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             album_exists = False
             album_id = None
@@ -528,6 +588,7 @@ class ClassImmichPhotos:
 
         Returns assets_without_albums
         """
+        # parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             assets_without_albums = self.get_all_assets(isNotInAlbum=True, log_level=log_level)
@@ -547,6 +608,7 @@ class ClassImmichPhotos:
         Returns:
             list: A list of photos in the album (dict objects). [] if no assets found.
         """
+        parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/albums/{album_id}"
@@ -566,6 +628,9 @@ class ClassImmichPhotos:
                 else:
                     self.logger.error(f"ERROR   : Failed to retrieve assets from album ID={album_id}: {str(e)}")
                 return []
+            finally:
+                # Restore log_level of the parent method
+                self.logger.setLevel(log_level)
 
 
     def get_all_albums_assets(self, log_level=logging.WARNING):
@@ -578,6 +643,7 @@ class ClassImmichPhotos:
         Returns:
             list: Albums Assets
         """
+        # parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             all_albums = self.get_albums_including_shared_with_user(log_level=log_level)
@@ -605,10 +671,12 @@ class ClassImmichPhotos:
         Returns:
             int: Number of assets added to the album
         """
+        parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             if not asset_ids:
                 return 0
+            asset_ids = convert_to_list(asset_ids)
             url = f"{self.IMMICH_URL}/api/albums/{album_id}/assets"
             payload = json.dumps({"ids": asset_ids})
             try:
@@ -623,12 +691,16 @@ class ClassImmichPhotos:
                 else:
                     self.logger.warning(f"WARNING : Error while adding assets to album with ID={album_id}: {e}")
                 return 0
+            finally:
+                # Restore log_level of the parent method
+                self.logger.setLevel(log_level)
 
 
     def get_duplicates_assets(self, log_level=logging.INFO):
         """
         Returns the list of duplicate assets from Immich (via /api/duplicates).
         """
+        # parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/duplicates"
@@ -648,6 +720,7 @@ class ClassImmichPhotos:
         Returns:
             int: Number of assets removed
         """
+        parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/assets"
@@ -663,12 +736,16 @@ class ClassImmichPhotos:
             except Exception as e:
                 self.logger.error(f"ERROR   : Failed to remove assets: {str(e)}")
                 return 0
+            finally:
+                # Restore log_level of the parent method
+                self.logger.setLevel(log_level)
 
 
     def remove_duplicates_assets(self, log_level=logging.INFO):
         """
         Removes duplicate assets in the Immich database. Returns how many duplicates got removed.
         """
+        # parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             duplicates_assets = self.get_duplicates_assets(log_level=log_level)
@@ -697,6 +774,7 @@ class ClassImmichPhotos:
             str: the asset_id if success, or None if it fails or is an unsupported extension.
             bool: is_duplicated = False if success, or None if it fails or is an unsopported extension.
         """
+        parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             if not os.path.isfile(file_path):
@@ -773,6 +851,9 @@ class ClassImmichPhotos:
             except Exception as e:
                 self.logger.error(f"ERROR   : Failed to upload '{file_path}': {e}")
                 return None, None
+            finally:
+                # Restore log_level of the parent method
+                self.logger.setLevel(log_level)
 
 
     def download_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Immich", log_level=logging.INFO):
@@ -790,6 +871,7 @@ class ClassImmichPhotos:
         Returns:
             int: 1 if download succeeded, 0 if failed.
         """
+        parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             os.makedirs(download_folder, exist_ok=True)
@@ -825,6 +907,9 @@ class ClassImmichPhotos:
             except Exception as e:
                 self.logger.error(f"ERROR   : Failed to download asset {asset_id}: {e}")
                 return 0
+            finally:
+                # Restore log_level of the parent method
+                self.logger.setLevel(log_level)
 
 
     ###########################################################################
@@ -842,6 +927,7 @@ class ClassImmichPhotos:
         Returns:
             list: A list of assets (dict) matching the specified filters in the entire library or Empty list on error.
         """
+        parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/search/metadata"
@@ -899,6 +985,9 @@ class ClassImmichPhotos:
                         break
             except Exception as e:
                 self.logger.error(f"ERROR   : Failed to retrieve assets: {str(e)}")
+            finally:
+                # Restore log_level of the parent method
+                self.logger.setLevel(log_level)
 
             # Add new fields "time" with the same value as "fileCreatedAt" and "filename" with the same value as "originalFileName" to allign with Synology Photos
             for asset in all_assets:
@@ -931,6 +1020,7 @@ class ClassImmichPhotos:
 
         Returns: (albums_uploaded, albums_skipped, assets_uploaded, total_duplicates_assets_removed, total_duplicates_assets_skipped)
         """
+        # parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             if not os.path.isdir(input_folder):
@@ -1062,6 +1152,7 @@ class ClassImmichPhotos:
 
         Returns total_assets_uploaded, total_dupplicated_assets_skipped, duplicates_assets_removed.
         """
+        # parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             if not os.path.isdir(input_folder):
@@ -1142,6 +1233,7 @@ class ClassImmichPhotos:
 
         Returns: (albums_uploaded, albums_skipped, assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed, total_dupplicated_assets_skipped)
         """
+        # parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
 
@@ -1204,6 +1296,7 @@ class ClassImmichPhotos:
         Returns:
             tuple: (albums_downloaded, assets_downloaded)
         """
+        # parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             output_folder = os.path.join(output_folder, "Albums")
@@ -1282,6 +1375,7 @@ class ClassImmichPhotos:
 
         Returns assets_downloaded or 0 if no assets are downloaded
         """
+        parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             total_assets_downloaded = 0
@@ -1302,6 +1396,9 @@ class ClassImmichPhotos:
                     dt_created = datetime.fromisoformat(created_at_str.replace("Z", ""))
                 except Exception:
                     dt_created = datetime.now()
+                finally:
+                    # Restore log_level of the parent method
+                    self.logger.setLevel(log_level)
 
                 year_str = dt_created.strftime("%Y")
                 month_str = dt_created.strftime("%m")
@@ -1336,6 +1433,7 @@ class ClassImmichPhotos:
             
         Returns total_albums_downloaded, total_assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums.
         """
+        # parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             total_albums_downloaded, total_assets_in_albums = self.download_albums(
@@ -1390,6 +1488,7 @@ class ClassImmichPhotos:
         Returns:
             int: The number of empty albums deleted.
         """
+        # parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             albums = self.get_albums_owned_by_user(log_level=log_level)
@@ -1426,6 +1525,7 @@ class ClassImmichPhotos:
         Returns:
             int: The number of duplicate albums deleted.
         """
+        # parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             albums = self.get_albums_owned_by_user(log_level=log_level)
@@ -1468,6 +1568,7 @@ class ClassImmichPhotos:
 
         Returns how many orphan got removed.
         """
+        parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):  # Change Log Level to log_level for this function
             # login_immich
             self.login(log_level=log_level)
@@ -1504,6 +1605,9 @@ class ClassImmichPhotos:
                 # logout_immich
                 self.logout(log_level=log_level)
                 return 0
+            finally:
+                # Restore log_level of the parent method
+                self.logger.setLevel(log_level)
 
             orphan_media_assets = filter_entities(response.json(), 'asset')
             num_entries = len(orphan_media_assets)
@@ -1545,6 +1649,9 @@ class ClassImmichPhotos:
                         else:
                             self.logger.warning(f"WARNING : Failed to remove asset {entity_id}: {str(e)}")
                         continue
+                    finally:
+                        # Restore log_level of the parent method
+                        self.logger.setLevel(log_level)
                     progress_bar.update(1)
                     total_removed_assets += 1
             self.logger.info(f"INFO    : Orphaned media assets removed successfully!")
@@ -1565,6 +1672,7 @@ class ClassImmichPhotos:
 
         Returns (assets_removed, albums_removed)
         """
+        # parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             self.logger.info(f"INFO    : Getting list of asset(s) to remove...")
@@ -1619,6 +1727,7 @@ class ClassImmichPhotos:
 
         Returns (#albums_removed, #assets_removed).
         """
+        # parent_log_level = self.get_caller_log_level()
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
             albums = self.get_albums_owned_by_user(log_level=log_level)

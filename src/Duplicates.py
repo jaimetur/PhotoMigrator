@@ -8,7 +8,7 @@ import shutil
 import re
 import logging
 from CustomLogger import set_log_level
-from Utils import delete_subfolders, remove_empty_dirs, tqdm
+from Utils import delete_subfolders, remove_empty_dirs, tqdm, get_caller_log_level
 
 # ========================
 # Find Duolicates Function
@@ -47,7 +47,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
     # ===========================
     # AUX FUNCTIONS
     # ===========================
-    from GlobalVariables import LOGGER
+
     def calculate_file_hash_optimized(path, full_hash=False, chunk_size=1024 * 1024, log_level=logging.INFO):
         """
         Calculate the hash of a file. Optionally calculates a partial hash for speed.
@@ -61,6 +61,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
             str: The calculated hash.
         """
         from GlobalVariables import LOGGER
+        parent_log_level = get_caller_log_level()
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             hasher = hashlib.md5()
             with open(path, 'rb') as f:
@@ -80,6 +81,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
         Returns (is_deprioritized, priority)
         """
         from GlobalVariables import LOGGER
+        parent_log_level = get_caller_log_level()
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             if folder in cache_folders_priority:
                 return cache_folders_priority[folder]
@@ -101,6 +103,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
         Retorna (is_deprioritized, priority).
         """
         from GlobalVariables import LOGGER
+        parent_log_level = get_caller_log_level()
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # Reutilizar resultados almacenados en caché
             if folder in cache_folders_priority:
@@ -130,6 +133,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
         Remove empty directories recursively.
         """
         from GlobalVariables import LOGGER
+        parent_log_level = get_caller_log_level()
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             removed_folders = 0
             for dirpath, dirnames, filenames in os.walk(root_dir, topdown=False):
@@ -141,11 +145,16 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                         LOGGER.debug(f"DEBUG   : Removed empty directory in path {dirpath}")
                     except OSError:
                         pass
+                    finally:
+                        # Restore log_level of the parent method
+                        LOGGER.setLevel(parent_log_level)
             return removed_folders
 
     # ===========================
     # INITIALIZATION AND SETUP
     # ===========================
+    from GlobalVariables import LOGGER
+    parent_log_level = get_caller_log_level()
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         removed_empty_folders = 0
         if deprioritize_folders_patterns is None:
@@ -199,6 +208,9 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                         except (PermissionError, OSError):
                             LOGGER.warning(f"WARNING : Skipping inaccessible file {full_path}")
                             continue
+                        finally:
+                            # Restore log_level of the parent method
+                            LOGGER.setLevel(parent_log_level)
                         size_dict.setdefault(file_size, []).append(full_path)
 
         # Optimización: Filtrar directamente los tamaños con más de un archivo
@@ -252,6 +264,9 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                         except (PermissionError, OSError):
                             LOGGER.warning(f"WARNING : Skipping file due to error {path}")
                             continue
+                        finally:
+                            # Restore log_level of the parent method
+                            LOGGER.setLevel(parent_log_level)
                 del sizes_with_duplicates_dict
                 partial_hash_with_duplicates_dict = {partial_hash: partial_hash_paths for partial_hash, partial_hash_paths in partial_hash_dict.items() if len(partial_hash_paths) > 1}
                 del partial_hash_dict
@@ -266,6 +281,9 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                             except (PermissionError, OSError):
                                 LOGGER.warning(f"WARNING : Skipping file due to error {path}")
                                 continue
+                            finally:
+                                # Restore log_level of the parent method
+                                LOGGER.setLevel(parent_log_level)
                 del partial_hash_with_duplicates_dict
             else:
                 LOGGER.debug("DEBUG   : Hashing files with same size")
@@ -278,6 +296,9 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                         except (PermissionError, OSError):
                             LOGGER.warning(f"WARNING : Skipping file due to error {path}")
                             continue
+                        finally:
+                            # Restore log_level of the parent method
+                            LOGGER.setLevel(parent_log_level)
                 del sizes_with_duplicates_dict
 
             duplicates = {hash: paths for hash, paths in hash_dict.items() if len(paths) > 1}
@@ -452,6 +473,9 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                                     os.remove(duplicated)
                                 except OSError:
                                     LOGGER.warning(f"WARNING : Could not remove file {duplicated}")
+                                finally:
+                                    # Restore log_level of the parent method
+                                    LOGGER.setLevel(parent_log_level)
 
                             writer.writerow(row)
                             duplicates_counter += 1
@@ -465,14 +489,16 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
         return duplicates_counter, removed_empty_folders
 
 def process_duplicates_actions(csv_revised: str, log_level=logging.INFO):
-    from GlobalVariables import LOGGER
     import unicodedata
 
     def normalize_path(path: str, log_level=logging.INFO) -> str:
         from GlobalVariables import LOGGER
+        parent_log_level = get_caller_log_level()
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             return unicodedata.normalize('NFC', path)
 
+    from GlobalVariables import LOGGER
+    parent_log_level = get_caller_log_level()
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Initialize counters
         removed_count = 0
@@ -499,15 +525,22 @@ def process_duplicates_actions(csv_revised: str, log_level=logging.INFO):
             except StopIteration:
                 LOGGER.info(f"INFO    : The file {csv_revised} is empty.")
                 return removed_count, restored_count, replaced_count
+            finally:
+                # Restore log_level of the parent method
+                LOGGER.setLevel(parent_log_level)
 
             normalized_header = [col.strip().lower() for col in header]
 
             def get_index(col_name, log_level=logging.INFO):
+                parent_log_level = get_caller_log_level()
                 with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
                     try:
                         return normalized_header.index(col_name)
                     except ValueError:
                         return -1
+                    finally:
+                        # Restore log_level of the parent method
+                        LOGGER.setLevel(parent_log_level)
 
             principal_index = get_index("principal")
             duplicate_index = get_index("duplicate")
