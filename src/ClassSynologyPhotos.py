@@ -643,7 +643,6 @@ class ClassSynologyPhotos:
             # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
             assets_without_albums = get_unique_items(all_assets, album_asset, key='filename')
             self.logger.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
-            self.logout(log_level=log_level)
             return assets_without_albums
 
 
@@ -1328,9 +1327,9 @@ class ClassSynologyPhotos:
             no_albums_folder = os.path.join(no_albums_folder, 'No-Albums')
             os.makedirs(no_albums_folder, exist_ok=True)
 
-            self.logger.info(f"INFO    : Number of all_assets without Albums associated to download: {len(assets_without_albums)}")
-            if not all_assets:
-                self.logger.warning(f"WARNING : No all_assets without Albums associated to download.")
+            self.logger.info(f"INFO    : Number of assets without Albums associated to download: {len(assets_without_albums)}")
+            if not assets_without_albums:
+                self.logger.warning(f"WARNING : No assets without Albums associated to download.")
                 return 0
 
             for asset in tqdm(assets_without_albums, desc="INFO    : Downloading Assets without associated Albums", unit=" assets"):
