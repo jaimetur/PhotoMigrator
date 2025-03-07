@@ -1049,6 +1049,365 @@ class ClassSynologyPhotos:
 
 
     ###########################################################################
+    #                             FOLDERS FUNCTIONS                           #
+    ###########################################################################
+    def get_photos_root_folder_id(self, log_level=logging.INFO):
+        """
+        Retrieves the folder_id of the root folder in Synology Photos.
+
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            str: The ID of the folder (folder_id).
+        """
+        with set_log_level(self.logger, log_level):
+            self.login_synology(log_level=log_level)
+
+            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+            headers = {}
+            if self.SYNO_TOKEN_HEADER:
+                headers.update(self.SYNO_TOKEN_HEADER)
+
+            params = {
+                "api": "SYNO.Foto.Browse.Folder",
+                "method": "get",
+                "version": "2",
+            }
+            response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+            response.raise_for_status()
+            data = response.json()
+
+            if not data.get("success"):
+                self.logger.error("ERROR   : Cannot obtain Photos Root Folder ID due to an error in the API call.")
+                sys.exit(-1)
+
+            folder_name = data["data"]["folder"]["name"]
+            folder_id = str(data["data"]["folder"]["id"])
+            if not folder_id or folder_name != "/":
+                self.logger.error("ERROR   : Cannot obtain Photos Root Folder ID.")
+                sys.exit(-1)
+            return folder_id
+
+
+    def get_folder_id(self, search_in_folder_id, folder_name, log_level=logging.WARNING):
+        """
+        Retrieves the folder_id of a folder in Synology Photos given the parent folder ID
+        and the name of the folder to search for.
+
+        Args:
+            search_in_folder_id (str): ID of the Synology Photos folder where the subfolder is located.
+            folder_name (str): Name of the folder to search for in the folder structure.
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            str: The ID of the folder (folder_id), or None if not found.
+        """
+        with set_log_level(self.logger, log_level):
+            self.login_synology(log_level=log_level)
+
+            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+            headers = {}
+            if self.SYNO_TOKEN_HEADER:
+                headers.update(self.SYNO_TOKEN_HEADER)
+
+            # 1) get the name of search_in_folder_id
+            params = {
+                "api": "SYNO.Foto.Browse.Folder",
+                "method": "get",
+                "version": "2",
+                "id": search_in_folder_id,
+            }
+            response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+            data = response.json()
+            if not data.get("success"):
+                self.logger.error(f"ERROR   : Cannot obtain name for folder ID '{search_in_folder_id}' due to an error in the API call.")
+                sys.exit(-1)
+            search_in_folder_name = data["data"]["folder"]["name"]
+
+            offset = 0
+            limit = 5000
+            found_id = None
+            while True:
+                params_list = {
+                    "api": "SYNO.Foto.Browse.Folder",
+                    "method": "list",
+                    "version": "2",
+                    "id": search_in_folder_id,
+                    "offset": offset,
+                    "limit": limit
+                }
+                resp = self.SESSION.get(url, params=params_list, headers=headers, verify=False)
+                resp.raise_for_status()
+                data_list = resp.json()
+
+                if not data_list.get("success"):
+                    self.logger.error(f"ERROR   : Cannot obtain ID for folder '{folder_name}' due to an error in the API call.")
+                    sys.exit(-1)
+
+                subfolders_dict = {
+                    item["name"].replace(search_in_folder_name, '').replace('/', ''): str(item["id"])
+                    for item in data_list["data"]["list"] if "id" in item
+                }
+
+                if len(data_list["data"]["list"]) < limit or folder_name in subfolders_dict.keys():
+                    # might have found it or we are at last chunk
+                    found_id = subfolders_dict.get(folder_name)
+                    break
+                offset += limit
+
+            if found_id:
+                return found_id
+            else:
+                # recursively check subfolders
+                for sf_id in subfolders_dict.values():
+                    sub_found = self.get_folder_id(sf_id, folder_name, log_level=log_level)
+                    if sub_found:
+                        return sub_found
+                return None
+
+
+    def create_folder(self, folder_name, parent_folder_id=None, log_level=logging.INFO):
+        """
+        Retrieves the folder ID of a given folder name within a parent folder in Synology Photos.
+        If the folder does not exist, it will be created.
+
+        Args:
+            folder_name (str): The name of the folder to find or create.
+            parent_folder_id (str, optional): The ID of the parent folder.
+                If not provided, the root folder of Synology Photos is used.
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            str: The folder ID if found or successfully created, otherwise None.
+        """
+        with set_log_level(self.logger, log_level):
+            self.login_synology(log_level=log_level)
+            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+            headers = {}
+            if self.SYNO_TOKEN_HEADER:
+                headers.update(self.SYNO_TOKEN_HEADER)
+
+            if not parent_folder_id:
+                photos_root_folder_id = self.get_photos_root_folder_id()
+                parent_folder_id = photos_root_folder_id
+                self.logger.warning(f"WARNING : Parent Folder ID not provided, using Synology Photos root folder ID: '{photos_root_folder_id}' as parent folder.")
+
+            # Check if the folder already exists
+            folder_id = self.get_folder_id(parent_folder_id, folder_name, log_level=log_level)
+            if folder_id:
+                # Already exists
+                return folder_id
+
+            # If the folder does not exist, create it
+            params = {
+                'api': 'SYNO.Foto.Browse.Folder',
+                'version': '1',
+                'method': 'create',
+                'target_id': parent_folder_id,
+                'name': folder_name
+            }
+            response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+            data = response.json()
+
+            self.logout_synology(log_level=log_level)
+            if data.get("success"):
+                self.logger.info(f"INFO    : Folder '{folder_name}' successfully created.")
+                return data['data']['folder']['id']
+            else:
+                self.logger.error(f"ERROR   : Failed to create the folder: '{folder_name}'")
+                return None
+
+
+    def get_folders(self, parent_folder_id, log_level=logging.INFO):
+        """
+        Lists all subfolders under a specified parent_folder_id in Synology Photos.
+
+        Args:
+            parent_folder_id (str): Parent folder ID to get all its subfolders
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            dict: A dictionary with folder IDs as keys and folder names as values.
+        """
+        with set_log_level(self.logger, log_level):
+            self.login_synology(log_level=log_level)
+            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+            headers = {}
+            if self.SYNO_TOKEN_HEADER:
+                headers.update(self.SYNO_TOKEN_HEADER)
+
+            offset = 0
+            limit = 5000
+            folders_dict = {}
+            while True:
+                params = {
+                    "api": "SYNO.Foto.Browse.Folder",
+                    "method": "list",
+                    "version": "2",
+                    "id": parent_folder_id,
+                    "sort_by": "filename",
+                    "sort_direction": "asc",
+                    "offset": offset,
+                    "limit": limit
+                }
+                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                response.raise_for_status()
+                data = response.json()
+
+                if data["success"]:
+                    for item in data["data"]["list"]:
+                        if "id" in item:
+                            folders_dict[item["id"]] = item["name"]
+                else:
+                    self.logger.error("ERROR   : Failed to list albums: ", data)
+                    return {}
+
+                if len(data["data"]["list"]) < limit:
+                    break
+                offset += limit
+
+            return folders_dict
+
+
+    def remove_folder(self, folder_id, folder_name, log_level=logging.INFO):
+        """
+        Removes a folder by its ID in Synology Photos.
+
+        Args:
+            folder_id (str or list): ID(s) of the folder(s).
+            folder_name (str): Name of the folder.
+            log_level (logging.LEVEL): log_level for logs and console
+        """
+        with set_log_level(self.logger, log_level):
+            self.login_synology(log_level=log_level)
+            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+            headers = {}
+            if self.SYNO_TOKEN_HEADER:
+                headers.update(self.SYNO_TOKEN_HEADER)
+
+            if not isinstance(folder_id, list):
+                folder_id = [folder_id]
+
+            params = {
+                'api': 'SYNO.Foto.BackgroundTask.File',
+                'version': '1',
+                'method': 'delete',
+                'item_id': '[]',
+                'folder_id': f'{folder_id}',
+            }
+            try:
+                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                data = response.json()
+                if not data.get("success"):
+                    self.logger.error(f"ERROR   : Failed to remove folder '{folder_name}'")
+                    return 0
+            except Exception as e:
+                self.logger.error(f"ERROR   : Exception while removing folder '{folder_name}' {e}")
+                return 0
+            return len(folder_id)
+
+    def get_folder_items_count(self, folder_id, folder_name, log_level=logging.INFO):
+        """
+        Returns the assets count for a specific Synology Photos folder.
+
+        Args:
+            folder_id (str): Folder ID
+            folder_name (str): Folder Name
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            int: Folder Items Count or -1 on error.
+        """
+        with set_log_level(self.logger, log_level):
+            self.login_synology(log_level=log_level)
+            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+            headers = {}
+            if self.SYNO_TOKEN_HEADER:
+                headers.update(self.SYNO_TOKEN_HEADER)
+
+            params = {
+                'api': 'SYNO.Foto.Browse.Item',
+                'method': 'count',
+                'version': '4',
+                "folder_id": folder_id,
+            }
+            try:
+                resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                data = resp.json()
+                if not data.get("success"):
+                    self.logger.error(f"ERROR   : Failed to count assets for folder '{folder_name}'.")
+                    return -1
+                asset_count = data["data"]["count"]
+            except Exception as e:
+                self.logger.error(f"ERROR   : Exception while retrieving assets count for folder '{folder_name}'. {e}")
+                return -1
+            return asset_count
+
+
+    ###########################################################################
+    #                         BACKGROUND TASKS MANAGEMENT                     #
+    ###########################################################################
+    """
+    Encapsulates all the functionality from the original ClassImmichPhotos.py
+    into a single class that uses a global LOGGER from GlobalVariables.
+    """
+
+    def wait_for_remove_task(self, task_id, log_level=logging.INFO):
+        """
+        Internal helper to poll a background remove task until done.
+
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+        """
+        with set_log_level(self.logger, log_level):
+            while True:
+                status = self.check_background_remove_task_finished(task_id, log_level=log_level)
+                if status == 'done' or status is True:
+                    self.logger.info(f'INFO    : Waiting for removing assets to finish...')
+                    time.sleep(5)
+                    break
+                else:
+                    self.logger.debug(f"DEBUG   : Task not finished yet. Waiting 5 seconds more.")
+                    time.sleep(5)
+
+
+    def check_background_remove_task_finished(self, task_id, log_level=logging.INFO):
+        """
+        Checks whether a background removal task is finished.
+
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+        """
+        with set_log_level(self.logger, log_level):
+            self.login(log_level=log_level)
+            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+            headers = {}
+            if self.SYNO_TOKEN_HEADER:
+                headers.update(self.SYNO_TOKEN_HEADER)
+
+            params = {
+                'api': 'SYNO.Foto.BackgroundTask.Info',
+                'version': '1',
+                'method': 'get_status',
+                'id': f'[{task_id}]'
+            }
+            try:
+                resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                data = resp.json()
+                if not data.get("success"):
+                    self.logger.error(f"ERROR   : Failed to get removing assets status")
+                    return False
+                lst = data['data'].get('list', [])
+                if len(lst) > 0:
+                    return lst[0].get('status')
+                else:
+                    return True
+            except Exception as e:
+                self.logger.error(f"ERROR   : Exception while checking removing assets status {e}")
+                return False
+
+    ###########################################################################
     #             MAIN FUNCTIONS TO CALL FROM OTHER MODULES (API)            #
     ###########################################################################
     def upload_albums(self, input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
