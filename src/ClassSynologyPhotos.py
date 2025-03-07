@@ -313,9 +313,6 @@ class ClassSynologyPhotos:
             return success
 
 
-    ###########################################################################
-    #                           ALBUMS FUNCTIONS                              #
-    ###########################################################################
     def create_album(self, album_name, log_level=logging.INFO):
         """
         Creates a new album in Synology Photos with the specified name.
@@ -656,7 +653,7 @@ class ClassSynologyPhotos:
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns:
-            list: A list of photos in the album (dict objects). [] if no assets found.
+            list: A list of assets in the album (dict objects). [] if no assets found.
         """
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
@@ -733,7 +730,7 @@ class ClassSynologyPhotos:
 
     def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=logging.WARNING):
         """
-        Adds photos (asset_ids) to an album.
+        Adds assets (asset_ids) to an album.
 
         Args:
             album_id (str): The ID of the album to which we add assets.
@@ -991,6 +988,11 @@ class ClassSynologyPhotos:
         Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals
         the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on
         self.ALLOWED_SYNOLOGY_EXTENSIONS) and associates them with the album.
+        
+        Example structure:
+            input_folder/
+                ├─ Album1/   (files for album "Album1")
+                └─ Album2/   (files for album "Album2")
 
         Args:
             input_folder (str): Input folder
