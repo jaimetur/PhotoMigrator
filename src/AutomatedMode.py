@@ -252,7 +252,7 @@ def automated_migration(source_client, target_client, temp_folder):
     Parámetros:
     -----------
     source_client: objeto con los métodos:
-        - get_albums() -> [ { 'id': ..., 'name': ... }, ... ]
+        - get_albums_including_shared_with_user() -> [ { 'id': ..., 'name': ... }, ... ]
         - get_album_assets(album_id) -> [ { 'id': ..., 'date': ..., 'type': ... }, ... ]
         - get_no_albums_assets() -> [ { 'id': ..., 'date': ..., 'type': ... }, ... ]
         - download_asset(asset_id, download_path) -> str (ruta local del archivo descargado)
@@ -360,7 +360,7 @@ def automated_migration(source_client, target_client, temp_folder):
     # ----------------------------------------------------------------------------
 
     # 3.1) Descarga de álbumes
-    albums = source_client.get_albums()
+    albums = source_client.get_albums_owned_by_user()
     for album in albums:
         album_id = album['id']
         album_name = album['name']
@@ -571,7 +571,7 @@ if __name__ == "__main__":
     target = ClassImmichPhotos()
 
     # Get source client statistics:
-    all_albums = source.get_albums()
+    all_albums = source.get_albums_including_shared_with_user()
     all_assets = source.get_all_assets()
     all_photos = [asset for asset in all_assets if asset['type'] == 'photo']
     all_videos = [asset for asset in all_assets if asset['type'] == 'video']
