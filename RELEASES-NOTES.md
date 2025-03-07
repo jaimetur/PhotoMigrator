@@ -57,8 +57,8 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] Moved at the end of the help the standard option (those that are not related to any Support mode).
 - [x] Updated -h, --help to reflect the new changes.
 - [x] Code refactored.
-- [x] Minor Bug Fixing.  
-- 
+- [x] Minor Bug Fixing.
+
 - [x] Renamed options:
   - -sca,  --synology-create-albums is now **suAlb,  --synology-upload-albums <ALBUMS_FOLDER>**.
   - -sea,  --synology-extract-albums is now **-sdAlb,  --synology-download-albums <ALBUMS_NAME>**.
