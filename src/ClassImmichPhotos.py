@@ -518,7 +518,6 @@ class ClassImmichPhotos:
             self.login(log_level=log_level)
             assets_without_albums = self.get_all_assets(isNotInAlbum=True, log_level=log_level)
             self.logger.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
-            self.logout(log_level=log_level)
             return assets_without_albums
 
 
@@ -686,11 +685,10 @@ class ClassImmichPhotos:
             hex_checksum, base64_checksum = sha1_checksum(file_path)
 
             filename, ext = os.path.splitext(file_path)
-            ext = ext.lower()
 
             # Check extension
-            if ext not in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
-                if ext in self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS:
+            if ext.lower() not in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
+                if ext.lower() in self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS:
                     return None, None
                 else:
                     self.logger.warning(f"WARNING : File '{file_path}' has an unsupported extension. Skipped.")
