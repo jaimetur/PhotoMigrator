@@ -366,7 +366,7 @@ def automated_migration(source_client, target_client, temp_folder):
     albums = source_client.get_albums_owned_by_user()
     for album in albums:
         album_id = album['id']
-        album_name = album['name']
+        album_name = album['albumName']
 
         # Descargar todos los assets de este álbum
         album_assets = source_client.get_album_assets(album_id)
