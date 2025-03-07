@@ -313,9 +313,6 @@ class ClassSynologyPhotos:
             return success
 
 
-    ###########################################################################
-    #                           ALBUMS FUNCTIONS                              #
-    ###########################################################################
     def create_album(self, album_name, log_level=logging.INFO):
         """
         Creates a new album in Synology Photos with the specified name.
@@ -616,7 +613,7 @@ class ClassSynologyPhotos:
                     if not data.get("success"):
                         self.logger.error(f"ERROR   : Failed to list assets")
                         return []
-                    all_assets.append(data["data"]["list"])
+                    all_assets.extend(data["data"]["list"])
                     if len(data["data"]["list"]) < limit:
                         break
                     offset += limit
@@ -624,10 +621,7 @@ class ClassSynologyPhotos:
                     self.logger.error(f"ERROR   : Exception while listing assets {e}")
                     return []
 
-            # Flatten
-            for chunk in all_assets:
-                combined_assets.extend(chunk)
-            return combined_assets
+            return all_assets
 
 
     def get_no_albums_assets(self, log_level=logging.WARNING):
@@ -646,7 +640,6 @@ class ClassSynologyPhotos:
             # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
             assets_without_albums = get_unique_items(all_assets, album_asset, key='filename')
             self.logger.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
-            self.logout(log_level=log_level)
             return assets_without_albums
 
 
@@ -660,7 +653,7 @@ class ClassSynologyPhotos:
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns:
-            list: A list of photos in the album (dict objects). [] if no assets found.
+            list: A list of assets in the album (dict objects). [] if no assets found.
         """
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
@@ -692,7 +685,7 @@ class ClassSynologyPhotos:
                         else:
                             self.logger.error(f"ERROR   : Failed to list photos in the album ID={album_id}")
                         return []
-                    album_items.append(data["data"]["list"])
+                    album_items.extend(data["data"]["list"])
 
                     if len(data["data"]["list"]) < limit:
                         break
@@ -704,9 +697,7 @@ class ClassSynologyPhotos:
                         self.logger.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                     return []
 
-            for c in album_items:
-                combined_items.extend(c)
-            return combined_items
+            return album_items
 
 
     def get_all_albums_assets(self, log_level=logging.WARNING):
@@ -739,7 +730,7 @@ class ClassSynologyPhotos:
 
     def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=logging.WARNING):
         """
-        Adds photos (asset_ids) to an album.
+        Adds assets (asset_ids) to an album.
 
         Args:
             album_id (str): The ID of the album to which we add assets.
@@ -978,7 +969,7 @@ class ClassSynologyPhotos:
                 os.utime(file_path, (asset_time, asset_time))
 
                 if file_ext in self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS:
-                    update_metadata(file_path, asset_datetime.strftime("%Y-%m-%d %H:%M:%S"))
+                    update_metadata(file_path, asset_datetime.strftime("%Y-%m-%d %H:%M:%S"), log_level=logging.ERROR)
 
                 self.logger.debug("")
                 self.logger.debug(f"DEBUG   : Asset '{asset_name}' downloaded and saved at {file_path}")
@@ -997,6 +988,11 @@ class ClassSynologyPhotos:
         Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals
         the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on
         self.ALLOWED_SYNOLOGY_EXTENSIONS) and associates them with the album.
+        
+        Example structure:
+            input_folder/
+                ├─ Album1/   (files for album "Album1")
+                └─ Album2/   (files for album "Album2")
 
         Args:
             input_folder (str): Input folder
@@ -1314,47 +1310,42 @@ class ClassSynologyPhotos:
             return (albums_downloaded, assets_downloaded)
 
 
-    def download_no_albums(self, output_folder='Downloads_Synology', log_level=logging.WARNING):
+    def download_no_albums(self, no_albums_folder='Downloads_Synology', log_level=logging.WARNING):
         """
         Downloads assets not associated to any album from Synology Photos into output_folder/No-Albums/.
         Then organizes them by year/month inside that folder.
 
         Args:
-            output_folder (str): The output folder where the album assets will be downloaded.
+            no_albums_folder (str): The output folder where the album assets will be downloaded.
             log_level (logging.LEVEL): log_level for logs and console
 
-        Returns assets_downloaded or 0 if no assets are downloaded
+        Returns total_assets_downloaded or 0 if no assets are downloaded
         """
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
-            assets_downloaded = 0
+            total_assets_downloaded = 0
 
-            output_folder = os.path.join(output_folder, 'No-Albums')
-            os.makedirs(output_folder, exist_ok=True)
+            assets_without_albums = self.get_no_albums_assets(log_level=logging.INFO)
+            no_albums_folder = os.path.join(no_albums_folder, 'No-Albums')
+            os.makedirs(no_albums_folder, exist_ok=True)
 
-            all_assets = self.get_all_assets(log_level=logging.INFO)
-            album_asset = self.get_all_albums_assets(log_level=logging.INFO)
-
-            # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
-            assets_without_albums = get_unique_items(all_assets, album_asset, key='filename')
-
-            self.logger.info(f"INFO    : Number of all_assets without Albums associated to download: {len(all_assets)}")
-            if not all_assets:
-                self.logger.warning(f"WARNING : No all_assets without Albums associated to download.")
+            self.logger.info(f"INFO    : Number of assets without Albums associated to download: {len(assets_without_albums)}")
+            if not assets_without_albums:
+                self.logger.warning(f"WARNING : No assets without Albums associated to download.")
                 return 0
 
-            for asset in assets_without_albums:
+            for asset in tqdm(assets_without_albums, desc="INFO    : Downloading Assets without associated Albums", unit=" assets"):
                 asset_id = asset.get('id')
                 asset_name = asset.get('filename')
                 asset_time = asset.get('time')
-                assets_downloaded += self.download_asset(asset_id, asset_name, asset_time, output_folder, log_level=logging.INFO)
+                total_assets_downloaded += self.download_asset(asset_id, asset_name, asset_time, no_albums_folder, log_level=logging.INFO)
 
             # Now organize them by date (year/month)
-            organize_files_by_date(input_folder=output_folder, type='year/month')
+            organize_files_by_date(input_folder=no_albums_folder, type='year/month')
 
-            self.logger.info(f"INFO    : Album(s) downloaded successfully. You can find them in '{output_folder}'")
+            self.logger.info(f"INFO    : Album(s) downloaded successfully. You can find them in '{no_albums_folder}'")
             self.logout(log_level=log_level)
-            return assets_downloaded
+            return total_assets_downloaded
 
 
     def download_ALL(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
@@ -1381,7 +1372,7 @@ class ClassSynologyPhotos:
                 log_level=logging.WARNING
             )
             total_assets_downloaded_without_albums = self.download_no_albums(
-                output_folder=output_folder,
+                no_albums_folder=output_folder,
                 log_level=logging.WARNING
             )
             total_assets_downloaded = total_assets_downloaded_within_albums + total_assets_downloaded_without_albums
@@ -1510,7 +1501,7 @@ class ClassSynologyPhotos:
 
             # for (assets_count, assets_size), group in duplicates_map.items():
             total_removed_duplicated_albums = 0
-            for (assets_count, assets_size), group in tqdm(duplicates_map.items(), desc=f"INFO    : Removing Duplicates Albums", unit=" albums"):
+            for (assets_count, assets_size), group in duplicates_map.items():
                 self.logger.debug(f'DEBUG:   : Assets Count: {assets_count}. Assets Size: {assets_size}.')
                 if len(group) > 1:
                     # keep the first, remove the rest
@@ -1696,7 +1687,7 @@ if __name__ == "__main__":
     # Example: synology_download_no_albums()
     print("\n=== EXAMPLE: synology_download_albums() ===")
     download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
-    total = syno.download_no_albums(output_folder=download_folder)
+    total = syno.download_no_albums(no_albums_folder=download_folder)
     print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
     # Example: download_ALL

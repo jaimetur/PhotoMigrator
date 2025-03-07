@@ -363,6 +363,7 @@ class ClassImmichPhotos:
             try:
                 response = requests.delete(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
                 if response.status_code == 200:
+                    LOGGER.info(f"INFO    : Album '{album_name}' with ID={album_id} removed.")
                     return True
                 else:
                     self.logger.warning(f"WARNING : Failed to remove album: '{album_name}' with ID: {album_id}. Status: {response.status_code}")
@@ -406,7 +407,6 @@ class ClassImmichPhotos:
                 self.logger.error(f"ERROR   : Error while listing albums: {e}")
                 return None
 
-    # TODO: Test this method
     def get_albums_including_shared_with_user(self, log_level=logging.INFO):
         """
         Get both own and shared albums in Immich Photos.
@@ -517,12 +517,8 @@ class ClassImmichPhotos:
         """
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
-            all_assets = self.get_all_assets(log_level=logging.INFO)
-            album_asset = self.get_all_albums_assets(log_level=logging.INFO)
-            # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
-            assets_without_albums = get_unique_items(all_assets, album_asset, key='filename')
+            assets_without_albums = self.get_all_assets(isNotInAlbum=True, log_level=log_level)
             self.logger.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
-            self.logout(log_level=log_level)
             return assets_without_albums
 
 
@@ -545,7 +541,11 @@ class ClassImmichPhotos:
                 resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
                 resp.raise_for_status()
                 data = resp.json()
-                return data.get("assets", [])
+                assets = data.get("assets", [])
+                # Add a new field "date" with the same value as the key "fileCreatedAt" to allign with Synology Photos
+                for asset in assets:
+                    asset["date"] = asset["fileCreatedAt"]
+                return assets
             except Exception as e:
                 if album_name:
                     self.logger.error(f"ERROR   : Failed to retrieve assets from album '{album_name}': {str(e)}")
@@ -686,11 +686,10 @@ class ClassImmichPhotos:
             hex_checksum, base64_checksum = sha1_checksum(file_path)
 
             filename, ext = os.path.splitext(file_path)
-            ext = ext.lower()
 
             # Check extension
-            if ext not in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
-                if ext in self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS:
+            if ext.lower() not in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
+                if ext.lower() in self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS:
                     return None, None
                 else:
                     self.logger.warning(f"WARNING : File '{file_path}' has an unsupported extension. Skipped.")
@@ -762,7 +761,7 @@ class ClassImmichPhotos:
 
         Args:
             asset_id (int): ID of the asset to download.
-            asset_name (str): Name of the file to save.
+            asset_filename (str): filename of the asset to download.
             asset_time (int or str): UNIX epoch or ISO string time of the asset.
             destination_folder (str): Path where the file will be saved.
             log_level (logging.LEVEL): log_level for logs and console
@@ -797,7 +796,7 @@ class ClassImmichPhotos:
                     os.utime(file_path, (asset_time, asset_time))
                     # If extension is recognized, update metadata
                     if file_ext in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
-                        update_metadata(file_path, asset_datetime.strftime("%Y-%m-%d %H:%M:%S"))
+                        update_metadata(file_path, asset_datetime.strftime("%Y-%m-%d %H:%M:%S"), log_level=logging.ERROR)
 
                     self.logger.debug("")
                     self.logger.debug(f"DEBUG   : Asset '{asset_filename}' downloaded and saved at {file_path}")
@@ -832,6 +831,31 @@ class ClassImmichPhotos:
                     payload_data = {
                         "page": next_page,
                         "order": "desc",
+                        # "withArchived": False,
+                        # "withDeleted": False,
+                        # "country": "string",
+                        # "city": "string",
+                        # "type": "IMAGE",
+                        # "isNotInAlbum": False,
+                        # "isArchived": True,
+                        # "isOffline": isOffline,
+                        # "isEncoded": True,
+                        # "isFavorite": True,
+                        # "isMotion": True,
+                        # "isVisible": True,
+                        # "withRemoved": True,
+                        # "withExif": True,
+                        # "withPeople": True,
+                        # "withStacked": True,
+                        # "createdAfter": "string",
+                        # "createdBefore": "string",
+                        # "takenAfter": "string",
+                        # "takenBefore": "string",
+                        # "updatedAfter": "string",
+                        # "updatedBefore": "string",
+                        # "personIds": [
+                        #   "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                        # ],
                     }
                     if type: payload_data["type"] = type
                     if isNotInAlbum: payload_data["isNotInAlbum"] = isNotInAlbum
@@ -854,6 +878,10 @@ class ClassImmichPhotos:
                         break
             except Exception as e:
                 self.logger.error(f"ERROR   : Failed to retrieve assets: {str(e)}")
+
+            # Add a new field "date" with the same value as the key "fileCreatedAt" to allign with Synology Photos
+            for asset in all_assets:
+                asset["date"] = asset["fileCreatedAt"]
             return all_assets
 
 
@@ -865,6 +893,11 @@ class ClassImmichPhotos:
         Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals
         the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on
         self.ALLOWED_IMMICH_EXTENSIONS) and associates them with the album.
+        
+        Example structure:
+        input_folder/
+            ├─ Album1/   (files for album "Album1")
+            └─ Album2/   (files for album "Album2")
 
         Args:
             input_folder (str): Input folder
@@ -997,8 +1030,14 @@ class ClassImmichPhotos:
                          remove_duplicates=True,
                          log_level=logging.WARNING):
         """
-        Recursively uploads all supported files from 'input_folder' without assigning to any album.
-        Preserves the original logger texts.
+        Recursively traverses 'input_folder' and its subfolders_inclusion to upload all
+        compatible files (photos/videos) to Immich without associating them to any album.
+
+        If 'subfolders_inclusion' is provided (as a string or list of strings), only those
+        direct subfolders_inclusion of 'input_folder' are processed (excluding any in SUBFOLDERS_EXCLUSIONS).
+        Otherwise, all subfolders_inclusion except those listed in SUBFOLDERS_EXCLUSIONS are processed.
+
+        Returns total_assets_uploaded, total_dupplicated_assets_skipped, duplicates_assets_removed.
         """
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
@@ -1224,12 +1263,12 @@ class ClassImmichPhotos:
             self.login(log_level=log_level)
             total_assets_downloaded = 0
 
-            all_assets_items = self.get_all_assets(isNotInAlbum=True, log_level=log_level)
+            all_assets_without_albums = self.get_no_albums_assets(log_level=log_level)
             no_albums_folder = os.path.join(output_folder, 'No-Albums')
             os.makedirs(no_albums_folder, exist_ok=True)
 
-            self.logger.info(f"INFO    : Found {len(all_assets_items)} asset(s) without any album associated.")
-            for asset in tqdm(all_assets_items, desc="INFO    : Downloading assets without associated albums", unit=" photos"):
+            self.logger.info(f"INFO    : Found {len(all_assets_without_albums)} asset(s) without any album associated.")
+            for asset in tqdm(all_assets_without_albums, desc="INFO    : Downloading assets without associated albums", unit=" assets"):
                 asset_id = asset.get("id")
                 asset_filename = os.path.basename(asset.get("originalFileName", "unknown"))
                 if not asset_id:
@@ -1271,6 +1310,8 @@ class ClassImmichPhotos:
         Args:
             output_folder (str): Output folder
             log_level (logging.LEVEL): log_level for logs and console
+            
+        Returns total_albums_downloaded, total_assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums.
         """
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
@@ -1379,7 +1420,7 @@ class ClassImmichPhotos:
                 duplicates_map.setdefault((assets_count, assets_size), []).append((album_id, album_name))
 
             total_removed_duplicated_albums = 0
-            for (assets_count, assets_size), group in tqdm(duplicates_map.items(), desc=f"INFO    : Removing Duplicates Albums", unit=" albums"):
+            for (assets_count, assets_size), group in duplicates_map.items():
                 self.logger.debug(f"DEBUG   : Assets Count: {assets_count}. Assets Size: {assets_size}.")
                 if len(group) > 1:
                     # Keep the first, remove the rest
