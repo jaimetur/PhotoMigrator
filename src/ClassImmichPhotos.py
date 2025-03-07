@@ -516,10 +516,7 @@ class ClassImmichPhotos:
         """
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
-            all_assets = self.get_all_assets(log_level=logging.INFO)
-            album_asset = self.get_all_albums_assets(log_level=logging.INFO)
-            # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
-            assets_without_albums = get_unique_items(all_assets, album_asset, key='filename')
+            assets_without_albums = self.get_all_assets(isNotInAlbum=True, log_level=log_level)
             self.logger.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
             self.logout(log_level=log_level)
             return assets_without_albums
@@ -1231,12 +1228,12 @@ class ClassImmichPhotos:
             self.login(log_level=log_level)
             total_assets_downloaded = 0
 
-            all_assets_items = self.get_all_assets(isNotInAlbum=True, log_level=log_level)
+            all_assets_without_albums = self.get_no_albums_assets(log_level=log_level)
             no_albums_folder = os.path.join(output_folder, 'No-Albums')
             os.makedirs(no_albums_folder, exist_ok=True)
 
-            self.logger.info(f"INFO    : Found {len(all_assets_items)} asset(s) without any album associated.")
-            for asset in tqdm(all_assets_items, desc="INFO    : Downloading assets without associated albums", unit=" photos"):
+            self.logger.info(f"INFO    : Found {len(all_assets_without_albums)} asset(s) without any album associated.")
+            for asset in tqdm(all_assets_without_albums, desc="INFO    : Downloading assets without associated albums", unit=" assets"):
                 asset_id = asset.get("id")
                 asset_filename = os.path.basename(asset.get("originalFileName", "unknown"))
                 if not asset_id:
