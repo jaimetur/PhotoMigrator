@@ -16,17 +16,17 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 ## Release Notes:
 
 **Release**: 3.1.0  
-**Date**: 2025-03-06
+**Date**: 2025-03-08
 
-- [x] Included Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization.
+- [ ] Included Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization.
 - [x] Added Threads suppport on AUTOMATED MIGRATION MODE to parallelize Downloads and Uploads and avoid to download All assets before to upload them (this will safe disk space and improve performance).
 - [x] Code Refactored to convert ServiceGooglePhotos, ServiceSynologyPhotos and ServiceImmichPhotos into Classes (ClassGoogleTakeout, ClassSynologyPhotos, ClassImmichPhotos) and homogenized all functions of all these classes.
 - [x] Minor Bug Fixing.
 
 ## Release Notes:
 
-**Release**: 3.0.0-beta04  
-**Date**: 2025-02-27
+**Release**: 3.0.0  
+**Date**: 2025-03-07
 
 - [x] New Script name '**CloudPhotoMigrator**' (former 'GoogleTakeoutPhotos')
 - [x] The Tool is now Open Source (all contributors that want to collaborate on this project are more than welcome)

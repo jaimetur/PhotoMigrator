@@ -9,7 +9,7 @@ import logging
 #---------------------------------------
 SCRIPT_NAME                     = "CloudPhotoMigrator"
 SCRIPT_VERSION                  = "v3.1.0"
-SCRIPT_DATE                     = "2025-03-06"
+SCRIPT_DATE                     = "2025-03-08"
 SCRIPT_NAME_VERSION             = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
 LOG_FOLDER_FILENAME             = ""
 START_TIME                      = datetime.now()
