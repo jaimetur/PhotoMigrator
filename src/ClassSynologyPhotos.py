@@ -1063,7 +1063,7 @@ class ClassSynologyPhotos:
             str: The ID of the folder (folder_id).
         """
         with set_log_level(self.logger, log_level):
-            self.login_synology(log_level=log_level)
+            self.login(log_level=log_level)
 
             url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
             headers = {}
@@ -1105,7 +1105,7 @@ class ClassSynologyPhotos:
             str: The ID of the folder (folder_id), or None if not found.
         """
         with set_log_level(self.logger, log_level):
-            self.login_synology(log_level=log_level)
+            self.login(log_level=log_level)
 
             url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
             headers = {}
@@ -1183,7 +1183,7 @@ class ClassSynologyPhotos:
             str: The folder ID if found or successfully created, otherwise None.
         """
         with set_log_level(self.logger, log_level):
-            self.login_synology(log_level=log_level)
+            self.login(log_level=log_level)
             url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
             headers = {}
             if self.SYNO_TOKEN_HEADER:
@@ -1211,7 +1211,7 @@ class ClassSynologyPhotos:
             response = self.SESSION.get(url, params=params, headers=headers, verify=False)
             data = response.json()
 
-            self.logout_synology(log_level=log_level)
+            self.logout(log_level=log_level)
             if data.get("success"):
                 self.logger.info(f"INFO    : Folder '{folder_name}' successfully created.")
                 return data['data']['folder']['id']
@@ -1232,7 +1232,7 @@ class ClassSynologyPhotos:
             dict: A dictionary with folder IDs as keys and folder names as values.
         """
         with set_log_level(self.logger, log_level):
-            self.login_synology(log_level=log_level)
+            self.login(log_level=log_level)
             url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
             headers = {}
             if self.SYNO_TOKEN_HEADER:
@@ -1281,7 +1281,7 @@ class ClassSynologyPhotos:
             log_level (logging.LEVEL): log_level for logs and console
         """
         with set_log_level(self.logger, log_level):
-            self.login_synology(log_level=log_level)
+            self.login(log_level=log_level)
             url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
             headers = {}
             if self.SYNO_TOKEN_HEADER:
@@ -1321,7 +1321,7 @@ class ClassSynologyPhotos:
             int: Folder Items Count or -1 on error.
         """
         with set_log_level(self.logger, log_level):
-            self.login_synology(log_level=log_level)
+            self.login(log_level=log_level)
             url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
             headers = {}
             if self.SYNO_TOKEN_HEADER:
