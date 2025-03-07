@@ -340,18 +340,14 @@ def mode_synology_upload_albums(user_confirmation=True, log_level=logging.INFO):
         # Create the Object
         syno = ClassSynologyPhotos()
         # login
-        LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
         syno.login(log_level=logging.WARNING)
-        LOGGER.info("")
         LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['synology-upload-albums']}")
         # Call the Function
         albums_crated, albums_skipped, photos_added = syno.upload_albums(ARGS['synology-upload-albums'], log_level=logging.WARNING)
         # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
-        LOGGER.info("")
         total_duplicates_albums_removed = syno.remove_duplicates_albums(log_level=logging.WARNING)
         # logout
-        LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Synology Photos.")
         syno.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
@@ -389,22 +385,24 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         # Create the Object
         syno = ClassSynologyPhotos()
         # login
-        LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
         syno.login(log_level=logging.WARNING)
-
-        LOGGER.info("")
         LOGGER.info(f"INFO    : Uploading Assets in Folder    : {ARGS['synology-upload-all']}")
-
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums = syno.upload_ALL (ARGS['synology-upload-all'], albums_folders=albums_folders, log_level=logging.WARNING)
-        # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
-        LOGGER.info("")
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed = syno.upload_ALL (ARGS['synology-upload-all'], albums_folders=albums_folders, log_level=logging.WARNING)
+        # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
+        LOGGER.info("INFO    : Cleaning-up Synology Photos database (Removing Empty/Duplicates Albums and Duplicates Assets)...")
+        # Execute mode_delete_empty_albums
+        LOGGER.info("INFO    : Removing Empty Albums...")
+        total_empty_albums_removed = syno.remove_empty_albums(log_level=logging.WARNING)
+        # Execute mode_delete_duplicates_albums
+        LOGGER.info("INFO    : Removing Duplicates Albums...")
         total_duplicates_albums_removed = syno.remove_duplicates_albums(log_level=logging.WARNING)
+        # Execute remove_duplicates_assets
+        LOGGER.info("INFO    : Removing Duplicates Assets...")
+        duplicates_assets_removed = syno.remove_duplicates_assets(log_level=logging.WARNING)
         # logout
-        LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Synology Photos.")
-        LOGGER.info("")
         # logout
         syno.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
@@ -423,11 +421,12 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"Total Albums skipped                    : {total_albums_skipped}")
         LOGGER.info(f"Total Assets added to Albums            : {total_assets_uploaded_within_albums}")
         LOGGER.info(f"Total Assets added without Albums       : {total_assets_uploaded_without_albums}")
+        LOGGER.info(f"Total Empty Albums removed              : {total_empty_albums_removed}")
         LOGGER.info(f"Total Duplicated Albums removed         : {total_duplicates_albums_removed}")
+        LOGGER.info(f"Total Duplicated Assets removed         : {duplicates_assets_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
-        LOGGER.info("")
 
 
 def mode_synology_download_albums(user_confirmation=True, log_level=logging.INFO):
@@ -694,11 +693,9 @@ def mode_immich_upload_albums(user_confirmation=True, log_level=logging.INFO):
         # login
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
         immich.login(log_level=logging.WARNING)
-
         LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
-
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_dupplicated_assets_skipped, duplicates_assets_removed = immich.upload_albums(ARGS['immich-upload-albums'], log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed, total_dupplicated_assets_skipped = immich.upload_albums(ARGS['immich-upload-albums'], log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("INFO    : Cleaning-up Immich Photos database (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
@@ -754,11 +751,9 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         # login
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
         immich.login(log_level=logging.WARNING)
-
         LOGGER.info(f"INFO    : Uploading Assets in Folder    : {ARGS['immich-upload-all']}")
-
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_dupplicated_assets_skipped, duplicates_assets_removed = immich.upload_ALL(ARGS['immich-upload-all'], albums_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed, total_dupplicated_assets_skipped = immich.upload_ALL(ARGS['immich-upload-all'], albums_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("INFO    : Cleaning-up Immich Photos database (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
