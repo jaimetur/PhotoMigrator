@@ -946,21 +946,19 @@ def update_metadata(file_path, date_time, log_level=logging.INFO):
     Args:
         file_path (str): Path to the file.
         date_time (str): Date and time in 'YYYY-MM-DD HH:MM:SS' format.
+        log_level (logging.LEVEL): log_level for logs and console
     """
     from GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         file_ext = os.path.splitext(file_path)[1].lower()
-
         try:
             if file_ext in PHOTO_EXT:
                 update_exif_date(file_path, date_time, log_level=log_level)
             elif file_ext in VIDEO_EXT:
                 update_video_metadata(file_path, date_time, log_level=log_level)
-            LOGGER.debug("")
             LOGGER.debug(f"DEBUG   : Metadata updated for {file_path} with timestamp {date_time}")
 
         except Exception as e:
-            LOGGER.error("")
             LOGGER.error(f"ERROR   : Failed to update metadata for {file_path}. {e}")
 
 
@@ -971,6 +969,7 @@ def update_exif_date(image_path, asset_time, log_level=logging.INFO):
     Args:
         image_path (str): Path to the image file.
         asset_time (int or str): Timestamp in UNIX Epoch format or a date string in "YYYY-MM-DD HH:MM:SS".
+        log_level (logging.LEVEL): log_level for logs and console
     """
     from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -997,9 +996,9 @@ def update_exif_date(image_path, asset_time, log_level=logging.INFO):
                 exif_dict = piexif.load(image_path)
             except Exception:
                 # LOGGER.warning(f"WARNING : No EXIF metadata found in {image_path}. Creating new EXIF data.")
+                # exif_dict = {"0th": {}, "Exif": {}, "GPS": {}, "Interop": {}, "1st": {}, "thumbnail": None}
                 LOGGER.warning(f"WARNING : No EXIF metadata found in {image_path}. Skipping it....")
                 return
-                # exif_dict = {"0th": {}, "Exif": {}, "GPS": {}, "Interop": {}, "1st": {}, "thumbnail": None}
 
             # Actualizar solo si existen las secciones
             if "0th" in exif_dict:
@@ -1035,6 +1034,7 @@ def update_video_metadata(video_path, asset_time, log_level=logging.INFO):
     Args:
         video_path (str): Path to the video file.
         asset_time (int | str): Timestamp in UNIX Epoch format or a string in 'YYYY-MM-DD HH:MM:SS' format.
+        log_level (logging.LEVEL): log_level for logs and console
     """
     from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -1076,6 +1076,7 @@ def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=logging.
     Args:
         video_path (str): Path to the video file.
         asset_time (int): Timestamp in UNIX Epoch format.
+        log_level (logging.LEVEL): log_level for logs and console
     """
     from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function

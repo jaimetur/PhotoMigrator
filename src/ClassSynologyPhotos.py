@@ -95,6 +95,15 @@ class ClassSynologyPhotos:
         self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS = self.ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS + self.ALLOWED_SYNOLOGY_VIDEO_EXTENSIONS
         self.ALLOWED_SYNOLOGY_EXTENSIONS = self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS
 
+        self.CLIENT_NAME = 'Synology Photos'
+
+
+    ###########################################################################
+    #                           CLASS PROPERTIES GETS                         #
+    ###########################################################################
+    def get_client_name(self, log_level=logging.INFO):
+        with set_log_level(self.logger, log_level):  # Change Log Level to log_level for this function
+            return self.CLIENT_NAME
 
     ###########################################################################
     #                           CONFIGURATION READING                         #
@@ -562,16 +571,19 @@ class ClassSynologyPhotos:
             album_name (str): Album Name
             log_level (logging.LEVEL): log_level for logs and console
         Returns:
-             bool: True if Album exists. False if Album does not exist.
+             bool: True if Album exists. False if Album does not exists.
+             album_id (str): album_id if Album  exists. None if Album does not exists.
         """
         with set_log_level(self.logger, log_level):
-            exists = False
+            album_exists = False
+            album_id = None
             albums = self.get_albums_owned_by_user(log_level=log_level)
             for album in albums:
                 if album_name == album.get("albumName"):
-                    exists = True
+                    album_exists = True
+                    album_id = album.get("id")
                     break
-            return exists
+            return album_exists, album_id
 
 
     ###########################################################################
@@ -852,10 +864,12 @@ class ClassSynologyPhotos:
         Uploads a local file (photo/video) to Synology Photos.
 
         Args:
+            file_path (str): file_path of the asset to upload
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns:
             str: the asset_id if success, or None if it fails or is an unsupported extension.
+            bool: is_duplicated = False if success, or None if it fails or is an unsopported extension.
         """
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
@@ -867,12 +881,12 @@ class ClassSynologyPhotos:
             ext = ext.lower()
             if ext not in self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS:
                 if ext in self.ALLOWED_SYNOLOGY_SIDECAR_EXTENSIONS:
-                    return None
+                    return None, None
                 else:
                     self.logger.warning(f"")
                     self.logger.warning(f"WARNING : File '{file_path}' has an unsupported extension. Skipped.")
                     self.logger.warning(f"")
-                    return None
+                    return None, None
 
             headers = {}
             if self.SYNO_TOKEN_HEADER:
@@ -906,22 +920,22 @@ class ClassSynologyPhotos:
                 data = response.json()
                 if not data["success"]:
                     self.logger.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
-                    return None
+                    return None, None
                 else:
                     asset_id = data["data"].get("id")
-                    return asset_id
+                    return asset_id, False
 
 
-    def download_asset(self, asset_id, asset_name, asset_time, destination_folder="Downloaded_Synology", log_level=logging.INFO):
+    def download_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Synology", log_level=logging.INFO):
         """
         Downloads an asset (photo/video) from Synology Photos to a local folder,
         preserving the original timestamp if available.
 
         Args:
             asset_id (int): ID of the asset to download.
-            asset_name (str): Name of the file to save.
+            asset_filename (str): Name of the file to save.
             asset_time (int or str): UNIX epoch or ISO string time of the asset.
-            destination_folder (str): Path where the file will be saved.
+            download_folder (str): Path where the file will be saved.
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns:
@@ -929,7 +943,7 @@ class ClassSynologyPhotos:
         """
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
-            os.makedirs(destination_folder, exist_ok=True)
+            os.makedirs(download_folder, exist_ok=True)
 
             if isinstance(asset_time, str):
                 asset_time = datetime.fromisoformat(asset_time).timestamp()
@@ -939,8 +953,8 @@ class ClassSynologyPhotos:
             else:
                 asset_datetime = datetime.now()
 
-            file_ext = os.path.splitext(asset_name)[1].lower()
-            file_path = os.path.join(destination_folder, asset_name)
+            file_ext = os.path.splitext(asset_filename)[1].lower()
+            file_path = os.path.join(download_folder, asset_filename)
 
             url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
             headers = {}
@@ -959,7 +973,7 @@ class ClassSynologyPhotos:
                 resp = self.SESSION.get(url, params=params, headers=headers, verify=False, stream=True)
                 if resp.status_code != 200:
                     self.logger.error("")
-                    self.logger.error(f"ERROR   : Failed to download asset '{asset_name}' with ID [{asset_id}]. Status code: {resp.status_code}")
+                    self.logger.error(f"ERROR   : Failed to download asset '{asset_filename}' with ID [{asset_id}]. Status code: {resp.status_code}")
                     return 0
 
                 with open(file_path, "wb") as f:
@@ -972,11 +986,11 @@ class ClassSynologyPhotos:
                     update_metadata(file_path, asset_datetime.strftime("%Y-%m-%d %H:%M:%S"), log_level=logging.ERROR)
 
                 self.logger.debug("")
-                self.logger.debug(f"DEBUG   : Asset '{asset_name}' downloaded and saved at {file_path}")
+                self.logger.debug(f"DEBUG   : Asset '{asset_filename}' downloaded and saved at {file_path}")
                 return 1
             except Exception as e:
                 self.logger.error("")
-                self.logger.error(f"ERROR   : Exception occurred while downloading asset '{asset_name}' with ID [{asset_id}]. {e}")
+                self.logger.error(f"ERROR   : Exception occurred while downloading asset '{asset_filename}' with ID [{asset_id}]. {e}")
                 return 0
 
 
@@ -1527,7 +1541,7 @@ class ClassSynologyPhotos:
 
         Returns how many orphan got removed.
         """
-        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        with set_log_level(self.logger, log_level):  # Change Log Level to log_level for this function
             return 0
 
 
@@ -1641,42 +1655,42 @@ if __name__ == "__main__":
     syno.login(use_syno_token=True)
     # login(use_syno_token=False)
 
-    # Example: remove_empty_albums()
-    print("=== EXAMPLE: remove_empty_albums() ===")
-    syno.deleted = synology_remove_empty_albums()
-    print(f"[RESULT] Empty albums deleted: {deleted}\n")
+    # # Example: remove_empty_albums()
+    # print("=== EXAMPLE: remove_empty_albums() ===")
+    # syno.deleted = synology_remove_empty_albums()
+    # print(f"[RESULT] Empty albums deleted: {deleted}\n")
 
-    # Example: remove_duplicates_albums()
-    print("=== EXAMPLE: remove_duplicates_albums() ===")
-    syno.duplicates = synology_remove_duplicates_albums()
-    print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
+    # # Example: remove_duplicates_albums()
+    # print("=== EXAMPLE: remove_duplicates_albums() ===")
+    # syno.duplicates = synology_remove_duplicates_albums()
+    # print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
 
-    # Example: Upload_asset()
-    print("\n=== EXAMPLE: upload_asset() ===")
-    file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\1994 - Recuerdos\169859_10150125237566327_578986326_8330690_6545.jpg"                # For Windows
-    asset_id = syno.upload_asset(file_path)
-    if not asset_id:
-        print(f"Error uploading asset '{file_path}'.")
-    else:
-        print(f"New Asset uploaded successfully with id: {asset_id}")
+    # # Example: Upload_asset()
+    # print("\n=== EXAMPLE: upload_asset() ===")
+    # file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\1994 - Recuerdos\169859_10150125237566327_578986326_8330690_6545.jpg"                # For Windows
+    # asset_id = syno.upload_asset(file_path)
+    # if not asset_id:
+    #     print(f"Error uploading asset '{file_path}'.")
+    # else:
+    #     print(f"New Asset uploaded successfully with id: {asset_id}")
 
-    # Example: synology_upload_no_albums()
-    print("\n=== EXAMPLE: synology_upload_no_albums() ===")
-    # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
-    input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
-    syno.upload_no_albums(input_folder)
+    # # Example: synology_upload_no_albums()
+    # print("\n=== EXAMPLE: synology_upload_no_albums() ===")
+    # # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    # input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    # syno.upload_no_albums(input_folder)
 
-    # Example: synology_upload_albums()
-    print("\n=== EXAMPLE: synology_upload_albums() ===")
-    # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
-    input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
-    syno.upload_albums(input_folder)
+    # # Example: synology_upload_albums()
+    # print("\n=== EXAMPLE: synology_upload_albums() ===")
+    # # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    # input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    # syno.upload_albums(input_folder)
 
-    # Example: synology_upload_ALL()
-    print("\n=== EXAMPLE: synology_upload_ALL() ===")
-    # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
-    input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
-    syno.upload_ALL(input_folder)
+    # # Example: synology_upload_ALL()
+    # print("\n=== EXAMPLE: synology_upload_ALL() ===")
+    # # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    # input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    # syno.upload_ALL(input_folder)
 
     # Example: synology_download_albums()
     print("\n=== EXAMPLE: synology_download_albums() ===")
@@ -1684,26 +1698,26 @@ if __name__ == "__main__":
     total = syno.download_albums(albums_name='ALL', output_folder=download_folder)
     print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
-    # Example: synology_download_no_albums()
-    print("\n=== EXAMPLE: synology_download_albums() ===")
-    download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
-    total = syno.download_no_albums(no_albums_folder=download_folder)
-    print(f"[RESULT] A total of {total} assets have been downloaded.\n")
+    # # Example: synology_download_no_albums()
+    # print("\n=== EXAMPLE: synology_download_albums() ===")
+    # download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
+    # total = syno.download_no_albums(no_albums_folder=download_folder)
+    # print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
-    # Example: download_ALL
-    print("=== EXAMPLE: download_ALL() ===")
-    total_struct = syno.download_ALL(output_folder="Downloads_Synology")
-    # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
+    # # Example: download_ALL
+    # print("=== EXAMPLE: download_ALL() ===")
+    # total_struct = syno.download_ALL(output_folder="Downloads_Synology")
+    # # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
 
-    # Test: get_photos_root_folder_id()
-    print("=== EXAMPLE: get_photos_root_folder_id() ===")
-    root_folder_id = syno.get_photos_root_folder_id()
-    print (root_folder_id)
+    # # Test: get_photos_root_folder_id()
+    # print("=== EXAMPLE: get_photos_root_folder_id() ===")
+    # root_folder_id = syno.get_photos_root_folder_id()
+    # print (root_folder_id)
 
-    # Example: remove_empty_folders()
-    print("\n=== EXAMPLE: remove_empty_folders() ===")
-    total = syno.remove_empty_folders()
-    print(f"[RESULT] A total of {total} folders have been removed.\n")
+    # # Example: remove_empty_folders()
+    # print("\n=== EXAMPLE: remove_empty_folders() ===")
+    # total = syno.remove_empty_folders()
+    # print(f"[RESULT] A total of {total} folders have been removed.\n")
 
     # logout()
     syno.logout()

@@ -85,6 +85,16 @@ class ClassImmichPhotos:
         self.IMMICH_FILTER_CITY = None
         self.IMMICH_FILTER_PERSON = None
 
+        self.CLIENT_NAME = 'Immich Photos'
+
+
+    ###########################################################################
+    #                           CLASS PROPERTIES GETS                         #
+    ###########################################################################
+    def get_client_name(self, log_level=logging.INFO):
+        with set_log_level(self.logger, log_level):  # Change Log Level to log_level for this function
+            return self.CLIENT_NAME
+
 
     ###########################################################################
     #                           CONFIGURATION READING                         #
@@ -363,7 +373,7 @@ class ClassImmichPhotos:
             try:
                 response = requests.delete(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
                 if response.status_code == 200:
-                    LOGGER.info(f"INFO    : Album '{album_name}' with ID={album_id} removed.")
+                    self.logger.info(f"INFO    : Album '{album_name}' with ID={album_id} removed.")
                     return True
                 else:
                     self.logger.warning(f"WARNING : Failed to remove album: '{album_name}' with ID: {album_id}. Status: {response.status_code}")
@@ -491,16 +501,19 @@ class ClassImmichPhotos:
             album_name (str): Album Name
             log_level (logging.LEVEL): log_level for logs and console
         Returns:
-             bool: True if Album exists. False if Album does not exist.
+             bool: True if Album exists. False if Album does not exists.
+             album_id (str): album_id if Album  exists. None if Album does not exists.
         """
         with set_log_level(self.logger, log_level):
-            exists = False
+            album_exists = False
+            album_id = None
             albums = self.get_albums_owned_by_user(log_level=log_level)
             for album in albums:
-                if album_name == album.get("name"):
-                    exists = True
+                if album_name == album.get("albumName"):
+                    album_exists = True
+                    album_id = album.get("id")
                     break
-            return exists
+            return album_exists, album_id
 
 
     ###########################################################################
@@ -541,11 +554,12 @@ class ClassImmichPhotos:
                 resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
                 resp.raise_for_status()
                 data = resp.json()
-                assets = data.get("assets", [])
-                # Add a new field "date" with the same value as the key "fileCreatedAt" to allign with Synology Photos
-                for asset in assets:
-                    asset["date"] = asset["fileCreatedAt"]
-                return assets
+                all_assets = data.get("assets", [])
+                # Add new fields "time" with the same value as "fileCreatedAt" and "filename" with the same value as "originalFileName" to allign with Synology Photos
+                for asset in all_assets:
+                    asset["time"] = asset["fileCreatedAt"]
+                    asset["filename"] = asset["originalFileName"]
+                return all_assets
             except Exception as e:
                 if album_name:
                     self.logger.error(f"ERROR   : Failed to retrieve assets from album '{album_name}': {str(e)}")
@@ -673,8 +687,15 @@ class ClassImmichPhotos:
 
     def upload_asset(self, file_path, log_level=logging.INFO):
         """
-        Uploads a local file (photo/video) to Immich via /api/assets.
-        Returns (asset_id, is_duplicated) or (None, None) on failure.
+        Uploads a local file (photo/video) to Immich Photos via /api/assets.
+
+        Args:
+            file_path (str): file_path of the asset to upload
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            str: the asset_id if success, or None if it fails or is an unsupported extension.
+            bool: is_duplicated = False if success, or None if it fails or is an unsopported extension.
         """
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
@@ -763,7 +784,7 @@ class ClassImmichPhotos:
             asset_id (int): ID of the asset to download.
             asset_filename (str): filename of the asset to download.
             asset_time (int or str): UNIX epoch or ISO string time of the asset.
-            destination_folder (str): Path where the file will be saved.
+            download_folder (str): Path where the file will be saved.
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns:
@@ -879,9 +900,11 @@ class ClassImmichPhotos:
             except Exception as e:
                 self.logger.error(f"ERROR   : Failed to retrieve assets: {str(e)}")
 
-            # Add a new field "date" with the same value as the key "fileCreatedAt" to allign with Synology Photos
+            # Add new fields "time" with the same value as "fileCreatedAt" and "filename" with the same value as "originalFileName" to allign with Synology Photos
             for asset in all_assets:
-                asset["date"] = asset["fileCreatedAt"]
+                asset["time"] = asset["fileCreatedAt"]
+                asset["filename"] = asset["originalFileName"]
+
             return all_assets
 
 
@@ -1445,7 +1468,7 @@ class ClassImmichPhotos:
 
         Returns how many orphan got removed.
         """
-        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        with set_log_level(self.logger, log_level):  # Change Log Level to log_level for this function
             # login_immich
             self.login(log_level=log_level)
 
@@ -1675,11 +1698,11 @@ if __name__ == "__main__":
     # input_albums_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums"
     # immich.upload_albums(input_albums_folder, log_level=logging.DEBUG)
     #
-    # # # 5) Example: Download all photos from ALL albums
-    # print("\n=== EXAMPLE: download_albums() ===")
-    # # total = download_albums('ALL', output_folder="Downloads_Immich")
-    # total_albums, total_assets = immich.download_albums("1994 - Recuerdos", output_folder="Downloads_Immich", log_level=logging.DEBUG)
-    # print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums} different albbums.")
+    # # 5) Example: Download all photos from ALL albums
+    print("\n=== EXAMPLE: download_albums() ===")
+    # total = download_albums('ALL', output_folder="Downloads_Immich")
+    total_albums, total_assets = immich.download_albums("1994 - Recuerdos", output_folder="Downloads_Immich", log_level=logging.DEBUG)
+    print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums} different albbums.")
     #
     # # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
     # print("\n=== EXAMPLE: download_ALL() ===")
