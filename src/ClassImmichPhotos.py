@@ -545,7 +545,11 @@ class ClassImmichPhotos:
                 resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
                 resp.raise_for_status()
                 data = resp.json()
-                return data.get("assets", [])
+                assets = data.get("assets", [])
+                # Add a new field "date" with the same value as the key "fileCreatedAt" to allign with Synology Photos
+                for asset in assets:
+                    asset["date"] = asset["fileCreatedAt"]
+                return assets
             except Exception as e:
                 if album_name:
                     self.logger.error(f"ERROR   : Failed to retrieve assets from album '{album_name}': {str(e)}")
@@ -854,6 +858,10 @@ class ClassImmichPhotos:
                         break
             except Exception as e:
                 self.logger.error(f"ERROR   : Failed to retrieve assets: {str(e)}")
+
+            # Add a new field "date" with the same value as the key "fileCreatedAt" to allign with Synology Photos
+            for asset in all_assets:
+                asset["date"] = asset["fileCreatedAt"]
             return all_assets
 
 
