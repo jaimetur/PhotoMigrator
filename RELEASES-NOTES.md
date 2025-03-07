@@ -10,23 +10,23 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
   - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.1.0/CloudPhotoMigrator_v3.1.0_macos_arm64.zip)  
 
 **Windows:**  
-- [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.1.0/CloudPhotoMigrator_v3.1.0_windows_amd64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.1.0/CloudPhotoMigrator_v3.1.0_windows_amd64.zip)  
 
 ---
 ## Release Notes:
 
 **Release**: 3.1.0  
-**Date**: 2025-03-06
+**Date**: (estimated release date: 2025-03-31)
 
-- [x] Included Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization.
+- [ ] Included Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization.
 - [x] Added Threads suppport on AUTOMATED MIGRATION MODE to parallelize Downloads and Uploads and avoid to download All assets before to upload them (this will safe disk space and improve performance).
 - [x] Code Refactored to convert ServiceGooglePhotos, ServiceSynologyPhotos and ServiceImmichPhotos into Classes (ClassGoogleTakeout, ClassSynologyPhotos, ClassImmichPhotos) and homogenized all functions of all these classes.
 - [x] Minor Bug Fixing.
 
 ## Release Notes:
 
-**Release**: 3.0.0-beta04  
-**Date**: 2025-02-27
+**Release**: 3.0.0  
+**Date**: 2025-03-07
 
 - [x] New Script name '**CloudPhotoMigrator**' (former 'GoogleTakeoutPhotos')
 - [x] The Tool is now Open Source (all contributors that want to collaborate on this project are more than welcome)
@@ -41,8 +41,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
       
              possible values for:
                  <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos'] or <INPUT_FOLDER>
-                 <TARGET> : ['synology-photos', 'immich-photos']
-      
+                 <TARGET> : ['synology-photos', 'immich-photos']  
 
 - [x] Fixed limit of 250 when search for Immich assets.
 - [x] Fixed Remove Albums API call on Immich Photos to adapt to the new API changes.
@@ -67,16 +66,14 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] Moved at the end of the help the standard option (those that are not related to any Support mode).
 - [x] Updated -h, --help to reflect the new changes.
 - [x] Code refactored.
-- [x] Minor Bug Fixing.
-
+- [x] Minor Bug Fixing.  
 
 - [x] Renamed options:
   - -sca,  --synology-create-albums is now **suAlb,  --synology-upload-albums <ALBUMS_FOLDER>**.
   - -sea,  --synology-extract-albums is now **-sdAlb,  --synology-download-albums <ALBUMS_NAME>**.
   - -fsym, --fix-symlinks-broken <FOLDER_TO_FIX> is now **-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>**.
   - -fdup, --find-duplicates <ACTION> <DUPLICATES_FOLDER> is now **-findDup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>**.
-  - -pdup, --process-duplicates <DUPLICATES_REVISED> is now **-procdDup, --process-duplicates <DUPLICATES_REVISED>**.
-
+  - -pdup, --process-duplicates <DUPLICATES_REVISED> is now **-procdDup, --process-duplicates <DUPLICATES_REVISED>**.  
 
 - [x] New Arguments Added: 
   - **-i,        --input-folder <INPUT_FOLDER>** Specify the input folder that you want to process.
@@ -87,15 +84,13 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
     it will also delete the assets (photos/videos) inside each album.
   - **-AlbFld,   --albums-folders <ALBUMS_FOLDER>**
     If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich- upload-all', 
-    it will create an Album per each subfolder found in <ALBUMS_FOLDER>.
-
+    it will create an Album per each subfolder found in <ALBUMS_FOLDER>.  
 
 - [x] Added new options to Synology Photos Support:
   - **-suAll,    --synology-upload-all <INPUT_FOLDER>**.  
   - **-sdAll,    --synology-download-all <OUTPUT_FOLDER>**.
   - **-srAll,    --synology-remove-all-assets** to remove All assets in Synology Photos.  
-  - **-srAllAlb, --synology-remove-all-albums** to remove Albums in Synology Photos (optionally all associated assets can be also deleted).  
-
+  - **-srAllAlb, --synology-remove-all-albums** to remove Albums in Synology Photos (optionally all associated assets can be also deleted).   
 
 - [x] With those changes the **_Synology Photos Support_** has the following options:
   - **-suAlb,    --synology-upload-albums <ALBUMS_FOLDER>**  
@@ -117,8 +112,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
   - **-srDupAlb, --synology-remove-duplicates-albums**  
     - The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
   - **-srAll,    --synology-remove-all-assets** to delete ALL assets in Synology Photos
-  - **-srAllAlb, --synology-remove-all-albums** to delete ALL Albums in Synology Photos (optionally all associated assets can be also deleted).
-
+  - **-srAllAlb, --synology-remove-all-albums** to delete ALL Albums in Synology Photos (optionally all associated assets can be also deleted).  
 
 - [x] Added **_Immich Photos Support_** with the Following options to manage Immich API:
   - **-iuAlb,    --immich-upload-albums <ALBUMS_FOLDER>**  
