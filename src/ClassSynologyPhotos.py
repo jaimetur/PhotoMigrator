@@ -1499,7 +1499,7 @@ class ClassSynologyPhotos:
 
             # for (assets_count, assets_size), group in duplicates_map.items():
             total_removed_duplicated_albums = 0
-            for (assets_count, assets_size), group in tqdm(duplicates_map.items(), desc=f"INFO    : Removing Duplicates Albums", unit=" albums"):
+            for (assets_count, assets_size), group in duplicates_map.items():
                 self.logger.debug(f'DEBUG:   : Assets Count: {assets_count}. Assets Size: {assets_size}.')
                 if len(group) > 1:
                     # keep the first, remove the rest
