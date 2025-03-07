@@ -380,13 +380,14 @@ class ClassImmichPhotos:
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns:
-            dict: A dictionary of items where each item is a dictionary with below structure, or None on error.
+            list: A list of dictionaries where each item has below structure:
                     {
                       "id": <str>,
                       "albumName": <str>,
                       "ownerId": <str>,
-                      ...
+                      "...",
                     }
+            None on error
         """
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
@@ -414,13 +415,14 @@ class ClassImmichPhotos:
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns:
-            dict: A dictionary of items where each item is a dictionary with below structure, or None on error.
+            list: A list of dictionaries where each item has below structure:
                     {
                       "id": <str>,
                       "albumName": <str>,
                       "ownerId": <str>,
                       ...
                     }
+            None on error
         """
         with set_log_level(self.logger, log_level):
             self.login(log_level=log_level)
@@ -492,8 +494,13 @@ class ClassImmichPhotos:
              bool: True if Album exists. False if Album does not exist.
         """
         with set_log_level(self.logger, log_level):
-            albums = self.get_albums_owned_by_user(log_level=log_level).values()
-            return album_name in albums
+            exists = False
+            albums = self.get_albums_owned_by_user(log_level=log_level)
+            for album in albums:
+                if album_name == album.get("name"):
+                    exists = True
+                    break
+            return exists
 
 
     ###########################################################################
@@ -563,7 +570,9 @@ class ClassImmichPhotos:
             combined_assets = []
             if not all_albums:
                 return []
-            for album_id, album_name in all_albums.items():
+            for album in all_albums:
+                album_id = album.get("id")
+                album_name = album.get("albumName", "")
                 album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
                 combined_assets.extend(album_assets)
             return combined_assets
@@ -1326,6 +1335,7 @@ class ClassImmichPhotos:
                 return 0
 
             total_removed_empty_albums = 0
+            self.logger.info("INFO    : Looking for empty albums in Immich Photos...")
             for album in tqdm(albums, desc=f"INFO    : Searching for Empty Albums", unit=" albums"):
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
@@ -1359,24 +1369,24 @@ class ClassImmichPhotos:
                 self.logout(log_level=log_level)
                 return 0
 
+            self.logger.info("INFO    : Looking for duplicate albums in Immich Photos...")
             duplicates_map = {}
             for album in tqdm(albums, desc=f"INFO    : Searching for Duplicates Albums", unit=" albums"):
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
                 assets_count = album.get("assetCount")
-                size = self.get_album_assets_size(album_id, log_level=log_level)
-                duplicates_map.setdefault((assets_count, size), []).append((album_id, album_name))
+                assets_size = self.get_album_assets_size(album_id, log_level=log_level)
+                duplicates_map.setdefault((assets_count, assets_size), []).append((album_id, album_name))
 
             total_removed_duplicated_albums = 0
-            for (count, size), group in tqdm(duplicates_map.items(),
-                                             desc=f"INFO    : Removing Duplicates Albums",
-                                             unit=" albums"):
-                self.logger.debug(f"DEBUG   : Assets Count: {count}. Size: {size}.")
+            for (assets_count, assets_size), group in tqdm(duplicates_map.items(), desc=f"INFO    : Removing Duplicates Albums", unit=" albums"):
+                self.logger.debug(f"DEBUG   : Assets Count: {assets_count}. Assets Size: {assets_size}.")
                 if len(group) > 1:
-                    group_sorted = sorted(group, key=lambda x: x[1])
                     # Keep the first, remove the rest
+                    group_sorted = sorted(group, key=lambda x: x[1])  # sort by album_id string
                     to_remove = group_sorted[1:]
                     for (alb_id, alb_name) in to_remove:
+                        self.logger.info(f"INFO    : Removing duplicate album: '{alb_name}' (ID={alb_id})")
                         if self.remove_album(alb_id, alb_name):
                             total_removed_duplicated_albums += 1
 
