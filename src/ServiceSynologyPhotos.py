@@ -111,6 +111,14 @@ def read_synology_config(config_file='Config.ini', log_level=logging.INFO):
 def login_synology(use_syno_token=False, log_level=logging.INFO):
     """
     Logs into the NAS and returns the active session with the SID and Synology DSM URL.
+
+    If already logged in, reuses the existing session.
+
+    Args:
+        use_syno_token (bool): Define if you want to use X-SYNO-TOKEN in the header to maintain the session
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns (self.SESSION, self.SID) or (self.SESSION, self.SID, self.SYNO_TOKEN_HEADER)
     """
     global SESSION, SID, SYNO_TOKEN_HEADER
     from GlobalVariables import LOGGER
@@ -157,7 +165,10 @@ def login_synology(use_syno_token=False, log_level=logging.INFO):
 
 def logout_synology(log_level=logging.INFO):
     """
-    Logs out from the Synology NAS and clears the active session and SID.
+    Logout from the Synology NAS and clears the active session and SID.
+
+    Args:
+        log_level (logging.LEVEL): log_level for logs and console
     """
     global SESSION, SID, SYNO_TOKEN_HEADER
     from GlobalVariables import LOGGER
@@ -453,12 +464,14 @@ import logging
 # -----------------------------------------------------------------------------
 def remove_album(album_id, album_name, log_level=logging.INFO):
     """
-    Deletes an album in Synology Photos.
+    Removes an album in Synology Photos by its album ID.
 
     Args:
         album_id (str): ID of the album to delete.
         album_name (str): Name of the album to delete.
-        log_level (logging,level): log_level for function messages.
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns True on success, False otherwise.
     """
     from GlobalVariables import LOGGER  # Import the logger inside the function
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -485,6 +498,16 @@ def remove_album(album_id, album_name, log_level=logging.INFO):
 
 
 def create_album(album_name, log_level=logging.INFO):
+    """
+    Creates a new album in Synology Photos with the specified name.
+
+    Args:
+        album_name (str): Album name to be created.
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns:
+        str: New album ID or None if it fails
+    """
     # Create the album if the folder contains supported files
     from GlobalVariables import LOGGER  # Import the logger inside the function
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -515,7 +538,10 @@ def create_album(album_name, log_level=logging.INFO):
 
 def get_albums(log_level=logging.INFO):
     """
-    Lists all albums in Synology Photos.
+    Get all albums in Synology Photos for the current user.
+
+    Args:
+        log_level (logging.LEVEL): log_level for logs and console
 
     Returns:
         dict: A dictionary with album IDs as keys and album names as values.
@@ -559,7 +585,10 @@ def get_albums(log_level=logging.INFO):
 
 def get_albums_own_and_shared(log_level=logging.INFO):
     """
-    Lists both own and shared albums in Synology Photos.
+    Get both own and shared albums in Synology Photos.
+
+    Args:
+        log_level (logging.LEVEL): log_level for logs and console
 
     Returns:
         list: A list of albums.
@@ -609,15 +638,15 @@ def get_albums_own_and_shared(log_level=logging.INFO):
 
 def get_album_items_size(album_id, album_name, log_level=logging.INFO):
     """
-    Gets the total size of items in an album.
+    Gets the total size (bytes) of all assets in an album.
 
     Args:
-        album_id (str): ID of the album.
-        album_name (str): Name of the album.
-        log_level (logging,level): log_level for function messages.
+        album_id (str): Album ID
+        album_name (str): Album Name
+        log_level (logging.LEVEL): log_level for logs and console
 
     Returns:
-        int: Total size of the items in the album in bytes.
+        int: Album Size or -1 on error.
     """
     from GlobalVariables import LOGGER  # Import the logger inside the function
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -662,15 +691,14 @@ def get_album_items_size(album_id, album_name, log_level=logging.INFO):
 
 def get_album_items_count(album_id, album_name, log_level=logging.INFO):
     """
-    Gets the number of items in an album.
+    Gets the number of assets in an album.
 
     Args:
-        album_id (str): ID of the album.
-        album_name (str): Name of the album.
-        log_level (logging,level): log_level for function messages.
-
+        album_id (str): Album ID
+        album_name (str): Album Name
+        log_level (logging.LEVEL): log_level for logs and console
     Returns:
-        int: Number of items in the album.
+         int: Album Items Count or -1 on error.
     """
     from GlobalVariables import LOGGER  # Import the logger inside the function
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -744,13 +772,13 @@ def get_folder_items_count(folder_id, folder_name, log_level=logging.INFO):
 
 def get_all_assets(log_level=logging.INFO):
     """
-    Lists photos in a specific album.
+    Lists all assets in Synology Photos.
 
     Args:
-        log_level (logging,level): log_level for function messages
+        log_level (logging.LEVEL): log_level for logs and console
 
     Returns:
-        list: A list of photos in the album.
+        list: A list of assets (dict) in the entire library or Empty list on error.
     """
     from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -793,15 +821,15 @@ def get_all_assets(log_level=logging.INFO):
 
 def get_assets_from_album(album_id, album_name, log_level=logging.INFO):
     """
-    Lists photos in a specific album.
+    Get assets in a specific album.
 
     Args:
-        album_name (str): Name of the album.
         album_id (str): ID of the album.
-        log_level (logging,level): log_level for function messages.
+        album_name (str): Name of the album.
+        log_level (logging.LEVEL): log_level for logs and console
 
     Returns:
-        list: A list of photos in the album.
+        list: A list of assets in the album (dict objects). [] if no assets found.
     """
     from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -843,6 +871,15 @@ def get_assets_from_album(album_id, album_name, log_level=logging.INFO):
         return album_items[0]
 
 def get_all_asset_from_all_albums(log_level=logging.WARNING):
+    """
+    Gathers assets from all known albums, merges them into a single list.
+
+    Args:
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns:
+        list: Albums Assets
+    """
     from GlobalVariables import LOGGER  # Import the logger inside the function
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # login into Synology Photos if the session is not yet started
@@ -860,16 +897,16 @@ def get_all_asset_from_all_albums(log_level=logging.WARNING):
 
 def add_assets_to_album(album_id, asset_ids, album_name, log_level=logging.WARNING):
     """
-    Adds photos from a folder to an album.
+    Adds assets (asset_ids) to an album.
 
     Args:
-        album_id (str): The ID of the folder containing the assets.
-        asset_ids (str, list): The IDs to add to the Album.
-        album_name (str): The name of the album to create or add assets to.
-        log_level (logging,level): log_level for function messages.
+        album_id (str): The ID of the album to which we add assets.
+        asset_ids (list or str): The IDs of assets to add.
+        album_name (str): The name of the album.
+        log_level (logging.LEVEL): log_level for logs and console
 
     Returns:
-        int: The total number of assets added to the album, or -1 in case of an error.
+        int: Number of assets added to the album
     """
     from GlobalVariables import LOGGER  # Import the logger inside the function
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -907,14 +944,14 @@ def add_assets_to_album(album_id, asset_ids, album_name, log_level=logging.WARNI
 
 def remove_assets(asset_ids, log_level=logging.INFO):
     """
-    Lists photos in a specific album.
+    Removes the given asset(s) from Synology Photos.
 
     Args:
-        asset_ids (list, str): ID of the assets to remove.
-        log_level (logging,level): log_level for function messages
+        asset_ids (list): list of assets ID to remove
+        log_level (logging.LEVEL): log_level for logs and console
 
     Returns:
-        list: A list of photos in the album.
+        int: Number of assets removed
     """
     from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -990,7 +1027,15 @@ def check_background_remove_task_finished(task_id, log_level=logging.INFO):
         return status
 
 def upload_asset(file_path, log_level=logging.INFO):
-    """Upload an Asset to Synology Photos."""
+    """
+    Uploads a local file (photo/video) to Synology Photos.
+
+    Args:
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns:
+        str: the asset_id if success, or None if it fails or is an unsupported extension.
+    """
     from GlobalVariables import LOGGER  # Import the logger inside the function
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # login into Synology Photos if the session is not yet started
@@ -1051,17 +1096,18 @@ def upload_asset(file_path, log_level=logging.INFO):
 
 def download_asset(asset_id, asset_name, asset_time, destination_folder, log_level=logging.INFO):
     """
-    Downloads an asset from Synology Photos and saves it to a local folder with the given timestamp.
+    Downloads an asset (photo/video) from Synology Photos to a local folder,
+    preserving the original timestamp if available.
 
     Args:
         asset_id (int): ID of the asset to download.
         asset_name (str): Name of the file to save.
-        asset_time (int): Timestamp of the asset in UNIX Epoch format or 0 for current time.
-        destination_folder (str): Path to the folder where the file will be saved.
-        log_level (int, optional): Logging level. Default is logging.INFO.
+        asset_time (int or str): UNIX epoch or ISO string time of the asset.
+        destination_folder (str): Path where the file will be saved.
+        log_level (logging.LEVEL): log_level for logs and console
 
     Returns:
-        str: Path of the downloaded file if successful, None if it fails.
+        int: 1 if download succeeded, 0 if failed.
     """
     from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Temporarily change log level
@@ -1134,12 +1180,23 @@ def download_asset(asset_id, asset_name, asset_time, destination_folder, log_lev
 # Function to upload albums to Synology Photos
 def synology_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=[], log_level=logging.WARNING):
     """
-    Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on SYNOLOGY_EXTENSIONS) and associates them with the album.
+    Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals
+    the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on
+    self.ALLOWED_SYNOLOGY_EXTENSIONS) and associates them with the album.
+
     Example structure:
         input_folder/
             ├─ Album1/   (files for album "Album1")
             └─ Album2/   (files for album "Album2")
-    Returns: albums_uploaded, albums_skipped, assets_uploaded
+
+    Args:
+        input_folder (str): Input folder
+        subfolders_exclusion (str or list): Subfolders exclusion
+        subfolders_inclusion (str or list): Subfolders inclusion
+        remove_duplicates (bool): True to remove duplicates assets after upload
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns: (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed)
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -1241,11 +1298,13 @@ def synology_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfo
     Recursively traverses 'input_folder' and its subfolders_inclusion to upload all
     compatible files (photos/videos) to Synology without associating them to any album.
 
-    If 'subfolders_inclusion' is provided (as a string or list of strings), only those
-    direct subfolders_inclusion of 'input_folder' are processed (excluding any in SUBFOLDERS_EXCLUSIONS).
-    Otherwise, all subfolders_inclusion except those listed in SUBFOLDERS_EXCLUSIONS are processed.
+    Args:
+        input_folder (str): Input folder
+        subfolders_exclusion (str or list): Subfolders exclusion
+        subfolders_inclusion (str or list): Subfolders inclusion
+        log_level (logging.LEVEL): log_level for logs and console
 
-    Returns the number of files uploaded.
+    Returns: assets_uploaded
     """
     # Import logger and log in to the NAS
     from GlobalVariables import LOGGER
@@ -1309,9 +1368,16 @@ def synology_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfo
 # -----------------------------------------------------------------------------
 def synology_upload_ALL(input_folder, albums_folders=None, log_level=logging.INFO):
     """
-    Uploads ALL photos and videos from input_folder into Synology Photos:
+    Uploads ALL photos/videos from input_folder into Synology Photos.
+    Returns details about how many albums and assets were uploaded.
 
-    Returns the total number of albums and assets uploaded.
+    Args:
+        input_folder (str): Input folder
+        albums_folders (str): Albums folder
+        remove_duplicates (bool): True to remove duplicates assets after upload all assets
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns: (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed)
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -1343,15 +1409,15 @@ def synology_upload_ALL(input_folder, albums_folders=None, log_level=logging.INF
 # Function to download albums from Synology Photos
 def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synology', log_level=logging.WARNING):
     """
-    Downloads albums from Synology Photos to a specified folder, supporting wildcard patterns.
+    Downloads photos/videos from albums by name pattern or ID. 'ALL' downloads all.
 
     Args:
         albums_name (str or list): The name(s) of the album(s) to download. Use 'ALL' to download all albums.
-        output_folder (str): The output folder where download the album_assets.
-        log_level (logging,level): log_level for function messages.
+        output_folder (str): The output folder where the album assets will be downloaded.
+        log_level (logging.LEVEL): log_level for logs and console
 
     Returns:
-        tuple: albums_downloaded, assets_downloaded
+        tuple: (albums_downloaded, assets_downloaded)
     """
     # Import logger and log in to the NAS
     from GlobalVariables import LOGGER
@@ -1429,14 +1495,14 @@ def synology_download_albums(albums_name='ALL', output_folder='Downloads_Synolog
 # Function to download Assets without Albums from Synology Photos
 def synology_download_no_albums(output_folder='Downloads_Synology', log_level=logging.WARNING):
     """
-    Downloads assets no associated to any albums from Synology Photos to a specified folder, supporting wildcard patterns.
+    Downloads assets not associated to any album from Synology Photos into output_folder/No-Albums/.
+    Then organizes them by year/month inside that folder.
 
     Args:
-        output_folder (str): The output folder where download the all_assets.
-        log_level (logging,level): log_level for function messages.
+        no_albums_folder (str): The output folder where the album assets will be downloaded.
+        log_level (logging.LEVEL): log_level for logs and console
 
-    Returns:
-        tuple: assets_downloaded
+    Returns total_assets_downloaded or 0 if no assets are downloaded
     """
     # Import logger and log in to the NAS
     from GlobalVariables import LOGGER
@@ -1454,7 +1520,7 @@ def synology_download_no_albums(output_folder='Downloads_Synology', log_level=lo
         LOGGER.info(f"INFO    : Number of all_assets without Albums associated to download: {len(all_assets)}")
         if not all_assets:
             LOGGER.warning(f"WARNING : No all_assets without Albums associated to download.")
-            return 0, 0
+            return 0
         for asset in assets_without_albums:
             asset_id = asset.get('id')
             asset_name = asset.get('filename')
@@ -1470,16 +1536,18 @@ def synology_download_no_albums(output_folder='Downloads_Synology', log_level=lo
 def synology_download_ALL(output_folder="Downloads_Immich", show_info_messages=False, log_level=logging.WARNING):
     """
     Downloads ALL photos and videos from Synology Photos into output_folder creating a Folder Structure like this:
-        output_folder/
-          ├─ Albums/
-          │    ├─ albumName1/ (assets in the album)
-          │    ├─ albumName2/ (assets in the album)
-          │    ...
-          └─ No-Albums/
-               └─ yyyy/
-                   └─ mm/ (assets not in any album for that year/month)
+    output_folder/
+      ├─ Albums/
+      │    ├─ albumName1/ (assets in the album)
+      │    ├─ albumName2/ (assets in the album)
+      │    ...
+      └─ No-Albums/
+           └─ yyyy/
+               └─ mm/ (assets not in any album for that year/month)
 
-    Returns the total number of albums and assets downloaded.
+    Args:
+        output_folder (str): Output folder
+        log_level (logging.LEVEL): log_level for logs and console
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -1499,7 +1567,10 @@ def synology_download_ALL(output_folder="Downloads_Immich", show_info_messages=F
 def synology_remove_empty_folders(log_level=logging.INFO):
     """
     Recursively removes all empty folders and subfolders in Synology Photos,
-    considering folders empty even if they only contain a hidden '@eaDir' folder.
+    considering folders empty if they only contain '@eaDir'.
+
+    Args:
+        log_level (logging.LEVEL): log_level for logs and console
 
     Returns:
         int: The number of empty folders removed.
@@ -1546,7 +1617,10 @@ def synology_remove_empty_folders(log_level=logging.INFO):
 # Function to delete empty albums in Synology Photos
 def synology_remove_empty_albums(log_level=logging.WARNING):
     """
-    Deletes all empty albums in Synology Photos.
+    Removes all empty albums in Synology Photos.
+
+    Args:
+        log_level (logging.LEVEL): log_level for logs and console
 
     Returns:
         int: The number of empty albums deleted.
@@ -1574,7 +1648,12 @@ def synology_remove_empty_albums(log_level=logging.WARNING):
 # Function to delete duplicate albums in Synology Photos
 def synology_remove_duplicates_albums(log_level=logging.WARNING):
     """
-    Deletes all duplicate albums in Synology Photos.
+    Remove all duplicate albums in Synology Photos. Duplicates are albums
+    that share the same assets_count and total assets_size. It keeps the first
+    album, removes the others from each duplicate group.
+
+    Args:
+        log_level (logging.LEVEL): log_level for logs and console
 
     Returns:
         int: The number of duplicate albums deleted.
@@ -1623,6 +1702,14 @@ def synology_remove_duplicates_albums(log_level=logging.WARNING):
 #          DELETE ALL ASSETS FROM SYNOLOGY DATABASE
 # -----------------------------------------------------------------------------
 def synology_remove_all_assets(log_level=logging.WARNING):
+    """
+    Removes ALL assets in Synology Photos (in batches of 250 if needed). Then removes empty folders/albums if any remain.
+
+    Args:
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns (assets_removed, albums_removed, folders_removed)
+    """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # login into Synology Photos if the session is not yet started
@@ -1655,8 +1742,13 @@ def synology_remove_all_assets(log_level=logging.WARNING):
 # -----------------------------------------------------------------------------
 def synology_remove_all_albums(removeAlbumsAssets=False, log_level=logging.WARNING):
     """
-    Removes all albums and optionally also its associated assets.
-    Returns the number of albums deleted and the number of assets deleted.
+    Removes all albums and optionally also all their associated assets.
+
+    Args:
+        removeAlbumsAssets (bool): If True, removes also all the assets associated to all albums
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns (#albums_removed, #assets_removed).
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function

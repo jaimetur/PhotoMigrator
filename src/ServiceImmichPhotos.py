@@ -59,15 +59,15 @@ ALLOWED_IMMICH_EXTENSIONS           = []    # Allowed Immich Extensions
 # -----------------------------------------------------------------------------
 def read_immich_config(config_file='Config.ini', log_level=logging.INFO):
     """
-    Reads configuration (IMMICH_URL, IMMICH_USERNAME, IMMICH_PASSWORD) from a .config file,
-    for example:
+    Reads the Configuration file and updates the instance attributes.
+    If the config file is not found, prompts the user to manually input required data.
 
-        IMMICH_URL = http://192.168.1.100:2283
-        IMMICH_USER_API_KEY    = YOUR_API_KEY
-        IMMICH_USERNAME   = user@example.com
-        IMMICH_PASSWORD   = 1234
+    Args:
+        config_file (str): The path to the configuration file. Default is 'Config.ini'.
+        log_level (logging.LEVEL): log_level for logs and console
 
-    If the file is not found, the data will be requested from the user interactively.
+    Returns:
+        dict: The loaded configuration dictionary.
     """
     global CONFIG, IMMICH_URL, IMMICH_ADMIN_API_KEY, IMMICH_USER_API_KEY, IMMICH_USERNAME, IMMICH_PASSWORD, API_KEY_LOGIN, IMMICH_FILTER_ARCHIVE, IMMICH_FILTER_FROM, IMMICH_FILTER_TO, IMMICH_FILTER_COUNTRY, IMMICH_FILTER_CITY, IMMICH_FILTER_PERSON
     from GlobalVariables import LOGGER  # Import global LOGGER
@@ -133,9 +133,14 @@ def read_immich_config(config_file='Config.ini', log_level=logging.INFO):
 # -----------------------------------------------------------------------------
 def login_immich(log_level=logging.INFO):
     """
-    Logs into Immich and obtains a JWT token (SESSION_TOKEN).
-    Returns True if the connection was successful, False otherwise.
-    """
+      Logs into Immich and obtains a JWT token in self.SESSION_TOKEN,
+      or sets x-api-key headers if self.API_KEY_LOGIN is True.
+
+      Args:
+          log_level (logging.LEVEL): log_level for logs and console
+
+      Returns True if successful, False otherwise.
+      """
     global SESSION_TOKEN, HEADERS_WITH_CREDENTIALS, ALLOWED_IMMICH_MEDIA_EXTENSIONS, ALLOWED_IMMICH_SIDECAR_EXTENSIONS, ALLOWED_IMMICH_EXTENSIONS
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -203,8 +208,10 @@ def login_immich(log_level=logging.INFO):
 
 def logout_immich(log_level=logging.INFO):
     """
-    "Logs out" locally by discarding the token.
-    (Currently, Immich does not provide an official /logout endpoint).
+    Logout locally by discarding the token. (Immich does not provide an official /logout endpoint).
+
+    Args:
+        log_level (logging.LEVEL): log_level for logs and console
     """
     global SESSION_TOKEN, HEADERS_WITH_CREDENTIALS
     from GlobalVariables import LOGGER  # Import global LOGGER
@@ -218,9 +225,15 @@ def logout_immich(log_level=logging.INFO):
 # -----------------------------------------------------------------------------
 def create_album(album_name, user_id, log_level=logging.INFO):
     """
-    Creates an album in Immich with the name 'album_name'.
-    Returns the ID of the created album or None if it fails.
-    """
+      Creates a new album in Immich Photos with the specified name.
+
+      Args:
+          album_name (str): Album name to be created.
+          log_level (logging.LEVEL): log_level for logs and console
+
+      Returns:
+          str: New album ID or None if it fails
+      """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # login_immich
@@ -248,7 +261,14 @@ def create_album(album_name, user_id, log_level=logging.INFO):
 
 def remove_album(album_id, album_name, log_level=logging.INFO):
     """
-    Removes an album from Immich by its ID. Returns True if removed successfully, False otherwise.
+    Removes an album in Immich Photos by its album ID.
+
+    Args:
+        album_id (str): ID of the album to delete.
+        album_name (str): Name of the album to delete.
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns True on success, False otherwise.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -258,7 +278,7 @@ def remove_album(album_id, album_name, log_level=logging.INFO):
         try:
             response = requests.request("DELETE", url, headers=HEADERS_WITH_CREDENTIALS, verify=False)
             if response.status_code == 200:
-                # LOGGER.info(f"INFO    : Album '{album_name}' with ID={album_id} removed.")
+                LOGGER.info(f"INFO    : Album '{album_name}' with ID={album_id} removed.")
                 return True
             else:
                 LOGGER.warning(f"WARNING : Failed to remove album: '{album_name}' with ID: {album_id}. Status: {response.status_code}")
@@ -269,15 +289,20 @@ def remove_album(album_id, album_name, log_level=logging.INFO):
 
 def get_albums(log_level=logging.INFO):
     """
-    Returns the list of albums for the current user in Immich.
-    Each item is a dictionary with at least:
-        {
-          "id": <str>,
-          "albumName": <str>,
-          "ownerId": <str>,
-          "assets": [ ... ],
-          ...
-        }
+    Get all albums in Immich Photos for the current user.
+
+    Args:
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns:
+        list: A list of dictionaries where each item has below structure:
+                {
+                  "id": <str>,
+                  "albumName": <str>,
+                  "ownerId": <str>,
+                  "...",
+                }
+        None on error
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -295,7 +320,15 @@ def get_albums(log_level=logging.INFO):
 
 def get_album_items_size(album_id, log_level=logging.INFO):
     """
-    Calculates the total size of all assets in an album by summing up exifInfo.fileSizeInByte (if available).
+    Gets the total size (bytes) of all assets in an album.
+
+    Args:
+        album_id (str): Album ID
+        album_name (str): Album Name
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns:
+        int: Album Size or -1 on error.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -316,6 +349,9 @@ def get_album_items_size(album_id, log_level=logging.INFO):
 #                          ASSETS (FOTOS/VIDEOS) FUNCTIONS
 # -----------------------------------------------------------------------------
 def get_duplicates_assets(log_level=logging.INFO):
+    """
+    Returns the list of duplicate assets from Immich (via /api/duplicates).
+    """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # login_immich
@@ -329,7 +365,13 @@ def get_duplicates_assets(log_level=logging.INFO):
 
 def get_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=None, createdAfter=None, createdBefore=None, country=None, city=None, personIds=None, withDeleted=None, log_level=logging.INFO):
     """
-    Returns the list of assets that belong to a specific album (ID).
+    Lists all assets in Immich Photos that match with the specified filters.
+
+    Args:
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns:
+        list: A list of assets (dict) matching the specified filters in the entire library or Empty list on error.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -400,8 +442,15 @@ def get_assets_by_search_filter(type=None, isNotInAlbum=None, isArchived=None, c
 
 def get_assets_from_album(album_id, log_level=logging.INFO):
     """
-    Returns the list of assets that belong to a specific album (ID).
-    """
+     Get assets in a specific album.
+
+     Args:
+         album_id (str): ID of the album.
+         log_level (logging.LEVEL): log_level for logs and console
+
+     Returns:
+         list: A list of photos in the album (dict objects). [] if no assets found.
+     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # login_immich
@@ -420,8 +469,16 @@ def get_assets_from_album(album_id, log_level=logging.INFO):
 
 def add_assets_to_album(album_id, asset_ids, album_name=None, log_level=logging.INFO):
     """
-    Adds the list of asset_ids (photos/videos already uploaded) to the album with album_id.
-    Returns the number of assets successfully added.
+    Adds photos (asset_ids) to an album.
+
+    Args:
+        album_id (str): The ID of the album to which we add assets.
+        asset_ids (list or str): The IDs of assets to add.
+        album_name (str): The name of the album.
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns:
+        int: Number of assets added to the album
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -452,7 +509,14 @@ def add_assets_to_album(album_id, asset_ids, album_name=None, log_level=logging.
 
 def remove_assets(assets_ids, log_level=logging.INFO):
     """
-    Remove the list of assets provide by assets_ids.
+    Removes the given asset(s) from Synology Photos.
+
+    Args:
+        asset_ids (list): list of assets ID to remove
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns:
+        int: Number of assets removed
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -478,7 +542,7 @@ def remove_assets(assets_ids, log_level=logging.INFO):
 
 def remove_duplicates_assets(log_level=logging.INFO):
     """
-    Remove Duplicates Asset in Immich Database
+    Removes duplicate assets in the Immich database. Returns how many duplicates got removed.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -501,8 +565,8 @@ def remove_duplicates_assets(log_level=logging.INFO):
 
 def upload_asset(file_path, log_level=logging.INFO):
     """
-    Uploads a local file (photo or video) to Immich using /api/duplicates_set/upload-file.
-    Returns the 'id' of the created duplicates_set, or None if the upload fails.
+    Uploads a local file (photo/video) to Immich via /api/assets.
+    Returns (asset_id, is_duplicated) or (None, None) on failure.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -594,9 +658,18 @@ def upload_asset(file_path, log_level=logging.INFO):
 
 def download_asset(asset_id, asset_filename, asset_time, download_folder="Downloaded_Immich", log_level=logging.INFO):
     """
-    Downloads an asset (photo/video) from Immich and saves it to local disk.
-    Uses GET /api/asset/:assetId/serve
-    Returns True if the download was successful, False otherwise.
+        Downloads an asset (photo/video) from Immich Photos to a local folder,
+        preserving the original timestamp if available.
+
+        Args:
+            asset_id (int): ID of the asset to download.
+            asset_filename (str): filename of the asset to download.
+            asset_time (int or str): UNIX epoch or ISO string time of the asset.
+            download_folder (str): Path where the file will be saved.
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            bool: True if the download was successful, False otherwise.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -668,7 +741,7 @@ def get_user_id(log_level=logging.INFO):
 
 def get_supported_media_types(type='media', log_level=logging.INFO):
     """
-    Return the user_id for the logged user
+    Returns the supported media/sidecar extensions as reported by Immich (via /api/server/media-types).
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -713,12 +786,23 @@ def get_supported_media_types(type='media', log_level=logging.INFO):
 ##############################################################################
 def immich_upload_albums(input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
     """
-    Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on ALLOWED_IMMICH_EXTENSIONS) and associates them with the album.
+    Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals
+    the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on
+    self.ALLOWED_IMMICH_EXTENSIONS) and associates them with the album.
+
     Example structure:
-        input_folder/
-            ├─ Album1/   (files for album "Album1")
-            └─ Album2/   (files for album "Album2")
-    Returns: total_albums_uploaded, total_albums_skipped, total_assets_uploaded
+    input_folder/
+        ├─ Album1/   (files for album "Album1")
+        └─ Album2/   (files for album "Album2")
+
+    Args:
+        input_folder (str): Input folder
+        subfolders_exclusion (str or list): Subfolders exclusion
+        subfolders_inclusion (str or list): Subfolders inclusion
+        remove_duplicates (bool): True to remove duplicates assets after upload
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns: (albums_uploaded, albums_skipped, assets_uploaded, total_duplicates_assets_removed, total_duplicates_assets_skipped)
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -837,7 +921,7 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
     direct subfolders_inclusion of 'input_folder' are processed (excluding any in SUBFOLDERS_EXCLUSIONS).
     Otherwise, all subfolders_inclusion except those listed in SUBFOLDERS_EXCLUSIONS are processed.
 
-    Returns the number of files uploaded.
+    Returns total_assets_uploaded, total_dupplicated_assets_skipped, duplicates_assets_removed.
     """
     from GlobalVariables import LOGGER  # Global logger
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -918,9 +1002,16 @@ def immich_upload_no_albums(input_folder, subfolders_exclusion='Albums', subfold
 # -----------------------------------------------------------------------------
 def immich_upload_ALL(input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
     """
-    Uploads ALL photos and videos from input_folder into Immich Photos:
+    Uploads ALL photos/videos from input_folder into Immich Photos.
+    Returns details about how many albums and assets were uploaded.
 
-    Returns the total number of albums and assets uploaded.
+    Args:
+        input_folder (str): Input folder
+        albums_folders (str): Albums folder
+        remove_duplicates (bool): True to remove duplicates assets after upload all assets
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns: (albums_uploaded, albums_skipped, assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed, total_dupplicated_assets_skipped)
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -959,14 +1050,15 @@ def immich_upload_ALL(input_folder, albums_folders=None, remove_duplicates=False
 
 def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich", log_level=logging.WARNING):
     """
-    Downloads (extracts) all photos/videos from one or multiple albums using name patterns:
+    Downloads photos/videos from albums by name pattern or ID. 'ALL' downloads all.
 
-      - If album_name_or_id == 'ALL', all albums will be downloaded.
-      - If it matches an 'id' or 'albumName', only that album will be downloaded.
-      - If it contains wildcard patterns (e.g., "*jaime*", "jaime*"), it will download matching albums.
-      - If it is a list, it will check each item as an ID, exact name, or pattern.
+    Args:
+        albums_name (str or list): The name(s) of the album(s) to download. Use 'ALL' to download all albums.
+        output_folder (str): The output folder where the album assets will be downloaded.
+        log_level (logging.LEVEL): log_level for logs and console
 
-    Returns the total number of albums and assets downloaded.
+    Returns:
+        tuple: (albums_downloaded, assets_downloaded)
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -1036,13 +1128,14 @@ def immich_download_albums(albums_name='ALL', output_folder="Downloads_Immich", 
 
 def immich_download_no_albums(output_folder="Downloads_Immich", log_level=logging.WARNING):
     """
-    (Previously extract_photos_from_album)
-    Downloads (extracts) all photos/videos from one or multiple albums:
+    Downloads assets not associated to any album from Immich Photos into output_folder/No-Albums/.
+    Then organizes them by year/month inside that folder.
 
-      - If album_name_or_id == 'ALL', all albums will be downloaded.
-      - If it matches an 'id' or 'albumName', only that album will be downloaded.
+    Args:
+        output_folder (str): The output folder where the album assets will be downloaded.
+        log_level (logging.LEVEL): log_level for logs and console
 
-    Returns the total number of assets downloaded.
+    Returns assets_downloaded or 0 if no assets are downloaded
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -1088,16 +1181,20 @@ def immich_download_no_albums(output_folder="Downloads_Immich", log_level=loggin
 def immich_download_ALL(output_folder="Downloads_Immich", log_level=logging.WARNING):
     """
     Downloads ALL photos and videos from Immich Photos into output_folder creating a Folder Structure like this:
-        output_folder/
-          ├─ Albums/
-          │    ├─ albumName1/ (assets in the album)
-          │    ├─ albumName2/ (assets in the album)
-          │    ...
-          └─ No-Albums/
-               └─ yyyy/
-                   └─ mm/ (assets not in any album for that year/month)
+    output_folder/
+      ├─ Albums/
+      │    ├─ albumName1/ (assets in the album)
+      │    ├─ albumName2/ (assets in the album)
+      │    ...
+      └─ No-Albums/
+           └─ yyyy/
+               └─ mm/ (assets not in any album for that year/month)
 
-    Returns the total number of albums and assets downloaded.
+    Args:
+        output_folder (str): Output folder
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns total_albums_downloaded, total_assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -1121,8 +1218,13 @@ def immich_download_ALL(output_folder="Downloads_Immich", log_level=logging.WARN
 # -----------------------------------------------------------------------------
 def immich_remove_empty_albums(log_level=logging.WARNING):
     """
-    Removes all albums that have no assets (are empty).
-    Returns the number of albums removed.
+    Removes all empty albums in Immich Photos.
+
+    Args:
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns:
+        int: The number of empty albums deleted.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -1153,8 +1255,15 @@ def immich_remove_empty_albums(log_level=logging.WARNING):
 # -----------------------------------------------------------------------------
 def immich_remove_duplicates_albums(log_level=logging.WARNING):
     """
-    Removes albums that have the same number of assets and the same total size.
-    From each duplicate group, keeps the first one (smallest ID) and removes the rest.
+    Remove all duplicate albums in Immich Photos. Duplicates are albums
+    that share the same item_count and total item_size. It keeps the first
+    album, removes the others from each duplicate group.
+
+    Args:
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns:
+        int: The number of duplicate albums deleted.
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -1191,6 +1300,11 @@ def immich_remove_duplicates_albums(log_level=logging.WARNING):
 #          DELETE ORPHANS ASSETS FROM IMMICH DATABASE
 # -----------------------------------------------------------------------------
 def immich_remove_orphan_assets(user_confirmation=True, log_level=logging.WARNING):
+    """
+    Removes orphan assets in the Immich database. Orphan assets are assets found in Immich database but not found in disk.
+
+    Returns how many orphan got removed.
+    """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # login_immich
@@ -1279,6 +1393,14 @@ def immich_remove_orphan_assets(user_confirmation=True, log_level=logging.WARNIN
 #          DELETE ALL ASSETS FROM IMMICH DATABASE
 # -----------------------------------------------------------------------------
 def immich_remove_all_assets(log_level=logging.WARNING):
+    """
+    Removes ALL assets in Immich Photos (in batches of 250 if needed) and then removes empty albums.
+
+    Args:
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns (assets_removed, albums_removed)
+    """
     from GlobalVariables import LOGGER  # Import global LOGGER
     # login_immich
     login_immich(log_level=log_level)
@@ -1323,8 +1445,13 @@ def immich_remove_all_assets(log_level=logging.WARNING):
 # -----------------------------------------------------------------------------
 def immich_remove_all_albums(removeAlbumsAssets=False, log_level=logging.WARNING):
     """
-    Removes all albums and optionally also its associated assets.
-    Returns the number of albums removed and the number of assets removed.
+    Removes all albums and optionally also all their associated assets.
+
+    Args:
+        removeAlbumsAssets (bool): If True, removes also all the assets associated to all albums
+        log_level (logging.LEVEL): log_level for logs and console
+
+    Returns (#albums_removed, #assets_removed).
     """
     from GlobalVariables import LOGGER  # Import global LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
