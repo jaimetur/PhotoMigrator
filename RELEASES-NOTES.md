@@ -2,22 +2,22 @@
 Download the tool either for Linux, MacOS or Windows version (for both x64/amd64 or arm64 architectures) as you prefer directly from following links:
 
 **Linux:**:  
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-04/CloudPhotoMigrator_v3.0.0-beta-04_linux_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-04/CloudPhotoMigrator_v3.0.0-beta-04_linux_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0/CloudPhotoMigrator_v3.0.0_linux_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0/CloudPhotoMigrator_v3.0.0_linux_arm64.zip)  
 
 **Mac OS:**
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-04/CloudPhotoMigrator_v3.0.0-beta-04_macos_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-04/CloudPhotoMigrator_v3.0.0-beta-04_macos_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0/CloudPhotoMigrator_v3.0.0_macos_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0/CloudPhotoMigrator_v3.0.0_macos_arm64.zip)  
 
 **Windows:**  
-- [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-04/CloudPhotoMigrator_v3.0.0-beta-04_windows_amd64.zip)  
+- [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0/CloudPhotoMigrator_v3.0.0_windows_amd64.zip)  
 
 ---
 
 ## Release Notes:
 
-**Release**: 3.0.0-beta-04  
-**Date**: 2025-02-27
+**Release**: 3.0.0  
+**Date**: 2025-03-07
 
 - [x] New Script name '**CloudPhotoMigrator**' (former 'GoogleTakeoutPhotos')
 - [x] The Tool is now Open Source (all contributors that want to collaborate on this project are more than welcome)

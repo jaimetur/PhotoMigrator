@@ -45,15 +45,15 @@ so feel free to download the version according to your system.
 Download the tool either for Linux, MacOS or Windows version (for both x64/amd64 or arm64 architectures) as you prefer directly from following links:
 
 **Linux:**:  
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-04/CloudPhotoMigrator_v3.0.0-beta-04_linux_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-04/CloudPhotoMigrator_v3.0.0-beta-04_linux_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0/CloudPhotoMigrator_v3.0.0_linux_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0/CloudPhotoMigrator_v3.0.0_linux_arm64.zip)  
 
 **Mac OS:**
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-04/CloudPhotoMigrator_v3.0.0-beta-04_macos_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-04/CloudPhotoMigrator_v3.0.0-beta-04_macos_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0/CloudPhotoMigrator_v3.0.0_macos_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0/CloudPhotoMigrator_v3.0.0_macos_arm64.zip)  
 
 **Windows:**  
-- [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0-beta-04/CloudPhotoMigrator_v3.0.0-beta-04_windows_amd64.zip)  
+- [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/3.0.0/CloudPhotoMigrator_v3.0.0_windows_amd64.zip)  
 
 
 ## Instructions to execute from compiled version:
@@ -131,7 +131,7 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLD
                                   [-procDup <DUPLICATES_REVISED_CSV>]
                                   [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
 
-CloudPhotoMigrator v3.0.0-beta-04 - 2025-02-26
+CloudPhotoMigrator v3.0.0 - 2025-02-26
 
 Multi-Platform/Multi-Arch toot designed to Interact and Manage different Photo Cloud
 Services such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
