@@ -1050,6 +1050,7 @@ class ClassSynologyPhotos:
 
     ###########################################################################
     #                             FOLDERS FUNCTIONS                           #
+    #             (This block is exclusive for ClassSynologyPhotos)           #
     ###########################################################################
     def get_photos_root_folder_id(self, log_level=logging.INFO):
         """
@@ -1347,6 +1348,7 @@ class ClassSynologyPhotos:
 
     ###########################################################################
     #                         BACKGROUND TASKS MANAGEMENT                     #
+    #             (This block is exclusive for ClassSynologyPhotos)           #
     ###########################################################################
     """
     Encapsulates all the functionality from the original ClassImmichPhotos.py
