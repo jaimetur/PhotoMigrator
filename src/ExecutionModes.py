@@ -46,7 +46,7 @@ def detect_and_run_execution_mode():
         mode_synology_download_ALL()
     elif ARGS['synology-remove-all-assets'] != "":
         EXECUTION_MODE = 'synology-remove-all-assets'
-        mode_synology_remove_all_assets()
+        mode_synology_remove_ALL()
 
     # Immich Photos Modes:
     elif ARGS['immich-remove-empty-albums']:
@@ -72,7 +72,7 @@ def detect_and_run_execution_mode():
         mode_immich_remove_orphan_assets()
     elif ARGS['immich-remove-all-assets'] != "":
         EXECUTION_MODE = 'immich-remove-all-assets'
-        mode_immich_remove_all_assets()
+        mode_immich_remove_ALL()
     elif ARGS['immich-remove-all-albums'] != "":
         EXECUTION_MODE = 'immich-remove-all-albums'
         mode_immich_remove_all_albums()
@@ -590,7 +590,7 @@ def mode_synology_remove_duplicates_albums(user_confirmation=True, log_level=log
         LOGGER.info("")
 
 
-def mode_synology_remove_all_assets(user_confirmation=True, log_level=logging.INFO):
+def mode_synology_remove_ALL(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
         LOGGER.info(f"INFO    : Flag detected '-srAll, --synology-remove-all-assets'.")
         LOGGER.info(HELP_TEXTS["synology-remove-all-assets"])
@@ -1020,7 +1020,7 @@ def mode_immich_remove_orphan_assets(user_confirmation=True, log_level=logging.I
         LOGGER.info("==================================================")
         LOGGER.info("")
 
-def mode_immich_remove_all_assets(user_confirmation=True, log_level=logging.INFO):
+def mode_immich_remove_ALL(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
         LOGGER.info(f"INFO    : Flag detected '-irAll, --immich-remove-all-assets'.")
         LOGGER.info(HELP_TEXTS["immich-remove-all-assets"])

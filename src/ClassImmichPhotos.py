@@ -372,7 +372,6 @@ class ClassImmichPhotos:
                 return False
 
 
-    # TODO: Test this method
     def get_albums_owned_by_user(self, log_level=logging.INFO):
         """
         Get all albums in Immich Photos for the current user.
@@ -396,10 +395,10 @@ class ClassImmichPhotos:
                 resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
                 resp.raise_for_status()
                 albums = resp.json()
-                user_id = self.get_user_id()
+                user_id = self.get_user_id(log_level=logging.WARNING)
                 own_albums = []
                 for album in albums:
-                    if album.get('ownerID') == user_id:
+                    if album.get('ownerId') == user_id:
                         own_albums.append(album)
                 return own_albums
             except Exception as e:
