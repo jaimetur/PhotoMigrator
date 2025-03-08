@@ -960,15 +960,22 @@ class ClassSynologyPhotos:
                 )
                 headers.update({"Content-Type": multipart_data.content_type})
 
-                response = self.SESSION.post(url, data=multipart_data, headers=headers, verify=False)
-                response.raise_for_status()
-                data = response.json()
-                if not data["success"]:
+                try:
+                    response = self.SESSION.post(url, data=multipart_data, headers=headers, verify=False)
+                    response.raise_for_status()
+                    data = response.json()
+                    if not data["success"]:
+                        LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
+                        return None, None
+                    else:
+                        asset_id = data["data"].get("id")
+                        return asset_id, False
+                except Exception as e:
                     LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
-                    return None, None
-                else:
-                    asset_id = data["data"].get("id")
-                    return asset_id, False
+                finally:
+                    # Restore log_level of the parent method
+                    set_log_level(LOGGER, parent_log_level, manual=True)
+                    pass
 
 
     def download_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Synology", log_level=logging.INFO):
