@@ -418,7 +418,8 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, log_level=loggi
             return False
         finally:
             # Restore log_level of the parent method
-            set_log_level(LOGGER, parent_log_level, manual=True)
+            # set_log_level(LOGGER, parent_log_level, manual=True)
+            pass
 
 
 def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None, log_level=logging.INFO):
@@ -514,7 +515,8 @@ def move_albums_to_root(albums_root, log_level=logging.INFO):
             LOGGER.error(f"ERROR   : Failed to remove 'Takeout': {e}")
         finally:
             # Restore log_level of the parent method
-            set_log_level(LOGGER, parent_log_level, manual=True)
+            # set_log_level(LOGGER, parent_log_level, manual=True)
+            pass
 
 
 def change_file_extension(input_folder, current_extension, new_extension, log_level=logging.INFO):
@@ -576,7 +578,8 @@ def delete_subfolders(input_folder, folder_name_to_delete, log_level=logging.INF
                             LOGGER.error(f"ERROR   : Error deleting {dir_path}: {e}")
                         finally:
                             # Restore log_level of the parent method
-                            set_log_level(LOGGER, parent_log_level, manual=True)
+                            # set_log_level(LOGGER, parent_log_level, manual=True)
+                            pass
 
 
 def remove_empty_dirs(input_folder, log_level=logging.INFO):
@@ -947,7 +950,8 @@ def is_valid_path(path, log_level=logging.INFO):
             return False
         finally:
             # Restore log_level of the parent method
-            set_log_level(LOGGER, parent_log_level, manual=True)
+            # set_log_level(LOGGER, parent_log_level, manual=True)
+            pass
 
 def get_unique_items(list1, list2, key='filename', log_level=logging.INFO):
     """
@@ -990,7 +994,8 @@ def update_metadata(file_path, date_time, log_level=logging.INFO):
             LOGGER.error(f"ERROR   : Failed to update metadata for {file_path}. {e}")
         finally:
             # Restore log_level of the parent method
-            set_log_level(LOGGER, parent_log_level, manual=True)
+            # set_log_level(LOGGER, parent_log_level, manual=True)
+            pass
 
 
 def update_exif_date(image_path, asset_time, log_level=logging.INFO):
@@ -1014,7 +1019,7 @@ def update_exif_date(image_path, asset_time, log_level=logging.INFO):
                     return
                 finally:
                     # Restore log_level of the parent method
-                    set_log_level(LOGGER, parent_log_level, manual=True)
+                    # set_log_level(LOGGER, parent_log_level, manual=True)
                     pass
 
             # Convertir el timestamp UNIX a formato EXIF "YYYY:MM:DD HH:MM:SS"
@@ -1052,19 +1057,28 @@ def update_exif_date(image_path, asset_time, log_level=logging.INFO):
                     if isinstance(value, int):
                         exif_dict[ifd_name][tag] = str(value).encode('utf-8')
 
-            # Dump and insert updated EXIF data
-            exif_bytes = piexif.dump(exif_dict)
-            piexif.insert(exif_bytes, image_path)
+            try:
+                # Dump and insert updated EXIF data
+                exif_bytes = piexif.dump(exif_dict)
+                piexif.insert(exif_bytes, image_path)
 
-            # Restaurar timestamps originales del archivo
-            os.utime(image_path, (original_atime, original_mtime))
-            LOGGER.debug(f"DEBUG   : EXIF metadata updated for {image_path} with timestamp {date_time_exif}")
+                # Restaurar timestamps originales del archivo
+                os.utime(image_path, (original_atime, original_mtime))
+                LOGGER.debug(f"DEBUG   : EXIF metadata updated for {image_path} with timestamp {date_time_exif}")
+            except Exception:
+                LOGGER.error(f"ERROR   : Error when restoring original metadata to file: '{image_path}'")
+                return
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
         except Exception as e:
             LOGGER.warning(f"WARNING : Failed to update EXIF metadata for {image_path}. {e}")
         finally:
             # Restore log_level of the parent method
-            set_log_level(LOGGER, parent_log_level, manual=True)
+            # set_log_level(LOGGER, parent_log_level, manual=True)
+            pass
 
 
 def update_video_metadata(video_path, asset_time, log_level=logging.INFO):
@@ -1115,7 +1129,8 @@ def update_video_metadata(video_path, asset_time, log_level=logging.INFO):
             LOGGER.warning(f"WARNING : Failed to update video metadata for {video_path}. {e}")
         finally:
             # Restore log_level of the parent method
-            set_log_level(LOGGER, parent_log_level, manual=True)
+            # set_log_level(LOGGER, parent_log_level, manual=True)
+            pass
 
 
 def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=logging.INFO):
@@ -1164,20 +1179,29 @@ def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=logging.
             LOGGER.warning(f"WARNING : Failed to update video metadata for {video_path}. {e}")
         finally:
             # Restore log_level of the parent method
-            set_log_level(LOGGER, parent_log_level, manual=True)
+            # set_log_level(LOGGER, parent_log_level, manual=True)
+            pass
 
 # Convert to list
 def convert_to_list(input, log_level=logging.INFO):
     """ Convert a String to List"""
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        output=input
-        # Process subfolders_exclusion to obtain a list of inclusion names if provided
-        if isinstance(output, str):
-            output = [name.strip() for name in output.replace(',', ' ').split() if name.strip()]
-        elif isinstance(output, list):
-            output = [name.strip() for item in output if isinstance(item, str) for name in item.split(',') if name.strip()]
-        else:
-            output = []
+        try:
+            output=input
+            # Process subfolders_exclusion to obtain a list of inclusion names if provided
+            if isinstance(output, str):
+                output = [name.strip() for name in output.replace(',', ' ').split() if name.strip()]
+            elif isinstance(output, list):
+                output = [name.strip() for item in output if isinstance(item, str) for name in item.split(',') if name.strip()]
+            else:
+                output = []
+        except Exception as e:
+            LOGGER.warning(f"WARNING : Failed to convert string to List for {input}. {e}")
+        finally:
+            # Restore log_level of the parent method
+            # set_log_level(LOGGER, parent_log_level, manual=True)
+            pass
         return output
 
 def tqdm(*args, **kwargs):

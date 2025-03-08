@@ -268,7 +268,7 @@ class ClassImmichPhotos:
             self.ALLOWED_IMMICH_EXTENSIONS = self.ALLOWED_IMMICH_MEDIA_EXTENSIONS + self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS
 
             # Restore log_level of the parent method
-            set_log_level(LOGGER, parent_log_level, manual=True)
+            # set_log_level(LOGGER, parent_log_level, manual=True)
             return True
 
 
@@ -858,7 +858,7 @@ class ClassImmichPhotos:
                 return None, None
             finally:
                 # Restore log_level of the parent method
-                set_log_level(LOGGER, parent_log_level, manual=True)
+                # set_log_level(LOGGER, parent_log_level, manual=True)
                 pass
 
 
@@ -894,28 +894,28 @@ class ClassImmichPhotos:
             url = f"{self.IMMICH_URL}/api/assets/{asset_id}/original"
 
             try:
-                with requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False, stream=True) as req:
-                    req.raise_for_status()
-                    file_path = os.path.join(download_folder, asset_filename)
-                    with open(file_path, 'wb') as f:
-                        for chunk in req.iter_content(chunk_size=8192):
-                            f.write(chunk)
+                req = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False, stream=True)
+                req.raise_for_status()
+                file_path = os.path.join(download_folder, asset_filename)
+                with open(file_path, 'wb') as f:
+                    for chunk in req.iter_content(chunk_size=8192):
+                        f.write(chunk)
 
-                    # Update timestamps using the asset_time
-                    os.utime(file_path, (asset_time, asset_time))
-                    # If extension is recognized, update metadata
-                    if file_ext in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
-                        update_metadata(file_path, asset_datetime.strftime("%Y-%m-%d %H:%M:%S"), log_level=logging.ERROR)
+                # Update timestamps using the asset_time
+                os.utime(file_path, (asset_time, asset_time))
+                # If extension is recognized, update metadata
+                if file_ext in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
+                    update_metadata(file_path, asset_datetime.strftime("%Y-%m-%d %H:%M:%S"), log_level=logging.ERROR)
 
-                    LOGGER.debug("")
-                    LOGGER.debug(f"DEBUG   : Asset '{asset_filename}' downloaded and saved at {file_path}")
-                    return 1
+                LOGGER.debug("")
+                LOGGER.debug(f"DEBUG   : Asset '{asset_filename}' downloaded and saved at {file_path}")
+                return 1
             except Exception as e:
                 LOGGER.error(f"ERROR   : Failed to download asset {asset_id}: {e}")
                 return 0
             finally:
                 # Restore log_level of the parent method
-                set_log_level(LOGGER, parent_log_level, manual=True)
+                # set_log_level(LOGGER, parent_log_level, manual=True)
                 pass
 
 
@@ -1661,7 +1661,8 @@ class ClassImmichPhotos:
                         continue
                     finally:
                         # Restore log_level of the parent method
-                        set_log_level(LOGGER, parent_log_level, manual=True)
+                        # set_log_level(LOGGER, parent_log_level, manual=True)
+                        pass
                     progress_bar.update(1)
                     total_removed_assets += 1
             LOGGER.info(f"INFO    : Orphaned media assets removed successfully!")

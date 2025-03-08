@@ -84,7 +84,8 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, 
             return False
         finally:
             # Restore log_level of the parent method
-            set_log_level(LOGGER, parent_log_level, manual=True)
+            # set_log_level(LOGGER, parent_log_level, manual=True)
+            pass
 
 def fix_metadata_with_exif_tool(output_folder, log_level=logging.INFO):
     """Runs the EXIF Tool command to fix photo metadata."""
@@ -120,4 +121,5 @@ def fix_metadata_with_exif_tool(output_folder, log_level=logging.INFO):
             LOGGER.error(f"ERROR   : EXIF Tool fixing failed:\n{e.stderr}")
         finally:
             # Restore log_level of the parent method
-            set_log_level(LOGGER, parent_log_level, manual=True)
+            # set_log_level(LOGGER, parent_log_level, manual=True)
+            pass

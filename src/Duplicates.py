@@ -144,7 +144,8 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                         pass
                     finally:
                         # Restore log_level of the parent method
-                        set_log_level(LOGGER, parent_log_level, manual=True)
+                        # set_log_level(LOGGER, parent_log_level, manual=True)
+                        pass
             return removed_folders
 
     # ===========================
@@ -206,7 +207,8 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                             continue
                         finally:
                             # Restore log_level of the parent method
-                            set_log_level(LOGGER, parent_log_level, manual=True)
+                            # set_log_level(LOGGER, parent_log_level, manual=True)
+                            pass
                         size_dict.setdefault(file_size, []).append(full_path)
 
         # Optimización: Filtrar directamente los tamaños con más de un archivo
@@ -262,7 +264,8 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                             continue
                         finally:
                             # Restore log_level of the parent method
-                            set_log_level(LOGGER, parent_log_level, manual=True)
+                            # set_log_level(LOGGER, parent_log_level, manual=True)
+                            pass
                 del sizes_with_duplicates_dict
                 partial_hash_with_duplicates_dict = {partial_hash: partial_hash_paths for partial_hash, partial_hash_paths in partial_hash_dict.items() if len(partial_hash_paths) > 1}
                 del partial_hash_dict
@@ -279,7 +282,8 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                                 continue
                             finally:
                                 # Restore log_level of the parent method
-                                set_log_level(LOGGER, parent_log_level, manual=True)
+                                # set_log_level(LOGGER, parent_log_level, manual=True)
+                                pass
                 del partial_hash_with_duplicates_dict
             else:
                 LOGGER.debug("DEBUG   : Hashing files with same size")
@@ -294,7 +298,8 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                             continue
                         finally:
                             # Restore log_level of the parent method
-                            set_log_level(LOGGER, parent_log_level, manual=True)
+                            # set_log_level(LOGGER, parent_log_level, manual=True)
+                            pass
                 del sizes_with_duplicates_dict
 
             duplicates = {hash: paths for hash, paths in hash_dict.items() if len(paths) > 1}
@@ -471,7 +476,8 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                                     LOGGER.warning(f"WARNING : Could not remove file {duplicated}")
                                 finally:
                                     # Restore log_level of the parent method
-                                    set_log_level(LOGGER, parent_log_level, manual=True)
+                                    # set_log_level(LOGGER, parent_log_level, manual=True)
+                                    pass
 
                             writer.writerow(row)
                             duplicates_counter += 1
@@ -535,7 +541,8 @@ def process_duplicates_actions(csv_revised: str, log_level=logging.INFO):
                         return -1
                     finally:
                         # Restore log_level of the parent method
-                        set_log_level(LOGGER, parent_log_level, manual=True)
+                        # set_log_level(LOGGER, parent_log_level, manual=True)
+                        pass
 
             principal_index = get_index("principal")
             duplicate_index = get_index("duplicate")
