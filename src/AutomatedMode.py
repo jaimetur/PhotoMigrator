@@ -425,7 +425,7 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
                             LOGGER_THREADS.info(f"INFO    : Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
                         else:
                             SHARED_COUNTERS['total_uploaded_assets'] += 1
-                            if asset_type== 'video':
+                            if asset_type.lower() == 'video':
                                 SHARED_COUNTERS['total_uploaded_videos'] += 1
                             else:
                                 SHARED_COUNTERS['total_uploaded_photos'] += 1
