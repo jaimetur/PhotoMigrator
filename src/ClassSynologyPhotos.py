@@ -40,10 +40,14 @@ import mimetypes
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 import time
 import logging
+import inspect
 
 # Keep your existing imports for these utilities outside the class:
 from CustomLogger import set_log_level
 from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm
+
+# Import the global LOGGER from GlobalVariables
+from GlobalVariables import LOGGER
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -62,9 +66,9 @@ class ClassSynologyPhotos:
         Constructor that initializes what were previously global variables.
         Also imports the global LOGGER from GlobalVariables.
         """
-        # Import the global LOGGER from GlobalVariables
-        from GlobalVariables import LOGGER
-        self.logger = LOGGER
+        # # Import the global LOGGER from GlobalVariables
+        # from GlobalVariables import LOGGER
+        # LOGGER = LOGGER
 
         # Variables that were previously global:
         self.CONFIG = None
@@ -95,6 +99,16 @@ class ClassSynologyPhotos:
         self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS = self.ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS + self.ALLOWED_SYNOLOGY_VIDEO_EXTENSIONS
         self.ALLOWED_SYNOLOGY_EXTENSIONS = self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS
 
+        self.CLIENT_NAME = 'Synology Photos'
+
+
+    ###########################################################################
+    #                           CLASS PROPERTIES GETS                         #
+    ###########################################################################
+    def get_client_name(self, log_level=logging.INFO):
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+            return self.CLIENT_NAME
+
 
     ###########################################################################
     #                           CONFIGURATION READING                         #
@@ -112,7 +126,8 @@ class ClassSynologyPhotos:
             dict: The loaded configuration dictionary.
         """
         from ConfigReader import load_config
-        with set_log_level(self.logger, log_level):
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
             if self.CONFIG:
                 return self.CONFIG
 
@@ -124,27 +139,27 @@ class ClassSynologyPhotos:
             self.SYNOLOGY_PASSWORD = self.CONFIG.get('SYNOLOGY_PASSWORD', None)
 
             if not self.SYNOLOGY_URL or self.SYNOLOGY_URL.strip() == '':
-                self.logger.warning(f"WARNING : SYNOLOGY_URL not found. It will be requested on screen.")
+                LOGGER.warning(f"WARNING : SYNOLOGY_URL not found. It will be requested on screen.")
                 self.CONFIG['SYNOLOGY_URL'] = input("\nEnter SYNOLOGY_URL: ")
                 self.SYNOLOGY_URL = self.CONFIG['SYNOLOGY_URL']
 
             if not self.SYNOLOGY_USERNAME or self.SYNOLOGY_USERNAME.strip() == '':
-                self.logger.warning(f"WARNING : SYNOLOGY_USERNAME not found. It will be requested on screen.")
+                LOGGER.warning(f"WARNING : SYNOLOGY_USERNAME not found. It will be requested on screen.")
                 self.CONFIG['SYNOLOGY_USERNAME'] = input("\nEnter SYNOLOGY_USERNAME: ")
                 self.SYNOLOGY_USERNAME = self.CONFIG['SYNOLOGY_USERNAME']
 
             if not self.SYNOLOGY_PASSWORD or self.SYNOLOGY_PASSWORD.strip() == '':
-                self.logger.warning(f"WARNING : SYNOLOGY_PASSWORD not found. It will be requested on screen.")
+                LOGGER.warning(f"WARNING : SYNOLOGY_PASSWORD not found. It will be requested on screen.")
                 self.CONFIG['SYNOLOGY_PASSWORD'] = input("\nEnter SYNOLOGY_PASSWORD: ")
                 self.SYNOLOGY_PASSWORD = self.CONFIG['SYNOLOGY_PASSWORD']
 
-            self.logger.info("")
-            self.logger.info(f"INFO    : Synology Config Read:")
-            self.logger.info(f"INFO    : ---------------------")
+            LOGGER.info("")
+            LOGGER.info(f"INFO    : Synology Config Read:")
+            LOGGER.info(f"INFO    : ---------------------")
             masked_password = '*' * len(self.SYNOLOGY_PASSWORD)
-            self.logger.info(f"INFO    : SYNOLOGY_URL              : {self.SYNOLOGY_URL}")
-            self.logger.info(f"INFO    : SYNOLOGY_USERNAME         : {self.SYNOLOGY_USERNAME}")
-            self.logger.info(f"INFO    : SYNOLOGY_PASSWORD         : {masked_password}")
+            LOGGER.info(f"INFO    : SYNOLOGY_URL              : {self.SYNOLOGY_URL}")
+            LOGGER.info(f"INFO    : SYNOLOGY_USERNAME         : {self.SYNOLOGY_USERNAME}")
+            LOGGER.info(f"INFO    : SYNOLOGY_PASSWORD         : {masked_password}")
 
             return self.CONFIG
 
@@ -164,49 +179,57 @@ class ClassSynologyPhotos:
 
         Returns (self.SESSION, self.SID) or (self.SESSION, self.SID, self.SYNO_TOKEN_HEADER)
         """
-        with set_log_level(self.logger, log_level):
-            if self.SESSION and self.SID and self.SYNO_TOKEN_HEADER:
-                return (self.SESSION, self.SID, self.SYNO_TOKEN_HEADER)
-            elif self.SESSION and self.SID:
-                return (self.SESSION, self.SID)
-
-            self.read_config_file(log_level=log_level)
-            self.logger.info("")
-            self.logger.info(f"INFO    : Authenticating on Synology Photos and getting Session...")
-
-            self.SESSION = requests.Session()
-            url = f"{self.SYNOLOGY_URL}/webapi/auth.cgi"
-
-            params = {
-                "api": "SYNO.API.Auth",
-                "version": "6",
-                "method": "login",
-                "account": self.SYNOLOGY_USERNAME,
-                "passwd": self.SYNOLOGY_PASSWORD,
-                "format": "sid",
-            }
-            if use_syno_token:
-                params.update({"enable_syno_token": "yes"})
-
-            response = self.SESSION.get(url, params=params, verify=False)
-            response.raise_for_status()
-            data = response.json()
-
-            if data.get("success"):
-                self.SID = data["data"]["sid"]
-                self.SESSION.cookies.set("id", self.SID)
-                self.logger.info(f"INFO    : Authentication Successfully with user/password found in Config file. Cookie properly set with session id.")
-                if use_syno_token:
-                    self.logger.info(f"INFO    : SYNO_TOKEN_HEADER created as global variable. You must include 'SYNO_TOKEN_HEADER' in your request to work with this session.")
-                    self.SYNO_TOKEN_HEADER = {
-                        "X-SYNO-TOKEN": data["data"]["synotoken"],
-                    }
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                if self.SESSION and self.SID and self.SYNO_TOKEN_HEADER:
                     return (self.SESSION, self.SID, self.SYNO_TOKEN_HEADER)
-                else:
+                elif self.SESSION and self.SID:
                     return (self.SESSION, self.SID)
-            else:
-                self.logger.error(f"ERROR   : Unable to authenticate with the provided NAS data: {data}")
-                sys.exit(-1)
+
+                self.read_config_file(log_level=log_level)
+                LOGGER.info("")
+                LOGGER.info(f"INFO    : Authenticating on Synology Photos and getting Session...")
+
+                self.SESSION = requests.Session()
+                url = f"{self.SYNOLOGY_URL}/webapi/auth.cgi"
+
+                params = {
+                    "api": "SYNO.API.Auth",
+                    "version": "6",
+                    "method": "login",
+                    "account": self.SYNOLOGY_USERNAME,
+                    "passwd": self.SYNOLOGY_PASSWORD,
+                    "format": "sid",
+                }
+                if use_syno_token:
+                    params.update({"enable_syno_token": "yes"})
+
+                response = self.SESSION.get(url, params=params, verify=False)
+                response.raise_for_status()
+                data = response.json()
+
+                if data.get("success"):
+                    self.SID = data["data"]["sid"]
+                    self.SESSION.cookies.set("id", self.SID)
+                    LOGGER.info(f"INFO    : Authentication Successfully with user/password found in Config file. Cookie properly set with session id.")
+                    if use_syno_token:
+                        LOGGER.info(f"INFO    : SYNO_TOKEN_HEADER created as global variable. You must include 'SYNO_TOKEN_HEADER' in your request to work with this session.")
+                        self.SYNO_TOKEN_HEADER = {
+                            "X-SYNO-TOKEN": data["data"]["synotoken"],
+                        }
+                        return (self.SESSION, self.SID, self.SYNO_TOKEN_HEADER)
+                    else:
+                        return (self.SESSION, self.SID)
+                else:
+                    LOGGER.error(f"ERROR   : Unable to authenticate with the provided Synology Photos data: {data}")
+                    sys.exit(-1)
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while login into Synology Photos!. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     def logout(self, log_level=logging.INFO):
@@ -216,25 +239,32 @@ class ClassSynologyPhotos:
         Args:
             log_level (logging.LEVEL): log_level for logs and console
         """
-        with set_log_level(self.logger, log_level):
-            if self.SESSION and self.SID:
-                url = f"{self.SYNOLOGY_URL}/webapi/auth.cgi"
-                params = {
-                    "api": "SYNO.API.Auth",
-                    "version": "3",
-                    "method": "logout",
-                }
-                response = self.SESSION.get(url, params=params, verify=False)
-                response.raise_for_status()
-                data = response.json()
-                if data.get("success"):
-                    self.logger.info("INFO    : Session closed successfully.")
-                    self.SESSION = None
-                    self.SID = None
-                    self.SYNO_TOKEN_HEADER = {}
-                else:
-                    self.logger.error("ERROR   : Unable to close session in Synology NAS.")
-
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                if self.SESSION and self.SID:
+                    url = f"{self.SYNOLOGY_URL}/webapi/auth.cgi"
+                    params = {
+                        "api": "SYNO.API.Auth",
+                        "version": "3",
+                        "method": "logout",
+                    }
+                    response = self.SESSION.get(url, params=params, verify=False)
+                    response.raise_for_status()
+                    data = response.json()
+                    if data.get("success"):
+                        LOGGER.info("INFO    : Session closed successfully.")
+                        self.SESSION = None
+                        self.SID = None
+                        self.SYNO_TOKEN_HEADER = {}
+                    else:
+                        LOGGER.error("ERROR   : Unable to close session in Synology NAS.")
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while logout from Synology Photos!. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
     ###########################################################################
     #                           GENERAL UTILITY                               #
@@ -243,27 +273,32 @@ class ClassSynologyPhotos:
         """
         Returns the supported media/sidecar extensions as for Synology Photos
         """
-        with set_log_level(self.logger, log_level):
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
             try:
                 if type.lower() == 'media':
                     supported_types = self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS
-                    self.logger.debug(f"DEBUG   : Supported media types: '{supported_types}'.")
+                    LOGGER.debug(f"DEBUG   : Supported media types: '{supported_types}'.")
                 elif type.lower() == 'image':
                     supported_types = self.ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS
-                    self.logger.debug(f"DEBUG   : Supported image types: '{supported_types}'.")
+                    LOGGER.debug(f"DEBUG   : Supported image types: '{supported_types}'.")
                 elif type.lower() == 'video':
                     supported_types = self.ALLOWED_SYNOLOGY_VIDEO_EXTENSIONS
-                    self.logger.debug(f"DEBUG   : Supported video types: '{supported_types}'.")
+                    LOGGER.debug(f"DEBUG   : Supported video types: '{supported_types}'.")
                 elif type.lower() == 'sidecar':
                     supported_types = self.ALLOWED_SYNOLOGY_SIDECAR_EXTENSIONS
-                    self.logger.debug(f"DEBUG   : Supported sidecar types: '{supported_types}'.")
+                    LOGGER.debug(f"DEBUG   : Supported sidecar types: '{supported_types}'.")
                 else:
-                    self.logger.error(f"ERROR   : Invalid type '{type}' to get supported media types. Types allowed are 'media', 'image', 'video' or 'sidecar'")
+                    LOGGER.error(f"ERROR   : Invalid type '{type}' to get supported media types. Types allowed are 'media', 'image', 'video' or 'sidecar'")
                     return None
                 return supported_types
             except Exception as e:
-                self.logger.error(f"ERROR   : Cannot get Supported media types: {e}")
+                LOGGER.error(f"ERROR   : Cannot get Supported media types: {e}")
                 return None
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     # TODO: Complete this method
@@ -271,8 +306,16 @@ class ClassSynologyPhotos:
         """
         Returns the user_id of the currently logged-in user.
         """
-        with set_log_level(self.logger, log_level):
-            return None
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                return None
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting user id. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     ###########################################################################
@@ -289,28 +332,36 @@ class ClassSynologyPhotos:
 
         Returns True on success, False otherwise.
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-            headers = {}
-            if self.SYNO_TOKEN_HEADER:
-                headers.update(self.SYNO_TOKEN_HEADER)
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
 
-            params = {
-                "api": "SYNO.Foto.Browse.Album",
-                "method": "delete",
-                "version": "3",
-                "id": f"[{album_id}]",
-                "name": album_name,
-            }
-            response = self.SESSION.get(url, params=params, headers=headers, verify=False)
-            response.raise_for_status()
-            data = response.json()
-            success = True
-            if not data["success"]:
-                self.logger.warning(f"WARNING : Could not delete album {album_id}: {data}")
-                success = False
-            return success
+                params = {
+                    "api": "SYNO.Foto.Browse.Album",
+                    "method": "delete",
+                    "version": "3",
+                    "id": f"[{album_id}]",
+                    "name": album_name,
+                }
+                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                response.raise_for_status()
+                data = response.json()
+                success = True
+                if not data["success"]:
+                    LOGGER.warning(f"WARNING : Could not delete album {album_id}: {data}")
+                    success = False
+                return success
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while removing Album from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     def create_album(self, album_name, log_level=logging.INFO):
@@ -324,31 +375,38 @@ class ClassSynologyPhotos:
         Returns:
             str: New album ID or None if it fails
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-            headers = {}
-            if self.SYNO_TOKEN_HEADER:
-                headers.update(self.SYNO_TOKEN_HEADER)
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
 
-            params = {
-                "api": "SYNO.Foto.Browse.NormalAlbum",
-                "method": "create",
-                "version": "3",
-                "name": f'"{album_name}"',
-            }
-            resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
-            resp.raise_for_status()
-            data = resp.json()
+                params = {
+                    "api": "SYNO.Foto.Browse.NormalAlbum",
+                    "method": "create",
+                    "version": "3",
+                    "name": f'"{album_name}"',
+                }
+                resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                resp.raise_for_status()
+                data = resp.json()
 
-            if not data["success"]:
-                self.logger.error(f"ERROR   : Unable to create album '{album_name}': {data}")
-                return None
+                if not data["success"]:
+                    LOGGER.error(f"ERROR   : Unable to create album '{album_name}': {data}")
+                    return None
 
-            album_id = data["data"]["album"]["id"]
-            self.logger.info(f"INFO    : Album '{album_name}' created with ID: {album_id}.")
-            return album_id
-
+                album_id = data["data"]["album"]["id"]
+                LOGGER.info(f"INFO    : Album '{album_name}' created with ID: {album_id}.")
+                return album_id
+            except Exception as e:
+                LOGGER.warning(f"WARNING : Cannot create album: '{album_name}' due to API call error. Skipped! {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
     def get_albums_owned_by_user(self, log_level=logging.INFO):
         """
@@ -366,44 +424,52 @@ class ClassSynologyPhotos:
                     }
             None on error
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-            headers = {}
-            if self.SYNO_TOKEN_HEADER:
-                headers.update(self.SYNO_TOKEN_HEADER)
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
 
-            offset = 0
-            limit = 5000
-            album_list = []
-            while True:
-                params = {
-                    "api": "SYNO.Foto.Browse.NormalAlbum",
-                    "method": "list",
-                    "version": "3",
-                    "offset": offset,
-                    "limit": limit
-                }
-                r = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                r.raise_for_status()
-                data = r.json()
+                offset = 0
+                limit = 5000
+                album_list = []
+                while True:
+                    params = {
+                        "api": "SYNO.Foto.Browse.NormalAlbum",
+                        "method": "list",
+                        "version": "3",
+                        "offset": offset,
+                        "limit": limit
+                    }
+                    r = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    r.raise_for_status()
+                    data = r.json()
 
-                if data["success"]:
-                    album_list.extend(data["data"]["list"])
-                else:
-                    self.logger.error("ERROR   : Failed to list albums: ", data)
-                    return None
+                    if data["success"]:
+                        album_list.extend(data["data"]["list"])
+                    else:
+                        LOGGER.error("ERROR   : Failed to list albums: ", data)
+                        return None
 
-                if len(data["data"]["list"]) < limit:
-                    break
-                offset += limit
+                    if len(data["data"]["list"]) < limit:
+                        break
+                    offset += limit
 
-            # Replace the key "name" by "albumName" to make it equal to Immich Photos
-            for item in album_list:
-                if "name" in item:
-                    item["albumName"] = item.pop("name")
+                # Replace the key "name" by "albumName" to make it equal to Immich Photos
+                for item in album_list:
+                    if "name" in item:
+                        item["albumName"] = item.pop("name")
 
-            return album_list
+                return album_list
+            except Exception as e:
+                LOGGER.warning(f"WARNING : Cannot get albums due to API call error. Skipped! {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     def get_albums_including_shared_with_user(self, log_level=logging.INFO):
@@ -422,41 +488,47 @@ class ClassSynologyPhotos:
                     }
             None on error
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-            headers = {}
-            if self.SYNO_TOKEN_HEADER:
-                headers.update(self.SYNO_TOKEN_HEADER)
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
 
-            offset = 0
-            limit = 5000
-            album_list = []
-            while True:
-                params = {
-                    'api': 'SYNO.Foto.Browse.Album',
-                    'version': '4',
-                    'method': 'list',
-                    'category': 'normal_share_with_me',
-                    'sort_by': 'start_time',
-                    'sort_direction': 'desc',
-                    'additional': '["sharing_info", "thumbnail"]',
-                    "offset": offset,
-                    "limit": limit
-                }
-                try:
+                offset = 0
+                limit = 5000
+                album_list = []
+                while True:
+                    params = {
+                        'api': 'SYNO.Foto.Browse.Album',
+                        'version': '4',
+                        'method': 'list',
+                        'category': 'normal_share_with_me',
+                        'sort_by': 'start_time',
+                        'sort_direction': 'desc',
+                        'additional': '["sharing_info", "thumbnail"]',
+                        "offset": offset,
+                        "limit": limit
+                    }
+
                     r = self.SESSION.get(url, params=params, headers=headers, verify=False)
                     data = r.json()
                     if not data.get("success"):
-                        self.logger.error("ERROR   : Failed to list own albums:", data)
+                        LOGGER.error("ERROR   : Failed to list own albums:", data)
                         return None
                     album_list.extend(data["data"]["list"])
                     if len(data["data"]["list"]) < limit:
                         break
                     offset += limit
-                except Exception as e:
-                    self.logger.error("ERROR   : Exception while listing own albums:", e)
-                    return None
+            except Exception as e:
+                LOGGER.error("ERROR   : Exception while listing own albums. {e}")
+                return None
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
             # Replace the key "name" by "albumName" to make it equal to Immich Photos
             for item in album_list:
@@ -478,46 +550,53 @@ class ClassSynologyPhotos:
         Returns:
             int: Album Size or -1 on error.
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-            headers = {}
-            if self.SYNO_TOKEN_HEADER:
-                headers.update(self.SYNO_TOKEN_HEADER)
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
 
-            offset = 0
-            limit = 5000
-            album_size = 0
-            album_items = []
+                offset = 0
+                limit = 5000
+                album_size = 0
+                album_items = []
 
-            while True:
-                params = {
-                    "api": "SYNO.Foto.Browse.Item",
-                    "method": "list",
-                    "version": "4",
-                    "album_id": album_id,
-                    "offset": offset,
-                    "limit": limit
-                }
-                resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                resp.raise_for_status()
-                data = resp.json()
+                while True:
+                    params = {
+                        "api": "SYNO.Foto.Browse.Item",
+                        "method": "list",
+                        "version": "4",
+                        "album_id": album_id,
+                        "offset": offset,
+                        "limit": limit
+                    }
+                    resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    resp.raise_for_status()
+                    data = resp.json()
 
-                if not data["success"]:
-                    self.logger.warning(f"WARNING : Cannot list files for album: '{album_name}' due to API call error. Skipped!")
-                    return -1
+                    if not data["success"]:
+                        LOGGER.warning(f"WARNING : Cannot list files for album: '{album_name}' due to API call error. Skipped!")
+                        return -1
 
-                album_items.append(data["data"]["list"])
-                if len(data["data"]["list"]) < limit:
-                    break
-                offset += limit
+                    album_items.append(data["data"]["list"])
+                    if len(data["data"]["list"]) < limit:
+                        break
+                    offset += limit
 
-            for sets in album_items:
-                for item in sets:
-                    album_size += item.get("filesize", 0)
+                for sets in album_items:
+                    for item in sets:
+                        album_size += item.get("filesize", 0)
 
-            return album_size
-
+                return album_size
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
     def get_album_assets_count(self, album_id, album_name, log_level=logging.INFO):
         """
@@ -530,27 +609,35 @@ class ClassSynologyPhotos:
         Returns:
              int: Album Items Count or -1 on error.
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-            headers = {}
-            if self.SYNO_TOKEN_HEADER:
-                headers.update(self.SYNO_TOKEN_HEADER)
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
 
-            params = {
-                "api": "SYNO.Foto.Browse.Item",
-                "method": "count",
-                "version": "4",
-                "album_id": album_id,
-            }
-            response = self.SESSION.get(url, params=params, headers=headers, verify=False)
-            response.raise_for_status()
-            data = response.json()
+                params = {
+                    "api": "SYNO.Foto.Browse.Item",
+                    "method": "count",
+                    "version": "4",
+                    "album_id": album_id,
+                }
+                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                response.raise_for_status()
+                data = response.json()
 
-            if not data["success"]:
-                self.logger.warning(f"WARNING : Cannot count files for album: '{album_name}' due to API call error. Skipped!")
-                return -1
-            return data["data"]["count"]
+                if not data["success"]:
+                    LOGGER.warning(f"WARNING : Cannot count files for album: '{album_name}' due to API call error. Skipped!")
+                    return -1
+                return data["data"]["count"]
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting Album Assets count from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     # TODO: Test this method
@@ -562,16 +649,27 @@ class ClassSynologyPhotos:
             album_name (str): Album Name
             log_level (logging.LEVEL): log_level for logs and console
         Returns:
-             bool: True if Album exists. False if Album does not exist.
+             bool: True if Album exists. False if Album does not exists.
+             album_id (str): album_id if Album  exists. None if Album does not exists.
         """
-        with set_log_level(self.logger, log_level):
-            exists = False
-            albums = self.get_albums_owned_by_user(log_level=log_level)
-            for album in albums:
-                if album_name == album.get("albumName"):
-                    exists = True
-                    break
-            return exists
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                album_exists = False
+                album_id = None
+                albums = self.get_albums_owned_by_user(log_level=log_level)
+                for album in albums:
+                    if album_name == album.get("albumName"):
+                        album_exists = True
+                        album_id = album.get("id")
+                        break
+                return album_exists, album_id
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while checking if Album exists on Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     ###########################################################################
@@ -587,41 +685,53 @@ class ClassSynologyPhotos:
         Returns:
             list: A list of assets (dict) in the entire library or Empty list on error.
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-            headers = {}
-            if self.SYNO_TOKEN_HEADER:
-                headers.update(self.SYNO_TOKEN_HEADER)
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
 
-            offset = 0
-            limit = 5000
-            all_assets = []
-            combined_assets = []
+                offset = 0
+                limit = 5000
+                all_assets = []
+                combined_assets = []
 
-            while True:
-                params = {
-                    'api': 'SYNO.Foto.Browse.Item',
-                    'version': '4',
-                    'method': 'list',
-                    "offset": offset,
-                    "limit": limit
-                }
-                try:
-                    r = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                    data = r.json()
-                    if not data.get("success"):
-                        self.logger.error(f"ERROR   : Failed to list assets")
+                while True:
+                    params = {
+                        'api': 'SYNO.Foto.Browse.Item',
+                        'version': '4',
+                        'method': 'list',
+                        "offset": offset,
+                        "limit": limit
+                    }
+                    try:
+                        r = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                        data = r.json()
+                        if not data.get("success"):
+                            LOGGER.error(f"ERROR   : Failed to list assets")
+                            return []
+                        all_assets.extend(data["data"]["list"])
+                        if len(data["data"]["list"]) < limit:
+                            break
+                        offset += limit
+                    except Exception as e:
+                        LOGGER.error(f"ERROR   : Exception while listing assets {e}")
                         return []
-                    all_assets.extend(data["data"]["list"])
-                    if len(data["data"]["list"]) < limit:
-                        break
-                    offset += limit
-                except Exception as e:
-                    self.logger.error(f"ERROR   : Exception while listing assets {e}")
-                    return []
+                    finally:
+                        # Restore log_level of the parent method
+                        # set_log_level(LOGGER, parent_log_level, manual=True)
+                        pass
 
-            return all_assets
+                return all_assets
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting all Assets from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     def get_no_albums_assets(self, log_level=logging.WARNING):
@@ -633,14 +743,22 @@ class ClassSynologyPhotos:
 
         Returns assets_without_albums
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            all_assets = self.get_all_assets(log_level=logging.INFO)
-            album_asset = self.get_all_albums_assets(log_level=logging.INFO)
-            # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
-            assets_without_albums = get_unique_items(all_assets, album_asset, key='filename')
-            self.logger.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
-            return assets_without_albums
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                all_assets = self.get_all_assets(log_level=logging.INFO)
+                album_asset = self.get_all_albums_assets(log_level=logging.INFO)
+                # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
+                assets_without_albums = get_unique_items(all_assets, album_asset, key='filename')
+                LOGGER.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
+                return assets_without_albums
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting No-Albums Assets from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     def get_album_assets(self, album_id, album_name=None, log_level=logging.INFO):
@@ -655,49 +773,61 @@ class ClassSynologyPhotos:
         Returns:
             list: A list of assets in the album (dict objects). [] if no assets found.
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-            headers = {}
-            if self.SYNO_TOKEN_HEADER:
-                headers.update(self.SYNO_TOKEN_HEADER)
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
 
-            offset = 0
-            limit = 5000
-            album_items = []
-            combined_items = []
+                offset = 0
+                limit = 5000
+                album_items = []
+                combined_items = []
 
-            while True:
-                params = {
-                    'api': 'SYNO.Foto.Browse.Item',
-                    'version': '4',
-                    'method': 'list',
-                    'album_id': album_id,
-                    "offset": offset,
-                    "limit": limit
-                }
-                try:
-                    resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                    data = resp.json()
-                    if not data.get("success"):
+                while True:
+                    params = {
+                        'api': 'SYNO.Foto.Browse.Item',
+                        'version': '4',
+                        'method': 'list',
+                        'album_id': album_id,
+                        "offset": offset,
+                        "limit": limit
+                    }
+                    try:
+                        resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                        data = resp.json()
+                        if not data.get("success"):
+                            if album_name:
+                                LOGGER.error(f"ERROR   : Failed to list photos in the album '{album_name}'")
+                            else:
+                                LOGGER.error(f"ERROR   : Failed to list photos in the album ID={album_id}")
+                            return []
+                        album_items.extend(data["data"]["list"])
+
+                        if len(data["data"]["list"]) < limit:
+                            break
+                        offset += limit
+                    except Exception as e:
                         if album_name:
-                            self.logger.error(f"ERROR   : Failed to list photos in the album '{album_name}'")
+                            LOGGER.error(f"ERROR   : Exception while listing photos in the album '{album_name}' {e}")
                         else:
-                            self.logger.error(f"ERROR   : Failed to list photos in the album ID={album_id}")
+                            LOGGER.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                         return []
-                    album_items.extend(data["data"]["list"])
+                    finally:
+                        # Restore log_level of the parent method
+                        # set_log_level(LOGGER, parent_log_level, manual=True)
+                        pass
 
-                    if len(data["data"]["list"]) < limit:
-                        break
-                    offset += limit
-                except Exception as e:
-                    if album_name:
-                        self.logger.error(f"ERROR   : Exception while listing photos in the album '{album_name}' {e}")
-                    else:
-                        self.logger.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
-                    return []
-
-            return album_items
+                return album_items
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     def get_all_albums_assets(self, log_level=logging.WARNING):
@@ -710,22 +840,30 @@ class ClassSynologyPhotos:
         Returns:
             list: Albums Assets
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            headers = {}
-            if self.SYNO_TOKEN_HEADER:
-                headers.update(self.SYNO_TOKEN_HEADER)
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
 
-            all_albums = self.get_albums_including_shared_with_user(log_level=log_level)
-            combined_assets = []
-            if not all_albums:
-                return []
-            for album in all_albums:
-                album_id = album.get("id")
-                album_name = album.get("albumName", "")
-                album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
-                combined_assets.extend(album_assets)
-            return combined_assets
+                all_albums = self.get_albums_including_shared_with_user(log_level=log_level)
+                combined_assets = []
+                if not all_albums:
+                    return []
+                for album in all_albums:
+                    album_id = album.get("id")
+                    album_name = album.get("albumName", "")
+                    album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
+                    combined_assets.extend(album_assets)
+                return combined_assets
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting All Albums Assets from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=logging.WARNING):
@@ -741,46 +879,58 @@ class ClassSynologyPhotos:
         Returns:
             int: Number of assets added to the album
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-            headers = {}
-            if self.SYNO_TOKEN_HEADER:
-                headers.update(self.SYNO_TOKEN_HEADER)
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                if not asset_ids:
+                    LOGGER.warning(f"WARNING : No assets found to add to Album ID: '{album_id}'. Skipped!")
+                    return -1
 
-            total_added = len(asset_ids) if isinstance(asset_ids, list) else 1
-            if not total_added > 0:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+
+                total_added = len(asset_ids) if isinstance(asset_ids, list) else 1
+                if not total_added > 0:
+                    if album_name:
+                        LOGGER.warning(f"WARNING : No assets found to add to Album: '{album_name}'. Skipped!")
+                    else:
+                        LOGGER.warning(f"WARNING : No assets found to add to Album ID: '{album_id}'. Skipped!")
+                    return -1
+
+                asset_ids = convert_to_list(asset_ids)
+
+                params = {
+                    "api": "SYNO.Foto.Browse.NormalAlbum",
+                    "method": "add_item",
+                    "version": "1",
+                    "id": album_id,
+                    "item": f"{asset_ids}"
+                }
+                resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                resp.raise_for_status()
+                data = resp.json()
+
+                if not data["success"]:
+                    if album_name:
+                        LOGGER.warning(f"WARNING : Cannot add assets to album: '{album_name}' due to API call error. Skipped!")
+                    else:
+                        LOGGER.warning(f"WARNING : Cannot add assets to album ID: '{album_id}' due to API call error. Skipped!")
+                    return -1
                 if album_name:
-                    self.logger.warning(f"WARNING : No assets found to add to Album: '{album_name}'. Skipped!")
+                    LOGGER.info(f"INFO    : {total_added} Assets successfully added to album: '{album_name}'.")
                 else:
-                    self.logger.warning(f"WARNING : No assets found to add to Album ID: '{album_id}'. Skipped!")
-                return -1
+                    LOGGER.info(f"INFO    : {total_added} Assets successfully added to album ID: '{album_id}'.")
+                return total_added
 
-            if not isinstance(asset_ids, list):
-                asset_ids = [asset_ids]
-
-            params = {
-                "api": "SYNO.Foto.Browse.NormalAlbum",
-                "method": "add_item",
-                "version": "1",
-                "id": album_id,
-                "item": f"{asset_ids}"
-            }
-            resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
-            resp.raise_for_status()
-            data = resp.json()
-
-            if not data["success"]:
-                if album_name:
-                    self.logger.warning(f"WARNING : Cannot add assets to album: '{album_name}' due to API call error. Skipped!")
-                else:
-                    self.logger.warning(f"WARNING : Cannot add assets to album ID: '{album_id}' due to API call error. Skipped!")
-                return -1
-            if album_name:
-                self.logger.info(f"INFO    : {total_added} Assets successfully added to album: '{album_name}'.")
-            else:
-                self.logger.info(f"INFO    : {total_added} Assets successfully added to album ID: '{album_id}'.")
-            return total_added
+            except Exception as e:
+                LOGGER.warning(f"WARNING : Cannot add Assets to album: '{album_name}' due to API call error. Skipped!")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     # TODO: Complete this method
@@ -788,8 +938,16 @@ class ClassSynologyPhotos:
         """
         Returns the list of duplicate assets from Synology
         """
-        with set_log_level(self.logger, log_level):
-            return []
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                return []
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting duplicates Assets from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     def remove_assets(self, asset_ids, log_level=logging.INFO):
@@ -803,39 +961,52 @@ class ClassSynologyPhotos:
         Returns:
             int: Number of assets removed
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-            headers = {}
-            if self.SYNO_TOKEN_HEADER:
-                headers.update(self.SYNO_TOKEN_HEADER)
-
-            if not isinstance(asset_ids, list):
-                asset_ids = [asset_ids]
-
-            params = {
-                'api': 'SYNO.Foto.BackgroundTask.File',
-                'version': '1',
-                'method': 'delete',
-                'item_id': f'{asset_ids}',
-                'folder_id': '[]'
-            }
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
             try:
-                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                data = response.json()
-                if not data.get("success"):
-                    self.logger.error(f"ERROR   : Failed to remove assets")
+                # TODO: Add Try Except to all method of this Class
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+
+                if not isinstance(asset_ids, list):
+                    asset_ids = [asset_ids]
+
+                params = {
+                    'api': 'SYNO.Foto.BackgroundTask.File',
+                    'version': '1',
+                    'method': 'delete',
+                    'item_id': f'{asset_ids}',
+                    'folder_id': '[]'
+                }
+                try:
+                    response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    data = response.json()
+                    if not data.get("success"):
+                        LOGGER.error(f"ERROR   : Failed to remove assets")
+                        return 0
+                except Exception as e:
+                    LOGGER.error(f"ERROR   : Exception while removing assets {e}")
                     return 0
+                finally:
+                    # Restore log_level of the parent method
+                    # set_log_level(LOGGER, parent_log_level, manual=True)
+                    pass
+
+                task_id = data.get('data', {}).get('task_info', {}).get('id')
+                removed_count = len(asset_ids)
+
+                # Wait for background remove task to finish
+                self.wait_for_remove_task(task_id, log_level=log_level)
+                return removed_count
             except Exception as e:
-                self.logger.error(f"ERROR   : Exception while removing assets {e}")
-                return 0
-
-            task_id = data.get('data', {}).get('task_info', {}).get('id')
-            removed_count = len(asset_ids)
-
-            # Wait for background remove task to finish
-            self.wait_for_remove_task(task_id, log_level=log_level)
-            return removed_count
+                LOGGER.error(f"ERROR   : Exception while removing Assets from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     # TODO: Complete this method
@@ -843,8 +1014,16 @@ class ClassSynologyPhotos:
         """
         Removes duplicate assets in the Synology database. Returns how many duplicates got removed.
         """
-        with set_log_level(self.logger, log_level):
-            return 0
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                return 0
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while removing duplicates assets from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     def upload_asset(self, file_path, log_level=logging.INFO):
@@ -852,102 +1031,114 @@ class ClassSynologyPhotos:
         Uploads a local file (photo/video) to Synology Photos.
 
         Args:
+            file_path (str): file_path of the asset to upload
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns:
             str: the asset_id if success, or None if it fails or is an unsupported extension.
+            bool: is_duplicated = False if success, or None if it fails or is an unsopported extension.
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
 
-            if not os.path.exists(file_path):
-                raise FileNotFoundError(f"El archivo '{file_path}' no existe.")
+                if not os.path.exists(file_path):
+                    raise FileNotFoundError(f"El archivo '{file_path}' no existe.")
 
-            filename, ext = os.path.splitext(file_path)
-            ext = ext.lower()
-            if ext not in self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS:
-                if ext in self.ALLOWED_SYNOLOGY_SIDECAR_EXTENSIONS:
-                    return None
-                else:
-                    self.logger.warning(f"")
-                    self.logger.warning(f"WARNING : File '{file_path}' has an unsupported extension. Skipped.")
-                    self.logger.warning(f"")
-                    return None
+                filename, ext = os.path.splitext(file_path)
+                ext = ext.lower()
+                if ext not in self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS:
+                    if ext in self.ALLOWED_SYNOLOGY_SIDECAR_EXTENSIONS:
+                        return None, None
+                    else:
+                        LOGGER.warning(f"")
+                        LOGGER.warning(f"WARNING : File '{file_path}' has an unsupported extension. Skipped.")
+                        LOGGER.warning(f"")
+                        return None, None
 
-            headers = {}
-            if self.SYNO_TOKEN_HEADER:
-                headers.update(self.SYNO_TOKEN_HEADER)
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
 
-            api = "SYNO.Foto.Upload.Item"
-            method = "upload"
-            version = "1"
-            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi/SYNO.Foto.Upload.Item?api={api}&method={method}&version={version}"
+                api = "SYNO.Foto.Upload.Item"
+                method = "upload"
+                version = "1"
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi/SYNO.Foto.Upload.Item?api={api}&method={method}&version={version}"
 
-            mime_type = mimetypes.guess_type(file_path)[0] or "application/octet-stream"
+                mime_type = mimetypes.guess_type(file_path)[0] or "application/octet-stream"
 
-            with open(file_path, "rb") as file_:
-                multipart_data = MultipartEncoder(
-                    fields=[
-                        ("api", f'{api}'),
-                        ("method", f'{method}'),
-                        ("version", f'{version}'),
-                        ("file", (os.path.basename(file_path), file_, mime_type)),
-                        ("uploadDestination", '"timeline"'),
-                        ("duplicate", '"ignore"'),
-                        ("name", f'"{os.path.basename(file_path)}"'),
-                        ("mtime", f'{str(int(os.stat(file_path).st_mtime))}'),
-                        ("folder", f'["PhotoLibrary"]'),
-                    ],
-                )
-                headers.update({"Content-Type": multipart_data.content_type})
+                with open(file_path, "rb") as file_:
+                    multipart_data = MultipartEncoder(
+                        fields=[
+                            ("api", f'{api}'),
+                            ("method", f'{method}'),
+                            ("version", f'{version}'),
+                            ("file", (os.path.basename(file_path), file_, mime_type)),
+                            ("uploadDestination", '"timeline"'),
+                            ("duplicate", '"ignore"'),
+                            ("name", f'"{os.path.basename(file_path)}"'),
+                            ("mtime", f'{str(int(os.stat(file_path).st_mtime))}'),
+                            ("folder", f'["PhotoLibrary"]'),
+                        ],
+                    )
+                    headers.update({"Content-Type": multipart_data.content_type})
 
-                response = self.SESSION.post(url, data=multipart_data, headers=headers, verify=False)
-                response.raise_for_status()
-                data = response.json()
-                if not data["success"]:
-                    self.logger.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
-                    return None
-                else:
-                    asset_id = data["data"].get("id")
-                    return asset_id
+                    response = self.SESSION.post(url, data=multipart_data, headers=headers, verify=False)
+                    response.raise_for_status()
+                    data = response.json()
+                    if not data["success"]:
+                        LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
+                        return None, None
+                    else:
+                        asset_id = data["data"].get("id")
+                        return asset_id, False
+
+            except Exception as e:
+                LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
-    def download_asset(self, asset_id, asset_name, asset_time, destination_folder="Downloaded_Synology", log_level=logging.INFO):
+    def download_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Synology", log_level=logging.INFO):
         """
         Downloads an asset (photo/video) from Synology Photos to a local folder,
         preserving the original timestamp if available.
 
         Args:
             asset_id (int): ID of the asset to download.
-            asset_name (str): Name of the file to save.
+            asset_filename (str): Name of the file to save.
             asset_time (int or str): UNIX epoch or ISO string time of the asset.
-            destination_folder (str): Path where the file will be saved.
+            download_folder (str): Path where the file will be saved.
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns:
             int: 1 if download succeeded, 0 if failed.
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            os.makedirs(destination_folder, exist_ok=True)
-
-            if isinstance(asset_time, str):
-                asset_time = datetime.fromisoformat(asset_time).timestamp()
-
-            if asset_time and asset_time > 0:
-                asset_datetime = datetime.fromtimestamp(asset_time)
-            else:
-                asset_datetime = datetime.now()
-
-            file_ext = os.path.splitext(asset_name)[1].lower()
-            file_path = os.path.join(destination_folder, asset_name)
-
-            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-            headers = {}
-            if self.SYNO_TOKEN_HEADER:
-                headers.update(self.SYNO_TOKEN_HEADER)
-
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
             try:
+                self.login(log_level=log_level)
+                os.makedirs(download_folder, exist_ok=True)
+
+                if isinstance(asset_time, str):
+                    asset_time = datetime.fromisoformat(asset_time).timestamp()
+
+                if asset_time and asset_time > 0:
+                    asset_datetime = datetime.fromtimestamp(asset_time)
+                else:
+                    asset_datetime = datetime.now()
+
+                file_ext = os.path.splitext(asset_filename)[1].lower()
+                file_path = os.path.join(download_folder, asset_filename)
+
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+
                 params = {
                     'api': 'SYNO.Foto.Download',
                     'version': '2',
@@ -958,8 +1149,8 @@ class ClassSynologyPhotos:
                 }
                 resp = self.SESSION.get(url, params=params, headers=headers, verify=False, stream=True)
                 if resp.status_code != 200:
-                    self.logger.error("")
-                    self.logger.error(f"ERROR   : Failed to download asset '{asset_name}' with ID [{asset_id}]. Status code: {resp.status_code}")
+                    LOGGER.error("")
+                    LOGGER.error(f"ERROR   : Failed to download asset '{asset_filename}' with ID [{asset_id}]. Status code: {resp.status_code}")
                     return 0
 
                 with open(file_path, "wb") as f:
@@ -971,14 +1162,435 @@ class ClassSynologyPhotos:
                 if file_ext in self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS:
                     update_metadata(file_path, asset_datetime.strftime("%Y-%m-%d %H:%M:%S"), log_level=logging.ERROR)
 
-                self.logger.debug("")
-                self.logger.debug(f"DEBUG   : Asset '{asset_name}' downloaded and saved at {file_path}")
+                LOGGER.debug("")
+                LOGGER.debug(f"DEBUG   : Asset '{asset_filename}' downloaded and saved at {file_path}")
                 return 1
             except Exception as e:
-                self.logger.error("")
-                self.logger.error(f"ERROR   : Exception occurred while downloading asset '{asset_name}' with ID [{asset_id}]. {e}")
+                LOGGER.error("")
+                LOGGER.error(f"ERROR   : Exception occurred while downloading asset '{asset_filename}' with ID [{asset_id}]. {e}")
                 return 0
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
+
+    ###########################################################################
+    #                             FOLDERS FUNCTIONS                           #
+    #             (This block is exclusive for ClassSynologyPhotos)           #
+    ###########################################################################
+    def get_photos_root_folder_id(self, log_level=logging.INFO):
+        """
+        Retrieves the folder_id of the root folder in Synology Photos.
+
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            str: The ID of the folder (folder_id).
+        """
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+
+                params = {
+                    "api": "SYNO.Foto.Browse.Folder",
+                    "method": "get",
+                    "version": "2",
+                }
+                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                response.raise_for_status()
+                data = response.json()
+
+                if not data.get("success"):
+                    LOGGER.error("ERROR   : Cannot obtain Photos Root Folder ID due to an error in the API call.")
+                    sys.exit(-1)
+
+                folder_name = data["data"]["folder"]["name"]
+                folder_id = str(data["data"]["folder"]["id"])
+                if not folder_id or folder_name != "/":
+                    LOGGER.error("ERROR   : Cannot obtain Photos Root Folder ID.")
+                    sys.exit(-1)
+                return folder_id
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while geting root folder ID from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
+
+
+    def get_folder_id(self, search_in_folder_id, folder_name, log_level=logging.WARNING):
+        """
+        Retrieves the folder_id of a folder in Synology Photos given the parent folder ID
+        and the name of the folder to search for.
+
+        Args:
+            search_in_folder_id (str): ID of the Synology Photos folder where the subfolder is located.
+            folder_name (str): Name of the folder to search for in the folder structure.
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            str: The ID of the folder (folder_id), or None if not found.
+        """
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+
+                # 1) get the name of search_in_folder_id
+                params = {
+                    "api": "SYNO.Foto.Browse.Folder",
+                    "method": "get",
+                    "version": "2",
+                    "id": search_in_folder_id,
+                }
+                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                data = response.json()
+                if not data.get("success"):
+                    LOGGER.error(f"ERROR   : Cannot obtain name for folder ID '{search_in_folder_id}' due to an error in the API call.")
+                    sys.exit(-1)
+                search_in_folder_name = data["data"]["folder"]["name"]
+
+                offset = 0
+                limit = 5000
+                found_id = None
+                while True:
+                    params_list = {
+                        "api": "SYNO.Foto.Browse.Folder",
+                        "method": "list",
+                        "version": "2",
+                        "id": search_in_folder_id,
+                        "offset": offset,
+                        "limit": limit
+                    }
+                    resp = self.SESSION.get(url, params=params_list, headers=headers, verify=False)
+                    resp.raise_for_status()
+                    data_list = resp.json()
+
+                    if not data_list.get("success"):
+                        LOGGER.error(f"ERROR   : Cannot obtain ID for folder '{folder_name}' due to an error in the API call.")
+                        sys.exit(-1)
+
+                    subfolders_dict = {
+                        item["name"].replace(search_in_folder_name, '').replace('/', ''): str(item["id"])
+                        for item in data_list["data"]["list"] if "id" in item
+                    }
+
+                    if len(data_list["data"]["list"]) < limit or folder_name in subfolders_dict.keys():
+                        # might have found it or we are at last chunk
+                        found_id = subfolders_dict.get(folder_name)
+                        break
+                    offset += limit
+
+                if found_id:
+                    return found_id
+                else:
+                    # recursively check subfolders
+                    for sf_id in subfolders_dict.values():
+                        sub_found = self.get_folder_id(sf_id, folder_name, log_level=log_level)
+                        if sub_found:
+                            return sub_found
+                    return None
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting folder ID from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
+
+
+    def create_folder(self, folder_name, parent_folder_id=None, log_level=logging.INFO):
+        """
+        Retrieves the folder ID of a given folder name within a parent folder in Synology Photos.
+        If the folder does not exist, it will be created.
+
+        Args:
+            folder_name (str): The name of the folder to find or create.
+            parent_folder_id (str, optional): The ID of the parent folder.
+                If not provided, the root folder of Synology Photos is used.
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            str: The folder ID if found or successfully created, otherwise None.
+        """
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+
+                if not parent_folder_id:
+                    photos_root_folder_id = self.get_photos_root_folder_id()
+                    parent_folder_id = photos_root_folder_id
+                    LOGGER.warning(f"WARNING : Parent Folder ID not provided, using Synology Photos root folder ID: '{photos_root_folder_id}' as parent folder.")
+
+                # Check if the folder already exists
+                folder_id = self.get_folder_id(parent_folder_id, folder_name, log_level=log_level)
+                if folder_id:
+                    # Already exists
+                    return folder_id
+
+                # If the folder does not exist, create it
+                params = {
+                    'api': 'SYNO.Foto.Browse.Folder',
+                    'version': '1',
+                    'method': 'create',
+                    'target_id': parent_folder_id,
+                    'name': folder_name
+                }
+                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                data = response.json()
+
+                self.logout(log_level=log_level)
+                if data.get("success"):
+                    LOGGER.info(f"INFO    : Folder '{folder_name}' successfully created.")
+                    return data['data']['folder']['id']
+                else:
+                    LOGGER.error(f"ERROR   : Failed to create the folder: '{folder_name}'")
+                    return None
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while creating folder into Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
+
+
+    def get_folders(self, parent_folder_id, log_level=logging.INFO):
+        """
+        Lists all subfolders under a specified parent_folder_id in Synology Photos.
+
+        Args:
+            parent_folder_id (str): Parent folder ID to get all its subfolders
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            dict: A dictionary with folder IDs as keys and folder names as values.
+        """
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+
+                offset = 0
+                limit = 5000
+                folders_dict = {}
+                while True:
+                    params = {
+                        "api": "SYNO.Foto.Browse.Folder",
+                        "method": "list",
+                        "version": "2",
+                        "id": parent_folder_id,
+                        "sort_by": "filename",
+                        "sort_direction": "asc",
+                        "offset": offset,
+                        "limit": limit
+                    }
+                    response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    response.raise_for_status()
+                    data = response.json()
+
+                    if data["success"]:
+                        for item in data["data"]["list"]:
+                            if "id" in item:
+                                folders_dict[item["id"]] = item["name"]
+                    else:
+                        LOGGER.error("ERROR   : Failed to list albums: ", data)
+                        return {}
+
+                    if len(data["data"]["list"]) < limit:
+                        break
+                    offset += limit
+
+                return folders_dict
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting folders from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
+
+
+    def remove_folder(self, folder_id, folder_name, log_level=logging.INFO):
+        """
+        Removes a folder by its ID in Synology Photos.
+
+        Args:
+            folder_id (str or list): ID(s) of the folder(s).
+            folder_name (str): Name of the folder.
+            log_level (logging.LEVEL): log_level for logs and console
+        """
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+
+                if not isinstance(folder_id, list):
+                    folder_id = [folder_id]
+
+                params = {
+                    'api': 'SYNO.Foto.BackgroundTask.File',
+                    'version': '1',
+                    'method': 'delete',
+                    'item_id': '[]',
+                    'folder_id': f'{folder_id}',
+                }
+                try:
+                    response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    data = response.json()
+                    if not data.get("success"):
+                        LOGGER.error(f"ERROR   : Failed to remove folder '{folder_name}'")
+                        return 0
+                except Exception as e:
+                    LOGGER.error(f"ERROR   : Exception while removing folder '{folder_name}' {e}")
+                    return 0
+                return len(folder_id)
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while removing Folder from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
+
+    def get_folder_items_count(self, folder_id, folder_name, log_level=logging.INFO):
+        """
+        Returns the assets count for a specific Synology Photos folder.
+
+        Args:
+            folder_id (str): Folder ID
+            folder_name (str): Folder Name
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            int: Folder Items Count or -1 on error.
+        """
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+
+                params = {
+                    'api': 'SYNO.Foto.Browse.Item',
+                    'method': 'count',
+                    'version': '4',
+                    "folder_id": folder_id,
+                }
+                try:
+                    resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    data = resp.json()
+                    if not data.get("success"):
+                        LOGGER.error(f"ERROR   : Failed to count assets for folder '{folder_name}'.")
+                        return -1
+                    asset_count = data["data"]["count"]
+                except Exception as e:
+                    LOGGER.error(f"ERROR   : Exception while retrieving assets count for folder '{folder_name}'. {e}")
+                    return -1
+                return asset_count
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting Folder items count from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
+
+
+    ###########################################################################
+    #                         BACKGROUND TASKS MANAGEMENT                     #
+    #             (This block is exclusive for ClassSynologyPhotos)           #
+    ###########################################################################
+    """
+    Encapsulates all the functionality from the original ClassImmichPhotos.py
+    into a single class that uses a global LOGGER from GlobalVariables.
+    """
+
+    def wait_for_remove_task(self, task_id, log_level=logging.INFO):
+        """
+        Internal helper to poll a background remove task until done.
+
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+        """
+        with set_log_level(LOGGER, log_level):
+            try:
+                while True:
+                    status = self.check_background_remove_task_finished(task_id, log_level=log_level)
+                    if status == 'done' or status is True:
+                        LOGGER.info(f'INFO    : Waiting for removing assets to finish...')
+                        time.sleep(5)
+                        break
+                    else:
+                        LOGGER.debug(f"DEBUG   : Task not finished yet. Waiting 5 seconds more.")
+                        time.sleep(5)
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while waitting for remove task to finish in Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
+
+
+    def check_background_remove_task_finished(self, task_id, log_level=logging.INFO):
+        """
+        Checks whether a background removal task is finished.
+
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+        """
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+
+                params = {
+                    'api': 'SYNO.Foto.BackgroundTask.Info',
+                    'version': '1',
+                    'method': 'get_status',
+                    'id': f'[{task_id}]'
+                }
+                try:
+                    resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    data = resp.json()
+                    if not data.get("success"):
+                        LOGGER.error(f"ERROR   : Failed to get removing assets status")
+                        return False
+                    lst = data['data'].get('list', [])
+                    if len(lst) > 0:
+                        return lst[0].get('status')
+                    else:
+                        return True
+                except Exception as e:
+                    LOGGER.error(f"ERROR   : Exception while checking removing assets status {e}")
+                    return False
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while checking if background task has finished in Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
     ###########################################################################
     #             MAIN FUNCTIONS TO CALL FROM OTHER MODULES (API)            #
@@ -1003,115 +1615,125 @@ class ClassSynologyPhotos:
 
         Returns: (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed)
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
 
-            if not os.path.isdir(input_folder):
-                self.logger.error(f"ERROR   : The folder '{input_folder}' does not exist.")
-                return 0, 0, 0
+                if not os.path.isdir(input_folder):
+                    LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
+                    return 0, 0, 0, 0
 
-            subfolders_exclusion = convert_to_list(subfolders_exclusion)
-            subfolders_inclusion = convert_to_list(subfolders_inclusion) if subfolders_inclusion else []
-            total_albums_uploaded = 0
-            total_albums_skipped = 0
-            total_assets_uploaded = 0
-            total_duplicates_assets_removed = 0
+                subfolders_exclusion = convert_to_list(subfolders_exclusion)
+                subfolders_inclusion = convert_to_list(subfolders_inclusion) if subfolders_inclusion else []
+                total_albums_uploaded = 0
+                total_albums_skipped = 0
+                total_assets_uploaded = 0
+                total_duplicates_assets_removed = 0
 
-            # If 'Albums' is not in subfolders_inclusion, add it (like original code).
-            albums_folder_included = any(rel.lower() == 'albums' for rel in subfolders_inclusion)
-            if not albums_folder_included:
-                subfolders_inclusion.append('Albums')
+                # If 'Albums' is not in subfolders_inclusion, add it (like original code).
+                albums_folder_included = any(rel.lower() == 'albums' for rel in subfolders_inclusion)
+                if not albums_folder_included:
+                    subfolders_inclusion.append('Albums')
 
-            SUBFOLDERS_EXCLUSIONS = ['@eaDir'] + subfolders_exclusion
-            valid_folders = []
+                SUBFOLDERS_EXCLUSIONS = ['@eaDir'] + subfolders_exclusion
+                valid_folders = []
 
-            for root, folders, _ in os.walk(input_folder):
-                # Filter out excluded folders
-                folders[:] = [d for d in folders if d not in SUBFOLDERS_EXCLUSIONS]
-                if subfolders_inclusion:
-                    rel_path = os.path.relpath(root, input_folder)
-                    if rel_path == ".":
-                        folders[:] = [d for d in folders if d in subfolders_inclusion]
-                    else:
-                        first_dir = rel_path.split(os.sep)[0]
-                        if first_dir not in subfolders_inclusion:
-                            folders[:] = []
-
-                for folder in folders:
-                    dir_path = os.path.join(root, folder)
-                    if isinstance(dir_path, bytes):
-                        dir_path = dir_path.decode()
-
-                    has_supported_files = any(
-                        os.path.splitext(file)[-1].lower() in self.ALLOWED_SYNOLOGY_EXTENSIONS
-                        for file in os.listdir(dir_path)
-                        if os.path.isfile(os.path.join(dir_path, file))
-                    )
-                    if not has_supported_files:
-                        continue
-                    valid_folders.append(dir_path)
-
-            first_level_folders = os.listdir(input_folder)
-            if subfolders_inclusion:
-                first_level_folders += subfolders_inclusion
-
-            with tqdm(total=len(valid_folders), smoothing=0.1, desc="INFO    : Uploading Albums from Folders", unit=" folders") as pbar:
-                for subpath in valid_folders:
-                    pbar.update(1)
-                    new_album_assets_ids = []
-                    if not os.path.isdir(subpath):
-                        self.logger.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
-                        total_albums_skipped += 1
-                        continue
-
-                    relative_path = os.path.relpath(subpath, input_folder)
-                    path_parts = relative_path.split(os.sep)
-                    if len(path_parts) == 1:
-                        album_name = path_parts[0]
-                    else:
-                        if path_parts[0] in first_level_folders:
-                            album_name = " - ".join(path_parts[1:])
+                for root, folders, _ in os.walk(input_folder):
+                    # Filter out excluded folders
+                    folders[:] = [d for d in folders if d not in SUBFOLDERS_EXCLUSIONS]
+                    if subfolders_inclusion:
+                        rel_path = os.path.relpath(root, input_folder)
+                        if rel_path == ".":
+                            folders[:] = [d for d in folders if d in subfolders_inclusion]
                         else:
-                            album_name = " - ".join(path_parts)
+                            first_dir = rel_path.split(os.sep)[0]
+                            if first_dir not in subfolders_inclusion:
+                                folders[:] = []
 
-                    if album_name:
-                        album_id = self.create_album(album_name, log_level=logging.WARNING)
-                        if not album_id:
-                            self.logger.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
+                    for folder in folders:
+                        dir_path = os.path.join(root, folder)
+                        if isinstance(dir_path, bytes):
+                            dir_path = dir_path.decode()
+
+                        has_supported_files = any(
+                            os.path.splitext(file)[-1].lower() in self.ALLOWED_SYNOLOGY_EXTENSIONS
+                            for file in os.listdir(dir_path)
+                            if os.path.isfile(os.path.join(dir_path, file))
+                        )
+                        if not has_supported_files:
+                            continue
+                        valid_folders.append(dir_path)
+
+                first_level_folders = os.listdir(input_folder)
+                if subfolders_inclusion:
+                    first_level_folders += subfolders_inclusion
+
+                with tqdm(total=len(valid_folders), smoothing=0.1, desc="INFO    : Uploading Albums from Folders", unit=" folders") as pbar:
+                    for subpath in valid_folders:
+                        pbar.update(1)
+                        new_album_assets_ids = []
+                        if not os.path.isdir(subpath):
+                            LOGGER.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
                             total_albums_skipped += 1
                             continue
+
+                        relative_path = os.path.relpath(subpath, input_folder)
+                        path_parts = relative_path.split(os.sep)
+                        if len(path_parts) == 1:
+                            album_name = path_parts[0]
                         else:
-                            total_albums_uploaded += 1
+                            if path_parts[0] in first_level_folders:
+                                album_name = " - ".join(path_parts[1:])
+                            else:
+                                album_name = " - ".join(path_parts)
 
-                        for file_ in os.listdir(subpath):
-                            file_path = os.path.join(subpath, file_)
-                            if not os.path.isfile(file_path):
+                        if album_name:
+                            album_id = self.create_album(album_name, log_level=logging.WARNING)
+                            if not album_id:
+                                LOGGER.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
+                                total_albums_skipped += 1
                                 continue
-                            ext = os.path.splitext(file_)[-1].lower()
-                            if ext not in self.ALLOWED_SYNOLOGY_EXTENSIONS:
-                                continue
+                            else:
+                                total_albums_uploaded += 1
 
-                            asset_id = self.upload_asset(file_path, log_level=logging.WARNING)
-                            if asset_id:
-                                total_assets_uploaded += 1
-                                # Associate only if ext is photo/video
-                                if ext in self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS:
-                                    new_album_assets_ids.append(asset_id)
-                        if new_album_assets_ids:
-                            self.add_assets_to_album(album_id, new_album_assets_ids, album_name=album_name, log_level=logging.WARNING)
-                    else:
-                        total_albums_skipped += 1
+                            for file_ in os.listdir(subpath):
+                                file_path = os.path.join(subpath, file_)
+                                if not os.path.isfile(file_path):
+                                    continue
+                                ext = os.path.splitext(file_)[-1].lower()
+                                if ext not in self.ALLOWED_SYNOLOGY_EXTENSIONS:
+                                    continue
 
-            if remove_duplicates:
-                self.logger.info("INFO    : Removing Duplicates Assets...")
-                total_duplicates_assets_removed = self.remove_duplicates_assets(log_level=log_level)
+                                asset_id = self.upload_asset(file_path, log_level=logging.WARNING)
+                                if asset_id:
+                                    total_assets_uploaded += 1
+                                    # Associate only if ext is photo/video
+                                    if ext in self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS:
+                                        new_album_assets_ids.append(asset_id)
+                            if new_album_assets_ids:
+                                self.add_assets_to_album(album_id, new_album_assets_ids, album_name=album_name, log_level=logging.WARNING)
+                        else:
+                            total_albums_skipped += 1
 
-            self.logger.info(f"INFO    : Uploaded {total_albums_uploaded} album(s) from '{input_folder}'.")
-            self.logger.info(f"INFO    : Uploaded {total_assets_uploaded} asset(s) from '{input_folder}' to Albums.")
-            self.logger.info(f"INFO    : Skipped {total_albums_skipped} album(s) from '{input_folder}'.")
-            self.logger.info(f"INFO    : Removed {total_duplicates_assets_removed} duplicates asset(s) from Synology Database.")
+                if remove_duplicates:
+                    LOGGER.info("INFO    : Removing Duplicates Assets...")
+                    total_duplicates_assets_removed = self.remove_duplicates_assets(log_level=log_level)
 
-            return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed
+                LOGGER.info(f"INFO    : Uploaded {total_albums_uploaded} album(s) from '{input_folder}'.")
+                LOGGER.info(f"INFO    : Uploaded {total_assets_uploaded} asset(s) from '{input_folder}' to Albums.")
+                LOGGER.info(f"INFO    : Skipped {total_albums_skipped} album(s) from '{input_folder}'.")
+                LOGGER.info(f"INFO    : Removed {total_duplicates_assets_removed} duplicates asset(s) from Synology Database.")
+
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while uploading Albums assets into Synology Photos. {e}")
+                return 0,0,0,0
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
+        return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed
+
 
 
     def upload_no_albums(self, input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, log_level=logging.WARNING):
@@ -1127,10 +1749,12 @@ class ClassSynologyPhotos:
 
         Returns: assets_uploaded
         """
-        with set_log_level(self.logger, log_level):
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+
             self.login(log_level=log_level)
             if not os.path.isdir(input_folder):
-                self.logger.error(f"ERROR   : The folder '{input_folder}' does not exist.")
+                LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
                 return 0
 
             subfolders_exclusion = convert_to_list(subfolders_exclusion)
@@ -1143,7 +1767,7 @@ class ClassSynologyPhotos:
                     for sub in only_subs:
                         sub_path = os.path.join(base, sub)
                         if not os.path.isdir(sub_path):
-                            self.logger.warning(f"WARNING : Subfolder '{sub}' does not exist in '{base}'. Skipping.")
+                            LOGGER.warning(f"WARNING : Subfolder '{sub}' does not exist in '{base}'. Skipping.")
                             continue
                         for r, dirs, files in os.walk(sub_path):
                             dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]
@@ -1156,19 +1780,28 @@ class ClassSynologyPhotos:
                             files_list.append(os.path.join(r, f_))
                 return files_list
 
-            file_paths = collect_files(input_folder, subfolders_inclusion)
-            total_files = len(file_paths)
-            total_assets_uploaded = 0
+            try:
+                file_paths = collect_files(input_folder, subfolders_inclusion)
+                total_files = len(file_paths)
+                total_assets_uploaded = 0
 
-            with tqdm(total=total_files, smoothing=0.1, desc="INFO    : Uploading Assets", unit=" asset") as pbar:
-                for file_ in file_paths:
-                    asset_id = self.upload_asset(file_, log_level=logging.WARNING)
-                    if asset_id:
-                        total_assets_uploaded += 1
-                    pbar.update(1)
+                with tqdm(total=total_files, smoothing=0.1, desc="INFO    : Uploading Assets", unit=" asset") as pbar:
+                    for file_ in file_paths:
+                        asset_id = self.upload_asset(file_, log_level=logging.WARNING)
+                        if asset_id:
+                            total_assets_uploaded += 1
+                        pbar.update(1)
 
-            self.logger.info(f"INFO    : Uploaded {total_assets_uploaded} files (without album) from '{input_folder}'.")
-            return total_assets_uploaded
+                LOGGER.info(f"INFO    : Uploaded {total_assets_uploaded} files (without album) from '{input_folder}'.")
+
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while uploading No-Albums assets into Synology Photos. {e}")
+                return 0
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
+        return total_assets_uploaded
 
 
     def upload_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.INFO):
@@ -1184,41 +1817,50 @@ class ClassSynologyPhotos:
 
         Returns: (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed)
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
 
-            total_duplicates_assets_removed = 0
-            input_folder = os.path.realpath(input_folder)
-            albums_folders = convert_to_list(albums_folders) if albums_folders else []
+                total_duplicates_assets_removed = 0
+                input_folder = os.path.realpath(input_folder)
+                albums_folders = convert_to_list(albums_folders) if albums_folders else []
 
-            albums_folder_included = any(subf.lower() == 'albums' for subf in albums_folders)
-            if not albums_folder_included:
-                albums_folders.append('Albums')
+                albums_folder_included = any(subf.lower() == 'albums' for subf in albums_folders)
+                if not albums_folder_included:
+                    albums_folders.append('Albums')
 
-            self.logger.info("")
-            self.logger.info(f"INFO    : Uploading Assets and creating Albums into synology Photos from '{albums_folders}' subfolders...")
+                LOGGER.info("")
+                LOGGER.info(f"INFO    : Uploading Assets and creating Albums into synology Photos from '{albums_folders}' subfolders...")
 
-            (total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed) = self.upload_albums(
-                input_folder=input_folder,
-                subfolders_inclusion=albums_folders,
-                remove_duplicates=False,
-                log_level=logging.WARNING
-            )
+                total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed = self.upload_albums(
+                    input_folder=input_folder,
+                    subfolders_inclusion=albums_folders,
+                    remove_duplicates=False,
+                    log_level=logging.WARNING
+                )
 
-            self.logger.info("")
-            self.logger.info(f"INFO    : Uploading Assets without Albums creation into synology Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
+                LOGGER.info("")
+                LOGGER.info(f"INFO    : Uploading Assets without Albums creation into synology Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
 
-            total_assets_uploaded_without_albums = self.upload_no_albums(
-                input_folder=input_folder,
-                subfolders_exclusion=albums_folders,
-                log_level=logging.WARNING
-            )
+                total_assets_uploaded_without_albums = self.upload_no_albums(
+                    input_folder=input_folder,
+                    subfolders_exclusion=albums_folders,
+                    log_level=logging.WARNING
+                )
 
-            total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
+                total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
 
-            if remove_duplicates:
-                self.logger.info("INFO    : Removing Duplicates Assets...")
-                total_duplicates_assets_removed += self.remove_duplicates_assets(log_level=logging.WARNING)
+                if remove_duplicates:
+                    LOGGER.info("INFO    : Removing Duplicates Assets...")
+                    total_duplicates_assets_removed += self.remove_duplicates_assets(log_level=logging.WARNING)
+
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while uploading ALL assets into Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
             return (
                 total_albums_uploaded,
@@ -1242,72 +1884,81 @@ class ClassSynologyPhotos:
         Returns:
             tuple: (albums_downloaded, assets_downloaded)
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
 
-            albums_downloaded = 0
-            assets_downloaded = 0
+                albums_downloaded = 0
+                assets_downloaded = 0
 
-            output_folder = os.path.join(output_folder, 'Albums')
-            os.makedirs(output_folder, exist_ok=True)
+                output_folder = os.path.join(output_folder, 'Albums')
+                os.makedirs(output_folder, exist_ok=True)
 
-            if isinstance(albums_name, str):
-                albums_name = [albums_name]
+                if isinstance(albums_name, str):
+                    albums_name = [albums_name]
 
-            all_albums = self.get_albums_including_shared_with_user(log_level=log_level)
+                all_albums = self.get_albums_including_shared_with_user(log_level=log_level)
 
-            if not all_albums:
-                return (0, 0)
-
-            if 'ALL' in [x.strip().upper() for x in albums_name]:
-                albums_to_download = all_albums
-                self.logger.info(f"INFO    : ALL albums ({len(all_albums)}) will be downloaded...")
-            else:
-                # Flatten user-specified album patterns
-                pattern_list = []
-                for item in albums_name:
-                    if isinstance(item, str):
-                        pattern_list.extend([pt.strip() for pt in item.replace(',', ' ').split() if pt.strip()])
-                albums_to_download = []
-
-                for album in all_albums:
-                    alb_name = album.get("albumName", "")
-                    for pattern in pattern_list:
-                        if fnmatch.fnmatch(alb_name.strip().lower(), pattern.lower()):
-                            albums_to_download.append(album)
-                            break
-
-                if not albums_to_download:
-                    self.logger.error("ERROR   : No albums found matching the provided patterns.")
-                    self.logout(log_level=log_level)
+                if not all_albums:
                     return (0, 0)
-                self.logger.info(f"INFO    : {len(albums_to_download)} albums from Synology Photos will be downloaded to '{output_folder}'...")
 
-            albums_downloaded = len(albums_to_download)
+                if 'ALL' in [x.strip().upper() for x in albums_name]:
+                    albums_to_download = all_albums
+                    LOGGER.info(f"INFO    : ALL albums ({len(all_albums)}) will be downloaded...")
+                else:
+                    # Flatten user-specified album patterns
+                    pattern_list = []
+                    for item in albums_name:
+                        if isinstance(item, str):
+                            pattern_list.extend([pt.strip() for pt in item.replace(',', ' ').split() if pt.strip()])
+                    albums_to_download = []
 
-            for album in tqdm(albums_to_download, desc="INFO    : Downloading Albums", unit=" albums"):
-                album_name = album.get("albumName", "")
-                album_id = album.get('id')
-                self.logger.info(f"INFO    : Processing album: '{album_name}' (ID: {album_id})")
-                album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
-                self.logger.info(f"INFO    : Number of album_assets in the album '{album_name}': {len(album_assets)}")
-                if not album_assets:
-                    self.logger.warning(f"WARNING : No album_assets to download in the album '{album_name}'.")
-                    continue
+                    for album in all_albums:
+                        alb_name = album.get("albumName", "")
+                        for pattern in pattern_list:
+                            if fnmatch.fnmatch(alb_name.strip().lower(), pattern.lower()):
+                                albums_to_download.append(album)
+                                break
 
-                album_folder_name = f'{album_name}'
-                album_folder_path = os.path.join(output_folder, album_folder_name)
+                    if not albums_to_download:
+                        LOGGER.error("ERROR   : No albums found matching the provided patterns.")
+                        self.logout(log_level=log_level)
+                        return (0, 0)
+                    LOGGER.info(f"INFO    : {len(albums_to_download)} albums from Synology Photos will be downloaded to '{output_folder}'...")
 
-                for asset in album_assets:
-                    asset_id = asset.get('id')
-                    asset_time = asset.get('time')
-                    asset_filename = asset.get('filename')
-                    # Download
-                    assets_downloaded += self.download_asset(asset_id, asset_filename, asset_time, album_folder_path, log_level=logging.INFO)
+                albums_downloaded = len(albums_to_download)
 
-            self.logger.info(f"INFO    : Album(s) downloaded successfully. You can find them in '{output_folder}'")
-            self.logout(log_level=log_level)
-            return (albums_downloaded, assets_downloaded)
+                for album in tqdm(albums_to_download, desc="INFO    : Downloading Albums", unit=" albums"):
+                    album_name = album.get("albumName", "")
+                    album_id = album.get('id')
+                    LOGGER.info(f"INFO    : Processing album: '{album_name}' (ID: {album_id})")
+                    album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
+                    LOGGER.info(f"INFO    : Number of album_assets in the album '{album_name}': {len(album_assets)}")
+                    if not album_assets:
+                        LOGGER.warning(f"WARNING : No album_assets to download in the album '{album_name}'.")
+                        continue
+
+                    album_folder_name = f'{album_name}'
+                    album_folder_path = os.path.join(output_folder, album_folder_name)
+
+                    for asset in album_assets:
+                        asset_id = asset.get('id')
+                        asset_time = asset.get('time')
+                        asset_filename = asset.get('filename')
+                        # Download
+                        assets_downloaded += self.download_asset(asset_id, asset_filename, asset_time, album_folder_path, log_level=logging.INFO)
+
+                LOGGER.info(f"INFO    : Album(s) downloaded successfully. You can find them in '{output_folder}'")
+                self.logout(log_level=log_level)
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while uploading ALL assets into Synology Photos. {e}")
+                return 0,0
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
+            return albums_downloaded, assets_downloaded
 
 
     def download_no_albums(self, no_albums_folder='Downloads_Synology', log_level=logging.WARNING):
@@ -1321,30 +1972,38 @@ class ClassSynologyPhotos:
 
         Returns total_assets_downloaded or 0 if no assets are downloaded
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            total_assets_downloaded = 0
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                total_assets_downloaded = 0
 
-            assets_without_albums = self.get_no_albums_assets(log_level=logging.INFO)
-            no_albums_folder = os.path.join(no_albums_folder, 'No-Albums')
-            os.makedirs(no_albums_folder, exist_ok=True)
+                assets_without_albums = self.get_no_albums_assets(log_level=logging.INFO)
+                no_albums_folder = os.path.join(no_albums_folder, 'No-Albums')
+                os.makedirs(no_albums_folder, exist_ok=True)
 
-            self.logger.info(f"INFO    : Number of assets without Albums associated to download: {len(assets_without_albums)}")
-            if not assets_without_albums:
-                self.logger.warning(f"WARNING : No assets without Albums associated to download.")
-                return 0
+                LOGGER.info(f"INFO    : Number of assets without Albums associated to download: {len(assets_without_albums)}")
+                if not assets_without_albums:
+                    LOGGER.warning(f"WARNING : No assets without Albums associated to download.")
+                    return 0
 
-            for asset in tqdm(assets_without_albums, desc="INFO    : Downloading Assets without associated Albums", unit=" assets"):
-                asset_id = asset.get('id')
-                asset_name = asset.get('filename')
-                asset_time = asset.get('time')
-                total_assets_downloaded += self.download_asset(asset_id, asset_name, asset_time, no_albums_folder, log_level=logging.INFO)
+                for asset in tqdm(assets_without_albums, desc="INFO    : Downloading Assets without associated Albums", unit=" assets"):
+                    asset_id = asset.get('id')
+                    asset_name = asset.get('filename')
+                    asset_time = asset.get('time')
+                    total_assets_downloaded += self.download_asset(asset_id, asset_name, asset_time, no_albums_folder, log_level=logging.INFO)
 
-            # Now organize them by date (year/month)
-            organize_files_by_date(input_folder=no_albums_folder, type='year/month')
+                # Now organize them by date (year/month)
+                organize_files_by_date(input_folder=no_albums_folder, type='year/month')
 
-            self.logger.info(f"INFO    : Album(s) downloaded successfully. You can find them in '{no_albums_folder}'")
-            self.logout(log_level=log_level)
+                LOGGER.info(f"INFO    : Album(s) downloaded successfully. You can find them in '{no_albums_folder}'")
+                self.logout(log_level=log_level)
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while downloading No-Albums assets from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
             return total_assets_downloaded
 
 
@@ -1364,23 +2023,31 @@ class ClassSynologyPhotos:
             output_folder (str): Output folder
             log_level (logging.LEVEL): log_level for logs and console
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            (total_albums_downloaded, total_assets_downloaded_within_albums) = self.download_albums(
-                albums_name='ALL',
-                output_folder=output_folder,
-                log_level=logging.WARNING
-            )
-            total_assets_downloaded_without_albums = self.download_no_albums(
-                no_albums_folder=output_folder,
-                log_level=logging.WARNING
-            )
-            total_assets_downloaded = total_assets_downloaded_within_albums + total_assets_downloaded_without_albums
-            self.logger.info(f"INFO    : Download of ALL assets completed.")
-            self.logger.info(f"Total Albums downloaded                   : {total_albums_downloaded}")
-            self.logger.info(f"Total Assets downloaded                   : {total_assets_downloaded}")
-            self.logger.info(f"Total Assets downloaded within albums     : {total_assets_downloaded_within_albums}")
-            self.logger.info(f"Total Assets downloaded without albums    : {total_assets_downloaded_without_albums}")
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                (total_albums_downloaded, total_assets_downloaded_within_albums) = self.download_albums(
+                    albums_name='ALL',
+                    output_folder=output_folder,
+                    log_level=logging.WARNING
+                )
+                total_assets_downloaded_without_albums = self.download_no_albums(
+                    no_albums_folder=output_folder,
+                    log_level=logging.WARNING
+                )
+                total_assets_downloaded = total_assets_downloaded_within_albums + total_assets_downloaded_without_albums
+                LOGGER.info(f"INFO    : Download of ALL assets completed.")
+                LOGGER.info(f"Total Albums downloaded                   : {total_albums_downloaded}")
+                LOGGER.info(f"Total Assets downloaded                   : {total_assets_downloaded}")
+                LOGGER.info(f"Total Assets downloaded within albums     : {total_assets_downloaded_within_albums}")
+                LOGGER.info(f"Total Assets downloaded without albums    : {total_assets_downloaded_without_albums}")
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while downloading ALL assets from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
             return (
                 total_albums_downloaded,
                 total_assets_downloaded,
@@ -1403,37 +2070,52 @@ class ClassSynologyPhotos:
         Returns:
             int: The number of empty folders removed.
         """
+        parent_log_level = LOGGER.level
         def remove_empty_folders_recursive(folder_id, folder_name):
-            folders_dict = self.get_folders(folder_id, log_level=log_level)
-            removed_count = 0
-            # Recurse subfolders first
-            for subfolder_id, subfolder_name in folders_dict.items():
-                removed_count += remove_empty_folders_recursive(subfolder_id, subfolder_name)
+            try:
+                folders_dict = self.get_folders(folder_id, log_level=log_level)
+                removed_count = 0
+                # Recurse subfolders first
+                for subfolder_id, subfolder_name in folders_dict.items():
+                    removed_count += remove_empty_folders_recursive(subfolder_id, subfolder_name)
 
-            folders_dict = self.get_folders(folder_id, log_level=log_level)
-            folders_count = len(folders_dict)
-            assets_count = self.get_folder_items_count(folder_id, folder_name, log_level=log_level)
-            only_eaDir_present = (folders_count == 1 and "@eaDir" in folders_dict.values())
-            is_truly_empty = (folders_count == 0 and assets_count == 0)
+                folders_dict = self.get_folders(folder_id, log_level=log_level)
+                folders_count = len(folders_dict)
+                assets_count = self.get_folder_items_count(folder_id, folder_name, log_level=log_level)
+                only_eaDir_present = (folders_count == 1 and "@eaDir" in folders_dict.values())
+                is_truly_empty = (folders_count == 0 and assets_count == 0)
 
-            if (is_truly_empty or only_eaDir_present) and folder_name != '/':
-                self.logger.debug("")
-                self.logger.debug(f"DEBUG    : Removing empty folder: '{folder_name}' (ID: {folder_id}) within Synology Photos")
-                self.remove_folder(folder_id, folder_name, log_level=log_level)
-                removed_count += 1
-            else:
-                self.logger.debug(f"DEBUG   : The folder '{folder_name}' cannot be removed because is not empty.")
+                if (is_truly_empty or only_eaDir_present) and folder_name != '/':
+                    LOGGER.debug("")
+                    LOGGER.debug(f"DEBUG    : Removing empty folder: '{folder_name}' (ID: {folder_id}) within Synology Photos")
+                    self.remove_folder(folder_id, folder_name, log_level=log_level)
+                    removed_count += 1
+                else:
+                    LOGGER.debug(f"DEBUG   : The folder '{folder_name}' cannot be removed because is not empty.")
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while removing empty folders from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
             return removed_count
 
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            self.logger.info("INFO    : Starting empty folder removal from Synology Photos...")
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                LOGGER.info("INFO    : Starting empty folder removal from Synology Photos...")
 
-            root_folder_id = self.get_photos_root_folder_id(log_level=log_level)
-            total_removed = remove_empty_folders_recursive(root_folder_id, '/')
+                root_folder_id = self.get_photos_root_folder_id(log_level=log_level)
+                total_removed = remove_empty_folders_recursive(root_folder_id, '/')
 
-            self.logger.info(f"INFO    : Process Remove empty folders from Synology Photos finished. Total removed folders: {total_removed}")
-            self.logout(log_level=log_level)
+                LOGGER.info(f"INFO    : Process Remove empty folders from Synology Photos finished. Total removed folders: {total_removed}")
+                self.logout(log_level=log_level)
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while removing empty folders from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
             return total_removed
 
 
@@ -1447,27 +2129,35 @@ class ClassSynologyPhotos:
         Returns:
             int: The number of empty albums deleted.
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            albums = self.get_albums_owned_by_user(log_level=log_level)
-            if not albums:
-                self.logger.info("INFO    : No albums found.")
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                albums = self.get_albums_owned_by_user(log_level=log_level)
+                if not albums:
+                    LOGGER.info("INFO    : No albums found.")
+                    self.logout(log_level=log_level)
+                    return 0
+
+                total_removed_empty_albums = 0
+                LOGGER.info("INFO    : Looking for empty albums in Synology Photos...")
+                for album in tqdm(albums, desc=f"INFO    : Searching for Empty Albums", unit=" albums"):
+                    album_id = album.get("id")
+                    album_name = album.get("albumName", "")
+                    asset_count = self.get_album_assets_count(album_id, album_name, log_level=logging.WARNING)
+                    if asset_count == 0:
+                        if self.remove_album(album_id, album_name):
+                            LOGGER.info(f"INFO    : Empty album '{album_name}' (ID={album_id}) removed.")
+                            total_removed_empty_albums += 1
+
+                LOGGER.info(f"INFO    : Removed {total_removed_empty_albums} empty albums.")
                 self.logout(log_level=log_level)
-                return 0
-
-            total_removed_empty_albums = 0
-            self.logger.info("INFO    : Looking for empty albums in Synology Photos...")
-            for album in tqdm(albums, desc=f"INFO    : Searching for Empty Albums", unit=" albums"):
-                album_id = album.get("id")
-                album_name = album.get("albumName", "")
-                asset_count = self.get_album_assets_count(album_id, album_name, log_level=logging.WARNING)
-                if asset_count == 0:
-                    if self.remove_album(album_id, album_name):
-                        self.logger.info(f"INFO    : Empty album '{album_name}' (ID={album_id}) removed.")
-                        total_removed_empty_albums += 1
-
-            self.logger.info(f"INFO    : Removed {total_removed_empty_albums} empty albums.")
-            self.logout(log_level=log_level)
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while removing empties albums from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
             return total_removed_empty_albums
 
 
@@ -1483,37 +2173,45 @@ class ClassSynologyPhotos:
         Returns:
             int: The number of duplicate albums deleted.
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            albums = self.get_albums_owned_by_user(log_level=log_level)
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                albums = self.get_albums_owned_by_user(log_level=log_level)
 
-            if not albums:
-                return 0
+                if not albums:
+                    return 0
 
-            self.logger.info("INFO    : Looking for duplicate albums in Synology Photos...")
-            duplicates_map = {}
-            for album in tqdm(albums, smoothing=0.1, desc="INFO    : Removing Duplicates Albums", unit=" albums"):
-                album_id = album.get("id")
-                album_name = album.get("albumName", "")
-                assets_count = self.get_album_assets_count(album_id, album_name, log_level=log_level)
-                assets_size = self.get_album_assets_size(album_id, album_name, log_level=log_level)
-                duplicates_map.setdefault((assets_count, assets_size), []).append((album_id, album_name))
+                LOGGER.info("INFO    : Looking for duplicate albums in Synology Photos...")
+                duplicates_map = {}
+                for album in tqdm(albums, smoothing=0.1, desc="INFO    : Removing Duplicates Albums", unit=" albums"):
+                    album_id = album.get("id")
+                    album_name = album.get("albumName", "")
+                    assets_count = self.get_album_assets_count(album_id, album_name, log_level=log_level)
+                    assets_size = self.get_album_assets_size(album_id, album_name, log_level=log_level)
+                    duplicates_map.setdefault((assets_count, assets_size), []).append((album_id, album_name))
 
-            # for (assets_count, assets_size), group in duplicates_map.items():
-            total_removed_duplicated_albums = 0
-            for (assets_count, assets_size), group in duplicates_map.items():
-                self.logger.debug(f'DEBUG:   : Assets Count: {assets_count}. Assets Size: {assets_size}.')
-                if len(group) > 1:
-                    # keep the first, remove the rest
-                    group_sorted = sorted(group, key=lambda x: x[0])  # sort by album_id string
-                    to_remove = group_sorted[1:]
-                    for (alb_id, alb_name) in to_remove:
-                        self.logger.info(f"INFO    : Removing duplicate album: '{alb_name}' (ID={alb_id})")
-                        if self.remove_album(alb_id, alb_name, log_level=log_level):
-                            total_removed_duplicated_albums += 1
+                # for (assets_count, assets_size), group in duplicates_map.items():
+                total_removed_duplicated_albums = 0
+                for (assets_count, assets_size), group in duplicates_map.items():
+                    LOGGER.debug(f'DEBUG:   : Assets Count: {assets_count}. Assets Size: {assets_size}.')
+                    if len(group) > 1:
+                        # keep the first, remove the rest
+                        group_sorted = sorted(group, key=lambda x: x[0])  # sort by album_id string
+                        to_remove = group_sorted[1:]
+                        for (alb_id, alb_name) in to_remove:
+                            LOGGER.info(f"INFO    : Removing duplicate album: '{alb_name}' (ID={alb_id})")
+                            if self.remove_album(alb_id, alb_name, log_level=log_level):
+                                total_removed_duplicated_albums += 1
 
-            self.logger.info(f"INFO    : Removed {total_removed_duplicated_albums} duplicate albums.")
-            self.logout(log_level=log_level)
+                LOGGER.info(f"INFO    : Removed {total_removed_duplicated_albums} duplicate albums.")
+                self.logout(log_level=log_level)
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while removing duplicates albums from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
             return total_removed_duplicated_albums
 
 
@@ -1527,6 +2225,7 @@ class ClassSynologyPhotos:
 
         Returns how many orphan got removed.
         """
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             return 0
 
@@ -1543,33 +2242,41 @@ class ClassSynologyPhotos:
 
         Returns (assets_removed, albums_removed, folders_removed)
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            self.logger.info(f"INFO    : Getting list of asset(s) to remove...")
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                LOGGER.info(f"INFO    : Getting list of asset(s) to remove...")
 
-            all_assets = self.get_all_assets(log_level=log_level)
-            combined_ids = [a.get("id") for a in all_assets if a.get("id")]
+                all_assets = self.get_all_assets(log_level=log_level)
+                combined_ids = [a.get("id") for a in all_assets if a.get("id")]
 
-            total_assets_found = len(combined_ids)
-            if total_assets_found == 0:
-                self.logger.warning(f"WARNING : No Assets found in Synology Photos.")
-            self.logger.info(f"INFO    : Found {total_assets_found} asset(s) to remove.")
+                total_assets_found = len(combined_ids)
+                if total_assets_found == 0:
+                    LOGGER.warning(f"WARNING : No Assets found in Synology Photos.")
+                LOGGER.info(f"INFO    : Found {total_assets_found} asset(s) to remove.")
 
-            removed_assets = 0
-            BATCH_SIZE = 250
-            i = 0
-            while i < len(combined_ids):
-                batch = combined_ids[i:i + BATCH_SIZE]
-                removed_assets += self.remove_assets(batch, log_level=log_level)
-                i += BATCH_SIZE
+                removed_assets = 0
+                BATCH_SIZE = 250
+                i = 0
+                while i < len(combined_ids):
+                    batch = combined_ids[i:i + BATCH_SIZE]
+                    removed_assets += self.remove_assets(batch, log_level=log_level)
+                    i += BATCH_SIZE
 
-            self.logger.info(f"INFO    : Removing empty folders if remain...")
-            removed_folders = self.remove_empty_folders(log_level=log_level)
+                LOGGER.info(f"INFO    : Removing empty folders if remain...")
+                removed_folders = self.remove_empty_folders(log_level=log_level)
 
-            self.logger.info(f"INFO    : Removing empty albums if remain...")
-            removed_albums = self.remove_empty_albums(log_level=log_level)
+                LOGGER.info(f"INFO    : Removing empty albums if remain...")
+                removed_albums = self.remove_empty_albums(log_level=log_level)
 
-            self.logout(log_level=log_level)
+                self.logout(log_level=log_level)
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while removing ALL assets from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
             return (removed_assets, removed_albums, removed_folders)
 
 
@@ -1583,42 +2290,50 @@ class ClassSynologyPhotos:
 
         Returns (#albums_removed, #assets_removed).
         """
-        with set_log_level(self.logger, log_level):
-            self.login(log_level=log_level)
-            albums = self.get_albums_owned_by_user(log_level=log_level)
-            if not albums:
-                self.logger.info("INFO    : No albums found.")
-                self.logout(log_level=log_level)
-                return 0, 0
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                albums = self.get_albums_owned_by_user(log_level=log_level)
+                if not albums:
+                    LOGGER.info("INFO    : No albums found.")
+                    self.logout(log_level=log_level)
+                    return 0, 0
 
-            total_removed_albums = 0
-            total_removed_assets = 0
+                total_removed_albums = 0
+                total_removed_assets = 0
 
-            for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
-                album_id = album.get("id")
-                album_name = album.get("albumName", "")
-                album_assets_ids = []
+                for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
+                    album_id = album.get("id")
+                    album_name = album.get("albumName", "")
+                    album_assets_ids = []
 
+                    if removeAlbumsAssets:
+                        album_assets = self.get_album_assets(album_id, log_level=log_level)
+                        for asset in album_assets:
+                            asset_id = asset.get("id")
+                            if asset_id:
+                                album_assets_ids.append(asset_id)
+                        self.remove_assets(album_assets_ids, log_level=logging.WARNING)
+                        total_removed_assets += len(album_assets_ids)
+
+                    if self.remove_album(album_id, album_name, log_level=logging.WARNING):
+                        total_removed_albums += 1
+
+                LOGGER.info(f"INFO    : Getting empty albums to remove...")
+                total_removed_albums += self.remove_empty_albums(log_level=logging.WARNING)
+
+                LOGGER.info(f"INFO    : Removed {total_removed_albums} albums.")
                 if removeAlbumsAssets:
-                    album_assets = self.get_album_assets(album_id, log_level=log_level)
-                    for asset in album_assets:
-                        asset_id = asset.get("id")
-                        if asset_id:
-                            album_assets_ids.append(asset_id)
-                    self.remove_assets(album_assets_ids, log_level=logging.WARNING)
-                    total_removed_assets += len(album_assets_ids)
+                    LOGGER.info(f"INFO    : Removed {total_removed_assets} assets associated to albums.")
 
-                if self.remove_album(album_id, album_name, log_level=logging.WARNING):
-                    total_removed_albums += 1
-
-            self.logger.info(f"INFO    : Getting empty albums to remove...")
-            total_removed_albums += self.remove_empty_albums(log_level=logging.WARNING)
-
-            self.logger.info(f"INFO    : Removed {total_removed_albums} albums.")
-            if removeAlbumsAssets:
-                self.logger.info(f"INFO    : Removed {total_removed_assets} assets associated to albums.")
-
-            self.logout(log_level=log_level)
+                self.logout(log_level=log_level)
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while removing All albums from Synology Photos. {e}")
+            finally:
+                # Restore log_level of the parent method
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
             return total_removed_albums, total_removed_assets
 
 ##############################################################################
@@ -1641,42 +2356,42 @@ if __name__ == "__main__":
     syno.login(use_syno_token=True)
     # login(use_syno_token=False)
 
-    # Example: remove_empty_albums()
-    print("=== EXAMPLE: remove_empty_albums() ===")
-    syno.deleted = synology_remove_empty_albums()
-    print(f"[RESULT] Empty albums deleted: {deleted}\n")
+    # # Example: remove_empty_albums()
+    # print("=== EXAMPLE: remove_empty_albums() ===")
+    # syno.deleted = synology_remove_empty_albums()
+    # print(f"[RESULT] Empty albums deleted: {deleted}\n")
 
-    # Example: remove_duplicates_albums()
-    print("=== EXAMPLE: remove_duplicates_albums() ===")
-    syno.duplicates = synology_remove_duplicates_albums()
-    print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
+    # # Example: remove_duplicates_albums()
+    # print("=== EXAMPLE: remove_duplicates_albums() ===")
+    # syno.duplicates = synology_remove_duplicates_albums()
+    # print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
 
-    # Example: Upload_asset()
-    print("\n=== EXAMPLE: upload_asset() ===")
-    file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\1994 - Recuerdos\169859_10150125237566327_578986326_8330690_6545.jpg"                # For Windows
-    asset_id = syno.upload_asset(file_path)
-    if not asset_id:
-        print(f"Error uploading asset '{file_path}'.")
-    else:
-        print(f"New Asset uploaded successfully with id: {asset_id}")
+    # # Example: Upload_asset()
+    # print("\n=== EXAMPLE: upload_asset() ===")
+    # file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\1994 - Recuerdos\169859_10150125237566327_578986326_8330690_6545.jpg"                # For Windows
+    # asset_id = syno.upload_asset(file_path)
+    # if not asset_id:
+    #     print(f"Error uploading asset '{file_path}'.")
+    # else:
+    #     print(f"New Asset uploaded successfully with id: {asset_id}")
 
-    # Example: synology_upload_no_albums()
-    print("\n=== EXAMPLE: synology_upload_no_albums() ===")
-    # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
-    input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
-    syno.upload_no_albums(input_folder)
+    # # Example: synology_upload_no_albums()
+    # print("\n=== EXAMPLE: synology_upload_no_albums() ===")
+    # # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    # input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    # syno.upload_no_albums(input_folder)
 
-    # Example: synology_upload_albums()
-    print("\n=== EXAMPLE: synology_upload_albums() ===")
-    # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
-    input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
-    syno.upload_albums(input_folder)
+    # # Example: synology_upload_albums()
+    # print("\n=== EXAMPLE: synology_upload_albums() ===")
+    # # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    # input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    # syno.upload_albums(input_folder)
 
-    # Example: synology_upload_ALL()
-    print("\n=== EXAMPLE: synology_upload_ALL() ===")
-    # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
-    input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
-    syno.upload_ALL(input_folder)
+    # # Example: synology_upload_ALL()
+    # print("\n=== EXAMPLE: synology_upload_ALL() ===")
+    # # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    # input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    # syno.upload_ALL(input_folder)
 
     # Example: synology_download_albums()
     print("\n=== EXAMPLE: synology_download_albums() ===")
@@ -1684,26 +2399,26 @@ if __name__ == "__main__":
     total = syno.download_albums(albums_name='ALL', output_folder=download_folder)
     print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
-    # Example: synology_download_no_albums()
-    print("\n=== EXAMPLE: synology_download_albums() ===")
-    download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
-    total = syno.download_no_albums(no_albums_folder=download_folder)
-    print(f"[RESULT] A total of {total} assets have been downloaded.\n")
+    # # Example: synology_download_no_albums()
+    # print("\n=== EXAMPLE: synology_download_albums() ===")
+    # download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
+    # total = syno.download_no_albums(no_albums_folder=download_folder)
+    # print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
-    # Example: download_ALL
-    print("=== EXAMPLE: download_ALL() ===")
-    total_struct = syno.download_ALL(output_folder="Downloads_Synology")
-    # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
+    # # Example: download_ALL
+    # print("=== EXAMPLE: download_ALL() ===")
+    # total_struct = syno.download_ALL(output_folder="Downloads_Synology")
+    # # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
 
-    # Test: get_photos_root_folder_id()
-    print("=== EXAMPLE: get_photos_root_folder_id() ===")
-    root_folder_id = syno.get_photos_root_folder_id()
-    print (root_folder_id)
+    # # Test: get_photos_root_folder_id()
+    # print("=== EXAMPLE: get_photos_root_folder_id() ===")
+    # root_folder_id = syno.get_photos_root_folder_id()
+    # print (root_folder_id)
 
-    # Example: remove_empty_folders()
-    print("\n=== EXAMPLE: remove_empty_folders() ===")
-    total = syno.remove_empty_folders()
-    print(f"[RESULT] A total of {total} folders have been removed.\n")
+    # # Example: remove_empty_folders()
+    # print("\n=== EXAMPLE: remove_empty_folders() ===")
+    # total = syno.remove_empty_folders()
+    # print(f"[RESULT] A total of {total} folders have been removed.\n")
 
     # logout()
     syno.logout()
