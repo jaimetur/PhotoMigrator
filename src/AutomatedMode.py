@@ -370,6 +370,7 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
     import shutil
     import threading
     from queue import Queue
+    from CustomLogger import CustomConsoleFormatter, CustomLogFormatter
 
     LOGGER_THREADS = clone_logger(LOGGER)
     parent_log_level = LOGGER_THREADS.level
@@ -377,8 +378,8 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
         if memory_log:
             # Crea el handler y configúralo con un formatter
             memory_handler = InMemoryLogHandler(SHARED_LOGS)
-            formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-            memory_handler.setFormatter(formatter)
+            # memory_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+            memory_handler.setFormatter(CustomConsoleFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
 
             # Agrega el handler al LOGGER
             LOGGER_THREADS.addHandler(memory_handler)
