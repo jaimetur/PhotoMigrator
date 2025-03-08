@@ -334,6 +334,9 @@ def compile():
 
     print("Todas las compilaciones han finalizado correctamente.")
     
+    # Calcular el path relativo
+    relative_path = os.path.relpath(script_zip_file, root_dir)
+    
     # Guardar script_info.txt en un fichero de texto
     with open(os.path.join(root_dir,'script_info.txt'), 'w') as file:
         file.write(SCRIPT_VERSION_INT + '\n')
