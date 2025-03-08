@@ -1,3 +1,4 @@
+name: Update README.md with ROADMAP.md
   push-readme:
     needs: build  # Espera a que termine el job de compilación
     runs-on: ubuntu-latest  # Solo ejecuta en un SO
