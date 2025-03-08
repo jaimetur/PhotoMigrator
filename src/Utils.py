@@ -16,7 +16,7 @@ from PIL import Image
 import hashlib
 import base64
 import inspect
-from GlobalVariables import LOGGER
+from GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT
 
 WORKING_DIR = r"R:\jaimetur\CloudPhotoMigrator"
 
@@ -166,7 +166,6 @@ def count_valid_albums(folder_path, log_level=logging.INFO):
     defined in IMAGE_EXT or VIDEO_EXT.
     """
     import os
-    from GlobalVariables import PHOTO_EXT, VIDEO_EXT
     parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change log level temporarily
         valid_albums = 0
@@ -978,7 +977,6 @@ def update_metadata(file_path, date_time, log_level=logging.INFO):
         date_time (str): Date and time in 'YYYY-MM-DD HH:MM:SS' format.
         log_level (logging.LEVEL): log_level for logs and console
     """
-    from GlobalVariables import PHOTO_EXT, VIDEO_EXT
     parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         file_ext = os.path.splitext(file_path)[1].lower()
@@ -1011,12 +1009,12 @@ def update_exif_date(image_path, asset_time, log_level=logging.INFO):
             if isinstance(asset_time, str):
                 try:
                     asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
-                except ValueError:
-                    LOGGER.warning(f"WARNING : Invalid date format for asset_time: {asset_time}")
+                except ValueError as e:
+                    LOGGER.warning(f"WARNING : Invalid date format for asset_time: {asset_time}. {e}")
                     return
                 finally:
                     # Restore log_level of the parent method
-                    # set_log_level(LOGGER, parent_log_level, manual=True)
+                    set_log_level(LOGGER, parent_log_level, manual=True)
                     pass
 
             # Convertir el timestamp UNIX a formato EXIF "YYYY:MM:DD HH:MM:SS"

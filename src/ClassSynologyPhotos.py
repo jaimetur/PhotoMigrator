@@ -917,50 +917,50 @@ class ClassSynologyPhotos:
         """
         parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
-            self.login(log_level=log_level)
+            try:
+                self.login(log_level=log_level)
 
-            if not os.path.exists(file_path):
-                raise FileNotFoundError(f"El archivo '{file_path}' no existe.")
+                if not os.path.exists(file_path):
+                    raise FileNotFoundError(f"El archivo '{file_path}' no existe.")
 
-            filename, ext = os.path.splitext(file_path)
-            ext = ext.lower()
-            if ext not in self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS:
-                if ext in self.ALLOWED_SYNOLOGY_SIDECAR_EXTENSIONS:
-                    return None, None
-                else:
-                    LOGGER.warning(f"")
-                    LOGGER.warning(f"WARNING : File '{file_path}' has an unsupported extension. Skipped.")
-                    LOGGER.warning(f"")
-                    return None, None
+                filename, ext = os.path.splitext(file_path)
+                ext = ext.lower()
+                if ext not in self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS:
+                    if ext in self.ALLOWED_SYNOLOGY_SIDECAR_EXTENSIONS:
+                        return None, None
+                    else:
+                        LOGGER.warning(f"")
+                        LOGGER.warning(f"WARNING : File '{file_path}' has an unsupported extension. Skipped.")
+                        LOGGER.warning(f"")
+                        return None, None
 
-            headers = {}
-            if self.SYNO_TOKEN_HEADER:
-                headers.update(self.SYNO_TOKEN_HEADER)
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
 
-            api = "SYNO.Foto.Upload.Item"
-            method = "upload"
-            version = "1"
-            url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi/SYNO.Foto.Upload.Item?api={api}&method={method}&version={version}"
+                api = "SYNO.Foto.Upload.Item"
+                method = "upload"
+                version = "1"
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi/SYNO.Foto.Upload.Item?api={api}&method={method}&version={version}"
 
-            mime_type = mimetypes.guess_type(file_path)[0] or "application/octet-stream"
+                mime_type = mimetypes.guess_type(file_path)[0] or "application/octet-stream"
 
-            with open(file_path, "rb") as file_:
-                multipart_data = MultipartEncoder(
-                    fields=[
-                        ("api", f'{api}'),
-                        ("method", f'{method}'),
-                        ("version", f'{version}'),
-                        ("file", (os.path.basename(file_path), file_, mime_type)),
-                        ("uploadDestination", '"timeline"'),
-                        ("duplicate", '"ignore"'),
-                        ("name", f'"{os.path.basename(file_path)}"'),
-                        ("mtime", f'{str(int(os.stat(file_path).st_mtime))}'),
-                        ("folder", f'["PhotoLibrary"]'),
-                    ],
-                )
-                headers.update({"Content-Type": multipart_data.content_type})
+                with open(file_path, "rb") as file_:
+                    multipart_data = MultipartEncoder(
+                        fields=[
+                            ("api", f'{api}'),
+                            ("method", f'{method}'),
+                            ("version", f'{version}'),
+                            ("file", (os.path.basename(file_path), file_, mime_type)),
+                            ("uploadDestination", '"timeline"'),
+                            ("duplicate", '"ignore"'),
+                            ("name", f'"{os.path.basename(file_path)}"'),
+                            ("mtime", f'{str(int(os.stat(file_path).st_mtime))}'),
+                            ("folder", f'["PhotoLibrary"]'),
+                        ],
+                    )
+                    headers.update({"Content-Type": multipart_data.content_type})
 
-                try:
                     response = self.SESSION.post(url, data=multipart_data, headers=headers, verify=False)
                     response.raise_for_status()
                     data = response.json()
@@ -970,12 +970,13 @@ class ClassSynologyPhotos:
                     else:
                         asset_id = data["data"].get("id")
                         return asset_id, False
-                except Exception as e:
-                    LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
-                finally:
-                    # Restore log_level of the parent method
-                    set_log_level(LOGGER, parent_log_level, manual=True)
-                    pass
+
+            except Exception as e:
+                LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
+            finally:
+                # Restore log_level of the parent method
+                set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     def download_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Synology", log_level=logging.INFO):
