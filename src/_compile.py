@@ -209,21 +209,23 @@ def compile():
     shutil.rmtree('dist', ignore_errors=True)
     print("")
     
-    # Extraemos el cuerpo de la Release actual del fichero RELEASES-NOTES.md
+    # Extraer el cuerpo de la CURRENT-RELEASE-NOTES y añadir ROADMAP al fichero README.md
+    print("Extrayendo el cuerpo de la CURRENT-RELEASE-NOTES y añadiendo ROADMAP al fichero README.md...")
+    
     # Obtener el directorio raíz un nivel arriba del directorio de trabajo
     root_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 
-    # Ruta del archivo de RELEASES-NOTES.md y CURRENT-RELEASE.md
+    # Ruta de los archivs RELEASES-NOTES.md, CURRENT-RELEASE.md, README.md y ROADMAP.md
     releases_filepath = os.path.join(root_dir,'RELEASES-NOTES.md')
     current_release_filepath = os.path.join(root_dir,'CURRENT-RELEASE.md')
+    readme_filepath = os.path.join(root_dir,'README.md')
+    roadmap_filepath = os.path.join(root_dir,'ROADMAP.md')
     
     # Extraer el cuerpo de la Release actual de RELEASES-NOTES.md
     extract_release_body(releases_filepath, current_release_filepath)
     print(f"Archivo {current_release_filepath} creado correctamente.")
     
-    # Actualizamos el ROADMAP en el fichero README
-    readme_filepath = os.path.join(root_dir,'README.md')
-    roadmap_filepath = os.path.join(root_dir,'ROADMAP.md')
+    # Añadimos el ROADMAP en el fichero README
     add_roadmap_to_readme(readme_filepath, roadmap_filepath)
     print(f"Archivo README.md actualizado correctamente con el ROADMAP.")
 
