@@ -136,11 +136,63 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, time
 
 # Crear un contexto para cambiar el nivel del logger temporalmente
 @contextmanager
-def set_log_level(logger, level):
-    from GlobalVariables import LOGGER
-    old_level = logger.level  # Guardar nivel actual
-    LOGGER.setLevel(level)  # Cambiar nivel
+def set_log_level(logger, level, manual=False):
+    """
+    Context manager para cambiar temporalmente el nivel de log.
+
+    Args:
+        logger (logging.Logger): Logger a modificar.
+        level (int): Nuevo nivel de log.
+        manual (bool): Si es True, el usuario debe restaurar manualmente el nivel de log.
+
+    Uso con `with`:
+        with set_log_level(LOGGER, logging.DEBUG):
+            # Código dentro del contexto tendrá DEBUG
+        # Fuera del contexto, se restaurará el nivel original
+
+    Uso sin `with`:
+        restore_func = set_log_level(LOGGER, logging.DEBUG, manual=True)
+        # El nivel de log está cambiado manualmente
+        restore_func()  # Llamar a esto para restaurar el nivel original
+    """
+
+    old_level = logger.level  # Guardamos el nivel actual
+    logger.setLevel(level)  # Cambiamos el nivel de log inmediatamente
+
+    if manual:
+        # Retorna una función para restaurar el nivel cuando se llame
+        def restore():
+            logger.setLevel(old_level)  # Restaura el nivel anterior
+
+        return restore  # Se devuelve la función que restaura el nivel
+
     try:
-        yield
+        yield  # Permite ejecutar el código dentro del contexto
     finally:
-        LOGGER.setLevel(old_level)  # Restaurar nivel original
+        logger.setLevel(old_level)  # Restaura el nivel original al salir del `with`
+
+
+def clone_logger(original_logger, new_name=None):
+    """
+    Crea un nuevo logger con el mismo nivel y handlers que el original,
+    pero evitando la duplicación de mensajes.
+
+    Args:
+        original_logger (logging.Logger): El logger original.
+        new_name (str): Nombre opcional para el nuevo logger.
+
+    Returns:
+        logging.Logger: Un nuevo logger independiente con los mismos handlers.
+    """
+    new_logger_name = new_name if new_name else f"{original_logger.name}_copy"
+    new_logger = logging.getLogger(new_logger_name)
+
+    # Copiar nivel de log
+    new_logger.setLevel(original_logger.level)
+
+    # Evitar agregar handlers duplicados
+    if not new_logger.hasHandlers():
+        for handler in original_logger.handlers:
+            new_logger.addHandler(handler)  # Agregamos el mismo handler sin copiarlo
+
+    return new_logger

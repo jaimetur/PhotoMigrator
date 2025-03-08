@@ -111,19 +111,6 @@ class ClassSynologyPhotos:
 
 
     ###########################################################################
-    #                           OBTAIN CALLER LOG_LEVEL                       #
-    ###########################################################################
-    def get_caller_log_level(self):
-        """Obtiene el nivel de log del llamador en la pila de ejecución."""
-        stack = inspect.stack()
-        for frame in stack[1:]:  # Ignora el primer frame (la función actual)
-            caller_locals = frame.frame.f_locals
-            if 'log_level' in caller_locals:  # Verifica si la función llamadora tiene log_level
-                return caller_locals['log_level']
-        return LOGGER.level  # Si no encuentra, devuelve el nivel actual del logger
-
-
-    ###########################################################################
     #                           CONFIGURATION READING                         #
     ###########################################################################
     def read_config_file(self, config_file='Config.ini', log_level=logging.INFO):
@@ -139,7 +126,7 @@ class ClassSynologyPhotos:
             dict: The loaded configuration dictionary.
         """
         from ConfigReader import load_config
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             if self.CONFIG:
                 return self.CONFIG
@@ -192,7 +179,7 @@ class ClassSynologyPhotos:
 
         Returns (self.SESSION, self.SID) or (self.SESSION, self.SID, self.SYNO_TOKEN_HEADER)
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             if self.SESSION and self.SID and self.SYNO_TOKEN_HEADER:
                 return (self.SESSION, self.SID, self.SYNO_TOKEN_HEADER)
@@ -245,7 +232,7 @@ class ClassSynologyPhotos:
         Args:
             log_level (logging.LEVEL): log_level for logs and console
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             if self.SESSION and self.SID:
                 url = f"{self.SYNOLOGY_URL}/webapi/auth.cgi"
@@ -273,7 +260,7 @@ class ClassSynologyPhotos:
         """
         Returns the supported media/sidecar extensions as for Synology Photos
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             try:
                 if type.lower() == 'media':
@@ -297,7 +284,8 @@ class ClassSynologyPhotos:
                 return None
             finally:
                 # Restore log_level of the parent method
-                LOGGER.setLevel(parent_log_level)
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     # TODO: Complete this method
@@ -305,7 +293,7 @@ class ClassSynologyPhotos:
         """
         Returns the user_id of the currently logged-in user.
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             return None
 
@@ -324,7 +312,7 @@ class ClassSynologyPhotos:
 
         Returns True on success, False otherwise.
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -360,7 +348,7 @@ class ClassSynologyPhotos:
         Returns:
             str: New album ID or None if it fails
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -403,7 +391,7 @@ class ClassSynologyPhotos:
                     }
             None on error
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -460,7 +448,7 @@ class ClassSynologyPhotos:
                     }
             None on error
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -498,7 +486,8 @@ class ClassSynologyPhotos:
                     return None
                 finally:
                     # Restore log_level of the parent method
-                    LOGGER.setLevel(parent_log_level)
+                    # set_log_level(LOGGER, parent_log_level, manual=True)
+                    pass
 
             # Replace the key "name" by "albumName" to make it equal to Immich Photos
             for item in album_list:
@@ -520,7 +509,7 @@ class ClassSynologyPhotos:
         Returns:
             int: Album Size or -1 on error.
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -573,7 +562,7 @@ class ClassSynologyPhotos:
         Returns:
              int: Album Items Count or -1 on error.
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -609,7 +598,7 @@ class ClassSynologyPhotos:
              bool: True if Album exists. False if Album does not exists.
              album_id (str): album_id if Album  exists. None if Album does not exists.
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             album_exists = False
             album_id = None
@@ -635,7 +624,7 @@ class ClassSynologyPhotos:
         Returns:
             list: A list of assets (dict) in the entire library or Empty list on error.
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -671,7 +660,8 @@ class ClassSynologyPhotos:
                     return []
                 finally:
                     # Restore log_level of the parent method
-                    LOGGER.setLevel(parent_log_level)
+                    # set_log_level(LOGGER, parent_log_level, manual=True)
+                    pass
 
             return all_assets
 
@@ -685,7 +675,7 @@ class ClassSynologyPhotos:
 
         Returns assets_without_albums
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             all_assets = self.get_all_assets(log_level=logging.INFO)
@@ -708,7 +698,7 @@ class ClassSynologyPhotos:
         Returns:
             list: A list of assets in the album (dict objects). [] if no assets found.
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -752,7 +742,8 @@ class ClassSynologyPhotos:
                     return []
                 finally:
                     # Restore log_level of the parent method
-                    LOGGER.setLevel(parent_log_level)
+                    # set_log_level(LOGGER, parent_log_level, manual=True)
+                    pass
 
             return album_items
 
@@ -767,7 +758,7 @@ class ClassSynologyPhotos:
         Returns:
             list: Albums Assets
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             headers = {}
@@ -799,7 +790,7 @@ class ClassSynologyPhotos:
         Returns:
             int: Number of assets added to the album
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -846,7 +837,7 @@ class ClassSynologyPhotos:
         """
         Returns the list of duplicate assets from Synology
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             return []
 
@@ -862,7 +853,7 @@ class ClassSynologyPhotos:
         Returns:
             int: Number of assets removed
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -891,7 +882,8 @@ class ClassSynologyPhotos:
                 return 0
             finally:
                 # Restore log_level of the parent method
-                LOGGER.setLevel(parent_log_level)
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
             task_id = data.get('data', {}).get('task_info', {}).get('id')
             removed_count = len(asset_ids)
@@ -906,7 +898,7 @@ class ClassSynologyPhotos:
         """
         Removes duplicate assets in the Synology database. Returns how many duplicates got removed.
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             return 0
 
@@ -923,7 +915,7 @@ class ClassSynologyPhotos:
             str: the asset_id if success, or None if it fails or is an unsupported extension.
             bool: is_duplicated = False if success, or None if it fails or is an unsopported extension.
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
 
@@ -994,7 +986,7 @@ class ClassSynologyPhotos:
         Returns:
             int: 1 if download succeeded, 0 if failed.
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             os.makedirs(download_folder, exist_ok=True)
@@ -1048,7 +1040,8 @@ class ClassSynologyPhotos:
                 return 0
             finally:
                 # Restore log_level of the parent method
-                LOGGER.setLevel(parent_log_level)
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
 
     ###########################################################################
@@ -1435,7 +1428,7 @@ class ClassSynologyPhotos:
 
         Returns: (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed)
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
 
@@ -1560,7 +1553,7 @@ class ClassSynologyPhotos:
 
         Returns: assets_uploaded
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             if not os.path.isdir(input_folder):
@@ -1618,7 +1611,7 @@ class ClassSynologyPhotos:
 
         Returns: (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed)
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
 
@@ -1677,7 +1670,7 @@ class ClassSynologyPhotos:
         Returns:
             tuple: (albums_downloaded, assets_downloaded)
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
 
@@ -1757,7 +1750,7 @@ class ClassSynologyPhotos:
 
         Returns total_assets_downloaded or 0 if no assets are downloaded
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             total_assets_downloaded = 0
@@ -1801,7 +1794,7 @@ class ClassSynologyPhotos:
             output_folder (str): Output folder
             log_level (logging.LEVEL): log_level for logs and console
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             (total_albums_downloaded, total_assets_downloaded_within_albums) = self.download_albums(
@@ -1841,7 +1834,7 @@ class ClassSynologyPhotos:
         Returns:
             int: The number of empty folders removed.
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         def remove_empty_folders_recursive(folder_id, folder_name):
             folders_dict = self.get_folders(folder_id, log_level=log_level)
             removed_count = 0
@@ -1886,7 +1879,7 @@ class ClassSynologyPhotos:
         Returns:
             int: The number of empty albums deleted.
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             albums = self.get_albums_owned_by_user(log_level=log_level)
@@ -1923,7 +1916,7 @@ class ClassSynologyPhotos:
         Returns:
             int: The number of duplicate albums deleted.
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             albums = self.get_albums_owned_by_user(log_level=log_level)
@@ -1968,7 +1961,7 @@ class ClassSynologyPhotos:
 
         Returns how many orphan got removed.
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             return 0
 
@@ -1985,7 +1978,7 @@ class ClassSynologyPhotos:
 
         Returns (assets_removed, albums_removed, folders_removed)
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             LOGGER.info(f"INFO    : Getting list of asset(s) to remove...")
@@ -2026,7 +2019,7 @@ class ClassSynologyPhotos:
 
         Returns (#albums_removed, #assets_removed).
         """
-        parent_log_level = self.get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             albums = self.get_albums_owned_by_user(log_level=log_level)

@@ -16,6 +16,7 @@ from PIL import Image
 import hashlib
 import base64
 import inspect
+from GlobalVariables import LOGGER
 
 WORKING_DIR = r"R:\jaimetur\CloudPhotoMigrator"
 
@@ -32,15 +33,13 @@ def change_workingdir():
 
 def run_from_synology(log_level=logging.INFO):
     """ Check if the srcript is running from a Synology NAS """
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         return os.path.exists('/etc.defaults/synoinfo.conf')
 
 def check_OS_and_Terminal(log_level=logging.INFO):
     """ Check OS and Terminal Type """
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Detect the operating system
         current_os = platform.system()
@@ -69,8 +68,7 @@ def check_OS_and_Terminal(log_level=logging.INFO):
 
 def count_files_in_folder(folder_path, log_level=logging.INFO):
     """ Counts the number of files in a folder """
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         total_files = 0
         for path, dirs, files in os.walk(folder_path):
@@ -84,8 +82,7 @@ def count_images_in_folder(folder_path, log_level=logging.INFO):
     as images only those files with extensions defined in
     the global variable IMAGE_EXT (in lowercase).
     """
-    from GlobalVariables import LOGGER, PHOTO_EXT
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change log level temporarily
         total_images = 0
         for path, dirs, files in os.walk(folder_path):
@@ -102,8 +99,8 @@ def count_videos_in_folder(folder_path, log_level=logging.INFO):
     as videos only those files with extensions defined in
     the global variable VIDEO_EXT (in lowercase).
     """
-    from GlobalVariables import LOGGER, VIDEO_EXT
-    parent_log_level = get_caller_log_level()
+    from GlobalVariables import VIDEO_EXT
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change log level temporarily
         total_videos = 0
         for path, dirs, files in os.walk(folder_path):
@@ -120,8 +117,8 @@ def count_videos_in_folder(folder_path, log_level=logging.INFO):
     as videos only those files with extensions defined in
     the global variable VIDEO_EXT (in lowercase).
     """
-    from GlobalVariables import LOGGER, VIDEO_EXT
-    parent_log_level = get_caller_log_level()
+    from GlobalVariables import VIDEO_EXT
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change log level temporarily
         total_videos = 0
         for path, dirs, files in os.walk(folder_path):
@@ -139,8 +136,8 @@ def count_sidecars_in_folder(folder_path, log_level=logging.INFO):
     2. It shares the same base name as an image file in the same directory.
     3. The sidecar file name may include the image extension before the sidecar extension.
     """
-    from GlobalVariables import LOGGER, PHOTO_EXT, SIDECAR_EXT
-    parent_log_level = get_caller_log_level()
+    from GlobalVariables import PHOTO_EXT, SIDECAR_EXT
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change log level temporarily
         total_sidecars = 0
         for path, dirs, files in os.walk(folder_path):
@@ -169,8 +166,8 @@ def count_valid_albums(folder_path, log_level=logging.INFO):
     defined in IMAGE_EXT or VIDEO_EXT.
     """
     import os
-    from GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT
-    parent_log_level = get_caller_log_level()
+    from GlobalVariables import PHOTO_EXT, VIDEO_EXT
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change log level temporarily
         valid_albums = 0
         for root, dirs, files in os.walk(folder_path):
@@ -182,8 +179,7 @@ def count_valid_albums(folder_path, log_level=logging.INFO):
 
 def unpack_zips(zip_folder, takeout_folder, log_level=logging.INFO):
     """ Unzips all ZIP files from a folder into another """
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         if not os.path.exists(zip_folder):
             LOGGER.error(f"ERROR   : ZIP folder '{zip_folder}' does not exist.")
@@ -200,7 +196,8 @@ def unpack_zips(zip_folder, takeout_folder, log_level=logging.INFO):
                     LOGGER.error(f"ERROR   : Could not unzip file: {zip_file}")
                 finally:
                     # Restore log_level of the parent method
-                    LOGGER.setLevel(parent_log_level)
+                    # set_log_level(LOGGER, parent_log_level, manual=True)
+                    pass
 
 def fix_mp4_files(input_folder, log_level=logging.INFO):
     """
@@ -208,8 +205,7 @@ def fix_mp4_files(input_folder, log_level=logging.INFO):
     If found any, then copy the .json file of the original Live picture and change its name to the name of the .MP4 file
     """
     # Traverse all subdirectories in the input folder
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Contar el total de carpetas
         mp4_files = []
@@ -256,8 +252,7 @@ def sync_mp4_timestamps_with_images(input_folder, log_level=logging.INFO):
     Look for .MP4 files with the same name of any Live Picture file (.HEIC, .JPG, .JPEG) in the same folder.
     If found, then set the date and time of the .MP4 file to the same date and time of the original Live Picture.
     """
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Contar el total de carpetas
         total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
@@ -311,8 +306,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log
     Raises:
         ValueERROR   : If the value of `type` is invalid.
     """
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         if type not in ['year', 'year/month', 'year-month']:
             raise ValueError("The 'type' parameter must be 'year' or 'year/month'.")
@@ -363,8 +357,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, log_level=loggi
     :param move: If True, moves the files instead of copying them.
     :return: None
     """
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Ignore function
         action = 'Moving' if move else 'Copying'
@@ -426,7 +419,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, log_level=loggi
             return False
         finally:
             # Restore log_level of the parent method
-            LOGGER.setLevel(parent_log_level)
+            set_log_level(LOGGER, parent_log_level, manual=True)
 
 
 def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None, log_level=logging.INFO):
@@ -439,8 +432,7 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None,
         exclude_subfolder (str or list, optional): Subfolder(s) to exclude. Can be a single string or a list of strings.
     """
     # Ensure exclude_subfolder is a list, even if a single string is passed
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         def safe_move(folder_path, albums_path):
             destination = os.path.join(albums_path, os.path.basename(folder_path))
@@ -472,8 +464,7 @@ def move_albums_to_root(albums_root, log_level=logging.INFO):
     Moves all albums from nested subdirectories ('Takeout/Google Fotos' or 'Takeout/Google Photos')
     directly into the 'Albums' folder, removing unnecessary intermediate folders.
     """
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         possible_google_folders = ["Google Fotos", "Google Photos"]
         takeout_path = os.path.join(albums_root, "Takeout")
@@ -524,7 +515,7 @@ def move_albums_to_root(albums_root, log_level=logging.INFO):
             LOGGER.error(f"ERROR   : Failed to remove 'Takeout': {e}")
         finally:
             # Restore log_level of the parent method
-            LOGGER.setLevel(parent_log_level)
+            set_log_level(LOGGER, parent_log_level, manual=True)
 
 
 def change_file_extension(input_folder, current_extension, new_extension, log_level=logging.INFO):
@@ -540,8 +531,7 @@ def change_file_extension(input_folder, current_extension, new_extension, log_le
     Returns:
         None
     """
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Contar el total de carpetas
         total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
@@ -569,8 +559,7 @@ def delete_subfolders(input_folder, folder_name_to_delete, log_level=logging.INF
         input_folder (str): The path to the base directory to start the search from.
         folder_name_to_delete (str): The name of the subdirectories to delete.
     """
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Contar el total de carpetas
         total_dirs = sum([len(dirs) for _, dirs, _ in os.walk(input_folder)])
@@ -588,15 +577,14 @@ def delete_subfolders(input_folder, folder_name_to_delete, log_level=logging.INF
                             LOGGER.error(f"ERROR   : Error deleting {dir_path}: {e}")
                         finally:
                             # Restore log_level of the parent method
-                            LOGGER.setLevel(parent_log_level)
+                            set_log_level(LOGGER, parent_log_level, manual=True)
 
 
 def remove_empty_dirs(input_folder, log_level=logging.INFO):
     """
     Remove empty directories recursively.
     """
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         for path, dirs, files in os.walk(input_folder, topdown=False):
             filtered_dirnames = [d for d in dirs if d != '@eaDir']
@@ -608,7 +596,8 @@ def remove_empty_dirs(input_folder, log_level=logging.INFO):
                     pass
                 finally:
                     # Restore log_level of the parent method
-                    LOGGER.setLevel(parent_log_level)
+                    # set_log_level(LOGGER, parent_log_level, manual=True)
+                    pass
 
 
 def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten_root_folder=False, log_level=logging.INFO):
@@ -619,8 +608,7 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
         input_folder (str): Path to the folder to process.
         exclude_subfolders (list or None): List of folder name patterns (using wildcards) to exclude from flattening.
     """
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Count number of sep of input_folder
         sep_input = input_folder.count(os.sep)
@@ -679,7 +667,6 @@ def fix_symlinks_broken(input_folder, log_level=logging.INFO):
     :param input_folder: Path (relative or absolute) to the main directory where the links should be searched and fixed.
     :return: A tuple containing the number of corrected symlinks and the number of symlinks that could not be corrected.
     """
-    from GlobalVariables import LOGGER
     # ===========================
     # AUX FUNCTIONS
     # ===========================
@@ -688,8 +675,7 @@ def fix_symlinks_broken(input_folder, log_level=logging.INFO):
         Index all non-symbolic files in the directory and its subdirectories by their filename.
         Returns a dictionary where keys are filenames and values are lists of their full paths.
         """
-        from GlobalVariables import LOGGER
-        parent_log_level = get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             file_index = {}
             # Contar el total de carpetas
@@ -715,8 +701,7 @@ def fix_symlinks_broken(input_folder, log_level=logging.INFO):
         If multiple matches exist, return the first found.
         If none is found, return None.
         """
-        from GlobalVariables import LOGGER
-        parent_log_level = get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             if target_name in file_index and file_index[target_name]:
                 return file_index[target_name][0]
@@ -724,7 +709,7 @@ def fix_symlinks_broken(input_folder, log_level=logging.INFO):
     # ===========================
     # END AUX FUNCTIONS
     # ===========================
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         corrected_count = 0
         failed_count = 0
@@ -768,14 +753,12 @@ def fix_symlinks_broken(input_folder, log_level=logging.INFO):
 
 
 def rename_album_folders(input_folder: str, log_level=logging.INFO):
-    from GlobalVariables import LOGGER
     # ===========================
     # AUXILIARY FUNCTIONS
     # ===========================
     def clean_name(input_string: str, log_level=logging.INFO) -> str:
         import re
-        from GlobalVariables import LOGGER
-        parent_log_level = get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             input_string = input_string.strip()
             # Remove leading underscores or hyphens
@@ -803,8 +786,7 @@ def rename_album_folders(input_folder: str, log_level=logging.INFO):
     def get_year_range(folder: str, log_level=logging.INFO) -> str:
         import os
         from datetime import datetime
-        from GlobalVariables import LOGGER
-        parent_log_level = get_caller_log_level()
+        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             try:
                 files = [os.path.join(folder, f) for f in os.listdir(folder)]
@@ -825,13 +807,14 @@ def rename_album_folders(input_folder: str, log_level=logging.INFO):
                 LOGGER.error(f"ERROR   : Error obtaining year range: {e}")
             finally:
                 # Restore log_level of the parent method
-                LOGGER.setLevel(parent_log_level)
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
             return None
 
     # ===========================
     # END AUX FUNCTIONS
     # ===========================
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Iterate over folders in albums_folder (only first level)
         renamed_album_folders = 0
@@ -889,8 +872,7 @@ def rename_album_folders(input_folder: str, log_level=logging.INFO):
         return renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged
 
 def confirm_continue(log_level=logging.INFO):
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         while True:
             response = input("Do you want to continue? (yes/no): ").strip().lower()
@@ -907,14 +889,12 @@ def remove_quotes(input_string: str, log_level=logging.INFO) -> str:
     """
     Elimina todas las comillas simples y dobles al inicio o fin de la cadena.
     """
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         return input_string.strip('\'"')
 
 def contains_zip_files(input_folder, log_level=logging.INFO):
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         for file in os.listdir(input_folder):
             if file.endswith('.zip'):
@@ -922,8 +902,7 @@ def contains_zip_files(input_folder, log_level=logging.INFO):
         return False
 
 def remove_server_name(path, log_level=logging.INFO):
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Expresión regular para rutas Linux (///servidor/)
         path = re.sub(r'///[^/]+/', '///', path)
@@ -938,8 +917,7 @@ def force_remove_directory(path, log_level=logging.INFO):
         os.chmod(path, stat.S_IWRITE)
         func(path)
 
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         if os.path.exists(path):
             shutil.rmtree(path, onerror=onerror)
@@ -959,8 +937,7 @@ def is_valid_path(path, log_level=logging.INFO):
     - No debe usar un formato incorrecto para la plataforma.
     """
     from pathvalidate import validate_filepath, ValidationError
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
             # Verifica si `ruta` es válida como path en la plataforma actual.
@@ -971,7 +948,7 @@ def is_valid_path(path, log_level=logging.INFO):
             return False
         finally:
             # Restore log_level of the parent method
-            LOGGER.setLevel(parent_log_level)
+            set_log_level(LOGGER, parent_log_level, manual=True)
 
 def get_unique_items(list1, list2, key='filename', log_level=logging.INFO):
     """
@@ -985,8 +962,7 @@ def get_unique_items(list1, list2, key='filename', log_level=logging.INFO):
     Returns:
         list: Items present in list1 but not in list2.
     """
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         set2 = {item[key] for item in list2}  # Create a set of filenames from list2
         unique_items = [item for item in list1 if item[key] not in set2]
@@ -1002,8 +978,8 @@ def update_metadata(file_path, date_time, log_level=logging.INFO):
         date_time (str): Date and time in 'YYYY-MM-DD HH:MM:SS' format.
         log_level (logging.LEVEL): log_level for logs and console
     """
-    from GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT
-    parent_log_level = get_caller_log_level()
+    from GlobalVariables import PHOTO_EXT, VIDEO_EXT
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         file_ext = os.path.splitext(file_path)[1].lower()
         try:
@@ -1016,7 +992,7 @@ def update_metadata(file_path, date_time, log_level=logging.INFO):
             LOGGER.error(f"ERROR   : Failed to update metadata for {file_path}. {e}")
         finally:
             # Restore log_level of the parent method
-            LOGGER.setLevel(parent_log_level)
+            set_log_level(LOGGER, parent_log_level, manual=True)
 
 
 def update_exif_date(image_path, asset_time, log_level=logging.INFO):
@@ -1028,8 +1004,7 @@ def update_exif_date(image_path, asset_time, log_level=logging.INFO):
         asset_time (int or str): Timestamp in UNIX Epoch format or a date string in "YYYY-MM-DD HH:MM:SS".
         log_level (logging.LEVEL): log_level for logs and console
     """
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
             # Si asset_time es una cadena en formato 'YYYY-MM-DD HH:MM:SS', conviértelo a timestamp UNIX
@@ -1041,7 +1016,8 @@ def update_exif_date(image_path, asset_time, log_level=logging.INFO):
                     return
                 finally:
                     # Restore log_level of the parent method
-                    LOGGER.setLevel(parent_log_level)
+                    # set_log_level(LOGGER, parent_log_level, manual=True)
+                    pass
 
             # Convertir el timestamp UNIX a formato EXIF "YYYY:MM:DD HH:MM:SS"
             date_time_exif = datetime.fromtimestamp(asset_time).strftime("%Y:%m:%d %H:%M:%S")
@@ -1062,7 +1038,8 @@ def update_exif_date(image_path, asset_time, log_level=logging.INFO):
                 return
             finally:
                 # Restore log_level of the parent method
-                LOGGER.setLevel(parent_log_level)
+                # set_log_level(LOGGER, parent_log_level, manual=True)
+                pass
 
             # Actualizar solo si existen las secciones
             if "0th" in exif_dict:
@@ -1089,7 +1066,7 @@ def update_exif_date(image_path, asset_time, log_level=logging.INFO):
             LOGGER.warning(f"WARNING : Failed to update EXIF metadata for {image_path}. {e}")
         finally:
             # Restore log_level of the parent method
-            LOGGER.setLevel(parent_log_level)
+            set_log_level(LOGGER, parent_log_level, manual=True)
 
 
 def update_video_metadata(video_path, asset_time, log_level=logging.INFO):
@@ -1103,8 +1080,7 @@ def update_video_metadata(video_path, asset_time, log_level=logging.INFO):
         asset_time (int | str): Timestamp in UNIX Epoch format or a string in 'YYYY-MM-DD HH:MM:SS' format.
         log_level (logging.LEVEL): log_level for logs and console
     """
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
             # Convert asset_time to UNIX timestamp if it's in string format
@@ -1116,7 +1092,8 @@ def update_video_metadata(video_path, asset_time, log_level=logging.INFO):
                     return
                 finally:
                     # Restore log_level of the parent method
-                    LOGGER.setLevel(parent_log_level)
+                    # set_log_level(LOGGER, parent_log_level, manual=True)
+                    pass
             # Convert timestamp to system format
             mod_time = asset_time
             create_time = asset_time
@@ -1140,7 +1117,7 @@ def update_video_metadata(video_path, asset_time, log_level=logging.INFO):
             LOGGER.warning(f"WARNING : Failed to update video metadata for {video_path}. {e}")
         finally:
             # Restore log_level of the parent method
-            LOGGER.setLevel(parent_log_level)
+            set_log_level(LOGGER, parent_log_level, manual=True)
 
 
 def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=logging.INFO):
@@ -1152,8 +1129,7 @@ def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=logging.
         asset_time (int): Timestamp in UNIX Epoch format.
         log_level (logging.LEVEL): log_level for logs and console
     """
-    from GlobalVariables import LOGGER
-    parent_log_level = get_caller_log_level()
+    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
             # Si asset_time es una cadena en formato 'YYYY-MM-DD HH:MM:SS', conviértelo a timestamp UNIX
@@ -1165,7 +1141,8 @@ def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=logging.
                     return
                 finally:
                     # Restore log_level of the parent method
-                    LOGGER.setLevel(parent_log_level)
+                    # set_log_level(LOGGER, parent_log_level, manual=True)
+                    pass
             # Convert asset_time (UNIX timestamp) to format used by FFmpeg (YYYY-MM-DDTHH:MM:SS)
             formatted_date = datetime.fromtimestamp(asset_time).strftime("%Y-%m-%dT%H:%M:%S")
             # Backup original file timestamps
@@ -1189,12 +1166,11 @@ def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=logging.
             LOGGER.warning(f"WARNING : Failed to update video metadata for {video_path}. {e}")
         finally:
             # Restore log_level of the parent method
-            LOGGER.setLevel(parent_log_level)
+            set_log_level(LOGGER, parent_log_level, manual=True)
 
 # Convert to list
 def convert_to_list(input, log_level=logging.INFO):
     """ Convert a String to List"""
-    from GlobalVariables import LOGGER
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         output=input
         # Process subfolders_exclusion to obtain a list of inclusion names if provided
@@ -1224,11 +1200,4 @@ def sha1_checksum(file_path):
 
     return sha1_hex, sha1_base64
 
-def get_caller_log_level():
-    """Obtiene el nivel de log del llamador en la pila de ejecución."""
-    stack = inspect.stack()
-    for frame in stack[1:]:  # Ignora el primer frame (la función actual)
-        caller_locals = frame.frame.f_locals
-        if 'log_level' in caller_locals:  # Verifica si la función llamadora tiene log_level
-            return caller_locals['log_level']
-    return logger.level  # Si no encuentra, devuelve el nivel actual del logger
+

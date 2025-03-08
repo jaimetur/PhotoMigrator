@@ -39,8 +39,7 @@ class ClassGoogleTakeout:
         """
         # Import the global LOGGER, ARGS, TIMESTAMP, DEPRIORITIZE_FOLDERS_PATTERNS from GlobalVariables
         from GlobalVariables import ARGS, TIMESTAMP, DEPRIORITIZE_FOLDERS_PATTERNS
-        # from GlobalVariables import LOGGER
-        # LOGGER = LOGGER
+
         self.ARGS = ARGS
         self.TIMESTAMP = TIMESTAMP
         self.DEPRIORITIZE_FOLDERS_PATTERNS = DEPRIORITIZE_FOLDERS_PATTERNS

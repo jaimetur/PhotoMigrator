@@ -1,17 +1,13 @@
 from GlobalVariables import LOGGER, ARGS, TIMESTAMP, START_TIME, HELP_TEXTS, DEPRIORITIZE_FOLDERS_PATTERNS, SCRIPT_DESCRIPTION
 import os, sys
 from datetime import datetime, timedelta
-from Utils import get_caller_log_level
 import Utils
 import logging
-from CustomLogger import set_log_level
+from CustomLogger import set_log_level, clone_logger
 from Duplicates import find_duplicates, process_duplicates_actions
 from ClassGoogleTakeout import ClassGoogleTakeout
 from ClassSynologyPhotos import ClassSynologyPhotos
 from ClassImmichPhotos import ClassImmichPhotos
-# from ClassGoogleTakeout import google_takeout_processor
-# from ClassSynologyPhotos import login_synology, logout_synology, synology_upload_albums, synology_upload_ALL, synology_download_albums, synology_download_ALL, synology_remove_empty_albums, synology_remove_duplicates_albums, synology_remove_all_assets, synology_remove_all_albums
-# from ClassImmichPhotos import login_immich, logout_immich, immich_upload_albums, immich_upload_ALL, immich_download_albums, immich_download_ALL, immich_remove_empty_albums, immich_remove_duplicates_albums, immich_remove_all_assets, immich_remove_all_albums, immich_remove_orphan_assets, remove_duplicates_assets
 
 ####################################
 # EXTRA MODE: AUTOMATED-MIGRATION: #
@@ -274,10 +270,10 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
     import shutil
     import threading
     from queue import Queue
-    from GlobalVariables import LOGGER
 
-    parent_log_level = get_caller_log_level()
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    LOGGER_THREADS = clone_logger(LOGGER)
+    parent_log_level = LOGGER_THREADS.level
+    with set_log_level(LOGGER_THREADS, log_level):  # Change Log Level to log_level for this function
 
         # Preparar la cola que compartiremos entre descargas y subidas
         upload_queue = Queue()
@@ -305,11 +301,10 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
         # 1) Función Worker para SUBIR (consumir de la cola)
         # ----------------------------------------------------------------------------
         def upload_worker(log_level=logging.INFO):
-            from GlobalVariables import LOGGER
-            parent_log_level = get_caller_log_level()
+            parent_log_level = LOGGER_THREADS.level
 
             while True:
-                with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+                with set_log_level(LOGGER_THREADS, log_level):  # Change Log Level to log_level for this function
                     # Extraemos el siguiente asset de la cola
                     item = upload_queue.get()
                     if item is None:
@@ -331,14 +326,14 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
                     if asset_id:
                         if isDuplicated:
                             counters['total_upload_duplicates_assets'] += 1
-                            LOGGER.info(f"INFO    : Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
+                            LOGGER_THREADS.info(f"INFO    : Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
                         else:
                             counters['total_uploaded_assets'] += 1
                             if asset_type== 'video':
                                 counters['total_uploaded_videos'] += 1
                             else:
                                 counters['total_uploaded_photos'] += 1
-                            LOGGER.info(f"INFO    : Asset Uploaded: '{os.path.basename(asset_file_path)}'")
+                            LOGGER_THREADS.info(f"INFO    : Asset Uploaded: '{os.path.basename(asset_file_path)}'")
                     else:
                         counters['total_upload_skipped_assets'] += 1
 
@@ -350,7 +345,7 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
                             pass
                         finally:
                             # Restore log_level of the parent method
-                            LOGGER.setLevel(parent_log_level)
+                            # set_log_level(logger_threads, parent_log_level, manual=True)
                             pass
 
                     # Si existe album_name, manejar álbum en destino
@@ -359,7 +354,7 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
                         if album_name not in processed_albums:
                             processed_albums[album_name] = None  # Marcamos que se procesó
                             counters['total_uploaded_albums'] += 1
-                            LOGGER.info(f"INFO    : Album Uploaded: '{album_name}'")
+                            LOGGER_THREADS.info(f"INFO    : Album Uploaded: '{album_name}'")
 
                         # Si el álbum no existe en destino, lo creamos
                         album_exists, album_id_dest = target_client.album_exists(album_name=album_name, log_level=logging.WARNING)
@@ -380,7 +375,7 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
                                 pass
                             finally:
                                 # Restore log_level of the parent method
-                                LOGGER.setLevel(parent_log_level)
+                                # set_log_level(logger_threads, parent_log_level, manual=True)
                                 pass
 
                     upload_queue.task_done()
@@ -421,11 +416,13 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
                 album_folder = os.path.join(temp_folder, album_name)
                 os.makedirs(album_folder, exist_ok=True)
 
-                # Descargar el asset
-                downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=album_folder, log_level=logging.WARNING)
-                local_file_path = os.path.join(album_folder, asset_filename)
+                try:
+                    # Descargar el asset
+                    downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=album_folder, log_level=logging.WARNING)
+                except Exception as e:
+                    LOGGER_THREADS.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
 
-                LOGGER.info(f"INFO    : Asset Downloaded: '{os.path.basename(asset_filename)}'")
+                LOGGER_THREADS.info(f"INFO    : Asset Downloaded: '{os.path.basename(asset_filename)}'")
 
                 # Actualizamos Contadores de descargas
                 if downloaded_assets>0:
@@ -438,6 +435,7 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
                     counters['total_download_skipped_assets'] += 1
 
                 # Enviar a la cola con la información necesaria para la subida
+                local_file_path = os.path.join(album_folder, asset_filename)
                 item_dict = {
                     'asset_id': asset_id,
                     'asset_file_path': local_file_path,
@@ -448,22 +446,29 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
                 upload_queue.put(item_dict)
                 sys.stdout.flush()
                 sys.stderr.flush()
-            LOGGER.info(f"INFO    : Album Downloaded: '{album_name}'")
+            LOGGER_THREADS.info(f"INFO    : Album Downloaded: '{album_name}'")
 
 
         # 3.2) Descarga de assets sin álbum
-        assets_no_album = source_client.get_no_albums_assets()
+        try:
+            assets_no_album = source_client.get_no_albums_assets()
+        except Exception as e:
+            LOGGER_THREADS.error(f"ERROR  : Error Getting Asset without Albums")
+
         for asset in assets_no_album:
             asset_id = asset['id']
             asset_type = asset['type']
             asset_datetime = asset.get('time')
             asset_filename = asset.get('filename')
 
-            # Descargar directamente en temp_folder
-            downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
+            try:
+                # Descargar directamente en temp_folder
+                downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
+            except Exception as e:
+                LOGGER_THREADS.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
 
             local_file_path = os.path.join(temp_folder, asset_filename)
-            LOGGER.info(f"INFO    : Asset Downloaded: '{os.path.basename(asset_filename)}'")
+            LOGGER_THREADS.info(f"INFO    : Asset Downloaded: '{os.path.basename(asset_filename)}'")
 
             # Actualizamos Contadores de descargas
             if downloaded_assets > 0:
@@ -506,13 +511,13 @@ def automated_migration(source_client, target_client, temp_folder, log_level=log
         # ----------------------------------------------------------------------------
         # 5) Mostrar o retornar contadores
         # ----------------------------------------------------------------------------
-        LOGGER.info(f"")
-        LOGGER.info(f"INFO    : ----- SINCRONIZACIÓN FINALIZADA -----")
-        LOGGER.info(f"INFO    : {source_client.get_client_name()} --> {target_client.get_client_name()}")
-        LOGGER.info(f"INFO    : Downloaded Albums : {counters['total_downloaded_albums']}")
-        LOGGER.info(f"INFO    : Uploaded Albums   : {counters['total_uploaded_albums']}")
-        LOGGER.info(f"INFO    : Downloaded Assets : {counters['total_downloaded_assets']} (Fotos: {counters['total_downloaded_photos']}, Videos: {counters['total_downloaded_videos']})")
-        LOGGER.info(f"INFO    : Uploaded Assets   : {counters['total_uploaded_assets']} (Fotos: {counters['total_uploaded_photos']}, Videos: {counters['total_uploaded_videos']})")
+        LOGGER_THREADS.info(f"")
+        LOGGER_THREADS.info(f"INFO    : ----- SINCRONIZACIÓN FINALIZADA -----")
+        LOGGER_THREADS.info(f"INFO    : {source_client.get_client_name()} --> {target_client.get_client_name()}")
+        LOGGER_THREADS.info(f"INFO    : Downloaded Albums : {counters['total_downloaded_albums']}")
+        LOGGER_THREADS.info(f"INFO    : Uploaded Albums   : {counters['total_uploaded_albums']}")
+        LOGGER_THREADS.info(f"INFO    : Downloaded Assets : {counters['total_downloaded_assets']} (Fotos: {counters['total_downloaded_photos']}, Videos: {counters['total_downloaded_videos']})")
+        LOGGER_THREADS.info(f"INFO    : Uploaded Assets   : {counters['total_uploaded_assets']} (Fotos: {counters['total_uploaded_photos']}, Videos: {counters['total_uploaded_videos']})")
 
         return counters
 
