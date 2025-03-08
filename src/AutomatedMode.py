@@ -769,6 +769,3 @@ if __name__ == "__main__":
 
     # 3) Cuando showDashboard termine, esperar la finalización (si hace falta)
     migration_thread.join()
-
-
-
