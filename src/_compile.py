@@ -227,7 +227,7 @@ def compile():
     
     # Añadimos el ROADMAP en el fichero README
     add_roadmap_to_readme(readme_filepath, roadmap_filepath)
-    print(f"Archivo README.md actualizado correctamente con el ROADMAP.")
+    print(f"Archivo README.md actualizado correctamente con el ROADMAP.md")
 
     if COMPILER=='pyinstaller':
         # Inicializamos variables
