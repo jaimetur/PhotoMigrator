@@ -316,6 +316,16 @@ jobs:
           }
         shell: pwsh
 
+      # 5. Commit y push README.md si hay cambios
+      - name: 5. Commit y push README.md
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add README.md
+          git commit -m "Actualizar README.md tras compilación" || exit 0
+          git push origin HEAD:${{ github.ref_name }}
+
 #      # Upload the compiled compressed file to the Actions task
 #      - name: Archive Artifacts
 #        uses: actions/upload-artifact@v4
