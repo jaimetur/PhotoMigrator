@@ -324,7 +324,7 @@ jobs:
 
           git add README.md
           git commit -m "Actualizar README.md tras compilación" || exit 0
-          git push origin HEAD:${{ github.ref_name }}
+          git push origin ${{ github.ref_name }}
 
 #      # Upload the compiled compressed file to the Actions task
 #      - name: Archive Artifacts
