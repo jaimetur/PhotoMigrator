@@ -71,7 +71,7 @@ class InMemoryLogHandler(logging.Handler):
 ####################################
 # EXTRA MODE: AUTOMATED-MIGRATION: #
 ####################################
-def showDashboard(log_level=logging.INFO):
+def showDashboard(tittle="Automated Migration Process - CloudPhotoMigrator", log_level=logging.INFO):
     import time, random, threading
     from rich.console import Console
     from rich.layout import Layout
@@ -118,9 +118,7 @@ def showDashboard(log_level=logging.INFO):
     # ─────────────────────────────────────────────────────────────────────────
     # 1) Header Panel
     # ─────────────────────────────────────────────────────────────────────────
-    layout["header"].update(
-        Panel("[bold cyan]📂 Synology Photos → Immich Photos Migration[/bold cyan]", expand=True)
-    )
+    layout["header"].update(Panel(f"[bold cyan]📂 {tittle}[/bold cyan]", expand=True))
 
     # ─────────────────────────────────────────────────────────────────────────
     # 2) Input Analysis Panel
@@ -731,8 +729,8 @@ if __name__ == "__main__":
     temp_folder = './Temp_folder'
 
     # Create the Objects for source and target
-    # source = ClassSynologyPhotos()
-    # target = ClassImmichPhotos()
+    # source_client = ClassSynologyPhotos()
+    # target_client = ClassImmichPhotos()
 
     source_client = ClassImmichPhotos()
     target_client = ClassSynologyPhotos()
@@ -766,7 +764,8 @@ if __name__ == "__main__":
     migration_thread.start()
 
     # 2) Lanzamos el dashboard en el hilo principal (o viceversa).
-    showDashboard(log_level=logging.INFO)
+    tittle = f"{source_client.get_client_name()} ➜ {target_client.get_client_name()} - Automated Migration - CloudPhotoMigrator v3.1.0"
+    showDashboard(tittle=tittle, log_level=logging.INFO)
 
     # 3) Cuando showDashboard termine, esperar la finalización (si hace falta)
     migration_thread.join()
