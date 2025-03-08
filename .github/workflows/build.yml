@@ -316,31 +316,27 @@ jobs:
           }
         shell: pwsh
 
-  push-readme:
-    name: Update README.md with ROADMAP.md
-    needs: build           # Espera a que terminen *todas* las subejecuciones de 'build'
-    runs-on: ubuntu-latest # Se ejecuta una sola vez
-    if: success()          # Solo si el 'build' ha tenido éxito
-    steps:
-      - name: Commit y push README.md
+      # Paso para hacer commit y push del README 
+      # Solo si OS = Ubuntu* y arch = x86_64
+      - name: 5. Commit y push README.md
+        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
+          
           git add README.md
 
-          # Verifica si realmente hay cambios en README.md
+          # Si NO hay cambios, salir sin error
           if git diff --cached --quiet; then
-            echo "No hay cambios en README.md; no se hace commit."
+            echo "No hay cambios en README.md"
             exit 0
           fi
 
-          # (Opcional) Si alguien hizo push mientras tanto:
+          # Opcional: por si hay commits nuevos en la rama
           git pull --rebase origin ${{ github.ref_name }}
 
           git commit -m "Actualizar README.md tras compilación"
           git push origin ${{ github.ref_name }}
-
 
 #      # Upload the compiled compressed file to the Actions task
 #      - name: Archive Artifacts
