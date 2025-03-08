@@ -137,7 +137,6 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
     :param readme_file: Ruta al archivo README.md.
     :param roadmap_file: Ruta al archivo ROADMAP.md.
     """
-    import re
 
     # Leer el contenido del archivo README
     with open(readme_file, "r", encoding="utf-8") as f:
