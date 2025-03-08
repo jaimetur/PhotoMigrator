@@ -137,9 +137,10 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, time
 # Crear un contexto para cambiar el nivel del logger temporalmente
 @contextmanager
 def set_log_level(logger, level):
+    from GlobalVariables import LOGGER
     old_level = logger.level  # Guardar nivel actual
-    logger.setLevel(level)  # Cambiar nivel
+    LOGGER.setLevel(level)  # Cambiar nivel
     try:
         yield
     finally:
-        logger.setLevel(old_level)  # Restaurar nivel original
+        LOGGER.setLevel(old_level)  # Restaurar nivel original
