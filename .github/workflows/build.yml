@@ -85,7 +85,6 @@ jobs:
           echo "::endgroup::"
         shell: bash
 
-
       # 2a. Read SCRIPT_VERSION and ARCHIVE_PATH from script_info.txt (Linux/macOS)
       - name: 2a. Read SCRIPT_VERSION and ARCHIVE_PATH from script_info.txt (Linux/macOS)
         if: runner.os != 'Windows'
@@ -123,18 +122,6 @@ jobs:
           Write-Output "SCRIPT_VERSION (Windows): $SCRIPT_VERSION"
           Write-Output "ARCHIVE_PATH (Windows)  : $ARCHIVE_PATH"
 
-#      # 3. Commit and tag
-#      - name: 3. Commit and tag
-#        id: push-tag
-#        uses: EndBug/add-and-commit@v9
-#        with:
-#          default_author: github_actions
-#          message: 'SCRIPT_VERSION: ${{ env.SCRIPT_VERSION }}'
-#          tag: ${{ env.SCRIPT_VERSION }}
-#          push: true
-#        env:
-#          TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
-
       # 3. Create Release and Upload Artifact to it
       - name: 3. Create Release and Upload Artifact to it
         uses: softprops/action-gh-release@v2
@@ -147,7 +134,83 @@ jobs:
             ${{ env.ARCHIVE_PATH }}
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+        
+      # 4a. - Cleanup (Linux/macOS)
+      - name: 4a. - Cleanup (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          if [ -f artifact_base64.txt ]; then
+            rm artifact_base64.txt
+            echo "Archivo artifact_base64.txt eliminado de carpeta raiz."
+          elif [ -f src/artifact_base64.txt ]; then
+            rm artifact_base64.txt
+            echo "Archivo artifact_base64.txt eliminado de src."
+          fi
+          # if [ -f ${{ env.ARCHIVE_PATH }} ]; then
+            # rm ${{ env.ARCHIVE_PATH }}
+            # echo "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta raiz."
+          # elif [ -f src/${{ env.ARCHIVE_PATH }} ]; then
+            # rm ${{ env.ARCHIVE_PATH }}
+            # echo "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta src."
+          # fi
+        shell: bash
 
+      # 4b. - Cleanup (Windows)
+      - name: 4b. - Cleanup (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          if (Test-Path "artifact_base64.txt") {
+            Remove-Item -Path "artifact_base64.txt"
+            Write-Host "Archivo artifact_base64.txt eliminado de carpeta raiz."
+          } 
+          elseif (Test-Path "src\artifact_base64.txt") {
+            Remove-Item -Path "src\artifact_base64.txt"
+            Write-Host "Archivo artifact_base64.txt eliminado de carpeta src\."
+          }
+          if (Test-Path "${{ env.ARCHIVE_PATH }}") {
+            Remove-Item -Path "${{ env.ARCHIVE_PATH }}"
+            Write-Host "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta raiz."
+          } 
+          elseif (Test-Path "src\${{ env.ARCHIVE_PATH }}") {
+            Remove-Item -Path "src\${{ env.ARCHIVE_PATH }}"
+            Write-Host "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta src\."
+          }
+        shell: pwsh
+
+      # 5. Commit y push README.md (Solo si OS = Ubuntu* y arch = x86_64)
+      - name: 5. Commit y push README.md
+        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add README.md
+
+          # Si NO hay cambios, salir sin error
+          if git diff --cached --quiet; then
+            echo "No hay cambios en README.md"
+            exit 0
+          fi
+
+          # Opcional: por si hay commits nuevos en la rama
+          git pull --rebase origin ${{ github.ref_name }}
+
+          git commit -m "Actualizar README.md tras compilación"
+          git push origin ${{ github.ref_name }}
+
+
+#      # 3. Commit and tag
+#      - name: 3. Commit and tag
+#        id: push-tag
+#        uses: EndBug/add-and-commit@v9
+#        with:
+#          default_author: github_actions
+#          message: 'SCRIPT_VERSION: ${{ env.SCRIPT_VERSION }}'
+#          tag: ${{ env.SCRIPT_VERSION }}
+#          push: true
+#        env:
+#          TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
+#
 #      # 4a. - Upload artifact to GitHub repos with API (Linux/macOS)
 #      - name: 4a. - Upload artifact to GitHub repos with API (Linux/macOS)
 #        if: runner.os != 'Windows'
@@ -273,71 +336,7 @@ jobs:
 #            done
 #          done
 #        shell: bash
-        
-      # 4a. - Cleanup (Linux/macOS)
-      - name: 4a. - Cleanup (Linux/macOS)
-        if: runner.os != 'Windows'
-        run: |
-          if [ -f artifact_base64.txt ]; then
-            rm artifact_base64.txt
-            echo "Archivo artifact_base64.txt eliminado de carpeta raiz."
-          elif [ -f src/artifact_base64.txt ]; then
-            rm artifact_base64.txt
-            echo "Archivo artifact_base64.txt eliminado de src."
-          fi
-          # if [ -f ${{ env.ARCHIVE_PATH }} ]; then
-            # rm ${{ env.ARCHIVE_PATH }}
-            # echo "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta raiz."
-          # elif [ -f src/${{ env.ARCHIVE_PATH }} ]; then
-            # rm ${{ env.ARCHIVE_PATH }}
-            # echo "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta src."
-          # fi
-        shell: bash
-
-      # 4b. - Cleanup (Windows)
-      - name: 4b. - Cleanup (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          if (Test-Path "artifact_base64.txt") {
-            Remove-Item -Path "artifact_base64.txt"
-            Write-Host "Archivo artifact_base64.txt eliminado de carpeta raiz."
-          } 
-          elseif (Test-Path "src\artifact_base64.txt") {
-            Remove-Item -Path "src\artifact_base64.txt"
-            Write-Host "Archivo artifact_base64.txt eliminado de carpeta src\."
-          }
-          if (Test-Path "${{ env.ARCHIVE_PATH }}") {
-            Remove-Item -Path "${{ env.ARCHIVE_PATH }}"
-            Write-Host "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta raiz."
-          } 
-          elseif (Test-Path "src\${{ env.ARCHIVE_PATH }}") {
-            Remove-Item -Path "src\${{ env.ARCHIVE_PATH }}"
-            Write-Host "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta src\."
-          }
-        shell: pwsh
-
-      # Paso para hacer commit y push del README 
-      # Solo si OS = Ubuntu* y arch = x86_64
-      - name: 5. Commit y push README.md
-        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          git add README.md
-
-          # Si NO hay cambios, salir sin error
-          if git diff --cached --quiet; then
-            echo "No hay cambios en README.md"
-            exit 0
-          fi
-
-          # Opcional: por si hay commits nuevos en la rama
-          git pull --rebase origin ${{ github.ref_name }}
-
-          git commit -m "Actualizar README.md tras compilación"
-          git push origin ${{ github.ref_name }}
-
+#
 #      # Upload the compiled compressed file to the Actions task
 #      - name: Archive Artifacts
 #        uses: actions/upload-artifact@v4

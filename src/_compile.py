@@ -113,22 +113,6 @@ def extract_release_body(input_file, output_file):
     with open(output_file, 'w', encoding='utf-8') as outfile:
         outfile.writelines(new_content)
 
-
-# def extract_release_body(input_file, output_file):
-#     with open(input_file, 'r', encoding='utf-8') as infile:
-#         lines = infile.readlines()
-#     count = 0
-#     extracted_lines = []
-#     for line in lines:
-#         extracted_lines.append(line)
-#         if '**Release**' in line:
-#             count += 1
-#             if count == 2:
-#                 break
-#     with open(output_file, 'w', encoding='utf-8') as outfile:
-#         outfile.writelines(extracted_lines)
-
-
 def add_roadmap_to_readme(readme_file, roadmap_file):
     """
     Reemplaza el bloque ROADMAP en el archivo README con el contenido de otro archivo ROADMAP.
