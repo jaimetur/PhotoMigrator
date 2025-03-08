@@ -129,6 +129,50 @@ def extract_release_body(input_file, output_file):
 #         outfile.writelines(extracted_lines)
 
 
+def add_roadmap_to_readme(readme_file, roadmap_file):
+    """
+    Reemplaza el bloque ROADMAP en el archivo README con el contenido de otro archivo ROADMAP.
+    Si el bloque no existe, lo inserta antes de la línea que contiene "## Credits".
+
+    :param readme_file: Ruta al archivo README.md.
+    :param roadmap_file: Ruta al archivo ROADMAP.md.
+    """
+
+    # Leer el contenido del archivo README
+    with open(readme_file, "r", encoding="utf-8") as f:
+        readme_lines = f.readlines()
+
+    # Leer el contenido del archivo ROADMAP
+    with open(roadmap_file, "r", encoding="utf-8") as f:
+        roadmap_content = f.read().strip() + "\n\n"  # Asegurar un salto de línea final
+
+    # Buscar el bloque ROADMAP existente
+    start_index, end_index = None, None
+    for i, line in enumerate(readme_lines):
+        if line.strip() == "# ROADMAP:":
+            start_index = i
+        if start_index is not None and line.strip() == "## Credits":
+            end_index = i
+            break
+
+    if start_index is not None and end_index is not None:
+        # Sustituir el bloque ROADMAP existente
+        updated_readme = readme_lines[:start_index] + [roadmap_content] + readme_lines[end_index:]
+    else:
+        # Buscar la línea donde comienza "## Credits" para insertar el bloque ROADMAP antes
+        credits_index = next((i for i, line in enumerate(readme_lines) if line.strip() == "## Credits"), None)
+
+        if credits_index is not None:
+            updated_readme = readme_lines[:credits_index] + [roadmap_content] + readme_lines[credits_index:]
+        else:
+            # Si no se encuentra "## Credits", simplemente añadir al final del archivo
+            updated_readme = readme_lines + [roadmap_content]
+
+    # Escribir el contenido actualizado en el archivo README
+    with open(readme_file, "w", encoding="utf-8") as f:
+        f.writelines(updated_readme)
+
+
 def compile():
     global SCRIPT_NAME
     global SCRIPT_NAME_VERSION
@@ -164,6 +208,26 @@ def compile():
     shutil.rmtree('build', ignore_errors=True)
     shutil.rmtree('dist', ignore_errors=True)
     print("")
+    
+    # Extraer el cuerpo de la CURRENT-RELEASE-NOTES y añadir ROADMAP al fichero README.md
+    print("Extrayendo el cuerpo de la CURRENT-RELEASE-NOTES y añadiendo ROADMAP al fichero README.md...")
+    
+    # Obtener el directorio raíz un nivel arriba del directorio de trabajo
+    root_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+
+    # Ruta de los archivs RELEASES-NOTES.md, CURRENT-RELEASE.md, README.md y ROADMAP.md
+    releases_filepath = os.path.join(root_dir,'RELEASES-NOTES.md')
+    current_release_filepath = os.path.join(root_dir,'CURRENT-RELEASE.md')
+    readme_filepath = os.path.join(root_dir,'README.md')
+    roadmap_filepath = os.path.join(root_dir,'ROADMAP.md')
+    
+    # Extraer el cuerpo de la Release actual de RELEASES-NOTES.md
+    extract_release_body(releases_filepath, current_release_filepath)
+    print(f"Archivo {current_release_filepath} creado correctamente.")
+    
+    # Añadimos el ROADMAP en el fichero README
+    add_roadmap_to_readme(readme_filepath, roadmap_filepath)
+    print(f"Archivo README.md actualizado correctamente con el ROADMAP.md")
 
     if COMPILER=='pyinstaller':
         # Inicializamos variables
@@ -253,6 +317,7 @@ def compile():
                 '--include-data-file=Synology.config=Synology.config',
                 '--include-data-file=../README.md=README.md'
             ])
+            
             # Movemos el fichero compilado a la carpeta padre
             print(f"\nMoviendo script compilado '{script_compiled_with_version_os_arch_extension}'...")
             shutil.move(f'./dist/{script_compiled}', f'../{script_compiled_with_version_os_arch_extension}')
@@ -268,16 +333,7 @@ def compile():
             print(f"Script comprimido: {script_zip_file}")
 
     print("Todas las compilaciones han finalizado correctamente.")
-    # Obtener el directorio raíz un nivel arriba del directorio de trabajo
-    root_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
-    # Calcular el path relativo
-    relative_path = os.path.relpath(script_zip_file, root_dir)
-    # Ruta del archivo de RELEASES-NOTES.md y CURRENT-RELEASE.md
-    releases_filepath = os.path.join(root_dir,'RELEASES-NOTES.md')
-    current_release_filepath = os.path.join(root_dir,'CURRENT-RELEASE.md')
-    # Extraer el cuerpo de la Release actual de RELEASES-NOTES.md
-    extract_release_body(releases_filepath, current_release_filepath)
-    print(f"Archivo {current_release_filepath} creado correctamente.")
+    
     # Guardar script_info.txt en un fichero de texto
     with open(os.path.join(root_dir,'script_info.txt'), 'w') as file:
         file.write(SCRIPT_VERSION_INT + '\n')
