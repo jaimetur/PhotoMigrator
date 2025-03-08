@@ -1,18 +1,18 @@
-name: Update README.md with ROADMAP.md
-  push-readme:
-    needs: build  # Espera a que termine el job de compilación
-    runs-on: ubuntu-latest  # Solo ejecuta en un SO
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.TOKEN_GITHUB }}
+push-readme:
+  name: Update README.md with ROADMAP.md
+  needs: build  # Espera a que termine el job de compilación
+  runs-on: ubuntu-latest  # Solo ejecuta en un SO
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.TOKEN_GITHUB }}
 
-      - name: Commit y push README.md
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+    - name: Commit y push README.md
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add README.md
-          git commit -m "Actualizar README.md tras compilación" || exit 0
-          git push origin ${{ github.ref_name }}
+        git add README.md
+        git commit -m "Actualizar README.md tras compilación" || exit 0
+        git push origin ${{ github.ref_name }}
