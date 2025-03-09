@@ -457,7 +457,7 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
             ("📂 Total Albums", total_albums),
             ("📑 Total Metadata", total_metadata),
             ("🚫 Unsupported Files", total_unsopported),
-            ("📑 Log File", log_file),
+            ("📜 Log File", log_file),
         ]
         # table = Table.grid(expand=True)
         # table.add_column(justify="left", width=20)
