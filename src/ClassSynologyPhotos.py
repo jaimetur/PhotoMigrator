@@ -42,9 +42,10 @@ import time
 import logging
 import inspect
 
-# Keep your existing imports for these utilities outside the class:
-from CustomLogger import set_log_level
 from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm
+
+# We also keep references to your custom logger context manager and utility functions:
+from CustomLogger import set_log_level
 
 # Import the global LOGGER from GlobalVariables
 from GlobalVariables import LOGGER
@@ -81,23 +82,22 @@ class ClassSynologyPhotos:
         self.SYNO_TOKEN_HEADER = {}
 
         # Allowed extensions:
-        # (Originally declared as ALLOWED_SYNOLOGY_SIDECAR_EXTENSIONS, ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS, etc.)
-        self.ALLOWED_SYNOLOGY_SIDECAR_EXTENSIONS = []
-        self.ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS = [
+        self.ALLOWED_SIDECAR_EXTENSIONS = []
+        self.ALLOWED_PHOTO_EXTENSIONS = [
             '.BMP', '.GIF', '.JPG', '.JPEG', '.PNG', '.3fr', '.arw', '.cr2', '.cr3', '.crw', '.dcr',
             '.dng', '.erf', '.k25', '.kdc', '.mef', '.mos', '.mrw', '.nef', '.orf', '.ptx', '.pef',
             '.raf', '.raw', '.rw2', '.sr2', '.srf', '.TIFF', '.HEIC'
         ]
-        self.ALLOWED_SYNOLOGY_VIDEO_EXTENSIONS = [
+        self.ALLOWED_VIDEO_EXTENSIONS = [
             '.3G2', '.3GP', '.ASF', '.AVI', '.DivX', '.FLV', '.M4V',
             '.MOV', '.MP4', '.MPEG', '.MPG', '.MTS', '.M2TS', '.M2T',
             '.QT', '.WMV', '.XviD'
         ]
         # Lowercase them:
-        self.ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS = [ext.lower() for ext in self.ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS]
-        self.ALLOWED_SYNOLOGY_VIDEO_EXTENSIONS = [ext.lower() for ext in self.ALLOWED_SYNOLOGY_VIDEO_EXTENSIONS]
-        self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS = self.ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS + self.ALLOWED_SYNOLOGY_VIDEO_EXTENSIONS
-        self.ALLOWED_SYNOLOGY_EXTENSIONS = self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS
+        self.ALLOWED_PHOTO_EXTENSIONS = [ext.lower() for ext in self.ALLOWED_PHOTO_EXTENSIONS]
+        self.ALLOWED_VIDEO_EXTENSIONS = [ext.lower() for ext in self.ALLOWED_VIDEO_EXTENSIONS]
+        self.ALLOWED_MEDIA_EXTENSIONS = self.ALLOWED_PHOTO_EXTENSIONS + self.ALLOWED_VIDEO_EXTENSIONS
+        self.ALLOWED_EXTENSIONS = self.ALLOWED_MEDIA_EXTENSIONS
 
         self.CLIENT_NAME = 'Synology Photos'
 
@@ -277,16 +277,16 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 if type.lower() == 'media':
-                    supported_types = self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS
+                    supported_types = self.ALLOWED_MEDIA_EXTENSIONS
                     LOGGER.debug(f"DEBUG   : Supported media types: '{supported_types}'.")
                 elif type.lower() == 'image':
-                    supported_types = self.ALLOWED_SYNOLOGY_PHOTO_EXTENSIONS
+                    supported_types = self.ALLOWED_PHOTO_EXTENSIONS
                     LOGGER.debug(f"DEBUG   : Supported image types: '{supported_types}'.")
                 elif type.lower() == 'video':
-                    supported_types = self.ALLOWED_SYNOLOGY_VIDEO_EXTENSIONS
+                    supported_types = self.ALLOWED_VIDEO_EXTENSIONS
                     LOGGER.debug(f"DEBUG   : Supported video types: '{supported_types}'.")
                 elif type.lower() == 'sidecar':
-                    supported_types = self.ALLOWED_SYNOLOGY_SIDECAR_EXTENSIONS
+                    supported_types = self.ALLOWED_SIDECAR_EXTENSIONS
                     LOGGER.debug(f"DEBUG   : Supported sidecar types: '{supported_types}'.")
                 else:
                     LOGGER.error(f"ERROR   : Invalid type '{type}' to get supported media types. Types allowed are 'media', 'image', 'video' or 'sidecar'")
@@ -1048,8 +1048,8 @@ class ClassSynologyPhotos:
 
                 filename, ext = os.path.splitext(file_path)
                 ext = ext.lower()
-                if ext not in self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS:
-                    if ext in self.ALLOWED_SYNOLOGY_SIDECAR_EXTENSIONS:
+                if ext not in self.ALLOWED_MEDIA_EXTENSIONS:
+                    if ext in self.ALLOWED_SIDECAR_EXTENSIONS:
                         return None, None
                     else:
                         LOGGER.warning(f"")
@@ -1159,7 +1159,7 @@ class ClassSynologyPhotos:
 
                 os.utime(file_path, (asset_time, asset_time))
 
-                if file_ext in self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS:
+                if file_ext in self.ALLOWED_MEDIA_EXTENSIONS:
                     update_metadata(file_path, asset_datetime.strftime("%Y-%m-%d %H:%M:%S"), log_level=logging.ERROR)
 
                 LOGGER.debug("")
@@ -1657,7 +1657,7 @@ class ClassSynologyPhotos:
                             dir_path = dir_path.decode()
 
                         has_supported_files = any(
-                            os.path.splitext(file)[-1].lower() in self.ALLOWED_SYNOLOGY_EXTENSIONS
+                            os.path.splitext(file)[-1].lower() in self.ALLOWED_EXTENSIONS
                             for file in os.listdir(dir_path)
                             if os.path.isfile(os.path.join(dir_path, file))
                         )
@@ -1702,14 +1702,14 @@ class ClassSynologyPhotos:
                                 if not os.path.isfile(file_path):
                                     continue
                                 ext = os.path.splitext(file_)[-1].lower()
-                                if ext not in self.ALLOWED_SYNOLOGY_EXTENSIONS:
+                                if ext not in self.ALLOWED_EXTENSIONS:
                                     continue
 
                                 asset_id = self.upload_asset(file_path, log_level=logging.WARNING)
                                 if asset_id:
                                     total_assets_uploaded += 1
                                     # Associate only if ext is photo/video
-                                    if ext in self.ALLOWED_SYNOLOGY_MEDIA_EXTENSIONS:
+                                    if ext in self.ALLOWED_MEDIA_EXTENSIONS:
                                         new_album_assets_ids.append(asset_id)
                             if new_album_assets_ids:
                                 self.add_assets_to_album(album_id, new_album_assets_ids, album_name=album_name, log_level=logging.WARNING)

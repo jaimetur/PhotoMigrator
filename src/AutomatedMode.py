@@ -9,21 +9,27 @@ from Duplicates import find_duplicates, process_duplicates_actions
 from ClassGoogleTakeout import ClassGoogleTakeout
 from ClassSynologyPhotos import ClassSynologyPhotos
 from ClassImmichPhotos import ClassImmichPhotos
+from ClassLocalFolder import ClassLocalFolder
 
 
 ####################################
 # EXTRA MODE: AUTOMATED-MIGRATION: #
 ####################################
-def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
+def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder, launch_dashboard=False):
     import json
     import queue
     from pathlib import Path
 
+    base_folder = r'r:\jaimetur\CloudPhotoMigrator\LocalFolderClient'
     # Create the Objects for source_client and target_client
     # source_client = ClassSynologyPhotos()
     # target_client = ClassImmichPhotos()
-    source_client = ClassImmichPhotos()
-    target_client = ClassSynologyPhotos()
+    # source_client = ClassImmichPhotos()
+    # target_client = ClassSynologyPhotos()
+    # source_client = ClassLocalFolder(base_folder=base_folder)
+    # target_client = ClassSynologyPhotos()
+    source_client = ClassSynologyPhotos()
+    target_client = ClassLocalFolder(base_folder=base_folder)
 
     ###################################################################
     # Declare shared variables to pass as reference to both functions #
@@ -77,20 +83,23 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
     migration_thread = threading.Thread(
         target=parallel_automated_migration,
         args=(source_client, target_client, temp_folder, SHARED_COUNTERS, SHARED_LOGS_QUEUE),
-        kwargs={'log_level': logging.INFO, 'memory_log': True},
+        kwargs={'log_level': logging.INFO, 'launch_dashboard': launch_dashboard},
         daemon=True
     )
     migration_thread.start()
 
     # 2) Lanzamos el dashboard en el hilo principal (o viceversa).
-    title = f"{source_client.get_client_name()} ➜ {target_client.get_client_name()} - Automated Migration - CloudPhotoMigrator v3.1.0"
-    show_dashboard(
-        migration_thread=migration_thread,
-        SHARED_INPUT_INFO=SHARED_INPUT_INFO,
-        SHARED_COUNTERS=SHARED_COUNTERS,
-        SHARED_LOGS_QUEUE=SHARED_LOGS_QUEUE,
-        title=title,
-        log_level=logging.INFO)
+    if launch_dashboard:
+        source_client_name = source_client.get_client_name()
+        target_client_name = target_client.get_client_name()
+        show_dashboard(
+            migration_thread=migration_thread,
+            SHARED_INPUT_INFO=SHARED_INPUT_INFO,
+            SHARED_COUNTERS=SHARED_COUNTERS,
+            SHARED_LOGS_QUEUE=SHARED_LOGS_QUEUE,
+            source_client_name=source_client_name,
+            target_client_name=target_client_name,
+            log_level=logging.INFO)
 
     # 3) Cuando show_dashboard termine, esperar la finalización (si hace falta)
     migration_thread.join()
@@ -99,7 +108,7 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
 #########################################
 # parallel_automated_migration Function #
 #########################################
-def parallel_automated_migration(source_client, target_client, temp_folder, SHARED_COUNTERS, SHARED_LOGS_QUEUE, log_level=logging.INFO, memory_log=False):
+def parallel_automated_migration(source_client, target_client, temp_folder, SHARED_COUNTERS, SHARED_LOGS_QUEUE, log_level=logging.INFO, launch_dashboard=False):
     """
     Sincroniza fotos y vídeos entre un 'source_client' y un 'destination_client',
     descargando álbumes y assets desde la fuente, y luego subiéndolos a destino,
@@ -131,10 +140,15 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     LOGGER_THREADS = clone_logger(LOGGER)
     parent_log_level = LOGGER_THREADS.level
     with set_log_level(LOGGER_THREADS, log_level):  # Change Log Level to log_level for this function
-        if memory_log:
+        # If show_dashboard=True, remove Console handler for Logging and add a Memory handler to manage a Messages Log Queue
+        if launch_dashboard:
+            # Filtrar y eliminar los handlers de consola
+            for handler in LOGGER_THREADS.handlers[:]:  # Copia la lista para evitar modificaciones en el bucle
+                if isinstance(handler, logging.StreamHandler):  # StreamHandler es el que imprime en consola
+                    logger.removeHandler(handler)
+
             # Crea el handler y configúralo con un formatter
             memory_handler = CustomInMemoryLogHandler(SHARED_LOGS_QUEUE)
-            # memory_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
             memory_handler.setFormatter(CustomConsoleFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
 
             # Agrega el handler al LOGGER
@@ -142,7 +156,6 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
             # Opcional: si NO quieres imprimir por consola, puedes quitar el StreamHandler que tenga el logger por defecto (así solo se registran en la lista).
             # Por ejemplo:
-            LOGGER_THREADS.handlers = [memory_handler]
             LOGGER_THREADS.propagate = False
 
         # Preparar la cola que compartiremos entre descargas y subidas
@@ -233,8 +246,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                                 pass
 
                     upload_queue.task_done()
-                    sys.stdout.flush()
-                    sys.stderr.flush()
+                    # sys.stdout.flush()
+                    # sys.stderr.flush()
 
         # ----------------------------------------------------------------------------
         # 2) Iniciar uno o varios hilos para manejar la subida concurrente
@@ -381,7 +394,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 ###########################
 # show_dashboard Function #
 ###########################
-def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_LOGS_QUEUE, title="Automated Migration Process - CloudPhotoMigrator", log_level=logging.INFO):
+def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_LOGS_QUEUE, source_client_name, target_client_name, log_level=logging.INFO):
     import time, random, threading
     from rich.console import Console
     from rich.layout import Layout
@@ -393,6 +406,8 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
     from rich.columns import Columns
     import queue
     import textwrap
+
+    title = f"{source_client_name} ➜ {target_client_name} - Automated Migration - CloudPhotoMigrator v3.1.0"
 
     # Lista (o deque) para mantener todo el historial de logs ya mostrados
     ACCU_LOGS = []
@@ -503,7 +518,7 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
         for label, val in failed_downloads.items():
             table.add_row(f"[cyan]❌ {label:<18}:[/cyan]", f"[cyan]{val}[/cyan]")
 
-        return Panel(table, title="📥 Synology Photos Downloads", border_style="cyan", expand=True)
+        return Panel(table, title=f"📥 {source_client_name} Downloads", border_style="cyan", expand=True)
 
     def build_upload_panel():
         table = Table.grid(expand=True)
@@ -516,7 +531,7 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
         for label, val in failed_uploads.items():
             table.add_row(f"[green]❌ {label:<16}:[/green]", f"[green]{val}[/green]")
 
-        return Panel(table, title="📤 Immich Photos Uploads", border_style="green", expand=True)
+        return Panel(table, title=f"📤 {target_client_name} Uploads", border_style="green", expand=True)
 
     # ─────────────────────────────────────────────────────────────────────────
     # 4) Logging Panel from Memmory Handler
@@ -709,4 +724,4 @@ if __name__ == "__main__":
     # Define the Temporary Folder for the downloaded assets.
     temp_folder = './Temp_folder'
 
-    mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder=temp_folder)
+    mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder=temp_folder, launch_dashboard=False)
