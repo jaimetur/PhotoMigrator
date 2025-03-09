@@ -68,6 +68,21 @@ class CustomLogFormatter(logging.Formatter):
         record.msg = original_msg
         return formatted_message
 
+class CustomInMemoryLogHandler(logging.Handler):
+    """
+    Almacena los registros de logging en una lista.
+    Luego 'show_dashboard' leerá esa lista para mostrarlos en el panel de logs.
+    """
+    def __init__(self, log_list):
+        super().__init__()
+        self.log_list = log_list   # lista compartida para almacenar los mensajes
+
+    def emit(self, record):
+        # Formatear mensaje
+        msg = self.format(record)
+        # Guardarlo en la lista
+        self.log_list.append(msg)
+
 # Integrar tqdm con el logger
 class TqdmToLogger:
     """Clase para redirigir los mensajes de tqdm al logger."""
