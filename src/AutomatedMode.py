@@ -277,6 +277,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     LOGGER_THREADS.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
 
                 LOGGER_THREADS.info(f"INFO    : Asset Downloaded: '{os.path.basename(asset_filename)}'")
+                # LOGGER_THREADS.debug(f"DEBUG   : Asset Downloaded: '{os.path.basename(asset_filename)}'")
 
                 # Actualizamos Contadores de descargas
                 if downloaded_assets>0:
@@ -537,12 +538,18 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
 
             # Opcional: aplica color según la palabra “download”/”upload”
             l_lower = line.lower()
-            if "download" in l_lower:
+            if "warning" in l_lower:
+                line_colored = f"[yellow]{line}[/yellow]"
+            elif "error" in l_lower:
+                line_colored = f"[red]{line}[/red]"
+            elif "debug" in l_lower:
+                line_colored = f"[#EEEEEE]{line}[/#EEEEEE]"
+            elif "download" in l_lower:
                 line_colored = f"[cyan]{line}[/cyan]"
             elif "upload" in l_lower:
                 line_colored = f"[green]{line}[/green]"
             else:
-                line_colored = f"[white]{line}[/white]"
+                line_colored = f"[bright_white]{line}[/bright_white]"
 
             # Añadimos la versión coloreada al historial
             ACCU_LOGS.append(line_colored)
