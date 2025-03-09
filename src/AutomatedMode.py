@@ -16,6 +16,8 @@ from ClassImmichPhotos import ClassImmichPhotos
 ####################################
 def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
     import json
+    import queue
+    from pathlib import Path
 
     # Create the Objects for source_client and target_client
     # source_client = ClassSynologyPhotos()
@@ -27,8 +29,8 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
     # Declare shared variables to pass as reference to both functions #
     ###################################################################
 
-    # Lista que contendrá los mensajes de log en memoria
-    SHARED_LOGS = []
+    # Cola que contendrá los mensajes de log en memoria
+    SHARED_LOGS_QUEUE = queue.Queue()
 
     # Contadores globales
     SHARED_COUNTERS = {
@@ -51,14 +53,20 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
     all_assets = source_client.get_all_assets()
     all_photos = [asset for asset in all_assets if asset['type'].lower() in ['photo', 'live', 'image']]
     all_videos = [asset for asset in all_assets if asset['type'].lower() in ['video']]
+
+    # Obtiene el directorio de del script actual y calculamos el path del log relativo al directorio de trabajo
+    script_dir = Path(__file__).resolve().parent
+    log_file = Path(Utils.get_logger_filename(LOGGER))
+    log_file_relative = log_file.relative_to(script_dir)
+
     SHARED_INPUT_INFO = {
         "total_assets": len(all_assets),
         "total_photos": len(all_photos),
         "total_videos": len(all_videos),
         "total_albums": len(all_albums),
         "total_metadata": 0,
-        "total_sidecar": 0,
-        "total_unsopported": 0
+        "total_unsopported": 0,
+        "log_file": log_file_relative,
     }
     # LOGGER.info(json.dumps(input_info, indent=4))
 
@@ -68,7 +76,7 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
     # 1) Lanzamos la migración en un thread
     migration_thread = threading.Thread(
         target=parallel_automated_migration,
-        args=(source_client, target_client, temp_folder, SHARED_COUNTERS, SHARED_LOGS),
+        args=(source_client, target_client, temp_folder, SHARED_COUNTERS, SHARED_LOGS_QUEUE),
         kwargs={'log_level': logging.INFO, 'memory_log': True},
         daemon=True
     )
@@ -80,7 +88,7 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
         migration_thread=migration_thread,
         SHARED_INPUT_INFO=SHARED_INPUT_INFO,
         SHARED_COUNTERS=SHARED_COUNTERS,
-        SHARED_LOGS=SHARED_LOGS,
+        SHARED_LOGS_QUEUE=SHARED_LOGS_QUEUE,
         title=title,
         log_level=logging.INFO)
 
@@ -91,7 +99,7 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder):
 #########################################
 # parallel_automated_migration Function #
 #########################################
-def parallel_automated_migration(source_client, target_client, temp_folder, SHARED_COUNTERS, SHARED_LOGS, log_level=logging.INFO, memory_log=False):
+def parallel_automated_migration(source_client, target_client, temp_folder, SHARED_COUNTERS, SHARED_LOGS_QUEUE, log_level=logging.INFO, memory_log=False):
     """
     Sincroniza fotos y vídeos entre un 'source_client' y un 'destination_client',
     descargando álbumes y assets desde la fuente, y luego subiéndolos a destino,
@@ -125,7 +133,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     with set_log_level(LOGGER_THREADS, log_level):  # Change Log Level to log_level for this function
         if memory_log:
             # Crea el handler y configúralo con un formatter
-            memory_handler = CustomInMemoryLogHandler(SHARED_LOGS)
+            memory_handler = CustomInMemoryLogHandler(SHARED_LOGS_QUEUE)
             # memory_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
             memory_handler.setFormatter(CustomConsoleFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
 
@@ -372,7 +380,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 ###########################
 # show_dashboard Function #
 ###########################
-def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_LOGS, title="Automated Migration Process - CloudPhotoMigrator", log_level=logging.INFO):
+def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_LOGS_QUEUE, title="Automated Migration Process - CloudPhotoMigrator", log_level=logging.INFO):
     import time, random, threading
     from rich.console import Console
     from rich.layout import Layout
@@ -381,6 +389,12 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
     from rich.live import Live
     from rich.text import Text
     from rich.table import Table
+    from rich.columns import Columns
+    import queue
+    import textwrap
+
+    # Lista (o deque) para mantener todo el historial de logs ya mostrados
+    ACCU_LOGS = []
 
     KEY_MAPING = {
         "📊 Downloaded Assets": "total_downloaded_assets",
@@ -401,8 +415,8 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
     total_videos = SHARED_INPUT_INFO.get('total_videos')
     total_albums = SHARED_INPUT_INFO.get('total_albums')
     total_metadata = SHARED_INPUT_INFO.get('total_metadata')
-    total_sidecar = SHARED_INPUT_INFO.get('total_sidecar')
     total_unsopported = SHARED_INPUT_INFO.get('total_unsopported')
+    log_file = SHARED_INPUT_INFO.get('log_file')
 
     console = Console()
     # Reduce total height by 1 line so the output doesn't overflow
@@ -434,30 +448,44 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
     # 2) Input Info Panel
     # ─────────────────────────────────────────────────────────────────────────
     def build_info_panel():
+
         info_data = [
             ("📊 Total Assets", total_assets),
             ("📷 Total Photos", total_photos),
             ("🎥 Total Videos", total_videos),
             ("📂 Total Albums", total_albums),
             ("📑 Total Metadata", total_metadata),
-            ("📑 Total Sidecars", total_sidecar),
             ("🚫 Unsupported Files", total_unsopported),
+            ("📑 Log File", log_file),
         ]
-        table = Table.grid(expand=True)
-        table.add_column(justify="left", width=20)
-        table.add_column(justify="right")
+        # table = Table.grid(expand=True)
+        # table.add_column(justify="left", width=20)
+        # table.add_column(justify="right")
 
-        for label, value in info_data:
-            table.add_row(
-                f"[bright_magenta]{label:<20}:[/bright_magenta]",
-                f"[bright_magenta]{value}[/bright_magenta]"
-            )
+        # Creamos la tabla usando Grid
+        table = Table.grid(expand=True)  # Grid evita líneas en blanco al inicio
+        table.add_column(justify="left", width=23, no_wrap=True)
+        table.add_column(justify="right", ratio=1)
+
+        for i, (label, value) in enumerate(info_data):
+            if i < len(info_data) - 1:  # Todos menos el último
+                table.add_row(
+                    f"[bright_magenta]{label:<20}: [/bright_magenta]",  # Asegura alineación
+                    f"[bright_magenta]{value}[/bright_magenta]"
+                )
+            else:  # Último elemento con ajuste de línea
+                wrapped_value = "\n".join(textwrap.wrap('.'+os.path.sep+str(value), width=55))
+                table.add_row(
+                    f"[bright_magenta]{label:<20}: [/bright_magenta]",
+                    f"[bright_magenta]{wrapped_value}[/bright_magenta]"  # Se asegura de que el contenido largo haga wrap sin desalinear
+                )
 
         return Panel(
             table,
             title="📊 Input Analysis",
             border_style="bright_magenta",
-            expand=True
+            expand=True,
+            padding=(0, 1)
         )
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -493,19 +521,45 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
     # 4) Logging Panel from Memmory Handler
     # ─────────────────────────────────────────────────────────────────────────
     def build_log_panel():
-        # Unimos todos los logs que haya en shared_logs en un solo string
-        # (O si prefieres limitar el número de líneas, puedes hacerlo aquí)
-        message = ""
-        if SHARED_LOGS:
-            message = "\n".join(SHARED_LOGS)
-            if message.lower().find("download"):
-                message = f"[cyan]{message}[/cyan]"
-            elif message.lower().find("upload"):
-                message = f"[green]{message}[/green]"
+        """
+        Lee todos los mensajes pendientes en SHARED_LOGS_QUEUE y los añade
+        a ACCU_LOGS, que conserva el historial completo.
+        Devuelve un Panel con todo el historial (de modo que se pueda hacer
+        scroll en la terminal si usas vertical_overflow='visible').
+        """
+
+        # 1) Vaciamos la cola de logs, construyendo el historial completo
+        while True:
+            try:
+                line = SHARED_LOGS_QUEUE.get_nowait()  # lee un mensaje de la cola
+            except queue.Empty:
+                break
+
+            # Opcional: aplica color según la palabra “download”/”upload”
+            l_lower = line.lower()
+            if "download" in l_lower:
+                line_colored = f"[cyan]{line}[/cyan]"
+            elif "upload" in l_lower:
+                line_colored = f"[green]{line}[/green]"
             else:
-                message = f"[white]{message}[/white]"
-            SHARED_LOGS.clear()
-        log_panel = Panel(message, title="📜 Logs", border_style="red", expand=True)
+                line_colored = f"[white]{line}[/white]"
+
+            # Añadimos la versión coloreada al historial
+            ACCU_LOGS.append(line_colored)
+
+        # 2) Unimos todo el historial en un solo string
+        if ACCU_LOGS:
+            logs_text = "\n".join(ACCU_LOGS)
+        else:
+            logs_text = "No logs yet..."
+
+        # 3) Construimos el panel
+        log_panel = Panel(
+            logs_text,
+            title="📜 Logs",
+            border_style="red",
+            expand=True
+        )
         return log_panel
 
     # ─────────────────────────────────────────────────────────────────────────

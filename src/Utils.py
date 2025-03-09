@@ -1222,4 +1222,9 @@ def sha1_checksum(file_path):
 
     return sha1_hex, sha1_base64
 
+def get_logger_filename(logger):
+    for handler in logger.handlers:
+        if isinstance(handler, logging.FileHandler):
+            return handler.baseFilename  # Devuelve el path del archivo de logs
+    return None  # Si no hay un FileHandler, retorna None
 
