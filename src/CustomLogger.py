@@ -3,6 +3,8 @@ import os,sys
 import logging
 from colorama import Fore, Style
 from contextlib import contextmanager
+import threading
+
 
 def check_color_support(log_level=logging.INFO):
     """ Detect if Terminal has supports colors """
@@ -98,6 +100,17 @@ class TqdmToLogger:
     def flush(self):
         pass  # Requerido por tqdm, pero no es necesario implementar
 
+class ThreadLevelFilter(logging.Filter):
+    def __init__(self, level):
+        super().__init__()
+        self.level = level
+        self.thread_id = threading.get_ident()
+
+    def filter(self, record):
+        # Solo afecta al hilo actual
+        if threading.get_ident() == self.thread_id:
+            return record.levelno >= self.level
+        return True  # otros hilos no afectados
 
 def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, timestamp=None, skip_logfile=False, skip_console=False, detail_log=True, plain_log=False):
     """
@@ -117,7 +130,8 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, time
     os.makedirs(log_folder, exist_ok=True)
 
     # Clear existing handlers to avoid duplicate logs
-    LOGGER = logging.getLogger()
+    LOGGER = logging.getLogger('CloudPhotoMigrator')
+
     if LOGGER.hasHandlers():
         LOGGER.handlers.clear()
 
@@ -149,44 +163,70 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, time
 
     # Set the log level for the root logger
     LOGGER.setLevel(log_level)
+
+    LOGGER.propagate = False # <-- IMPORTANTE PARA EVITAR USAR EL LOOGER RAIZ
     return LOGGER
+
+# # Crear un contexto para cambiar el nivel del logger temporalmente
+# @contextmanager
+# def set_log_level(logger, level):
+#     """
+#     Context manager para cambiar temporalmente el nivel de log.
+#
+#     Args:
+#         logger (logging.Logger): Logger a modificar.
+#         level (int): Nuevo nivel de log.
+#
+#     Uso con `with`:
+#         with set_log_level(LOGGER, logging.DEBUG):
+#             # Código dentro del contexto tendrá DEBUG
+#         # Fuera del contexto, se restaurará el nivel original
+#
+#     Uso sin `with`:
+#         restore_func = set_log_level(LOGGER, logging.DEBUG, manual=True)
+#         # El nivel de log está cambiado manualmente
+#         restore_func()  # Llamar a esto para restaurar el nivel original
+#     """
+#
+#     old_level = logger.level  # Guardamos el nivel actual
+#     logger.setLevel(level)  # Cambiamos el nivel de log inmediatamente
+#
+#     try:
+#         yield  # Permite ejecutar el código dentro del contexto
+#     finally:
+#         logger.setLevel(old_level)  # Restaura el nivel original al salir del `with`
 
 # Crear un contexto para cambiar el nivel del logger temporalmente
 @contextmanager
-def set_log_level(logger, level, manual=False):
+def set_log_level(logger, level):
     """
-    Context manager para cambiar temporalmente el nivel de log.
+    Context manager that temporarily sets a specific logging level for the current thread only.
+
+    This function adds a thread-specific filter to the given logger, ensuring that the specified
+    logging level affects exclusively the current thread, without modifying the global logger level.
+    It is thread-safe and suitable for both single-threaded and multi-threaded environments.
 
     Args:
-        logger (logging.Logger): Logger a modificar.
-        level (int): Nuevo nivel de log.
-        manual (bool): Si es True, el usuario debe restaurar manualmente el nivel de log.
+        logger (logging.Logger): The logger instance to which the temporary logging level applies.
+        level (int): The logging level to apply temporarily (e.g., logging.INFO, logging.ERROR).
 
-    Uso con `with`:
-        with set_log_level(LOGGER, logging.DEBUG):
-            # Código dentro del contexto tendrá DEBUG
-        # Fuera del contexto, se restaurará el nivel original
+    Usage example:
+        with set_threads_log_level(LOGGER, logging.ERROR):
+            LOGGER.info("This message will NOT be shown in this thread.")
+            LOGGER.error("This message will be shown in this thread.")
+        # Outside the context, the logger reverts to its original behavior.
 
-    Uso sin `with`:
-        restore_func = set_log_level(LOGGER, logging.DEBUG, manual=True)
-        # El nivel de log está cambiado manualmente
-        restore_func()  # Llamar a esto para restaurar el nivel original
+    Important:
+        - This context manager does NOT change the global logging level.
+        - It only affects log messages emitted from the thread executing this context.
+        - After exiting the context, the original logging behavior is restored automatically.
     """
-
-    old_level = logger.level  # Guardamos el nivel actual
-    logger.setLevel(level)  # Cambiamos el nivel de log inmediatamente
-
-    if manual:
-        # Retorna una función para restaurar el nivel cuando se llame
-        def restore():
-            logger.setLevel(old_level)  # Restaura el nivel anterior
-
-        return restore  # Se devuelve la función que restaura el nivel
-
+    filtro = ThreadLevelFilter(level)
+    logger.addFilter(filtro)
     try:
-        yield  # Permite ejecutar el código dentro del contexto
+        yield
     finally:
-        logger.setLevel(old_level)  # Restaura el nivel original al salir del `with`
+        logger.removeFilter(filtro)
 
 
 def clone_logger(original_logger, new_name=None):

@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import Utils
 import logging
 import threading
+from collections import deque
 from CustomLogger import set_log_level
 from Duplicates import find_duplicates, process_duplicates_actions
 from ClassGoogleTakeout import ClassGoogleTakeout
@@ -24,12 +25,12 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder, launch_dashboard=False):
     # Create the Objects for source_client and target_client
     # source_client = ClassSynologyPhotos()
     # target_client = ClassImmichPhotos()
-    # source_client = ClassImmichPhotos()
-    # target_client = ClassSynologyPhotos()
+    source_client = ClassImmichPhotos()
+    target_client = ClassSynologyPhotos()
     # source_client = ClassLocalFolder(base_folder=base_folder)
     # target_client = ClassSynologyPhotos()
-    source_client = ClassSynologyPhotos()
-    target_client = ClassLocalFolder(base_folder=base_folder)
+    # source_client = ClassSynologyPhotos()
+    # target_client = ClassLocalFolder(base_folder=base_folder)
 
     ###################################################################
     # Declare shared variables to pass as reference to both functions #
@@ -63,7 +64,7 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder, launch_dashboard=False):
     # Obtiene el directorio de del script actual y calculamos el path del log relativo al directorio de trabajo
     script_dir = Path(__file__).resolve().parent
     log_file = Path(Utils.get_logger_filename(LOGGER))
-    log_file_relative = log_file.relative_to(script_dir)
+    # log_file_relative = log_file.relative_to(script_dir)
 
     SHARED_INPUT_INFO = {
         "total_assets": len(all_assets),
@@ -72,7 +73,7 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder, launch_dashboard=False):
         "total_albums": len(all_albums),
         "total_metadata": 0,
         "total_unsopported": 0,
-        "log_file": log_file_relative,
+        "log_file": log_file,
     }
     # LOGGER.info(json.dumps(input_info, indent=4))
 
@@ -137,70 +138,190 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     from queue import Queue
     from CustomLogger import CustomInMemoryLogHandler, CustomConsoleFormatter, CustomLogFormatter, clone_logger
 
-    LOGGER_THREADS = clone_logger(LOGGER)
-    parent_log_level = LOGGER_THREADS.level
-    with set_log_level(LOGGER_THREADS, log_level):  # Change Log Level to log_level for this function
-        # If show_dashboard=True, remove Console handler for Logging and add a Memory handler to manage a Messages Log Queue
-        if launch_dashboard:
-            # Filtrar y eliminar los handlers de consola
-            for handler in LOGGER_THREADS.handlers[:]:  # Copia la lista para evitar modificaciones en el bucle
-                if isinstance(handler, logging.StreamHandler):  # StreamHandler es el que imprime en consola
-                    logger.removeHandler(handler)
+    # Preparar la cola que compartiremos entre descargas y subidas
+    upload_queue = Queue()
 
-            # Crea el handler y configúralo con un formatter
-            memory_handler = CustomInMemoryLogHandler(SHARED_LOGS_QUEUE)
-            memory_handler.setFormatter(CustomConsoleFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
+    # Set global para almacenar paths ya añadidos
+    added_file_paths = set()
+    # Lock global para proteger el acceso concurrente
+    file_paths_lock = threading.Lock()
 
-            # Agrega el handler al LOGGER
-            LOGGER_THREADS.addHandler(memory_handler)
+    temp_folder = Utils.normalize_path(temp_folder)
 
-            # Opcional: si NO quieres imprimir por consola, puedes quitar el StreamHandler que tenga el logger por defecto (así solo se registran en la lista).
-            # Por ejemplo:
-            LOGGER_THREADS.propagate = False
+    # ------------------------------------------------------------------------------
+    # 1) DESCARGAS: Función downloader_worker para descargar assets y poner en la cola
+    # ------------------------------------------------------------------------------
+    def downloader_worker(log_level=logging.INFO):
+        def enqueue_unique(upload_queue, item_dict):
+            """
+            Añade asset_dict a la cola si su asset_file_path no ha sido añadido previamente.
+            Thread-safe gracias al lock global.
+            """
+            with file_paths_lock:
+                asset_file_path = item_dict['asset_file_path']
+                if asset_file_path in added_file_paths:
+                    # El item ya fue añadido anteriormente
+                    return False
+                else:
+                    # Añadir a la cola y al registro global
+                    upload_queue.put(item_dict)
+                    added_file_paths.add(asset_file_path)
+                    return True
 
-        # Preparar la cola que compartiremos entre descargas y subidas
-        upload_queue = Queue()
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            # 1.1) Descarga de álbumes
+            albums = source_client.get_albums_including_shared_with_user()
+            downloaded_assets = 0
+            for album in albums:
+                album_id = album['id']
+                album_name = album['albumName']
 
-        # Diccionario para marcar álbumes procesados (ya contados y/o creados en el destino)
-        processed_albums = {}
+                # Incrementamos contador de álbumes descargados
+                SHARED_COUNTERS['total_downloaded_albums'] += 1
 
-        # ----------------------------------------------------------------------------
-        # 1) Función Worker para SUBIR (consumir de la cola)
-        # ----------------------------------------------------------------------------
-        def upload_worker(log_level=logging.INFO):
-            parent_log_level = LOGGER_THREADS.level
+                # Descargar todos los assets de este álbum
+                album_assets = source_client.get_album_assets(album_id)
 
+                for asset in album_assets:
+                    asset_id = asset['id']
+                    asset_type = asset['type']
+                    asset_datetime = asset.get('time')
+                    asset_filename = asset.get('filename')
+
+                    # Crear carpeta del álbum dentro de temp_folder
+                    album_folder = os.path.join(temp_folder, album_name)
+                    os.makedirs(album_folder, exist_ok=True)
+
+                    try:
+                        # Descargar el asset
+                        downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=album_folder, log_level=logging.WARNING)
+                    except Exception as e:
+                        LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
+
+                    set_log_level(LOGGER, log_level)
+                    LOGGER.info(f"INFO    : Asset Downloaded: '{os.path.join(album_folder,os.path.basename(asset_filename))}'")
+                    # LOGGER.debug(f"DEBUG   : Asset Downloaded: '{os.path.basename(asset_filename)}'")
+
+                    # Actualizamos Contadores de descargas
+                    if downloaded_assets > 0:
+                        SHARED_COUNTERS['total_downloaded_assets'] += downloaded_assets
+                        if asset_type.lower() == 'video':
+                            SHARED_COUNTERS['total_downloaded_videos'] += downloaded_assets
+                        else:
+                            SHARED_COUNTERS['total_downloaded_photos'] += downloaded_assets
+                    else:
+                        SHARED_COUNTERS['total_download_skipped_assets'] += 1
+
+                    # Enviar a la cola con la información necesaria para la subida
+                    local_file_path = os.path.join(album_folder, asset_filename)
+                    asset_dict = {
+                        'asset_id': asset_id,
+                        'asset_file_path': local_file_path,
+                        'asset_datetime': asset_datetime,
+                        'asset_type': asset_type,
+                        'album_name': album_name,
+                    }
+                    # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
+                    enqueue_unique(upload_queue, asset_dict)
+                    # upload_queue.put(asset_dict)
+                    # sys.stdout.flush()
+                    # sys.stderr.flush()
+
+                LOGGER.info(f"INFO    : Album Downloaded: '{album_name}'")
+
+            # 1.2) Descarga de assets sin álbum
+            try:
+                assets_no_album = source_client.get_no_albums_assets()
+            except Exception as e:
+                LOGGER.error(f"ERROR  : Error Getting Asset without Albums")
+
+            downloaded_assets = 0
+            for asset in assets_no_album:
+                asset_id = asset['id']
+                asset_type = asset['type']
+                asset_datetime = asset.get('time')
+                asset_filename = asset.get('filename')
+
+                try:
+                    # Descargar directamente en temp_folder
+                    downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
+                except Exception as e:
+                    LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
+
+                local_file_path = os.path.join(temp_folder, asset_filename)
+                set_log_level(LOGGER, log_level)
+                LOGGER.info(f"INFO    : Asset Downloaded: '{os.path.join(temp_folder,os.path.basename(asset_filename))}'")
+
+                # Actualizamos Contadores de descargas
+                if downloaded_assets > 0:
+                    SHARED_COUNTERS['total_downloaded_assets'] += downloaded_assets
+                    if asset_type.lower() == 'video':
+                        SHARED_COUNTERS['total_downloaded_videos'] += downloaded_assets
+                    else:
+                        SHARED_COUNTERS['total_downloaded_photos'] += downloaded_assets
+                else:
+                    SHARED_COUNTERS['total_download_skipped_assets'] += 1
+
+                # Enviar a la cola sin album_name
+                asset_dict = {
+                    'asset_id': asset_id,
+                    'asset_file_path': local_file_path,
+                    'asset_datetime': asset_datetime,
+                    'asset_type': asset_type,
+                    'album_name': None,
+                }
+                # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
+                enqueue_unique(upload_queue, asset_dict)
+                # upload_queue.put(asset_dict)
+                # sys.stdout.flush()
+                # sys.stderr.flush()
+
+    # ----------------------------------------------------------------------------
+    # 2) SUBIDAS: Función uploader_worker para SUBIR (consumir de la cola)
+    # ----------------------------------------------------------------------------
+    def uploader_worker(log_level=logging.INFO):
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):
+            # Lista para marcar álbumes procesados (ya contados y/o creados en el destino)
+            processed_albums = []
             while True:
-                with set_log_level(LOGGER_THREADS, log_level):  # Change Log Level to log_level for this function
+                # with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+                try:
                     # Extraemos el siguiente asset de la cola
-                    item = upload_queue.get()
-                    if item is None:
+                    asset = upload_queue.get()
+                    if asset is None:
                         # Si recibimos None, significa que ya no hay más trabajo
                         upload_queue.task_done()
                         break
 
                     # Obtenemos las propiedades del asset extraido de la cola.
-                    asset_id        = item['asset_id']
-                    asset_file_path = item['asset_file_path']
-                    asset_datetime  = item['asset_datetime']
-                    asset_type      = item['asset_type']
-                    album_name      = item['album_name']
+                    asset_id = asset['asset_id']
+                    asset_file_path = asset['asset_file_path']
+                    asset_datetime = asset['asset_datetime']
+                    asset_type = asset['asset_type']
+                    album_name = asset['album_name']
 
                     # SUBIR el asset
                     asset_id, isDuplicated = target_client.upload_asset(file_path=asset_file_path, log_level=logging.WARNING)
+
+                    # # verifica handlers
+                    # print(f"Level del LOGGER: {LOGGER.level}")
+                    # for handler in LOGGER.handlers:
+                    #     print(f"Level del handler: {handler} -> {handler.level}")
 
                     # Actualizamos Contadores de subidas
                     if asset_id:
                         if isDuplicated:
                             SHARED_COUNTERS['total_upload_duplicates_assets'] += 1
-                            LOGGER_THREADS.info(f"INFO    : Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
+                            LOGGER.info(f"INFO    : Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
                         else:
                             SHARED_COUNTERS['total_uploaded_assets'] += 1
                             if asset_type.lower() == 'video':
                                 SHARED_COUNTERS['total_uploaded_videos'] += 1
                             else:
                                 SHARED_COUNTERS['total_uploaded_photos'] += 1
-                            LOGGER_THREADS.info(f"INFO    : Asset Uploaded: '{os.path.basename(asset_file_path)}'")
+                            LOGGER.info(f"INFO    : Asset Uploaded  : '{asset_file_path}'")
                     else:
                         SHARED_COUNTERS['total_upload_skipped_assets'] += 1
 
@@ -219,9 +340,9 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     if album_name:
                         # Comprobamos si ya procesamos antes este álbum
                         if album_name not in processed_albums:
-                            processed_albums[album_name] = None  # Marcamos que se procesó
+                            processed_albums.append(album_name)  # Lo incluimos en la lista de albumes procesados
                             SHARED_COUNTERS['total_uploaded_albums'] += 1
-                            LOGGER_THREADS.info(f"INFO    : Album Uploaded: '{album_name}'")
+                            LOGGER.info(f"INFO    : Album Uploaded: '{album_name}'")
 
                         # Si el álbum no existe en destino, lo creamos
                         album_exists, album_id_dest = target_client.album_exists(album_name=album_name, log_level=logging.WARNING)
@@ -229,7 +350,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             album_id_dest = target_client.create_album(album_name=album_name, log_level=logging.WARNING)
 
                         # Añadir el asset al álbum
-                        target_client.add_assets_to_album(album_id=album_id_dest,asset_ids=asset_id, album_name=album_name, log_level=logging.WARNING)
+                        target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.WARNING)
 
                         # Verificar si la carpeta local del álbum está vacía y borrarla
                         album_folder_path = os.path.join(temp_folder, album_name)
@@ -249,120 +370,63 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     # sys.stdout.flush()
                     # sys.stderr.flush()
 
-        # ----------------------------------------------------------------------------
-        # 2) Iniciar uno o varios hilos para manejar la subida concurrente
-        # ----------------------------------------------------------------------------
-        num_upload_threads = 2  # Ajustar según tus necesidades
-        for _ in range(num_upload_threads):
-            t = threading.Thread(target=upload_worker, daemon=True)
+                except Exception as e:
+                    LOGGER.error(f"ERROR   : Error in Uploader worker while uploading asset: {asset}")
+                    LOGGER.error(f"ERROR   : Catched Exception: {e}")
+                finally:
+                    # Restore log_level of the parent method
+                    # set_log_level(LOGGER, parent_log_level, manual=True)
+                    pass
+
+    # ------------------
+    # 3) HILO PRINCIPAL
+    # ------------------
+    parent_log_level = LOGGER.level
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        # If launch_dashboard=True, remove Console handler for Logging and add a Memory handler to manage a Messages Log Queue
+        if launch_dashboard:
+            # Filtrar y eliminar los handlers de consola
+            for handler in LOGGER.handlers[:]:  # Copia la lista para evitar modificaciones en el bucle
+                if isinstance(handler, logging.StreamHandler):  # StreamHandler es el que imprime en consola
+                    LOGGER.removeHandler(handler)
+
+            # Crea el handler y configúralo con un formatter
+            memory_handler = CustomInMemoryLogHandler(SHARED_LOGS_QUEUE)
+            memory_handler.setFormatter(CustomConsoleFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
+            memory_handler.setLevel(parent_log_level)
+
+            # Agrega el handler al LOGGER
+            LOGGER.addHandler(memory_handler)
+
+            # Opcional: si NO quieres imprimir por consola, puedes quitar el StreamHandler que tenga el logger por defecto (así solo se registran en la lista).
+            # Por ejemplo:
+            LOGGER.propagate = False
+
+
+        # ------------------------------------------------------------------------------------------------------
+        # 1) Iniciar uno o varios hilos de descargas y subidas para manejar las descargas y subidas concurrentes
+        # ------------------------------------------------------------------------------------------------------
+        num_upload_threads = 1
+        num_download_threads = 1
+
+        # Crear hilos
+        download_threads = [threading.Thread(target=downloader_worker, daemon=True) for _ in range(num_download_threads)]
+        upload_threads = [threading.Thread(target=uploader_worker, daemon=True) for _ in range(num_upload_threads)]
+
+        # Iniciar hilos
+        for t in upload_threads:
+            t.start()
+        for t in download_threads:
             t.start()
 
-        # ----------------------------------------------------------------------------
-        # 3) DESCARGAS: Obtener álbumes y sus assets, descargar y poner en cola
-        # ----------------------------------------------------------------------------
+        # ----------------------------------------------------------------------------------------------
+        # 2) Esperamos a que terminen los hilos de descargas para mandar Nones a la cola de subida,
+        #    luego esperamos que la cola termine y finalmente esperamos que terminen los hilos de subida
+        # ----------------------------------------------------------------------------------------------
 
-        # 3.1) Descarga de álbumes
-        albums = source_client.get_albums_including_shared_with_user()
-        for album in albums:
-            album_id = album['id']
-            album_name = album['albumName']
-
-            # Descargar todos los assets de este álbum
-            album_assets = source_client.get_album_assets(album_id)
-
-            # Incrementamos contador de álbumes descargados
-            SHARED_COUNTERS['total_downloaded_albums'] += 1
-
-            for asset in album_assets:
-                asset_id = asset['id']
-                asset_type = asset['type']
-                asset_datetime = asset.get('time')
-                asset_filename = asset.get('filename')
-
-                # Crear carpeta del álbum dentro de temp_folder
-                album_folder = os.path.join(temp_folder, album_name)
-                os.makedirs(album_folder, exist_ok=True)
-
-                try:
-                    # Descargar el asset
-                    downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=album_folder, log_level=logging.WARNING)
-                except Exception as e:
-                    LOGGER_THREADS.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
-
-                LOGGER_THREADS.info(f"INFO    : Asset Downloaded: '{os.path.basename(asset_filename)}'")
-                # LOGGER_THREADS.debug(f"DEBUG   : Asset Downloaded: '{os.path.basename(asset_filename)}'")
-
-                # Actualizamos Contadores de descargas
-                if downloaded_assets>0:
-                    SHARED_COUNTERS['total_downloaded_assets'] += downloaded_assets
-                    if asset_type.lower() == 'video':
-                        SHARED_COUNTERS['total_downloaded_videos'] += downloaded_assets
-                    else:
-                        SHARED_COUNTERS['total_downloaded_photos'] += downloaded_assets
-                else:
-                    SHARED_COUNTERS['total_download_skipped_assets'] += 1
-
-                # Enviar a la cola con la información necesaria para la subida
-                local_file_path = os.path.join(album_folder, asset_filename)
-                item_dict = {
-                    'asset_id': asset_id,
-                    'asset_file_path': local_file_path,
-                    'asset_datetime': asset_datetime,
-                    'asset_type': asset_type,
-                    'album_name': album_name,
-                }
-                upload_queue.put(item_dict)
-                sys.stdout.flush()
-                sys.stderr.flush()
-            LOGGER_THREADS.info(f"INFO    : Album Downloaded: '{album_name}'")
-
-
-        # 3.2) Descarga de assets sin álbum
-        try:
-            assets_no_album = source_client.get_no_albums_assets()
-        except Exception as e:
-            LOGGER_THREADS.error(f"ERROR  : Error Getting Asset without Albums")
-
-        for asset in assets_no_album:
-            asset_id = asset['id']
-            asset_type = asset['type']
-            asset_datetime = asset.get('time')
-            asset_filename = asset.get('filename')
-
-            try:
-                # Descargar directamente en temp_folder
-                downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
-            except Exception as e:
-                LOGGER_THREADS.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
-
-            local_file_path = os.path.join(temp_folder, asset_filename)
-            LOGGER_THREADS.info(f"INFO    : Asset Downloaded: '{os.path.basename(asset_filename)}'")
-
-            # Actualizamos Contadores de descargas
-            if downloaded_assets > 0:
-                SHARED_COUNTERS['total_downloaded_assets'] += downloaded_assets
-                if asset_type.lower() == 'video':
-                    SHARED_COUNTERS['total_downloaded_videos'] += downloaded_assets
-                else:
-                    SHARED_COUNTERS['total_downloaded_photos'] += downloaded_assets
-            else:
-                SHARED_COUNTERS['total_download_skipped_assets'] += 1
-
-            # Enviar a la cola sin album_name
-            item_dict = {
-                'asset_id': asset_id,
-                'asset_file_path': local_file_path,
-                'asset_datetime': asset_datetime,
-                'asset_type': asset_type,
-                'album_name': None,
-            }
-            upload_queue.put(item_dict)
-            sys.stdout.flush()
-            sys.stderr.flush()
-
-        # ----------------------------------------------------------------------------
-        # 4) Finalizar subidas y limpiar carpetas vacías
-        # ----------------------------------------------------------------------------
+        # Esperar a que terminen los hilos de descargas
+        for t in download_threads:
+            t.join()
 
         # Enviamos tantos None como hilos de subida para avisar que finalicen
         for _ in range(num_upload_threads):
@@ -371,23 +435,27 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         # Esperamos a que la cola termine de procesarse
         upload_queue.join()
 
+        # Esperar a que terminen los hilos de subida
+        for t in upload_threads:
+            t.join()
+
+        # En este punto todas las descargas y subidas están listas y la cola está vacía.
+
         # Finalmente, borrar carpetas vacías que queden en temp_folder
         Utils.remove_empty_dirs(temp_folder)
 
-        # En este punto todas las subidas están listas y la cola está vacía
-
         # ----------------------------------------------------------------------------
-        # 5) Mostrar o retornar contadores
+        # 4) Mostrar o retornar contadores
         # ----------------------------------------------------------------------------
-        LOGGER_THREADS.info(f"")
-        LOGGER_THREADS.info(f"INFO    : 🚀 All assets downloaded and uploaded successfully!")
-        LOGGER_THREADS.info(f"")
-        LOGGER_THREADS.info(f"INFO    : ----- SINCRONIZACIÓN FINALIZADA -----")
-        LOGGER_THREADS.info(f"INFO    : {source_client.get_client_name()} --> {target_client.get_client_name()}")
-        LOGGER_THREADS.info(f"INFO    : Downloaded Albums : {SHARED_COUNTERS['total_downloaded_albums']}")
-        LOGGER_THREADS.info(f"INFO    : Uploaded Albums   : {SHARED_COUNTERS['total_uploaded_albums']}")
-        LOGGER_THREADS.info(f"INFO    : Downloaded Assets : {SHARED_COUNTERS['total_downloaded_assets']} (Fotos: {SHARED_COUNTERS['total_downloaded_photos']}, Videos: {SHARED_COUNTERS['total_downloaded_videos']})")
-        LOGGER_THREADS.info(f"INFO    : Uploaded Assets   : {SHARED_COUNTERS['total_uploaded_assets']} (Fotos: {SHARED_COUNTERS['total_uploaded_photos']}, Videos: {SHARED_COUNTERS['total_uploaded_videos']})")
+        LOGGER.info(f"")
+        LOGGER.info(f"INFO    : 🚀 All assets downloaded and uploaded successfully!")
+        LOGGER.info(f"")
+        LOGGER.info(f"INFO    : ----- SINCRONIZACIÓN FINALIZADA -----")
+        LOGGER.info(f"INFO    : {source_client.get_client_name()} --> {target_client.get_client_name()}")
+        LOGGER.info(f"INFO    : Downloaded Albums : {SHARED_COUNTERS['total_downloaded_albums']}")
+        LOGGER.info(f"INFO    : Uploaded Albums   : {SHARED_COUNTERS['total_uploaded_albums']}")
+        LOGGER.info(f"INFO    : Downloaded Assets : {SHARED_COUNTERS['total_downloaded_assets']} (Fotos: {SHARED_COUNTERS['total_downloaded_photos']}, Videos: {SHARED_COUNTERS['total_downloaded_videos']})")
+        LOGGER.info(f"INFO    : Uploaded Assets   : {SHARED_COUNTERS['total_uploaded_assets']} (Fotos: {SHARED_COUNTERS['total_uploaded_photos']}, Videos: {SHARED_COUNTERS['total_uploaded_videos']})")
 
         return SHARED_COUNTERS
 
@@ -408,9 +476,6 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
     import textwrap
 
     title = f"{source_client_name} ➜ {target_client_name} - Automated Migration - CloudPhotoMigrator v3.1.0"
-
-    # Lista (o deque) para mantener todo el historial de logs ya mostrados
-    ACCU_LOGS = []
 
     KEY_MAPING = {
         "📊 Downloaded Assets": "total_downloaded_assets",
@@ -436,10 +501,14 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
 
     console = Console()
     # Reduce total height by 1 line so the output doesn't overflow
-    total_height = console.size.height - 2
+    total_height = console.size.height
+    log_panel_height = total_height - 13
 
     layout = Layout()
     layout.size = total_height
+
+    # Lista (o deque) para mantener todo el historial de logs ya mostrados
+    ACCU_LOGS = deque(maxlen=log_panel_height)
 
     # Split layout: header (3 lines), content (10 lines), logs fill remainder
     layout.split_column(
@@ -474,9 +543,6 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
             ("🚫 Unsupported Files", total_unsopported),
             ("📜 Log File", log_file),
         ]
-        # table = Table.grid(expand=True)
-        # table.add_column(justify="left", width=20)
-        # table.add_column(justify="right")
 
         # Creamos la tabla usando Grid
         table = Table.grid(expand=True)  # Grid evita líneas en blanco al inicio
@@ -496,13 +562,7 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
                     f"[bright_magenta]{wrapped_value}[/bright_magenta]"  # Se asegura de que el contenido largo haga wrap sin desalinear
                 )
 
-        return Panel(
-            table,
-            title="📊 Input Analysis",
-            border_style="bright_magenta",
-            expand=True,
-            padding=(0, 1)
-        )
+        return Panel(table, title="📊 Input Analysis", border_style="bright_magenta", expand=True, padding=(0, 1))
 
     # ─────────────────────────────────────────────────────────────────────────
     # 3) Build the Download/Upload Panels
@@ -544,45 +604,46 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
         scroll en la terminal si usas vertical_overflow='visible').
         """
 
-        # 1) Vaciamos la cola de logs, construyendo el historial completo
-        while True:
-            try:
-                line = SHARED_LOGS_QUEUE.get_nowait()  # lee un mensaje de la cola
-            except queue.Empty:
-                break
+        log_panel = Panel("", title="📜 Logs", border_style="red", expand=True)
+        try:
+            while True:
+                # 1) Vaciamos la cola de logs, construyendo el historial completo
+                try:
+                    line = SHARED_LOGS_QUEUE.get_nowait()  # lee un mensaje de la cola
+                except queue.Empty:
+                    break
 
-            # Opcional: aplica color según la palabra “download”/”upload”
-            l_lower = line.lower()
-            if "warning" in l_lower:
-                line_colored = f"[yellow]{line}[/yellow]"
-            elif "error" in l_lower:
-                line_colored = f"[red]{line}[/red]"
-            elif "debug" in l_lower:
-                line_colored = f"[#EEEEEE]{line}[/#EEEEEE]"
-            elif "download" in l_lower:
-                line_colored = f"[cyan]{line}[/cyan]"
-            elif "upload" in l_lower:
-                line_colored = f"[green]{line}[/green]"
+                # Opcional: aplica color según la palabra “download”/”upload”
+                l_lower = line.lower()
+                if "warning" in l_lower:
+                    line_colored = f"[yellow]{line}[/yellow]"
+                elif "error" in l_lower:
+                    line_colored = f"[red]{line}[/red]"
+                elif "debug" in l_lower:
+                    line_colored = f"[#EEEEEE]{line}[/#EEEEEE]"
+                elif "download" in l_lower:
+                    line_colored = f"[cyan]{line}[/cyan]"
+                elif "upload" in l_lower:
+                    line_colored = f"[green]{line}[/green]"
+                else:
+                    line_colored = f"[bright_white]{line}[/bright_white]"
+
+                # Añadimos la versión coloreada al historial
+                ACCU_LOGS.append(line_colored)
+
+            # 2) Unimos todo el historial en un solo string
+            if ACCU_LOGS:
+                logs_text = "\n".join(ACCU_LOGS)
             else:
-                line_colored = f"[bright_white]{line}[/bright_white]"
+                logs_text = "No logs yet..."
 
-            # Añadimos la versión coloreada al historial
-            ACCU_LOGS.append(line_colored)
+            # 3) Construimos el panel
+            log_panel = Panel(logs_text, title="📜 Logs", border_style="red", expand=True)
 
-        # 2) Unimos todo el historial en un solo string
-        if ACCU_LOGS:
-            logs_text = "\n".join(ACCU_LOGS)
-        else:
-            logs_text = "No logs yet..."
-
-        # 3) Construimos el panel
-        log_panel = Panel(
-            logs_text,
-            title="📜 Logs",
-            border_style="red",
-            expand=True
-        )
-        return log_panel
+        except Exception as e:
+            LOGGER.error(f"ERROR   : Building Log Panel: {e}")
+        finally:
+            return log_panel
 
     # ─────────────────────────────────────────────────────────────────────────
     # 5) Progress Bars for downloads / uploads
@@ -710,6 +771,8 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
             #     layout["logs"].update(log_panel)
             #     SHARED_LOGS.clear()
 
+    # Al terminar, asegurarse que todos logs finales se muestren
+    layout["logs"].update(build_log_panel())
 
 
 #####################
@@ -724,4 +787,4 @@ if __name__ == "__main__":
     # Define the Temporary Folder for the downloaded assets.
     temp_folder = './Temp_folder'
 
-    mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder=temp_folder, launch_dashboard=False)
+    mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder=temp_folder, launch_dashboard=True)

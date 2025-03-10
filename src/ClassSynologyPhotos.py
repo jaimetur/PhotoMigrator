@@ -42,7 +42,7 @@ import time
 import logging
 import inspect
 
-from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm
+from Utils import update_metadata, convert_to_list, convert_asset_ids_to_str, get_unique_items, organize_files_by_date, tqdm
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
@@ -885,6 +885,8 @@ class ClassSynologyPhotos:
                 if not asset_ids:
                     LOGGER.warning(f"WARNING : No assets found to add to Album ID: '{album_id}'. Skipped!")
                     return -1
+                # asset_ids = convert_asset_ids_to_str(asset_ids)
+                asset_ids = convert_to_list(asset_ids)
 
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -899,8 +901,6 @@ class ClassSynologyPhotos:
                     else:
                         LOGGER.warning(f"WARNING : No assets found to add to Album ID: '{album_id}'. Skipped!")
                     return -1
-
-                asset_ids = convert_to_list(asset_ids)
 
                 params = {
                     "api": "SYNO.Foto.Browse.NormalAlbum",

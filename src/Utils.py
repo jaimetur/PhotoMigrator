@@ -37,6 +37,11 @@ def run_from_synology(log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         return os.path.exists('/etc.defaults/synoinfo.conf')
 
+def normalize_path(path, log_level=logging.INFO):
+    parent_log_level = LOGGER.level
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        return os.path.normpath(path).strip(os.sep)
+
 def check_OS_and_Terminal(log_level=logging.INFO):
     """ Check OS and Terminal Type """
     parent_log_level = LOGGER.level
@@ -1189,13 +1194,19 @@ def convert_to_list(input, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
             output=input
-            # Process subfolders_exclusion to obtain a list of inclusion names if provided
-            if isinstance(output, str):
-                output = [name.strip() for name in output.replace(',', ' ').split() if name.strip()]
-            elif isinstance(output, list):
-                output = [name.strip() for item in output if isinstance(item, str) for name in item.split(',') if name.strip()]
-            else:
+            if isinstance(output, list):
+                output = input_value
+            elif isinstance(output, str):
+                # Divide por comas y elimina espacios adicionales
+                output = [item.strip() for item in input_value.split(',') if item.strip()]
+            elif isinstance(output, (int, float)):
+                # Convierte números en una lista de un solo elemento
+                output = [output]
+            elif input_value is None:
                 output = []
+            else:
+                # Cualquier otro tipo lo convierte en lista de un solo elemento
+                output = [output]
         except Exception as e:
             LOGGER.warning(f"WARNING : Failed to convert string to List for {input}. {e}")
         finally:
@@ -1203,6 +1214,13 @@ def convert_to_list(input, log_level=logging.INFO):
             # set_log_level(LOGGER, parent_log_level, manual=True)
             pass
         return output
+
+def convert_asset_ids_to_str(asset_ids):
+    """Convierte asset_ids a strings, incluso si es una lista de diferentes tipos."""
+    if isinstance(asset_ids, list):
+        return [str(item) for item in asset_ids]
+    else:
+        return [str(asset_ids)]
 
 def tqdm(*args, **kwargs):
     if 'file' not in kwargs:  # Si no se especifica `file`, usar stdout por defecto
