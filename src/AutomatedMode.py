@@ -62,9 +62,7 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder, launch_dashboard=False):
     all_videos = [asset for asset in all_assets if asset['type'].lower() in ['video']]
 
     # Obtiene el directorio de del script actual y calculamos el path del log relativo al directorio de trabajo
-    script_dir = Path(__file__).resolve().parent
     log_file = Path(Utils.get_logger_filename(LOGGER))
-    # log_file_relative = log_file.relative_to(script_dir)
 
     SHARED_INPUT_INFO = {
         "total_assets": len(all_assets),
@@ -73,7 +71,7 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder, launch_dashboard=False):
         "total_albums": len(all_albums),
         "total_metadata": 0,
         "total_unsopported": 0,
-        "log_file": log_file,
+        "log_file": os.path.basename(log_file),
     }
     # LOGGER.info(json.dumps(input_info, indent=4))
 
@@ -451,7 +449,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         LOGGER.info(f"INFO    : Uploaded Albums   : {SHARED_COUNTERS['total_uploaded_albums']}")
         LOGGER.info(f"INFO    : Downloaded Assets : {SHARED_COUNTERS['total_downloaded_assets']} (Fotos: {SHARED_COUNTERS['total_downloaded_photos']}, Videos: {SHARED_COUNTERS['total_downloaded_videos']})")
         LOGGER.info(f"INFO    : Uploaded Assets   : {SHARED_COUNTERS['total_uploaded_assets']} (Fotos: {SHARED_COUNTERS['total_uploaded_photos']}, Videos: {SHARED_COUNTERS['total_uploaded_videos']})")
-
+        LOGGER.info(f"")
+        LOGGER.info(f"")
         return SHARED_COUNTERS
 
 ###########################
