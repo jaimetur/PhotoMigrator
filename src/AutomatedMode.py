@@ -305,11 +305,6 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     # SUBIR el asset
                     asset_id, isDuplicated = target_client.upload_asset(file_path=asset_file_path, log_level=logging.WARNING)
 
-                    # # verifica handlers
-                    # print(f"Level del LOGGER: {LOGGER.level}")
-                    # for handler in LOGGER.handlers:
-                    #     print(f"Level del handler: {handler} -> {handler.level}")
-
                     # Actualizamos Contadores de subidas
                     if asset_id:
                         if isDuplicated:
@@ -502,18 +497,15 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
     console = Console()
     # Reduce total height by 1 line so the output doesn't overflow
     total_height = console.size.height
-    log_panel_height = total_height - 13
 
     layout = Layout()
     layout.size = total_height
-
-    # Lista (o deque) para mantener todo el historial de logs ya mostrados
-    ACCU_LOGS = deque(maxlen=log_panel_height)
 
     # Split layout: header (3 lines), content (10 lines), logs fill remainder
     layout.split_column(
         Layout(name="header", size=3),
         Layout(name="content", size=10),
+        # Layout(name="logs", size=20),
         Layout(name="logs", ratio=1),
     )
 
@@ -596,6 +588,11 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
     # ─────────────────────────────────────────────────────────────────────────
     # 4) Logging Panel from Memmory Handler
     # ─────────────────────────────────────────────────────────────────────────
+
+    # Lista (o deque) para mantener todo el historial de logs ya mostrados
+    log_panel_height = total_height - 13
+    ACCU_LOGS = deque(maxlen=log_panel_height)
+
     def build_log_panel():
         """
         Lee todos los mensajes pendientes en SHARED_LOGS_QUEUE y los añade
@@ -708,34 +705,30 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
     # 6) Update Downloads/Uploads Panels
     # ─────────────────────────────────────────────────────────────────────────
     def update_downloads():
-        # for _ in range(100):
-            time.sleep(random.uniform(0.05, 0.2))
-            for label, (bar, total) in download_bars.items():
-                current_value = SHARED_COUNTERS[KEY_MAPING[label]]
-                bar.update(download_tasks[label], completed=current_value)
-                # bar.advance(download_tasks[label], random.randint(1, 50))
+        time.sleep(random.uniform(0.05, 0.2))
+        for label, (bar, total) in download_bars.items():
+            current_value = SHARED_COUNTERS[KEY_MAPING[label]]
+            bar.update(download_tasks[label], completed=current_value)
+            # bar.advance(download_tasks[label], random.randint(1, 50))
 
-            failed_downloads["Assets Failed"] += random.randint(0, 5)
-            failed_downloads["Photos Failed"] += random.randint(0, 4)
-            failed_downloads["Videos Failed"] += random.randint(0, 2)
-            failed_downloads["Albums Failed"] += random.randint(0, 1)
+        failed_downloads["Assets Failed"] += random.randint(0, 5)
+        failed_downloads["Photos Failed"] += random.randint(0, 4)
+        failed_downloads["Videos Failed"] += random.randint(0, 2)
+        failed_downloads["Albums Failed"] += random.randint(0, 1)
 
-            # log_message("[cyan]Downloading asset...[/cyan]")
 
     def update_uploads():
-        # for _ in range(100):
-            time.sleep(random.uniform(0.05, 0.2))
-            for label, (bar, total) in upload_bars.items():
-                current_value = SHARED_COUNTERS[KEY_MAPING[label]]
-                bar.update(upload_tasks[label], completed=current_value)
-                # bar.advance(upload_tasks[label], random.randint(1, 50))
+        time.sleep(random.uniform(0.05, 0.2))
+        for label, (bar, total) in upload_bars.items():
+            current_value = SHARED_COUNTERS[KEY_MAPING[label]]
+            bar.update(upload_tasks[label], completed=current_value)
+            # bar.advance(upload_tasks[label], random.randint(1, 50))
 
-            failed_uploads["Assets Failed"] += random.randint(0, 5)
-            failed_uploads["Photos Failed"] += random.randint(0, 4)
-            failed_uploads["Videos Failed"] += random.randint(0, 2)
-            failed_uploads["Albums Failed"] += random.randint(0, 1)
+        failed_uploads["Assets Failed"] += random.randint(0, 5)
+        failed_uploads["Photos Failed"] += random.randint(0, 4)
+        failed_uploads["Videos Failed"] += random.randint(0, 2)
+        failed_uploads["Albums Failed"] += random.randint(0, 1)
 
-            # log_message("[green]Uploading asset...[/green]")
 
     # ─────────────────────────────────────────────────────────────────────────
     # 7) Optional: Print Log Message in Logging Panel
@@ -749,30 +742,34 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
     # ─────────────────────────────────────────────────────────────────────────
     # 8) Main Live Loop
     # ─────────────────────────────────────────────────────────────────────────
-    with Live(layout, refresh_per_second=10, console=console, vertical_overflow="visible"):
+    with Live(layout, refresh_per_second=1, console=console, vertical_overflow="crop"):
         layout["input_analysis"].update(build_info_panel())
         layout["downloads"].update(build_download_panel())
         layout["uploads"].update(build_upload_panel())
         layout["logs"].update(build_log_panel())
-        # layout["logs"].update(log_panel)
+        # layout["logs"].update(log_panel)  # inicializamos el panel solo una vez aquí
 
         # while thread_downloads.is_alive() or thread_uploads.is_alive():
         while migration_thread.is_alive():
-            time.sleep(0.1) # Evita un bucle demasiado agresivo
             update_downloads()
             update_uploads()
             layout["downloads"].update(build_download_panel())
             layout["uploads"].update(build_upload_panel())
             layout["logs"].update(build_log_panel())
+            time.sleep(0.5)  # Evita un bucle demasiado agresivo
 
-            # if SHARED_LOGS:
-            #     message = "\n".join(SHARED_LOGS)
-            #     log_message(message)
-            #     layout["logs"].update(log_panel)
-            #     SHARED_LOGS.clear()
+        # Pequeña pausa adicional para asegurar el dibujado final
+        time.sleep(2)
 
-    # Al terminar, asegurarse que todos logs finales se muestren
-    layout["logs"].update(build_log_panel())
+        # Al terminar, asegurarse que todos los paneles finales se muestren
+        update_downloads()
+        update_uploads()
+        layout["downloads"].update(build_download_panel())
+        layout["uploads"].update(build_upload_panel())
+        layout["logs"].update(build_log_panel())
+
+        # Pequeña pausa adicional para asegurar el dibujado final
+        time.sleep(2)
 
 
 #####################
