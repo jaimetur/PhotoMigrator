@@ -548,8 +548,6 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
     source_client_name  = SHARED_INPUT_INFO.get("source_client_name", "Source Client")
     target_client_name  = SHARED_INPUT_INFO.get("target_client_name", "Target Client")
 
-    title = f"[bold cyan]{source_client_name}[/bold cyan] ➜ [green]{target_client_name}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
-
     KEY_MAPING = {
         "📊 Downloaded Medias": ("total_downloaded_assets", "total_medias"),
         "📷 Downloaded Photos": ("total_downloaded_photos", "total_photos"),
@@ -589,13 +587,14 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
     # ─────────────────────────────────────────────────────────────────────────
     # 1) Header Panel
     # ─────────────────────────────────────────────────────────────────────────
-    layout["header"].update(Panel(f"📂 {title}", border_style="blue", expand=True))
+    title = f"[bold cyan]{source_client_name}[/bold cyan] ➜ [green]{target_client_name}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
+    layout["header"].update(Panel(f"📂 {title}", border_style="bright_blue", expand=True))
 
     def update_header_panel():
         source_client_name = SHARED_INPUT_INFO.get("source_client_name", "Source Client")
         target_client_name = SHARED_INPUT_INFO.get("target_client_name", "Target Client")
         title = f"[bold cyan]{source_client_name}[/bold cyan] ➜ [green]{target_client_name}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
-        layout["header"].update(Panel(f"📂 {title}", border_style="blue", expand=True))
+        layout["header"].update(Panel(f"📂 {title}", border_style="bright_blue", expand=True))
 
     # ─────────────────────────────────────────────────────────────────────────
     # 2) Input Info Panel
@@ -643,7 +642,7 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
             table.add_row(f"[cyan]{label:<20}:[/cyan]", bar)
         for label, val in failed_downloads.items():
             table.add_row(f"[cyan]❌ {label:<18}:[/cyan]", f"[cyan]{val}[/cyan]")
-        return Panel(table, title=f"📥 {SHARED_INPUT_INFO.get("source_client_name", "Source Client")} Downloads", border_style="cyan", expand=True)
+        return Panel(table, title=f'📥 {SHARED_INPUT_INFO.get("source_client_name", "Source Client")} Downloads', border_style="cyan", expand=True)
 
     def build_upload_panel():
         table = Table.grid(expand=True)
@@ -653,7 +652,7 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
             table.add_row(f"[green]{label:<18}:[/green]", bar)
         for label, val in failed_uploads.items():
             table.add_row(f"[green]❌ {label:<16}:[/green]", f"[green]{val}[/green]")
-        return Panel(table, title=f"📤 {SHARED_INPUT_INFO.get("target_client_name", "Source Client")} Uploads", border_style="green", expand=True)
+        return Panel(table, title=f'📤 {SHARED_INPUT_INFO.get("target_client_name", "Source Client")} Uploads', border_style="green", expand=True)
 
     # ─────────────────────────────────────────────────────────────────────────
     # 4) Logging Panel from Memmory Handler
@@ -862,9 +861,15 @@ if __name__ == "__main__":
     # Define the Temporary Folder for the downloaded assets.
     temp_folder = f'./Temp_folder_{TIMESTAMP}'
 
-    local_folder = r'r:\jaimetur\CloudPhotoMigrator\LocalFolderClient'
-    takeout_folder = r'r:\jaimetur\CloudPhotoMigrator\Takeout'
-    takeout_folder_zipped = r'r:\jaimetur\CloudPhotoMigrator\Zip_files_prueba_rapida'
+    # # Paths para Windows
+    # local_folder = r'r:\jaimetur\CloudPhotoMigrator\LocalFolderClient'
+    # takeout_folder = r'r:\jaimetur\CloudPhotoMigrator\Takeout'
+    # takeout_folder_zipped = r'r:\jaimetur\CloudPhotoMigrator\Zip_files_prueba_rapida'
+    
+    # Paths para Linux
+    local_folder = r'/mnt/homes/jaimetur/CloudPhotoMigrator/LocalFolderClient'
+    takeout_folder = r'/mnt/homes/jaimetur/CloudPhotoMigrator/Takeout'
+    takeout_folder_zipped = r'/mnt/homes/jaimetur/CloudPhotoMigrator/Zip_files_prueba_rapida'
 
     # Define source and target
     source = takeout_folder_zipped
