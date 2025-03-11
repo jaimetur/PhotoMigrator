@@ -7,107 +7,116 @@ import threading
 from collections import deque
 from CustomLogger import set_log_level
 from Duplicates import find_duplicates, process_duplicates_actions
-from ClassGoogleTakeout import ClassGoogleTakeout
-from ClassSynologyPhotos import ClassSynologyPhotos
-from ClassImmichPhotos import ClassImmichPhotos
-from ClassLocalFolder import ClassLocalFolder
+
 
 
 ####################################
 # EXTRA MODE: AUTOMATED-MIGRATION: #
 ####################################
-def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder, launch_dashboard=False):
+def mode_DASHBOARD_AUTOMATED_MIGRATION(source, target, temp_folder, launch_dashboard=False, log_level=logging.INFO):
     import json
     import queue
     from pathlib import Path
+    from ClassGoogleTakeout import ClassGoogleTakeout
+    from ClassSynologyPhotos import ClassSynologyPhotos
+    from ClassImmichPhotos import ClassImmichPhotos
+    from ClassLocalFolder import ClassLocalFolder
 
-    base_folder = r'r:\jaimetur\CloudPhotoMigrator\LocalFolderClient'
-    # Create the Objects for source_client and target_client
-    source_client = ClassSynologyPhotos()
-    # target_client = ClassImmichPhotos()
-    # source_client = ClassImmichPhotos()
-    # target_client = ClassSynologyPhotos()
-    # source_client = ClassLocalFolder(base_folder=base_folder)
-    # target_client = ClassSynologyPhotos()
-    # source_client = ClassSynologyPhotos()
-    target_client = ClassLocalFolder(base_folder=base_folder)
+    def get_client(client_type):
+        """Retorna la instancia del cliente en función del tipo de fuente o destino."""
+        if client_type.lower() == 'synology-photos':
+            return ClassSynologyPhotos()
+        elif client_type.lower() == 'immich-photos':
+            return ClassImmichPhotos()
+        elif Path(client_type).is_dir():
+            return ClassLocalFolder(base_folder=client_type)
+        else:
+            raise ValueError(f"Tipo de cliente no válido: {client_type}")
 
-    ###################################################################
-    # Declare shared variables to pass as reference to both functions #
-    ###################################################################
+    parent_log_level = LOGGER.level
+    with set_log_level(LOGGER, log_level):
+        source_client = get_client(source)
+        target_client = get_client(target)
 
-    # Cola que contendrá los mensajes de log en memoria
-    SHARED_LOGS_QUEUE = queue.Queue()
+        LOGGER.info(f"Source Client: {source_client.get_client_name()}")
+        LOGGER.info(f"Target Client: {target_client.get_client_name()}")
 
-    # Contadores globales
-    SHARED_COUNTERS = {
-        'total_downloaded_assets': 0,
-        'total_downloaded_photos': 0,
-        'total_downloaded_videos': 0,
-        'total_downloaded_albums': 0,
-        'total_download_skipped_assets': 0,
+        ###################################################################
+        # Declare shared variables to pass as reference to both functions #
+        ###################################################################
 
-        'total_uploaded_assets': 0,
-        'total_uploaded_photos': 0,
-        'total_uploaded_videos': 0,
-        'total_uploaded_albums': 0,
-        'total_upload_skipped_assets': 0,
-        'total_upload_duplicates_assets': 0,
-    }
+        # Cola que contendrá los mensajes de log en memoria
+        SHARED_LOGS_QUEUE = queue.Queue()
 
-    # Get source client statistics:
-    all_albums = source_client.get_albums_including_shared_with_user()
-    all_assets = source_client.get_all_assets()
-    all_photos = [asset for asset in all_assets if asset['type'].lower() in ['photo', 'live', 'image']]
-    all_videos = [asset for asset in all_assets if asset['type'].lower() in ['video']]
+        # Contadores globales
+        SHARED_COUNTERS = {
+            'total_downloaded_assets': 0,
+            'total_downloaded_photos': 0,
+            'total_downloaded_videos': 0,
+            'total_downloaded_albums': 0,
+            'total_download_skipped_assets': 0,
 
-    # Obtiene el directorio de del script actual y calculamos el path del log relativo al directorio de trabajo
-    log_file = Path(Utils.get_logger_filename(LOGGER))
+            'total_uploaded_assets': 0,
+            'total_uploaded_photos': 0,
+            'total_uploaded_videos': 0,
+            'total_uploaded_albums': 0,
+            'total_upload_skipped_assets': 0,
+            'total_upload_duplicates_assets': 0,
+        }
 
-    SHARED_INPUT_INFO = {
-        "total_assets": len(all_assets),
-        "total_photos": len(all_photos),
-        "total_videos": len(all_videos),
-        "total_albums": len(all_albums),
-        "total_metadata": 0,
-        "total_unsopported": 0,
-        "log_file": os.path.basename(log_file),
-    }
-    # LOGGER.info(json.dumps(input_info, indent=4))
+        # Get source client statistics:
+        all_albums = source_client.get_albums_including_shared_with_user()
+        all_assets = source_client.get_all_assets()
+        all_photos = [asset for asset in all_assets if asset['type'].lower() in ['photo', 'live', 'image']]
+        all_videos = [asset for asset in all_assets if asset['type'].lower() in ['video']]
 
-    # Call the parallel_automated_migration module to do the whole migration process
-    # parallel_automated_migration(source_client=source, target_client=target, temp_folder=temp_folder)
+        # Obtiene el directorio de del script actual y calculamos el path del log relativo al directorio de trabajo
+        log_file = Path(Utils.get_logger_filename(LOGGER))
 
-    # 1) Lanzamos la migración en un thread
-    migration_thread = threading.Thread(
-        target=parallel_automated_migration,
-        args=(source_client, target_client, temp_folder, SHARED_COUNTERS, SHARED_LOGS_QUEUE),
-        kwargs={'log_level': logging.INFO, 'launch_dashboard': launch_dashboard},
-        daemon=True
-    )
-    migration_thread.start()
+        SHARED_INPUT_INFO = {
+            "total_assets": len(all_assets),
+            "total_photos": len(all_photos),
+            "total_videos": len(all_videos),
+            "total_albums": len(all_albums),
+            "total_metadata": 0,
+            "total_unsopported": 0,
+            "log_file": os.path.basename(log_file),
+        }
+        # LOGGER.info(json.dumps(input_info, indent=4))
 
-    # 2) Lanzamos el dashboard en el hilo principal (o viceversa).
-    if launch_dashboard:
-        source_client_name = source_client.get_client_name()
-        target_client_name = target_client.get_client_name()
-        show_dashboard(
-            migration_thread=migration_thread,
-            SHARED_INPUT_INFO=SHARED_INPUT_INFO,
-            SHARED_COUNTERS=SHARED_COUNTERS,
-            SHARED_LOGS_QUEUE=SHARED_LOGS_QUEUE,
-            source_client_name=source_client_name,
-            target_client_name=target_client_name,
-            log_level=logging.INFO)
+        # Call the parallel_automated_migration module to do the whole migration process
+        # parallel_automated_migration(source_client=source, target_client=target, temp_folder=temp_folder)
 
-    # 3) Cuando show_dashboard termine, esperar la finalización (si hace falta)
-    migration_thread.join()
+        # 1) Lanzamos la migración en un thread
+        migration_thread = threading.Thread(
+            target=parallel_automated_migration,
+            args=(source_client, target_client, temp_folder, SHARED_COUNTERS, SHARED_LOGS_QUEUE),
+            kwargs={'log_level': logging.INFO, 'launch_dashboard': launch_dashboard},
+            daemon=True
+        )
+        migration_thread.start()
+
+        # 2) Lanzamos el dashboard en el hilo principal (o viceversa).
+        if launch_dashboard:
+            source_client_name = source_client.get_client_name()
+            target_client_name = target_client.get_client_name()
+            show_dashboard(
+                migration_thread=migration_thread,
+                SHARED_INPUT_INFO=SHARED_INPUT_INFO,
+                SHARED_COUNTERS=SHARED_COUNTERS,
+                SHARED_LOGS_QUEUE=SHARED_LOGS_QUEUE,
+                source_client_name=source_client_name,
+                target_client_name=target_client_name,
+                log_level=logging.INFO)
+
+        # 3) Cuando show_dashboard termine, esperar la finalización (si hace falta)
+        migration_thread.join()
 
 
 #########################################
 # parallel_automated_migration Function #
 #########################################
-def parallel_automated_migration(source_client, target_client, temp_folder, SHARED_COUNTERS, SHARED_LOGS_QUEUE, log_level=logging.INFO, launch_dashboard=False):
+def parallel_automated_migration(source_client, target_client, temp_folder, SHARED_COUNTERS, SHARED_LOGS_QUEUE, launch_dashboard=False, log_level=logging.INFO):
     """
     Sincroniza fotos y vídeos entre un 'source_client' y un 'destination_client',
     descargando álbumes y assets desde la fuente, y luego subiéndolos a destino,
@@ -791,4 +800,8 @@ if __name__ == "__main__":
     # Define the Temporary Folder for the downloaded assets.
     temp_folder = './Temp_folder'
 
-    mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder=temp_folder, launch_dashboard=True)
+    local_folder = r'r:\jaimetur\CloudPhotoMigrator\LocalFolderClient'
+    source=local_folder
+    target='immich-photos'
+
+    mode_DASHBOARD_AUTOMATED_MIGRATION(source=source, target=target, temp_folder=temp_folder, launch_dashboard=True)
