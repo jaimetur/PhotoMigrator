@@ -112,6 +112,7 @@ def parallel_automated_migration(source, target, temp_folder, SHARED_INPUT_INFO,
     temp_folder: str
         Carpeta temporal donde se descargarán los assets antes de subirse.
     """
+    # TODO: cambiar la doc porque ya no se pasan objetos
     import os
     import shutil
     import threading
@@ -133,6 +134,7 @@ def parallel_automated_migration(source, target, temp_folder, SHARED_INPUT_INFO,
 
     # Set global para almacenar paths ya añadidos
     added_file_paths = set()
+    
     # Lock global para proteger el acceso concurrente
     file_paths_lock = threading.Lock()
 
