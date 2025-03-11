@@ -132,6 +132,10 @@ class LoggerConsoleTqdm:
     def flush(self):
         pass  # Necesario para compatibilidad con tqdm
 
+    def isatty(self):
+        """Engañar a tqdm para que lo trate como un terminal interactivo."""
+        return True
+
 class ThreadLevelFilter(logging.Filter):
     def __init__(self, level):
         super().__init__()
