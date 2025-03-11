@@ -24,13 +24,13 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(temp_folder, launch_dashboard=False):
     base_folder = r'r:\jaimetur\CloudPhotoMigrator\LocalFolderClient'
     # Create the Objects for source_client and target_client
     source_client = ClassSynologyPhotos()
-    target_client = ClassImmichPhotos()
+    # target_client = ClassImmichPhotos()
     # source_client = ClassImmichPhotos()
     # target_client = ClassSynologyPhotos()
     # source_client = ClassLocalFolder(base_folder=base_folder)
     # target_client = ClassSynologyPhotos()
     # source_client = ClassSynologyPhotos()
-    # target_client = ClassLocalFolder(base_folder=base_folder)
+    target_client = ClassLocalFolder(base_folder=base_folder)
 
     ###################################################################
     # Declare shared variables to pass as reference to both functions #
@@ -135,6 +135,9 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     import threading
     from queue import Queue
     from CustomLogger import CustomInMemoryLogHandler, CustomConsoleFormatter, CustomLogFormatter, clone_logger
+    from datetime import datetime, timedelta
+
+    start_time = datetime.now()
 
     # Preparar la cola que compartiremos entre descargas y subidas
     upload_queue = Queue()
@@ -437,6 +440,9 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         # Finalmente, borrar carpetas vacías que queden en temp_folder
         Utils.remove_empty_dirs(temp_folder)
 
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - start_time).seconds))
+
         # ----------------------------------------------------------------------------
         # 4) Mostrar o retornar contadores
         # ----------------------------------------------------------------------------
@@ -445,12 +451,15 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         LOGGER.info(f"")
         LOGGER.info(f"INFO    : ----- SINCRONIZACIÓN FINALIZADA -----")
         LOGGER.info(f"INFO    : {source_client.get_client_name()} --> {target_client.get_client_name()}")
-        LOGGER.info(f"INFO    : Downloaded Albums : {SHARED_COUNTERS['total_downloaded_albums']}")
-        LOGGER.info(f"INFO    : Uploaded Albums   : {SHARED_COUNTERS['total_uploaded_albums']}")
-        LOGGER.info(f"INFO    : Downloaded Assets : {SHARED_COUNTERS['total_downloaded_assets']} (Fotos: {SHARED_COUNTERS['total_downloaded_photos']}, Videos: {SHARED_COUNTERS['total_downloaded_videos']})")
-        LOGGER.info(f"INFO    : Uploaded Assets   : {SHARED_COUNTERS['total_uploaded_assets']} (Fotos: {SHARED_COUNTERS['total_uploaded_photos']}, Videos: {SHARED_COUNTERS['total_uploaded_videos']})")
-        LOGGER.info(f"INFO    : Upload Skipped    : {SHARED_COUNTERS['total_upload_skipped_assets']}")
-        LOGGER.info(f"INFO    : Download Skipped  : {SHARED_COUNTERS['total_download_skipped_assets']}")
+        LOGGER.info(f"INFO    : Downloaded Albums           : {SHARED_COUNTERS['total_downloaded_albums']}")
+        LOGGER.info(f"INFO    : Uploaded Albums             : {SHARED_COUNTERS['total_uploaded_albums']}")
+        LOGGER.info(f"INFO    : Downloaded Assets           : {SHARED_COUNTERS['total_downloaded_assets']} (Fotos: {SHARED_COUNTERS['total_downloaded_photos']}, Videos: {SHARED_COUNTERS['total_downloaded_videos']})")
+        LOGGER.info(f"INFO    : Uploaded Assets             : {SHARED_COUNTERS['total_uploaded_assets']} (Fotos: {SHARED_COUNTERS['total_uploaded_photos']}, Videos: {SHARED_COUNTERS['total_uploaded_videos']})")
+        LOGGER.info(f"INFO    : Upload Duplicates (skipped) : {SHARED_COUNTERS['total_upload_duplicates_assets']}")
+        LOGGER.info(f"INFO    : Download Skipped            : {SHARED_COUNTERS['total_download_skipped_assets']}")
+        LOGGER.info(f"INFO    : Upload Skipped              : {SHARED_COUNTERS['total_upload_skipped_assets']}")
+        LOGGER.info(f"")
+        LOGGER.info(f"INFO    : Migration Job completed in  : {formatted_duration}")
         LOGGER.info(f"")
         LOGGER.info(f"")
         return SHARED_COUNTERS

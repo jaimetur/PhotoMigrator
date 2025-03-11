@@ -18,13 +18,12 @@ import base64
 import inspect
 from GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT
 
-WORKING_DIR = r"R:\jaimetur\CloudPhotoMigrator"
-
 ######################
 # FUNCIONES AUXILIARES
 ######################
 def change_workingdir():
     """ Definir la ruta de trabajo deseada """
+    WORKING_DIR = r"R:\jaimetur\CloudPhotoMigrator"
     # Verificar si la carpeta existe y cambiar a ella si existe
     if os.path.exists(WORKING_DIR) and os.path.isdir(WORKING_DIR):
         os.chdir(WORKING_DIR)
@@ -1193,19 +1192,19 @@ def convert_to_list(input, log_level=logging.INFO):
     parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
-            output=input
+            output = input
             if isinstance(output, list):
-                output = input_value
+                pass  # output ya es una lista
             elif isinstance(output, str):
-                # Divide por comas y elimina espacios adicionales
-                output = [item.strip() for item in input_value.split(',') if item.strip()]
+                if ',' in output:
+                    output = [item.strip() for item in output.split(',') if item.strip()]
+                else:
+                    output = [output.strip()] if output.strip() else []
             elif isinstance(output, (int, float)):
-                # Convierte números en una lista de un solo elemento
                 output = [output]
-            elif input_value is None:
+            elif output is None:
                 output = []
             else:
-                # Cualquier otro tipo lo convierte en lista de un solo elemento
                 output = [output]
         except Exception as e:
             LOGGER.warning(f"WARNING : Failed to convert string to List for {input}. {e}")

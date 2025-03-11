@@ -585,7 +585,7 @@ def mode_synology_remove_duplicates_albums(user_confirmation=True, log_level=log
         LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
         syno.login(log_level=logging.WARNING)
         # Call the Function
-        albums_removed, folders_removed = syno.remove_duplicates_albums(log_level=logging.WARNING)
+        albums_removed = syno.remove_duplicates_albums(log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Synology Photos.")
@@ -602,7 +602,6 @@ def mode_synology_remove_duplicates_albums(user_confirmation=True, log_level=log
         LOGGER.info("                  FINAL SUMMARY:                  ")
         LOGGER.info("==================================================")
         LOGGER.info(f"Total Duplicates Albums removed         : {albums_removed}")
-        LOGGER.info(f"Total Folders removed                   : {folders_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
