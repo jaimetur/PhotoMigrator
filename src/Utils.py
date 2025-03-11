@@ -27,10 +27,6 @@ TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(logging.getLogger("CloudPhotoMigrator")
 # Crear instancia global del wrapper
 TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
 
-# Función que devuelve tqdm configurado con el logger
-def tqdm_logger(*args, **kwargs):
-    return tqdm(*args, file=TQDM_LOGGER_INSTANCE, **kwargs)
-
 # Redefinir `tqdm` para usar `TQDM_LOGGER_INSTANCE` si no se especifica `file`
 def tqdm(*args, **kwargs):
     if 'file' not in kwargs:  # Si el usuario no especifica `file`, usar `TQDM_LOGGER_INSTANCE`
