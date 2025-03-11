@@ -5,7 +5,6 @@ from colorama import Fore, Style
 from contextlib import contextmanager
 import threading
 
-
 def check_color_support(log_level=logging.INFO):
     """ Detect if Terminal has supports colors """
     if sys.stdout.isatty():  # Verifica si es un terminal interactivo
@@ -87,18 +86,51 @@ class CustomInMemoryLogHandler(logging.Handler):
         # Guardarlo en la lista
         # self.log_queue.append(msg)
 
-# Integrar tqdm con el logger
-class TqdmToLogger:
-    """Clase para redirigir los mensajes de tqdm al logger."""
-    def __init__(self, logger, log_level=logging.INFO):
-        self.logger = logger
-        self.level = log_level
-    def write(self, msg):
-        # Evita mensajes vacíos
-        if msg.strip():
-            self.logger.log(self.level, msg.strip())
+
+class LoggerStream:
+    """Redirige stdout y stderr al LOGGER global."""
+
+    def __init__(self, logger, level):
+        self.logger = logger  # Ahora usamos un logger pasado como argumento
+        self.level = level  # Nivel de logging (INFO para stdout, ERROR para stderr)
+
+    def write(self, message):
+        if message.strip():  # Evita líneas vacías
+            self.logger.log(self.level, message.strip())
+
     def flush(self):
-        pass  # Requerido por tqdm, pero no es necesario implementar
+        pass  # Necesario para compatibilidad con sys.stdout/sys.stderr
+
+    def isatty(self):
+        """Evita errores cuando se llama a sys.stdout.isatty()."""
+        return False  # Devuelve False porque no es un terminal real
+
+
+# Integrar tqdm con el logger
+class LoggerConsoleTqdm:
+    """Redirige la salida de tqdm solo a los manejadores de consola del LOGGER."""
+
+    def __init__(self, logger, level=logging.INFO):
+        self.logger = logger
+        self.level = level
+
+    def write(self, message):
+        message = message.strip()
+        if message:
+            for handler in self.logger.handlers:
+                if isinstance(handler, logging.StreamHandler):  # Solo handlers de consola
+                    handler.emit(logging.LogRecord(
+                        name=self.logger.name,
+                        level=self.level,
+                        pathname="",
+                        lineno=0,
+                        msg=message,
+                        args=(),
+                        exc_info=None
+                    ))
+
+    def flush(self):
+        pass  # Necesario para compatibilidad con tqdm
 
 class ThreadLevelFilter(logging.Filter):
     def __init__(self, level):
@@ -111,6 +143,7 @@ class ThreadLevelFilter(logging.Filter):
         if threading.get_ident() == self.thread_id:
             return record.levelno >= self.level
         return True  # otros hilos no afectados
+
 
 def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, timestamp=None, skip_logfile=False, skip_console=False, detail_log=True, plain_log=False):
     """
@@ -141,6 +174,7 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, time
         console_handler.setLevel(log_level)
         console_handler.setFormatter(CustomConsoleFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
         LOGGER.addHandler(console_handler)
+
     if not skip_logfile:
         if detail_log:
             # Set up logfile handler (detailed output with asctime and levelname)
@@ -158,13 +192,10 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, time
             file_handler_plain.setFormatter(CustomTxtFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
             LOGGER.addHandler(file_handler_plain)
 
-    # Añadir TqdmToLogger como atributo al logger
-    # LOGGER.tqdm_stream = TqdmToLogger(LOGGER, log_level=logging.INFO)
-
     # Set the log level for the root logger
     LOGGER.setLevel(log_level)
-
     LOGGER.propagate = False # <-- IMPORTANTE PARA EVITAR USAR EL LOOGER RAIZ
+
     return LOGGER
 
 # # Crear un contexto para cambiar el nivel del logger temporalmente

@@ -6,7 +6,6 @@ import re
 import stat
 from datetime import datetime
 import ctypes
-from tqdm import tqdm as original_tqdm
 import platform
 import piexif
 import subprocess
@@ -16,11 +15,28 @@ from PIL import Image
 import hashlib
 import base64
 import inspect
+from tqdm import tqdm as original_tqdm
 from GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT
+from CustomLogger import LoggerConsoleTqdm
+TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(logging.getLogger("CloudPhotoMigrator"), logging.INFO)
+
 
 ######################
 # FUNCIONES AUXILIARES
 ######################
+# Crear instancia global del wrapper
+TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
+
+# Función que devuelve tqdm configurado con el logger
+def tqdm_logger(*args, **kwargs):
+    return tqdm(*args, file=TQDM_LOGGER_INSTANCE, **kwargs)
+
+# Redefinir `tqdm` para usar `TQDM_LOGGER_INSTANCE` si no se especifica `file`
+def tqdm(*args, **kwargs):
+    if 'file' not in kwargs:  # Si el usuario no especifica `file`, usar `TQDM_LOGGER_INSTANCE`
+        kwargs['file'] = TQDM_LOGGER_INSTANCE
+    return original_tqdm(*args, **kwargs)
+
 def change_workingdir():
     """ Definir la ruta de trabajo deseada """
     WORKING_DIR = r"R:\jaimetur\CloudPhotoMigrator"
@@ -320,6 +336,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log
             dirs[:] = [d for d in dirs if d not in exclude_subfolders]
             total_files += sum([len(files)])
         # Mostrar la barra de progreso basada en carpetas
+        # with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : Organizing files with {type} structure in '{input_folder}'", unit=" files") as pbar:
         with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : Organizing files with {type} structure in '{input_folder}'", unit=" files") as pbar:
             for path, dirs, files in os.walk(input_folder, topdown=True):
                 # Exclude specified subfolders
@@ -561,7 +578,7 @@ def delete_subfolders(input_folder, folder_name_to_delete, log_level=logging.INF
     whose names match dir_name_to_delete, including hidden directories.
 
     Args:
-        input_folder (str): The path to the base directory to start the search from.
+        input_folder (str, Path): The path to the base directory to start the search from.
         folder_name_to_delete (str): The name of the subdirectories to delete.
     """
     parent_log_level = LOGGER.level
@@ -1221,11 +1238,6 @@ def convert_asset_ids_to_str(asset_ids):
     else:
         return [str(asset_ids)]
 
-def tqdm(*args, **kwargs):
-    if 'file' not in kwargs:  # Si no se especifica `file`, usar stdout por defecto
-        kwargs['file'] = sys.stdout
-    return original_tqdm(*args, **kwargs)
-
 def sha1_checksum(file_path):
     """Calcula el SHA-1 hash de un archivo y devuelve tanto en formato HEX como Base64"""
     sha1 = hashlib.sha1()  # Crear un objeto SHA-1
@@ -1243,5 +1255,5 @@ def get_logger_filename(logger):
     for handler in logger.handlers:
         if isinstance(handler, logging.FileHandler):
             return handler.baseFilename  # Devuelve el path del archivo de logs
-    return None  # Si no hay un FileHandler, retorna None
+    return ""  # Si no hay un FileHandler, retorna ""
 

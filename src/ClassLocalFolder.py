@@ -53,7 +53,7 @@ class ClassLocalFolder:
         self.ALLOWED_PHOTO_EXTENSIONS = [ext.lower() for ext in self.ALLOWED_PHOTO_EXTENSIONS]
         self.ALLOWED_VIDEO_EXTENSIONS = [ext.lower() for ext in self.ALLOWED_VIDEO_EXTENSIONS]
         self.ALLOWED_MEDIA_EXTENSIONS = self.ALLOWED_PHOTO_EXTENSIONS + self.ALLOWED_VIDEO_EXTENSIONS
-        self.ALLOWED_EXTENSIONS = self.ALLOWED_MEDIA_EXTENSIONS
+        self.ALLOWED_EXTENSIONS = self.ALLOWED_MEDIA_EXTENSIONS + self.ALLOWED_SIDECAR_EXTENSIONS + self.ALLOWED_METADATA_EXTENSIONS
 
         self.CLIENT_NAME = 'Local Folder'
 
@@ -86,7 +86,7 @@ class ClassLocalFolder:
             str: The name of the client.
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Fetching the client name.")
+            LOGGER.debug("DEBUG   : Fetching the client name.")
             return self.CLIENT_NAME
 
     def get_albums_owned_by_user(self, log_level=logging.INFO):
@@ -196,9 +196,13 @@ class ClassLocalFolder:
             LOGGER.info(f"INFO    : Found {len(assets)} assets without albums.")
             return assets
 
-    def get_all_assets(self, log_level=logging.INFO):
+    def get_all_assets(self, type='all', log_level=logging.INFO):
         """
-        Retrieves all assets stored in the base folder.
+        Retrieves assets stored in the base folder, filtering by type.
+
+        Args:
+            log_level (int): Logging level.
+            type (str): Type of assets to retrieve. Options are 'all', 'photo', 'image', 'video', 'media', 'metadata', 'sidecar', 'unsupported'.
 
         Returns:
             list[dict]: A list of asset dictionaries, each containing:
@@ -209,7 +213,23 @@ class ClassLocalFolder:
                         - 'type': Type of the file (image, video, metadata, sidecar, unknown).
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Retrieving all assets from the base folder.")
+            LOGGER.info(f"INFO    : Retrieving {type} assets from the base folder.")
+
+            # Determine allowed extensions based on the type
+            if type in ['photo', 'image']:
+                allowed_extensions = self.ALLOWED_PHOTO_EXTENSIONS
+            elif type == 'video':
+                allowed_extensions = self.ALLOWED_VIDEO_EXTENSIONS
+            elif type == 'media':
+                allowed_extensions = self.ALLOWED_MEDIA_EXTENSIONS
+            elif type == 'metadata':
+                allowed_extensions = self.ALLOWED_METADATA_EXTENSIONS
+            elif type == 'sidecar':
+                allowed_extensions = self.ALLOWED_SIDECAR_EXTENSIONS
+            elif type == 'unsupported':
+                allowed_extensions = None  # Special case to filter unsupported files
+            else:  # 'all' or unrecognized type defaults to all supported extensions
+                allowed_extensions = self.ALLOWED_EXTENSIONS
 
             assets = [
                 {
@@ -219,10 +239,14 @@ class ClassLocalFolder:
                     "filepath": str(file.resolve()),
                     "type": self._determine_file_type(file),
                 }
-                for file in self.base_folder.rglob("*") if file.is_file()
+                for file in self.base_folder.rglob("*")
+                if file.is_file() and (
+                    (allowed_extensions is None and file.suffix.lower() not in self.ALLOWED_EXTENSIONS) or
+                    (allowed_extensions is not None and file.suffix.lower() in allowed_extensions)
+                )
             ]
 
-            LOGGER.info(f"INFO    : Found {len(assets)} assets in the base folder.")
+            LOGGER.info(f"INFO    : Found {len(assets)} {type} assets in the base folder.")
             return assets
 
     def remove_empty_albums(self, log_level=logging.INFO):
