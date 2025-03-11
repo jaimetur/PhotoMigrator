@@ -44,14 +44,9 @@ so feel free to download the version according to your system.
 ## Download:
 Download the tool either for Linux, MacOS or Windows version (for both x64/amd64 or arm64 architectures) as you prefer directly from following links:
 
-**All Releases:**:  
-  - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)  
-
-**Latest Release:**
+  - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)
   - [Latest Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/tag/v3.0.0)
-
-**Pre Release:**
-  - [Pre Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/tag/v3.1.0)
+  - [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/tag/v3.1.0)
 
 
 ## Instructions to execute from compiled version:

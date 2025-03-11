@@ -108,7 +108,7 @@ def extract_release_body(input_file, output_file):
     # Extract content from "## Download:" to "## Release Notes:"
     download_section = lines[download_section_index:release_notes_index]
     # Rearrange sections: first the extracted release notes, then the modified download section
-    new_content = release_section + ["\n"] + download_section
+    new_content = download_section + ["\n"] + release_section
     # Write the modified content to the output file
     with open(output_file, 'w', encoding='utf-8') as outfile:
         outfile.writelines(new_content)
