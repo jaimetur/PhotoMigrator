@@ -1,4 +1,4 @@
-from GlobalVariables import SCRIPT_NAME_VERSION
+from GlobalVariables import SCRIPT_NAME_VERSION, LOGGER
 import argparse
 import os, sys
 import platform
@@ -21,7 +21,6 @@ class PagedParser(argparse.ArgumentParser):
         """
         Paginador con curses que adapta dinámicamente el texto al tamaño de la terminal.
         """
-        from GlobalVariables import LOGGER  # Global logger
 
         # Expresión regular para detectar códigos ANSI
         ANSI_ESCAPE = re.compile(r'\x1b\[[0-9;]*m')

@@ -1,4 +1,5 @@
 from configparser import ConfigParser
+from GlobalVariables import LOGGER  # Import global LOGGER
 import os, sys
 
 CONFIG = None
@@ -7,7 +8,6 @@ def load_config(config_file='Config.ini'):
     #
     # Load and Set Global CONFIG variable
     #
-    from GlobalVariables import LOGGER  # Import global LOGGER
     global CONFIG
 
     if CONFIG:

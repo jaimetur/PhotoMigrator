@@ -18,7 +18,8 @@ HELP_TEXTS                      = None
 ARGS                            = None
 PARSER                          = None
 LOGGER                          = None
-LOG_LEVEL                       = logging.DEBUG
+LOG_LEVEL_MIN                   = logging.DEBUG
+LOG_LEVEL                       = logging.INFO
 
 # List of Folder to Deprioritize when looking for duplicates.
 DEPRIORITIZE_FOLDERS_PATTERNS   = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS', '*No-Albums', '*Others', '*Variad[oa]*', '*Vari[oa]*', '*Miscellaneous*', '*M[oó]vil*', r'\bfotos\b\s+(\w+)\s*$', r'fotos de \w y \w\s*$', r'fotos de \w\s*$', '*Fotos_de*', '*Fotos_con', '*Fotos de*', '*Fotos con*']
@@ -56,7 +57,8 @@ def set_LOGGER():
     log_folder="Logs"
     log_filename=f"{script_name}_{TIMESTAMP}"
     LOG_FOLDER_FILENAME = os.path.join(current_directory, log_folder, log_filename)
-    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=LOG_LEVEL, plain_log=False)
+    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=LOG_LEVEL_MIN, plain_log=False)
+    LOGGER.setLevel(LOG_LEVEL)
 
 def set_HELP_TEXT():
     from HelpTexts import set_help_texts
