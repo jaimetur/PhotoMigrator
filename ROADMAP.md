@@ -13,7 +13,7 @@
 - [ ] Tests Pending:
   - [ ] Deep Test on Immich Support functions. (volunteers are welcomed)
   - [ ] Deep Test on Synology Support functions. (volunteers are welcomed)
-  - [ ] Deep Test on Google Photos function. (volunteers are welcomed)
+  - [ ] Deep Test on Google Takeout functions. (volunteers are welcomed)
   - [ ] Deep Test on --AUTOMATED-MIGRATION MODE. (volunteers are welcomed)
 
 
