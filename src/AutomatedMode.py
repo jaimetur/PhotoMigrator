@@ -524,9 +524,6 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         all_sidecar = [asset for asset in all_supported_assets if asset['type'].lower() in ['sidecar']]
         all_unsupported= [asset for asset in all_supported_assets if asset['type'].lower() in ['unknown']]
 
-        # Obtiene el path del log
-        log_file_path = Path(Utils.get_logger_filename(LOGGER))
-
         SHARED_DATA.input_info.update({
             "total_medias": len(all_medias),
             "total_photos": len(all_photos),
@@ -535,7 +532,6 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             "total_metadata": len(all_metadata),
             "total_sidecar": len(all_sidecar),
             "total_unsupported": len(all_unsupported),  # Corrección de "unsopported" → "unsupported"
-            "log_file": os.path.basename(log_file_path),
         })
         # LOGGER.info(json.dumps(shared_data.input_info, indent=4))
 
@@ -657,9 +653,9 @@ def run_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     # sys.stdout = open(os.devnull, 'w')
     # sys.stderr = open(os.devnull, 'w')
 
-    # Filtrar y eliminar los handlers de consola
-    for handler in LOGGER.handlers[:]:  # Copia la lista para evitar modificaciones en el bucle
-        if isinstance(handler, logging.StreamHandler):  # StreamHandler es el que imprime en consola
+    # Eliminar solo los StreamHandler sin afectar los FileHandler
+    for handler in list(LOGGER.handlers):  # Hacer una copia de la lista para evitar problemas al modificarla
+        if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler):
             LOGGER.removeHandler(handler)
 
     # Crea el handler y configúralo con un formatter
@@ -674,6 +670,8 @@ def run_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     # Por ejemplo:
     LOGGER.propagate = False
 
+    log_file = Utils.get_logger_filename(LOGGER)
+
     total_medias        = SHARED_DATA.input_info.get('total_medias', 0)
     total_photos        = SHARED_DATA.input_info.get('total_photos', 0)
     total_videos        = SHARED_DATA.input_info.get('total_videos', 0)
@@ -681,7 +679,6 @@ def run_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     total_metadata      = SHARED_DATA.input_info.get('total_metadata', 0)
     total_sidecar       = SHARED_DATA.input_info.get('total_sidecar', 0)
     total_unsupported   = SHARED_DATA.input_info.get('total_unsupported', 0)
-    log_file            = SHARED_DATA.input_info.get('log_file', "")
     source_client_name  = SHARED_DATA.input_info.get("source_client_name", "Source Client")
     target_client_name  = SHARED_DATA.input_info.get("target_client_name", "Target Client")
 
@@ -741,7 +738,7 @@ def run_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     | |___| | (_) | |_| | (_| |  __/| | | | (_) | || (_) | |  | | | (_| | | | (_| | || (_) | |
      \____|_|\___/ \__,_|\__,_|_|   |_| |_|\___/ \__\___/|_|  |_|_|\__, |_|  \__,_|\__\___/|_|
                                                                    |___/ {SCRIPT_VERSION}
-    """).lstrip("\\n")  # Elimina solo la primera línea en blanco
+    """).lstrip("\n")  # Elimina solo la primera línea en blanco
     layout["header_panel"].update(Panel(f"[gold1]{header}[/gold1]", border_style="gold1", expand=True))
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -880,7 +877,7 @@ def run_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         Devuelve un Panel con todo el historial (de modo que se pueda hacer
         scroll en la terminal si usas vertical_overflow='visible').
         """
-        title_logs_panel = f"📜 Logs Panel (Only last {logs_panel_height} rows showed. Complete log file at: '{SHARED_DATA.input_info.get('log_file', "")}')"
+        title_logs_panel = f"📜 Logs Panel (Only last {logs_panel_height} rows showed. Complete log file at: '{log_file}')"
         try:
             while True:
                 # 1) Vaciamos la cola de logs, construyendo el historial completo
