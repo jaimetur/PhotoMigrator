@@ -72,7 +72,7 @@ class CustomLogFormatter(logging.Formatter):
 class CustomInMemoryLogHandler(logging.Handler):
     """
     Almacena los registros de logging en una lista.
-    Luego 'show_dashboard' leerá esa lista para mostrarlos en el panel de logs.
+    Luego 'run_dashboard' leerá esa lista para mostrarlos en el panel de logs.
     """
     def __init__(self, log_queue):
         super().__init__()
