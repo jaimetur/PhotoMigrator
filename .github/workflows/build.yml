@@ -183,7 +183,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           git add README.md
 
           # Si NO hay cambios, salir sin error
@@ -192,11 +192,18 @@ jobs:
             exit 0
           fi
 
-          # Opcional: por si hay commits nuevos en la rama
+          # Guardar cambios temporales antes de pull --rebase
+          git stash push -m "Pre-rebase stash"
+
+          # Traer cambios de la rama remota
           git pull --rebase origin ${{ github.ref_name }}
+
+          # Recuperar cambios guardados en stash
+          git stash pop || echo "No hay stash para aplicar"
 
           git commit -m "Actualizar README.md tras compilación"
           git push origin ${{ github.ref_name }}
+
 
 
 #      # 3. Commit and tag
