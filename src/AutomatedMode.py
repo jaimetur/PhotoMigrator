@@ -12,7 +12,7 @@ from Duplicates import find_duplicates, process_duplicates_actions
 ####################################
 # EXTRA MODE: AUTOMATED-MIGRATION: #
 ####################################
-def mode_DASHBOARD_AUTOMATED_MIGRATION(source, target, temp_folder, launch_dashboard=False, log_level=logging.INFO):
+def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
     import json
     import queue
 
@@ -56,35 +56,172 @@ def mode_DASHBOARD_AUTOMATED_MIGRATION(source, target, temp_folder, launch_dashb
             "log_file": "",
         }
 
-        # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-        # Call the parallel_automated_migration module to do the whole migration process
-        # parallel_automated_migration(source, target, temp_folder, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_LOGS_QUEUE)
-        # and if launch_dashboard=True, launch show_dashboard function to show a Live Dashboard of the whole process
-        # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        SOURCE = ARGS['AUTOMATED-MIGRATION'][0]
+        TARGET = ARGS['AUTOMATED-MIGRATION'][1]
+        LAUNCH_DASHBOARD = ARGS['dashboard']
+        INTERMEDIATE_FOLDER = f'./Temp_folder_{TIMESTAMP}'
 
-        # 1) Creamos el thread de la migración
-        migration_thread = threading.Thread(
-            target=parallel_automated_migration,
-            args=(source, target, temp_folder, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_LOGS_QUEUE),
-            kwargs={'log_level': logging.INFO, 'launch_dashboard': launch_dashboard},
-            daemon=True
-        )
+        LOGGER.info(f"INFO    : -AUTO, --AUTOMATED-MIGRATION Mode detected")
+        if not ARGS['SOURCE-TYPE-TAKEOUT-FOLDER']:
+            LOGGER.info(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE>', f"'{ARGS['AUTOMATED-MIGRATION'][0]}'").replace('<TARGET>', f"'{ARGS['AUTOMATED-MIGRATION'][1]}'"))
+        else:
+            LOGGER.info(
+                HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{ARGS['AUTOMATED-MIGRATION'][0]}'").replace('<TARGET>', f"'{ARGS['AUTOMATED-MIGRATION'][1]}'").replace(
+                    'Downloading', 'Analyzing and Fixing'))
+        LOGGER.info(f"INFO    : Selected SOURCE : {SOURCE}")
+        LOGGER.info(f"INFO    : Selected TARGET : {TARGET}")
+        LOGGER.info("")
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO    : Exiting program.")
+            sys.exit(0)
 
-        # 2) Lanzamos el thread de la migración
-        migration_thread.start()
+        parent_log_level = LOGGER.level
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+            # =========================
+            # FIRST PROCESS THE SOURCE:
+            # =========================
+            LOGGER.info("")
+            LOGGER.info(f'============================================================================')
+            LOGGER.info(f'INFO    : AUTOMATED MIGRATION JOB STARTED -  {SOURCE} -> {TARGET}')
+            LOGGER.info(f'============================================================================')
+            LOGGER.info("")
 
-        # 3) Lanzamos el dashboard en el hilo principal (o viceversa).
-        if launch_dashboard:
-            show_dashboard(
-                migration_thread=migration_thread,
-                SHARED_INPUT_INFO=SHARED_INPUT_INFO,
-                SHARED_COUNTERS=SHARED_COUNTERS,
-                SHARED_LOGS_QUEUE=SHARED_LOGS_QUEUE,
-                log_level=logging.INFO)
+            # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+            # Call the parallel_automated_migration module to do the whole migration process
+            # parallel_automated_migration(source, target, temp_folder, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_LOGS_QUEUE)
+            # and if LAUNCH_DASHBOARD=True, launch show_dashboard function to show a Live Dashboard of the whole process
+            # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-        # 4) Cuando show_dashboard termine, esperar la finalización (si hace falta)
-        migration_thread.join()
+            # 1) Creamos el thread de la migración
+            migration_thread = threading.Thread(
+                target=parallel_automated_migration,
+                args=(SOURCE, TARGET, INTERMEDIATE_FOLDER, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_LOGS_QUEUE),
+                kwargs={'log_level': logging.INFO, 'launch_dashboard': LAUNCH_DASHBOARD},
+                daemon=True
+            )
 
+            # 2) Lanzamos el thread de la migración
+            migration_thread.start()
+
+            # 3) Lanzamos el dashboard en el hilo principal (o viceversa).
+            if LAUNCH_DASHBOARD:
+                show_dashboard(
+                    migration_thread=migration_thread,
+                    SHARED_INPUT_INFO=SHARED_INPUT_INFO,
+                    SHARED_COUNTERS=SHARED_COUNTERS,
+                    SHARED_LOGS_QUEUE=SHARED_LOGS_QUEUE,
+                    log_level=logging.INFO)
+
+            # 4) Cuando show_dashboard termine, esperar la finalización (si hace falta)
+            migration_thread.join()
+
+def mode_AUTOMATED_MIGRATION_old(log_level=logging.INFO):
+    SOURCE = ARGS['AUTOMATED-MIGRATION'][0]
+    TARGET = ARGS['AUTOMATED-MIGRATION'][1]
+    INTERMEDIATE_FOLDER = ''
+
+    LOGGER.info(f"INFO    : -AUTO, --AUTOMATED-MIGRATION Mode detected")
+    if not ARGS['SOURCE-TYPE-TAKEOUT-FOLDER']:
+        LOGGER.info(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE>', f"'{ARGS['AUTOMATED-MIGRATION'][0]}'").replace('<TARGET>', f"'{ARGS['AUTOMATED-MIGRATION'][1]}'"))
+    else:
+        LOGGER.info(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{ARGS['AUTOMATED-MIGRATION'][0]}'").replace('<TARGET>', f"'{ARGS['AUTOMATED-MIGRATION'][1]}'").replace('Downloading', 'Analyzing and Fixing'))
+    LOGGER.info(f"INFO    : Selected SOURCE : {SOURCE}")
+    LOGGER.info(f"INFO    : Selected TARGET : {TARGET}")
+    LOGGER.info("")
+    if not Utils.confirm_continue():
+        LOGGER.info(f"INFO    : Exiting program.")
+        sys.exit(0)
+
+    parent_log_level = LOGGER.level
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        # =========================
+        # FIRST PROCESS THE SOURCE:
+        # =========================
+        LOGGER.info("")
+        LOGGER.info(f'============================================================================')
+        LOGGER.info(f'INFO    : STEP 1 - DOWNLOAD/PROCESS ASSETS FROM: {SOURCE}')
+        LOGGER.info(f'============================================================================')
+        LOGGER.info("")
+        LOGGER.info(f'INFO    : Downloading/Processing Assets to: {SOURCE}...')
+
+        # If the SOURCE is 'google-photos' or a valid Takeout Folder
+        if SOURCE.lower() == 'google-photos' or ARGS['SOURCE-TYPE-TAKEOUT-FOLDER']:
+            # Configure default arguments for mode_google_takeout() execution and RUN it
+            if SOURCE.lower() == 'google-photos':
+                if ARGS['input-folder'] != '':
+                    input_folder = ARGS['input-folder']
+                else:
+                    input_folder = SOURCE
+            else:
+                input_folder = SOURCE
+
+            # Define the INTERMEDIATE_FOLDER
+            if ARGS['output-folder']:
+                INTERMEDIATE_FOLDER = ARGS['output-folder']
+            else:
+                INTERMEDIATE_FOLDER = f"{os.path.basename(os.path.normpath(input_folder))}_{TIMESTAMP}"
+            # Set ARGS['output-folder'] to INTERMEDIATE_FOLDER
+            ARGS['output-folder'] = INTERMEDIATE_FOLDER
+
+            # Check if already exists an 'Albums' subfolder within input_folder, in that case, the input_folder have been already processed by CloudPhotoMigrator and no need to execute GPTH step again
+            # but in that case, we need to move the folder to the intermediate folder
+            if os.path.isdir(os.path.join(input_folder,'Albums')):
+                if not Utils.copy_move_folder(input_folder, INTERMEDIATE_FOLDER, move=False):
+                    LOGGER.error(f"ERROR   : Unable to copy Folder '{input_folder}' to '{INTERMEDIATE_FOLDER}'. Exiting...")
+                    sys.exit(-1)
+            else:
+                # Set other settings for mode_google_takeout()
+                ARGS['google-input-takeout-folder'] = input_folder
+                ARGS['google-remove-duplicates-files'] = True
+                need_unzip = Utils.contains_zip_files(input_folder)
+                if need_unzip:
+                    ARGS['google-move-takeout-folder'] = True
+                # Execute Mode mode_google_takeout()
+                mode_google_takeout(user_confirmation=False, log_level=logging.INFO)
+
+        # If the SOURCE is 'synology-photos'
+        elif SOURCE.lower() == 'synology-photos':
+            # Define the INTERMEDIATE_FOLDER
+            if ARGS['output-folder']:
+                INTERMEDIATE_FOLDER = ARGS['output-folder']
+            else:
+                INTERMEDIATE_FOLDER = f"Synology_Download_ALL_{TIMESTAMP}"
+            # Set ARGS['synology-download-all'] to INTERMEDIATE_FOLDER
+            ARGS['synology-download-all'] = INTERMEDIATE_FOLDER
+            # Execute Mode mode_synology_download_ALL()
+            mode_synology_download_ALL(user_confirmation=False, log_level=logging.INFO)
+
+        # If the SOURCE is 'immich-photos'
+        elif SOURCE.lower() == 'immich-photos':
+            # Define the INTERMEDIATE_FOLDER
+            if ARGS['output-folder']:
+                INTERMEDIATE_FOLDER = ARGS['output-folder']
+            else:
+                INTERMEDIATE_FOLDER = f"Immich_Download_ALL_{TIMESTAMP}"
+            # Set ARGS['immich-download-all'] to INTERMEDIATE_FOLDER
+            ARGS['immich-download-all'] = INTERMEDIATE_FOLDER
+            # Execute Mode mode_immich_download_ALL()
+            mode_immich_download_ALL(user_confirmation=False, log_level=logging.INFO)
+
+        # =========================
+        # SECOND PROCESS THE TARGET:
+        # =========================
+        LOGGER.info("")
+        LOGGER.info(f'============================================================================')
+        LOGGER.info(f'INFO    : STEP 2 - UPLOAD/PROCESS ASSETS TO: {TARGET}')
+        LOGGER.info(f'============================================================================')
+        LOGGER.info("")
+        LOGGER.info(f'INFO    : Uploading/Processing Assets to: {TARGET}...')
+
+        # if the TARGET is 'synology-photos'
+        if TARGET.lower() == 'synology-photos':
+            ARGS['synology-upload-all'] = INTERMEDIATE_FOLDER
+            mode_synology_upload_ALL(user_confirmation=False, log_level=logging.INFO)
+
+        # If the TARGET is 'immich-photos'
+        elif TARGET.lower() == 'immich-photos':
+            ARGS['immich-upload-all'] = INTERMEDIATE_FOLDER
+            mode_immich_upload_ALL(user_confirmation=False, log_level=logging.INFO)
 
 #########################################
 # parallel_automated_migration Function #
@@ -551,13 +688,13 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
     target_client_name  = SHARED_INPUT_INFO.get("target_client_name", "Target Client")
 
     KEY_MAPING = {
-        "📊 Downloaded Medias": ("total_downloaded_assets", "total_medias"),
+        "📊 Downloaded Assets": ("total_downloaded_assets", "total_medias"),
         "📷 Downloaded Photos": ("total_downloaded_photos", "total_photos"),
         "🎥 Downloaded Videos": ("total_downloaded_videos", "total_videos"),
         "📂 Downloaded Albums": ("total_downloaded_albums", "total_albums"),
         "⏭️ Download Skipped Assets": "total_download_skipped_assets",
 
-        "📊 Uploaded Medias": ("total_uploaded_assets", "total_medias"),
+        "📊 Uploaded Assets": ("total_uploaded_assets", "total_medias"),
         "📷 Uploaded Photos": ("total_uploaded_photos", "total_photos"),
         "🎥 Uploaded Videos": ("total_uploaded_videos", "total_videos"),
         "📂 Uploaded Albums": ("total_uploaded_albums", "total_albums"),
@@ -574,7 +711,7 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
     # Split layout: header (3 lines), content (10 lines), logs fill remainder
     layout.split_column(
         Layout(name="header", size=3),
-        Layout(name="content", size=10),
+        Layout(name="content", size=11),
         # Layout(name="logs", size=20),
         Layout(name="logs", ratio=1),
     )
@@ -599,11 +736,11 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
         layout["header"].update(Panel(f"📂 {title}", border_style="bright_blue", expand=True))
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 2) Input Info Panel
+    # 2) Info Panel
     # ─────────────────────────────────────────────────────────────────────────
     def build_info_panel():
         info_data = [
-            ("📊 Total Medias", SHARED_INPUT_INFO.get('total_medias', 0)),
+            ("📊 Total Assets", SHARED_INPUT_INFO.get('total_medias', 0)),
             ("📷 Total Photos", SHARED_INPUT_INFO.get('total_photos', 0)),
             ("🎥 Total Videos", SHARED_INPUT_INFO.get('total_videos', 0)),
             ("📂 Total Albums", SHARED_INPUT_INFO.get('total_albums', 0)),
@@ -631,7 +768,7 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
                     f"[bright_magenta]{wrapped_value}[/bright_magenta]"  # Se asegura de que el contenido largo haga wrap sin desalinear
                 )
 
-        return Panel(table, title="📊 Input Info", border_style="bright_magenta", expand=True, padding=(0, 1))
+        return Panel(table, title="📊 Info Panel", border_style="bright_magenta", expand=True, padding=(0, 1))
 
     # ─────────────────────────────────────────────────────────────────────────
     # 3) Progress Bars for downloads / uploads
@@ -659,16 +796,16 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
 
     # DOWNLOADS (Cyan)
     download_bars = {
-        "📊 Downloaded Medias": (create_progress_bar("cyan"), total_medias),
+        "📊 Downloaded Assets": (create_progress_bar("cyan"), total_medias),
         "📷 Downloaded Photos": (create_progress_bar("cyan"), total_photos),
         "🎥 Downloaded Videos": (create_progress_bar("cyan"), total_videos),
         "📂 Downloaded Albums": (create_progress_bar("cyan"), total_albums),
     }
     failed_downloads = {
-        "💥 Assets Failed": 0,
-        "💥📷 Photos Failed": 0,
-        "💥🎥 Videos Failed": 0,
-        "💥📂 Albums Failed": 0,
+        "⛔📊 Assets Failed": 0,
+        "⛔📷 Photos Failed": 0,
+        "⛔🎥 Videos Failed": 0,
+        "⛔📂 Albums Failed": 0,
     }
     download_tasks = {}
     for label, (bar, total) in download_bars.items():
@@ -676,17 +813,17 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
 
     # UPLOADS (Green)
     upload_bars = {
-        "📊 Uploaded Medias": (create_progress_bar("green"), total_medias),
+        "📊 Uploaded Assets": (create_progress_bar("green"), total_medias),
         "📷 Uploaded Photos": (create_progress_bar("green"), total_photos),
         "🎥 Uploaded Videos": (create_progress_bar("green"), total_videos),
         "📂 Uploaded Albums": (create_progress_bar("green"), total_albums),
     }
     failed_uploads = {
-        "⚠️ Assets Duplicated": 0,
-        "💥 Assets Failed": 0,
-        "💥📷 Photos Failed": 0,
-        "💥🎥 Videos Failed": 0,
-        "💥📂 Albums Failed": 0,
+        "⛔📊 Assets Failed": 0,
+        "⛔📷 Photos Failed": 0,
+        "⛔🎥 Videos Failed": 0,
+        "⛔📂 Albums Failed": 0,
+        "⚠️ Assets Duplicated ": 0,
     }
     upload_tasks = {}
     for label, (bar, total) in upload_bars.items():
@@ -702,17 +839,17 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
         for label, (bar, total) in download_bars.items():
             table.add_row(f"[cyan]{label:<20}:[/cyan]", bar)
         for label, val in failed_downloads.items():
-            table.add_row(f"[cyan]{label:<18}:[/cyan]", f"[cyan]{val}[/cyan]")
+            table.add_row(f"[cyan]{label:<19}:[/cyan]", f"[cyan]{val}[/cyan]")
         return Panel(table, title=f'📥 {SHARED_INPUT_INFO.get("source_client_name", "Source Client")} Downloads', border_style="cyan", expand=True)
 
     def build_upload_panel():
         table = Table.grid(expand=True)
-        table.add_column(justify="left", width=23)
+        table.add_column(justify="left", width=24)
         table.add_column(justify="right")
         for label, (bar, total) in upload_bars.items():
-            table.add_row(f"[green]{label:<18}:[/green]", bar)
+            table.add_row(f"[green]{label:<19}:[/green]", bar)
         for label, val in failed_uploads.items():
-            table.add_row(f"[green]{label:<16}:[/green]", f"[green]{val}[/green]")
+            table.add_row(f"[green]{label:<18}:[/green]", f"[green]{val}[/green]")
         return Panel(table, title=f'📤 {SHARED_INPUT_INFO.get("target_client_name", "Source Client")} Uploads', border_style="green", expand=True)
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -783,10 +920,10 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
             bar.update(download_tasks[label], completed=current_value, total=total_value)
             # bar.advance(download_tasks[label], random.randint(1, 50))
 
-        failed_downloads["Assets Failed"] += random.randint(0, 5)
-        failed_downloads["Photos Failed"] += random.randint(0, 4)
-        failed_downloads["Videos Failed"] += random.randint(0, 2)
-        failed_downloads["Albums Failed"] += random.randint(0, 1)
+        failed_downloads["⛔📊 Assets Failed"] += random.randint(0, 5)
+        failed_downloads["⛔📷 Photos Failed"] += random.randint(0, 4)
+        failed_downloads["⛔🎥 Videos Failed"] += random.randint(0, 2)
+        failed_downloads["⛔📂 Albums Failed"] += random.randint(0, 1)
 
 
     def update_uploads():
@@ -797,11 +934,11 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
             bar.update(upload_tasks[label], completed=current_value, total=total_value)
             # bar.advance(upload_tasks[label], random.randint(1, 50))
 
-        failed_uploads["Assets Duplicated"] = SHARED_COUNTERS['total_upload_duplicates_assets']
-        failed_uploads["Assets Failed"] += random.randint(0, 5)
-        failed_uploads["Photos Failed"] += random.randint(0, 4)
-        failed_uploads["Videos Failed"] += random.randint(0, 2)
-        failed_uploads["Albums Failed"] += random.randint(0, 1)
+        failed_uploads["⚠️ Assets Duplicated "] = SHARED_COUNTERS['total_upload_duplicates_assets']
+        failed_uploads["⛔📊 Assets Failed"] += random.randint(0, 5)
+        failed_uploads["⛔📷 Photos Failed"] += random.randint(0, 4)
+        failed_uploads["⛔🎥 Videos Failed"] += random.randint(0, 2)
+        failed_uploads["⛔📂 Albums Failed"] += random.randint(0, 1)
 
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -876,4 +1013,4 @@ if __name__ == "__main__":
     source = takeout_folder_zipped
     target = 'synology-photos'
 
-    mode_DASHBOARD_AUTOMATED_MIGRATION(source=source, target=target, temp_folder=temp_folder, launch_dashboard=True)
+    mode_AUTOMATED_MIGRATION(source=source, target=target, temp_folder=temp_folder, launch_dashboard=True)
