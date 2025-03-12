@@ -124,7 +124,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
             # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
             # Call the parallel_automated_migration module to do the whole migration process
             # parallel_automated_migration(source, target, temp_folder, SHARED_DATA.input_info, SHARED_DATA.counters, SHARED_DATA.logs_queue)
-            # and if show_dashboard=True, launch run_dashboard function to show a Live Dashboard of the whole process
+            # and if show_dashboard=True, launch start_dashboard function to show a Live Dashboard of the whole process
             # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
             # ---------------------------------------------------------------------------------------------------------
@@ -137,7 +137,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
             # ------------------------------------------------------------------------------------------------------
             if show_dashboard:
                 dashboard_thread = threading.Thread(
-                    target=run_dashboard,
+                    target=start_dashboard,
                     kwargs={
                         "migration_finished": migration_finished,  # Pasamos un evento para indicar cuando ha terminado el proceso de migración
                         "SHARED_DATA": SHARED_DATA,  # Pasamos la instancia de la clase
@@ -601,9 +601,9 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         return SHARED_DATA.counters
 
 ###########################
-# run_dashboard Function #
+# start_dashboard Function #
 ###########################
-def run_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
+def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     import time, random, threading
     from rich.console import Console
     from rich.layout import Layout
