@@ -555,13 +555,13 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
         "📷 Downloaded Photos": ("total_downloaded_photos", "total_photos"),
         "🎥 Downloaded Videos": ("total_downloaded_videos", "total_videos"),
         "📂 Downloaded Albums": ("total_downloaded_albums", "total_albums"),
-        "📂 Download Skipped Assets": "total_download_skipped_assets",
+        "⏭️ Download Skipped Assets": "total_download_skipped_assets",
 
         "📊 Uploaded Medias": ("total_uploaded_assets", "total_medias"),
         "📷 Uploaded Photos": ("total_uploaded_photos", "total_photos"),
         "🎥 Uploaded Videos": ("total_uploaded_videos", "total_videos"),
         "📂 Uploaded Albums": ("total_uploaded_albums", "total_albums"),
-        "📂 Upload Skipped Assets": "total_upload_skipped_assets",
+        "⏭️ Upload Skipped Assets": "total_upload_skipped_assets",
     }
 
     console = Console()
@@ -634,7 +634,66 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
         return Panel(table, title="📊 Input Info", border_style="bright_magenta", expand=True, padding=(0, 1))
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 3) Build the Download/Upload Panels
+    # 3) Progress Bars for downloads / uploads
+    #    Show "X / total" with a bar, no custom chars
+    # ─────────────────────────────────────────────────────────────────────────
+    def create_progress_bar(color: str) -> Progress:
+        """
+        Creates a bar with a longer width and displays 'X / total items' in color.
+        """
+        counter = f"{{task.completed}}/{{task.total}}"
+        return Progress(
+            BarColumn(
+                bar_width=100,           # longer bar for better visuals
+                style=f"{color} dim",
+                complete_style=f"{color} bold",
+                finished_style=f"{color} bold",
+                pulse_style="bar.pulse"
+                # pulse_style=f"{color} bold"
+            ),
+
+            TextColumn(f"[{color}]{counter:>15}[/{color}]"),
+            console=console,
+            expand=True
+        )
+
+    # DOWNLOADS (Cyan)
+    download_bars = {
+        "📊 Downloaded Medias": (create_progress_bar("cyan"), total_medias),
+        "📷 Downloaded Photos": (create_progress_bar("cyan"), total_photos),
+        "🎥 Downloaded Videos": (create_progress_bar("cyan"), total_videos),
+        "📂 Downloaded Albums": (create_progress_bar("cyan"), total_albums),
+    }
+    failed_downloads = {
+        "💥 Assets Failed": 0,
+        "💥📷 Photos Failed": 0,
+        "💥🎥 Videos Failed": 0,
+        "💥📂 Albums Failed": 0,
+    }
+    download_tasks = {}
+    for label, (bar, total) in download_bars.items():
+        download_tasks[label] = bar.add_task(label, total=total)
+
+    # UPLOADS (Green)
+    upload_bars = {
+        "📊 Uploaded Medias": (create_progress_bar("green"), total_medias),
+        "📷 Uploaded Photos": (create_progress_bar("green"), total_photos),
+        "🎥 Uploaded Videos": (create_progress_bar("green"), total_videos),
+        "📂 Uploaded Albums": (create_progress_bar("green"), total_albums),
+    }
+    failed_uploads = {
+        "⚠️ Assets Duplicated": 0,
+        "💥 Assets Failed": 0,
+        "💥📷 Photos Failed": 0,
+        "💥🎥 Videos Failed": 0,
+        "💥📂 Albums Failed": 0,
+    }
+    upload_tasks = {}
+    for label, (bar, total) in upload_bars.items():
+        upload_tasks[label] = bar.add_task(label, total=total)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 4) Build the Download/Upload Panels
     # ─────────────────────────────────────────────────────────────────────────
     def build_download_panel():
         table = Table.grid(expand=True)
@@ -643,7 +702,7 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
         for label, (bar, total) in download_bars.items():
             table.add_row(f"[cyan]{label:<20}:[/cyan]", bar)
         for label, val in failed_downloads.items():
-            table.add_row(f"[cyan]❌ {label:<18}:[/cyan]", f"[cyan]{val}[/cyan]")
+            table.add_row(f"[cyan]{label:<18}:[/cyan]", f"[cyan]{val}[/cyan]")
         return Panel(table, title=f'📥 {SHARED_INPUT_INFO.get("source_client_name", "Source Client")} Downloads', border_style="cyan", expand=True)
 
     def build_upload_panel():
@@ -653,11 +712,11 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
         for label, (bar, total) in upload_bars.items():
             table.add_row(f"[green]{label:<18}:[/green]", bar)
         for label, val in failed_uploads.items():
-            table.add_row(f"[green]❌ {label:<16}:[/green]", f"[green]{val}[/green]")
+            table.add_row(f"[green]{label:<16}:[/green]", f"[green]{val}[/green]")
         return Panel(table, title=f'📤 {SHARED_INPUT_INFO.get("target_client_name", "Source Client")} Uploads', border_style="green", expand=True)
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 4) Logging Panel from Memmory Handler
+    # 5) Logging Panel from Memmory Handler
     # ─────────────────────────────────────────────────────────────────────────
 
     # Lista (o deque) para mantener todo el historial de logs ya mostrados
@@ -712,66 +771,6 @@ def show_dashboard(migration_thread, SHARED_INPUT_INFO, SHARED_COUNTERS, SHARED_
             LOGGER.error(f"ERROR   : Building Log Panel: {e}")
         finally:
             return log_panel
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 5) Progress Bars for downloads / uploads
-    #    Show "X / total" with a bar, no custom chars
-    # ─────────────────────────────────────────────────────────────────────────
-    def create_progress_bar(color: str) -> Progress:
-        """
-        Creates a bar with a longer width and displays 'X / total items' in color.
-        """
-        counter = f"{{task.completed}}/{{task.total}}"
-        return Progress(
-            BarColumn(
-                bar_width=100,           # longer bar for better visuals
-                style=f"{color} dim",
-                complete_style=f"{color} bold",
-                finished_style=f"{color} bold",
-                pulse_style="bar.pulse"
-                # pulse_style=f"{color} bold"
-            ),
-
-            TextColumn(f"[{color}]{counter:>15}[/{color}]"),
-            console=console,
-            expand=True
-        )
-
-    # DOWNLOADS (Cyan)
-    download_bars = {
-        "📊 Downloaded Medias": (create_progress_bar("cyan"), total_medias),
-        "📷 Downloaded Photos": (create_progress_bar("cyan"), total_photos),
-        "🎥 Downloaded Videos": (create_progress_bar("cyan"), total_videos),
-        "📂 Downloaded Albums": (create_progress_bar("cyan"), total_albums),
-    }
-    failed_downloads = {
-        "Assets Failed": 0,
-        "Photos Failed": 0,
-        "Videos Failed": 0,
-        "Albums Failed": 0,
-    }
-    download_tasks = {}
-    for label, (bar, total) in download_bars.items():
-        download_tasks[label] = bar.add_task(label, total=total)
-
-    # UPLOADS (Green)
-    upload_bars = {
-        "📊 Uploaded Medias": (create_progress_bar("green"), total_medias),
-        "📷 Uploaded Photos": (create_progress_bar("green"), total_photos),
-        "🎥 Uploaded Videos": (create_progress_bar("green"), total_videos),
-        "📂 Uploaded Albums": (create_progress_bar("green"), total_albums),
-    }
-    failed_uploads = {
-        "Assets Duplicated": 0,
-        "Assets Failed": 0,
-        "Photos Failed": 0,
-        "Videos Failed": 0,
-        "Albums Failed": 0,
-    }
-    upload_tasks = {}
-    for label, (bar, total) in upload_bars.items():
-        upload_tasks[label] = bar.add_task(label, total=total)
-
 
     # ─────────────────────────────────────────────────────────────────────────
     # 6) Update Downloads/Uploads Panels
