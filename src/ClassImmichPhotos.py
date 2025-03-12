@@ -40,10 +40,10 @@ from pathlib import Path
 from contextlib import contextmanager
 import inspect
 
+from Utils import update_metadata, convert_to_list, tqdm, sha1_checksum
+
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
-
-from Utils import update_metadata, convert_to_list, tqdm, sha1_checksum
 
 # Import the global LOGGER from GlobalVariables
 from GlobalVariables import LOGGER

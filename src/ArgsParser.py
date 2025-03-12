@@ -50,6 +50,8 @@ def parse_arguments():
                            "\n    <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos']"
                            "\n    <TARGET> : ['synology-photos', 'immich-photos']"
                         )
+    PARSER.add_argument( "--dashboard", metavar="=[true,false]", type=lambda x: x.lower() == 'true', default=True,
+                        help="Show Live Dashboard during Autometed Migration Jon (true/false). This argument only applies to '-AUTO, --AUTOMATED-MIGRATION' oprion.")
 
     # EXTRA MODES FOR GOOGLE PHOTOS:
     # ------------------------------
@@ -191,6 +193,11 @@ def checkArgs(ARGS):
         if target.lower() not in choices_for_AUTOMATED_MIGRATION_TGT:
             print(f"❌ ERROR   : Target value '{target}' is not valid. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT}")
             exit(1)
+
+    # Check if --dashboard=True and not --AUTOMATED-MIGRATION have been given
+    # if ARGS['dashboard'] and ARGS['AUTOMATED-MIGRATION'] == '':
+    #     print(f"❌ ERROR   : Argument '--dashboard' can only be used when '-AUTO, --AUTOMATED-MIGRATION' argument is used.")
+    #     exit(1)
 
     # Parse log-levels
     if ARGS['log-level'].lower() == 'debug':

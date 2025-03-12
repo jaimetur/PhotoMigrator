@@ -112,7 +112,8 @@ class PagedParser(argparse.ArgumentParser):
                                     stdscr.addstr(i - 1, 0, prev_line[:curses.COLS], curses.color_pair(2))  # Magenta
 
                                 # Pintar en verde si es un argumento (-arg, --arg)
-                                if re.match(r"^\s*-\w", clean_line):
+                                # if re.match(r"^\s*-\w", clean_line):
+                                if re.match(r"^\s*--?\w", clean_line):
                                     stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(1))  # Verde
                                 # Pintar en magenta si es un separador
                                 elif is_separator:

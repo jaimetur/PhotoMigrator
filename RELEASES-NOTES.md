@@ -13,19 +13,22 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
   - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0/CloudPhotoMigrator_v3.1.0_windows_amd64.zip)  
 
 ---
+
 ## Release Notes:
 
-**Release**: 3.1.0  
+**Release**: v3.1.0  
 **Date**: (estimated release date: 2025-03-31)
 
-- [ ] Included Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization.
+- [x] Included Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization.
+- [x] Added new flag '**--dashboard=[true, false]**' to show/hide real time Dashboard during Atomated Migration Job.
 - [x] Added Threads suppport on AUTOMATED MIGRATION MODE to parallelize Downloads and Uploads and avoid to download All assets before to upload them (this will safe disk space and improve performance).
-- [x] Code Refactored to convert ServiceGooglePhotos, ServiceSynologyPhotos and ServiceImmichPhotos into Classes (ClassGoogleTakeout, ClassSynologyPhotos, ClassImmichPhotos) and homogenized all functions of all these classes.
+- [x] Code Refactored to convert ServiceGooglePhotos, ServiceSynologyPhotos and ServiceImmichPhotos into Classes (ClassTakeoutFolder, ClassSynologyPhotos, ClassImmichPhotos) and homogenized all functions of all these classes.
+- [x] Added new Class ClassLocalFolder with the same methods as Cloud Services Classes to manage Local Folders in the same way as a Photo Cloud Service.
+- [x] ClassTakeoutFolder inherits all methods from ClassLocalFolder and includes specific methods to process Google Takeouts since at the end Google Takeout is a local folder structure.
 - [x] Minor Bug Fixing.
 
-## Release Notes:
 
-**Release**: 3.0.0  
+**Release**: v3.0.0  
 **Date**: 2025-03-07
 
 - [x] New Script name '**CloudPhotoMigrator**' (former 'GoogleTakeoutPhotos')
@@ -141,7 +144,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
     
 ---
 
-**Release**: 2.3.0  
+**Release**: v2.3.0  
 **Date**: 2025-01-14
 
 - Removed EXIF Tool (option -re, --run-exif-tool) for performance issues
@@ -156,7 +159,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
 ---
 
-**Release**: 2.2.1  
+**Release**: v2.2.1  
 **Date**: 2025-01-08
 
 - Compiled version for different OS and Architectures
@@ -172,7 +175,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
 ---
 
-**Release**: 2.2.0  
+**Release**: v2.2.0  
 **Date**: 2025-01-04
 
 - Compiled version for different OS and Architectures
@@ -186,7 +189,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
 ---
 
-**Release**: 2.1.0  
+**Release**: v2.1.0  
 **Date**: 2024-12-27
 
 - Added ALL-IN-ONE mode to Automatically process your Google Takeout files (zipped or unzipped), process them, and move all your Photos & Videos into your Synology Photos personal folder creating all the Albums that you have in Google Photos within Synology Photos.
@@ -197,7 +200,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
 ---
 
-**Release**: 2.0.0  
+**Release**: v2.0.0  
 **Date**: 2024-12-24
 
 - Added Synology Photos Management options with three new Extra Modes:
@@ -211,7 +214,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
 ---
 
-**Release**: 1.6.0  
+**Release**: v1.6.0  
 **Date**: 2024-12-18
 
 - Included new flag '-pd, --process-duplicates-revised' to process the Duplicates.csv output file after execute the 'Find Duplicates Mode' with 'duplicates-action=move'. In that case, the script will move all duplicates found to Duplicates folder and will generate a CSV file that can be revised and change the Action column values.
@@ -225,7 +228,7 @@ Possible Actions in revised CSV file are:
 
 ---
 
-**Release**: 1.5.1  
+**Release**: v1.5.1  
 **Date**: 2024-12-17
 
 - Fixed logic of Find_Duplicates algorithm and include a new field in the Duplicates.csv output file to provide the reason to decide principal file of a duplicates set.
@@ -235,7 +238,7 @@ Possible Actions in revised CSV file are:
 
 ---
 
-**Release**: 1.5.0  
+**Release**: v1.5.0  
 **Date**: 2024-12-11
 
 - Fixed Find_Duplicates function. Now is smarter and try to determine the principal folder and file when two or more files are duplicates within the same folder or in different folders.
@@ -249,7 +252,7 @@ Possible Actions in revised CSV file are:
 
 ---
 
-**Release**: 1.4.1  
+**Release**: v1.4.1  
 **Date**: 2024-12-10
 
 - Modified Duplicates.txt output file. Now is a CSV file, and it has a new format with only one duplicate per row and one column to display the number of duplicates per each principal file and other column with the action taken with the duplicates. 
@@ -260,7 +263,7 @@ Possible Actions in revised CSV file are:
 
 ---
 
-**Release**: 1.4.0  
+**Release**: v1.4.0  
 **Date**: 2024-12-08
 
 - Added smart feature to Find Duplicates based on file size and content.
@@ -285,14 +288,14 @@ and will move the otherss duplicates files into the ./Duplicates folder on the r
 
 ---
 
-**Release**: 1.3.1  
+**Release**: v1.3.1  
 **Date**: 2024-12-08
 
 - Removed warnings when some .MP4 files does not belongs to any Live picture.
 
 ---
 
-**Release**: 1.3.0  
+**Release**: v1.3.0  
 **Date**: 2024-12-04
 
 - Added Script version for MacOS 
@@ -310,7 +313,7 @@ and will move the otherss duplicates files into the ./Duplicates folder on the r
 
 ---
 
-**Release**: 1.2.2  
+**Release**: v1.2.2  
 **Date**: 2024-12-02
 
 - Included new argument '-mt, --move-takeout-folder' to move (instead of copy) photos/albums from <TAKEOUT_FOLDER> to <OUTPUT_FOLDER>. This will let you save disk space and increase execution speed. CAUTION: With this option you will lost your original unzipped takeout files. Use this only if you have disk space limitation or if you don't care to lost the unzipped files because you still have the original zips files.
@@ -324,7 +327,7 @@ and will move the otherss duplicates files into the ./Duplicates folder on the r
 
 ---
 
-**Release**: 1.2.1  
+**Release**: v1.2.1  
 **Date**: 2024-11-29
 
 - Included new argument '-it, --ignore-takeout-structure' to Ignore Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc..), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from them.
@@ -335,7 +338,7 @@ and will move the otherss duplicates files into the ./Duplicates folder on the r
 
 ---
 
-**Release**: 1.2.0  
+**Release**: v1.2.0  
 **Date**: 2024-11-27
 
 - Script migrated to Python for multi-platform support.
@@ -347,7 +350,7 @@ and will move the otherss duplicates files into the ./Duplicates folder on the r
 
 ---
 
-**Release**: 1.0.0 to 1.2.0  
+**Release**: v1.0.0 to v1.2.0  
 **Date**: 2024-11
 
 - Preliminary not published Script in bash.

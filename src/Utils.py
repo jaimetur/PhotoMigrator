@@ -6,7 +6,6 @@ import re
 import stat
 from datetime import datetime
 import ctypes
-from tqdm import tqdm as original_tqdm
 import platform
 import piexif
 import subprocess
@@ -16,15 +15,27 @@ from PIL import Image
 import hashlib
 import base64
 import inspect
+from tqdm import tqdm as original_tqdm
 from GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT
+from CustomLogger import LoggerConsoleTqdm
+TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(logging.getLogger("CloudPhotoMigrator"), logging.INFO)
 
-WORKING_DIR = r"R:\jaimetur\CloudPhotoMigrator"
 
 ######################
 # FUNCIONES AUXILIARES
 ######################
+# Crear instancia global del wrapper
+TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
+
+# Redefinir `tqdm` para usar `TQDM_LOGGER_INSTANCE` si no se especifica `file`
+def tqdm(*args, **kwargs):
+    if 'file' not in kwargs:  # Si el usuario no especifica `file`, usar `TQDM_LOGGER_INSTANCE`
+        kwargs['file'] = TQDM_LOGGER_INSTANCE
+    return original_tqdm(*args, **kwargs)
+
 def change_workingdir():
     """ Definir la ruta de trabajo deseada """
+    WORKING_DIR = r"R:\jaimetur\CloudPhotoMigrator"
     # Verificar si la carpeta existe y cambiar a ella si existe
     if os.path.exists(WORKING_DIR) and os.path.isdir(WORKING_DIR):
         os.chdir(WORKING_DIR)
@@ -36,6 +47,11 @@ def run_from_synology(log_level=logging.INFO):
     parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         return os.path.exists('/etc.defaults/synoinfo.conf')
+
+def normalize_path(path, log_level=logging.INFO):
+    parent_log_level = LOGGER.level
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        return os.path.normpath(path).strip(os.sep)
 
 def check_OS_and_Terminal(log_level=logging.INFO):
     """ Check OS and Terminal Type """
@@ -316,6 +332,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log
             dirs[:] = [d for d in dirs if d not in exclude_subfolders]
             total_files += sum([len(files)])
         # Mostrar la barra de progreso basada en carpetas
+        # with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : Organizing files with {type} structure in '{input_folder}'", unit=" files") as pbar:
         with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : Organizing files with {type} structure in '{input_folder}'", unit=" files") as pbar:
             for path, dirs, files in os.walk(input_folder, topdown=True):
                 # Exclude specified subfolders
@@ -557,7 +574,7 @@ def delete_subfolders(input_folder, folder_name_to_delete, log_level=logging.INF
     whose names match dir_name_to_delete, including hidden directories.
 
     Args:
-        input_folder (str): The path to the base directory to start the search from.
+        input_folder (str, Path): The path to the base directory to start the search from.
         folder_name_to_delete (str): The name of the subdirectories to delete.
     """
     parent_log_level = LOGGER.level
@@ -1188,14 +1205,20 @@ def convert_to_list(input, log_level=logging.INFO):
     parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
-            output=input
-            # Process subfolders_exclusion to obtain a list of inclusion names if provided
-            if isinstance(output, str):
-                output = [name.strip() for name in output.replace(',', ' ').split() if name.strip()]
-            elif isinstance(output, list):
-                output = [name.strip() for item in output if isinstance(item, str) for name in item.split(',') if name.strip()]
-            else:
+            output = input
+            if isinstance(output, list):
+                pass  # output ya es una lista
+            elif isinstance(output, str):
+                if ',' in output:
+                    output = [item.strip() for item in output.split(',') if item.strip()]
+                else:
+                    output = [output.strip()] if output.strip() else []
+            elif isinstance(output, (int, float)):
+                output = [output]
+            elif output is None:
                 output = []
+            else:
+                output = [output]
         except Exception as e:
             LOGGER.warning(f"WARNING : Failed to convert string to List for {input}. {e}")
         finally:
@@ -1204,10 +1227,12 @@ def convert_to_list(input, log_level=logging.INFO):
             pass
         return output
 
-def tqdm(*args, **kwargs):
-    if 'file' not in kwargs:  # Si no se especifica `file`, usar stdout por defecto
-        kwargs['file'] = sys.stdout
-    return original_tqdm(*args, **kwargs)
+def convert_asset_ids_to_str(asset_ids):
+    """Convierte asset_ids a strings, incluso si es una lista de diferentes tipos."""
+    if isinstance(asset_ids, list):
+        return [str(item) for item in asset_ids]
+    else:
+        return [str(asset_ids)]
 
 def sha1_checksum(file_path):
     """Calcula el SHA-1 hash de un archivo y devuelve tanto en formato HEX como Base64"""
@@ -1222,4 +1247,9 @@ def sha1_checksum(file_path):
 
     return sha1_hex, sha1_base64
 
+def get_logger_filename(logger):
+    for handler in logger.handlers:
+        if isinstance(handler, logging.FileHandler):
+            return handler.baseFilename  # Devuelve el path del archivo de logs
+    return ""  # Si no hay un FileHandler, retorna ""
 

@@ -8,6 +8,7 @@ from Duplicates import find_duplicates, process_duplicates_actions
 from ClassGoogleTakeout import ClassGoogleTakeout
 from ClassSynologyPhotos import ClassSynologyPhotos
 from ClassImmichPhotos import ClassImmichPhotos
+from AutomatedMode import mode_AUTOMATED_MIGRATION
 
 DEFAULT_DUPLICATES_ACTION = False
 EXECUTION_MODE = "default"
@@ -98,118 +99,6 @@ def detect_and_run_execution_mode():
         LOGGER.error("")
         # PARSER.print_help()
         sys.exit(1)
-
-####################################
-# EXTRA MODE: AUTOMATED-MIGRATION: #
-####################################
-def mode_AUTOMATED_MIGRATION(log_level=logging.INFO):
-    SOURCE = ARGS['AUTOMATED-MIGRATION'][0]
-    TARGET = ARGS['AUTOMATED-MIGRATION'][1]
-    INTERMEDIATE_FOLDER = ''
-
-    LOGGER.info(f"INFO    : -AUTO, --AUTOMATED-MIGRATION Mode detected")
-    if not ARGS['SOURCE-TYPE-TAKEOUT-FOLDER']:
-        LOGGER.info(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE>', f"'{ARGS['AUTOMATED-MIGRATION'][0]}'").replace('<TARGET>', f"'{ARGS['AUTOMATED-MIGRATION'][1]}'"))
-    else:
-        LOGGER.info(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{ARGS['AUTOMATED-MIGRATION'][0]}'").replace('<TARGET>', f"'{ARGS['AUTOMATED-MIGRATION'][1]}'").replace('Downloading', 'Analyzing and Fixing'))
-    LOGGER.info(f"INFO    : Selected SOURCE : {SOURCE}")
-    LOGGER.info(f"INFO    : Selected TARGET : {TARGET}")
-    LOGGER.info("")
-    if not Utils.confirm_continue():
-        LOGGER.info(f"INFO    : Exiting program.")
-        sys.exit(0)
-
-    parent_log_level = LOGGER.level
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # =========================
-        # FIRST PROCESS THE SOURCE:
-        # =========================
-        LOGGER.info("")
-        LOGGER.info(f'============================================================================')
-        LOGGER.info(f'INFO    : STEP 1 - DOWNLOAD/PROCESS ASSETS FROM: {SOURCE}')
-        LOGGER.info(f'============================================================================')
-        LOGGER.info("")
-        LOGGER.info(f'INFO    : Downloading/Processing Assets to: {SOURCE}...')
-
-        # If the SOURCE is 'google-photos' or a valid Takeout Folder
-        if SOURCE.lower() == 'google-photos' or ARGS['SOURCE-TYPE-TAKEOUT-FOLDER']:
-            # Configure default arguments for mode_google_takeout() execution and RUN it
-            if SOURCE.lower() == 'google-photos':
-                if ARGS['input-folder'] != '':
-                    input_folder = ARGS['input-folder']
-                else:
-                    input_folder = SOURCE
-            else:
-                input_folder = SOURCE
-
-            # Define the INTERMEDIATE_FOLDER
-            if ARGS['output-folder']:
-                INTERMEDIATE_FOLDER = ARGS['output-folder']
-            else:
-                INTERMEDIATE_FOLDER = f"{os.path.basename(os.path.normpath(input_folder))}_{TIMESTAMP}"
-            # Set ARGS['output-folder'] to INTERMEDIATE_FOLDER
-            ARGS['output-folder'] = INTERMEDIATE_FOLDER
-
-            # Check if already exists an 'Albums' subfolder within input_folder, in that case, the input_folder have been already processed by CloudPhotoMigrator and no need to execute GPTH step again
-            # but in that case, we need to move the folder to the intermediate folder
-            if os.path.isdir(os.path.join(input_folder,'Albums')):
-                if not Utils.copy_move_folder(input_folder, INTERMEDIATE_FOLDER, move=False):
-                    LOGGER.error(f"ERROR   : Unable to copy Folder '{input_folder}' to '{INTERMEDIATE_FOLDER}'. Exiting...")
-                    sys.exit(-1)
-            else:
-                # Set other settings for mode_google_takeout()
-                ARGS['google-input-takeout-folder'] = input_folder
-                ARGS['google-remove-duplicates-files'] = True
-                need_unzip = Utils.contains_zip_files(input_folder)
-                if need_unzip:
-                    ARGS['google-move-takeout-folder'] = True
-                # Execute Mode mode_google_takeout()
-                mode_google_takeout(user_confirmation=False, log_level=logging.INFO)
-
-        # If the SOURCE is 'synology-photos'
-        elif SOURCE.lower() == 'synology-photos':
-            # Define the INTERMEDIATE_FOLDER
-            if ARGS['output-folder']:
-                INTERMEDIATE_FOLDER = ARGS['output-folder']
-            else:
-                INTERMEDIATE_FOLDER = f"Synology_Download_ALL_{TIMESTAMP}"
-            # Set ARGS['synology-download-all'] to INTERMEDIATE_FOLDER
-            ARGS['synology-download-all'] = INTERMEDIATE_FOLDER
-            # Execute Mode mode_synology_download_ALL()
-            mode_synology_download_ALL(user_confirmation=False, log_level=logging.INFO)
-
-        # If the SOURCE is 'immich-photos'
-        elif SOURCE.lower() == 'immich-photos':
-            # Define the INTERMEDIATE_FOLDER
-            if ARGS['output-folder']:
-                INTERMEDIATE_FOLDER = ARGS['output-folder']
-            else:
-                INTERMEDIATE_FOLDER = f"Immich_Download_ALL_{TIMESTAMP}"
-            # Set ARGS['immich-download-all'] to INTERMEDIATE_FOLDER
-            ARGS['immich-download-all'] = INTERMEDIATE_FOLDER
-            # Execute Mode mode_immich_download_ALL()
-            mode_immich_download_ALL(user_confirmation=False, log_level=logging.INFO)
-
-        # =========================
-        # SECOND PROCESS THE TARGET:
-        # =========================
-        LOGGER.info("")
-        LOGGER.info(f'============================================================================')
-        LOGGER.info(f'INFO    : STEP 2 - UPLOAD/PROCESS ASSETS TO: {TARGET}')
-        LOGGER.info(f'============================================================================')
-        LOGGER.info("")
-        LOGGER.info(f'INFO    : Uploading/Processing Assets to: {TARGET}...')
-
-        # if the TARGET is 'synology-photos'
-        if TARGET.lower() == 'synology-photos':
-            ARGS['synology-upload-all'] = INTERMEDIATE_FOLDER
-            mode_synology_upload_ALL(user_confirmation=False, log_level=logging.INFO)
-
-        # If the TARGET is 'immich-photos'
-        elif TARGET.lower() == 'immich-photos':
-            ARGS['immich-upload-all'] = INTERMEDIATE_FOLDER
-            mode_immich_upload_ALL(user_confirmation=False, log_level=logging.INFO)
-
 
 ##############################
 # EXTRA MODE: GOOGLE PHOTOS: #
@@ -585,7 +474,7 @@ def mode_synology_remove_duplicates_albums(user_confirmation=True, log_level=log
         LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
         syno.login(log_level=logging.WARNING)
         # Call the Function
-        albums_removed, folders_removed = syno.remove_duplicates_albums(log_level=logging.WARNING)
+        albums_removed = syno.remove_duplicates_albums(log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Synology Photos.")
@@ -602,7 +491,6 @@ def mode_synology_remove_duplicates_albums(user_confirmation=True, log_level=log
         LOGGER.info("                  FINAL SUMMARY:                  ")
         LOGGER.info("==================================================")
         LOGGER.info(f"Total Duplicates Albums removed         : {albums_removed}")
-        LOGGER.info(f"Total Folders removed                   : {folders_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
