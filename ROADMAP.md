@@ -16,10 +16,9 @@
   - [ ] Deep Test on Google Photos function
   - [ ] Deep Test on --AUTOMATED-MIGRATION MODE
 
-### DONE:
-- Done tasks have been already moved to RELEASES-NOTES.md
 
 ## v4.0.0 (No estimated date):
+### TODO:
 - [ ] Include Apple Support (initially just for downloading)
     - [ ] Create Class ClassApplePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos.
     - [ ] -adAlb, --apple-download-albums
