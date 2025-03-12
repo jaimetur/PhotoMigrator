@@ -60,24 +60,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
         # Contador de pasos durante el procesamiento
         self.step = 0
 
-        if self.need_unzip:
-            LOGGER.info("")
-            LOGGER.info("INFO    : Input Folder contains ZIP files and needs to be unzipped first. Unzipping it...")
-            unzip_folder = self.takeout_folder.parent / f"Takeout_unzipped_{self.TIMESTAMP}"
-            # Unzip the files into unzip_folder
-            self.unzip(input_folder=self.takeout_folder, unzip_folder=unzip_folder, log_level=self.log_level)
-            self.needs_process = self.contains_takeout_structure(self.takeout_folder)
-
-        if self.needs_process:
-            LOGGER.info("")
-            LOGGER.info("INFO    : Input Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
-            base_folder = self.takeout_folder.parent / f"Takeout_processed_{self.TIMESTAMP}"
-            # Process Takeout_folder and put output into base_folder
-            self.google_takeout_processor(output_takeout_folder=base_folder, log_level=logging.INFO)
-            super().__init__(base_folder)  # Inicializar con la carpeta procesada
-        else:
-            super().__init__(self.takeout_folder)  # Inicializar con la carpeta original si no se necesita procesamiento
-
         self.CLIENT_NAME = 'Google Takeout Folder'
 
     # sobreescribimos el método get_all_assets() para que obtenga los assets de takeout_folder directamente en lugar de base_folder
@@ -134,19 +116,24 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"INFO    : Found {len(assets)} {type} assets in the base folder.")
             return assets
 
-    # def get_client_name(self, log_level=logging.INFO):
-    #     """
-    #     Returns the name of the client.
-    #
-    #     Args:
-    #         log_level (logging.LEVEL): log level for logs and console.
-    #
-    #     Returns:
-    #         str: The name of the client.
-    #     """
-    #     with set_log_level(LOGGER, log_level):
-    #         LOGGER.info("INFO    : Fetching the client name.")
-    #         return self.CLIENT_NAME
+    def pre_process(self):
+        if self.need_unzip:
+            LOGGER.info("")
+            LOGGER.info("INFO    : Input Folder contains ZIP files and needs to be unzipped first. Unzipping it...")
+            unzip_folder = self.takeout_folder.parent / f"Takeout_unzipped_{self.TIMESTAMP}"
+            # Unzip the files into unzip_folder
+            self.unzip(input_folder=self.takeout_folder, unzip_folder=unzip_folder, log_level=self.log_level)
+            self.needs_process = self.contains_takeout_structure(self.takeout_folder)
+
+        if self.needs_process:
+            LOGGER.info("")
+            LOGGER.info("INFO    : Input Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
+            base_folder = self.takeout_folder.parent / f"Takeout_processed_{self.TIMESTAMP}"
+            # Process Takeout_folder and put output into base_folder
+            self.google_takeout_processor(output_takeout_folder=base_folder, log_level=logging.INFO)
+            super().__init__(base_folder)  # Inicializar con la carpeta procesada
+        else:
+            super().__init__(self.takeout_folder)  # Inicializar con la carpeta original si no se necesita procesamiento
 
     # @staticmethod # if use this flag, the method is static and no need to include self in the arguments
     def contains_takeout_structure(self, input_folder, log_level=logging.INFO):
