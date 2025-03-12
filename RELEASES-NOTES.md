@@ -22,7 +22,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] Included Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization.
 - [x] Added new flag '**--dashboard=[true, false]**' to show/hide real time Dashboard during Atomated Migration Job.
 - [x] Added Threads suppport on AUTOMATED MIGRATION MODE to parallelize Downloads and Uploads and avoid to download All assets before to upload them (this will safe disk space and improve performance).
-- [x] Code Refactored to convert ServiceGooglePhotos, ServiceSynologyPhotos and ServiceImmichPhotos into Classes (ClassGoogleTakeout, ClassSynologyPhotos, ClassImmichPhotos) and homogenized all functions of all these classes.
+- [x] Code Refactored to convert ServiceGooglePhotos, ServiceSynologyPhotos and ServiceImmichPhotos into Classes (ClassTakeoutFolder, ClassSynologyPhotos, ClassImmichPhotos) and homogenized all functions of all these classes.
 - [x] Added new Class ClassLocalFolder with the same methods as Cloud Services Classes to manage Local Folders in the same way as a Photo Cloud Service.
 - [x] ClassTakeoutFolder inherits all methods from ClassLocalFolder and includes specific methods to process Google Takeouts since at the end Google Takeout is a local folder structure.
 - [x] Minor Bug Fixing.
