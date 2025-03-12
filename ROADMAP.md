@@ -20,14 +20,14 @@
 ## v4.0.0 (No estimated date):
 ### TODO:
 - [ ] Include Apple Support (initially just for downloading)
-    - [ ] Create Class ClassApplePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos.
+    - [ ] Create Class ClassApplePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (valunteers are welcomed)
     - [ ] -adAlb, --apple-download-albums
     - [ ] -adAll, --apple-download-all
     - [ ] -auAlb, --apple-upload-albums
     - [ ] -auAll, --apple-upload-all
 - [ ] Include native support for Google Photos through API  
   (See: https://max-coding.medium.com/loading-photos-and-metadata-using-google-photos-api-with-python-7fb5bd8886ef)
-    - [ ] Create Class ClassGooglePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos.
+    - [ ] Create Class ClassGooglePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (valunteers are welcomed)
     - [ ] -gdAlb, --google-download-albums
     - [ ] -gdAll, --google-download-all
     - [ ] -guAlb, --google-upload-albums
