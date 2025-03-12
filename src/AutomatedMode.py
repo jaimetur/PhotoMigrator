@@ -696,12 +696,12 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         "⏭️ Upload Skipped Assets": "total_upload_skipped_assets",
     }
 
-    # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (10 lines), logs fill remainder
+    # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (11 lines), logs fill remainder
     layout.split_column(
         Layout(name="empty_line_1", size=1),  # Línea vacía
         Layout(name="header_panel", size=8),
         Layout(name="title_panel", size=3),
-        Layout(name="content_panel", size=10),
+        Layout(name="content_panel", size=11),
         Layout(name="logs_panel", ratio=1),
         Layout(name="empty_line_2", size=1),  # Línea vacía
     )
