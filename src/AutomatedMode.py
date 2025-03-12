@@ -910,13 +910,13 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
             else:
                 logs_text = "Initializing..."
 
-            # 3) Construimos el panel
-            log_panel = Panel("", title=title_logs_panel, border_style="red", expand=True, title_align="left")
+            # 3) Construimos el panel y lo devolvemos
+            log_panel = Panel(logs_text, title=title_logs_panel, border_style="red", expand=True, title_align="left")
+            return log_panel
 
         except Exception as e:
             LOGGER.error(f"ERROR   : Building Log Panel: {e}")
-        finally:
-            return log_panel
+
 
     # ─────────────────────────────────────────────────────────────────────────
     # 6) Update Downloads/Uploads Panels
