@@ -839,7 +839,7 @@ Enjoy it!
 
 # ROADMAP:
 
-## v3.1.0 
+## v3.1.0
 ### Release Date: (estimated)
   - Alpha version.   : 2025-03-14
   - Beta version     : 2025-03-21
