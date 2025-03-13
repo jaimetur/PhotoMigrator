@@ -35,7 +35,17 @@ def comprimir_directorio(temp_dir, output_file):
     print(f"Archivo comprimido correctamente: {output_file}")
 
 def include_file_and_folders_and_compress(input_file, output_file):
-    extra_files = ["../Config.ini", "../README.md", "../RELEASES-NOTES.md", "../ROADMAP.md"]
+    # extra_files_to_root_dir = ["../Config.ini"]
+    extra_files_to_subdir = [
+        {
+            'subdir': '', # Para indicar que estos ficheros van al directorio raiz del script
+            'files': ["../Config.ini"]
+        },
+        {
+            'subdir': 'doc',# Estos ficheros van al subdirectorio 'doc'
+            'files': ["../README.md", "../doc/RELEASES-NOTES.md", "../doc/ROADMAP.md"]
+        }
+    ]
     if not input_file or not output_file:
         print("Uso: compress_file_and_folders(input_file, output_file)")
         sys.exit(1)
@@ -50,8 +60,17 @@ def include_file_and_folders_and_compress(input_file, output_file):
     os.makedirs(script_version_dir, exist_ok=True)
     os.makedirs(takeout_dir, exist_ok=True)
     shutil.copy(input_file, script_version_dir)
-    for file in extra_files:
-        shutil.copy(file, script_version_dir)
+    # # Copiamos los extra files que van al root dir
+    # for file in extra_files_to_root_dir:
+    #     shutil.copy(file, script_version_dir)
+
+    # Ahora copiamos los extra files que van a otros subdirs
+    for item in extra_files_to_subdir:
+        subdir, files = item.items()
+        subdir_path = os.join.path(script_version_dir, subdir)
+        for file in files:
+            shutil.copy(file, subdir_path)
+
     # Comprimimos el directorio temporal y después lo borramos
     comprimir_directorio(temp_dir, output_file)
     shutil.rmtree(temp_dir)
@@ -199,12 +218,12 @@ def compile():
     # Obtener el directorio raíz un nivel arriba del directorio de trabajo
     root_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 
-    # Ruta de los archivs RELEASES-NOTES.md, CURRENT-RELEASE.md, README.md y ROADMAP.md
-    releases_filepath = os.path.join(root_dir,'RELEASES-NOTES.md')
-    current_release_filepath = os.path.join(root_dir,'CURRENT-RELEASE.md')
+    # Ruta de los archivos RELEASES-NOTES.md, CURRENT-RELEASE.md, README.md y ROADMAP.md
+    releases_filepath = os.path.join(root_dir, 'doc', 'RELEASES-NOTES.md')
+    current_release_filepath = os.path.join(root_dir,'doc', 'CURRENT-RELEASE.md')
+    roadmap_filepath = os.path.join(root_dir, 'doc', 'ROADMAP.md')
     readme_filepath = os.path.join(root_dir,'README.md')
-    roadmap_filepath = os.path.join(root_dir,'ROADMAP.md')
-    
+
     # Extraer el cuerpo de la Release actual de RELEASES-NOTES.md
     extract_release_body(releases_filepath, current_release_filepath)
     print(f"Archivo {current_release_filepath} creado correctamente.")
