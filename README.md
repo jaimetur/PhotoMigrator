@@ -46,7 +46,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
   - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)
   - [Latest Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/tag/v3.0.0)
-  - [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/tag/v3.1.0)
+  - [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/tag/v3.1.0-alpha)
 
 ## Live Dashboard Preview:
 ![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/3.1.0/doc/screenshots/Live%20Dashboard.jpg?raw=true)
@@ -104,12 +104,11 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
 ## Syntax:
 ```
 ---------------------------------------------------------------------------------------------------------
-
-usage: CloudPhotoMigrator.run/exe [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
+usage: CloudPhotoMigrator.run&exe [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
                                   [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
                                   [-rAlbAss]
                                   [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
-                                  [-nolog] [-AUTO <SOURCE> <TARGET>] 
+                                  [-nolog] [-AUTO <SOURCE> <TARGET>]
                                   [--dashboard =[true,false]]
                                   [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
@@ -127,7 +126,7 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLD
                                   [-procDup <DUPLICATES_REVISED_CSV>]
                                   [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
 
-CloudPhotoMigrator v3.1.0 - 2025-03-31
+CloudPhotoMigrator v3.1.0-alpha - 2025-03-31
 
 Multi-Platform/Multi-Arch toot designed to Interact and Manage different Photo Cloud Services
 such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
@@ -163,8 +162,8 @@ optional arguments:
              the <SOURCE> Cloud Service.
 
              possible values for:
-                 <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos']
-                 <TARGET> : ['synology-photos', 'immich-photos']
+                 <SOURCE> : ['synology-photos', 'immich-photos'] or <INPUT_FOLDER>
+                 <TARGET> : ['synology-photos', 'immich-photos'] or <OUTPUT_FOLDER>
 --dashboard =[true,false]
              Show Live Dashboard during Autometed Migration Jon (true/false). This
              argument only applies to '-AUTO, --AUTOMATED-MIGRATION' option.
@@ -369,7 +368,7 @@ If more than one Extra Mode is detected, only the first one will be executed.
 >    upload all the assets processed in previous step, creating a new Album per each Album found in your \<SOURCE> Cloud Service (or \<SOURCE> folder if you specify a path), 
 >    and will associate all the assets included in each Album in the same way that you had on your \<SOURCE> Cloud Service.
 >  - possible values for:
->    - **\<SOURCE\>** : ['google-photos', 'synology-photos', 'immich-photos'] or <INPUT_FOLDER>
+>    - **\<SOURCE\>** : ['synology-photos', 'immich-photos'] or <INPUT_FOLDER>
 >    - **\<TARGET\>** : ['synology-photos', 'immich-photos'] or <OUTPUT_FOLDER>
 >  - The idea is complete above list to allow:
 >    - **\<SOURCE\>** : ['google-photos', 'apple-photos', 'synology-photos', 'immich-photos'] or <INPUT_FOLDER>
@@ -427,11 +426,13 @@ Withh this example, the script will do a FULLY-AUTOMATED job which has two steps
 
 The whole process will do the next actions if all flags are false (by default):
 
-1. Unzip all the Takeout Zips from the <INPUT_TAKEOUT_FOLDER> into a subfolder named './Unzipped_Takeout_{TIMESTAMP}' (by default). This step will be skipped if you already have your Takeout folder unzipped.
+0. Unzip all the Takeout Zips from the <INPUT_TAKEOUT_FOLDER> into a subfolder named './Unzipped_Takeout_{TIMESTAMP}' (by default). This step will be skipped if you already have your Takeout folder unzipped.
    
-2. Pre-Process <INPUT_TAKEOUT_FOLDER> unzipped to delete '`@eaDir`' subfolders (Synology metadata subfolders with miniatures) and to Fix .MP4 files extracted from Live pictures and with no .json file associated.
+1. Pre-Process <INPUT_TAKEOUT_FOLDER> unzipped to delete '`@eaDir`' subfolders (Synology metadata subfolders with miniatures) and to Fix .MP4 files extracted from Live pictures and with no .json file associated.
 
-3. Use GPTH Tool to process all .json files and fix date of all photos/videos found on Takeout folder and organize them into the output folder (This step can be skipped using flag _'gsgt, --google-skip-gpth-tool_').
+2. Use GPTH Tool to process all .json files and fix date of all photos/videos found on Takeout folder and organize them into the output folder (This step can be skipped using flag _'gsgt, --google-skip-gpth-tool_').
+
+3. (Optional) Copy/Move files to output folder manually if GPTH processing was skipped in previous step
   
 4. Sync Timestamps of .MP4 files generated by Google Photos with Live Picture files (.heic, .jpg, .jpeg) if both files have the same name and are in the same folder
 
@@ -456,9 +457,10 @@ Finally, if you want to use your processed assets within Synology Photos, you ju
 It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (408559 files zipped, 168168 photos/video files, 740 albums) and moved it into Synology Photos.  
 
 The whole process took around **~8.5 hours** (or **~3 hours without last two optional steps) and this is the time split per steps**):
-1. Extraction process --> 25m
-2. Pre-processing Takeout_folder --> 3m 50s
-3. GPTH Tool fixing --> 2h 12m
+0. Extraction process --> 25m
+1. Pre-processing Takeout_folder --> 3m 50s
+2. GPTH Tool fixing --> 2h 12m
+3. <span style="color:grey">(Optional) Copy/Move files to output folder manually if GPTH processing was skipped --> 0h</span>
 4. Sync .MP$ timestamps --> 10s
 5. Create Date Folder Structure --> 50s
 6. Moving Album Folder --> 1s
@@ -836,7 +838,7 @@ Enjoy it!
 
 # ROADMAP:
 
-## v3.1.0 
+## v3.1.0
 ### Release Date: (estimated)
   - Alpha version.   : 2025-03-14
   - Beta version     : 2025-03-21
@@ -844,13 +846,14 @@ Enjoy it!
   - Official Release : 2025-03-31
 
 ### TODO:
-- [x] Updated GPTH version to cop latest changes in Google Takeouts. 
 - [x] Included Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization.
 - [x] Added new flag '**--dashboard=[true, false]**' to show/hide real time Dashboard during Atomated Migration Job.
 - [x] Completelly refactored AUTOMATED MIGRATION MODE to allow parallel Threads for Downloads and Uploads and avoid to download All assets before to upload them (this will save disk space and improve performance). Also objects support has been added to this mode for an easier implementation of this mode.
+- [x] Support for use Local Folders as SOURCE and TARGET during AUTOMATED MIGRATION MODE.
 - [x] Code Refactored to convert ServiceGooglePhotos, ServiceSynologyPhotos and ServiceImmichPhotos into Classes (ClassTakeoutFolder, ClassSynologyPhotos, ClassImmichPhotos) and homogenized all functions of all these classes.
 - [x] Added new Class ClassLocalFolder with the same methods as Cloud Services Classes to manage Local Folders in the same way as a Photo Cloud Service.
 - [x] ClassTakeoutFolder inherits all methods from ClassLocalFolder and includes specific methods to process Google Takeouts since at the end Google Takeout is a local folder structure.
+- [x] Updated GPTH version to cop latest changes in Google Takeouts.
 - [x] Minor Bug Fixing.
 
 - [ ] Tests Pending:
