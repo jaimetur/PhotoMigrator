@@ -61,7 +61,6 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
         Returns:
             str: The calculated hash.
         """
-        
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             hasher = hashlib.md5()
             with open(path, 'rb') as f:
@@ -80,7 +79,6 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
         Evaluate folder priority based on patterns.
         Returns (is_deprioritized, priority)
         """
-        
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             if folder in cache_folders_priority:
                 return cache_folders_priority[folder]
@@ -101,7 +99,6 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
         Evalúa la prioridad de un folder basándose en patrones fnmatch.
         Retorna (is_deprioritized, priority).
         """
-        
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # Reutilizar resultados almacenados en caché
             if folder in cache_folders_priority:
@@ -130,7 +127,6 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
         """
         Remove empty directories recursively.
         """
-        
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             removed_folders = 0
             for dirpath, dirnames, filenames in os.walk(root_dir, topdown=False):
@@ -475,7 +471,6 @@ def process_duplicates_actions(csv_revised: str, log_level=logging.INFO):
     import unicodedata
 
     def normalize_path(path: str, log_level=logging.INFO) -> str:
-        
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             return unicodedata.normalize('NFC', path)
 

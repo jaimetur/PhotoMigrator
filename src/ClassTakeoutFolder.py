@@ -52,17 +52,18 @@ class ClassTakeoutFolder(ClassLocalFolder):
         self.takeout_folder.mkdir(parents=True, exist_ok=True)  # Asegurar que input_folder existe
 
         # Verificar si la carpeta necesita ser descomprimida
-        self.need_unzip = self.needs_unzip(self.takeout_folder)
+        self.needs_unzip = self.check_if_needs_unzip()
+        self.unzipped_folder = None
 
         # Verificar si la carpeta necesita ser procesada
-        self.needs_process = self.needs_process(self.takeout_folder)
+        self.needs_process = self.check_if_needs_process()
 
         # Contador de pasos durante el procesamiento
         self.step = 0
 
         self.CLIENT_NAME = 'Google Takeout Folder'
 
-    # sobreescribimos el método get_all_assets() para que obtenga los assets de takeout_folder directamente en lugar de base_folder
+    # sobreescribimos el método get_all_assets() para que obtenga los assets de takeout_folder directamente en lugar de base_folder, para poder hacer el recuento de metadatos, sidecar, y archivos no soportados.
     def get_all_assets(self, type='all', log_level=logging.INFO):
         """
         Retrieves assets stored in the base folder, filtering by type.
@@ -117,13 +118,12 @@ class ClassTakeoutFolder(ClassLocalFolder):
             return assets
 
     def pre_process(self, skip_process=False):
-        if self.need_unzip:
+        if self.needs_unzip:
             LOGGER.info("INFO    : Input Folder contains ZIP files and needs to be unzipped first. Unzipping it...")
             unzip_folder = Path(f"{self.takeout_folder}_unzipped_{self.TIMESTAMP}")
             # Unzip the files into unzip_folder
             self.unzip(input_folder=self.takeout_folder, unzip_folder=unzip_folder, log_level=self.log_level)
-            self.takeout_folder = unzip_folder
-            self.needs_process = self.contains_takeout_structure(self.takeout_folder)
+            self.needs_process = self.contains_takeout_structure(self.unzipped_folder)
 
         if not skip_process:
             if self.needs_process:
@@ -144,7 +144,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
         Returns True if at least one matching subfolder is found, False otherwise.
         """
-        
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             for root, dirs, _ in os.walk(input_folder):
                 for folder in dirs:
@@ -153,16 +152,14 @@ class ClassTakeoutFolder(ClassLocalFolder):
             return False
 
     # @staticmethod # if use this flag, the method is static and no need to include self in the arguments
-    def needs_process(self, input_folder, log_level=logging.INFO):
-        
+    def check_if_needs_process(self, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-            return self.contains_takeout_structure(input_folder=input_folder, log_level=log_level)
+            return self.contains_takeout_structure(input_folder=self.takeout_folder, log_level=log_level)
 
     # @staticmethod # if use this flag, the method is static and no need to include self in the arguments
-    def needs_unzip(self, input_folder, log_level=logging.INFO):
-        
+    def check_if_needs_unzip(self, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-            for file in os.listdir(input_folder):
+            for file in os.listdir(self.takeout_folder):
                 if file.endswith('.zip'):
                     return True
             return False
@@ -172,7 +169,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
         Main method to pre_process Google Takeout data. Follows the same steps as the original
         process() function, but uses LOGGER and self.ARGS instead of global.
         """
-        
         with set_log_level(LOGGER, log_level):  # Temporarily adjust log level
             # step 1: Unzip files
             self.step += 1
@@ -186,7 +182,10 @@ class ClassTakeoutFolder(ClassLocalFolder):
             Utils.unpack_zips(input_folder, unzip_folder)
             
             # Make the 'Unzipped' folder as the new takeout_folder for the object
-            self.takeout_folder = Path(unzip_folder)
+            self.unzipped_folder = Path(unzip_folder)
+
+            # Change flag self.check_if_needs_unzip to False
+            self.needs_unzip = False
             
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
@@ -209,13 +208,18 @@ class ClassTakeoutFolder(ClassLocalFolder):
             step_start_time = datetime.now()
             # Pre pre_process the object with skip_process=True to just unzip files in case they are zipped.
             self.pre_process(skip_process=True)
+            # Select the input_folder deppending if the Takeout have been unzipped or not
+            if self.unzipped_folder:
+                input_folder = self.unzipped_folder
+            else:
+                input_folder = self.takeout_folder
             # Delete hidden subfolders '@eaDir'
             LOGGER.info("INFO    : Deleting hidden subfolders '@eaDir' (Synology metadata folders) from Takeout Folder if exists...")
-            Utils.delete_subfolders(self.takeout_folder, "@eaDir")
+            Utils.delete_subfolders(input_folder, "@eaDir")
             # Fix .MP4 timestamps
             LOGGER.info("")
             LOGGER.info("INFO    : Looking for .MP4 files from live pictures and asociate date and time with live picture file...")
-            Utils.fix_mp4_files(self.takeout_folder)
+            Utils.fix_mp4_files(input_folder)
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             LOGGER.info("")
@@ -229,21 +233,21 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info("===========================================")
             LOGGER.info("")
             # Count initial files
-            initial_takeout_numfiles = Utils.count_files_in_folder(self.takeout_folder)
+            initial_takeout_numfiles = Utils.count_files_in_folder(input_folder)
 
             if not self.ARGS['google-skip-gpth-tool']:
                 if self.ARGS['google-ignore-check-structure']:
                     LOGGER.warning("WARNING : Ignore Google Takeout Structure detected ('-gics, --google-ignore-check-structure' flag detected).")
                 else:
                     # Check Takeout structure
-                    has_takeout_structure = self.contains_takeout_structure(self.takeout_folder)
+                    has_takeout_structure = self.contains_takeout_structure(input_folder)
                     if not has_takeout_structure:
                         LOGGER.warning(f"WARNING : No Takeout structure detected in input folder. The tool will pre_process the folder ignoring Takeout structure.")
                         self.ARGS['google-ignore-check-structure'] = True
 
                 step_start_time = datetime.now()
                 ok = ExifFixers.fix_metadata_with_gpth_tool(
-                    input_folder=self.takeout_folder,
+                    input_folder=input_folder,
                     output_folder=output_takeout_folder,
                     symbolic_albums=self.ARGS['google-create-symbolic-albums'],
                     skip_extras=self.ARGS['google-skip-extras-files'],
@@ -255,7 +259,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     LOGGER.warning(f"WARNING : Metadata fixing didn't finish properly due to GPTH error.")
                     LOGGER.warning(f"WARNING : If your Takeout does not contains Year/Month folder structure, you can use '-gics, --google-ignore-check-structure' flag.")
                 if self.ARGS['google-move-takeout-folder']:
-                    Utils.force_remove_directory(self.takeout_folder)
+                    Utils.force_remove_directory(input_folder)
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
@@ -275,7 +279,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     LOGGER.info("INFO    : Copying files from Takeout folder to Output folder...")
 
                 step_start_time = datetime.now()
-                Utils.copy_move_folder(self.takeout_folder, output_takeout_folder,
+                Utils.copy_move_folder(input_folder, output_takeout_folder,
                                        ignore_patterns=['*.json', '*.j'],
                                        move=self.ARGS['google-move-takeout-folder'])
                 if self.ARGS['google-move-takeout-folder']:
