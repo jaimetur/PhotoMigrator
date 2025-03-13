@@ -120,16 +120,18 @@ class ClassTakeoutFolder(ClassLocalFolder):
         if self.need_unzip:
             LOGGER.info("")
             LOGGER.info("INFO    : Input Folder contains ZIP files and needs to be unzipped first. Unzipping it...")
-            unzip_folder = self.takeout_folder.parent / f"Takeout_unzipped_{self.TIMESTAMP}"
+            unzip_folder = Path(f"{self.takeout_folder}_unzipped_{self.TIMESTAMP}")
             # Unzip the files into unzip_folder
             self.unzip(input_folder=self.takeout_folder, unzip_folder=unzip_folder, log_level=self.log_level)
+            self.takeout_folder = unzip_folder
             self.needs_process = self.contains_takeout_structure(self.takeout_folder)
 
         if not skip_process:
             if self.needs_process:
                 LOGGER.info("")
                 LOGGER.info("INFO    : Input Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
-                base_folder = self.takeout_folder.parent / f"Takeout_processed_{self.TIMESTAMP}"
+                base_folder = Path(f"{self.takeout_folder}_processed_{self.TIMESTAMP}")
+                # base_folder = self.takeout_folder.parent / f"Takeout_processed_{self.TIMESTAMP}"
                 # Process Takeout_folder and put output into base_folder
                 self.process(output_takeout_folder=base_folder, log_level=logging.INFO)
                 super().__init__(base_folder)  # Inicializar con la carpeta procesada

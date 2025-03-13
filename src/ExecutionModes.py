@@ -113,7 +113,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
     need_unzip = Utils.contains_zip_files(input_folder)
     if need_unzip:
         ARGS['google-input-zip-folder'] = input_folder
-        ARGS['google-input-takeout-folder'] = os.path.join(os.path.dirname(input_folder),f'Unzipped_Takeout_{TIMESTAMP}')
+        # ARGS['google-input-takeout-folder'] = os.path.join(os.path.dirname(input_folder),f'Unzipped_Takeout_{TIMESTAMP}')
         LOGGER.info("")
         LOGGER.info(f"INFO    : ZIP files have been detected in {input_folder}'. Files will be unziped first...")
         LOGGER.info("")
@@ -137,7 +137,8 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
     LOGGER.info(f"------------------------------------------")
     if ARGS['google-input-zip-folder']!="":
         LOGGER.info(f"INFO    : Input Takeout folder (zipped detected)   : '{ARGS['google-input-zip-folder']}'")
-        LOGGER.info(f"INFO    : Input Takeout will be unziped to folder  : '{ARGS['google-input-takeout-folder']}'")
+        # LOGGER.info(f"INFO    : Input Takeout will be unziped to folder  : '{ARGS['google-input-takeout-folder']}'")
+        LOGGER.info(f"INFO    : Input Takeout will be unziped to folder  : '{input_folder}_unzipped_{TIMESTAMP}'")
     else:
         LOGGER.info(f"INFO    : Input Takeout folder                     : '{ARGS['google-input-takeout-folder']}'")
     LOGGER.info(f"INFO    : OUTPUT folder                            : '{OUTPUT_TAKEOUT_FOLDER}'")
