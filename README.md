@@ -109,7 +109,8 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLD
                                   [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
                                   [-rAlbAss]
                                   [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
-                                  [-nolog] [-AUTO <SOURCE> <TARGET>] [--dashboard=[true,false]]
+                                  [-nolog] [-AUTO <SOURCE> <TARGET>] 
+                                  [--dashboard =[true,false]]
                                   [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gnas ['flatten', 'year', 'year/month', 'year-month']]
@@ -128,8 +129,8 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLD
 
 CloudPhotoMigrator v3.1.0 - 2025-03-31
 
-Multi-Platform/Multi-Arch toot designed to Interact and Manage different Photo Cloud
-Services such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
+Multi-Platform/Multi-Arch toot designed to Interact and Manage different Photo Cloud Services
+such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
 
 (c) 2024-2025 by Jaime Tur (@jaimetur)
 
@@ -164,8 +165,9 @@ optional arguments:
              possible values for:
                  <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos']
                  <TARGET> : ['synology-photos', 'immich-photos']
---dashboard = [true,false]
-            Show Live Dashboard during Autometed Migration Jon (true/false). This argument only applies to '-AUTO, --AUTOMATED-MIGRATION' option.
+--dashboard =[true,false]
+             Show Live Dashboard during Autometed Migration Jon (true/false). This
+             argument only applies to '-AUTO, --AUTOMATED-MIGRATION' option.
 
 
 GOOGLE PHOTOS TAKEOUT MANAGEMENT:
