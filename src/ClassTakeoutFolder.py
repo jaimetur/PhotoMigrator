@@ -81,23 +81,28 @@ class ClassTakeoutFolder(ClassLocalFolder):
                         - 'type': Type of the file (image, video, metadata, sidecar, unknown).
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info(f"INFO    : Retrieving {type} assets from the base folder.")
+            if self.unzipped_folder:
+                base_folder = self.unzipped_folder
+            else:
+                base_folder = self.takeout_folder
+
+            LOGGER.info(f"INFO    : Retrieving {type} assets from the base folder: '{base_folder}'.")
 
             # Determine allowed extensions based on the type
             if type in ['photo', 'image']:
-                allowed_extensions = self.ALLOWED_PHOTO_EXTENSIONS
+                selected_type_extensions = self.ALLOWED_PHOTO_EXTENSIONS
             elif type == 'video':
-                allowed_extensions = self.ALLOWED_VIDEO_EXTENSIONS
+                selected_type_extensions = self.ALLOWED_VIDEO_EXTENSIONS
             elif type == 'media':
-                allowed_extensions = self.ALLOWED_MEDIA_EXTENSIONS
+                selected_type_extensions = self.ALLOWED_MEDIA_EXTENSIONS
             elif type == 'metadata':
-                allowed_extensions = self.ALLOWED_METADATA_EXTENSIONS
+                selected_type_extensions = self.ALLOWED_METADATA_EXTENSIONS
             elif type == 'sidecar':
-                allowed_extensions = self.ALLOWED_SIDECAR_EXTENSIONS
+                selected_type_extensions = self.ALLOWED_SIDECAR_EXTENSIONS
             elif type == 'unsupported':
-                allowed_extensions = None  # Special case to filter unsupported files
+                selected_type_extensions = None  # Special case to filter unsupported files
             else:  # 'all' or unrecognized type defaults to all supported extensions
-                allowed_extensions = self.ALLOWED_EXTENSIONS
+                selected_type_extensions = self.ALLOWED_EXTENSIONS
 
             assets = [
                 {
@@ -107,10 +112,10 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     "filepath": str(file.resolve()),
                     "type": self._determine_file_type(file),
                 }
-                for file in self.takeout_folder.rglob("*")
+                for file in base_folder.rglob("*")
                 if file.is_file() and (
-                    (allowed_extensions is None and file.suffix.lower() not in self.ALLOWED_EXTENSIONS) or
-                    (allowed_extensions is not None and file.suffix.lower() in allowed_extensions)
+                    (selected_type_extensions is None and file.suffix.lower() not in self.ALLOWED_EXTENSIONS) or
+                    (selected_type_extensions is not None and file.suffix.lower() in selected_type_extensions)
                 )
             ]
 
