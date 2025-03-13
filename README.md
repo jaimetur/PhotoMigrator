@@ -48,8 +48,8 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
   - [Latest Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/tag/v3.0.0)
   - [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/tag/v3.1.0)
 
-## Dashboard Preview:
-![IMG_7104](https://github.com/user-attachments/assets/831972fa-c94e-4a95-8379-773752a0f9e1)
+## Live Dashboard Preview:
+![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/3.1.0/doc/screenshots/Live%20Dashboard.jpg)
 
 ## Instructions to execute from compiled version:
 You can copy and unzip the downloaded compiled tool into any local folder or to any Shared folder of your server or Synology NAS.

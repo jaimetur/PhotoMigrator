@@ -27,6 +27,10 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] ClassTakeoutFolder inherits all methods from ClassLocalFolder and includes specific methods to process Google Takeouts since at the end Google Takeout is a local folder structure.
 - [x] Minor Bug Fixing.
 
+## Live Dashboard Preview:
+![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/3.1.0/doc/screenshots/Live%20Dashboard.jpg)
+
+---
 
 **Release**: v3.0.0  
 **Date**: 2025-03-07
