@@ -16,10 +16,8 @@ import hashlib
 import base64
 import inspect
 from tqdm import tqdm as original_tqdm
-from GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT
+from GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT, ARGS
 from CustomLogger import LoggerConsoleTqdm
-TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(logging.getLogger("CloudPhotoMigrator"), logging.INFO)
-
 
 ######################
 # FUNCIONES AUXILIARES
@@ -29,8 +27,9 @@ TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
 
 # Redefinir `tqdm` para usar `TQDM_LOGGER_INSTANCE` si no se especifica `file`
 def tqdm(*args, **kwargs):
-    if 'file' not in kwargs:  # Si el usuario no especifica `file`, usar `TQDM_LOGGER_INSTANCE`
-        kwargs['file'] = TQDM_LOGGER_INSTANCE
+    if ARGS['AUTOMATED-MIGRATION'] and ARGS['dashboard'] == True:
+        if 'file' not in kwargs:  # Si el usuario no especifica `file`, usar `TQDM_LOGGER_INSTANCE`
+            kwargs['file'] = TQDM_LOGGER_INSTANCE
     return original_tqdm(*args, **kwargs)
 
 def change_workingdir():

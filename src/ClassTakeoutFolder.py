@@ -118,7 +118,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
     def pre_process(self, skip_process=False):
         if self.need_unzip:
-            LOGGER.info("")
             LOGGER.info("INFO    : Input Folder contains ZIP files and needs to be unzipped first. Unzipping it...")
             unzip_folder = Path(f"{self.takeout_folder}_unzipped_{self.TIMESTAMP}")
             # Unzip the files into unzip_folder
@@ -131,7 +130,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("")
                 LOGGER.info("INFO    : Input Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
                 base_folder = Path(f"{self.takeout_folder}_processed_{self.TIMESTAMP}")
-                # base_folder = self.takeout_folder.parent / f"Takeout_processed_{self.TIMESTAMP}"
                 # Process Takeout_folder and put output into base_folder
                 self.process(output_takeout_folder=base_folder, log_level=logging.INFO)
                 super().__init__(base_folder)  # Inicializar con la carpeta procesada
@@ -402,6 +400,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
+
+            # At the end of the process, we call the super() to make this objet an sub-instance of the class ClassLocalFolder to create the same folder structure
+            super().__init__(output_takeout_folder)
 
             return (valid_albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders)
 
