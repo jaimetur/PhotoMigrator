@@ -1,7 +1,7 @@
 # ROADMAP:
 
 ## v3.1.0 
-### Releases date:
+### Release date:
   - Alpha version.   : 2025-03-14
   - Beta version     : 2025-03-21
   - Release Candidate: 2025-03-28
@@ -27,7 +27,7 @@
 ![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/3.1.0/doc/screenshots/Live%20Dashboard.jpg?raw=true)
 
 ## v4.0.0:
-### Releases date:
+### Release date:
   - Alpha version.   : (No estimated date)
   - Beta version     : (No estimated date)
   - Release Candidate: (No estimated date)
