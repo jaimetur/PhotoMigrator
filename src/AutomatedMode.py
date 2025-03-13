@@ -316,8 +316,19 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     os.makedirs(album_folder, exist_ok=True)
 
                     try:
-                        # Descargar el asset
-                        downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=album_folder, log_level=logging.WARNING)
+                        # Ruta del archivo descargado
+                        local_file_path = os.path.join(album_folder, asset_filename)
+
+                        # Archivo de bloqueo temporal
+                        lock_file = local_file_path + ".lock"
+
+                        # Crear archivo de bloqueo antes de la descarga
+                        with open(lock_file, 'w') as lock:
+                            lock.write("Downloading")
+                            # Descargar el asset
+                            downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=album_folder, log_level=logging.WARNING)
+                        # Eliminar archivo de bloqueo después de la descarga
+                        os.remove(lock_file)
                     except Exception as e:
                         LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
 
@@ -366,8 +377,19 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 asset_filename = asset.get('filename')
 
                 try:
-                    # Descargar directamente en temp_folder
-                    downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
+                    # Ruta del archivo descargado
+                    local_file_path = asset_id
+
+                    # Archivo de bloqueo temporal
+                    lock_file = local_file_path + ".lock"
+
+                    # Crear archivo de bloqueo antes de la descarga
+                    with open(lock_file, 'w') as lock:
+                        lock.write("Downloading")
+                        # Descargar directamente en temp_folder
+                        downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
+                    # Eliminar archivo de bloqueo después de la descarga
+                    os.remove(lock_file)
                 except Exception as e:
                     LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
 
