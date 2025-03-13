@@ -17,7 +17,11 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 ## Release Notes:
 
 **Release**: v3.1.0  
-**Date**: (estimated release date: 2025-03-31)
+### Releases date: (estimated)
+  - Alpha version.   : 2025-03-14
+  - Beta version     : 2025-03-21
+  - Release Candidate: 2025-03-28
+  - Official Release : 2025-03-31
 
 - [x] Included Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization.
 - [x] Added new flag '**--dashboard=[true, false]**' to show/hide real time Dashboard during Atomated Migration Job.
