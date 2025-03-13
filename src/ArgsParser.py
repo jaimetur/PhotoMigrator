@@ -47,8 +47,8 @@ def parse_arguments():
                         help="This pre_process will do an AUTOMATED-MIGRATION pre_process to Download all your Assets (including Albums) from the <SOURCE> Cloud Service and Upload them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service."
                            "\n"
                            "\npossible values for:"
-                           "\n    <SOURCE> : ['synology-photos', 'immich-photos'] or existing <LOCAL_FOLDER>"
-                           "\n    <TARGET> : ['synology-photos', 'immich-photos'] or existing <LOCAL_FOLDER>"
+                           "\n    <SOURCE> : ['synology-photos', 'immich-photos'] or <INPUT_FOLDER>"
+                           "\n    <TARGET> : ['synology-photos', 'immich-photos'] or <OUTPUT_FOLDER>"
                         )
     PARSER.add_argument( "--dashboard", metavar="=[true,false]", type=lambda x: x.lower() == 'true', default=True,
                         help="Show Live Dashboard during Autometed Migration Jon (true/false). This argument only applies to '-AUTO, --AUTOMATED-MIGRATION' option.")

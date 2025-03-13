@@ -104,12 +104,11 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
 ## Syntax:
 ```
 ---------------------------------------------------------------------------------------------------------
-
-usage: CloudPhotoMigrator.run/exe [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
+usage: CloudPhotoMigrator.py [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
                                   [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
                                   [-rAlbAss]
                                   [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
-                                  [-nolog] [-AUTO <SOURCE> <TARGET>] 
+                                  [-nolog] [-AUTO <SOURCE> <TARGET>]
                                   [--dashboard =[true,false]]
                                   [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
@@ -157,14 +156,14 @@ optional arguments:
 -nolog,    --no-log-file
              Skip saving output messages to execution log file.
 -AUTO,     --AUTOMATED-MIGRATION ('<SOURCE>', '<TARGET>')
-             This pre_process will do an AUTOMATED-MIGRATION pre_process to Download all your
-             Assets (including Albums) from the <SOURCE> Cloud Service and Upload them
-             to the <TARGET> Cloud Service (including all Albums that you may have on
-             the <SOURCE> Cloud Service.
+             This pre_process will do an AUTOMATED-MIGRATION pre_process to Download all
+             your Assets (including Albums) from the <SOURCE> Cloud Service and Upload
+             them to the <TARGET> Cloud Service (including all Albums that you may have
+             on the <SOURCE> Cloud Service.
 
              possible values for:
-                 <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos']
-                 <TARGET> : ['synology-photos', 'immich-photos']
+                 <SOURCE> : ['synology-photos', 'immich-photos'] or <INPUT_FOLDER>
+                 <TARGET> : ['synology-photos', 'immich-photos'] or <OUTPUT_FOLDER>
 --dashboard =[true,false]
              Show Live Dashboard during Autometed Migration Jon (true/false). This
              argument only applies to '-AUTO, --AUTOMATED-MIGRATION' option.
@@ -179,9 +178,9 @@ then the script will use the default values for the rest of the arguments for th
 mode.
 
 -gitf,     --google-input-takeout-folder <TAKEOUT_FOLDER>
-             Specify the Takeout folder to pre_process. If any Zip file is found inside it,
-             the Zip will be extracted to the folder 'Unzipped_Takeout_TIMESTAMP', and
-             will use the that folder as input <TAKEOUT_FOLDER>. Default: 'Takeout'.
+             Specify the Takeout folder to pre_process. If any Zip file is found inside
+             it, the Zip will be extracted to the folder 'Unzipped_Takeout_TIMESTAMP',
+             and will use the that folder as input <TAKEOUT_FOLDER>. Default: 'Takeout'.
 -gofs,     --google-output-folder-suffix <SUFFIX>
              Specify the suffix for the output folder. Default: 'fixed'
 -gafs,     --google-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
