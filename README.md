@@ -104,7 +104,7 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
 ## Syntax:
 ```
 ---------------------------------------------------------------------------------------------------------
-usage: CloudPhotoMigrator.py [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
+usage: CloudPhotoMigrator.run&exe [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
                                   [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
                                   [-rAlbAss]
                                   [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
@@ -156,10 +156,10 @@ optional arguments:
 -nolog,    --no-log-file
              Skip saving output messages to execution log file.
 -AUTO,     --AUTOMATED-MIGRATION ('<SOURCE>', '<TARGET>')
-             This process will do an AUTOMATED-MIGRATION process to Download all
-             your Assets (including Albums) from the <SOURCE> Cloud Service and Upload
-             them to the <TARGET> Cloud Service (including all Albums that you may have
-             on the <SOURCE> Cloud Service.
+             This process will do an AUTOMATED-MIGRATION process to Download all your
+             Assets (including Albums) from the <SOURCE> Cloud Service and Upload them
+             to the <TARGET> Cloud Service (including all Albums that you may have on
+             the <SOURCE> Cloud Service.
 
              possible values for:
                  <SOURCE> : ['synology-photos', 'immich-photos'] or <INPUT_FOLDER>
@@ -178,9 +178,9 @@ then the script will use the default values for the rest of the arguments for th
 mode.
 
 -gitf,     --google-input-takeout-folder <TAKEOUT_FOLDER>
-             Specify the Takeout folder to process. If any Zip file is found inside
-             it, the Zip will be extracted to the folder 'Unzipped_Takeout_TIMESTAMP',
-             and will use the that folder as input <TAKEOUT_FOLDER>. Default: 'Takeout'.
+             Specify the Takeout folder to process. If any Zip file is found inside it,
+             the Zip will be extracted to the folder 'Unzipped_Takeout_TIMESTAMP', and
+             will use the that folder as input <TAKEOUT_FOLDER>. Default: 'Takeout'.
 -gofs,     --google-output-folder-suffix <SUFFIX>
              Specify the suffix for the output folder. Default: 'fixed'
 -gafs,     --google-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
