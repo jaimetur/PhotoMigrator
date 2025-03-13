@@ -27,7 +27,7 @@ class SharedData:
 # EXTRA MODE: AUTOMATED-MIGRATION: #
 ####################################
 def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, parallel=True, log_level=logging.INFO):
-    parent_log_level = LOGGER.level
+    
     with set_log_level(LOGGER, log_level):
 
         # ───────────────────────────────────────────────────────────────
@@ -117,7 +117,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
 
 
@@ -210,7 +210,7 @@ def secuencial_automated_migration(source_client, target_client, temp_folder, SH
     temp_folder: str
         Carpeta temporal donde se descargarán los assets antes de subirse.
     """
-    parent_log_level = LOGGER.level
+    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # =========================
         # FIRST PROCESS THE SOURCE:
@@ -296,7 +296,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     added_file_paths.add(asset_file_path)
                     return True
 
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             # 1.1) Descarga de álbumes
             albums = source_client.get_albums_including_shared_with_user()
@@ -409,7 +409,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     # 2) SUBIDAS: Función uploader_worker para SUBIR (consumir de la cola)
     # ----------------------------------------------------------------------------
     def uploader_worker(log_level=logging.INFO):
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             # Lista para marcar álbumes procesados (ya contados y/o creados en el destino)
             processed_albums = []
@@ -454,10 +454,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             os.remove(asset_file_path)
                         except:
                             pass
-                        finally:
-                            # Restore log_level of the parent method
-                            # set_log_level(logger_threads, parent_log_level, manual=True)
-                            pass
+                        
 
                     # Si existe album_name, manejar álbum en destino
                     if album_name:
@@ -484,10 +481,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             except OSError:
                                 # Si no está vacía, ignoramos el error
                                 pass
-                            finally:
-                                # Restore log_level of the parent method
-                                # set_log_level(logger_threads, parent_log_level, manual=True)
-                                pass
+                            
 
                     upload_queue.task_done()
                     # sys.stdout.flush()
@@ -496,15 +490,12 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 except Exception as e:
                     LOGGER.error(f"ERROR   : Error in Uploader worker while uploading asset: {asset}")
                     LOGGER.error(f"ERROR   : Catched Exception: {e}")
-                finally:
-                    # Restore log_level of the parent method
-                    # set_log_level(LOGGER, parent_log_level, manual=True)
-                    pass
+                
 
     # ------------------
     # 3) HILO PRINCIPAL
     # ------------------
-    parent_log_level = LOGGER.level
+    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Get source and target client names
         source_client_name = source_client.get_client_name()

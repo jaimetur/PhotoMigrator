@@ -143,7 +143,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
         Returns True if at least one matching subfolder is found, False otherwise.
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             for root, dirs, _ in os.walk(input_folder):
                 for folder in dirs:
@@ -153,13 +153,13 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
     # @staticmethod # if use this flag, the method is static and no need to include self in the arguments
     def needs_process(self, input_folder, log_level=logging.INFO):
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             return self.contains_takeout_structure(input_folder=input_folder, log_level=log_level)
 
     # @staticmethod # if use this flag, the method is static and no need to include self in the arguments
     def needs_unzip(self, input_folder, log_level=logging.INFO):
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             for file in os.listdir(input_folder):
                 if file.endswith('.zip'):
@@ -171,7 +171,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         Main method to process Google Takeout data. Follows the same steps as the original
         google_takeout_processor() function, but uses LOGGER and self.ARGS instead of global.
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):  # Temporarily adjust log level
             # step 1: Unzip files
             self.step += 1

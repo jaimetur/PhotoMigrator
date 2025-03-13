@@ -202,34 +202,6 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, time
 
     return LOGGER
 
-# # Crear un contexto para cambiar el nivel del logger temporalmente
-# @contextmanager
-# def set_log_level(logger, level):
-#     """
-#     Context manager para cambiar temporalmente el nivel de log.
-#
-#     Args:
-#         logger (logging.Logger): Logger a modificar.
-#         level (int): Nuevo nivel de log.
-#
-#     Uso con `with`:
-#         with set_log_level(LOGGER, logging.DEBUG):
-#             # Código dentro del contexto tendrá DEBUG
-#         # Fuera del contexto, se restaurará el nivel original
-#
-#     Uso sin `with`:
-#         restore_func = set_log_level(LOGGER, logging.DEBUG, manual=True)
-#         # El nivel de log está cambiado manualmente
-#         restore_func()  # Llamar a esto para restaurar el nivel original
-#     """
-#
-#     old_level = logger.level  # Guardamos el nivel actual
-#     logger.setLevel(level)  # Cambiamos el nivel de log inmediatamente
-#
-#     try:
-#         yield  # Permite ejecutar el código dentro del contexto
-#     finally:
-#         logger.setLevel(old_level)  # Restaura el nivel original al salir del `with`
 
 # Crear un contexto para cambiar el nivel del logger temporalmente
 @contextmanager
