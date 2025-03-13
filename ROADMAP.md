@@ -2,8 +2,8 @@
 
 ## v3.1.0 
 ### Releases date:
-  - alpha version.   : 2025-03-14
-  - beta version     : 2025-03-21
+  - Alpha version.   : 2025-03-14
+  - Beta version     : 2025-03-21
   - Release Candidate: 2025-03-28
   - Official Release : 2025-03-31
 
@@ -26,10 +26,11 @@
 
 ## v4.0.0:
 ### Releases date:
-  - alpha version.   : (No estimated date)
-  - beta version     : (No estimated date)
+  - Alpha version.   : (No estimated date)
+  - Beta version     : (No estimated date)
   - Release Candidate: (No estimated date)
   - Official Release : (No estimated date)
+
 ### TODO:
 - [ ] Include Apple Support (initially just for downloading)
     - [ ] Create Class ClassApplePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
