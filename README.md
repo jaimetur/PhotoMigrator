@@ -109,7 +109,7 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLD
                                   [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
                                   [-rAlbAss]
                                   [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
-                                  [-nolog] [-AUTO <SOURCE> <TARGET>]
+                                  [-nolog] [-AUTO <SOURCE> <TARGET>] [--dashboard]
                                   [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gnas ['flatten', 'year', 'year/month', 'year-month']]
@@ -164,6 +164,8 @@ optional arguments:
              possible values for:
                  <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos']
                  <TARGET> : ['synology-photos', 'immich-photos']
+--dashboard = [true,false]
+            Show Live Dashboard during Autometed Migration Jon (true/false). This argument only applies to '-AUTO, --AUTOMATED-MIGRATION' option.
 
 
 GOOGLE PHOTOS TAKEOUT MANAGEMENT:
