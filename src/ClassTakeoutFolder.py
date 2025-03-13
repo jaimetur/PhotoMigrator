@@ -37,6 +37,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         Inicializa la clase con la carpeta base (donde se guardan los archivos ya procesados)
         y la carpeta de entrada (donde se encuentran los archivos sin procesar).
         """
+
         from GlobalVariables import ARGS, TIMESTAMP, DEPRIORITIZE_FOLDERS_PATTERNS
 
         self.ARGS = ARGS
@@ -128,7 +129,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             unzip_folder = Path(f"{self.takeout_folder}_unzipped_{self.TIMESTAMP}")
             # Unzip the files into unzip_folder
             self.unzip(input_folder=self.takeout_folder, unzip_folder=unzip_folder, log_level=self.log_level)
-            self.needs_process = self.contains_takeout_structure(self.unzipped_folder)
+            self.needs_process = Utils.contains_takeout_structure(self.unzipped_folder)
 
         if not skip_process:
             if self.needs_process:
@@ -142,24 +143,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 super().__init__(self.takeout_folder)  # Inicializar con la carpeta original si no se necesita procesamiento
 
     # @staticmethod # if use this flag, the method is static and no need to include self in the arguments
-    def contains_takeout_structure(self, input_folder, log_level=logging.INFO):
-        """
-        Recursively traverses all subfolders in the given input directory and checks
-        if any subfolder starts with 'Photos from ' followed by four digits.
-
-        Returns True if at least one matching subfolder is found, False otherwise.
-        """
-        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-            for root, dirs, _ in os.walk(input_folder):
-                for folder in dirs:
-                    if folder.startswith("Photos from ") and len(folder) >= 15 and folder[12:16].isdigit():
-                        return True
-            return False
-
-    # @staticmethod # if use this flag, the method is static and no need to include self in the arguments
     def check_if_needs_process(self, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-            return self.contains_takeout_structure(input_folder=self.takeout_folder, log_level=log_level)
+            return Utils.contains_takeout_structure(input_folder=self.takeout_folder, log_level=log_level)
 
     # @staticmethod # if use this flag, the method is static and no need to include self in the arguments
     def check_if_needs_unzip(self, log_level=logging.INFO):
@@ -250,7 +236,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     LOGGER.warning("WARNING : Ignore Google Takeout Structure detected ('-gics, --google-ignore-check-structure' flag detected).")
                 else:
                     # Check Takeout structure
-                    has_takeout_structure = self.contains_takeout_structure(input_folder)
+                    has_takeout_structure = Utils.contains_takeout_structure(input_folder)
                     if not has_takeout_structure:
                         LOGGER.warning(f"WARNING : No Takeout structure detected in input folder. The tool will pre_process the folder ignoring Takeout structure.")
                         self.ARGS['google-ignore-check-structure'] = True
@@ -453,7 +439,7 @@ if __name__ == "__main__":
     from Utils import change_workingdir
     change_workingdir()
 
-    input_folder = Path("r:\jaimetur\CloudPhotoMigrator\Takeout")
+    input_folder = Path(r"r:\jaimetur\CloudPhotoMigrator\Takeout")
     # timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     # base_folder = input_folder.parent / f"Takeout_processed_{timestamp}"
 

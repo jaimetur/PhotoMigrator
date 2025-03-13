@@ -10,7 +10,7 @@ import os
 choices_for_message_levels          = ['debug', 'info', 'warning', 'error', 'critical']
 choices_for_folder_structure        = ['flatten', 'year', 'year/month', 'year-month']
 choices_for_remove_duplicates       = ['list', 'move', 'remove']
-choices_for_AUTOMATED_MIGRATION_SRC = ['google-photos', 'synology-photos', 'immich-photos']
+choices_for_AUTOMATED_MIGRATION_SRC = ['synology-photos', 'immich-photos']
 choices_for_AUTOMATED_MIGRATION_TGT = ['synology-photos', 'immich-photos']
 
 PARSER = None
@@ -172,6 +172,7 @@ def checkArgs(ARGS):
     # Parse AUTOMATED-MIGRATION Arguments
     ARGS['google-input-zip-folder'] = None
     ARGS['SOURCE-TYPE-TAKEOUT-FOLDER'] = None
+    ARGS['TARGET-TYPE-TAKEOUT-FOLDER'] = None
     if len(ARGS['AUTOMATED-MIGRATION']) >0:
         source = ARGS['AUTOMATED-MIGRATION'][0]
         target = ARGS['AUTOMATED-MIGRATION'][1]
@@ -183,16 +184,17 @@ def checkArgs(ARGS):
                 print(f"Please use -i <INPUT_FOLDER> to specify where your Google Photos Takeout is located.")
         # If source is not in the list of valid sources choices, then if it is a valid Input Takeout Folder from Google Photos
         elif source.lower() not in choices_for_AUTOMATED_MIGRATION_SRC:
-            print(f"WARNING : Source value '{source}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_SRC}...")
-            print(f"WARNING : Assuming that it is the input takeout folder for 'google-photos'")
             if not os.path.isdir(source):
-                print(f"❌ ERROR   : Source Path '{source}' is not a valid Input Takeout Folder for 'google-photos' migration. Exiting...")
+                print(f"❌ ERROR   : Target value '{source}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_SRC} and is not a valid existing folder. Exiting...")
                 exit(1)
             ARGS['SOURCE-TYPE-TAKEOUT-FOLDER'] = True
         # If the target is not in the list of valid targets choices, exit.
         if target.lower() not in choices_for_AUTOMATED_MIGRATION_TGT:
-            print(f"❌ ERROR   : Target value '{target}' is not valid. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT}")
-            exit(1)
+            if not os.path.isdir(target):
+                print(f"❌ ERROR   : Target value '{target}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_TGT} and is not a valid existing folder. Exiting...")
+                exit(1)
+            ARGS['TARGET-TYPE-TAKEOUT-FOLDER'] = True
+
 
     # Check if --dashboard=True and not --AUTOMATED-MIGRATION have been given
     # if ARGS['dashboard'] and ARGS['AUTOMATED-MIGRATION'] == '':

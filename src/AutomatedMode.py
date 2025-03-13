@@ -84,9 +84,10 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
                 return ClassSynologyPhotos()
             elif client_type.lower() == 'immich-photos':
                 return ClassImmichPhotos()
-            elif Path(client_type).is_dir():
-                # return ClassLocalFolder(base_folder=client_type)
+            elif Path(client_type).is_dir() and (Utils.contains_zip_files(client_type) or Utils.contains_takeout_structure(client_type)):
                 return ClassTakeoutFolder(client_type)
+            elif Path(client_type).is_dir():
+                return ClassLocalFolder(base_folder=client_type)
             else:
                 raise ValueError(f"ERROR   : Tipo de cliente no válido: {client_type}")
 

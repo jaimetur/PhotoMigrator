@@ -484,13 +484,48 @@ class ClassLocalFolder:
             album_path.mkdir(parents=True, exist_ok=True)
             count_added = 0
             asset_ids = Utils.convert_to_list(asset_ids)
+
             for asset in asset_ids:
                 asset_path = Path(asset)
+
                 if asset_path.exists() and asset_path.is_file():
                     symlink_path = album_path / asset_path.name
-                    if not symlink_path.exists():
+
+                    # Convertir a string para evitar problemas con pathlib
+                    asset_path_str = str(asset_path)
+                    symlink_path_str = str(symlink_path)
+
+                    # Si symlink ya existe, verificar si es correcto
+                    if symlink_path.exists():
+                        if symlink_path.is_symlink():
+                            if os.readlink(symlink_path) == asset_path_str:
+                                LOGGER.info(f"INFO    : Symlink already exists and is correct: {symlink_path}")
+                                continue  # No es necesario recrearlo
+                            else:
+                                LOGGER.warning(f"WARNING : Symlink exists but points to a different file. Replacing: {symlink_path}")
+                                symlink_path.unlink()  # Eliminar el symlink incorrecto
+                        else:
+                            LOGGER.warning(f"WARNING : A file exists at {symlink_path}. Deleting it.")
+                            try:
+                                symlink_path.unlink()
+                            except PermissionError:
+                                LOGGER.error(f"ERROR   : Cannot delete existing file: {symlink_path}. Check permissions.")
+                                continue  # Saltar este archivo
+
+                    # Forzar el uso de la unidad mapeada en vez de UNC
+                    if symlink_path_str.startswith("\\\\"):
+                        LOGGER.warning(f"WARNING : Attempting to create a symlink on a network path: {symlink_path_str}")
+                        LOGGER.error("ERROR   : Symlinks to network locations are not supported on Windows.")
+                        continue  # Saltar este archivo
+
+                    # Crear el enlace simbólico
+                    try:
                         symlink_path.symlink_to(asset_path)
                         count_added += 1
+                        LOGGER.info(f"INFO    : Created symlink: {symlink_path} -> {asset_path}")
+                    except Exception as e:
+                        LOGGER.error(f"ERROR   : Failed to create symlink {symlink_path} -> {asset_path}: {e}")
+
             LOGGER.info(f"INFO    : Added {count_added} asset(s) to album '{album_name or album_id}'.")
             return count_added
 
@@ -590,9 +625,11 @@ class ClassLocalFolder:
             target_folder.mkdir(parents=True, exist_ok=True)
 
             dest = target_folder / src.name
-            shutil.copy2(src, dest)
-
-            LOGGER.info(f"INFO    : Uploaded asset '{file_path}' to '{dest}'.")
+            if os.path.isfile(dest):
+                return str(dest), True
+            else:
+                shutil.copy2(src, dest)
+                LOGGER.info(f"INFO    : Uploaded asset '{file_path}' to '{dest}'.")
             return str(dest), False
 
     def download_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_LocalFolder", log_level=logging.INFO):
