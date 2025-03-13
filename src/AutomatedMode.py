@@ -160,10 +160,13 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
             # ---------------------------------------------------------------------------------------------------------
             # 4) Ejecutamos la migración en el hilo principal (ya sea con descargas y subidas en paralelo o secuencial)
             # ---------------------------------------------------------------------------------------------------------
-            if parallel:
-                parallel_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, log_level=logging.INFO)
-            else:
-                secuencial_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, log_level=logging.INFO)
+            try:
+                if parallel:
+                    parallel_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, log_level=logging.INFO)
+                else:
+                    secuencial_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, log_level=logging.INFO)
+            finally:
+                migration_finished.set()
 
             # ---------------------------------------------------------------------------------------------------------
             # 5) Cuando la migración termine, notificamos al show_dashboard
@@ -396,6 +399,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 # sys.stdout.flush()
                 # sys.stderr.flush()
 
+            LOGGER.info("INFO    : Downloader Task Finished!")
+
     # ----------------------------------------------------------------------------
     # 2) SUBIDAS: Función uploader_worker para SUBIR (consumir de la cola)
     # ----------------------------------------------------------------------------
@@ -444,7 +449,6 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             os.remove(asset_file_path)
                         except:
                             pass
-                        
 
                     # Si existe album_name, manejar álbum en destino
                     if album_name:
@@ -471,7 +475,6 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             except OSError:
                                 # Si no está vacía, ignoramos el error
                                 pass
-                            
 
                     upload_queue.task_done()
                     # sys.stdout.flush()
@@ -480,6 +483,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 except Exception as e:
                     LOGGER.error(f"ERROR   : Error in Uploader worker while uploading asset: {asset}")
                     LOGGER.error(f"ERROR   : Catched Exception: {e}")
+
+            LOGGER.info(f"INFO    : Uploader Task Finished!")
                 
 
     # ------------------

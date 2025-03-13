@@ -373,7 +373,7 @@ class ClassLocalFolder:
             LOGGER.info(f"INFO    : Creating album '{album_name}'.")
             album_path = self.albums_folder / album_name
             album_path.mkdir(parents=True, exist_ok=True)
-            return album_path.exists()
+            return album_path
 
     def remove_album(self, album_id, album_name=None, log_level=logging.INFO):
         """
@@ -467,7 +467,7 @@ class ClassLocalFolder:
 
     def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=logging.INFO):
         """
-        Adds (links) assets to an album.
+        Adds (links) assets to an album using relative symbolic links. If symlink creation fails, copies the file instead.
 
         Args:
             album_id (str): Path to the album folder.
@@ -487,44 +487,23 @@ class ClassLocalFolder:
 
             for asset in asset_ids:
                 asset_path = Path(asset)
-
                 if asset_path.exists() and asset_path.is_file():
                     symlink_path = album_path / asset_path.name
 
-                    # Convertir a string para evitar problemas con pathlib
-                    asset_path_str = str(asset_path)
-                    symlink_path_str = str(symlink_path)
-
-                    # Si symlink ya existe, verificar si es correcto
-                    if symlink_path.exists():
-                        if symlink_path.is_symlink():
-                            if os.readlink(symlink_path) == asset_path_str:
-                                LOGGER.info(f"INFO    : Symlink already exists and is correct: {symlink_path}")
-                                continue  # No es necesario recrearlo
-                            else:
-                                LOGGER.warning(f"WARNING : Symlink exists but points to a different file. Replacing: {symlink_path}")
-                                symlink_path.unlink()  # Eliminar el symlink incorrecto
-                        else:
-                            LOGGER.warning(f"WARNING : A file exists at {symlink_path}. Deleting it.")
+                    if not symlink_path.exists():
+                        try:
+                            relative_path = os.path.relpath(asset_path, start=symlink_path.parent)
+                            symlink_path.symlink_to(relative_path)
+                            LOGGER.info(f"INFO    : Created relative symlink: {symlink_path} -> {relative_path}")
+                        except Exception as e:
+                            LOGGER.warning(f"WARNING : Failed to create symlink {symlink_path}. Copying file instead. Error: {e}")
                             try:
-                                symlink_path.unlink()
-                            except PermissionError:
-                                LOGGER.error(f"ERROR   : Cannot delete existing file: {symlink_path}. Check permissions.")
-                                continue  # Saltar este archivo
-
-                    # Forzar el uso de la unidad mapeada en vez de UNC
-                    if symlink_path_str.startswith("\\\\"):
-                        LOGGER.warning(f"WARNING : Attempting to create a symlink on a network path: {symlink_path_str}")
-                        LOGGER.error("ERROR   : Symlinks to network locations are not supported on Windows.")
-                        continue  # Saltar este archivo
-
-                    # Crear el enlace simbólico
-                    try:
-                        symlink_path.symlink_to(asset_path)
+                                shutil.copy2(asset_path, symlink_path)
+                                LOGGER.info(f"INFO    : Copied file: {symlink_path}")
+                            except Exception as copy_error:
+                                LOGGER.error(f"ERROR   : Failed to copy file {asset_path} to {symlink_path}. Error: {copy_error}")
+                                continue
                         count_added += 1
-                        LOGGER.info(f"INFO    : Created symlink: {symlink_path} -> {asset_path}")
-                    except Exception as e:
-                        LOGGER.error(f"ERROR   : Failed to create symlink {symlink_path} -> {asset_path}: {e}")
 
             LOGGER.info(f"INFO    : Added {count_added} asset(s) to album '{album_name or album_id}'.")
             return count_added
