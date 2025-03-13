@@ -46,7 +46,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
   - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)
   - [Latest Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/tag/v3.0.0)
-  - [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/tag/v3.1.0)
+  - [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/tag/v3.1.0-alpha)
 
 ## Live Dashboard Preview:
 ![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/3.1.0/doc/screenshots/Live%20Dashboard.jpg?raw=true)
@@ -127,7 +127,7 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLD
                                   [-procDup <DUPLICATES_REVISED_CSV>]
                                   [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
 
-CloudPhotoMigrator v3.1.0 - 2025-03-31
+CloudPhotoMigrator v3.1.0-alpha - 2025-03-31
 
 Multi-Platform/Multi-Arch toot designed to Interact and Manage different Photo Cloud Services
 such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
