@@ -23,6 +23,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
   - Release Candidate: 2025-03-28
   - Official Release : 2025-03-31
 
+### Main Changes:
 - [x] Included Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization.
 - [x] Added new flag '**--dashboard=[true, false]**' to show/hide real time Dashboard during Atomated Migration Job.
 - [x] Completelly refactored AUTOMATED MIGRATION MODE to allow parallel Threads for Downloads and Uploads and avoid to download All assets before to upload them (this will safe disk space and improve performance). Also objects support has been added to this mode for an easier implementation of this mode.
@@ -40,6 +41,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 **Release**: v3.0.0  
 **Date**: 2025-03-07
 
+### Main Changes:
 - [x] New Script name '**CloudPhotoMigrator**' (former 'GoogleTakeoutPhotos')
 - [x] The Tool is now Open Source (all contributors that want to collaborate on this project are more than welcome)
 - [x] Added **_Immich Photos Support_**.
@@ -171,6 +173,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 **Release**: v2.2.1  
 **Date**: 2025-01-08
 
+### Main Changes:
 - Compiled version for different OS and Architectures
     - [x] Linux_amd64: ready
     - [x] Linux_arm64: ready
@@ -187,6 +190,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 **Release**: v2.2.0  
 **Date**: 2025-01-04
 
+### Main Changes:
 - Compiled version for different OS and Architectures
     - [x] Linux_amd64: ready
     - [x] Linux_arm64: ready
@@ -201,6 +205,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 **Release**: v2.1.0  
 **Date**: 2024-12-27
 
+### Main Changes:
 - Added ALL-IN-ONE mode to Automatically process your Google Takeout files (zipped or unzipped), process them, and move all your Photos & Videos into your Synology Photos personal folder creating all the Albums that you have in Google Photos within Synology Photos.
 - New flag -ao,  --all-in-one <INPUT_FOLDER> to do all the process in just One Shot. The script will extract all your Takeout Zip files from <INPUT_FOLDER>, will process them, and finally will connect to Synology Photos database to create all Albums found and import all the other photos without any Albums associated.
 - Code Refactored
@@ -212,6 +217,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 **Release**: v2.0.0  
 **Date**: 2024-12-24
 
+### Main Changes:
 - Added Synology Photos Management options with three new Extra Modes:
   -- New flag -ca,  --create-albums-synology-photos <ALBUMS_FOLDER> to force Mode: 'Create Albums in Synology Photos'. The script will look for all Albums within ALBUM_FOLDER and will create one Album per folder into Synology Photos.
   -- New flag -de,  --delete-empty-albums-synology-photos tofForce Mode: 'Delete Empty Albums in Synology Photos'. The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database. 
@@ -226,6 +232,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 **Release**: v1.6.0  
 **Date**: 2024-12-18
 
+### Main Changes:
 - Included new flag '-pd, --process-duplicates-revised' to process the Duplicates.csv output file after execute the 'Find Duplicates Mode' with 'duplicates-action=move'. In that case, the script will move all duplicates found to Duplicates folder and will generate a CSV file that can be revised and change the Action column values.
 Possible Actions in revised CSV file are:
     - remove_duplicate  : Duplicated file moved to Duplicates folder will be permanently removed
@@ -240,6 +247,7 @@ Possible Actions in revised CSV file are:
 **Release**: v1.5.1  
 **Date**: 2024-12-17
 
+### Main Changes:
 - Fixed logic of Find_Duplicates algorithm and include a new field in the Duplicates.csv output file to provide the reason to decide principal file of a duplicates set.
 - Improved performance in Find_Duplicates function..
 - Included progress bar in most of all the steps that consume more time during script execution.
@@ -250,6 +258,7 @@ Possible Actions in revised CSV file are:
 **Release**: v1.5.0  
 **Date**: 2024-12-11
 
+### Main Changes:
 - Fixed Find_Duplicates function. Now is smarter and try to determine the principal folder and file when two or more files are duplicates within the same folder or in different folders.
 - Added new flag '-rd, --remove-duplicates-after-fixing' to remove duplicates files in OUTPUT_FOLDER after fixing all the files. Files within any Album will have more priority than files within 'Photos from *' or 'ALL_PHOTOS' folders.
 - Added new flag '-sa, --symbolic-albums' to create Symbolic linked Albums pointing to the original files. This is useful to safe disk space but the links might be broken if you move the output folders or change the structure.
@@ -264,6 +273,7 @@ Possible Actions in revised CSV file are:
 **Release**: v1.4.1  
 **Date**: 2024-12-10
 
+### Main Changes:
 - Modified Duplicates.txt output file. Now is a CSV file, and it has a new format with only one duplicate per row and one column to display the number of duplicates per each principal file and other column with the action taken with the duplicates. 
 - Modified default value for No-Albums-Structure, before this folder had a 'flatten' structure, now by default the structure is 'year/month' but you can change it with the flag '-ns, --no-albums-structure'.
 - Albums-Structure continues with 'flatten' value by default, but you can change it with the flag '-as, --albums-structure'.
@@ -275,6 +285,7 @@ Possible Actions in revised CSV file are:
 **Release**: v1.4.0  
 **Date**: 2024-12-08
 
+### Main Changes:
 - Added smart feature to Find Duplicates based on file size and content.
 - Two news flags have been added to run the script in "Find Duplicates Mode": 
     '-fd,, --find-duplicates-in-folders' to specify the folder or folders where the script will look for duplicates files
@@ -300,6 +311,7 @@ and will move the otherss duplicates files into the ./Duplicates folder on the r
 **Release**: v1.3.1  
 **Date**: 2024-12-08
 
+### Main Changes:
 - Removed warnings when some .MP4 files does not belongs to any Live picture.
 
 ---
@@ -307,6 +319,7 @@ and will move the otherss duplicates files into the ./Duplicates folder on the r
 **Release**: v1.3.0  
 **Date**: 2024-12-04
 
+### Main Changes:
 - Added Script version for MacOS 
 - Included a Pre-process step (after unzipping the Zip files) to remove Synology metadata subfolders (if exists) and to look for .MP4 files generated by Google Photos that are extracted from Live picture files (.heic, .jpg, .jpeg) but doesn't have .json associated.
 - Now the script by default doesn't skip extra files such as '-edited' or '-effect'.
@@ -325,6 +338,7 @@ and will move the otherss duplicates files into the ./Duplicates folder on the r
 **Release**: v1.2.2  
 **Date**: 2024-12-02
 
+### Main Changes:
 - Included new argument '-mt, --move-takeout-folder' to move (instead of copy) photos/albums from <TAKEOUT_FOLDER> to <OUTPUT_FOLDER>. This will let you save disk space and increase execution speed. CAUTION: With this option you will lost your original unzipped takeout files. Use this only if you have disk space limitation or if you don't care to lost the unzipped files because you still have the original zips files.
 - Argument '-se, --skip-exif-tool' renamed to '-re, --run-exif-tool'. Now EXIF Tool will not be executed by default unless you include this argument when running the script.
 - Argument '-sl, --skip-log' renamed to '-nl, --no-log-file' for better comprehension.
@@ -339,6 +353,7 @@ and will move the otherss duplicates files into the ./Duplicates folder on the r
 **Release**: v1.2.1  
 **Date**: 2024-11-29
 
+### Main Changes:
 - Included new argument '-it, --ignore-takeout-structure' to Ignore Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc..), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from them.
 - Changed log engine to generate log.info, log.warning and log.error messages that can be parsed with any log viewer easily.
 - Change help format for better reading
@@ -350,6 +365,7 @@ and will move the otherss duplicates files into the ./Duplicates folder on the r
 **Release**: v1.2.0  
 **Date**: 2024-11-27
 
+### Main Changes:
 - Script migrated to Python for multi-platform support.
 - Improve performance
 - replaced '-s, --skip-unzip' argument by '-z, --zip-folder <ZIP_FOLDER>'. Now if no use the argument -'z, --zip-folder <ZIP_FOLDER>., the script will skip unzip step.
@@ -362,6 +378,7 @@ and will move the otherss duplicates files into the ./Duplicates folder on the r
 **Release**: v1.0.0 to v1.2.0  
 **Date**: 2024-11
 
+### Main Changes:
 - Preliminary not published Script in bash.
 
 ---
