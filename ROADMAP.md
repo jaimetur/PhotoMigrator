@@ -8,6 +8,7 @@
   - Official Release : 2025-03-31
 
 ### TODO:
+- [ ] Update GPTH version to cop latest changes in Google Takeouts. 
 - [x] Included Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization.
 - [x] Added new flag '**--dashboard=[true, false]**' to show/hide real time Dashboard during Atomated Migration Job.
 - [x] Completelly refactored AUTOMATED MIGRATION MODE to allow parallel Threads for Downloads and Uploads and avoid to download All assets before to upload them (this will safe disk space and improve performance). Also objects support has been added to this mode for an easier implementation of this mode.
