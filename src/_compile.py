@@ -34,7 +34,7 @@ def comprimir_directorio(temp_dir, output_file):
                     zipf.write(dir_path, dir_path.relative_to(temp_dir))
     print(f"Archivo comprimido correctamente: {output_file}")
 
-def include_file_and_folders_and_compress(input_file, output_file):
+def include_extrafiles_and_zip(input_file, output_file):
     # extra_files_to_root_dir = ["../Config.ini"]
     extra_files_to_subdir = [
         {
@@ -47,7 +47,7 @@ def include_file_and_folders_and_compress(input_file, output_file):
         }
     ]
     if not input_file or not output_file:
-        print("Uso: compress_file_and_folders(input_file, output_file)")
+        print("Uso: include_extrafiles_and_zip(input_file, output_file)")
         sys.exit(1)
     if not Path(input_file).is_file():
         print(f"ERROR   : El archivo de entrada '{input_file}' no existe.")
@@ -264,7 +264,7 @@ def compile():
         print(f"\nMoviendo script compilado '{script_compiled_with_version_os_arch_extension}'...")
         shutil.move(f'./dist/{script_compiled}', f'../{script_compiled_with_version_os_arch_extension}')
         # Comprimimos la carpeta con el script compilado y los ficheros y directorios a incluir
-        include_file_and_folders_and_compress(f'../{script_compiled_with_version_os_arch_extension}', script_zip_file)
+        include_extrafiles_and_zip(f'../{script_compiled_with_version_os_arch_extension}', script_zip_file)
         # Borramos los ficheros y directorios temporales de la compilación
         print("Borrando archivos temporales de la compilación...")
         Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
@@ -325,7 +325,7 @@ def compile():
             print(f"\nMoviendo script compilado '{script_compiled_with_version_os_arch_extension}'...")
             shutil.move(f'./dist/{script_compiled}', f'../{script_compiled_with_version_os_arch_extension}')
             # Comprimimos la carpeta con el script compilado y los ficheros y directorios a incluir
-            include_file_and_folders_and_compress(f'../{script_compiled_with_version_os_arch_extension}', script_zip_file)
+            include_extrafiles_and_zip(f'../{script_compiled_with_version_os_arch_extension}', script_zip_file)
             # Borramos los ficheros y directorios temporales de la compilación
             print("Borrando archivos temporales de la compilación...")
             Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
