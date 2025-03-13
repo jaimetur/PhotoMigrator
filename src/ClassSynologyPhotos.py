@@ -640,7 +640,6 @@ class ClassSynologyPhotos:
                 pass
 
 
-    # TODO: Test this method
     def album_exists(self, album_name, log_level=logging.INFO):
         """
         Gets the number of items in an album.
@@ -964,7 +963,6 @@ class ClassSynologyPhotos:
         parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             try:
-                # TODO: Add Try Except to all method of this Class
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
                 headers = {}
