@@ -496,7 +496,7 @@ class ClassLocalFolder:
                             symlink_path.symlink_to(relative_path)
                             LOGGER.info(f"INFO    : Created relative symlink: {symlink_path} -> {relative_path}")
                         except Exception as e:
-                            LOGGER.warning(f"WARNING : Failed to create symlink {symlink_path}. Copying file instead. Error: {e}")
+                            LOGGER.warning(f"WARNING : Failed to create symlink {symlink_path}. Copying a duplicated copy of the file instead. Error: {e}")
                             try:
                                 shutil.copy2(asset_path, symlink_path)
                                 LOGGER.info(f"INFO    : Copied file: {symlink_path}")
