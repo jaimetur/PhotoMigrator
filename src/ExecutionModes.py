@@ -85,8 +85,8 @@ def detect_and_run_execution_mode():
     elif ARGS['find-duplicates'] != ['list', '']:
         EXECUTION_MODE = 'find_duplicates'
         mode_find_duplicates()
-    elif ARGS['pre_process-duplicates'] != "":
-        EXECUTION_MODE = 'pre_process-duplicates'
+    elif ARGS['process-duplicates'] != "":
+        EXECUTION_MODE = 'process-duplicates'
         mode_process_duplicates()
     elif ARGS['rename-folders-content-based'] != "":
         EXECUTION_MODE = 'rename-folders-content-based'
@@ -1094,16 +1094,16 @@ def mode_find_duplicates(user_confirmation=True, log_level=logging.INFO):
 
 def mode_process_duplicates(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
-        LOGGER.info(HELP_TEXTS["pre_process-duplicates"])
+        LOGGER.info(HELP_TEXTS["process-duplicates"])
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
     
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Flag detected '-pd, --pre_process-duplicates'. The Script will pre_process the '{ARGS['pre_process-duplicates']}' file and do the specified action given on Action Column. ")
-        LOGGER.info(f"INFO    : Processing Duplicates Files based on Actions given in {os.path.basename(ARGS['pre_process-duplicates'])} file...")
-        removed_duplicates, restored_duplicates, replaced_duplicates = process_duplicates_actions(ARGS['pre_process-duplicates'])
+        LOGGER.info(f"INFO    : Flag detected '-procDup, --process-duplicates'. The Script will process the '{ARGS['process-duplicates']}' file and do the specified action given on Action Column. ")
+        LOGGER.info(f"INFO    : Processing Duplicates Files based on Actions given in {os.path.basename(ARGS['process-duplicates'])} file...")
+        removed_duplicates, restored_duplicates, replaced_duplicates = process_duplicates_actions(ARGS['process-duplicates'])
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))

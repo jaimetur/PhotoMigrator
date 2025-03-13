@@ -30,7 +30,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] Support for use Local Folders as SOURCE and TARGET during AUTOMATED MIGRATION MODE.
 - [x] Code Refactored to convert ServiceGooglePhotos, ServiceSynologyPhotos and ServiceImmichPhotos into Classes (ClassTakeoutFolder, ClassSynologyPhotos, ClassImmichPhotos) and homogenized all functions of all these classes.
 - [x] Added new Class ClassLocalFolder with the same methods as Cloud Services Classes to manage Local Folders in the same way as a Photo Cloud Service.
-- [x] ClassTakeoutFolder inherits all methods from ClassLocalFolder and includes specific methods to pre_process Google Takeouts since at the end Google Takeout is a local folder structure.
+- [x] ClassTakeoutFolder inherits all methods from ClassLocalFolder and includes specific methods to process Google Takeouts since at the end Google Takeout is a local folder structure.
 - [x] Updated GPTH version to cop latest changes in Google Takeouts. 
 - [x] Minor Bug Fixing.
 
@@ -49,7 +49,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] Added **_New Automated Migration Feature_** to perform Fully Automated Migration Process between different Photo Cloud Services
   - #### AUTOMATED MIGRATION FEATURE:
     - **-AUTO,   --AUTOMATED-MIGRATION \<SOURCE> \<TARGET>**  
-      This pre_process will do an AUTOMATED-MIGRATION pre_process to Download all your Assets
+      This process will do an AUTOMATED-MIGRATION process to Download all your Assets
              (including Albums) from the <SOURCE> Cloud Service and Upload them to the
              <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE>
              Cloud Service.
@@ -88,10 +88,10 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
   - -sea,  --synology-extract-albums is now **-sdAlb,  --synology-download-albums <ALBUMS_NAME>**.
   - -fsym, --fix-symlinks-broken <FOLDER_TO_FIX> is now **-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>**.
   - -fdup, --find-duplicates <ACTION> <DUPLICATES_FOLDER> is now **-findDup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>**.
-  - -pdup, --pre_process-duplicates <DUPLICATES_REVISED> is now **-procdDup, --pre_process-duplicates <DUPLICATES_REVISED>**.  
+  - -pdup, --process-duplicates <DUPLICATES_REVISED> is now **-procdDup, --process-duplicates <DUPLICATES_REVISED>**.  
 
 - [x] New Arguments Added: 
-  - **-i,        --input-folder <INPUT_FOLDER>** Specify the input folder that you want to pre_process.
+  - **-i,        --input-folder <INPUT_FOLDER>** Specify the input folder that you want to process.
   - **-o,        --output-folder <OUTPUT_FOLDER>** Specify the output folder to save the result of the processing action.
   - **-loglevel, --log-level ['debug', 'info', 'warning', 'error', 'critical']** Specify the log level for logging and screen messages.  
   - **-rAlbAss,  --remove-albums-assets** 
@@ -207,8 +207,8 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 **Date**: 2024-12-27
 
 ### Main Changes:
-- Added ALL-IN-ONE mode to Automatically pre_process your Google Takeout files (zipped or unzipped), pre_process them, and move all your Photos & Videos into your Synology Photos personal folder creating all the Albums that you have in Google Photos within Synology Photos.
-- New flag -ao,  --all-in-one <INPUT_FOLDER> to do all the pre_process in just One Shot. The script will extract all your Takeout Zip files from <INPUT_FOLDER>, will pre_process them, and finally will connect to Synology Photos database to create all Albums found and import all the other photos without any Albums associated.
+- Added ALL-IN-ONE mode to Automatically process your Google Takeout files (zipped or unzipped), process them, and move all your Photos & Videos into your Synology Photos personal folder creating all the Albums that you have in Google Photos within Synology Photos.
+- New flag -ao,  --all-in-one <INPUT_FOLDER> to do all the process in just One Shot. The script will extract all your Takeout Zip files from <INPUT_FOLDER>, will process them, and finally will connect to Synology Photos database to create all Albums found and import all the other photos without any Albums associated.
 - Code Refactored
 - Minor Bug Fixing
 
@@ -234,7 +234,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 **Date**: 2024-12-18
 
 ### Main Changes:
-- Included new flag '-pd, --pre_process-duplicates-revised' to pre_process the Duplicates.csv output file after execute the 'Find Duplicates Mode' with 'duplicates-action=move'. In that case, the script will move all duplicates found to Duplicates folder and will generate a CSV file that can be revised and change the Action column values.
+- Included new flag '-pd, --process-duplicates-revised' to process the Duplicates.csv output file after execute the 'Find Duplicates Mode' with 'duplicates-action=move'. In that case, the script will move all duplicates found to Duplicates folder and will generate a CSV file that can be revised and change the Action column values.
 Possible Actions in revised CSV file are:
     - remove_duplicate  : Duplicated file moved to Duplicates folder will be permanently removed
     - restore_duplicate : Duplicated file moved to Duplicates folder will be restored to its original location
@@ -322,7 +322,7 @@ and will move the otherss duplicates files into the ./Duplicates folder on the r
 
 ### Main Changes:
 - Added Script version for MacOS 
-- Included a Pre-pre_process step (after unzipping the Zip files) to remove Synology metadata subfolders (if exists) and to look for .MP4 files generated by Google Photos that are extracted from Live picture files (.heic, .jpg, .jpeg) but doesn't have .json associated.
+- Included a Pre-process step (after unzipping the Zip files) to remove Synology metadata subfolders (if exists) and to look for .MP4 files generated by Google Photos that are extracted from Live picture files (.heic, .jpg, .jpeg) but doesn't have .json associated.
 - Now the script by default doesn't skip extra files such as '-edited' or '-effect'.
 - Included new argument '-se, --skip-extras' to skip processing extra files if desired.
 - Now the script by default generates flatten output folders per each album and for ALL_PHOTOS folder (Photos without any album).

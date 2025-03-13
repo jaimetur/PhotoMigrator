@@ -157,7 +157,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
     def unzip(self, input_folder, unzip_folder, log_level=logging.INFO):
         """
-        Main method to pre_process Google Takeout data. Follows the same steps as the original
+        Main method to process Google Takeout data. Follows the same steps as the original
         process() function, but uses LOGGER and self.ARGS instead of global.
         """
         with set_log_level(LOGGER, log_level):  # Temporarily adjust log level
@@ -185,7 +185,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
     def process(self, output_takeout_folder, log_level=logging.INFO):
         """
-        Main method to pre_process Google Takeout data. Follows the same steps as the original
+        Main method to process Google Takeout data. Follows the same steps as the original
         process() function, but uses LOGGER and self.ARGS instead of global.
         """
         with set_log_level(LOGGER, log_level):  # Temporarily adjust log level
@@ -202,7 +202,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info("===================================")
             LOGGER.info("")
             step_start_time = datetime.now()
-            # Pre pre_process the object with skip_process=True to just unzip files in case they are zipped.
+            # Pre process the object with skip_process=True to just unzip files in case they are zipped.
             self.pre_process(skip_process=True)
             # Select the input_folder deppending if the Takeout have been unzipped or not
             if self.unzipped_folder:
@@ -238,7 +238,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     # Check Takeout structure
                     has_takeout_structure = Utils.contains_takeout_structure(input_folder)
                     if not has_takeout_structure:
-                        LOGGER.warning(f"WARNING : No Takeout structure detected in input folder. The tool will pre_process the folder ignoring Takeout structure.")
+                        LOGGER.warning(f"WARNING : No Takeout structure detected in input folder. The tool will process the folder ignoring Takeout structure.")
                         self.ARGS['google-ignore-check-structure'] = True
 
                 step_start_time = datetime.now()

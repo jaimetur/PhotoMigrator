@@ -14,7 +14,7 @@
 - [x] Support for use Local Folders as SOURCE and TARGET during AUTOMATED MIGRATION MODE.
 - [x] Code Refactored to convert ServiceGooglePhotos, ServiceSynologyPhotos and ServiceImmichPhotos into Classes (ClassTakeoutFolder, ClassSynologyPhotos, ClassImmichPhotos) and homogenized all functions of all these classes.
 - [x] Added new Class ClassLocalFolder with the same methods as Cloud Services Classes to manage Local Folders in the same way as a Photo Cloud Service.
-- [x] ClassTakeoutFolder inherits all methods from ClassLocalFolder and includes specific methods to pre_process Google Takeouts since at the end Google Takeout is a local folder structure.
+- [x] ClassTakeoutFolder inherits all methods from ClassLocalFolder and includes specific methods to process Google Takeouts since at the end Google Takeout is a local folder structure.
 - [x] Updated GPTH version to cop latest changes in Google Takeouts.
 - [x] Minor Bug Fixing.
 

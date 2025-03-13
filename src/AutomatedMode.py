@@ -114,9 +114,9 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
 
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-            # Call the parallel_automated_migration module to do the whole migration pre_process
+            # Call the parallel_automated_migration module to do the whole migration process
             # parallel_automated_migration(source, target, temp_folder, SHARED_DATA.input_info, SHARED_DATA.counters, SHARED_DATA.logs_queue)
-            # and if show_dashboard=True, launch start_dashboard function to show a Live Dashboard of the whole pre_process
+            # and if show_dashboard=True, launch start_dashboard function to show a Live Dashboard of the whole process
             # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
             # ---------------------------------------------------------------------------------------------------------

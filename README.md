@@ -140,7 +140,7 @@ optional arguments:
 -v,        --version
              Show the script name, version, and date, then exit.
 -i,        --input-folder <INPUT_FOLDER>
-             Specify the input folder that you want to pre_process.
+             Specify the input folder that you want to process.
 -o,        --output-folder <OUTPUT_FOLDER>
              Specify the output folder to save the result of the processing action.
 -AlbFld,   --albums-folders <ALBUMS_FOLDER>
@@ -156,7 +156,7 @@ optional arguments:
 -nolog,    --no-log-file
              Skip saving output messages to execution log file.
 -AUTO,     --AUTOMATED-MIGRATION ('<SOURCE>', '<TARGET>')
-             This pre_process will do an AUTOMATED-MIGRATION pre_process to Download all
+             This process will do an AUTOMATED-MIGRATION process to Download all
              your Assets (including Albums) from the <SOURCE> Cloud Service and Upload
              them to the <TARGET> Cloud Service (including all Albums that you may have
              on the <SOURCE> Cloud Service.
@@ -178,7 +178,7 @@ then the script will use the default values for the rest of the arguments for th
 mode.
 
 -gitf,     --google-input-takeout-folder <TAKEOUT_FOLDER>
-             Specify the Takeout folder to pre_process. If any Zip file is found inside
+             Specify the Takeout folder to process. If any Zip file is found inside
              it, the Zip will be extracted to the folder 'Unzipped_Takeout_TIMESTAMP',
              and will use the that folder as input <TAKEOUT_FOLDER>. Default: 'Takeout'.
 -gofs,     --google-output-folder-suffix <SUFFIX>
@@ -337,7 +337,7 @@ If more than one Extra Mode is detected, only the first one will be executed.
              script will look for duplicates files. The order of this list is important
              to determine the principal file of a duplicates set. First folder will have
              higher priority.
--procDup,  --pre_process-duplicates <DUPLICATES_REVISED_CSV>
+-procDup,  --process-duplicates <DUPLICATES_REVISED_CSV>
              Specify the Duplicates CSV file revised with specifics Actions in Action
              column, and the script will execute that Action for each duplicates found
              in CSV. Valid Actions: restore_duplicate / remove_duplicate /
@@ -360,7 +360,7 @@ If more than one Extra Mode is detected, only the first one will be executed.
 >
 >If you configure properly the file 'Config.ini' (included with the tool), and execute this Extra Mode, the script will automatically do the whole migration job from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.
 >The script will do a FULLY-AUTOMATED job which has two steps:  
->  - First, the script will Download all your assets from \<SOURCE> Cloud Service (if you have configured properly the Config.ini file), or pre_process the \<SOURCE> folder in case that you specify a path.
+>  - First, the script will Download all your assets from \<SOURCE> Cloud Service (if you have configured properly the Config.ini file), or process the \<SOURCE> folder in case that you specify a path.
 >    - In this step, the output will be a \<OUTPUT_FOLDER> containing two subfolders:
 >      - **'Albums'**: Contains all the assets associated to some Album(s) within your \<SOURCE> Cloud Service
 >      - **'No-Albums'**: Contains all the assets with no Album(s) associated within your \<SOURCE> Cloud Service
@@ -387,7 +387,7 @@ To execute this Extra Mode, you can use the new Flag: '-AUTO, --AUTOMATED-MIGRAT
 
 In this example, the script will do a FULLY-AUTOMATED job which has two steps:  
 
-    - First, the script will pre_process the folder './MyTakeout' (Unzipping them if needed), fixing all files found on it, to set the
+    - First, the script will process the folder './MyTakeout' (Unzipping them if needed), fixing all files found on it, to set the
       correct date and time, and identifying which assets belongs to each Album created on Google Photos.  
 
     - Second, the script will connect to your Synology Photos account (if you have configured properly the Config.ini file) and will 
@@ -403,7 +403,7 @@ In this example, the script will do a FULLY-AUTOMATED job which has two steps:
 
 Withh this example, the script will do a FULLY-AUTOMATED job which has two steps:  
 
-    - First, the script will pre_process connect to your Synology Photos account (if you have configured properly the Config.ini file) and 
+    - First, the script will process connect to your Synology Photos account (if you have configured properly the Config.ini file) and 
       download all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
 
     - Second, the script will connect to your Immich Photos account (if you have configured properly the Config.ini file) and 
@@ -412,7 +412,7 @@ Withh this example, the script will do a FULLY-AUTOMATED job which has two steps
 
 >[!NOTE]
 >## <span style="color:green">Google Photos Support</span>
->From version 1.0.0 onwards, the script can pre_process your Google Photos Takeout files to fix timestamp, geodata, organize files per year/month, organize assets within album(s) in subfolders, etc...
+>From version 1.0.0 onwards, the script can process your Google Photos Takeout files to fix timestamp, geodata, organize files per year/month, organize assets within album(s) in subfolders, etc...
 >
 >>#### <span style="color:green">Example 'Config.ini' for Synology Photos:</span>
 >>
@@ -424,13 +424,13 @@ Withh this example, the script will do a FULLY-AUTOMATED job which has two steps
 
 ### <span style="color:blue">Google Takeout Mode: Process Explained:</span>
 
-The whole pre_process will do the next actions if all flags are false (by default):
+The whole process will do the next actions if all flags are false (by default):
 
 0. Unzip all the Takeout Zips from the <INPUT_TAKEOUT_FOLDER> into a subfolder named './Unzipped_Takeout_{TIMESTAMP}' (by default). This step will be skipped if you already have your Takeout folder unzipped.
    
 1. Pre-Process <INPUT_TAKEOUT_FOLDER> unzipped to delete '`@eaDir`' subfolders (Synology metadata subfolders with miniatures) and to Fix .MP4 files extracted from Live pictures and with no .json file associated.
 
-2. Use GPTH Tool to pre_process all .json files and fix date of all photos/videos found on Takeout folder and organize them into the output folder (This step can be skipped using flag _'gsgt, --google-skip-gpth-tool_').
+2. Use GPTH Tool to process all .json files and fix date of all photos/videos found on Takeout folder and organize them into the output folder (This step can be skipped using flag _'gsgt, --google-skip-gpth-tool_').
 
 3. (Optional) Copy/Move files to output folder manually if GPTH processing was skipped in previous step
   
@@ -454,10 +454,10 @@ The final OUTPUT_FOLDER will include:
 
 Finally, if you want to use your processed assets within Synology Photos, you just need to move OUTPUT_FOLDER into your /home/Photos folder and let Synology index all files (it will take long time). After that you will be able to explore your photos chronologically on the Synology Photos App, and all your Albums will be there when you explore the library by folder instead of chronologically.
 
-It was very useful for me when I run it to pre_process more than **300 GB** of Photos and Albums from Google Photos (408559 files zipped, 168168 photos/video files, 740 albums) and moved it into Synology Photos.  
+It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (408559 files zipped, 168168 photos/video files, 740 albums) and moved it into Synology Photos.  
 
-The whole pre_process took around **~8.5 hours** (or **~3 hours without last two optional steps) and this is the time split per steps**):
-0. Extraction pre_process --> 25m
+The whole process took around **~8.5 hours** (or **~3 hours without last two optional steps) and this is the time split per steps**):
+0. Extraction process --> 25m
 1. Pre-processing Takeout_folder --> 3m 50s
 2. GPTH Tool fixing --> 2h 12m
 3. <span style="color:grey">(Optional) Copy/Move files to output folder manually if GPTH processing was skipped --> 0h</span>
@@ -557,7 +557,7 @@ Example of use:
 ```
 ./CloudPhotoMigrator.run --synology-upload-folder ./MyLibrary
 ```
-With this example, the script will connect to Synology Photos database and pre_process the folder ./MyLibrary and will upload all supported assets found on it.
+With this example, the script will connect to Synology Photos database and process the folder ./MyLibrary and will upload all supported assets found on it.
 
 
 ### <span style="color:blue">Upload Albums into Synology Photos:</span>
@@ -578,7 +578,7 @@ Example of use:
 ```
 ./CloudPhotoMigrator.run --synology-upload-albums ./My_Albums_Folder
 ```
-With this example, the script will connect to Synology Photos database and pre_process the folder ./My_Albums_Folder and per each subfolder found on it that contains at least one file supported by Synology Photos, will create a new Album in Synology Photos with the same name of the Album Folder
+With this example, the script will connect to Synology Photos database and process the folder ./My_Albums_Folder and per each subfolder found on it that contains at least one file supported by Synology Photos, will create a new Album in Synology Photos with the same name of the Album Folder
 
 
 ### <span style="color:blue">Download Albums from Synology Photos:</span>
@@ -596,7 +596,7 @@ The album(s) name <ALBUMS_NAME> can be passed using the Flag: _'-sda,  --synolog
 
 > [!IMPORTANT]
 > <ALBUMS_NAME> should exist within your Synology Photos Albums database, otherwise it will no extract anything. 
-> Extraction will be done in background task, so it could take time to complete. Even if the Script finish with success the extraction pre_process could be still running on background, so take this into account.
+> Extraction will be done in background task, so it could take time to complete. Even if the Script finish with success the extraction process could be still running on background, so take this into account.
 
 Example of use:
 ```
@@ -688,7 +688,7 @@ Example of use:
 ```
 ./CloudPhotoMigrator.run --immich-upload-folder ./MyLibrary
 ```
-With this example, the script will connect to Immich Photos database and pre_process the folder ./MyLibrary and will upload all supported assets found on it.
+With this example, the script will connect to Immich Photos database and process the folder ./MyLibrary and will upload all supported assets found on it.
 
 
 ### <span style="color:blue">Upload Albums into Immich Photos:</span>
@@ -709,7 +709,7 @@ Example of use:
 ```
 ./CloudPhotoMigrator.run --immich-upload-albums ./My_Albums_Folder
 ```
-With this example, the script will connect to Immich Photos database and pre_process the folder ./My_Albums_Folder and per each subfolder found on it that contains at least one file supported by Immich Photos, will create a new Album in Immich Photos with the same name of the Album Folder
+With this example, the script will connect to Immich Photos database and process the folder ./My_Albums_Folder and per each subfolder found on it that contains at least one file supported by Immich Photos, will create a new Album in Immich Photos with the same name of the Album Folder
 
 
 ### <span style="color:blue">Download Albums from Immich Photos:</span>
@@ -727,7 +727,7 @@ The album(s) name <ALBUMS_NAME> can be passed using the Flag: _'-ida,  --immich-
 
 > [!IMPORTANT]
 > <ALBUMS_NAME> should exist within your Immich Photos Albums database, otherwise it will no extract anything. 
-> Extraction will be done in background task, so it could take time to complete. Even if the Script finish with success the extraction pre_process could be still running on background, so take this into account.
+> Extraction will be done in background task, so it could take time to complete. Even if the Script finish with success the extraction process could be still running on background, so take this into account.
 
 Example of use:
 ```
@@ -743,7 +743,7 @@ With this example, the script will connect to Immich Photos database and extract
 >Additionally, this script can be executed with 4 Standalone Extra Modes: 
 > 
 > - **Find Duplicates** (-findDup, --find-duplicates <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...])
-> - **Process Duplicates** (-procDup, --pre_process-duplicates <DUPLICATES_REVISED_CSV>)
+> - **Process Duplicates** (-procDup, --process-duplicates <DUPLICATES_REVISED_CSV>)
 > - **Fix Symbolic Links Broken** (-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>)
 > - **Folder Rename Content Based** (-renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>)
 >
@@ -772,8 +772,8 @@ and will move the others duplicates files into the ./Duplicates folder on the ro
 
 
 ### <span style="color:blue">Extra Mode: Process Duplicates:</span>
-From version 1.6.0 onwards, the script can be executed in 'Process Duplicates' Mode. In this mode, the script will pre_process the CSV generated during 'Find Duplicates' mode and will perform the Action given in column Action for each duplicated file.
-- Included new flag '-pd, --pre_process-duplicates' to pre_process the Duplicates.csv output file after execute the 'Find Duplicates Mode'. In that case, the script will move all duplicates found to Duplicates folder and will generate a CSV file that can be revised and change the Action column values.
+From version 1.6.0 onwards, the script can be executed in 'Process Duplicates' Mode. In this mode, the script will process the CSV generated during 'Find Duplicates' mode and will perform the Action given in column Action for each duplicated file.
+- Included new flag '-pd, --process-duplicates' to process the Duplicates.csv output file after execute the 'Find Duplicates Mode'. In that case, the script will move all duplicates found to Duplicates folder and will generate a CSV file that can be revised and change the Action column values.
 Possible Actions in revised CSV file are:
     - remove_duplicate  : Duplicated file moved to Duplicates folder will be permanently removed
     - restore_duplicate : Duplicated file moved to Duplicates folder will be restored to its original location
@@ -784,10 +784,10 @@ Possible Actions in revised CSV file are:
 
 Example of use:
 ```
-./CloudPhotoMigrator --pre_process-duplicates ./Duplicates/Duplicates_revised.csv
+./CloudPhotoMigrator --process-duplicates ./Duplicates/Duplicates_revised.csv
 ```
 
-With this example, the script will pre_process the file ./Duplicates/Duplicates_revised.csv
+With this example, the script will process the file ./Duplicates/Duplicates_revised.csv
 and for each duplicate, will do the given action according to Action column
 
 ### <span style="color:blue">Extra Mode: Fix Symbolic Links Broken:</span>
@@ -852,7 +852,7 @@ Enjoy it!
 - [x] Completelly refactored AUTOMATED MIGRATION MODE to allow parallel Threads for Downloads and Uploads and avoid to download All assets before to upload them (this will save disk space and improve performance). Also objects support has been added to this mode for an easier implementation of this mode.
 - [x] Code Refactored to convert ServiceGooglePhotos, ServiceSynologyPhotos and ServiceImmichPhotos into Classes (ClassTakeoutFolder, ClassSynologyPhotos, ClassImmichPhotos) and homogenized all functions of all these classes.
 - [x] Added new Class ClassLocalFolder with the same methods as Cloud Services Classes to manage Local Folders in the same way as a Photo Cloud Service.
-- [x] ClassTakeoutFolder inherits all methods from ClassLocalFolder and includes specific methods to pre_process Google Takeouts since at the end Google Takeout is a local folder structure.
+- [x] ClassTakeoutFolder inherits all methods from ClassLocalFolder and includes specific methods to process Google Takeouts since at the end Google Takeout is a local folder structure.
 - [x] Minor Bug Fixing.
 
 - [ ] Tests Pending:
