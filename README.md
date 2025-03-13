@@ -837,7 +837,7 @@ Enjoy it!
 # ROADMAP:
 
 ## v3.1.0 
-### Releases date:
+### Release Date: (estimated)
   - Alpha version.   : 2025-03-14
   - Beta version     : 2025-03-21
   - Release Candidate: 2025-03-28
@@ -847,7 +847,7 @@ Enjoy it!
 - [x] Updated GPTH version to cop latest changes in Google Takeouts. 
 - [x] Included Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization.
 - [x] Added new flag '**--dashboard=[true, false]**' to show/hide real time Dashboard during Atomated Migration Job.
-- [x] Completelly refactored AUTOMATED MIGRATION MODE to allow parallel Threads for Downloads and Uploads and avoid to download All assets before to upload them (this will safe disk space and improve performance). Also objects support has been added to this mode for an easier implementation of this mode.
+- [x] Completelly refactored AUTOMATED MIGRATION MODE to allow parallel Threads for Downloads and Uploads and avoid to download All assets before to upload them (this will save disk space and improve performance). Also objects support has been added to this mode for an easier implementation of this mode.
 - [x] Code Refactored to convert ServiceGooglePhotos, ServiceSynologyPhotos and ServiceImmichPhotos into Classes (ClassTakeoutFolder, ClassSynologyPhotos, ClassImmichPhotos) and homogenized all functions of all these classes.
 - [x] Added new Class ClassLocalFolder with the same methods as Cloud Services Classes to manage Local Folders in the same way as a Photo Cloud Service.
 - [x] ClassTakeoutFolder inherits all methods from ClassLocalFolder and includes specific methods to process Google Takeouts since at the end Google Takeout is a local folder structure.
@@ -859,9 +859,11 @@ Enjoy it!
   - [ ] Deep Test on Google Takeout functions. (volunteers are welcomed)
   - [ ] Deep Test on --AUTOMATED-MIGRATION MODE. (volunteers are welcomed)
 
+### Live Dashboard Preview:
+![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/3.1.0/doc/screenshots/Live%20Dashboard.jpg?raw=true)
 
 ## v4.0.0:
-### Releases date:
+### Release Date: (estimated)
   - Alpha version.   : (No estimated date)
   - Beta version     : (No estimated date)
   - Release Candidate: (No estimated date)
