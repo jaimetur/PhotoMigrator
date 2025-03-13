@@ -221,7 +221,7 @@ def compile():
 
     # Ruta de los archivos RELEASES-NOTES.md, CURRENT-RELEASE.md, README.md y ROADMAP.md
     releases_filepath = os.path.join(root_dir, 'doc', 'RELEASES-NOTES.md')
-    current_release_filepath = os.path.join(root_dir,'doc', 'CURRENT-RELEASE.md')
+    current_release_filepath = os.path.join(root_dir, 'CURRENT-RELEASE.md')
     roadmap_filepath = os.path.join(root_dir, 'doc', 'ROADMAP.md')
     readme_filepath = os.path.join(root_dir,'README.md')
 
