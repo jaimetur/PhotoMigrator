@@ -51,7 +51,7 @@ def parse_arguments():
                            "\n    <TARGET> : ['synology-photos', 'immich-photos']"
                         )
     PARSER.add_argument( "--dashboard", metavar="=[true,false]", type=lambda x: x.lower() == 'true', default=True,
-                        help="Show Live Dashboard during Autometed Migration Jon (true/false). This argument only applies to '-AUTO, --AUTOMATED-MIGRATION' oprion.")
+                        help="Show Live Dashboard during Autometed Migration Jon (true/false). This argument only applies to '-AUTO, --AUTOMATED-MIGRATION' option.")
 
     # EXTRA MODES FOR GOOGLE PHOTOS:
     # ------------------------------
