@@ -164,7 +164,8 @@ optional arguments:
              possible values for:
                  <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos']
                  <TARGET> : ['synology-photos', 'immich-photos']
-
+--dashboard = [true,false]
+            Show Live Dashboard during Autometed Migration Jon (true/false). This argument only applies to '-AUTO, --AUTOMATED-MIGRATION' option.
 
 GOOGLE PHOTOS TAKEOUT MANAGEMENT:
 ---------------------------------
