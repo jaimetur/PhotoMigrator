@@ -126,7 +126,7 @@ class ClassSynologyPhotos:
             dict: The loaded configuration dictionary.
         """
         from ConfigReader import load_config
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             if self.CONFIG:
                 return self.CONFIG
@@ -179,7 +179,7 @@ class ClassSynologyPhotos:
 
         Returns (self.SESSION, self.SID) or (self.SESSION, self.SID, self.SYNO_TOKEN_HEADER)
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 if self.SESSION and self.SID and self.SYNO_TOKEN_HEADER:
@@ -226,10 +226,7 @@ class ClassSynologyPhotos:
                     sys.exit(-1)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while login into Synology Photos!. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     def logout(self, log_level=logging.INFO):
@@ -239,7 +236,7 @@ class ClassSynologyPhotos:
         Args:
             log_level (logging.LEVEL): log_level for logs and console
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 if self.SESSION and self.SID:
@@ -261,10 +258,7 @@ class ClassSynologyPhotos:
                         LOGGER.error("ERROR   : Unable to close session in Synology NAS.")
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while logout from Synology Photos!. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
     ###########################################################################
     #                           GENERAL UTILITY                               #
@@ -273,7 +267,7 @@ class ClassSynologyPhotos:
         """
         Returns the supported media/sidecar extensions as for Synology Photos
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 if type.lower() == 'media':
@@ -295,10 +289,7 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Cannot get Supported media types: {e}")
                 return None
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     # TODO: Complete this method
@@ -306,16 +297,13 @@ class ClassSynologyPhotos:
         """
         Returns the user_id of the currently logged-in user.
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 return None
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting user id. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     ###########################################################################
@@ -332,7 +320,7 @@ class ClassSynologyPhotos:
 
         Returns True on success, False otherwise.
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -358,10 +346,7 @@ class ClassSynologyPhotos:
                 return success
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing Album from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     def create_album(self, album_name, log_level=logging.INFO):
@@ -375,7 +360,7 @@ class ClassSynologyPhotos:
         Returns:
             str: New album ID or None if it fails
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -403,10 +388,7 @@ class ClassSynologyPhotos:
                 return album_id
             except Exception as e:
                 LOGGER.warning(f"WARNING : Cannot create album: '{album_name}' due to API call error. Skipped! {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
     def get_albums_owned_by_user(self, log_level=logging.INFO):
         """
@@ -424,7 +406,7 @@ class ClassSynologyPhotos:
                     }
             None on error
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -466,10 +448,7 @@ class ClassSynologyPhotos:
                 return album_list
             except Exception as e:
                 LOGGER.warning(f"WARNING : Cannot get albums due to API call error. Skipped! {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     def get_albums_including_shared_with_user(self, log_level=logging.INFO):
@@ -488,7 +467,7 @@ class ClassSynologyPhotos:
                     }
             None on error
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -525,10 +504,7 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error("ERROR   : Exception while listing own albums. {e}")
                 return None
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
             # Replace the key "name" by "albumName" to make it equal to Immich Photos
             for item in album_list:
@@ -550,7 +526,7 @@ class ClassSynologyPhotos:
         Returns:
             int: Album Size or -1 on error.
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -593,10 +569,7 @@ class ClassSynologyPhotos:
                 return album_size
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
     def get_album_assets_count(self, album_id, album_name, log_level=logging.INFO):
         """
@@ -609,7 +582,7 @@ class ClassSynologyPhotos:
         Returns:
              int: Album Items Count or -1 on error.
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -634,10 +607,7 @@ class ClassSynologyPhotos:
                 return data["data"]["count"]
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets count from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     def album_exists(self, album_name, log_level=logging.INFO):
@@ -651,7 +621,7 @@ class ClassSynologyPhotos:
              bool: True if Album exists. False if Album does not exists.
              album_id (str): album_id if Album  exists. None if Album does not exists.
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 album_exists = False
@@ -665,10 +635,7 @@ class ClassSynologyPhotos:
                 return album_exists, album_id
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while checking if Album exists on Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     ###########################################################################
@@ -684,7 +651,7 @@ class ClassSynologyPhotos:
         Returns:
             list: A list of assets (dict) in the entire library or Empty list on error.
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -719,18 +686,12 @@ class ClassSynologyPhotos:
                     except Exception as e:
                         LOGGER.error(f"ERROR   : Exception while listing assets {e}")
                         return []
-                    finally:
-                        # Restore log_level of the parent method
-                        # set_log_level(LOGGER, parent_log_level, manual=True)
-                        pass
+                    
 
                 return all_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting all Assets from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     def get_no_albums_assets(self, log_level=logging.WARNING):
@@ -742,7 +703,7 @@ class ClassSynologyPhotos:
 
         Returns assets_without_albums
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -754,10 +715,7 @@ class ClassSynologyPhotos:
                 return assets_without_albums
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting No-Albums Assets from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     def get_album_assets(self, album_id, album_name=None, log_level=logging.INFO):
@@ -772,7 +730,7 @@ class ClassSynologyPhotos:
         Returns:
             list: A list of assets in the album (dict objects). [] if no assets found.
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -815,18 +773,12 @@ class ClassSynologyPhotos:
                         else:
                             LOGGER.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                         return []
-                    finally:
-                        # Restore log_level of the parent method
-                        # set_log_level(LOGGER, parent_log_level, manual=True)
-                        pass
+                    
 
                 return album_items
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     def get_all_albums_assets(self, log_level=logging.WARNING):
@@ -839,7 +791,7 @@ class ClassSynologyPhotos:
         Returns:
             list: Albums Assets
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -859,10 +811,7 @@ class ClassSynologyPhotos:
                 return combined_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting All Albums Assets from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=logging.WARNING):
@@ -878,7 +827,7 @@ class ClassSynologyPhotos:
         Returns:
             int: Number of assets added to the album
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 if not asset_ids:
@@ -926,10 +875,7 @@ class ClassSynologyPhotos:
 
             except Exception as e:
                 LOGGER.warning(f"WARNING : Cannot add Assets to album: '{album_name}' due to API call error. Skipped!")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     # TODO: Complete this method
@@ -937,16 +883,13 @@ class ClassSynologyPhotos:
         """
         Returns the list of duplicate assets from Synology
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 return []
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting duplicates Assets from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     def remove_assets(self, asset_ids, log_level=logging.INFO):
@@ -960,7 +903,7 @@ class ClassSynologyPhotos:
         Returns:
             int: Number of assets removed
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -988,10 +931,7 @@ class ClassSynologyPhotos:
                 except Exception as e:
                     LOGGER.error(f"ERROR   : Exception while removing assets {e}")
                     return 0
-                finally:
-                    # Restore log_level of the parent method
-                    # set_log_level(LOGGER, parent_log_level, manual=True)
-                    pass
+                
 
                 task_id = data.get('data', {}).get('task_info', {}).get('id')
                 removed_count = len(asset_ids)
@@ -1001,10 +941,7 @@ class ClassSynologyPhotos:
                 return removed_count
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing Assets from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     # TODO: Complete this method
@@ -1012,16 +949,13 @@ class ClassSynologyPhotos:
         """
         Removes duplicate assets in the Synology database. Returns how many duplicates got removed.
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 return 0
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing duplicates assets from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     def upload_asset(self, file_path, log_level=logging.INFO):
@@ -1036,7 +970,7 @@ class ClassSynologyPhotos:
             str: the asset_id if success, or None if it fails or is an unsupported extension.
             bool: is_duplicated = False if success, or None if it fails or is an unsopported extension.
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -1094,10 +1028,7 @@ class ClassSynologyPhotos:
 
             except Exception as e:
                 LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     def download_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Synology", log_level=logging.INFO):
@@ -1115,7 +1046,7 @@ class ClassSynologyPhotos:
         Returns:
             int: 1 if download succeeded, 0 if failed.
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -1167,10 +1098,7 @@ class ClassSynologyPhotos:
                 LOGGER.error("")
                 LOGGER.error(f"ERROR   : Exception occurred while downloading asset '{asset_filename}' with ID [{asset_id}]. {e}")
                 return 0
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     ###########################################################################
@@ -1217,10 +1145,7 @@ class ClassSynologyPhotos:
                 return folder_id
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while geting root folder ID from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     def get_folder_id(self, search_in_folder_id, folder_name, log_level=logging.WARNING):
@@ -1301,10 +1226,7 @@ class ClassSynologyPhotos:
                     return None
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting folder ID from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     def create_folder(self, folder_name, parent_folder_id=None, log_level=logging.INFO):
@@ -1360,10 +1282,7 @@ class ClassSynologyPhotos:
                     return None
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while creating folder into Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     def get_folders(self, parent_folder_id, log_level=logging.INFO):
@@ -1418,10 +1337,7 @@ class ClassSynologyPhotos:
                 return folders_dict
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting folders from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     def remove_folder(self, folder_id, folder_name, log_level=logging.INFO):
@@ -1463,10 +1379,7 @@ class ClassSynologyPhotos:
                 return len(folder_id)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing Folder from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
     def get_folder_items_count(self, folder_id, folder_name, log_level=logging.INFO):
         """
@@ -1507,10 +1420,7 @@ class ClassSynologyPhotos:
                 return asset_count
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Folder items count from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     ###########################################################################
@@ -1542,10 +1452,7 @@ class ClassSynologyPhotos:
                         time.sleep(5)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while waitting for remove task to finish in Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
 
     def check_background_remove_task_finished(self, task_id, log_level=logging.INFO):
@@ -1585,10 +1492,7 @@ class ClassSynologyPhotos:
                     return False
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while checking if background task has finished in Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
     ###########################################################################
     #             MAIN FUNCTIONS TO CALL FROM OTHER MODULES (API)            #
@@ -1613,7 +1517,7 @@ class ClassSynologyPhotos:
 
         Returns: (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed)
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -1726,10 +1630,7 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while uploading Albums assets into Synology Photos. {e}")
                 return 0,0,0,0
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
         return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed
 
 
@@ -1747,7 +1648,7 @@ class ClassSynologyPhotos:
 
         Returns: assets_uploaded
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
 
             self.login(log_level=log_level)
@@ -1795,10 +1696,7 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while uploading No-Albums assets into Synology Photos. {e}")
                 return 0
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
         return total_assets_uploaded
 
 
@@ -1815,7 +1713,7 @@ class ClassSynologyPhotos:
 
         Returns: (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed)
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -1855,10 +1753,7 @@ class ClassSynologyPhotos:
 
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while uploading ALL assets into Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
 
             return (
                 total_albums_uploaded,
@@ -1882,7 +1777,7 @@ class ClassSynologyPhotos:
         Returns:
             tuple: (albums_downloaded, assets_downloaded)
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -1952,10 +1847,7 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while uploading ALL assets into Synology Photos. {e}")
                 return 0,0
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
             return albums_downloaded, assets_downloaded
 
 
@@ -1970,7 +1862,7 @@ class ClassSynologyPhotos:
 
         Returns total_assets_downloaded or 0 if no assets are downloaded
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -1998,10 +1890,7 @@ class ClassSynologyPhotos:
                 self.logout(log_level=log_level)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while downloading No-Albums assets from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
             return total_assets_downloaded
 
 
@@ -2021,7 +1910,7 @@ class ClassSynologyPhotos:
             output_folder (str): Output folder
             log_level (logging.LEVEL): log_level for logs and console
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -2042,10 +1931,7 @@ class ClassSynologyPhotos:
                 LOGGER.info(f"Total Assets downloaded without albums    : {total_assets_downloaded_without_albums}")
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while downloading ALL assets from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
             return (
                 total_albums_downloaded,
                 total_assets_downloaded,
@@ -2068,7 +1954,7 @@ class ClassSynologyPhotos:
         Returns:
             int: The number of empty folders removed.
         """
-        parent_log_level = LOGGER.level
+        
         def remove_empty_folders_recursive(folder_id, folder_name):
             try:
                 folders_dict = self.get_folders(folder_id, log_level=log_level)
@@ -2092,10 +1978,7 @@ class ClassSynologyPhotos:
                     LOGGER.debug(f"DEBUG   : The folder '{folder_name}' cannot be removed because is not empty.")
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing empty folders from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
             return removed_count
 
         with set_log_level(LOGGER, log_level):
@@ -2110,10 +1993,7 @@ class ClassSynologyPhotos:
                 self.logout(log_level=log_level)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing empty folders from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
             return total_removed
 
 
@@ -2127,7 +2007,7 @@ class ClassSynologyPhotos:
         Returns:
             int: The number of empty albums deleted.
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -2152,10 +2032,7 @@ class ClassSynologyPhotos:
                 self.logout(log_level=log_level)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing empties albums from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
             return total_removed_empty_albums
 
 
@@ -2171,7 +2048,7 @@ class ClassSynologyPhotos:
         Returns:
             int: The number of duplicate albums deleted.
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -2206,10 +2083,7 @@ class ClassSynologyPhotos:
                 self.logout(log_level=log_level)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing duplicates albums from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
             return total_removed_duplicated_albums
 
 
@@ -2223,7 +2097,7 @@ class ClassSynologyPhotos:
 
         Returns how many orphan got removed.
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             return 0
 
@@ -2240,7 +2114,7 @@ class ClassSynologyPhotos:
 
         Returns (assets_removed, albums_removed, folders_removed)
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -2271,10 +2145,7 @@ class ClassSynologyPhotos:
                 self.logout(log_level=log_level)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing ALL assets from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
             return (removed_assets, removed_albums, removed_folders)
 
 
@@ -2288,7 +2159,7 @@ class ClassSynologyPhotos:
 
         Returns (#albums_removed, #assets_removed).
         """
-        parent_log_level = LOGGER.level
+        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -2328,10 +2199,7 @@ class ClassSynologyPhotos:
                 self.logout(log_level=log_level)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing All albums from Synology Photos. {e}")
-            finally:
-                # Restore log_level of the parent method
-                # set_log_level(LOGGER, parent_log_level, manual=True)
-                pass
+            
             return total_removed_albums, total_removed_assets
 
 ##############################################################################

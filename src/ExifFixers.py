@@ -7,7 +7,7 @@ from GlobalVariables import LOGGER
 
 def resource_path(relative_path, log_level=logging.INFO):
     """Obtener la ruta absoluta al recurso, manejando el entorno de PyInstaller."""
-    parent_log_level = LOGGER.level
+    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         if hasattr(sys, '_MEIPASS'):
             return os.path.join(sys._MEIPASS, relative_path)
@@ -16,7 +16,7 @@ def resource_path(relative_path, log_level=logging.INFO):
 
 
 def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, symbolic_albums=False, move_takeout_folder=False, ignore_takeout_structure=False, log_level=logging.INFO):
-    parent_log_level = LOGGER.level
+    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         """Runs the GPTH Tool command to process photos."""
         input_folder = os.path.abspath(input_folder)
@@ -82,14 +82,11 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, 
         except subprocess.CalledProcessError as e:
             LOGGER.error(f"ERROR   : GPTH Tool fixing failed:\n{e.stderr}")
             return False
-        finally:
-            # Restore log_level of the parent method
-            # set_log_level(LOGGER, parent_log_level, manual=True)
-            pass
+        
 
 def fix_metadata_with_exif_tool(output_folder, log_level=logging.INFO):
     """Runs the EXIF Tool command to fix photo metadata."""
-    parent_log_level = LOGGER.level
+    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Fixing EXIF metadata in '{output_folder}'...")
         # Detect the operating system
@@ -119,7 +116,4 @@ def fix_metadata_with_exif_tool(output_folder, log_level=logging.INFO):
             LOGGER.info(f"INFO    : EXIF Tool fixing completed successfully.")
         except subprocess.CalledProcessError as e:
             LOGGER.error(f"ERROR   : EXIF Tool fixing failed:\n{e.stderr}")
-        finally:
-            # Restore log_level of the parent method
-            # set_log_level(LOGGER, parent_log_level, manual=True)
-            pass
+        

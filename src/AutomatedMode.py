@@ -27,7 +27,7 @@ class SharedData:
 # EXTRA MODE: AUTOMATED-MIGRATION: #
 ####################################
 def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, parallel=True, log_level=logging.INFO):
-    parent_log_level = LOGGER.level
+    
     with set_log_level(LOGGER, log_level):
 
         # ───────────────────────────────────────────────────────────────
@@ -64,7 +64,6 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
             "total_metadata": 0,
             "total_sidecar": 0,
             "total_unsupported": 0,
-            "log_file": "",
         }
 
         SHARED_DATA = SharedData(input_info, counters, logs_queue)
@@ -74,12 +73,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
         if not show_dashboard: show_dashboard = ARGS['dashboard']
 
         # Define the INTERMEDIATE_FOLDER
-        if ARGS['output-folder']:
-            TEMP_FOLDER = ARGS['output-folder']
-        else:
-            TEMP_FOLDER = f'./Temp_folder_{TIMESTAMP}'
-        # Set ARGS['output-folder'] to INTERMEDIATE_FOLDER
-        ARGS['output-folder'] = TEMP_FOLDER
+        INTERMEDIATE_FOLDER = f'./Temp_folder_{TIMESTAMP}'
 
         # ---------------------------------------------------------------------------------------------------------
         # 1) Creamos los objetos source_client y target_client en función de los argumentos source y target
@@ -90,9 +84,10 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
                 return ClassSynologyPhotos()
             elif client_type.lower() == 'immich-photos':
                 return ClassImmichPhotos()
-            elif Path(client_type).is_dir():
-                # return ClassLocalFolder(base_folder=client_type)
+            elif Path(client_type).is_dir() and (Utils.contains_zip_files(client_type) or Utils.contains_takeout_structure(client_type)):
                 return ClassTakeoutFolder(client_type)
+            elif Path(client_type).is_dir():
+                return ClassLocalFolder(base_folder=client_type)
             else:
                 raise ValueError(f"ERROR   : Tipo de cliente no válido: {client_type}")
 
@@ -117,10 +112,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-
-
             # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
             # Call the parallel_automated_migration module to do the whole migration process
             # parallel_automated_migration(source, target, temp_folder, SHARED_DATA.input_info, SHARED_DATA.counters, SHARED_DATA.logs_queue)
@@ -159,19 +151,22 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
             # ------------------------------------------------------------------------------------------------------
             # 3) Verifica y procesa source_client y target_client si es una instancia de ClassTakeoutFolder
             if isinstance(source_client, ClassTakeoutFolder):
-                if source_client.need_unzip or source_client.needs_process:
+                if source_client.needs_unzip or source_client.needs_process:
                     source_client.pre_process()
             if isinstance(target_client, ClassTakeoutFolder):
-                if target_client.need_unzip or target_client.needs_process:
+                if target_client.needs_unzip or target_client.needs_process:
                     target_client.pre_process()
 
             # ---------------------------------------------------------------------------------------------------------
             # 4) Ejecutamos la migración en el hilo principal (ya sea con descargas y subidas en paralelo o secuencial)
             # ---------------------------------------------------------------------------------------------------------
-            if parallel:
-                parallel_automated_migration(source_client=source_client, target_client=target_client, temp_folder=TEMP_FOLDER, SHARED_DATA=SHARED_DATA, log_level=logging.INFO)
-            else:
-                secuencial_automated_migration(source_client=source_client, target_client=target_client, temp_folder=TEMP_FOLDER, SHARED_DATA=SHARED_DATA, log_level=logging.INFO)
+            try:
+                if parallel:
+                    parallel_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, log_level=logging.INFO)
+                else:
+                    secuencial_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, log_level=logging.INFO)
+            finally:
+                migration_finished.set()
 
             # ---------------------------------------------------------------------------------------------------------
             # 5) Cuando la migración termine, notificamos al show_dashboard
@@ -210,7 +205,7 @@ def secuencial_automated_migration(source_client, target_client, temp_folder, SH
     temp_folder: str
         Carpeta temporal donde se descargarán los assets antes de subirse.
     """
-    parent_log_level = LOGGER.level
+    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # =========================
         # FIRST PROCESS THE SOURCE:
@@ -296,7 +291,6 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     added_file_paths.add(asset_file_path)
                     return True
 
-        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             # 1.1) Descarga de álbumes
             albums = source_client.get_albums_including_shared_with_user()
@@ -322,8 +316,19 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     os.makedirs(album_folder, exist_ok=True)
 
                     try:
-                        # Descargar el asset
-                        downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=album_folder, log_level=logging.WARNING)
+                        # Ruta del archivo descargado
+                        local_file_path = os.path.join(album_folder, asset_filename)
+
+                        # Archivo de bloqueo temporal
+                        lock_file = local_file_path + ".lock"
+
+                        # Crear archivo de bloqueo antes de la descarga
+                        with open(lock_file, 'w') as lock:
+                            lock.write("Downloading")
+                            # Descargar el asset
+                            downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=album_folder, log_level=logging.WARNING)
+                        # Eliminar archivo de bloqueo después de la descarga
+                        os.remove(lock_file)
                     except Exception as e:
                         LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
 
@@ -372,8 +377,19 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 asset_filename = asset.get('filename')
 
                 try:
-                    # Descargar directamente en temp_folder
-                    downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
+                    # Ruta del archivo descargado
+                    local_file_path = asset_id
+
+                    # Archivo de bloqueo temporal
+                    lock_file = local_file_path + ".lock"
+
+                    # Crear archivo de bloqueo antes de la descarga
+                    with open(lock_file, 'w') as lock:
+                        lock.write("Downloading")
+                        # Descargar directamente en temp_folder
+                        downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
+                    # Eliminar archivo de bloqueo después de la descarga
+                    os.remove(lock_file)
                 except Exception as e:
                     LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
 
@@ -405,11 +421,12 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 # sys.stdout.flush()
                 # sys.stderr.flush()
 
+            LOGGER.info("INFO    : Downloader Task Finished!")
+
     # ----------------------------------------------------------------------------
     # 2) SUBIDAS: Función uploader_worker para SUBIR (consumir de la cola)
     # ----------------------------------------------------------------------------
     def uploader_worker(log_level=logging.INFO):
-        parent_log_level = LOGGER.level
         with set_log_level(LOGGER, log_level):
             # Lista para marcar álbumes procesados (ya contados y/o creados en el destino)
             processed_albums = []
@@ -454,10 +471,6 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             os.remove(asset_file_path)
                         except:
                             pass
-                        finally:
-                            # Restore log_level of the parent method
-                            # set_log_level(logger_threads, parent_log_level, manual=True)
-                            pass
 
                     # Si existe album_name, manejar álbum en destino
                     if album_name:
@@ -484,10 +497,6 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             except OSError:
                                 # Si no está vacía, ignoramos el error
                                 pass
-                            finally:
-                                # Restore log_level of the parent method
-                                # set_log_level(logger_threads, parent_log_level, manual=True)
-                                pass
 
                     upload_queue.task_done()
                     # sys.stdout.flush()
@@ -496,19 +505,19 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 except Exception as e:
                     LOGGER.error(f"ERROR   : Error in Uploader worker while uploading asset: {asset}")
                     LOGGER.error(f"ERROR   : Catched Exception: {e}")
-                finally:
-                    # Restore log_level of the parent method
-                    # set_log_level(LOGGER, parent_log_level, manual=True)
-                    pass
+
+            LOGGER.info(f"INFO    : Uploader Task Finished!")
+                
 
     # ------------------
     # 3) HILO PRINCIPAL
     # ------------------
-    parent_log_level = LOGGER.level
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Get source and target client names
         source_client_name = source_client.get_client_name()
         target_client_name = target_client.get_client_name()
+        LOGGER.info(f"")
+        LOGGER.info(f"INFO    : Starting Downloading/Uploading Process...")
         LOGGER.info(f"INFO    : Source Client: {source_client_name}")
         LOGGER.info(f"INFO    : Target Client: {target_client_name}")
         LOGGER.info(f"INFO    : Starting Automated Migration Process: {source_client_name } ➜ {target_client_name }...")
@@ -517,12 +526,12 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         all_albums = source_client.get_albums_including_shared_with_user()
         all_supported_assets = source_client.get_all_assets()
         
-        all_photos = [asset for asset in all_supported_assets if asset['type'].lower() in ['photo', 'live', 'image']]
-        all_videos = [asset for asset in all_supported_assets if asset['type'].lower() in ['video']]
-        all_medias  = all_photos + all_videos
-        all_metadata = [asset for asset in all_supported_assets if asset['type'].lower() in ['metadata']]
-        all_sidecar = [asset for asset in all_supported_assets if asset['type'].lower() in ['sidecar']]
-        all_unsupported= [asset for asset in all_supported_assets if asset['type'].lower() in ['unknown']]
+        all_photos      = [asset for asset in all_supported_assets if asset['type'].lower() in ['photo', 'live', 'image']]
+        all_videos      = [asset for asset in all_supported_assets if asset['type'].lower() in ['video']]
+        all_medias      = all_photos + all_videos
+        all_metadata    = [asset for asset in all_supported_assets if asset['type'].lower() in ['metadata']]
+        all_sidecar     = [asset for asset in all_supported_assets if asset['type'].lower() in ['sidecar']]
+        all_unsupported = [asset for asset in all_supported_assets if asset['type'].lower() in ['unknown']]
 
         SHARED_DATA.input_info.update({
             "total_medias": len(all_medias),
@@ -533,7 +542,9 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             "total_sidecar": len(all_sidecar),
             "total_unsupported": len(all_unsupported),  # Corrección de "unsopported" → "unsupported"
         })
-        # LOGGER.info(json.dumps(shared_data.input_info, indent=4))
+        LOGGER.info(f"INFO    : Input Info Analysis: ")
+        for key, value in SHARED_DATA.input_info.items():
+            LOGGER.info(f"INFO    :    {key}: {value}")
 
         # ------------------------------------------------------------------------------------------------------
         # 1) Iniciar uno o varios hilos de descargas y subidas para manejar las descargas y subidas concurrentes
@@ -626,15 +637,17 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     terminal_height = console.size.height
     terminal_width = console.size.width
 
-    LOGGER.info(f"INFO    : Detected terminal height={terminal_height}")
-    LOGGER.info(f"INFO    : Detected terminal width ={terminal_width}")
+    LOGGER.info(f"INFO    : Detected terminal height = {terminal_height}")
+    LOGGER.info(f"INFO    : Detected terminal width  = {terminal_width}")
 
     if terminal_height < MIN_TERMINAL_HEIGHT:
-        LOGGER.info(f"INFO    : Cannot display Live Dashboard because the detected terminal height={terminal_height} and the minumum needed height={MIN_TERMINAL_HEIGHT}...")
+        LOGGER.info(f"INFO    : Cannot display Live Dashboard because the detected terminal height = {terminal_height} and the minumum needed height = {MIN_TERMINAL_HEIGHT}. Continuing without Live Dashboard...")
+        ARGS['dashboard'] = False # Set this argument to False to avoid use TQDM outputs as if a Interactive Terminal (isatty() = True)
         return
 
     if terminal_width < MIN_TERMINAL_WIDTH:
-        LOGGER.info(f"INFO    : Cannot display Live Dashboard because the detected terminal width={terminal_width} and the minumum needed width={MIN_TERMINAL_WIDTH}...")
+        LOGGER.info(f"INFO    : Cannot display Live Dashboard because the detected terminal width = {terminal_width} and the minumum needed width = {MIN_TERMINAL_WIDTH}. Continuing without Live Dashboard...")
+        ARGS['dashboard'] = False  # Set this argument to False to avoid use TQDM outputs as if a Interactive Terminal (isatty() = True)
         return
 
     layout = Layout()
@@ -911,7 +924,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
                 logs_text = "Initializing..."
 
             # 3) Construimos el panel y lo devolvemos
-            log_panel = Panel(logs_text, title=title_logs_panel, border_style="red", expand=True, title_align="left")
+            log_panel = Panel(logs_text, title=title_logs_panel, border_style="bright_red", expand=True, title_align="left")
             return log_panel
 
         except Exception as e:
@@ -929,10 +942,10 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
             bar.update(download_tasks[label], completed=current_value, total=total_value)
             # bar.advance(download_tasks[label], random.randint(1, 50))
 
-        failed_downloads["⛔📊 Assets Failed"] += random.randint(0, 5)
-        failed_downloads["⛔📷 Photos Failed"] += random.randint(0, 4)
-        failed_downloads["⛔🎥 Videos Failed"] += random.randint(0, 2)
-        failed_downloads["⛔📂 Albums Failed"] += random.randint(0, 1)
+        failed_downloads["⛔📊 Assets Failed"] = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
+        failed_downloads["⛔📷 Photos Failed"] = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
+        failed_downloads["⛔🎥 Videos Failed"] = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
+        failed_downloads["⛔📂 Albums Failed"] = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
 
 
     def update_uploads_panel():
@@ -944,10 +957,10 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
             # bar.advance(upload_tasks[label], random.randint(1, 50))
 
         failed_uploads["⚠️ Assets Duplicated "] = SHARED_DATA.counters['total_upload_duplicates_assets']
-        failed_uploads["⛔📊 Assets Failed"] += random.randint(0, 5)
-        failed_uploads["⛔📷 Photos Failed"] += random.randint(0, 4)
-        failed_uploads["⛔🎥 Videos Failed"] += random.randint(0, 2)
-        failed_uploads["⛔📂 Albums Failed"] += random.randint(0, 1)
+        failed_uploads["⛔📊 Assets Failed"]    = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
+        failed_uploads["⛔📷 Photos Failed"]    = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
+        failed_uploads["⛔🎥 Videos Failed"]    = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
+        failed_uploads["⛔📂 Albums Failed"]    = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
 
 
     # ─────────────────────────────────────────────────────────────────────────

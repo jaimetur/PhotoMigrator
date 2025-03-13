@@ -217,19 +217,19 @@ class ClassLocalFolder:
 
             # Determine allowed extensions based on the type
             if type in ['photo', 'image']:
-                allowed_extensions = self.ALLOWED_PHOTO_EXTENSIONS
+                selected_type_extensions = self.ALLOWED_PHOTO_EXTENSIONS
             elif type == 'video':
-                allowed_extensions = self.ALLOWED_VIDEO_EXTENSIONS
+                selected_type_extensions = self.ALLOWED_VIDEO_EXTENSIONS
             elif type == 'media':
-                allowed_extensions = self.ALLOWED_MEDIA_EXTENSIONS
+                selected_type_extensions = self.ALLOWED_MEDIA_EXTENSIONS
             elif type == 'metadata':
-                allowed_extensions = self.ALLOWED_METADATA_EXTENSIONS
+                selected_type_extensions = self.ALLOWED_METADATA_EXTENSIONS
             elif type == 'sidecar':
-                allowed_extensions = self.ALLOWED_SIDECAR_EXTENSIONS
+                selected_type_extensions = self.ALLOWED_SIDECAR_EXTENSIONS
             elif type == 'unsupported':
-                allowed_extensions = None  # Special case to filter unsupported files
+                selected_type_extensions = None  # Special case to filter unsupported files
             else:  # 'all' or unrecognized type defaults to all supported extensions
-                allowed_extensions = self.ALLOWED_EXTENSIONS
+                selected_type_extensions = self.ALLOWED_EXTENSIONS
 
             assets = [
                 {
@@ -241,8 +241,8 @@ class ClassLocalFolder:
                 }
                 for file in self.base_folder.rglob("*")
                 if file.is_file() and (
-                    (allowed_extensions is None and file.suffix.lower() not in self.ALLOWED_EXTENSIONS) or
-                    (allowed_extensions is not None and file.suffix.lower() in allowed_extensions)
+                    (selected_type_extensions is None and file.suffix.lower() not in self.ALLOWED_EXTENSIONS) or
+                    (selected_type_extensions is not None and file.suffix.lower() in selected_type_extensions)
                 )
             ]
 
@@ -373,7 +373,7 @@ class ClassLocalFolder:
             LOGGER.info(f"INFO    : Creating album '{album_name}'.")
             album_path = self.albums_folder / album_name
             album_path.mkdir(parents=True, exist_ok=True)
-            return album_path.exists()
+            return album_path
 
     def remove_album(self, album_id, album_name=None, log_level=logging.INFO):
         """
@@ -467,7 +467,7 @@ class ClassLocalFolder:
 
     def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=logging.INFO):
         """
-        Adds (links) assets to an album.
+        Adds (links) assets to an album using relative symbolic links. If symlink creation fails, copies the file instead.
 
         Args:
             album_id (str): Path to the album folder.
@@ -484,13 +484,28 @@ class ClassLocalFolder:
             album_path.mkdir(parents=True, exist_ok=True)
             count_added = 0
             asset_ids = Utils.convert_to_list(asset_ids)
+
             for asset in asset_ids:
                 asset_path = Path(asset)
                 if asset_path.exists() and asset_path.is_file():
                     symlink_path = album_path / asset_path.name
+
                     if not symlink_path.exists():
-                        symlink_path.symlink_to(asset_path)
+                        try:
+                            relative_path = os.path.relpath(asset_path, start=symlink_path.parent)
+                            symlink_path.symlink_to(relative_path)
+                            LOGGER.info(f"INFO    : Created relative symlink: {symlink_path} -> {relative_path}")
+                        except Exception as e:
+                            LOGGER.warning(f"WARNING : Error: {e}")
+                            LOGGER.warning(f"WARNING : Failed to create symlink {symlink_path}. Copying a duplicated copy of the file into Album folder instead.")
+                            try:
+                                shutil.copy2(asset_path, symlink_path)
+                                LOGGER.info(f"INFO    : Copied file: {symlink_path}")
+                            except Exception as copy_error:
+                                LOGGER.error(f"ERROR   : Failed to copy file {asset_path} to {symlink_path}. Error: {copy_error}")
+                                continue
                         count_added += 1
+
             LOGGER.info(f"INFO    : Added {count_added} asset(s) to album '{album_name or album_id}'.")
             return count_added
 
@@ -590,9 +605,11 @@ class ClassLocalFolder:
             target_folder.mkdir(parents=True, exist_ok=True)
 
             dest = target_folder / src.name
-            shutil.copy2(src, dest)
-
-            LOGGER.info(f"INFO    : Uploaded asset '{file_path}' to '{dest}'.")
+            if os.path.isfile(dest):
+                return str(dest), True
+            else:
+                shutil.copy2(src, dest)
+                LOGGER.info(f"INFO    : Uploaded asset '{file_path}' to '{dest}'.")
             return str(dest), False
 
     def download_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_LocalFolder", log_level=logging.INFO):

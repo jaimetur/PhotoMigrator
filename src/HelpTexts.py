@@ -15,7 +15,7 @@ def set_help_texts():
     # EXTRA MODE: GOOGLE PHOTOS #
     ################################
     HELP_TEXTS["google-photos-takeout"] = textwrap.dedent(f"""
-        ATTENTION!!!: This nodule will process your <TAKEOUT_FOLDER> to fix metadata of all your assets and organize them according with the settings defined by user (above settings).
+        ATTENTION!!!: This module will process your <TAKEOUT_FOLDER> to fix metadata of all your assets and organize them according with the settings defined by user (above settings).
         """)
 
     ################################
@@ -148,7 +148,7 @@ def set_help_texts():
         Possible duplicates-action are:
             - list   : This action is not dangerous, just list all duplicates files found in a Duplicates.csv file.
             - move   : This action could be dangerous but is easily reversible if you find that any duplicated file have been moved to Duplicates folder and you want to restore it later
-                       You can easily restore it using option -pd, --process-duplicates
+                       You can easily restore it using option -procDup, --process-duplicates
             - remove : This action could be dangerous and is irreversible, since the script will remove all duplicates found and will keep only a Principal file per each duplicates set. 
                        The principal file is chosen carefully based on some heuristic methods
         """)
