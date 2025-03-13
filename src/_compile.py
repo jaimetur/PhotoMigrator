@@ -65,8 +65,9 @@ def include_extrafiles_and_zip(input_file, output_file):
     #     shutil.copy(file, script_version_dir)
 
     # Ahora copiamos los extra files que van a otros subdirs
-    for item in extra_files_to_subdir:
-        subdir, files = item.items()
+    for subdirs_dic in extra_files_to_subdir:
+        subdir = subdirs_dic.get('subdir')
+        files = subdirs_dic.get('files')
         subdir_path = os.join.path(script_version_dir, subdir)
         for file in files:
             shutil.copy(file, subdir_path)

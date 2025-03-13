@@ -553,7 +553,6 @@ class ClassImmichPhotos:
                 pass
 
 
-    # TODO: Test this method
     def album_exists(self, album_name, log_level=logging.INFO):
         """
         Gets the number of items in an album.
