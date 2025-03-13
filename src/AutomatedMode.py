@@ -64,7 +64,6 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
             "total_metadata": 0,
             "total_sidecar": 0,
             "total_unsupported": 0,
-            "log_file": "",
         }
 
         SHARED_DATA = SharedData(input_info, counters, logs_queue)
@@ -489,6 +488,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         # Get source and target client names
         source_client_name = source_client.get_client_name()
         target_client_name = target_client.get_client_name()
+        LOGGER.info(f"")
+        LOGGER.info(f"INFO    : Starting Downloading/Uploading Process...")
         LOGGER.info(f"INFO    : Source Client: {source_client_name}")
         LOGGER.info(f"INFO    : Target Client: {target_client_name}")
         LOGGER.info(f"INFO    : Starting Automated Migration Process: {source_client_name } ➜ {target_client_name }...")
@@ -513,7 +514,9 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             "total_sidecar": len(all_sidecar),
             "total_unsupported": len(all_unsupported),  # Corrección de "unsopported" → "unsupported"
         })
-        LOGGER.info(f"INFO    : Input Info Analysis: {json.dumps(SHARED_DATA.input_info, indent=12)}")
+        LOGGER.info(f"INFO    : Input Info Analysis: ")
+        for key, value in SHARED_DATA.input_info.items():
+            LOGGER.info(f"INFO    :    {key}: {value}")
 
         # ------------------------------------------------------------------------------------------------------
         # 1) Iniciar uno o varios hilos de descargas y subidas para manejar las descargas y subidas concurrentes
@@ -893,7 +896,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
                 logs_text = "Initializing..."
 
             # 3) Construimos el panel y lo devolvemos
-            log_panel = Panel(logs_text, title=title_logs_panel, border_style="red", expand=True, title_align="left")
+            log_panel = Panel(logs_text, title=title_logs_panel, border_style="bright_red", expand=True, title_align="left")
             return log_panel
 
         except Exception as e:

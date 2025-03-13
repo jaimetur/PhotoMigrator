@@ -175,12 +175,11 @@ class ClassTakeoutFolder(ClassLocalFolder):
         process() function, but uses LOGGER and self.ARGS instead of global.
         """
         with set_log_level(LOGGER, log_level):  # Temporarily adjust log level
-            # step 1: Unzip files
-            self.step += 1
+            # Unzip files
             LOGGER.info("")
-            LOGGER.info("==============================")
-            LOGGER.info(f"{self.step}. UNPACKING TAKEOUT FOLDER...")
-            LOGGER.info("==============================")
+            LOGGER.info(f"==============================")
+            LOGGER.info(f"UNPACKING TAKEOUT FOLDER...")
+            LOGGER.info(f"==============================")
             LOGGER.info("")
 
             step_start_time = datetime.now()
@@ -194,6 +193,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
+            LOGGER.info("")
             LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
 
 
@@ -203,7 +203,12 @@ class ClassTakeoutFolder(ClassLocalFolder):
         process() function, but uses LOGGER and self.ARGS instead of global.
         """
         with set_log_level(LOGGER, log_level):  # Temporarily adjust log level
-            # step 2: Pre-Process Takeout folder
+            LOGGER.info("")
+            LOGGER.info("=========================================================================================================")
+            LOGGER.info(f"INFO    : TAKEOUT PROCESSING STARTED")
+            LOGGER.info("=========================================================================================================")
+
+            # step 1: Pre-Process Takeout folder
             self.step += 1
             LOGGER.info("")
             LOGGER.info("===================================")
@@ -230,17 +235,17 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info("")
             LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
 
-            # step 3: Process photos with GPTH tool
-            self.step += 1
-            LOGGER.info("")
-            LOGGER.info("===========================================")
-            LOGGER.info(f"{self.step}. FIXING PHOTOS METADATA WITH GPTH TOOL...")
-            LOGGER.info("===========================================")
-            LOGGER.info("")
-            # Count initial files
-            initial_takeout_numfiles = Utils.count_files_in_folder(input_folder)
-
+            # step 2: Process photos with GPTH tool
             if not self.ARGS['google-skip-gpth-tool']:
+                self.step += 1
+                LOGGER.info("")
+                LOGGER.info("===========================================")
+                LOGGER.info(f"{self.step}. FIXING PHOTOS METADATA WITH GPTH TOOL...")
+                LOGGER.info("===========================================")
+                LOGGER.info("")
+                # Count initial files
+                initial_takeout_numfiles = Utils.count_files_in_folder(input_folder)
+
                 if self.ARGS['google-ignore-check-structure']:
                     LOGGER.warning("WARNING : Ignore Google Takeout Structure detected ('-gics, --google-ignore-check-structure' flag detected).")
                 else:
@@ -268,10 +273,13 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
+
+            # step 3: Copy/Move files to output folder manually
             if self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']:
+                self.step += 1
                 LOGGER.info("")
                 LOGGER.info("============================================")
-                LOGGER.info(f"{self.step}b. COPYING/MOVING FILES TO OUTPUT FOLDER...")
+                LOGGER.info(f"{self.step}. COPYING/MOVING FILES TO OUTPUT FOLDER...")
                 LOGGER.info("============================================")
                 LOGGER.info("")
                 if self.ARGS['google-skip-gpth-tool']:
@@ -291,6 +299,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     Utils.force_remove_directory(self.ARGS['takeout-folder'])
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
+                LOGGER.info("")
                 LOGGER.info(f"INFO    : step {self.step}b completed in {formatted_duration}.")
 
             # step 4: Sync .MP4 live pictures timestamp
@@ -305,56 +314,59 @@ class ClassTakeoutFolder(ClassLocalFolder):
             Utils.sync_mp4_timestamps_with_images(output_takeout_folder)
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
+            LOGGER.info("")
             LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
 
             # step 5: Create Folders Year/Month or Year only structure
-            self.step += 1
-            LOGGER.info("")
-            LOGGER.info("==========================================")
-            LOGGER.info(f"{self.step}. CREATING YEAR/MONTH FOLDER STRUCTURE...")
-            LOGGER.info("==========================================")
-            step_start_time = datetime.now()
-            # For Albums
-            if self.ARGS['google-albums-folders-structure'].lower() != 'flatten':
+            if self.ARGS['google-albums-folders-structure'].lower() != 'flatten' or self.ARGS['google-no-albums-folder-structure'].lower() != 'flatten' or (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folder-structure'].lower() == 'flatten'):
+                self.step += 1
                 LOGGER.info("")
-                LOGGER.info(f"INFO    : Creating Folder structure '{self.ARGS['google-albums-folders-structure'].lower()}' for each Album folder...")
-                basedir = output_takeout_folder
-                type_structure = self.ARGS['google-albums-folders-structure']
-                exclude_subfolders = ['No-Albums']
-                Utils.organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders)
+                LOGGER.info("==========================================")
+                LOGGER.info(f"{self.step}. CREATING YEAR/MONTH FOLDER STRUCTURE...")
+                LOGGER.info("==========================================")
+                step_start_time = datetime.now()
+                # For Albums
+                if self.ARGS['google-albums-folders-structure'].lower() != 'flatten':
+                    LOGGER.info("")
+                    LOGGER.info(f"INFO    : Creating Folder structure '{self.ARGS['google-albums-folders-structure'].lower()}' for each Album folder...")
+                    basedir = output_takeout_folder
+                    type_structure = self.ARGS['google-albums-folders-structure']
+                    exclude_subfolders = ['No-Albums']
+                    Utils.organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders)
 
-            # For No-Albums
-            if self.ARGS['google-no-albums-folder-structure'].lower() != 'flatten':
-                LOGGER.info("")
-                LOGGER.info(f"INFO    : Creating Folder structure '{self.ARGS['google-no-albums-folder-structure'].lower()}' for 'No-Albums' folder...")
-                basedir = os.path.join(output_takeout_folder, 'No-Albums')
-                type_structure = self.ARGS['google-no-albums-folder-structure']
-                exclude_subfolders = []
-                Utils.organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders)
+                # For No-Albums
+                if self.ARGS['google-no-albums-folder-structure'].lower() != 'flatten':
+                    LOGGER.info("")
+                    LOGGER.info(f"INFO    : Creating Folder structure '{self.ARGS['google-no-albums-folder-structure'].lower()}' for 'No-Albums' folder...")
+                    basedir = os.path.join(output_takeout_folder, 'No-Albums')
+                    type_structure = self.ARGS['google-no-albums-folder-structure']
+                    exclude_subfolders = []
+                    Utils.organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders)
 
-            # If flatten
-            if (self.ARGS['google-albums-folders-structure'].lower() == 'flatten'
-                    and self.ARGS['google-no-albums-folder-structure'].lower() == 'flatten'):
-                LOGGER.info("")
-                LOGGER.warning(
-                    "WARNING : No argument '-as, --google-albums-folders-structure' and '-ns, --google-no-albums-folder-structure' detected. All photos and videos will be flattened in their folders.")
-            else:
+                # If flatten
+                if (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folder-structure'].lower() == 'flatten'):
+                    LOGGER.info("")
+                    LOGGER.warning(
+                        "WARNING : No argument '-as, --google-albums-folders-structure' and '-ns, --google-no-albums-folder-structure' detected. All photos and videos will be flattened in their folders.")
+
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
+                LOGGER.info("")
                 LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
 
             # step 6: Move albums
-            self.step += 1
-            LOGGER.info("")
-            LOGGER.info("==========================")
-            LOGGER.info(f"{self.step}. MOVING ALBUMS FOLDER...")
-            LOGGER.info("==========================")
-            LOGGER.info("")
             if not self.ARGS['google-skip-move-albums']:
+                self.step += 1
+                LOGGER.info("")
+                LOGGER.info("==========================")
+                LOGGER.info(f"{self.step}. MOVING ALBUMS FOLDER...")
+                LOGGER.info("==========================")
+                LOGGER.info("")
                 step_start_time = datetime.now()
                 Utils.move_albums(output_takeout_folder, exclude_subfolder=['No-Albums', '@eaDir'])
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
+                LOGGER.info("")
                 LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
             else:
                 LOGGER.warning("WARNING : Moving albums to 'Albums' folder skipped ('-sm, --google-skip-move-albums' flag detected).")
@@ -369,29 +381,30 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     valid_albums_found = Utils.count_valid_albums(output_takeout_folder)
 
             # step 7: Fix Broken Symbolic Links
-            self.step += 1
             symlink_fixed = 0
             symlink_not_fixed = 0
-            LOGGER.info("")
-            LOGGER.info("===============================================")
-            LOGGER.info(f"{self.step}. FIXING BROKEN SYMBOLIC LINKS AFTER MOVING...")
-            LOGGER.info("===============================================")
-            LOGGER.info("")
             if self.ARGS['google-create-symbolic-albums']:
+                self.step += 1
+                LOGGER.info("")
+                LOGGER.info("===============================================")
+                LOGGER.info(f"{self.step}. FIXING BROKEN SYMBOLIC LINKS AFTER MOVING...")
+                LOGGER.info("===============================================")
+                LOGGER.info("")
                 LOGGER.info("INFO    : Fixing broken symbolic links. This step is needed after moving any Folder structure...")
                 step_start_time = datetime.now()
                 symlink_fixed, symlink_not_fixed = Utils.fix_symlinks_broken(output_takeout_folder)
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
+                LOGGER.info("")
                 LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
             else:
                 LOGGER.warning("WARNING : Fixing broken symbolic links skipped ('-sa, --google-create-symbolic-albums' flag not detected).")
 
             # step 8: Remove Duplicates
-            self.step += 1
             duplicates_found = 0
             removed_empty_folders = 0
             if self.ARGS['google-remove-duplicates-files']:
+                self.step += 1
                 LOGGER.info("")
                 LOGGER.info("==========================================")
                 LOGGER.info(f"{self.step}. REMOVING DUPLICATES IN OUTPUT_TAKEOUT_FOLDER...")
@@ -408,7 +421,18 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 )
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
+                LOGGER.info("")
                 LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
+
+            step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
+            LOGGER.info("")
+            LOGGER.info("=========================================================================================================")
+            LOGGER.info(f"INFO    : TAKEOUT PROCESSING FINISHED!!!")
+            LOGGER.info(f"INFO    : Takeout Precessed Folder: '{output_takeout_folder}'.")
+            LOGGER.info(f"INFO    : Total Processing Time:  {formatted_duration}.")
+            LOGGER.info("=========================================================================================================")
+
 
             # At the end of the process, we call the super() to make this objet an sub-instance of the class ClassLocalFolder to create the same folder structure
             super().__init__(output_takeout_folder)
