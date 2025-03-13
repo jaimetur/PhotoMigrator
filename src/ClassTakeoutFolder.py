@@ -116,7 +116,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"INFO    : Found {len(assets)} {type} assets in the base folder.")
             return assets
 
-    def pre_process(self):
+    def pre_process(self, skip_process=False):
         if self.need_unzip:
             LOGGER.info("")
             LOGGER.info("INFO    : Input Folder contains ZIP files and needs to be unzipped first. Unzipping it...")
@@ -125,15 +125,16 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.unzip(input_folder=self.takeout_folder, unzip_folder=unzip_folder, log_level=self.log_level)
             self.needs_process = self.contains_takeout_structure(self.takeout_folder)
 
-        if self.needs_process:
-            LOGGER.info("")
-            LOGGER.info("INFO    : Input Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
-            base_folder = self.takeout_folder.parent / f"Takeout_processed_{self.TIMESTAMP}"
-            # Process Takeout_folder and put output into base_folder
-            self.google_takeout_processor(output_takeout_folder=base_folder, log_level=logging.INFO)
-            super().__init__(base_folder)  # Inicializar con la carpeta procesada
-        else:
-            super().__init__(self.takeout_folder)  # Inicializar con la carpeta original si no se necesita procesamiento
+        if not skip_process:
+            if self.needs_process:
+                LOGGER.info("")
+                LOGGER.info("INFO    : Input Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
+                base_folder = self.takeout_folder.parent / f"Takeout_processed_{self.TIMESTAMP}"
+                # Process Takeout_folder and put output into base_folder
+                self.process(output_takeout_folder=base_folder, log_level=logging.INFO)
+                super().__init__(base_folder)  # Inicializar con la carpeta procesada
+            else:
+                super().__init__(self.takeout_folder)  # Inicializar con la carpeta original si no se necesita procesamiento
 
     # @staticmethod # if use this flag, the method is static and no need to include self in the arguments
     def contains_takeout_structure(self, input_folder, log_level=logging.INFO):
@@ -168,8 +169,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
     def unzip(self, input_folder, unzip_folder, log_level=logging.INFO):
         """
-        Main method to process Google Takeout data. Follows the same steps as the original
-        google_takeout_processor() function, but uses LOGGER and self.ARGS instead of global.
+        Main method to pre_process Google Takeout data. Follows the same steps as the original
+        process() function, but uses LOGGER and self.ARGS instead of global.
         """
         
         with set_log_level(LOGGER, log_level):  # Temporarily adjust log level
@@ -192,10 +193,10 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
 
 
-    def google_takeout_processor(self, output_takeout_folder, log_level=logging.INFO):
+    def process(self, output_takeout_folder, log_level=logging.INFO):
         """
-        Main method to process Google Takeout data. Follows the same steps as the original
-        google_takeout_processor() function, but uses LOGGER and self.ARGS instead of global.
+        Main method to pre_process Google Takeout data. Follows the same steps as the original
+        process() function, but uses LOGGER and self.ARGS instead of global.
         """
         with set_log_level(LOGGER, log_level):  # Temporarily adjust log level
             # step 2: Pre-Process Takeout folder
@@ -206,6 +207,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info("===================================")
             LOGGER.info("")
             step_start_time = datetime.now()
+            # Pre pre_process the object with skip_process=True to just unzip files in case they are zipped.
+            self.pre_process(skip_process=True)
             # Delete hidden subfolders '@eaDir'
             LOGGER.info("INFO    : Deleting hidden subfolders '@eaDir' (Synology metadata folders) from Takeout Folder if exists...")
             Utils.delete_subfolders(self.takeout_folder, "@eaDir")
@@ -235,7 +238,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     # Check Takeout structure
                     has_takeout_structure = self.contains_takeout_structure(self.takeout_folder)
                     if not has_takeout_structure:
-                        LOGGER.warning(f"WARNING : No Takeout structure detected in input folder. The tool will process the folder ignoring Takeout structure.")
+                        LOGGER.warning(f"WARNING : No Takeout structure detected in input folder. The tool will pre_process the folder ignoring Takeout structure.")
                         self.ARGS['google-ignore-check-structure'] = True
 
                 step_start_time = datetime.now()
@@ -398,8 +401,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
 
-            return (valid_albums_found, symlink_fixed, symlink_not_fixed, duplicates_found,
-                    initial_takeout_numfiles, removed_empty_folders)
+            return (valid_albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders)
 
 
 ##############################################################################
@@ -420,5 +422,5 @@ if __name__ == "__main__":
     # base_folder = input_folder.parent / f"Takeout_processed_{timestamp}"
 
     takeout = ClassTakeoutFolder(input_folder)
-    result = takeout.google_takeout_processor("Output_Takeout_Folder", log_level=logging.DEBUG)
+    result = takeout.process("Output_Takeout_Folder", log_level=logging.DEBUG)
     print(result)

@@ -18,7 +18,7 @@ def resource_path(relative_path, log_level=logging.INFO):
 def fix_metadata_with_gpth_tool(input_folder, output_folder, skip_extras=False, symbolic_albums=False, move_takeout_folder=False, ignore_takeout_structure=False, log_level=logging.INFO):
     
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        """Runs the GPTH Tool command to process photos."""
+        """Runs the GPTH Tool command to pre_process photos."""
         input_folder = os.path.abspath(input_folder)
         output_folder = os.path.abspath(output_folder)
         LOGGER.info(f"INFO    : Running GPTH Tool from '{input_folder}' to '{output_folder}'...")

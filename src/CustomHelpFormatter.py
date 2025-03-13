@@ -171,8 +171,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             ident_spaces = 13
             help_text = justificar_texto(action.help, initial_indent=" " * ident_spaces, subsequent_indent=" " * ident_spaces)
 
-            # EXTRA MODES for Google Photos Takeout Management: two lines before "Specify the Takeout folder to process."
-            if help_text.find("Specify the Takeout folder to process.")!=-1:
+            # EXTRA MODES for Google Photos Takeout Management: two lines before "Specify the Takeout folder to pre_process."
+            if help_text.find("Specify the Takeout folder to pre_process.")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
                 GOOGLE PHOTOS TAKEOUT MANAGEMENT:

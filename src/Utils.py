@@ -608,7 +608,7 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
     Flatten subfolders inside the given folder, moving all files to the root of their respective subfolders.
 
     Args:
-        input_folder (str): Path to the folder to process.
+        input_folder (str): Path to the folder to pre_process.
         exclude_subfolders (list or None): List of folder name patterns (using wildcards) to exclude from flattening.
     """
     
