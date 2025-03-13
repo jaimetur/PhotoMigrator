@@ -35,7 +35,6 @@ def comprimir_directorio(temp_dir, output_file):
     print(f"Archivo comprimido correctamente: {output_file}")
 
 def include_extrafiles_and_zip(input_file, output_file):
-    # extra_files_to_root_dir = ["../Config.ini"]
     extra_files_to_subdir = [
         {
             'subdir': '', # Para indicar que estos ficheros van al directorio raiz del script
@@ -60,15 +59,13 @@ def include_extrafiles_and_zip(input_file, output_file):
     os.makedirs(script_version_dir, exist_ok=True)
     os.makedirs(takeout_dir, exist_ok=True)
     shutil.copy(input_file, script_version_dir)
-    # # Copiamos los extra files que van al root dir
-    # for file in extra_files_to_root_dir:
-    #     shutil.copy(file, script_version_dir)
 
-    # Ahora copiamos los extra files que van a otros subdirs
+    # Ahora copiamos los extra files
     for subdirs_dic in extra_files_to_subdir:
         subdir = subdirs_dic.get('subdir')
         files = subdirs_dic.get('files')
         subdir_path = os.path.join(script_version_dir, subdir)
+        os.makedirs(subdir_path, exist_ok=True)
         for file in files:
             shutil.copy(file, subdir_path)
 
