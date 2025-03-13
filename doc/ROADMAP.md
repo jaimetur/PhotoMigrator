@@ -23,6 +23,8 @@
   - [ ] Deep Test on Google Takeout functions. (volunteers are welcomed)
   - [ ] Deep Test on --AUTOMATED-MIGRATION MODE. (volunteers are welcomed)
 
+### Live Dashboard Preview:
+![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/3.1.0/doc/screenshots/Live%20Dashboard.jpg?raw=true)
 
 ## v4.0.0:
 ### Releases date:
