@@ -17,7 +17,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 ## Release Notes:
 
 **Release**: v3.1.0  
-**Releases date**: (estimated)
+**Release Date**: (estimated)
   - Alpha version.   : 2025-03-14
   - Beta version     : 2025-03-21
   - Release Candidate: 2025-03-28
