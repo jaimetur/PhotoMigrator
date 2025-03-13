@@ -1,6 +1,12 @@
 # ROADMAP:
 
-## v3.1.0 (estimated release date: 2025-03-31):
+## v3.1.0 
+### Releases date:
+  - alpha version.   : 2025-03-14
+  - beta version     : 2025-03-21
+  - Release Candidate: 2025-03-28
+  - Official Release : 2025-03-31
+
 ### TODO:
 - [x] Included Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization.
 - [x] Added new flag '**--dashboard=[true, false]**' to show/hide real time Dashboard during Atomated Migration Job.
@@ -17,7 +23,12 @@
   - [ ] Deep Test on --AUTOMATED-MIGRATION MODE. (volunteers are welcomed)
 
 
-## v4.0.0 (No estimated date):
+## v4.0.0:
+### Releases date:
+  - alpha version.   : (No estimated date)
+  - beta version     : (No estimated date)
+  - Release Candidate: (No estimated date)
+  - Official Release : (No estimated date)
 ### TODO:
 - [ ] Include Apple Support (initially just for downloading)
     - [ ] Create Class ClassApplePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
