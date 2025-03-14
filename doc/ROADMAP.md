@@ -9,7 +9,7 @@
 
 ### TODO:
 - [x] Included Live Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization of the job progress.
-- [x] Added new flag '**--dashboard=[true, false]**' (defaul=true) to show/hide Live Dashboard during Atomated Migration Job.
+- [x] Added new flag '**--dashboard=[true, false]**' (default=true) to show/hide Live Dashboard during Atomated Migration Job.
 - [x] Completelly refactored AUTOMATED-MIGRATION MODE to allow parallel threads for Downloads and Uploads jobs avoiding to download all assets before to upload them (this will save disk space and improve performance). Also objects support has been added to this mode for an easier implementation and future enhancements.
 - [x] Support to use Local Folders as SOURCE/TARGET during AUTOMATED-MIGRATION MODE. Now the selected local folder works equal to other supported cloud services.
 - [x] Code Refactored to convert ServiceGooglePhotos, ServiceSynologyPhotos and ServiceImmichPhotos into Classes (ClassTakeoutFolder, ClassSynologyPhotos, ClassImmichPhotos) and homogenized all functions of all these classes.
