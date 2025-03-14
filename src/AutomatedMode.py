@@ -745,8 +745,8 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     # Opcional: si NO quieres imprimir por consola, puedes quitar el StreamHandler que tenga el logger por defecto (así solo se registran en la lista).
     # Por ejemplo:
     LOGGER.propagate = False
+    log_file = Utils.get_logger_filename(LOGGER)
 
-    # log_file = Utils.get_logger_filename(LOGGER)
     # total_assets        = SHARED_DATA.input_info.get('total_assets', 0)
     # total_photos        = SHARED_DATA.input_info.get('total_photos', 0)
     # total_videos        = SHARED_DATA.input_info.get('total_videos', 0)
@@ -826,46 +826,41 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     # ─────────────────────────────────────────────────────────────────────────
     # 1) Title Panel
     # ─────────────────────────────────────────────────────────────────────────
-    title = f"[bold cyan]{SHARED_DATA.input_info.get("source_client_name", "Source Client")}[/bold cyan] ➜ [green]{SHARED_DATA.input_info.get("target_client_name", "Target Client")}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
+    title = f"[bold cyan]{SHARED_DATA.input_info.get('source_client_name')}[/bold cyan] ➜ [green]{SHARED_DATA.input_info.get('target_client_name')}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
+
     layout["title_panel"].update(Panel(f"📂 {title}", border_style="bright_blue", expand=True))
 
     def update_title_panel():
-        title = f"[bold cyan]{SHARED_DATA.input_info.get("source_client_name", "Source Client")}[/bold cyan] ➜ [green]{SHARED_DATA.input_info.get("target_client_name", "Target Client")}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
+        title = f"[bold cyan]{SHARED_DATA.input_info.get('source_client_name')}[/bold cyan] ➜ [green]{SHARED_DATA.input_info.get('target_client_name')}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
         layout["title_panel"].update(Panel(f"📂 {title}", border_style="bright_blue", expand=True))
 
     # ─────────────────────────────────────────────────────────────────────────
     # 2) Info Panel
     # ─────────────────────────────────────────────────────────────────────────
     # Historial de tamaño de la cola (se ajustará dinámicamente al ancho del panel)
-    queue_history = collections.deque(maxlen=20)  # Se ajustará según el ancho del panel
+    queue_history = collections.deque(maxlen=10)  # Se ajustará según el ancho del panel
 
-    # Unicode para representar la barra de progreso vertical
-    BARS = "▁▂▃▄▅▆▇█"  # De menor a mayor
-
-    def normalize_to_bar(value, min_val, max_val):
-        """Normaliza un valor al rango de la barra de progreso"""
-        if max_val == min_val:
-            return BARS[0]  # Si todos los valores son iguales, usar la barra más baja
-        index = int((value - min_val) / (max_val - min_val) * (len(BARS) - 1))
-        return BARS[index]
-
-    def build_info_panel():
-        global queue_history
-
+    def build_info_panel(queue_history):
+        """Construye el panel de información con historial de la cola."""
+        # Unicode para representar la barra de progreso vertical
+        BARS = "▁▂▃▄▅▆▇█"  # De menor a mayor
         # Obtener el tamaño actual de la cola
         current_queue_size = SHARED_DATA.input_info.get('assets_in_queue', 0)
 
         # Actualizar historial de la cola
         queue_history.append(current_queue_size)
 
-        # Determinar el número máximo de iteraciones a mostrar basado en el ancho del panel
-        max_bars = min(len(queue_history), 20)  # Máximo 20 barras, ajustable
-
-        # Normalizar los valores del historial para la visualización de barras
+        # Normalizar valores entre 0 y 100
         min_val, max_val = min(queue_history, default=0), max(queue_history, default=1)
-        progress_bars = [normalize_to_bar(val, min_val, max_val) for val in queue_history]
+        # Evitar divisiones por 0
+        if max_val == min_val:
+            progress_bars = [BARS[0]] * len(queue_history)  # Si todos los valores son iguales, usar la barra más baja
+        else:
+            progress_bars = [
+                BARS[int(((val - min_val) / (max_val - min_val)) * (len(BARS) - 1))]
+                for val in queue_history
+            ]
 
-        # Representación de la cola con barras
         queue_display = "".join(progress_bars)
 
         # Datos a mostrar
@@ -877,7 +872,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
             ("📑 Total Metadata", SHARED_DATA.input_info.get('total_metadata', 0)),
             ("📑 Total Sidecar", SHARED_DATA.input_info.get('total_sidecar', 0)),
             ("🚫 Unsupported Files", SHARED_DATA.input_info.get('total_unsupported', 0)),
-            ("⏳ Assets in Queue", f"{current_queue_size} {queue_display}"),
+            ("⏳ Assets in Queue", f"{queue_display} {current_queue_size}"),
         ]
 
         # Crear la tabla
@@ -892,6 +887,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
             )
 
         return Panel(table, title="📊 Info Panel", border_style="bright_magenta", expand=True, padding=(0, 1))
+
 
     # ─────────────────────────────────────────────────────────────────────────
     # 3) Progress Bars for downloads / uploads
@@ -1083,7 +1079,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     with Live(layout, refresh_per_second=1, console=console, vertical_overflow="crop"):
         try:
             update_title_panel()
-            layout["info_panel"].update(build_info_panel())
+            layout["info_panel"].update(build_info_panel(queue_history))
             layout["downloads_panel"].update(build_download_panel())
             layout["uploads_panel"].update(build_upload_panel())
             layout["logs_panel"].update(build_log_panel())
@@ -1093,7 +1089,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
             while not migration_finished.is_set():
                 # update_downloads_panel()
                 # update_uploads_panel()
-                layout["info_panel"].update(build_info_panel())
+                layout["info_panel"].update(build_info_panel(queue_history))
                 layout["downloads_panel"].update(build_download_panel())
                 layout["uploads_panel"].update(build_upload_panel())
                 layout["logs_panel"].update(build_log_panel())
