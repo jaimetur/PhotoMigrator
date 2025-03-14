@@ -112,13 +112,14 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
         target_client_name = target_client.get_client_name()
         SHARED_DATA.input_info.update({"target_client_name": target_client_name})
 
+        LOGGER.info("")
         LOGGER.info(f"INFO    : -AUTO, --AUTOMATED-MIGRATION Mode detected")
         if not isinstance(source_client, ClassTakeoutFolder):
             LOGGER.info(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE>', f"'{source}'").replace('<TARGET>', f"'{target}'"))
         else:
             LOGGER.info(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{source}'").replace('<TARGET>', f"'{target}'").replace('Downloading', 'Analyzing and Fixing'))
-        LOGGER.info(f"INFO    : Selected source : {source}")
-        LOGGER.info(f"INFO    : Selected target : {target}")
+        LOGGER.info(f"INFO    : Selected source : {source_client_name}")
+        LOGGER.info(f"INFO    : Selected target : {target_client_name}")
         LOGGER.info("")
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")

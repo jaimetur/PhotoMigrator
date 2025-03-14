@@ -69,7 +69,7 @@ class ClassImmichPhotos:
         # self.logger = LOGGER
 
         self.ACCOUNT_ID = str(ACCOUNT_ID)        # Used to identify wich Account to use from the configuration file
-        if self.ACCOUNT_ID not in range(1,3):
+        if ACCOUNT_ID not in [1, 2]:
             LOGGER.error(f"ERROR   : Cannot create Immich Photos object with ACCOUNT_ID: {ACCOUNT_ID}. Valid valies are [1, 2]. Exiting...")
             sys.exit(-1)
 
@@ -98,7 +98,7 @@ class ClassImmichPhotos:
         self.IMMICH_FILTER_PERSON = None
 
         # Read the Config File to get CLIENT_ID
-        self.read_config_file(config_file='Config.ini')
+        self.read_config_file()
         self.CLIENT_ID = self.get_user_mail()
 
         self.CLIENT_NAME = f'Immich Photos ({self.CLIENT_ID})'
@@ -133,23 +133,26 @@ class ClassImmichPhotos:
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             if self.CONFIG:
                 return self.CONFIG  # Configuration already read previously
-            # Load CONFIG from config_file
-            self.CONFIG = {}
-            self.CONFIG = load_config(config_file=config_file, section_to_load='Immich Photos')
-            # Extract specific values for Synology from self.CONFIG.
-            self.IMMICH_URL = self.CONFIG.get('IMMICH_URL', None)
-            self.IMMICH_API_KEY_ADMIN = self.CONFIG.get('IMMICH_API_KEY_ADMIN', None)
 
-            self.IMMICH_USER_API_KEY = self.CONFIG.get(f'IMMICH_API_KEY_USER_{self.ACCOUNT_ID}', None)      # Read the configuration for the user account given by the suffix ACCAUNT_ID
-            self.IMMICH_USERNAME = self.CONFIG.get(f'IMMICH_USERNAME_{self.ACCOUNT_ID}', None)              # Read the configuration for the user account given by the suffix ACCAUNT_ID
-            self.IMMICH_PASSWORD = self.CONFIG.get(f'IMMICH_PASSWORD_{self.ACCOUNT_ID}', None)              # Read the configuration for the user account given by the suffix ACCAUNT_ID
+            # Load CONFIG for Immich Photos section from config_file
+            section_to_load = 'Immich Photos'
+            conf = load_config(config_file=config_file, section_to_load=section_to_load)
+            self.CONFIG = conf.get(section_to_load)
 
-            self.IMMICH_FILTER_ARCHIVE = self.CONFIG.get('IMMICH_FILTER_ARCHIVE', None)
-            self.IMMICH_FILTER_FROM = self.CONFIG.get('IMMICH_FILTER_FROM', None)
-            self.IMMICH_FILTER_TO = self.CONFIG.get('IMMICH_FILTER_TO', None)
-            self.IMMICH_FILTER_COUNTRY = self.CONFIG.get('IMMICH_FILTER_COUNTRY', None)
-            self.IMMICH_FILTER_CITY = self.CONFIG.get('IMMICH_FILTER_CITY', None)
-            self.IMMICH_FILTER_PERSON = self.CONFIG.get('IMMICH_FILTER_PERSON', None)
+            # Extract values for Immich from self.CONFIG
+            self.IMMICH_URL = self.CONFIG.get(section_to_load).get('IMMICH_URL', None)
+            self.IMMICH_API_KEY_ADMIN = self.CONFIG.get(section_to_load).get('IMMICH_API_KEY_ADMIN', None)
+
+            self.IMMICH_USER_API_KEY = self.CONFIG.get(section_to_load).get(f'IMMICH_API_KEY_USER_{self.ACCOUNT_ID}', None)      # Read the configuration for the user account given by the suffix ACCAUNT_ID
+            self.IMMICH_USERNAME = self.CONFIG.get(section_to_load).get(f'IMMICH_USERNAME_{self.ACCOUNT_ID}', None)              # Read the configuration for the user account given by the suffix ACCAUNT_ID
+            self.IMMICH_PASSWORD = self.CONFIG.get(section_to_load).get(f'IMMICH_PASSWORD_{self.ACCOUNT_ID}', None)              # Read the configuration for the user account given by the suffix ACCAUNT_ID
+
+            self.IMMICH_FILTER_ARCHIVE = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_ARCHIVE', None)
+            self.IMMICH_FILTER_FROM = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_FROM', None)
+            self.IMMICH_FILTER_TO = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_TO', None)
+            self.IMMICH_FILTER_COUNTRY = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_COUNTRY', None)
+            self.IMMICH_FILTER_CITY = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_CITY', None)
+            self.IMMICH_FILTER_PERSON = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_PERSON', None)
             # Verify required parameters and prompt on screen if missing
             if not self.IMMICH_URL or self.IMMICH_URL.strip() == '':
                 LOGGER.warning(f"WARNING : IMMICH_URL not found. It will be requested on screen.")

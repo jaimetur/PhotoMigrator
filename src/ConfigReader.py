@@ -11,15 +11,18 @@ def load_config(config_file='Config.ini', section_to_load='all'):
     global CONFIG
 
     if CONFIG:
-        return CONFIG  # Configuration already read previously
+        sections_loaded = CONFIG.keys()
+        if section_to_load in sections_loaded:
+            return CONFIG  # Configuration already read previously
+    else:
+        CONFIG = {}
 
-    LOGGER.info(f"INFO    : Searching for configuration file '{config_file}'...")
+    LOGGER.info(f"INFO    : Searching for section(s) [{section_to_load}] in configuration file '{config_file}'...")
     if not os.path.exists(config_file):
         LOGGER.error(f"ERROR   : Configuration file '{config_file}' not found. Exiting...")
         sys.exit(1)  # Termina el programa si no encuentra el archivo
 
-    CONFIG = {}
-    LOGGER.info(f"INFO    : Configuration file found. Loading configuration for section '{section_to_load}'...")
+    LOGGER.info(f"INFO    : Configuration file found. Loading configuration for section(s) '{section_to_load}'...")
 
     # Preprocesar el archivo para eliminar claves duplicadas antes de leerlo con ConfigParser
     seen_keys = set()  # Conjunto para almacenar claves únicas
@@ -68,14 +71,18 @@ def load_config(config_file='Config.ini', section_to_load='all'):
 
     # Read all defined keys
     for section, keys in config_keys.items():
-        if section == section_to_load or section_to_load.lower()=='all':
+        if section == section_to_load or section_to_load.lower() == 'all':
+            if section not in CONFIG:
+                CONFIG[section] = {}  # Asegurar que la sección existe en el diccionario
+
             for key in keys:
                 if config.has_option(section, key):
-                    CONFIG[key] = clean_value(config.get(section, key, raw=True))
-                    if CONFIG[key].strip() == '':
-                        LOGGER.warning(f"WARNING : Missing value for key '{key}' in section '{section}', skipping.")
+                    value = clean_value(config.get(section, key, raw=True))
+                    CONFIG[section][key] = value  # Agregar al diccionario sin sobrescribir otros valores
+                    if key.strip() == '':
+                        LOGGER.warning(f"WARNING: Missing value for key '{key}' in section '{section}', skipping.")
                 else:
-                    LOGGER.warning(f"WARNING : Missing key '{key}' in section '{section}', skipping.")
+                    LOGGER.warning(f"WARNING: Missing key '{key}' in section '{section}', skipping.")
 
     LOGGER.info(f"INFO    : Configuration Read Successfully from '{config_file}' for section '{section_to_load}'.")
     return CONFIG

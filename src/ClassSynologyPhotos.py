@@ -72,7 +72,7 @@ class ClassSynologyPhotos:
         # LOGGER = LOGGER
 
         self.ACCOUNT_ID = str(ACCOUNT_ID)  # Used to identify wich Account to use from the configuration file
-        if self.ACCOUNT_ID not in range(1, 3):
+        if ACCOUNT_ID not in [1, 2]:
             LOGGER.error(f"ERROR   : Cannot create Immich Photos object with ACCOUNT_ID: {ACCOUNT_ID}. Valid valies are [1, 2]. Exiting...")
             sys.exit(-1)
 
@@ -105,7 +105,7 @@ class ClassSynologyPhotos:
         self.ALLOWED_EXTENSIONS = self.ALLOWED_MEDIA_EXTENSIONS
 
         # Read the Config File to get CLIENT_ID
-        self.read_config_file(config_file='Config.ini')
+        self.read_config_file()
         self.CLIENT_ID = self.get_user_mail()
 
         self.CLIENT_NAME = f'Synology Photos ({self.CLIENT_ID})'
@@ -135,17 +135,20 @@ class ClassSynologyPhotos:
             dict: The loaded configuration dictionary.
         """
         from ConfigReader import load_config
-        
-        with set_log_level(LOGGER, log_level):
-            if self.CONFIG:
-                return self.CONFIG
 
-            self.CONFIG = load_config(config_file=config_file, section_to_load='Synology Photos')
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+            if self.CONFIG:
+                return self.CONFIG  # Configuration already read previously
+
+            # Load CONFIG for Synology Photos section from config_file
+            section_to_load = 'Synology Photos'
+            conf = load_config(config_file=config_file, section_to_load=section_to_load)
+            self.CONFIG = conf.get(section_to_load)
 
             # Extract values for Synology from self.CONFIG
-            self.SYNOLOGY_URL = self.CONFIG.get('SYNOLOGY_URL', None)
-            self.SYNOLOGY_USERNAME = self.CONFIG.get(f'SYNOLOGY_USERNAME_{self.ACCOUNT_ID}', None)      # Read the configuration for the user account given by the suffix ACCAUNT_ID
-            self.SYNOLOGY_PASSWORD = self.CONFIG.get(f'SYNOLOGY_PASSWORD_{self.ACCOUNT_ID}', None)      # Read the configuration for the user account given by the suffix ACCAUNT_ID
+            self.SYNOLOGY_URL = self.CONFIG.get(section_to_load).get('SYNOLOGY_URL', None)
+            self.SYNOLOGY_USERNAME = self.CONFIG.get(section_to_load).get(f'SYNOLOGY_USERNAME_{self.ACCOUNT_ID}', None)      # Read the configuration for the user account given by the suffix ACCAUNT_ID
+            self.SYNOLOGY_PASSWORD = self.CONFIG.get(section_to_load).get(f'SYNOLOGY_PASSWORD_{self.ACCOUNT_ID}', None)      # Read the configuration for the user account given by the suffix ACCAUNT_ID
 
             if not self.SYNOLOGY_URL or self.SYNOLOGY_URL.strip() == '':
                 LOGGER.warning(f"WARNING : SYNOLOGY_URL not found. It will be requested on screen.")
@@ -307,7 +310,7 @@ class ClassSynologyPhotos:
         
         with set_log_level(LOGGER, log_level):
             try:
-                return self.CLIENT_ID
+                return self.SYNOLOGY_USERNAME
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting user id. {e}")
 
@@ -318,7 +321,7 @@ class ClassSynologyPhotos:
 
         with set_log_level(LOGGER, log_level):
             try:
-                return self.CLIENT_ID
+                return self.SYNOLOGY_USERNAME
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting user mail. {e}")
             
