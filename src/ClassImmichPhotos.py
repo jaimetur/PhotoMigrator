@@ -59,7 +59,7 @@ class ClassImmichPhotos:
     into a single class that uses a global LOGGER from GlobalVariables.
     """
 
-    def __init__(self):
+    def __init__(self, ACCOUNT_ID=1):
         """
         Constructor that initializes what used to be global variables.
         Also imports the global LOGGER from GlobalVariables.
@@ -67,10 +67,16 @@ class ClassImmichPhotos:
         # # Import the global LOGGER from GlobalVariables
         # from GlobalVariables import LOGGER
         # self.logger = LOGGER
-        
+
+        self.ACCOUNT_ID = str(ACCOUNT_ID)        # Used to identify wich Account to use from the configuration file
+        if self.ACCOUNT_ID not in range(1,2):
+            LOGGER.error(f"ERROR   : Cannot create Immich Photos object with ACCOUNT_ID: {ACCOUNT_ID}. Valid valies are [1, 2]. Exiting...")
+            sys.exit(-1)
+
         self.CONFIG = None
+
         self.IMMICH_URL = None
-        self.IMMICH_ADMIN_API_KEY = None
+        self.IMMICH_API_KEY_ADMIN = None
         self.IMMICH_USER_API_KEY = None
         self.IMMICH_USERNAME = None
         self.IMMICH_PASSWORD = None
@@ -91,7 +97,11 @@ class ClassImmichPhotos:
         self.IMMICH_FILTER_CITY = None
         self.IMMICH_FILTER_PERSON = None
 
-        self.CLIENT_NAME = 'Immich Photos'
+        # Read the Config File to get CLIENT_ID
+        self.read_config_file(config_file='Config.ini')
+        self.CLIENT_ID = self.get_user_mail()
+
+        self.CLIENT_NAME = f'Immich Photos ({self.CLIENT_ID})'
 
 
     ###########################################################################
@@ -125,13 +135,15 @@ class ClassImmichPhotos:
                 return self.CONFIG  # Configuration already read previously
             # Load CONFIG from config_file
             self.CONFIG = {}
-            self.CONFIG = load_config(config_file)
+            self.CONFIG = load_config(config_file=config_file, section_to_load='Immich Photos')
             # Extract specific values for Synology from self.CONFIG.
             self.IMMICH_URL = self.CONFIG.get('IMMICH_URL', None)
-            self.IMMICH_ADMIN_API_KEY = self.CONFIG.get('IMMICH_ADMIN_API_KEY', None)
-            self.IMMICH_USER_API_KEY = self.CONFIG.get('IMMICH_USER_API_KEY', None)
-            self.IMMICH_USERNAME = self.CONFIG.get('IMMICH_USERNAME', None)
-            self.IMMICH_PASSWORD = self.CONFIG.get('IMMICH_PASSWORD', None)
+            self.IMMICH_API_KEY_ADMIN = self.CONFIG.get('IMMICH_API_KEY_ADMIN', None)
+
+            self.IMMICH_USER_API_KEY = self.CONFIG.get(f'IMMICH_API_KEY_USER_{self.ACCOUNT_ID}', None)      # Read the configuration for the user account given by the suffix ACCAUNT_ID
+            self.IMMICH_USERNAME = self.CONFIG.get(f'IMMICH_USERNAME_{self.ACCOUNT_ID}', None)              # Read the configuration for the user account given by the suffix ACCAUNT_ID
+            self.IMMICH_PASSWORD = self.CONFIG.get(f'IMMICH_PASSWORD_{self.ACCOUNT_ID}', None)              # Read the configuration for the user account given by the suffix ACCAUNT_ID
+
             self.IMMICH_FILTER_ARCHIVE = self.CONFIG.get('IMMICH_FILTER_ARCHIVE', None)
             self.IMMICH_FILTER_FROM = self.CONFIG.get('IMMICH_FILTER_FROM', None)
             self.IMMICH_FILTER_TO = self.CONFIG.get('IMMICH_FILTER_TO', None)
@@ -159,7 +171,7 @@ class ClassImmichPhotos:
                 LOGGER.info(f"INFO    : -------------------")
                 LOGGER.info(f"INFO    : IMMICH_URL            : {self.IMMICH_URL}")
                 if self.API_KEY_LOGIN:
-                    masked_admin_api = '*' * len(self.IMMICH_ADMIN_API_KEY)
+                    masked_admin_api = '*' * len(self.IMMICH_API_KEY_ADMIN)
                     masked_user_api = '*' * len(self.IMMICH_USER_API_KEY)
                     LOGGER.info(f"INFO    : IMMICH_ADMIN_API_KEY  : {masked_admin_api}")
                     LOGGER.info(f"INFO    : IMMICH_USER_API_KEY   : {masked_user_api}")
@@ -342,6 +354,26 @@ class ClassImmichPhotos:
                 LOGGER.error(f"ERROR   : Cannot find User ID for user '{self.IMMICH_USERNAME}': {e}")
                 return None
 
+    def get_user_mail(self, log_level=logging.INFO):
+        """
+        Returns the user_mail of the currently logged-in user.
+        """
+
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            url = f"{self.IMMICH_URL}/api/users/me"
+            payload = {}
+            try:
+                resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload)
+                resp.raise_for_status()
+                data = resp.json()
+                user_id = data.get("id")
+                user_mail = data.get("email")
+                LOGGER.info(f"INFO    : User ID: '{user_id}' found for user '{user_mail}'.")
+                return user_mail
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Cannot find User ID for user '{self.IMMICH_USERNAME}': {e}")
+                return None
 
 
     ###########################################################################
@@ -1546,7 +1578,7 @@ class ClassImmichPhotos:
             base_url = f'{immich_parsed_url.scheme}://{immich_parsed_url.netloc}'
             api_url = f'{base_url}/api'
             file_report_url = api_url + '/reports'
-            headers = {'x-api-key': self.IMMICH_ADMIN_API_KEY}
+            headers = {'x-api-key': self.IMMICH_API_KEY_ADMIN}
 
             print()
             spinner = Halo(text='Retrieving list of orphaned media assets...', spinner='dots')

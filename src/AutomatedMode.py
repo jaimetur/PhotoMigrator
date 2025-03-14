@@ -80,14 +80,26 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
         # ---------------------------------------------------------------------------------------------------------
         def get_client_object(client_type):
             """Retorna la instancia del cliente en función del tipo de fuente o destino."""
-            if client_type.lower() == 'synology-photos':
-                return ClassSynologyPhotos()
-            elif client_type.lower() == 'immich-photos':
-                return ClassImmichPhotos()
+
+            # Return ClassSynologyPhotos
+            if client_type.lower() in ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1']:
+                return ClassSynologyPhotos(ACCOUNT_ID=1)
+            elif client_type.lower() in ['synology-photos-2', 'synology-photos2', 'synology-2', 'synology2']:
+                return ClassSynologyPhotos(ACCOUNT_ID=2)
+
+            # Return ClassImmichPhotos
+            elif client_type.lower() in ['immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1']:
+                return ClassImmichPhotos(ACCOUNT_ID=1)
+            elif client_type.lower() in ['immich-photos-2', 'immich-photos2', 'immich-2', 'immich2']:
+                return ClassImmichPhotos(ACCOUNT_ID=2)
+
+            # Return ClassTakeoutFolder
             elif Path(client_type).is_dir() and (Utils.contains_zip_files(client_type) or Utils.contains_takeout_structure(client_type)):
-                return ClassTakeoutFolder(client_type)
+                return ClassTakeoutFolder(client_type)              # In this clase, client_type is the path to the Takeout Folder
+
+            # Return ClassLocalFolder
             elif Path(client_type).is_dir():
-                return ClassLocalFolder(base_folder=client_type)
+                return ClassLocalFolder(base_folder=client_type)    # In this clase, client_type is the path to the base Local Folder
             else:
                 raise ValueError(f"ERROR   : Tipo de cliente no válido: {client_type}")
 
