@@ -37,7 +37,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] Minor Bug Fixing.
 
 ### Live Dashboard Preview:
-![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/3.1.0/doc/screenshots/Live%20Dashboard.jpg?raw=true)
+![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/doc/screenshots/live_dashboard.jpg?raw=true)
 
 ---
 
