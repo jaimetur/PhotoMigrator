@@ -333,6 +333,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 # Descargar todos los assets de este álbum
                 try:
                     album_assets = source_client.get_album_assets(album_id)
+                    if not album_assets:
+                        SHARED_DATA.counters['total_download_failed_albums'] += 1
                 except:
                     SHARED_DATA.counters['total_download_failed_albums'] += 1
 
@@ -769,7 +771,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         "⛔ Upload Failed Photos": "total_upload_failed_photos",
         "⛔ Upload Failed Videos": "total_upload_failed_videos",
         "⛔ Upload Failed Albums": "total_upload_failed_albums",
-        "⚠️ Upload Duplicates Assets": "total_upload_duplicates_assets",
+        "📋 Upload Duplicated Assets": "total_upload_duplicates_assets",
     }
 
     # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (11 lines), logs fill remainder
@@ -893,6 +895,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         "⛔🎥 Videos Failed": 0,
         "⛔📂 Albums Failed": 0,
     }
+
     download_tasks = {}
     for label, (bar, total) in download_bars.items():
         download_tasks[label] = bar.add_task(label, total=total)
@@ -909,7 +912,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         "⛔📷 Photos Failed": 0,
         "⛔🎥 Videos Failed": 0,
         "⛔📂 Albums Failed": 0,
-        "⚠️ Assets Duplicated ": 0,
+        "📋📋 Assets Duplicated ": 0,
     }
     upload_tasks = {}
     for label, (bar, total) in upload_bars.items():
@@ -933,9 +936,9 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         table.add_column(justify="left", width=24)
         table.add_column(justify="right")
         for label, (bar, total) in upload_bars.items():
-            table.add_row(f"[green]{label:<19}:[/green]", bar)
+            table.add_row(f"[green]{label:<22}:[/green]", bar)
         for label, val in failed_uploads.items():
-            table.add_row(f"[green]{label:<18}:[/green]", f"[green]{val}[/green]")
+            table.add_row(f"[green]{label:<21}:[/green]", f"[green]{val}[/green]")
         return Panel(table, title=f'📤 {SHARED_DATA.input_info.get("target_client_name", "Source Client")} Uploads', border_style="green", expand=True)
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -1022,7 +1025,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         failed_uploads["⛔📷 Photos Failed"]    = SHARED_DATA.counters['total_upload_failed_photos']
         failed_uploads["⛔🎥 Videos Failed"]    = SHARED_DATA.counters['total_upload_failed_videos']
         failed_uploads["⛔📂 Albums Failed"]    = SHARED_DATA.counters['total_upload_failed_albums']
-        failed_uploads["⚠️ Assets Duplicated "] = SHARED_DATA.counters['total_upload_duplicates_assets']
+        failed_uploads["📋📋 Assets Duplicated"] = SHARED_DATA.counters['total_upload_duplicates_assets']
 
 
     # ─────────────────────────────────────────────────────────────────────────
