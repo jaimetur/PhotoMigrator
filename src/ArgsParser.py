@@ -10,8 +10,8 @@ import os
 choices_for_message_levels          = ['debug', 'info', 'warning', 'error', 'critical']
 choices_for_folder_structure        = ['flatten', 'year', 'year/month', 'year-month']
 choices_for_remove_duplicates       = ['list', 'move', 'remove']
-choices_for_AUTOMATED_MIGRATION_SRC = ['synology-photos', 'immich-photos']
-choices_for_AUTOMATED_MIGRATION_TGT = ['synology-photos', 'immich-photos']
+choices_for_AUTOMATED_MIGRATION_SRC = ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1', 'synology-photos-2', 'synology-photos2', 'synology-2', 'synology2']
+choices_for_AUTOMATED_MIGRATION_TGT = ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1', 'synology-photos-2', 'synology-photos2', 'synology-2', 'synology2']
 
 PARSER = None
 
@@ -47,8 +47,8 @@ def parse_arguments():
                         help="This process will do an AUTOMATED-MIGRATION process to Download all your Assets (including Albums) from the <SOURCE> Cloud Service and Upload them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service."
                            "\n"
                            "\npossible values for:"
-                           "\n    <SOURCE> : ['synology-photos', 'immich-photos'] or <INPUT_FOLDER>"
-                           "\n    <TARGET> : ['synology-photos', 'immich-photos'] or <OUTPUT_FOLDER>"
+                           "\n    <SOURCE> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2'] or <INPUT_FOLDER>"
+                           "\n    <TARGET> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2']or <OUTPUT_FOLDER>"
                         )
     PARSER.add_argument( "--dashboard", metavar="=[true,false]", type=lambda x: x.lower() == 'true', default=True,
                         help="Show Live Dashboard during Autometed Migration Jon (true/false). This argument only applies to '-AUTO, --AUTOMATED-MIGRATION' option.")
