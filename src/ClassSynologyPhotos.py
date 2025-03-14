@@ -77,7 +77,7 @@ class ClassSynologyPhotos:
             sys.exit(-1)
 
         # Variables that were previously global:
-        self.CONFIG = None
+        self.CONFIG = {}
         self.SYNOLOGY_URL = None
         self.SYNOLOGY_USERNAME = None
         self.SYNOLOGY_PASSWORD = None
@@ -143,7 +143,7 @@ class ClassSynologyPhotos:
             # Load CONFIG for Synology Photos section from config_file
             section_to_load = 'Synology Photos'
             conf = load_config(config_file=config_file, section_to_load=section_to_load)
-            self.CONFIG = conf.get(section_to_load)
+            self.CONFIG[section_to_load] = conf.get(section_to_load)
 
             # Extract values for Synology from self.CONFIG
             self.SYNOLOGY_URL = self.CONFIG.get(section_to_load).get('SYNOLOGY_URL', None)

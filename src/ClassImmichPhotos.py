@@ -73,7 +73,7 @@ class ClassImmichPhotos:
             LOGGER.error(f"ERROR   : Cannot create Immich Photos object with ACCOUNT_ID: {ACCOUNT_ID}. Valid valies are [1, 2]. Exiting...")
             sys.exit(-1)
 
-        self.CONFIG = None
+        self.CONFIG = {}
 
         self.IMMICH_URL = None
         self.IMMICH_API_KEY_ADMIN = None
@@ -137,7 +137,7 @@ class ClassImmichPhotos:
             # Load CONFIG for Immich Photos section from config_file
             section_to_load = 'Immich Photos'
             conf = load_config(config_file=config_file, section_to_load=section_to_load)
-            self.CONFIG = conf.get(section_to_load)
+            self.CONFIG[section_to_load] = conf.get(section_to_load)
 
             # Extract values for Immich from self.CONFIG
             self.IMMICH_URL = self.CONFIG.get(section_to_load).get('IMMICH_URL', None)
