@@ -72,7 +72,7 @@ class ClassSynologyPhotos:
         # LOGGER = LOGGER
 
         self.ACCOUNT_ID = str(ACCOUNT_ID)  # Used to identify wich Account to use from the configuration file
-        if self.ACCOUNT_ID not in range(1, 2):
+        if self.ACCOUNT_ID not in range(1, 3):
             LOGGER.error(f"ERROR   : Cannot create Immich Photos object with ACCOUNT_ID: {ACCOUNT_ID}. Valid valies are [1, 2]. Exiting...")
             sys.exit(-1)
 
