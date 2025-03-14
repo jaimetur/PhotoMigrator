@@ -8,6 +8,7 @@
   - Official Release : 2025-03-31
 
 ### TODO:
+- [ ] Allow Migration between 2 different accounts on the same Photo Cloud Service. 
 - [x] Included Live Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization of the job progress.
 - [x] Added new flag '**--dashboard=[true, false]**' (default=true) to show/hide Live Dashboard during Atomated Migration Job.
 - [x] Completelly refactored AUTOMATED-MIGRATION MODE to allow parallel threads for Downloads and Uploads jobs avoiding to download all assets before to upload them (this will save disk space and improve performance). Also objects support has been added to this mode for an easier implementation and future enhancements.
