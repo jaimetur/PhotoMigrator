@@ -24,12 +24,12 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
   - Official Release : 2025-03-31
 
 ### Main Changes:
-- [x] Included Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization.
-- [x] Added new flag '**--dashboard=[true, false]**' to show/hide real time Dashboard during Atomated Migration Job.
-- [x] Completelly refactored AUTOMATED MIGRATION MODE to allow parallel Threads for Downloads and Uploads and avoid to download All assets before to upload them (this will save disk space and improve performance). Also objects support has been added to this mode for an easier implementation of this mode.
-- [x] Support for use Local Folders as SOURCE and TARGET during AUTOMATED MIGRATION MODE.
+- [x] Included Live Progress Dashboard for AUTOMATED MIGRATION MODE for a better visualization of the job progress.
+- [x] Added new flag '**--dashboard=[true, false]**' (defaul=true) to show/hide Live Dashboard during Atomated Migration Job.
+- [x] Completelly refactored AUTOMATED-MIGRATION MODE to allow parallel threads for Downloads and Uploads jobs avoiding to download all assets before to upload them (this will save disk space and improve performance). Also objects support has been added to this mode for an easier implementation and future enhancements.
+- [x] Support to use Local Folders as SOURCE/TARGET during AUTOMATED-MIGRATION MODE. Now the selected local folder works equal to other supported cloud services.
 - [x] Code Refactored to convert ServiceGooglePhotos, ServiceSynologyPhotos and ServiceImmichPhotos into Classes (ClassTakeoutFolder, ClassSynologyPhotos, ClassImmichPhotos) and homogenized all functions of all these classes.
-- [x] Added new Class ClassLocalFolder with the same methods as Cloud Services Classes to manage Local Folders in the same way as a Photo Cloud Service.
+- [x] Added new Class ClassLocalFolder with the same methods as other supported Cloud Services Classes to manage Local Folders in the same way as a Photo Cloud Service.
 - [x] ClassTakeoutFolder inherits all methods from ClassLocalFolder and includes specific methods to process Google Takeouts since at the end Google Takeout is a local folder structure.
 - [x] Updated GPTH version to cop latest changes in Google Takeouts. 
 - [x] Minor Bug Fixing.
