@@ -301,10 +301,19 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             """
             with file_paths_lock:
                 asset_file_path = item_dict['asset_file_path']
+
                 if asset_file_path in added_file_paths:
                     # El item ya fue añadido anteriormente
                     return False
                 else:
+                    # Esperar si la cola tiene más de 100 elementos
+                    while upload_queue.qsize() > 100:
+                        time.sleep(1)  # Esperar 1 segundo antes de revisar de nuevo
+
+                    # Esperar hasta que la cola baje a 10 elementos antes de continuar
+                    while upload_queue.qsize() > 10:
+                        time.sleep(0.5)  # Revisar cada 0.5 segundos si la cola ya se redujo
+
                     # Añadir a la cola y al registro global
                     upload_queue.put(item_dict)
                     added_file_paths.add(asset_file_path)
