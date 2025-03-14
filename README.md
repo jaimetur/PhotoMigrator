@@ -368,11 +368,11 @@ If more than one Extra Mode is detected, only the first one will be executed.
 >    upload all the assets processed in previous step, creating a new Album per each Album found in your \<SOURCE> Cloud Service (or \<SOURCE> folder if you specify a path), 
 >    and will associate all the assets included in each Album in the same way that you had on your \<SOURCE> Cloud Service.
 >  - possible values for:
->    - **\<SOURCE\>** : ['synology-photos', 'immich-photos'] or <INPUT_FOLDER>
->    - **\<TARGET\>** : ['synology-photos', 'immich-photos'] or <OUTPUT_FOLDER>
+>    - **\<SOURCE\>** : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2'] or <INPUT_FOLDER>
+>    - **\<TARGET\>** : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2'] or <OUTPUT_FOLDER>
 >  - The idea is complete above list to allow:
->    - **\<SOURCE\>** : ['google-photos', 'apple-photos', 'synology-photos', 'immich-photos'] or <INPUT_FOLDER>
->    - **\<TARGET\>** : ['google-photos', 'apple-photos', 'synology-photos', 'immich-photos'] or <OUTPUT_FOLDER>
+>    - **\<SOURCE\>** : ['google-photos-1', google-photos-2', 'apple-photos-1', 'apple-photos-2', 'synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2'] or <INPUT_FOLDER>
+>    - **\<TARGET\>** : ['google-photos-1', google-photos-2', 'apple-photos-1', 'apple-photos-2', 'synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2'] or <OUTPUT_FOLDER>
 
 
 To execute this Extra Mode, you can use the new Flag: '-AUTO, --AUTOMATED-MIGRATION \<SOURCE> \<TARGET>'
@@ -494,8 +494,10 @@ all files found to set the correct date and time, and identifying which assets b
 >># Configuration for Synology Photos
 >>[Synology Photos]
 >>SYNOLOGY_URL                = http://192.168.1.11:5000                      # Change this IP by the IP that contains the Synology server or by your valid Synology URL
->>SYNOLOGY_USERNAME           = username                                      # Your username for Synology Photos
->>SYNOLOGY_PASSWORD           = password                                      # Your password for Synology Photos
+>>SYNOLOGY_USERNAME_1         = username_1                                    # Account 1: Your username for Synology Photos
+>>SYNOLOGY_PASSWORD_1         = password_1                                    # Account 1: Your password for Synology Photos
+>>SYNOLOGY_USERNAME_2         = username_2                                    # Account 2: Your username for Synology Photos
+>>SYNOLOGY_PASSWORD_2         = password_2                                    # Account 2: Your password for Synology Photos
 >>```
 >### Features included:
 > - Upload Album(s)
@@ -616,10 +618,16 @@ With this example, the script will connect to Synology Photos database and extra
 >># Configuration for Immich Photos
 >>[Immich Photos]
 >>IMMICH_URL                  = http://192.168.1.11:2283                      # Change this IP by the IP that contains the Immich server or by your valid Immich URL
->>IMMICH_ADMIN_API_KEY        = YOUR_ADMIN_API_KEY                            # Optional: Your ADMIN_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
->>IMMICH_USER_API_KEY         = YOUR_USER_API_KEY                             # Optional: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
->>IMMICH_USERNAME             = username                                      # Optional: Your username for Immich Photos (mandatory if not API_KEY is providen)
->>IMMICH_PASSWORD             = password                                      # Optional: Your password for Immich Photos (mandatory if not API_KEY is providen)
+>>IMMICH_API_KEY_ADMIN        = YOUR_ADMIN_API_KEY                            # Your ADMIN_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
+>>
+>>IMMICH_API_KEY_USER_1       = API_KEY_USER_1                                # Account 1: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
+>>IMMICH_USERNAME_1           = username_1                                    # Account 1: Your username for Immich Photos (mandatory if not API_KEY is providen)
+>>IMMICH_PASSWORD_1           = password_1                                    # Account 1: Your password for Immich Photos (mandatory if not API_KEY is providen)
+>>
+>>IMMICH_API_KEY_USER_2       = API_KEY_USER_2                                # Account 2: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
+>>IMMICH_USERNAME_2           = username_2                                    # Account 2: Your username for Immich Photos (mandatory if not API_KEY is providen)
+>>IMMICH_PASSWORD_2           = password_2                                    # Account 2: Your password for Immich Photos (mandatory if not API_KEY is providen)
+>>
 >>IMMICH_FILTER_ARCHIVE       = False                                         # Optional: Used as Filter Criteria for Assets downloading (True/False)
 >>IMMICH_FILTER_FROM          = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: 2024-10-01)
 >>IMMICH_FILTER_TO            = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: 2024-10-01)

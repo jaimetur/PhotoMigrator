@@ -62,7 +62,7 @@ class ClassSynologyPhotos:
     and docstrings are now in English.
     """
 
-    def __init__(self):
+    def __init__(self, ACCOUNT_ID=1):
         """
         Constructor that initializes what were previously global variables.
         Also imports the global LOGGER from GlobalVariables.
@@ -71,8 +71,13 @@ class ClassSynologyPhotos:
         # from GlobalVariables import LOGGER
         # LOGGER = LOGGER
 
+        self.ACCOUNT_ID = str(ACCOUNT_ID)  # Used to identify wich Account to use from the configuration file
+        if ACCOUNT_ID not in [1, 2]:
+            LOGGER.error(f"ERROR   : Cannot create Immich Photos object with ACCOUNT_ID: {ACCOUNT_ID}. Valid valies are [1, 2]. Exiting...")
+            sys.exit(-1)
+
         # Variables that were previously global:
-        self.CONFIG = None
+        self.CONFIG = {}
         self.SYNOLOGY_URL = None
         self.SYNOLOGY_USERNAME = None
         self.SYNOLOGY_PASSWORD = None
@@ -99,7 +104,11 @@ class ClassSynologyPhotos:
         self.ALLOWED_MEDIA_EXTENSIONS = self.ALLOWED_PHOTO_EXTENSIONS + self.ALLOWED_VIDEO_EXTENSIONS
         self.ALLOWED_EXTENSIONS = self.ALLOWED_MEDIA_EXTENSIONS
 
-        self.CLIENT_NAME = 'Synology Photos'
+        # Read the Config File to get CLIENT_ID
+        self.read_config_file()
+        self.CLIENT_ID = self.get_user_mail()
+
+        self.CLIENT_NAME = f'Synology Photos ({self.CLIENT_ID})'
 
 
     ###########################################################################
@@ -126,17 +135,20 @@ class ClassSynologyPhotos:
             dict: The loaded configuration dictionary.
         """
         from ConfigReader import load_config
-        
-        with set_log_level(LOGGER, log_level):
-            if self.CONFIG:
-                return self.CONFIG
 
-            self.CONFIG = load_config(config_file)
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+            if self.CONFIG:
+                return self.CONFIG  # Configuration already read previously
+
+            # Load CONFIG for Synology Photos section from config_file
+            section_to_load = 'Synology Photos'
+            conf = load_config(config_file=config_file, section_to_load=section_to_load)
+            self.CONFIG[section_to_load] = conf.get(section_to_load)
 
             # Extract values for Synology from self.CONFIG
-            self.SYNOLOGY_URL = self.CONFIG.get('SYNOLOGY_URL', None)
-            self.SYNOLOGY_USERNAME = self.CONFIG.get('SYNOLOGY_USERNAME', None)
-            self.SYNOLOGY_PASSWORD = self.CONFIG.get('SYNOLOGY_PASSWORD', None)
+            self.SYNOLOGY_URL = self.CONFIG.get(section_to_load).get('SYNOLOGY_URL', None)
+            self.SYNOLOGY_USERNAME = self.CONFIG.get(section_to_load).get(f'SYNOLOGY_USERNAME_{self.ACCOUNT_ID}', None)      # Read the configuration for the user account given by the suffix ACCAUNT_ID
+            self.SYNOLOGY_PASSWORD = self.CONFIG.get(section_to_load).get(f'SYNOLOGY_PASSWORD_{self.ACCOUNT_ID}', None)      # Read the configuration for the user account given by the suffix ACCAUNT_ID
 
             if not self.SYNOLOGY_URL or self.SYNOLOGY_URL.strip() == '':
                 LOGGER.warning(f"WARNING : SYNOLOGY_URL not found. It will be requested on screen.")
@@ -291,8 +303,6 @@ class ClassSynologyPhotos:
                 return None
             
 
-
-    # TODO: Complete this method
     def get_user_id(self, log_level=logging.INFO):
         """
         Returns the user_id of the currently logged-in user.
@@ -300,9 +310,20 @@ class ClassSynologyPhotos:
         
         with set_log_level(LOGGER, log_level):
             try:
-                return None
+                return self.SYNOLOGY_USERNAME
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting user id. {e}")
+
+    def get_user_mail(self, log_level=logging.INFO):
+        """
+        Returns the user_mail of the currently logged-in user.
+        """
+
+        with set_log_level(LOGGER, log_level):
+            try:
+                return self.SYNOLOGY_USERNAME
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting user mail. {e}")
             
 
 

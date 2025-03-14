@@ -4,22 +4,25 @@ import os, sys
 
 CONFIG = None
 
-def load_config(config_file='Config.ini'):
+def load_config(config_file='Config.ini', section_to_load='all'):
     #
     # Load and Set Global CONFIG variable
     #
     global CONFIG
 
     if CONFIG:
-        return CONFIG  # Configuration already read previously
+        sections_loaded = CONFIG.keys()
+        if section_to_load in sections_loaded:
+            return CONFIG  # Configuration already read previously
+    else:
+        CONFIG = {}
 
-    LOGGER.info(f"INFO    : Searching for configuration file '{config_file}'...")
+    LOGGER.info(f"INFO    : Searching for section(s) [{section_to_load}] in configuration file '{config_file}'...")
     if not os.path.exists(config_file):
         LOGGER.error(f"ERROR   : Configuration file '{config_file}' not found. Exiting...")
         sys.exit(1)  # Termina el programa si no encuentra el archivo
 
-    CONFIG = {}
-    LOGGER.info(f"INFO    : Configuration file found. Loading configuration...")
+    LOGGER.info(f"INFO    : Configuration file found. Loading configuration for section(s) '{section_to_load}'...")
 
     # Preprocesar el archivo para eliminar claves duplicadas antes de leerlo con ConfigParser
     seen_keys = set()  # Conjunto para almacenar claves únicas
@@ -60,28 +63,28 @@ def load_config(config_file='Config.ini'):
 
     # Define the Sections and Keys to find in config_file
     config_keys = {
-        'Synology Photos': ['SYNOLOGY_URL', 'SYNOLOGY_USERNAME', 'SYNOLOGY_PASSWORD'],
-        'Immich Photos': ['IMMICH_URL', 'IMMICH_ADMIN_API_KEY', 'IMMICH_USER_API_KEY', 'IMMICH_USERNAME', 'IMMICH_PASSWORD', 'IMMICH_FILTER_ARCHIVE', 'IMMICH_FILTER_FROM', 'IMMICH_FILTER_TO', 'IMMICH_FILTER_COUNTRY', 'IMMICH_FILTER_CITY', 'IMMICH_FILTER_PERSON'],
+        'Synology Photos': ['SYNOLOGY_URL', 'SYNOLOGY_USERNAME_1', 'SYNOLOGY_PASSWORD_1', 'SYNOLOGY_USERNAME_2', 'SYNOLOGY_PASSWORD_2'],
+        'Immich Photos': ['IMMICH_URL', 'IMMICH_API_KEY_ADMIN', 'IMMICH_API_KEY_USER_1', 'IMMICH_USERNAME_1', 'IMMICH_PASSWORD_1', 'IMMICH_API_KEY_USER_2', 'IMMICH_USERNAME_2', 'IMMICH_PASSWORD_2', 'IMMICH_FILTER_ARCHIVE', 'IMMICH_FILTER_FROM', 'IMMICH_FILTER_TO', 'IMMICH_FILTER_COUNTRY', 'IMMICH_FILTER_CITY', 'IMMICH_FILTER_PERSON'],
         'Apple Photos': ['max_photos', 'appleid', 'applepwd', 'album', 'to_directory', 'date_from', 'date_to', 'asset_from', 'asset_to'],
         'TimeZone': ['timezone']
     }
 
     # Read all defined keys
     for section, keys in config_keys.items():
-        for key in keys:
-            if config.has_option(section, key):
-                CONFIG[key] = clean_value(config.get(section, key, raw=True))
-                if CONFIG[key].strip() == '':
-                    LOGGER.warning(f"WARNING : Missing value for key '{key}' in section '{section}', skipping.")
-            else:
-                LOGGER.warning(f"WARNING : Missing key '{key}' in section '{section}', skipping.")
+        if section == section_to_load or section_to_load.lower() == 'all':
+            if section not in CONFIG:
+                CONFIG[section] = {}  # Asegurar que la sección existe en el diccionario
 
-    # Additional default values to add to CONFIG
-    CONFIG['downloadedphotos'] = 0
-    CONFIG['skippedphotos'] = 0
-    CONFIG['photofileexists'] = 0
+            for key in keys:
+                if config.has_option(section, key):
+                    value = clean_value(config.get(section, key, raw=True))
+                    CONFIG[section][key] = value  # Agregar al diccionario sin sobrescribir otros valores
+                    if key.strip() == '':
+                        LOGGER.warning(f"WARNING: Missing value for key '{key}' in section '{section}', skipping.")
+                else:
+                    LOGGER.warning(f"WARNING: Missing key '{key}' in section '{section}', skipping.")
 
-    LOGGER.info(f"INFO    : Configuration Read Successfully from '{config_file}'.")
+    LOGGER.info(f"INFO    : Configuration Read Successfully from '{config_file}' for section '{section_to_load}'.")
     return CONFIG
 
 
@@ -97,10 +100,10 @@ if __name__ == "__main__":
     LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=LOG_LEVEL)
 
     if len(sys.argv[1:]) == 0:
-        CONFIG = load_config('../Config.ini')
+        CONFIG = load_config(config_file='../Config.ini', section_to_load='Synology Photos')
         print("\nUsing Configuration File: ['Config.ini']\n")
     else:
-        CONFIG = load_config(sys.argv[1])
+        CONFIG = load_config(config_file=sys.argv[1], section_to_load='All')
         print("\nUsing Configuration File:", sys.argv[1:], "\n")
 
     # Imprimir cada clave-valor en líneas separadas

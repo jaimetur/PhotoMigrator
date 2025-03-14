@@ -43,13 +43,19 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
             'total_downloaded_photos': 0,
             'total_downloaded_videos': 0,
             'total_downloaded_albums': 0,
-            'total_download_skipped_assets': 0,
+            'total_download_failed_assets': 0,
+            'total_download_failed_photos': 0,
+            'total_download_failed_videos': 0,
+            'total_download_failed_albums': 0,
 
             'total_uploaded_assets': 0,
             'total_uploaded_photos': 0,
             'total_uploaded_videos': 0,
             'total_uploaded_albums': 0,
-            'total_upload_skipped_assets': 0,
+            'total_upload_failed_assets': 0,
+            'total_upload_failed_photos': 0,
+            'total_upload_failed_videos': 0,
+            'total_upload_failed_albums': 0,
             'total_upload_duplicates_assets': 0,
         }
 
@@ -57,13 +63,14 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
         input_info = {
             "source_client_name": "Source Client",
             "target_client_name": "Target Client",
-            "total_medias": 0,
+            "total_assets": 0,
             "total_photos": 0,
             "total_videos": 0,
             "total_albums": 0,
             "total_metadata": 0,
             "total_sidecar": 0,
             "total_unsupported": 0,
+            "assets_in_queue": 0,
         }
 
         SHARED_DATA = SharedData(input_info, counters, logs_queue)
@@ -80,14 +87,26 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
         # ---------------------------------------------------------------------------------------------------------
         def get_client_object(client_type):
             """Retorna la instancia del cliente en función del tipo de fuente o destino."""
-            if client_type.lower() == 'synology-photos':
-                return ClassSynologyPhotos()
-            elif client_type.lower() == 'immich-photos':
-                return ClassImmichPhotos()
+
+            # Return ClassSynologyPhotos
+            if client_type.lower() in ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1']:
+                return ClassSynologyPhotos(ACCOUNT_ID=1)
+            elif client_type.lower() in ['synology-photos-2', 'synology-photos2', 'synology-2', 'synology2']:
+                return ClassSynologyPhotos(ACCOUNT_ID=2)
+
+            # Return ClassImmichPhotos
+            elif client_type.lower() in ['immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1']:
+                return ClassImmichPhotos(ACCOUNT_ID=1)
+            elif client_type.lower() in ['immich-photos-2', 'immich-photos2', 'immich-2', 'immich2']:
+                return ClassImmichPhotos(ACCOUNT_ID=2)
+
+            # Return ClassTakeoutFolder
             elif Path(client_type).is_dir() and (Utils.contains_zip_files(client_type) or Utils.contains_takeout_structure(client_type)):
-                return ClassTakeoutFolder(client_type)
+                return ClassTakeoutFolder(client_type)              # In this clase, client_type is the path to the Takeout Folder
+
+            # Return ClassLocalFolder
             elif Path(client_type).is_dir():
-                return ClassLocalFolder(base_folder=client_type)
+                return ClassLocalFolder(base_folder=client_type)    # In this clase, client_type is the path to the base Local Folder
             else:
                 raise ValueError(f"ERROR   : Tipo de cliente no válido: {client_type}")
 
@@ -100,13 +119,14 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
         target_client_name = target_client.get_client_name()
         SHARED_DATA.input_info.update({"target_client_name": target_client_name})
 
+        LOGGER.info("")
         LOGGER.info(f"INFO    : -AUTO, --AUTOMATED-MIGRATION Mode detected")
         if not isinstance(source_client, ClassTakeoutFolder):
             LOGGER.info(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE>', f"'{source}'").replace('<TARGET>', f"'{target}'"))
         else:
             LOGGER.info(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{source}'").replace('<TARGET>', f"'{target}'").replace('Downloading', 'Analyzing and Fixing'))
-        LOGGER.info(f"INFO    : Selected source : {source}")
-        LOGGER.info(f"INFO    : Selected target : {target}")
+        LOGGER.info(f"INFO    : Selected source : {source_client_name}")
+        LOGGER.info(f"INFO    : Selected target : {target_client_name}")
         LOGGER.info("")
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
@@ -282,10 +302,22 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             """
             with file_paths_lock:
                 asset_file_path = item_dict['asset_file_path']
+                SHARED_DATA.input_info['assets_in_queue'] = upload_queue.qsize()
+
                 if asset_file_path in added_file_paths:
                     # El item ya fue añadido anteriormente
                     return False
                 else:
+                    # Esperar si la cola tiene más de 100 elementos
+                    while upload_queue.qsize() > 100:
+                        time.sleep(1)  # Esperar 1 segundo antes de revisar de nuevo
+                        SHARED_DATA.input_info['assets_in_queue']=upload_queue.qsize()
+
+                    # Esperar hasta que la cola baje a 10 elementos antes de continuar
+                    while upload_queue.qsize() > 10:
+                        time.sleep(0.5)  # Revisar cada 0.5 segundos si la cola ya se redujo
+                        SHARED_DATA.input_info['assets_in_queue'] = upload_queue.qsize()
+
                     # Añadir a la cola y al registro global
                     upload_queue.put(item_dict)
                     added_file_paths.add(asset_file_path)
@@ -303,7 +335,12 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 SHARED_DATA.counters['total_downloaded_albums'] += 1
 
                 # Descargar todos los assets de este álbum
-                album_assets = source_client.get_album_assets(album_id)
+                try:
+                    album_assets = source_client.get_album_assets(album_id)
+                    if not album_assets:
+                        SHARED_DATA.counters['total_download_failed_albums'] += 1
+                except:
+                    SHARED_DATA.counters['total_download_failed_albums'] += 1
 
                 for asset in album_assets:
                     asset_id = asset['id']
@@ -331,6 +368,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         os.remove(lock_file)
                     except Exception as e:
                         LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
+                        SHARED_DATA.counters['total_download_failed_assets'] += 1
 
                     set_log_level(LOGGER, log_level)
                     LOGGER.info(f"INFO    : Asset Downloaded: '{os.path.join(album_folder,os.path.basename(asset_filename))}'")
@@ -344,7 +382,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         else:
                             SHARED_DATA.counters['total_downloaded_photos'] += downloaded_assets
                     else:
-                        SHARED_DATA.counters['total_download_skipped_assets'] += 1
+                        SHARED_DATA.counters['total_download_failed_assets'] += 1
+                        if asset_type.lower() == 'video':
+                            SHARED_DATA.counters['total_download_failed_videos'] += 1
+                        else:
+                            SHARED_DATA.counters['total_download_failed_photos'] += 1
 
                     # Enviar a la cola con la información necesaria para la subida
                     local_file_path = os.path.join(album_folder, asset_filename)
@@ -368,6 +410,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 assets_no_album = source_client.get_no_albums_assets()
             except Exception as e:
                 LOGGER.error(f"ERROR  : Error Getting Asset without Albums")
+                SHARED_DATA.counters['total_download_failed_albums'] += 1
 
             downloaded_assets = 0
             for asset in assets_no_album:
@@ -392,6 +435,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     os.remove(lock_file)
                 except Exception as e:
                     LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
+                    SHARED_DATA.counters['total_download_failed_assets'] += 1
 
                 local_file_path = os.path.join(temp_folder, asset_filename)
                 set_log_level(LOGGER, log_level)
@@ -405,7 +449,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     else:
                         SHARED_DATA.counters['total_downloaded_photos'] += downloaded_assets
                 else:
-                    SHARED_DATA.counters['total_download_skipped_assets'] += 1
+                    SHARED_DATA.counters['total_download_failed_assets'] += 1
+                    if asset_type.lower() == 'video':
+                        SHARED_DATA.counters['total_download_failed_videos'] += 1
+                    else:
+                        SHARED_DATA.counters['total_download_failed_photos'] += 1
 
                 # Enviar a la cola sin album_name
                 asset_dict = {
@@ -447,30 +495,41 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     asset_type = asset['asset_type']
                     album_name = asset['album_name']
 
-                    # SUBIR el asset
-                    asset_id, isDuplicated = target_client.upload_asset(file_path=asset_file_path, log_level=logging.WARNING)
+                    try:
+                        # SUBIR el asset
+                        asset_id, isDuplicated = target_client.upload_asset(file_path=asset_file_path, log_level=logging.WARNING)
 
-                    # Actualizamos Contadores de subidas
-                    if asset_id:
-                        if isDuplicated:
-                            SHARED_DATA.counters['total_upload_duplicates_assets'] += 1
-                            LOGGER.info(f"INFO    : Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
-                        else:
-                            SHARED_DATA.counters['total_uploaded_assets'] += 1
-                            if asset_type.lower() == 'video':
-                                SHARED_DATA.counters['total_uploaded_videos'] += 1
+                        # Actualizamos Contadores de subidas
+                        if asset_id:
+                            if isDuplicated:
+                                LOGGER.info(f"INFO    : Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
+                                SHARED_DATA.counters['total_upload_duplicates_assets'] += 1
                             else:
-                                SHARED_DATA.counters['total_uploaded_photos'] += 1
-                            LOGGER.info(f"INFO    : Asset Uploaded  : '{asset_file_path}'")
-                    else:
-                        SHARED_DATA.counters['total_upload_skipped_assets'] += 1
+                                SHARED_DATA.counters['total_uploaded_assets'] += 1
+                                if asset_type.lower() == 'video':
+                                    SHARED_DATA.counters['total_uploaded_videos'] += 1
+                                else:
+                                    SHARED_DATA.counters['total_uploaded_photos'] += 1
+                                LOGGER.info(f"INFO    : Asset Uploaded  : '{asset_file_path}'")
+                        else:
+                            SHARED_DATA.counters['total_upload_failed_assets'] += 1
+                            if asset_type.lower() == 'video':
+                                SHARED_DATA.counters['total_upload_failed_videos'] += 1
+                            else:
+                                SHARED_DATA.counters['total_upload_failed_photos'] += 1
 
-                    # Borrar asset de la carpeta temp_folder tras subir
-                    if os.path.exists(asset_file_path):
-                        try:
-                            os.remove(asset_file_path)
-                        except:
-                            pass
+                        # Borrar asset de la carpeta temp_folder tras subir
+                        if os.path.exists(asset_file_path):
+                            try:
+                                os.remove(asset_file_path)
+                            except:
+                                pass
+                    except:
+                        SHARED_DATA.counters['total_upload_failed_assets'] += 1
+                        if asset_type.lower() == 'video':
+                            SHARED_DATA.counters['total_upload_failed_videos'] += 1
+                        else:
+                            SHARED_DATA.counters['total_upload_failed_photos'] += 1
 
                     # Si existe album_name, manejar álbum en destino
                     if album_name:
@@ -485,8 +544,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         if not album_exists:
                             album_id_dest = target_client.create_album(album_name=album_name, log_level=logging.WARNING)
 
-                        # Añadir el asset al álbum
-                        target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.WARNING)
+                        try:
+                            # Añadir el asset al álbum
+                            target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.WARNING)
+                        except:
+                            SHARED_DATA.counters['total_upload_failed_albums'] += 1
 
                         # Verificar si la carpeta local del álbum está vacía y borrarla
                         album_folder_path = os.path.join(temp_folder, album_name)
@@ -534,7 +596,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         all_unsupported = [asset for asset in all_supported_assets if asset['type'].lower() in ['unknown']]
 
         SHARED_DATA.input_info.update({
-            "total_medias": len(all_medias),
+            "total_assets": len(all_medias),
             "total_photos": len(all_photos),
             "total_videos": len(all_videos),
             "total_albums": len(all_albums),
@@ -603,8 +665,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         LOGGER.info(f"INFO    : Downloaded Assets           : {SHARED_DATA.counters['total_downloaded_assets']} (Fotos: {SHARED_DATA.counters['total_downloaded_photos']}, Videos: {SHARED_DATA.counters['total_downloaded_videos']})")
         LOGGER.info(f"INFO    : Uploaded Assets             : {SHARED_DATA.counters['total_uploaded_assets']} (Fotos: {SHARED_DATA.counters['total_uploaded_photos']}, Videos: {SHARED_DATA.counters['total_uploaded_videos']})")
         LOGGER.info(f"INFO    : Upload Duplicates (skipped) : {SHARED_DATA.counters['total_upload_duplicates_assets']}")
-        LOGGER.info(f"INFO    : Download Skipped            : {SHARED_DATA.counters['total_download_skipped_assets']}")
-        LOGGER.info(f"INFO    : Upload Skipped              : {SHARED_DATA.counters['total_upload_skipped_assets']}")
+        LOGGER.info(f"INFO    : Download Failed Assets      : {SHARED_DATA.counters['total_download_failed_assets']}")
+        LOGGER.info(f"INFO    : Upload Failed Assets        : {SHARED_DATA.counters['total_upload_failed_assets']}")
         LOGGER.info(f"")
         LOGGER.info(f"INFO    : Migration Job completed in  : {formatted_duration}")
         LOGGER.info(f"")
@@ -685,7 +747,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
 
     log_file = Utils.get_logger_filename(LOGGER)
 
-    total_medias        = SHARED_DATA.input_info.get('total_medias', 0)
+    total_assets        = SHARED_DATA.input_info.get('total_assets', 0)
     total_photos        = SHARED_DATA.input_info.get('total_photos', 0)
     total_videos        = SHARED_DATA.input_info.get('total_videos', 0)
     total_albums        = SHARED_DATA.input_info.get('total_albums', 0)
@@ -696,17 +758,24 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     target_client_name  = SHARED_DATA.input_info.get("target_client_name", "Target Client")
 
     KEY_MAPING = {
-        "📊 Downloaded Assets": ("total_downloaded_assets", "total_medias"),
+        "📊 Downloaded Assets": ("total_downloaded_assets", "total_assets"),
         "📷 Downloaded Photos": ("total_downloaded_photos", "total_photos"),
         "🎥 Downloaded Videos": ("total_downloaded_videos", "total_videos"),
         "📂 Downloaded Albums": ("total_downloaded_albums", "total_albums"),
-        "⏭️ Download Skipped Assets": "total_download_skipped_assets",
+        "⛔ Download Failed Assets": "total_download_failed_assets",
+        "⛔ Download Failed Photos": "total_download_failed_photos",
+        "⛔ Download Failed Videos": "total_download_failed_videos",
+        "⛔ Download Failed Albums": "total_download_failed_albums",
 
-        "📊 Uploaded Assets": ("total_uploaded_assets", "total_medias"),
+        "📊 Uploaded Assets": ("total_uploaded_assets", "total_assets"),
         "📷 Uploaded Photos": ("total_uploaded_photos", "total_photos"),
         "🎥 Uploaded Videos": ("total_uploaded_videos", "total_videos"),
         "📂 Uploaded Albums": ("total_uploaded_albums", "total_albums"),
-        "⏭️ Upload Skipped Assets": "total_upload_skipped_assets",
+        "⛔ Upload Failed Assets": "total_upload_failed_assets",
+        "⛔ Upload Failed Photos": "total_upload_failed_photos",
+        "⛔ Upload Failed Videos": "total_upload_failed_videos",
+        "⛔ Upload Failed Albums": "total_upload_failed_albums",
+        "📋 Upload Duplicated Assets": "total_upload_duplicates_assets",
     }
 
     # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (11 lines), logs fill remainder
@@ -771,13 +840,14 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     # ─────────────────────────────────────────────────────────────────────────
     def build_info_panel():
         info_data = [
-            ("📊 Total Assets", SHARED_DATA.input_info.get('total_medias', 0)),
+            ("📊 Total Assets", SHARED_DATA.input_info.get('total_assets', 0)),
             ("📷 Total Photos", SHARED_DATA.input_info.get('total_photos', 0)),
             ("🎥 Total Videos", SHARED_DATA.input_info.get('total_videos', 0)),
             ("📂 Total Albums", SHARED_DATA.input_info.get('total_albums', 0)),
             ("📑 Total Metadata", SHARED_DATA.input_info.get('total_metadata', 0)),
             ("📑 Total Sidecar", SHARED_DATA.input_info.get('total_sidecar', 0)),
             ("🚫 Unsupported Files", SHARED_DATA.input_info.get('total_unsupported', 0)),
+            ("⏳ Assets in Queue", SHARED_DATA.input_info.get('assets_in_queue', 0)),
         ]
 
         # Creamos la tabla usando Grid
@@ -811,46 +881,47 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
                 pulse_style="bar.pulse"
                 # pulse_style=f"{color} bold"
             ),
-
             TextColumn(f"[{color}]{counter:>15}[/{color}]"),
             console=console,
             expand=True
         )
 
     # DOWNLOADS (Cyan)
-    download_bars = {
-        "📊 Downloaded Assets": (create_progress_bar("cyan"), total_medias),
-        "📷 Downloaded Photos": (create_progress_bar("cyan"), total_photos),
-        "🎥 Downloaded Videos": (create_progress_bar("cyan"), total_videos),
-        "📂 Downloaded Albums": (create_progress_bar("cyan"), total_albums),
+    download_bars = { # Dicccionario de Tuplas (bar, etiqueta_contador_completados, etiqueta_contador_totales)
+        "📊 Downloaded Assets": (create_progress_bar("cyan"), 'total_downloaded_assets', "total_assets"),
+        "📷 Downloaded Photos": (create_progress_bar("cyan"), 'total_downloaded_photos', "total_photos"),
+        "🎥 Downloaded Videos": (create_progress_bar("cyan"), 'total_downloaded_videos', "total_videos"),
+        "📂 Downloaded Albums": (create_progress_bar("cyan"), 'total_downloaded_albums', "total_albums"),
     }
     failed_downloads = {
-        "⛔📊 Assets Failed": 0,
-        "⛔📷 Photos Failed": 0,
-        "⛔🎥 Videos Failed": 0,
-        "⛔📂 Albums Failed": 0,
+        "⛔📊 Assets Failed": 'total_download_failed_assets',
+        "⛔📷 Photos Failed": 'total_download_failed_photos',
+        "⛔🎥 Videos Failed": 'total_download_failed_videos',
+        "⛔📂 Albums Failed": 'total_download_failed_albums',
     }
     download_tasks = {}
-    for label, (bar, total) in download_bars.items():
-        download_tasks[label] = bar.add_task(label, total=total)
+    for label, (bar, completed_label, total_label) in download_bars.items():
+        # bar.add_task retturns the task_id and we create a dictionary {task_label: task_id}
+        download_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=SHARED_DATA.input_info.get(total_label, 0))
 
     # UPLOADS (Green)
-    upload_bars = {
-        "📊 Uploaded Assets": (create_progress_bar("green"), total_medias),
-        "📷 Uploaded Photos": (create_progress_bar("green"), total_photos),
-        "🎥 Uploaded Videos": (create_progress_bar("green"), total_videos),
-        "📂 Uploaded Albums": (create_progress_bar("green"), total_albums),
+    upload_bars = {  # Dicccionario de Tuplas (bar, etiqueta_contador_completados, etiqueta_contador_totales)
+        "📊 Uploaded Assets": (create_progress_bar("green"), 'total_uploaded_assets', "total_assets"),
+        "📷 Uploaded Photos": (create_progress_bar("green"), 'total_uploaded_photos', "total_photos"),
+        "🎥 Uploaded Videos": (create_progress_bar("green"), 'total_uploaded_videos', "total_videos"),
+        "📂 Uploaded Albums": (create_progress_bar("green"), 'total_uploaded_albums', "total_albums"),
     }
     failed_uploads = {
-        "⛔📊 Assets Failed": 0,
-        "⛔📷 Photos Failed": 0,
-        "⛔🎥 Videos Failed": 0,
-        "⛔📂 Albums Failed": 0,
-        "⚠️ Assets Duplicated ": 0,
+        "⛔📊 Assets Failed": 'total_upload_failed_assets',
+        "⛔📷 Photos Failed": 'total_upload_failed_photos',
+        "⛔🎥 Videos Failed": 'total_upload_failed_videos',
+        "⛔📂 Albums Failed": 'total_upload_failed_albums',
+        "📋📋 Assets Duplicated ": 'total_upload_duplicates_assets',
     }
     upload_tasks = {}
-    for label, (bar, total) in upload_bars.items():
-        upload_tasks[label] = bar.add_task(label, total=total)
+    for label, (bar, completed_label, total_label) in upload_bars.items():
+        # bar.add_task retturns the task_id and we create a dictionary {task_label: task_id}
+        upload_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=SHARED_DATA.input_info.get(total_label, 0))
 
     # ─────────────────────────────────────────────────────────────────────────
     # 4) Build the Download/Upload Panels
@@ -859,26 +930,69 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         table = Table.grid(expand=True)
         table.add_column(justify="left", width=25)
         table.add_column(justify="right")
-        for label, (bar, total) in download_bars.items():
+        for label, (bar, _, _) in download_bars.items():
             table.add_row(f"[cyan]{label:<20}:[/cyan]", bar)
-        for label, val in failed_downloads.items():
-            table.add_row(f"[cyan]{label:<19}:[/cyan]", f"[cyan]{val}[/cyan]")
+        for label, counter_label in failed_downloads.items():
+            value = SHARED_DATA.counters[counter_label]
+            table.add_row(f"[cyan]{label:<19}:[/cyan]", f"[cyan]{value}[/cyan]")
         return Panel(table, title=f'📥 {SHARED_DATA.input_info.get("source_client_name", "Source Client")} Downloads', border_style="cyan", expand=True)
 
     def build_upload_panel():
         table = Table.grid(expand=True)
         table.add_column(justify="left", width=24)
         table.add_column(justify="right")
-        for label, (bar, total) in upload_bars.items():
-            table.add_row(f"[green]{label:<19}:[/green]", bar)
-        for label, val in failed_uploads.items():
-            table.add_row(f"[green]{label:<18}:[/green]", f"[green]{val}[/green]")
+        for label, (bar, _, _) in upload_bars.items():
+            table.add_row(f"[green]{label:<22}:[/green]", bar)
+        for label, counter_label in failed_uploads.items():
+            value = SHARED_DATA.counters[counter_label]
+            table.add_row(f"[green]{label:<21}:[/green]", f"[green]{value}[/green]")
         return Panel(table, title=f'📤 {SHARED_DATA.input_info.get("target_client_name", "Source Client")} Uploads', border_style="green", expand=True)
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 5) Logging Panel from Memmory Handler
-    # ─────────────────────────────────────────────────────────────────────────
 
+    # ─────────────────────────────────────────────────────────────────────────
+    # 5) Update Downloads/Uploads Panels
+    # ─────────────────────────────────────────────────────────────────────────
+    def update_downloads_panel():
+        # time.sleep(random.uniform(0.05, 0.2))
+        for label, (bar, completed_labeld, total_label) in download_bars.items():
+            bar.update(download_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.input_info.get(total_label, 0))
+        for label, counter_label in failed_downloads.items():
+            value = SHARED_DATA.counters[counter_label]
+            failed_downloads[label] = value
+
+        # for label, (bar, _, _) in download_bars.items():
+        #     current_value = SHARED_DATA.counters[KEY_MAPING[label][0]]
+        #     total_value = SHARED_DATA.input_info[KEY_MAPING[label][1]]
+        #     bar.update(download_tasks[label], completed=current_value, total=total_value)
+        #     # bar.advance(download_tasks[label], random.randint(1, 50))
+        # failed_downloads["⛔📊 Assets Failed"] = SHARED_DATA.counters['total_download_failed_assets']
+        # failed_downloads["⛔📷 Photos Failed"] = SHARED_DATA.counters['total_download_failed_photos']
+        # failed_downloads["⛔🎥 Videos Failed"] = SHARED_DATA.counters['total_download_failed_videos']
+        # failed_downloads["⛔📂 Albums Failed"] = SHARED_DATA.counters['total_download_failed_albums']
+
+    def update_uploads_panel():
+        # time.sleep(random.uniform(0.05, 0.2))
+        for label, (bar, completed_labeld, total_label) in upload_bars.items():
+            bar.update(upload_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.input_info.get(total_label, 0))
+        for label, counter_label in failed_uploads.items():
+            value = SHARED_DATA.counters[counter_label]
+            failed_uploads[label] = value
+
+        # for label, (bar, total) in upload_bars.items():
+        #     current_value = SHARED_DATA.counters[KEY_MAPING[label][0]]
+        #     total_value = SHARED_DATA.input_info[KEY_MAPING[label][1]]
+        #     bar.update(upload_tasks[label], completed=current_value, total=total_value)
+        #     # bar.advance(upload_tasks[label], random.randint(1, 50))
+        # failed_uploads["⛔📊 Assets Failed"]    = SHARED_DATA.counters['total_upload_failed_assets']
+        # failed_uploads["⛔📷 Photos Failed"]    = SHARED_DATA.counters['total_upload_failed_photos']
+        # failed_uploads["⛔🎥 Videos Failed"]    = SHARED_DATA.counters['total_upload_failed_videos']
+        # failed_uploads["⛔📂 Albums Failed"]    = SHARED_DATA.counters['total_upload_failed_albums']
+        # failed_uploads["📋📋 Assets Duplicated"] = SHARED_DATA.counters['total_upload_duplicates_assets']
+
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 6) Logging Panel from Memmory Handler
+    # ─────────────────────────────────────────────────────────────────────────
     # Lista (o deque) para mantener todo el historial de logs ya mostrados
     logs_panel_height = terminal_height - fixed_heights - 2  # Espacio restante. Restamos 2 para quitar las líneas del borde superior e inferior del panel de Logs
     ACCU_LOGS = deque(maxlen=logs_panel_height)
@@ -932,48 +1046,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
 
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 6) Update Downloads/Uploads Panels
-    # ─────────────────────────────────────────────────────────────────────────
-    def update_downloads_panel():
-        time.sleep(random.uniform(0.05, 0.2))
-        for label, (bar, total) in download_bars.items():
-            current_value = SHARED_DATA.counters[KEY_MAPING[label][0]]
-            total_value = SHARED_DATA.input_info[KEY_MAPING[label][1]]
-            bar.update(download_tasks[label], completed=current_value, total=total_value)
-            # bar.advance(download_tasks[label], random.randint(1, 50))
-
-        failed_downloads["⛔📊 Assets Failed"] = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
-        failed_downloads["⛔📷 Photos Failed"] = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
-        failed_downloads["⛔🎥 Videos Failed"] = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
-        failed_downloads["⛔📂 Albums Failed"] = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
-
-
-    def update_uploads_panel():
-        time.sleep(random.uniform(0.05, 0.2))
-        for label, (bar, total) in upload_bars.items():
-            current_value = SHARED_DATA.counters[KEY_MAPING[label][0]]
-            total_value = SHARED_DATA.input_info[KEY_MAPING[label][1]]
-            bar.update(upload_tasks[label], completed=current_value, total=total_value)
-            # bar.advance(upload_tasks[label], random.randint(1, 50))
-
-        failed_uploads["⚠️ Assets Duplicated "] = SHARED_DATA.counters['total_upload_duplicates_assets']
-        failed_uploads["⛔📊 Assets Failed"]    = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
-        failed_uploads["⛔📷 Photos Failed"]    = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
-        failed_uploads["⛔🎥 Videos Failed"]    = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
-        failed_uploads["⛔📂 Albums Failed"]    = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
-
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 7) Optional: Print Log Message in Logging Panel
-    # ─────────────────────────────────────────────────────────────────────────
-    def log_message(message: str):
-        old_text = log_panel.renderable or ""
-        new_text = f"{old_text}\n{message}"
-        log_panel = Panel(new_text, title="📜 Logs", border_style="red", expand=True)
-
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 8) Main Live Loop
+    # 7) Main Live Loop
     # ─────────────────────────────────────────────────────────────────────────
     with Live(layout, refresh_per_second=1, console=console, vertical_overflow="crop"):
         try:
@@ -986,8 +1059,8 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
 
             # Continue the loop until migration_finished.is_set()
             while not migration_finished.is_set():
-                update_downloads_panel()
-                update_uploads_panel()
+                # update_downloads_panel()
+                # update_uploads_panel()
                 layout["info_panel"].update(build_info_panel())
                 layout["downloads_panel"].update(build_download_panel())
                 layout["uploads_panel"].update(build_upload_panel())
@@ -998,8 +1071,8 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
             time.sleep(1)
 
             # Al terminar, asegurarse que todos los paneles finales se muestren
-            update_downloads_panel()
-            update_uploads_panel()
+            # update_downloads_panel()
+            # update_uploads_panel()
             layout["downloads_panel"].update(build_download_panel())
             layout["uploads_panel"].update(build_upload_panel())
             layout["logs_panel"].update(build_log_panel())
