@@ -43,13 +43,19 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
             'total_downloaded_photos': 0,
             'total_downloaded_videos': 0,
             'total_downloaded_albums': 0,
-            'total_download_skipped_assets': 0,
+            'total_download_failed_assets': 0,
+            'total_download_failed_photos': 0,
+            'total_download_failed_videos': 0,
+            'total_download_failed_albums': 0,
 
             'total_uploaded_assets': 0,
             'total_uploaded_photos': 0,
             'total_uploaded_videos': 0,
             'total_uploaded_albums': 0,
-            'total_upload_skipped_assets': 0,
+            'total_upload_failed_assets': 0,
+            'total_upload_failed_photos': 0,
+            'total_upload_failed_videos': 0,
+            'total_upload_failed_albums': 0,
             'total_upload_duplicates_assets': 0,
         }
 
@@ -316,7 +322,10 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 SHARED_DATA.counters['total_downloaded_albums'] += 1
 
                 # Descargar todos los assets de este álbum
-                album_assets = source_client.get_album_assets(album_id)
+                try:
+                    album_assets = source_client.get_album_assets(album_id)
+                except:
+                    SHARED_DATA.counters['total_download_failed_albums'] += 1
 
                 for asset in album_assets:
                     asset_id = asset['id']
@@ -344,6 +353,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         os.remove(lock_file)
                     except Exception as e:
                         LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
+                        SHARED_DATA.counters['total_download_failed_assets'] += 1
 
                     set_log_level(LOGGER, log_level)
                     LOGGER.info(f"INFO    : Asset Downloaded: '{os.path.join(album_folder,os.path.basename(asset_filename))}'")
@@ -357,7 +367,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         else:
                             SHARED_DATA.counters['total_downloaded_photos'] += downloaded_assets
                     else:
-                        SHARED_DATA.counters['total_download_skipped_assets'] += 1
+                        SHARED_DATA.counters['total_download_failed_assets'] += 1
+                        if asset_type.lower() == 'video':
+                            SHARED_DATA.counters['total_download_failed_videos'] += 1
+                        else:
+                            SHARED_DATA.counters['total_download_failed_photos'] += 1
 
                     # Enviar a la cola con la información necesaria para la subida
                     local_file_path = os.path.join(album_folder, asset_filename)
@@ -381,6 +395,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 assets_no_album = source_client.get_no_albums_assets()
             except Exception as e:
                 LOGGER.error(f"ERROR  : Error Getting Asset without Albums")
+                SHARED_DATA.counters['total_download_failed_albums'] += 1
 
             downloaded_assets = 0
             for asset in assets_no_album:
@@ -405,6 +420,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     os.remove(lock_file)
                 except Exception as e:
                     LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
+                    SHARED_DATA.counters['total_download_failed_assets'] += 1
 
                 local_file_path = os.path.join(temp_folder, asset_filename)
                 set_log_level(LOGGER, log_level)
@@ -418,7 +434,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     else:
                         SHARED_DATA.counters['total_downloaded_photos'] += downloaded_assets
                 else:
-                    SHARED_DATA.counters['total_download_skipped_assets'] += 1
+                    SHARED_DATA.counters['total_download_failed_assets'] += 1
+                    if asset_type.lower() == 'video':
+                        SHARED_DATA.counters['total_download_failed_videos'] += 1
+                    else:
+                        SHARED_DATA.counters['total_download_failed_photos'] += 1
 
                 # Enviar a la cola sin album_name
                 asset_dict = {
@@ -460,30 +480,41 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     asset_type = asset['asset_type']
                     album_name = asset['album_name']
 
-                    # SUBIR el asset
-                    asset_id, isDuplicated = target_client.upload_asset(file_path=asset_file_path, log_level=logging.WARNING)
+                    try:
+                        # SUBIR el asset
+                        asset_id, isDuplicated = target_client.upload_asset(file_path=asset_file_path, log_level=logging.WARNING)
 
-                    # Actualizamos Contadores de subidas
-                    if asset_id:
-                        if isDuplicated:
-                            SHARED_DATA.counters['total_upload_duplicates_assets'] += 1
-                            LOGGER.info(f"INFO    : Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
-                        else:
-                            SHARED_DATA.counters['total_uploaded_assets'] += 1
-                            if asset_type.lower() == 'video':
-                                SHARED_DATA.counters['total_uploaded_videos'] += 1
+                        # Actualizamos Contadores de subidas
+                        if asset_id:
+                            if isDuplicated:
+                                SHARED_DATA.counters['total_upload_duplicates_assets'] += 1
+                                LOGGER.info(f"INFO    : Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
                             else:
-                                SHARED_DATA.counters['total_uploaded_photos'] += 1
-                            LOGGER.info(f"INFO    : Asset Uploaded  : '{asset_file_path}'")
-                    else:
-                        SHARED_DATA.counters['total_upload_skipped_assets'] += 1
+                                SHARED_DATA.counters['total_uploaded_assets'] += 1
+                                if asset_type.lower() == 'video':
+                                    SHARED_DATA.counters['total_uploaded_videos'] += 1
+                                else:
+                                    SHARED_DATA.counters['total_uploaded_photos'] += 1
+                                LOGGER.info(f"INFO    : Asset Uploaded  : '{asset_file_path}'")
+                        else:
+                            SHARED_DATA.counters['total_upload_failed_assets'] += 1
+                            if asset_type.lower() == 'video':
+                                SHARED_DATA.counters['total_upload_failed_videos'] += 1
+                            else:
+                                SHARED_DATA.counters['total_upload_failed_photos'] += 1
 
-                    # Borrar asset de la carpeta temp_folder tras subir
-                    if os.path.exists(asset_file_path):
-                        try:
-                            os.remove(asset_file_path)
-                        except:
-                            pass
+                        # Borrar asset de la carpeta temp_folder tras subir
+                        if os.path.exists(asset_file_path):
+                            try:
+                                os.remove(asset_file_path)
+                            except:
+                                pass
+                    except:
+                        SHARED_DATA.counters['total_upload_failed_assets'] += 1
+                        if asset_type.lower() == 'video':
+                            SHARED_DATA.counters['total_upload_failed_videos'] += 1
+                        else:
+                            SHARED_DATA.counters['total_upload_failed_photos'] += 1
 
                     # Si existe album_name, manejar álbum en destino
                     if album_name:
@@ -498,8 +529,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         if not album_exists:
                             album_id_dest = target_client.create_album(album_name=album_name, log_level=logging.WARNING)
 
-                        # Añadir el asset al álbum
-                        target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.WARNING)
+                        try:
+                            # Añadir el asset al álbum
+                            target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.WARNING)
+                        except:
+                            SHARED_DATA.counters['total_upload_failed_albums'] += 1
 
                         # Verificar si la carpeta local del álbum está vacía y borrarla
                         album_folder_path = os.path.join(temp_folder, album_name)
@@ -616,8 +650,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         LOGGER.info(f"INFO    : Downloaded Assets           : {SHARED_DATA.counters['total_downloaded_assets']} (Fotos: {SHARED_DATA.counters['total_downloaded_photos']}, Videos: {SHARED_DATA.counters['total_downloaded_videos']})")
         LOGGER.info(f"INFO    : Uploaded Assets             : {SHARED_DATA.counters['total_uploaded_assets']} (Fotos: {SHARED_DATA.counters['total_uploaded_photos']}, Videos: {SHARED_DATA.counters['total_uploaded_videos']})")
         LOGGER.info(f"INFO    : Upload Duplicates (skipped) : {SHARED_DATA.counters['total_upload_duplicates_assets']}")
-        LOGGER.info(f"INFO    : Download Skipped            : {SHARED_DATA.counters['total_download_skipped_assets']}")
-        LOGGER.info(f"INFO    : Upload Skipped              : {SHARED_DATA.counters['total_upload_skipped_assets']}")
+        LOGGER.info(f"INFO    : Download Failed Assets      : {SHARED_DATA.counters['total_download_failed_assets']}")
+        LOGGER.info(f"INFO    : Upload Failed Assets        : {SHARED_DATA.counters['total_upload_failed_assets']}")
         LOGGER.info(f"")
         LOGGER.info(f"INFO    : Migration Job completed in  : {formatted_duration}")
         LOGGER.info(f"")
@@ -713,13 +747,20 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         "📷 Downloaded Photos": ("total_downloaded_photos", "total_photos"),
         "🎥 Downloaded Videos": ("total_downloaded_videos", "total_videos"),
         "📂 Downloaded Albums": ("total_downloaded_albums", "total_albums"),
-        "⏭️ Download Skipped Assets": "total_download_skipped_assets",
+        "⛔ Download Failed Assets": "total_download_failed_assets",
+        "⛔ Download Failed Photos": "total_download_failed_photos",
+        "⛔ Download Failed Videos": "total_download_failed_videos",
+        "⛔ Download Failed Albums": "total_download_failed_albums",
 
         "📊 Uploaded Assets": ("total_uploaded_assets", "total_medias"),
         "📷 Uploaded Photos": ("total_uploaded_photos", "total_photos"),
         "🎥 Uploaded Videos": ("total_uploaded_videos", "total_videos"),
         "📂 Uploaded Albums": ("total_uploaded_albums", "total_albums"),
-        "⏭️ Upload Skipped Assets": "total_upload_skipped_assets",
+        "⛔ Upload Failed Assets": "total_upload_failed_assets",
+        "⛔ Upload Failed Photos": "total_upload_failed_photos",
+        "⛔ Upload Failed Videos": "total_upload_failed_videos",
+        "⛔ Upload Failed Albums": "total_upload_failed_albums",
+        "⚠️ Upload Duplicates Assets": "total_upload_duplicates_assets",
     }
 
     # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (11 lines), logs fill remainder
@@ -955,11 +996,10 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
             bar.update(download_tasks[label], completed=current_value, total=total_value)
             # bar.advance(download_tasks[label], random.randint(1, 50))
 
-        failed_downloads["⛔📊 Assets Failed"] = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
-        failed_downloads["⛔📷 Photos Failed"] = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
-        failed_downloads["⛔🎥 Videos Failed"] = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
-        failed_downloads["⛔📂 Albums Failed"] = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
-
+        failed_downloads["⛔📊 Assets Failed"] = SHARED_DATA.counters['total_download_failed_assets']
+        failed_downloads["⛔📷 Photos Failed"] = SHARED_DATA.counters['total_download_failed_photos']
+        failed_downloads["⛔🎥 Videos Failed"] = SHARED_DATA.counters['total_download_failed_videos']
+        failed_downloads["⛔📂 Albums Failed"] = SHARED_DATA.counters['total_download_failed_albums']
 
     def update_uploads_panel():
         time.sleep(random.uniform(0.05, 0.2))
@@ -969,11 +1009,11 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
             bar.update(upload_tasks[label], completed=current_value, total=total_value)
             # bar.advance(upload_tasks[label], random.randint(1, 50))
 
+        failed_uploads["⛔📊 Assets Failed"]    = SHARED_DATA.counters['total_upload_failed_assets']
+        failed_uploads["⛔📷 Photos Failed"]    = SHARED_DATA.counters['total_upload_failed_photos']
+        failed_uploads["⛔🎥 Videos Failed"]    = SHARED_DATA.counters['total_upload_failed_videos']
+        failed_uploads["⛔📂 Albums Failed"]    = SHARED_DATA.counters['total_upload_failed_albums']
         failed_uploads["⚠️ Assets Duplicated "] = SHARED_DATA.counters['total_upload_duplicates_assets']
-        failed_uploads["⛔📊 Assets Failed"]    = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
-        failed_uploads["⛔📷 Photos Failed"]    = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
-        failed_uploads["⛔🎥 Videos Failed"]    = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
-        failed_uploads["⛔📂 Albums Failed"]    = SHARED_DATA.counters['total_upload_duplicates_assets'] # TODO: Change this counter
 
 
     # ─────────────────────────────────────────────────────────────────────────
