@@ -55,7 +55,7 @@ class ClassLocalFolder:
         self.ALLOWED_MEDIA_EXTENSIONS = self.ALLOWED_PHOTO_EXTENSIONS + self.ALLOWED_VIDEO_EXTENSIONS
         self.ALLOWED_EXTENSIONS = self.ALLOWED_MEDIA_EXTENSIONS + self.ALLOWED_SIDECAR_EXTENSIONS + self.ALLOWED_METADATA_EXTENSIONS
 
-        self.CLIENT_NAME = 'Local Folder'
+        self.CLIENT_NAME = f'Local Folder ({self.base_folder.name})'
 
     def _determine_file_type(self, file):
         """

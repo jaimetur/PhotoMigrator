@@ -18,8 +18,8 @@ from ClassSynologyPhotos import ClassSynologyPhotos
 from ClassImmichPhotos import ClassImmichPhotos
 
 class SharedData:
-    def __init__(self, input_info, counters, logs_queue):
-        self.input_info = input_info
+    def __init__(self, info, counters, logs_queue):
+        self.info = info
         self.counters = counters
         self.logs_queue = logs_queue
 
@@ -114,11 +114,11 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
         # Creamos los objetos source_client y target_client y obtenemos sus nombres para mostrar en el show_dashboard
         source_client = get_client_object(source)
         source_client_name = source_client.get_client_name()
-        SHARED_DATA.input_info.update({"source_client_name": source_client_name})
+        SHARED_DATA.info.update({"source_client_name": source_client_name})
 
         target_client = get_client_object(target)
         target_client_name = target_client.get_client_name()
-        SHARED_DATA.input_info.update({"target_client_name": target_client_name})
+        SHARED_DATA.info.update({"target_client_name": target_client_name})
 
         LOGGER.info("")
         LOGGER.info(f"INFO    : -AUTO, --AUTOMATED-MIGRATION Mode detected")
@@ -200,57 +200,6 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
             if show_dashboard:
                 dashboard_thread.join()
 
-###########################################
-# secuencial_automated_migration Function #
-###########################################
-def secuencial_automated_migration(source_client, target_client, temp_folder, SHARED_DATA, log_level=logging.INFO):
-    """
-    Sincroniza fotos y vídeos entre un 'source_client' y un 'destination_client',
-    descargando álbumes y assets desde la fuente, y luego subiéndolos a destino,
-    de forma secuencial, primero descargas y luego subidas (requiere suficiente espacio en disco).
-
-    Parámetros:
-    -----------
-    source_client: objeto con los métodos:
-        - get_albums_including_shared_with_user() -> [ { 'id': ..., 'name': ... }, ... ]
-        - get_album_assets(album_id) -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
-        - get_no_albums_assets() -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
-        - download_asset(asset_id, download_path) -> str (ruta local del archivo descargado)
-
-    target_client: objeto con los métodos:
-        - create_album(album_name) -> album_id
-        - album_exists(album_name) -> (bool, album_id_o_None)
-        - upload_asset(asset_file_path, asset_datetime) -> asset_id
-        - add_asset_to_album(album_id, asset_id) -> None
-
-    temp_folder: str
-        Carpeta temporal donde se descargarán los assets antes de subirse.
-    """
-    
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # =========================
-        # FIRST PROCESS THE SOURCE:
-        # =========================
-        LOGGER.info("")
-        LOGGER.info(f'============================================================================')
-        LOGGER.info(f'INFO    : STEP 1 - DOWNLOAD/PROCESS ASSETS FROM: {SOURCE}')
-        LOGGER.info(f'============================================================================')
-        LOGGER.info("")
-        LOGGER.info(f'INFO    : Downloading/Processing Assets to: {SOURCE}...')
-
-        source_client.download_ALL(output_folder=temp_folder, log_level=log_level)
-
-        # =========================
-        # SECOND PROCESS THE TARGET:
-        # =========================
-        LOGGER.info("")
-        LOGGER.info(f'============================================================================')
-        LOGGER.info(f'INFO    : STEP 2 - UPLOAD/PROCESS ASSETS TO: {TARGET}')
-        LOGGER.info(f'============================================================================')
-        LOGGER.info("")
-        LOGGER.info(f'INFO    : Uploading/Processing Assets to: {TARGET}...')
-
-        target_client.upload_ALL(input_folder=temp_folder, remove_duplicates=True, log_level=log_level)
 
 #########################################
 # parallel_automated_migration Function #
@@ -286,7 +235,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
     # Set global para almacenar paths ya añadidos
     added_file_paths = set()
-    
+
     # Lock global para proteger el acceso concurrente
     file_paths_lock = threading.Lock()
 
@@ -296,6 +245,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     # 1) DESCARGAS: Función downloader_worker para descargar assets y poner en la cola
     # --------------------------------------------------------------------------------
     def downloader_worker(log_level=logging.INFO):
+
         def enqueue_unique(upload_queue, item_dict):
             """
             Añade item_dict a la cola si su asset_file_path no ha sido añadido previamente.
@@ -303,7 +253,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             """
             with file_paths_lock:
                 asset_file_path = item_dict['asset_file_path']
-                SHARED_DATA.input_info['assets_in_queue'] = upload_queue.qsize()
+                SHARED_DATA.info['assets_in_queue'] = upload_queue.qsize()
 
                 if asset_file_path in added_file_paths:
                     # El item ya fue añadido anteriormente
@@ -311,8 +261,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
                 # Pausa si la cola tiene más de 100 elementos, pero no bloquea innecesariamente
                 while upload_queue.qsize() >= 100:
-                    time.sleep(20)  # Hacemos una pausa de 10s para que la cola se vacíe
-                    SHARED_DATA.input_info['assets_in_queue'] = upload_queue.qsize()
+                    time.sleep(10)  # Hacemos una pausa de 10s para que la cola se vacíe
+                    SHARED_DATA.info['assets_in_queue'] = upload_queue.qsize()
 
                 # Si la cola está muy llena (entre 50 y 100), reducir la velocidad en vez de bloquear
                 if upload_queue.qsize() > 50:
@@ -364,7 +314,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         with open(lock_file, 'w') as lock:
                             lock.write("Downloading")
                             # Descargar el asset
-                            downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=album_folder, log_level=logging.WARNING)
+                            downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=album_folder,
+                                                                             log_level=logging.WARNING)
                         # Eliminar archivo de bloqueo después de la descarga
                         os.remove(lock_file)
                     except Exception as e:
@@ -372,7 +323,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         SHARED_DATA.counters['total_download_failed_assets'] += 1
 
                     set_log_level(LOGGER, log_level)
-                    LOGGER.info(f"INFO    : Asset Downloaded: '{os.path.join(album_folder,os.path.basename(asset_filename))}'")
+                    LOGGER.info(f"INFO    : Asset Downloaded: '{os.path.join(album_folder, os.path.basename(asset_filename))}'")
                     # LOGGER.debug(f"DEBUG   : Asset Downloaded: '{os.path.basename(asset_filename)}'")
 
                     # Actualizamos Contadores de descargas
@@ -431,7 +382,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     with open(lock_file, 'w') as lock:
                         lock.write("Downloading")
                         # Descargar directamente en temp_folder
-                        downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
+                        downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder,
+                                                                         log_level=logging.WARNING)
                     # Eliminar archivo de bloqueo después de la descarga
                     os.remove(lock_file)
                 except Exception as e:
@@ -440,7 +392,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
                 local_file_path = os.path.join(temp_folder, asset_filename)
                 set_log_level(LOGGER, log_level)
-                LOGGER.info(f"INFO    : Asset Downloaded: '{os.path.join(temp_folder,os.path.basename(asset_filename))}'")
+                LOGGER.info(f"INFO    : Asset Downloaded: '{os.path.join(temp_folder, os.path.basename(asset_filename))}'")
 
                 # Actualizamos Contadores de descargas
                 if downloaded_assets > 0:
@@ -484,6 +436,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 try:
                     # Extraemos el siguiente asset de la cola
                     asset = upload_queue.get()
+                    SHARED_DATA.info['assets_in_queue'] = upload_queue.qsize()
                     if asset is None:
                         # Si recibimos None, significa que ya no hay más trabajo
                         upload_queue.task_done()
@@ -551,7 +504,6 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         except:
                             SHARED_DATA.counters['total_upload_failed_albums'] += 1
 
-
                         # Verificar si la carpeta local del álbum está vacía y borrarla
                         album_folder_path = os.path.join(temp_folder, album_name)
                         if os.path.exists(album_folder_path):
@@ -571,7 +523,6 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     LOGGER.error(f"ERROR   : Catched Exception: {e}")
 
             LOGGER.info(f"INFO    : Uploader Task Finished!")
-                
 
     # ------------------
     # 3) HILO PRINCIPAL
@@ -584,20 +535,20 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         LOGGER.info(f"INFO    : Starting Downloading/Uploading Process...")
         LOGGER.info(f"INFO    : Source Client: {source_client_name}")
         LOGGER.info(f"INFO    : Target Client: {target_client_name}")
-        LOGGER.info(f"INFO    : Starting Automated Migration Process: {source_client_name } ➜ {target_client_name }...")
+        LOGGER.info(f"INFO    : Starting Automated Migration Process: {source_client_name} ➜ {target_client_name}...")
 
         # Get source client statistics:
         all_albums = source_client.get_albums_including_shared_with_user()
         all_supported_assets = source_client.get_all_assets()
-        
-        all_photos      = [asset for asset in all_supported_assets if asset['type'].lower() in ['photo', 'live', 'image']]
-        all_videos      = [asset for asset in all_supported_assets if asset['type'].lower() in ['video']]
-        all_medias      = all_photos + all_videos
-        all_metadata    = [asset for asset in all_supported_assets if asset['type'].lower() in ['metadata']]
-        all_sidecar     = [asset for asset in all_supported_assets if asset['type'].lower() in ['sidecar']]
+
+        all_photos = [asset for asset in all_supported_assets if asset['type'].lower() in ['photo', 'live', 'image']]
+        all_videos = [asset for asset in all_supported_assets if asset['type'].lower() in ['video']]
+        all_medias = all_photos + all_videos
+        all_metadata = [asset for asset in all_supported_assets if asset['type'].lower() in ['metadata']]
+        all_sidecar = [asset for asset in all_supported_assets if asset['type'].lower() in ['sidecar']]
         all_unsupported = [asset for asset in all_supported_assets if asset['type'].lower() in ['unknown']]
 
-        SHARED_DATA.input_info.update({
+        SHARED_DATA.info.update({
             "total_assets": len(all_medias),
             "total_photos": len(all_photos),
             "total_videos": len(all_videos),
@@ -607,14 +558,19 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             "total_unsupported": len(all_unsupported),  # Corrección de "unsopported" → "unsupported"
         })
         LOGGER.info(f"INFO    : Input Info Analysis: ")
-        for key, value in SHARED_DATA.input_info.items():
+        for key, value in SHARED_DATA.info.items():
             LOGGER.info(f"INFO    :    {key}: {value}")
 
         # ------------------------------------------------------------------------------------------------------
         # 1) Iniciar uno o varios hilos de descargas y subidas para manejar las descargas y subidas concurrentes
         # ------------------------------------------------------------------------------------------------------
-        num_upload_threads = 1
-        num_download_threads = 1 # no Iniciar más de 1 hilo de descarga, de lo contrario los assets se descargarán multiples veces.
+        # Obtain the number of Threads for the CPU and launch as many Upload workers as max(1, int(cpu_total_threads/2))
+        cpu_total_threads = os.cpu_count()
+        LOGGER.info("")
+        LOGGER.info(f"INFO    : CPU Total Threads Detected = {cpu_total_threads}")
+        num_upload_threads = max(1, int(cpu_total_threads / 2))
+        LOGGER.info(f"INFO    : Launching {num_upload_threads} Upload workers in parallel...")
+        num_download_threads = 1  # no Iniciar más de 1 hilo de descarga, de lo contrario los assets se descargarán multiples veces.
 
         # Crear hilos
         download_threads = [threading.Thread(target=downloader_worker, daemon=True) for _ in range(num_download_threads)]
@@ -664,8 +620,10 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         LOGGER.info(f"INFO    : {source_client_name} --> {target_client_name}")
         LOGGER.info(f"INFO    : Downloaded Albums           : {SHARED_DATA.counters['total_downloaded_albums']}")
         LOGGER.info(f"INFO    : Uploaded Albums             : {SHARED_DATA.counters['total_uploaded_albums']}")
-        LOGGER.info(f"INFO    : Downloaded Assets           : {SHARED_DATA.counters['total_downloaded_assets']} (Fotos: {SHARED_DATA.counters['total_downloaded_photos']}, Videos: {SHARED_DATA.counters['total_downloaded_videos']})")
-        LOGGER.info(f"INFO    : Uploaded Assets             : {SHARED_DATA.counters['total_uploaded_assets']} (Fotos: {SHARED_DATA.counters['total_uploaded_photos']}, Videos: {SHARED_DATA.counters['total_uploaded_videos']})")
+        LOGGER.info(
+            f"INFO    : Downloaded Assets           : {SHARED_DATA.counters['total_downloaded_assets']} (Fotos: {SHARED_DATA.counters['total_downloaded_photos']}, Videos: {SHARED_DATA.counters['total_downloaded_videos']})")
+        LOGGER.info(
+            f"INFO    : Uploaded Assets             : {SHARED_DATA.counters['total_uploaded_assets']} (Fotos: {SHARED_DATA.counters['total_uploaded_photos']}, Videos: {SHARED_DATA.counters['total_uploaded_videos']})")
         LOGGER.info(f"INFO    : Upload Duplicates (skipped) : {SHARED_DATA.counters['total_upload_duplicates_assets']}")
         LOGGER.info(f"INFO    : Download Failed Assets      : {SHARED_DATA.counters['total_download_failed_assets']}")
         LOGGER.info(f"INFO    : Upload Failed Assets        : {SHARED_DATA.counters['total_upload_failed_assets']}")
@@ -674,6 +632,60 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         LOGGER.info(f"")
         LOGGER.info(f"")
         return SHARED_DATA.counters
+
+
+###########################################
+# secuencial_automated_migration Function #
+###########################################
+def secuencial_automated_migration(source_client, target_client, temp_folder, SHARED_DATA, log_level=logging.INFO):
+    """
+    Sincroniza fotos y vídeos entre un 'source_client' y un 'destination_client',
+    descargando álbumes y assets desde la fuente, y luego subiéndolos a destino,
+    de forma secuencial, primero descargas y luego subidas (requiere suficiente espacio en disco).
+
+    Parámetros:
+    -----------
+    source_client: objeto con los métodos:
+        - get_albums_including_shared_with_user() -> [ { 'id': ..., 'name': ... }, ... ]
+        - get_album_assets(album_id) -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
+        - get_no_albums_assets() -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
+        - download_asset(asset_id, download_path) -> str (ruta local del archivo descargado)
+
+    target_client: objeto con los métodos:
+        - create_album(album_name) -> album_id
+        - album_exists(album_name) -> (bool, album_id_o_None)
+        - upload_asset(asset_file_path, asset_datetime) -> asset_id
+        - add_asset_to_album(album_id, asset_id) -> None
+
+    temp_folder: str
+        Carpeta temporal donde se descargarán los assets antes de subirse.
+    """
+    
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        # =========================
+        # FIRST PROCESS THE SOURCE:
+        # =========================
+        LOGGER.info("")
+        LOGGER.info(f'============================================================================')
+        LOGGER.info(f'INFO    : STEP 1 - DOWNLOAD/PROCESS ASSETS FROM: {SOURCE}')
+        LOGGER.info(f'============================================================================')
+        LOGGER.info("")
+        LOGGER.info(f'INFO    : Downloading/Processing Assets to: {SOURCE}...')
+
+        source_client.download_ALL(output_folder=temp_folder, log_level=log_level)
+
+        # =========================
+        # SECOND PROCESS THE TARGET:
+        # =========================
+        LOGGER.info("")
+        LOGGER.info(f'============================================================================')
+        LOGGER.info(f'INFO    : STEP 2 - UPLOAD/PROCESS ASSETS TO: {TARGET}')
+        LOGGER.info(f'============================================================================')
+        LOGGER.info("")
+        LOGGER.info(f'INFO    : Uploading/Processing Assets to: {TARGET}...')
+
+        target_client.upload_ALL(input_folder=temp_folder, remove_duplicates=True, log_level=log_level)
+
 
 ###########################
 # start_dashboard Function #
@@ -801,12 +813,12 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     # ─────────────────────────────────────────────────────────────────────────
     # 1) Title Panel
     # ─────────────────────────────────────────────────────────────────────────
-    title = f"[bold cyan]{SHARED_DATA.input_info.get('source_client_name')}[/bold cyan] ➜ [green]{SHARED_DATA.input_info.get('target_client_name')}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
+    title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] ➜ [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
 
     layout["title_panel"].update(Panel(f"📂 {title}", border_style="bright_blue", expand=True))
 
     def update_title_panel():
-        title = f"[bold cyan]{SHARED_DATA.input_info.get('source_client_name')}[/bold cyan] ➜ [green]{SHARED_DATA.input_info.get('target_client_name')}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
+        title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] ➜ [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
         layout["title_panel"].update(Panel(f"📂 {title}", border_style="bright_blue", expand=True))
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -815,7 +827,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     # Historial de tamaño de la cola (se ajustará dinámicamente al ancho del panel)
     queue_history = collections.deque(maxlen=10)  # Se ajustará según el ancho del panel
 
-    def build_info_panel(queue_history):
+    def build_info_panel(clean_queue_history=False):
         """Construye el panel de información con historial de la cola."""
         # 🔹 Calcular el ancho real de "info_panel"
         total_ratio = 3 + 4 + 4  # Suma de los ratios en split_row()
@@ -833,7 +845,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         queue_history = build_info_panel.queue_history
 
         # 🔹 Obtener el tamaño actual de la cola
-        current_queue_size = SHARED_DATA.input_info.get('assets_in_queue', 0)
+        current_queue_size = SHARED_DATA.info.get('assets_in_queue', 0)
 
         # 🔹 Actualizar historial de la cola
         queue_history.append(current_queue_size)
@@ -848,25 +860,28 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         # 🔹 Unimos todas las barras
         queue_display = "".join(progress_bars)
 
+        if clean_queue_history:
+            queue_display = ""
+
         # 🔹 Datos a mostrar
         info_data = [
-            ("🎯 Total Assets", SHARED_DATA.input_info.get('total_assets', 0)),
-            ("📷 Total Photos", SHARED_DATA.input_info.get('total_photos', 0)),
-            ("🎬 Total Videos", SHARED_DATA.input_info.get('total_videos', 0)),
-            ("📂 Total Albums", SHARED_DATA.input_info.get('total_albums', 0)),
-            ("📜 Total Metadata", SHARED_DATA.input_info.get('total_metadata', 0)),
-            ("🔗 Total Sidecar", SHARED_DATA.input_info.get('total_sidecar', 0)),
-            ("🔍 Unsupported Files", SHARED_DATA.input_info.get('total_unsupported', 0)),
+            ("🎯 Total Assets", SHARED_DATA.info.get('total_assets', 0)),
+            ("📷 Total Photos", SHARED_DATA.info.get('total_photos', 0)),
+            ("🎬 Total Videos", SHARED_DATA.info.get('total_videos', 0)),
+            ("📂 Total Albums", SHARED_DATA.info.get('total_albums', 0)),
+            ("📜 Total Metadata", SHARED_DATA.info.get('total_metadata', 0)),
+            ("🔗 Total Sidecar", SHARED_DATA.info.get('total_sidecar', 0)),
+            ("🔍 Unsupported Files", SHARED_DATA.info.get('total_unsupported', 0)),
             ("📊 Assets in Queue", f"{queue_display} {current_queue_size}"),
-            ("🕒 Elapsed Time", SHARED_DATA.input_info.get('elapsed_time', 0)),
+            ("🕒 Elapsed Time", SHARED_DATA.info.get('elapsed_time', 0)),
         ]
 
         # 🔹 Crear la tabla
         table = Table.grid(expand=True)
-        table.add_column(justify="left", width=23, no_wrap=True)
+        table.add_column(justify="left", width=22, no_wrap=True)
         table.add_column(justify="right", ratio=1)
         for label, value in info_data:
-            table.add_row(f"[bright_magenta]{label:<20}: [/bright_magenta]", f"[bright_magenta]{value}[/bright_magenta]")
+            table.add_row(f"[bright_magenta]{label:<19}: [/bright_magenta]", f"[bright_magenta]{value}[/bright_magenta]")
 
         # 🔹 Devolver el panel
         return Panel(table, title="📊 Info Panel", border_style="bright_magenta", expand=True, padding=(0, 1))
@@ -911,11 +926,11 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     download_tasks = {}
     for label, (bar, completed_label, total_label) in download_bars.items():
         # bar.add_task retturns the task_id and we create a dictionary {task_label: task_id}
-        download_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=SHARED_DATA.input_info.get(total_label, 0))
+        download_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=SHARED_DATA.info.get(total_label, 0))
 
     # UPLOADS (Green)
     upload_bars = {  # Dicccionario de Tuplas (bar, etiqueta_contador_completados, etiqueta_contador_totales)
-        "🎯Uploaded Assets": (create_progress_bar("green"), 'total_uploaded_assets', "total_assets"),
+        "🎯 Uploaded Assets": (create_progress_bar("green"), 'total_uploaded_assets', "total_assets"),
         "📷 Uploaded Photos": (create_progress_bar("green"), 'total_uploaded_photos', "total_photos"),
         "🎬 Uploaded Videos": (create_progress_bar("green"), 'total_uploaded_videos', "total_videos"),
         "📂 Uploaded Albums": (create_progress_bar("green"), 'total_uploaded_albums', "total_albums"),
@@ -930,7 +945,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     upload_tasks = {}
     for label, (bar, completed_label, total_label) in upload_bars.items():
         # bar.add_task retturns the task_id and we create a dictionary {task_label: task_id}
-        upload_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=SHARED_DATA.input_info.get(total_label, 0))
+        upload_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=SHARED_DATA.info.get(total_label, 0))
 
     # ─────────────────────────────────────────────────────────────────────────
     # 4) Build the Download/Upload Panels
@@ -941,11 +956,11 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         table.add_column(justify="right")
         for label, (bar, completed_labeld, total_label) in download_bars.items():
             table.add_row(f"[cyan]{label:<19}:[/cyan]", bar)
-            bar.update(download_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.input_info.get(total_label, 0))
+            bar.update(download_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
         for label, counter_label in failed_downloads.items():
             value = SHARED_DATA.counters[counter_label]
             table.add_row(f"[cyan]{label:<19}:[/cyan]", f"[cyan]{value}[/cyan]")
-        return Panel(table, title=f'📥 {SHARED_DATA.input_info.get("source_client_name", "Source Client")} Downloads', border_style="cyan", expand=True)
+        return Panel(table, title=f'📥 {SHARED_DATA.info.get("source_client_name", "Source Client")} Downloads', border_style="cyan", expand=True)
 
     def build_upload_panel():
         table = Table.grid(expand=True)
@@ -953,11 +968,11 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         table.add_column(justify="right")
         for label, (bar, completed_labeld, total_label) in upload_bars.items():
             table.add_row(f"[green]{label:<17}:[/green]", bar)
-            bar.update(upload_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.input_info.get(total_label, 0))
+            bar.update(upload_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
         for label, counter_label in failed_uploads.items():
             value = SHARED_DATA.counters[counter_label]
             table.add_row(f"[green]{label:<17}:[/green]", f"[green]{value}[/green]")
-        return Panel(table, title=f'📤 {SHARED_DATA.input_info.get("target_client_name", "Source Client")} Uploads', border_style="green", expand=True)
+        return Panel(table, title=f'📤 {SHARED_DATA.info.get("target_client_name", "Source Client")} Uploads', border_style="green", expand=True)
 
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -1021,7 +1036,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     with Live(layout, refresh_per_second=1, console=console, vertical_overflow="crop"):
         try:
             update_title_panel()
-            layout["info_panel"].update(build_info_panel(queue_history))
+            layout["info_panel"].update(build_info_panel())
             layout["downloads_panel"].update(build_download_panel())
             layout["uploads_panel"].update(build_upload_panel())
             layout["logs_panel"].update(build_log_panel())
@@ -1029,8 +1044,8 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
 
             # Continue the loop until migration_finished.is_set()
             while not migration_finished.is_set():
-                SHARED_DATA.info['elapsed_time'] = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
-                layout["info_panel"].update(build_info_panel(queue_history))
+                SHARED_DATA.info['elapsed_time'] = str(timedelta(seconds=(datetime.now() - step_start_time).seconds))
+                layout["info_panel"].update(build_info_panel())
                 layout["downloads_panel"].update(build_download_panel())
                 layout["uploads_panel"].update(build_upload_panel())
                 layout["logs_panel"].update(build_log_panel())
@@ -1040,6 +1055,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
             time.sleep(1)
 
             # Al terminar, asegurarse que todos los paneles finales se muestren
+            layout["info_panel"].update(build_info_panel(clean_queue_history=True))     # Limpiamos el histórico de la cola
             layout["downloads_panel"].update(build_download_panel())
             layout["uploads_panel"].update(build_upload_panel())
             layout["logs_panel"].update(build_log_panel())
