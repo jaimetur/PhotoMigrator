@@ -266,7 +266,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
                 # Si la cola está muy llena (entre 50 y 100), reducir la velocidad en vez de bloquear
                 if upload_queue.qsize() > 50:
-                    time.sleep(0.15)  # Pequeña pausa para no sobrecargar la cola
+                    time.sleep(0.1)  # Pequeña pausa para no sobrecargar la cola
                     pass
 
                 # Añadir a la cola y al registro global
@@ -441,7 +441,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 # with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
                 try:
                     # Extraemos el siguiente asset de la cola
-                    time.sleep(0.4)
+                    # time.sleep(0.4)  # Esto es por si queremos ralentizar el worker de subidas
                     asset = upload_queue.get()
                     SHARED_DATA.info['assets_in_queue'] = upload_queue.qsize()
                     if asset is None:
