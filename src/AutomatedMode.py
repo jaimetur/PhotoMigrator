@@ -259,10 +259,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     # El item ya fue añadido anteriormente
                     return False
 
-                # Pausa si la cola tiene más de 100 elementos, pero no bloquea innecesariamente
+                # Pausa si la cola tiene más de 100 elementos, pero no bloquea innecesariamente, y reanuda cuando tenga 10.
                 while upload_queue.qsize() >= 100:
-                    time.sleep(10)  # Hacemos una pausa de 10s para que la cola se vacíe
-                    SHARED_DATA.info['assets_in_queue'] = upload_queue.qsize()
+                    while upload_queue.qsize() > 25:
+                        time.sleep(1)  # Hacemos pausas de 1s hasta que la cola se vacíe (25 elementos)
+                        SHARED_DATA.info['assets_in_queue'] = upload_queue.qsize()
 
                 # Si la cola está muy llena (entre 50 y 100), reducir la velocidad en vez de bloquear
                 if upload_queue.qsize() > 50:
@@ -319,18 +320,18 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             lock.write("Downloading")
                             # Descargar el asset
                             downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=album_folder, log_level=logging.WARNING)
+
                         # Eliminar archivo de bloqueo después de la descarga
                         os.remove(lock_file)
                     except Exception as e:
-                        LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
+                        LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}' - {e}")
                         SHARED_DATA.counters['total_download_failed_assets'] += 1
 
-                    # set_log_level(LOGGER, log_level)
-                    LOGGER.info(f"INFO    : Asset Downloaded: '{os.path.join(album_folder, os.path.basename(asset_filename))}'")
-                    # LOGGER.debug(f"DEBUG   : Asset Downloaded: '{os.path.basename(asset_filename)}'")
 
                     # Actualizamos Contadores de descargas
                     if downloaded_assets > 0:
+                        # set_log_level(LOGGER, log_level)
+                        LOGGER.info(f"INFO    : Asset Downloaded: '{os.path.join(album_folder, os.path.basename(asset_filename))}'")
                         SHARED_DATA.counters['total_downloaded_assets'] += downloaded_assets
                         if asset_type.lower() == 'video':
                             SHARED_DATA.counters['total_downloaded_videos'] += downloaded_assets
@@ -390,18 +391,17 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         lock.write("Downloading")
                         # Descargar directamente en temp_folder
                         downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
+
                     # Eliminar archivo de bloqueo después de la descarga
                     os.remove(lock_file)
                 except Exception as e:
-                    LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
+                    LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)} - {e}'")
                     SHARED_DATA.counters['total_download_failed_assets'] += 1
-
-                local_file_path = os.path.join(temp_folder, asset_filename)
-                # set_log_level(LOGGER, log_level)
-                LOGGER.info(f"INFO    : Asset Downloaded: '{os.path.join(temp_folder, os.path.basename(asset_filename))}'")
 
                 # Actualizamos Contadores de descargas
                 if downloaded_assets > 0:
+                    # set_log_level(LOGGER, log_level)
+                    LOGGER.info(f"INFO    : Asset Downloaded: '{os.path.join(temp_folder, os.path.basename(asset_filename))}'")
                     SHARED_DATA.counters['total_downloaded_assets'] += downloaded_assets
                     if asset_type.lower() == 'video':
                         SHARED_DATA.counters['total_downloaded_videos'] += downloaded_assets
@@ -414,7 +414,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     else:
                         SHARED_DATA.counters['total_download_failed_photos'] += 1
 
-                # Enviar a la cola sin album_name
+                # Enviar a la cola con la información necesaria para la subida (sin album_name)
+                local_file_path = os.path.join(temp_folder, asset_filename)
                 asset_dict = {
                     'asset_id': asset_id,
                     'asset_file_path': local_file_path,
@@ -882,7 +883,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         # 🔹 Crear la barra de progreso con "█" y espacios
         queue_bar = "█" * filled_blocks + " " * empty_blocks
         # 🔹 Mostrar la barra con la cantidad actual de elementos en la cola
-        queue_bar = f"[{queue_bar}] {current_queue_size}/100"
+        queue_bar = f"[{queue_bar}] {current_queue_size:>3}/100"
         # 🔹 borra la barra al final
         if clean_queue_history:
             queue_bar = 0
