@@ -259,10 +259,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     # El item ya fue añadido anteriormente
                     return False
 
-                # Pausa si la cola tiene más de 100 elementos, pero no bloquea innecesariamente
+                # Pausa si la cola tiene más de 100 elementos, pero no bloquea innecesariamente, y reanuda cuando tenga 10.
                 while upload_queue.qsize() >= 100:
-                    time.sleep(10)  # Hacemos una pausa de 10s para que la cola se vacíe
-                    SHARED_DATA.info['assets_in_queue'] = upload_queue.qsize()
+                    while upload_queue.qsize() > 10:
+                        time.sleep(1)  # Hacemos pausas de 1s hasta que la cola se vacíe (10 elementos)
+                        SHARED_DATA.info['assets_in_queue'] = upload_queue.qsize()
 
                 # Si la cola está muy llena (entre 50 y 100), reducir la velocidad en vez de bloquear
                 if upload_queue.qsize() > 50:
