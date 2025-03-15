@@ -30,7 +30,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] Support for 'Uploads Queue' to limit the max number of assets that the Downloader worker will store in the temporary folder to 100 (this save disk space). In this way the Downloader worker will never put more than 100 assets pending to Upload in the local folder.
 - [x] Support Migration between 2 different accounts on the same Cloud Photo Service. 
 > [!IMPORTANT] 
-> Breaking Change! 
+> **Breaking Change!**  
 > Config.ini file has changed to support multi-accounts over the same Cloud Photo Service
 - [x] Support to use Local Folders as SOURCE/TARGET during AUTOMATED-MIGRATION MODE. Now the selected local folder works equal to other supported cloud services.
 - [x] Code Refactored to convert ServiceGooglePhotos, ServiceSynologyPhotos and ServiceImmichPhotos into Classes (ClassTakeoutFolder, ClassSynologyPhotos, ClassImmichPhotos) and homogenized all functions of all these classes.
