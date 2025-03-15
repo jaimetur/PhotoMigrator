@@ -873,7 +873,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         # Barra de cola actual. Muestre una barra horizontal rellenable "███████████████████", cuando esté llena "██████████" cuando esté a la mitad, "██" cuando esté casi vacía
         # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
         # 🔹 Definir el ancho de la barra de progreso dinámicamente
-        BAR_WIDTH = max(1, info_panel_width - 35)  # Asegurar que al menos sea 1
+        BAR_WIDTH = max(1, info_panel_width - 36)  # Asegurar que al menos sea 1
         # 🔹 Obtener el tamaño actual de la cola
         current_queue_size = SHARED_DATA.info.get('assets_in_queue', 0)
         # 🔹 Normalizar el tamaño de la cola dentro del rango de la barra
