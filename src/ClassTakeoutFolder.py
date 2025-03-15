@@ -62,7 +62,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         # Contador de pasos durante el procesamiento
         self.step = 0
 
-        self.CLIENT_NAME = 'Google Takeout Folder'
+        self.CLIENT_NAME = f'Google Takeout Folder ({self.takeout_folder.name})'
 
     # sobreescribimos el método get_all_assets() para que obtenga los assets de takeout_folder directamente en lugar de base_folder, para poder hacer el recuento de metadatos, sidecar, y archivos no soportados.
     def get_all_assets(self, type='all', log_level=logging.INFO):
