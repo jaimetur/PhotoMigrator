@@ -441,6 +441,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 # with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
                 try:
                     # Extraemos el siguiente asset de la cola
+                    time.sleep(0.4)
                     asset = upload_queue.get()
                     SHARED_DATA.info['assets_in_queue'] = upload_queue.qsize()
                     if asset is None:
