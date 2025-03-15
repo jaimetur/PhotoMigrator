@@ -20,4 +20,3 @@ python-dateutil
 windows-curses; sys_platform == "win32"
 colorama
 rich
-emoji

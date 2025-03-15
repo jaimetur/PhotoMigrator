@@ -843,6 +843,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         # Estimación del ancho de info_panel antes de que Rich lo calcule
         info_panel_width = (terminal_width * info_panel_ratio) // total_ratio
 
+        # TODO: Modificar la gráfica de la cola para que en vez de un histograma de tiempo muestre una barra horizontal rellenable "███████████████████", cuando esté llena "██████████" cuando esté a la mitad, "██" cuando esté casi vacía
         # 🔹 Unicode para representar la barra de progreso vertical (10 niveles)
         BARS = "  ▁▂▃▄▅▆▇█"     # Se agregan 10 barras
         BARS = "▁▂▄▆█"          # # Se agregan 5 barras
