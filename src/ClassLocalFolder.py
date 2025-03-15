@@ -167,9 +167,38 @@ class ClassLocalFolder:
             LOGGER.info(f"INFO    : Found {len(assets)} assets in album {album_id}.")
             return assets
 
+    # def get_no_albums_assets(self, log_level=logging.INFO):
+    #     """
+    #     Lists assets that are not assigned to any album.
+    #
+    #     Returns:
+    #         list[dict]: A list of asset dictionaries, each containing:
+    #                     - 'id': Absolute path to the file.
+    #                     - 'time': Creation timestamp of the file.
+    #                     - 'filename': File name (no path).
+    #                     - 'filepath': Absolute path to the file.
+    #                     - 'type': Type of the file (image, video, metadata, sidecar, unknown).
+    #     """
+    #     with set_log_level(LOGGER, log_level):
+    #         LOGGER.info("INFO    : Retrieving assets without albums.")
+    #
+    #         assets = [
+    #             {
+    #                 "id": str(file.resolve()),
+    #                 "time": file.stat().st_ctime,
+    #                 "filename": file.name,
+    #                 "filepath": str(file.resolve()),
+    #                 "type": self._determine_file_type(file),
+    #             }
+    #             for file in self.no_albums_folder.rglob("*") if file.is_file()
+    #         ]
+    #
+    #         LOGGER.info(f"INFO    : Found {len(assets)} assets without albums.")
+    #         return assets
+
     def get_no_albums_assets(self, log_level=logging.INFO):
         """
-        Lists assets that are not assigned to any album.
+        Lists assets that are in self.base_folder but not in self.albums_folder or self.shared_albums_folder.
 
         Returns:
             list[dict]: A list of asset dictionaries, each containing:
@@ -180,20 +209,31 @@ class ClassLocalFolder:
                         - 'type': Type of the file (image, video, metadata, sidecar, unknown).
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Retrieving assets without albums.")
+            LOGGER.info("INFO    : Retrieving assets excluding albums and shared albums.")
 
-            assets = [
-                {
-                    "id": str(file.resolve()),
-                    "time": file.stat().st_ctime,
-                    "filename": file.name,
-                    "filepath": str(file.resolve()),
-                    "type": self._determine_file_type(file),
-                }
-                for file in self.no_albums_folder.rglob("*") if file.is_file()
-            ]
+            # Convert paths to absolute for comparison
+            base_folder = self.base_folder.resolve()
+            albums_folder = self.albums_folder.resolve() if self.albums_folder else None
+            shared_albums_folder = self.shared_albums_folder.resolve() if self.shared_albums_folder else None
 
-            LOGGER.info(f"INFO    : Found {len(assets)} assets without albums.")
+            assets = []
+            for file in base_folder.rglob("*"):
+                if file.is_file():
+                    # Check if the file is inside the excluded folders
+                    if albums_folder and file.is_relative_to(albums_folder):
+                        continue
+                    if shared_albums_folder and file.is_relative_to(shared_albums_folder):
+                        continue
+
+                    assets.append({
+                        "id": str(file.resolve()),
+                        "time": file.stat().st_ctime,
+                        "filename": file.name,
+                        "filepath": str(file.resolve()),
+                        "type": self._determine_file_type(file),
+                    })
+
+            LOGGER.info(f"INFO    : Found {len(assets)} assets excluding album folders.")
             return assets
 
     def get_all_assets(self, type='all', log_level=logging.INFO):

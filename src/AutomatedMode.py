@@ -299,6 +299,10 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     asset_datetime = asset.get('time')
                     asset_filename = asset.get('filename')
 
+                    # Skip download metadata and sidecar for the time being
+                    if asset_type in ['metadata', 'sidecar']:
+                        continue
+
                     # Crear carpeta del álbum dentro de temp_folder
                     album_folder = os.path.join(temp_folder, album_name)
                     os.makedirs(album_folder, exist_ok=True)
@@ -314,15 +318,14 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         with open(lock_file, 'w') as lock:
                             lock.write("Downloading")
                             # Descargar el asset
-                            downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=album_folder,
-                                                                             log_level=logging.WARNING)
+                            downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=album_folder, log_level=logging.WARNING)
                         # Eliminar archivo de bloqueo después de la descarga
                         os.remove(lock_file)
                     except Exception as e:
                         LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}'")
                         SHARED_DATA.counters['total_download_failed_assets'] += 1
 
-                    set_log_level(LOGGER, log_level)
+                    # set_log_level(LOGGER, log_level)
                     LOGGER.info(f"INFO    : Asset Downloaded: '{os.path.join(album_folder, os.path.basename(asset_filename))}'")
                     # LOGGER.debug(f"DEBUG   : Asset Downloaded: '{os.path.basename(asset_filename)}'")
 
@@ -371,6 +374,10 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 asset_datetime = asset.get('time')
                 asset_filename = asset.get('filename')
 
+                # Skip download metadata and sidecar for the time being
+                if asset_type in ['metadata', 'sidecar']:
+                    continue
+
                 try:
                     # Ruta del archivo descargado
                     local_file_path = asset_id
@@ -382,8 +389,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     with open(lock_file, 'w') as lock:
                         lock.write("Downloading")
                         # Descargar directamente en temp_folder
-                        downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder,
-                                                                         log_level=logging.WARNING)
+                        downloaded_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
                     # Eliminar archivo de bloqueo después de la descarga
                     os.remove(lock_file)
                 except Exception as e:
@@ -391,7 +397,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     SHARED_DATA.counters['total_download_failed_assets'] += 1
 
                 local_file_path = os.path.join(temp_folder, asset_filename)
-                set_log_level(LOGGER, log_level)
+                # set_log_level(LOGGER, log_level)
                 LOGGER.info(f"INFO    : Asset Downloaded: '{os.path.join(temp_folder, os.path.basename(asset_filename))}'")
 
                 # Actualizamos Contadores de descargas
@@ -837,7 +843,8 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         info_panel_width = (terminal_width * info_panel_ratio) // total_ratio
 
         # 🔹 Unicode para representar la barra de progreso vertical (10 niveles)
-        BARS = "  ▁▂▃▄▅▆▇█"  # Se agregan dos barras más para un total de 10
+        BARS = "  ▁▂▃▄▅▆▇█"     # Se agregan 10 barras
+        BARS = "▁▂▄▆█"          # # Se agregan 5 barras
 
         # 🔹 Inicializar el historial de la cola dentro de la función
         if not hasattr(build_info_panel, "queue_history"):
