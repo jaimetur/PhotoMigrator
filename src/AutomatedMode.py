@@ -441,7 +441,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 # with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
                 try:
                     # Extraemos el siguiente asset de la cola
-                    # time.sleep(0.4)  # Esto es por si queremos ralentizar el worker de subidas
+                    time.sleep(0.7)  # Esto es por si queremos ralentizar el worker de subidas
                     asset = upload_queue.get()
                     SHARED_DATA.info['assets_in_queue'] = upload_queue.qsize()
                     if asset is None:
@@ -831,8 +831,6 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     # ─────────────────────────────────────────────────────────────────────────
     # 2) Info Panel
     # ─────────────────────────────────────────────────────────────────────────
-    # Historial de tamaño de la cola (se ajustará dinámicamente al ancho del panel)
-    queue_history = collections.deque(maxlen=10)  # Se ajustará según el ancho del panel
 
     def build_info_panel(clean_queue_history=False):
         """Construye el panel de información con historial de la cola."""
@@ -843,34 +841,51 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         # Estimación del ancho de info_panel antes de que Rich lo calcule
         info_panel_width = (terminal_width * info_panel_ratio) // total_ratio
 
-        # TODO: Modificar la gráfica de la cola para que en vez de un histograma de tiempo muestre una barra horizontal rellenable "███████████████████", cuando esté llena "██████████" cuando esté a la mitad, "██" cuando esté casi vacía
-        # 🔹 Unicode para representar la barra de progreso vertical (10 niveles)
-        BARS = "  ▁▂▃▄▅▆▇█"     # Se agregan 10 barras
-        BARS = "▁▂▄▆█"          # # Se agregan 5 barras
+        # # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        # # Histograma temporal de la cola con barras como estas "  ▁▂▃▄▅▆▇█"  o estas "▁▂▄▆█"
+        # # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        # # 🔹 Unicode para representar la barra de progreso vertical (10 niveles)
+        # BARS = "  ▁▂▃▄▅▆▇█"     # Se agregan 10 barras
+        # BARS = "▁▂▄▆█"          # # Se agregan 5 barras
+        #
+        # # 🔹 Inicializar el historial de la cola dentro de la función
+        # if not hasattr(build_info_panel, "queue_history"):
+        #     build_info_panel.queue_history = collections.deque(maxlen=info_panel_width-31)
+        # queue_history = build_info_panel.queue_history
+        #
+        # # 🔹 Obtener el tamaño actual de la cola
+        # current_queue_size = SHARED_DATA.info.get('assets_in_queue', 0)
+        #
+        # # 🔹 Actualizar historial de la cola
+        # queue_history.append(current_queue_size)
+        #
+        # # 🔹 Definir los rangos de normalización (10 bloques de tamaño 10 cada uno)
+        # num_blocks = len(BARS)
+        # block_size = 100 / num_blocks  # Cada bloque cubre 10 unidades
+        #
+        # # 🔹 Asignar la barra correspondiente a cada valor de la cola
+        # progress_bars = [BARS[min(int(val // block_size), num_blocks - 1)] for val in queue_history]
+        #
+        # # 🔹 Unimos todas las barras
+        # queue_display = "".join(progress_bars)
 
-        # 🔹 Inicializar el historial de la cola dentro de la función
-        if not hasattr(build_info_panel, "queue_history"):
-            build_info_panel.queue_history = collections.deque(maxlen=info_panel_width-31)
-        queue_history = build_info_panel.queue_history
-
+        # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        # Barra de cola actual. Muestre una barra horizontal rellenable "███████████████████", cuando esté llena "██████████" cuando esté a la mitad, "██" cuando esté casi vacía
+        # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        # 🔹 Definir el ancho de la barra de progreso dinámicamente
+        BAR_WIDTH = max(1, info_panel_width - 35)  # Asegurar que al menos sea 1
         # 🔹 Obtener el tamaño actual de la cola
         current_queue_size = SHARED_DATA.info.get('assets_in_queue', 0)
-
-        # 🔹 Actualizar historial de la cola
-        queue_history.append(current_queue_size)
-
-        # 🔹 Definir los rangos de normalización (10 bloques de tamaño 10 cada uno)
-        num_blocks = len(BARS)
-        block_size = 100 / num_blocks  # Cada bloque cubre 10 unidades
-
-        # 🔹 Asignar la barra correspondiente a cada valor de la cola
-        progress_bars = [BARS[min(int(val // block_size), num_blocks - 1)] for val in queue_history]
-
-        # 🔹 Unimos todas las barras
-        queue_display = "".join(progress_bars)
-
+        # 🔹 Normalizar el tamaño de la cola dentro del rango de la barra
+        filled_blocks = min(int((current_queue_size / 100) * BAR_WIDTH), BAR_WIDTH)
+        empty_blocks = BAR_WIDTH - filled_blocks
+        # 🔹 Crear la barra de progreso con "█" y espacios
+        queue_bar = "█" * filled_blocks + " " * empty_blocks
+        # 🔹 Mostrar la barra con la cantidad actual de elementos en la cola
+        queue_bar = f"[{queue_bar}] {current_queue_size}/100"
+        # 🔹 borra la barra al final
         if clean_queue_history:
-            queue_display = ""
+            queue_bar = 0
 
         # 🔹 Datos a mostrar
         info_data = [
@@ -881,7 +896,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
             ("📜 Total Metadata", SHARED_DATA.info.get('total_metadata', 0)),
             ("🔗 Total Sidecar", SHARED_DATA.info.get('total_sidecar', 0)),
             ("🔍 Unsupported Files", SHARED_DATA.info.get('total_unsupported', 0)),
-            ("📊 Assets in Queue", f"{queue_display} {current_queue_size}"),
+            ("📊 Assets in Queue", f"{queue_bar}"),
             ("🕒 Elapsed Time", SHARED_DATA.info.get('elapsed_time', 0)),
         ]
 
