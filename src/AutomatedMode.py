@@ -882,7 +882,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         # 🔹 Crear la barra de progreso con "█" y espacios
         queue_bar = "█" * filled_blocks + " " * empty_blocks
         # 🔹 Mostrar la barra con la cantidad actual de elementos en la cola
-        queue_bar = f"[{queue_bar}] {current_queue_size}/100"
+        queue_bar = f"[{queue_bar}] {current_queue_size:>3}/100"
         # 🔹 borra la barra al final
         if clean_queue_history:
             queue_bar = 0
