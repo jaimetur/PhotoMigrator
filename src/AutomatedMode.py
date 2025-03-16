@@ -448,7 +448,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     # ----------------------------------------------------------------------------
     # 2) SUBIDAS: Función uploader_worker para SUBIR (consumir de la cola)
     # ----------------------------------------------------------------------------
-    def uploader_worker(provessed_albums=[], log_level=logging.INFO):
+    def uploader_worker(processed_albums=[], log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):
             while True:
                 try:
