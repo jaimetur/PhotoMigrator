@@ -448,12 +448,9 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     # ----------------------------------------------------------------------------
     # 2) SUBIDAS: Función uploader_worker para SUBIR (consumir de la cola)
     # ----------------------------------------------------------------------------
-    def uploader_worker(log_level=logging.INFO):
+    def uploader_worker(provessed_albums=[], log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):
-            # Lista para marcar álbumes procesados (ya contados y/o creados en el destino)
-            processed_albums = []
             while True:
-                # with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
                 try:
                     # Extraemos el siguiente asset de la cola
                     # time.sleep(0.7)  # Esto es por si queremos ralentizar el worker de subidas
@@ -582,6 +579,9 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         for key, value in SHARED_DATA.info.items():
             LOGGER.info(f"INFO    :    {key}: {value}")
 
+        # Lista para marcar álbumes procesados (ya contados y/o creados en el destino)
+        processed_albums = []
+
         # ------------------------------------------------------------------------------------------------------
         # 1) Iniciar uno o varios hilos de descargas y subidas para manejar las descargas y subidas concurrentes
         # ------------------------------------------------------------------------------------------------------
@@ -595,7 +595,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
         # Crear hilos
         download_threads = [threading.Thread(target=downloader_worker, daemon=True) for _ in range(num_download_threads)]
-        upload_threads = [threading.Thread(target=uploader_worker, daemon=True) for _ in range(num_upload_threads)]
+        upload_threads = [threading.Thread(target=uploader_worker, kwargs={"processed_albums": processed_albums}, daemon=True)]
 
         # Iniciar hilos
         for t in upload_threads:
