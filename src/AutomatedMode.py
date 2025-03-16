@@ -595,7 +595,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
         # Crear hilos
         download_threads = [threading.Thread(target=downloader_worker, daemon=True) for _ in range(num_download_threads)]
-        upload_threads = [threading.Thread(target=uploader_worker, kwargs={"processed_albums": processed_albums}, daemon=True)]
+        upload_threads = [threading.Thread(target=uploader_worker, kwargs={"processed_albums": processed_albums}, daemon=True) for _ in range(num_upload_threads)]
 
         # Iniciar hilos
         for t in upload_threads:
