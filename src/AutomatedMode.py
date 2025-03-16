@@ -302,7 +302,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         if album_shared_role.lower() != 'view':
                             album_assets = source_client.get_album_shared_assets(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name)
                     if not album_assets:
-                        SHARED_DATA.counters['total_download_failed_albums'] += 1
+                        # SHARED_DATA.counters['total_download_failed_albums'] += 1     # If we uncomment this line, it will count as failed Empties albums
                         continue
                 except Exception as e:
                     LOGGER.error(f"ERROR   : Error listing Album Assets - {e}")
@@ -518,7 +518,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         if album_name not in processed_albums:
                             processed_albums.append(album_name)  # Lo incluimos en la lista de albumes procesados
                             SHARED_DATA.counters['total_uploaded_albums'] += 1
-                            LOGGER.info(f"INFO    : Album Created  : '{album_name}'")
+                            SHARED_DATA.counters['total_uploaded_albums'] = min(SHARED_DATA.counters['total_uploaded_albums'], SHARED_DATA.counters['total_downloaded_albums']) # Avoid to set total_uploaded_albums > total_downloaded_albums
+                            LOGGER.info(f"INFO    : Album Created   : '{album_name}'")
                         try:
                             # Si el álbum no existe en destino, lo creamos
                             album_exists, album_id_dest = target_client.album_exists(album_name=album_name, log_level=logging.WARNING)
@@ -612,6 +613,18 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         LOGGER.info(f"INFO    : Input Info Analysis: ")
         for key, value in SHARED_DATA.info.items():
             LOGGER.info(f"INFO    :    {key}: {value}")
+
+        # Delete unneded vars to clean memory
+        del all_albums
+        del all_supported_assets
+        del restricted_assets_ids
+        del filtered_all_supported_assets
+        del all_assets
+        del all_photos
+        del all_videos
+        del all_metadata
+        del all_sidecar
+        del all_unsupported
 
         # Lista para marcar álbumes procesados (ya contados y/o creados en el destino)
         processed_albums = []
