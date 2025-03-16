@@ -168,7 +168,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
 
             LOGGER.info("")
             LOGGER.info(f'=========================================================================================================')
-            LOGGER.info(f'INFO    : AUTOMATED MIGRATION JOB STARTED -  {source_client_name} -> {target_client_name}')
+            LOGGER.info(f'INFO    : AUTOMATED MIGRATION JOB STARTED - {source_client_name} ➜ {target_client_name}')
             LOGGER.info(f'=========================================================================================================')
             LOGGER.info("")
 
