@@ -67,6 +67,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
             "total_photos": 0,
             "total_videos": 0,
             "total_albums": 0,
+            "total_albums_restricted": 0,
             "total_metadata": 0,
             "total_sidecar": 0,
             "total_unsupported": 0,
@@ -284,7 +285,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 album_id = album['id']
                 album_name = album['albumName']
                 album_passphrase = album.get('passphrase')  # Obtiene el valor si existe, si no, devuelve None
-                album_shared_role = album.get('additional').get('sharing_info').get('permission')[0].get('role')  # Obtiene el valor si existe, si no, devuelve None
+                permissions = album.get('additional', {}).get('sharing_info', {}).get('permission', [])  # Obtiene el valor si existe, si no, devuelve None
+                if permissions:
+                    album_shared_role = permissions[0].get('role')  # Obtiene el valor si existe, si no, devuelve None
+                else:
+                    album_shared_role = None  # O cualquier valor por defecto que desees
                 is_shared = album_passphrase is not None  # Si tiene passphrase, es compartido
 
                 # Descargar todos los assets de este álbum
@@ -556,21 +561,44 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         LOGGER.info(f"INFO    : Starting Downloading/Uploading Process...")
 
         # Get source client statistics:
-        all_albums = source_client.get_albums_including_shared_with_user()
-        all_supported_assets = source_client.get_all_assets()
+        restricted_assets = []
+        tottal_albums_resstricted_count = 0
+        total_restricted_assets_count = 0
 
-        all_photos = [asset for asset in all_supported_assets if asset['type'].lower() in ['photo', 'live', 'image']]
-        all_videos = [asset for asset in all_supported_assets if asset['type'].lower() in ['video']]
-        all_medias = all_photos + all_videos
-        all_metadata = [asset for asset in all_supported_assets if asset['type'].lower() in ['metadata']]
-        all_sidecar = [asset for asset in all_supported_assets if asset['type'].lower() in ['sidecar']]
-        all_unsupported = [asset for asset in all_supported_assets if asset['type'].lower() in ['unknown']]
+        all_albums = source_client.get_albums_including_shared_with_user()
+        for album in all_albums:
+            album_id = album['id']
+            album_name = album['albumName']
+            album_passphrase = album.get('passphrase')  # Obtiene el valor si existe, si no, devuelve None
+            permissions = album.get('additional', {}).get('sharing_info', {}).get('permission', []) # Obtiene el valor si existe, si no, devuelve None
+            if permissions:
+                album_shared_role = permissions[0].get('role')  # Obtiene el valor si existe, si no, devuelve None
+            else:
+                album_shared_role = None  # O cualquier valor por defecto que desees
+            if album_shared_role == 'view':
+                LOGGER.info(f"INFO    : Album '{album_name}' cannot beb downloaded because is a restricted shared album. Skipped!")
+                tottal_albums_resstricted_count += 1
+                total_restricted_assets_count += album.get('item_count')
+                restricted_assets.extend(source_client.get_album_shared_assets(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name))
+
+        # Get all assets and filter out those restricted assets (from restricted shared albums) if any
+        all_supported_assets = source_client.get_all_assets()
+        restricted_assets_ids = {asset["id"] for asset in restricted_assets}
+        filtered_all_supported_assets = [asset for asset in all_supported_assets if asset["id"] not in restricted_assets_ids]
+
+        all_photos = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['photo', 'live', 'image']]
+        all_videos = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['video']]
+        all_assets = all_photos + all_videos
+        all_metadata = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['metadata']]
+        all_sidecar = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['sidecar']]
+        all_unsupported = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['unknown']]
 
         SHARED_DATA.info.update({
-            "total_assets": len(all_medias),
+            "total_assets": len(all_assets),
             "total_photos": len(all_photos),
             "total_videos": len(all_videos),
             "total_albums": len(all_albums),
+            "total_albums_restricted": tottal_albums_resstricted_count,
             "total_metadata": len(all_metadata),
             "total_sidecar": len(all_sidecar),
             "total_unsupported": len(all_unsupported),  # Corrección de "unsopported" → "unsupported"
@@ -788,12 +816,12 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     LOGGER.propagate = False
     log_file = Utils.get_logger_filename(LOGGER)
 
-    # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (11 lines), logs fill remainder
+    # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (12 lines), logs fill remainder
     layout.split_column(
         Layout(name="empty_line_1", size=1),  # Línea vacía
         Layout(name="header_panel", size=8),
         Layout(name="title_panel", size=3),
-        Layout(name="content_panel", size=11),
+        Layout(name="content_panel", size=12),
         Layout(name="logs_panel", ratio=1),
         Layout(name="empty_line_2", size=1),  # Línea vacía
     )
@@ -838,11 +866,11 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     # ─────────────────────────────────────────────────────────────────────────
     title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] ➜ [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
 
-    layout["title_panel"].update(Panel(f"📂 {title}", border_style="bright_blue", expand=True))
+    layout["title_panel"].update(Panel(f"☁️ {title}", border_style="bright_blue", expand=True))
 
     def update_title_panel():
         title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] ➜ [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
-        layout["title_panel"].update(Panel(f"📂 {title}", border_style="bright_blue", expand=True))
+        layout["title_panel"].update(Panel(f"☁️ {title}", border_style="bright_blue", expand=True))
 
     # ─────────────────────────────────────────────────────────────────────────
     # 2) Info Panel
@@ -909,6 +937,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
             ("📷 Total Photos", SHARED_DATA.info.get('total_photos', 0)),
             ("🎬 Total Videos", SHARED_DATA.info.get('total_videos', 0)),
             ("📂 Total Albums", SHARED_DATA.info.get('total_albums', 0)),
+            ("🔒 Restricted Albums", SHARED_DATA.info.get('total_albums_restricted', 0)),
             ("📜 Total Metadata", SHARED_DATA.info.get('total_metadata', 0)),
             ("🔗 Total Sidecar", SHARED_DATA.info.get('total_sidecar', 0)),
             ("🔍 Unsupported Files", SHARED_DATA.info.get('total_unsupported', 0)),
