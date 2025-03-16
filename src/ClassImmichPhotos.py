@@ -95,6 +95,9 @@ class ClassImmichPhotos:
         self.IMMICH_FILTER_CITY = None
         self.IMMICH_FILTER_PERSON = None
 
+        # Create a dictionary to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_ownned_by_user()
+        self.albums_owned_by_user = {}
+
         # Read the Config File to get CLIENT_ID
         self.read_config_file()
         self.CLIENT_ID = self.get_user_mail()
@@ -553,14 +556,22 @@ class ClassImmichPhotos:
              album_id (str): album_id if Album  exists. None if Album does not exists.
         """
         with set_log_level(LOGGER, log_level):
-            album_exists = False
-            album_id = None
-            albums = self.get_albums_owned_by_user(log_level=log_level)
-            for album in albums:
-                if album_name == album.get("albumName"):
-                    album_exists = True
-                    album_id = album.get("id")
-                    break
+            album_exists = False  # Initialize album existence flag
+            album_id = None  # Initialize album ID as None
+
+            # First, check if the album is already in the user's dictionary
+            if album_name in self.albums_owned_by_user:
+                album_exists = True
+                album_id = self.albums_owned_by_user[album_name]
+            else:
+                # If not found, retrieve the list of owned albums (from an API)
+                albums = self.get_albums_owned_by_user(log_level=log_level)
+                for album in albums:
+                    if album_name == album.get("albumName"):
+                        album_exists = True
+                        album_id = album.get("id")
+                        self.albums_owned_by_user[album_name] = album_id  # Cache it for future use
+                        break  # Stop searching once found
             return album_exists, album_id
 
 
@@ -832,7 +843,7 @@ class ClassImmichPhotos:
                 return None, None
 
             # Calculate checksum to avoid duplicates
-            hex_checksum, base64_checksum = sha1_checksum(file_path)
+            # hex_checksum, base64_checksum = sha1_checksum(file_path)
 
             filename, ext = os.path.splitext(file_path)
 

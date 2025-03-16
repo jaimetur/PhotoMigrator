@@ -81,7 +81,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
 
         if not source: source = ARGS['AUTOMATED-MIGRATION'][0]
         if not target: target = ARGS['AUTOMATED-MIGRATION'][1]
-        if not show_dashboard: show_dashboard = ARGS['dashboard']
+        if show_dashboard is None: show_dashboard = ARGS['dashboard']
 
         # Define the INTERMEDIATE_FOLDER
         INTERMEDIATE_FOLDER = f'./Temp_folder_{TIMESTAMP}'
