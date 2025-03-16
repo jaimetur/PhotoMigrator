@@ -522,13 +522,17 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             LOGGER.info(f"INFO    : Album Created   : '{album_name}'")
                         try:
                             # Si el álbum no existe en destino, lo creamos
+                            call = 1
                             album_exists, album_id_dest = target_client.album_exists(album_name=album_name, log_level=logging.WARNING)
                             if not album_exists:
+                                call += 1
                                 album_id_dest = target_client.create_album(album_name=album_name, log_level=logging.WARNING)
 
                             # Añadir el asset al álbum
+                            call += 1
                             target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.WARNING)
-                        except:
+                        except Exception as e:
+                            LOGGER.error(f"ERROR   : Error Uploading Album '{album_name} during Call: {call} - {e}")
                             SHARED_DATA.counters['total_upload_failed_albums'] += 1
 
                         # Verificar si la carpeta local del álbum está vacía y borrarla
@@ -1006,12 +1010,12 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         "📂 Downloaded Albums": (create_progress_bar("cyan"), 'total_downloaded_albums', "total_albums"),
     }
     failed_downloads = {
+        "🔒 Restricted Albums": 'total_albums_restricted',
+        "🔒 Restricted Assets": 'total_assets_restricted',
         "🚩 Failed Assets": 'total_download_failed_assets',
         "🚩 Failed Photos": 'total_download_failed_photos',
         "🚩 Failed Videos": 'total_download_failed_videos',
         "🚩 Failed Albums": 'total_download_failed_albums',
-        "🔒 Restricted Albums": 'total_albums_restricted',
-        "🔒 Restricted Assets": 'total_assets_restricted',
     }
     download_tasks = {}
     for label, (bar, completed_label, total_label) in download_bars.items():
