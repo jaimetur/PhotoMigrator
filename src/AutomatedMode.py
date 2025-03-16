@@ -282,10 +282,15 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             for album in albums:
                 album_id = album['id']
                 album_name = album['albumName']
+                album_passphrase = album.get('passphrase')  # Obtiene el valor si existe, si no, devuelve None
+                is_shared = album_passphrase is not None  # Si tiene passphrase, es compartido
 
                 # Descargar todos los assets de este álbum
                 try:
-                    album_assets = source_client.get_album_assets(album_id=album_id, album_name=album_name)
+                    if not is_shared:
+                        album_assets = source_client.get_album_assets(album_id=album_id, album_name=album_name)
+                    else:
+                        album_assets = source_client.get_album_shared_assets(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name)
                     if not album_assets:
                         SHARED_DATA.counters['total_download_failed_albums'] += 1
                 except Exception as e:

@@ -750,7 +750,67 @@ class ClassSynologyPhotos:
                         else:
                             LOGGER.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                         return []
-                    
+
+                return album_items
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
+
+
+    def get_album_shared_assets(self, album_passphrase, album_id, album_name=None, log_level=logging.INFO):
+        """
+        Get assets in a specific shared album.
+
+        Args:
+            album_passphrase (str): Shared album passphrase
+            album_id (str): ID of the album.
+            album_name (str): Name of the album.
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            list: A list of assets in the album (dict objects). [] if no assets found.
+        """
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+
+                offset = 0
+                limit = 5000
+                album_items = []
+                combined_items = []
+
+                while True:
+                    params = {
+                        'api': 'SYNO.Foto.Browse.Item',
+                        'version': '4',
+                        'method': 'list',
+                        'passphrase': album_passphrase,
+                        "offset": offset,
+                        "limit": limit
+                    }
+                    try:
+                        resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                        data = resp.json()
+                        if not data.get("success"):
+                            if album_name:
+                                LOGGER.error(f"ERROR   : Failed to list photos in the album '{album_name}'")
+                            else:
+                                LOGGER.error(f"ERROR   : Failed to list photos in the album ID={album_id}")
+                            return []
+                        album_items.extend(data["data"]["list"])
+
+                        if len(data["data"]["list"]) < limit:
+                            break
+                        offset += limit
+                    except Exception as e:
+                        if album_name:
+                            LOGGER.error(f"ERROR   : Exception while listing photos in the album '{album_name}' {e}")
+                        else:
+                            LOGGER.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
+                        return []
 
                 return album_items
             except Exception as e:
