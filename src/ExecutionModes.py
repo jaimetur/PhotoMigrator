@@ -33,21 +33,29 @@ def detect_and_run_execution_mode():
     elif ARGS['synology-remove-duplicates-albums']:
         EXECUTION_MODE = 'synology-remove-duplicates-albums'
         mode_synology_remove_duplicates_albums()
-    elif ARGS['synology-upload-albums'] != "":
-        EXECUTION_MODE = 'synology-upload-albums'
-        mode_synology_upload_albums()
-    elif ARGS['synology-upload-all'] != "":
-        EXECUTION_MODE = 'synology-upload-all'
-        mode_synology_upload_ALL()
-    elif ARGS['synology-download-albums'] != "":
-        EXECUTION_MODE = 'synology-download-albums'
-        mode_synology_download_albums()
-    elif ARGS['synology-download-all'] != "":
-        EXECUTION_MODE = 'synology-download-all'
-        mode_synology_download_ALL()
+    elif ARGS['immich-remove-all-albums'] != "":
+        EXECUTION_MODE = 'synology-remove-all-albums'
+        mode_synology_remove_all_albums()
     elif ARGS['synology-remove-all-assets'] != "":
         EXECUTION_MODE = 'synology-remove-all-assets'
         mode_synology_remove_ALL()
+    elif ARGS['synology-upload-albums'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to upload (default albums_to_upload='all')
+        EXECUTION_MODE = 'synology-upload-albums'
+        mode_synology_upload_albums()
+    elif ARGS['synology-upload-all'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time
+        EXECUTION_MODE = 'synology-upload-all'
+        mode_synology_upload_ALL()
+    elif ARGS['synology-download-albums'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to download (default albums_to_download='all')
+        EXECUTION_MODE = 'synology-download-albums'
+        mode_synology_download_albums()
+    elif ARGS['synology-download-all'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time
+        EXECUTION_MODE = 'synology-download-all'
+        mode_synology_download_ALL()
+
 
     # Immich Photos Modes:
     elif ARGS['immich-remove-empty-albums']:
@@ -56,27 +64,32 @@ def detect_and_run_execution_mode():
     elif ARGS['immich-remove-duplicates-albums']:
         EXECUTION_MODE = 'immich-remove-duplicates-albums'
         mode_immich_remove_duplicates_albums()
-    elif ARGS['immich-upload-albums'] != "":
-        EXECUTION_MODE = 'immich-upload-albums'
-        mode_immich_upload_albums()
-    elif ARGS['immich-upload-all'] != "":
-        EXECUTION_MODE = 'immich-upload-all'
-        mode_immich_upload_ALL()
-    elif ARGS['immich-download-albums'] != "":
-        EXECUTION_MODE = 'immich-download-albums'
-        mode_immich_download_albums()
-    elif ARGS['immich-download-all'] != "":
-        EXECUTION_MODE = 'immich-download-all'
-        mode_immich_download_ALL()
-    elif ARGS['immich-remove-orphan-assets'] != "":
-        EXECUTION_MODE = 'immich-remove-orphan-assets'
-        mode_immich_remove_orphan_assets()
-    elif ARGS['immich-remove-all-assets'] != "":
-        EXECUTION_MODE = 'immich-remove-all-assets'
-        mode_immich_remove_ALL()
     elif ARGS['immich-remove-all-albums'] != "":
         EXECUTION_MODE = 'immich-remove-all-albums'
         mode_immich_remove_all_albums()
+    elif ARGS['immich-remove-all-assets'] != "":
+        EXECUTION_MODE = 'immich-remove-all-assets'
+        mode_immich_remove_ALL()
+    elif ARGS['immich-remove-orphan-assets'] != "":
+        EXECUTION_MODE = 'immich-remove-orphan-assets'
+        mode_immich_remove_orphan_assets()
+    elif ARGS['immich-upload-albums'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to upload (default albums_to_upload='all')
+        EXECUTION_MODE = 'immich-upload-albums'
+        mode_immich_upload_albums()
+    elif ARGS['immich-upload-all'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time
+        EXECUTION_MODE = 'immich-upload-all'
+        mode_immich_upload_ALL()
+    elif ARGS['immich-download-albums'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to download (default albums_to_download='all')
+        EXECUTION_MODE = 'immich-download-albums'
+        mode_immich_download_albums()
+    elif ARGS['immich-download-all'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time
+        EXECUTION_MODE = 'immich-download-all'
+        mode_immich_download_ALL()
+
 
     # Other Stand-alone Extra Modes:
     elif ARGS['fix-symlinks-broken'] != "":
