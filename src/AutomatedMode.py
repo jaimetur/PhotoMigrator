@@ -324,7 +324,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         # Eliminar archivo de bloqueo después de la descarga
                         os.remove(lock_file)
                     except Exception as e:
-                        LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}' - {e}")
+                        LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e}")
                         SHARED_DATA.counters['total_download_failed_assets'] += 1
 
 
