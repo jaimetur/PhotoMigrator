@@ -296,9 +296,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             album_assets = source_client.get_album_shared_assets(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name)
                     if not album_assets:
                         SHARED_DATA.counters['total_download_failed_albums'] += 1
+                        continue
                 except Exception as e:
                     LOGGER.error(f"ERROR   : Error listing Album Assets - {e}")
                     SHARED_DATA.counters['total_download_failed_albums'] += 1
+                    continue
 
                 for asset in album_assets:
                     asset_id = asset['id']
@@ -332,6 +334,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     except Exception as e:
                         LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e}")
                         SHARED_DATA.counters['total_download_failed_assets'] += 1
+                        if asset_type.lower() == 'video':
+                            SHARED_DATA.counters['total_download_failed_videos'] += 1
+                        else:
+                            SHARED_DATA.counters['total_download_failed_photos'] += 1
+                        continue
 
                     # Actualizamos Contadores de descargas
                     if downloaded_assets > 0:
