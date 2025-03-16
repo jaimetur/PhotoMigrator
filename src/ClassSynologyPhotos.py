@@ -1077,7 +1077,7 @@ class ClassSynologyPhotos:
                 LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
             
 
-    def download_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Synology", log_level=logging.INFO):
+    def download_asset(self, asset_id, asset_filename, asset_time, album_passphrase=None, download_folder="Downloaded_Synology", log_level=logging.INFO):
         """
         Downloads an asset (photo/video) from Synology Photos to a local folder,
         preserving the original timestamp if available.
@@ -1086,6 +1086,7 @@ class ClassSynologyPhotos:
             asset_id (int): ID of the asset to download.
             asset_filename (str): Name of the file to save.
             asset_time (int or str): UNIX epoch or ISO string time of the asset.
+            album_passphrase (str): Passphrase for shared albums.
             download_folder (str): Path where the file will be saved.
             log_level (logging.LEVEL): log_level for logs and console
 
@@ -1121,6 +1122,10 @@ class ClassSynologyPhotos:
                     'download_type': 'source',
                     "item_id": f"[{asset_id}]",
                 }
+                # If is a shared album, we append the passphrase to params
+                if album_passphrase:
+                    params['passphrase'] = album_passphrase
+
                 resp = self.SESSION.get(url, params=params, headers=headers, verify=False, stream=True)
                 if resp.status_code != 200:
                     LOGGER.error("")
