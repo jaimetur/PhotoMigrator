@@ -91,15 +91,15 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
 
             # Return ClassSynologyPhotos
             if client_type.lower() in ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1']:
-                return ClassSynologyPhotos(ACCOUNT_ID=1)
+                return ClassSynologyPhotos(account_id=1)
             elif client_type.lower() in ['synology-photos-2', 'synology-photos2', 'synology-2', 'synology2']:
-                return ClassSynologyPhotos(ACCOUNT_ID=2)
+                return ClassSynologyPhotos(account_id=2)
 
             # Return ClassImmichPhotos
             elif client_type.lower() in ['immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1']:
-                return ClassImmichPhotos(ACCOUNT_ID=1)
+                return ClassImmichPhotos(account_id=1)
             elif client_type.lower() in ['immich-photos-2', 'immich-photos2', 'immich-2', 'immich2']:
-                return ClassImmichPhotos(ACCOUNT_ID=2)
+                return ClassImmichPhotos(account_id=2)
 
             # Return ClassTakeoutFolder
             elif Path(client_type).is_dir() and (Utils.contains_zip_files(client_type) or Utils.contains_takeout_structure(client_type)):
@@ -283,15 +283,13 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 album_id = album['id']
                 album_name = album['albumName']
 
-                # Incrementamos contador de álbumes descargados
-                SHARED_DATA.counters['total_downloaded_albums'] += 1
-
                 # Descargar todos los assets de este álbum
                 try:
-                    album_assets = source_client.get_album_assets(album_id)
+                    album_assets = source_client.get_album_assets(album_id=album_id, album_name=album_name)
                     if not album_assets:
                         SHARED_DATA.counters['total_download_failed_albums'] += 1
-                except:
+                except Exception as e:
+                    LOGGER.error(f"ERROR   : Error listing Album Assets - {e}")
                     SHARED_DATA.counters['total_download_failed_albums'] += 1
 
                 for asset in album_assets:
@@ -327,7 +325,6 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         LOGGER.error(f"ERROR  : Error Downloading Asset: '{os.path.basename(asset_filename)}' - {e}")
                         SHARED_DATA.counters['total_download_failed_assets'] += 1
 
-
                     # Actualizamos Contadores de descargas
                     if downloaded_assets > 0:
                         # set_log_level(LOGGER, log_level)
@@ -359,6 +356,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     # sys.stdout.flush()
                     # sys.stderr.flush()
 
+                # Incrementamos contador de álbumes descargados
+                SHARED_DATA.counters['total_downloaded_albums'] += 1
                 LOGGER.info(f"INFO    : Album Downloaded: '{album_name}'")
 
             # 1.2) Descarga de assets sin álbum
@@ -539,11 +538,10 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         # Get source and target client names
         source_client_name = source_client.get_client_name()
         target_client_name = target_client.get_client_name()
-        LOGGER.info(f"")
-        LOGGER.info(f"INFO    : Starting Downloading/Uploading Process...")
+        LOGGER.info(f"INFO    : Starting Automated Migration Process: {source_client_name} ➜ {target_client_name}...")
         LOGGER.info(f"INFO    : Source Client: {source_client_name}")
         LOGGER.info(f"INFO    : Target Client: {target_client_name}")
-        LOGGER.info(f"INFO    : Starting Automated Migration Process: {source_client_name} ➜ {target_client_name}...")
+        LOGGER.info(f"INFO    : Starting Downloading/Uploading Process...")
 
         # Get source client statistics:
         all_albums = source_client.get_albums_including_shared_with_user()

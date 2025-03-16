@@ -75,6 +75,9 @@ class ClassLocalFolder:
             return "sidecar"
         return "unknown"
 
+    ###########################################################################
+    #                           CLASS PROPERTIES GETS                         #
+    ###########################################################################
     def get_client_name(self, log_level=logging.INFO):
         """
         Returns the name of the client.
@@ -88,6 +91,135 @@ class ClassLocalFolder:
         with set_log_level(LOGGER, log_level):
             LOGGER.debug("DEBUG   : Fetching the client name.")
             return self.CLIENT_NAME
+
+    ###########################################################################
+    #                           CONFIGURATION READING                         #
+    ###########################################################################
+    def read_config_file(self, config_file='Config.ini', log_level=logging.INFO):
+        """
+        Reads a configuration file (not really used in local storage).
+
+        Args:
+            config_file (str): The path to the configuration file. Default is 'Config.ini'.
+            log_level (logging.LEVEL): log level for logs and console.
+
+        Returns:
+            dict: An empty dictionary, as config is not used locally.
+        """
+        with set_log_level(LOGGER, log_level):
+            LOGGER.info("INFO    : Reading config file (Not applicable).")
+            return {}
+
+
+    ###########################################################################
+    #                         AUTHENTICATION / LOGOUT                         #
+    ###########################################################################
+    def login(self, log_level=logging.INFO):
+        """
+        Simulates a login operation. Always successful in local storage.
+
+        Args:
+            log_level (logging.LEVEL): log level for logs and console.
+
+        Returns:
+            bool: Always True for local usage.
+        """
+        with set_log_level(LOGGER, log_level):
+            LOGGER.info("INFO    : Logging in (local storage).")
+            return True
+
+    def logout(self, log_level=logging.INFO):
+        """
+        Simulates a logout operation. Always successful in local storage.
+
+        Args:
+            log_level (logging.LEVEL): log level for logs and console.
+        """
+        with set_log_level(LOGGER, log_level):
+            LOGGER.info("INFO    : Logging out (local storage).")
+
+
+    ###########################################################################
+    #                           GENERAL UTILITY                               #
+    ###########################################################################
+    def get_supported_media_types(self, type='media', log_level=logging.INFO):
+        """
+        Returns the supported media/sidecar extensions for local usage.
+
+        Args:
+            type (str): 'media', 'image', 'video', or 'sidecar' to filter. Default 'media'.
+            log_level (logging.LEVEL): log level for logs and console.
+
+        Returns:
+            list[str]: The list of supported extensions depending on 'type'.
+        """
+        with set_log_level(LOGGER, log_level):
+            if type.lower() == 'image':
+                return self.ALLOWED_PHOTO_EXTENSIONS
+            elif type.lower() == 'video':
+                return self.ALLOWED_VIDEO_EXTENSIONS
+            elif type.lower() == 'sidecar':
+                return self.ALLOWED_SIDECAR_EXTENSIONS
+            else:
+                # 'media' or anything else defaults to photo+video
+                return self.ALLOWED_PHOTO_EXTENSIONS + self.ALLOWED_VIDEO_EXTENSIONS
+
+
+    def get_user_id(self, log_level=logging.INFO):
+        """
+        Returns a user ID, which is simply the base folder path in local usage.
+
+        Args:
+            log_level (logging.LEVEL): log level for logs and console.
+
+        Returns:
+            str: The path of the base folder as the user ID.
+        """
+        with set_log_level(LOGGER, log_level):
+            LOGGER.info("INFO    : Returning the user ID (base folder path).")
+            return str(self.base_folder)
+
+
+    ###########################################################################
+    #                            ALBUMS FUNCTIONS                             #
+    ###########################################################################
+    def create_album(self, album_name, log_level=logging.INFO):
+        """
+        Creates a new album (folder).
+
+        Args:
+            album_name (str): Name of the album to be created.
+            log_level (logging.LEVEL): log level for logs and console.
+
+        Returns:
+            bool: True if the album was created successfully, False otherwise.
+        """
+        with set_log_level(LOGGER, log_level):
+            LOGGER.info(f"INFO    : Creating album '{album_name}'.")
+            album_path = self.albums_folder / album_name
+            album_path.mkdir(parents=True, exist_ok=True)
+            return album_path
+
+    def remove_album(self, album_id, album_name=None, log_level=logging.INFO):
+        """
+        Removes an album (folder) if it exists.
+
+        Args:
+            album_id (str): Path to the album folder.
+            album_name (str): (Optional) Name of the album, for logging only.
+            log_level (logging.LEVEL): log level for logs and console.
+
+        Returns:
+            bool: True if the album was removed successfully, False otherwise.
+        """
+        with set_log_level(LOGGER, log_level):
+            album_path = Path(album_id)
+            LOGGER.info(f"INFO    : Removing album '{album_name or album_id}'.")
+            if album_path.exists() and album_path.is_dir():
+                shutil.rmtree(album_path)
+                return True
+            return False
+
 
     def get_albums_owned_by_user(self, log_level=logging.INFO):
         """
@@ -137,7 +269,114 @@ class ClassLocalFolder:
             LOGGER.info(f"INFO    : Found {len(all_albums)} albums in total (owned + shared).")
             return all_albums
 
-    def get_album_assets(self, album_id, log_level=logging.INFO):
+    def get_album_assets_size(self, album_id, log_level=logging.INFO):
+        """
+        Gets the total size (bytes) of all assets in an album.
+
+        Args:
+            album_id (str): Path to the album folder.
+            log_level (logging.LEVEL): log level for logs and console.
+
+        Returns:
+            int: Total size of assets in the album (in bytes).
+        """
+        with set_log_level(LOGGER, log_level):
+            album_path = Path(album_id)
+            total_size = 0
+            for file in album_path.iterdir():
+                if file.is_file() or file.is_symlink():
+                    total_size += file.stat().st_size
+            return total_size
+
+    def get_album_assets_count(self, album_id, log_level=logging.INFO):
+        """
+        Gets the number of assets in an album.
+
+        Args:
+            album_id (str): Path to the album folder.
+            log_level (logging.LEVEL): log level for logs and console.
+
+        Returns:
+            int: Number of assets in the album.
+        """
+        with set_log_level(LOGGER, log_level):
+            return len(self.get_album_assets(album_id, log_level))
+
+    def album_exists(self, album_name, log_level=logging.INFO):
+        """
+        Checks if an album with the given name exists in the 'Albums' folder.
+
+        Args:
+            album_name (str): Name of the album to check.
+            log_level (logging.LEVEL): log level for logs and console.
+
+        Returns:
+            tuple: (bool, str or None) -> (exists, album_path_if_exists)
+        """
+        with set_log_level(LOGGER, log_level):
+            LOGGER.info(f"INFO    : Checking if album '{album_name}' exists.")
+            for album in self.get_albums_owned_by_user(log_level):
+                if album_name == album["albumName"]:
+                    return True, album["id"]
+            return False, None
+
+    ###########################################################################
+    #                        ASSETS (PHOTOS/VIDEOS)                           #
+    ###########################################################################
+    def get_all_assets(self, type='all', log_level=logging.INFO):
+        """
+        Retrieves assets stored in the base folder, filtering by type.
+
+        Args:
+            log_level (int): Logging level.
+            type (str): Type of assets to retrieve. Options are 'all', 'photo', 'image', 'video', 'media', 'metadata', 'sidecar', 'unsupported'.
+
+        Returns:
+            list[dict]: A list of asset dictionaries, each containing:
+                        - 'id': Absolute path to the file.
+                        - 'time': Creation timestamp of the file.
+                        - 'filename': File name (no path).
+                        - 'filepath': Absolute path to the file.
+                        - 'type': Type of the file (image, video, metadata, sidecar, unknown).
+        """
+        with set_log_level(LOGGER, log_level):
+            LOGGER.info(f"INFO    : Retrieving {type} assets from the base folder.")
+
+            # Determine allowed extensions based on the type
+            if type in ['photo', 'image']:
+                selected_type_extensions = self.ALLOWED_PHOTO_EXTENSIONS
+            elif type == 'video':
+                selected_type_extensions = self.ALLOWED_VIDEO_EXTENSIONS
+            elif type == 'media':
+                selected_type_extensions = self.ALLOWED_MEDIA_EXTENSIONS
+            elif type == 'metadata':
+                selected_type_extensions = self.ALLOWED_METADATA_EXTENSIONS
+            elif type == 'sidecar':
+                selected_type_extensions = self.ALLOWED_SIDECAR_EXTENSIONS
+            elif type == 'unsupported':
+                selected_type_extensions = None  # Special case to filter unsupported files
+            else:  # 'all' or unrecognized type defaults to all supported extensions
+                selected_type_extensions = self.ALLOWED_EXTENSIONS
+
+            assets = [
+                {
+                    "id": str(file.resolve()),
+                    "time": file.stat().st_ctime,
+                    "filename": file.name,
+                    "filepath": str(file.resolve()),
+                    "type": self._determine_file_type(file),
+                }
+                for file in self.base_folder.rglob("*")
+                if file.is_file() and (
+                        (selected_type_extensions is None and file.suffix.lower() not in self.ALLOWED_EXTENSIONS) or
+                        (selected_type_extensions is not None and file.suffix.lower() in selected_type_extensions)
+                )
+            ]
+
+            LOGGER.info(f"INFO    : Found {len(assets)} {type} assets in the base folder.")
+            return assets
+
+    def get_album_assets(self, album_id, album_name=None, log_level=logging.INFO):
         """
         Lists the assets within a given album.
 
@@ -150,22 +389,30 @@ class ClassLocalFolder:
                         - 'type': Type of the file (image, video, metadata, sidecar, unknown).
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info(f"INFO    : Retrieving assets for album: {album_id}")
+            try:
+                LOGGER.info(f"INFO    : Retrieving assets for album: {album_id}")
 
-            album_path = Path(album_id)
-            assets = [
-                {
-                    "id": str(file.resolve()),
-                    "time": file.stat().st_ctime,
-                    "filename": file.name,
-                    "filepath": str(file.resolve()),
-                    "type": self._determine_file_type(file),
-                }
-                for file in album_path.iterdir() if file.is_file() or file.is_symlink()
-            ]
+                album_path = Path(album_id)
+                assets = [
+                    {
+                        "id": str(file.resolve()),
+                        "time": file.stat().st_ctime,
+                        "filename": file.name,
+                        "filepath": str(file.resolve()),
+                        "type": self._determine_file_type(file),
+                    }
+                    for file in album_path.iterdir() if file.is_file() or file.is_symlink()
+                ]
 
-            LOGGER.info(f"INFO    : Found {len(assets)} assets in album {album_id}.")
-            return assets
+                LOGGER.info(f"INFO    : Found {len(assets)} assets in album {album_id}.")
+                return assets
+
+            except Exception as e:
+                if album_name:
+                    LOGGER.error(f"ERROR   : Failed to retrieve assets from album '{album_name}': {str(e)}")
+                else:
+                    LOGGER.error(f"ERROR   : Failed to retrieve assets from album ID={album_id}: {str(e)}")
+                return []
 
     # def get_no_albums_assets(self, log_level=logging.INFO):
     #     """
@@ -235,256 +482,6 @@ class ClassLocalFolder:
 
             LOGGER.info(f"INFO    : Found {len(assets)} assets excluding album folders.")
             return assets
-
-    def get_all_assets(self, type='all', log_level=logging.INFO):
-        """
-        Retrieves assets stored in the base folder, filtering by type.
-
-        Args:
-            log_level (int): Logging level.
-            type (str): Type of assets to retrieve. Options are 'all', 'photo', 'image', 'video', 'media', 'metadata', 'sidecar', 'unsupported'.
-
-        Returns:
-            list[dict]: A list of asset dictionaries, each containing:
-                        - 'id': Absolute path to the file.
-                        - 'time': Creation timestamp of the file.
-                        - 'filename': File name (no path).
-                        - 'filepath': Absolute path to the file.
-                        - 'type': Type of the file (image, video, metadata, sidecar, unknown).
-        """
-        with set_log_level(LOGGER, log_level):
-            LOGGER.info(f"INFO    : Retrieving {type} assets from the base folder.")
-
-            # Determine allowed extensions based on the type
-            if type in ['photo', 'image']:
-                selected_type_extensions = self.ALLOWED_PHOTO_EXTENSIONS
-            elif type == 'video':
-                selected_type_extensions = self.ALLOWED_VIDEO_EXTENSIONS
-            elif type == 'media':
-                selected_type_extensions = self.ALLOWED_MEDIA_EXTENSIONS
-            elif type == 'metadata':
-                selected_type_extensions = self.ALLOWED_METADATA_EXTENSIONS
-            elif type == 'sidecar':
-                selected_type_extensions = self.ALLOWED_SIDECAR_EXTENSIONS
-            elif type == 'unsupported':
-                selected_type_extensions = None  # Special case to filter unsupported files
-            else:  # 'all' or unrecognized type defaults to all supported extensions
-                selected_type_extensions = self.ALLOWED_EXTENSIONS
-
-            assets = [
-                {
-                    "id": str(file.resolve()),
-                    "time": file.stat().st_ctime,
-                    "filename": file.name,
-                    "filepath": str(file.resolve()),
-                    "type": self._determine_file_type(file),
-                }
-                for file in self.base_folder.rglob("*")
-                if file.is_file() and (
-                    (selected_type_extensions is None and file.suffix.lower() not in self.ALLOWED_EXTENSIONS) or
-                    (selected_type_extensions is not None and file.suffix.lower() in selected_type_extensions)
-                )
-            ]
-
-            LOGGER.info(f"INFO    : Found {len(assets)} {type} assets in the base folder.")
-            return assets
-
-    def remove_empty_albums(self, log_level=logging.INFO):
-        """
-        Removes all empty album folders.
-        """
-        with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Removing empty albums.")
-
-            empty_albums = [p for p in self.albums_folder.iterdir() if p.is_dir() and not any(p.iterdir())]
-            for album in empty_albums:
-                shutil.rmtree(album)
-
-            LOGGER.info(f"INFO    : Removed {len(empty_albums)} empty albums.")
-            return True
-
-    def remove_all_albums(self, log_level=logging.INFO):
-        """
-        Removes all album folders. If removeAlbumsAssets=True, also removes files inside them.
-
-        Returns:
-            tuple(int, int): (#albums_removed, #assets_removed_if_requested).
-        """
-        with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Removing all albums.")
-
-            for album in self.albums_folder.iterdir():
-                if album.is_dir():
-                    shutil.rmtree(album)
-
-            LOGGER.info("INFO    : All albums have been removed.")
-            return True
-
-    ###########################################################################
-    #                    NEW METHODS ADAPTED FROM CLASSIMMICHPHOTOS           #
-    ###########################################################################
-    def read_config_file(self, config_file='Config.ini', log_level=logging.INFO):
-        """
-        Reads a configuration file (not really used in local storage).
-
-        Args:
-            config_file (str): The path to the configuration file. Default is 'Config.ini'.
-            log_level (logging.LEVEL): log level for logs and console.
-
-        Returns:
-            dict: An empty dictionary, as config is not used locally.
-        """
-        with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Reading config file (Not applicable).")
-            return {}
-
-    def login(self, log_level=logging.INFO):
-        """
-        Simulates a login operation. Always successful in local storage.
-
-        Args:
-            log_level (logging.LEVEL): log level for logs and console.
-
-        Returns:
-            bool: Always True for local usage.
-        """
-        with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Logging in (local storage).")
-            return True
-
-    def logout(self, log_level=logging.INFO):
-        """
-        Simulates a logout operation. Always successful in local storage.
-
-        Args:
-            log_level (logging.LEVEL): log level for logs and console.
-        """
-        with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Logging out (local storage).")
-
-    def get_supported_media_types(self, type='media', log_level=logging.INFO):
-        """
-        Returns the supported media/sidecar extensions for local usage.
-
-        Args:
-            type (str): 'media', 'image', 'video', or 'sidecar' to filter. Default 'media'.
-            log_level (logging.LEVEL): log level for logs and console.
-
-        Returns:
-            list[str]: The list of supported extensions depending on 'type'.
-        """
-        with set_log_level(LOGGER, log_level):
-            if type.lower() == 'image':
-                return self.ALLOWED_PHOTO_EXTENSIONS
-            elif type.lower() == 'video':
-                return self.ALLOWED_VIDEO_EXTENSIONS
-            elif type.lower() == 'sidecar':
-                return self.ALLOWED_SIDECAR_EXTENSIONS
-            else:
-                # 'media' or anything else defaults to photo+video
-                return self.ALLOWED_PHOTO_EXTENSIONS + self.ALLOWED_VIDEO_EXTENSIONS
-
-    def get_user_id(self, log_level=logging.INFO):
-        """
-        Returns a user ID, which is simply the base folder path in local usage.
-
-        Args:
-            log_level (logging.LEVEL): log level for logs and console.
-
-        Returns:
-            str: The path of the base folder as the user ID.
-        """
-        with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Returning the user ID (base folder path).")
-            return str(self.base_folder)
-
-    def create_album(self, album_name, log_level=logging.INFO):
-        """
-        Creates a new album (folder).
-
-        Args:
-            album_name (str): Name of the album to be created.
-            log_level (logging.LEVEL): log level for logs and console.
-
-        Returns:
-            bool: True if the album was created successfully, False otherwise.
-        """
-        with set_log_level(LOGGER, log_level):
-            LOGGER.info(f"INFO    : Creating album '{album_name}'.")
-            album_path = self.albums_folder / album_name
-            album_path.mkdir(parents=True, exist_ok=True)
-            return album_path
-
-    def remove_album(self, album_id, album_name=None, log_level=logging.INFO):
-        """
-        Removes an album (folder) if it exists.
-
-        Args:
-            album_id (str): Path to the album folder.
-            album_name (str): (Optional) Name of the album, for logging only.
-            log_level (logging.LEVEL): log level for logs and console.
-
-        Returns:
-            bool: True if the album was removed successfully, False otherwise.
-        """
-        with set_log_level(LOGGER, log_level):
-            album_path = Path(album_id)
-            LOGGER.info(f"INFO    : Removing album '{album_name or album_id}'.")
-            if album_path.exists() and album_path.is_dir():
-                shutil.rmtree(album_path)
-                return True
-            return False
-
-    def get_album_assets_size(self, album_id, log_level=logging.INFO):
-        """
-        Gets the total size (bytes) of all assets in an album.
-
-        Args:
-            album_id (str): Path to the album folder.
-            log_level (logging.LEVEL): log level for logs and console.
-
-        Returns:
-            int: Total size of assets in the album (in bytes).
-        """
-        with set_log_level(LOGGER, log_level):
-            album_path = Path(album_id)
-            total_size = 0
-            for file in album_path.iterdir():
-                if file.is_file() or file.is_symlink():
-                    total_size += file.stat().st_size
-            return total_size
-
-    def get_album_assets_count(self, album_id, log_level=logging.INFO):
-        """
-        Gets the number of assets in an album.
-
-        Args:
-            album_id (str): Path to the album folder.
-            log_level (logging.LEVEL): log level for logs and console.
-
-        Returns:
-            int: Number of assets in the album.
-        """
-        with set_log_level(LOGGER, log_level):
-            return len(self.get_album_assets(album_id, log_level))
-
-    def album_exists(self, album_name, log_level=logging.INFO):
-        """
-        Checks if an album with the given name exists in the 'Albums' folder.
-
-        Args:
-            album_name (str): Name of the album to check.
-            log_level (logging.LEVEL): log level for logs and console.
-
-        Returns:
-            tuple: (bool, str or None) -> (exists, album_path_if_exists)
-        """
-        with set_log_level(LOGGER, log_level):
-            LOGGER.info(f"INFO    : Checking if album '{album_name}' exists.")
-            for album in self.get_albums_owned_by_user(log_level):
-                if album_name == album["albumName"]:
-                    return True, album["id"]
-            return False, None
 
     def get_all_albums_assets(self, log_level=logging.WARNING):
         """
@@ -765,6 +762,21 @@ class ClassLocalFolder:
         """
         pass
 
+    def remove_empty_albums(self, log_level=logging.INFO):
+        """
+        Removes all empty album folders.
+        """
+        with set_log_level(LOGGER, log_level):
+            LOGGER.info("INFO    : Removing empty albums.")
+
+            empty_albums = [p for p in self.albums_folder.iterdir() if p.is_dir() and not any(p.iterdir())]
+            for album in empty_albums:
+                shutil.rmtree(album)
+
+            LOGGER.info(f"INFO    : Removed {len(empty_albums)} empty albums.")
+            return True
+
+
     def remove_duplicates_albums(self, log_level=logging.WARNING):
         """
         Removes duplicate albums that contain the exact same set of files.
@@ -787,6 +799,9 @@ class ClassLocalFolder:
         """
         pass
 
+    ###########################################################################
+    #                     REMOVE ALL ASSETS / ALL ALBUMS                      #
+    ###########################################################################
     def remove_all_assets(self, log_level=logging.WARNING):
         """
         Removes all assets from local storage (both in albums and No-Albums).
@@ -795,6 +810,24 @@ class ClassLocalFolder:
             bool: True if success.
         """
         pass
+
+    def remove_all_albums(self, log_level=logging.INFO):
+        """
+        Removes all album folders. If removeAlbumsAssets=True, also removes files inside them.
+
+        Returns:
+            tuple(int, int): (#albums_removed, #assets_removed_if_requested).
+        """
+        with set_log_level(LOGGER, log_level):
+            LOGGER.info("INFO    : Removing all albums.")
+
+            for album in self.albums_folder.iterdir():
+                if album.is_dir():
+                    shutil.rmtree(album)
+
+            LOGGER.info("INFO    : All albums have been removed.")
+            return True
+
 
 ##############################################################################
 #                                END OF CLASS                                #

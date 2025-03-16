@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
+----------------------
 ClassSynologyPhotos.py
----------------
+----------------------
 Python module with example functions to interact with Synology Photos, including followfing functions:
   - Configuration (read config)
   - Authentication (login/logout)
@@ -62,7 +63,7 @@ class ClassSynologyPhotos:
     and docstrings are now in English.
     """
 
-    def __init__(self, ACCOUNT_ID=1):
+    def __init__(self, account_id=1):
         """
         Constructor that initializes what were previously global variables.
         Also imports the global LOGGER from GlobalVariables.
@@ -71,9 +72,9 @@ class ClassSynologyPhotos:
         # from GlobalVariables import LOGGER
         # LOGGER = LOGGER
 
-        self.ACCOUNT_ID = str(ACCOUNT_ID)  # Used to identify wich Account to use from the configuration file
-        if ACCOUNT_ID not in [1, 2]:
-            LOGGER.error(f"ERROR   : Cannot create Immich Photos object with ACCOUNT_ID: {ACCOUNT_ID}. Valid valies are [1, 2]. Exiting...")
+        self.ACCOUNT_ID = str(account_id)  # Used to identify wich Account to use from the configuration file
+        if account_id not in [1, 2]:
+            LOGGER.error(f"ERROR   : Cannot create Immich Photos object with ACCOUNT_ID: {account_id}. Valid valies are [1, 2]. Exiting...")
             sys.exit(-1)
 
         # Variables that were previously global:
@@ -330,46 +331,6 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                            ALBUMS FUNCTIONS                             #
     ###########################################################################
-    def remove_album(self, album_id, album_name, log_level=logging.INFO):
-        """
-        Removes an album in Synology Photos by its album ID.
-
-        Args:
-            album_id (str): ID of the album to delete.
-            album_name (str): Name of the album to delete.
-            log_level (logging.LEVEL): log_level for logs and console
-
-        Returns True on success, False otherwise.
-        """
-        
-        with set_log_level(LOGGER, log_level):
-            try:
-                self.login(log_level=log_level)
-                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-                headers = {}
-                if self.SYNO_TOKEN_HEADER:
-                    headers.update(self.SYNO_TOKEN_HEADER)
-
-                params = {
-                    "api": "SYNO.Foto.Browse.Album",
-                    "method": "delete",
-                    "version": "3",
-                    "id": f"[{album_id}]",
-                    "name": album_name,
-                }
-                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                response.raise_for_status()
-                data = response.json()
-                success = True
-                if not data["success"]:
-                    LOGGER.warning(f"WARNING : Could not delete album {album_id}: {data}")
-                    success = False
-                return success
-            except Exception as e:
-                LOGGER.error(f"ERROR   : Exception while removing Album from Synology Photos. {e}")
-            
-
-
     def create_album(self, album_name, log_level=logging.INFO):
         """
         Creates a new album in Synology Photos with the specified name.
@@ -381,7 +342,6 @@ class ClassSynologyPhotos:
         Returns:
             str: New album ID or None if it fails
         """
-        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -409,7 +369,44 @@ class ClassSynologyPhotos:
                 return album_id
             except Exception as e:
                 LOGGER.warning(f"WARNING : Cannot create album: '{album_name}' due to API call error. Skipped! {e}")
-            
+
+    def remove_album(self, album_id, album_name, log_level=logging.INFO):
+        """
+        Removes an album in Synology Photos by its album ID.
+
+        Args:
+            album_id (str): ID of the album to delete.
+            album_name (str): Name of the album to delete.
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns True on success, False otherwise.
+        """
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+
+                params = {
+                    "api": "SYNO.Foto.Browse.Album",
+                    "method": "delete",
+                    "version": "3",
+                    "id": f"[{album_id}]",
+                    "name": album_name,
+                }
+                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                response.raise_for_status()
+                data = response.json()
+                success = True
+                if not data["success"]:
+                    LOGGER.warning(f"WARNING : Could not delete album {album_id}: {data}")
+                    success = False
+                return success
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while removing Album from Synology Photos. {e}")
+
 
     def get_albums_owned_by_user(self, log_level=logging.INFO):
         """
@@ -469,7 +466,6 @@ class ClassSynologyPhotos:
                 return album_list
             except Exception as e:
                 LOGGER.warning(f"WARNING : Cannot get albums due to API call error. Skipped! {e}")
-            
 
 
     def get_albums_including_shared_with_user(self, log_level=logging.INFO):
@@ -628,7 +624,6 @@ class ClassSynologyPhotos:
                 return data["data"]["count"]
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets count from Synology Photos. {e}")
-            
 
 
     def album_exists(self, album_name, log_level=logging.INFO):
@@ -714,31 +709,6 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while getting all Assets from Synology Photos. {e}")
             
 
-
-    def get_no_albums_assets(self, log_level=logging.WARNING):
-        """
-        Get assets not associated to any album from Synology Photos.
-
-        Args:
-            log_level (logging.LEVEL): log_level for logs and console
-
-        Returns assets_without_albums
-        """
-        
-        with set_log_level(LOGGER, log_level):
-            try:
-                self.login(log_level=log_level)
-                all_assets = self.get_all_assets(log_level=logging.INFO)
-                album_asset = self.get_all_albums_assets(log_level=logging.INFO)
-                # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
-                assets_without_albums = get_unique_items(all_assets, album_asset, key='filename')
-                LOGGER.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
-                return assets_without_albums
-            except Exception as e:
-                LOGGER.error(f"ERROR   : Exception while getting No-Albums Assets from Synology Photos. {e}")
-            
-
-
     def get_album_assets(self, album_id, album_name=None, log_level=logging.INFO):
         """
         Get assets in a specific album.
@@ -799,7 +769,29 @@ class ClassSynologyPhotos:
                 return album_items
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
-            
+
+
+    def get_no_albums_assets(self, log_level=logging.WARNING):
+        """
+        Get assets not associated to any album from Synology Photos.
+
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns assets_without_albums
+        """
+
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                all_assets = self.get_all_assets(log_level=logging.INFO)
+                album_asset = self.get_all_albums_assets(log_level=logging.INFO)
+                # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
+                assets_without_albums = get_unique_items(all_assets, album_asset, key='filename')
+                LOGGER.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
+                return assets_without_albums
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting No-Albums Assets from Synology Photos. {e}")
 
 
     def get_all_albums_assets(self, log_level=logging.WARNING):
@@ -833,7 +825,6 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting All Albums Assets from Synology Photos. {e}")
             
-
 
     def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=logging.WARNING):
         """
@@ -898,7 +889,6 @@ class ClassSynologyPhotos:
                 LOGGER.warning(f"WARNING : Cannot add Assets to album: '{album_name}' due to API call error. Skipped!")
             
 
-
     # TODO: Complete this method
     def get_duplicates_assets(self, log_level=logging.INFO):
         """
@@ -910,7 +900,6 @@ class ClassSynologyPhotos:
                 return []
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting duplicates Assets from Synology Photos. {e}")
-            
 
 
     def remove_assets(self, asset_ids, log_level=logging.INFO):
@@ -964,7 +953,6 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while removing Assets from Synology Photos. {e}")
             
 
-
     # TODO: Complete this method
     def remove_duplicates_assets(self, log_level=logging.INFO):
         """
@@ -977,7 +965,6 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing duplicates assets from Synology Photos. {e}")
             
-
 
     def upload_asset(self, file_path, log_level=logging.INFO):
         """
@@ -1050,7 +1037,6 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
             
-
 
     def download_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Synology", log_level=logging.INFO):
         """
@@ -1126,7 +1112,7 @@ class ClassSynologyPhotos:
     #                             FOLDERS FUNCTIONS                           #
     #             (This block is exclusive for ClassSynologyPhotos)           #
     ###########################################################################
-    def get_photos_root_folder_id(self, log_level=logging.INFO):
+    def get_root_folder_id(self, log_level=logging.INFO):
         """
         Retrieves the folder_id of the root folder in Synology Photos.
 
@@ -1167,7 +1153,6 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while geting root folder ID from Synology Photos. {e}")
             
-
 
     def get_folder_id(self, search_in_folder_id, folder_name, log_level=logging.WARNING):
         """
@@ -1249,7 +1234,6 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while getting folder ID from Synology Photos. {e}")
             
 
-
     def create_folder(self, folder_name, parent_folder_id=None, log_level=logging.INFO):
         """
         Retrieves the folder ID of a given folder name within a parent folder in Synology Photos.
@@ -1273,7 +1257,7 @@ class ClassSynologyPhotos:
                     headers.update(self.SYNO_TOKEN_HEADER)
 
                 if not parent_folder_id:
-                    photos_root_folder_id = self.get_photos_root_folder_id()
+                    photos_root_folder_id = self.get_root_folder_id()
                     parent_folder_id = photos_root_folder_id
                     LOGGER.warning(f"WARNING : Parent Folder ID not provided, using Synology Photos root folder ID: '{photos_root_folder_id}' as parent folder.")
 
@@ -1304,7 +1288,6 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while creating folder into Synology Photos. {e}")
             
-
 
     def get_folders(self, parent_folder_id, log_level=logging.INFO):
         """
@@ -1359,7 +1342,6 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting folders from Synology Photos. {e}")
             
-
 
     def remove_folder(self, folder_id, folder_name, log_level=logging.INFO):
         """
@@ -1452,7 +1434,6 @@ class ClassSynologyPhotos:
     Encapsulates all the functionality from the original ClassImmichPhotos.py
     into a single class that uses a global LOGGER from GlobalVariables.
     """
-
     def wait_for_remove_task(self, task_id, log_level=logging.INFO):
         """
         Internal helper to poll a background remove task until done.
@@ -1473,7 +1454,6 @@ class ClassSynologyPhotos:
                         time.sleep(5)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while waitting for remove task to finish in Synology Photos. {e}")
-            
 
 
     def check_background_remove_task_finished(self, task_id, log_level=logging.INFO):
@@ -1538,7 +1518,6 @@ class ClassSynologyPhotos:
 
         Returns: (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed)
         """
-        
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
@@ -1653,7 +1632,6 @@ class ClassSynologyPhotos:
                 return 0,0,0,0
             
         return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed
-
 
 
     def upload_no_albums(self, input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, log_level=logging.WARNING):
@@ -2007,7 +1985,7 @@ class ClassSynologyPhotos:
                 self.login(log_level=log_level)
                 LOGGER.info("INFO    : Starting empty folder removal from Synology Photos...")
 
-                root_folder_id = self.get_photos_root_folder_id(log_level=log_level)
+                root_folder_id = self.get_root_folder_id(log_level=log_level)
                 total_removed = remove_empty_folders_recursive(root_folder_id, '/')
 
                 LOGGER.info(f"INFO    : Process Remove empty folders from Synology Photos finished. Total removed folders: {total_removed}")
