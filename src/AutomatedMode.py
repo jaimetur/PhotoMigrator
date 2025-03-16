@@ -864,13 +864,13 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     # ─────────────────────────────────────────────────────────────────────────
     # 1) Title Panel
     # ─────────────────────────────────────────────────────────────────────────
-    title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] ➜ [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
+    title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] 🡆 [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
 
-    layout["title_panel"].update(Panel(f"☁️ {title}", border_style="bright_blue", expand=True))
+    layout["title_panel"].update(Panel(f"🚀 {title}", border_style="bright_blue", expand=True))
 
     def update_title_panel():
-        title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] ➜ [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
-        layout["title_panel"].update(Panel(f"☁️ {title}", border_style="bright_blue", expand=True))
+        title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] 🡆 [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
+        layout["title_panel"].update(Panel(f"🚀 {title}", border_style="bright_blue", expand=True))
 
     # ─────────────────────────────────────────────────────────────────────────
     # 2) Info Panel
