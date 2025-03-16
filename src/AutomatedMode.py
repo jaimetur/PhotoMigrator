@@ -686,18 +686,20 @@ def secuencial_automated_migration(source_client, target_client, temp_folder, SH
         # =========================
         # FIRST PROCESS THE SOURCE:
         # =========================
+        SOURCE = source_client.get_client_name()
         LOGGER.info("")
         LOGGER.info(f'============================================================================')
         LOGGER.info(f'INFO    : STEP 1 - DOWNLOAD/PROCESS ASSETS FROM: {SOURCE}')
         LOGGER.info(f'============================================================================')
         LOGGER.info("")
-        LOGGER.info(f'INFO    : Downloading/Processing Assets to: {SOURCE}...')
+        LOGGER.info(f'INFO    : Downloading/Processing Assets from: {SOURCE}...')
 
         source_client.download_ALL(output_folder=temp_folder, log_level=log_level)
 
         # =========================
         # SECOND PROCESS THE TARGET:
         # =========================
+        TARGET = target_client.get_client_name()
         LOGGER.info("")
         LOGGER.info(f'============================================================================')
         LOGGER.info(f'INFO    : STEP 2 - UPLOAD/PROCESS ASSETS TO: {TARGET}')
