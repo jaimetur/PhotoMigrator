@@ -47,6 +47,8 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
             'total_download_failed_photos': 0,
             'total_download_failed_videos': 0,
             'total_download_failed_albums': 0,
+            'total_albums_restricted': 0,
+            'total_assets_restricted': 0,
 
             'total_uploaded_assets': 0,
             'total_uploaded_photos': 0,
@@ -289,7 +291,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 if permissions:
                     album_shared_role = permissions[0].get('role')  # Obtiene el valor si existe, si no, devuelve None
                 else:
-                    album_shared_role = None  # O cualquier valor por defecto que desees
+                    album_shared_role = ""
                 is_shared = album_passphrase is not None  # Si tiene passphrase, es compartido
 
                 # Descargar todos los assets de este álbum
@@ -574,9 +576,9 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             if permissions:
                 album_shared_role = permissions[0].get('role')  # Obtiene el valor si existe, si no, devuelve None
             else:
-                album_shared_role = None  # O cualquier valor por defecto que desees
-            if album_shared_role == 'view':
-                LOGGER.info(f"INFO    : Album '{album_name}' cannot beb downloaded because is a restricted shared album. Skipped!")
+                album_shared_role = ""  # O cualquier valor por defecto que desees
+            if album_shared_role.lower() == 'view':
+                LOGGER.info(f"INFO    : Album '{album_name}' cannot be downloaded because is a restricted shared album. Skipped!")
                 tottal_albums_resstricted_count += 1
                 total_restricted_assets_count += album.get('item_count')
                 restricted_assets.extend(source_client.get_album_shared_assets(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name))
@@ -603,6 +605,10 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             "total_sidecar": len(all_sidecar),
             "total_unsupported": len(all_unsupported),  # Corrección de "unsopported" → "unsupported"
         })
+
+        SHARED_DATA.counters['total_albums_restricted'] = tottal_albums_resstricted_count
+        SHARED_DATA.counters['total_assets_restricted'] = total_restricted_assets_count
+
         LOGGER.info(f"INFO    : Input Info Analysis: ")
         for key, value in SHARED_DATA.info.items():
             LOGGER.info(f"INFO    :    {key}: {value}")
@@ -987,10 +993,12 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         "📂 Downloaded Albums": (create_progress_bar("cyan"), 'total_downloaded_albums', "total_albums"),
     }
     failed_downloads = {
-        "🚩 Assets Failed": 'total_download_failed_assets',
-        "🚩 Photos Failed": 'total_download_failed_photos',
-        "🚩 Videos Failed": 'total_download_failed_videos',
-        "🚩 Albums Failed": 'total_download_failed_albums',
+        "🚩 Failed Assets": 'total_download_failed_assets',
+        "🚩 Failed Photos": 'total_download_failed_photos',
+        "🚩 Failed Videos": 'total_download_failed_videos',
+        "🚩 Failed Albums": 'total_download_failed_albums',
+        "🔒 Restricted Albums": 'total_albums_restricted',
+        "🔒 Restricted Assets": 'total_assets_restricted',
     }
     download_tasks = {}
     for label, (bar, completed_label, total_label) in download_bars.items():
@@ -1006,10 +1014,10 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     }
     failed_uploads = {
         "🧩 Duplicates": 'total_upload_duplicates_assets',
-        "🚩 Assets Failed": 'total_upload_failed_assets',
-        "🚩 Photos Failed": 'total_upload_failed_photos',
-        "🚩 Videos Failed": 'total_upload_failed_videos',
-        "🚩 Albums Failed": 'total_upload_failed_albums',
+        "🚩 Failed Assets": 'total_upload_failed_assets',
+        "🚩 Failed Photos": 'total_upload_failed_photos',
+        "🚩 Failed Videos": 'total_upload_failed_videos',
+        "🚩 Failed Albums": 'total_upload_failed_albums',
     }
     upload_tasks = {}
     for label, (bar, completed_label, total_label) in upload_bars.items():
