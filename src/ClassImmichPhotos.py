@@ -57,7 +57,6 @@ class ClassImmichPhotos:
     Encapsulates all the functionality from the original ClassImmichPhotos.py
     into a single class that uses a global LOGGER from GlobalVariables.
     """
-
     def __init__(self, account_id=1):
         """
         Constructor that initializes what used to be global variables.
@@ -107,7 +106,6 @@ class ClassImmichPhotos:
     #                           CLASS PROPERTIES GETS                         #
     ###########################################################################
     def get_client_name(self, log_level=logging.INFO):
-        
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             return self.CLIENT_NAME
 
@@ -204,7 +202,6 @@ class ClassImmichPhotos:
 
         Returns True if successful, False otherwise.
         """
-        
         with set_log_level(LOGGER, log_level):
             # If there's already a token/headers, assume logged in
             if (self.HEADERS_WITH_CREDENTIALS and
@@ -287,7 +284,6 @@ class ClassImmichPhotos:
         Args:
             log_level (logging.LEVEL): log_level for logs and console
         """
-        
         with set_log_level(LOGGER, log_level):
             self.SESSION_TOKEN = None
             self.HEADERS_WITH_CREDENTIALS = {}
@@ -301,7 +297,6 @@ class ClassImmichPhotos:
         """
         Returns the supported media/sidecar extensions as reported by Immich (via /api/server/media-types).
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/server/media-types"
@@ -338,7 +333,6 @@ class ClassImmichPhotos:
         """
         Returns the user_id of the currently logged-in user.
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/users/me"
@@ -360,7 +354,6 @@ class ClassImmichPhotos:
         """
         Returns the user_mail of the currently logged-in user.
         """
-
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/users/me"
@@ -392,7 +385,6 @@ class ClassImmichPhotos:
         Returns:
             str: New album ID or None if it fails
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/albums"
@@ -422,7 +414,6 @@ class ClassImmichPhotos:
 
         Returns True on success, False otherwise.
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/albums/{album_id}"
@@ -457,7 +448,6 @@ class ClassImmichPhotos:
                     }
             None on error
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/albums"
@@ -493,7 +483,6 @@ class ClassImmichPhotos:
                     }
             None on error
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/albums"
@@ -517,7 +506,6 @@ class ClassImmichPhotos:
         Returns:
             int: Album Size or -1 on error.
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             try:
@@ -543,7 +531,6 @@ class ClassImmichPhotos:
         Returns:
              int: Album Items Count or -1 on error.
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             try:
@@ -565,7 +552,6 @@ class ClassImmichPhotos:
              bool: True if Album exists. False if Album does not exists.
              album_id (str): album_id if Album  exists. None if Album does not exists.
         """
-        
         with set_log_level(LOGGER, log_level):
             album_exists = False
             album_id = None
@@ -581,10 +567,6 @@ class ClassImmichPhotos:
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
-
-    ###########################################################################
-    #                 ASSET SEARCH / FILTER (e.g. get_all_assets)
-    ###########################################################################
     def get_all_assets(self, type=None, isNotInAlbum=None, isArchived=None,
                        createdAfter=None, createdBefore=None, country=None,
                        city=None, personIds=None, withDeleted=None, log_level=logging.INFO):
@@ -597,7 +579,6 @@ class ClassImmichPhotos:
         Returns:
             list: A list of assets (dict) matching the specified filters in the entire library or Empty list on error.
         """
-
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/search/metadata"
@@ -663,6 +644,7 @@ class ClassImmichPhotos:
 
             return all_assets
 
+
     def get_album_assets(self, album_id, album_name=None, log_level=logging.INFO):
         """
         Get assets in a specific album.
@@ -675,7 +657,6 @@ class ClassImmichPhotos:
         Returns:
             list: A list of photos in the album (dict objects). [] if no assets found.
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/albums/{album_id}"
@@ -706,12 +687,12 @@ class ClassImmichPhotos:
 
         Returns assets_without_albums
         """
-
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             assets_without_albums = self.get_all_assets(isNotInAlbum=True, log_level=log_level)
             LOGGER.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
             return assets_without_albums
+
 
     def get_all_albums_assets(self, log_level=logging.WARNING):
         """
@@ -723,7 +704,6 @@ class ClassImmichPhotos:
         Returns:
             list: Albums Assets
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             all_albums = self.get_albums_including_shared_with_user(log_level=log_level)
@@ -751,7 +731,6 @@ class ClassImmichPhotos:
         Returns:
             int: Number of assets added to the album
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             if not asset_ids:
@@ -773,12 +752,10 @@ class ClassImmichPhotos:
                 return 0
 
 
-
     def get_duplicates_assets(self, log_level=logging.INFO):
         """
         Returns the list of duplicate assets from Immich (via /api/duplicates).
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/duplicates"
@@ -798,7 +775,6 @@ class ClassImmichPhotos:
         Returns:
             int: Number of assets removed
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/assets"
@@ -821,7 +797,6 @@ class ClassImmichPhotos:
         """
         Removes duplicate assets in the Immich database. Returns how many duplicates got removed.
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             duplicates_assets = self.get_duplicates_assets(log_level=log_level)
@@ -848,9 +823,8 @@ class ClassImmichPhotos:
 
         Returns:
             str: the asset_id if success, or None if it fails or is an unsupported extension.
-            bool: is_duplicated = False if success, or None if it fails or is an unsopported extension.
+            bool: is_duplicated = False if success, or None if it fails or is an unsupported extension.
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             if not os.path.isfile(file_path):
@@ -929,7 +903,6 @@ class ClassImmichPhotos:
                 return None, None
 
 
-
     def download_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Immich", log_level=logging.INFO):
         """
         Downloads an asset (photo/video) from Immich Photos to a local folder,
@@ -945,7 +918,6 @@ class ClassImmichPhotos:
         Returns:
             int: 1 if download succeeded, 0 if failed.
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             os.makedirs(download_folder, exist_ok=True)
@@ -1006,7 +978,6 @@ class ClassImmichPhotos:
 
         Returns: (albums_uploaded, albums_skipped, assets_uploaded, total_duplicates_assets_removed, total_duplicates_assets_skipped)
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             if not os.path.isdir(input_folder):
@@ -1136,9 +1107,8 @@ class ClassImmichPhotos:
         direct subfolders_inclusion of 'input_folder' are processed (excluding any in SUBFOLDERS_EXCLUSIONS).
         Otherwise, all subfolders_inclusion except those listed in SUBFOLDERS_EXCLUSIONS are processed.
 
-        Returns total_assets_uploaded, total_dupplicated_assets_skipped, duplicates_assets_removed.
+        Returns total_assets_uploaded, total_duplicated_assets_skipped, duplicates_assets_removed.
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             if not os.path.isdir(input_folder):
@@ -1173,7 +1143,7 @@ class ClassImmichPhotos:
             file_paths = collect_files(input_folder, subfolders_inclusion)
             total_files = len(file_paths)
             total_assets_uploaded = 0
-            total_dupplicated_assets_skipped = 0
+            total_duplicated_assets_skipped = 0
 
             with tqdm(total=total_files, smoothing=0.1,
                       desc="INFO    : Uploading Assets", unit=" asset") as pbar:
@@ -1187,7 +1157,7 @@ class ClassImmichPhotos:
 
                     asset_id, is_dup = self.upload_asset(file_path, log_level=log_level)
                     if is_dup:
-                        total_dupplicated_assets_skipped += 1
+                        total_duplicated_assets_skipped += 1
                         LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} skipped")
                     elif asset_id:
                         LOGGER.debug(f"DEBUG   : Asset ID: {asset_id} uploaded to Immich Photos")
@@ -1199,11 +1169,11 @@ class ClassImmichPhotos:
                 duplicates_assets_removed = self.remove_duplicates_assets(log_level=log_level)
 
             LOGGER.info(f"INFO    : Uploaded {total_assets_uploaded} files (without album) from '{input_folder}'.")
-            LOGGER.info(f"INFO    : Skipped {total_dupplicated_assets_skipped} duplicated asset(s) from '{input_folder}'.")
+            LOGGER.info(f"INFO    : Skipped {total_duplicated_assets_skipped} duplicated asset(s) from '{input_folder}'.")
             LOGGER.info(f"INFO    : Removed {duplicates_assets_removed} duplicates asset(s) from Immich Database.")
 
             self.logout(log_level=log_level)
-            return total_assets_uploaded, total_dupplicated_assets_skipped, duplicates_assets_removed
+            return total_assets_uploaded, total_duplicated_assets_skipped, duplicates_assets_removed
 
 
     def upload_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
@@ -1219,7 +1189,6 @@ class ClassImmichPhotos:
 
         Returns: (albums_uploaded, albums_skipped, assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed, total_dupplicated_assets_skipped)
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
 
@@ -1282,7 +1251,6 @@ class ClassImmichPhotos:
         Returns:
             tuple: (albums_downloaded, assets_downloaded)
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             output_folder = os.path.join(output_folder, "Albums")
@@ -1361,7 +1329,6 @@ class ClassImmichPhotos:
 
         Returns assets_downloaded or 0 if no assets are downloaded
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             total_assets_downloaded = 0
@@ -1417,7 +1384,6 @@ class ClassImmichPhotos:
             
         Returns total_albums_downloaded, total_assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums.
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             total_albums_downloaded, total_assets_in_albums = self.download_albums(
@@ -1472,7 +1438,6 @@ class ClassImmichPhotos:
         Returns:
             int: The number of empty albums deleted.
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             albums = self.get_albums_owned_by_user(log_level=log_level)
@@ -1509,7 +1474,6 @@ class ClassImmichPhotos:
         Returns:
             int: The number of duplicate albums deleted.
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             albums = self.get_albums_owned_by_user(log_level=log_level)
@@ -1552,7 +1516,6 @@ class ClassImmichPhotos:
 
         Returns how many orphan got removed.
         """
-        
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # login_immich
             self.login(log_level=log_level)
@@ -1652,7 +1615,6 @@ class ClassImmichPhotos:
 
         Returns (assets_removed, albums_removed)
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             LOGGER.info(f"INFO    : Getting list of asset(s) to remove...")
@@ -1706,7 +1668,6 @@ class ClassImmichPhotos:
 
         Returns (#albums_removed, #assets_removed).
         """
-        
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             albums = self.get_albums_owned_by_user(log_level=log_level)

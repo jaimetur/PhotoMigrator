@@ -179,6 +179,13 @@ class ClassLocalFolder:
             LOGGER.info("INFO    : Returning the user ID (base folder path).")
             return str(self.base_folder)
 
+    def get_user_mail(self, log_level=logging.INFO):
+        """
+        Returns the user_mail of the currently logged-in user.
+        """
+        with set_log_level(LOGGER, log_level):
+            return "no-applicable"
+
 
     ###########################################################################
     #                            ALBUMS FUNCTIONS                             #
