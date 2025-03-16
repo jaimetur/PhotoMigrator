@@ -1124,7 +1124,8 @@ class ClassSynologyPhotos:
                 }
                 # If is a shared album, we append the passphrase to params
                 if album_passphrase:
-                    params['passphrase'] = album_passphrase
+                    params['passphrase'] = f'"{album_passphrase}"'
+                    params['passphrase'] = f'"{album_passphrase}"'
 
                 resp = self.SESSION.get(url, params=params, headers=headers, verify=False, stream=True)
                 if resp.status_code != 200:
