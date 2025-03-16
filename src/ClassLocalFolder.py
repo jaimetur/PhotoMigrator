@@ -75,6 +75,7 @@ class ClassLocalFolder:
             return "sidecar"
         return "unknown"
 
+
     ###########################################################################
     #                           CLASS PROPERTIES GETS                         #
     ###########################################################################
@@ -91,6 +92,7 @@ class ClassLocalFolder:
         with set_log_level(LOGGER, log_level):
             LOGGER.debug("DEBUG   : Fetching the client name.")
             return self.CLIENT_NAME
+
 
     ###########################################################################
     #                           CONFIGURATION READING                         #
@@ -179,6 +181,7 @@ class ClassLocalFolder:
             LOGGER.info("INFO    : Returning the user ID (base folder path).")
             return str(self.base_folder)
 
+
     def get_user_mail(self, log_level=logging.INFO):
         """
         Returns the user_mail of the currently logged-in user.
@@ -206,6 +209,7 @@ class ClassLocalFolder:
             album_path = self.albums_folder / album_name
             album_path.mkdir(parents=True, exist_ok=True)
             return album_path
+
 
     def remove_album(self, album_id, album_name=None, log_level=logging.INFO):
         """
@@ -249,6 +253,7 @@ class ClassLocalFolder:
             LOGGER.info(f"INFO    : Found {len(albums)} owned albums.")
             return albums
 
+
     def get_albums_including_shared_with_user(self, log_level=logging.INFO):
         """
         Retrieves both owned and shared albums.
@@ -276,6 +281,7 @@ class ClassLocalFolder:
             LOGGER.info(f"INFO    : Found {len(all_albums)} albums in total (owned + shared).")
             return all_albums
 
+
     def get_album_assets_size(self, album_id, log_level=logging.INFO):
         """
         Gets the total size (bytes) of all assets in an album.
@@ -295,6 +301,7 @@ class ClassLocalFolder:
                     total_size += file.stat().st_size
             return total_size
 
+
     def get_album_assets_count(self, album_id, log_level=logging.INFO):
         """
         Gets the number of assets in an album.
@@ -308,6 +315,7 @@ class ClassLocalFolder:
         """
         with set_log_level(LOGGER, log_level):
             return len(self.get_album_assets(album_id, log_level))
+
 
     def album_exists(self, album_name, log_level=logging.INFO):
         """
@@ -326,6 +334,7 @@ class ClassLocalFolder:
                 if album_name == album["albumName"]:
                     return True, album["id"]
             return False, None
+
 
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
@@ -382,6 +391,7 @@ class ClassLocalFolder:
 
             LOGGER.info(f"INFO    : Found {len(assets)} {type} assets in the base folder.")
             return assets
+
 
     def get_album_assets(self, album_id, album_name=None, log_level=logging.INFO):
         """
@@ -450,6 +460,7 @@ class ClassLocalFolder:
     #         LOGGER.info(f"INFO    : Found {len(assets)} assets without albums.")
     #         return assets
 
+
     def get_no_albums_assets(self, log_level=logging.INFO):
         """
         Lists assets that are in self.base_folder but not in self.albums_folder or self.shared_albums_folder.
@@ -490,6 +501,7 @@ class ClassLocalFolder:
             LOGGER.info(f"INFO    : Found {len(assets)} assets excluding album folders.")
             return assets
 
+
     def get_all_albums_assets(self, log_level=logging.WARNING):
         """
         Gathers assets from all known albums, merges them into a single list.
@@ -508,6 +520,7 @@ class ClassLocalFolder:
                 album_id = album["id"]
                 combined_assets.extend(self.get_album_assets(album_id, log_level))
             return combined_assets
+
 
     def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=logging.INFO):
         """
@@ -553,6 +566,7 @@ class ClassLocalFolder:
             LOGGER.info(f"INFO    : Added {count_added} asset(s) to album '{album_name or album_id}'.")
             return count_added
 
+
     def get_duplicates_assets(self, log_level=logging.INFO):
         """
         Returns a list of duplicate assets found in local storage.
@@ -581,6 +595,7 @@ class ClassLocalFolder:
             LOGGER.info(f"INFO    : Found {len(duplicates)} group(s) of duplicates.")
             return duplicates
 
+
     def remove_assets(self, asset_ids, log_level=logging.INFO):
         """
         Removes the given asset(s) from local storage.
@@ -602,6 +617,7 @@ class ClassLocalFolder:
             LOGGER.info(f"INFO    : Removed {count} asset(s) from local storage.")
             return count
 
+
     def remove_duplicates_assets(self, log_level=logging.INFO):
         """
         Removes duplicate assets in local storage, keeping only the first one found.
@@ -621,6 +637,7 @@ class ClassLocalFolder:
             count_removed = self.remove_assets(to_remove, log_level)
             LOGGER.info(f"INFO    : Removed {count_removed} duplicate asset(s) from local storage.")
             return count_removed
+
 
     def upload_asset(self, file_path, log_level=logging.INFO):
         """
@@ -656,6 +673,7 @@ class ClassLocalFolder:
                 LOGGER.info(f"INFO    : Uploaded asset '{file_path}' to '{dest}'.")
             return str(dest), False
 
+
     def download_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_LocalFolder", log_level=logging.INFO):
         """
         Downloads (copies) an asset to a specified local folder, preserving the file's timestamp.
@@ -688,7 +706,6 @@ class ClassLocalFolder:
             return 1
 
 
-
     def upload_albums(self, input_folder, subfolders_exclusion='No-Albums',
                       subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         """
@@ -708,6 +725,7 @@ class ClassLocalFolder:
         # (La lógica concreta de la subida local puede ser idéntica a la previa que definimos)
         pass
 
+
     def upload_no_albums(self, input_folder, subfolders_exclusion='Albums',
                          subfolders_inclusion=None, remove_duplicates=True,
                          log_level=logging.WARNING):
@@ -721,6 +739,7 @@ class ClassLocalFolder:
         # (Igual a la lógica local previa, adaptada)
         pass
 
+
     def upload_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
         """
         Uploads all photos/videos from input_folder to local storage,
@@ -732,6 +751,7 @@ class ClassLocalFolder:
         """
         pass
 
+
     def download_albums(self, albums_name='ALL', output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Simulates downloading albums by copying album folders to output_folder/Albums.
@@ -741,6 +761,7 @@ class ClassLocalFolder:
         """
         pass
 
+
     def download_no_albums(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Simulates downloading 'no albums' assets to output_folder/No-Albums, organizing by year/month.
@@ -749,6 +770,7 @@ class ClassLocalFolder:
             int: Number of assets downloaded.
         """
         pass
+
 
     def download_ALL(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
@@ -760,6 +782,7 @@ class ClassLocalFolder:
         """
         pass
 
+
     def remove_empty_folders(self, log_level=logging.INFO):
         """
         Recursively removes all empty folders in the entire base folder structure.
@@ -768,6 +791,7 @@ class ClassLocalFolder:
             int: The number of empty folders removed.
         """
         pass
+
 
     def remove_empty_albums(self, log_level=logging.INFO):
         """
@@ -792,6 +816,7 @@ class ClassLocalFolder:
             int: Number of duplicate albums removed.
         """
         pass
+
 
     def remove_orphan_assets(self, user_confirmation=True, log_level=logging.WARNING):
         """
