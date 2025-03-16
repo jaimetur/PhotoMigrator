@@ -453,7 +453,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     # ----------------------------------------------------------------------------
     # 2) SUBIDAS: Función uploader_worker para SUBIR (consumir de la cola)
     # ----------------------------------------------------------------------------
-    def uploader_worker(processed_albums=[], log_level=logging.INFO):
+    def uploader_worker(processed_albums=[], worker_id=1, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):
             while True:
                 try:
@@ -546,7 +546,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     LOGGER.error(f"ERROR   : Error in Uploader worker while uploading asset: {asset}")
                     LOGGER.error(f"ERROR   : Catched Exception: {e}")
 
-            LOGGER.info(f"INFO    : Uploader Task Finished!")
+            LOGGER.info(f"INFO    : Uploader {worker_id} - Task Finished!")
 
     # ------------------
     # 3) HILO PRINCIPAL
@@ -623,7 +623,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
         # Crear hilos
         download_threads = [threading.Thread(target=downloader_worker, daemon=True) for _ in range(num_download_threads)]
-        upload_threads = [threading.Thread(target=uploader_worker, kwargs={"processed_albums": processed_albums}, daemon=True) for _ in range(num_upload_threads)]
+        upload_threads = [threading.Thread(target=uploader_worker, kwargs={"processed_albums": processed_albums, "worker_id": worker_id+1}, daemon=True) for worker_id in range(num_upload_threads)]
 
         # Iniciar hilos
         for t in upload_threads:
