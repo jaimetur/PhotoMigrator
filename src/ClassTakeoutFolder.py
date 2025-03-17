@@ -229,6 +229,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{self.step}. FIXING PHOTOS METADATA WITH GPTH TOOL...")
                 LOGGER.info("===========================================")
                 LOGGER.info("")
+                LOGGER.info(f"INFO    : This process can take long time, depending on how big is your Takeout. Be patient... 🙂")
                 # Count initial files
                 initial_takeout_numfiles = Utils.count_files_in_folder(input_folder)
 

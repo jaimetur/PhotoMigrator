@@ -1,6 +1,7 @@
 import os
 import shutil
 import logging
+import re
 import Utils
 from datetime import datetime
 from pathlib import Path
@@ -55,8 +56,23 @@ class ClassLocalFolder:
         self.ALLOWED_MEDIA_EXTENSIONS = self.ALLOWED_PHOTO_EXTENSIONS + self.ALLOWED_VIDEO_EXTENSIONS
         self.ALLOWED_EXTENSIONS = self.ALLOWED_MEDIA_EXTENSIONS + self.ALLOWED_SIDECAR_EXTENSIONS + self.ALLOWED_METADATA_EXTENSIONS
 
+        # Definición de patrones de exclusión de carpetas
+        self.FOLDER_EXCLUSION_PATTERNS = [
+            r"@eaDir",  # Excluye la carpeta específica "@eaDir"
+            r"\..*"  # Excluye cualquier carpeta oculta (cuyo nombre comience con ".")
+        ]
+
+        # Definición de patrones de exclusión de ficheros
+        self.FILE_EXCLUSION_PATTERNS = [
+            r"SYNOFILE_THUMB.*"  # Excluye cualquier archivo que empiece por "SYNOFILE_THUMB"
+        ]
+
         self.CLIENT_NAME = f'Local Folder ({self.base_folder.name})'
 
+
+    ###########################################################################
+    #                           GENERAL UTILITY                               #
+    ###########################################################################
     def _determine_file_type(self, file):
         """
         Determines the type of the file based on its extension.
@@ -75,6 +91,57 @@ class ClassLocalFolder:
             return "sidecar"
         return "unknown"
 
+
+    def _get_selected_extensions(self, type):
+        """
+        Returns the allowed extensions based on the specified type.
+
+        Args:
+            type (str): Type of assets to filter. Options are 'all', 'photo', 'image', 'video',
+                        'media', 'metadata', 'sidecar', 'unsupported'.
+
+        Returns:
+            set[str] or str: A set of allowed extensions, or "unsupported" for filtering unsupported files.
+        """
+        if type in ['photo', 'image']:
+            return self.ALLOWED_PHOTO_EXTENSIONS
+        elif type == 'video':
+            return self.ALLOWED_VIDEO_EXTENSIONS
+        elif type == 'media':
+            return self.ALLOWED_MEDIA_EXTENSIONS
+        elif type == 'metadata':
+            return self.ALLOWED_METADATA_EXTENSIONS
+        elif type == 'sidecar':
+            return self.ALLOWED_SIDECAR_EXTENSIONS
+        elif type == 'unsupported':
+            return "unsupported"  # Caso especial para archivos no soportados
+        else:  # 'all' o cualquier otro valor no reconocido
+            return self.ALLOWED_EXTENSIONS
+
+
+    def _should_exclude(self, file_path):
+        """
+        Checks if a given file or folder should be excluded based on regex patterns.
+
+        Args:
+            file_path (Path): Path to the file or folder.
+
+        Returns:
+            bool: True if the file or folder should be excluded, False otherwise.
+        """
+        file_name = file_path.name
+
+        # Verificar exclusión de carpetas
+        for pattern in self.FOLDER_EXCLUSION_PATTERNS:
+            if any(re.fullmatch(pattern, part) for part in file_path.parts):
+                return True
+
+        # Verificar exclusión de archivos
+        for pattern in self.FILE_EXCLUSION_PATTERNS:
+            if re.fullmatch(pattern, file_name):
+                return True
+
+        return False
 
     ###########################################################################
     #                           CLASS PROPERTIES GETS                         #
@@ -281,25 +348,52 @@ class ClassLocalFolder:
             LOGGER.info(f"INFO    : Found {len(all_albums)} albums in total (owned + shared).")
             return all_albums
 
-
-    def get_album_assets_size(self, album_id, log_level=logging.INFO):
+    def get_album_assets_size(self, album_id, type='all', log_level=logging.INFO):
         """
-        Gets the total size (bytes) of all assets in an album.
+        Gets the total size (bytes) of all assets in an album, with optional filtering by file type.
 
         Args:
             album_id (str): Path to the album folder.
-            log_level (logging.LEVEL): log level for logs and console.
+            type (str): Type of assets to consider for size calculation. Options are 'all', 'photo', 'image', 'video',
+                        'media', 'metadata', 'sidecar', 'unsupported'.
+            log_level (logging.LEVEL): Log level for logs and console.
 
         Returns:
             int: Total size of assets in the album (in bytes).
         """
         with set_log_level(LOGGER, log_level):
-            album_path = Path(album_id)
-            total_size = 0
-            for file in album_path.iterdir():
-                if file.is_file() or file.is_symlink():
-                    total_size += file.stat().st_size
-            return total_size
+            try:
+                album_path = Path(album_id)
+                if not album_path.exists() or not album_path.is_dir():
+                    LOGGER.warning(f"WARNING : Album path '{album_id}' does not exist or is not a directory.")
+                    return 0
+
+                selected_type_extensions = self._get_selected_extensions(type)
+
+                total_size = 0
+                for file in album_path.iterdir():
+                    if file.is_file() or file.is_symlink():
+                        # Aplicar exclusiones de carpetas y archivos
+                        if self._should_exclude(file):
+                            continue
+
+                        file_extension = file.suffix.lower()
+
+                        # Filtrado por tipo de archivo
+                        if selected_type_extensions == "unsupported":
+                            if file_extension in self.ALLOWED_EXTENSIONS:
+                                continue
+                        elif selected_type_extensions is not None and file_extension not in selected_type_extensions:
+                            continue
+
+                        total_size += file.stat().st_size
+
+                LOGGER.info(f"INFO    : Total size of {type} assets in album {album_id}: {total_size} bytes.")
+                return total_size
+
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Failed to calculate size of {type} assets in album '{album_id}': {str(e)}")
+                return 0
 
 
     def get_album_assets_count(self, album_id, log_level=logging.INFO):
@@ -341,11 +435,12 @@ class ClassLocalFolder:
     ###########################################################################
     def get_all_assets(self, type='all', log_level=logging.INFO):
         """
-        Retrieves assets stored in the base folder, filtering by type.
+        Retrieves assets stored in the base folder, filtering by type and applying folder and file exclusions.
 
         Args:
+            type (str): Type of assets to retrieve. Options are 'all', 'photo', 'image', 'video', 'media',
+                        'metadata', 'sidecar', 'unsupported'.
             log_level (int): Logging level.
-            type (str): Type of assets to retrieve. Options are 'all', 'photo', 'image', 'video', 'media', 'metadata', 'sidecar', 'unsupported'.
 
         Returns:
             list[dict]: A list of asset dictionaries, each containing:
@@ -356,50 +451,52 @@ class ClassLocalFolder:
                         - 'type': Type of the file (image, video, metadata, sidecar, unknown).
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info(f"INFO    : Retrieving {type} assets from the base folder.")
+            LOGGER.info(f"INFO    : Retrieving {type} assets from the base folder, excluding system folders and unwanted files.")
 
-            # Determine allowed extensions based on the type
-            if type in ['photo', 'image']:
-                selected_type_extensions = self.ALLOWED_PHOTO_EXTENSIONS
-            elif type == 'video':
-                selected_type_extensions = self.ALLOWED_VIDEO_EXTENSIONS
-            elif type == 'media':
-                selected_type_extensions = self.ALLOWED_MEDIA_EXTENSIONS
-            elif type == 'metadata':
-                selected_type_extensions = self.ALLOWED_METADATA_EXTENSIONS
-            elif type == 'sidecar':
-                selected_type_extensions = self.ALLOWED_SIDECAR_EXTENSIONS
-            elif type == 'unsupported':
-                selected_type_extensions = None  # Special case to filter unsupported files
-            else:  # 'all' or unrecognized type defaults to all supported extensions
-                selected_type_extensions = self.ALLOWED_EXTENSIONS
+            base_folder = self.base_folder.resolve()
+            selected_type_extensions = self._get_selected_extensions(type)
 
-            assets = [
-                {
-                    "id": str(file.resolve()),
-                    "time": file.stat().st_ctime,
-                    "filename": file.name,
-                    "filepath": str(file.resolve()),
-                    "type": self._determine_file_type(file),
-                }
-                for file in self.base_folder.rglob("*")
-                if file.is_file() and (
-                        (selected_type_extensions is None and file.suffix.lower() not in self.ALLOWED_EXTENSIONS) or
-                        (selected_type_extensions is not None and file.suffix.lower() in selected_type_extensions)
-                )
-            ]
+            assets = []
+            for file in base_folder.rglob("*"):
+                if file.is_file():
+                    # Aplicar exclusión de carpetas y archivos
+                    if self._should_exclude(file):
+                        continue
 
-            LOGGER.info(f"INFO    : Found {len(assets)} {type} assets in the base folder.")
+                    file_extension = file.suffix.lower()
+
+                    # Caso especial: archivos no soportados
+                    if selected_type_extensions == "unsupported":
+                        if file_extension in self.ALLOWED_EXTENSIONS:
+                            continue  # Omitir archivos que sí están en las extensiones permitidas
+                    elif selected_type_extensions is not None and file_extension not in selected_type_extensions:
+                        continue  # Omitir archivos que no están en el tipo solicitado
+
+                    assets.append({
+                        "id": str(file.resolve()),
+                        "time": file.stat().st_ctime,
+                        "filename": file.name,
+                        "filepath": str(file.resolve()),
+                        "type": self._determine_file_type(file),
+                    })
+
+            LOGGER.info(f"INFO    : Found {len(assets)} assets of type '{type}' in the base folder.")
             return assets
 
-
-    def get_album_assets(self, album_id, album_name=None, log_level=logging.INFO):
+    def get_album_assets(self, album_id, album_name=None, type='all', log_level=logging.INFO):
         """
-        Lists the assets within a given album.
+        Lists the assets within a given album, with optional filtering by file type.
+
+        Args:
+            album_id (str): Path to the album folder.
+            album_name (str, optional): Name of the album for logging.
+            type (str): Type of assets to retrieve. Options are 'all', 'photo', 'image', 'video', 'media', 'metadata',
+                        'sidecar', 'unsupported'.
+            log_level (int): Logging level.
 
         Returns:
             list[dict]: A list of asset dictionaries, each containing:
-                        - 'id': File name (no path).
+                        - 'id': Absolute path to the file.
                         - 'time': Creation timestamp of the file.
                         - 'filename': File name (no path).
                         - 'filepath': Absolute path to the file.
@@ -407,28 +504,45 @@ class ClassLocalFolder:
         """
         with set_log_level(LOGGER, log_level):
             try:
-                LOGGER.info(f"INFO    : Retrieving assets for album: {album_id}")
+                LOGGER.info(f"INFO    : Retrieving {type} assets for album: {album_id}")
 
                 album_path = Path(album_id)
-                assets = [
-                    {
-                        "id": str(file.resolve()),
-                        "time": file.stat().st_ctime,
-                        "filename": file.name,
-                        "filepath": str(file.resolve()),
-                        "type": self._determine_file_type(file),
-                    }
-                    for file in album_path.iterdir() if file.is_file() or file.is_symlink()
-                ]
+                if not album_path.exists() or not album_path.is_dir():
+                    LOGGER.warning(f"WARNING : Album path '{album_id}' does not exist or is not a directory.")
+                    return []
 
-                LOGGER.info(f"INFO    : Found {len(assets)} assets in album {album_id}.")
+                selected_type_extensions = self._get_selected_extensions(type)
+
+                assets = []
+                for file in album_path.iterdir():
+                    if file.is_file() or file.is_symlink():
+                        # Aplicar exclusiones de carpetas y archivos
+                        if self._should_exclude(file):
+                            continue
+
+                        file_extension = file.suffix.lower()
+
+                        # Filtrado por tipo de archivo
+                        if selected_type_extensions == "unsupported":
+                            if file_extension in self.ALLOWED_EXTENSIONS:
+                                continue
+                        elif selected_type_extensions is not None and file_extension not in selected_type_extensions:
+                            continue
+
+                        assets.append({
+                            "id": str(file.resolve()),
+                            "time": file.stat().st_ctime,
+                            "filename": file.name,
+                            "filepath": str(file.resolve()),
+                            "type": self._determine_file_type(file),
+                        })
+
+                LOGGER.info(f"INFO    : Found {len(assets)} assets of type '{type}' in album {album_id}.")
                 return assets
 
             except Exception as e:
-                if album_name:
-                    LOGGER.error(f"ERROR   : Failed to retrieve assets from album '{album_name}': {str(e)}")
-                else:
-                    LOGGER.error(f"ERROR   : Failed to retrieve assets from album ID={album_id}: {str(e)}")
+                error_message = f"ERROR   : Failed to retrieve {type} assets from album '{album_name}'" if album_name else f"ERROR   : Failed to retrieve {type} assets from album ID={album_id}"
+                LOGGER.error(f"{error_message}: {str(e)}")
                 return []
 
     # def get_no_albums_assets(self, log_level=logging.INFO):
@@ -460,10 +574,15 @@ class ClassLocalFolder:
     #         LOGGER.info(f"INFO    : Found {len(assets)} assets without albums.")
     #         return assets
 
-
-    def get_no_albums_assets(self, log_level=logging.INFO):
+    def get_no_albums_assets(self, type='all', log_level=logging.INFO):
         """
-        Lists assets that are in self.base_folder but not in self.albums_folder or self.shared_albums_folder.
+        Lists assets that are in self.base_folder but not in self.albums_folder or self.shared_albums_folder,
+        with optional filtering by file type.
+
+        Args:
+            type (str): Type of assets to retrieve. Options are 'all', 'photo', 'image', 'video', 'media', 'metadata',
+                        'sidecar', 'unsupported'.
+            log_level (int): Logging level.
 
         Returns:
             list[dict]: A list of asset dictionaries, each containing:
@@ -474,20 +593,39 @@ class ClassLocalFolder:
                         - 'type': Type of the file (image, video, metadata, sidecar, unknown).
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Retrieving assets excluding albums and shared albums.")
+            LOGGER.info(f"INFO    : Retrieving {type} assets excluding albums, shared albums, and excluded patterns.")
 
-            # Convert paths to absolute for comparison
             base_folder = self.base_folder.resolve()
             albums_folder = self.albums_folder.resolve() if self.albums_folder else None
             shared_albums_folder = self.shared_albums_folder.resolve() if self.shared_albums_folder else None
 
+            selected_type_extensions = self._get_selected_extensions(type)
+
             assets = []
             for file in base_folder.rglob("*"):
                 if file.is_file():
-                    # Check if the file is inside the excluded folders
-                    if albums_folder and file.is_relative_to(albums_folder):
+                    # Aplicar exclusiones de carpetas y archivos
+                    if self._should_exclude(file):
                         continue
-                    if shared_albums_folder and file.is_relative_to(shared_albums_folder):
+
+                    # Excluir archivos dentro de albums_folder y shared_albums_folder
+                    try:
+                        if albums_folder and file.relative_to(albums_folder):
+                            continue
+                    except ValueError:
+                        pass
+
+                    try:
+                        if shared_albums_folder and file.relative_to(shared_albums_folder):
+                            continue
+                    except ValueError:
+                        pass
+
+                    # Filtrado por tipo de archivo
+                    if selected_type_extensions == "unsupported":
+                        if file.suffix.lower() in self.ALLOWED_EXTENSIONS:
+                            continue
+                    elif selected_type_extensions is not None and file.suffix.lower() not in selected_type_extensions:
                         continue
 
                     assets.append({
@@ -498,9 +636,8 @@ class ClassLocalFolder:
                         "type": self._determine_file_type(file),
                     })
 
-            LOGGER.info(f"INFO    : Found {len(assets)} assets excluding album folders.")
+            LOGGER.info(f"INFO    : Found {len(assets)} assets of type '{type}' in No-Album folders.")
             return assets
-
 
     def get_all_albums_assets(self, log_level=logging.WARNING):
         """

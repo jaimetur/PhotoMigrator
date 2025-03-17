@@ -87,23 +87,59 @@ class CustomInMemoryLogHandler(logging.Handler):
         # self.log_queue.append(msg)
 
 
-class LoggerStream:
-    """Redirige stdout y stderr al LOGGER global."""
+# class LoggerStream:
+#     """Redirige stdout y stderr al LOGGER global."""
+#
+#     def __init__(self, logger, level):
+#         self.logger = logger  # Ahora usamos un logger pasado como argumento
+#         self.level = level  # Nivel de logging (INFO para stdout, ERROR para stderr)
+#
+#     def write(self, message):
+#         if message.strip():  # Evita líneas vacías
+#             self.logger.log(self.level, message.strip())
+#
+#     def flush(self):
+#         pass  # Necesario para compatibilidad con sys.stdout/sys.stderr
+#
+#     def isatty(self):
+#         """Evita errores cuando se llama a sys.stdout.isatty()."""
+#         return False  # Devuelve False porque no es un terminal real
 
-    def __init__(self, logger, level):
-        self.logger = logger  # Ahora usamos un logger pasado como argumento
-        self.level = level  # Nivel de logging (INFO para stdout, ERROR para stderr)
+
+class LoggerStream:
+    """Intercepta stdout y stderr para redirigirlos al LOGGER."""
+
+    def __init__(self, logger, level=logging.INFO):
+        self.logger = logger
+        self.level = level
 
     def write(self, message):
-        if message.strip():  # Evita líneas vacías
-            self.logger.log(self.level, message.strip())
+        if message.strip():
+            self.logger.log(self.level, message.strip())  # Enviar a LOGGER
 
     def flush(self):
-        pass  # Necesario para compatibilidad con sys.stdout/sys.stderr
+        """No es necesario hacer nada aquí, pero lo definimos para compatibilidad."""
+        pass
 
     def isatty(self):
-        """Evita errores cuando se llama a sys.stdout.isatty()."""
-        return False  # Devuelve False porque no es un terminal real
+        """Evitar errores en detección de terminal."""
+        return False
+
+
+# 🚀 Clase para capturar `print()` y `stderr` sin afectar `rich.Live`
+class LoggerCapture:
+    """Captura stdout y stderr y los redirige al LOGGER sin afectar Rich.Live"""
+
+    def __init__(self, logger, level):
+        self.logger = logger
+        self.level = level
+
+    def write(self, message):
+        if message.strip():
+            self.logger.log(self.level, message.strip())  # Guardar en el LOGGER sin imprimir en pantalla
+
+    def flush(self):
+        pass  # No es necesario para logging
 
 
 # Integrar tqdm con el logger
