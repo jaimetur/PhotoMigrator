@@ -32,7 +32,7 @@
 > and execute this Extra Mode, the script will automatically do the whole migration job from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.  
 
 ## Live Dashboard Preview:
-![Live Dashboard](docs/screenshots/live_dashboard.jpg)
+![Live Dashboard](../screenshots/live_dashboard.jpg)
 
 
 **Examples of use:**
