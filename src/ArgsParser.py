@@ -45,15 +45,47 @@ def parse_arguments():
     PARSER.add_argument("-loglevel", "--log-level", metavar=f"{choices_for_message_levels}", choices=choices_for_message_levels, default="info", help="Specify the log level for logging and screen messages.")
     PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
 
-    PARSER.add_argument("-AUTO", "--AUTOMATED-MIGRATION", metavar=("<SOURCE>", "<TARGET>"), nargs=2, default="",
-                        help="This process will do an AUTOMATED-MIGRATION process to Download all your Assets (including Albums) from the <SOURCE> Cloud Service and Upload them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service."
-                           "\n"
-                           "\npossible values for:"
-                           "\n    <SOURCE> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2'] or <INPUT_FOLDER>"
-                           "\n    <TARGET> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2']or <OUTPUT_FOLDER>"
-                        )
-    PARSER.add_argument( "--dashboard", metavar="=[true,false]", type=lambda x: x.lower() == 'true', default=True,
-                        help="Show Live Dashboard during Autometed Migration Jon (true/false). This argument only applies to '-AUTO, --AUTOMATED-MIGRATION' option.")
+    # PARSER.add_argument("-AUTO", "--AUTOMATED-MIGRATION", metavar=("<SOURCE>", "<TARGET>"), nargs=2, default="",
+    #                     help="This process will do an AUTOMATED-MIGRATION process to Download all your Assets (including Albums) from the <SOURCE> Cloud Service and Upload them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
+    #                        "\n"
+    #                        "\nPossible values for:"
+    #                        "\n    <SOURCE> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2'] or <INPUT_FOLDER>"
+    #                        "\n    <TARGET> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2']or <OUTPUT_FOLDER>"
+    #                     )
+    PARSER.add_argument( "-s", "--source", metavar="<SOURCE>", default="",
+                        help="Select the <SOURCE> for the AUTOMATED-MIGRATION Process to Download all your Assets (including Albums) from the <SOURCE> Cloud Service and Upload them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
+                         "\n"
+                         "\nPossible values:"
+                         "\n  ['synology', 'immich']-[id] or <INPUT_FOLDER>"
+                         "\n  [id] = [1, 2] select which account to use from the Config.ini file."
+                         "\n"    
+                         "\nExamples: "
+                         "\n ​--source=immich-1_ -> Select Immich Photos account 1 as Source."
+                         "\n ​--source=synology-2 -> Select Synology Photos account 2 as Source."
+                         "\n ​--source=/home/local_folder -> Select this local folder as Source."
+                         "\n ​--source=/home/Takeout -> Select this Takeout folder as Source."
+                         "\n ​                      (both, zipped and unzipped format are supported)"
+                         )
+    PARSER.add_argument( "-t", "--target", metavar="<TARGET>", default="",
+                        help="Select the <TARGET> for the AUTOMATED-MIGRATION Process to Download all your Assets (including Albums) from the <SOURCE> Cloud Service and Upload them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
+                         "\n"
+                         "\nPossible values:"
+                         "\n  ['synology', 'immich']-[id] or <OUTPUT_FOLDER>"
+                         "\n  [id] = [1, 2] select which account to use from the Config.ini file."
+                         "\n"    
+                         "\nExamples: "
+                         "\n ​--source=immich-1 -> Select Immich Photos account 1 as Target."
+                         "\n ​--source=synology-2 -> Select Synology Photos account 2 as Target."
+                         "\n ​--source=/home/local_folder -> Select this local folder as Target."
+                         )
+    PARSER.add_argument("-d", "--dashboard",
+                        metavar="=[true,false]",
+                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
+                        default=True,  # Si no se pasa el argumento, el valor por defecto es True
+                        type=lambda v: v.lower() in ("true", "1", "yes"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        help="Enable or disable Live Dashboard feature during Autometed Migration Job. This argument only applies to '-AUTO, --AUTOMATED-MIGRATION' option. (default: True)."
+    )
 
     # EXTRA MODES FOR GOOGLE PHOTOS:
     # ------------------------------
@@ -149,10 +181,10 @@ def parse_arguments():
     # Obtain args from PARSER and create global variable ARGS to easier manipulation of argument variables using the same string as in the argument (this facilitates futures refactors on arguments names)
     args = PARSER.parse_args()
     ARGS = create_global_variable_from_args(args)
-    return ARGS
+    return ARGS, PARSER
 
 
-def checkArgs(ARGS):
+def checkArgs(ARGS, PARSER):
     global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
 
     # Remove '_' at the begining of the string in case it has it.
@@ -171,37 +203,58 @@ def checkArgs(ARGS):
     ARGS['fix-symlinks-broken']             = ARGS['fix-symlinks-broken'].rstrip('/\\')
     ARGS['rename-folders-content-based']    = ARGS['rename-folders-content-based'].rstrip('/\\')
 
-    # Parse AUTOMATED-MIGRATION Arguments
+    # Set None for google-input-zip-folder argument, and only if unzip is needed will change this to the proper folder.
     ARGS['google-input-zip-folder'] = None
-    ARGS['SOURCE-TYPE-TAKEOUT-FOLDER'] = None
-    ARGS['TARGET-TYPE-TAKEOUT-FOLDER'] = None
-    if len(ARGS['AUTOMATED-MIGRATION']) >0:
-        source = ARGS['AUTOMATED-MIGRATION'][0]
-        target = ARGS['AUTOMATED-MIGRATION'][1]
-        # If source is 'google-photos' we need to check if an valid <INPUT_FOLDER> have been given with argument -i <INPUT_FOLDER>
-        if source.lower() == 'google-photos':
-            input_folder = ARGS['input-folder']
-            if not os.path.isdir(input_folder):
-                print(f"ERROR   : 'google-photos' detected as Source for the Automated Migration process, but not valid <INPUT_FOLDER> have been providen. ")
-                print(f"Please use -i <INPUT_FOLDER> to specify where your Google Photos Takeout is located.")
-        # If source is not in the list of valid sources choices, then if it is a valid Input Takeout Folder from Google Photos
-        elif source.lower() not in choices_for_AUTOMATED_MIGRATION_SRC:
-            if not os.path.isdir(source):
-                print(f"❌ ERROR   : Target value '{source}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_SRC} and is not a valid existing folder. Exiting...")
-                exit(1)
-            ARGS['SOURCE-TYPE-TAKEOUT-FOLDER'] = True
-        # If the target is not in the list of valid targets choices, exit.
-        if target.lower() not in choices_for_AUTOMATED_MIGRATION_TGT:
-            if not os.path.isdir(target):
-                print(f"❌ ERROR   : Target value '{target}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_TGT} and is not a valid existing folder. Exiting...")
-                exit(1)
-            ARGS['TARGET-TYPE-TAKEOUT-FOLDER'] = True
+
+    # Set None for MIGRATION argument, and only if both source and target argument are providin, it will set properly.
+    ARGS['AUTOMATED-MIGRATION'] = None
+
+    # # Parse AUTOMATED-MIGRATION Arguments
+    # ARGS['SOURCE-TYPE-TAKEOUT-FOLDER'] = None
+    # ARGS['TARGET-TYPE-TAKEOUT-FOLDER'] = None
+    # if len(ARGS['AUTOMATED-MIGRATION']) >0:
+    #     source = ARGS['AUTOMATED-MIGRATION'][0]
+    #     target = ARGS['AUTOMATED-MIGRATION'][1]
+    #     # If source is not in the list of valid sources choices, then if it is a valid Input Takeout Folder from Google Photos
+    #     if source.lower() not in choices_for_AUTOMATED_MIGRATION_SRC:
+    #         if not os.path.isdir(source):
+    #             print(f"❌ ERROR   : Target value '{source}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_SRC} and is not a valid existing folder. Exiting...")
+    #             exit(1)
+    #         ARGS['SOURCE-TYPE-TAKEOUT-FOLDER'] = True
+    #     # If the target is not in the list of valid targets choices, exit.
+    #     if target.lower() not in choices_for_AUTOMATED_MIGRATION_TGT:
+    #         if not os.path.isdir(target):
+    #             print(f"❌ ERROR   : Target value '{target}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_TGT} and is not a valid existing folder. Exiting...")
+    #             exit(1)
+    #         ARGS['TARGET-TYPE-TAKEOUT-FOLDER'] = True
+
+
+    # Parse AUTOMATED-MIGRATION Arguments
+    # Manual validation of --source and --target to allow predefined values but also local folders.
+    if ARGS['source'] and not ARGS['target']:
+        PARSER.error(f"❌ ERROR   : Invalid syntax. Argument '-s, --source' detected but not 't, --target' providen'. YOu must specify both, --source and --target to execute AUTOMATED-MIGRATION task. Exiting...")
+        exit(1)
+    if ARGS['target'] and not ARGS['source']:
+        PARSER.error(f"❌ ERROR   : Invalid syntax. Argument '-t, --target' detected but not 's, --source' providen'. YOu must specify both, --source and --target to execute AUTOMATED-MIGRATION task. Exiting...")
+        exit(1)
+    if ARGS['source'] and ARGS['source'] not in choices_for_AUTOMATED_MIGRATION_TGT and not os.path.isdir(ARGS['source']):
+        PARSER.error(f"❌ ERROR   : Invalid source '{ARGS['source']}'. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT} or an existing local folder. Exiting...")
+        exit(1)
+    if ARGS['target'] and ARGS['target'] not in choices_for_AUTOMATED_MIGRATION_TGT and not os.path.isdir(ARGS['target']):
+        PARSER.error(f"❌ ERROR   : Invalid target '{ARGS['target']}'. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT} or an existing local folder. Exiting...")
+        exit(1)
+    if ARGS['source'] and ARGS['target']:
+        ARGS['AUTOMATED-MIGRATION'] = [ARGS['source'], ARGS['target']]
 
 
     # Check if --dashboard=True and not --AUTOMATED-MIGRATION have been given
-    # if ARGS['dashboard'] and ARGS['AUTOMATED-MIGRATION'] == '':
-    #     print(f"❌ ERROR   : Argument '--dashboard' can only be used when '-AUTO, --AUTOMATED-MIGRATION' argument is used.")
-    #     exit(1)
+    # Detectar si el usuario ha pasado --dashboard
+    args = PARSER.parse_args()
+    dashboard_provided = "--dashboard" in [arg.split("=")[0] for arg in vars(args).keys()]
+    if dashboard_provided and not (ARGS['source'] or ARGS['target']):
+        # PARSER.error(f"❌ ERROR   : Argument '--dashboard' can only be used when '-AUTO, --AUTOMATED-MIGRATION' argument is used.")
+        PARSER.error(f"❌ ERROR   : Argument '--dashboard' can only be used with Automated Migration mode. Arguments --source and --target are required.")
+        exit(1)
 
     # Parse log-levels
     if ARGS['log-level'].lower() == 'debug':

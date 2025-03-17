@@ -51,8 +51,14 @@ def profile_and_print(function_to_analyze, *args, **kwargs):
 # Determine the Execution mode based on the provide arguments:
 # -------------------------------------------------------------
 def detect_and_run_execution_mode():
+    # # AUTOMATED-MIGRATION MODE:
+    # if ARGS['AUTOMATED-MIGRATION']:
+    #     EXECUTION_MODE = 'AUTOMATED-MIGRATION'
+    #     mode_AUTOMATED_MIGRATION()
+    #     # profile_and_print(function_to_analyze=mode_AUTOMATED_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.
+
     # AUTOMATED-MIGRATION MODE:
-    if ARGS['AUTOMATED-MIGRATION']:
+    if ARGS['source'] and ARGS['target']:
         EXECUTION_MODE = 'AUTOMATED-MIGRATION'
         mode_AUTOMATED_MIGRATION()
         # profile_and_print(function_to_analyze=mode_AUTOMATED_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.

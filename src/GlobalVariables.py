@@ -46,8 +46,9 @@ SIDECAR_EXT                     = ['.xmp', '.json']
 def set_ARGS_PARSER():
     from ArgsParser import parse_arguments, checkArgs, getParser
     global ARGS, PARSER
-    ARGS = checkArgs(parse_arguments())
-    PARSER = getParser()
+    ARGS, PARSER = parse_arguments()
+    ARGS = checkArgs(ARGS, PARSER)
+    # PARSER = getParser()
 
 def set_LOGGER():
     from CustomLogger import log_setup

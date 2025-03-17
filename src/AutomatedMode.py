@@ -79,8 +79,13 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
 
         SHARED_DATA = SharedData(input_info, counters, logs_queue)
 
-        if not source: source = ARGS['AUTOMATED-MIGRATION'][0]
-        if not target: target = ARGS['AUTOMATED-MIGRATION'][1]
+        # Detect source and target from the given arguments if have not been providen on the function call
+        # if not source: source = ARGS['AUTOMATED-MIGRATION'][0]
+        # if not target: target = ARGS['AUTOMATED-MIGRATION'][1]
+        if not source: source = ARGS['source']
+        if not target: target = ARGS['target']
+
+        # Detect show_dashboard from the given arguments if has not been providen on the function call
         if show_dashboard is None: show_dashboard = ARGS['dashboard']
 
         # Define the INTERMEDIATE_FOLDER
@@ -292,7 +297,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     album_shared_role = permissions[0].get('role')  # Obtiene el valor si existe, si no, devuelve None
                 else:
                     album_shared_role = ""
-                is_shared = album_passphrase is not None  # Si tiene passphrase, es compartido
+                is_shared = album_passphrase is not None and album_passphrase != "" # Si tiene passphrase, es compartido
 
                 # Descargar todos los assets de este álbum
                 try:
