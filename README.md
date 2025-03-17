@@ -59,6 +59,27 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 ## Live Dashboard Preview:
 ![Live Dashboard](docs/screenshots/live_dashboard.jpg?raw=true)
 
+
+<ul>
+  <li><a href="https://github.com/jaimetur/CloudPhotoMigrator/releases/tag/v3.0.0" target="_blank">Latest Stable Release</a></li>
+  <li><a href="https://github.com/jaimetur/CloudPhotoMigrator/releases/tag/v3.1.0-alpha" target="_blank">Pre-Release</a></li>
+  <li><a href="https://github.com/jaimetur/CloudPhotoMigrator/releases" target="_blank">All Releases</a></li>
+</ul>
+
+<h2>Documentation Links:</h2>
+
+<ul>
+  <li><a href="docs/help/syntax.md" target="_blank">Syntax document</a></li>
+  <li><a href="docs/help/automated-migration.md" target="_blank">Automated Migration Feature</a></li>
+  <li><a href="docs/help/google-takeout.md" target="_blank">Google Takeout Management</a></li>
+  <li><a href="docs/help/synology-photos.md" target="_blank">Synology Photos Management</a></li>
+  <li><a href="docs/help/immich-photos.md" target="_blank">Immich Photos Management</a></li>
+  <li><a href="docs/help/other-features.md" target="_blank">Other Features</a></li>
+</ul>
+
+<h2>Live Dashboard Preview:</h2>
+<img src="docs/screenshots/live_dashboard.jpg?raw=true" alt="Live Dashboard">
+
 ## Instructions to execute from compiled version:
 You can copy and unzip the downloaded compiled tool into any local folder or to any Shared folder of your server or Synology NAS.
 
