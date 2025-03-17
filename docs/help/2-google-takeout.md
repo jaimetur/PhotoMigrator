@@ -64,7 +64,7 @@ NOTE 1: Step 8 is disabled by default, and is only recommended if you want to sa
 NOTE 2: Above times are approximates and were measured running the tool on Linux using a Synology NAS DS920+.
 
 
-**Examples of use:**
+## **Examples of use:**
 
 - **Example 1:**
 ```
