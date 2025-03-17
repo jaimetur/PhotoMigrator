@@ -408,7 +408,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
                 try:
                     # Ruta del archivo descargado
-                    local_file_path = str(asset_id)
+                    local_file_path = os.path.join(temp_folder, asset_filename)
 
                     # Archivo de bloqueo temporal
                     lock_file = local_file_path + ".lock"
