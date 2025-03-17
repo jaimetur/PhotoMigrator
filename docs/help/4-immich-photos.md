@@ -1,4 +1,4 @@
-## <span style="color:green">Immich Photos Management Documentation:</span>
+# <span style="color:green">Immich Photos Management Documentation:</span>
 
 > [!NOTE]
 > ## <span style="color:green">Immich Photos Support</span>

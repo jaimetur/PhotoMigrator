@@ -1,4 +1,4 @@
-## <span style="color:green">Automated Migration Feature Documentation:</span>
+# <span style="color:green">Automated Migration Feature Documentation:</span>
 
 > [!NOTE]  
 >## <span style="color:green">Automated Migration Feature</span>
@@ -31,8 +31,11 @@
 > Also, take into account that in this case, the Live Dashboard will not be displayed, so you only will see the different messages log in the screen, but not the live counters during the migration.  
 > and execute this Extra Mode, the script will automatically do the whole migration job from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.  
 
+## Live Dashboard Preview:
+![Live Dashboard](../screenshots/live_dashboard.jpg)
 
-**Examples of use:**
+
+## **Examples of use:**
 
 - **Example 1:**
 ```
@@ -78,6 +81,22 @@ In this example, the script will do an Automated Migration Process which has two
   - In parallel, the script will push all the pulled assets into the local folder '/homes/local_folder' creating a folder structure
     with all the Albums in the subfolder 'Albums' and all the assets without albums associated into the subfolder 'No-Albums'. 
     This 'No-Albums' subfolder will have a year/month structure to store all your asset in a more organized way.  
+
+
+- **Example 4**:
+```
+./CloudPhotoMigrator.run --source=immich-1 target=immich-2
+```
+
+In this example, the script will do an Automated Migration Process which has two steps:  
+
+  - First, the script will connect to your Immich Photos account 1 (if you have configured properly the Config.ini file) and will
+    pull all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
+
+  - In parallel, the script will connect to your Immich Photos account 2 (if you have configured properly the Config.ini file) and 
+    push all the assets pulled from previous step, creating a new Album per each Album found in your Synology Photos and associating
+    all the assets included in each Album in the same way that you had on your Synology Photos account.
+
 
 
 ## Config.ini

@@ -1,5 +1,4 @@
-
-## Command Line Syntax:
+# Command Line Syntax:
 ```
 ---------------------------------------------------------------------------------------------------------
 usage: CloudPhotoMigrator.run/exe [-h] [-v] [--source <SOURCE>] [--target <TARGET>]
