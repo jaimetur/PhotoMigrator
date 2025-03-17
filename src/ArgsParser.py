@@ -40,21 +40,21 @@ def parse_arguments():
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
 
     PARSER.add_argument( "--source", metavar="<SOURCE>", default="",
-                        help="Select the <SOURCE> for the AUTOMATED-MIGRATION Process to Download all your Assets (including Albums) from the <SOURCE> Cloud Service and Upload them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
+                        help="Select the <SOURCE> for the AUTOMATED-MIGRATION Process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
                          "\n"
                          "\nPossible values:"
                          "\n  ['synology', 'immich']-[id] or <INPUT_FOLDER>"
                          "\n  [id] = [1, 2] select which account to use from the Config.ini file."
                          "\n"    
                          "\nExamples: "
-                         "\n ​--source=immich-1_ -> Select Immich Photos account 1 as Source."
+                         "\n ​--source=immich-1 -> Select Immich Photos account 1 as Source."
                          "\n ​--source=synology-2 -> Select Synology Photos account 2 as Source."
                          "\n ​--source=/home/local_folder -> Select this local folder as Source."
                          "\n ​--source=/home/Takeout -> Select this Takeout folder as Source."
                          "\n ​                      (both, zipped and unzipped format are supported)"
                          )
     PARSER.add_argument( "--target", metavar="<TARGET>", default="",
-                        help="Select the <TARGET> for the AUTOMATED-MIGRATION Process to Download all your Assets (including Albums) from the <SOURCE> Cloud Service and Upload them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
+                        help="Select the <TARGET> for the AUTOMATED-MIGRATION Process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
                          "\n"
                          "\nPossible values:"
                          "\n  ['synology', 'immich']-[id] or <OUTPUT_FOLDER>"
@@ -66,7 +66,7 @@ def parse_arguments():
                          "\n ​--source=/home/local_folder -> Select this local folder as Target."
                          )
     # PARSER.add_argument("-AUTO", "--AUTOMATED-MIGRATION", metavar=("<SOURCE>", "<TARGET>"), nargs=2, default="",
-    #                     help="This process will do an AUTOMATED-MIGRATION process to Download all your Assets (including Albums) from the <SOURCE> Cloud Service and Upload them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
+    #                     help="This process will do an AUTOMATED-MIGRATION process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
     #                        "\n"
     #                        "\nPossible values for:"
     #                        "\n    <SOURCE> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2'] or <INPUT_FOLDER>"
@@ -78,7 +78,7 @@ def parse_arguments():
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=True,  # Si no se pasa el argumento, el valor por defecto es True
                         type=lambda v: v.lower() in ("true", "1", "yes"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="Enable or disable Live Dashboard feature during Autometed Migration Job. This argument only applies to '-AUTO, --AUTOMATED-MIGRATION' option. (default: True)."
+                        help="Enable or disable Live Dashboard feature during Autometed Migration Job. This argument only applies if both '--source' and '--target' argument are given (AUTOMATED-MIGRATION MODE). (default: True)."
     )
     PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
     PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")

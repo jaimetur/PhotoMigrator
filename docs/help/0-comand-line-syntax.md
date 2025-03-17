@@ -46,26 +46,26 @@ assets from one Photo Cloud Service to other, or from two different accounts wit
 same Photo Cloud service.
 
 --source <SOURCE>
-             Select the <SOURCE> for the AUTOMATED-MIGRATION Process to Download all
-             your Assets (including Albums) from the <SOURCE> Cloud Service and Upload
-             them to the <TARGET> Cloud Service (including all Albums that you may have
-             on the <SOURCE> Cloud Service).
+             Select the <SOURCE> for the AUTOMATED-MIGRATION Process to Pull all your
+             Assets (including Albums) from the <SOURCE> Cloud Service and Push them to
+             the <TARGET> Cloud Service (including all Albums that you may have on the
+             <SOURCE> Cloud Service).
 
              Possible values:
                ['synology', 'immich']-[id] or <INPUT_FOLDER>
                [id] = [1, 2] select which account to use from the Config.ini file.
 
              Examples:
-              ​--source=immich-1_ -> Select Immich Photos account 1 as Source.
+              ​--source=immich-1 -> Select Immich Photos account 1 as Source.
               ​--source=synology-2 -> Select Synology Photos account 2 as Source.
               ​--source=/home/local_folder -> Select this local folder as Source.
               ​--source=/home/Takeout -> Select this Takeout folder as Source.
               ​                      (both, zipped and unzipped format are supported)
 --target <TARGET>
-             Select the <TARGET> for the AUTOMATED-MIGRATION Process to Download all
-             your Assets (including Albums) from the <SOURCE> Cloud Service and Upload
-             them to the <TARGET> Cloud Service (including all Albums that you may have
-             on the <SOURCE> Cloud Service).
+             Select the <TARGET> for the AUTOMATED-MIGRATION Process to Pull all your
+             Assets (including Albums) from the <SOURCE> Cloud Service and Push them to
+             the <TARGET> Cloud Service (including all Albums that you may have on the
+             <SOURCE> Cloud Service).
 
              Possible values:
                ['synology', 'immich']-[id] or <OUTPUT_FOLDER>
@@ -77,8 +77,8 @@ same Photo Cloud service.
               ​--source=/home/local_folder -> Select this local folder as Target.
 --dashboard =[true,false]
              Enable or disable Live Dashboard feature during Autometed Migration Job.
-             This argument only applies to '-AUTO, --AUTOMATED-MIGRATION' option.
-             (default: True).
+             This argument only applies if both '--source' and '--target' argument are
+             given (AUTOMATED-MIGRATION MODE). (default: True).
 
 
 GENERAL ARGUMENTS:
@@ -283,7 +283,7 @@ If more than one Extra Mode is detected, only the first one will be executed.
 -renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>
              Usefull to rename and homogenize all Albums folders found in
              <ALBUMS_FOLDER> based on the date content found.
-      
+
 ---------------------------------------------------------------------------------------------------------
 ```
 
