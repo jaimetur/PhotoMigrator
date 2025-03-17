@@ -95,7 +95,7 @@ class ClassImmichPhotos:
         self.IMMICH_FILTER_CITY = None
         self.IMMICH_FILTER_PERSON = None
 
-        # Create a dictionary to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_ownned_by_user()
+        # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_ownned_by_user()
         self.albums_owned_by_user = {}
 
         # Read the Config File to get CLIENT_ID
