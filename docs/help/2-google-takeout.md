@@ -14,7 +14,7 @@
 
 ### <span style="color:blue">Google Takeout Mode: Process Explained:</span>
 
-The whole process will do the next actions if all flags are false (by default):
+The whole process will do the next actions if all flags are false (by default):  
 
 0. Unzip all the Takeout Zips from the <INPUT_TAKEOUT_FOLDER> into a subfolder named './Unzipped_Takeout_{TIMESTAMP}' (by default). This step will be skipped if you already have your Takeout folder unzipped.
    
@@ -46,7 +46,7 @@ Finally, if you want to use your processed assets within Synology Photos, you ju
 
 It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (408559 files zipped, 168168 photos/video files, 740 albums) and moved it into Synology Photos.  
 
-The whole process took around **~8.5 hours** (or **~3 hours without last two optional steps) and this is the time split per steps**):
+The whole process took around **~3 hours** (or **~6 hours if includes last optional step) and this is the time split per steps**):  
 0. Extraction process --> 25m
 1. Pre-processing Takeout_folder --> 3m 50s
 2. GPTH Tool fixing --> 2h 12m
