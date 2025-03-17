@@ -2,7 +2,9 @@
 
 > [!NOTE]
 > ## <span style="color:green">Immich Photos Support</span>
->From version 3.0.0 onwards, the script can connect to your Immich Photos account with your credentials or API. The credentials/API need to be loaded from 'Config.ini' file and will have this format:
+>From version 3.0.0 onwards, the script can connect to your Immich Photos account with your credentials or using a pre-created API Key.  
+
+The credentials/API Key need to be loaded from the 'Config.ini' file that  have this format:
 >
 >>#### <span style="color:green">Example 'Config.ini' for Immich Photos:</span>
 >>
