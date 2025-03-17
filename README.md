@@ -300,7 +300,7 @@ In this example, the script will do an Automated Migration Process which has two
   - [ ] Deep Test on Immich Support functions. (volunteers are welcomed)
   - [ ] Deep Test on Synology Support functions. (volunteers are welcomed)
   - [ ] Deep Test on Google Takeout functions. (volunteers are welcomed)
-  - [ ] Deep Test on --AUTOMATED-MIGRATION MODE. (volunteers are welcomed)
+  - [x] Deep Test on Automated Migration Mode. (volunteers are welcomed)
 
 
 ## v4.0.0:
