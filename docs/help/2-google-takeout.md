@@ -52,7 +52,7 @@ The whole process took around **~3 hours** (or **~6 hours if includes last optio
 1. Pre-processing Takeout_folder --> 3m 50s
 2. GPTH Tool fixing --> 2h 12m
 3. <span style="color:grey">(Optional) Copy/Move files to output folder manually if GPTH processing was skipped --> 0h</span>
-4. Sync .MP$ timestamps --> 10s
+4. Sync .MP4 timestamps --> 10s
 5. Create Date Folder Structure --> 50s
 6. Moving Album Folder --> 1s
 7. Fix Broken Symlinks --> 10m
