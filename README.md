@@ -12,7 +12,6 @@ As of today, the Supported Photo Cloud Services are:
   - Create Symbolic Links for assets within any Album (to save disk space).
   - Detect and remove duplicates.
 
-
 - **Synology Photos** - Features included:
   - Upload Album(s)
   - Upload ALL (from folder)
@@ -22,7 +21,6 @@ As of today, the Supported Photo Cloud Services are:
   - Remove ALL Albums
   - Remove Empty Albums
   - Remove Duplicates Albums
-
 
 - **Immich Photos** - Features included:
   - Upload Album(s)
@@ -35,10 +33,8 @@ As of today, the Supported Photo Cloud Services are:
   - Remove Duplicates Albums
   - Remove Orphans Assets
 
-
 - **Apple Photos**  
   (not available yet but is on the ROADMAP.md for next release)
-
 
 - **Google Photos**  
   (not available yet but is on the ROADMAP.md for next release)
