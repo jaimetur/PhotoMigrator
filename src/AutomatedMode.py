@@ -673,7 +673,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         num_push_threads = max(1, int(cpu_total_threads / 2))
         LOGGER.info(f"INFO    : Launching {num_push_threads} Push workers in parallel...")
         num_pull_threads = 1  # no Iniciar más de 1 hilo de descarga, de lo contrario los assets se descargarán multiples veces.
-
+        num_push_threads = 2
         # Crear hilos
         pull_threads = [threading.Thread(target=puller_worker, daemon=True) for _ in range(num_pull_threads)]
         push_threads = [threading.Thread(target=pusher_worker, kwargs={"processed_albums": processed_albums, "worker_id": worker_id+1}, daemon=True) for worker_id in range(num_push_threads)]
