@@ -95,7 +95,7 @@ class ClassImmichPhotos:
         self.IMMICH_FILTER_CITY = None
         self.IMMICH_FILTER_PERSON = None
 
-        # Create a dictionary to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_ownned_by_user()
+        # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_ownned_by_user()
         self.albums_owned_by_user = {}
 
         # Read the Config File to get CLIENT_ID
@@ -914,7 +914,7 @@ class ClassImmichPhotos:
                 return None, None
 
 
-    def download_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Immich", log_level=logging.INFO):
+    def download_asset(self, asset_id, asset_filename, asset_time, album_passphrase="", download_folder="Downloaded_Immich", log_level=logging.INFO):
         """
         Downloads an asset (photo/video) from Immich Photos to a local folder,
         preserving the original timestamp if available.

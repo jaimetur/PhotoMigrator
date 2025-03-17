@@ -105,6 +105,9 @@ class ClassSynologyPhotos:
         self.ALLOWED_MEDIA_EXTENSIONS = self.ALLOWED_PHOTO_EXTENSIONS + self.ALLOWED_VIDEO_EXTENSIONS
         self.ALLOWED_EXTENSIONS = self.ALLOWED_MEDIA_EXTENSIONS
 
+        # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_ownned_by_user()
+        self.albums_owned_by_user = {}
+
         # Read the Config File to get CLIENT_ID
         self.read_config_file()
         self.CLIENT_ID = self.get_user_mail()
@@ -629,14 +632,20 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
-                album_exists = False
-                album_id = None
-                albums = self.get_albums_owned_by_user(log_level=log_level)
-                for album in albums:
-                    if album_name == album.get("albumName"):
-                        album_exists = True
-                        album_id = album.get("id")
-                        break
+                # First, check if the album is already in the user's dictionary
+                if album_name in self.albums_owned_by_user:
+                    album_exists = True
+                    album_id = self.albums_owned_by_user[album_name]
+                else:
+                    album_exists = False
+                    album_id = None
+                    albums = self.get_albums_owned_by_user(log_level=log_level)
+                    for album in albums:
+                        if album_name == album.get("albumName"):
+                            album_exists = True
+                            album_id = album.get("id")
+                            self.albums_owned_by_user[album_name] = album_id  # Cache it for future use
+                            break
                 return album_exists, album_id
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while checking if Album exists on Synology Photos. {e}")
