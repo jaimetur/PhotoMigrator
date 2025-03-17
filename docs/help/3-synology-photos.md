@@ -62,7 +62,11 @@ From version 3.0.0 onwards, the script can be executed in 'Upload Folder into Sy
 
 If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will upload all the assets contained in <INPUT_FOLDER> that are supported by Synology Photos.  
 
-The folder <INPUT_FOLDER> can be passed using the Flag: _'-sUpFld,  --synology-upload-folder <INPUT_FOLDER>'_ 
+- The folder <INPUT_FOLDER> can be passed using the Flag: _'-suAll,  --synology-upload-all <INPUT_FOLDER>'_ 
+
+- The tool Will create anew Album per each subfolder found in 'Album' subfolder, and all assets inside each subfolder off 'Album' Will be associated to a new Album in Synology Photos database with the same name as the container subfolder. 
+
+- If the argument _**'-AlbFld, --albums-folder <ALBUMS_FOLDER>'**_ is also given, then the tool Will create Albums also for each subfolder found in <ALBUMS_FOLDER>.
 
 
 Example of use:
