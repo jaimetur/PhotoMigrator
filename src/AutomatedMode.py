@@ -170,7 +170,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
                 dashboard_thread.start()
 
                 # Pequeña espera para garantizar que el show_dashboard ha arrancado antes de la migración
-                time.sleep(1)
+                time.sleep(2)
 
             LOGGER.info("")
             LOGGER.info(f'=========================================================================================================')
@@ -592,10 +592,10 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         # Get source and target client names
         source_client_name = source_client.get_client_name()
         target_client_name = target_client.get_client_name()
-        LOGGER.info(f"INFO    : Starting Automated Migration Process: {source_client_name} ➜ {target_client_name}...")
+        LOGGER.info(f"INFO    : 🚀 Starting Automated Migration Process: {source_client_name} ➜ {target_client_name}...")
         LOGGER.info(f"INFO    : Source Client: {source_client_name}")
         LOGGER.info(f"INFO    : Target Client: {target_client_name}")
-        LOGGER.info(f"INFO    : Starting Pulling/Pushing Process...")
+        LOGGER.info(f"INFO    : Starting Pulling/Pushing Workers...")
 
         # Get source client statistics:
         blocked_assets = []
@@ -807,6 +807,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     import queue
     import textwrap
     from CustomLogger import LoggerStream
+    from CustomLogger import LoggerCapture
 
     # Min Terminal Height and Width to display the Live Dashboard
     MIN_TERMINAL_HEIGHT = 30
@@ -837,13 +838,30 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     layout.size = terminal_height
 
 
-    # Guardar referencias originales
+    # 🚀 Guardar stdout y stderr originales
     original_stdout = sys.stdout
     original_stderr = sys.stderr
 
+    # 🚀 Guardar stdout y stderr originales
+    original_stdout = sys.stdout
+    original_stderr = sys.stderr
+
+    # 🚀 Forzar la redirección de sys.stderr globalmente para asegurar que no se imprima en pantalla
+    sys.stderr = sys.__stderr__ = LoggerCapture(LOGGER, logging.ERROR)
+
+    # 🚀 Capturar e interceptar manualmente cualquier error antes de que `rich` lo maneje
+    def log_exceptions(exctype, value, tb):
+        """Captura todas las excepciones no manejadas y las guarda en el LOGGER sin imprimir en pantalla"""
+        error_message = "".join(traceback.format_exception(exctype, value, tb))
+        LOGGER.error("Excepción no manejada:\n" + error_message)  # Guardar en logs sin imprimir en consola
+
+    sys.excepthook = log_exceptions
+
+    # 🚀 No redirigir `sys.stdout` para que `rich.Live` siga funcionando
+
     # Redirigir stdout y stderr al LOGGER después de que esté inicializado
     # sys.stdout = LoggerStream(LOGGER, logging.INFO)  # Redirige print() a LOGGER.info()
-    # sys.stderr = LoggerStream(LOGGER, logging.ERROR)  # Redirige errores a LOGGER.error()
+    # sys.stderr = LoggerStream(LOGGER, logging.ERROR) # Redirige errores a LOGGER.error()
 
     # # Redirigir a /dev/null
     # sys.stdout = open(os.devnull, 'w')

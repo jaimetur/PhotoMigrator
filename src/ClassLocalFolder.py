@@ -636,7 +636,7 @@ class ClassLocalFolder:
                         "type": self._determine_file_type(file),
                     })
 
-            LOGGER.info(f"INFO    : Found {len(assets)} assets of type '{type}' in No-Album folder '{album_id}'.")
+            LOGGER.info(f"INFO    : Found {len(assets)} assets of type '{type}' in No-Album folders.")
             return assets
 
     def get_all_albums_assets(self, log_level=logging.WARNING):
