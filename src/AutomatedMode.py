@@ -325,33 +325,38 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     if asset_type in ['metadata', 'sidecar']:
                         continue
 
-                    # Crear carpeta del álbum dentro de temp_folder
+                    # Crear carpeta del álbum dentro de temp_folder, y bloquea su eliminación hasta que terminen las descargas del album
                     album_folder = os.path.join(temp_folder, album_name)
                     os.makedirs(album_folder, exist_ok=True)
+                    # Crear archivo `.active` para marcar que la carpeta está en uso
+                    active_file = os.path.join(album_folder, ".active")
+                    with open(active_file, 'w') as f:
+                        f.write("downloading")
+                        try:
+                            # Ruta del archivo descargado
+                            local_file_path = os.path.join(album_folder, asset_filename)
 
-                    try:
-                        # Ruta del archivo descargado
-                        local_file_path = os.path.join(album_folder, asset_filename)
-
-                        # Archivo de bloqueo temporal
-                        lock_file = local_file_path + ".lock"
-
-                        # Crear archivo de bloqueo antes de la descarga
-                        with open(lock_file, 'w') as lock:
-                            lock.write("Pulling")
-                            # Descargar el asset
-                            pulled_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, album_passphrase=album_passphrase, download_folder=album_folder, log_level=logging.WARNING)
-
-                        # Eliminar archivo de bloqueo después de la descarga
-                        os.remove(lock_file)
-                    except Exception as e:
-                        LOGGER.error(f"ERROR  : Error Pulling Asset: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e} \n{traceback.format_exc()}")
-                        SHARED_DATA.counters['total_pull_failed_assets'] += 1
-                        if asset_type.lower() == 'video':
-                            SHARED_DATA.counters['total_pull_failed_videos'] += 1
-                        else:
-                            SHARED_DATA.counters['total_pull_failed_photos'] += 1
-                        continue
+                            # Archivo de bloqueo temporal para que el pusher no borre el fichero mientras que el puller lo está creando
+                            lock_file = local_file_path + ".lock"
+                            # Crear archivo de bloqueo antes de la descarga
+                            with open(lock_file, 'w') as lock:
+                                lock.write("Pulling")
+                                # Descargar el asset
+                                pulled_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, album_passphrase=album_passphrase, download_folder=album_folder, log_level=logging.WARNING)
+                                # Eliminar archivo de bloqueo después de la descarga
+                                os.remove(lock_file)
+                        except Exception as e:
+                            LOGGER.error(f"ERROR  : Error Pulling Asset: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e} \n{traceback.format_exc()}")
+                            SHARED_DATA.counters['total_pull_failed_assets'] += 1
+                            if asset_type.lower() == 'video':
+                                SHARED_DATA.counters['total_pull_failed_videos'] += 1
+                            else:
+                                SHARED_DATA.counters['total_pull_failed_photos'] += 1
+                            continue
+                        finally:
+                            # Eliminar archivo .active después de la descarga
+                            if os.path.exists(active_file):
+                                os.remove(active_file)
 
                     # Actualizamos Contadores de descargas
                     if pulled_assets > 0:
@@ -395,69 +400,78 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             except Exception as e:
                 LOGGER.error(f"ERROR  : Error Getting Asset without Albums - {e} \n{traceback.format_exc()}")
 
-            pulled_assets = 0
-            for asset in assets_no_album:
-                asset_id = asset['id']
-                asset_type = asset['type']
-                asset_datetime = asset.get('time')
-                asset_filename = asset.get('filename')
-
-                # Skip pull metadata and sidecar for the time being
-                if asset_type in ['metadata', 'sidecar']:
-                    continue
-
+            # Crear carpeta temp_folder si no existe, y bloquea su eliminación hasta que terminen las descargas
+            os.makedirs(temp_folder, exist_ok=True)
+            # Crear archivo `.active` para marcar que la carpeta está en uso
+            active_file = os.path.join(temp_folder, ".active")
+            with open(active_file, 'w') as f:
+                f.write("downloading")
                 try:
-                    # Ruta del archivo descargado
-                    local_file_path = os.path.join(temp_folder, asset_filename)
+                    pulled_assets = 0
+                    for asset in assets_no_album:
+                        asset_id = asset['id']
+                        asset_type = asset['type']
+                        asset_datetime = asset.get('time')
+                        asset_filename = asset.get('filename')
 
-                    # Archivo de bloqueo temporal
-                    lock_file = local_file_path + ".lock"
+                        # Skip pull metadata and sidecar for the time being
+                        if asset_type in ['metadata', 'sidecar']:
+                            continue
 
-                    # Crear archivo de bloqueo antes de la descarga
-                    with open(lock_file, 'w') as lock:
-                        lock.write("Pulling")
-                        # Descargar directamente en temp_folder
-                        pulled_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
+                        try:
+                            # Ruta del archivo descargado
+                            local_file_path = os.path.join(temp_folder, asset_filename)
 
-                    # Eliminar archivo de bloqueo después de la descarga
-                    os.remove(lock_file)
-                except Exception as e:
-                    LOGGER.error(f"ERROR  : Error Pulling Asset: '{os.path.basename(asset_filename)}' - {e} \n{traceback.format_exc()}")
-                    SHARED_DATA.counters['total_pull_failed_assets'] += 1
-                    if asset_type.lower() == 'video':
-                        SHARED_DATA.counters['total_pull_failed_videos'] += 1
-                    else:
-                        SHARED_DATA.counters['total_pull_failed_photos'] += 1
-                    continue
+                            # Archivo de bloqueo temporal para que el pusher no borre el fichero mientras que el puller lo está creando
+                            lock_file = local_file_path + ".lock"
+                            # Crear archivo de bloqueo antes de la descarga
+                            with open(lock_file, 'w') as lock:
+                                lock.write("Pulling")
+                                # Descargar directamente en temp_folder
+                                pulled_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
+                                # Eliminar archivo de bloqueo después de la descarga
+                                os.remove(lock_file)
+                        except Exception as e:
+                            LOGGER.error(f"ERROR  : Error Pulling Asset: '{os.path.basename(asset_filename)}' - {e} \n{traceback.format_exc()}")
+                            SHARED_DATA.counters['total_pull_failed_assets'] += 1
+                            if asset_type.lower() == 'video':
+                                SHARED_DATA.counters['total_pull_failed_videos'] += 1
+                            else:
+                                SHARED_DATA.counters['total_pull_failed_photos'] += 1
+                            continue
 
-                # Si se ha hecho correctamente el pull del asset, actualizamos contadores y enviamos el asset a la cola de push
-                if pulled_assets > 0:
-                    # Actualizamos Contadores de descargas
-                    LOGGER.info(f"INFO    : Asset Pulled    : '{os.path.join(temp_folder, os.path.basename(asset_filename))}'")
-                    SHARED_DATA.counters['total_pulled_assets'] += pulled_assets
-                    if asset_type.lower() == 'video':
-                        SHARED_DATA.counters['total_pulled_videos'] += pulled_assets
-                    else:
-                        SHARED_DATA.counters['total_pulled_photos'] += pulled_assets
+                        # Si se ha hecho correctamente el pull del asset, actualizamos contadores y enviamos el asset a la cola de push
+                        if pulled_assets > 0:
+                            # Actualizamos Contadores de descargas
+                            LOGGER.info(f"INFO    : Asset Pulled    : '{os.path.join(temp_folder, os.path.basename(asset_filename))}'")
+                            SHARED_DATA.counters['total_pulled_assets'] += pulled_assets
+                            if asset_type.lower() == 'video':
+                                SHARED_DATA.counters['total_pulled_videos'] += pulled_assets
+                            else:
+                                SHARED_DATA.counters['total_pulled_photos'] += pulled_assets
 
-                    # Enviar a la cola de push con la información necesaria para la subida (sin album_name)
-                    local_file_path = os.path.join(temp_folder, asset_filename)
-                    asset_dict = {
-                        'asset_id': asset_id,
-                        'asset_file_path': local_file_path,
-                        'asset_datetime': asset_datetime,
-                        'asset_type': asset_type,
-                        'album_name': None,
-                    }
-                    enqueue_unique(push_queue, asset_dict)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
-                    # sys.stdout.flush()
-                    # sys.stderr.flush()
-                else:
-                    SHARED_DATA.counters['total_pull_failed_assets'] += 1
-                    if asset_type.lower() == 'video':
-                        SHARED_DATA.counters['total_pull_failed_videos'] += 1
-                    else:
-                        SHARED_DATA.counters['total_pull_failed_photos'] += 1
+                            # Enviar a la cola de push con la información necesaria para la subida (sin album_name)
+                            local_file_path = os.path.join(temp_folder, asset_filename)
+                            asset_dict = {
+                                'asset_id': asset_id,
+                                'asset_file_path': local_file_path,
+                                'asset_datetime': asset_datetime,
+                                'asset_type': asset_type,
+                                'album_name': None,
+                            }
+                            enqueue_unique(push_queue, asset_dict)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
+                            # sys.stdout.flush()
+                            # sys.stderr.flush()
+                        else:
+                            SHARED_DATA.counters['total_pull_failed_assets'] += 1
+                            if asset_type.lower() == 'video':
+                                SHARED_DATA.counters['total_pull_failed_videos'] += 1
+                            else:
+                                SHARED_DATA.counters['total_pull_failed_photos'] += 1
+                finally:
+                    # Eliminar archivo .active después de la descarga
+                    if os.path.exists(active_file):
+                        os.remove(active_file)
 
             LOGGER.info("INFO    : Puller Task Finished!")
 
@@ -525,18 +539,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
                     # Si existe album_name, manejar álbum en destino
                     if album_name and asset_pushed:
-                        # Comprobamos si ya procesamos antes este álbum
-                        if album_name not in processed_albums:
-                            processed_albums.append(album_name)  # Lo incluimos en la lista de albumes procesados
-                            SHARED_DATA.counters['total_pushed_albums'] += 1
-                            SHARED_DATA.counters['total_pushed_albums'] = min(SHARED_DATA.counters['total_pushed_albums'], SHARED_DATA.counters['total_pulled_albums']) # Avoid to set total_pushed_albums > total_pulled_albums
-                            LOGGER.info(f"INFO    : Album Created   : '{album_name}'")
                         try:
                             # Si el álbum no existe en destino, lo creamos
                             album_exists, album_id_dest = target_client.album_exists(album_name=album_name, log_level=logging.WARNING)
                             if not album_exists:
                                 album_id_dest = target_client.create_album(album_name=album_name, log_level=logging.WARNING)
-
                             # Añadir el asset al álbum
                             target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.WARNING)
                         except Exception as e:
@@ -547,9 +554,21 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         # Verificar si la carpeta local del álbum está vacía y borrarla
                         album_folder_path = os.path.join(temp_folder, album_name)
                         if os.path.exists(album_folder_path):
-                            # Si la carpeta está vacía (o solo hay subcarpetas vacías), la borramos
                             try:
+                                # Si la carpeta tiene un archivo .active, significa que aún está en uso → NO BORRAR
+                                active_file = os.path.join(album_folder_path, ".active")
+                                if os.path.exists(active_file):
+                                    logging.info(f"No se borra '{album_folder_path}' porque aún está en uso.")
+                                    continue
+                                # Si la carpeta está vacía (o solo hay subcarpetas vacías), la borramos, de lo contrario saltaremos al bloque except generando una excepción que ignoraremos
                                 os.rmdir(album_folder_path)
+                                # Actualizamos contadores si el borrado de la carpeta ha tenido éxito (significa que el album está totalmente subido ya que el puller ha quitado el archivo .active y los pusher han borrado todos los archivos subidos)
+                                # Sólo actualizamos contadores si el album no había sido procesado antes
+                                if album_name not in processed_albums:
+                                    processed_albums.append(album_name)  # Lo incluimos en la lista de albumes procesados
+                                    SHARED_DATA.counters['total_pushed_albums'] += 1
+                                    SHARED_DATA.counters['total_pushed_albums'] = min(SHARED_DATA.counters['total_pushed_albums'], SHARED_DATA.counters['total_pulled_albums'])  # Avoid to set total_pushed_albums > total_pulled_albums
+                                    LOGGER.info(f"INFO    : Album Pushed    : '{album_name}'")
                             except OSError:
                                 # Si no está vacía, ignoramos el error
                                 pass
