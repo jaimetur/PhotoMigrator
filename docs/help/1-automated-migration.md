@@ -80,6 +80,41 @@ In this example, the script will do an Automated Migration Process which has two
     This 'No-Albums' subfolder will have a year/month structure to store all your asset in a more organized way.  
 
 
+## Config.ini
+>```
+># Configuration for Google Takeout
+>[Google Takeout]
+># No configuration needed for this module for the time being.
+>
+># Configuration for Synology Photos
+>[Synology Photos]
+>SYNOLOGY_URL                = http://192.168.1.11:5000                      # Change this IP by the IP that contains the Synology server or by your valid Synology URL
+>SYNOLOGY_USERNAME_1         = username_1                                    # Account 1: Your username for Synology Photos
+>SYNOLOGY_PASSWORD_1         = password_1                                    # Account 1: Your password for Synology Photos
+>SYNOLOGY_USERNAME_2         = username_2                                    # Account 2: Your username for Synology Photos
+>SYNOLOGY_PASSWORD_2         = password_2                                    # Account 2: Your password for Synology Photos
+>
+># Configuration for Immich Photos
+>[Immich Photos]
+>IMMICH_URL                  = http://192.168.1.11:2283                      # Change this IP by the IP that contains the Immich server or by your valid Immich URL
+>IMMICH_API_KEY_ADMIN        = YOUR_ADMIN_API_KEY                            # Your ADMIN_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
+>
+>IMMICH_API_KEY_USER_1       = API_KEY_USER_1                                # Account 1: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
+>IMMICH_USERNAME_1           = username_1                                    # Account 1: Your username for Immich Photos (mandatory if not API_KEY is providen)
+>IMMICH_PASSWORD_1           = password_1                                    # Account 1: Your password for Immich Photos (mandatory if not API_KEY is providen)
+>
+>IMMICH_API_KEY_USER_2       = API_KEY_USER_2                                # Account 2: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
+>IMMICH_USERNAME_2           = username_2                                    # Account 2: Your username for Immich Photos (mandatory if not API_KEY is providen)
+>IMMICH_PASSWORD_2           = password_2                                    # Account 2: Your password for Immich Photos (mandatory if not API_KEY is providen)
+>
+>IMMICH_FILTER_ARCHIVE       = False                                         # Optional: Used as Filter Criteria for Assets downloading (True/False)
+>IMMICH_FILTER_FROM          = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: 2024-10-01)
+>IMMICH_FILTER_TO            = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: 2024-10-01)
+>IMMICH_FILTER_COUNTRY       = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: Spain)
+>IMMICH_FILTER_CITY          = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: ['Madrid', 'Málaga'])
+>IMMICH_FILTER_PERSON        = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: ['Mery', 'James'])
+>```
+
 ## Credits
 I hope this can be useful for any of you.  
 Enjoy it!
