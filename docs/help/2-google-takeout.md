@@ -48,7 +48,7 @@ It was very useful for me when I run it to process more than **300 GB** of Photo
 
 The whole process took around **~3 hours** (or **~6 hours if includes last optional step) and this is the time split per steps**):  
 
-  0. Extraction process --> 25m
+0. Extraction process --> 25m
 1. Pre-processing Takeout_folder --> 3m 50s
 2. GPTH Tool fixing --> 2h 12m
 3. <span style="color:grey">(Optional) Copy/Move files to output folder manually if GPTH processing was skipped --> 0h</span>
