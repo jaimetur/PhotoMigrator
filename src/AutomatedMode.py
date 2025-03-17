@@ -287,8 +287,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             # 1.1) Descarga de álbumes
             albums = source_client.get_albums_including_shared_with_user()
             pulled_assets = 0
-            album_assets = []
             for album in albums:
+                album_assets = []
                 album_id = album['id']
                 album_name = album['albumName']
                 album_passphrase = album.get('passphrase')  # Obtiene el valor si existe, si no, devuelve None
