@@ -84,7 +84,7 @@ Example of use:
 In this example, the script will Process your Takeout or Library of photos in folder './MyTakeout' (need to be unzipped), 
 and will rename all the subfolders found on to homogenize all the folder's name with the following template:
   - '**yyyy - Cleaned Subfolder Name**' or '**yyyy-yyyy - Cleaned Subfolder Name**'
-  - where yyyy is the year of the assets found in that folder or yyyy-yyyy is the range of years for the assets found (if more than one year is found)
+  - where 'yyyy' is the year of the assets found in that folder or 'yyyy-yyyy' is the range of years for the assets found (if more than one year is found)
   - and Cleaned Subfolder Name just make the folder name cleaner.  
 
 This step is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.  
