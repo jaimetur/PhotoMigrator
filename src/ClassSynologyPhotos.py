@@ -719,7 +719,6 @@ class ClassSynologyPhotos:
                 offset = 0
                 limit = 5000
                 album_items = []
-                combined_items = []
 
                 while True:
                     params = {
@@ -780,7 +779,6 @@ class ClassSynologyPhotos:
                 offset = 0
                 limit = 5000
                 album_items = []
-                combined_items = []
 
                 while True:
                     params = {
