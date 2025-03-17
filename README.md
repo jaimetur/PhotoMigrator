@@ -161,7 +161,7 @@ You can check the whole list of functions and arguments with the right syntax he
 > and execute this Extra Mode, the script will automatically do the whole migration job from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.  
 
 ## Live Dashboard Preview:
-![Live Dashboard](../screenshots/live_dashboard.jpg)
+![Live Dashboard](docs/screenshots/live_dashboard.jpg)
 
 
 ## **Examples of use:**
