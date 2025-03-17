@@ -646,7 +646,7 @@ class ClassSynologyPhotos:
                             album_id = album.get("id")
                             self.albums_owned_by_user[album_name] = album_id  # Cache it for future use
                             break
-                    return album_exists, album_id
+                return album_exists, album_id
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while checking if Album exists on Synology Photos. {e}")
             

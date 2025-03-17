@@ -540,7 +540,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             # Añadir el asset al álbum
                             target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.WARNING)
                         except Exception as e:
-                            LOGGER.error(f"ERROR   : Error Pushing Album '{album_name}")
+                            LOGGER.error(f"ERROR   : Error Pushing Album '{album_name}'")
                             LOGGER.error(f"ERROR   : Catched Exception: {e} \n{traceback.format_exc()}")
                             SHARED_DATA.counters['total_push_failed_albums'] += 1
 
