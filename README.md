@@ -2,10 +2,19 @@
 
 Welcome to <span style="color:green">**CloudPhotoMigrator** </span>Tool:
 
-This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to migrate from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
+This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an **Automated Migration** from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
 
 As of today, the Supported Photo Cloud Services are:
-- **Google Photos**
+- **Google Photos Takeout**
+  - Unpack your Takeout Zip files.
+  - Process .json files to fix metadata (including creation date and time) of all your assets.
+  - Merge Live picture with sepparate files (.HEIC and .MP4).
+  - Separate your assets per Albums (if belong to any album).
+  - Organize your assets in a year/month structure for a better organization.
+  - Create Symbolic Links for assets within any Album (to save disk space).
+  - Detect and remove duplicates.
+
+
 - **Synology Photos** - Features included:
   - Upload Album(s)
   - Upload ALL (from folder)
@@ -15,6 +24,8 @@ As of today, the Supported Photo Cloud Services are:
   - Remove ALL Albums
   - Remove Empty Albums
   - Remove Duplicates Albums
+
+
 - **Immich Photos** - Features included:
   - Upload Album(s)
   - Upload ALL (from folder)
@@ -25,11 +36,18 @@ As of today, the Supported Photo Cloud Services are:
   - Remove Empty Albums
   - Remove Duplicates Albums
   - Remove Orphans Assets
+
+
 - **Apple Photos**  
   (not available yet but is on the ROADMAP.md for next release)
 
-Apart from Interact with the different Photo Cloud Services, the Tool also contains some other useful features such as:
-- **Metadata fixing** of any Photo Library in your local drive
+
+- **Google Photos**  
+  (not available yet but is on the ROADMAP.md for next release)
+
+
+Apart from Manage the different Photo Cloud Services, the Tool also contains some other useful features such as:
+- **Metadata fixing** of any Photo Library in your local drive (not necesarely needs to be a Google Takeout folder)
 - **Library Organization** features:
   - Manage Duplicates assets
   - Splitting of assets with and without associated albums
