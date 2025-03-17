@@ -347,6 +347,37 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         pulled_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, album_passphrase=album_passphrase, download_folder=album_folder, log_level=logging.WARNING)
                         # Eliminar archivo de bloqueo después de la descarga
                         os.remove(lock_file)
+
+                        # Actualizamos Contadores de descargas
+                        if pulled_assets > 0:
+                            # set_log_level(LOGGER, log_level)
+                            LOGGER.info(f"INFO    : Asset Pulled    : '{os.path.join(album_folder, os.path.basename(asset_filename))}'")
+                            SHARED_DATA.counters['total_pulled_assets'] += pulled_assets
+                            if asset_type.lower() == 'video':
+                                SHARED_DATA.counters['total_pulled_videos'] += pulled_assets
+                            else:
+                                SHARED_DATA.counters['total_pulled_photos'] += pulled_assets
+                        else:
+                            SHARED_DATA.counters['total_pull_failed_assets'] += 1
+                            if asset_type.lower() == 'video':
+                                SHARED_DATA.counters['total_pull_failed_videos'] += 1
+                            else:
+                                SHARED_DATA.counters['total_pull_failed_photos'] += 1
+
+                        # Enviar a la cola con la información necesaria para la subida
+                        local_file_path = os.path.join(album_folder, asset_filename)
+                        asset_dict = {
+                            'asset_id': asset_id,
+                            'asset_file_path': local_file_path,
+                            'asset_datetime': asset_datetime,
+                            'asset_type': asset_type,
+                            'album_name': album_name,
+                        }
+                        # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
+                        enqueue_unique(push_queue, asset_dict)
+                        # push_queue.put(asset_dict)
+                        # sys.stdout.flush()
+                        # sys.stderr.flush()
                 except Exception as e:
                     LOGGER.error(f"ERROR  : Error Pulling Asset: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e} \n{traceback.format_exc()}")
                     SHARED_DATA.counters['total_pull_failed_assets'] += 1
@@ -359,37 +390,6 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     # Eliminar archivo .active después de la descarga
                     if os.path.exists(active_file):
                         os.remove(active_file)
-
-                    # Actualizamos Contadores de descargas
-                    if pulled_assets > 0:
-                        # set_log_level(LOGGER, log_level)
-                        LOGGER.info(f"INFO    : Asset Pulled    : '{os.path.join(album_folder, os.path.basename(asset_filename))}'")
-                        SHARED_DATA.counters['total_pulled_assets'] += pulled_assets
-                        if asset_type.lower() == 'video':
-                            SHARED_DATA.counters['total_pulled_videos'] += pulled_assets
-                        else:
-                            SHARED_DATA.counters['total_pulled_photos'] += pulled_assets
-                    else:
-                        SHARED_DATA.counters['total_pull_failed_assets'] += 1
-                        if asset_type.lower() == 'video':
-                            SHARED_DATA.counters['total_pull_failed_videos'] += 1
-                        else:
-                            SHARED_DATA.counters['total_pull_failed_photos'] += 1
-
-                    # Enviar a la cola con la información necesaria para la subida
-                    local_file_path = os.path.join(album_folder, asset_filename)
-                    asset_dict = {
-                        'asset_id': asset_id,
-                        'asset_file_path': local_file_path,
-                        'asset_datetime': asset_datetime,
-                        'asset_type': asset_type,
-                        'album_name': album_name,
-                    }
-                    # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
-                    enqueue_unique(push_queue, asset_dict)
-                    # push_queue.put(asset_dict)
-                    # sys.stdout.flush()
-                    # sys.stderr.flush()
 
                 # Incrementamos contador de álbumes descargados
                 SHARED_DATA.counters['total_pulled_albums'] += 1
@@ -560,7 +560,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                                 # Si la carpeta tiene un archivo .active, significa que aún está en uso → NO BORRAR
                                 active_file = os.path.join(album_folder_path, ".active")
                                 if os.path.exists(active_file):
-                                    logging.info(f"No se borra '{album_folder_path}' porque aún está en uso.")
+                                    # No se borra porque aún está en uso
                                     continue
                                 # Si la carpeta está vacía (o solo hay subcarpetas vacías), la borramos, de lo contrario saltaremos al bloque except generando una excepción que ignoraremos
                                 os.rmdir(album_folder_path)
@@ -673,7 +673,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         num_push_threads = max(1, int(cpu_total_threads / 2))
         LOGGER.info(f"INFO    : Launching {num_push_threads} Push workers in parallel...")
         num_pull_threads = 1  # no Iniciar más de 1 hilo de descarga, de lo contrario los assets se descargarán multiples veces.
-        num_push_threads = 2
+
         # Crear hilos
         pull_threads = [threading.Thread(target=puller_worker, daemon=True) for _ in range(num_pull_threads)]
         push_threads = [threading.Thread(target=pusher_worker, kwargs={"processed_albums": processed_albums, "worker_id": worker_id+1}, daemon=True) for worker_id in range(num_push_threads)]
