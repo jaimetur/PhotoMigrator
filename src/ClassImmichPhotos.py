@@ -914,7 +914,7 @@ class ClassImmichPhotos:
                 return None, None
 
 
-    def download_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Immich", log_level=logging.INFO):
+    def download_asset(self, asset_id, asset_filename, asset_time, album_passphrase="", download_folder="Downloaded_Immich", log_level=logging.INFO):
         """
         Downloads an asset (photo/video) from Immich Photos to a local folder,
         preserving the original timestamp if available.

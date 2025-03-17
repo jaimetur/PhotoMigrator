@@ -311,7 +311,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         # SHARED_DATA.counters['total_pull_failed_albums'] += 1     # If we uncomment this line, it will count as failed Empties albums
                         continue
                 except Exception as e:
-                    LOGGER.error(f"ERROR   : Error listing Album Assets for album {album_name} - {e}", traceback.format_exc())
+                    LOGGER.error(f"ERROR   : Error listing Album Assets for album {album_name} - {e} \n{traceback.format_exc()}")
                     SHARED_DATA.counters['total_pull_failed_albums'] += 1
                     continue
 
@@ -345,7 +345,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         # Eliminar archivo de bloqueo después de la descarga
                         os.remove(lock_file)
                     except Exception as e:
-                        LOGGER.error(f"ERROR  : Error Pulling Asset: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e}", traceback.format_exc())
+                        LOGGER.error(f"ERROR  : Error Pulling Asset: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e} \n{traceback.format_exc()}")
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
                         if asset_type.lower() == 'video':
                             SHARED_DATA.counters['total_pull_failed_videos'] += 1
@@ -393,7 +393,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             try:
                 assets_no_album = source_client.get_no_albums_assets()
             except Exception as e:
-                LOGGER.error(f"ERROR  : Error Getting Asset without Albums - {e}", traceback.format_exc())
+                LOGGER.error(f"ERROR  : Error Getting Asset without Albums - {e} \n{traceback.format_exc()}")
 
             pulled_assets = 0
             for asset in assets_no_album:
@@ -422,7 +422,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     # Eliminar archivo de bloqueo después de la descarga
                     os.remove(lock_file)
                 except Exception as e:
-                    LOGGER.error(f"ERROR  : Error Pulling Asset: '{os.path.basename(asset_filename)}' - {e}", traceback.format_exc())
+                    LOGGER.error(f"ERROR  : Error Pulling Asset: '{os.path.basename(asset_filename)}' - {e} \n{traceback.format_exc()}")
                     SHARED_DATA.counters['total_pull_failed_assets'] += 1
                     if asset_type.lower() == 'video':
                         SHARED_DATA.counters['total_pull_failed_videos'] += 1
@@ -516,7 +516,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                                 pass
                     except:
                         LOGGER.error(f"ERROR   : Error Pushing Asset: '{os.path.basename(asset_file_path)}'")
-                        LOGGER.error(f"ERROR   : Catched Exception: {e}", traceback.format_exc())
+                        LOGGER.error(f"ERROR   : Catched Exception: {e} \n{traceback.format_exc()}")
                         SHARED_DATA.counters['total_push_failed_assets'] += 1
                         if asset_type.lower() == 'video':
                             SHARED_DATA.counters['total_push_failed_videos'] += 1
@@ -541,7 +541,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.WARNING)
                         except Exception as e:
                             LOGGER.error(f"ERROR   : Error Pushing Album '{album_name}")
-                            LOGGER.error(f"ERROR   : Catched Exception: {e}", traceback.format_exc())
+                            LOGGER.error(f"ERROR   : Catched Exception: {e} \n{traceback.format_exc()}")
                             SHARED_DATA.counters['total_push_failed_albums'] += 1
 
                         # Verificar si la carpeta local del álbum está vacía y borrarla
@@ -560,7 +560,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
                 except Exception as e:
                     LOGGER.error(f"ERROR   : Error in Pusher worker while pushing asset: {asset}")
-                    LOGGER.error(f"ERROR   : Catched Exception: {e}", traceback.format_exc())
+                    LOGGER.error(f"ERROR   : Catched Exception: {e} \n{traceback.format_exc()}")
 
             LOGGER.info(f"INFO    : Pusher {worker_id} - Task Finished!")
 
