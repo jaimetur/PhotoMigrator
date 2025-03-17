@@ -70,11 +70,11 @@ the script will try to fix it finding the target of the symlink within the same 
 ## <span style="color:blue">Extra Mode: Folder Rename Content Based:</span>
 From version 2.0.0 onwards, the script can be executed in 'Rename Albums Folders' Mode. 
 
-With this Extra Mode, you can rename all Albums subfolders (if they contain a flatten file structure) and homogenize all your Albums names with this format: 'yyyy - Album Name' or 'yyyy-yyyy - Album Name', where yyyy is the year of the files contained in each Album folder (if more than one year is found, then yyyy-yyyy will indicate the range of years for the files contained in the Album folder.)  
+- You can use the flag '-renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>', torename all Albums subfolders (if they contain a flatten file structure) and homogenize all your Albums names with this format: 'yyyy - Album Name' or 'yyyy-yyyy - Album Name', where yyyy is the year of the files contained in each Album folder (if more than one year is found, then yyyy-yyyy will indicate the range of years for the files contained in the Album folder.)  
 
-To define the <ALBUMS_FOLDER> you can use the new Flag: -renFldcb, --rename-albums <ALBUMS_FOLDER>
+- To define the <ALBUMS_FOLDER> you can use the new Flag: -AlbFld, --albums-folder <ALBUMS_FOLDER>
 
-Recommendation: Use this Extra Mode before to create Synology Photos Albums in order to have a clean Albums structure in your Synology Photos database.
+- Recommendation: Use this Extra Mode before to create Synology Photos Albums in order to have a clean Albums structure in your Synology Photos database.
 
 
 Example of use:
