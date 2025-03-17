@@ -56,7 +56,7 @@ and for each duplicate, will do the given action according to Action column
 
 From version 1.5.0 onwards, the script can be executed in 'Fix Symbolic Links Broken' Mode. 
 - You can use the flag '-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>' and provide a FOLDER_TO_FIX and the script will try to look for all symbolic links within FOLDER_TO_FIX and will try to find the target file within the same folder.
-- This is useful when you run the main script using flag '-sa, --symbolic-albums' to create symbolic Albums instead of duplicate copies of the files contained on Albums.
+- This is useful when you run the main script using flag '-gcsa, --google-create-symbolic-albums' to create symbolic Albums instead of duplicate copies of the files contained on Albums.
 - If you run the script with this flag and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken and you will need to use this feature to fix them.
 
 Example of use:
@@ -70,7 +70,8 @@ the script will try to fix it finding the target of the symlink within the same 
 ## <span style="color:blue">Extra Mode: Folder Rename Content Based:</span>
 From version 2.0.0 onwards, the script can be executed in 'Rename Albums Folders' Mode. 
 
-- You can use the flag '-renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>', torename all Albums subfolders (if they contain a flatten file structure) and homogenize all your Albums names with this format: 'yyyy - Album Name' or 'yyyy-yyyy - Album Name', where yyyy is the year of the files contained in each Album folder (if more than one year is found, then yyyy-yyyy will indicate the range of years for the files contained in the Album folder.)  
+- You can use the flag '-renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>', to rename all Albums subfolders (if they contain a flatten file structure) and homogenize all your Albums names with this format:  
+'yyyy - Album Name' or 'yyyy-yyyy - Album Name', where yyyy is the year of the files contained in each Album folder (if more than one year is found, then yyyy-yyyy will indicate the range of years for the files contained in the Album folder.)  
 
 - To define the <ALBUMS_FOLDER> you can use the new Flag: -AlbFld, --albums-folder <ALBUMS_FOLDER>
 
