@@ -39,7 +39,7 @@
 > <INPUT_FOLDER>/Album2  
 
 ## Live Dashboard Preview:
-![Live Dashboard](../screenshots/live_dashboard.jpg)
+![Live Dashboard](/docs/screenshots/live_dashboard.jpg)
 
 
 ## **Examples of use:**
