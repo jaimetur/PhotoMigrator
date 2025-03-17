@@ -480,7 +480,7 @@ class ClassLocalFolder:
                         "type": self._determine_file_type(file),
                     })
 
-            LOGGER.info(f"INFO    : Found {len(assets)} {type} assets in the base folder.")
+            LOGGER.info(f"INFO    : Found {len(assets)} assets of type '{type}' in the base folder.")
             return assets
 
     def get_album_assets(self, album_id, album_name=None, type='all', log_level=logging.INFO):
@@ -537,7 +537,7 @@ class ClassLocalFolder:
                             "type": self._determine_file_type(file),
                         })
 
-                LOGGER.info(f"INFO    : Found {len(assets)} {type} assets in album {album_id}.")
+                LOGGER.info(f"INFO    : Found {len(assets)} assets of type '{type}' in album {album_id}.")
                 return assets
 
             except Exception as e:
@@ -636,7 +636,7 @@ class ClassLocalFolder:
                         "type": self._determine_file_type(file),
                     })
 
-            LOGGER.info(f"INFO    : Found {len(assets)} {type} assets excluding album folders.")
+            LOGGER.info(f"INFO    : Found {len(assets)} assets of type '{type}' in No-Album folder '{album_id}'.")
             return assets
 
     def get_all_albums_assets(self, log_level=logging.WARNING):
