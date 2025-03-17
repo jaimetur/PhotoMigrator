@@ -39,7 +39,7 @@
 ./CloudPhotoMigrator.run --source=/homes/MyTakeout --target=synology-1
 ```
 
-In this example, the script will do a FULLY-AUTOMATED job which has two steps:  
+In this example, the script will do an Automated Migration Process which has two steps:  
 
   - First, the script will process the folder '/homes/MyTakeout' (Unzipping them if needed), fixing all files found on it, to set the
     correct date and time, and identifying which assets belongs to each Album created on Google Photos.  
@@ -55,7 +55,7 @@ In this example, the script will do a FULLY-AUTOMATED job which has two steps:
 ./CloudPhotoMigrator.run --source=synology-2 target=immich-1
 ```
 
-In this example, the script will do a FULLY-AUTOMATED job which has two steps:  
+In this example, the script will do an Automated Migration Process which has two steps:  
 
   - First, the script will connect to your Synology Photos account 2 (if you have configured properly the Config.ini file) and will
     pull all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
@@ -70,7 +70,7 @@ In this example, the script will do a FULLY-AUTOMATED job which has two steps:
 ./CloudPhotoMigrator.run --source=immich-2 target=/homes/local_folder
 ```
 
-In this example, the script will do a FULLY-AUTOMATED job which has two steps:  
+In this example, the script will do an Automated Migration Process which has two steps:  
 
   - First, the script will connect to your Immich Photos account 1 (if you have configured properly the Config.ini file) and will
     pull all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
