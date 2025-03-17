@@ -4,15 +4,15 @@
 >## <span style="color:green">Google Takeout Support</span>
 >From version 1.0.0 onwards, the script can process your Google Photos Takeout files to fix timestamp, geodata, organize files per year/month, organize assets within album(s) in subfolders, etc...
 >
->>#### <span style="color:green">Example 'Config.ini' for Synology Photos:</span>
+>>#### <span style="color:green">Example 'Config.ini' for Google Takeout:</span>
 >>
 >>```
->># Configuration for Google Photos
->>[Google Photos]
+>># Configuration for Google Takeout
+>>[Google Takeout]
 >>```
->For the time being, Google Photos Takeout support, does not need to include anything in the Config.ini, but it has it own section for futures features.
+>For the time being, Google Takeout Feature, does not need to include anything in the Config.ini, but it has it own section for futures features.
 
-### <span style="color:blue">Google Takeout Mode: Process Explained:</span>
+### <span style="color:blue">Google Takeout Feature: Process Explained:</span>
 
 The whole process will do the next actions if all flags are false (by default):  
 
