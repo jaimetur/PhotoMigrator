@@ -35,7 +35,7 @@
 ![Live Dashboard](../screenshots/live_dashboard.jpg)
 
 
-**Examples of use:**
+##**Examples of use:**
 
 - **Example 1:**
 ```
