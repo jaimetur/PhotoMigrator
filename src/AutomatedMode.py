@@ -515,6 +515,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             except:
                                 pass
                     except:
+                        LOGGER.error(f"ERROR   : Error Pushing Asset: '{os.path.basename(asset_file_path)}'")
+                        LOGGER.error(f"ERROR   : Catched Exception: {e}", traceback.format_exc())
                         SHARED_DATA.counters['total_push_failed_assets'] += 1
                         if asset_type.lower() == 'video':
                             SHARED_DATA.counters['total_push_failed_videos'] += 1
@@ -531,17 +533,15 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             LOGGER.info(f"INFO    : Album Created   : '{album_name}'")
                         try:
                             # Si el álbum no existe en destino, lo creamos
-                            call = 1
                             album_exists, album_id_dest = target_client.album_exists(album_name=album_name, log_level=logging.WARNING)
                             if not album_exists:
-                                call += 1
                                 album_id_dest = target_client.create_album(album_name=album_name, log_level=logging.WARNING)
 
                             # Añadir el asset al álbum
-                            call += 1
                             target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.WARNING)
                         except Exception as e:
-                            LOGGER.error(f"ERROR   : Error Pushing Album '{album_name} during Call: {call} - {e}")
+                            LOGGER.error(f"ERROR   : Error Pushing Album '{album_name}")
+                            LOGGER.error(f"ERROR   : Catched Exception: {e}", traceback.format_exc())
                             SHARED_DATA.counters['total_push_failed_albums'] += 1
 
                         # Verificar si la carpeta local del álbum está vacía y borrarla
@@ -560,7 +560,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
                 except Exception as e:
                     LOGGER.error(f"ERROR   : Error in Pusher worker while pushing asset: {asset}")
-                    LOGGER.error(f"ERROR   : Catched Exception: {e}")
+                    LOGGER.error(f"ERROR   : Catched Exception: {e}", traceback.format_exc())
 
             LOGGER.info(f"INFO    : Pusher {worker_id} - Task Finished!")
 
