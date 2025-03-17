@@ -123,7 +123,7 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
    python3 ./src/CloudPhotoMigrator.py
    ```
 
-## Syntax:
+## Command Line Syntax:
 You can check the whole list of functions and arguments with the right syntax here:  
 [Command Line Syntax](docs/help/0-comand-line-syntax.md)
 
