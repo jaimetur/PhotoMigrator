@@ -63,7 +63,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)
 
 ## Documentation Links:
-- [Syntax document](docs/help/syntax.md)  
+- [Command Line Syntax](docs/help/comand-line-syntax.md)  
 - [Automated Migration Feature](docs/help/automated-migration.md)  
 - [Google Takeout Management](docs/help/google-takeout.md)  
 - [Synology Photos Management](docs/help/synology-photos.md)  
@@ -125,7 +125,7 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
 
 ## Syntax:
 You can check the whole list of functions and arguments with the right syntax here:  
-[Syntax document](docs/help/syntax.md)
+[Command Line Syntax](docs/help/comand-line-syntax.md)
 
 ## Main Use Case: Automated Migration Feature
 
@@ -133,7 +133,7 @@ You can check the whole list of functions and arguments with the right syntax he
 >## <span style="color:green">Automated Migration Feature</span>
 >From version 3.0.0 onwards, the script supports a new Extra Mode called '**AUTOMATED-MIGRATION**' Mode. 
 >
-> Use the arguments **'-s'** or **'--source'** to select the \<SOURCE> and **'-t'** or **'--target'** to select \<TARGET> for the AUTOMATED-MIGRATION Process to Download all your Assets (including Albums) from the \<SOURCE> Cloud Service and Upload them to the \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
+> Use the arguments **'--source'** to select the \<SOURCE> and **'--target'** to select \<TARGET> for the AUTOMATED-MIGRATION Process to Download all your Assets (including Albums) from the \<SOURCE> Cloud Service and Upload them to the \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
 > 
 >  - Possible values for:
 >    - **\<SOURCE\>** : ['synology-photos', 'immich-photos']-[id] or <INPUT_FOLDER>  (id=[1, 2] select which account to use from the Config.ini file).  

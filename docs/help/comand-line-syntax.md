@@ -1,13 +1,13 @@
 
-## Syntax:
+## Command Line Syntax:
 ```
 ---------------------------------------------------------------------------------------------------------
-usage: CloudPhotoMigrator.run/exe [-h] [-v] [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
+usage: CloudPhotoMigrator.run/exe [-h] [-v] [--source <SOURCE>] [--target <TARGET>]
+                                  [--dashboard [=[true,false]]]
+                                  [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
                                   [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
-                                  [-rAlbAss]
+                                  [-rAlbAss] [-nolog]
                                   [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
-                                  [-nolog] [-AUTO <SOURCE> <TARGET>]
-                                  [--dashboard =[true,false]]
                                   [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gnas ['flatten', 'year', 'year/month', 'year-month']]
@@ -37,6 +37,54 @@ optional arguments:
              show this help message and exit
 -v,        --version
              Show the script name, version, and date, then exit.
+
+
+AUTOMATED MIGRATION PROCESS:
+----------------------------
+Following arguments allow you execute the Automated Migration Process to migrate your
+assets from one Photo Cloud Service to other, or from two different accounts within the
+same Photo Cloud service.
+
+--source <SOURCE>
+             Select the <SOURCE> for the AUTOMATED-MIGRATION Process to Download all
+             your Assets (including Albums) from the <SOURCE> Cloud Service and Upload
+             them to the <TARGET> Cloud Service (including all Albums that you may have
+             on the <SOURCE> Cloud Service).
+
+             Possible values:
+               ['synology', 'immich']-[id] or <INPUT_FOLDER>
+               [id] = [1, 2] select which account to use from the Config.ini file.
+
+             Examples:
+              ​--source=immich-1_ -> Select Immich Photos account 1 as Source.
+              ​--source=synology-2 -> Select Synology Photos account 2 as Source.
+              ​--source=/home/local_folder -> Select this local folder as Source.
+              ​--source=/home/Takeout -> Select this Takeout folder as Source.
+              ​                      (both, zipped and unzipped format are supported)
+--target <TARGET>
+             Select the <TARGET> for the AUTOMATED-MIGRATION Process to Download all
+             your Assets (including Albums) from the <SOURCE> Cloud Service and Upload
+             them to the <TARGET> Cloud Service (including all Albums that you may have
+             on the <SOURCE> Cloud Service).
+
+             Possible values:
+               ['synology', 'immich']-[id] or <OUTPUT_FOLDER>
+               [id] = [1, 2] select which account to use from the Config.ini file.
+
+             Examples:
+              ​--source=immich-1 -> Select Immich Photos account 1 as Target.
+              ​--source=synology-2 -> Select Synology Photos account 2 as Target.
+              ​--source=/home/local_folder -> Select this local folder as Target.
+--dashboard =[true,false]
+             Enable or disable Live Dashboard feature during Autometed Migration Job.
+             This argument only applies to '-AUTO, --AUTOMATED-MIGRATION' option.
+             (default: True).
+
+
+GENERAL ARGUMENTS:
+------------------
+Following general arguments have different purposses depending on the Execution Mode.
+
 -i,        --input-folder <INPUT_FOLDER>
              Specify the input folder that you want to process.
 -o,        --output-folder <OUTPUT_FOLDER>
@@ -49,22 +97,10 @@ optional arguments:
              If used together with '-srAllAlb, --synology-remove-all-albums' or
              '-irAllAlb, --immich-remove-all-albums', it will also delete the assets
              (photos/videos) inside each album.
--loglevel, --log-level ['debug', 'info', 'warning', 'error', 'critical']
-             Specify the log level for logging and screen messages.
 -nolog,    --no-log-file
              Skip saving output messages to execution log file.
--AUTO,     --AUTOMATED-MIGRATION ('<SOURCE>', '<TARGET>')
-             This process will do an AUTOMATED-MIGRATION process to Download all your
-             Assets (including Albums) from the <SOURCE> Cloud Service and Upload them
-             to the <TARGET> Cloud Service (including all Albums that you may have on
-             the <SOURCE> Cloud Service.
-
-             possible values for:
-                 <SOURCE> : ['synology-photos', 'immich-photos'] or <INPUT_FOLDER>
-                 <TARGET> : ['synology-photos', 'immich-photos'] or <OUTPUT_FOLDER>
---dashboard =[true,false]
-             Show Live Dashboard during Autometed Migration Jon (true/false). This
-             argument only applies to '-AUTO, --AUTOMATED-MIGRATION' option.
+-loglevel, --log-level ['debug', 'info', 'warning', 'error', 'critical']
+             Specify the log level for logging and screen messages.
 
 
 GOOGLE PHOTOS TAKEOUT MANAGEMENT:
@@ -250,3 +286,9 @@ If more than one Extra Mode is detected, only the first one will be executed.
       
 ---------------------------------------------------------------------------------------------------------
 ```
+
+## Credits
+I hope this can be useful for any of you.  
+Enjoy it!
+
+<span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>  

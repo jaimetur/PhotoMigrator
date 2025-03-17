@@ -25,8 +25,8 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
 ### Main Changes:
 - [x] Included Live Progress Dashboard in Automated Migration process for a better visualization of the job progress.
-- [x] Added a new argument **'-s, --source'** to specify the \<SOURCE> client for the Automated Migration process.
-- [x] Added a new argument **'-t, --target'** to specify the \<SOURCE> client for the Automated Migration process.
+- [x] Added a new argument **'--source'** to specify the \<SOURCE> client for the Automated Migration process.
+- [x] Added a new argument **'--target'** to specify the \<SOURCE> client for the Automated Migration process.
 - [x] Added new flag '**--dashboard=[true, false]**' (default=true) to show/hide Live Dashboard during Atomated Migration Job.
 - [x] Removed argument **'-AUTO, --AUTOMATED-MIGRATION \<SOURCE> \<TARGET>'** because have been replaced with two above arguments for a better visualization.
 - [x] Completelly refactored Automated Migration Process to allow parallel threads for Downloads and Uploads jobs avoiding downloading all assets before to upload them (this will save disk space and improve performance). Also objects support has been added to this mode for an easier implementation and future enhancements.

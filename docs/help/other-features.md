@@ -1,3 +1,5 @@
+## <span style="color:green">Other Standalone Features Documentation:</span>
+
 > [!NOTE]
 > ## <span style="color:green">Other Standalone Features</span>
 >Additionally, this script can be executed with 4 Standalone Extra Modes: 
@@ -87,3 +89,9 @@ and will rename all the subfolders found on to homogenize all the folder's name 
 
 This step is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.  
 
+
+## Credits
+I hope this can be useful for any of you.  
+Enjoy it!
+
+<span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>  

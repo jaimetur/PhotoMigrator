@@ -1,9 +1,10 @@
+## <span style="color:green">Automated Migration Feature Documentation:</span>
 
 > [!NOTE]  
 >## <span style="color:green">Automated Migration Feature</span>
 >From version 3.0.0 onwards, the script supports a new Extra Mode called '**AUTOMATED-MIGRATION**' Mode. 
 >
-> Use the arguments **'-s'** or **'--source'** to select the \<SOURCE> and **'-t'** or **'--target'** to select \<TARGET> for the AUTOMATED-MIGRATION Process to Download all your Assets (including Albums) from the \<SOURCE> Cloud Service and Upload them to the \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
+> Use the argument **'--source'** to select the \<SOURCE> and the argument **'--target'** to select \<TARGET> for the AUTOMATED-MIGRATION Process to Pull all your Assets (including Albums) from the \<SOURCE> Cloud Service and Push them to the \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
 > 
 >  - Possible values for:
 >    - **\<SOURCE\>** : ['synology-photos', 'immich-photos']-[id] or <INPUT_FOLDER>  (id=[1, 2] select which account to use from the Config.ini file).  
@@ -21,7 +22,7 @@
 > It is important that you configure properly the file 'Config.ini' (included with the tool), to set properly the accounts for your Photo Cloud Service.  
 > 
 > By default the whole Migration process is executed in parallel using multi-threads (it will detect automatically the number of threads of the CPU to set properly the number of Upload workers.  
-> The Download worker and the different Upload workes will be executed in parallel using an assets queue to garantee that no more than 100 assets will be temporary stored on your local drive, so you don't need to care about the hard disk space needed during this migration process.  
+> The Download worker and the different Upload workes will be executed in parallel using an assets queue to garantee that no more than 100 assets will be temporarily stored on your local drive, so you don't need to care about the hard disk space needed during this migration process.  
 > 
 > By default (if your terminal size has enough width and heigh) a Live Dashboard will show you all the datails about the migration process, including most relevant log messages, and counter status.  
 > 
@@ -44,7 +45,7 @@ In this example, the script will do a FULLY-AUTOMATED job which has two steps:
     correct date and time, and identifying which assets belongs to each Album created on Google Photos.  
 
   - Second, the script will connect to your Synology Photos account 1 (if you have configured properly the Config.ini file) and will 
-    upload all the assets processed in previous step, creating a new Album per each Album found in your Takeout files and associating
+    push all the assets pulled from previous step, creating a new Album per each Album found in your Takeout files and associating
     all the assets included in each Album in the same way that you had on your Google Photos account.
 
 
@@ -56,11 +57,11 @@ In this example, the script will do a FULLY-AUTOMATED job which has two steps:
 
 In this example, the script will do a FULLY-AUTOMATED job which has two steps:  
 
-  - First, the script will connect to your Synology Photos account 2 (if you have configured properly the Config.ini file) and 
-    download all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
+  - First, the script will connect to your Synology Photos account 2 (if you have configured properly the Config.ini file) and will
+    pull all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
 
   - In parallel, the script will connect to your Immich Photos account 2 (if you have configured properly the Config.ini file) and 
-    upload all the assets processed in previous step, creating a new Album per each Album found in your Synology Photos and associating
+    push all the assets pulled from previous step, creating a new Album per each Album found in your Synology Photos and associating
     all the assets included in each Album in the same way that you had on your Synology Photos account.
 
 
@@ -71,9 +72,16 @@ In this example, the script will do a FULLY-AUTOMATED job which has two steps:
 
 In this example, the script will do a FULLY-AUTOMATED job which has two steps:  
 
-  - First, the script will connect to your Immich Photos account 1 (if you have configured properly the Config.ini file) and 
-    download all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
+  - First, the script will connect to your Immich Photos account 1 (if you have configured properly the Config.ini file) and will
+    pull all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
 
-  - In parallel, the script will copy all the downloaded assets into the local folder '/homes/local_folder' creating a folder structure
+  - In parallel, the script will push all the pulled assets into the local folder '/homes/local_folder' creating a folder structure
     with all the Albums in the subfolder 'Albums' and all the assets without albums associated into the subfolder 'No-Albums'. 
     This 'No-Albums' subfolder will have a year/month structure to store all your asset in a more organized way.  
+
+
+## Credits
+I hope this can be useful for any of you.  
+Enjoy it!
+
+<span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>  

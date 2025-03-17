@@ -1059,7 +1059,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         for label, counter_label in failed_downloads.items():
             value = SHARED_DATA.counters[counter_label]
             table.add_row(f"[cyan]{label:<19}:[/cyan]", f"[cyan]{value}[/cyan]")
-        return Panel(table, title=f'📥 Download from: {SHARED_DATA.info.get("source_client_name", "Source Client")}', border_style="cyan", expand=True)
+        return Panel(table, title=f'📥 From: {SHARED_DATA.info.get("source_client_name", "Source Client")}', border_style="cyan", expand=True)
 
     def build_upload_panel():
         table = Table.grid(expand=True)
@@ -1071,7 +1071,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         for label, counter_label in failed_uploads.items():
             value = SHARED_DATA.counters[counter_label]
             table.add_row(f"[green]{label:<17}:[/green]", f"[green]{value}[/green]")
-        return Panel(table, title=f'📤 Upload to: {SHARED_DATA.info.get("target_client_name", "Source Client")}', border_style="green", expand=True)
+        return Panel(table, title=f'📤 To: {SHARED_DATA.info.get("target_client_name", "Source Client")}', border_style="green", expand=True)
 
 
     # ─────────────────────────────────────────────────────────────────────────

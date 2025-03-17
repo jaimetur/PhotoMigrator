@@ -1,3 +1,5 @@
+## <span style="color:green">Google Takeout Management Documentation:</span>
+
 >[!NOTE]
 >## <span style="color:green">Google Takeout Support</span>
 >From version 1.0.0 onwards, the script can process your Google Photos Takeout files to fix timestamp, geodata, organize files per year/month, organize assets within album(s) in subfolders, etc...
@@ -75,3 +77,10 @@ all files found to set the correct date and time, and identifying which assets b
 > [!TIP]
 > ## <span style="color:dark">Additional Trick!</span>
 > When prepare Google Takeout to export all your Photos and Albums, select 50GB for the zip file size and select Google Drive as output for those Zip files. On this way you can just Download all the big Zip files directly on your Synology NAS by using the Tool Cloud Sync (included on Synology App Store) and creating a new synchronization task from your Google Drive account (/Takeout folder) to any local folder of your Synology NAS (I recommend to use the default folder called '**Zip_files**' within this script folder structure)
+
+
+## Credits
+I hope this can be useful for any of you.  
+Enjoy it!
+
+<span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>  

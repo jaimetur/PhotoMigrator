@@ -36,23 +36,10 @@ def parse_arguments():
             print(f"\n{SCRIPT_NAME} {SCRIPT_VERSION} {SCRIPT_DATE} by Jaime Tur (@jaimetur)\n")
             parser.exit()
 
-    PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
-    PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
-    PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
-    PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
-    PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False, help="If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums', it will also delete the assets (photos/videos) inside each album.")
-    # PARSER.add_argument("-woAlb", "--without-albums", action="store_true", default=False, help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will avoid create an Album per each subfolder found in <INPUT_FOLDER>.")
-    PARSER.add_argument("-loglevel", "--log-level", metavar=f"{choices_for_message_levels}", choices=choices_for_message_levels, default="info", help="Specify the log level for logging and screen messages.")
-    PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
 
-    # PARSER.add_argument("-AUTO", "--AUTOMATED-MIGRATION", metavar=("<SOURCE>", "<TARGET>"), nargs=2, default="",
-    #                     help="This process will do an AUTOMATED-MIGRATION process to Download all your Assets (including Albums) from the <SOURCE> Cloud Service and Upload them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
-    #                        "\n"
-    #                        "\nPossible values for:"
-    #                        "\n    <SOURCE> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2'] or <INPUT_FOLDER>"
-    #                        "\n    <TARGET> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2']or <OUTPUT_FOLDER>"
-    #                     )
-    PARSER.add_argument( "-s", "--source", metavar="<SOURCE>", default="",
+    PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
+
+    PARSER.add_argument( "--source", metavar="<SOURCE>", default="",
                         help="Select the <SOURCE> for the AUTOMATED-MIGRATION Process to Download all your Assets (including Albums) from the <SOURCE> Cloud Service and Upload them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
                          "\n"
                          "\nPossible values:"
@@ -66,7 +53,7 @@ def parse_arguments():
                          "\n ​--source=/home/Takeout -> Select this Takeout folder as Source."
                          "\n ​                      (both, zipped and unzipped format are supported)"
                          )
-    PARSER.add_argument( "-t", "--target", metavar="<TARGET>", default="",
+    PARSER.add_argument( "--target", metavar="<TARGET>", default="",
                         help="Select the <TARGET> for the AUTOMATED-MIGRATION Process to Download all your Assets (including Albums) from the <SOURCE> Cloud Service and Upload them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
                          "\n"
                          "\nPossible values:"
@@ -78,7 +65,14 @@ def parse_arguments():
                          "\n ​--source=synology-2 -> Select Synology Photos account 2 as Target."
                          "\n ​--source=/home/local_folder -> Select this local folder as Target."
                          )
-    PARSER.add_argument("-d", "--dashboard",
+    # PARSER.add_argument("-AUTO", "--AUTOMATED-MIGRATION", metavar=("<SOURCE>", "<TARGET>"), nargs=2, default="",
+    #                     help="This process will do an AUTOMATED-MIGRATION process to Download all your Assets (including Albums) from the <SOURCE> Cloud Service and Upload them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
+    #                        "\n"
+    #                        "\nPossible values for:"
+    #                        "\n    <SOURCE> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2'] or <INPUT_FOLDER>"
+    #                        "\n    <TARGET> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2']or <OUTPUT_FOLDER>"
+    #                     )
+    PARSER.add_argument("--dashboard",
                         metavar="=[true,false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
@@ -86,6 +80,14 @@ def parse_arguments():
                         type=lambda v: v.lower() in ("true", "1", "yes"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="Enable or disable Live Dashboard feature during Autometed Migration Job. This argument only applies to '-AUTO, --AUTOMATED-MIGRATION' option. (default: True)."
     )
+    PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
+    PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
+    PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
+    PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False, help="If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums', it will also delete the assets (photos/videos) inside each album.")
+    PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
+    PARSER.add_argument("-loglevel", "--log-level", metavar=f"{choices_for_message_levels}", choices=choices_for_message_levels, default="info", help="Specify the log level for logging and screen messages.")
+
+
 
     # EXTRA MODES FOR GOOGLE PHOTOS:
     # ------------------------------
@@ -218,13 +220,13 @@ def checkArgs(ARGS, PARSER):
     #     # If source is not in the list of valid sources choices, then if it is a valid Input Takeout Folder from Google Photos
     #     if source.lower() not in choices_for_AUTOMATED_MIGRATION_SRC:
     #         if not os.path.isdir(source):
-    #             print(f"❌ ERROR   : Target value '{source}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_SRC} and is not a valid existing folder. Exiting...")
+    #             PARSER.error(f"\n\n❌ ERROR   : Target value '{source}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_SRC} and is not a valid existing folder.\n")
     #             exit(1)
     #         ARGS['SOURCE-TYPE-TAKEOUT-FOLDER'] = True
     #     # If the target is not in the list of valid targets choices, exit.
     #     if target.lower() not in choices_for_AUTOMATED_MIGRATION_TGT:
     #         if not os.path.isdir(target):
-    #             print(f"❌ ERROR   : Target value '{target}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_TGT} and is not a valid existing folder. Exiting...")
+    #             PARSER.error(f"\n\n❌ ERROR   : Target value '{target}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_TGT} and is not a valid existing folder.\n")
     #             exit(1)
     #         ARGS['TARGET-TYPE-TAKEOUT-FOLDER'] = True
 
@@ -232,16 +234,16 @@ def checkArgs(ARGS, PARSER):
     # Parse AUTOMATED-MIGRATION Arguments
     # Manual validation of --source and --target to allow predefined values but also local folders.
     if ARGS['source'] and not ARGS['target']:
-        PARSER.error(f"❌ ERROR   : Invalid syntax. Argument '-s, --source' detected but not 't, --target' providen'. YOu must specify both, --source and --target to execute AUTOMATED-MIGRATION task. Exiting...")
+        PARSER.error(f"\n\n❌ ERROR   : Invalid syntax. Argument '--source' detected but not '--target' providen'. You must specify both, --source and --target to execute AUTOMATED-MIGRATION task.\n")
         exit(1)
     if ARGS['target'] and not ARGS['source']:
-        PARSER.error(f"❌ ERROR   : Invalid syntax. Argument '-t, --target' detected but not 's, --source' providen'. YOu must specify both, --source and --target to execute AUTOMATED-MIGRATION task. Exiting...")
+        PARSER.error(f"\n\n❌ ERROR   : Invalid syntax. Argument '--target' detected but not '--source' providen'. You must specify both, --source and --target to execute AUTOMATED-MIGRATION task.\n")
         exit(1)
     if ARGS['source'] and ARGS['source'] not in choices_for_AUTOMATED_MIGRATION_TGT and not os.path.isdir(ARGS['source']):
-        PARSER.error(f"❌ ERROR   : Invalid source '{ARGS['source']}'. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT} or an existing local folder. Exiting...")
+        PARSER.error(f"\n\n❌ ERROR   : Invalid source '{ARGS['source']}'. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT} or an existing local folder.\n")
         exit(1)
     if ARGS['target'] and ARGS['target'] not in choices_for_AUTOMATED_MIGRATION_TGT and not os.path.isdir(ARGS['target']):
-        PARSER.error(f"❌ ERROR   : Invalid target '{ARGS['target']}'. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT} or an existing local folder. Exiting...")
+        PARSER.error(f"\n\n❌ ERROR   : Invalid target '{ARGS['target']}'. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT} or an existing local folder.\n")
         exit(1)
     if ARGS['source'] and ARGS['target']:
         ARGS['AUTOMATED-MIGRATION'] = [ARGS['source'], ARGS['target']]
@@ -252,8 +254,8 @@ def checkArgs(ARGS, PARSER):
     args = PARSER.parse_args()
     dashboard_provided = "--dashboard" in [arg.split("=")[0] for arg in vars(args).keys()]
     if dashboard_provided and not (ARGS['source'] or ARGS['target']):
-        # PARSER.error(f"❌ ERROR   : Argument '--dashboard' can only be used when '-AUTO, --AUTOMATED-MIGRATION' argument is used.")
-        PARSER.error(f"❌ ERROR   : Argument '--dashboard' can only be used with Automated Migration mode. Arguments --source and --target are required.")
+        # PARSER.error(f"\n\n❌ ERROR   : Argument '--dashboard' can only be used when '-AUTO, --AUTOMATED-MIGRATION' argument is used.\n")
+        PARSER.error(f"\n\n❌ ERROR   : Argument '--dashboard' can only be used with Automated Migration mode. Arguments --source and --target are required.\n")
         exit(1)
 
     # Parse log-levels
@@ -270,10 +272,10 @@ def checkArgs(ARGS, PARSER):
 
     # Parse synology-download-albums and immich-download-albums to ensure than ARGS['output-folder'] is used to specify <OUTPUT_FOLDER>
     if ARGS['synology-download-albums'] != "" and ARGS['output-folder'] == "":
-        print(f"❌ ERROR   : When use flag -sdAlb, --synology-download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>")
+        PARSER.error(f"\n\n❌ ERROR   : When use flag -sdAlb, --synology-download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n")
         exit(1)
     if ARGS['immich-download-albums'] != "" and ARGS['output-folder'] == "":
-        print(f"❌ ERROR   : When use flag -idAlb, --immich-download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>")
+        PARSER.error(f"\n\n❌ ERROR   : When use flag -idAlb, --immich-download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n")
         exit(1)
 
     # Parse albums-folders Arguments to convert to a List if more than one Album folder is provide
@@ -297,7 +299,8 @@ def checkArgs(ARGS, PARSER):
 
     # Parse 'immich-remove-all-albums in combination with 'including-albums-assets'
     if ARGS['remove-albums-assets'] and not ARGS['immich-remove-all-albums']:
-        PARSER.error("--remove-albums-assets is a modifier of argument --immich-remove-all-albums and cannot work alone.")
+        PARSER.error(f"\n\n❌ ERROR   : --remove-albums-assets is a modifier of argument --immich-remove-all-albums and cannot work alone.\n")
+        exit(1)
 
     return ARGS
 

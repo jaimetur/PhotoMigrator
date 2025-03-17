@@ -1,3 +1,5 @@
+## <span style="color:green">Immich Photos Management Documentation:</span>
+
 > [!NOTE]
 > ## <span style="color:green">Immich Photos Support</span>
 >From version 3.0.0 onwards, the script can connect to your Immich Photos account with your credentials or API. The credentials/API need to be loaded from 'Config.ini' file and will have this format:
@@ -133,3 +135,9 @@ Example of use:
 ```
 With this example, the script will connect to Immich Photos database and extract the Albums "Album 1", "Album 2", "Album 3" with all the photos and videos included on them into a subfolder of 'Immich_Photos_Albums' folder
 
+
+## Credits
+I hope this can be useful for any of you.  
+Enjoy it!
+
+<span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>  

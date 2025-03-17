@@ -1,3 +1,5 @@
+## <span style="color:green">Synology Photos Management Documentation:</span>
+
 >[!NOTE]
 >## <span style="color:green">Synology Photos Support</span>
 >From version 2.0.0 onwards, the script can connect to your Synology NAS and login into Synology Photos App with your credentials. The credentials need to be loaded from 'Config.ini' file and will have this format:
@@ -120,3 +122,9 @@ Example of use:
 ```
 With this example, the script will connect to Synology Photos database and extract the Albums "Album 1", "Album 2", "Album 3" with all the photos and videos included on them into a subfolder of 'Synology_Photos_Albums' folder
 
+
+## Credits
+I hope this can be useful for any of you.  
+Enjoy it!
+
+<span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>  
