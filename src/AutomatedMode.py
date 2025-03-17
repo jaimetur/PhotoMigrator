@@ -250,40 +250,42 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
     temp_folder = Utils.normalize_path(temp_folder)
 
+    # ----------------------------------------------------------------------------------------
+    # function to ensure that the puller put only 1 asset with the same filepath to the queue
+    # ----------------------------------------------------------------------------------------
+    def enqueue_unique(push_queue, item_dict):
+        """
+        Añade item_dict a la cola si su asset_file_path no ha sido añadido previamente.
+        Thread-safe gracias al lock global.
+        """
+        with file_paths_lock:
+            asset_file_path = item_dict['asset_file_path']
+            SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
+
+            if asset_file_path in added_file_paths:
+                # El item ya fue añadido anteriormente
+                return False
+
+            # Pausa si la cola tiene más de 100 elementos, pero no bloquea innecesariamente, y reanuda cuando tenga 10.
+            while push_queue.qsize() >= 100:
+                while push_queue.qsize() > 25:
+                    time.sleep(1)  # Hacemos pausas de 1s hasta que la cola se vacíe (25 elementos)
+                    SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
+
+            # Si la cola está muy llena (entre 50 y 100), reducir la velocidad en vez de bloquear
+            if push_queue.qsize() > 50:
+                time.sleep(0.1)  # Pequeña pausa para no sobrecargar la cola
+                pass
+
+            # Añadir a la cola y al registro global
+            push_queue.put(item_dict)
+            added_file_paths.add(asset_file_path)
+            return True
+
     # --------------------------------------------------------------------------------
     # 1) DESCARGAS: Función puller_worker para descargar assets y poner en la cola
     # --------------------------------------------------------------------------------
     def puller_worker(log_level=logging.INFO):
-
-        def enqueue_unique(push_queue, item_dict):
-            """
-            Añade item_dict a la cola si su asset_file_path no ha sido añadido previamente.
-            Thread-safe gracias al lock global.
-            """
-            with file_paths_lock:
-                asset_file_path = item_dict['asset_file_path']
-                SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
-
-                if asset_file_path in added_file_paths:
-                    # El item ya fue añadido anteriormente
-                    return False
-
-                # Pausa si la cola tiene más de 100 elementos, pero no bloquea innecesariamente, y reanuda cuando tenga 10.
-                while push_queue.qsize() >= 100:
-                    while push_queue.qsize() > 25:
-                        time.sleep(1)  # Hacemos pausas de 1s hasta que la cola se vacíe (25 elementos)
-                        SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
-
-                # Si la cola está muy llena (entre 50 y 100), reducir la velocidad en vez de bloquear
-                if push_queue.qsize() > 50:
-                    time.sleep(0.1)  # Pequeña pausa para no sobrecargar la cola
-                    pass
-
-                # Añadir a la cola y al registro global
-                push_queue.put(item_dict)
-                added_file_paths.add(asset_file_path)
-                return True
-
         with set_log_level(LOGGER, log_level):
             # 1.1) Descarga de álbumes
             albums = source_client.get_albums_including_shared_with_user()
@@ -315,48 +317,48 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     SHARED_DATA.counters['total_pull_failed_albums'] += 1
                     continue
 
-                for asset in album_assets:
-                    asset_id = asset['id']
-                    asset_type = asset['type']
-                    asset_datetime = asset.get('time')
-                    asset_filename = asset.get('filename')
+                # Crear carpeta del álbum dentro de temp_folder, y bloquea su eliminación hasta que terminen las descargas del album
+                album_folder = os.path.join(temp_folder, album_name)
+                os.makedirs(album_folder, exist_ok=True)
+                # Crear archivo `.active` para marcar que la carpeta está en uso
+                active_file = os.path.join(album_folder, ".active")
+                with open(active_file, 'w') as lock_album_folder:
+                    lock_album_folder.write("Pulling Album")
+                try:
+                    for asset in album_assets:
+                        asset_id = asset['id']
+                        asset_type = asset['type']
+                        asset_datetime = asset.get('time')
+                        asset_filename = asset.get('filename')
 
-                    # Skip pull metadata and sidecar for the time being
-                    if asset_type in ['metadata', 'sidecar']:
-                        continue
-
-                    # Crear carpeta del álbum dentro de temp_folder, y bloquea su eliminación hasta que terminen las descargas del album
-                    album_folder = os.path.join(temp_folder, album_name)
-                    os.makedirs(album_folder, exist_ok=True)
-                    # Crear archivo `.active` para marcar que la carpeta está en uso
-                    active_file = os.path.join(album_folder, ".active")
-                    with open(active_file, 'w') as f:
-                        f.write("downloading")
-                        try:
-                            # Ruta del archivo descargado
-                            local_file_path = os.path.join(album_folder, asset_filename)
-
-                            # Archivo de bloqueo temporal para que el pusher no borre el fichero mientras que el puller lo está creando
-                            lock_file = local_file_path + ".lock"
-                            # Crear archivo de bloqueo antes de la descarga
-                            with open(lock_file, 'w') as lock:
-                                lock.write("Pulling")
-                                # Descargar el asset
-                                pulled_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, album_passphrase=album_passphrase, download_folder=album_folder, log_level=logging.WARNING)
-                                # Eliminar archivo de bloqueo después de la descarga
-                                os.remove(lock_file)
-                        except Exception as e:
-                            LOGGER.error(f"ERROR  : Error Pulling Asset: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e} \n{traceback.format_exc()}")
-                            SHARED_DATA.counters['total_pull_failed_assets'] += 1
-                            if asset_type.lower() == 'video':
-                                SHARED_DATA.counters['total_pull_failed_videos'] += 1
-                            else:
-                                SHARED_DATA.counters['total_pull_failed_photos'] += 1
+                        # Skip pull metadata and sidecar for the time being
+                        if asset_type in ['metadata', 'sidecar']:
                             continue
-                        finally:
-                            # Eliminar archivo .active después de la descarga
-                            if os.path.exists(active_file):
-                                os.remove(active_file)
+
+                        # Ruta del archivo descargado
+                        local_file_path = os.path.join(album_folder, asset_filename)
+
+                        # Archivo de bloqueo temporal para que el pusher no borre el fichero mientras que el puller lo está creando
+                        lock_file = local_file_path + ".lock"
+                        # Crear archivo de bloqueo antes de la descarga
+                        with open(lock_file, 'w') as lock:
+                            lock.write("Pulling Asset")
+                        # Descargar el asset
+                        pulled_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, album_passphrase=album_passphrase, download_folder=album_folder, log_level=logging.WARNING)
+                        # Eliminar archivo de bloqueo después de la descarga
+                        os.remove(lock_file)
+                except Exception as e:
+                    LOGGER.error(f"ERROR  : Error Pulling Asset: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e} \n{traceback.format_exc()}")
+                    SHARED_DATA.counters['total_pull_failed_assets'] += 1
+                    if asset_type.lower() == 'video':
+                        SHARED_DATA.counters['total_pull_failed_videos'] += 1
+                    else:
+                        SHARED_DATA.counters['total_pull_failed_photos'] += 1
+                    continue
+                finally:
+                    # Eliminar archivo .active después de la descarga
+                    if os.path.exists(active_file):
+                        os.remove(active_file)
 
                     # Actualizamos Contadores de descargas
                     if pulled_assets > 0:
@@ -404,74 +406,74 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             os.makedirs(temp_folder, exist_ok=True)
             # Crear archivo `.active` para marcar que la carpeta está en uso
             active_file = os.path.join(temp_folder, ".active")
-            with open(active_file, 'w') as f:
-                f.write("downloading")
-                try:
-                    pulled_assets = 0
-                    for asset in assets_no_album:
-                        asset_id = asset['id']
-                        asset_type = asset['type']
-                        asset_datetime = asset.get('time')
-                        asset_filename = asset.get('filename')
+            with open(active_file, 'w') as lock_temp_folder:
+                lock_temp_folder.write("Pulling Asset")
+            try:
+                pulled_assets = 0
+                for asset in assets_no_album:
+                    asset_id = asset['id']
+                    asset_type = asset['type']
+                    asset_datetime = asset.get('time')
+                    asset_filename = asset.get('filename')
 
-                        # Skip pull metadata and sidecar for the time being
-                        if asset_type in ['metadata', 'sidecar']:
-                            continue
+                    # Skip pull metadata and sidecar for the time being
+                    if asset_type in ['metadata', 'sidecar']:
+                        continue
 
-                        try:
-                            # Ruta del archivo descargado
-                            local_file_path = os.path.join(temp_folder, asset_filename)
+                    try:
+                        # Ruta del archivo descargado
+                        local_file_path = os.path.join(temp_folder, asset_filename)
 
-                            # Archivo de bloqueo temporal para que el pusher no borre el fichero mientras que el puller lo está creando
-                            lock_file = local_file_path + ".lock"
-                            # Crear archivo de bloqueo antes de la descarga
-                            with open(lock_file, 'w') as lock:
-                                lock.write("Pulling")
-                                # Descargar directamente en temp_folder
-                                pulled_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
-                                # Eliminar archivo de bloqueo después de la descarga
-                                os.remove(lock_file)
-                        except Exception as e:
-                            LOGGER.error(f"ERROR  : Error Pulling Asset: '{os.path.basename(asset_filename)}' - {e} \n{traceback.format_exc()}")
-                            SHARED_DATA.counters['total_pull_failed_assets'] += 1
-                            if asset_type.lower() == 'video':
-                                SHARED_DATA.counters['total_pull_failed_videos'] += 1
-                            else:
-                                SHARED_DATA.counters['total_pull_failed_photos'] += 1
-                            continue
-
-                        # Si se ha hecho correctamente el pull del asset, actualizamos contadores y enviamos el asset a la cola de push
-                        if pulled_assets > 0:
-                            # Actualizamos Contadores de descargas
-                            LOGGER.info(f"INFO    : Asset Pulled    : '{os.path.join(temp_folder, os.path.basename(asset_filename))}'")
-                            SHARED_DATA.counters['total_pulled_assets'] += pulled_assets
-                            if asset_type.lower() == 'video':
-                                SHARED_DATA.counters['total_pulled_videos'] += pulled_assets
-                            else:
-                                SHARED_DATA.counters['total_pulled_photos'] += pulled_assets
-
-                            # Enviar a la cola de push con la información necesaria para la subida (sin album_name)
-                            local_file_path = os.path.join(temp_folder, asset_filename)
-                            asset_dict = {
-                                'asset_id': asset_id,
-                                'asset_file_path': local_file_path,
-                                'asset_datetime': asset_datetime,
-                                'asset_type': asset_type,
-                                'album_name': None,
-                            }
-                            enqueue_unique(push_queue, asset_dict)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
-                            # sys.stdout.flush()
-                            # sys.stderr.flush()
+                        # Archivo de bloqueo temporal para que el pusher no borre el fichero mientras que el puller lo está creando
+                        lock_file = local_file_path + ".lock"
+                        # Crear archivo de bloqueo antes de la descarga
+                        with open(lock_file, 'w') as lock:
+                            lock.write("Pulling")
+                        # Descargar directamente en temp_folder
+                        pulled_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
+                        # Eliminar archivo de bloqueo después de la descarga
+                        os.remove(lock_file)
+                    except Exception as e:
+                        LOGGER.error(f"ERROR  : Error Pulling Asset: '{os.path.basename(asset_filename)}' - {e} \n{traceback.format_exc()}")
+                        SHARED_DATA.counters['total_pull_failed_assets'] += 1
+                        if asset_type.lower() == 'video':
+                            SHARED_DATA.counters['total_pull_failed_videos'] += 1
                         else:
-                            SHARED_DATA.counters['total_pull_failed_assets'] += 1
-                            if asset_type.lower() == 'video':
-                                SHARED_DATA.counters['total_pull_failed_videos'] += 1
-                            else:
-                                SHARED_DATA.counters['total_pull_failed_photos'] += 1
-                finally:
-                    # Eliminar archivo .active después de la descarga
-                    if os.path.exists(active_file):
-                        os.remove(active_file)
+                            SHARED_DATA.counters['total_pull_failed_photos'] += 1
+                        continue
+
+                    # Si se ha hecho correctamente el pull del asset, actualizamos contadores y enviamos el asset a la cola de push
+                    if pulled_assets > 0:
+                        # Actualizamos Contadores de descargas
+                        LOGGER.info(f"INFO    : Asset Pulled    : '{os.path.join(temp_folder, os.path.basename(asset_filename))}'")
+                        SHARED_DATA.counters['total_pulled_assets'] += pulled_assets
+                        if asset_type.lower() == 'video':
+                            SHARED_DATA.counters['total_pulled_videos'] += pulled_assets
+                        else:
+                            SHARED_DATA.counters['total_pulled_photos'] += pulled_assets
+
+                        # Enviar a la cola de push con la información necesaria para la subida (sin album_name)
+                        local_file_path = os.path.join(temp_folder, asset_filename)
+                        asset_dict = {
+                            'asset_id': asset_id,
+                            'asset_file_path': local_file_path,
+                            'asset_datetime': asset_datetime,
+                            'asset_type': asset_type,
+                            'album_name': None,
+                        }
+                        enqueue_unique(push_queue, asset_dict)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
+                        # sys.stdout.flush()
+                        # sys.stderr.flush()
+                    else:
+                        SHARED_DATA.counters['total_pull_failed_assets'] += 1
+                        if asset_type.lower() == 'video':
+                            SHARED_DATA.counters['total_pull_failed_videos'] += 1
+                        else:
+                            SHARED_DATA.counters['total_pull_failed_photos'] += 1
+            finally:
+                # Eliminar archivo .active después de la descarga
+                if os.path.exists(active_file):
+                    os.remove(active_file)
 
             LOGGER.info("INFO    : Puller Task Finished!")
 
