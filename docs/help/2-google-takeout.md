@@ -47,7 +47,8 @@ Finally, if you want to use your processed assets within Synology Photos, you ju
 It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (408559 files zipped, 168168 photos/video files, 740 albums) and moved it into Synology Photos.  
 
 The whole process took around **~3 hours** (or **~6 hours if includes last optional step) and this is the time split per steps**):  
-0. Extraction process --> 25m
+
+  0. Extraction process --> 25m
 1. Pre-processing Takeout_folder --> 3m 50s
 2. GPTH Tool fixing --> 2h 12m
 3. <span style="color:grey">(Optional) Copy/Move files to output folder manually if GPTH processing was skipped --> 0h</span>
@@ -57,7 +58,10 @@ The whole process took around **~3 hours** (or **~6 hours if includes last optio
 7. Fix Broken Symlinks --> 10m
 8. <span style="color:grey">(Optional) Remove Duplicates after fixing --> 3h</span>
    
-NOTE: Step 8 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
+NOTE 1: Step 8 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
+
+
+NOTE 2: Above times are approximates and were measured running the tool on Linux using a Synology NAS DS920+.
 
 
 **Examples of use:**
