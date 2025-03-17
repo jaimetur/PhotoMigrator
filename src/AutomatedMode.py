@@ -9,6 +9,7 @@ import json
 import time
 import shutil
 import Utils
+import traceback
 from GlobalVariables import LOGGER, ARGS, TIMESTAMP, START_TIME, HELP_TEXTS, DEPRIORITIZE_FOLDERS_PATTERNS, SCRIPT_DESCRIPTION, SCRIPT_VERSION, SCRIPT_NAME_VERSION
 from Duplicates import find_duplicates, process_duplicates_actions
 from CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, CustomLogFormatter, clone_logger
@@ -310,7 +311,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         # SHARED_DATA.counters['total_pull_failed_albums'] += 1     # If we uncomment this line, it will count as failed Empties albums
                         continue
                 except Exception as e:
-                    LOGGER.error(f"ERROR   : Error listing Album Assets - {e}")
+                    LOGGER.error(f"ERROR   : Error listing Album Assets for album {album_name} - {e}", traceback.format_exc())
                     SHARED_DATA.counters['total_pull_failed_albums'] += 1
                     continue
 
@@ -344,7 +345,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         # Eliminar archivo de bloqueo después de la descarga
                         os.remove(lock_file)
                     except Exception as e:
-                        LOGGER.error(f"ERROR  : Error Pulling Asset: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e}")
+                        LOGGER.error(f"ERROR  : Error Pulling Asset: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e}", traceback.format_exc())
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
                         if asset_type.lower() == 'video':
                             SHARED_DATA.counters['total_pull_failed_videos'] += 1
