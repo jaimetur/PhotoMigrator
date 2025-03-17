@@ -136,13 +136,13 @@ You can check the whole list of functions and arguments with the right syntax he
 > Use the argument **'--source'** to select the \<SOURCE> and the argument **'--target'** to select \<TARGET> for the AUTOMATED-MIGRATION Process to Pull all your Assets (including Albums) from the \<SOURCE> Cloud Service and Push them to the \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
 > 
 >  - Possible values for:
->    - **\<SOURCE\>** : ['synology-photos', 'immich-photos']-[id] or <INPUT_FOLDER>  (id=[1, 2] select which account to use from the Config.ini file).  
->    - **\<TARGET\>** : ['synology-photos', 'immich-photos']-[id] or <OUTPUT_FOLDER> (id=[1, 2] select which account to use from the Config.ini file).  
+>    - **\<SOURCE\>** : ['synology-photos', 'immich-photos']-[id] or <INPUT_FOLDER>  (id=[1, 2] to select which account to use from the Config.ini file).  
+>    - **\<TARGET\>** : ['synology-photos', 'immich-photos']-[id] or <OUTPUT_FOLDER> (id=[1, 2] to select which account to use from the Config.ini file).  
 >    
 > 
 >  - The idea is complete above list to allow also Google Photos and Apple Photos (iCloud), so when this is done, the allowed values will be:
->    - **\<SOURCE\>** : ['synology-photos', 'immich-photos', 'google-photos', 'apple-photos']-[id]  or <INPUT_FOLDER> (id=[1, 2] select which account to use from the Config.ini file).  
->    - **\<TARGET\>** : ['synology-photos', 'immich-photos', 'google-photos', 'apple-photos']-[id]  or <OUTPUT_FOLDER> (id=[1, 2] select which account to use from the Config.ini file).  
+>    - **\<SOURCE\>** : ['synology-photos', 'immich-photos', 'google-photos', 'apple-photos']-[id]  or <INPUT_FOLDER> (id=[1, 2] to select which account to use from the Config.ini file).  
+>    - **\<TARGET\>** : ['synology-photos', 'immich-photos', 'google-photos', 'apple-photos']-[id]  or <OUTPUT_FOLDER> (id=[1, 2] to select which account to use from the Config.ini file).  
 >
 > If you ommit the suffix -[id], the tool will assume that account 1 will be used for the specified client (ie: --source=synology-photos means that Synology Photos account 1 will be used as \<SOURCE> client.)  
 > 
@@ -160,8 +160,11 @@ You can check the whole list of functions and arguments with the right syntax he
 > Also, take into account that in this case, the Live Dashboard will not be displayed, so you only will see the different messages log in the screen, but not the live counters during the migration.  
 > and execute this Extra Mode, the script will automatically do the whole migration job from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.  
 
+## Live Dashboard Preview:
+![Live Dashboard](../screenshots/live_dashboard.jpg)
 
-**Examples of use:**
+
+## **Examples of use:**
 
 - **Example 1:**
 ```
@@ -209,6 +212,22 @@ In this example, the script will do an Automated Migration Process which has two
     This 'No-Albums' subfolder will have a year/month structure to store all your asset in a more organized way.  
 
 
+- **Example 4**:
+```
+./CloudPhotoMigrator.run --source=immich-1 target=immich-2
+```
+
+In this example, the script will do an Automated Migration Process which has two steps:  
+
+  - First, the script will connect to your Immich Photos account 1 (if you have configured properly the Config.ini file) and will
+    pull all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
+
+  - In parallel, the script will connect to your Immich Photos account 2 (if you have configured properly the Config.ini file) and 
+    push all the assets pulled from previous step, creating a new Album per each Album found in your Synology Photos and associating
+    all the assets included in each Album in the same way that you had on your Synology Photos account.
+
+
+
 ## Config.ini
 >```
 ># Configuration for Google Takeout
@@ -243,6 +262,7 @@ In this example, the script will do an Automated Migration Process which has two
 >IMMICH_FILTER_CITY          = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: ['Madrid', 'Málaga'])
 >IMMICH_FILTER_PERSON        = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: ['Mery', 'James'])
 >```
+
 
 # ROADMAP:
 
