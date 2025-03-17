@@ -31,6 +31,9 @@
 > Also, take into account that in this case, the Live Dashboard will not be displayed, so you only will see the different messages log in the screen, but not the live counters during the migration.  
 > and execute this Extra Mode, the script will automatically do the whole migration job from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.  
 
+## Live Dashboard Preview:
+![Live Dashboard](docs/screenshots/live_dashboard.jpg)
+
 
 **Examples of use:**
 
