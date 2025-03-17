@@ -63,15 +63,15 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)
 
 ## Documentation Links:
-- [Command Line Syntax](docs/help/0-comand-line-syntax.md)  
-- [Automated Migration Feature](docs/help/1-automated-migration.md)  
-- [Google Takeout Management](docs/help/2-google-takeout.md)  
-- [Synology Photos Management](docs/help/3-synology-photos.md)  
-- [Immich Photos Management](docs/help/4-immich-photos.md)  
-- [Other Features](docs/help/5-other-features.md)  
+- [Command Line Syntax](/docs/help/0-comand-line-syntax.md)  
+- [Automated Migration Feature](/docs/help/1-automated-migration.md)  
+- [Google Takeout Management](/docs/help/2-google-takeout.md)  
+- [Synology Photos Management](/docs/help/3-synology-photos.md)  
+- [Immich Photos Management](/docs/help/4-immich-photos.md)  
+- [Other Features](/docs/help/5-other-features.md)  
 
 ## Live Dashboard Preview:
-![Live Dashboard](docs/screenshots/live_dashboard.jpg)
+![Live Dashboard](/docs/screenshots/live_dashboard.jpg)
 
 
 ## Instructions to execute from compiled version:
