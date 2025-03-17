@@ -6,9 +6,8 @@ def set_help_texts():
     # EXTRA MODE: AUTOMATED-MIGRATION #
     ###################################
     HELP_TEXTS["AUTOMATED-MIGRATION"] = textwrap.dedent(f"""
-        ATTENTION!!!: This process will do an AUTOMATED-MIGRATION process, Downloading all your Assets (including Albums) from the <SOURCE> Cloud Service
-        
-        and Uploading them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service.
+        ATTENTION!!!: This process will do an AUTOMATED-MIGRATION process, Pulling all your Assets (including Albums) from the <SOURCE> Cloud Service
+        and Pushing them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
         """)
 
     ################################

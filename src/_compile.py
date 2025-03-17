@@ -41,8 +41,8 @@ def include_extrafiles_and_zip(input_file, output_file):
             'files': ["../Config.ini"]
         },
         {
-            'subdir': 'doc',# Estos ficheros van al subdirectorio 'doc'
-            'files': ["../README.md", "../doc/RELEASES-NOTES.md", "../doc/ROADMAP.md"]
+            'subdir': 'docs',# Estos ficheros van al subdirectorio 'docs'
+            'files': ["../README.md", "../docs/RELEASES-NOTES.md", "../docs/ROADMAP.md"]
         }
     ]
     if not input_file or not output_file:
@@ -217,9 +217,9 @@ def compile():
     root_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 
     # Ruta de los archivos RELEASES-NOTES.md, CURRENT-RELEASE.md, README.md y ROADMAP.md
-    releases_filepath = os.path.join(root_dir, 'doc', 'RELEASES-NOTES.md')
+    releases_filepath = os.path.join(root_dir, 'docs', 'RELEASES-NOTES.md')
     current_release_filepath = os.path.join(root_dir, 'CURRENT-RELEASE.md')
-    roadmap_filepath = os.path.join(root_dir, 'doc', 'ROADMAP.md')
+    roadmap_filepath = os.path.join(root_dir, 'docs', 'ROADMAP.md')
     readme_filepath = os.path.join(root_dir,'README.md')
 
     # Extraer el cuerpo de la Release actual de RELEASES-NOTES.md

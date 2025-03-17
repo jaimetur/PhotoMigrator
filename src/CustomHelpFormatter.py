@@ -128,7 +128,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         tokenized = self._tokenize_usage(usage)
         # 5) Diccionario de tokens forzados
         force_new_line_for_tokens = {
-            "[-gitf <TAKEOUT_FOLDER>]": False   # Salto de línea antes, pero sigue reagrupando
+            "[-i <INPUT_FOLDER>]": False   # Salto de línea antes, pero sigue reagrupando
+            ,"[-gitf <TAKEOUT_FOLDER>]": False   # Salto de línea antes, pero sigue reagrupando
             ,"[-irEmpAlb]": False   # Salto de línea antes, pero sigue reagrupando
             ,"[-fixSym <FOLDER_TO_FIX>]": False   # Salto de línea antes, pero sigue reagrupando
             ,"[-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]": True  # Va solo
@@ -170,6 +171,31 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         if action.help:
             ident_spaces = 13
             help_text = justificar_texto(action.help, initial_indent=" " * ident_spaces, subsequent_indent=" " * ident_spaces)
+
+            # AUTOMATED-MIGRATION PROCESS: two lines before "Select the <SOURCE> for the AUTOMATED-MIGRATION Process"
+            if help_text.find("Select the <SOURCE> for the AUTOMATED-MIGRATION Process")!=-1:
+                TEXT_TO_INSERT =textwrap.dedent(f"""
+                {Fore.YELLOW}
+                AUTOMATED MIGRATION PROCESS:
+                ----------------------------{Style.RESET_ALL}
+                Following arguments allow you execute the Automated Migration Process to migrate your assets from one Photo Cloud Service to other, or from two different accounts within the same Photo Cloud service. 
+
+                """)
+                TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
+                parts.insert(-1,f"{TEXT_TO_INSERT}")
+
+
+            # AUTOMATED-MIGRATION PROCESS: two lines before "Select the <SOURCE> for the AUTOMATED-MIGRATION Process"
+            if help_text.find("Specify the input folder that you want to process.")!=-1:
+                TEXT_TO_INSERT =textwrap.dedent(f"""
+                {Fore.YELLOW}
+                GENERAL ARGUMENTS:
+                ------------------{Style.RESET_ALL}
+                Following general arguments have different purposses depending on the Execution Mode. 
+                """)
+                TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
+                parts.insert(-1,f"{TEXT_TO_INSERT}")
+
 
             # EXTRA MODES for Google Photos Takeout Management: two lines before "Specify the Takeout folder to process."
             if help_text.find("Specify the Takeout folder to process.")!=-1:

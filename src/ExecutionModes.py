@@ -3,6 +3,10 @@ import os, sys
 from datetime import datetime, timedelta
 import Utils
 import logging
+import cProfile
+import pstats
+import threading
+import time
 from CustomLogger import set_log_level
 from Duplicates import find_duplicates, process_duplicates_actions
 from ClassTakeoutFolder import ClassTakeoutFolder
@@ -12,14 +16,52 @@ from AutomatedMode import mode_AUTOMATED_MIGRATION
 
 DEFAULT_DUPLICATES_ACTION = False
 EXECUTION_MODE = "default"
+
+# -------------------------------------------------------------
+# Set Profile to analyze and optimize code:
+# -------------------------------------------------------------
+def profile_and_print(function_to_analyze, *args, **kwargs):
+    """
+    Executes the profiler and displays results in real-time while the function runs.
+    Supports both positional (`args`) and keyword (`kwargs`) arguments.
+    """
+    profiler = cProfile.Profile()
+    profiler.enable()
+
+    # Ensure the function receives arguments correctly
+    thread = threading.Thread(target=function_to_analyze, args=args, kwargs=kwargs)
+    thread.start()
+
+    # While the function is running, print profiling results every 5 seconds
+    while thread.is_alive():
+        time.sleep(10)
+        profiler.disable()
+        stats = pstats.Stats(profiler)
+        stats.strip_dirs().sort_stats("cumulative").print_stats(20)  # Show top 10 slowest functions
+        profiler.enable()  # Re-enable profiling to continue
+
+    profiler.disable()  # Ensure the profiler stops after execution
+    print("\n🔍 **Final Profile Report:**")
+    stats = pstats.Stats(profiler)
+    stats.strip_dirs().sort_stats("cumulative").print_stats(20)  # Show top 20 slowest functions
+
+
+
 # -------------------------------------------------------------
 # Determine the Execution mode based on the provide arguments:
 # -------------------------------------------------------------
 def detect_and_run_execution_mode():
+    # # AUTOMATED-MIGRATION MODE:
+    # if ARGS['AUTOMATED-MIGRATION']:
+    #     EXECUTION_MODE = 'AUTOMATED-MIGRATION'
+    #     mode_AUTOMATED_MIGRATION()
+    #     # profile_and_print(function_to_analyze=mode_AUTOMATED_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.
+
     # AUTOMATED-MIGRATION MODE:
-    if ARGS['AUTOMATED-MIGRATION']:
+    if ARGS['source'] and ARGS['target']:
         EXECUTION_MODE = 'AUTOMATED-MIGRATION'
         mode_AUTOMATED_MIGRATION()
+        # profile_and_print(function_to_analyze=mode_AUTOMATED_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.
 
     # Google Photos Mode:
     elif "-gitf" in sys.argv or "--google-input-takeout-folder" in sys.argv:
@@ -33,21 +75,29 @@ def detect_and_run_execution_mode():
     elif ARGS['synology-remove-duplicates-albums']:
         EXECUTION_MODE = 'synology-remove-duplicates-albums'
         mode_synology_remove_duplicates_albums()
-    elif ARGS['synology-upload-albums'] != "":
-        EXECUTION_MODE = 'synology-upload-albums'
-        mode_synology_upload_albums()
-    elif ARGS['synology-upload-all'] != "":
-        EXECUTION_MODE = 'synology-upload-all'
-        mode_synology_upload_ALL()
-    elif ARGS['synology-download-albums'] != "":
-        EXECUTION_MODE = 'synology-download-albums'
-        mode_synology_download_albums()
-    elif ARGS['synology-download-all'] != "":
-        EXECUTION_MODE = 'synology-download-all'
-        mode_synology_download_ALL()
+    elif ARGS['immich-remove-all-albums'] != "":
+        EXECUTION_MODE = 'synology-remove-all-albums'
+        mode_synology_remove_all_albums()
     elif ARGS['synology-remove-all-assets'] != "":
         EXECUTION_MODE = 'synology-remove-all-assets'
         mode_synology_remove_ALL()
+    elif ARGS['synology-upload-albums'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to upload (default albums_to_upload='all')
+        EXECUTION_MODE = 'synology-upload-albums'
+        mode_synology_upload_albums()
+    elif ARGS['synology-upload-all'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time
+        EXECUTION_MODE = 'synology-upload-all'
+        mode_synology_upload_ALL()
+    elif ARGS['synology-download-albums'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to download (default albums_to_download='all')
+        EXECUTION_MODE = 'synology-download-albums'
+        mode_synology_download_albums()
+    elif ARGS['synology-download-all'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time
+        EXECUTION_MODE = 'synology-download-all'
+        mode_synology_download_ALL()
+
 
     # Immich Photos Modes:
     elif ARGS['immich-remove-empty-albums']:
@@ -56,27 +106,32 @@ def detect_and_run_execution_mode():
     elif ARGS['immich-remove-duplicates-albums']:
         EXECUTION_MODE = 'immich-remove-duplicates-albums'
         mode_immich_remove_duplicates_albums()
-    elif ARGS['immich-upload-albums'] != "":
-        EXECUTION_MODE = 'immich-upload-albums'
-        mode_immich_upload_albums()
-    elif ARGS['immich-upload-all'] != "":
-        EXECUTION_MODE = 'immich-upload-all'
-        mode_immich_upload_ALL()
-    elif ARGS['immich-download-albums'] != "":
-        EXECUTION_MODE = 'immich-download-albums'
-        mode_immich_download_albums()
-    elif ARGS['immich-download-all'] != "":
-        EXECUTION_MODE = 'immich-download-all'
-        mode_immich_download_ALL()
-    elif ARGS['immich-remove-orphan-assets'] != "":
-        EXECUTION_MODE = 'immich-remove-orphan-assets'
-        mode_immich_remove_orphan_assets()
-    elif ARGS['immich-remove-all-assets'] != "":
-        EXECUTION_MODE = 'immich-remove-all-assets'
-        mode_immich_remove_ALL()
     elif ARGS['immich-remove-all-albums'] != "":
         EXECUTION_MODE = 'immich-remove-all-albums'
         mode_immich_remove_all_albums()
+    elif ARGS['immich-remove-all-assets'] != "":
+        EXECUTION_MODE = 'immich-remove-all-assets'
+        mode_immich_remove_ALL()
+    elif ARGS['immich-remove-orphan-assets'] != "":
+        EXECUTION_MODE = 'immich-remove-orphan-assets'
+        mode_immich_remove_orphan_assets()
+    elif ARGS['immich-upload-albums'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to upload (default albums_to_upload='all')
+        EXECUTION_MODE = 'immich-upload-albums'
+        mode_immich_upload_albums()
+    elif ARGS['immich-upload-all'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time
+        EXECUTION_MODE = 'immich-upload-all'
+        mode_immich_upload_ALL()
+    elif ARGS['immich-download-albums'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to download (default albums_to_download='all')
+        EXECUTION_MODE = 'immich-download-albums'
+        mode_immich_download_albums()
+    elif ARGS['immich-download-all'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time
+        EXECUTION_MODE = 'immich-download-all'
+        mode_immich_download_ALL()
+
 
     # Other Stand-alone Extra Modes:
     elif ARGS['fix-symlinks-broken'] != "":
