@@ -49,15 +49,15 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
   - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)
 
 ## Documentation Links:
-[Syntax document](https://github.com/jaimetur/CloudPhotoMigrator/blob/3.1.0/doc/help/syntax.md)
-[Automated Migration Feature](https://github.com/jaimetur/CloudPhotoMigrator/blob/3.1.0/doc/help/automated-migration.md)  
-[Google Takeout Management](https://github.com/jaimetur/CloudPhotoMigrator/blob/3.1.0/doc/help/google-takeout.md)  
-[Synology Photos Management](https://github.com/jaimetur/CloudPhotoMigrator/blob/3.1.0/doc/help/synology-photos.md)  
-[Immich Photos Management](https://github.com/jaimetur/CloudPhotoMigrator/blob/3.1.0/doc/help/immich-photos.md)  
-[Other Features](https://github.com/jaimetur/CloudPhotoMigrator/blob/3.1.0/doc/help/other-features.md)  
+[Syntax document](docs/help/syntax.md)
+[Automated Migration Feature](docs/help/automated-migration.md)  
+[Google Takeout Management](docs/help/google-takeout.md)  
+[Synology Photos Management](docs/help/synology-photos.md)  
+[Immich Photos Management](docs/help/immich-photos.md)  
+[Other Features](docs/help/other-features.md)  
 
 ## Live Dashboard Preview:
-![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/doc/screenshots/live_dashboard.jpg?raw=true)
+![Live Dashboard](docs/screenshots/live_dashboard.jpg?raw=true)
 
 ## Instructions to execute from compiled version:
 You can copy and unzip the downloaded compiled tool into any local folder or to any Shared folder of your server or Synology NAS.
@@ -110,7 +110,7 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
 
 ## Syntax:
 You can check the whole list of functions and arguments with the right syntax here:  
-[Syntax document](https://github.com/jaimetur/CloudPhotoMigrator/blob/3.1.0/doc/help/syntax.md)
+[Syntax document](docs/help/syntax.md)
 
 ## Main Use Case: Automated Migration Feature
 

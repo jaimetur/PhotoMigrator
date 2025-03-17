@@ -42,7 +42,7 @@ def include_extrafiles_and_zip(input_file, output_file):
         },
         {
             'subdir': 'doc',# Estos ficheros van al subdirectorio 'doc'
-            'files': ["../README.md", "../doc/RELEASES-NOTES.md", "../doc/ROADMAP.md"]
+            'files': ["../README.md", "../docs/RELEASES-NOTES.md", "../docs/ROADMAP.md"]
         }
     ]
     if not input_file or not output_file:
