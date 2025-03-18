@@ -27,6 +27,12 @@ def run_command(command, logger, capture_output=False, capture_errors=True):
     """
     if capture_output or capture_errors:
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace")
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE if capture_output else subprocess.DEVNULL,
+            stderr=subprocess.PIPE if capture_errors else subprocess.DEVNULL,
+            text=True, encoding="utf-8", errors="replace"
+        )
         if capture_output:
             for line in process.stdout:
                 logger.info(f"INFO    : {line.strip()}")

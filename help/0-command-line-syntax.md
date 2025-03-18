@@ -123,7 +123,7 @@ mode.
              the Zip will be extracted to the folder 'Unzipped_Takeout_TIMESTAMP', and
              will use the that folder as input <TAKEOUT_FOLDER>. Default: 'Takeout'.
 -gofs,     --google-output-folder-suffix <SUFFIX>
-             Specify the suffix for the output folder. Default: 'fixed'
+             Specify the suffix for the output folder. Default: 'processed'
 -gafs,     --google-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
              Specify the type of folder structure for each Album folder (Default:
              'flatten').

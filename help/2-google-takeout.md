@@ -37,7 +37,7 @@ The whole process will do the next actions if all flags are false (by default):
 8. (Optional) In this step, the script will look for any duplicate file on OUTPUT_FOLDER (ignoring symbolic links), and will remove all duplicates keeping only the principal file (giving more priority to duplicates files found into any album folder than those found on 'ALL_PHOTOS' folder. 
 
 
-The result will be a folder (NAMED '<INPUT_TAKEOUT_FOLDER>_{SUFFIX}_{TIMESTAMP}' by default, but you can or change the default suffix _'fixed'_ by any other using the option _'-gofs, --google-output-folder-suffix <SUFFIX>'_) 
+The result will be a folder (NAMED '<INPUT_TAKEOUT_FOLDER>_{SUFFIX}_{TIMESTAMP}' by default, but you can or change the default suffix _'processed'_ by any other using the option _'-gofs, --google-output-folder-suffix <SUFFIX>'_) 
 The final OUTPUT_FOLDER will include:
 - 'Albums' subfolder with all the Albums without year/month structure (by default).
 - 'No-Albums' subfolder with all the photos with year/month structure (by default).
@@ -75,8 +75,8 @@ In this example, the tool will do the Takeout Processing with the following step
 1. Process you Takeout Files found in folder './MyTakeout' (Unzipping them if needed) and fix all files found to set the correct date and time, and identifying which assets belongs to each Album created on Google Photos. 
 2. Create a folder structure based on year/month for the folder '<OUTPUT_TAKEOUT_FOLDER>/No-Albums' (by default).  
 3. Create a flatten folder structure for each Album subfolder found in '<OUTPUT_TAKEOUT_FOLDER>/Albums' (by default).    
-4. Move the files will into './MyTakeout_fixed_timestamp' folder where timestamp is the timestamp of the execution.
-5. Remove any duplicates files found in './MyTakeout_fixed_timestamp' folder
+4. Move the files will into './MyTakeout_processed_timestamp' folder where timestamp is the timestamp of the execution.
+5. Remove any duplicates files found in './MyTakeout_processed_timestamp' folder
 
 
 - **Example 2:**
@@ -88,8 +88,8 @@ In this example, the tool will do the Takeout Processing with the following step
 1. Process you Takeout Files found in folder './MyTakeout' (Unzipping them if needed) and fix all files found to set the correct date and time, and identifying which assets belongs to each Album created on Google Photos to create symbolic links for each asset in any Album to the original file stored in 'No-Albums' subfolder.  
 2. Create a folder structure based on year/month for the folder '<OUTPUT_TAKEOUT_FOLDER>/No-Albums' (by default).  
 3. Create a flatten folder structure for each Album subfolder found in '<OUTPUT_TAKEOUT_FOLDER>/Albums' (by default).    
-4. Move the files will into './MyTakeout_fixed_timestamp' folder where timestamp is the timestamp of the execution.
-5. Remove any duplicates files found in './MyTakeout_fixed_timestamp' folder
+4. Move the files will into './MyTakeout_processed_timestamp' folder where timestamp is the timestamp of the execution.
+5. Remove any duplicates files found in './MyTakeout_processed_timestamp' folder
 
 
 > [!TIP]
