@@ -1,9 +1,9 @@
-import os
+import os, sys
 import shutil
 import zipfile
 import tempfile
 import subprocess
-import sys
+import glob
 import platform
 from pathlib import Path
 
@@ -46,7 +46,8 @@ def include_extrafiles_and_zip(input_file, output_file):
         },
         {
             'subdir': 'help',  # Estos ficheros van al subdirectorio 'docs'
-            'files': ["../help/0-comand-line-syntax.md", "../help/1-automated-migration.md", "../help/2-google-takeout.md", "../help/3-synology-photos.md", "../help/4-immich-photos.md", "../help/5-other-features.md"]
+            'files': ["../help/*.md"]
+            # 'files': ["../help/0-command-line-syntax.md", "../help/1-automated-migration.md", "../help/2-google-takeout.md", "../help/3-synology-photos.md", "../help/4-immich-photos.md", "../help/5-other-features.md"]
         }
     ]
     if not input_file or not output_file:
@@ -66,13 +67,21 @@ def include_extrafiles_and_zip(input_file, output_file):
 
     # Ahora copiamos los extra files
     for subdirs_dic in extra_files_to_subdir:
-        subdir = subdirs_dic.get('subdir')
-        files = subdirs_dic.get('files')
-        subdir_path = os.path.join(script_version_dir, subdir)
-        os.makedirs(subdir_path, exist_ok=True)
-        for file in files:
-            shutil.copy(file, subdir_path)
-
+        subdir = subdirs_dic.get('subdir', '')  # Si 'subdir' está vacío, copiará en el directorio raíz
+        files = subdirs_dic.get('files', [])  # Garantiza que siempre haya una lista de archivos
+        subdir_path = os.path.join(script_version_dir, subdir) if subdir else script_version_dir
+        os.makedirs(subdir_path, exist_ok=True)  # Crea la carpeta si no existe
+        for file_pattern in files:
+            # Convertir la ruta relativa en una ruta absoluta
+            absolute_pattern = os.path.abspath(file_pattern)
+            # Buscar archivos que coincidan con el patrón
+            matched_files = glob.glob(absolute_pattern)
+            # Si no se encontraron archivos y la ruta es un archivo válido, tratarlo como tal
+            if not matched_files and os.path.isfile(absolute_pattern):
+                matched_files = [absolute_pattern]
+            # Copiar los archivos al directorio de destino
+            for file in matched_files:
+                shutil.copy(file, subdir_path)
     # Comprimimos el directorio temporal y después lo borramos
     comprimir_directorio(temp_dir, output_file)
     shutil.rmtree(temp_dir)
