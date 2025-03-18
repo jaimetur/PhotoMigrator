@@ -64,7 +64,8 @@ def detect_and_run_execution_mode():
         # profile_and_print(function_to_analyze=mode_AUTOMATED_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.
 
     # Google Photos Mode:
-    elif "-gitf" in sys.argv or "--google-input-takeout-folder" in sys.argv:
+    # elif "-gitf" in sys.argv or "--google-input-takeout-folder" in sys.argv:
+    elif ARGS["google-input-takeout-folder"]:
         EXECUTION_MODE = 'google-takeout'
         mode_google_takeout()
 
