@@ -71,11 +71,25 @@ NOTE 2: Above times are approximates and were measured running the tool on Linux
 ./CloudPhotoMigrator.run --google-input-takeout-folder ./MyTakeout --google-remove-duplicates-files
 ```
  
-In this example, the script will Process you Takeout Files found in folder './MyTakeout' (Unzipping them if needed) and fix
-all files found to set the correct date and time, and identifying which assets belongs to each Album created on Google Photos. 
-  - After that, the script will create a folder structure based on year/month for the folder '<OUTPUT_TAKEOUT_FOLDER>/No-Albums' (by default).  
-  - Also, the script will create a flatten folder structure for each Album subfolder found in '<OUTPUT_TAKEOUT_FOLDER>/Albums.'  
-  - Finally, the output files will be placed into './MyTakeout_fixed_timestamp' folder where timestamp is the timestamp of the execution.
+In this example, the tool will do the Takeout Processing with the following steps:
+1. Process you Takeout Files found in folder './MyTakeout' (Unzipping them if needed) and fix all files found to set the correct date and time, and identifying which assets belongs to each Album created on Google Photos. 
+2. Create a folder structure based on year/month for the folder '<OUTPUT_TAKEOUT_FOLDER>/No-Albums' (by default).  
+3. Create a flatten folder structure for each Album subfolder found in '<OUTPUT_TAKEOUT_FOLDER>/Albums' (by default).    
+4. Move the files will into './MyTakeout_fixed_timestamp' folder where timestamp is the timestamp of the execution.
+5. Remove any duplicates files found in './MyTakeout_fixed_timestamp' folder
+
+
+- **Example 2:**
+```
+./CloudPhotoMigrator.run --google-input-takeout-folder ./MyTakeout --google-remove-duplicates-files google-create-symbolic-albums
+```
+ 
+In this example, the tool will do the Takeout Processing with the following steps:
+1. Process you Takeout Files found in folder './MyTakeout' (Unzipping them if needed) and fix all files found to set the correct date and time, and identifying which assets belongs to each Album created on Google Photos to create symbolic links for each asset in any Album to the original file stored in 'No-Albums' subfolder.  
+2. Create a folder structure based on year/month for the folder '<OUTPUT_TAKEOUT_FOLDER>/No-Albums' (by default).  
+3. Create a flatten folder structure for each Album subfolder found in '<OUTPUT_TAKEOUT_FOLDER>/Albums' (by default).    
+4. Move the files will into './MyTakeout_fixed_timestamp' folder where timestamp is the timestamp of the execution.
+5. Remove any duplicates files found in './MyTakeout_fixed_timestamp' folder
 
 
 > [!TIP]
