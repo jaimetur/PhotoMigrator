@@ -128,7 +128,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         tokenized = self._tokenize_usage(usage)
         # 5) Diccionario de tokens forzados
         force_new_line_for_tokens = {
-            "[-i <INPUT_FOLDER>]": False   # Salto de línea antes, pero sigue reagrupando
+            "[-gpthProg [true, false]]": False   # Salto de línea antes, pero sigue reagrupando
+            ,"[-i <INPUT_FOLDER>]": False   # Salto de línea antes, pero sigue reagrupando
             ,"[-gitf <TAKEOUT_FOLDER>]": False   # Salto de línea antes, pero sigue reagrupando
             ,"[-irEmpAlb]": False   # Salto de línea antes, pero sigue reagrupando
             ,"[-fixSym <FOLDER_TO_FIX>]": False   # Salto de línea antes, pero sigue reagrupando

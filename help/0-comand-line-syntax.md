@@ -1,11 +1,14 @@
 # Command Line Syntax:
 ```
 ---------------------------------------------------------------------------------------------------------
-usage: CloudPhotoMigrator.run/exe [-h] [-v] [--source <SOURCE>] [--target <TARGET>]
-                                  [--dashboard [=[true,false]]]
+
+usage: CloudPhotoMigrator.bin/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
+                                  [-dash [true, false]]
                                   [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
                                   [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
-                                  [-rAlbAss] [-nolog]
+                                  [-rAlbAss]
+                                  [-gpthProg [true, false]] [-gpthErr [true, false]]
+                                  [-nolog]
                                   [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
                                   [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
@@ -44,7 +47,7 @@ Following arguments allow you execute the Automated Migration Process to migrate
 assets from one Photo Cloud Service to other, or from two different accounts within the
 same Photo Cloud service.
 
---source <SOURCE>
+-source,   --source <SOURCE>
              Select the <SOURCE> for the AUTOMATED-MIGRATION Process to Pull all your
              Assets (including Albums) from the <SOURCE> Cloud Service and Push them to
              the <TARGET> Cloud Service (including all Albums that you may have on the
@@ -60,7 +63,7 @@ same Photo Cloud service.
               ​--source=/home/local_folder -> Select this local folder as Source.
               ​--source=/home/Takeout -> Select this Takeout folder as Source.
               ​                      (both, zipped and unzipped format are supported)
---target <TARGET>
+-target,   --target <TARGET>
              Select the <TARGET> for the AUTOMATED-MIGRATION Process to Pull all your
              Assets (including Albums) from the <SOURCE> Cloud Service and Push them to
              the <TARGET> Cloud Service (including all Albums that you may have on the
@@ -74,7 +77,7 @@ same Photo Cloud service.
               ​--source=immich-1 -> Select Immich Photos account 1 as Target.
               ​--source=synology-2 -> Select Synology Photos account 2 as Target.
               ​--source=/home/local_folder -> Select this local folder as Target.
---dashboard =[true,false]
+-dash,     --dashboard true, false
              Enable or disable Live Dashboard feature during Autometed Migration Job.
              This argument only applies if both '--source' and '--target' argument are
              given (AUTOMATED-MIGRATION MODE). (default: True).
@@ -96,6 +99,11 @@ Following general arguments have different purposses depending on the Execution 
              If used together with '-srAllAlb, --synology-remove-all-albums' or
              '-irAllAlb, --immich-remove-all-albums', it will also delete the assets
              (photos/videos) inside each album.
+-gpthProg, --show-gpth-progress true, false
+             Enable or disable Progress messages during GPTH Processing. (default:
+             False).
+-gpthErr,  --show-gpth-errors true, false
+             Enable or disable Error messages during GPTH Processing. (default: True).
 -nolog,    --no-log-file
              Skip saving output messages to execution log file.
 -loglevel, --log-level ['debug', 'info', 'warning', 'error', 'critical']
@@ -107,7 +115,7 @@ GOOGLE PHOTOS TAKEOUT MANAGEMENT:
 Following arguments allow you to interact with Google Photos Takeout Folder.
 In this mode, you can use more than one optional arguments from the below list.
 If only the argument -gtif, --google-takeout-input-folder <TAKEOUT_FOLDER> is detected,
-then the script will use the default values for the rest of the arguments for this extra
+then the Tool will use the default values for the rest of the arguments for this extra
 mode.
 
 -gitf,     --google-input-takeout-folder <TAKEOUT_FOLDER>
@@ -256,11 +264,11 @@ If more than one optional arguments are detected, only the first one will be exe
              configured in Config.ini.
 
 
-OTHER STANDALONE EXTRA MODES:
------------------------------
-Following arguments can be used to execute the Script in any of the usefull additionals
-Extra Modes included.
-If more than one Extra Mode is detected, only the first one will be executed.
+OTHER STANDALONE FEATURES:
+--------------------------
+Following arguments can be used to execute the Tool in any of the usefull additionals
+Extra Standalone Features included.
+If more than one Feature is detected, only the first one will be executed.
 
 -findDup,  --find-duplicates <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]
              Find duplicates in specified folders.

@@ -80,7 +80,12 @@ def parse_arguments():
                         type=lambda v: v.lower() in ("true", "1", "yes"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="Enable or disable Live Dashboard feature during Autometed Migration Job. This argument only applies if both '--source' and '--target' argument are given (AUTOMATED-MIGRATION MODE). (default: True)."
     )
-    PARSER.add_argument("-gpth", "--show-gpth-progress",
+
+    PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
+    PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
+    PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
+    PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False, help="If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums', it will also delete the assets (photos/videos) inside each album.")
+    PARSER.add_argument("-gpthProg", "--show-gpth-progress",
                         metavar="true, false",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
@@ -96,14 +101,8 @@ def parse_arguments():
                         type=lambda v: v.lower() in ("true", "1", "yes"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="Enable or disable Error messages during GPTH Processing. (default: True)."
     )
-    PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
-    PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
-    PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
-    PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False, help="If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums', it will also delete the assets (photos/videos) inside each album.")
     PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
     PARSER.add_argument("-loglevel", "--log-level", metavar=f"{choices_for_message_levels}", choices=choices_for_message_levels, default="info", help="Specify the log level for logging and screen messages.")
-
-
 
     # EXTRA MODES FOR GOOGLE PHOTOS:
     # ------------------------------
