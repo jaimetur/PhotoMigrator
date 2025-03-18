@@ -853,35 +853,20 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
     layout = Layout()
     layout.size = terminal_height
 
-
     # 🚀 Guardar stdout y stderr originales
     original_stdout = sys.stdout
     original_stderr = sys.stderr
 
-    # 🚀 Guardar stdout y stderr originales
-    original_stdout = sys.stdout
-    original_stderr = sys.stderr
-
-    # 🚀 Forzar la redirección de sys.stderr globalmente para asegurar que no se imprima en pantalla
-    sys.stderr = sys.__stderr__ = LoggerCapture(LOGGER, logging.ERROR)
-
-    # 🚀 Capturar e interceptar manualmente cualquier error antes de que `rich` lo maneje
-    def log_exceptions(exctype, value, tb):
-        """Captura todas las excepciones no manejadas y las guarda en el LOGGER sin imprimir en pantalla"""
-        error_message = "".join(traceback.format_exception(exctype, value, tb))
-        LOGGER.error("Excepción no manejada:\n" + error_message)  # Guardar en logs sin imprimir en consola
-
-    sys.excepthook = log_exceptions
-
-    # 🚀 No redirigir `sys.stdout` para que `rich.Live` siga funcionando
-
-    # Redirigir stdout y stderr al LOGGER después de que esté inicializado
-    # sys.stdout = LoggerStream(LOGGER, logging.INFO)  # Redirige print() a LOGGER.info()
-    # sys.stderr = LoggerStream(LOGGER, logging.ERROR) # Redirige errores a LOGGER.error()
-
-    # # Redirigir a /dev/null
-    # sys.stdout = open(os.devnull, 'w')
-    # sys.stderr = open(os.devnull, 'w')
+    # # 🚀 Forzar la redirección de sys.stderr globalmente para asegurar que no se imprima en pantalla
+    # sys.stderr = sys.__stderr__ = LoggerCapture(LOGGER, logging.ERROR)
+    #
+    # # 🚀 Capturar e interceptar manualmente cualquier error antes de que `rich` lo maneje
+    # def log_exceptions(exctype, value, tb):
+    #     """Captura todas las excepciones no manejadas y las guarda en el LOGGER sin imprimir en pantalla"""
+    #     error_message = "".join(traceback.format_exception(exctype, value, tb))
+    #     LOGGER.error("Excepción no manejada:\n" + error_message)  # Guardar en logs sin imprimir en consola
+    #
+    # sys.excepthook = log_exceptions
 
     # Eliminar solo los StreamHandler sin afectar los FileHandler
     for handler in list(LOGGER.handlers):  # Hacer una copia de la lista para evitar problemas al modificarla
