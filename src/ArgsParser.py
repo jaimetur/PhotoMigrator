@@ -39,7 +39,7 @@ def parse_arguments():
 
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
 
-    PARSER.add_argument( "--source", metavar="<SOURCE>", default="",
+    PARSER.add_argument( "-source", "--source", metavar="<SOURCE>", default="",
                         help="Select the <SOURCE> for the AUTOMATED-MIGRATION Process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
                          "\n"
                          "\nPossible values:"
@@ -53,7 +53,7 @@ def parse_arguments():
                          "\n ​--source=/home/Takeout -> Select this Takeout folder as Source."
                          "\n ​                      (both, zipped and unzipped format are supported)"
                          )
-    PARSER.add_argument( "--target", metavar="<TARGET>", default="",
+    PARSER.add_argument( "-target", "--target", metavar="<TARGET>", default="",
                         help="Select the <TARGET> for the AUTOMATED-MIGRATION Process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
                          "\n"
                          "\nPossible values:"

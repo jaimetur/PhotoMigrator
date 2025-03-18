@@ -287,6 +287,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     # --------------------------------------------------------------------------------
     def puller_worker(log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):
+
             # 1.1) Descarga de álbumes
             albums = source_client.get_albums_including_shared_with_user()
             pulled_assets = 0
