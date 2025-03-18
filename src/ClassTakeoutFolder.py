@@ -420,7 +420,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             formatted_duration = str(timedelta(seconds=(processing_end_time - processing_start_time).seconds))
             LOGGER.info("")
             LOGGER.info("=========================================================================================================")
-            LOGGER.info(f"INFO    : ✔️ TAKEOUT PROCESSING FINISHED!!!")
+            LOGGER.info(f"INFO    : ✅ TAKEOUT PROCESSING FINISHED!!!")
             LOGGER.info(f"INFO    : Takeout Precessed Folder: '{output_takeout_folder}'.")
             LOGGER.info("")
             LOGGER.info(f"INFO    : Total Processing Time   :  {formatted_duration}.")
