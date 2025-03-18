@@ -1,28 +1,30 @@
 # Command Line Syntax:
 ```
 ---------------------------------------------------------------------------------------------------------
-usage: CloudPhotoMigrator.py [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
-                                [-dash [true, false]] [-gpth [true, false]]
-                                [-gpthErr [true, false]]
-                                [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
-                                [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
-                                [-rAlbAss] [-nolog]
-                                [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
-                                [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
-                                [-gafs ['flatten', 'year', 'year/month', 'year-month']]
-                                [-gnas ['flatten', 'year', 'year/month', 'year-month']]
-                                [-gcsa] [-gics] [-gmtf] [-grdf] [-gsef] [-gsma] [-gsgt]
-                                [-suAlb <ALBUMS_FOLDER>] [-suAll <INPUT_FOLDER>]
-                                [-sdAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
-                                [-sdAll <OUTPUT_FOLDER>] [-srEmpAlb] [-srDupAlb]
-                                [-srAll] [-srAllAlb] [-iuAlb <ALBUMS_FOLDER>]
-                                [-iuAll <INPUT_FOLDER>]
-                                [-idAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
-                                [-idAll <OUTPUT_FOLDER>]
-                                [-irEmpAlb] [-irDupAlb] [-irAll] [-irAllAlb] [-irOrphan]
-                                [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
-                                [-procDup <DUPLICATES_REVISED_CSV>]
-                                [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
+
+usage: CloudPhotoMigrator.bin/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
+                                  [-dash [true, false]]
+                                  [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
+                                  [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
+                                  [-rAlbAss]
+                                  [-gpthProg [true, false]] [-gpthErr [true, false]]
+                                  [-nolog]
+                                  [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
+                                  [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
+                                  [-gafs ['flatten', 'year', 'year/month', 'year-month']]
+                                  [-gnas ['flatten', 'year', 'year/month', 'year-month']]
+                                  [-gcsa] [-gics] [-gmtf] [-grdf] [-gsef] [-gsma] [-gsgt]
+                                  [-suAlb <ALBUMS_FOLDER>] [-suAll <INPUT_FOLDER>]
+                                  [-sdAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
+                                  [-sdAll <OUTPUT_FOLDER>] [-srEmpAlb] [-srDupAlb]
+                                  [-srAll] [-srAllAlb] [-iuAlb <ALBUMS_FOLDER>]
+                                  [-iuAll <INPUT_FOLDER>]
+                                  [-idAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
+                                  [-idAll <OUTPUT_FOLDER>]
+                                  [-irEmpAlb] [-irDupAlb] [-irAll] [-irAllAlb] [-irOrphan]
+                                  [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
+                                  [-procDup <DUPLICATES_REVISED_CSV>]
+                                  [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
 
 CloudPhotoMigrator v3.1.0-alpha - 2025-03-31
 
@@ -79,11 +81,6 @@ same Photo Cloud service.
              Enable or disable Live Dashboard feature during Autometed Migration Job.
              This argument only applies if both '--source' and '--target' argument are
              given (AUTOMATED-MIGRATION MODE). (default: True).
--gpth,     --show-gpth-progress true, false
-             Enable or disable Progress messages during GPTH Processing. (default:
-             False).
--gpthErr,  --show-gpth-errors true, false
-             Enable or disable Error messages during GPTH Processing. (default: True).
 
 
 GENERAL ARGUMENTS:
@@ -102,6 +99,11 @@ Following general arguments have different purposses depending on the Execution 
              If used together with '-srAllAlb, --synology-remove-all-albums' or
              '-irAllAlb, --immich-remove-all-albums', it will also delete the assets
              (photos/videos) inside each album.
+-gpthProg, --show-gpth-progress true, false
+             Enable or disable Progress messages during GPTH Processing. (default:
+             False).
+-gpthErr,  --show-gpth-errors true, false
+             Enable or disable Error messages during GPTH Processing. (default: True).
 -nolog,    --no-log-file
              Skip saving output messages to execution log file.
 -loglevel, --log-level ['debug', 'info', 'warning', 'error', 'critical']
