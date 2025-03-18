@@ -39,7 +39,7 @@ def parse_arguments():
 
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
 
-    PARSER.add_argument( "--source", metavar="<SOURCE>", default="",
+    PARSER.add_argument( "-source", "--source", metavar="<SOURCE>", default="",
                         help="Select the <SOURCE> for the AUTOMATED-MIGRATION Process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
                          "\n"
                          "\nPossible values:"
@@ -53,7 +53,7 @@ def parse_arguments():
                          "\n ​--source=/home/Takeout -> Select this Takeout folder as Source."
                          "\n ​                      (both, zipped and unzipped format are supported)"
                          )
-    PARSER.add_argument( "--target", metavar="<TARGET>", default="",
+    PARSER.add_argument( "-target", "--target", metavar="<TARGET>", default="",
                         help="Select the <TARGET> for the AUTOMATED-MIGRATION Process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
                          "\n"
                          "\nPossible values:"
@@ -72,13 +72,29 @@ def parse_arguments():
     #                        "\n    <SOURCE> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2'] or <INPUT_FOLDER>"
     #                        "\n    <TARGET> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2']or <OUTPUT_FOLDER>"
     #                     )
-    PARSER.add_argument("--dashboard",
-                        metavar="=[true,false]",
+    PARSER.add_argument("-dash", "--dashboard",
+                        metavar="true, false",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=True,  # Si no se pasa el argumento, el valor por defecto es True
                         type=lambda v: v.lower() in ("true", "1", "yes"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="Enable or disable Live Dashboard feature during Autometed Migration Job. This argument only applies if both '--source' and '--target' argument are given (AUTOMATED-MIGRATION MODE). (default: True)."
+    )
+    PARSER.add_argument("-gpth", "--show-gpth-progress",
+                        metavar="true, false",
+                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
+                        default=False,  # Si no se pasa el argumento, el valor por defecto es True
+                        type=lambda v: v.lower() in ("true", "1", "yes"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        help="Enable or disable Progress messages during GPTH Processing. (default: False)."
+    )
+    PARSER.add_argument("-gpthErr", "--show-gpth-errors",
+                        metavar="true, false",
+                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
+                        default=True,  # Si no se pasa el argumento, el valor por defecto es True
+                        type=lambda v: v.lower() in ("true", "1", "yes"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        help="Enable or disable Error messages during GPTH Processing. (default: True)."
     )
     PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
     PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")

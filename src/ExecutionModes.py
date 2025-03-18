@@ -60,7 +60,7 @@ def detect_and_run_execution_mode():
     # AUTOMATED-MIGRATION MODE:
     if ARGS['source'] and ARGS['target']:
         EXECUTION_MODE = 'AUTOMATED-MIGRATION'
-        mode_AUTOMATED_MIGRATION()
+        mode_AUTOMATED_MIGRATION(show_gpth_progress=ARGS['show-gpth-progress'])
         # profile_and_print(function_to_analyze=mode_AUTOMATED_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.
 
     # Google Photos Mode:
@@ -227,7 +227,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         # Create the Object
         takeout = ClassTakeoutFolder(ARGS['google-input-takeout-folder'])
         # Call the Function
-        albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, log_level=log_level)
+        albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS["show-gpth-progress"], capture_errors=ARGS["show-gpth-errors"], log_level=log_level)
         # FINAL SUMMARY
         end_time = datetime.now()
         # Count Files in Output Folder
