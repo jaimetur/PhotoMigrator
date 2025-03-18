@@ -205,7 +205,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 ---------------------------------{Style.RESET_ALL}
                 Following arguments allow you to interact with Google Photos Takeout Folder. 
                 In this mode, you can use more than one optional arguments from the below list.
-                If only the argument -gtif, --google-takeout-input-folder <TAKEOUT_FOLDER> is detected, then the script will use the default values for the rest of the arguments for this extra mode.
+                If only the argument -gtif, --google-takeout-input-folder <TAKEOUT_FOLDER> is detected, then the Tool will use the default values for the rest of the arguments for this extra mode.
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
@@ -234,14 +234,14 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
 
-            # OTHERS STANDALONE EXTRA MODES: two lines before "Find duplicates in specified folders."
+            # OTHERS STANDALONE FEATURES: two lines before "Find duplicates in specified folders."
             if help_text.find("Find duplicates in specified folders.")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
-                OTHER STANDALONE EXTRA MODES:
-                -----------------------------{Style.RESET_ALL}
-                Following arguments can be used to execute the Script in any of the usefull additionals Extra Modes included.
-                If more than one Extra Mode is detected, only the first one will be executed.
+                OTHER STANDALONE FEATURES:
+                --------------------------{Style.RESET_ALL}
+                Following arguments can be used to execute the Tool in any of the usefull additionals Extra Standalone Features included. 
+                If more than one Feature is detected, only the first one will be executed.
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
