@@ -185,6 +185,8 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
     LOGGER.info(f"INFO    : Skip Extra Assets (-edited,-effects...)  : '{ARGS['google-skip-extras-files']}'")
     LOGGER.info(f"INFO    : Skip Moving Albums to 'Albums' folder    : '{ARGS['google-skip-move-albums']}'")
     LOGGER.info(f"INFO    : Skip GPTH Tool                           : '{ARGS['google-skip-gpth-tool']}'")
+    LOGGER.info(f"INFO    : Show GPTH Progress                       : '{ARGS['show-gpth-progress']}'")
+    LOGGER.info(f"INFO    : Show GPTH Errors                         : '{ARGS['show-gpth-errors']}'")
     LOGGER.info("")
     LOGGER.info(f"Folders for Google Takeout Photos Module:")
     LOGGER.info(f"------------------------------------------")

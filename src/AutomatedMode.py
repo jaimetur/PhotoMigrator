@@ -29,7 +29,7 @@ class SharedData:
 ####################################
 # EXTRA MODE: AUTOMATED-MIGRATION: #
 ####################################
-def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, parallel=True, show_gpth_progress=False, log_level=logging.INFO):
+def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show_gpth_progress=None, show_gpth_errors=None, parallel=True, log_level=logging.INFO):
     
     with set_log_level(LOGGER, log_level):
 
@@ -90,6 +90,10 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
 
         # Detect show_dashboard from the given arguments if has not been providen on the function call
         if show_dashboard is None: show_dashboard = ARGS['dashboard']
+
+        # Detect show_gpth_progress and show_gpth_errors from the given arguments if has not been providen on the function call
+        if show_gpth_progress is None: show_gpth_progress = ARGS['show-gpth-progress']
+        if show_gpth_errors is None: show_gpth_errors = ARGS['show-gpth-errors']
 
         # Define the INTERMEDIATE_FOLDER
         INTERMEDIATE_FOLDER = f'./Temp_folder_{TIMESTAMP}'
@@ -184,10 +188,10 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, para
             # 3) Verifica y procesa source_client y target_client si es una instancia de ClassTakeoutFolder
             if isinstance(source_client, ClassTakeoutFolder):
                 if source_client.needs_unzip or source_client.needs_process:
-                    source_client.pre_process(capture_output=show_gpth_progress, capture_errors=True)
+                    source_client.pre_process(capture_output=show_gpth_progress, capture_errors=show_gpth_errors)
             if isinstance(target_client, ClassTakeoutFolder):
                 if target_client.needs_unzip or target_client.needs_process:
-                    target_client.pre_process(capture_output=show_gpth_progress, capture_errors=True)
+                    target_client.pre_process(capture_output=show_gpth_progress, capture_errors=show_gpth_errors)
 
             # ---------------------------------------------------------------------------------------------------------
             # 4) Ejecutamos la migración en el hilo principal (ya sea con descargas y subidas en paralelo o secuencial)
