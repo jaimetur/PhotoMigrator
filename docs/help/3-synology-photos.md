@@ -32,11 +32,11 @@ If you configure properly the file 'Config.ini' and execute this Extra Mode, the
 
 If any Empty Album is found, the script will remove it from Synology Photos.  
 
-To execute this Extra Mode, you can use the Flag: _'--synology-remove-empty-albums'_ 
+To execute this Extra Mode, you can use the Flag: _'-srEmpAlb, --synology-remove-empty-albums'_ 
 
 Example of use:
 ```
-./CloudPhotoMigrator.run --delete-empty-albums-synology-photos
+./CloudPhotoMigrator.run --synology-remove-empty-albums
 ```
 With this example, the script will connect to Synology Photos database and will delete all Empty Albums found.
 
@@ -48,11 +48,11 @@ If you configure properly the file 'Config.ini' and execute this Extra Mode, the
 
 If any Duplicated Album is found, the script will remove it from Synology Photos.  
 
-To execute this Extra Mode, you can use the Flag: _'--synology-remove-duplicates-albums'_
+To execute this Extra Mode, you can use the Flag: _'-srDupAlb, --synology-remove-duplicates-albums'_
 
 Example of use:
 ```
-./CloudPhotoMigrator.run --delete-duplicates-albums-synology-photos
+./CloudPhotoMigrator.run --synology-remove-duplicates-albums
 ```
 With this example, the script will connect to Synology Photos database and will delete all Duplicates Albums found.
 
@@ -62,14 +62,12 @@ From version 3.0.0 onwards, the script can be executed in 'Upload Folder into Sy
 
 If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will upload all the assets contained in <INPUT_FOLDER> that are supported by Synology Photos.  
 
-The folder <INPUT_FOLDER> can be passed using the Flag: _'-suf,  --synology-upload-folder <INPUT_FOLDER>'_ 
+- The folder <INPUT_FOLDER> can be passed using the Flag: _'-suAll,  --synology-upload-all <INPUT_FOLDER>'_ 
 
-> [!IMPORTANT]
-> <INPUT_FOLDER> should be stored within your Synology Photos main folder in your NAS. Typically, it is '/volume1/homes/your_username/Photos' and all files within <INPUT_FOLDER> should have been already indexed by Synology Photos before you can add them to a Synology Photos Album.  
->
->You can check if the files have been already indexed accessing Synology Photos mobile app or Synology Photos web portal and change to Folder View.  
->
->If you can't see your <INPUT_FOLDER> most probably is because it has not been indexed yet or because you didn't move it within Synology Photos root folder. 
+- The tool Will create anew Album per each subfolder found in 'Album' subfolder, and all assets inside each subfolder off 'Album' Will be associated to a new Album in Synology Photos database with the same name as the container subfolder. 
+
+- If the argument _**'-AlbFld, --albums-folder <ALBUMS_FOLDER>'**_ is also given, then the tool Will create Albums also for each subfolder found in <ALBUMS_FOLDER>.
+
 
 Example of use:
 ```

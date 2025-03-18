@@ -4,10 +4,10 @@
 > ## <span style="color:green">Other Standalone Features</span>
 >Additionally, this script can be executed with 4 Standalone Extra Modes: 
 > 
-> - **Find Duplicates** (-findDup, --find-duplicates <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...])
-> - **Process Duplicates** (-procDup, --process-duplicates <DUPLICATES_REVISED_CSV>)
-> - **Fix Symbolic Links Broken** (-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>)
-> - **Folder Rename Content Based** (-renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>)
+> - **Find Duplicates** 
+> - **Process Duplicates** 
+> - **Fix Symbolic Links Broken** 
+> - **Folder Rename Content Based** 
 >
 > If more than one Stand Alone Extra Mode is detected, only the first one will be executed
 
