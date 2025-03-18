@@ -80,7 +80,7 @@ def parse_arguments():
                         type=lambda v: v.lower() in ("true", "1", "yes"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="Enable or disable Live Dashboard feature during Autometed Migration Job. This argument only applies if both '--source' and '--target' argument are given (AUTOMATED-MIGRATION MODE). (default: True)."
     )
-    PARSER.add_argument("-gpth", "--show-gpth-progress",
+    PARSER.add_argument("-gpthProg", "--show-gpth-progress",
                         metavar="true, false",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
