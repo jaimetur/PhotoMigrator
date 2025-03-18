@@ -73,7 +73,7 @@ def parse_arguments():
     #                        "\n    <TARGET> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2']or <OUTPUT_FOLDER>"
     #                     )
     PARSER.add_argument("-dash", "--dashboard",
-                        metavar="true, false",
+                        metavar="[true, false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=True,  # Si no se pasa el argumento, el valor por defecto es True
@@ -86,7 +86,7 @@ def parse_arguments():
     PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
     PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False, help="If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums', it will also delete the assets (photos/videos) inside each album.")
     PARSER.add_argument("-gpthProg", "--show-gpth-progress",
-                        metavar="true, false",
+                        metavar="[true, false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=False,  # Si no se pasa el argumento, el valor por defecto es True
@@ -94,7 +94,7 @@ def parse_arguments():
                         help="Enable or disable Progress messages during GPTH Processing. (default: False)."
     )
     PARSER.add_argument("-gpthErr", "--show-gpth-errors",
-                        metavar="true, false",
+                        metavar="[true, false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=True,  # Si no se pasa el argumento, el valor por defecto es True

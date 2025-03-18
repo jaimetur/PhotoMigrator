@@ -77,7 +77,7 @@ same Photo Cloud service.
               ​--source=immich-1 -> Select Immich Photos account 1 as Target.
               ​--source=synology-2 -> Select Synology Photos account 2 as Target.
               ​--source=/home/local_folder -> Select this local folder as Target.
--dash,     --dashboard true, false
+-dash,     --dashboard [true, false]
              Enable or disable Live Dashboard feature during Autometed Migration Job.
              This argument only applies if both '--source' and '--target' argument are
              given (AUTOMATED-MIGRATION MODE). (default: True).
@@ -99,10 +99,10 @@ Following general arguments have different purposses depending on the Execution 
              If used together with '-srAllAlb, --synology-remove-all-albums' or
              '-irAllAlb, --immich-remove-all-albums', it will also delete the assets
              (photos/videos) inside each album.
--gpthProg, --show-gpth-progress true, false
+-gpthProg, --show-gpth-progress [true, false]
              Enable or disable Progress messages during GPTH Processing. (default:
              False).
--gpthErr,  --show-gpth-errors true, false
+-gpthErr,  --show-gpth-errors [true, false]
              Enable or disable Error messages during GPTH Processing. (default: True).
 -nolog,    --no-log-file
              Skip saving output messages to execution log file.
