@@ -80,6 +80,22 @@ def parse_arguments():
                         type=lambda v: v.lower() in ("true", "1", "yes"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="Enable or disable Live Dashboard feature during Autometed Migration Job. This argument only applies if both '--source' and '--target' argument are given (AUTOMATED-MIGRATION MODE). (default: True)."
     )
+    PARSER.add_argument("-gpth", "--show-gpth-progress",
+                        metavar="true, false",
+                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
+                        default=False,  # Si no se pasa el argumento, el valor por defecto es True
+                        type=lambda v: v.lower() in ("true", "1", "yes"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        help="Enable or disable Progress messages during GPTH Processing. (default: False)."
+    )
+    PARSER.add_argument("-gpthErr", "--show-gpth-errors",
+                        metavar="true, false",
+                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
+                        default=True,  # Si no se pasa el argumento, el valor por defecto es True
+                        type=lambda v: v.lower() in ("true", "1", "yes"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        help="Enable or disable Error messages during GPTH Processing. (default: True)."
+    )
     PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
     PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
     PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")

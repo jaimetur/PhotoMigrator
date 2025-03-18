@@ -757,9 +757,9 @@ class ClassImmichPhotos:
                 return total_added
             except Exception as e:
                 if album_name:
-                    LOGGER.warning(f"WARNING : Error while adding assets to album '{album_name}' with ID={album_id}: {e}")
+                    LOGGER.error(f"ERROR   : Error while adding assets to album '{album_name}' with ID={album_id}: {e}")
                 else:
-                    LOGGER.warning(f"WARNING : Error while adding assets to album with ID={album_id}: {e}")
+                    LOGGER.error(f"ERROR   : Error while adding assets to album with ID={album_id}: {e}")
                 return 0
 
 
