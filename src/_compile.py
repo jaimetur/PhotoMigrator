@@ -43,6 +43,10 @@ def include_extrafiles_and_zip(input_file, output_file):
         {
             'subdir': 'docs',# Estos ficheros van al subdirectorio 'docs'
             'files': ["../README.md", "../docs/RELEASES-NOTES.md", "../docs/ROADMAP.md"]
+        },
+        {
+            'subdir': 'help',  # Estos ficheros van al subdirectorio 'docs'
+            'files': ["../help/0-comand-line-syntax.md", "../help/1-automated-migration.md", "../help/2-google-takeout.md", "../help/3-synology-photos.md", "../help/4-immich-photos.md", "../help/5-other-features.md"]
         }
     ]
     if not input_file or not output_file:
