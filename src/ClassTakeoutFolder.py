@@ -125,7 +125,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
     def pre_process(self, skip_process=False):
         if self.needs_unzip:
-            LOGGER.info("INFO    : Input Folder contains ZIP files and needs to be unzipped first. Unzipping it...")
+            LOGGER.info("INFO    : ⚠️🗳️ Input Folder contains ZIP files and needs to be unzipped first. Unzipping it...")
             unzip_folder = Path(f"{self.takeout_folder}_unzipped_{self.TIMESTAMP}")
             # Unzip the files into unzip_folder
             self.unzip(input_folder=self.takeout_folder, unzip_folder=unzip_folder, log_level=self.log_level)
@@ -134,7 +134,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         if not skip_process:
             if self.needs_process:
                 LOGGER.info("")
-                LOGGER.info("INFO    : Input Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
+                LOGGER.info("INFO    : ⚠️🔢 Input Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
                 base_folder = Path(f"{self.takeout_folder}_processed_{self.TIMESTAMP}")
                 # Process Takeout_folder and put output into base_folder
                 self.process(output_takeout_folder=base_folder, log_level=logging.INFO)
@@ -191,8 +191,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
         with set_log_level(LOGGER, log_level):  # Temporarily adjust log level
             LOGGER.info("")
             LOGGER.info("=========================================================================================================")
-            LOGGER.info(f"INFO    : TAKEOUT PROCESSING STARTED")
+            LOGGER.info(f"INFO    : 🔢 TAKEOUT PROCESSING STARTED")
             LOGGER.info("=========================================================================================================")
+            processing_start_time = datetime.now()
 
             # step 1: Pre-Process Takeout folder
             self.step += 1
@@ -229,6 +230,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{self.step}. FIXING PHOTOS METADATA WITH GPTH TOOL...")
                 LOGGER.info("===========================================")
                 LOGGER.info("")
+                step_start_time = datetime.now()
                 LOGGER.info(f"INFO    : This process can take long time, depending on how big is your Takeout. Be patient... 🙂")
                 # Count initial files
                 initial_takeout_numfiles = Utils.count_files_in_folder(input_folder)
@@ -242,7 +244,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                         LOGGER.warning(f"WARNING : No Takeout structure detected in input folder. The tool will process the folder ignoring Takeout structure.")
                         self.ARGS['google-ignore-check-structure'] = True
 
-                step_start_time = datetime.now()
                 ok = ExifFixers.fix_metadata_with_gpth_tool(
                     input_folder=input_folder,
                     output_folder=output_takeout_folder,
@@ -269,6 +270,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{self.step}. COPYING/MOVING FILES TO OUTPUT FOLDER...")
                 LOGGER.info("============================================")
                 LOGGER.info("")
+                step_start_time = datetime.now()
                 if self.ARGS['google-skip-gpth-tool']:
                     LOGGER.warning(f"WARNING : Metadata fixing with GPTH tool skipped ('-gsgt, --google-skip-gpth-tool' flag). step {self.step}b is needed to copy files manually to output folder.")
                 elif self.ARGS['google-ignore-check-structure']:
@@ -278,7 +280,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 else:
                     LOGGER.info("INFO    : Copying files from Takeout folder to Output folder...")
 
-                step_start_time = datetime.now()
                 Utils.copy_move_folder(input_folder, output_takeout_folder,
                                        ignore_patterns=['*.json', '*.j'],
                                        move=self.ARGS['google-move-takeout-folder'])
@@ -411,11 +412,11 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
 
-            step_end_time = datetime.now()
-            formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
+            processing_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=(processing_end_time - processing_start_time).seconds))
             LOGGER.info("")
             LOGGER.info("=========================================================================================================")
-            LOGGER.info(f"INFO    : TAKEOUT PROCESSING FINISHED!!!")
+            LOGGER.info(f"INFO    : ✅ TAKEOUT PROCESSING FINISHED!!!")
             LOGGER.info(f"INFO    : Takeout Precessed Folder: '{output_takeout_folder}'.")
             LOGGER.info(f"INFO    : Total Processing Time:  {formatted_duration}.")
             LOGGER.info("=========================================================================================================")
