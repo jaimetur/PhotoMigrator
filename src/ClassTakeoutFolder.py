@@ -167,6 +167,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"==============================")
             LOGGER.info("")
 
+            LOGGER.info(f"INFO    : ⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂")
+            LOGGER.info("")
+
             step_start_time = datetime.now()
             Utils.unpack_zips(input_folder, unzip_folder)
             
@@ -233,7 +236,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("=====================================================")
                 LOGGER.info("")
                 step_start_time = datetime.now()
-                LOGGER.info(f"INFO    : ⏳ This process can take long time, depending on how big is your Takeout. Be patient... 🙂")
+                LOGGER.info(f"INFO    : ⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂")
                 # Count initial files
                 initial_takeout_numfiles = Utils.count_files_in_folder(input_folder)
 
