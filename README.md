@@ -350,5 +350,7 @@ Part of this Tool is based on [GPTH Tool](https://github.com/TheLastGimbus/Googl
 ## If you consideer that this Tool has helped you, you can consider donating me with a ☕
 I spent **a lot of** time developping this Tool for free, so donations will contribute to motivate me to continue working on this project 💖  
 
-<a href="https://www.buymeacoffee.com/jaimetur" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
-<a href="https://www.paypal.me/jaimetur" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-blue.svg?logo=paypal&style=for-the-badge" alt="Donate using Paypal" style="height: 60px !important;width: 217px !important;" ></a>
+<a href="https://www.buymeacoffee.com/jaimetur" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 40px !important;width: 217px !important;" ></a>
+<a href="https://www.paypal.me/jaimetur" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-blue.svg?logo=paypal&style=for-the-badge" alt="Donate using Paypal" style="height: 40px !important;width: 217px !important;" ></a>
+<a href="https://img.shields.io/github/sponsors/jaimetur?label=Sponsor&logo=GitHub" target="_blank"><img src="https://img.shields.io/github/sponsors/jaimetur?label=Sponsor&logo=GitHub" alt="Sponsor using GitHub" style="height: 40px !important;width: 217px !important;" ></a>
+
