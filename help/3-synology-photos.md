@@ -38,14 +38,13 @@
 
 ## <span style="color:blue">Download Albums from Synology Photos:</span>
 - From version 2.3.0 onwards, the script can be executed in 'Download Albums from Synology Photos' Mode. 
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect to Synology Photos and Download those Album(s) whose name is in <ALBUMS_NAME> to the folder 'Synology_Photos_Albums' within the Synology Photos root folder.  
-- To extract several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums "album1", "album2", "album3".  
-- You can also use wildcarts. i.e --synology-download-albums *Mery*
-- To extract ALL Albums within in Synology Photos database use 'ALL' as <ALBUMS_NAME>.  
-- The album(s) name <ALBUMS_NAME> can be passed using the Flag: _'-sda,  --synology-download-albums <ALBUMS_NAME>'_  
+- If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect to Synology Photos and Download those Album(s) whose name is in <ALBUMS_NAME> to the folder <OUTPUT_FOLDER> given by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this mode).
+- To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
+- To download all albums mathing any pattern you can use patterns in <ALBUMS_NAME>, i.e: --synology-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words.
+- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums 'album1', 'album2', 'album3'.
 
     > [!IMPORTANT]
-    > <ALBUMS_NAME> should exist within your Synology Photos Albums database, otherwise it will no extract anything.
+    > \<ALBUMS_NAME> should exist within your Synology Photos Albums database, otherwise it will no extract anything.
     
     ### Example of use:
     ```
