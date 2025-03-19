@@ -63,11 +63,11 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         # Determine the Tool name based on the OS
         tool_name = ""
         if current_os == "Linux":
-            tool_name = "gpth-linux.bin"
+            tool_name = "gpth_linux.bin"
         elif current_os == "Darwin":
-            tool_name = "gpth-macos.bin"
+            tool_name = "gpth_macos.bin"
         elif current_os == "Windows":
-            tool_name = "gpth-windows.exe"
+            tool_name = "gpth_windows.exe"
 
         # Usar resource_path para acceder a archivos o directorios:
         gpth_tool_path = resource_path(os.path.join("gpth_tool", tool_name))
