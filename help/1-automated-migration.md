@@ -2,7 +2,7 @@
 
 > [!NOTE]  
 >## <span style="color:green">Automated Migration Feature</span>
->From version 3.0.0 onwards, the Tool supports a new Extra Mode called '**AUTOMATED-MIGRATION**' Mode. 
+>From version 3.0.0 onwards, the Tool supports a new Feature called '**AUTOMATED-MIGRATION**' Mode. 
 >
 > Use the argument **'--source'** to select the \<SOURCE> and the argument **'--target'** to select \<TARGET> for the AUTOMATED-MIGRATION Process to Pull all your Assets (including Albums) from the \<SOURCE> Cloud Service and Push them to the \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
 > 

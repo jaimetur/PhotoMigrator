@@ -104,7 +104,7 @@ def parse_arguments():
     PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
     PARSER.add_argument("-loglevel", "--log-level", metavar=f"{choices_for_message_levels}", choices=choices_for_message_levels, default="info", help="Specify the log level for logging and screen messages.")
 
-    # EXTRA MODES FOR GOOGLE PHOTOS:
+    # FEATURES FOR GOOGLE PHOTOS:
     # ------------------------------
     # PARSER.add_argument("-gizf", "--google-input-zip-folder", metavar="<ZIP_FOLDER>", default="", help="Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files will be skipped.")
     PARSER.add_argument("-gitf", "--google-input-takeout-folder", metavar="<TAKEOUT_FOLDER>", default="",
@@ -128,7 +128,7 @@ def parse_arguments():
     PARSER.add_argument("-gsma", "--google-skip-move-albums", action="store_true", help="Skip moving albums to 'Albums' folder.")
     PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skip processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposses.")
 
-    # EXTRA MODES FOR SYNOLOGY PHOTOS:
+    # FEATURES FOR SYNOLOGY PHOTOS:
     # --------------------------------
     PARSER.add_argument("-suAlb", "--synology-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Synology Photos.")
     PARSER.add_argument("-suAll", "--synology-upload-all", metavar="<INPUT_FOLDER>", default="",
@@ -155,7 +155,7 @@ def parse_arguments():
                            "\nOptionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
                         )
 
-    # EXTRA MODES FOR IMMICH PHOTOS:
+    # FEATURES FOR IMMICH PHOTOS:
     # -------------------------------
     PARSER.add_argument("-iuAlb", "--immich-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Immich Photos.")
     PARSER.add_argument("-iuAll", "--immich-upload-all", metavar="<INPUT_FOLDER>", default="",
@@ -185,7 +185,7 @@ def parse_arguments():
 
 
 
-    # OTHERS STAND-ALONE EXTRA MODES:
+    # OTHERS STAND-ALONE FEATURES:
     # -------------------------------
     PARSER.add_argument("-findDup", "--find-duplicates", metavar=f"<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]", nargs="+", default=["list", ""],
                         help="Find duplicates in specified folders."

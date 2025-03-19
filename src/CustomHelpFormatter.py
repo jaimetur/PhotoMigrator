@@ -198,7 +198,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
 
 
-            # EXTRA MODES for Google Photos Takeout Management: two lines before "Specify the Takeout folder to process."
+            # FEATURES for Google Photos Takeout Management: two lines before "Specify the Takeout folder to process."
             if help_text.find("Specify the Takeout folder to process.")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
@@ -211,7 +211,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
 
-            # EXTRA MODES for Synology Photos Management: two lines before the string
+            # FEATURES for Synology Photos Management: two lines before the string
             if help_text.find("and will create one Album per subfolder into Synology Photos.")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
@@ -223,7 +223,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
 
-            # EXTRA MODES for Immich Photos Management: two lines before the string
+            # FEATURES for Immich Photos Management: two lines before the string
             if help_text.find("and will create one Album per subfolder into Immich Photos.")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}

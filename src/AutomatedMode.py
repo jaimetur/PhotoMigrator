@@ -27,7 +27,7 @@ class SharedData:
         self.logs_queue = logs_queue
 
 ####################################
-# EXTRA MODE: AUTOMATED-MIGRATION: #
+# FEATURE: AUTOMATED-MIGRATION: #
 ####################################
 def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show_gpth_progress=None, show_gpth_errors=None, parallel=True, log_level=logging.INFO):
     

@@ -229,7 +229,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 **Date**: 2024-12-24
 
 ### Main Changes:
-- Added Synology Photos Management options with three new Extra Modes:
+- Added Synology Photos Management options with three new Extra Features:
   -- New flag -ca,  --create-albums-synology-photos <ALBUMS_FOLDER> to force Mode: 'Create Albums in Synology Photos'. The Tool will look for all Albums within ALBUM_FOLDER and will create one Album per folder into Synology Photos.
   -- New flag -de,  --delete-empty-albums-synology-photos tofForce Mode: 'Delete Empty Albums in Synology Photos'. The Tool will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database. 
   -- New flag -dd,  --delete-duplicates-albums-synology-photos tofForce Mode: 'Delete Duplicates Albums in Synology Photos'. The Tool will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database. 

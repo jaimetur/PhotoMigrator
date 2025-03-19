@@ -2,18 +2,18 @@
 
 > [!NOTE]
 > ## <span style="color:green">Other Standalone Features</span>
->Additionally, this Tool can be executed with 4 Standalone Extra Modes: 
+>Additionally, this Tool can be executed with 4 Standalone Extra Features: 
 > 
 > - **Find Duplicates** 
 > - **Process Duplicates** 
 > - **Fix Symbolic Links Broken** 
 > - **Folder Rename Content Based** 
 >
-> If more than one Stand Alone Extra Mode is detected, only the first one will be executed
+> If more than one Stand Alone Extra Feature is detected, only the first one will be executed
 
 
 
-## <span style="color:blue">Extra Mode: Find Duplicates:</span>
+## <span style="color:blue">Extra Feature: Find Duplicates:</span>
 - From version 1.4.0 onwards, the Tool has a feature to 'Find Duplicates'. 
 - To run this feature you have to use the flag '-findDup, --find-duplicates \<ACTION> \<DUPLICATES_FOLDER> [\<DUPLICATES_FOLDER> ...]'
 - where, 
@@ -35,7 +35,7 @@
     and will move (because the selected action is 'move') the others duplicates files into the ./Duplicates folder on the root folder of the Tool.
 
 
-## <span style="color:blue">Extra Mode: Process Duplicates:</span>
+## <span style="color:blue">Extra Feature: Process Duplicates:</span>
 - From version 1.6.0 onwards, the Tool has a feature to 'Process Duplicates'. 
 - To run this feature you have to use the flag '-procDup, --process-duplicates <DUPLICATES_REVISED_CSV>'
 - where <DUPLICATES_REVISED_CSV> is the output file generated after execution of the 'Find Duplicates' feature.
@@ -55,7 +55,7 @@
     With this example, the Tool will process the file ./Duplicates/Duplicates_revised.csv
     and for each duplicate, will do the given action according to Action column
 
-## <span style="color:blue">Extra Mode: Fix Symbolic Links Broken:</span>
+## <span style="color:blue">Extra Feature: Fix Symbolic Links Broken:</span>
 - From version 1.5.0 onwards, the Tool has a feature to 'Fix Symbolic Links Broken'. 
 - To run this feature you have to use the flag '-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>'.
 - where <FOLDER_TO_FIX> is the folder that contains the Symbolic Links to fix.
@@ -71,7 +71,7 @@
     the Tool will try to fix it finding the target of the symlink within the same OUTPUT_FOLDER structure.
 
 
-## <span style="color:blue">Extra Mode: Folder Rename Content Based:</span>
+## <span style="color:blue">Extra Feature: Folder Rename Content Based:</span>
 - From version 2.0.0 onwards, the Tool has a feature to 'Rename Albums Folders'.
 - To run this feature you have to use the flag '-renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>'.
 - where <ALBUMS_FOLDER> is the folder that contains all the Albums subfolders to rename.

@@ -2,25 +2,24 @@ def set_help_texts():
     import textwrap
     HELP_TEXTS = {}
 
-    ###################################
-    # EXTRA MODE: AUTOMATED-MIGRATION #
-    ###################################
+    ################################
+    # FEATURE: AUTOMATED-MIGRATION #
+    ################################
     HELP_TEXTS["AUTOMATED-MIGRATION"] = textwrap.dedent(f"""
         ATTENTION!!!: This process will do an AUTOMATED-MIGRATION process, Pulling all your Assets (including Albums) from the <SOURCE> Cloud Service
         and Pushing them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
         """)
 
-    ################################
-    # EXTRA MODE: GOOGLE PHOTOS #
-    ################################
+    ##########################
+    # FEATURE: GOOGLE PHOTOS #
+    ##########################
     HELP_TEXTS["google-photos-takeout"] = textwrap.dedent(f"""
         ATTENTION!!!: This module will process your <TAKEOUT_FOLDER> to fix metadata of all your assets and organize them according with the settings defined by user (above settings).
         """)
 
-    ################################
-    # EXTRA MODES: SYNOLOGY PHOTOS #
-    ################################
-
+    #############################
+    # FEATURES: SYNOLOGY PHOTOS #
+    #############################
     HELP_TEXTS["synology-remove-empty-albums"] = textwrap.dedent(f"""
         ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Empty Albums found in Synology Photos database.
         """)
@@ -76,9 +75,9 @@ def set_help_texts():
         Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument.
         """)
 
-    ##############################
-    # EXTRA MODES: IMMICH PHOTOS #
-    ##############################
+    ###########################
+    # FEATURES: IMMICH PHOTOS #
+    ###########################
     HELP_TEXTS["immich-remove-empty-albums"] = textwrap.dedent(f"""
         ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Empty Albums found in Immich Photos database.
         """)
@@ -136,9 +135,9 @@ def set_help_texts():
         Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument.
         """)
 
-    ##############################
-    # OTHER STANDALONE EXTRA MODES:
-    ##############################
+    ############################
+    # OTHER STANDALONE FEATURES:
+    ############################
     HELP_TEXTS["find-duplicates"]  = textwrap.dedent(f"""
         ATTENTION!!!: This process will process all Duplicates files found in <DUPLICATES_FOLDER> and will apply the given action.
         
