@@ -41,8 +41,8 @@
 > - Remove Orphans Assets
 
 ## <span style="color:blue">Upload Albums (from Local Folder) into Immich Photos:</span>
-- From version 3.0.0 onwards, the script can be executed in 'Create Albums in Immich Photos' Mode. 
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect automatically to your Immich Photos database and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Immich Photos and with the same Album name as Album folder.  
+- From version 3.0.0 onwards, the script can be executed in Mode 'Create Albums in Immich Photos'. 
+- If you configure properly the file 'Config.ini' and execute this Mode, the script will connect automatically to your Immich Photos database and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Immich Photos and with the same Album name as Album folder.  
 - The folder <ALBUMS_FOLDER> can be passed using the Flag: _'-iuAlb,  --immich-upload-albums <ALBUMS_FOLDER>'_
 
     ### Example of use:
@@ -53,8 +53,8 @@
     
 
 ## <span style="color:blue">Download Albums from Immich Photos:</span>
-- From version 3.0.0 onwards, the script can be executed in 'Download Albums from Immich Photos' Mode. 
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect to Immich Photos and Download those Album(s) whose name is in <ALBUMS_NAME> to the folder <OUTPUT_FOLDER> given by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this mode).
+- From version 3.0.0 onwards, the script can be executed in Mode 'Download Albums from Immich Photos'. 
+- If you configure properly the file 'Config.ini' and execute this Mode, the script will connect to Immich Photos and Download those Album(s) whose name is in <ALBUMS_NAME> to the folder <OUTPUT_FOLDER> given by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this mode).
 - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
 - To download all albums mathing any pattern you can use patterns in <ALBUMS_NAME>, i.e: --immich-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words.
 - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums 'album1', 'album2', 'album3'.
@@ -70,8 +70,8 @@
     
 
 ## <span style="color:blue">Upload All (from Local Folder) into Immich Photos:</span>
-- From version 3.0.0 onwards, the script can be executed in 'Upload Folder into Immich Photos' Mode. 
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect automatically to your Immich Photos database and will upload all the assets contained in <INPUT_FOLDER> that are supported by Immich Photos.  
+- From version 3.0.0 onwards, the script can be executed in Mode 'Upload Folder into Immich Photos'. 
+- If you configure properly the file 'Config.ini' and execute this Mode, the script will connect automatically to your Immich Photos database and will upload all the assets contained in <INPUT_FOLDER> that are supported by Immich Photos.  
 - The folder <INPUT_FOLDER> can be passed using the Flag: _'-iuAll,  --immich-upload-all <INPUT_FOLDER>'_
 
     ### Example of use:
@@ -82,8 +82,8 @@
 
 
 ## <span style="color:blue">Download All from Immich Photos:</span>
-- From version 3.0.0 onwards, the script can be executed in 'Download All' Mode.
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.
+- From version 3.0.0 onwards, the script can be executed in Mode 'Download All'.
+- If you configure properly the file 'Config.ini' and execute this Mode, The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.
 - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.
 - Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside.
 
@@ -95,8 +95,8 @@
     
 
 ## <span style="color:blue">Remove All Assets from Immich Photos:</span>
-- From version 3.0.0 onwards, the script can be executed a feature to 'Remove All Assets' from Immich Photos'. 
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect automatically to your Immich Photos database and will remove ALL the assets and Albums found.  
+- From version 3.0.0 onwards, the script supports a feature to 'Remove All Assets' from Immich Photos'. 
+- If you configure properly the file 'Config.ini' and execute this feature, the script will connect automatically to your Immich Photos database and will remove ALL the assets and Albums found.  
 - To execute this Extra Mode, you can use the Flag: _'-srAll, --immich-remove-all-assets'_
     
     > [!IMPORTANT]

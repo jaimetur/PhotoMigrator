@@ -37,7 +37,7 @@
 
 
 ## <span style="color:blue">Download Albums from Synology Photos:</span>
-- From version 2.3.0 onwards, the script can be executed in 'Download Albums from Synology Photos' Mode. 
+- From version 2.3.0 onwards, the script can be executed in Mode 'Download Albums from Synology Photos'. 
 - If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect to Synology Photos and Download those Album(s) whose name is in <ALBUMS_NAME> to the folder <OUTPUT_FOLDER> given by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this mode).
 - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
 - To download all albums mathing any pattern you can use patterns in <ALBUMS_NAME>, i.e: --synology-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words.
