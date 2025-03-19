@@ -27,6 +27,12 @@ def run_command(command, logger, capture_output=False, capture_errors=True):
     """
     if capture_output or capture_errors:
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace")
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE if capture_output else subprocess.DEVNULL,
+            stderr=subprocess.PIPE if capture_errors else subprocess.DEVNULL,
+            text=True, encoding="utf-8", errors="replace"
+        )
         if capture_output:
             for line in process.stdout:
                 logger.info(f"INFO    : {line.strip()}")
@@ -107,7 +113,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             if os.path.exists(all_photos_path) and os.path.isdir(all_photos_path):
                 os.rename(all_photos_path, others_path)
 
-            LOGGER.info(f"INFO    : ✔️ GPTH Tool finxing completed successfully.")
+            LOGGER.info(f"INFO    : ✅ GPTH Tool finxing completed successfully.")
             return True
         except subprocess.CalledProcessError as e:
             LOGGER.error(f"ERROR   : ❌ GPTH Tool fixing failed:\n{e.stderr}")

@@ -134,7 +134,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         if not skip_process:
             if self.needs_process:
                 LOGGER.info("INFO    : 🔢 Input Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
-                base_folder = Path(f"{self.takeout_folder}_processed_{self.TIMESTAMP}")
+                base_folder = Path(f"{self.takeout_folder}_{self.ARGS['google-output-folder-suffix']}_{self.TIMESTAMP}")
                 # Process Takeout_folder and put output into base_folder
                 self.process(output_takeout_folder=base_folder, capture_output=capture_output, capture_errors=capture_errors, log_level=logging.INFO)
                 super().__init__(base_folder)  # Inicializar con la carpeta procesada
@@ -194,8 +194,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"==========================================")
             processing_start_time = datetime.now()
 
-            if capture_output is None: capture_output=ARGS['show-gpth-progress']
-            if capture_errors is None: capture_errors=ARGS['show-gpth-errors']
+            if capture_output is None: capture_output=self.ARGS['show-gpth-progress']
+            if capture_errors is None: capture_errors=self.ARGS['show-gpth-errors']
 
             # step 1: Pre-Process Takeout folder
             self.step += 1
@@ -420,7 +420,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             formatted_duration = str(timedelta(seconds=(processing_end_time - processing_start_time).seconds))
             LOGGER.info("")
             LOGGER.info("=========================================================================================================")
-            LOGGER.info(f"INFO    : ✔️ TAKEOUT PROCESSING FINISHED!!!")
+            LOGGER.info(f"INFO    : ✅ TAKEOUT PROCESSING FINISHED!!!")
             LOGGER.info(f"INFO    : Takeout Precessed Folder: '{output_takeout_folder}'.")
             LOGGER.info("")
             LOGGER.info(f"INFO    : Total Processing Time   :  {formatted_duration}.")
