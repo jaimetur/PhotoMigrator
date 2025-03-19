@@ -58,15 +58,15 @@
 - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
 - To download all albums mathing any pattern you can use patterns in <ALBUMS_NAME>, i.e: --immich-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words.
 - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums 'album1', 'album2', 'album3'.
-  > [!IMPORTANT]
-  > <ALBUMS_NAME> should exist within your Immich Photos Albums database, otherwise it will no extract anything. 
+> [!IMPORTANT]
+> <ALBUMS_NAME> should exist within your Immich Photos Albums database, otherwise it will no extract anything. 
 
   ### Example of use:
   ```
   ./CloudPhotoMigrator.run --immich-download-albums "Album 1", "Album 2", "Album 3"
   ```
   With this example, the Tool will connect to Immich Photos database and extract the Albums "Album 1", "Album 2", "Album 3" with all the photos and videos included on them into a subfolder of 'Immich_Photos_Albums' folder
-  
+
 
 ## <span style="color:blue">Upload All (from Local Folder) into Immich Photos:</span>
 - From version 3.0.0 onwards, the Tool has a feature to 'Upload Folder into Immich Photos'. 
@@ -98,8 +98,8 @@
 - From version 3.0.0 onwards, the Tool supports a feature to 'Remove All Assets from Immich Photos'. 
 - If you configure properly the file 'Config.ini' and execute this feature, the Tool will connect automatically to your Immich Photos database and will remove ALL the assets and Albums found.  
 - To execute this feature, you can use the Flag: _'-irAll, --immich-remove-all-assets'_
-  > [!IMPORTANT]
-      > This process is irreversible and will clean all from your Immich Photos account. Use it if you are completelly sure of what you are doing.
+> [!IMPORTANT]
+> This process is irreversible and will clean all from your Immich Photos account. Use it if you are completelly sure of what you are doing.
       
   ### Example of use:
   ```
@@ -114,7 +114,7 @@
 - To execute this feature, you can use the Flag: _'-irAll, --immich-remove-all-assets'_
 - Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets'
 > [!IMPORTANT]
-    > This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Immich Photos account. Use it if you are completelly sure of what you are doing.
+> This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Immich Photos account. Use it if you are completelly sure of what you are doing.
       
   ### Example of use:
   ```
