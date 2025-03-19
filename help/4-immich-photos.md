@@ -45,12 +45,12 @@
 - If you configure properly the file 'Config.ini' and execute this Mode, the Tool will connect automatically to your Immich Photos database and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Immich Photos and with the same Album name as Album folder.  
 - The folder <ALBUMS_FOLDER> can be passed using the Flag: _'-iuAlb,  --immich-upload-albums <ALBUMS_FOLDER>'_
 
-    ### Example of use:
-    ```
-    ./CloudPhotoMigrator.run --immich-upload-albums ./My_Albums_Folder
-    ```
-    With this example, the Tool will connect to Immich Photos database and process the folder ./My_Albums_Folder and per each subfolder found on it that contains at least one file supported by Immich Photos, will create a new Album in Immich Photos with the same name of the Album Folder
-    
+  ### Example of use:
+  ```
+  ./CloudPhotoMigrator.run --immich-upload-albums ./My_Albums_Folder
+  ```
+  With this example, the Tool will connect to Immich Photos database and process the folder ./My_Albums_Folder and per each subfolder found on it that contains at least one file supported by Immich Photos, will create a new Album in Immich Photos with the same name of the Album Folder
+  
 
 ## <span style="color:blue">Download Albums from Immich Photos:</span>
 - From version 3.0.0 onwards, the Tool has a feature to 'Download Albums from Immich Photos'. 
