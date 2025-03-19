@@ -31,7 +31,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] Added new flag '**-gpthProg, --show-gpth-progress=[true, false]**' (default=false) to show/hide progress messages during GPTH processing.
 - [x] Added new flag '**--gpthErr, --show-gpth-errors=[true, false]**' (default=true) to show/hide errors messages during GPTH processing.
 - [x] Removed argument **'-AUTO, --AUTOMATED-MIGRATION \<SOURCE> \<TARGET>'** because have been replaced with two above arguments for a better visualization.
-- [x] Completelly refactored Automated Migration Process to allow parallel threads for Downloads and Uploads jobs avoiding downloading all assets before to upload them (this will save disk space and improve performance). Also objects support has been added to this mode for an easier implementation and future enhancements.
+- [x] Completely refactored Automated Migration Process to allow parallel threads for Downloads and Uploads jobs avoiding downloading all assets before to upload them (this will save disk space and improve performance). Also objects support has been added to this mode for an easier implementation and future enhancements.
 - [x] Support for 'Uploads Queue' to limit the max number of assets that the Downloader worker will store in the temporary folder to 100 (this save disk space). In this way the Downloader worker will never put more than 100 assets pending to Upload in the local folder.
 - [x] Support Migration between 2 different accounts on the same Cloud Photo Service. 
 > [!IMPORTANT] 
@@ -42,10 +42,10 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] Added new Class ClassLocalFolder with the same methods as other supported Cloud Services Classes to manage Local Folders in the same way as a Photo Cloud Service.
 - [x] ClassTakeoutFolder inherits all methods from ClassLocalFolder and includes specific methods to process Google Takeouts since at the end Google Takeout is a local folder structure.
 - [x] Updated GPTH version to cop latest changes in Google Takeouts. 
-- [x] Minor Bug Fixing.
+- [x] Bug Fixing.
 
 ### Live Dashboard Preview:
-![Live Dashboard](/assets/screenshots/live_dashboard.jpg?raw=true)  
+![Live Dashboard](assets/screenshots/live_dashboard.jpg?raw=true)  
 
 ---
 
