@@ -78,7 +78,7 @@
   ```
   With this example, the Tool will connect to your Immich Photos account and extract the Albums "Album 1", "Album 2", "Album 3" with all the photos and videos included on them into a subfolder of 'Immich_Photos_Albums' folder
 
-  > [!IMPORTANT]  
+  > **⚠ IMPORTANT:**
   > <ALBUMS_NAME> should exist within your Immich Photos Albums database, otherwise it will not extract anything. 
     
 
@@ -135,7 +135,7 @@
   ```
   With this example, the Tool will connect to Immich Photos account and will remove all assets found (including Albums).
   
-> [!IMPORTANT]  
+> **⚠ IMPORTANT:**
 > This process is irreversible and will clean all from your Immich Photos account. Use it if you are completelly sure of what you are doing.
   
 
@@ -155,7 +155,7 @@
   With this example, the Tool will connect to your Immich Photos account and will remove all Albums found (including all the assets contained on them, because we are using the complementary flag).
 
 
-> [!IMPORTANT]  
+> **⚠ IMPORTANT:**
 > This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Immich Photos account. Use it if you are completelly sure of what you are doing.
     
 
