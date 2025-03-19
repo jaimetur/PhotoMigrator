@@ -42,7 +42,8 @@
 - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
 - To download all albums mathing any pattern you can use patterns in <ALBUMS_NAME>, i.e: --synology-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words.
 - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums 'album1', 'album2', 'album3'.
-  🚨 **IMPORTANT**
+  
+  ⚠ **IMPORTANT**
   \<ALBUMS_NAME> should exist within your Synology Photos Albums database, otherwise it will no extract anything.
 
   > [!IMPORTANT]
