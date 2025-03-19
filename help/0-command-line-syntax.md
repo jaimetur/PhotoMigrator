@@ -195,11 +195,11 @@ If more than one optional arguments are detected, only the first one will be exe
              called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure
              inside.
 -srEmpAlb, --synology-remove-empty-albums
-             The Tool will look for all Albums in Synology Photos database and if any
-             Album is empty, will remove it from Synology Photos database.
+             The Tool will look for all Albums in your Synology Photos account and if any
+             Album is empty, will remove it from your Synology Photos account.
 -srDupAlb, --synology-remove-duplicates-albums
-             The Tool will look for all Albums in Synology Photos database and if any
-             Album is duplicated, will remove it from Synology Photos database.
+             The Tool will look for all Albums in your Synology Photos account and if any
+             Album is duplicated, will remove it from your Synology Photos account.
 -srAll,    --synology-remove-all-assets
              CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also
              ALL your Albums from Synology database.
@@ -248,11 +248,11 @@ If more than one optional arguments are detected, only the first one will be exe
              called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure
              inside.
 -irEmpAlb, --immich-remove-empty-albums
-             The Tool will look for all Albums in Immich Photos database and if any
-             Album is empty, will remove it from Immich Photos database.
+             The Tool will look for all Albums in Immich your Photos account and if any
+             Album is empty, will remove it from your Immich Photos account.
 -irDupAlb, --immich-remove-duplicates-albums
-             The Tool will look for all Albums in Immich Photos database and if any
-             Album is duplicated, will remove it from Immich Photos database.
+             The Tool will look for all Albums in Immich your Photos account and if any
+             Album is duplicated, will remove it from your Immich Photos account.
 -irAll,    --immich-remove-all-assets
              CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also
              ALL your Albums from Immich database.

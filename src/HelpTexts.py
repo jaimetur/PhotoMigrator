@@ -21,11 +21,11 @@ def set_help_texts():
     # FEATURES: SYNOLOGY PHOTOS #
     #############################
     HELP_TEXTS["synology-remove-empty-albums"] = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Empty Albums found in Synology Photos database.
+        ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Empty Albums found in your Synology Photos account.
         """)
 
     HELP_TEXTS["synology-remove-duplicates-albums"] = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Duplicates Albums found in Synology Photos database.
+        ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Duplicates Albums found in your Synology Photos account.
         """)
 
     HELP_TEXTS["synology-upload-folder"] = textwrap.dedent(f"""
@@ -52,7 +52,7 @@ def set_help_texts():
         ATTENTION!!!: This process will connect to Synology Photos and download those Album(s) whose name is in: '<ALBUMS_NAME>' 
         to the output folder: '<OUTPUT_FOLDER>'. If the file already exists, it will be OVERWRITTEN!!!
 
-        - To download ALL Albums within in Synology Photos database use 'ALL' as ALBUMS_NAME.
+        - To download ALL Albums within your Synology Photos account use 'ALL' as ALBUMS_NAME.
         - To download all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: dron* to download all albums starting with the word 'dron' followed by other(s) words.
         - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums "album1", "album2", "album3" 
         """)
@@ -79,11 +79,11 @@ def set_help_texts():
     # FEATURES: IMMICH PHOTOS #
     ###########################
     HELP_TEXTS["immich-remove-empty-albums"] = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Empty Albums found in Immich Photos database.
+        ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Empty Albums found in your Immich Photos account.
         """)
 
     HELP_TEXTS["immich-remove-duplicates-albums"] = textwrap.dedent(f"""
-        ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Duplicates Albums found in Immich Photos database.
+        ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Duplicates Albums found in your Immich Photos account.
         """)
 
     HELP_TEXTS["immich-upload-folder"] = textwrap.dedent(f"""
@@ -106,7 +106,7 @@ def set_help_texts():
         ATTENTION!!!: This process will connect to Immich Photos and download those Album(s) whose name is in: '<ALBUMS_NAME>' 
         to the output folder: '<OUTPUT_FOLDER>'.  If the file already exists, it will be OVERWRITTEN!!!
        
-        - To download ALL Albums within in Immich Photos database use 'ALL' as ALBUMS_NAME.
+        - To download ALL Albums within your Immich Photos account use 'ALL' as ALBUMS_NAME.
         - To download all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: dron* to download all albums starting with the word 'dron' followed by other(s) words.
         - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums "album1", "album2", "album3"        
         """)
