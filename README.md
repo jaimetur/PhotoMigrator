@@ -1,4 +1,8 @@
 # CloudPhotoMigrator
+[![total Github Releases downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/total?label=total%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases/)
+[![latest version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/latest/total?label=latest%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases/latest)
+[![resolved Github issues](https://img.shields.io/github/issues-closed/jaimetur/CloudPhotoMigrator?label=resolved%20issues)](https://github.com/jaimetur/CloudPhotoMigrator/issues)
+[![commit activity](https://img.shields.io/github/commit-activity/y/jaimetur/CloudPhotoMigrator)](https://github.com/jaimetur/CloudPhotoMigrator/graphs/contributors)
 
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">**Automated Migration** </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
 
@@ -336,6 +340,13 @@ In this example, the Tool will do an Automated Migration Process which has two s
 - [ ] Update README.md
 - [ ] Update RELEASES-NOTES.md
 
+
+## If you consideer that this Tool has helped you, you can consider donating me with a ☕
+I spent **a lot of** time developping this Tool for free, so donations will contribute to motivate me to continue working on this project 💖  
+
+[![Donate using Paypal](https://img.shields.io/badge/Donate-PayPal-blue.svg?logo=paypal&style=for-the-badge)](https://www.paypal.me/jaimetur)  
+
+<a href="https://www.buymeacoffee.com/jaimetur" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 ## Credits
 I hope this can be useful for any of you.  
 Enjoy it!
