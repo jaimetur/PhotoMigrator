@@ -42,12 +42,12 @@
 
 
 ## <span style="color:blue">Upload Albums (from Local Folder) into Immich Photos:</span>
-- From version 3.0.0 onwards, the Tool has a feature to 'Create Albums in Immich Photos'. 
+- From: v3.0.0 
 - Usage:
   - To run this feature you have to use the flag _'-iuAlb,  --immich-upload-albums <ALBUMS_FOLDER>'_
   - Where \<ALBUMS_FOLDER> is the folder that contains all the Albums that you want to upload,
 - Pre-Requisites:
-  - Cconfigure properly the file 'Config.ini' 
+  - Cconfigure properly the file 'Config.ini' to include your Immich account credentials. 
 - Explanation:
   - The Tool will connect automatically to your Immich Photos account and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Immich Photos and with the same Album name as Album folder.
 
@@ -59,15 +59,19 @@
   
 
 ## <span style="color:blue">Download Albums from Immich Photos:</span>
-- From version 3.0.0 onwards, the Tool has a feature to 'Download Albums from Immich Photos'. 
-- To run this feature you have to use the flag _'-idAlb,  --immich-download-albums <ALBUMS_NAME'_ in combination with the flag _'-o, --output-folder <OUTPUT_FOLDER>'_ (mandatory argument for this feature)
-- Where,
-- \<ALBUMS_NAME> is a list of Albubs names that you want to download.
-- \<OUTPUT_FOLDER> is the folder where you want to download the Albums.
-- If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect to Immich Photos and Download those Album(s) whose name is in <ALBUMS_NAME> to the folder <OUTPUT_FOLDER>.
-- To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
-- To download all albums mathing any pattern you can use patterns in <ALBUMS_NAME>, i.e: --immich-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words.
-- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums 'album1', 'album2', 'album3'.
+- From: v3.0.0
+- Usage:
+  - To run this feature you have to use the flag _'-idAlb,  --immich-download-albums <ALBUMS_NAME'_ in combination with the flag _'-o, --output-folder <OUTPUT_FOLDER>'_ (mandatory argument for this feature)
+  - Where,
+  - \<ALBUMS_NAME> is a list of Albubs names that you want to download.
+  - \<OUTPUT_FOLDER> is the folder where you want to download the Albums.
+- Pre-Requisites:
+  - Cconfigure properly the file 'Config.ini' to include your Immich account credentials. 
+- Explanation:
+  - The Tool will connect to Immich Photos and Download those Album(s) whose name is in <ALBUMS_NAME> to the folder <OUTPUT_FOLDER>.
+  - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
+  - To download all albums mathing any pattern you can use patterns in <ALBUMS_NAME>, i.e: --immich-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words.
+  - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums 'album1', 'album2', 'album3'.
 
   > **⚠ IMPORTANT:**
   > <ALBUMS_NAME> should exist within your Immich Photos Albums database, otherwise it will not extract anything. 
@@ -80,15 +84,18 @@
 
 
 ## <span style="color:blue">Upload All (from Local Folder) into Immich Photos:</span>
-- From version 3.0.0 onwards, the Tool has a feature to 'Upload Folder into Immich Photos'. 
-- To run this feature you have to use the flag _'-iuAll,  --immich-upload-all <INPUT_FOLDER>'_
-- Where,
-- \<INPUT_FOLDER> is the folder that contains all the assets that you want to upload.
-- If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Immich Photos account and will upload all the assets contained in <INPUT_FOLDER> that are supported by Immich Photos.  
-- If you want to create Albums for some specific subfolders you have two options:
-  1. Move all the Albums subfolders into a '<INPUT_FOLDER>/Albums', in this way the Tool will consideer all the subfolders inside as an Album, and will create an Album in Immich Photos with the same name as the subfolder, associating all the assets inside to it.
-  2. Use the complementary argument _'-AlbFld, --albums-folders <ALBUMS_FOLDER>'_, in this way the Tool will create Albums also for each subfolder found in '<ALBUMS_FOLDER>' (apart from those found inside '<INPUT_FOLDER>/Albums')
-
+- From: v3.0.0
+- Usage:
+  - To run this feature you have to use the flag _'-iuAll,  --immich-upload-all <INPUT_FOLDER>'_
+  - Where,
+  - \<INPUT_FOLDER> is the folder that contains all the assets that you want to upload.
+- Pre-Requisites:
+  - Cconfigure properly the file 'Config.ini' to include your Immich account credentials. 
+- Explanation:
+  - The Tool will connect automatically to your Immich Photos account and will upload all the assets contained in <INPUT_FOLDER> that are supported by Immich Photos.  
+  - If you want to create Albums for some specific subfolders you have two options:
+    1. Move all the Albums subfolders into a '<INPUT_FOLDER>/Albums', in this way the Tool will consideer all the subfolders inside as an Album, and will create an Album in Immich Photos with the same name as the subfolder, associating all the assets inside to it.
+    2. Use the complementary argument _'-AlbFld, --albums-folders <ALBUMS_FOLDER>'_, in this way the Tool will create Albums also for each subfolder found in '<ALBUMS_FOLDER>' (apart from those found inside '<INPUT_FOLDER>/Albums')
 
   ### Example of use:
   ```
@@ -98,13 +105,17 @@
 
 
 ## <span style="color:blue">Download All from Immich Photos:</span>
-- From version 3.0.0 onwards, the Tool has a feature to 'Download All from Immich Photos'.
-- To run this feature you have to use the flag _'-idAll, --immich-download-all <OUTPUT_FOLDER>'_
-- Where,
-- \<OUTPUT_FOLDER> is the folder where you want to download all your assets.
-- If you configure properly the file 'Config.ini' and execute this Feature, The Tool will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.
-- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.
-- Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside.
+- From: v3.0.0
+- Usage:
+  - To run this feature you have to use the flag _'-idAll, --immich-download-all <OUTPUT_FOLDER>'_
+  - Where,
+  - \<OUTPUT_FOLDER> is the folder where you want to download all your assets.
+- Pre-Requisites:
+  - Cconfigure properly the file 'Config.ini' to include your Immich account credentials. 
+- Explanation:
+  - The Tool will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.
+  - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.
+  - Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside.
 
   ### Example of use:
   ```
@@ -114,9 +125,13 @@
   
 
 ## <span style="color:blue">Remove All Assets from Immich Photos:</span>
-- From version 3.0.0 onwards, the Tool supports a feature to 'Remove All Assets from Immich Photos'. 
-- To run this feature you have to use the flag _'-irAll, --immich-remove-all-assets'_
-- If you configure properly the file 'Config.ini' and execute this feature, the Tool will connect automatically to your Immich Photos account and will remove ALL the assets and Albums found.  
+- From: v3.0.0
+- Usage:
+  - To run this feature you have to use the flag _'-irAll, --immich-remove-all-assets'_
+- Pre-Requisites:
+  - Cconfigure properly the file 'Config.ini' to include your Immich account credentials. 
+- Explanation:
+  - The Tool will connect automatically to your Immich Photos account and will remove ALL the assets and Albums found.  
 
   > **⚠ IMPORTANT:**
   > This process is irreversible and will clean all from your Immich Photos account. Use it if you are completelly sure of what you are doing.
@@ -129,10 +144,14 @@
   
 
 ## <span style="color:blue">Remove All Albums from Immich Photos:</span>
-- From version 3.0.0 onwards, the Tool can be executed a feature to 'Remove All Albums from Immich Photos'. 
-- To run this feature you have to use the flag _'-irAllAlb, --immich-remove-all-albums'_
-- If you configure properly the file 'Config.ini' and execute this feature, the Tool will connect automatically to your Immich Photos account and will remove all the Albums found.
-- Optionally ALL the Assets associated to each Album can be removed If you also include the complementary argument _'-rAlbAss, --remove-albums-assets'_
+- From: v3.0.0 
+- Usage:
+  - To run this feature you have to use the flag _'-irAllAlb, --immich-remove-all-albums'_
+- Pre-Requisites:
+  - Cconfigure properly the file 'Config.ini' to include your Immich account credentials. 
+- Explanation:
+  - The Tool will connect automatically to your Immich Photos account and will remove all the Albums found.
+  - Optionally ALL the Assets associated to each Album can be removed If you also include the complementary argument _'-rAlbAss, --remove-albums-assets'_
 
   > **⚠ IMPORTANT:**
   > This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Immich Photos account. Use it if you are completelly sure of what you are doing.
@@ -145,9 +164,13 @@
 
 
 ## <span style="color:blue">Remove Empty Albums from Immich Photos:</span>
-- From version 3.0.0 onwards, the Tool has a feature to 'Remove Empty Albums from Immich Photos'. 
-- To run this feature you have to use the flag _'--immich-remove-empty-albums'_
-- If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Immich Photos account and will remove all Empty Albums found.  
+- From: v3.0.0
+- Usage:
+  - To run this feature you have to use the flag _'--immich-remove-empty-albums'_
+- Pre-Requisites:
+  - Cconfigure properly the file 'Config.ini' to include your Immich account credentials. 
+- Explanation:
+  - The Tool will connect automatically to your Immich Photos account and will remove all Empty Albums found.  
 
   ### Example of use:
   ```
@@ -157,9 +180,13 @@
 
 
 ## <span style="color:blue">Remove Duplicates Albums from Immich Photos:</span>
-- From version 3.0.0 onwards, the Tool has a feature to 'Remove Duplicates Albums from Immich Photos'. 
-- To run this feature you have to use the flag _'--immich-remove-duplicates-albums'_
-- If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Immich Photos account and will remove all Duplicates Albums found except the first one (but will not remove the assets associated to them, because they will still be associated with the first Album).  
+- From: v3.0.0
+- Usage:
+  - To run this feature you have to use the flag _'--immich-remove-duplicates-albums'_
+- Pre-Requisites:
+  - Cconfigure properly the file 'Config.ini' to include your Immich account credentials. 
+- Explanation:
+  - The Tool will connect automatically to your Immich Photos account and will remove all Duplicates Albums found except the first one (but will not remove the assets associated to them, because they will still be associated with the first Album).  
 
   ### Example of use:
   ```
@@ -169,10 +196,14 @@
 
 
 ## <span style="color:blue">Remove Orphans Assets from Immich Photos:</span>
-- From version 3.0.0 onwards, the Tool has a feature to 'Remove Orphans Assets from Immich Photos'.
-- An Orphan asset is an asset that is in your Immich Photos account but is pointing to a non-existing file.  
-- To run this feature you have to use the flag _'--immich-remove-orphan-assets'_
-- If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Immich Photos account and will remove all Orphan assets found.
+- From: v3.0.0
+- Usage:
+  - To run this feature you have to use the flag _'--immich-remove-orphan-assets'_
+- Pre-Requisites:
+  - Cconfigure properly the file 'Config.ini' to include your Immich account credentials and the administrator credential (mandatory for this feature)
+- Explanation:
+  - An Orphan asset is an asset that is in your Immich Photos account but is pointing to a non-existing file.  
+  - The Tool will connect automatically to your Immich Photos account and will remove all Orphan assets found.
 
   ### Example of use:
   ```
