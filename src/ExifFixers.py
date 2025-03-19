@@ -80,8 +80,10 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             gpth_command.append(input_folder)
 
         # By default force --no-divide-to-dates and the Tool will create date structure if needed
-        # gpth_command.append("--no-divide-to-dates") # For previous versions of the original GTPH tool
-        gpth_command.append("--divide-to-dates=0")  # 0: No divide, 1: year, 2: year/month, 3: year/month/day
+        gpth_command.append("--no-divide-to-dates") # For previous versions of the original GTPH tool
+
+        # The new version of GPTH have changed this argument:
+        # gpth_command.append("--divide-to-dates=0")  # 0: No divide, 1: year, 2: year/month, 3: year/month/day
 
         # Append --albums shortcut / duplicate-copy based on value of flag -sa, --symbolic-albums
         gpth_command.append("--albums")
