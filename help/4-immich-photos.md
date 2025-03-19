@@ -43,9 +43,13 @@
 
 ## <span style="color:blue">Upload Albums (from Local Folder) into Immich Photos:</span>
 - From version 3.0.0 onwards, the Tool has a feature to 'Create Albums in Immich Photos'. 
-- To run this feature you have to use the flag _'-iuAlb,  --immich-upload-albums <ALBUMS_FOLDER>'_
-- Where \<ALBUMS_FOLDER> is the folder that contains all the Albums that you want to upload,
-- If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Immich Photos account and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Immich Photos and with the same Album name as Album folder.  
+- Usage:
+  - To run this feature you have to use the flag _'-iuAlb,  --immich-upload-albums <ALBUMS_FOLDER>'_
+  - Where \<ALBUMS_FOLDER> is the folder that contains all the Albums that you want to upload,
+- Pre-Requisites:
+  - Cconfigure properly the file 'Config.ini' 
+- Explanation:
+  - The Tool will connect automatically to your Immich Photos account and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Immich Photos and with the same Album name as Album folder.
 
   ### Example of use:
   ```
