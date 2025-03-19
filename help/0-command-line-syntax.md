@@ -1,13 +1,13 @@
 # Command Line Syntax:
 ```
 ---------------------------------------------------------------------------------------------------------
-
 usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
                                   [-dashboard [[true, false]]]
                                   [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
                                   [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
-                                  [-rAlbAss] [-gpthProg [[true, false]]]
-                                  [-gpthErr [[true, false]]] [-nolog]
+                                  [-rAlbAss]
+                                  [-gpthProg [[true, false]]] [-gpthErr [[true, false]]]
+                                  [-nolog]
                                   [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
                                   [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
@@ -292,7 +292,6 @@ If more than one Feature is detected, only the first one will be executed.
 -renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>
              Usefull to rename and homogenize all Albums folders found in
              <ALBUMS_FOLDER> based on the date content found.
-
 
 ---------------------------------------------------------------------------------------------------------
 ```
