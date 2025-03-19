@@ -78,9 +78,9 @@
   ```
   With this example, the Tool will connect to your Immich Photos account and extract the Albums "Album 1", "Album 2", "Album 3" with all the photos and videos included on them into a subfolder of 'Immich_Photos_Albums' folder
 
-  > **⚠ IMPORTANT:**
-  > <ALBUMS_NAME> should exist within your Immich Photos Albums database, otherwise it will not extract anything. 
-    
+> **⚠ IMPORTANT:**
+> <ALBUMS_NAME> should exist within your Immich Photos Albums database, otherwise it will not extract anything. 
+  
 
 ## <span style="color:blue">Upload All (from Local Folder) into Immich Photos:</span>
 - **From:** v3.0.0
