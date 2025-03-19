@@ -6,7 +6,7 @@ As of today, the Supported Photo Cloud Services are:
 - **Google Photos Takeout**
   - Unpack your Takeout Zip files.
   - Process .json files to fix metadata (including creation date and time) of all your assets.
-  - Merge Live picture with sepparate files (.HEIC and .MP4).
+  - Merge Live picture with separate files (.HEIC and .MP4).
   - Separate your assets per Albums (if belong to any album).
   - Organize your assets in a year/month structure for a better organization.
   - Create Symbolic Links for assets within any Album (to save disk space).
@@ -63,7 +63,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)
 
 ## Documentation Links:
-- [Command Line Syntax](/help/0-command-line-syntax)  
+- [Command Line Syntax](/help/0-command-line-syntax.md)  
 - [Automated Migration Feature](/help/1-automated-migration.md)  
 - [Google Takeout Management](/help/2-google-takeout.md)  
 - [Synology Photos Management](/help/3-synology-photos.md)  
@@ -125,7 +125,7 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
 
 ## Command Line Syntax:
 You can check the whole list of functions and arguments with the right syntax here:  
-[Command Line Syntax](help/0-command-line-syntax)
+[Command Line Syntax](help/0-command-line-syntax.md)
 
 ## Main Use Case: Automated Migration Feature
 
