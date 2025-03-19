@@ -71,7 +71,7 @@
 
 ## <span style="color:blue">Download All from Synology Photos:</span>
 - From version 3.0.0 onwards, the script can be executed in 'Download All' Mode.
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.
+- If you configure properly the file 'Config.ini' and execute this Extra Mode, The Tool will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.
 - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.
 - Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside.
 

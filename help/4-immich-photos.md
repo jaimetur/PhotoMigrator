@@ -166,6 +166,7 @@
   With this example, the Tool will connect to Immich Photos database and will delete all Orphan Assets found.
   
 
+
 ## Credits
 I hope this can be useful for any of you.  
 Enjoy it!

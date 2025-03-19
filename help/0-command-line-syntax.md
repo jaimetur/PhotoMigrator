@@ -174,7 +174,7 @@ If more than one optional arguments are detected, only the first one will be exe
              passed, then this function will create Albums also for each subfolder found
              in <ALBUMS_FOLDER>.
 -sdAlb,    --synology-download-albums <ALBUMS_NAME>
-             The Script will connect to Synology Photos and download the Album whose
+             The Tool will connect to Synology Photos and download the Album whose
              name is '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the argument
              '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this mode).
              - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
@@ -185,7 +185,7 @@ If more than one optional arguments are detected, only the first one will be exe
              and put the name between double quotes. i.e: --synology-download-albums
              'album1', 'album2', 'album3'.
 -sdAll,    --synology-download-all <OUTPUT_FOLDER>
-             The Script will connect to Synology Photos and will download all the Album
+             The Tool will connect to Synology Photos and will download all the Album
              and Assets without Albums into the folder <OUTPUT_FOLDER>.
              - All Albums will be downloaded within a subfolder of
              <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will
@@ -226,7 +226,7 @@ If more than one optional arguments are detected, only the first one will be exe
              passed, then this function will create Albums also for each subfolder found
              in <ALBUMS_FOLDER>.
 -idAlb,    --immich-download-albums <ALBUMS_NAME>
-             The Script will connect to Immich Photos and download the Album whose name
+             The Tool will connect to Immich Photos and download the Album whose name
              is '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the argument '-o,
              --output-folder <OUTPUT_FOLDER>' (mandatory argument for this mode).
              - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
@@ -237,7 +237,7 @@ If more than one optional arguments are detected, only the first one will be exe
              and put the name between double quotes. i.e: --immich-download-albums
              'album1', 'album2', 'album3'.
 -idAll,    --immich-download-all <OUTPUT_FOLDER>
-             The Script will connect to Immich Photos and will download all the Album
+             The Tool will connect to Immich Photos and will download all the Album
              and Assets without Albums into the folder <OUTPUT_FOLDER>.
              - All Albums will be downloaded within a subfolder of
              <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will

@@ -121,7 +121,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
   - **-suAlb,    --synology-upload-albums <ALBUMS_FOLDER>**  
     - The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Synology Photos.
   - **-sdAlb,    --synology-download-albums <ALBUMS_NAME>**
-    - The Script will connect to Synology Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Download_Synology' within the Synology Photos root folder.
+    - The Tool will connect to Synology Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Download_Synology' within the Synology Photos root folder.
     - To extract all albums mathing any pattern you can use patterns in <ALBUMS_NAME>, i.e: --synology-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words.
     - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums 'album1', 'album2', 'album3'.
     - To download ALL Albums use 'ALL' as <ALBUMS_NAME>. 
@@ -129,7 +129,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
     - The Tool will look for all Assets within <INPUT_FOLDER> and will upload them into Synology Photos.  
     - If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of 'Albums' will be associated to a new Album in Synology Photos with the same name as the subfolder
   - **-sdAll,    --synology-download-all <OUTPUT_FOLDER>**  
-    - The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
+    - The Tool will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
     - Albums will be downloaded within a subfolder '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
     - Assets with no Albums associated will be downloaded within a subfolder 'OUTPUT_FOLDER/No-Albums/' and will have a year/month structure inside.
   - **-srEmpAlb  --synology-remove-empty-albums**  
@@ -143,14 +143,14 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
   - **-iuAlb,    --immich-upload-albums <ALBUMS_FOLDER>**  
     - The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Immich Photos.  
   - **-idAlb,    --immich-download-albums <ALBUMS_NAME>**  
-    - The Script will connect to Immich Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Immich_Photos_Albums' within the Immich Photos root folder.  
+    - The Tool will connect to Immich Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Immich_Photos_Albums' within the Immich Photos root folder.  
     - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums" "album1", "album2", "album3".  
     - To download ALL Albums use "ALL" as <ALBUMS_NAME>.   
   - **-iuAll,    --immich-upload-all <INPUT_FOLDER>**
     - The Tool will look for all Assets within <INPUT_FOLDER> and will upload them into Immich Photos.  
     - If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of 'Albums' will be associated to a new Album in Immich Photos with the same name as the subfolder
   - **-idAll,    --immich-download-all <OUTPUT_FOLDER>>**  
-    - The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
+    - The Tool will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
     - Albums will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
     - Assets with no Albums associated will be downloaded within a subfolder called '<OUTPUT_FOLDER>/No-Albums/' and will have a year/month structure inside.
   - **-irEmpAlb, --immich-remove-empty-albums**  

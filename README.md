@@ -52,7 +52,7 @@ Apart from Manage the different Photo Cloud Services, the Tool also contains som
 - **Remove Empty Albums in Photo Cloud Services** 
 - **Remove Duplicates Albums in Photo Cloud Services** 
 
-The Script is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), 
+The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), 
 so feel free to download the version according to your system.
 
 ## Download:
