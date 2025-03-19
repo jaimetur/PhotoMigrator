@@ -29,7 +29,7 @@
 ## <span style="color:blue">Upload Albums (from Local Folder) into Synology Photos:</span>
 - From version 2.0.0 onwards, the Tool has a feature to 'Create Albums in Synology Photos'. 
 - To run this feature you have to use the flag _'-suAlb,  --synology-upload-albums <ALBUMS_FOLDER>'_
-- where \<ALBUMS_FOLDER> is the folder that contains all the Albums that you want to upload,
+- Where \<ALBUMS_FOLDER> is the folder that contains all the Albums that you want to upload,
 - If you configure properly the file 'Config.ini' and execute this feature, the Tool will connect automatically to your Synology Photos account and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Synology Photos and with the same Album name as Album folder.  
 
   ### Example of use:
@@ -42,7 +42,7 @@
 ## <span style="color:blue">Download Albums from Synology Photos:</span>
 - From version 2.3.0 onwards, the Tool has a feature to 'Download Albums from Synology Photos'. 
 - To run this feature you have to use the flag _'-sdAlb,  --synology-download-albums <ALBUMS_NAME'_ in combination with the flag _'-o, --output-folder <OUTPUT_FOLDER>'_ (mandatory argument for this feature)
-- where,
+- Where,
 - \<ALBUMS_NAME> is a list of Albubs names that you want to download.
 - \<OUTPUT_FOLDER> is the folder where you want to download the Albums.
 - If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect to Synology Photos and Download those Album(s) whose name is in <ALBUMS_NAME> to the folder <OUTPUT_FOLDER>.
@@ -63,7 +63,7 @@
 ## <span style="color:blue">Upload All (from Local Folder) into Synology Photos:</span>
 - From version 3.0.0 onwards, the Tool has a feature to 'Upload Folder into Synology Photos'. 
 - To run this feature you have to use the flag _'-iuAll,  --synology-upload-all <INPUT_FOLDER>'_
-- where,
+- Where,
 - \<INPUT_FOLDER> is the folder that contains all the assets that you want to upload.
 - If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Synology Photos account and will upload all the assets contained in <INPUT_FOLDER> that are supported by Synology Photos.  
 - If you want to create Albums for some specific subfolders you have two options:
@@ -80,7 +80,7 @@
 ## <span style="color:blue">Download All from Synology Photos:</span>
 - From version 3.0.0 onwards, the Tool has a feature to 'Download All from Synology Photos'.
 - To run this feature you have to use the flag _'-idAll, --synology-download-all <OUTPUT_FOLDER>'_
-- where,
+- Where,
 - \<OUTPUT_FOLDER> is the folder where you want to download all your assets.
 - If you configure properly the file 'Config.ini' and execute this Feature, The Tool will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.
 - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.
