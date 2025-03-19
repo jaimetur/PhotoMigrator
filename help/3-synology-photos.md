@@ -16,14 +16,15 @@
 >>SYNOLOGY_PASSWORD_2         = password_2                                    # Account 2: Your password for Synology Photos
 >>```
 >### Features included:
-> - Upload Album(s) (from folder)
-> - Download Album(s) (into folder)
-> - Upload ALL (from folder)
-> - Download ALL (into folder)
-> - Remove ALL Assets
-> - Remove ALL Albums
-> - Remove Empty Albums
-> - Remove Duplicates Albums
+> 1. Upload Album(s) (from folder)
+> 2. Download Album(s) (into folder)
+> 3. Upload ALL (from folder)
+> 4. Download ALL (into folder)
+> 5. Remove ALL Assets
+> 6. Remove ALL Albums
+> 7. Remove Empty Albums
+> 8. Remove Duplicates Albums
+
 
 ## <span style="color:blue">Upload Albums (from Local Folder) into Synology Photos:</span>
 - From version 2.0.0 onwards, the Tool has a feature to 'Create Albums in Synology Photos'. 

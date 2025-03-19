@@ -30,15 +30,16 @@
 >>IMMICH_FILTER_PERSON        = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: ['Mery', 'James'])
 >>```
 >### Features included:
-> - Upload Album(s) (from folder)
-> - Download Album(s) (into folder)
-> - Upload ALL (from folder)
-> - Download ALL (into folder)
-> - Remove ALL Assets
-> - Remove ALL Albums
-> - Remove Empty Albums
-> - Remove Duplicates Albums
-> - Remove Orphans Assets
+> 1. Upload Album(s) (from folder)
+> 2. Download Album(s) (into folder)
+> 3. Upload ALL (from folder)
+> 4. Download ALL (into folder)
+> 5. Remove ALL Assets
+> 6. Remove ALL Albums
+> 7. Remove Empty Albums
+> 8. Remove Duplicates Albums
+> 9. Remove Orphans Assets
+
 
 ## <span style="color:blue">Upload Albums (from Local Folder) into Immich Photos:</span>
 - From version 3.0.0 onwards, the Tool has a feature to 'Create Albums in Immich Photos'. 
