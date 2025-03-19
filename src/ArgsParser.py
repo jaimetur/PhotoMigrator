@@ -107,7 +107,10 @@ def parse_arguments():
     # EXTRA MODES FOR GOOGLE PHOTOS:
     # ------------------------------
     # PARSER.add_argument("-gizf", "--google-input-zip-folder", metavar="<ZIP_FOLDER>", default="", help="Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files will be skipped.")
-    PARSER.add_argument("-gitf", "--google-input-takeout-folder", metavar="<TAKEOUT_FOLDER>", default="Takeout", help="Specify the Takeout folder to process. If any Zip file is found inside it, the Zip will be extracted to the folder 'Unzipped_Takeout_TIMESTAMP', and will use the that folder as input <TAKEOUT_FOLDER>. Default: 'Takeout'.")
+    PARSER.add_argument("-gitf", "--google-input-takeout-folder", metavar="<TAKEOUT_FOLDER>", default="",
+                        help="Specify the Takeout folder to process. If any Zip file is found inside it, the Zip will be extracted to the folder 'Unzipped_Takeout_TIMESTAMP', and will use the that folder as input <TAKEOUT_FOLDER>."
+                          "\nThis argument is mandatory to run the Google Takeout Processor Feature."
+                        )
     PARSER.add_argument("-gofs", "--google-output-folder-suffix", metavar="<SUFFIX>", default="processed", help="Specify the suffix for the output folder. Default: 'processed'")
     PARSER.add_argument("-gafs", "--google-albums-folders-structure", metavar=f"{choices_for_folder_structure}", default="flatten", help="Specify the type of folder structure for each Album folder (Default: 'flatten')."
                         , type=lambda s: s.lower()  # Convert input to lowercase
@@ -294,7 +297,7 @@ def checkArgs(ARGS, PARSER):
         exit(1)
 
     # Parse albums-folders Arguments to convert to a List if more than one Album folder is provide
-    ARGS['albums-folders'] = parse_folders(ARGS['albums-folders'])
+    ARGS['albums-folders'] = parse_folders_list(ARGS['albums-folders'])
     # if ARGS['albums-folders'] == []:
     #     ARGS['albums-folders'] = 'Albums'
 
@@ -310,7 +313,7 @@ def checkArgs(ARGS, PARSER):
     if ARGS['duplicates-action'] == "" and ARGS['duplicates-folders'] !=[]:
         ARGS['duplicates-action'] = 'list'  # Valor por defecto
         DEFAULT_DUPLICATES_ACTION = True
-    ARGS['duplicates-folders'] = parse_folders(ARGS['duplicates-folders'] )
+    ARGS['duplicates-folders'] = parse_folders_list(ARGS['duplicates-folders'])
 
     # Parse 'immich-remove-all-albums in combination with 'including-albums-assets'
     if ARGS['remove-albums-assets'] and not ARGS['immich-remove-all-albums']:
@@ -319,7 +322,7 @@ def checkArgs(ARGS, PARSER):
 
     return ARGS
 
-def parse_folders(folders):
+def parse_folders_list(folders):
     # Si "folders" es un string, separar por comas o espacios
     if isinstance(folders, str):
         return folders.replace(',', ' ').split()

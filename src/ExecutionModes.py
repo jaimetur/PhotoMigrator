@@ -161,11 +161,16 @@ def detect_and_run_execution_mode():
 ##############################
 def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
     # Configure default arguments for mode_google_takeout() execution
+    LOGGER.info(f"Starting Google Takeout Photos Processor Feature...")
+    LOGGER.info("")
     if ARGS['output-folder']:
         OUTPUT_TAKEOUT_FOLDER = ARGS['output-folder']
     else:
         OUTPUT_TAKEOUT_FOLDER = f"{ARGS['google-input-takeout-folder']}_{ARGS['google-output-folder-suffix']}_{TIMESTAMP}"
     input_folder = ARGS['google-input-takeout-folder']
+    if not Utils.dir_exists(input_folder):
+        LOGGER.error(f"ERROR   : The Input Folder {input_folder} does not exists. Exiting...")
+        sys.exit(-1)
     need_unzip = Utils.contains_zip_files(input_folder)
     if need_unzip:
         ARGS['google-input-zip-folder'] = input_folder
@@ -174,8 +179,18 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("")
 
     # Mensajes informativos
-    LOGGER.info(f"Settings for Google Takeout Photos Module:")
-    LOGGER.info(f"------------------------------------------")
+    LOGGER.info(f"Folders for Google Takeout Photos Feature:")
+    LOGGER.info(f"-------------------------------------------")
+    if ARGS['google-input-zip-folder']:
+        LOGGER.info(f"INFO    : Input Takeout folder (zipped detected)   : '{ARGS['google-input-zip-folder']}'")
+        LOGGER.info(f"INFO    : Input Takeout will be unzipped to folder : '{input_folder}_unzipped_{TIMESTAMP}'")
+    else:
+        LOGGER.info(f"INFO    : Input Takeout folder                     : '{ARGS['google-input-takeout-folder']}'")
+    LOGGER.info(f"INFO    : Output Takeout folder                    : '{OUTPUT_TAKEOUT_FOLDER}'")
+    LOGGER.info(f"")
+
+    LOGGER.info(f"Settings for Google Takeout Photos Feature:")
+    LOGGER.info(f"-------------------------------------------")
     LOGGER.info(f"INFO    : Using Suffix                             : '{ARGS['google-output-folder-suffix']}'")
     LOGGER.info(f"INFO    : Albums Folder Structure                  : '{ARGS['google-albums-folders-structure']}'")
     LOGGER.info(f"INFO    : No Albums Folder Structure               : '{ARGS['google-no-albums-folder-structure']}'")
@@ -189,15 +204,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
     LOGGER.info(f"INFO    : Show GPTH Progress                       : '{ARGS['show-gpth-progress']}'")
     LOGGER.info(f"INFO    : Show GPTH Errors                         : '{ARGS['show-gpth-errors']}'")
     LOGGER.info("")
-    LOGGER.info(f"Folders for Google Takeout Photos Module:")
-    LOGGER.info(f"------------------------------------------")
-    if ARGS['google-input-zip-folder']:
-        LOGGER.info(f"INFO    : Input Takeout folder (zipped detected)   : '{ARGS['google-input-zip-folder']}'")
-        LOGGER.info(f"INFO    : Input Takeout will be unziped to folder  : '{input_folder}_unzipped_{TIMESTAMP}'")
-    else:
-        LOGGER.info(f"INFO    : Input Takeout folder                     : '{ARGS['google-input-takeout-folder']}'")
-    LOGGER.info(f"INFO    : OUTPUT folder                            : '{OUTPUT_TAKEOUT_FOLDER}'")
-    LOGGER.info(f"")
+
     if user_confirmation:
         LOGGER.info(HELP_TEXTS["google-photos-takeout"].replace('<TAKEOUT_FOLDER>',f"'{ARGS['google-input-takeout-folder']}'"))
         if not Utils.confirm_continue():
@@ -795,7 +802,7 @@ def mode_immich_download_albums(user_confirmation=True, log_level=logging.INFO):
         # Execute remove_duplicates_assets
         LOGGER.info("")
         LOGGER.info("INFO    : Removing Duplicates Assets...")
-        duplicates_assets_removed = remove_duplicates_assets(log_level=logging.WARNING)
+        duplicates_assets_removed = immich.remove_duplicates_assets(log_level=logging.WARNING)
         # Call the Function
         albums_downloaded, assets_downloaded = immich.download_albums(albums_name=ARGS['immich-download-albums'], output_folder=ARGS['output-folder'], log_level=logging.WARNING)
         # logout

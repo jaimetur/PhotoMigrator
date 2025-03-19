@@ -32,6 +32,9 @@ def tqdm(*args, **kwargs):
             kwargs['file'] = TQDM_LOGGER_INSTANCE
     return original_tqdm(*args, **kwargs)
 
+def dir_exists(dir):
+    return os.path.isdir(dir)
+
 def change_workingdir():
     """ Definir la ruta de trabajo deseada """
     WORKING_DIR = r"R:\jaimetur\CloudPhotoMigrator"
