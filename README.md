@@ -336,7 +336,6 @@ In this example, the Tool will do an Automated Migration Process which has two s
 - [ ] Update README.md
 - [ ] Update RELEASES-NOTES.md
 
-
 ## Credits
 I hope this can be useful for any of you.  
 Enjoy it!
