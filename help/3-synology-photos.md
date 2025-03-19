@@ -26,8 +26,8 @@
 > - Remove Duplicates Albums
 
 ## <span style="color:blue">Upload Albums (from Local Folder) into Synology Photos:</span>
-- From version 2.0.0 onwards, the Tool can be executed in 'Create Albums in Synology Photos' Mode. 
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, the Tool will connect automatically to your Synology Photos database and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Synology Photos and with the same Album name as the Album subfolder.  
+- From version 2.0.0 onwards, the Tool has a feature to 'Upload Albums into Synology Photos'. 
+- If you configure properly the file 'Config.ini' and execute this feature, the Tool will connect automatically to your Synology Photos database and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Synology Photos and with the same Album name as the Album subfolder.  
 
     ### Example of use:
     ```
@@ -37,8 +37,8 @@
 
 
 ## <span style="color:blue">Download Albums from Synology Photos:</span>
-- From version 2.3.0 onwards, the Tool can be executed in Mode 'Download Albums from Synology Photos'. 
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, the Tool will connect to Synology Photos and Download those Album(s) whose name is in <ALBUMS_NAME> to the folder <OUTPUT_FOLDER> given by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this mode).
+- From version 2.3.0 onwards, the Tool has a feature to 'Download Albums from Synology Photos'. 
+- If you configure properly the file 'Config.ini' and execute this Mode, the Tool will connect to Synology Photos and Download those Album(s) whose name is in <ALBUMS_NAME> to the folder <OUTPUT_FOLDER> given by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this mode).
 - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
 - To download all albums mathing any pattern you can use patterns in <ALBUMS_NAME>, i.e: --synology-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words.
 - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums 'album1', 'album2', 'album3'.
@@ -54,8 +54,8 @@
 
 
 ## <span style="color:blue">Upload All (from Local Folder) into Synology Photos:</span>
-- From version 3.0.0 onwards, the Tool can be executed in 'Upload Folder into Synology Photos' Mode. 
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, the Tool will connect automatically to your Synology Photos database and will upload all the assets contained in <INPUT_FOLDER> that are supported by Synology Photos.  
+- From version 3.0.0 onwards, the Tool has a feature to 'Upload Folder into Synology Photos'. 
+- If you configure properly the file 'Config.ini' and execute this feature, the Tool will connect automatically to your Synology Photos database and will upload all the assets contained in <INPUT_FOLDER> that are supported by Synology Photos.  
 - The folder <INPUT_FOLDER> can be passed using the Flag: _**'-suAll,  --synology-upload-all <INPUT_FOLDER>'**_ 
 - The tool will create a new Album per each subfolder found in 'Album' subfolder, and all assets inside each subfolder off 'Album' Will be associated to a new Album in Synology Photos database with the same name as the container subfolder. 
 - If the argument _**'-AlbFld, --albums-folder <ALBUMS_FOLDER>'**_ is also given, then the tool Will create Albums also for each subfolder found in <ALBUMS_FOLDER>.
@@ -68,8 +68,8 @@
 
 
 ## <span style="color:blue">Download All from Synology Photos:</span>
-- From version 3.0.0 onwards, the Tool can be executed in 'Download All' Mode.
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.
+- From version 3.0.0 onwards, the Tool has a feature to 'Download All from Synology Photos'.
+- If you configure properly the file 'Config.ini' and execute this feature, The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.
 - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.
 - Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside.
 
@@ -80,9 +80,9 @@
     With this example, the Tool will connect to Synology Photos database and download ALL your library into the local folder ./MyLibrary.
     
 ## <span style="color:blue">Remove All Assets from Synology Photos:</span>
-- From version 3.0.0 onwards, the Tool can be executed a feature to 'Remove All Assets' from Synology Photos'. 
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, the Tool will connect automatically to your Synology Photos database and will remove ALL the assets and Albums found.  
-- To execute this Extra Mode, you can use the Flag: _'-srAll, --synology-remove-all-assets'_
+- From version 3.0.0 onwards, the Tool can be executed a feature to 'Remove All Assets from Synology Photos'. 
+- If you configure properly the file 'Config.ini' and execute this feature, the Tool will connect automatically to your Synology Photos database and will remove ALL the assets and Albums found.  
+- To execute this feature, you can use the Flag: _'-srAll, --synology-remove-all-assets'_
     
     > [!IMPORTANT]
         > This process is irreversible and will clean all from your Synology Photos account. Use it if you are completelly sure of what you are doing.
@@ -95,9 +95,9 @@
     
 
 ## <span style="color:blue">Remove All Albums from Synology Photos:</span>
-- From version 3.0.0 onwards, the Tool can be executed a feature to 'Remove All Albums' from Synology Photos'. 
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, the Tool will connect automatically to your Synology Photos database and will remove ALL the Albums found.
-- To execute this Extra Mode, you can use the Flag: _'-srAll, --synology-remove-all-assets'_
+- From version 3.0.0 onwards, the Tool can be executed a feature to 'Remove All Albums from Synology Photos'. 
+- If you configure properly the file 'Config.ini' and execute this feature, the Tool will connect automatically to your Synology Photos database and will remove ALL the Albums found.
+- To execute this feature, you can use the Flag: _'-srAll, --synology-remove-all-assets'_
 - Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets'
     
     > [!IMPORTANT]
@@ -110,11 +110,11 @@
     With this example, the Tool will connect to Synology Photos database and will delete all Duplicates Albums found.
     
 
-## <span style="color:blue">Delete Empty Albums in Synology Photos:</span>
-- From version 2.0.0 onwards, the Tool can be executed in 'Delete Empty Albums in Synology Photos' Mode. 
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, the Tool will connect automatically to your Synology Photos database and will look for all Empty Albums in Synology Photos database.  
+## <span style="color:blue">Delete Empty Albums from Synology Photos:</span>
+- From version 2.0.0 onwards, the Tool has a feature to 'Delete Empty Albums from Synology Photos'. 
+- If you configure properly the file 'Config.ini' and execute this feature, the Tool will connect automatically to your Synology Photos database and will look for all Empty Albums in Synology Photos database.  
 - If any Empty Album is found, the Tool will remove it from Synology Photos.  
-- To execute this Extra Mode, you can use the Flag: _'-srEmpAlb, --synology-remove-empty-albums'_
+- To execute this feature, you can use the Flag: _'-srEmpAlb, --synology-remove-empty-albums'_
 
     ### Example of use:
     ```
@@ -123,11 +123,11 @@
     With this example, the Tool will connect to Synology Photos database and will delete all Empty Albums found.
 
 
-## <span style="color:blue">Delete Duplicates Albums in Synology Photos:</span>
-- From version 2.0.0 onwards, the Tool can be executed in 'Delete Duplicates Albums in Synology Photos' Mode. 
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, the Tool will connect automatically to your Synology Photos database and will look for all Duplicates Albums in Synology Photos database.  
+## <span style="color:blue">Delete Duplicates Albums from Synology Photos:</span>
+- From version 2.0.0 onwards, the Tool has a feature to 'Delete Duplicates Albums from Synology Photos'. 
+- If you configure properly the file 'Config.ini' and execute this feature, the Tool will connect automatically to your Synology Photos database and will look for all Duplicates Albums in Synology Photos database.  
 - If any Duplicated Album is found, the Tool will remove it from Synology Photos.  
-- To execute this Extra Mode, you can use the Flag: _'-srDupAlb, --synology-remove-duplicates-albums'_
+- To execute this feature, you can use the Flag: _'-srDupAlb, --synology-remove-duplicates-albums'_
 
     ### Example of use:
     ```
