@@ -1,4 +1,4 @@
-# <span style="color:green">Google Takeout Management Documentation:</span>
+# <span style="color:green">Documentation: Google Takeout Management</span>
 
 >[!NOTE]
 >## <span style="color:green">Google Takeout Support</span>

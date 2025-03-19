@@ -1,4 +1,4 @@
-# <span style="color:green">Automated Migration Feature Documentation:</span>
+# <span style="color:green">Documentation: Automated Migration Feature</span>
 
 > [!NOTE]  
 >## <span style="color:green">Automated Migration Feature</span>
