@@ -122,7 +122,7 @@
   With this example, the Tool will connect to your Synology Photos account and will remove all Albums found (including all the assets contained on them, because we are using the complementary flag).
 
 
-## <span style="color:blue">Remove Empty Albums in Synology Photos:</span>
+## <span style="color:blue">Remove Empty Albums from Synology Photos:</span>
 - From version 2.0.0 onwards, the Tool has a feature to 'Remove Empty Albums from Synology Photos'. 
 - To run this feature you have to use the flag _'--synology-remove-empty-albums'_
 - If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Synology Photos account and will remove all Empty Albums found.  
@@ -134,7 +134,7 @@
   With this example, the Tool will connect to your Synology Photos account and will remove all Empty Albums found.
 
 
-## <span style="color:blue">Remove Duplicates Albums in Synology Photos:</span>
+## <span style="color:blue">Remove Duplicates Albums from Synology Photos:</span>
 - From version 2.0.0 onwards, the Tool has a feature to 'Remove Duplicates Albums from Synology Photos'. 
 - To run this feature you have to use the flag _'--synology-remove-duplicates-albums'_
 - If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Synology Photos account and will remove all Duplicates Albums found except the first one (but will not remove the assets associated to them, because they will still be associated with the first Album).  

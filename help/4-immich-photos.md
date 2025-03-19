@@ -139,7 +139,7 @@
   With this example, the Tool will connect to your Immich Photos account and will remove all Albums found (including all the assets contained on them, because we are using the complementary flag).
 
 
-## <span style="color:blue">Remove Empty Albums in Immich Photos:</span>
+## <span style="color:blue">Remove Empty Albums from Immich Photos:</span>
 - From version 3.0.0 onwards, the Tool has a feature to 'Remove Empty Albums from Immich Photos'. 
 - To run this feature you have to use the flag _'--immich-remove-empty-albums'_
 - If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Immich Photos account and will remove all Empty Albums found.  
@@ -151,7 +151,7 @@
   With this example, the Tool will connect to your Immich Photos account and will remove all Empty Albums found.
 
 
-## <span style="color:blue">Remove Duplicates Albums in Immich Photos:</span>
+## <span style="color:blue">Remove Duplicates Albums from Immich Photos:</span>
 - From version 3.0.0 onwards, the Tool has a feature to 'Remove Duplicates Albums from Immich Photos'. 
 - To run this feature you have to use the flag _'--immich-remove-duplicates-albums'_
 - If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Immich Photos account and will remove all Duplicates Albums found except the first one (but will not remove the assets associated to them, because they will still be associated with the first Album).  
@@ -163,7 +163,7 @@
   With this example, the Tool will connect to your Immich Photos account and will remove all Duplicates Albums found except the first one.
 
 
-## <span style="color:blue">Remove Orphans Assets in Immich Photos:</span>
+## <span style="color:blue">Remove Orphans Assets from Immich Photos:</span>
 - From version 3.0.0 onwards, the Tool has a feature to 'Remove Orphans Assets from Immich Photos'.
 - An Orphan asset is an asset that is in your Immich Photos account but is pointing to a non-existing file.  
 - To run this feature you have to use the flag _'--immich-remove-orphan-assets'_
