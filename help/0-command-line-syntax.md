@@ -2,29 +2,28 @@
 ```
 ---------------------------------------------------------------------------------------------------------
 
-usage: CloudPhotoMigrator.bin/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
-                                  [-dashboard [true, false]]
-                                  [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
-                                  [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
-                                  [-rAlbAss]
-                                  [-gpthProg [true, false]] [-gpthErr [true, false]]
-                                  [-nolog]
-                                  [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
-                                  [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
-                                  [-gafs ['flatten', 'year', 'year/month', 'year-month']]
-                                  [-gnas ['flatten', 'year', 'year/month', 'year-month']]
-                                  [-gcsa] [-gics] [-gmtf] [-grdf] [-gsef] [-gsma] [-gsgt]
-                                  [-suAlb <ALBUMS_FOLDER>] [-suAll <INPUT_FOLDER>]
-                                  [-sdAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
-                                  [-sdAll <OUTPUT_FOLDER>] [-srEmpAlb] [-srDupAlb]
-                                  [-srAll] [-srAllAlb] [-iuAlb <ALBUMS_FOLDER>]
-                                  [-iuAll <INPUT_FOLDER>]
-                                  [-idAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
-                                  [-idAll <OUTPUT_FOLDER>]
-                                  [-irEmpAlb] [-irDupAlb] [-irAll] [-irAllAlb] [-irOrphan]
-                                  [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
-                                  [-procDup <DUPLICATES_REVISED_CSV>]
-                                  [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
+usage: CloudPhotoMigrator.py [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
+                                [-dashboard [[true, false]]]
+                                [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
+                                [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
+                                [-rAlbAss] [-gpthProg [[true, false]]]
+                                [-gpthErr [[true, false]]] [-nolog]
+                                [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
+                                [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
+                                [-gafs ['flatten', 'year', 'year/month', 'year-month']]
+                                [-gnas ['flatten', 'year', 'year/month', 'year-month']]
+                                [-gcsa] [-gics] [-gmtf] [-grdf] [-gsef] [-gsma] [-gsgt]
+                                [-suAlb <ALBUMS_FOLDER>]
+                                [-sdAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
+                                [-suAll <INPUT_FOLDER>] [-sdAll <OUTPUT_FOLDER>]
+                                [-srEmpAlb] [-srDupAlb] [-srAll] [-srAllAlb]
+                                [-iuAlb <ALBUMS_FOLDER>]
+                                [-idAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
+                                [-iuAll <INPUT_FOLDER>] [-idAll <OUTPUT_FOLDER>]
+                                [-irEmpAlb] [-irDupAlb] [-irAll] [-irAllAlb] [-irOrphan]
+                                [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
+                                [-procDup <DUPLICATES_REVISED_CSV>]
+                                [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
 
 CloudPhotoMigrator v3.1.0-alpha - 2025-03-31
 
@@ -77,7 +76,7 @@ same Photo Cloud service.
               ​--source=immich-1 -> Select Immich Photos account 1 as Target.
               ​--source=synology-2 -> Select Synology Photos account 2 as Target.
               ​--source=/home/local_folder -> Select this local folder as Target.
--dashboard,     --dashboard [true, false]
+--dashboard [true, false]
              Enable or disable Live Dashboard feature during Autometed Migration Job.
              This argument only applies if both '--source' and '--target' argument are
              given (AUTOMATED-MIGRATION MODE). (default: True).
@@ -121,7 +120,8 @@ mode.
 -gitf,     --google-input-takeout-folder <TAKEOUT_FOLDER>
              Specify the Takeout folder to process. If any Zip file is found inside it,
              the Zip will be extracted to the folder 'Unzipped_Takeout_TIMESTAMP', and
-             will use the that folder as input <TAKEOUT_FOLDER>. Default: 'Takeout'.
+             will use the that folder as input <TAKEOUT_FOLDER>.
+             This argument is mandatory to run the Google Takeout Processor Feature.
 -gofs,     --google-output-folder-suffix <SUFFIX>
              Specify the suffix for the output folder. Default: 'processed'
 -gafs,     --google-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
@@ -164,6 +164,18 @@ If more than one optional arguments are detected, only the first one will be exe
 -suAlb,    --synology-upload-albums <ALBUMS_FOLDER>
              The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER>
              and will create one Album per subfolder into Synology Photos.
+-sdAlb,    --synology-download-albums <ALBUMS_NAME>
+             The Tool will connect to Synology Photos and will download those Albums
+             whose name is in '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the
+             argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this
+             feature).
+             - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
+             - To download all albums mathing any pattern you can use patterns in
+             <ALBUMS_NAME>, i.e: --synology-download-albums 'dron*' to download all
+             albums starting with the word 'dron' followed by other(s) words.
+             - To download several albums you can separate their names by comma or space
+             and put the name between double quotes. i.e: --synology-download-albums
+             'album1', 'album2', 'album3'.
 -suAll,    --synology-upload-all <INPUT_FOLDER>
              The Tool will look for all Assets within <INPUT_FOLDER> and will upload
              them into Synology Photos.
@@ -173,19 +185,8 @@ If more than one optional arguments are detected, only the first one will be exe
              - If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also
              passed, then this function will create Albums also for each subfolder found
              in <ALBUMS_FOLDER>.
--sdAlb,    --synology-download-albums <ALBUMS_NAME>
-             The Script will connect to Synology Photos and download the Album whose
-             name is '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the argument
-             '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this mode).
-             - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
-             - To download all albums mathing any pattern you can use patterns in
-             <ALBUMS_NAME>, i.e: --synology-download-albums 'dron*' to download all
-             albums starting with the word 'dron' followed by other(s) words.
-             - To download several albums you can separate their names by comma or space
-             and put the name between double quotes. i.e: --synology-download-albums
-             'album1', 'album2', 'album3'.
 -sdAll,    --synology-download-all <OUTPUT_FOLDER>
-             The Script will connect to Synology Photos and will download all the Album
+             The Tool will connect to Synology Photos and will download all the Album
              and Assets without Albums into the folder <OUTPUT_FOLDER>.
              - All Albums will be downloaded within a subfolder of
              <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will
@@ -200,8 +201,8 @@ If more than one optional arguments are detected, only the first one will be exe
              The Tool will look for all Albums in Synology Photos database and if any
              Album is duplicated, will remove it from Synology Photos database.
 -srAll,    --synology-remove-all-assets
-             CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and
-             also ALL your Albums from Synology database.
+             CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also
+             ALL your Albums from Synology database.
 -srAllAlb, --synology-remove-all-albums
              CAUTION!!! The Tool will delete ALL your Albums from Synology database.
              Optionally ALL the Assets associated to each Album can be deleted If you
@@ -216,6 +217,18 @@ If more than one optional arguments are detected, only the first one will be exe
 -iuAlb,    --immich-upload-albums <ALBUMS_FOLDER>
              The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER>
              and will create one Album per subfolder into Immich Photos.
+-idAlb,    --immich-download-albums <ALBUMS_NAME>
+             The Tool will connect to Immich Photos and download those Albums whose name
+             is in '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the argument
+             '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this
+             feature).
+             - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
+             - To download all albums mathing any pattern you can use patterns in
+             ALBUMS_NAME, i.e: --immich-download-albums 'dron*' to download all albums
+             starting with the word 'dron' followed by other(s) words.
+             - To download several albums you can separate their names by comma or space
+             and put the name between double quotes. i.e: --immich-download-albums
+             'album1', 'album2', 'album3'.
 -iuAll,    --immich-upload-all <INPUT_FOLDER>
              The Tool will look for all Assets within <INPUT_FOLDER> and will upload
              them into Immich Photos.
@@ -225,20 +238,9 @@ If more than one optional arguments are detected, only the first one will be exe
              - If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also
              passed, then this function will create Albums also for each subfolder found
              in <ALBUMS_FOLDER>.
--idAlb,    --immich-download-albums <ALBUMS_NAME>
-             The Script will connect to Immich Photos and download the Album whose name
-             is '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the argument '-o,
-             --output-folder <OUTPUT_FOLDER>' (mandatory argument for this mode).
-             - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
-             - To download all albums mathing any pattern you can use patterns in
-             ALBUMS_NAME, i.e: --immich-download-albums 'dron*' to download all albums
-             starting with the word 'dron' followed by other(s) words.
-             - To download several albums you can separate their names by comma or space
-             and put the name between double quotes. i.e: --immich-download-albums
-             'album1', 'album2', 'album3'.
 -idAll,    --immich-download-all <OUTPUT_FOLDER>
-             The Script will connect to Immich Photos and will download all the Album
-             and Assets without Albums into the folder <OUTPUT_FOLDER>.
+             The Tool will connect to Immich Photos and will download all the Album and
+             Assets without Albums into the folder <OUTPUT_FOLDER>.
              - All Albums will be downloaded within a subfolder of
              <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will
              be flattened into it.
@@ -252,16 +254,16 @@ If more than one optional arguments are detected, only the first one will be exe
              The Tool will look for all Albums in Immich Photos database and if any
              Album is duplicated, will remove it from Immich Photos database.
 -irAll,    --immich-remove-all-assets
-             CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and
-             also ALL your Albums from Immich database.
+             CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also
+             ALL your Albums from Immich database.
 -irAllAlb, --immich-remove-all-albums
              CAUTION!!! The Tool will delete ALL your Albums from Immich database.
              Optionally ALL the Assets associated to each Album can be deleted If you
              also include the argument '-rAlbAss, --remove-albums-assets' argument.
 -irOrphan, --immich-remove-orphan-assets
-             The Tool will look for all Orphan Assets in Immich Database and will
-             delete them. IMPORTANT: This feature requires a valid ADMIN_API_KEY
-             configured in Config.ini.
+             The Tool will look for all Orphan Assets in Immich Database and will delete
+             them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in
+             Config.ini.
 
 
 OTHER STANDALONE FEATURES:
@@ -275,13 +277,13 @@ If more than one Feature is detected, only the first one will be executed.
              <ACTION> defines the action to take on duplicates ('move', 'delete' or
              'list'). Default: 'list'
              <DUPLICATES_FOLDER> are one or more folders (string or list), where the
-             Tool will look for duplicates files. The order of this list is important
-             to determine the principal file of a duplicates set. First folder will have
+             Tool will look for duplicates files. The order of this list is important to
+             determine the principal file of a duplicates set. First folder will have
              higher priority.
 -procDup,  --process-duplicates <DUPLICATES_REVISED_CSV>
              Specify the Duplicates CSV file revised with specifics Actions in Action
-             column, and the Tool will execute that Action for each duplicates found
-             in CSV. Valid Actions: restore_duplicate / remove_duplicate /
+             column, and the Tool will execute that Action for each duplicates found in
+             CSV. Valid Actions: restore_duplicate / remove_duplicate /
              replace_duplicate.
 -fixSym,   --fix-symlinks-broken <FOLDER_TO_FIX>
              The Tool will try to fix all symbolic links for Albums in <FOLDER_TO_FIX>

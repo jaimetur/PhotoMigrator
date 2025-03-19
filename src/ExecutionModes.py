@@ -487,7 +487,7 @@ def mode_synology_remove_empty_albums(user_confirmation=True, log_level=logging.
     
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Synology Photos: 'Remove Empty Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO    : Flag detected '-srEmpAlb, --synology-remove-empty-albums'. The Script will look for any empty album in Synology Photos database and will delete them (if any empty album is found).")
+        LOGGER.info(f"INFO    : Flag detected '-srEmpAlb, --synology-remove-empty-albums'. The Tool will look for any empty album in Synology Photos database and will delete them (if any empty album is found).")
         # Create the Object
         syno = ClassSynologyPhotos()
         # login
@@ -528,7 +528,7 @@ def mode_synology_remove_duplicates_albums(user_confirmation=True, log_level=log
     
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Synology Photos: 'Remove Duplicates Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO    : Flag detected '-srDupAlb, --synology-remove-duplicates-albums'. The Script will look for any duplicated album in Synology Photos database and will delete them (if any duplicated album is found).")
+        LOGGER.info(f"INFO    : Flag detected '-srDupAlb, --synology-remove-duplicates-albums'. The Tool will look for any duplicated album in Synology Photos database and will delete them (if any duplicated album is found).")
         # Create the Object
         syno = ClassSynologyPhotos()
         # login
@@ -887,7 +887,7 @@ def mode_immich_remove_empty_albums(user_confirmation=True, log_level=logging.IN
     
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Delete Empty Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO    : Flag detected '-irEmpAlb, --immich-remove-empty-albums'. The Script will look for any empty album in Immich Photos database and will delete them (if any empty album is found).")
+        LOGGER.info(f"INFO    : Flag detected '-irEmpAlb, --immich-remove-empty-albums'. The Tool will look for any empty album in Immich Photos database and will delete them (if any empty album is found).")
         # Create the Object
         immich = ClassImmichPhotos()
         # login
@@ -928,7 +928,7 @@ def mode_immich_remove_duplicates_albums(user_confirmation=True, log_level=loggi
     
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Delete Duplicates Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO    : Flag detected '-irDupAlb, --immich-remove-duplicates-albums'. The Script will look for any duplicated album in Immich Photos database and will delete them (if any duplicated album is found).")
+        LOGGER.info(f"INFO    : Flag detected '-irDupAlb, --immich-remove-duplicates-albums'. The Tool will look for any duplicated album in Immich Photos database and will delete them (if any duplicated album is found).")
         # Create the Object
         immich = ClassImmichPhotos()
         # login
@@ -1166,7 +1166,7 @@ def mode_process_duplicates(user_confirmation=True, log_level=logging.INFO):
 
     
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Flag detected '-procDup, --process-duplicates'. The Script will process the '{ARGS['process-duplicates']}' file and do the specified action given on Action Column. ")
+        LOGGER.info(f"INFO    : Flag detected '-procDup, --process-duplicates'. The Tool will process the '{ARGS['process-duplicates']}' file and do the specified action given on Action Column. ")
         LOGGER.info(f"INFO    : Processing Duplicates Files based on Actions given in {os.path.basename(ARGS['process-duplicates'])} file...")
         removed_duplicates, restored_duplicates, replaced_duplicates = process_duplicates_actions(ARGS['process-duplicates'])
         # FINAL SUMMARY
@@ -1205,7 +1205,7 @@ def mode_folders_rename_content_based(user_confirmation=True, log_level=logging.
     
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Rename Albums Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO    : Flag detected '-ra, --rename-folders-content-based'. The Script will look for any Subfolder in '{ARGS['rename-folders-content-based']}' and will rename the folder name in order to unificate all the Albums names.")
+        LOGGER.info(f"INFO    : Flag detected '-ra, --rename-folders-content-based'. The Tool will look for any Subfolder in '{ARGS['rename-folders-content-based']}' and will rename the folder name in order to unificate all the Albums names.")
         renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = Utils.rename_album_folders(ARGS['rename-folders-content-based'])
         # FINAL SUMMARY
         end_time = datetime.now()

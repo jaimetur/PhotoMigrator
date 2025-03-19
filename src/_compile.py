@@ -59,11 +59,12 @@ def include_extrafiles_and_zip(input_file, output_file):
     temp_dir = Path(tempfile.mkdtemp())
     script_version_dir = os.path.join(temp_dir, SCRIPT_NAME_VERSION)
     print(script_version_dir)
-    takeout_dir = os.path.join(script_version_dir, "Takeout")
-    print(takeout_dir)
     os.makedirs(script_version_dir, exist_ok=True)
-    os.makedirs(takeout_dir, exist_ok=True)
     shutil.copy(input_file, script_version_dir)
+    # # Creamos una carpeta vacía llamada 'MyTakeout'
+    # takeout_dir = os.path.join(script_version_dir, "MyTakeout")
+    # print(takeout_dir)
+    # os.makedirs(takeout_dir, exist_ok=True)
 
     # Ahora copiamos los extra files
     for subdirs_dic in extra_files_to_subdir:
