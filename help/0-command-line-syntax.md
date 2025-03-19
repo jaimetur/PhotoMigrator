@@ -38,7 +38,7 @@ optional arguments:
 -h,        --help
              show this help message and exit
 -v,        --version
-             Show the script name, version, and date, then exit.
+             Show the Tool name, version, and date, then exit.
 
 
 AUTOMATED MIGRATION PROCESS:
@@ -162,12 +162,12 @@ Following arguments allow you to interact with Synology Photos.
 If more than one optional arguments are detected, only the first one will be executed.
 
 -suAlb,    --synology-upload-albums <ALBUMS_FOLDER>
-             The script will look for all Subfolders with assets within <ALBUMS_FOLDER>
+             The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER>
              and will create one Album per subfolder into Synology Photos.
 -suAll,    --synology-upload-all <INPUT_FOLDER>
-             The script will look for all Assets within <INPUT_FOLDER> and will upload
+             The Tool will look for all Assets within <INPUT_FOLDER> and will upload
              them into Synology Photos.
-             - The script will create a new Album per each Subfolder found in 'Albums'
+             - The Tool will create a new Album per each Subfolder found in 'Albums'
              subfolder and all assets inside each subfolder will be associated to a new
              Album in Synology Photos with the same name as the subfolder.
              - If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also
@@ -194,16 +194,16 @@ If more than one optional arguments are detected, only the first one will be exe
              called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure
              inside.
 -srEmpAlb, --synology-remove-empty-albums
-             The script will look for all Albums in Synology Photos database and if any
+             The Tool will look for all Albums in Synology Photos database and if any
              Album is empty, will remove it from Synology Photos database.
 -srDupAlb, --synology-remove-duplicates-albums
-             The script will look for all Albums in Synology Photos database and if any
+             The Tool will look for all Albums in Synology Photos database and if any
              Album is duplicated, will remove it from Synology Photos database.
 -srAll,    --synology-remove-all-assets
-             CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and
+             CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and
              also ALL your Albums from Synology database.
 -srAllAlb, --synology-remove-all-albums
-             CAUTION!!! The script will delete ALL your Albums from Synology database.
+             CAUTION!!! The Tool will delete ALL your Albums from Synology database.
              Optionally ALL the Assets associated to each Album can be deleted If you
              also include the argument '-rAlbAss, --remove-albums-assets' argument.
 
@@ -214,12 +214,12 @@ Following arguments allow you to interact with Immich Photos.
 If more than one optional arguments are detected, only the first one will be executed.
 
 -iuAlb,    --immich-upload-albums <ALBUMS_FOLDER>
-             The script will look for all Subfolders with assets within <ALBUMS_FOLDER>
+             The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER>
              and will create one Album per subfolder into Immich Photos.
 -iuAll,    --immich-upload-all <INPUT_FOLDER>
-             The script will look for all Assets within <INPUT_FOLDER> and will upload
+             The Tool will look for all Assets within <INPUT_FOLDER> and will upload
              them into Immich Photos.
-             - The script will create a new Album per each Subfolder found in 'Albums'
+             - The Tool will create a new Album per each Subfolder found in 'Albums'
              subfolder and all assets inside each subfolder will be associated to a new
              Album in Immich Photos with the same name as the subfolder.
              - If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also
@@ -246,20 +246,20 @@ If more than one optional arguments are detected, only the first one will be exe
              called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure
              inside.
 -irEmpAlb, --immich-remove-empty-albums
-             The script will look for all Albums in Immich Photos database and if any
+             The Tool will look for all Albums in Immich Photos database and if any
              Album is empty, will remove it from Immich Photos database.
 -irDupAlb, --immich-remove-duplicates-albums
-             The script will look for all Albums in Immich Photos database and if any
+             The Tool will look for all Albums in Immich Photos database and if any
              Album is duplicated, will remove it from Immich Photos database.
 -irAll,    --immich-remove-all-assets
-             CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and
+             CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and
              also ALL your Albums from Immich database.
 -irAllAlb, --immich-remove-all-albums
-             CAUTION!!! The script will delete ALL your Albums from Immich database.
+             CAUTION!!! The Tool will delete ALL your Albums from Immich database.
              Optionally ALL the Assets associated to each Album can be deleted If you
              also include the argument '-rAlbAss, --remove-albums-assets' argument.
 -irOrphan, --immich-remove-orphan-assets
-             The script will look for all Orphan Assets in Immich Database and will
+             The Tool will look for all Orphan Assets in Immich Database and will
              delete them. IMPORTANT: This feature requires a valid ADMIN_API_KEY
              configured in Config.ini.
 
@@ -275,16 +275,16 @@ If more than one Feature is detected, only the first one will be executed.
              <ACTION> defines the action to take on duplicates ('move', 'delete' or
              'list'). Default: 'list'
              <DUPLICATES_FOLDER> are one or more folders (string or list), where the
-             script will look for duplicates files. The order of this list is important
+             Tool will look for duplicates files. The order of this list is important
              to determine the principal file of a duplicates set. First folder will have
              higher priority.
 -procDup,  --process-duplicates <DUPLICATES_REVISED_CSV>
              Specify the Duplicates CSV file revised with specifics Actions in Action
-             column, and the script will execute that Action for each duplicates found
+             column, and the Tool will execute that Action for each duplicates found
              in CSV. Valid Actions: restore_duplicate / remove_duplicate /
              replace_duplicate.
 -fixSym,   --fix-symlinks-broken <FOLDER_TO_FIX>
-             The script will try to fix all symbolic links for Albums in <FOLDER_TO_FIX>
+             The Tool will try to fix all symbolic links for Albums in <FOLDER_TO_FIX>
              folder (Useful if you have move any folder from the OUTPUT_TAKEOUT_FOLDER
              and some Albums seems to be empty.
 -renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>

@@ -71,7 +71,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] Fixed limit of 250 when search for Immich assets.
 - [x] Fixed Remove Albums API call on Immich Photos to adapt to the new API changes.
 - [x] Wildcards support on <ALBUMS_NAME> argument on --synology-download-albums and --immich-download-albums options.
-- [x] Replaced 'ALL_PHOTOS' by 'No-Albums' as output subfolder for assets without any album associated (be careful if you already run the script with previous version because before, the folder for assets without albums was named 'ALL_PHOTOS')
+- [x] Replaced 'ALL_PHOTOS' by 'No-Albums' as output subfolder for assets without any album associated (be careful if you already run the Tool with previous version because before, the folder for assets without albums was named 'ALL_PHOTOS')
 - [x] Remove Dupplicates Assets in Immich Photos after upload any Asset. 
 - [x] Support to upload assets from/to any folder into Synology Photos (no need to be indexed within the Synology Photos root Folder)
 - [x] Added function to Remove empty folders when delete assets in Synology Photos
@@ -119,48 +119,48 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
 - [x] With those changes the **_Synology Photos Support_** has the following options:
   - **-suAlb,    --synology-upload-albums <ALBUMS_FOLDER>**  
-    - The script will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Synology Photos.
+    - The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Synology Photos.
   - **-sdAlb,    --synology-download-albums <ALBUMS_NAME>**
     - The Script will connect to Synology Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Download_Synology' within the Synology Photos root folder.
     - To extract all albums mathing any pattern you can use patterns in <ALBUMS_NAME>, i.e: --synology-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words.
     - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums 'album1', 'album2', 'album3'.
     - To download ALL Albums use 'ALL' as <ALBUMS_NAME>. 
   - **-suAll,    --synology-upload-all <INPUT_FOLDER>**  
-    - The script will look for all Assets within <INPUT_FOLDER> and will upload them into Synology Photos.  
+    - The Tool will look for all Assets within <INPUT_FOLDER> and will upload them into Synology Photos.  
     - If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of 'Albums' will be associated to a new Album in Synology Photos with the same name as the subfolder
   - **-sdAll,    --synology-download-all <OUTPUT_FOLDER>**  
     - The Script will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
     - Albums will be downloaded within a subfolder '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
     - Assets with no Albums associated will be downloaded within a subfolder 'OUTPUT_FOLDER/No-Albums/' and will have a year/month structure inside.
   - **-srEmpAlb  --synology-remove-empty-albums**  
-    - The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.  
+    - The Tool will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.  
   - **-srDupAlb, --synology-remove-duplicates-albums**  
-    - The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
+    - The Tool will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
   - **-srAll,    --synology-remove-all-assets** to delete ALL assets in Synology Photos
   - **-srAllAlb, --synology-remove-all-albums** to delete ALL Albums in Synology Photos (optionally all associated assets can be also deleted).  
 
 - [x] Added **_Immich Photos Support_** with the Following options to manage Immich API:
   - **-iuAlb,    --immich-upload-albums <ALBUMS_FOLDER>**  
-    - The script will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Immich Photos.  
+    - The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Immich Photos.  
   - **-idAlb,    --immich-download-albums <ALBUMS_NAME>**  
     - The Script will connect to Immich Photos and download the Album whose name is <ALBUMS_NAME> to the folder 'Immich_Photos_Albums' within the Immich Photos root folder.  
     - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums" "album1", "album2", "album3".  
     - To download ALL Albums use "ALL" as <ALBUMS_NAME>.   
   - **-iuAll,    --immich-upload-all <INPUT_FOLDER>**
-    - The script will look for all Assets within <INPUT_FOLDER> and will upload them into Immich Photos.  
+    - The Tool will look for all Assets within <INPUT_FOLDER> and will upload them into Immich Photos.  
     - If the <INPUT_FOLDER> contains a Subfolder called 'Albums' then, all assets inside each subfolder of 'Albums' will be associated to a new Album in Immich Photos with the same name as the subfolder
   - **-idAll,    --immich-download-all <OUTPUT_FOLDER>>**  
     - The Script will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
     - Albums will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
     - Assets with no Albums associated will be downloaded within a subfolder called '<OUTPUT_FOLDER>/No-Albums/' and will have a year/month structure inside.
   - **-irEmpAlb, --immich-remove-empty-albums**  
-    - The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.  
+    - The Tool will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.  
   - **-irDupAlb  --immich-remove-duplicates-albums**  
-    - The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.  
+    - The Tool will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.  
   - **-irAll,    --immich-remove-all-assets** to delete ALL assets in Immich Photos
   - **-irAllAlb, --immich-remove-all-albums** to delete ALL Albums in Immich Photos (optionally all associated assets can be also deleted).  
   - **-irOrphan, --immich-remove-orphan-assets**  
-    - The script will look for all Orphan Assets in Immich Database and will delete them.  
+    - The Tool will look for all Orphan Assets in Immich Database and will delete them.  
     - **IMPORTANT!**: This feature requires a valid ADMIN_API_KEY configured in Config.ini.  
 
     
@@ -170,7 +170,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 **Date**: 2025-01-14
 
 - Removed EXIF Tool (option -re, --run-exif-tool) for performance issues
-- Added new argument to show script version (-v, --version)
+- Added new argument to show the Tool version (-v, --version)
 - Added new argument to Extract Albums from Synology Photos (-sea, --synology-extract-albums)
 - Renamed argument -ca, --create-albums-synology-photos to -sca, --synology-create-albums
 - Renamed argument -de, --delete-empty-albums-synology-photos to -sde, --synology-remove-empty-albums
@@ -218,7 +218,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
 ### Main Changes:
 - Added ALL-IN-ONE mode to Automatically process your Google Takeout files (zipped or unzipped), process them, and move all your Photos & Videos into your Synology Photos personal folder creating all the Albums that you have in Google Photos within Synology Photos.
-- New flag -ao,  --all-in-one <INPUT_FOLDER> to do all the process in just One Shot. The script will extract all your Takeout Zip files from <INPUT_FOLDER>, will process them, and finally will connect to Synology Photos database to create all Albums found and import all the other photos without any Albums associated.
+- New flag -ao,  --all-in-one <INPUT_FOLDER> to do all the process in just One Shot. The Tool will extract all your Takeout Zip files from <INPUT_FOLDER>, will process them, and finally will connect to Synology Photos database to create all Albums found and import all the other photos without any Albums associated.
 - Code Refactored
 - Minor Bug Fixing
 
@@ -230,9 +230,9 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
 ### Main Changes:
 - Added Synology Photos Management options with three new Extra Modes:
-  -- New flag -ca,  --create-albums-synology-photos <ALBUMS_FOLDER> to force Mode: 'Create Albums in Synology Photos'. The script will look for all Albums within ALBUM_FOLDER and will create one Album per folder into Synology Photos.
-  -- New flag -de,  --delete-empty-albums-synology-photos tofForce Mode: 'Delete Empty Albums in Synology Photos'. The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database. 
-  -- New flag -dd,  --delete-duplicates-albums-synology-photos tofForce Mode: 'Delete Duplicates Albums in Synology Photos'. The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database. 
+  -- New flag -ca,  --create-albums-synology-photos <ALBUMS_FOLDER> to force Mode: 'Create Albums in Synology Photos'. The Tool will look for all Albums within ALBUM_FOLDER and will create one Album per folder into Synology Photos.
+  -- New flag -de,  --delete-empty-albums-synology-photos tofForce Mode: 'Delete Empty Albums in Synology Photos'. The Tool will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database. 
+  -- New flag -dd,  --delete-duplicates-albums-synology-photos tofForce Mode: 'Delete Duplicates Albums in Synology Photos'. The Tool will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database. 
 - New Flag: -ra, --rename-albums <ALBUMS_FOLDER> to rename all Albums subfolders and homogenize all your Albums names with this format: 'yyyy - Album Name' or 'yyyy-yyyy - Album Name', where yyyy is the year of the files contained in each Album folder (if more than one year is found, then yyyy-yyyy will indicate the range of years for the files contained in the Album folder.)  
 - Support to run on Synology NAS running DSM 7.0 or higher
 - Code refactored
@@ -244,7 +244,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 **Date**: 2024-12-18
 
 ### Main Changes:
-- Included new flag '-pd, --process-duplicates-revised' to process the Duplicates.csv output file after execute the 'Find Duplicates Mode' with 'duplicates-action=move'. In that case, the script will move all duplicates found to Duplicates folder and will generate a CSV file that can be revised and change the Action column values.
+- Included new flag '-pd, --process-duplicates-revised' to process the Duplicates.csv output file after execute the 'Find Duplicates Mode' with 'duplicates-action=move'. In that case, the Tool will move all duplicates found to Duplicates folder and will generate a CSV file that can be revised and change the Action column values.
 Possible Actions in revised CSV file are:
     - remove_duplicate  : Duplicated file moved to Duplicates folder will be permanently removed
     - restore_duplicate : Duplicated file moved to Duplicates folder will be restored to its original location
@@ -261,7 +261,7 @@ Possible Actions in revised CSV file are:
 ### Main Changes:
 - Fixed logic of Find_Duplicates algorithm and include a new field in the Duplicates.csv output file to provide the reason to decide principal file of a duplicates set.
 - Improved performance in Find_Duplicates function..
-- Included progress bar in most of all the steps that consume more time during script execution.
+- Included progress bar in most of all the steps that consume more time during the Tool execution.
 - Fixed some minor bugs.
 
 ---
@@ -273,8 +273,8 @@ Possible Actions in revised CSV file are:
 - Fixed Find_Duplicates function. Now is smarter and try to determine the principal folder and file when two or more files are duplicates within the same folder or in different folders.
 - Added new flag '-rd, --remove-duplicates-after-fixing' to remove duplicates files in OUTPUT_FOLDER after fixing all the files. Files within any Album will have more priority than files within 'Photos from *' or 'ALL_PHOTOS' folders.
 - Added new flag '-sa, --symbolic-albums' to create Symbolic linked Albums pointing to the original files. This is useful to safe disk space but the links might be broken if you move the output folders or change the structure.
-- Now the script automatically fix Symbolic Albums when create Folder Structure per year or year/month and also after moving them into Albums folder. 
-- Added new flag '-fs, --fix-symlinks-broken <FOLDER_TO_FIX>' to execute the script in Mode 'Fix Symbolic Links Broken' and try to fix all symbolics links broken within the <FOLDER_TO_FIX> folder. (Useful if you use Symbolic Albums and change the folders name or relative path after executing the script).
+- Now the Tool automatically fix Symbolic Albums when create Folder Structure per year or year/month and also after moving them into Albums folder. 
+- Added new flag '-fs, --fix-symlinks-broken <FOLDER_TO_FIX>' to execute the Tool in Mode 'Fix Symbolic Links Broken' and try to fix all symbolics links broken within the <FOLDER_TO_FIX> folder. (Useful if you use Symbolic Albums and change the folders name or relative path after executing the Tool).
 - Added new info to Final Summary section with the results of the execution.
 - Change help to include the new changes.
 - Fixed some minor bugs.
@@ -298,10 +298,10 @@ Possible Actions in revised CSV file are:
 
 ### Main Changes:
 - Added smart feature to Find Duplicates based on file size and content.
-- Two news flags have been added to run the script in "Find Duplicates Mode": 
-    '-fd,, --find-duplicates-in-folders' to specify the folder or folders where the script will look for duplicates files
+- Two news flags have been added to run the Tool in "Find Duplicates Mode": 
+    '-fd,, --find-duplicates-in-folders' to specify the folder or folders where the Tool will look for duplicates files
     '-da, --duplicates-action' to specify the action to do with the duplicates files found.
-- If any of those two flags are detected, the script will be executed in 'Fin Duplicates Mode', and will skip all the Steps for fixing photos. Only Find Duplicates function will be executed.
+- If any of those two flags are detected, the Tool will be executed in 'Fin Duplicates Mode', and will skip all the Steps for fixing photos. Only Find Duplicates function will be executed.
 - Change help to include the new changes.
 - Fixed some minor bugs.
 
@@ -311,9 +311,9 @@ Example of use:
 
 ./OrganizeTakeoutPhotos --find-duplicates-in-folders ./Albums ./ALL_PHOTOS --duplicates-action move
 
-With this example, the script will find duplicates files within folders ./Albums and ./ALL_PHOTOS,
+With this example, the Tool will find duplicates files within folders ./Albums and ./ALL_PHOTOS,
 If finds any duplicated, will keep the file within ./Albums folder (bacause it has been passed first on the list)
-and will move the otherss duplicates files into the ./Duplicates folder on the root folder of the script.
+and will move the otherss duplicates files into the ./Duplicates folder on the root folder of the Tool.
 
 ```
 
@@ -333,10 +333,10 @@ and will move the otherss duplicates files into the ./Duplicates folder on the r
 ### Main Changes:
 - Added Script version for MacOS 
 - Included a Pre-process step (after unzipping the Zip files) to remove Synology metadata subfolders (if exists) and to look for .MP4 files generated by Google Photos that are extracted from Live picture files (.heic, .jpg, .jpeg) but doesn't have .json associated.
-- Now the script by default doesn't skip extra files such as '-edited' or '-effect'.
+- Now the Tool by default doesn't skip extra files such as '-edited' or '-effect'.
 - Included new argument '-se, --skip-extras' to skip processing extra files if desired.
-- Now the script by default generates flatten output folders per each album and for ALL_PHOTOS folder (Photos without any album).
-- Removed arguments '-fa, --flatten-albums' and '-fn, --flatten-no-albums' because now by default the script generates those folders flattened.
+- Now the Tool by default generates flatten output folders per each album and for ALL_PHOTOS folder (Photos without any album).
+- Removed arguments '-fa, --flatten-albums' and '-fn, --flatten-no-albums' because now by default the Tool generates those folders flattened.
 - Included a new function to generate a Date folder structure that can be applied either to each Album folder or to ALL_PHOTOS folder (Photos without any album) and that allow users to decide witch date folder structure wants. Valid options are: ['flatten', 'year', 'year/month', 'year-month']'.
 - Included new argument '-as, --albums-structure ['flatten', 'year', 'year/month', 'year-month']' to  specify the type of folder structure for each Album folder.
 - Included new argument '-ns, --no-albums-structure ['flatten', 'year', 'year/month', 'year-month']' to specify the type of folder structure for ALL_PHOTOS folder (Photos that are no contained in any Album).
@@ -351,9 +351,9 @@ and will move the otherss duplicates files into the ./Duplicates folder on the r
 
 ### Main Changes:
 - Included new argument '-mt, --move-takeout-folder' to move (instead of copy) photos/albums from <TAKEOUT_FOLDER> to <OUTPUT_FOLDER>. This will let you save disk space and increase execution speed. CAUTION: With this option you will lost your original unzipped takeout files. Use this only if you have disk space limitation or if you don't care to lost the unzipped files because you still have the original zips files.
-- Argument '-se, --skip-exif-tool' renamed to '-re, --run-exif-tool'. Now EXIF Tool will not be executed by default unless you include this argument when running the script.
+- Argument '-se, --skip-exif-tool' renamed to '-re, --run-exif-tool'. Now EXIF Tool will not be executed by default unless you include this argument when running the Tool.
 - Argument '-sl, --skip-log' renamed to '-nl, --no-log-file' for better comprehension.
-- New feature to auto-sync timestamp of .MP4 files generated for Google Photos when a picture is a Live picture. With this feature the script will look for files picure files (.HEIVC, .JPG, .JPEG) with the same name than .MP4 file and in the same folder. If found, then the .MP4 file will have the same timestamp than the original picture file.
+- New feature to auto-sync timestamp of .MP4 files generated for Google Photos when a picture is a Live picture. With this feature the Tool will look for files picure files (.HEIVC, .JPG, .JPEG) with the same name than .MP4 file and in the same folder. If found, then the .MP4 file will have the same timestamp than the original picture file.
 - New feature to move_folders with better performance when you use the argument '-mt, --move-takeout-folder'.
 - Now GPTH Tool / EXIF Tool outputs will be sent to console and logfile.
 - Change help to include the new changes.
@@ -379,7 +379,7 @@ and will move the otherss duplicates files into the ./Duplicates folder on the r
 ### Main Changes:
 - Script migrated to Python for multi-platform support.
 - Improve performance
-- replaced '-s, --skip-unzip' argument by '-z, --zip-folder <ZIP_FOLDER>'. Now if no use the argument -'z, --zip-folder <ZIP_FOLDER>., the script will skip unzip step.
+- replaced '-s, --skip-unzip' argument by '-z, --zip-folder <ZIP_FOLDER>'. Now if no use the argument -'z, --zip-folder <ZIP_FOLDER>., the Tool will skip unzip step.
 - Improved flatten folders functions.
 - Created standalone executable files for Linux & Windows platforms.
 - Fixed some minor bugs.

@@ -37,7 +37,7 @@ def parse_arguments():
             parser.exit()
 
 
-    PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the script name, version, and date, then exit.")
+    PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the Tool name, version, and date, then exit.")
 
     PARSER.add_argument( "-source", "--source", metavar="<SOURCE>", default="",
                         help="Select the <SOURCE> for the AUTOMATED-MIGRATION Process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
@@ -130,10 +130,10 @@ def parse_arguments():
 
     # EXTRA MODES FOR SYNOLOGY PHOTOS:
     # --------------------------------
-    PARSER.add_argument("-suAlb", "--synology-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Synology Photos.")
+    PARSER.add_argument("-suAlb", "--synology-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Synology Photos.")
     PARSER.add_argument("-suAll", "--synology-upload-all", metavar="<INPUT_FOLDER>", default="",
-                        help="The script will look for all Assets within <INPUT_FOLDER> and will upload them into Synology Photos."
-                           "\n- The script will create a new Album per each Subfolder found in 'Albums' subfolder and all assets inside each subfolder will be associated to a new Album in Synology Photos with the same name as the subfolder."
+                        help="The Tool will look for all Assets within <INPUT_FOLDER> and will upload them into Synology Photos."
+                           "\n- The Tool will create a new Album per each Subfolder found in 'Albums' subfolder and all assets inside each subfolder will be associated to a new Album in Synology Photos with the same name as the subfolder."
                            "\n- If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also passed, then this function will create Albums also for each subfolder found in <ALBUMS_FOLDER>."
                         )
     PARSER.add_argument("-sdAlb", "--synology-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
@@ -147,20 +147,20 @@ def parse_arguments():
                            "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
                            "\n- Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
                         )
-    PARSER.add_argument("-srEmpAlb", "--synology-remove-empty-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.")
-    PARSER.add_argument("-srDupAlb", "--synology-remove-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.")
-    PARSER.add_argument("-srAll", "--synology-remove-all-assets", action="store_true", default="", help="CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Synology database.")
+    PARSER.add_argument("-srEmpAlb", "--synology-remove-empty-albums", action="store_true", default="", help="The Tool will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.")
+    PARSER.add_argument("-srDupAlb", "--synology-remove-duplicates-albums", action="store_true", default="", help="The Tool will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.")
+    PARSER.add_argument("-srAll", "--synology-remove-all-assets", action="store_true", default="", help="CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Synology database.")
     PARSER.add_argument("-srAllAlb", "--synology-remove-all-albums", action="store_true", default="",
-                        help="CAUTION!!! The script will delete ALL your Albums from Synology database."
+                        help="CAUTION!!! The Tool will delete ALL your Albums from Synology database."
                            "\nOptionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
                         )
 
     # EXTRA MODES FOR IMMICH PHOTOS:
     # -------------------------------
-    PARSER.add_argument("-iuAlb", "--immich-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The script will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Immich Photos.")
+    PARSER.add_argument("-iuAlb", "--immich-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Immich Photos.")
     PARSER.add_argument("-iuAll", "--immich-upload-all", metavar="<INPUT_FOLDER>", default="",
-                        help="The script will look for all Assets within <INPUT_FOLDER> and will upload them into Immich Photos."
-                           "\n- The script will create a new Album per each Subfolder found in 'Albums' subfolder and all assets inside each subfolder will be associated to a new Album in Immich Photos with the same name as the subfolder."
+                        help="The Tool will look for all Assets within <INPUT_FOLDER> and will upload them into Immich Photos."
+                           "\n- The Tool will create a new Album per each Subfolder found in 'Albums' subfolder and all assets inside each subfolder will be associated to a new Album in Immich Photos with the same name as the subfolder."
                            "\n- If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also passed, then this function will create Albums also for each subfolder found in <ALBUMS_FOLDER>."
                         )
     PARSER.add_argument("-idAlb", "--immich-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
@@ -174,14 +174,14 @@ def parse_arguments():
                            "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
                            "\n- Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
                         )
-    PARSER.add_argument("-irEmpAlb", "--immich-remove-empty-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.")
-    PARSER.add_argument("-irDupAlb", "--immich-remove-duplicates-albums", action="store_true", default="", help="The script will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.")
-    PARSER.add_argument("-irAll", "--immich-remove-all-assets", action="store_true", default="", help="CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Immich database.")
+    PARSER.add_argument("-irEmpAlb", "--immich-remove-empty-albums", action="store_true", default="", help="The Tool will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.")
+    PARSER.add_argument("-irDupAlb", "--immich-remove-duplicates-albums", action="store_true", default="", help="The Tool will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.")
+    PARSER.add_argument("-irAll", "--immich-remove-all-assets", action="store_true", default="", help="CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Immich database.")
     PARSER.add_argument("-irAllAlb", "--immich-remove-all-albums", action="store_true", default="",
-                        help="CAUTION!!! The script will delete ALL your Albums from Immich database."
+                        help="CAUTION!!! The Tool will delete ALL your Albums from Immich database."
                            "\nOptionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
                         )
-    PARSER.add_argument("-irOrphan", "--immich-remove-orphan-assets", action="store_true", default="", help="The script will look for all Orphan Assets in Immich Database and will delete them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in Config.ini.")
+    PARSER.add_argument("-irOrphan", "--immich-remove-orphan-assets", action="store_true", default="", help="The Tool will look for all Orphan Assets in Immich Database and will delete them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in Config.ini.")
 
 
 
@@ -190,10 +190,10 @@ def parse_arguments():
     PARSER.add_argument("-findDup", "--find-duplicates", metavar=f"<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]", nargs="+", default=["list", ""],
                         help="Find duplicates in specified folders."
                            "\n<ACTION> defines the action to take on duplicates ('move', 'delete' or 'list'). Default: 'list' "
-                           "\n<DUPLICATES_FOLDER> are one or more folders (string or list), where the script will look for duplicates files. The order of this list is important to determine the principal file of a duplicates set. First folder will have higher priority."
+                           "\n<DUPLICATES_FOLDER> are one or more folders (string or list), where the Tool will look for duplicates files. The order of this list is important to determine the principal file of a duplicates set. First folder will have higher priority."
                         )
-    PARSER.add_argument("-procDup", "--process-duplicates", metavar="<DUPLICATES_REVISED_CSV>", default="", help="Specify the Duplicates CSV file revised with specifics Actions in Action column, and the script will execute that Action for each duplicates found in CSV. Valid Actions: restore_duplicate / remove_duplicate / replace_duplicate.")
-    PARSER.add_argument("-fixSym", "--fix-symlinks-broken", metavar="<FOLDER_TO_FIX>", default="", help="The script will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_TAKEOUT_FOLDER and some Albums seems to be empty.")
+    PARSER.add_argument("-procDup", "--process-duplicates", metavar="<DUPLICATES_REVISED_CSV>", default="", help="Specify the Duplicates CSV file revised with specifics Actions in Action column, and the Tool will execute that Action for each duplicates found in CSV. Valid Actions: restore_duplicate / remove_duplicate / replace_duplicate.")
+    PARSER.add_argument("-fixSym", "--fix-symlinks-broken", metavar="<FOLDER_TO_FIX>", default="", help="The Tool will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_TAKEOUT_FOLDER and some Albums seems to be empty.")
     PARSER.add_argument("-renFldcb", "--rename-folders-content-based", metavar="<ALBUMS_FOLDER>", default="", help="Usefull to rename and homogenize all Albums folders found in <ALBUMS_FOLDER> based on the date content found.")
 
     # Procesar la acción y las carpetas

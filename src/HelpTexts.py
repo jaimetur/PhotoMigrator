@@ -67,11 +67,11 @@ def set_help_texts():
         """)
 
     HELP_TEXTS["synology-remove-all-assets"]  = textwrap.dedent(f"""
-        CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Synology database.         
+        CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Synology database.         
         """)
 
     HELP_TEXTS["synology-remove-all-albums"] = textwrap.dedent(f"""
-        CAUTION!!! The script will delete ALL your Albums from Synology database.
+        CAUTION!!! The Tool will delete ALL your Albums from Synology database.
 
         Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument.
         """)
@@ -121,17 +121,17 @@ def set_help_texts():
         """)
 
     HELP_TEXTS["immich-remove-orphan-assets"]  = textwrap.dedent(f"""
-        ATTENTION!!!: In this process, the script will look for all Orphan Assets in Immich Database and will delete them. 
+        ATTENTION!!!: In this process, the Tool will look for all Orphan Assets in Immich Database and will delete them. 
         
         IMPORTANT!!!: This feature requires a valid ADMIN_API_KEY configured in Config.ini.
         """)
 
     HELP_TEXTS["immich-remove-all-assets"]  = textwrap.dedent(f"""
-        CAUTION!!! The script will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Immich database.         
+        CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Immich database.         
         """)
 
     HELP_TEXTS["immich-remove-all-albums"]  = textwrap.dedent(f"""
-        CAUTION!!! The script will delete ALL your Albums from Immich database.
+        CAUTION!!! The Tool will delete ALL your Albums from Immich database.
         
         Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument.
         """)
@@ -148,7 +148,7 @@ def set_help_texts():
             - list   : This action is not dangerous, just list all duplicates files found in a Duplicates.csv file.
             - move   : This action could be dangerous but is easily reversible if you find that any duplicated file have been moved to Duplicates folder and you want to restore it later
                        You can easily restore it using option -procDup, --process-duplicates
-            - remove : This action could be dangerous and is irreversible, since the script will remove all duplicates found and will keep only a Principal file per each duplicates set. 
+            - remove : This action could be dangerous and is irreversible, since the Tool will remove all duplicates found and will keep only a Principal file per each duplicates set. 
                        The principal file is chosen carefully based on some heuristic methods
         """)
 
