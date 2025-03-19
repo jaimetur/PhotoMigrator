@@ -3,7 +3,7 @@
 ---------------------------------------------------------------------------------------------------------
 
 usage: CloudPhotoMigrator.bin/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
-                                  [-dash [true, false]]
+                                  [-dashboard [true, false]]
                                   [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
                                   [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
                                   [-rAlbAss]
@@ -77,7 +77,7 @@ same Photo Cloud service.
               ​--source=immich-1 -> Select Immich Photos account 1 as Target.
               ​--source=synology-2 -> Select Synology Photos account 2 as Target.
               ​--source=/home/local_folder -> Select this local folder as Target.
--dash,     --dashboard [true, false]
+-dashboard,     --dashboard [true, false]
              Enable or disable Live Dashboard feature during Autometed Migration Job.
              This argument only applies if both '--source' and '--target' argument are
              given (AUTOMATED-MIGRATION MODE). (default: True).

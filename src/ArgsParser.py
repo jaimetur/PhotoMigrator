@@ -72,7 +72,7 @@ def parse_arguments():
     #                        "\n    <SOURCE> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2'] or <INPUT_FOLDER>"
     #                        "\n    <TARGET> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2']or <OUTPUT_FOLDER>"
     #                     )
-    PARSER.add_argument("-dash", "--dashboard",
+    PARSER.add_argument("-dashboard", "--dashboard",
                         metavar="[true, false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True

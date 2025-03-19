@@ -27,7 +27,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [x] Included Live Progress Dashboard in Automated Migration process for a better visualization of the job progress.
 - [x] Added a new argument **'--source'** to specify the \<SOURCE> client for the Automated Migration process.
 - [x] Added a new argument **'--target'** to specify the \<SOURCE> client for the Automated Migration process.
-- [x] Added new flag '**-dash, --dashboard=[true, false]**' (default=true) to show/hide Live Dashboard during Atomated Migration Job.
+- [x] Added new flag '**-dashboard, --dashboard=[true, false]**' (default=true) to show/hide Live Dashboard during Atomated Migration Job.
 - [x] Added new flag '**-gpthProg, --show-gpth-progress=[true, false]**' (default=false) to show/hide progress messages during GPTH processing.
 - [x] Added new flag '**--gpthErr, --show-gpth-errors=[true, false]**' (default=true) to show/hide errors messages during GPTH processing.
 - [x] Removed argument **'-AUTO, --AUTOMATED-MIGRATION \<SOURCE> \<TARGET>'** because have been replaced with two above arguments for a better visualization.
