@@ -17,13 +17,13 @@
 - From version 1.4.0 onwards, the Tool has a feature to 'Find Duplicates'. 
 - To run this feature you have to use the flag '-findDup, --find-duplicates \<ACTION> \<DUPLICATES_FOLDER> [\<DUPLICATES_FOLDER> ...]'
 - where, 
-    - \<DUPLICATES_FOLDER> is the folder (or list of folders) where the Tool will look for duplicates files. If you provide more than one folders, when a duplicated file is found, the Tool will maintain the file found within the folder given first in the list of folders provided. If the duplicated files are within the same folder given as an argument, the Tool will maintain the file whose name is shorter.
+    - \<DUPLICATES_FOLDER> is the folder (or list of folders) where the Tool will look for duplicates files. If you provide more than one folder, when a duplicated file is found, the Tool will maintain the file found within the folder given first in the list of folders provided. If the duplicated files are within the same folder, then the Tool will maintain the file whose name is shorter.
     - \<ACTION> is an action to specify what to do with duplicates files found. You can include any of the valid actions. 
       - Valid actions are: 'list', 'move' or 'remove'. If not action is detected, 'list' will be the default action.
 - With this feature, the Tool will find duplicates files in a smart way based on file size and content and will perform the action based on the <ACTION> selected:
-  - If <ACTION> is 'list', then the Tool will only create a list of duplicated files found within the folder Duplicates. 
-  - If <ACTION> is 'move' then the Tool will maintain the main file and move the others inside the folder Duplicates/Duplicates_timestamp. 
-  - If <ACTION> is 'remove' the Tool will maintain the main file and remove the others.
+  - If \<ACTION> is 'list', then the Tool will only create a list of duplicated files found within the folder Duplicates. 
+  - If \<ACTION> is 'move' then the Tool will maintain the main file and move the others inside the folder Duplicates/Duplicates_timestamp. 
+  - If \<ACTION> is 'remove' the Tool will maintain the main file and remove the others.
 
 
     ### Example of use:
