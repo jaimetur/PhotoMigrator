@@ -133,9 +133,9 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
     - Albums will be downloaded within a subfolder '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
     - Assets with no Albums associated will be downloaded within a subfolder 'OUTPUT_FOLDER/No-Albums/' and will have a year/month structure inside.
   - **-srEmpAlb  --synology-remove-empty-albums**  
-    - The Tool will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database.  
+    - The Tool will look for all Albums in your Synology Photos account and if any Album is empty, will remove it from your Synology Photos account.  
   - **-srDupAlb, --synology-remove-duplicates-albums**  
-    - The Tool will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database.
+    - The Tool will look for all Albums in your Synology Photos account and if any Album is duplicated, will remove it from your Synology Photos account.
   - **-srAll,    --synology-remove-all-assets** to delete ALL assets in Synology Photos
   - **-srAllAlb, --synology-remove-all-albums** to delete ALL Albums in Synology Photos (optionally all associated assets can be also deleted).  
 
@@ -154,9 +154,9 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
     - Albums will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
     - Assets with no Albums associated will be downloaded within a subfolder called '<OUTPUT_FOLDER>/No-Albums/' and will have a year/month structure inside.
   - **-irEmpAlb, --immich-remove-empty-albums**  
-    - The Tool will look for all Albums in Immich Photos database and if any Album is empty, will remove it from Immich Photos database.  
+    - The Tool will look for all Albums in your Immich Photos account and if any Album is empty, will remove it from your Immich Photos account.  
   - **-irDupAlb  --immich-remove-duplicates-albums**  
-    - The Tool will look for all Albums in Immich Photos database and if any Album is duplicated, will remove it from Immich Photos database.  
+    - The Tool will look for all Albums in Immich your Photos account and if any Album is duplicated, will remove it from your Immich Photos account.  
   - **-irAll,    --immich-remove-all-assets** to delete ALL assets in Immich Photos
   - **-irAllAlb, --immich-remove-all-albums** to delete ALL Albums in Immich Photos (optionally all associated assets can be also deleted).  
   - **-irOrphan, --immich-remove-orphan-assets**  
@@ -218,7 +218,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
 ### Main Changes:
 - Added ALL-IN-ONE mode to Automatically process your Google Takeout files (zipped or unzipped), process them, and move all your Photos & Videos into your Synology Photos personal folder creating all the Albums that you have in Google Photos within Synology Photos.
-- New flag -ao,  --all-in-one <INPUT_FOLDER> to do all the process in just One Shot. The Tool will extract all your Takeout Zip files from <INPUT_FOLDER>, will process them, and finally will connect to Synology Photos database to create all Albums found and import all the other photos without any Albums associated.
+- New flag -ao,  --all-in-one <INPUT_FOLDER> to do all the process in just One Shot. The Tool will extract all your Takeout Zip files from <INPUT_FOLDER>, will process them, and finally will connect to your Synology Photos account to create all Albums found and import all the other photos without any Albums associated.
 - Code Refactored
 - Minor Bug Fixing
 
@@ -231,8 +231,8 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 ### Main Changes:
 - Added Synology Photos Management options with three new Extra Features:
   -- New flag -ca,  --create-albums-synology-photos <ALBUMS_FOLDER> to force Mode: 'Create Albums in Synology Photos'. The Tool will look for all Albums within ALBUM_FOLDER and will create one Album per folder into Synology Photos.
-  -- New flag -de,  --delete-empty-albums-synology-photos tofForce Mode: 'Delete Empty Albums in Synology Photos'. The Tool will look for all Albums in Synology Photos database and if any Album is empty, will remove it from Synology Photos database. 
-  -- New flag -dd,  --delete-duplicates-albums-synology-photos tofForce Mode: 'Delete Duplicates Albums in Synology Photos'. The Tool will look for all Albums in Synology Photos database and if any Album is duplicated, will remove it from Synology Photos database. 
+  -- New flag -de,  --delete-empty-albums-synology-photos tofForce Mode: 'Delete Empty Albums in Synology Photos'. The Tool will look for all Albums in Synology your Photos account and if any Album is empty, will remove it from your Synology Photos account. 
+  -- New flag -dd,  --delete-duplicates-albums-synology-photos tofForce Mode: 'Delete Duplicates Albums in Synology Photos'. The Tool will look for all Albums in your Synology Photos account and if any Album is duplicated, will remove it from your Synology Photos account. 
 - New Flag: -ra, --rename-albums <ALBUMS_FOLDER> to rename all Albums subfolders and homogenize all your Albums names with this format: 'yyyy - Album Name' or 'yyyy-yyyy - Album Name', where yyyy is the year of the files contained in each Album folder (if more than one year is found, then yyyy-yyyy will indicate the range of years for the files contained in the Album folder.)  
 - Support to run on Synology NAS running DSM 7.0 or higher
 - Code refactored

@@ -1,13 +1,13 @@
 # Command Line Syntax:
 ```
 ---------------------------------------------------------------------------------------------------------
-
 usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
                                   [-dashboard [[true, false]]]
                                   [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
                                   [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
-                                  [-rAlbAss] [-gpthProg [[true, false]]]
-                                  [-gpthErr [[true, false]]] [-nolog]
+                                  [-rAlbAss]
+                                  [-gpthProg [[true, false]]] [-gpthErr [[true, false]]]
+                                  [-nolog]
                                   [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
                                   [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
@@ -79,7 +79,7 @@ same Photo Cloud service.
 --dashboard [true, false]
              Enable or disable Live Dashboard feature during Autometed Migration Job.
              This argument only applies if both '--source' and '--target' argument are
-             given (AUTOMATED-MIGRATION MODE). (default: True).
+             given (AUTOMATED-MIGRATION FEATURE). (default: True).
 
 
 GENERAL ARGUMENTS:
@@ -195,11 +195,11 @@ If more than one optional arguments are detected, only the first one will be exe
              called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure
              inside.
 -srEmpAlb, --synology-remove-empty-albums
-             The Tool will look for all Albums in Synology Photos database and if any
-             Album is empty, will remove it from Synology Photos database.
+             The Tool will look for all Albums in your Synology Photos account and if
+             any Album is empty, will remove it from your Synology Photos account.
 -srDupAlb, --synology-remove-duplicates-albums
-             The Tool will look for all Albums in Synology Photos database and if any
-             Album is duplicated, will remove it from Synology Photos database.
+             The Tool will look for all Albums in your Synology Photos account and if
+             any Album is duplicated, will remove it from your Synology Photos account.
 -srAll,    --synology-remove-all-assets
              CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also
              ALL your Albums from Synology database.
@@ -218,9 +218,9 @@ If more than one optional arguments are detected, only the first one will be exe
              The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER>
              and will create one Album per subfolder into Immich Photos.
 -idAlb,    --immich-download-albums <ALBUMS_NAME>
-             The Tool will connect to Immich Photos and download those Albums whose name
-             is in '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the argument
-             '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this
+             The Tool will connect to Immich Photos and will download those Albums whose
+             name is in '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the
+             argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this
              feature).
              - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
              - To download all albums mathing any pattern you can use patterns in
@@ -248,11 +248,11 @@ If more than one optional arguments are detected, only the first one will be exe
              called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure
              inside.
 -irEmpAlb, --immich-remove-empty-albums
-             The Tool will look for all Albums in Immich Photos database and if any
-             Album is empty, will remove it from Immich Photos database.
+             The Tool will look for all Albums in your Immich Photos account and if any
+             Album is empty, will remove it from your Immich Photos account.
 -irDupAlb, --immich-remove-duplicates-albums
-             The Tool will look for all Albums in Immich Photos database and if any
-             Album is duplicated, will remove it from Immich Photos database.
+             The Tool will look for all Albums in your Immich Photos account and if any
+             Album is duplicated, will remove it from your Immich Photos account.
 -irAll,    --immich-remove-all-assets
              CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also
              ALL your Albums from Immich database.

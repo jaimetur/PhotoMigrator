@@ -347,7 +347,7 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         # Call the Function
         total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed = syno.upload_ALL (ARGS['synology-upload-all'], albums_folders=albums_folders, log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
-        LOGGER.info("INFO    : Cleaning-up Synology Photos database (Removing Empty/Duplicates Albums and Duplicates Assets)...")
+        LOGGER.info("INFO    : Cleaning-up Synology Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
         LOGGER.info("INFO    : Removing Empty Albums...")
         total_empty_albums_removed = syno.remove_empty_albums(log_level=logging.WARNING)
@@ -444,7 +444,7 @@ def mode_synology_download_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
         syno.login(log_level=logging.WARNING)
         # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
-        LOGGER.info("INFO    : Cleaning-up Immich Photos database (Removing Empty/Duplicates Albums and Duplicates Assets)...")
+        LOGGER.info("INFO    : Cleaning-up Immich Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
         total_empty_albums_removed = syno.remove_empty_albums(log_level=logging.WARNING)
         # Execute mode_delete_duplicates_albums
@@ -487,7 +487,7 @@ def mode_synology_remove_empty_albums(user_confirmation=True, log_level=logging.
     
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Synology Photos: 'Remove Empty Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO    : Flag detected '-srEmpAlb, --synology-remove-empty-albums'. The Tool will look for any empty album in Synology Photos database and will delete them (if any empty album is found).")
+        LOGGER.info(f"INFO    : Flag detected '-srEmpAlb, --synology-remove-empty-albums'. The Tool will look for any empty album in your Synology Photos account and will delete them (if any empty album is found).")
         # Create the Object
         syno = ClassSynologyPhotos()
         # login
@@ -528,7 +528,7 @@ def mode_synology_remove_duplicates_albums(user_confirmation=True, log_level=log
     
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Synology Photos: 'Remove Duplicates Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO    : Flag detected '-srDupAlb, --synology-remove-duplicates-albums'. The Tool will look for any duplicated album in Synology Photos database and will delete them (if any duplicated album is found).")
+        LOGGER.info(f"INFO    : Flag detected '-srDupAlb, --synology-remove-duplicates-albums'. The Tool will look for any duplicated album in your Synology Photos account and will delete them (if any duplicated album is found).")
         # Create the Object
         syno = ClassSynologyPhotos()
         # login
@@ -672,7 +672,7 @@ def mode_immich_upload_albums(user_confirmation=True, log_level=logging.INFO):
         # Call the Function
         total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed, total_dupplicated_assets_skipped = immich.upload_albums(ARGS['immich-upload-albums'], log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
-        LOGGER.info("INFO    : Cleaning-up Immich Photos database (Removing Empty/Duplicates Albums and Duplicates Assets)...")
+        LOGGER.info("INFO    : Cleaning-up Immich Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
         LOGGER.info("INFO    : Removing Empty Albums...")
         total_empty_albums_removed = immich.remove_empty_albums(log_level=logging.WARNING)
@@ -732,7 +732,7 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         # Call the Function
         total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed, total_dupplicated_assets_skipped = immich.upload_ALL(ARGS['immich-upload-all'], albums_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
-        LOGGER.info("INFO    : Cleaning-up Immich Photos database (Removing Empty/Duplicates Albums and Duplicates Assets)...")
+        LOGGER.info("INFO    : Cleaning-up Immich Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
         LOGGER.info("INFO    : Removing Empty Albums...")
         total_empty_albums_removed = immich.remove_empty_albums(log_level=logging.WARNING)
@@ -790,7 +790,7 @@ def mode_immich_download_albums(user_confirmation=True, log_level=logging.INFO):
         immich.login(log_level=logging.WARNING)
         # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("")
-        LOGGER.info("INFO    : Cleaning-up Immich Photos database (Removing Empty/Duplicates Albums and Duplicates Assets)...")
+        LOGGER.info("INFO    : Cleaning-up Immich Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
         LOGGER.info("")
         LOGGER.info("INFO    : Removing Empty Albums...")
@@ -844,7 +844,7 @@ def mode_immich_download_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
         immich.login(log_level=logging.WARNING)
         # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
-        LOGGER.info("INFO    : Cleaning-up Immich Photos database (Removing Empty/Duplicates Albums and Duplicates Assets)...")
+        LOGGER.info("INFO    : Cleaning-up Immich Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
         total_empty_albums_removed = immich.remove_empty_albums(log_level=logging.WARNING)
         # Execute mode_delete_duplicates_albums
@@ -887,7 +887,7 @@ def mode_immich_remove_empty_albums(user_confirmation=True, log_level=logging.IN
     
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Delete Empty Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO    : Flag detected '-irEmpAlb, --immich-remove-empty-albums'. The Tool will look for any empty album in Immich Photos database and will delete them (if any empty album is found).")
+        LOGGER.info(f"INFO    : Flag detected '-irEmpAlb, --immich-remove-empty-albums'. The Tool will look for any empty album in your Immich Photos account and will delete them (if any empty album is found).")
         # Create the Object
         immich = ClassImmichPhotos()
         # login
@@ -928,7 +928,7 @@ def mode_immich_remove_duplicates_albums(user_confirmation=True, log_level=loggi
     
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Delete Duplicates Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO    : Flag detected '-irDupAlb, --immich-remove-duplicates-albums'. The Tool will look for any duplicated album in Immich Photos database and will delete them (if any duplicated album is found).")
+        LOGGER.info(f"INFO    : Flag detected '-irDupAlb, --immich-remove-duplicates-albums'. The Tool will look for any duplicated album in your Immich Photos account and will delete them (if any duplicated album is found).")
         # Create the Object
         immich = ClassImmichPhotos()
         # login
