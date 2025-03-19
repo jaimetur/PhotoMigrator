@@ -42,8 +42,9 @@
 
 ## <span style="color:blue">Upload Albums (from Local Folder) into Immich Photos:</span>
 - From version 3.0.0 onwards, the Tool has a feature to 'Create Albums in Immich Photos'. 
+- To run this feature you have to use the flag _'-iuAlb,  --immich-upload-albums <ALBUMS_FOLDER>'_
+- where \<ALBUMS_FOLDER> is the folder that contains all the Albums that you want to upload,
 - If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Immich Photos account and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Immich Photos and with the same Album name as Album folder.  
-- The folder <ALBUMS_FOLDER> can be passed using the Flag: _'-iuAlb,  --immich-upload-albums <ALBUMS_FOLDER>'_
 
   ### Example of use:
   ```
@@ -54,13 +55,17 @@
 
 ## <span style="color:blue">Download Albums from Immich Photos:</span>
 - From version 3.0.0 onwards, the Tool has a feature to 'Download Albums from Immich Photos'. 
-- If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect to Immich Photos and Download those Album(s) whose name is in <ALBUMS_NAME> to the folder <OUTPUT_FOLDER> given by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this mode).
+- To run this feature you have to use the flag _'-idAlb,  --immich-download-albums <ALBUMS_NAME'_ in combination with the flag _'-o, --output-folder <OUTPUT_FOLDER>'_ (mandatory argument for this feature)
+- where,
+- \<ALBUMS_NAME> is a list of Albubs names that you want to download.
+- \<OUTPUT_FOLDER> is the folder where you want to download the Albums.
+- If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect to Immich Photos and Download those Album(s) whose name is in <ALBUMS_NAME> to the folder <OUTPUT_FOLDER>.
 - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
 - To download all albums mathing any pattern you can use patterns in <ALBUMS_NAME>, i.e: --immich-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words.
 - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums 'album1', 'album2', 'album3'.
 
   > **⚠ IMPORTANT:**
-  > <ALBUMS_NAME> should exist within your Immich Photos Albums database, otherwise it will no extract anything. 
+  > <ALBUMS_NAME> should exist within your Immich Photos Albums database, otherwise it will not extract anything. 
 
   ### Example of use:
   ```
@@ -71,20 +76,28 @@
 
 ## <span style="color:blue">Upload All (from Local Folder) into Immich Photos:</span>
 - From version 3.0.0 onwards, the Tool has a feature to 'Upload Folder into Immich Photos'. 
+- To run this feature you have to use the flag _'-iuAll,  --immich-upload-all <INPUT_FOLDER>'_
+- where,
+- \<INPUT_FOLDER> is the folder that contains all the assets that you want to upload.
 - If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Immich Photos account and will upload all the assets contained in <INPUT_FOLDER> that are supported by Immich Photos.  
-- The folder <INPUT_FOLDER> can be passed using the Flag: _'-iuAll,  --immich-upload-all <INPUT_FOLDER>'_
+- If you want to create Albums for some specific subfolders you have two options:
+  1. Move all the Albums subfolders into a '<INPUT_FOLDER>/Albums', in this way the Tool will consideer all the subfolders inside as an Album, and will create an Album in Immich Photos with the same name as the subfolder, associating all the assets inside to it.
+  2. Use the complementary argument _'-AlbFld, --albums-folders <ALBUMS_FOLDER>'_, in this way the Tool will create Albums also for each subfolder found in '<ALBUMS_FOLDER>' (apart from those found inside '<INPUT_FOLDER>/Albums')
+
 
   ### Example of use:
   ```
   ./CloudPhotoMigrator.run --immich-upload-all ./MyLibrary
   ```
-  With this example, the Tool will connect to your Immich Photos account and process the folder ./MyLibrary and will upload all supported assets found on it, creating a new Album per each subfolder found within '<INPUT_FOLDER>/Albums' folder.
+  With this example, the Tool will connect to your Immich Photos account and process the folder ./MyLibrary and will upload all supported assets found on it, creating a new Album per each subfolder found within './MyLibrary/Albums' folder.
 
 
 ## <span style="color:blue">Download All from Immich Photos:</span>
 - From version 3.0.0 onwards, the Tool has a feature to 'Download All from Immich Photos'.
+- To run this feature you have to use the flag _'-idAll, --immich-download-all <OUTPUT_FOLDER>'_
+- where,
+- \<OUTPUT_FOLDER> is the folder where you want to download all your assets.
 - If you configure properly the file 'Config.ini' and execute this Feature, The Tool will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.
-- To execute this feature, you can use the Flag: _'-idAll, --immich-download-all <OUTPUT_FOLDER>'_
 - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.
 - Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside.
 
@@ -97,73 +110,70 @@
 
 ## <span style="color:blue">Remove All Assets from Immich Photos:</span>
 - From version 3.0.0 onwards, the Tool supports a feature to 'Remove All Assets from Immich Photos'. 
+- To run this feature you have to use the flag _'-irAll, --immich-remove-all-assets'_
 - If you configure properly the file 'Config.ini' and execute this feature, the Tool will connect automatically to your Immich Photos account and will remove ALL the assets and Albums found.  
-- To execute this feature, you can use the Flag: _'-irAll, --immich-remove-all-assets'_
 
   > **⚠ IMPORTANT:**
   > This process is irreversible and will clean all from your Immich Photos account. Use it if you are completelly sure of what you are doing.
       
   ### Example of use:
   ```
-  ./CloudPhotoMigrator.run --immich-remove-duplicates-albums
+  ./CloudPhotoMigrator.run --immich-remove-all-assets
   ```
-  With this example, the Tool will connect to Immich Photos account and will delete all Duplicates Albums found.
+  With this example, the Tool will connect to Immich Photos account and will remove all assets found (including Albums).
   
 
 ## <span style="color:blue">Remove All Albums from Immich Photos:</span>
-- From version 3.0.0 onwards, the Tool can be executed a feature to 'Remove All Albums from Immich Photos' from Immich Photos'. 
-- If you configure properly the file 'Config.ini' and execute this feature, the Tool will connect automatically to your Immich Photos account and will remove ALL the Albums found.
-- To execute this feature, you can use the Flag: _'-irAll, --immich-remove-all-assets'_
-- Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets'
+- From version 3.0.0 onwards, the Tool can be executed a feature to 'Remove All Albums from Immich Photos'. 
+- To run this feature you have to use the flag _'-irAllAlb, --immich-remove-all-albums'_
+- If you configure properly the file 'Config.ini' and execute this feature, the Tool will connect automatically to your Immich Photos account and will remove all the Albums found.
+- Optionally ALL the Assets associated to each Album can be removed If you also include the complementary argument _'-rAlbAss, --remove-albums-assets'_
 
   > **⚠ IMPORTANT:**
   > This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Immich Photos account. Use it if you are completelly sure of what you are doing.
       
   ### Example of use:
   ```
-  ./CloudPhotoMigrator.run --immich-remove-duplicates-albums
+  ./CloudPhotoMigrator.run --immich-remove-all-albums --remove-albums-assets
   ```
-  With this example, the Tool will connect to your Immich Photos account and will delete all Duplicates Albums found.
+  With this example, the Tool will connect to your Immich Photos account and will remove all Albums found (including all the assets contained on them, because we are using the complementary flag).
 
 
-## <span style="color:blue">Delete Empty Albums in Immich Photos:</span>
-- From version 3.0.0 onwards, the Tool has a feature to 'Delete Empty Albums from Immich Photos'. 
-- If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Immich Photos account and will look for all Empty Albums in your Immich Photos account.  
-- If any Empty Album is found, the Tool will remove it from Immich Photos.  
-- To execute this feature, you can use the Flag: _'--immich-remove-empty-albums'_
+## <span style="color:blue">Remove Empty Albums in Immich Photos:</span>
+- From version 3.0.0 onwards, the Tool has a feature to 'Remove Empty Albums from Immich Photos'. 
+- To run this feature you have to use the flag _'--immich-remove-empty-albums'_
+- If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Immich Photos account and will remove all Empty Albums found.  
 
   ### Example of use:
   ```
-  ./CloudPhotoMigrator.run --delete-empty-albums-immich-photos
+  ./CloudPhotoMigrator.run --immich-remove-empty-albums
   ```
-  With this example, the Tool will connect to your Immich Photos account and will delete all Empty Albums found.
+  With this example, the Tool will connect to your Immich Photos account and will remove all Empty Albums found.
 
 
-## <span style="color:blue">Delete Duplicates Albums in Immich Photos:</span>
-- From version 3.0.0 onwards, the Tool has a feature to 'Delete Duplicates Albums from Immich Photos'. 
-- If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Immich Photos account and will look for all Duplicates Albums in your Immich Photos account.  
-- If any Duplicated Album is found, the Tool will remove it from Immich Photos.  
-- To execute this feature, you can use the Flag: _'--immich-remove-duplicates-albums'_
+## <span style="color:blue">Remove Duplicates Albums in Immich Photos:</span>
+- From version 3.0.0 onwards, the Tool has a feature to 'Remove Duplicates Albums from Immich Photos'. 
+- To run this feature you have to use the flag _'--immich-remove-duplicates-albums'_
+- If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Immich Photos account and will remove all Duplicates Albums found except the first one (but will not remove the assets associated to them, because they will still be associated with the first Album).  
 
   ### Example of use:
   ```
-  ./CloudPhotoMigrator.run --delete-duplicates-albums-immich-photos
+  ./CloudPhotoMigrator.run --immich-remove-duplicates-albums'
   ```
-  With this example, the Tool will connect to your Immich Photos account and will delete all Duplicates Albums found.
+  With this example, the Tool will connect to your Immich Photos account and will remove all Duplicates Albums found except the first one.
 
 
-## <span style="color:blue">Delete Orphans Assets in Immich Photos:</span>
-- From version 3.0.0 onwards, the Tool has a feature to 'Delete Orphans Assets from Immich Photos'.  
+## <span style="color:blue">Remove Orphans Assets in Immich Photos:</span>
+- From version 3.0.0 onwards, the Tool has a feature to 'Remove Orphans Assets from Immich Photos'.
 - An Orphan asset is an asset that is in your Immich Photos account but is pointing to a non-existing file.  
-- If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Immich Photos account and will look for Orphan assets  Duplicates Albums in your Immich Photos account.
-- If any Duplicated Album is found, the Tool will remove it from Immich Photos.
-- To execute this feature, you can use the Flag: _'--immich-remove-orphan-assets'_
+- To run this feature you have to use the flag _'--immich-remove-orphan-assets'_
+- If you configure properly the file 'Config.ini' and execute this Feature, the Tool will connect automatically to your Immich Photos account and will remove all Orphan assets found.
 
   ### Example of use:
   ```
   ./CloudPhotoMigrator.run --immich-remove-orphan-assets
   ```
-  With this example, the Tool will connect to your Immich Photos account and will delete all Orphan Assets found.
+  With this example, the Tool will connect to your Immich Photos account and will remove all Orphan Assets found.
   
 
 
