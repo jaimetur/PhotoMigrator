@@ -30,11 +30,11 @@
 - If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Synology Photos and with the same Album name as Album folder.  
 - The folder <ALBUMS_FOLDER> can be passed using the Flag: _'-sua,  --synology-upload-albums <ALBUMS_FOLDER>'_
 
-    ### Example of use:
-    ```
-    ./CloudPhotoMigrator.run --synology-upload-albums ./My_Albums_Folder
-    ```
-    With this example, the script will connect to Synology Photos database and process the folder ./My_Albums_Folder and per each subfolder found on it that contains at least one file supported by Synology Photos, will create a new Album in Synology Photos with the same name of the Album Folder
+  ### Example of use:
+  ```
+  ./CloudPhotoMigrator.run --synology-upload-albums ./My_Albums_Folder
+  ```
+  With this example, the script will connect to Synology Photos database and process the folder ./My_Albums_Folder and per each subfolder found on it that contains at least one file supported by Synology Photos, will create a new Album in Synology Photos with the same name of the Album Folder
 
 
 ## <span style="color:blue">Download Albums from Synology Photos:</span>
@@ -45,14 +45,14 @@
 - To extract ALL Albums within in Synology Photos database use 'ALL' as <ALBUMS_NAME>.  
 - The album(s) name <ALBUMS_NAME> can be passed using the Flag: _'-sda,  --synology-download-albums <ALBUMS_NAME>'_  
 
-    > [!IMPORTANT]
-    > <ALBUMS_NAME> should exist within your Synology Photos Albums database, otherwise it will no extract anything.
-    
-    ### Example of use:
-    ```
-    ./CloudPhotoMigrator.run --synology-download-albums "Album 1", "Album 2", "Album 3"
-    ```
-    With this example, the script will connect to Synology Photos database and extract the Albums "Album 1", "Album 2", "Album 3" with all the photos and videos included on them into a subfolder of 'Synology_Photos_Albums' folder
+  > **⚠ IMPORTANT:**
+  > <ALBUMS_NAME> should exist within your Synology Photos Albums database, otherwise it will no extract anything.
+
+  ### Example of use:
+  ```
+  ./CloudPhotoMigrator.run --synology-download-albums "Album 1", "Album 2", "Album 3"
+  ```
+  With this example, the script will connect to Synology Photos database and extract the Albums "Album 1", "Album 2", "Album 3" with all the photos and videos included on them into a subfolder of 'Synology_Photos_Albums' folder
 
 
 ## <span style="color:blue">Upload All (from Local Folder) into Synology Photos:</span>
@@ -62,11 +62,11 @@
 - The tool will create a new Album per each subfolder found in 'Album' subfolder, and all assets inside each subfolder off 'Album' Will be associated to a new Album in Synology Photos database with the same name as the container subfolder. 
 - If the argument _**'-AlbFld, --albums-folder <ALBUMS_FOLDER>'**_ is also given, then the tool Will create Albums also for each subfolder found in <ALBUMS_FOLDER>.
 
-    ### Example of use:
-    ```
-    ./CloudPhotoMigrator.run --synology-upload-all ./MyLibrary
-    ```
-    With this example, the script will connect to Synology Photos database and process the folder ./MyLibrary and will upload all supported assets found on it.
+  ### Example of use:
+  ```
+  ./CloudPhotoMigrator.run --synology-upload-all ./MyLibrary
+  ```
+  With this example, the script will connect to Synology Photos database and process the folder ./MyLibrary and will upload all supported assets found on it.
 
 
 ## <span style="color:blue">Download All from Synology Photos:</span>
@@ -75,26 +75,26 @@
 - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.
 - Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside.
 
-    ### Example of use:
-    ```
-    ./CloudPhotoMigrator.run --synology-download-all ./MyLibrary
-    ```
-    With this example, the script will connect to Synology Photos database and download ALL your library into the local folder ./MyLibrary.
-    
+  ### Example of use:
+  ```
+  ./CloudPhotoMigrator.run --synology-download-all ./MyLibrary
+  ```
+  With this example, the script will connect to Synology Photos database and download ALL your library into the local folder ./MyLibrary.
+  
 ## <span style="color:blue">Remove All Assets from Synology Photos:</span>
 - From version 3.0.0 onwards, the script can be executed a feature to 'Remove All Assets' from Synology Photos'. 
 - If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will remove ALL the assets and Albums found.  
 - To execute this Extra Mode, you can use the Flag: _'-srAll, --synology-remove-all-assets'_
     
-    > [!IMPORTANT]
-        > This process is irreversible and will clean all from your Synology Photos account. Use it if you are completelly sure of what you are doing.
+  > **⚠ IMPORTANT:**
+  > This process is irreversible and will clean all from your Synology Photos account. Use it if you are completelly sure of what you are doing.
         
-    ### Example of use:
-    ```
-    ./CloudPhotoMigrator.run --synology-remove-duplicates-albums
-    ```
-    With this example, the script will connect to Synology Photos database and will delete all Duplicates Albums found.
-    
+  ### Example of use:
+  ```
+  ./CloudPhotoMigrator.run --synology-remove-duplicates-albums
+  ```
+  With this example, the script will connect to Synology Photos database and will delete all Duplicates Albums found.
+  
 
 ## <span style="color:blue">Remove All Albums from Synology Photos:</span>
 - From version 3.0.0 onwards, the script can be executed a feature to 'Remove All Albums' from Synology Photos'. 
@@ -102,15 +102,15 @@
 - To execute this Extra Mode, you can use the Flag: _'-srAll, --synology-remove-all-assets'_
 - Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets'
     
-    > [!IMPORTANT]
-        > This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Synology Photos account. Use it if you are completelly sure of what you are doing.
-        
-    ### Example of use:
-    ```
-    ./CloudPhotoMigrator.run --synology-remove-duplicates-albums
-    ```
-    With this example, the script will connect to Synology Photos database and will delete all Duplicates Albums found.
-    
+  > **⚠ IMPORTANT:**
+  > This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Synology Photos account. Use it if you are completelly sure of what you are doing.
+
+  ### Example of use:
+  ```
+  ./CloudPhotoMigrator.run --synology-remove-duplicates-albums
+  ```
+  With this example, the script will connect to Synology Photos database and will delete all Duplicates Albums found.
+  
 
 ## <span style="color:blue">Delete Empty Albums in Synology Photos:</span>
 - From version 2.0.0 onwards, the script can be executed in 'Delete Empty Albums in Synology Photos' Mode. 
@@ -118,11 +118,11 @@
 - If any Empty Album is found, the script will remove it from Synology Photos.  
 - To execute this Extra Mode, you can use the Flag: _'-srEmpAlb, --synology-remove-empty-albums'_
 
-    ### Example of use:
-    ```
-    ./CloudPhotoMigrator.run --synology-remove-empty-albums
-    ```
-    With this example, the script will connect to Synology Photos database and will delete all Empty Albums found.
+  ### Example of use:
+  ```
+  ./CloudPhotoMigrator.run --synology-remove-empty-albums
+  ```
+  With this example, the script will connect to Synology Photos database and will delete all Empty Albums found.
 
 
 ## <span style="color:blue">Delete Duplicates Albums in Synology Photos:</span>
@@ -131,12 +131,12 @@
 - If any Duplicated Album is found, the script will remove it from Synology Photos.  
 - To execute this Extra Mode, you can use the Flag: _'-srDupAlb, --synology-remove-duplicates-albums'_
 
-    ### Example of use:
-    ```
-    ./CloudPhotoMigrator.run --synology-remove-duplicates-albums
-    ```
-    With this example, the script will connect to Synology Photos database and will delete all Duplicates Albums found.
-    
+  ### Example of use:
+  ```
+  ./CloudPhotoMigrator.run --synology-remove-duplicates-albums
+  ```
+  With this example, the script will connect to Synology Photos database and will delete all Duplicates Albums found.
+  
 
 
 ## Credits

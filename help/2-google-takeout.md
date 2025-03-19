@@ -1,8 +1,8 @@
-# <span style="color:green">Google Takeout Management Documentation:</span>
+# <span style="color:green">Google Takeout Management:</span>
 
 >[!NOTE]
 >## <span style="color:green">Google Takeout Support</span>
->From version 1.0.0 onwards, the script can process your Google Photos Takeout files to fix timestamp, geodata, organize files per year/month, organize assets within album(s) in subfolders, etc...
+>From version 1.0.0 onwards, the Tool can process your Google Photos Takeout files to fix timestamp, geodata, organize files per year/month, organize assets within album(s) in subfolders, etc...
 >
 >>#### <span style="color:green">Example 'Config.ini' for Google Takeout:</span>
 >>
@@ -32,9 +32,9 @@ The whole process will do the next actions if all flags are false (by default):
 
 6. Move all the Albums into '<OUTPUT_FOLDER>/Albums' subfolder and the Photos that does not belong to any album to '<OUTPUT_FOLDER>/No-Albums' folder. This step can be skipped using flag _'-gsma, --google-skip-move-albums'_
 
-7. Finally, the script will look in <OUTPUT_TAKEOUT_FOLDER> for any symbolic link broken and will try to fix it by looking for the original file where the symlink is pointing to.
+7. Finally, the Tool will look in <OUTPUT_TAKEOUT_FOLDER> for any symbolic link broken and will try to fix it by looking for the original file where the symlink is pointing to.
 
-8. (Optional) In this step, the script will look for any duplicate file on OUTPUT_FOLDER (ignoring symbolic links), and will remove all duplicates keeping only the principal file (giving more priority to duplicates files found into any album folder than those found on 'ALL_PHOTOS' folder. 
+8. (Optional) In this step, the Tool will look for any duplicate file on OUTPUT_FOLDER (ignoring symbolic links), and will remove all duplicates keeping only the principal file (giving more priority to duplicates files found into any album folder than those found on 'ALL_PHOTOS' folder. 
 
 
 The result will be a folder (NAMED '<INPUT_TAKEOUT_FOLDER>_{SUFFIX}_{TIMESTAMP}' by default, but you can or change the default suffix _'processed'_ by any other using the option _'-gofs, --google-output-folder-suffix <SUFFIX>'_) 
@@ -94,7 +94,7 @@ In this example, the tool will do the Takeout Processing with the following step
 
 > [!TIP]
 > ## <span style="color:dark">Additional Trick!</span>
-> When prepare Google Takeout to export all your Photos and Albums, select 50GB for the zip file size and select Google Drive as output for those Zip files. On this way you can just Download all the big Zip files directly on your Synology NAS by using the Tool Cloud Sync (included on Synology App Store) and creating a new synchronization task from your Google Drive account (/Takeout folder) to any local folder of your Synology NAS (I recommend to use the default folder called '**Zip_files**' within this script folder structure)
+> When prepare Google Takeout to export all your Photos and Albums, select 50GB for the zip file size and select Google Drive as output for those Zip files. On this way you can just Download all the big Zip files directly on your Synology NAS by using the Tool Cloud Sync (included on Synology App Store) and creating a new synchronization task from your Google Drive account (/Takeout folder) to any local folder of your Synology NAS (I recommend to use the default folder called '**Zip_files**' within this Tool folder structure)
 
 
 ## Credits

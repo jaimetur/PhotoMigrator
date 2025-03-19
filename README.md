@@ -81,7 +81,7 @@ Then you just need to call it depending on your environment:
   - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**CloudPhotoMigrator.exe**'  
 
   - If you run it from Synology NAS (using SSH terminal) or from Linux/Mac, you have to call the master script '**CloudPhotoMigrator.run**'.  
-    Minimum version required to run the script directly from your Synology NAS (using SSH terminal) is **DSM 7.0**.
+    Minimum version required to run the Tool directly from your Synology NAS (using SSH terminal) is **DSM 7.0**.
 
 ## Instructions to execute from source repository:
 Here are simple instructions to clone the GitHub repository, create a Python virtual environment, install dependencies, and run the main script:
@@ -131,7 +131,7 @@ You can check the whole list of functions and arguments with the right syntax he
 
 > [!NOTE]  
 >## <span style="color:green">Automated Migration Feature</span>
->From version 3.0.0 onwards, the script supports a new Extra Mode called '**AUTOMATED-MIGRATION**' Mode. 
+>From version 3.0.0 onwards, the Tool supports a new Feature called '**AUTOMATED-MIGRATION**' Mode. 
 >
 > Use the argument **'--source'** to select the \<SOURCE> and the argument **'--target'** to select \<TARGET> for the AUTOMATED-MIGRATION Process to Pull all your Assets (including Albums) from the \<SOURCE> Cloud Service and Push them to the \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
 > 
@@ -158,7 +158,7 @@ You can check the whole list of functions and arguments with the right syntax he
 > Additionally, this Automated Migration process can also be executed secuencially instead of in parallel, so first, all the assets will be pulled from <SOURCE> and when finish, they will be pushed into <TARGET>, but take into account that in this case, you will need enough disk space to store all your assets pulled from <SOURCE> service.
 > 
 > Also, take into account that in this case, the Live Dashboard will not be displayed, so you only will see the different messages log in the screen, but not the live counters during the migration.  
-> and execute this Extra Mode, the script will automatically do the whole migration job from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.  
+> and execute this feature, the Tool will automatically do the whole migration job from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.  
 
 > [!IMPORTANT]  
 > If you use a local folder <INPUT_FOLDER> as source client, all your Albums should be placed into a subfolder called *'Albums'* within <INPUT_FOLDER>, creating one Album subfolder per Album, otherwise the tool will no create any Album in the target client.  
@@ -178,12 +178,12 @@ You can check the whole list of functions and arguments with the right syntax he
 ./CloudPhotoMigrator.run --source=/homes/MyTakeout --target=synology-1
 ```
 
-In this example, the script will do an Automated Migration Process which has two steps:  
+In this example, the Tool will do an Automated Migration Process which has two steps:  
 
-  - First, the script will process the folder '/homes/MyTakeout' (Unzipping them if needed), fixing all files found on it, to set the
+  - First, the Tool will process the folder '/homes/MyTakeout' (Unzipping them if needed), fixing all files found on it, to set the
     correct date and time, and identifying which assets belongs to each Album created on Google Photos.  
 
-  - Second, the script will connect to your Synology Photos account 1 (if you have configured properly the Config.ini file) and will 
+  - Second, the Tool will connect to your Synology Photos account 1 (if you have configured properly the Config.ini file) and will 
     push all the assets pulled from previous step, creating a new Album per each Album found in your Takeout files and associating
     all the assets included in each Album in the same way that you had on your Google Photos account.
 
@@ -194,12 +194,12 @@ In this example, the script will do an Automated Migration Process which has two
 ./CloudPhotoMigrator.run --source=synology-2 target=immich-1
 ```
 
-In this example, the script will do an Automated Migration Process which has two steps:  
+In this example, the Tool will do an Automated Migration Process which has two steps:  
 
-  - First, the script will connect to your Synology Photos account 2 (if you have configured properly the Config.ini file) and will
+  - First, the Tool will connect to your Synology Photos account 2 (if you have configured properly the Config.ini file) and will
     pull all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
 
-  - In parallel, the script will connect to your Immich Photos account 2 (if you have configured properly the Config.ini file) and 
+  - In parallel, the Tool will connect to your Immich Photos account 2 (if you have configured properly the Config.ini file) and 
     push all the assets pulled from previous step, creating a new Album per each Album found in your Synology Photos and associating
     all the assets included in each Album in the same way that you had on your Synology Photos account.
 
@@ -209,12 +209,12 @@ In this example, the script will do an Automated Migration Process which has two
 ./CloudPhotoMigrator.run --source=immich-2 target=/homes/local_folder
 ```
 
-In this example, the script will do an Automated Migration Process which has two steps:  
+In this example, the Tool will do an Automated Migration Process which has two steps:  
 
-  - First, the script will connect to your Immich Photos account 1 (if you have configured properly the Config.ini file) and will
+  - First, the Tool will connect to your Immich Photos account 1 (if you have configured properly the Config.ini file) and will
     pull all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
 
-  - In parallel, the script will push all the pulled assets into the local folder '/homes/local_folder' creating a folder structure
+  - In parallel, the Tool will push all the pulled assets into the local folder '/homes/local_folder' creating a folder structure
     with all the Albums in the subfolder 'Albums' and all the assets without albums associated into the subfolder 'No-Albums'. 
     This 'No-Albums' subfolder will have a year/month structure to store all your asset in a more organized way.  
 
@@ -224,12 +224,12 @@ In this example, the script will do an Automated Migration Process which has two
 ./CloudPhotoMigrator.run --source=immich-1 target=immich-2
 ```
 
-In this example, the script will do an Automated Migration Process which has two steps:  
+In this example, the Tool will do an Automated Migration Process which has two steps:  
 
-  - First, the script will connect to your Immich Photos account 1 (if you have configured properly the Config.ini file) and will
+  - First, the Tool will connect to your Immich Photos account 1 (if you have configured properly the Config.ini file) and will
     pull all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
 
-  - In parallel, the script will connect to your Immich Photos account 2 (if you have configured properly the Config.ini file) and 
+  - In parallel, the Tool will connect to your Immich Photos account 2 (if you have configured properly the Config.ini file) and 
     push all the assets pulled from previous step, creating a new Album per each Album found in your Synology Photos and associating
     all the assets included in each Album in the same way that you had on your Synology Photos account.
 
@@ -284,7 +284,7 @@ In this example, the script will do an Automated Migration Process which has two
 - [x] Included Live Progress Dashboard in Automated Migration process for a better visualization of the job progress.
 - [x] Added a new argument **'--source'** to specify the \<SOURCE> client for the Automated Migration process.
 - [x] Added a new argument **'--target'** to specify the \<SOURCE> client for the Automated Migration process.
-- [x] Added new flag '**--dashboard=[true, false]**' (default=true) to show/hide Live Dashboard during Atomated Migration Job.
+- [x] Added new flag '**-dashboard, --dashboard=[true, false]**' (default=true) to show/hide Live Dashboard during Atomated Migration Job.
 - [x] Removed argument **'-AUTO, --AUTOMATED-MIGRATION \<SOURCE> \<TARGET>'** because have been replaced with two above arguments for a better visualization.
 - [x] Completelly refactored Automated Migration Process to allow parallel threads for Downloads and Uploads jobs avoiding downloading all assets before to upload them (this will save disk space and improve performance). Also objects support has been added to this mode for an easier implementation and future enhancements.
 - [x] Support for 'Uploads Queue' to limit the max number of assets that the Downloader worker will store in the temporary folder to 100 (this save disk space). In this way the Downloader worker will never put more than 100 assets pending to Upload in the local folder.

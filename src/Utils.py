@@ -58,7 +58,7 @@ def check_OS_and_Terminal(log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Detect the operating system
         current_os = platform.system()
-        # Determine the script name based on the OS
+        # Determine the Tool name based on the OS
         if current_os == "Linux":
             if run_from_synology():
                 LOGGER.info(f"INFO    : Script running on Linux System in a Synology NAS")
@@ -611,7 +611,7 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
                 path = os.path.dirname(path)
             # Process files in subfolders and move them to the root of the subfolder
             for folder in dirs:
-                # If 'Albums' folder is found, invoke the script recursively on its subdirectories
+                # If 'Albums' folder is found, invoke the Tool recursively on its subdirectories
                 if os.path.basename(folder) == "Albums":
                     for album_subfolder in dirs:
                         subfolder_path = os.path.join(path, album_subfolder)

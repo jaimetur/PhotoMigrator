@@ -1,42 +1,45 @@
-# <span style="color:green">Other Standalone Features Documentation:</span>
+# <span style="color:green">Other Standalone Extra Features:</span>
 
 > [!NOTE]
 > ## <span style="color:green">Other Standalone Features</span>
->Additionally, this script can be executed with 4 Standalone Extra Modes: 
+>Additionally, this Tool can be executed with 4 Standalone Extra Features: 
 > 
 > - **Find Duplicates** 
 > - **Process Duplicates** 
 > - **Fix Symbolic Links Broken** 
 > - **Folder Rename Content Based** 
 >
-> If more than one Stand Alone Extra Mode is detected, only the first one will be executed
+> If more than one Stand Alone Extra Feature is detected, only the first one will be executed
 
 
 
-## <span style="color:blue">Extra Mode: Find Duplicates:</span>
-- From version 1.4.0 onwards, the script can be executed in 'Find Duplicates' Mode. With this feature, the script will find duplicates files in a smart way based on file size and content:
-- In Find Duplicates Mode, your must provide a folder (or list of folders) using the flag '-findDup, --find-duplicates \<ACTION> \<DUPLICATES_FOLDER> [\<DUPLICATES_FOLDER> ...]', where, 
-  - \<DUPLICATES_FOLDER> is the folder where the script will look for duplicates files. If you provide more than one folders, when a duplicated file is found, the script will maintains the file found within the folder given first in the list of folders provided. If the duplicated files are within the same folder given as an argument, the script will maintain the file whose name is shorter.
-  - \<ACTION> is an action to specify what to do with duplicates files found. You can include any of the valid actions. 
-    - Valid actions are: 'list', 'move' or 'remove'. If not action is detected, 'list' will be the default action.
-      - If the duplicates action is 'list', then the script will only create a list of duplicated files found within the folder Duplicates. 
-      - If the duplicates action is 'move' then the script will maintain the main file and move the others inside the folder Duplicates/Duplicates_timestamp. 
-      - Finally, If the duplicates action is 'remove' the script will maintain the main file and remove the others.
+## <span style="color:blue">Extra Feature: Find Duplicates:</span>
+- From version 1.4.0 onwards, the Tool has a feature to 'Find Duplicates'. 
+- To run this feature you have to use the flag '-findDup, --find-duplicates \<ACTION> \<DUPLICATES_FOLDER> [\<DUPLICATES_FOLDER> ...]'
+- where, 
+    - \<DUPLICATES_FOLDER> is the folder (or list of folders) where the Tool will look for duplicates files. If you provide more than one folder, when a duplicated file is found, the Tool will maintain the file found within the folder given first in the list of folders provided. If the duplicated files are within the same folder, then the Tool will maintain the file whose name is shorter.
+    - \<ACTION> is an action to specify what to do with duplicates files found. You can include any of the valid actions. 
+      - Valid actions are: 'list', 'move' or 'remove'. If not action is detected, 'list' will be the default action.
+- With this feature, the Tool will find duplicates files in a smart way based on file size and content and will perform the action based on the <ACTION> selected:
+  - If \<ACTION> is 'list', then the Tool will only create a list of duplicated files found within the folder Duplicates. 
+  - If \<ACTION> is 'move' then the Tool will maintain the main file and move the others inside the folder Duplicates/Duplicates_timestamp. 
+  - If \<ACTION> is 'remove' the Tool will maintain the main file and remove the others.
 
     ### Example of use:
     ```
     ./CloudPhotoMigrator --find-duplicatess move ./Albums ./ALL_PHOTOS move
     ```
-    
-    With this example, the script will find duplicates files within folders ./Albums and ./ALL_PHOTOS,
+    With this example, the Tool will find duplicates files within folders ./Albums and ./ALL_PHOTOS,
     If finds any duplicates, will keep the file within ./Albums folder (because it has been passed first on the list)
-    and will move (because the selected action is 'move') the others duplicates files into the ./Duplicates folder on the root folder of the script.
+    and will move (because the selected action is 'move') the others duplicates files into the ./Duplicates folder on the root folder of the Tool.
 
 
-## <span style="color:blue">Extra Mode: Process Duplicates:</span>
-- From version 1.6.0 onwards, the script can be executed in 'Process Duplicates' Mode. With this feature, the script will process the CSV generated during execution of 'Find Duplicates' feature and will perform the Action given in column Action for each duplicated file.
-- Included new flag '-procDup, --process-duplicates <DUPLICATES_REVISED_CSV>' to process the Duplicates.csv output file generated after execution of the 'Find Duplicates' feature. 
-- You can revise and change the Action column values of the <DUPLICATES_REVISED_CSV> file and.
+## <span style="color:blue">Extra Feature: Process Duplicates:</span>
+- From version 1.6.0 onwards, the Tool has a feature to 'Process Duplicates'. 
+- To run this feature you have to use the flag '-procDup, --process-duplicates <DUPLICATES_REVISED_CSV>'
+- where <DUPLICATES_REVISED_CSV> is the output file generated after execution of the 'Find Duplicates' feature.
+- With this feature, the Tool will process the CSV generated during execution of 'Find Duplicates' feature and will perform the Action given in column Action for each duplicated file.
+- You can revise and change the Action column values of the <DUPLICATES_REVISED_CSV> file.
 - Possible Actions in revised CSV file are:
     - remove_duplicate  : Duplicated file moved to Duplicates folder will be permanently removed
     - restore_duplicate : Duplicated file moved to Duplicates folder will be restored to its original location
@@ -48,37 +51,39 @@
     ```
     ./CloudPhotoMigrator --process-duplicates ./Duplicates/Duplicates_revised.csv
     ```
-    With this example, the script will process the file ./Duplicates/Duplicates_revised.csv
+    With this example, the Tool will process the file ./Duplicates/Duplicates_revised.csv
     and for each duplicate, will do the given action according to Action column
 
-## <span style="color:blue">Extra Mode: Fix Symbolic Links Broken:</span>
-- From version 1.5.0 onwards, the script can be executed in 'Fix Symbolic Links Broken' Mode. 
-- You can use the flag '-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>' and provide a FOLDER_TO_FIX and the script will try to look for all symbolic links within FOLDER_TO_FIX and will try to find the target file within the same folder.
-- This is useful when you run the main script using flag '-gcsa, --google-create-symbolic-albums' to create symbolic Albums instead of duplicate copies of the files contained on Albums.
-- If you run the script with this flag and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken and you will need to use this feature to fix them.
+## <span style="color:blue">Extra Feature: Fix Symbolic Links Broken:</span>
+- From version 1.5.0 onwards, the Tool has a feature to 'Fix Symbolic Links Broken'. 
+- To run this feature you have to use the flag '-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>'.
+- where <FOLDER_TO_FIX> is the folder that contains the Symbolic Links to fix.
+- With this feature the Tool will try to look for all symbolic links within <FOLDER_TO_FIX> and will try to find the target file within the same folder.
+- This is useful when you run the Tool using flag '-gcsa, --google-create-symbolic-albums' to create symbolic Albums instead of duplicate copies of the files contained on Albums.
+- If you run the Tool with this flag and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken and you will need to use this feature to fix them.
 
     ### Example of use:
     ```
     ./CloudPhotoMigrator --fix-symlinks-broken ./OUTPUT_FOLDER 
     ```
-    With this example, the script will look for all symbolic links within OUTPUT_FOLDER and if any is broken,
-    the script will try to fix it finding the target of the symlink within the same OUTPUT_FOLDER structure.
+    With this example, the Tool will look for all symbolic links within OUTPUT_FOLDER and if any is broken,
+    the Tool will try to fix it finding the target of the symlink within the same OUTPUT_FOLDER structure.
 
 
-## <span style="color:blue">Extra Mode: Folder Rename Content Based:</span>
-- From version 2.0.0 onwards, the script can be executed in 'Rename Albums Folders' Mode.
-- You can use the flag '-renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>', to rename all Albums subfolders (if they contain a flatten file structure) and homogenize all your Albums names with this format:  
+## <span style="color:blue">Extra Feature: Folder Rename Content Based:</span>
+- From version 2.0.0 onwards, the Tool has a feature to 'Rename Albums Folders'.
+- To run this feature you have to use the flag '-renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>'.
+- where <ALBUMS_FOLDER> is the folder that contains all the Albums subfolders to rename.
+- With this feature, the Tool will rename all Albums subfolders (if they contain a flatten file structure) and homogenize all your Albums names with this format:  
 - New Album Name: **'yyyy - Album Name' or 'yyyy-yyyy - Album Name'**  
-- where 'yyyy' is the year of the files contained in each Album folder (if more than one year is found, then 'yyyy-yyyy' will indicate the range of years for the files contained in the Album folder.  
-
-- Recommendation: Use this Extra Mode before to upload this folder to any Photo Cloud service in order to have a clean Albums structure in your Photo Cloud service database.  This feature is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.  
+- where 'yyyy' is the year of the files contained in each Album folder (if more than one year is found, then 'yyyy-yyyy' will indicate the range of years for the files contained in the Album folder.
+- Recommendation: Use this feature before to upload this folder to any Photo Cloud service in order to have a clean Albums structure in your Photo Cloud service database.  This feature is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.  
 
     ### Example of use:
     ```
     ./CloudPhotoMigrator.run ---rename-folders-content-based ./MyLocalPhotoLibrary
     ```
-    In this example, the script will Process your Library of photos in folder './MyLocalPhotoLibrary' (need to be unzipped), and will rename all the subfolders found on to homogenize all the folder's name with the following template:   
-    
+    In this example, the Tool will Process your Library of photos in folder './MyLocalPhotoLibrary' (need to be unzipped), and will rename all the subfolders found on to homogenize all the folder's name with the following template:  
     '**yyyy - Cleaned Subfolder Name**' or '**yyyy-yyyy - Cleaned Subfolder Name**'  
      where, 
     - 'yyyy' is the year of the assets found in that folder

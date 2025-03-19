@@ -134,7 +134,7 @@ def detect_and_run_execution_mode():
         mode_immich_download_ALL()
 
 
-    # Other Stand-alone Extra Modes:
+    # Other Stand-alone Extra Features:
     elif ARGS['fix-symlinks-broken'] != "":
         EXECUTION_MODE = 'fix-symlinks'
         mode_fix_symlinkgs()
@@ -157,7 +157,7 @@ def detect_and_run_execution_mode():
         sys.exit(1)
 
 ##############################
-# EXTRA MODE: GOOGLE PHOTOS: #
+# FEATURE: GOOGLE PHOTOS: #
 ##############################
 def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
     # Configure default arguments for mode_google_takeout() execution
@@ -278,7 +278,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
 
 
 #################################
-# EXTRA MODES: SYNOLOGY PHOTOS: #
+# FEATURES: SYNOLOGY PHOTOS: #
 #################################
 def mode_synology_upload_albums(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
@@ -650,7 +650,7 @@ def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.IN
 
 
 ###############################
-# EXTRA MODES: IMMICH PHOTOS: #
+# FEATURES: IMMICH PHOTOS: #
 ###############################
 def mode_immich_upload_albums(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
@@ -1087,7 +1087,7 @@ def mode_immich_remove_all_albums(user_confirmation=True, log_level=logging.INFO
 
 
 #################################
-# OTHER STANDALONE EXTRA MODES: #
+# OTHER STANDALONE FEATURES: #
 #################################
 def mode_fix_symlinkgs(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:

@@ -60,7 +60,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         # Detect the operating system
         current_os = platform.system()
 
-        # Determine the script name based on the OS
+        # Determine the Tool name based on the OS
         tool_name = ""
         if current_os == "Linux":
             tool_name = "gpth_linux.bin"
@@ -79,7 +79,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             gpth_command.append("--fix")
             gpth_command.append(input_folder)
 
-        # By default force --no-divide-to-dates and the script will create date structure if needed
+        # By default force --no-divide-to-dates and the Tool will create date structure if needed
         gpth_command.append("--no-divide-to-dates")
 
         # Append --albums shortcut / duplicate-copy based on value of flag -sa, --symbolic-albums
@@ -127,7 +127,7 @@ def fix_metadata_with_exif_tool(output_folder, log_level=logging.INFO):
         LOGGER.info(f"INFO    : Fixing EXIF metadata in '{output_folder}'...")
         # Detect the operating system
         current_os = platform.system()
-        # Determine the script name based on the OS
+        # Determine the Tool name based on the OS
         script_name = ""
         if current_os == "Linux":
             script_name = "exiftool"
