@@ -32,7 +32,7 @@
   - To run this feature you have to use the flag _'-suAlb,  --synology-upload-albums <ALBUMS_FOLDER>'_
   - Where \<ALBUMS_FOLDER> is the folder that contains all the Albums that you want to upload,
 - **Pre-Requisites:**
-  - Cconfigure properly the file 'Config.ini' to include your Synology account credentials. 
+  - Configure properly the file 'Config.ini' to include your Synology account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Synology Photos account and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Synology Photos and with the same Album name as Album folder.
 - **Example of use:**
@@ -50,7 +50,7 @@
   - \<ALBUMS_NAME> is a list of Albubs names that you want to download.
   - \<OUTPUT_FOLDER> is the folder where you want to download the Albums.
 - **Pre-Requisites:**
-  - Cconfigure properly the file 'Config.ini' to include your Synology account credentials. 
+  - Configure properly the file 'Config.ini' to include your Synology account credentials and url. 
 - **Explanation:**
   - The Tool will connect to Synology Photos and Download those Album(s) whose name is in <ALBUMS_NAME> to the folder <OUTPUT_FOLDER>.
   - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
@@ -74,7 +74,7 @@
   - Where,
   - \<INPUT_FOLDER> is the folder that contains all the assets that you want to upload.
 - **Pre-Requisites:**
-  - Cconfigure properly the file 'Config.ini' to include your Synology account credentials. 
+  - Configure properly the file 'Config.ini' to include your Synology account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Synology Photos account and will upload all the assets contained in <INPUT_FOLDER> that are supported by Synology Photos.  
   - If you want to create Albums for some specific subfolders you have two options:
@@ -94,7 +94,7 @@
   - Where,
   - \<OUTPUT_FOLDER> is the folder where you want to download all your assets.
 - **Pre-Requisites:**
-  - Cconfigure properly the file 'Config.ini' to include your Synology account credentials. 
+  - Configure properly the file 'Config.ini' to include your Synology account credentials and url. 
 - **Explanation:**
   - The Tool will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.
   - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.
@@ -111,7 +111,7 @@
 - **Usage:**
   - To run this feature you have to use the flag _'-srAll, --synology-remove-all-assets'_
 - **Pre-Requisites:**
-  - Cconfigure properly the file 'Config.ini' to include your Synology account credentials. 
+  - Configure properly the file 'Config.ini' to include your Synology account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Synology Photos account and will remove ALL the assets and Albums found.  
       
@@ -130,7 +130,7 @@
 - **Usage:**
   - To run this feature you have to use the flag _'-srAllAlb, --synology-remove-all-albums'_
 - **Pre-Requisites:**
-  - Cconfigure properly the file 'Config.ini' to include your Synology account credentials. 
+  - Configure properly the file 'Config.ini' to include your Synology account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Synology Photos account and will remove all the Albums found.
   - Optionally ALL the Assets associated to each Album can be removed If you also include the complementary argument _'-rAlbAss, --remove-albums-assets'_
@@ -149,7 +149,7 @@
 - **Usage:**
   - To run this feature you have to use the flag _'--synology-remove-empty-albums'_
 - **Pre-Requisites:**
-  - Cconfigure properly the file 'Config.ini' to include your Synology account credentials. 
+  - Configure properly the file 'Config.ini' to include your Synology account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Synology Photos account and will remove all Empty Albums found.  
 - **Example of use:**
@@ -164,7 +164,7 @@
 - **Usage:**
   - To run this feature you have to use the flag _'--synology-remove-duplicates-albums'_
 - **Pre-Requisites:**
-  - Cconfigure properly the file 'Config.ini' to include your Synology account credentials. 
+  - Configure properly the file 'Config.ini' to include your Synology account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Synology Photos account and will remove all Duplicates Albums found except the first one (but will not remove the assets associated to them, because they will still be associated with the first Album).  
 - **Example of use:**
