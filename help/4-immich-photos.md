@@ -83,6 +83,7 @@
 ## <span style="color:blue">Download All from Immich Photos:</span>
 - From version 3.0.0 onwards, the Tool has a feature to 'Download All from Immich Photos'.
 - If you configure properly the file 'Config.ini' and execute this Mode, The Tool will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.
+- To execute this feature, you can use the Flag: _'-idAll, --immich-download-all <OUTPUT_FOLDER>'_
 - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.
 - Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside.
 
@@ -96,8 +97,7 @@
 ## <span style="color:blue">Remove All Assets from Immich Photos:</span>
 - From version 3.0.0 onwards, the Tool supports a feature to 'Remove All Assets from Immich Photos'. 
 - If you configure properly the file 'Config.ini' and execute this feature, the Tool will connect automatically to your Immich Photos database and will remove ALL the assets and Albums found.  
-- To execute this feature, you can use the Flag: _'-srAll, --immich-remove-all-assets'_
-    
+- To execute this feature, you can use the Flag: _'-irAll, --immich-remove-all-assets'_
   > [!IMPORTANT]
       > This process is irreversible and will clean all from your Immich Photos account. Use it if you are completelly sure of what you are doing.
       
@@ -111,11 +111,10 @@
 ## <span style="color:blue">Remove All Albums from Immich Photos:</span>
 - From version 3.0.0 onwards, the Tool can be executed a feature to 'Remove All Albums from Immich Photos' from Immich Photos'. 
 - If you configure properly the file 'Config.ini' and execute this feature, the Tool will connect automatically to your Immich Photos database and will remove ALL the Albums found.
-- To execute this feature, you can use the Flag: _'-srAll, --immich-remove-all-assets'_
+- To execute this feature, you can use the Flag: _'-irAll, --immich-remove-all-assets'_
 - Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets'
-    
-  > [!IMPORTANT]
-      > This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Immich Photos account. Use it if you are completelly sure of what you are doing.
+> [!IMPORTANT]
+    > This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Immich Photos account. Use it if you are completelly sure of what you are doing.
       
   ### Example of use:
   ```
