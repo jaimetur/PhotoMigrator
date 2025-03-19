@@ -27,8 +27,7 @@
 
 ## <span style="color:blue">Upload Albums (from Local Folder) into Synology Photos:</span>
 - From version 2.0.0 onwards, the script can be executed in 'Create Albums in Synology Photos' Mode. 
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Synology Photos and with the same Album name as Album folder.  
-- The folder <ALBUMS_FOLDER> can be passed using the Flag: _'-sua,  --synology-upload-albums <ALBUMS_FOLDER>'_
+- If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Synology Photos and with the same Album name as the Album subfolder.  
 
     ### Example of use:
     ```
