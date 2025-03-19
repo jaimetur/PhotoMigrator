@@ -2,11 +2,11 @@
 ```
 ---------------------------------------------------------------------------------------------------------
 usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
-                                  [-dashboard [[true, false]]]
+                                  [-dashboard [=[true,false]]]
                                   [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
                                   [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
                                   [-rAlbAss]
-                                  [-gpthProg [[true, false]]] [-gpthErr [[true, false]]]
+                                  [-gpthProg [=[true,false]]] [-gpthErr [=[true,false]]]
                                   [-nolog]
                                   [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
                                   [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
@@ -76,7 +76,7 @@ same Photo Cloud service.
               ​--source=immich-1 -> Select Immich Photos account 1 as Target.
               ​--source=synology-2 -> Select Synology Photos account 2 as Target.
               ​--source=/home/local_folder -> Select this local folder as Target.
---dashboard [true, false]
+--dashboard =[true,false]
              Enable or disable Live Dashboard feature during Autometed Migration Job.
              This argument only applies if both '--source' and '--target' argument are
              given (AUTOMATED-MIGRATION FEATURE). (default: True).
@@ -91,17 +91,17 @@ Following general arguments have different purposses depending on the Execution 
 -o,        --output-folder <OUTPUT_FOLDER>
              Specify the output folder to save the result of the processing action.
 -AlbFld,   --albums-folders <ALBUMS_FOLDER>
-             If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich-
+             If used together with '-suAll, --synology-upload-all' or '-iuAll, --immich-
              upload-all', it will create an Album per each subfolder found in
              <ALBUMS_FOLDER>.
 -rAlbAss,  --remove-albums-assets
              If used together with '-srAllAlb, --synology-remove-all-albums' or
              '-irAllAlb, --immich-remove-all-albums', it will also delete the assets
              (photos/videos) inside each album.
--gpthProg, --show-gpth-progress [true, false]
+-gpthProg, --show-gpth-progress =[true,false]
              Enable or disable Progress messages during GPTH Processing. (default:
              False).
--gpthErr,  --show-gpth-errors [true, false]
+-gpthErr,  --show-gpth-errors =[true,false]
              Enable or disable Error messages during GPTH Processing. (default: True).
 -nolog,    --no-log-file
              Skip saving output messages to execution log file.
@@ -292,7 +292,6 @@ If more than one Feature is detected, only the first one will be executed.
 -renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>
              Usefull to rename and homogenize all Albums folders found in
              <ALBUMS_FOLDER> based on the date content found.
-
 ---------------------------------------------------------------------------------------------------------
 ```
 
