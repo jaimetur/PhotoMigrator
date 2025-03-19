@@ -62,7 +62,7 @@
 - The tool will create a new Album per each subfolder found in 'Album' subfolder, and all assets inside each subfolder off 'Album' Will be associated to a new Album in Synology Photos database with the same name as the container subfolder. 
 - If the argument _**'-AlbFld, --albums-folder <ALBUMS_FOLDER>'**_ is also given, then the tool Will create Albums also for each subfolder found in <ALBUMS_FOLDER>.
 
-  > ### Example of use:
+  ### Example of use:
   ```
   ./CloudPhotoMigrator.run --synology-upload-all ./MyLibrary
   ```
@@ -75,7 +75,7 @@
 - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it.
 - Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside.
 
-  > ### Example of use:
+  ### Example of use:
   ```
   ./CloudPhotoMigrator.run --synology-download-all ./MyLibrary
   ```
@@ -89,7 +89,7 @@
   > **⚠ IMPORTANT:**
   > This process is irreversible and will clean all from your Synology Photos account. Use it if you are completelly sure of what you are doing.
         
-  > ### Example of use:
+  ### Example of use:
   ```
   ./CloudPhotoMigrator.run --synology-remove-duplicates-albums
   ```
@@ -105,7 +105,7 @@
   > **⚠ IMPORTANT:**
   > This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Synology Photos account. Use it if you are completelly sure of what you are doing.
 
-  > ### Example of use:
+  ### Example of use:
   ```
   ./CloudPhotoMigrator.run --synology-remove-duplicates-albums
   ```
@@ -118,7 +118,7 @@
 - If any Empty Album is found, the script will remove it from Synology Photos.  
 - To execute this Extra Mode, you can use the Flag: _'-srEmpAlb, --synology-remove-empty-albums'_
 
-  > ### Example of use:
+  ### Example of use:
   ```
   ./CloudPhotoMigrator.run --synology-remove-empty-albums
   ```
@@ -131,7 +131,7 @@
 - If any Duplicated Album is found, the script will remove it from Synology Photos.  
 - To execute this Extra Mode, you can use the Flag: _'-srDupAlb, --synology-remove-duplicates-albums'_
 
-  > ### Example of use:
+  ### Example of use:
   ```
   ./CloudPhotoMigrator.run --synology-remove-duplicates-albums
   ```
