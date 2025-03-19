@@ -111,7 +111,7 @@
 
 ## <span style="color:blue">Remove All Albums from Immich Photos:</span>
 - From version 3.0.0 onwards, the script can be executed a feature to 'Remove All Albums' from Immich Photos'. 
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect automatically to your Immich Photos database and will remove ALL the Albums found.
+- If you configure properly the file 'Config.ini' and execute this feature, the script will connect automatically to your Immich Photos database and will remove ALL the Albums found.
 - To execute this Extra Mode, you can use the Flag: _'-srAll, --immich-remove-all-assets'_
 - Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets'
     
@@ -126,8 +126,8 @@
 
 
 ## <span style="color:blue">Delete Empty Albums in Immich Photos:</span>
-- From version 3.0.0 onwards, the script can be executed in 'Delete Empty Albums in Immich Photos' Mode. 
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect automatically to your Immich Photos database and will look for all Empty Albums in Immich Photos database.  
+- From version 3.0.0 onwards, the script can be executed in Mode 'Delete Empty Albums in Immich Photos'. 
+- If you configure properly the file 'Config.ini' and execute this Mode, the script will connect automatically to your Immich Photos database and will look for all Empty Albums in Immich Photos database.  
 - If any Empty Album is found, the script will remove it from Immich Photos.  
 - To execute this Extra Mode, you can use the Flag: _'--immich-remove-empty-albums'_
 
@@ -139,8 +139,8 @@
 
 
 ## <span style="color:blue">Delete Duplicates Albums in Immich Photos:</span>
-- From version 3.0.0 onwards, the script can be executed in 'Delete Duplicates Albums in Immich Photos' Mode. 
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect automatically to your Immich Photos database and will look for all Duplicates Albums in Immich Photos database.  
+- From version 3.0.0 onwards, the script can be executed in Mode 'Delete Duplicates Albums in Immich Photos'. 
+- If you configure properly the file 'Config.ini' and execute this Mode, the script will connect automatically to your Immich Photos database and will look for all Duplicates Albums in Immich Photos database.  
 - If any Duplicated Album is found, the script will remove it from Immich Photos.  
 - To execute this Extra Mode, you can use the Flag: _'--immich-remove-duplicates-albums'_
 
@@ -152,9 +152,9 @@
 
 
 ## <span style="color:blue">Delete Orphans Assets in Immich Photos:</span>
-- From version 3.0.0 onwards, the script can be executed in 'Delete Orphans Assets in Immich Photos' Mode.  
+- From version 3.0.0 onwards, the script can be executed in Mode 'Delete Orphans Assets in Immich Photos'.  
 - An Orphan asset is an asset that is in your Immich Photos database but is pointing to a non-existing file.  
-- If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect automatically to your Immich Photos database and will look for Orphan assets  Duplicates Albums in Immich Photos database.
+- If you configure properly the file 'Config.ini' and execute this Mode, the script will connect automatically to your Immich Photos database and will look for Orphan assets  Duplicates Albums in Immich Photos database.
 - If any Duplicated Album is found, the script will remove it from Immich Photos.
 - To execute this Extra Mode, you can use the Flag: _'--immich-remove-orphan-assets'_
 
