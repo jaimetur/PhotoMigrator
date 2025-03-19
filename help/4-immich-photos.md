@@ -45,7 +45,7 @@
 - If you configure properly the file 'Config.ini' and execute this Mode, the Tool will connect automatically to your Immich Photos database and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Immich Photos and with the same Album name as Album folder.  
 - The folder <ALBUMS_FOLDER> can be passed using the Flag: _'-iuAlb,  --immich-upload-albums <ALBUMS_FOLDER>'_
 
-  ### Example of use:
+  > ### Example of use:
   ```
   ./CloudPhotoMigrator.run --immich-upload-albums ./My_Albums_Folder
   ```
@@ -58,10 +58,11 @@
 - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
 - To download all albums mathing any pattern you can use patterns in <ALBUMS_NAME>, i.e: --immich-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words.
 - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums 'album1', 'album2', 'album3'.
-> [!IMPORTANT]
-> <ALBUMS_NAME> should exist within your Immich Photos Albums database, otherwise it will no extract anything. 
 
-  ### Example of use:
+  > **⚠ IMPORTANT:**
+  > <ALBUMS_NAME> should exist within your Immich Photos Albums database, otherwise it will no extract anything. 
+
+  > ### Example of use:
   ```
   ./CloudPhotoMigrator.run --immich-download-albums "Album 1", "Album 2", "Album 3"
   ```
@@ -73,7 +74,7 @@
 - If you configure properly the file 'Config.ini' and execute this Mode, the Tool will connect automatically to your Immich Photos database and will upload all the assets contained in <INPUT_FOLDER> that are supported by Immich Photos.  
 - The folder <INPUT_FOLDER> can be passed using the Flag: _'-iuAll,  --immich-upload-all <INPUT_FOLDER>'_
 
-  ### Example of use:
+  > ### Example of use:
   ```
   ./CloudPhotoMigrator.run --immich-upload-all ./MyLibrary
   ```
@@ -98,8 +99,9 @@
 - From version 3.0.0 onwards, the Tool supports a feature to 'Remove All Assets from Immich Photos'. 
 - If you configure properly the file 'Config.ini' and execute this feature, the Tool will connect automatically to your Immich Photos database and will remove ALL the assets and Albums found.  
 - To execute this feature, you can use the Flag: _'-irAll, --immich-remove-all-assets'_
-> [!IMPORTANT]
-> This process is irreversible and will clean all from your Immich Photos account. Use it if you are completelly sure of what you are doing.
+
+  > **⚠ IMPORTANT:**
+  > This process is irreversible and will clean all from your Immich Photos account. Use it if you are completelly sure of what you are doing.
       
   ### Example of use:
   ```
@@ -113,8 +115,9 @@
 - If you configure properly the file 'Config.ini' and execute this feature, the Tool will connect automatically to your Immich Photos database and will remove ALL the Albums found.
 - To execute this feature, you can use the Flag: _'-irAll, --immich-remove-all-assets'_
 - Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets'
-> [!IMPORTANT]
-> This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Immich Photos account. Use it if you are completelly sure of what you are doing.
+
+  > **⚠ IMPORTANT:**
+  > This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Immich Photos account. Use it if you are completelly sure of what you are doing.
       
   ### Example of use:
   ```

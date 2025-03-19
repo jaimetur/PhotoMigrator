@@ -30,7 +30,7 @@
 - If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Synology Photos and with the same Album name as Album folder.  
 - The folder <ALBUMS_FOLDER> can be passed using the Flag: _'-sua,  --synology-upload-albums <ALBUMS_FOLDER>'_
 
-  > ### Example of use:
+  ### Example of use:
   ```
   ./CloudPhotoMigrator.run --synology-upload-albums ./My_Albums_Folder
   ```
@@ -45,10 +45,10 @@
 - To extract ALL Albums within in Synology Photos database use 'ALL' as <ALBUMS_NAME>.  
 - The album(s) name <ALBUMS_NAME> can be passed using the Flag: _'-sda,  --synology-download-albums <ALBUMS_NAME>'_  
 
-> [!IMPORTANT]
-> <ALBUMS_NAME> should exist within your Synology Photos Albums database, otherwise it will no extract anything.
+  > **⚠ IMPORTANT:**
+  > <ALBUMS_NAME> should exist within your Synology Photos Albums database, otherwise it will no extract anything.
 
-  > ### Example of use:
+  ### Example of use:
   ```
   ./CloudPhotoMigrator.run --synology-download-albums "Album 1", "Album 2", "Album 3"
   ```
@@ -86,8 +86,8 @@
 - If you configure properly the file 'Config.ini' and execute this Extra Mode, the script will connect automatically to your Synology Photos database and will remove ALL the assets and Albums found.  
 - To execute this Extra Mode, you can use the Flag: _'-srAll, --synology-remove-all-assets'_
     
-> [!IMPORTANT]
-> This process is irreversible and will clean all from your Synology Photos account. Use it if you are completelly sure of what you are doing.
+  > **⚠ IMPORTANT:**
+  > This process is irreversible and will clean all from your Synology Photos account. Use it if you are completelly sure of what you are doing.
         
   > ### Example of use:
   ```
@@ -102,8 +102,8 @@
 - To execute this Extra Mode, you can use the Flag: _'-srAll, --synology-remove-all-assets'_
 - Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets'
     
-> [!IMPORTANT]
-> This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Synology Photos account. Use it if you are completelly sure of what you are doing.
+  > **⚠ IMPORTANT:**
+  > This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Synology Photos account. Use it if you are completelly sure of what you are doing.
 
   > ### Example of use:
   ```

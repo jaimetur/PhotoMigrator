@@ -25,7 +25,6 @@
   - If \<ACTION> is 'move' then the Tool will maintain the main file and move the others inside the folder Duplicates/Duplicates_timestamp. 
   - If \<ACTION> is 'remove' the Tool will maintain the main file and remove the others.
 
-
     ### Example of use:
     ```
     ./CloudPhotoMigrator --find-duplicatess move ./Albums ./ALL_PHOTOS move
@@ -84,8 +83,7 @@
     ```
     ./CloudPhotoMigrator.run ---rename-folders-content-based ./MyLocalPhotoLibrary
     ```
-    In this example, the Tool will Process your Library of photos in folder './MyLocalPhotoLibrary' (need to be unzipped), and will rename all the subfolders found on to homogenize all the folder's name with the following template:   
-    
+    In this example, the Tool will Process your Library of photos in folder './MyLocalPhotoLibrary' (need to be unzipped), and will rename all the subfolders found on to homogenize all the folder's name with the following template:  
     '**yyyy - Cleaned Subfolder Name**' or '**yyyy-yyyy - Cleaned Subfolder Name**'  
      where, 
     - 'yyyy' is the year of the assets found in that folder
