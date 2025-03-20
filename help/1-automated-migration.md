@@ -70,7 +70,7 @@ In this example, the Tool will do an Automated Migration Process which has two s
   - First, the Tool will connect to your Synology Photos account 2 (if you have configured properly the Config.ini file) and will
     pull all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
 
-  - In parallel, the Tool will connect to your Immich Photos account 2 (if you have configured properly the Config.ini file) and 
+  - In parallel, the Tool will connect to your Immich Photos account 1 (if you have configured properly the Config.ini file) and 
     push all the assets pulled from previous step, creating a new Album per each Album found in your Synology Photos and associating
     all the assets included in each Album in the same way that you had on your Synology Photos account.
 
