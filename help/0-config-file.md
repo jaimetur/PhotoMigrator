@@ -57,7 +57,7 @@ In this section you have to provide:
 - **IMMICH_PASSWORD_2:** The password for the Immich Account 1 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
 - **IMMICH_API_KEY_USER_1:** The API_KEY for the Immich Account 1
 
-> [NOTE!]
+> [!NOTE]  
 > In Immich you can choose if you want to login with username/password or you prefeer to use an API_KEY instead.
 > If you choose username/password authentification method, then, you don't need to provide any API_KEY for that account.
 > If you choose API_KEY authentification method, then, you don't need to provide any username/password for htat account.
