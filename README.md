@@ -243,8 +243,8 @@ Part of this Tool is based on [GPTH Tool](https://github.com/TheLastGimbus/Googl
 
 
 ## Donation / Sponsor: 
-If you consideer that this Tool has helped you, you can consider donating me with a ☕  
-I spent **a lot of** time developping this Tool for free, so donations will contribute to motivate me to continue working on this project 💖  
+If you consideer that this Tool has helped you, you can also consider donating me with a ☕  
+I spent a lot of time developping this Tool for free, so donations will contribute to motivate me to continue working on this project 💖  
 
 <a href="https://www.buymeacoffee.com/jaimetur">
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="180" height="40">
