@@ -69,12 +69,13 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)
 
 ## Documentation Links:
-- [Command Line Syntax](/help/0-command-line-syntax.md)  
-- [Automated Migration Feature](/help/1-automated-migration.md)  
-- [Google Takeout Management](/help/2-google-takeout.md)  
-- [Synology Photos Management](/help/3-synology-photos.md)  
-- [Immich Photos Management](/help/4-immich-photos.md)  
-- [Other Features](/help/5-other-features.md)  
+- [Configuration File](/help/0-config-file.md)  
+- [Command Line Syntax](/help/1-command-line-syntax.md)  
+- [Automated Migration Feature](/help/2-automated-migration.md)  
+- [Google Takeout Management](/help/3-google-takeout.md)  
+- [Synology Photos Management](/help/4-synology-photos.md)  
+- [Immich Photos Management](/help/5-immich-photos.md)  
+- [Other Features](/help/6-other-features.md)  
 
 ## Live Dashboard Preview:
 ![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
@@ -130,7 +131,7 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
 
 ## Command Line Syntax:
 You can check the whole list of functions and arguments with the right syntax here:  
-[Command Line Syntax](help/0-command-line-syntax.md)
+[Command Line Syntax](help/1-command-line-syntax)
 
 ## Main Use Case: Automated Migration Feature
 
