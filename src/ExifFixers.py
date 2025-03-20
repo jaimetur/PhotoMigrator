@@ -117,14 +117,14 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             ok = run_command(gpth_command, LOGGER, capture_output=capture_output, capture_errors=capture_errors)      # Shows the output in real time and capture it to the LOGGER.
             # ok = subprocess.run(gpth_command, check=True, capture_output=capture_output, text=True)
 
-
             # Rename folder 'ALL_PHOTOS' by 'No-Albums'
             all_photos_path = os.path.join(output_folder, 'ALL_PHOTOS')
             others_path = os.path.join(output_folder, 'No-Albums')
             if os.path.exists(all_photos_path) and os.path.isdir(all_photos_path):
                 os.rename(all_photos_path, others_path)
 
-            if ok:
+            # Check the result of GPTH process
+            if ok==0:
                 LOGGER.info(f"INFO    : ✅ GPTH Tool fixing completed successfully.")
                 return True
             else:
