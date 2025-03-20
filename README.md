@@ -1,10 +1,12 @@
-# CloudPhotoMigrator
-[![Commit activity](https://img.shields.io/github/commit-activity/y/jaimetur/CloudPhotoMigrator?label=Commit%20activity)](https://github.com/jaimetur/CloudPhotoMigrator/graphs/contributors)
-[![Total Github Releases downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/total?label=Total%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases)
-[![Latest version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/latest/total?label=Latest%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases/latest)
-[![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.1.0-beta1/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
+# Repo Statistics:
 [![Resolved Github issues](https://img.shields.io/github/issues-closed/jaimetur/CloudPhotoMigrator?label=Resolved%20issues)](https://github.com/jaimetur/CloudPhotoMigrator/issues?q=is%3Aissue%20state%3Aclosed)
 [![Open Github issues](https://img.shields.io/github/issues/jaimetur/CloudPhotoMigrator?label=Open%20Issues)](https://github.com/jaimetur/CloudPhotoMigrator/issues)
+[![Latest version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/latest/total?label=Latest%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases/latest)
+[![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.1.0-beta1/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
+[![Total Github Releases downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/total?label=Total%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases)
+[![Commit activity](https://img.shields.io/github/commit-activity/y/jaimetur/CloudPhotoMigrator?label=Commit%20activity)](https://github.com/jaimetur/CloudPhotoMigrator/graphs/contributors)
+
+# CloudPhotoMigrator Tool:
 
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">**Automated Migration** </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
 
