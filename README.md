@@ -206,10 +206,10 @@ Youn can see how to configure the Config.ini file in this help section:
 - [x] Updated GPTH version to cop latest changes in Google Takeouts. 
 - [x] Bug Fixing.
 
-- [ ] Tests Pending:
-  - [ ] Deep Test on Immich Support functions. (volunteers are welcomed)
-  - [ ] Deep Test on Synology Support functions. (volunteers are welcomed)
-  - [ ] Deep Test on Google Takeout functions. (volunteers are welcomed)
+- [x] Tests Pending:
+  - [x] Deep Test on Immich Support functions. (volunteers are welcomed)
+  - [x] Deep Test on Synology Support functions. (volunteers are welcomed)
+  - [x] Deep Test on Google Takeout functions. (volunteers are welcomed)
   - [x] Deep Test on Automated Migration Mode. (volunteers are welcomed)
 
 
