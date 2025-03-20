@@ -123,9 +123,9 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
    pip3 install -r requirements.txt
    ```
 
-5. Run the main script:  
+5. Run the main script to show the command line help:  
    ```
-   python3 ./src/CloudPhotoMigrator.py
+   python3 ./src/CloudPhotoMigrator.py -h
    ```
 
 ## Command Line Syntax:
