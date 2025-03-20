@@ -263,6 +263,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 if not ok:
                     LOGGER.warning(f"WARNING : Metadata fixing didn't finish properly due to GPTH error.")
                     LOGGER.warning(f"WARNING : If your Takeout does not contains Year/Month folder structure, you can use '-gics, --google-ignore-check-structure' flag.")
+                    return (0, 0, 0, 0, initial_takeout_numfiles, 0)
+
                 if self.ARGS['google-move-takeout-folder']:
                     Utils.force_remove_directory(input_folder)
                 step_end_time = datetime.now()

@@ -1,6 +1,6 @@
 import os,sys
 
-def change_workingdir():
+def change_working_dir():
     """ Definir la ruta de trabajo deseada """
     WORKING_DIR = r"R:\jaimetur\CloudPhotoMigrator"
     # Verificar si la carpeta existe y cambiar a ella si existe
@@ -10,7 +10,7 @@ def change_workingdir():
         print(f"INFO    : Directorio cambiado a: {os.getcwd()}")
 
 # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-change_workingdir()
+change_working_dir()
 
 from Utils import check_OS_and_Terminal
 from GlobalVariables import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME

@@ -37,6 +37,9 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
         # Declare shared variables to pass as reference to both functions
         # ───────────────────────────────────────────────────────────────
 
+        # Inicializamos start_time para medir el tiempo de procesamiento
+        start_time = datetime.now()
+
         # Cola que contendrá los mensajes de log en memoria
         logs_queue = Queue()
 
@@ -78,20 +81,21 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             "total_invalid": 0,
             "assets_in_queue": 0,
             "elapsed_time": 0,
+            "start_time": start_time
         }
 
         SHARED_DATA = SharedData(input_info, counters, logs_queue)
 
-        # Detect source and target from the given arguments if have not been providen on the function call
+        # Detect source and target from the given arguments if have not been provided on the function call
         # if not source: source = ARGS['AUTOMATED-MIGRATION'][0]
         # if not target: target = ARGS['AUTOMATED-MIGRATION'][1]
         if not source: source = ARGS['source']
         if not target: target = ARGS['target']
 
-        # Detect show_dashboard from the given arguments if has not been providen on the function call
+        # Detect show_dashboard from the given arguments if it has not been provided on the function call
         if show_dashboard is None: show_dashboard = ARGS['dashboard']
 
-        # Detect show_gpth_progress and show_gpth_errors from the given arguments if has not been providen on the function call
+        # Detect show_gpth_progress and show_gpth_errors from the given arguments if it has not been provided on the function call
         if show_gpth_progress is None: show_gpth_progress = ARGS['show-gpth-progress']
         if show_gpth_errors is None: show_gpth_errors = ARGS['show-gpth-errors']
 
@@ -340,7 +344,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             for key, value in SHARED_DATA.info.items():
                 LOGGER.info(f"INFO    :    {key}: {value}")
 
-            # Delete unneded vars to clean memory
+            # Delete unneeded vars to clean memory
             del all_albums
             del all_supported_assets
             del blocked_assets_ids
@@ -402,7 +406,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             Utils.remove_empty_dirs(temp_folder)
 
             end_time = datetime.now()
-            formatted_duration = str(timedelta(seconds=(end_time - start_time).seconds))
+            migration_formatted_duration = str(timedelta(seconds=(end_time - migration_start_time).seconds))
+            total_formatted_duration = str(timedelta(seconds=(end_time - SHARED_DATA.info["start_time"]).seconds))
 
             # ----------------------------------------------------------------------------
             # 4) Mostrar o retornar contadores
@@ -422,7 +427,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"INFO    : Pull Failed Assets          : {SHARED_DATA.counters['total_pull_failed_assets']}")
             LOGGER.info(f"INFO    : Push Failed Assets          : {SHARED_DATA.counters['total_push_failed_assets']}")
             LOGGER.info(f"")
-            LOGGER.info(f"INFO    : Migration Job completed in  : {formatted_duration}")
+            LOGGER.info(f"INFO    : Migration Job completed in  : {migration_formatted_duration}")
+            LOGGER.info(f"INFO    : Total Elapsed Time          : {total_formatted_duration}")
             LOGGER.info(f"")
             LOGGER.info(f"")
             return SHARED_DATA.counters
@@ -451,10 +457,10 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 # Descargar todos los assets de este álbum
                 try:
                     if not is_shared:
-                        album_assets = source_client.get_album_assets(album_id=album_id, album_name=album_name)
+                        album_assets = source_client.get_album_assets(album_id=album_id, album_name=album_name, log_level=logging.WARNING)
                     else:
                         if album_shared_role.lower() != 'view':
-                            album_assets = source_client.get_album_shared_assets(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name)
+                            album_assets = source_client.get_album_shared_assets(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name, log_level=logging.WARNING)
                     if not album_assets:
                         # SHARED_DATA.counters['total_pull_failed_albums'] += 1     # If we uncomment this line, it will count as failed Empties albums
                         continue
@@ -678,7 +684,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                                 pass
                     except:
                         LOGGER.error(f"ERROR   : Error Pushing Asset: '{os.path.basename(asset_file_path)}'")
-                        LOGGER.error(f"ERROR   : Catched Exception: {e} \n{traceback.format_exc()}")
+                        LOGGER.error(f"ERROR   : Caught Exception: {e} \n{traceback.format_exc()}")
                         SHARED_DATA.counters['total_push_failed_assets'] += 1
                         if asset_type.lower() == 'video':
                             SHARED_DATA.counters['total_push_failed_videos'] += 1
@@ -696,7 +702,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.WARNING)
                         except Exception as e:
                             LOGGER.error(f"ERROR   : Error Pushing Album '{album_name}'")
-                            LOGGER.error(f"ERROR   : Catched Exception: {e} \n{traceback.format_exc()}")
+                            LOGGER.error(f"ERROR   : Caught Exception: {e} \n{traceback.format_exc()}")
                             SHARED_DATA.counters['total_push_failed_albums'] += 1
 
                         # Verificar si la carpeta local del álbum está vacía y borrarla
@@ -727,7 +733,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
                 except Exception as e:
                     LOGGER.error(f"ERROR   : Error in Pusher worker while pushing asset: {asset}")
-                    LOGGER.error(f"ERROR   : Catched Exception: {e} \n{traceback.format_exc()}")
+                    LOGGER.error(f"ERROR   : Caught Exception: {e} \n{traceback.format_exc()}")
 
             LOGGER.info(f"INFO    : Pusher {worker_id} - Task Finished!")
 
@@ -737,7 +743,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     # ----------------------------
 
     # Inicializamos start_time para medir el tiempo de procesamiento
-    start_time = datetime.now()
+    migration_start_time = datetime.now()
 
     # Preparar la cola que compartiremos entre descargas y subidas
     push_queue = Queue()

@@ -26,7 +26,6 @@ def run_command(command, logger, capture_output=False, capture_errors=True):
     Evita registrar múltiples líneas de barras de progreso en el log.
     """
     if capture_output or capture_errors:
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace")
         process = subprocess.Popen(
             command,
             stdout=subprocess.PIPE if capture_output else subprocess.DEVNULL,
@@ -80,10 +79,10 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             gpth_command.append(input_folder)
 
         # By default force --no-divide-to-dates and the Tool will create date structure if needed
-        gpth_command.append("--no-divide-to-dates") # For previous versions of the original GTPH tool
+        # gpth_command.append("--no-divide-to-dates") # For previous versions of the original GPTH tool
 
         # The new version of GPTH have changed this argument:
-        # gpth_command.append("--divide-to-dates=0")  # 0: No divide, 1: year, 2: year/month, 3: year/month/day
+        gpth_command.append("--divide-to-dates=0")  # 0: No divide, 1: year, 2: year/month, 3: year/month/day
 
         # Append --albums shortcut / duplicate-copy based on value of flag -sa, --symbolic-albums
         gpth_command.append("--albums")
@@ -103,12 +102,20 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         else:
             gpth_command.append("--copy")
 
+        # Use the new feature to Delete the "supplemental-metadata" suffix from .json files to ensure that script works correctly
+        gpth_command.append("--modify-json")
+
+        # Use the new feature to Transform Pixel .MP or .MV extensions to ".mp4"
+        gpth_command.append("--transform-pixel-mp")
+
+        # Use the new feature to Set creation time equal to the last modification date at the end of the program. (Only Windows supported)
+        gpth_command.append("--update-creation-time")
+
         try:
             command = ' '.join(gpth_command)
             LOGGER.debug(f"DEBUG   : Command: {command}")
-            result = run_command(gpth_command, LOGGER, capture_output=capture_output, capture_errors=capture_errors)      # Shows the output in real time and capture it to the LOGGER.
-            # result = subprocess.run(gpth_command, check=True, capture_output=capture_output, text=True)
-
+            ok = run_command(gpth_command, LOGGER, capture_output=capture_output, capture_errors=capture_errors)      # Shows the output in real time and capture it to the LOGGER.
+            # ok = subprocess.run(gpth_command, check=True, capture_output=capture_output, text=True)
 
             # Rename folder 'ALL_PHOTOS' by 'No-Albums'
             all_photos_path = os.path.join(output_folder, 'ALL_PHOTOS')
@@ -116,8 +123,13 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             if os.path.exists(all_photos_path) and os.path.isdir(all_photos_path):
                 os.rename(all_photos_path, others_path)
 
-            LOGGER.info(f"INFO    : ✅ GPTH Tool finxing completed successfully.")
-            return True
+            # Check the result of GPTH process
+            if ok==0:
+                LOGGER.info(f"INFO    : ✅ GPTH Tool fixing completed successfully.")
+                return True
+            else:
+                LOGGER.error(f"ERROR   : ❌ GPTH Tool fixing failed.")
+                return False
         except subprocess.CalledProcessError as e:
             LOGGER.error(f"ERROR   : ❌ GPTH Tool fixing failed:\n{e.stderr}")
             return False
