@@ -50,9 +50,14 @@ In this section you have to provide:
 ## Immich Photos Section:
 In this section you have to provide:
 - **IMMICH_URL:** In the format that you have above (change only your IP address)
+- **IMMICH_API_KEY_ADMIN:** The API_KEY for the Immich Administrator Account (Optional: Only needed in case that you want to run 'Remove Orphan Assets' feature.)
+
+
 - **IMMICH_USERNAME_1:** The username for the Immich Account 1
 - **IMMICH_PASSWORD_1:** The password for the Immich Account 1
-- **IMMICH_API_KEY_USER_1:** The API_KEY for the Immich Account 1
+- **IMMICH_API_KEY_USER_1:** The API_KEY for the Immich Account 1  
+
+
 - **IMMICH_USERNAME_2:** The username for the Immich Account 1 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
 - **IMMICH_PASSWORD_2:** The password for the Immich Account 1 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
 - **IMMICH_API_KEY_USER_1:** The API_KEY for the Immich Account 1
