@@ -32,11 +32,17 @@
 > and execute this feature, the Tool will automatically do the whole migration job from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.  
 
 > [!IMPORTANT]  
-> If you use a local folder <INPUT_FOLDER> as source client, all your Albums should be placed into a subfolder called *'Albums'* within <INPUT_FOLDER>, creating one Album subfolder per Album, otherwise the tool will no create any Album in the target client.  
+> ⚠ If you use a local folder <INPUT_FOLDER> as source client, all your Albums should be placed into a subfolder called *'Albums'* within <INPUT_FOLDER>, creating one Album subfolder per Album, otherwise the tool will no create any Album in the target client.  
 >
 > Example:  
 > <INPUT_FOLDER>/Album1  
 > <INPUT_FOLDER>/Album2  
+
+
+## Config.ini
+Youn can see how to configure the Config.ini file in this help section:
+[Configuration File](/help/0-config-file.md) 
+
 
 ## Live Dashboard Preview:
 ![Live Dashboard](/assets/screenshots/live_dashboard.jpg)
@@ -70,7 +76,7 @@ In this example, the Tool will do an Automated Migration Process which has two s
   - First, the Tool will connect to your Synology Photos account 2 (if you have configured properly the Config.ini file) and will
     pull all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
 
-  - In parallel, the Tool will connect to your Immich Photos account 2 (if you have configured properly the Config.ini file) and 
+  - In parallel, the Tool will connect to your Immich Photos account 1 (if you have configured properly the Config.ini file) and 
     push all the assets pulled from previous step, creating a new Album per each Album found in your Synology Photos and associating
     all the assets included in each Album in the same way that you had on your Synology Photos account.
 
@@ -104,42 +110,7 @@ In this example, the Tool will do an Automated Migration Process which has two s
     push all the assets pulled from previous step, creating a new Album per each Album found in your Synology Photos and associating
     all the assets included in each Album in the same way that you had on your Synology Photos account.
 
-
-
-## Config.ini
->```
-># Configuration for Google Takeout
->[Google Takeout]
-># No configuration needed for this module for the time being.
->
-># Configuration for Synology Photos
->[Synology Photos]
->SYNOLOGY_URL                = http://192.168.1.11:5000                      # Change this IP by the IP that contains the Synology server or by your valid Synology URL
->SYNOLOGY_USERNAME_1         = username_1                                    # Account 1: Your username for Synology Photos
->SYNOLOGY_PASSWORD_1         = password_1                                    # Account 1: Your password for Synology Photos
->SYNOLOGY_USERNAME_2         = username_2                                    # Account 2: Your username for Synology Photos
->SYNOLOGY_PASSWORD_2         = password_2                                    # Account 2: Your password for Synology Photos
->
-># Configuration for Immich Photos
->[Immich Photos]
->IMMICH_URL                  = http://192.168.1.11:2283                      # Change this IP by the IP that contains the Immich server or by your valid Immich URL
->IMMICH_API_KEY_ADMIN        = YOUR_ADMIN_API_KEY                            # Your ADMIN_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
->
->IMMICH_API_KEY_USER_1       = API_KEY_USER_1                                # Account 1: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
->IMMICH_USERNAME_1           = username_1                                    # Account 1: Your username for Immich Photos (mandatory if not API_KEY is providen)
->IMMICH_PASSWORD_1           = password_1                                    # Account 1: Your password for Immich Photos (mandatory if not API_KEY is providen)
->
->IMMICH_API_KEY_USER_2       = API_KEY_USER_2                                # Account 2: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
->IMMICH_USERNAME_2           = username_2                                    # Account 2: Your username for Immich Photos (mandatory if not API_KEY is providen)
->IMMICH_PASSWORD_2           = password_2                                    # Account 2: Your password for Immich Photos (mandatory if not API_KEY is providen)
->
->IMMICH_FILTER_ARCHIVE       = False                                         # Optional: Used as Filter Criteria for Assets downloading (True/False)
->IMMICH_FILTER_FROM          = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: 2024-10-01)
->IMMICH_FILTER_TO            = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: 2024-10-01)
->IMMICH_FILTER_COUNTRY       = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: Spain)
->IMMICH_FILTER_CITY          = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: ['Madrid', 'Málaga'])
->IMMICH_FILTER_PERSON        = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: ['Mery', 'James'])
->```
+    
 
 ## Credits
 I hope this can be useful for any of you.  

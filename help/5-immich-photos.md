@@ -78,16 +78,15 @@
   ```
   With this example, the Tool will connect to your Immich Photos account and extract the Albums "Album 1", "Album 2", "Album 3" with all the photos and videos included on them into a subfolder of 'Immich_Photos_Albums' folder
 
-> **⚠ IMPORTANT:**
-> <ALBUMS_NAME> should exist within your Immich Photos Albums database, otherwise it will not extract anything. 
+> [!IMPORTANT]  
+> ⚠ <ALBUMS_NAME> should exist within your Immich Photos Albums database, otherwise it will not extract anything. 
   
 
 ## <span style="color:blue">Upload All (from Local Folder) into Immich Photos:</span>
 - **From:** v3.0.0
 - **Usage:**
   - To run this feature you have to use the flag _'-iuAll,  --immich-upload-all <INPUT_FOLDER>'_
-  - Where,
-  - \<INPUT_FOLDER> is the folder that contains all the assets that you want to upload.
+  - Where \<INPUT_FOLDER> is the folder that contains all the assets that you want to upload.
 - **Pre-Requisites:**
   - Configure properly the file 'Config.ini' to include your Immich account credentials and url. 
 - **Explanation:**
@@ -106,8 +105,7 @@
 - **From:** v3.0.0
 - **Usage:**
   - To run this feature you have to use the flag _'-idAll, --immich-download-all <OUTPUT_FOLDER>'_
-  - Where,
-  - \<OUTPUT_FOLDER> is the folder where you want to download all your assets.
+  - Where \<OUTPUT_FOLDER> is the folder where you want to download all your assets.
 - **Pre-Requisites:**
   - Configure properly the file 'Config.ini' to include your Immich account credentials and url. 
 - **Explanation:**
@@ -134,9 +132,9 @@
   ./CloudPhotoMigrator.run --immich-remove-all-assets
   ```
   With this example, the Tool will connect to Immich Photos account and will remove all assets found (including Albums).
-  
-> **⚠ IMPORTANT:**
-> This process is irreversible and will clean all from your Immich Photos account. Use it if you are completelly sure of what you are doing.
+
+> [!IMPORTANT]  
+> ⚠ This process is irreversible and will clean all from your Immich Photos account. Use it if you are completelly sure of what you are doing.
   
 
 ## <span style="color:blue">Remove All Albums from Immich Photos:</span>
@@ -154,9 +152,8 @@
   ```
   With this example, the Tool will connect to your Immich Photos account and will remove all Albums found (including all the assets contained on them, because we are using the complementary flag).
 
-
-> **⚠ IMPORTANT:**
-> This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Immich Photos account. Use it if you are completelly sure of what you are doing.
+> [!IMPORTANT]  
+> ⚠ This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Immich Photos account. Use it if you are completelly sure of what you are doing.
     
 
 ## <span style="color:blue">Remove Empty Albums from Immich Photos:</span>
@@ -204,6 +201,10 @@
   ```
   With this example, the Tool will connect to your Immich Photos account and will remove all Orphan Assets found.
   
+
+## Config.ini
+Youn can see how to configure the Config.ini file in this help section:
+[Configuration File](/help/0-config-file.md) 
 
 
 ## Credits
