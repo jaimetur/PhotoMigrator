@@ -167,7 +167,16 @@ You can check the whole list of functions and arguments with the right syntax he
 > and execute this feature, the Tool will automatically do the whole migration job from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.  
 
 > [!IMPORTANT]  
-> If you use a local folder <INPUT_FOLDER> as source client, all your Albums should be placed into a subfolder called *'Albums'* within <INPUT_FOLDER>, creating one Album subfolder per Album, otherwise the tool will no create any Album in the target client.  
+> ⚠ If you use a local folder <INPUT_FOLDER> as source client, all your Albums should be placed into a subfolder called *'Albums'* within <INPUT_FOLDER>, creating one Album subfolder per Album, otherwise the tool will no create any Album in the target client.  
+>
+> Example:  
+> <INPUT_FOLDER>/Album1  
+> <INPUT_FOLDER>/Album2  
+
+
+## Config.ini
+Youn can see how to configure the Config.ini file in this help section:
+[Configuration File](/help/0-config-file.md) 
 
 
 # ROADMAP:

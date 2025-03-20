@@ -202,6 +202,10 @@
   With this example, the Tool will connect to your Immich Photos account and will remove all Orphan Assets found.
   
 
+## Config.ini
+Youn can see how to configure the Config.ini file in this help section:
+[Configuration File](/help/0-config-file.md) 
+
 
 ## Credits
 I hope this can be useful for any of you.  

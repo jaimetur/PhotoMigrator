@@ -32,11 +32,17 @@
 > and execute this feature, the Tool will automatically do the whole migration job from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.  
 
 > [!IMPORTANT]  
-> If you use a local folder <INPUT_FOLDER> as source client, all your Albums should be placed into a subfolder called *'Albums'* within <INPUT_FOLDER>, creating one Album subfolder per Album, otherwise the tool will no create any Album in the target client.  
+> ⚠ If you use a local folder <INPUT_FOLDER> as source client, all your Albums should be placed into a subfolder called *'Albums'* within <INPUT_FOLDER>, creating one Album subfolder per Album, otherwise the tool will no create any Album in the target client.  
 >
 > Example:  
 > <INPUT_FOLDER>/Album1  
 > <INPUT_FOLDER>/Album2  
+
+
+## Config.ini
+Youn can see how to configure the Config.ini file in this help section:
+[Configuration File](/help/0-config-file.md) 
+
 
 ## Live Dashboard Preview:
 ![Live Dashboard](/assets/screenshots/live_dashboard.jpg)
@@ -104,12 +110,7 @@ In this example, the Tool will do an Automated Migration Process which has two s
     push all the assets pulled from previous step, creating a new Album per each Album found in your Synology Photos and associating
     all the assets included in each Album in the same way that you had on your Synology Photos account.
 
-
-
-## Config.ini
-Youn can see how to configure the Config.ini file in this help section:  
-
-[Configuration File](/help/0-config-file.md) 
+    
 
 ## Credits
 I hope this can be useful for any of you.  
