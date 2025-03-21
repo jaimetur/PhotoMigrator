@@ -6,7 +6,7 @@
 [![Total Github Releases downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/total?label=Total%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases)
 [![Commit activity](https://img.shields.io/github/commit-activity/y/jaimetur/CloudPhotoMigrator?label=Commit%20activity)](https://github.com/jaimetur/CloudPhotoMigrator/graphs/contributors)
 
-# CloudPhotoMigrator
+# **CloudPhotoMigrator**
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">**Automated Migration** </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
 
 As of today, the Supported Photo Cloud Services are:
@@ -96,15 +96,19 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
 1. Clone the repository
    ```
    git clone https://github.com/jaimetur/CloudPhotoMigrator.git
+   ```
+
+2. Change directory to the cloned repository
+   ```
    cd CloudPhotoMigrator
    ```
 
-2. Create a virtual environment:  
+3. Create a virtual environment:  
    ```
    python3 -m venv venv
    ```
 
-3. Activate the virtual environment:  
+4. Activate the virtual environment:  
    - On macOS/Linux:  
      ```
      source venv/bin/activate
@@ -120,12 +124,12 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
      venv\Scripts\Activate.ps1
      ```
 
-4. Install dependencies:  
+5. Install dependencies:  
    ```
    pip3 install -r requirements.txt
    ```
 
-5. Run the main script to show the command line help:  
+6. Run the main script to show the command line help:  
    ```
    python3 ./src/CloudPhotoMigrator.py -h
    ```
@@ -138,7 +142,7 @@ You can check the whole list of functions and arguments with the right syntax he
 
 > [!NOTE]  
 >## <span style="color:green">Automated Migration Feature</span>
->From version 3.0.0 onwards, the Tool supports a new Feature called '**AUTOMATED-MIGRATION**' Mode. 
+>From version 3.0.0 onwards, the Tool supports a new Feature called '**Automated Migration**'. 
 >
 > Use the argument **'--source'** to select the \<SOURCE> and the argument **'--target'** to select \<TARGET> for the AUTOMATED-MIGRATION Process to Pull all your Assets (including Albums) from the \<SOURCE> Cloud Service and Push them to the \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
 > 
