@@ -51,7 +51,7 @@ The final OUTPUT_FOLDER will include:
 > [!NOTE]
 > It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (408559 files zipped, 168168 photos/video files, 740 albums) and moved it into Synology Photos.  
 > 
-> The whole process took around **~3 hours** (or **~6 hours if includes last optional step) and this is the time split per steps**):  
+> The whole process took around **~3 hours** (or ~6 hours if includes last optional step) and this is the time split per steps):  
 > 
 > 0. Extraction process --> 25m
 > 1. Pre-processing Takeout_folder --> 3m 50s
