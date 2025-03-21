@@ -78,9 +78,6 @@
 - New Album Name: **'yyyy - Album Name' or 'yyyy-yyyy - Album Name'**  
 - where 'yyyy' is the year of the files contained in each Album folder (if more than one year is found, then 'yyyy-yyyy' will indicate the range of years for the files contained in the Album folder.
 
-> [!TIP]
-> Use this feature before to upload this folder to any Photo Cloud service in order to have a clean Albums structure in your Photo Cloud service database.  This feature is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.  
-
     ### Example of use:
     ```
     ./CloudPhotoMigrator.run ---rename-folders-content-based ./MyLocalPhotoLibrary
@@ -91,6 +88,10 @@
     - 'yyyy' is the year of the assets found in that folder
     - 'yyyy-yyyy' is the range of years for the assets found (if more than one year is found)  
     - 'Cleaned Subfolder Name' just make the folder name cleaner.  
+
+> [!TIP]
+> Use this feature before to upload this folder to any Photo Cloud service in order to have a clean Albums structure in your Photo Cloud service database.  This feature is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.  
+
 
 
 ## Credits
