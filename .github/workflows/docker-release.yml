@@ -1,0 +1,48 @@
+name: Build Docker & Publish Release Assets
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Build Docker image
+        run: docker build -t jaimetur/cloudphotomigrator:latest -f docker/Dockerfile .
+
+      - name: Push Docker image
+        run: docker push jaimetur/cloudphotomigrator:latest
+
+      - name: Prepare unified ZIP package
+        run: |
+          mkdir CloudPhotoMigrator_Package
+          cp docker/CloudPhotoMigrator.sh CloudPhotoMigrator_Package/
+          cp docker/CloudPhotoMigrator.bat CloudPhotoMigrator_Package/
+          cp Config.ini CloudPhotoMigrator_Package/
+          cp -r docs CloudPhotoMigrator_Package/
+          cp -r help CloudPhotoMigrator_Package/
+          zip -r CloudPhotoMigrator_v${{ env.RELEASE_VERSION }}_docker.zip CloudPhotoMigrator_Package
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            CloudPhotoMigrator_v${{ env.RELEASE_VERSION }}_docker.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
