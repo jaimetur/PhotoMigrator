@@ -79,7 +79,7 @@
 - where 'yyyy' is the year of the files contained in each Album folder (if more than one year is found, then 'yyyy-yyyy' will indicate the range of years for the files contained in the Album folder.
 
 > [!TIP]
-> - Recommendation: Use this feature before to upload this folder to any Photo Cloud service in order to have a clean Albums structure in your Photo Cloud service database.  This feature is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.  
+> Use this feature before to upload this folder to any Photo Cloud service in order to have a clean Albums structure in your Photo Cloud service database.  This feature is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.  
 
     ### Example of use:
     ```
