@@ -59,6 +59,7 @@
   With this example, the Tool will process the file ./Duplicates/Duplicates_revised.csv
   and for each duplicate, will do the given action according to Action column
 
+
 # <span style="color:blue"> Fix Symbolic Links Broken (Extra Feature)</span>
 - **From:** v1.5.0
 - **Usage:**
@@ -79,6 +80,7 @@
 > This is useful when you run the Tool using flag '-gcsa, --google-create-symbolic-albums' to create symbolic Albums instead of duplicate copies of the files contained on Albums.  
 > 
 > If you run the Tool with this flag and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken, and you will need to use this feature to fix them.
+
 
 # <span style="color:blue"> Folder Rename Content Based (Extra Feature)</span>
 - **From:** v2.0.0
