@@ -7,7 +7,6 @@
 [![Commit activity](https://img.shields.io/github/commit-activity/y/jaimetur/CloudPhotoMigrator?label=Commit%20activity)](https://github.com/jaimetur/CloudPhotoMigrator/graphs/contributors)
 
 # **CloudPhotoMigrator**
-
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">**Automated Migration** </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
 
 As of today, the Supported Photo Cloud Services are:
@@ -92,6 +91,10 @@ Then you just need to call it depending on your environment:
     Minimum version required to run the Tool directly from your Synology NAS (using SSH terminal) is **DSM 7.0**.
 
 ## Instructions to execute from source repository:
+
+>[!WARNING]
+> You have to make sure that you have installed Python 3.8 or higher on your system before to do the following steps.
+
 Here are simple instructions to clone the GitHub repository, create a Python virtual environment, install dependencies, and run the main script:
 
 1. Clone the repository
@@ -104,7 +107,7 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
    cd CloudPhotoMigrator
    ```
 
-3. Create a virtual environment:  
+3. Create a Python virtual environment:  
    ```
    python3 -m venv venv
    ```
