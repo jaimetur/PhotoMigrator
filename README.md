@@ -92,8 +92,8 @@ Then you just need to call it depending on your environment:
 
 ## Instructions to execute from source repository:
 
->[!WARNING]
-> You have to make sure that you have installed Python 3.8 or higher on your system before to do the following steps.
+>[!IMPORTANT]
+> You have to make sure that you have Python 3.8 or higher on your system before to do the following steps.
 
 Here are simple instructions to clone the GitHub repository, create a Python virtual environment, install dependencies, and run the main script:
 
