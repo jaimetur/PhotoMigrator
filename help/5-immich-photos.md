@@ -1,9 +1,19 @@
 # <span style="color:green">Immich Photos Management:</span>
 
-> [!NOTE]
-> ## <span style="color:green">Immich Photos Support</span>
+>[!NOTE]
+>## <span style="color:green">Immich Photos Support</span>
 >From version 3.0.0 onwards, the Tool can connect to your Immich Photos account with your credentials or using a pre-created API Key.  
->
+>### Features included:
+> 1. Upload Album(s) (from folder)
+> 2. Download Album(s) (into folder)
+> 3. Upload ALL (from folder)
+> 4. Download ALL (into folder)
+> 5. Remove ALL Assets
+> 6. Remove ALL Albums
+> 7. Remove Empty Albums
+> 8. Remove Duplicates Albums
+> 9. Remove Orphans Assets
+> 
 >The credentials/API Key need to be loaded from the 'Config.ini' file that  have this format:
 >
 >>#### <span style="color:green">Example 'Config.ini' for Immich Photos:</span>
@@ -29,16 +39,6 @@
 >>IMMICH_FILTER_CITY          = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: ['Madrid', 'Málaga'])
 >>IMMICH_FILTER_PERSON        = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: ['Mery', 'James'])
 >>```
->### Features included:
-> 1. Upload Album(s) (from folder)
-> 2. Download Album(s) (into folder)
-> 3. Upload ALL (from folder)
-> 4. Download ALL (into folder)
-> 5. Remove ALL Assets
-> 6. Remove ALL Albums
-> 7. Remove Empty Albums
-> 8. Remove Duplicates Albums
-> 9. Remove Orphans Assets
 
 
 ## <span style="color:blue">Upload Albums (from Local Folder) into Immich Photos:</span>
@@ -78,8 +78,8 @@
   ```
   With this example, the Tool will connect to your Immich Photos account and extract the Albums "Album 1", "Album 2", "Album 3" with all the photos and videos included on them into a subfolder of 'Immich_Photos_Albums' folder
 
-> [!IMPORTANT]  
-> ⚠ <ALBUMS_NAME> should exist within your Immich Photos Albums database, otherwise it will not extract anything. 
+> [!WARNING]  
+> <ALBUMS_NAME> should exist within your Immich Photos Albums database, otherwise it will not extract anything. 
   
 
 ## <span style="color:blue">Upload All (from Local Folder) into Immich Photos:</span>
@@ -133,8 +133,8 @@
   ```
   With this example, the Tool will connect to Immich Photos account and will remove all assets found (including Albums).
 
-> [!IMPORTANT]  
-> ⚠ This process is irreversible and will clean all from your Immich Photos account. Use it if you are completelly sure of what you are doing.
+> [!CAUTION]  
+> This process is irreversible and will clean all from your Immich Photos account. Use it if you are completelly sure of what you are doing.
   
 
 ## <span style="color:blue">Remove All Albums from Immich Photos:</span>
@@ -152,8 +152,8 @@
   ```
   With this example, the Tool will connect to your Immich Photos account and will remove all Albums found (including all the assets contained on them, because we are using the complementary flag).
 
-> [!IMPORTANT]  
-> ⚠ This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Immich Photos account. Use it if you are completelly sure of what you are doing.
+> [!CAUTION]  
+> This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Immich Photos account. Use it if you are completelly sure of what you are doing.
     
 
 ## <span style="color:blue">Remove Empty Albums from Immich Photos:</span>
