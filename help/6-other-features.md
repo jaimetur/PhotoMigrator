@@ -15,7 +15,7 @@
 # <span style="color:blue"> Find Duplicates (Extra Feature)</span>
 - **From:** v1.4.0
 - **Usage:**
-  - To run this feature you have to use the flag '-findDup, --find-duplicates \<ACTION> \<DUPLICATES_FOLDER> [\<DUPLICATES_FOLDER> ...]'
+  - To run this feature you have to use the flag '-findDup, --find-duplicates \<ACTION> \<DUPLICATES_FOLDER>'
   - where, 
       - \<DUPLICATES_FOLDER> is the folder (or list of folders) where the Tool will look for duplicates files. If you provide more than one folder, when a duplicated file is found, the Tool will maintain the file found within the folder given first in the list of folders provided. If the duplicated files are within the same folder, then the Tool will maintain the file whose name is shorter.
       - \<ACTION> is an action to specify what to do with duplicates files found. You can include any of the valid actions. 
@@ -77,7 +77,7 @@
   the Tool will try to fix it finding the target of the symlink within the same OUTPUT_FOLDER structure.
 
 > [!TIP]
-> This is useful when you run the Tool using flag '-gcsa, --google-create-symbolic-albums' to create symbolic Albums instead of duplicate copies of the files contained on Albums.  
+> This is useful when you run the Tool using flag _**'-gcsa, --google-create-symbolic-albums'**_ to create symbolic Albums instead of duplicate copies of the files contained on Albums.  
 > 
 > If you run the Tool with this flag and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken, and you will need to use this feature to fix them.
 
