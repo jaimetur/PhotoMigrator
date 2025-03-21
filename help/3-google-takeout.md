@@ -36,31 +36,32 @@ The whole process will do the next actions if all flags are false (by default):
 
 8. (Optional) In this step, the Tool will look for any duplicate file on OUTPUT_FOLDER (ignoring symbolic links), and will remove all duplicates keeping only the principal file (giving more priority to duplicates files found into any album folder than those found on 'ALL_PHOTOS' folder. 
 
+NOTE 1: Step 8 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
 
 The result will be a folder named '<INPUT_TAKEOUT_FOLDER>_{SUFFIX}_{TIMESTAMP}' by default, but you can or change the default suffix _'processed'_ by any other using the option _'-gofs, --google-output-folder-suffix <SUFFIX>'_) 
 The final OUTPUT_FOLDER will include:
 - 'Albums' subfolder with all the Albums without year/month structure (by default).
 - 'No-Albums' subfolder with all the photos with year/month structure (by default).
 
-Finally, if you want to use your processed assets within Synology Photos, you just need to move OUTPUT_FOLDER into your /home/Photos folder and let Synology index all files (it will take long time). After that you will be able to explore your photos chronologically on the Synology Photos App, and all your Albums will be there when you explore the library by folder instead of chronologically.
+> [!TIP]
+> If you want to use your processed assets within Synology Photos, you just need to move OUTPUT_FOLDER into your /home/Photos folder and let Synology index all files (it will take long time). After that you will be able to explore your photos chronologically on the Synology Photos App, and all your Albums will be there when you explore the library by folder instead of chronologically.
 
-It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (408559 files zipped, 168168 photos/video files, 740 albums) and moved it into Synology Photos.  
-
-The whole process took around **~3 hours** (or **~6 hours if includes last optional step) and this is the time split per steps**):  
-
-0. Extraction process --> 25m
-1. Pre-processing Takeout_folder --> 3m 50s
-2. GPTH Tool fixing --> 2h 12m
-3. <span style="color:grey">(Optional) Copy/Move files to output folder manually if GPTH processing was skipped --> 0h</span>
-4. Sync .MP4 timestamps --> 10s
-5. Create Date Folder Structure --> 50s
-6. Moving Album Folder --> 1s
-7. Fix Broken Symlinks --> 10m
-8. <span style="color:grey">(Optional) Remove Duplicates after fixing --> 3h</span>
-   
-NOTE 1: Step 8 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
-
-NOTE 2: Above times are approximates and were measured running the tool on Linux using a Synology NAS DS920+.
+> [!NOTE]
+> It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (408559 files zipped, 168168 photos/video files, 740 albums) and moved it into Synology Photos.  
+> 
+> The whole process took around **~3 hours** (or **~6 hours if includes last optional step) and this is the time split per steps**):  
+> 
+> 0. Extraction process --> 25m
+> 1. Pre-processing Takeout_folder --> 3m 50s
+> 2. GPTH Tool fixing --> 2h 12m
+> 3. <span style="color:grey">(Optional) Copy/Move files to output folder manually if GPTH processing was skipped --> 0h</span>
+> 4. Sync .MP4 timestamps --> 10s
+> 5. Create Date Folder Structure --> 50s
+> 6. Moving Album Folder --> 1s
+> 7. Fix Broken Symlinks --> 10m
+> 8. <span style="color:grey">(Optional) Remove Duplicates after fixing --> 3h</span>
+>
+> NOTE 2: Above times are approximates and were measured running the tool on Linux using a Synology NAS DS920+.
 
 
 ## **Examples of use:**
