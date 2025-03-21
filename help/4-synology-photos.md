@@ -63,7 +63,7 @@
   With this example, the Tool will connect to your Synology Photos account and extract the Albums "Album 1", "Album 2", "Album 3" with all the photos and videos included on them into a subfolder of 'Synology_Photos_Albums' folder
 
 > [!IMPORTANT]
-> ⚠ <ALBUMS_NAME> should exist within your Synology Photos Albums database, otherwise it will not extract anything. 
+> <ALBUMS_NAME> should exist within your Synology Photos Albums database, otherwise it will not extract anything. 
 
 
 ## <span style="color:blue">Upload All (from Local Folder) into Synology Photos:</span>
@@ -119,7 +119,7 @@
   With this example, the Tool will connect to Synology Photos account and will remove all assets found (including Albums).
 
 > [!IMPORTANT]
-> ⚠ This process is irreversible and will clean all from your Synology Photos account. Use it if you are completelly sure of what you are doing.
+> This process is irreversible and will clean all from your Synology Photos account. Use it if you are completelly sure of what you are doing.
   
 
 ## <span style="color:blue">Remove All Albums from Synology Photos:</span>
