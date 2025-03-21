@@ -137,7 +137,7 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
    ```
 
 ## Command Line Syntax:
-You can check the whole list of functions and arguments with the right syntax here:  
+You can check the whole list of functions and arguments with the right syntax here:
 [Command Line Syntax](help/1-command-line-syntax)
 
 ## Main Use Case: Automated Migration Feature
@@ -179,7 +179,7 @@ You can check the whole list of functions and arguments with the right syntax he
 > <INPUT_FOLDER>/Album2  
 
 > [!IMPORTANT]  
-> It is important that you configure properly the file 'Config.ini' (included with the tool), to set properly the accounts for your Photo Cloud Service.  
+> It is important that you configure properly the file 'Config.ini' (included with the tool), to set properly the accounts for your Photo Cloud Services.  
 
 
 ## Config.ini
