@@ -76,7 +76,7 @@
   With this example, the Tool will look for all symbolic links within OUTPUT_FOLDER and if any is broken,
   the Tool will try to fix it finding the target of the symlink within the same OUTPUT_FOLDER structure.
 
-> [!TIP]
+> [!TIP]  
 > This is useful when you run the Tool using flag _**'-gcsa, --google-create-symbolic-albums'**_ to create symbolic Albums instead of duplicate copies of the files contained on Albums.  
 > 
 > If you run the Tool with this flag and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken, and you will need to use this feature to fix them.
@@ -104,12 +104,12 @@
   - 'yyyy-yyyy' is the range of years for the assets found (if more than one year is found)  
   - 'Cleaned Subfolder Name' just make the folder name cleaner.  
 
-> [!TIP]
+> [!TIP]  
 > Use this feature before to upload this folder to any Photo Cloud service in order to have a clean Albums structure in your Photo Cloud service database.  
 > 
 > This feature is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.  
 
-> [!CAUTION]
+> [!CAUTION]  
 > This Feature will modify the original subfolder names found in <ALBUMS_FOLDER>. 
 > 
 > If you don't want to lose your original subfolder names, you should make a backup before to run this feature.
