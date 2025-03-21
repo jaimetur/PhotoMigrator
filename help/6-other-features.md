@@ -78,6 +78,7 @@
 
 
 ## <span style="color:blue">Extra Feature: Folder Rename Content Based:</span>
+<<<<<<< HEAD
 - **From:** v2.0.0
 - **Usage:**
   - To run this feature you have to use the flag '-renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>'.
@@ -89,6 +90,14 @@
   - New Album Name: **'yyyy - Album Name' or 'yyyy-yyyy - Album Name'**  
   - where 'yyyy' is the year of the files contained in each Album folder (if more than one year is found, then 'yyyy-yyyy' will indicate the range of years for the files contained in the Album folder.
 - Recommendation: Use this feature before to upload this folder to any Photo Cloud service in order to have a clean Albums structure in your Photo Cloud service database.  This feature is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.  
+=======
+- From version 2.0.0 onwards, the Tool has a feature to 'Rename Albums Folders'.
+- To run this feature you have to use the flag '-renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>'.
+- where <ALBUMS_FOLDER> is the folder that contains all the Albums subfolders to rename.
+- With this feature, the Tool will rename all Albums subfolders (if they contain a flatten file structure) and homogenize all your Albums names with this format:  
+- New Album Name: **'yyyy - Album Name' or 'yyyy-yyyy - Album Name'**  
+- where 'yyyy' is the year of the files contained in each Album folder (if more than one year is found, then 'yyyy-yyyy' will indicate the range of years for the files contained in the Album folder.
+>>>>>>> origin/3.1.0
 
     **Example of use:**
     ```
@@ -100,6 +109,10 @@
     - 'yyyy' is the year of the assets found in that folder
     - 'yyyy-yyyy' is the range of years for the assets found (if more than one year is found)  
     - 'Cleaned Subfolder Name' just make the folder name cleaner.  
+
+> [!TIP]
+> Use this feature before to upload this folder to any Photo Cloud service in order to have a clean Albums structure in your Photo Cloud service database.  This feature is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.  
+
 
 
 ## Credits

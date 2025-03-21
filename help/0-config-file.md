@@ -63,9 +63,11 @@ In this section you have to provide:
 - **IMMICH_API_KEY_USER_1:** The API_KEY for the Immich Account 1
 
 > [!NOTE]  
-> In Immich you can choose if you want to login with username/password or you prefeer to use an API_KEY instead.
-> If you choose username/password authentification method, then, you don't need to provide any API_KEY for that account.
-> If you choose API_KEY authentification method, then, you don't need to provide any username/password for htat account.
+> In Immich you can choose if you want to login with username/password or you prefeer to use an API_KEY instead.  
+>
+> If you choose username/password authentification method, then, you don't need to provide any API_KEY for that account.  
+>
+> If you choose API_KEY authentification method, then, you don't need to provide any username/password for htat account.  
 
 - **IMMICH_FILTER_ARCHIVE:** This field is not used yet
 - **IMMICH_FILTER_FROM:** This field is not used yet
