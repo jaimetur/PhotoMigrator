@@ -1,7 +1,7 @@
 # <span style="color:green">Other Standalone Extra Features:</span>
 
 > [!NOTE]
-> ## <span style="color:green">Other Standalone Features</span>
+> ## <span style="color:green">Other Standalone Extra Features</span>
 >Additionally, this Tool can be executed with 4 Standalone Extra Features: 
 > 
 > - **Find Duplicates** 
@@ -36,7 +36,7 @@
   and will move (because the selected action is 'move') the others duplicates files into the ./Duplicates folder on the root folder of the Tool.
 
 
-## <span style="color:blue"> Process Duplicates (Extra Feature)</span>
+# <span style="color:blue"> Process Duplicates (Extra Feature)</span>
 - **From:**: v1.6.0
 - **Usage:**
   - To run this feature you have to use the flag '-procDup, --process-duplicates <DUPLICATES_REVISED_CSV>'
@@ -59,7 +59,7 @@
   With this example, the Tool will process the file ./Duplicates/Duplicates_revised.csv
   and for each duplicate, will do the given action according to Action column
 
-## <span style="color:blue"> Fix Symbolic Links Broken (Extra Feature)</span>
+# <span style="color:blue"> Fix Symbolic Links Broken (Extra Feature)</span>
 - From version 1.5.0 onwards, the Tool has a feature to 'Fix Symbolic Links Broken'. 
 - To run this feature you have to use the flag '-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>'.
 - where <FOLDER_TO_FIX> is the folder that contains the Symbolic Links to fix.
@@ -74,7 +74,7 @@
   the Tool will try to fix it finding the target of the symlink within the same OUTPUT_FOLDER structure.
 
 
-## <span style="color:blue"> Folder Rename Content Based (Extra Feature)</span>
+# <span style="color:blue"> Folder Rename Content Based (Extra Feature)</span>
 - **From:** v2.0.0
 - **Usage:**
   - To run this feature you have to use the flag '-renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>'.
