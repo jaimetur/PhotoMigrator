@@ -65,7 +65,7 @@
   ```
   With this example, the Tool will connect to your Synology Photos account and extract the Albums "Album 1", "Album 2", "Album 3" with all the photos and videos included on them into a subfolder of 'Synology_Photos_Albums' folder
 
-> [!WARNING]
+> [!WARNING]  
 > <ALBUMS_NAME> should exist within your Synology Photos Albums database, otherwise it will not extract anything. 
 
 
@@ -121,7 +121,7 @@
   ```
   With this example, the Tool will connect to Synology Photos account and will remove all assets found (including Albums).
 
-> [!CAUTION]
+> [!CAUTION]  
 > This process is irreversible and will clean all from your Synology Photos account. Use it if you are completelly sure of what you are doing.
   
 
@@ -140,7 +140,7 @@
   ```
   With this example, the Tool will connect to your Synology Photos account and will remove all Albums found (including all the assets contained on them, because we are using the complementary flag).
 
-> [!CAUTION]
+> [!CAUTION]  
 > This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Synology Photos account. Use it if you are completelly sure of what you are doing.
       
 
