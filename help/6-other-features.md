@@ -27,7 +27,6 @@
     - If \<ACTION> is 'list', then the Tool will only create a list of duplicated files found within the folder Duplicates. 
     - If \<ACTION> is 'move' then the Tool will maintain the main file and move the others inside the folder Duplicates/Duplicates_timestamp. 
     - If \<ACTION> is 'remove' the Tool will maintain the main file and remove the others.
-
 - **Example of use:**
   ```
   ./CloudPhotoMigrator --find-duplicatess move ./Albums ./ALL_PHOTOS move
@@ -53,7 +52,6 @@
       - replace_duplicate : Use this action to replace the principal file chosen for each duplicates and select manually the principal file
           - Duplicated file moved to Duplicates folder will be restored to its original location as principal file
           - and Original Principal file detected by the Script will be removed permanently
-
 - **Example of use:**
   ```
   ./CloudPhotoMigrator --process-duplicates ./Duplicates/Duplicates_revised.csv
@@ -68,17 +66,15 @@
 - With this feature the Tool will try to look for all symbolic links within <FOLDER_TO_FIX> and will try to find the target file within the same folder.
 - This is useful when you run the Tool using flag '-gcsa, --google-create-symbolic-albums' to create symbolic Albums instead of duplicate copies of the files contained on Albums.
 - If you run the Tool with this flag and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken and you will need to use this feature to fix them.
-
-    **Example of use:**
-    ```
-    ./CloudPhotoMigrator --fix-symlinks-broken ./OUTPUT_FOLDER 
-    ```
-    With this example, the Tool will look for all symbolic links within OUTPUT_FOLDER and if any is broken,
-    the Tool will try to fix it finding the target of the symlink within the same OUTPUT_FOLDER structure.
+- **Example of use:**
+  ```
+  ./CloudPhotoMigrator --fix-symlinks-broken ./OUTPUT_FOLDER 
+  ```
+  With this example, the Tool will look for all symbolic links within OUTPUT_FOLDER and if any is broken,
+  the Tool will try to fix it finding the target of the symlink within the same OUTPUT_FOLDER structure.
 
 
 ## <span style="color:blue">Extra Feature: Folder Rename Content Based:</span>
-<<<<<<< HEAD
 - **From:** v2.0.0
 - **Usage:**
   - To run this feature you have to use the flag '-renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>'.
@@ -89,26 +85,16 @@
   - With this feature, the Tool will rename all Albums subfolders (if they contain a flatten file structure) and homogenize all your Albums names with this format:  
   - New Album Name: **'yyyy - Album Name' or 'yyyy-yyyy - Album Name'**  
   - where 'yyyy' is the year of the files contained in each Album folder (if more than one year is found, then 'yyyy-yyyy' will indicate the range of years for the files contained in the Album folder.
-- Recommendation: Use this feature before to upload this folder to any Photo Cloud service in order to have a clean Albums structure in your Photo Cloud service database.  This feature is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.  
-=======
-- From version 2.0.0 onwards, the Tool has a feature to 'Rename Albums Folders'.
-- To run this feature you have to use the flag '-renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>'.
-- where <ALBUMS_FOLDER> is the folder that contains all the Albums subfolders to rename.
-- With this feature, the Tool will rename all Albums subfolders (if they contain a flatten file structure) and homogenize all your Albums names with this format:  
-- New Album Name: **'yyyy - Album Name' or 'yyyy-yyyy - Album Name'**  
-- where 'yyyy' is the year of the files contained in each Album folder (if more than one year is found, then 'yyyy-yyyy' will indicate the range of years for the files contained in the Album folder.
->>>>>>> origin/3.1.0
-
-    **Example of use:**
-    ```
-    ./CloudPhotoMigrator.run ---rename-folders-content-based ./MyLocalPhotoLibrary
-    ```
-    In this example, the Tool will Process your Library of photos in folder './MyLocalPhotoLibrary' (need to be unzipped), and will rename all the subfolders found on to homogenize all the folder's name with the following template:  
-    '**yyyy - Cleaned Subfolder Name**' or '**yyyy-yyyy - Cleaned Subfolder Name**'  
-     where, 
-    - 'yyyy' is the year of the assets found in that folder
-    - 'yyyy-yyyy' is the range of years for the assets found (if more than one year is found)  
-    - 'Cleaned Subfolder Name' just make the folder name cleaner.  
+- **Example of use:**
+  ```
+  ./CloudPhotoMigrator.run ---rename-folders-content-based ./MyLocalPhotoLibrary
+  ```
+  In this example, the Tool will Process your Library of photos in folder './MyLocalPhotoLibrary' (need to be unzipped), and will rename all the subfolders found on to homogenize all the folder's name with the following template:  
+  '**yyyy - Cleaned Subfolder Name**' or '**yyyy-yyyy - Cleaned Subfolder Name**'  
+   where, 
+  - 'yyyy' is the year of the assets found in that folder
+  - 'yyyy-yyyy' is the range of years for the assets found (if more than one year is found)  
+  - 'Cleaned Subfolder Name' just make the folder name cleaner.  
 
 > [!TIP]
 > Use this feature before to upload this folder to any Photo Cloud service in order to have a clean Albums structure in your Photo Cloud service database.  This feature is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.  
