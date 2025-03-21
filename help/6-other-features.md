@@ -61,11 +61,15 @@
 
 # <span style="color:blue"> Fix Symbolic Links Broken (Extra Feature)</span>
 - **From:** v1.5.0
-- To run this feature you have to use the flag '-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>'.
-- where <FOLDER_TO_FIX> is the folder that contains the Symbolic Links to fix.
-- With this feature the Tool will try to look for all symbolic links within <FOLDER_TO_FIX> and will try to find the target file within the same folder.
-- This is useful when you run the Tool using flag '-gcsa, --google-create-symbolic-albums' to create symbolic Albums instead of duplicate copies of the files contained on Albums.
-- If you run the Tool with this flag and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken and you will need to use this feature to fix them.
+- **Usage:**
+  - To run this feature you have to use the flag '-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>'.
+  - where <FOLDER_TO_FIX> is the folder that contains the Symbolic Links to fix.
+- **Pre-Requisites:**
+  - None
+- **Explanation:**
+  - With this feature the Tool will try to look for all symbolic links within <FOLDER_TO_FIX> and will try to find the target file within the same folder.
+  - This is useful when you run the Tool using flag '-gcsa, --google-create-symbolic-albums' to create symbolic Albums instead of duplicate copies of the files contained on Albums.
+  - If you run the Tool with this flag and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken and you will need to use this feature to fix them.
 - **Example of use:**
   ```
   ./CloudPhotoMigrator --fix-symlinks-broken ./OUTPUT_FOLDER 
