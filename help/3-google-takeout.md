@@ -92,7 +92,7 @@ In this example, the tool will do the Takeout Processing with the following step
 
 
 > [!TIP]
-> ## <span style="color:dark">Additional Trick!</span>
+> ## <span style="color:dark">Additional Tip!</span>
 > When prepare Google Takeout to export all your Photos and Albums, select 50GB for the zip file size and select Google Drive as output for those Zip files. On this way you can just Download all the big Zip files directly on your Synology NAS by using the Tool Cloud Sync (included on Synology App Store) and creating a new synchronization task from your Google Drive account (/Takeout folder) to any local folder of your Synology NAS (I recommend to use the default folder called '**Zip_files**' within this Tool folder structure)
 
 
