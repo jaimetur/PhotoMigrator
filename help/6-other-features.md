@@ -68,8 +68,6 @@
   - None
 - **Explanation:**
   - With this feature the Tool will try to look for all symbolic links within <FOLDER_TO_FIX> and will try to find the target file within the same folder.
-  - This is useful when you run the Tool using flag '-gcsa, --google-create-symbolic-albums' to create symbolic Albums instead of duplicate copies of the files contained on Albums.
-  - If you run the Tool with this flag and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken and you will need to use this feature to fix them.
 - **Example of use:**
   ```
   ./CloudPhotoMigrator --fix-symlinks-broken ./OUTPUT_FOLDER 
@@ -77,6 +75,10 @@
   With this example, the Tool will look for all symbolic links within OUTPUT_FOLDER and if any is broken,
   the Tool will try to fix it finding the target of the symlink within the same OUTPUT_FOLDER structure.
 
+> [!TIP]
+> This is useful when you run the Tool using flag '-gcsa, --google-create-symbolic-albums' to create symbolic Albums instead of duplicate copies of the files contained on Albums.  
+> 
+> If you run the Tool with this flag and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken, and you will need to use this feature to fix them.
 
 # <span style="color:blue"> Folder Rename Content Based (Extra Feature)</span>
 - **From:** v2.0.0
