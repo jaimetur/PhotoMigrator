@@ -36,7 +36,7 @@ The whole process will do the next actions if all flags are false (by default):
 
 8. (Optional) In this step, the Tool will look for any duplicate file on OUTPUT_FOLDER (ignoring symbolic links), and will remove all duplicates keeping only the principal file (giving more priority to duplicates files found into any album folder than those found on 'ALL_PHOTOS' folder. 
 
-NOTE 1: Step 8 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
+Step 8 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
 
 The result will be a folder named '<INPUT_TAKEOUT_FOLDER>_{SUFFIX}_{TIMESTAMP}' by default, but you can or change the default suffix _'processed'_ by any other using the option _'-gofs, --google-output-folder-suffix <SUFFIX>'_) 
 The final OUTPUT_FOLDER will include:
@@ -61,7 +61,7 @@ The final OUTPUT_FOLDER will include:
 > 7. Fix Broken Symlinks --> 10m
 > 8. <span style="color:grey">(Optional) Remove Duplicates after fixing --> 3h</span>
 >
-> NOTE 2: Above times are approximates and were measured running the tool on Linux using a Synology NAS DS920+.
+> NOTE: Above times are approximates and were measured running the tool on Linux using a Synology NAS DS920+.
 
 
 ## **Examples of use:**
