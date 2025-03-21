@@ -95,7 +95,8 @@ Then you just need to call it depending on your environment:
 >[!IMPORTANT]
 > You have to make sure that you have Python 3.8 or higher on your system before to do the following steps.
 
-Here are simple instructions to clone the GitHub repository, create a Python virtual environment, install dependencies, and run the main script:
+Here are simple instructions to clone the GitHub repository, create a Python virtual environment, install dependencies, and run the main script.  
+Find below the steps needed:
 
 1. Clone the repository
    ```
