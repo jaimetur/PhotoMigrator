@@ -13,7 +13,7 @@
 
 
 # <span style="color:blue"> Find Duplicates (Extra Feature)</span>
-- **From:**: v1.4.0
+- **From:** v1.4.0
 - **Usage:**
   - To run this feature you have to use the flag '-findDup, --find-duplicates \<ACTION> \<DUPLICATES_FOLDER> [\<DUPLICATES_FOLDER> ...]'
   - where, 
@@ -37,7 +37,7 @@
 
 
 # <span style="color:blue"> Process Duplicates (Extra Feature)</span>
-- **From:**: v1.6.0
+- **From:** v1.6.0
 - **Usage:**
   - To run this feature you have to use the flag '-procDup, --process-duplicates <DUPLICATES_REVISED_CSV>'
   - where <DUPLICATES_REVISED_CSV> is the output file generated after execution of the 'Find Duplicates' feature.
@@ -60,7 +60,7 @@
   and for each duplicate, will do the given action according to Action column
 
 # <span style="color:blue"> Fix Symbolic Links Broken (Extra Feature)</span>
-- From version 1.5.0 onwards, the Tool has a feature to 'Fix Symbolic Links Broken'. 
+- **From:** v1.5.0
 - To run this feature you have to use the flag '-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>'.
 - where <FOLDER_TO_FIX> is the folder that contains the Symbolic Links to fix.
 - With this feature the Tool will try to look for all symbolic links within <FOLDER_TO_FIX> and will try to find the target file within the same folder.
