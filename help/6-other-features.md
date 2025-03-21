@@ -24,9 +24,9 @@
   - None
 - **Explanation:**
   - With this feature, the Tool will find duplicates files in a smart way based on file size and content and will perform the action based on the <ACTION> selected:
-    - If \<ACTION> is 'list', then the Tool will only create a list of duplicated files found within the folder Duplicates. 
-    - If \<ACTION> is 'move' then the Tool will maintain the main file and move the others inside the folder Duplicates/Duplicates_timestamp. 
-    - If \<ACTION> is 'remove' the Tool will maintain the main file and remove the others.
+    - If \<ACTION> is 'list', then the Tool will only generate a CSV file with all the duplicates found and store it within the folder 'Duplicates'. 
+    - If \<ACTION> is 'move' then the Tool will maintain the main file and move the others inside the folder Duplicates/Duplicates_timestamp and also, will generate a CSV file with all the duplicates found and store it within the folder 'Duplicates'. 
+    - If \<ACTION> is 'remove' the Tool will maintain the main file and remove the others and also will generate a CSV file with all the duplicates found and store it within the folder 'Duplicates'.
 - **Example of use:**
   ```
   ./CloudPhotoMigrator --find-duplicatess move ./Albums ./ALL_PHOTOS move
