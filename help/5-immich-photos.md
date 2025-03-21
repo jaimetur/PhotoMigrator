@@ -1,9 +1,19 @@
 # <span style="color:green">Immich Photos Management:</span>
 
-> [!NOTE]
-> ## <span style="color:green">Immich Photos Support</span>
+>[!NOTE]
+>## <span style="color:green">Immich Photos Support</span>
 >From version 3.0.0 onwards, the Tool can connect to your Immich Photos account with your credentials or using a pre-created API Key.  
->
+>### Features included:
+> 1. Upload Album(s) (from folder)
+> 2. Download Album(s) (into folder)
+> 3. Upload ALL (from folder)
+> 4. Download ALL (into folder)
+> 5. Remove ALL Assets
+> 6. Remove ALL Albums
+> 7. Remove Empty Albums
+> 8. Remove Duplicates Albums
+> 9. Remove Orphans Assets
+> 
 >The credentials/API Key need to be loaded from the 'Config.ini' file that  have this format:
 >
 >>#### <span style="color:green">Example 'Config.ini' for Immich Photos:</span>
@@ -29,16 +39,6 @@
 >>IMMICH_FILTER_CITY          = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: ['Madrid', 'Málaga'])
 >>IMMICH_FILTER_PERSON        = *                                             # Optional: Used as Filter Criteria for Assets downloading (i.e: ['Mery', 'James'])
 >>```
->### Features included:
-> 1. Upload Album(s) (from folder)
-> 2. Download Album(s) (into folder)
-> 3. Upload ALL (from folder)
-> 4. Download ALL (into folder)
-> 5. Remove ALL Assets
-> 6. Remove ALL Albums
-> 7. Remove Empty Albums
-> 8. Remove Duplicates Albums
-> 9. Remove Orphans Assets
 
 
 ## <span style="color:blue">Upload Albums (from Local Folder) into Immich Photos:</span>

@@ -2,8 +2,20 @@
 
 >[!NOTE]
 >## <span style="color:green">Synology Photos Support</span>
->From version 2.0.0 onwards, the Tool can connect to your Synology NAS and login into Synology Photos App with your credentials. The credentials need to be loaded from 'Config.ini' file and will have this format:
+>From version 2.0.0 onwards, the Tool can connect to your Synology NAS and login into Synology Photos App with your credentials. 
+>### Features included:
+> 1. Upload Album(s) (from folder)
+> 2. Download Album(s) (into folder)
+> 3. Upload ALL (from folder)
+> 4. Download ALL (into folder)
+> 5. Remove ALL Assets
+> 6. Remove ALL Albums
+> 7. Remove Empty Albums
+> 8. Remove Duplicates Albums
 >
+> 
+>The credentials need to be loaded from 'Config.ini' file and will have this format:
+> 
 >>#### <span style="color:green">Example 'Config.ini' for Synology Photos:</span>
 >>
 >>```
@@ -15,15 +27,6 @@
 >>SYNOLOGY_USERNAME_2         = username_2                                    # Account 2: Your username for Synology Photos
 >>SYNOLOGY_PASSWORD_2         = password_2                                    # Account 2: Your password for Synology Photos
 >>```
->### Features included:
-> 1. Upload Album(s) (from folder)
-> 2. Download Album(s) (into folder)
-> 3. Upload ALL (from folder)
-> 4. Download ALL (into folder)
-> 5. Remove ALL Assets
-> 6. Remove ALL Albums
-> 7. Remove Empty Albums
-> 8. Remove Duplicates Albums
 
 
 ## <span style="color:blue">Upload Albums (from Local Folder) into Synology Photos:</span>
