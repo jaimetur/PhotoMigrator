@@ -90,16 +90,20 @@ You can check the whole list of functions and arguments with the right syntax he
 [Command Line Syntax](help/1-command-line-syntax)
 
 
+## Configuration File (Config.ini):
+Youn can see how to configure the Config.ini file in this help section:
+[Configuration File](/help/config-file.md) 
+
+
 ## All Documentation Links:
 - [Execution Instructions](/help/0-execution-instructions.md)
-- [Configuration File](/help/config-file.md)  
 - [Command Line Syntax](/help/1-command-line-syntax.md)  
 - [Automated Migration Feature](/help/2-automated-migration.md)  
 - [Google Takeout Management](/help/3-google-takeout.md)  
 - [Synology Photos Management](/help/4-synology-photos.md)  
 - [Immich Photos Management](/help/5-immich-photos.md)  
 - [Other Features](/help/6-other-features.md)  
-
+- [Configuration File](/help/config-file.md)  
 
 ## Main Use Case: Automated Migration Feature
 > [!NOTE]  
@@ -140,11 +144,6 @@ You can check the whole list of functions and arguments with the right syntax he
 
 > [!IMPORTANT]  
 > It is important that you configure properly the file 'Config.ini' (included with the tool), to set properly the accounts for your Photo Cloud Services.  
-
-
-## Config.ini
-Youn can see how to configure the Config.ini file in this help section:
-[Configuration File](/help/config-file.md) 
 
 
 # ROADMAP:
