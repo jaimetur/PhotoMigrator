@@ -1722,14 +1722,13 @@ class ClassImmichPhotos:
 ##############################################################################
 
 
-
 ##############################################################################
 #                            MAIN TESTS FUNCTION                             #
 ##############################################################################
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
     import ChangeWorkingDir
-    ChangeWorkingDir.change_working_dir()
+    ChangeWorkingDir.change_working_dir(change_dir=False)
 
     # Create the Object
     immich = ClassImmichPhotos()
