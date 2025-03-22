@@ -97,6 +97,7 @@ In the links below, you can find all the details to execute the Tool from 3 diff
   - **Cons:**
     - Need basic knowledge of running command line instructions.
     - Need to install Docker (if your system does not include it).
+    - All paths given as arguments must be relative to the execution folder.
 
 
 - [Execution from Source Repository](/help/execution-from-source.md) (more difficult)  
