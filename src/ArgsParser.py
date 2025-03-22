@@ -262,7 +262,7 @@ def checkArgs(ARGS, PARSER):
     global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
 
     # Check all providen arguments in the list of arguments to check to resolve the paths correctly for both, docker instance and normal instance.
-    keys_to_check = ['input-folder', 'output-folder', 'albums-folder', 'google-input-takeout-folder',
+    keys_to_check = ['source', 'target', 'input-folder', 'output-folder', 'albums-folder', 'google-input-takeout-folder',
                      'synology-upload-albums', 'synology-download-albums', 'synology-upload-all', 'synology-download-all',
                      'immich-upload-albums', 'immich-download-albums', 'immich-upload-all', 'immich-download-all',
                      'find-duplicates', 'fix-symlinks-broken', 'rename-folders-content-based',
