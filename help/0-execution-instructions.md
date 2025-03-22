@@ -74,7 +74,7 @@ Make sure Docker is running, then:
     ```
 
 > [!NOTE]
-> - The required Docker image is pulled the first time you run the script.
+> - The required Docker image is pulled the first time you run the script or if the remote image has changed.
 > - If `Config.ini` is missing, the tool will automatically create a default one and ask you to edit it before continuing.
 
 
