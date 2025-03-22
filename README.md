@@ -80,9 +80,16 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
 ## Execution Instructions:
 In the links below, you can find all the details to execute the Tool from 3 different alternatives:
-- [Execution from Docker Container](/help/execution-from-docker.md) (recommended) (plattform and arquitecture independent)
-- [Execution from Docker Compiled Binaries](/help/execution-from-binaries.md) (easier way) (plattform and arquitecture dependent)
-- [Execution from Docker Source Repository](/help/execution-from-source.md)
+- [Execution from Docker Container](/help/execution-from-docker.md) (recommended)   
+  (plattform and arquitecture independent)  
+
+
+- [Execution from Compiled Binaries](/help/execution-from-binaries.md) (easier way)  
+  (plattform and arquitecture dependent)
+
+
+- [Execution from Source Repository](/help/execution-from-source.md) (more difficult)  
+  (plattform and arquitecture independent)
 
 
 ## Configuration File (Config.ini):
