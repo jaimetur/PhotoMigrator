@@ -33,29 +33,6 @@ def tqdm(*args, **kwargs):
             kwargs['file'] = TQDM_LOGGER_INSTANCE
     return original_tqdm(*args, **kwargs)
 
-def is_inside_docker():
-    return os.path.exists("/.dockerenv") or os.environ.get("RUNNING_IN_DOCKER") == "1"
-
-def resolve_path(user_path):
-    if not isinstance(user_path, str) or user_path.strip() == "":
-        return user_path  # No procesar si no es string válido
-    user_path = user_path.strip()
-    # Detectar y normalizar ruta tipo Windows
-    norm_path = os.path.normpath(user_path)
-    # Separar unidad de disco si es ruta Windows (C:\...)
-    drive, tail = os.path.splitdrive(norm_path)
-    # Si estamos dentro de Docker
-    if is_inside_docker():
-        # Si tiene unidad de disco (Windows) → ignorarla y montar en /data
-        if drive:
-            linux_path = tail.replace("\\", "/").lstrip("/")
-            return os.path.abspath(os.path.join("/data", linux_path))
-        # Si no tiene unidad, asumimos ruta relativa del host montada en /data
-        return os.path.abspath(os.path.join("/data", norm_path.replace("\\", "/")))
-    else:
-        # Si estamos fuera de Docker, usamos la ruta local normal
-        return os.path.abspath(norm_path)
-
 def dir_exists(dir):
     return os.path.isdir(dir)
 

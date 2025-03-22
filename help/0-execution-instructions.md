@@ -51,21 +51,35 @@ wget https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-bet
     cd CloudPhotoMigrator
     ```
 
+### 2.3. Edit the .env file (optional):   
 
-### 2.3. Edit the configuration file:
+If you want to pull a different container image (default: latest) you can change the .env file  
+
+```
+# Set the RELEASE_TAG for the image that you want to pull
+RELEASE_TAG=latest
+```
+
+
+### 2.4. Edit the configuration file:
 
 Open `Config.ini` in any text editor and update it with your credentials and settings.
 
 > For more information, refer to [Configuration File](/help/config-file.md) .
 
 
-### 2.4. Run the Tool to show the command line help:
+### 2.5. Run the Tool to show the command line help:
 
 Make sure Docker is running, then:
 
 - **Linux / MacOS:**
     ```bash
     ./CloudPhotoMigrator.sh -h
+
+    ```
+  or, if your system requires elevation to execute docker:
+    ```bash
+    sudo ./CloudPhotoMigrator.sh -h
     ```
 
 - **Windows (Command Prompt):**

@@ -150,8 +150,13 @@ jobs:
       - name: Build & Push Docker image
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         run: |
-          docker build -t jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }} -f docker/Dockerfile .
-          
+          # Fuerza a Docker a:
+          #  1) descargar la base actualizada ( --pull )
+          #  2) ignorar todas las capas cacheadas ( --no-cache )
+          docker build --pull --no-cache \
+            -t jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }} \
+            -f docker/Dockerfile .
+              
           # Etiquetar también como latest
           docker tag jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }} jaimetur/cloudphotomigrator:latest
       
@@ -160,15 +165,17 @@ jobs:
           docker push jaimetur/cloudphotomigrator:latest
 
 
-      - name: Prepare unified ZIP package
+      - name: Prepare unified ZIP docker package
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         run: |
           mkdir CloudPhotoMigrator_Docker
           cp docker/CloudPhotoMigrator.sh CloudPhotoMigrator_Docker/
           cp docker/CloudPhotoMigrator.bat CloudPhotoMigrator_Docker/
+          cp docker/docker.conf CloudPhotoMigrator_Docker/
           cp Config.ini CloudPhotoMigrator_Docker/
           cp -r docs CloudPhotoMigrator_Docker/
           cp -r help CloudPhotoMigrator_Docker/
+          cp README.md CloudPhotoMigrator_Docker/docs/README.md
           zip -r CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip CloudPhotoMigrator_Docker
 
       - name: Upload release asset
