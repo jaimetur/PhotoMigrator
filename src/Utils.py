@@ -49,22 +49,38 @@ def resolve_path(user_path):
     if not isinstance(user_path, str) or user_path.strip() == "":
         return user_path
 
-    path_clean = user_path.strip().replace("\\", "/")
+    original = user_path
+    print(f"DEBUG1 - original user_path: {original!r}")
+
+    user_path = user_path.strip()
+    print(f"DEBUG2 - stripped user_path: {user_path!r}")
+
+    # Reemplazar backslashes
+    user_path = user_path.replace("\\", "/")
+    print(f"DEBUG3 - replaced backslash: {user_path!r}")
+
+    # Normalizar con os.path.normpath
+    user_path = os.path.normpath(user_path)
+    print(f"DEBUG4 - normpath: {user_path!r}")
 
     if is_inside_docker():
+        print(f"DEBUG: path_clean after slash replace = {user_path}")
         # Si detectamos drive letter (C:/, D:/...) en Docker, lanzamos error
-        if re.match(r"^[a-zA-Z]:/", path_clean):
+        if re.match(r"^[a-zA-Z]:/", user_path):
+            print("DEBUG3 matched drive letter!")
             raise ValueError(
                 f"Cannot use absolute Windows path '{user_path}' inside Docker. "
                 "Please provide a relative path inside the mounted folder."
             )
+        else:
+            print("DEBUG3 no match. path_clean=", user_path)
         # Caso normal: ruta relativa en Docker
-        path_clean = path_clean.lstrip("/")
+        path_clean = user_path.lstrip("/")
         path_norm = os.path.normpath(path_clean)
         return os.path.abspath(os.path.join("/data", path_norm))
     else:
         # Fuera de Docker, normalizamos y retornamos absoluto
-        path_norm = os.path.normpath(path_clean)
+        path_norm = os.path.normpath(user_path)
         return os.path.abspath(path_norm)
 
 def dir_exists(dir):
