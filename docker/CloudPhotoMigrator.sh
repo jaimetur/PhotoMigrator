@@ -1,3 +1,9 @@
 #!/bin/bash
-# Run CloudPhotoMigrator inside Docker using the current directory
-docker run --rm -v "$(pwd):/app" -w /app jaimetur/cloudphotomigrator "$@"
+
+# Get the current directory
+CURRENT_DIR="$(pwd)"
+
+# Run the Docker container with the current directory mounted to /data
+docker run --rm \
+  -v "$CURRENT_DIR":/data \
+  jaimetur/cloudphotomigrator:latest "$@"
