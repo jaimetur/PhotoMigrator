@@ -37,25 +37,27 @@ def is_inside_docker():
     return os.path.exists("/.dockerenv") or os.environ.get("RUNNING_IN_DOCKER") == "1"
 
 def resolve_path(user_path):
+    # Skip non-string or empty inputs
     if not isinstance(user_path, str) or user_path.strip() == "":
-        return user_path  # No procesar si no es string válido
-    user_path = user_path.strip()
-    # Detectar y normalizar ruta tipo Windows
-    norm_path = os.path.normpath(user_path)  # <- esto convierte .\carpeta a ./carpeta
-    norm_path = norm_path.replace("\\", "/")  # <- y esto limpia las barras invertidas de Windows
-    # Separar unidad de disco si es ruta Windows (C:\...)
-    drive, tail = os.path.splitdrive(norm_path)
-    # Si estamos dentro de Docker
+        return user_path
+    # Normalize path: removes redundant components like "./", resolves "..", etc.
+    user_path = os.path.normpath(user_path.strip())
+    # Convert Windows-style backslashes to Unix-style slashes for Docker/Linux compatibility
+    user_path = user_path.replace("\\", "/")
+    # Split Windows drive letter if present (e.g., "C:/path" → drive="C:", tail="/path")
+    drive, tail = os.path.splitdrive(user_path)
+
     if is_inside_docker():
-        # Si tiene unidad de disco (Windows) → ignorarla y montar en /data
+        # If running inside Docker and path includes a drive (Windows absolute path),
+        # remove the drive and mount it relative to /data
         if drive:
-            linux_path = tail.replace("\\", "/").lstrip("/")
-            return os.path.abspath(os.path.join("/data", linux_path))
+            return os.path.abspath(os.path.join("/data", tail.lstrip("/")))
         else:
-            return os.path.abspath(os.path.join("/data", norm_path.lstrip("/")))
+            # If no drive, assume it's a relative or Unix-like path, map to /data
+            return os.path.abspath(os.path.join("/data", user_path.lstrip("/")))
     else:
-        # Si estamos fuera de Docker, usamos la ruta local normal
-        return os.path.abspath(norm_path)
+        # Outside Docker: return the absolute path based on the current working directory
+        return os.path.abspath(user_path)
 
 def dir_exists(dir):
     return os.path.isdir(dir)
