@@ -160,7 +160,7 @@ jobs:
           docker push jaimetur/cloudphotomigrator:latest
 
 
-      - name: Prepare unified ZIP package
+      - name: Prepare unified ZIP docker package
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         run: |
           mkdir CloudPhotoMigrator_Docker
@@ -169,7 +169,7 @@ jobs:
           cp Config.ini CloudPhotoMigrator_Docker/
           cp -r docs CloudPhotoMigrator_Docker/
           cp -r help CloudPhotoMigrator_Docker/
-          cp README.md CloudPhotoMigrator_Docker/docs/
+          cp README.md CloudPhotoMigrator_Docker/docs/README.md
           zip -r CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip CloudPhotoMigrator_Docker
 
       - name: Upload release asset
