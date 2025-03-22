@@ -26,6 +26,7 @@ class SharedData:
         self.counters = counters
         self.logs_queue = logs_queue
 
+
 ####################################
 # FEATURE: AUTOMATED-MIGRATION: #
 ####################################
