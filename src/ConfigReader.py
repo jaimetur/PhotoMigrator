@@ -1,7 +1,7 @@
 from configparser import ConfigParser
 from GlobalVariables import LOGGER  # Import global LOGGER
 import os, sys
-from Utils import resolve_path
+from GlobalVariables import resolve_path
 
 CONFIG = None
 

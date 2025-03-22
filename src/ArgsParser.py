@@ -1,7 +1,6 @@
 import logging
 
-from GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
-
+from GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE, resolve_path
 from CustomHelpFormatter import CustomHelpFormatter
 from CustomPager import PagedParser
 import argparse
@@ -204,21 +203,15 @@ def parse_arguments():
     return ARGS, PARSER
 
 
-def resolve_all_possible_paths(args_dict):
+def resolve_all_possible_paths(args_dict, keys_to_check=None):
     """
-    Resolves all values in args_dict that look like path(s), including:
-    - Single strings
-    - Comma-separated strings
-    - Lists of strings
+    Resolves all path-like values in args_dict (strings, lists, comma-separated strings),
+    skipping values in known predefined choice lists or invalid types.
 
-    Skips any values that are:
-    - Found in the global skip_values lists
-    - Booleans, numbers, or None
+    Optional: you can restrict resolution to specific keys with `keys_to_check`.
 
     Modifies args_dict in-place.
     """
-    from Utils import resolve_path
-
     skip_values = set(
         choices_for_message_levels +
         choices_for_folder_structure +
@@ -228,17 +221,20 @@ def resolve_all_possible_paths(args_dict):
     )
 
     for key, value in args_dict.items():
-        # Saltar booleanos, números y None
-        if value is None or isinstance(value, (bool, int, float)):
+        if keys_to_check is not None and key not in keys_to_check:
+            continue  # saltar claves no incluidas
+
+        # Saltar valores claramente no válidos
+        if value is None or isinstance(value, (bool, int, float)) or value == "":
             continue
 
-        # Lista de valores
+        # Si es lista de valores
         if isinstance(value, list):
             resolved_list = []
             for item in value:
                 if isinstance(item, str):
                     item_clean = item.strip()
-                    if item_clean in skip_values:
+                    if item_clean == "" or item_clean in skip_values:
                         resolved_list.append(item_clean)
                     else:
                         resolved_list.append(resolve_path(item_clean))
@@ -246,8 +242,10 @@ def resolve_all_possible_paths(args_dict):
                     resolved_list.append(item)
             args_dict[key] = resolved_list
 
-        # Cadena (simple o con comas)
+        # Si es cadena (simple o separada por comas)
         elif isinstance(value, str):
+            if value.strip() == "":
+                continue  # no tocar cadena vacía
             parts = [part.strip() for part in value.split(',')]
             resolved_parts = []
             for part in parts:
@@ -256,12 +254,20 @@ def resolve_all_possible_paths(args_dict):
                 else:
                     resolved_parts.append(resolve_path(part))
             args_dict[key] = ', '.join(resolved_parts) if ',' in value else resolved_parts[0]
+
             
 
 def checkArgs(ARGS, PARSER):
     global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
-    
-    resolve_all_possible_paths(ARGS)
+
+    # Check all providen arguments in the list of arguments to check to resolve the paths correctly for both, docker instance and normal instance.
+    keys_to_check = ['input-folder', 'output-folder', 'albums-folder', 'google-input-takeout-folder',
+                     'synology-upload-albums', 'synology-download-albums', 'synology-upload-all', 'synology-download-all'
+                     'immich-upload-albums', 'immich-download-albums', 'immich-upload-all', 'immich-download-all'
+                     'find-duplicates', 'fix-symlinks-broken', 'rename-folders-content-based'
+                     ]
+
+    resolve_all_possible_paths(args_dict=ARGS, keys_to_check=keys_to_check)
     
     # Remove '_' at the begining of the string in case it has it.
     ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')

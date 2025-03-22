@@ -43,6 +43,17 @@ SIDECAR_EXT                     = ['.xmp', '.json']
 # FUNCTIONS TO INITIALIZE GLOBAL VARIABLES THAT DEPENDS OF OTHER MODULES
 # Since we cannot import other modules directly on the GlobalVariables.py module to avoid circular references, we need to initialize those variables using independent functions.
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+def is_inside_docker():
+    return os.path.exists("/.dockerenv") or os.environ.get("RUNNING_IN_DOCKER") == "1"
+
+def resolve_path(user_path):
+    if os.path.isabs(user_path):
+        return user_path
+    elif is_inside_docker():
+        return os.path.abspath(os.path.join("/data", user_path))
+    else:
+        return os.path.abspath(user_path)
+
 def set_ARGS_PARSER():
     from ArgsParser import parse_arguments, checkArgs, getParser
     global ARGS, PARSER
@@ -52,7 +63,6 @@ def set_ARGS_PARSER():
 
 def set_LOGGER():
     from CustomLogger import log_setup
-    from Utils import resolve_path
     global LOGGER, LOG_FOLDER_FILENAME
     script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     current_directory = os.getcwd()

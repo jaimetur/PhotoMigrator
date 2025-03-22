@@ -16,14 +16,16 @@ import hashlib
 import base64
 import inspect
 from tqdm import tqdm as original_tqdm
-from GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT, ARGS
 from CustomLogger import LoggerConsoleTqdm
+from GlobalVariables import LOGGER, ARGS, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT
 
 ######################
 # FUNCIONES AUXILIARES
 ######################
+
 # Crear instancia global del wrapper
 TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
+
 
 # Redefinir `tqdm` para usar `TQDM_LOGGER_INSTANCE` si no se especifica `file`
 def tqdm(*args, **kwargs):
@@ -45,15 +47,6 @@ def resolve_path(user_path):
 
 def dir_exists(dir):
     return os.path.isdir(dir)
-
-def change_workingdir():
-    """ Definir la ruta de trabajo deseada """
-    WORKING_DIR = r"R:\jaimetur\CloudPhotoMigrator"
-    # Verificar si la carpeta existe y cambiar a ella si existe
-    if os.path.exists(WORKING_DIR) and os.path.isdir(WORKING_DIR):
-        os.chdir(WORKING_DIR)
-        current_directory = os.getcwd()
-        print(f"INFO    : Directorio cambiado a: {os.getcwd()}")
 
 def run_from_synology(log_level=logging.INFO):
     """ Check if the srcript is running from a Synology NAS """
@@ -107,6 +100,7 @@ def count_images_in_folder(folder_path, log_level=logging.INFO):
     as images only those files with extensions defined in
     the global variable IMAGE_EXT (in lowercase).
     """
+    from GlobalVariables import PHOTO_EXT
     with set_log_level(LOGGER, log_level):  # Change log level temporarily
         total_images = 0
         for path, dirs, files in os.walk(folder_path):
@@ -187,6 +181,7 @@ def count_valid_albums(folder_path, log_level=logging.INFO):
     defined in IMAGE_EXT or VIDEO_EXT.
     """
     import os
+    from GlobalVariables import PHOTO_EXT, VIDEO_EXT
     with set_log_level(LOGGER, log_level):  # Change log level temporarily
         valid_albums = 0
         for root, dirs, files in os.walk(folder_path):

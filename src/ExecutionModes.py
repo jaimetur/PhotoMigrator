@@ -1137,7 +1137,7 @@ def mode_find_duplicates(user_confirmation=True, log_level=logging.INFO):
             LOGGER.warning("")
         duplicates_files_found, removed_empty_folders = find_duplicates(duplicates_action=ARGS['duplicates-action'], duplicates_folders=ARGS['duplicates-folders'], deprioritize_folders_patterns=DEPRIORITIZE_FOLDERS_PATTERNS)
         if duplicates_files_found == -1:
-            LOGGER.error("ERROR   : Exiting because some of the folder(s) given in argument '-fd, --find-duplicates' does not exists.")
+            LOGGER.error("ERROR   : Exiting because some of the folder(s) given in argument '-fd, --find-duplicates' does not exist.")
             sys.exit(-1)
         # FINAL SUMMARY
         end_time = datetime.now()

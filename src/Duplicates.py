@@ -154,12 +154,12 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
         else:
             input_folders_list = duplicates_folders
         if not input_folders_list:
-            input_folders_list = ['./']
+            input_folders_list = [resolve_path('./')]
         LOGGER.debug("DEBUG   : Checking folder existence")
         for folder in input_folders_list:
             if not os.path.isdir(folder):
                 LOGGER.error(f"ERROR   : The folder '{folder}' does not exist.")
-                return -1
+                return -1, -1
         input_folders_list = [os.path.abspath(f) for f in input_folders_list]
         LOGGER.debug(f"DEBUG   : Absolute folder paths: {input_folders_list}")
         if timestamp is None:

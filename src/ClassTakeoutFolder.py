@@ -447,7 +447,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 # Example main usage
 if __name__ == "__main__":
     import sys
-    from Utils import change_workingdir
+    from ChangeWrkingDir import change_workingdir
     change_workingdir()
 
     input_folder = Path(r"r:\jaimetur\CloudPhotoMigrator\Takeout")

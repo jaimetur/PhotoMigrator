@@ -1220,10 +1220,9 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
 # CALL FROM __MAIN__ #
 ######################
 if __name__ == "__main__":
-    from Utils import change_workingdir
-
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-    change_workingdir()
+    import ChangeWorkingDir
+    ChangeWorkingDir.change_working_dir()
 
     # # Paths para Windows
     local_folder = r'r:\jaimetur\CloudPhotoMigrator\LocalFolderClient'

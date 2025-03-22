@@ -2246,7 +2246,7 @@ class ClassSynologyPhotos:
 ##############################################################################
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-    from Utils import change_workingdir
+    from ChangeWrkingDir import change_workingdir
     change_workingdir()
 
     # Create the Object
