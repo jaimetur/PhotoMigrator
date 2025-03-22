@@ -40,10 +40,13 @@ def resolve_path(user_path):
     # Skip non-string or empty inputs
     if not isinstance(user_path, str) or user_path.strip() == "":
         return user_path
+
     # Normalize path: removes redundant components like "./", resolves "..", etc.
     user_path = os.path.normpath(user_path.strip())
+
     # Convert Windows-style backslashes to Unix-style slashes for Docker/Linux compatibility
     user_path = user_path.replace("\\", "/")
+
     # Split Windows drive letter if present (e.g., "C:/path" → drive="C:", tail="/path")
     drive, tail = os.path.splitdrive(user_path)
 

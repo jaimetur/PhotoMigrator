@@ -200,6 +200,7 @@ def parse_arguments():
     # Obtain args from PARSER and create global variable ARGS to easier manipulation of argument variables using the same string as in the argument (this facilitates futures refactors on arguments names)
     args = PARSER.parse_args()
     ARGS = create_global_variable_from_args(args)
+
     return ARGS, PARSER
 
 
@@ -262,13 +263,13 @@ def checkArgs(ARGS, PARSER):
 
     # Check all providen arguments in the list of arguments to check to resolve the paths correctly for both, docker instance and normal instance.
     keys_to_check = ['input-folder', 'output-folder', 'albums-folder', 'google-input-takeout-folder',
-                     'synology-upload-albums', 'synology-download-albums', 'synology-upload-all', 'synology-download-all'
-                     'immich-upload-albums', 'immich-download-albums', 'immich-upload-all', 'immich-download-all'
-                     'find-duplicates', 'fix-symlinks-broken', 'rename-folders-content-based'
+                     'synology-upload-albums', 'synology-download-albums', 'synology-upload-all', 'synology-download-all',
+                     'immich-upload-albums', 'immich-download-albums', 'immich-upload-all', 'immich-download-all',
+                     'find-duplicates', 'fix-symlinks-broken', 'rename-folders-content-based',
                      ]
 
     resolve_all_possible_paths(args_dict=ARGS, keys_to_check=keys_to_check)
-    
+
     # Remove '_' at the begining of the string in case it has it.
     ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
 
