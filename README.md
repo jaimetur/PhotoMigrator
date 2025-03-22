@@ -85,13 +85,14 @@ In the links below, you can find all the details to execute the Tool from 3 diff
 - [Execution from Docker Source Repository](/help/execution-from-source.md)
 
 
-## Command Line Syntsourcecan check the whole list of functions and arguments with the right syntax here:
-[Command Line Syntax](help/1-command-line-syntax)
-
-
 ## Configuration File (Config.ini):
 Youn can see how to configure the Config.ini file in this help section:
 [Configuration File](/help/0-configuration-file.md) 
+
+
+## Command Line Syntax:
+You can check the whole list of functions and arguments with the right syntax here:
+[Command Line Syntax](help/1-command-line-syntax)
 
 
 ## All Documentation Links:
