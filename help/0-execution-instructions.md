@@ -73,6 +73,10 @@ Make sure Docker is running, then:
     CloudPhotoMigrator.bat -h
     ```
 
+> [!NOTE]
+> - The required Docker image is pulled the first time you run the script.
+> - If `Config.ini` is missing, the tool will automatically create a default one and ask you to edit it before continuing.
+
 
 ---
 # 3. Instructions to execute from Source Repository:
@@ -132,14 +136,3 @@ Open `Config.ini` in any text editor and update it with your credentials and set
    python3 ./src/CloudPhotoMigrator.py -h
    ```
 
----
-## Notes
-
-- If `Config.ini` is missing, the tool will automatically create a default one and ask you to edit it before continuing.
-- The required Docker image is pulled the first time you run the script.
-
-
----
-## Requirements
-
-- [Docker](https://www.docker.com/products/docker-desktop) must be installed and running.
