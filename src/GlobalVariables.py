@@ -52,9 +52,9 @@ def resolve_path(user_path):
 
     Inside Docker:
       - If the path has a Windows drive letter (e.g., C:), raise an error.
-      - If it's an absolute path and doesn't start with /data, raise an error.
-      - If it's relative, map it under /data.
-      - If it's absolute and starts with /data, accept it as is.
+      - If it's an absolute path and doesn't start with /docker, raise an error.
+      - If it's relative, map it under /docker.
+      - If it's absolute and starts with /docker, accept it as is.
     Outside Docker:
       - Return the absolute path normally (e.g., C:/ for Windows, /home for Linux).
     """
@@ -77,22 +77,22 @@ def resolve_path(user_path):
         if len(drive) == 2 and drive[1] == ":" and drive[0].isalpha():
             raise ValueError(
                 f"Cannot use a Windows drive letter '{drive}' inside Docker. "
-                "Please provide a path under /data or a relative path."
+                "Please provide a path under /docker or a relative path."
             )
 
         # 2) Check if path is absolute in a Unix sense
         if os.path.isabs(path_clean):
-            # If it's an absolute path and does not start with /data, raise an error
-            if not path_clean.startswith("/data"):
+            # If it's an absolute path and does not start with /docker, raise an error
+            if not path_clean.startswith("/docker"):
                 raise ValueError(
-                    f"Absolute path '{path_clean}' is outside /data inside Docker. "
-                    "Please provide a relative path or a /data-based path."
+                    f"Absolute path '{path_clean}' is outside Docker foder '/docker'. "
+                    "Please provide a relative path or a /docker-based path."
                 )
-            # Otherwise, accept it as is (absolute under /data)
+            # Otherwise, accept it as is (absolute under /docker)
             return os.path.abspath(path_clean)
         else:
-            # 3) If it's relative, map it under /data
-            final_path = os.path.join("/data", path_clean.lstrip("/"))
+            # 3) If it's relative, map it under /docker
+            final_path = os.path.join("/docker", path_clean.lstrip("/"))
             return os.path.abspath(final_path)
     else:
         # Outside Docker, return absolute path on the local system

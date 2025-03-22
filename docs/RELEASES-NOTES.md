@@ -1,5 +1,5 @@
 ## Download:
-Download the tool either for Linux, MacOS or Windows version (for both x64/amd64 or arm64 architectures) as you prefer directly from following links:
+Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
 
 **Linux:**:  
   - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta1/CloudPhotoMigrator_v3.1.0-beta1_linux_amd64.zip)  
@@ -11,6 +11,9 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
 **Windows:**  
   - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta1/CloudPhotoMigrator_v3.1.0-beta1_windows_amd64.zip)  
+
+**Docker Launcher:**  
+  - [Download Docker Launcher](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta1/CloudPhotoMigrator_v3.1.0-beta1_docker.zip)  
 
 ---
 

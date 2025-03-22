@@ -18,5 +18,5 @@ docker pull jaimetur/cloudphotomigrator:%RELEASE_TAG%
 
 echo 🚀 Launching container with tag: %RELEASE_TAG%
 docker run -it --rm ^
-  -v "%CURRENT_DIR%":/data ^
+  -v "%CURRENT_DIR%":/docker ^
   jaimetur/cloudphotomigrator:%RELEASE_TAG% %*
