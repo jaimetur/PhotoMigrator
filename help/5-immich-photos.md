@@ -204,7 +204,7 @@
 
 ## Config.ini
 Youn can see how to configure the Config.ini file in this help section:
-[Configuration File](/help/0-config-file.md) 
+[Configuration File](/help/config-file.md) 
 
 
 ## Credits
