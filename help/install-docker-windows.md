@@ -68,3 +68,11 @@ Or follow the manual instructions in the official guide:
 
 - Docker Desktop requires either **WSL 2** or **Hyper-V** to run.
 - You may need to log in with a Docker Hub account after installation.
+
+
+---
+## Credits
+I hope this can be useful for any of you.  
+Enjoy it!
+
+<span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span> 

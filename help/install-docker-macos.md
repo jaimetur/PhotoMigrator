@@ -69,3 +69,11 @@ In Docker Desktop settings, enable **"Start Docker Desktop when you log in"**.
 
 Official Docker Desktop for Mac documentation:  
 👉 [https://docs.docker.com/desktop/install/mac-install/](https://docs.docker.com/desktop/install/mac-install/)
+
+
+---
+## Credits
+I hope this can be useful for any of you.  
+Enjoy it!
+
+<span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span> 

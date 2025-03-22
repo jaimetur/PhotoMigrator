@@ -76,6 +76,7 @@ In this section you have to provide:
 - **IMMICH_FILTER_CITY:** This field is not used yet
 - **IMMICH_FILTER_PERSON:** This field is not used yet
 
+---
 
 ## Credits
 I hope this can be useful for any of you.  
