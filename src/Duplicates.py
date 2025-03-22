@@ -9,7 +9,7 @@ import re
 import logging
 from CustomLogger import set_log_level
 from GlobalVariables import LOGGER
-from Utils import delete_subfolders, remove_empty_dirs, tqdm
+from Utils import delete_subfolders, remove_empty_dirs, tqdm, resolve_path
 
 # ========================
 # Find Duolicates Function
@@ -298,7 +298,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                 # CSV WRITING
                 # ===========================
                 LOGGER.info("INFO    : Creating duplicates directories")
-                duplicates_root = os.path.join(os.getcwd(), 'Duplicates')
+                duplicates_root = resolve_path('Duplicates')
                 timestamp_dir = os.path.join(duplicates_root, 'Duplicates_' + timestamp)
                 os.makedirs(timestamp_dir, exist_ok=True)
                 LOGGER.info(f"INFO    : Results in {timestamp_dir}")
