@@ -8,7 +8,32 @@
 >     - [Install Docker on MacOS](/help/install-docker-macos.md)  
 
 
-Once you have Docker installed and running on your system, just follow these steps to download, extract, configure and run the tool on Docker.
+Once you have Docker installed and running on your system, you have twoo options to run the Tool from a Docker Container Image:
+## 1. Run Docker Container directly:
+
+- For Linux / MacOS: 
+  ```bash
+  docker run -it --rm -v "$(pwd)":/docker jaimetur/cloudphotomigrator:latest [options]
+  ```
+- For Windows (PowerShell): 
+  ```bash
+  docker run -it --rm -v "${PWD}:/docker" jaimetur/cloudphotomigrator:latest [options]
+  ```
+- For Windows (Command Prompt): 
+  ```bash
+  docker run -it --rm -v "%cd%":/docker jaimetur/cloudphotomigrator:latest [options]
+  ```
+
+Where [options] are the arguments that you want to pass to the Tool (i.e: -h)
+
+Example for Linux / MacOS:
+  ```bash
+  docker run -it --rm -v "$(pwd)":/docker jaimetur/cloudphotomigrator:latest --source=./MyTakeout --target=immich
+  ```
+
+## 2. Run Docker from a Pre-built Shell Script:
+
+Follow the following steps:
 
 ### 1. Download the ZIP package:
 

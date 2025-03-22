@@ -4,7 +4,7 @@
 RELEASE_TAG="latest"
 
 # Load from docker.conf if exists
-if [ -f "docker.cong" ]; then
+if [ -f "docker.conf" ]; then
   source docker.conf
 fi
 
