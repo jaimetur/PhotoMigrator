@@ -75,6 +75,11 @@ Make sure Docker is running, then:
 - **Linux / MacOS:**
     ```bash
     ./CloudPhotoMigrator.sh -h
+
+    ```
+  or, if your system requires elevation to execute docker:
+    ```bash
+    sudo ./CloudPhotoMigrator.sh -h
     ```
 
 - **Windows (Command Prompt):**
