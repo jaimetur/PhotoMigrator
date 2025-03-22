@@ -1,16 +1,20 @@
 #!/bin/bash
 
-# Get the current directory (from the user context)
+# Set default tag
+RELEASE_TAG="latest"
+
+# Load from .env if exists
+if [ -f ".env" ]; then
+  source .env
+fi
+
+# Get current directory
 CURRENT_DIR="$(pwd)"
 
-# Pull the latest version of the image to avoid using a cached one
-docker pull jaimetur/cloudphotomigrator:latest
+echo "🐳 Pulling Docker image: jaimetur/cloudphotomigrator:${RELEASE_TAG}"
+docker pull "jaimetur/cloudphotomigrator:${RELEASE_TAG}"
 
-# Run the Docker container with the current directory mounted to /data
-# and attach an interactive terminal (-it)
+echo "🚀 Launching container with tag: ${RELEASE_TAG}"
 docker run -it --rm \
   -v "$CURRENT_DIR":/data \
-  jaimetur/cloudphotomigrator:latest "$@"
-
-
-
+  "jaimetur/cloudphotomigrator:${RELEASE_TAG}" "$@"

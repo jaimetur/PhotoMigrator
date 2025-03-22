@@ -167,6 +167,7 @@ jobs:
           cp docker/CloudPhotoMigrator.sh CloudPhotoMigrator_Docker/
           cp docker/CloudPhotoMigrator.bat CloudPhotoMigrator_Docker/
           cp Config.ini CloudPhotoMigrator_Docker/
+          cp .env CloudPhotoMigrator_Docker/
           cp -r docs CloudPhotoMigrator_Docker/
           cp -r help CloudPhotoMigrator_Docker/
           cp README.md CloudPhotoMigrator_Docker/docs/README.md
