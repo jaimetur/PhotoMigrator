@@ -289,7 +289,6 @@ def mode_synology_upload_albums(user_confirmation=True, log_level=logging.INFO):
             sys.exit(0)
         LOGGER.info(f"INFO    : Synology Photos: 'Upload Albums' Mode detected. Only this module will be run!!!")
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Create the Object
         syno = ClassSynologyPhotos()
@@ -324,6 +323,7 @@ def mode_synology_upload_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("==================================================")
         LOGGER.info("")
 
+
 def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
     albums_folders = ARGS['albums-folders']
     if user_confirmation:
@@ -335,7 +335,6 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Synology Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
         # Create the Object
@@ -395,7 +394,6 @@ def mode_synology_download_albums(user_confirmation=True, log_level=logging.INFO
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Create the Object
         syno = ClassSynologyPhotos()
@@ -427,6 +425,7 @@ def mode_synology_download_albums(user_confirmation=True, log_level=logging.INFO
         LOGGER.info("==================================================")
         LOGGER.info("")
 
+
 def mode_synology_download_ALL(user_confirmation=True, log_level=logging.INFO):
     LOGGER.info(f"INFO    : Synology Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
     if user_confirmation:
@@ -435,7 +434,6 @@ def mode_synology_download_ALL(user_confirmation=True, log_level=logging.INFO):
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
-
     
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Create the Object
@@ -484,7 +482,6 @@ def mode_synology_remove_empty_albums(user_confirmation=True, log_level=logging.
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Synology Photos: 'Remove Empty Album' Mode detected. Only this module will be run!!!")
         LOGGER.info(f"INFO    : Flag detected '-srEmpAlb, --synology-remove-empty-albums'. The Tool will look for any empty album in your Synology Photos account and will delete them (if any empty album is found).")
@@ -525,7 +522,6 @@ def mode_synology_remove_duplicates_albums(user_confirmation=True, log_level=log
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Synology Photos: 'Remove Duplicates Album' Mode detected. Only this module will be run!!!")
         LOGGER.info(f"INFO    : Flag detected '-srDupAlb, --synology-remove-duplicates-albums'. The Tool will look for any duplicated album in your Synology Photos account and will delete them (if any duplicated album is found).")
@@ -567,7 +563,6 @@ def mode_synology_remove_ALL(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Synology Photos: 'Remove ALL Assets' Mode detected. Only this module will be run!!!")
         # Create the Object
@@ -601,6 +596,7 @@ def mode_synology_remove_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("==================================================")
         LOGGER.info("")
 
+
 def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
         LOGGER.info(f"INFO    : Flag detected '-srAllAlb, --synology-remove-all-albums'.")
@@ -614,7 +610,6 @@ def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.IN
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Synology Photos: 'Delete ALL Albums' Mode detected. Only this module will be run!!!")
         # Create the Object
@@ -660,7 +655,6 @@ def mode_immich_upload_albums(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Upload Albums' Mode detected. Only this module will be run!!!")
         # Create the Object
@@ -709,6 +703,7 @@ def mode_immich_upload_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("==================================================")
         LOGGER.info("")
 
+
 def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
     albums_folders = ARGS['albums-folders']
     if user_confirmation:
@@ -720,7 +715,6 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
         # Create the Object
@@ -770,6 +764,7 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("==================================================")
         LOGGER.info("")
 
+
 def mode_immich_download_albums(user_confirmation=True, log_level=logging.INFO):
     LOGGER.info(f"INFO    : Immich Photos: 'Download Albums' Mode detected. Only this module will be run!!!")
     LOGGER.info(f"INFO    : Albums to extract   : {ARGS['immich-download-albums']}")
@@ -780,7 +775,6 @@ def mode_immich_download_albums(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Create the Object
         immich = ClassImmichPhotos()
@@ -827,6 +821,7 @@ def mode_immich_download_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("==================================================")
         LOGGER.info("")
 
+
 def mode_immich_download_ALL(user_confirmation=True, log_level=logging.INFO):
     LOGGER.info(f"INFO    : Immich Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
     if user_confirmation:
@@ -836,7 +831,6 @@ def mode_immich_download_ALL(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Create the Object
         immich = ClassImmichPhotos()
@@ -876,6 +870,7 @@ def mode_immich_download_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("==================================================")
         LOGGER.info("")
 
+
 def mode_immich_remove_empty_albums(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
         LOGGER.info(f"INFO    : Flag detected '-irEmpAlb, --immich-remove-empty-albums'.")
@@ -884,7 +879,6 @@ def mode_immich_remove_empty_albums(user_confirmation=True, log_level=logging.IN
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Delete Empty Album' Mode detected. Only this module will be run!!!")
         LOGGER.info(f"INFO    : Flag detected '-irEmpAlb, --immich-remove-empty-albums'. The Tool will look for any empty album in your Immich Photos account and will delete them (if any empty album is found).")
@@ -917,6 +911,7 @@ def mode_immich_remove_empty_albums(user_confirmation=True, log_level=logging.IN
         LOGGER.info("==================================================")
         LOGGER.info("")
 
+
 def mode_immich_remove_duplicates_albums(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
         LOGGER.info(f"INFO    : Flag detected '-irDupAlb, --immich-remove-duplicates-albums'.")
@@ -925,7 +920,6 @@ def mode_immich_remove_duplicates_albums(user_confirmation=True, log_level=loggi
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Delete Duplicates Album' Mode detected. Only this module will be run!!!")
         LOGGER.info(f"INFO    : Flag detected '-irDupAlb, --immich-remove-duplicates-albums'. The Tool will look for any duplicated album in your Immich Photos account and will delete them (if any duplicated album is found).")
@@ -958,6 +952,7 @@ def mode_immich_remove_duplicates_albums(user_confirmation=True, log_level=loggi
         LOGGER.info("==================================================")
         LOGGER.info("")
 
+
 def mode_immich_remove_orphan_assets(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
         LOGGER.info(f"INFO    : Flag detected '-irOrphan, --immich-remove-orphan-assets'.")
@@ -966,7 +961,6 @@ def mode_immich_remove_orphan_assets(user_confirmation=True, log_level=logging.I
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
         # Create the Object
@@ -998,6 +992,7 @@ def mode_immich_remove_orphan_assets(user_confirmation=True, log_level=logging.I
         LOGGER.info("==================================================")
         LOGGER.info("")
 
+
 def mode_immich_remove_ALL(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
         LOGGER.info(f"INFO    : Flag detected '-irAll, --immich-remove-all-assets'.")
@@ -1006,7 +1001,6 @@ def mode_immich_remove_ALL(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Delete ALL Assets' Mode detected. Only this module will be run!!!")
         # Create the Object
@@ -1039,6 +1033,7 @@ def mode_immich_remove_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("==================================================")
         LOGGER.info("")
 
+
 def mode_immich_remove_all_albums(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
         LOGGER.info(f"INFO    : Flag detected '-irAllAlb, --immich-remove-all-albums'.")
@@ -1052,7 +1047,6 @@ def mode_immich_remove_all_albums(user_confirmation=True, log_level=logging.INFO
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Delete ALL Albums' Mode detected. Only this module will be run!!!")
         # Create the Object
@@ -1096,7 +1090,6 @@ def mode_fix_symlinkgs(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Fixing broken symbolic links Mode detected. Only this module will be run!!!")
         LOGGER.info(f"INFO    : Fixing broken symbolic links in folder '{ARGS['fix-symlinks-broken']}'...")
@@ -1119,6 +1112,7 @@ def mode_fix_symlinkgs(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("==================================================")
         LOGGER.info("")
 
+
 def mode_find_duplicates(user_confirmation=True, log_level=logging.INFO):
     LOGGER.info(f"INFO    : Duplicates Action             : {ARGS['duplicates-action']}")
     LOGGER.info(f"INFO    : Find Duplicates in Folders    : {ARGS['duplicates-folders']}")
@@ -1129,7 +1123,6 @@ def mode_find_duplicates(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Find Duplicates Mode detected. Only this module will be run!!!")
         if DEFAULT_DUPLICATES_ACTION:
@@ -1157,6 +1150,7 @@ def mode_find_duplicates(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("==================================================")
         LOGGER.info("")
 
+
 def mode_process_duplicates(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
         LOGGER.info(HELP_TEXTS["process-duplicates"])
@@ -1164,7 +1158,6 @@ def mode_process_duplicates(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Flag detected '-procDup, --process-duplicates'. The Tool will process the '{ARGS['process-duplicates']}' file and do the specified action given on Action Column. ")
         LOGGER.info(f"INFO    : Processing Duplicates Files based on Actions given in {os.path.basename(ARGS['process-duplicates'])} file...")
@@ -1202,7 +1195,6 @@ def mode_folders_rename_content_based(user_confirmation=True, log_level=logging.
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Rename Albums Mode detected. Only this module will be run!!!")
         LOGGER.info(f"INFO    : Flag detected '-ra, --rename-folders-content-based'. The Tool will look for any Subfolder in '{ARGS['rename-folders-content-based']}' and will rename the folder name in order to unificate all the Albums names.")
