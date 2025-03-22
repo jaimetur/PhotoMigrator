@@ -198,8 +198,8 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, time
             log_filename=script_name
 
     # Crear la carpeta de logs si no existe
-    current_directory = os.getcwd()
-    log_folder = os.path.join(current_directory, log_folder)
+    # Resolver log_folder a ruta absoluta
+    log_folder = resolve_path(log_folder)
     os.makedirs(log_folder, exist_ok=True)
 
     # Clear existing handlers to avoid duplicate logs
