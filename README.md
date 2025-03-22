@@ -62,24 +62,17 @@ Apart from Manage the different Photo Cloud Services, the Tool also contains som
 The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), 
 so feel free to download the version according to your system.
 
+
+## Live Dashboard Preview:
+![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
+
+
 ## Download:
 Download the tool either for Linux, MacOS or Windows version (for both x64/amd64 or arm64 architectures) as you prefer directly from following links:
 
 - [Latest Stable Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/tag/v3.0.0)
 - [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)
-
-## Documentation Links:
-- [Configuration File](/help/config-file.md)  
-- [Command Line Syntax](/help/1-command-line-syntax.md)  
-- [Automated Migration Feature](/help/2-automated-migration.md)  
-- [Google Takeout Management](/help/3-google-takeout.md)  
-- [Synology Photos Management](/help/4-synology-photos.md)  
-- [Immich Photos Management](/help/5-immich-photos.md)  
-- [Other Features](/help/6-other-features.md)  
-
-## Live Dashboard Preview:
-![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
 
 ## Execution Instructions:
@@ -92,6 +85,17 @@ In this link [Execution Instructions](/help/0-execution-instructions.md), you ca
 ## Command Line Syntax:
 You can check the whole list of functions and arguments with the right syntax here:
 [Command Line Syntax](help/1-command-line-syntax)
+
+## All Documentation Links:
+- [Execution Instructions](/help/0-execution-instructions.md)
+- [Configuration File](/help/config-file.md)  
+- [Command Line Syntax](/help/1-command-line-syntax.md)  
+- [Automated Migration Feature](/help/2-automated-migration.md)  
+- [Google Takeout Management](/help/3-google-takeout.md)  
+- [Synology Photos Management](/help/4-synology-photos.md)  
+- [Immich Photos Management](/help/5-immich-photos.md)  
+- [Other Features](/help/6-other-features.md)  
+
 
 ## Main Use Case: Automated Migration Feature
 > [!NOTE]  
