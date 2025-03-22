@@ -81,19 +81,33 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 ## Execution Instructions:
 In the links below, you can find all the details to execute the Tool from 3 different alternatives:
 
-- [Execution from Docker Container](/help/execution-from-docker.md) (recommended)   
-  (plattform and arquitecture independent)  
-
-
 - [Execution from Compiled Binaries](/help/execution-from-binaries.md) (easier way)  
-  (plattform and arquitecture dependent)
+  - **Pros:** 
+    - No need any knowledge.
+  - **Cons:**
+    - Plattform and arquitecture dependent.
+    - Need basic knowledge of running command line instructions.
+    - Some Anti-virus could detect the Tool as susspicious in Windows Systems.
+
+
+- [Execution from Docker Container](/help/execution-from-docker.md) (recommended)   
+  - **Pros:** 
+    - Plattform and arquitecture independent.
+    - Latest image is pulled automatically, so you will always run the latest version.
+  - **Cons:**
+    - Need basic knowledge of running command line instructions.
+    - Need to install Docker (if your system does not include it).
 
 
 - [Execution from Source Repository](/help/execution-from-source.md) (more difficult)  
-  (plattform and arquitecture independent)
+  - **Pros:** 
+    - Plattform and arquitecture independent.
+  - **Cons:**
+    - Need basic knowledge of running command line instructions.
+    - Need to install Git and Python 3.8 or higher (if your system does not include it).
 
 
-## Configuration File (Config.ini):
+## Configuration File:
 Youn can see how to configure the Config.ini file in this help section:
 [Configuration File](/help/0-configuration-file.md) 
 
