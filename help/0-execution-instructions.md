@@ -40,13 +40,13 @@ wget https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-bet
 ### 2.2. Unzip the downloaded package:
 
 - **Linux/macOS:**
-    ```
+    ```bash
     unzip CloudPhotoMigrator_v3.1.0-beta1_docker.zip -d CloudPhotoMigrator
     cd CloudPhotoMigrator
     ```
 
 - **Windows (Command Prompt):**
-    ```
+    ```bash
     powershell -Command "Expand-Archive -Path CloudPhotoMigrator_v3.1.0-beta1_docker.zip -DestinationPath CloudPhotoMigrator"
     cd CloudPhotoMigrator
     ```
@@ -64,12 +64,12 @@ Open `Config.ini` in any text editor and update it with your credentials and set
 Make sure Docker is running, then:
 
 - **Linux / MacOS:**
-    ```
+    ```bash
     ./CloudPhotoMigrator.sh -h
     ```
 
 - **Windows (Command Prompt):**
-    ```
+    ```bash
     CloudPhotoMigrator.bat -h
     ```
 
@@ -86,31 +86,31 @@ Here are simple instructions to clone the GitHub repository, create a Python vir
 Find below the needed steps:
 
 ### 3.1. Clone the repository
-   ```
+   ```bash
    git clone https://github.com/jaimetur/CloudPhotoMigrator.git
    ```
 
 ### 3.2. Change directory to the cloned repository
-   ```
+   ```bash
    cd CloudPhotoMigrator
    ```
 
 ### 3.3. Create a Python virtual environment:  
-   ```
+   ```bash
    python3 -m venv venv
    ```
 
 ### 3.4. Activate the virtual environment:  
    - On Linux / MacOS:  
-     ```
+     ```bash
      source venv/bin/activate
      ```
    - On Windows (Command Prompt):  
-     ```
+     ```bash
      venv\Scripts\activate
      ```
    - On Windows (PowerShell):  
-     ```
+     ```bash
      venv\Scripts\Activate.ps1
      ```
 
@@ -128,7 +128,7 @@ Open `Config.ini` in any text editor and update it with your credentials and set
 
 
 ### 3.7. Run the Tool to show the command line help:
-   ```
+   ```bash
    python3 ./src/CloudPhotoMigrator.py -h
    ```
 
