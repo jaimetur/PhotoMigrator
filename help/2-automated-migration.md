@@ -42,7 +42,7 @@
 
 ## Config.ini
 Youn can see how to configure the Config.ini file in this help section:
-[Configuration File](/help/config-file.md) 
+[Configuration File](/help/0-configuration-file.md) 
 
 
 ## Live Dashboard Preview:
@@ -112,7 +112,7 @@ In this example, the Tool will do an Automated Migration Process which has two s
     all the assets included in each Album in the same way that you had on your Synology Photos account.
 
     
-
+---
 ## Credits
 I hope this can be useful for any of you.  
 Enjoy it!

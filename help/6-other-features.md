@@ -114,7 +114,7 @@
 > 
 > If you don't want to lose your original subfolder names, you should make a backup before to run this feature.
 
-
+---
 ## Credits
 I hope this can be useful for any of you.  
 Enjoy it!

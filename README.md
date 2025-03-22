@@ -79,10 +79,23 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
 
 ## Execution Instructions:
-In this link [Execution Instructions](/help/0-execution-instructions.md), you can find all the details to execute the Tool from 3 different alternatives:
-- **From Docker containe**r (plattform and arquitecture independent) (recommended)
-- **From binaries files** (plattform and arquitecture dependent)
-- **From source files**
+In the links below, you can find all the details to execute the Tool from 3 different alternatives:
+
+- [Execution from Docker Container](/help/execution-from-docker.md) (recommended)   
+  (plattform and arquitecture independent)  
+
+
+- [Execution from Compiled Binaries](/help/execution-from-binaries.md) (easier way)  
+  (plattform and arquitecture dependent)
+
+
+- [Execution from Source Repository](/help/execution-from-source.md) (more difficult)  
+  (plattform and arquitecture independent)
+
+
+## Configuration File (Config.ini):
+Youn can see how to configure the Config.ini file in this help section:
+[Configuration File](/help/0-configuration-file.md) 
 
 
 ## Command Line Syntax:
@@ -90,20 +103,14 @@ You can check the whole list of functions and arguments with the right syntax he
 [Command Line Syntax](help/1-command-line-syntax)
 
 
-## Configuration File (Config.ini):
-Youn can see how to configure the Config.ini file in this help section:
-[Configuration File](/help/config-file.md) 
-
-
 ## All Documentation Links:
-- [Execution Instructions](/help/0-execution-instructions.md)
+- [Configuration File](/help/0-configuration-file.md)  
 - [Command Line Syntax](/help/1-command-line-syntax.md)  
 - [Automated Migration Feature](/help/2-automated-migration.md)  
 - [Google Takeout Management](/help/3-google-takeout.md)  
 - [Synology Photos Management](/help/4-synology-photos.md)  
 - [Immich Photos Management](/help/5-immich-photos.md)  
 - [Other Features](/help/6-other-features.md)  
-- [Configuration File](/help/config-file.md)  
 
 
 ## Main Use Case: Automated Migration Feature

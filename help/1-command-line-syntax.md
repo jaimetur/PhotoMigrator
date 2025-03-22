@@ -295,6 +295,7 @@ If more than one Feature is detected, only the first one will be executed.
 ---------------------------------------------------------------------------------------------------------
 ```
 
+---
 ## Credits
 I hope this can be useful for any of you.  
 Enjoy it!
