@@ -3,6 +3,9 @@
 CONFIG_FILE="/data/Config.ini"
 DEFAULT_CONFIG="/app/default_config.ini"
 
+echo "Contenido en /data:"
+ls -l /data
+
 # Si no existe el archivo de configuración en la carpeta montada
 if [ ! -f "$CONFIG_FILE" ]; then
     echo "Config.ini not found in the current folder."
