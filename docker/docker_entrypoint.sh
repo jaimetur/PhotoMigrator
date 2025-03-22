@@ -11,4 +11,4 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 1
 fi
 
-exec python3 ./src/CloudPhotoMigrator.py "$@"
+exec python3 /app/src/CloudPhotoMigrator.py "$@"
