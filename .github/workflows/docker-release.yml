@@ -1,9 +1,9 @@
 name: Build Docker & Publish Release Assets
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [published]
+  workflow_dispatch:
 
 jobs:
   build-and-release:
