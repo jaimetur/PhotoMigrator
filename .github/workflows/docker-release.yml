@@ -13,11 +13,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Get normalized release version
+      - name: Get cleaned release version (no "v" prefix)
         run: |
-          # Extrae el nombre del tag o rama
           RAW_VERSION=${GITHUB_REF##*/}
-          # Elimina la letra 'v' inicial si existe
           CLEAN_VERSION=${RAW_VERSION#v}
           echo "RELEASE_VERSION=$CLEAN_VERSION" >> $GITHUB_ENV
 
@@ -28,7 +26,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t jaimetur/cloudphotomigrator:latest -f docker/Dockerfile .
+        run: docker build -t jaimetur/cloudphotomigrator:${{ env.RELEASE_VERSION }} -f docker/Dockerfile .
 
       - name: Push Docker image
         run: docker push jaimetur/cloudphotomigrator:${{ env.RELEASE_VERSION }}
