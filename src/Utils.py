@@ -41,7 +41,8 @@ def resolve_path(user_path):
         return user_path  # No procesar si no es string válido
     user_path = user_path.strip()
     # Detectar y normalizar ruta tipo Windows
-    norm_path = os.path.normpath(user_path)
+    norm_path = os.path.normpath(user_path)  # <- esto convierte .\carpeta a ./carpeta
+    norm_path = norm_path.replace("\\", "/")  # <- y esto limpia las barras invertidas de Windows
     # Separar unidad de disco si es ruta Windows (C:\...)
     drive, tail = os.path.splitdrive(norm_path)
     # Si estamos dentro de Docker
@@ -50,8 +51,8 @@ def resolve_path(user_path):
         if drive:
             linux_path = tail.replace("\\", "/").lstrip("/")
             return os.path.abspath(os.path.join("/data", linux_path))
-        # Si no tiene unidad, asumimos ruta relativa del host montada en /data
-        return os.path.abspath(os.path.join("/data", norm_path.replace("\\", "/")))
+        else:
+            return os.path.abspath(os.path.join("/data", norm_path.lstrip("/")))
     else:
         # Si estamos fuera de Docker, usamos la ruta local normal
         return os.path.abspath(norm_path)
