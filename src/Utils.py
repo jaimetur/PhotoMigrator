@@ -33,56 +33,6 @@ def tqdm(*args, **kwargs):
             kwargs['file'] = TQDM_LOGGER_INSTANCE
     return original_tqdm(*args, **kwargs)
 
-def is_inside_docker():
-    return os.path.exists("/.dockerenv") or os.environ.get("RUNNING_IN_DOCKER") == "1"
-
-def resolve_path(user_path):
-    """
-    Converts a given user_path into a valid absolute path.
-    If running inside Docker and the path is an absolute Windows path (C:/...),
-    it raises an error to prevent mapping outside /data.
-
-    Example flows:
-    - ".\\folder" -> /data/folder
-    - "C:\\Absolute\\path" -> ValueError (in Docker)
-    """
-    if not isinstance(user_path, str) or user_path.strip() == "":
-        return user_path
-
-    original = user_path
-    print(f"DEBUG1 - original user_path: {original!r}")
-
-    user_path = user_path.strip()
-    print(f"DEBUG2 - stripped user_path: {user_path!r}")
-
-    # Reemplazar backslashes
-    user_path = user_path.replace("\\", "/")
-    print(f"DEBUG3 - replaced backslash: {user_path!r}")
-
-    # Normalizar con os.path.normpath
-    user_path = os.path.normpath(user_path)
-    print(f"DEBUG4 - normpath: {user_path!r}")
-
-    if is_inside_docker():
-        print(f"DEBUG: path_clean after slash replace = {user_path}")
-        # Si detectamos drive letter (C:/, D:/...) en Docker, lanzamos error
-        if re.match(r"^[a-zA-Z]:/", user_path):
-            print("DEBUG3 matched drive letter!")
-            raise ValueError(
-                f"Cannot use absolute Windows path '{user_path}' inside Docker. "
-                "Please provide a relative path inside the mounted folder."
-            )
-        else:
-            print("DEBUG3 no match. path_clean=", user_path)
-        # Caso normal: ruta relativa en Docker
-        path_clean = user_path.lstrip("/")
-        path_norm = os.path.normpath(path_clean)
-        return os.path.abspath(os.path.join("/data", path_norm))
-    else:
-        # Fuera de Docker, normalizamos y retornamos absoluto
-        path_norm = os.path.normpath(user_path)
-        return os.path.abspath(path_norm)
-
 def dir_exists(dir):
     return os.path.isdir(dir)
 
