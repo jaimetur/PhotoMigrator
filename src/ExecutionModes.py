@@ -162,6 +162,8 @@ def detect_and_run_execution_mode():
 def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
     # Configure default arguments for mode_google_takeout() execution
     LOGGER.info(f"Starting Google Takeout Photos Processor Feature...")
+    import json
+    print(json.dumps(ARGS, indent=4))
     LOGGER.info("")
     if ARGS['output-folder']:
         OUTPUT_TAKEOUT_FOLDER = ARGS['output-folder']
