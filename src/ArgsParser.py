@@ -206,16 +206,19 @@ def parse_arguments():
 
 def resolve_all_possible_paths(args_dict):
     """
-    Resolves all values in args_dict that look like path(s),
-    including strings, comma-separated paths, or lists of paths.
+    Resolves all values in args_dict that look like path(s), including:
+    - Single strings
+    - Comma-separated strings
+    - Lists of strings
 
-    Skips known pre-defined values from global choices lists.
+    Skips any values that are:
+    - Found in the global skip_values lists
+    - Booleans, numbers, or None
 
     Modifies args_dict in-place.
     """
-    from Utils import resolve_path  # Import local dentro de la función
+    from Utils import resolve_path
 
-    # Usa listas globales ya definidas en el entorno
     skip_values = set(
         choices_for_message_levels +
         choices_for_folder_structure +
@@ -225,30 +228,35 @@ def resolve_all_possible_paths(args_dict):
     )
 
     for key, value in args_dict.items():
-        if value is None or isinstance(value, bool) or isinstance(value, (int, float)):
+        # Saltar booleanos, números y None
+        if value is None or isinstance(value, (bool, int, float)):
             continue
 
-        # Lista de rutas
+        # Lista de valores
         if isinstance(value, list):
             resolved_list = []
             for item in value:
-                if isinstance(item, str) and item.strip() not in skip_values:
-                    resolved_list.append(resolve_path(item.strip()))
+                if isinstance(item, str):
+                    item_clean = item.strip()
+                    if item_clean in skip_values:
+                        resolved_list.append(item_clean)
+                    else:
+                        resolved_list.append(resolve_path(item_clean))
                 else:
                     resolved_list.append(item)
             args_dict[key] = resolved_list
 
-        # Cadena única o separada por comas
+        # Cadena (simple o con comas)
         elif isinstance(value, str):
-            if value.strip() in skip_values:
-                continue
-            if ',' in value:
-                parts = [part.strip() for part in value.split(',')]
-                resolved_parts = [resolve_path(p) if p not in skip_values else p for p in parts]
-                args_dict[key] = ', '.join(resolved_parts)
-            else:
-                args_dict[key] = resolve_path(value.strip())
-
+            parts = [part.strip() for part in value.split(',')]
+            resolved_parts = []
+            for part in parts:
+                if part in skip_values:
+                    resolved_parts.append(part)
+                else:
+                    resolved_parts.append(resolve_path(part))
+            args_dict[key] = ', '.join(resolved_parts) if ',' in value else resolved_parts[0]
+            
 
 def checkArgs(ARGS, PARSER):
     global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
