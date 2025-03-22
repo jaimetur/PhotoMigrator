@@ -32,6 +32,21 @@ def tqdm(*args, **kwargs):
             kwargs['file'] = TQDM_LOGGER_INSTANCE
     return original_tqdm(*args, **kwargs)
 
+def is_inside_docker():
+    return os.path.exists("/.dockerenv") or os.environ.get("RUNNING_IN_DOCKER") == "1"
+
+def resolve_path(user_path):
+    if os.path.isabs(user_path):
+        return user_path
+    elif is_inside_docker():
+        return os.path.abspath(os.path.join("/data", user_path))
+    else:
+        return os.path.abspath(user_path)
+
+def resolve_config_path():
+    config_name = "Config.ini"
+    return resolve_path(config_name)
+
 def dir_exists(dir):
     return os.path.isdir(dir)
 
