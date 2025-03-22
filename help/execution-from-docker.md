@@ -14,10 +14,15 @@ Once you have Docker installed and running on your system, just follow these ste
 
 Download the latest version of the Docker package from the [Releases page](https://github.com/jaimetur/CloudPhotoMigrator/releases), or use this command:
 
-```
-curl -L -o CloudPhotoMigrator_v3.1.0-beta1_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta1/CloudPhotoMigrator_v3.1.0-beta1_docker.zip
-```
-
+- **Linux/macOS:**
+    ```bash
+    curl -L -o CloudPhotoMigrator_v3.1.0-beta1_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta1/CloudPhotoMigrator_v3.1.0-beta1_docker.zip
+    ```
+  
+- **Windows (Command Prompt):**
+    ```bash
+    curl.exe -L -o CloudPhotoMigrator_v3.1.0-beta1_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta1/CloudPhotoMigrator_v3.1.0-beta1_docker.zip
+    ```
 
 ### 2. Unzip the downloaded package:
 
