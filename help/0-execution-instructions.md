@@ -1,4 +1,4 @@
-## Instructions to execute from compiled version:
+# Instructions to execute from compiled binaries:
 You can copy and unzip the downloaded compiled tool into any local folder or to any Shared folder of your server or Synology NAS.
 
 Then you just need to call it depending on your environment:
@@ -9,63 +9,15 @@ Then you just need to call it depending on your environment:
 
 ---
 
-## Instructions to execute from source repository:
 
-> [!IMPORTANT]  
-> You have to make sure that you have Python 3.8 or higher on your system before to do the following steps.
+# Instructions to run Docker Container:
 
-Here are simple instructions to clone the GitHub repository, create a Python virtual environment, install dependencies, and run the main script.  
-
-Find below the needed steps:
-
-1. Clone the repository
-   ```
-   git clone https://github.com/jaimetur/CloudPhotoMigrator.git
-   ```
-
-2. Change directory to the cloned repository
-   ```
-   cd CloudPhotoMigrator
-   ```
-
-3. Create a Python virtual environment:  
-   ```
-   python3 -m venv venv
-   ```
-
-4. Activate the virtual environment:  
-   - On macOS/Linux:  
-     ```
-     source venv/bin/activate
-     ```
-   - On Windows (Command Prompt):  
-     ```
-     venv\Scripts\activate
-     ```
-   - On Windows (PowerShell):  
-     ```
-     venv\Scripts\Activate.ps1
-     ```
-
-5. Install dependencies:  
-   ```
-   pip3 install -r requirements.txt
-   ```
-
-6. Run the main script to show the command line help:  
-   ```
-   python3 ./src/CloudPhotoMigrator.py -h
-   ```
-
----
-
-## Instructions to run Docker Edition:
-
-### ✅ Prerequisites
-- Install Docker in your system (if it is not installed yet) and run it.  You can find instructions of how to install Docker in the following links:  
-    - [Install Docker on Windows](/help/install-docker-windows.md)  
-    - [Install Docker on Linux](/help/install-docker-linux.md)  
-    - [Install Docker on MacOS](/help/install-docker-macos.md)  
+> [!IMPORTANT] 
+> ### ✅ Prerequisites
+> - Install Docker in your system (if it is not installed yet) and run it.  You can find instructions of how to install Docker in the following links:  
+>     - [Install Docker on Windows](/help/install-docker-windows.md)  
+>     - [Install Docker on Linux](/help/install-docker-linux.md)  
+>     - [Install Docker on MacOS](/help/install-docker-macos.md)  
 
 
 Once you have Docker installed and running on your system, just follow these steps to download, extract, configure and run the tool on Docker.
@@ -135,6 +87,58 @@ CloudPhotoMigrator.bat -h
 ```
 
 ---
+
+# Instructions to execute from source repository:
+
+> [!IMPORTANT]  
+> ### ✅ Prerequisites
+> You have to make sure that you have Python 3.8 or higher on your system before to do the following steps.
+
+Here are simple instructions to clone the GitHub repository, create a Python virtual environment, install dependencies, and run the main script.  
+
+Find below the needed steps:
+
+1. Clone the repository
+   ```
+   git clone https://github.com/jaimetur/CloudPhotoMigrator.git
+   ```
+
+2. Change directory to the cloned repository
+   ```
+   cd CloudPhotoMigrator
+   ```
+
+3. Create a Python virtual environment:  
+   ```
+   python3 -m venv venv
+   ```
+
+4. Activate the virtual environment:  
+   - On macOS/Linux:  
+     ```
+     source venv/bin/activate
+     ```
+   - On Windows (Command Prompt):  
+     ```
+     venv\Scripts\activate
+     ```
+   - On Windows (PowerShell):  
+     ```
+     venv\Scripts\Activate.ps1
+     ```
+
+5. Install dependencies:  
+   ```
+   pip3 install -r requirements.txt
+   ```
+
+6. Run the main script to show the command line help:  
+   ```
+   python3 ./src/CloudPhotoMigrator.py -h
+   ```
+
+---
+
 
 ## Notes
 
