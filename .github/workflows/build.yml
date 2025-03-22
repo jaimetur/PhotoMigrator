@@ -150,8 +150,13 @@ jobs:
       - name: Build & Push Docker image
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         run: |
-          docker build -t jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }} -f docker/Dockerfile .
-          
+          # Fuerza a Docker a:
+          #  1) descargar la base actualizada ( --pull )
+          #  2) ignorar todas las capas cacheadas ( --no-cache )
+          docker build --pull --no-cache \
+            -t jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }} \
+            -f docker/Dockerfile .
+              
           # Etiquetar también como latest
           docker tag jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }} jaimetur/cloudphotomigrator:latest
       
