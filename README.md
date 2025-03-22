@@ -59,8 +59,11 @@ Apart from Manage the different Photo Cloud Services, the Tool also contains som
 - **Remove Empty Albums in Photo Cloud Services** 
 - **Remove Duplicates Albums in Photo Cloud Services** 
 
-The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), 
-so feel free to download the version according to your system.
+
+> [!NOTE]  
+> The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), so feel free to download the version according to your system. 
+> 
+> You can also execute the Tool from a Docker container or from sources files for a better compatibility. In below sections you can find the execution instructions to run the Tool from the different methods.
 
 
 ## Live Dashboard Preview:
@@ -85,6 +88,7 @@ In this link [Execution Instructions](/help/0-execution-instructions.md), you ca
 ## Command Line Syntax:
 You can check the whole list of functions and arguments with the right syntax here:
 [Command Line Syntax](help/1-command-line-syntax)
+
 
 ## All Documentation Links:
 - [Execution Instructions](/help/0-execution-instructions.md)
