@@ -204,9 +204,57 @@ def parse_arguments():
     return ARGS, PARSER
 
 
+def resolve_all_possible_paths(args_dict):
+    """
+    Resolves all values in args_dict that look like path(s),
+    including strings, comma-separated paths, or lists of paths.
+
+    Skips known pre-defined values from global choices lists.
+
+    Modifies args_dict in-place.
+    """
+    from Utils import resolve_path  # Import local dentro de la función
+
+    # Usa listas globales ya definidas en el entorno
+    skip_values = set(
+        choices_for_message_levels +
+        choices_for_folder_structure +
+        choices_for_remove_duplicates +
+        choices_for_AUTOMATED_MIGRATION_SRC +
+        choices_for_AUTOMATED_MIGRATION_TGT
+    )
+
+    for key, value in args_dict.items():
+        if value is None or isinstance(value, bool) or isinstance(value, (int, float)):
+            continue
+
+        # Lista de rutas
+        if isinstance(value, list):
+            resolved_list = []
+            for item in value:
+                if isinstance(item, str) and item.strip() not in skip_values:
+                    resolved_list.append(resolve_path(item.strip()))
+                else:
+                    resolved_list.append(item)
+            args_dict[key] = resolved_list
+
+        # Cadena única o separada por comas
+        elif isinstance(value, str):
+            if value.strip() in skip_values:
+                continue
+            if ',' in value:
+                parts = [part.strip() for part in value.split(',')]
+                resolved_parts = [resolve_path(p) if p not in skip_values else p for p in parts]
+                args_dict[key] = ', '.join(resolved_parts)
+            else:
+                args_dict[key] = resolve_path(value.strip())
+
+
 def checkArgs(ARGS, PARSER):
     global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
-
+    
+    resolve_all_possible_paths(ARGS)
+    
     # Remove '_' at the begining of the string in case it has it.
     ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
 
@@ -257,7 +305,7 @@ def checkArgs(ARGS, PARSER):
     if ARGS['target'] and not ARGS['source']:
         PARSER.error(f"\n\n❌ ERROR   : Invalid syntax. Argument '--target' detected but not '--source' providen'. You must specify both, --source and --target to execute AUTOMATED-MIGRATION task.\n")
         exit(1)
-    if ARGS['source'] and ARGS['source'] not in choices_for_AUTOMATED_MIGRATION_TGT and not os.path.isdir(ARGS['source']):
+    if ARGS['source'] and ARGS['source'] not in choices_for_AUTOMATED_MIGRATION_SRC and not os.path.isdir(ARGS['source']):
         PARSER.error(f"\n\n❌ ERROR   : Invalid source '{ARGS['source']}'. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT} or an existing local folder.\n")
         exit(1)
     if ARGS['target'] and ARGS['target'] not in choices_for_AUTOMATED_MIGRATION_TGT and not os.path.isdir(ARGS['target']):
