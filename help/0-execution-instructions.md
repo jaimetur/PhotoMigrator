@@ -1,4 +1,4 @@
-# Instructions to execute from compiled binaries:
+# Instructions to execute from Compiled Binaries: ()
 You can copy and unzip the downloaded compiled tool into any local folder or to any Shared folder of your server or Synology NAS.
 
 Then you just need to call it depending on your environment:
@@ -10,7 +10,7 @@ Then you just need to call it depending on your environment:
 ---
 
 
-# Instructions to run Docker Container:
+# Instructions to execute from Docker Container:
 
 > [!IMPORTANT] 
 > ### ✅ Prerequisites
@@ -88,7 +88,7 @@ CloudPhotoMigrator.bat -h
 
 ---
 
-# Instructions to execute from source repository:
+# Instructions to execute from Source Repository:
 
 > [!IMPORTANT]  
 > ### ✅ Prerequisites
