@@ -56,42 +56,28 @@ def resolve_path(user_path):
     - ".\\folder" -> /data/folder
     - "C:\\Absolute\\path" -> ValueError (in Docker)
     """
+    # Ignore non-string or empty inputs
     if not isinstance(user_path, str) or user_path.strip() == "":
         return user_path
 
-    original = user_path
-    print(f"DEBUG1 - original user_path: {original!r}")
+    # Remove trailing/leading spaces
+    path_clean = user_path.strip()
 
-    user_path = user_path.strip()
-    print(f"DEBUG2 - stripped user_path: {user_path!r}")
+    # Convert Windows backslashes to forward slashes
+    path_clean = path_clean.replace("\\", "/")
 
-    # Reemplazar backslashes
-    user_path = user_path.replace("\\", "/")
-    print(f"DEBUG3 - replaced backslash: {user_path!r}")
+    # Normalize path (handles "./", "../", etc.)
+    path_clean = os.path.normpath(path_clean)
 
-    # Normalizar con os.path.normpath
-    user_path = os.path.normpath(user_path)
-    print(f"DEBUG4 - normpath: {user_path!r}")
-
+    # If running inside Docker, map the path under /data
     if is_inside_docker():
-        print(f"DEBUG: path_clean after slash replace = {user_path}")
-        # Si detectamos drive letter (C:/, D:/...) en Docker, lanzamos error
-        if re.match(r"^[a-zA-Z]:/", user_path):
-            print("DEBUG3 matched drive letter!")
-            raise ValueError(
-                f"Cannot use absolute Windows path '{user_path}' inside Docker. "
-                "Please provide a relative path inside the mounted folder."
-            )
-        else:
-            print("DEBUG3 no match. path_clean=", user_path)
-        # Caso normal: ruta relativa en Docker
-        path_clean = user_path.lstrip("/")
-        path_norm = os.path.normpath(path_clean)
-        return os.path.abspath(os.path.join("/data", path_norm))
+        # Remove any leading slash to avoid double slashes (e.g., "//data")
+        path_clean = path_clean.lstrip("/")
+        # Join with /data and get the absolute path
+        return os.path.abspath(os.path.join("/data", path_clean))
     else:
-        # Fuera de Docker, normalizamos y retornamos absoluto
-        path_norm = os.path.normpath(user_path)
-        return os.path.abspath(path_norm)
+        # Outside Docker, return the absolute path on the local system
+        return os.path.abspath(path_clean)
 
 
 def set_ARGS_PARSER():
