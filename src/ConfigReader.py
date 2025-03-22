@@ -1,6 +1,7 @@
 from configparser import ConfigParser
 from GlobalVariables import LOGGER  # Import global LOGGER
 import os, sys
+from Utils import resolve_path
 
 CONFIG = None
 
@@ -16,6 +17,9 @@ def load_config(config_file='Config.ini', section_to_load='all'):
             return CONFIG  # Configuration already read previously
     else:
         CONFIG = {}
+        
+    # Resolver correctamente la ruta al archivo de configuración
+    config_file = resolve_path(config_file)
 
     LOGGER.info(f"INFO    : Searching for section(s) [{section_to_load}] in configuration file '{config_file}'...")
     if not os.path.exists(config_file):
