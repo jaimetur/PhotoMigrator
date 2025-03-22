@@ -150,7 +150,14 @@ jobs:
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         run: |
           docker build -t jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }} -f docker/Dockerfile .
+          
+          # Etiquetar también como latest
+          docker tag jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }} jaimetur/cloudphotomigrator:latest
+      
+          # Subir ambas etiquetas
           docker push jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }}
+          docker push jaimetur/cloudphotomigrator:latest
+
 
       - name: Prepare unified ZIP package
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
