@@ -39,51 +39,31 @@ def is_inside_docker():
 def resolve_path(user_path):
     """
     Converts a given user_path into a valid absolute path.
-    - If running inside Docker, the path is mapped to /data.
-    - If the path has a Windows drive letter (e.g. C:/), it's removed under Docker.
-    - Normalizes .\, .., /, etc.
+    If running inside Docker and the path is an absolute Windows path (C:/...),
+    it raises an error to prevent mapping outside /data.
 
-    Examples (inside Docker):
-      C:\\Folder\\file.txt      -> /data/Folder/file.txt
-      .\\Subfolder             -> /data/Subfolder
-      D:/Data/Photos           -> /data/Data/Photos
-      ./local                  -> /data/local
-
-    Examples (outside Docker):
-      .\\folder                -> absolute path on the host system
-      C:\\Folder\\file.txt     -> same, but with local OS normalization
+    Example flows:
+    - ".\\folder" -> /data/folder
+    - "C:\\Absolute\\path" -> ValueError (in Docker)
     """
-
-    # Skip if it's not a valid string or empty
     if not isinstance(user_path, str) or user_path.strip() == "":
         return user_path
 
-    # Strip whitespace
-    path_clean = user_path.strip()
+    path_clean = user_path.strip().replace("\\", "/")
 
-    # Convert all backslashes to forward slashes (for Windows to Unix consistency)
-    path_clean = path_clean.replace("\\", "/")
-
-    # Check if we're inside Docker
     if is_inside_docker():
-        # If path starts with a drive letter like C:/ or D:/
-        # we remove that part so it won't end up in /data/C:/...
-        drive_pattern = r"^[a-zA-Z]:/"
-        if re.match(drive_pattern, path_clean):
-            # Remove the drive letter and the slash, e.g. "C:/" -> ""
-            path_clean = re.sub(drive_pattern, "", path_clean)
-
-        # Remove any leading slash leftover to avoid //data if user passes /something
+        # Si detectamos drive letter (C:/, D:/...) en Docker, lanzamos error
+        if re.match(r"^[a-zA-Z]:/", path_clean):
+            raise ValueError(
+                f"Cannot use absolute Windows path '{user_path}' inside Docker. "
+                "Please provide a relative path inside the mounted folder."
+            )
+        # Caso normal: ruta relativa en Docker
         path_clean = path_clean.lstrip("/")
-
-        # Normalize special segments like "." or ".." inside the path
         path_norm = os.path.normpath(path_clean)
-
-        # Join with /data to mount in Docker, then take absolute
         return os.path.abspath(os.path.join("/data", path_norm))
-
     else:
-        # Outside Docker, just normalize the path with the local OS rules
+        # Fuera de Docker, normalizamos y retornamos absoluto
         path_norm = os.path.normpath(path_clean)
         return os.path.abspath(path_norm)
 
