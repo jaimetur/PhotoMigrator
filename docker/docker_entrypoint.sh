@@ -1,11 +1,15 @@
 #!/bin/bash
 
-echo "🚀 Initializing container..."
-echo "Looking for: Config.ini"
-
 CONFIG_FILE="/data/Config.ini"
 DEFAULT_CONFIG="/app/default_config.ini"
 
+if [[ "$1" == "bash" ]]; then
+    echo "🔧 Entering interactive shell..."
+    exec /bin/bash
+fi
+
+echo "🚀 Initializing container and launching CloudPhotoMigrator..."
+echo "Looking for: Config.ini"
 if [ ! -f "$CONFIG_FILE" ]; then
     echo "❌ Config.ini not found in the current folder."
     echo "Creating a default configuration file..."
