@@ -1,10 +1,7 @@
 #!/bin/bash
 
-echo "🔍 Checking inside container..."
-echo "Current working dir: $(pwd)"
-echo "Listing contents of /data:"
-ls -l /data
-echo "Looking for: /data/Config.ini"
+echo "🚀 Initializing container..."
+echo "Looking for: Config.ini"
 
 CONFIG_FILE="/data/Config.ini"
 DEFAULT_CONFIG="/app/default_config.ini"
