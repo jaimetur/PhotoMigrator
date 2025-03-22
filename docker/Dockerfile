@@ -10,7 +10,7 @@ COPY docs/ ./docs/
 COPY help/ ./help/
 COPY gpth_tool/ ./gpth_tool/
 COPY Config.ini ./default_config.ini
-COPY README.md ./docs/
+COPY README.md ./docs/README.md
 
 COPY docker/docker_entrypoint.sh /docker_entrypoint.sh
 RUN chmod +x /docker_entrypoint.sh

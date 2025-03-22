@@ -7,6 +7,10 @@ CURRENT_DIR="$(pwd)"
 docker pull jaimetur/cloudphotomigrator:latest
 
 # Run the Docker container with the current directory mounted to /data
-docker run --rm \
+# and attach an interactive terminal (-it)
+docker run -it --rm \
   -v "$CURRENT_DIR":/data \
   jaimetur/cloudphotomigrator:latest "$@"
+
+
+
