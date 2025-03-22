@@ -3,9 +3,9 @@
 # Set default tag
 RELEASE_TAG="latest"
 
-# Load from .env if exists
-if [ -f ".env" ]; then
-  source .env
+# Load from docker.conf if exists
+if [ -f "docker.cong" ]; then
+  source docker.conf
 fi
 
 # Get current directory

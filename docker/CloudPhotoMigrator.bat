@@ -1,10 +1,10 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM Load variables from .env file
+REM Load variables from docker.conf file
 set "RELEASE_TAG=latest"
 
-for /f "usebackq tokens=1,* delims==" %%A in (".env") do (
+for /f "usebackq tokens=1,* delims==" %%A in ("docker.conf") do (
     if /i "%%A"=="RELEASE_TAG" (
         set "RELEASE_TAG=%%B"
     )
