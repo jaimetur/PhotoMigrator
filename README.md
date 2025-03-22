@@ -80,6 +80,7 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 
 ## Execution Instructions:
 In the links below, you can find all the details to execute the Tool from 3 different alternatives:
+
 - [Execution from Docker Container](/help/execution-from-docker.md) (recommended)   
   (plattform and arquitecture independent)  
 
