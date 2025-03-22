@@ -4,6 +4,7 @@ import logging
 from colorama import Fore, Style
 from contextlib import contextmanager
 import threading
+from Utils import resolve_path
 
 def check_color_support(log_level=logging.INFO):
     """ Detect if Terminal has supports colors """
