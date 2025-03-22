@@ -24,7 +24,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t jaimetur/cloudphotomigrator:latest .
+        run: docker build -t jaimetur/cloudphotomigrator:latest -f docker/Dockerfile .
 
       - name: Push Docker image
         run: docker push jaimetur/cloudphotomigrator:${{ env.RELEASE_VERSION }}
