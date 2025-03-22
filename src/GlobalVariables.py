@@ -3,6 +3,7 @@ from datetime import datetime
 import textwrap
 import os,sys
 import logging
+from Utils import resolve_path
 
 #---------------------------------------
 # GLOBAL VARIABLES FOR THE WHOLE PROJECT
