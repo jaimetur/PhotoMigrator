@@ -61,7 +61,14 @@ Find below the needed steps:
 
 ## Instructions to run Docker Edition:
 
-Follow these steps to download, extract, configure and run the tool.
+### ✅ Prerequisites
+- Install Docker in your system (if it is not installed yet) and run it.  You can find instructions of how to install Docker in the following links:  
+    - [Install Docker on Windows](/help/install-docker-windows.md)  
+    - [Install Docker on Linux](/help/install-docker-linux.md)  
+    - [Install Docker on MacOS](/help/install-docker-macos.md)  
+
+
+Once you have Docker installed and running on your system, just follow these steps to download, extract, configure and run the tool on Docker.
 
 ### 1. Download the ZIP package
 
