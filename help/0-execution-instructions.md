@@ -1,7 +1,14 @@
 # 1. Instructions to execute from Compiled Binaries: (simplest way)
-You can copy and unzip the downloaded compiled tool into any local folder or to any Shared folder of your server or Synology NAS.
 
-Then you just need to call it depending on your environment:
+### 1.1 You can copy and unzip the downloaded compiled tool into any local folder or to any Shared folder of your server or Synology NAS.
+
+### 1.2. Edit the configuration file:
+
+Open `Config.ini` in any text editor and update it with your credentials and settings.
+
+> For more information, refer to [Configuration File](/help/config-file.md) .
+
+### 1.3 Execute the Tool depending on your environment:
   - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**CloudPhotoMigrator.exe**'  
 
   - If you run it from Synology NAS (using SSH terminal) or from Linux/Mac, you have to call the master script '**CloudPhotoMigrator.run**'.  
@@ -21,58 +28,48 @@ Then you just need to call it depending on your environment:
 
 Once you have Docker installed and running on your system, just follow these steps to download, extract, configure and run the tool on Docker.
 
-### 2.1. Download the ZIP package
+### 2.1. Download the ZIP package:
 
 Download the latest version of the Docker package from the [Releases page](https://github.com/jaimetur/CloudPhotoMigrator/releases), or use this command:
 
-```bash
+```
 wget https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta1/CloudPhotoMigrator_v3.1.0-beta1_docker.zip
 ```
 
 
-### 2.2. Unzip the downloaded package
+### 2.2. Unzip the downloaded package:
 
 - **Linux/macOS:**
-    ```bash
+    ```
     unzip CloudPhotoMigrator_v3.1.0-beta1_docker.zip -d CloudPhotoMigrator
     cd CloudPhotoMigrator
     ```
 
 - **Windows (Command Prompt):**
-    ```cmd
+    ```
     powershell -Command "Expand-Archive -Path CloudPhotoMigrator_v3.1.0-beta1_docker.zip -DestinationPath CloudPhotoMigrator"
     cd CloudPhotoMigrator
     ```
 
 
-### 2.3. Edit the configuration
+### 2.3. Edit the configuration file:
 
 Open `Config.ini` in any text editor and update it with your credentials and settings.
 
 > For more information, refer to [Configuration File](/help/config-file.md) .
 
 
-### 2.4. Run the tool
+### 2.4. Run the Tool to show the command line help:
 
 Make sure Docker is running, then:
 
 - **Linux / MacOS:**
-    ```bash
-    ./CloudPhotoMigrator.sh [options]
     ```
-
-- **Windows (Command Prompt):**
-    ```cmd
-    CloudPhotoMigrator.bat [options]
-    ```
-
-    You can also run the help command:
-    ```bash
     ./CloudPhotoMigrator.sh -h
     ```
 
-    or
-    ```cmd
+- **Windows (Command Prompt):**
+    ```
     CloudPhotoMigrator.bat -h
     ```
 
@@ -122,7 +119,15 @@ Find below the needed steps:
    pip3 install -r requirements.txt
    ```
 
-### 3.6. Run the main script to show the command line help:  
+
+### 3.6. Edit the configuration file:
+
+Open `Config.ini` in any text editor and update it with your credentials and settings.
+
+> For more information, refer to [Configuration File](/help/config-file.md) .
+
+
+### 3.7. Run the Tool to show the command line help:
    ```
    python3 ./src/CloudPhotoMigrator.py -h
    ```
