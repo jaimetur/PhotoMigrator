@@ -43,10 +43,6 @@ def resolve_path(user_path):
     else:
         return os.path.abspath(user_path)
 
-def resolve_config_path():
-    config_name = "Config.ini"
-    return resolve_path(config_name)
-
 def dir_exists(dir):
     return os.path.isdir(dir)
 
