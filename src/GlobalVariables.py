@@ -3,7 +3,6 @@ from datetime import datetime
 import textwrap
 import os,sys
 import logging
-from Utils import resolve_path
 
 #---------------------------------------
 # GLOBAL VARIABLES FOR THE WHOLE PROJECT
@@ -53,6 +52,7 @@ def set_ARGS_PARSER():
 
 def set_LOGGER():
     from CustomLogger import log_setup
+    from Utils import resolve_path
     global LOGGER, LOG_FOLDER_FILENAME
     script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     current_directory = os.getcwd()
