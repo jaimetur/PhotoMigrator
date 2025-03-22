@@ -145,23 +145,31 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          
 
       - name: Build & Push Docker image
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         run: |
           docker build -t jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }} -f docker/Dockerfile .
+          
+          # Etiquetar también como latest
+          docker tag jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }} jaimetur/cloudphotomigrator:latest
+      
+          # Subir ambas etiquetas
           docker push jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }}
+          docker push jaimetur/cloudphotomigrator:latest
+
 
       - name: Prepare unified ZIP package
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         run: |
-          mkdir CloudPhotoMigrator_Package
-          cp docker/CloudPhotoMigrator.sh CloudPhotoMigrator_Package/
-          cp docker/CloudPhotoMigrator.bat CloudPhotoMigrator_Package/
-          cp Config.ini CloudPhotoMigrator_Package/
-          cp -r docs CloudPhotoMigrator_Package/
-          cp -r help CloudPhotoMigrator_Package/
-          zip -r CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip CloudPhotoMigrator_Package
+          mkdir CloudPhotoMigrator_Docker
+          cp docker/CloudPhotoMigrator.sh CloudPhotoMigrator_Docker/
+          cp docker/CloudPhotoMigrator.bat CloudPhotoMigrator_Docker/
+          cp Config.ini CloudPhotoMigrator_Docker/
+          cp -r docs CloudPhotoMigrator_Docker/
+          cp -r help CloudPhotoMigrator_Docker/
+          zip -r CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip CloudPhotoMigrator_Docker
 
       - name: Upload release asset
         uses: softprops/action-gh-release@v2

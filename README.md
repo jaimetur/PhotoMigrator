@@ -59,8 +59,16 @@ Apart from Manage the different Photo Cloud Services, the Tool also contains som
 - **Remove Empty Albums in Photo Cloud Services** 
 - **Remove Duplicates Albums in Photo Cloud Services** 
 
-The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), 
-so feel free to download the version according to your system.
+
+> [!NOTE]  
+> The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), so feel free to download the version according to your system. 
+> 
+> You can also execute the Tool from a Docker container or from sources files for a better compatibility. In below sections you can find the execution instructions to run the Tool from the different methods.
+
+
+## Live Dashboard Preview:
+![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
+
 
 ## Download:
 Download the tool either for Linux, MacOS or Windows version (for both x64/amd64 or arm64 architectures) as you prefer directly from following links:
@@ -69,81 +77,36 @@ Download the tool either for Linux, MacOS or Windows version (for both x64/amd64
 - [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)
 
-## Documentation Links:
-- [Configuration File](/help/0-config-file.md)  
+
+## Execution Instructions:
+In this link [Execution Instructions](/help/0-execution-instructions.md), you can find all the details to execute the Tool from 3 different alternatives:
+- **From Docker containe**r (plattform and arquitecture independent) (recommended)
+- **From binaries files** (plattform and arquitecture dependent)
+- **From source files**
+
+
+## Command Line Syntax:
+You can check the whole list of functions and arguments with the right syntax here:
+[Command Line Syntax](help/1-command-line-syntax)
+
+
+## Configuration File (Config.ini):
+Youn can see how to configure the Config.ini file in this help section:
+[Configuration File](/help/config-file.md) 
+
+
+## All Documentation Links:
+- [Execution Instructions](/help/0-execution-instructions.md)
 - [Command Line Syntax](/help/1-command-line-syntax.md)  
 - [Automated Migration Feature](/help/2-automated-migration.md)  
 - [Google Takeout Management](/help/3-google-takeout.md)  
 - [Synology Photos Management](/help/4-synology-photos.md)  
 - [Immich Photos Management](/help/5-immich-photos.md)  
 - [Other Features](/help/6-other-features.md)  
+- [Configuration File](/help/config-file.md)  
 
-## Live Dashboard Preview:
-![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
-
-## Instructions to execute from compiled version:
-You can copy and unzip the downloaded compiled tool into any local folder or to any Shared folder of your server or Synology NAS.
-
-Then you just need to call it depending on your environment:
-  - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**CloudPhotoMigrator.exe**'  
-
-  - If you run it from Synology NAS (using SSH terminal) or from Linux/Mac, you have to call the master script '**CloudPhotoMigrator.run**'.  
-    Minimum version required to run the Tool directly from your Synology NAS (using SSH terminal) is **DSM 7.0**.
-
-## Instructions to execute from source repository:
-
->[!IMPORTANT]
-> You have to make sure that you have Python 3.8 or higher on your system before to do the following steps.
-
-Here are simple instructions to clone the GitHub repository, create a Python virtual environment, install dependencies, and run the main script.  
-
-Find below the needed steps:
-
-1. Clone the repository
-   ```
-   git clone https://github.com/jaimetur/CloudPhotoMigrator.git
-   ```
-
-2. Change directory to the cloned repository
-   ```
-   cd CloudPhotoMigrator
-   ```
-
-3. Create a Python virtual environment:  
-   ```
-   python3 -m venv venv
-   ```
-
-4. Activate the virtual environment:  
-   - On macOS/Linux:  
-     ```
-     source venv/bin/activate
-     ```
-   - On Windows (Command Prompt):  
-     ```
-     venv\Scripts\activate
-     ```
-   - On Windows (PowerShell):  
-     ```
-     venv\Scripts\Activate.ps1
-     ```
-
-5. Install dependencies:  
-   ```
-   pip3 install -r requirements.txt
-   ```
-
-6. Run the main script to show the command line help:  
-   ```
-   python3 ./src/CloudPhotoMigrator.py -h
-   ```
-
-## Command Line Syntax:
-You can check the whole list of functions and arguments with the right syntax here:
-[Command Line Syntax](help/1-command-line-syntax)
 
 ## Main Use Case: Automated Migration Feature
-
 > [!NOTE]  
 >## <span style="color:green">Automated Migration Feature</span>
 >From version 3.0.0 onwards, the Tool supports a new Feature called '**Automated Migration**'. 
@@ -182,11 +145,6 @@ You can check the whole list of functions and arguments with the right syntax he
 
 > [!IMPORTANT]  
 > It is important that you configure properly the file 'Config.ini' (included with the tool), to set properly the accounts for your Photo Cloud Services.  
-
-
-## Config.ini
-Youn can see how to configure the Config.ini file in this help section:
-[Configuration File](/help/0-config-file.md) 
 
 
 # ROADMAP:

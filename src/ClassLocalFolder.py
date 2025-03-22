@@ -1008,8 +1008,8 @@ class ClassLocalFolder:
 ##############################################################################
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-    from Utils import change_workingdir
-    change_workingdir()
+    import ChangeWorkingDir
+    ChangeWorkingDir.change_working_dir(change_dir=False)
 
     # Create the Object
     immich = ClassImmichPhotos()

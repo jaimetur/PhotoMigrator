@@ -13,7 +13,7 @@
       <excludeFolder url="file://$MODULE_DIR$/src/Logs" />
       <excludeFolder url="file://$MODULE_DIR$/assets" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.13 - CloudPhotoMigrator" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.13 virtualenv at G:\My Drive\Dev\Python_Scripts_jaimetur\PycharmProjects\CloudPhotoMigrator\.venv" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>

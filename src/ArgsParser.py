@@ -1,7 +1,6 @@
 import logging
 
-from GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
-
+from GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE, resolve_path
 from CustomHelpFormatter import CustomHelpFormatter
 from CustomPager import PagedParser
 import argparse
@@ -204,9 +203,72 @@ def parse_arguments():
     return ARGS, PARSER
 
 
+def resolve_all_possible_paths(args_dict, keys_to_check=None):
+    """
+    Resolves all path-like values in args_dict (strings, lists, comma-separated strings),
+    skipping values in known predefined choice lists or invalid types.
+
+    Optional: you can restrict resolution to specific keys with `keys_to_check`.
+
+    Modifies args_dict in-place.
+    """
+    skip_values = set(
+        choices_for_message_levels +
+        choices_for_folder_structure +
+        choices_for_remove_duplicates +
+        choices_for_AUTOMATED_MIGRATION_SRC +
+        choices_for_AUTOMATED_MIGRATION_TGT
+    )
+
+    for key, value in args_dict.items():
+        if keys_to_check is not None and key not in keys_to_check:
+            continue  # saltar claves no incluidas
+
+        # Saltar valores claramente no válidos
+        if value is None or isinstance(value, (bool, int, float)) or value == "":
+            continue
+
+        # Si es lista de valores
+        if isinstance(value, list):
+            resolved_list = []
+            for item in value:
+                if isinstance(item, str):
+                    item_clean = item.strip()
+                    if item_clean == "" or item_clean in skip_values:
+                        resolved_list.append(item_clean)
+                    else:
+                        resolved_list.append(resolve_path(item_clean))
+                else:
+                    resolved_list.append(item)
+            args_dict[key] = resolved_list
+
+        # Si es cadena (simple o separada por comas)
+        elif isinstance(value, str):
+            if value.strip() == "":
+                continue  # no tocar cadena vacía
+            parts = [part.strip() for part in value.split(',')]
+            resolved_parts = []
+            for part in parts:
+                if part in skip_values:
+                    resolved_parts.append(part)
+                else:
+                    resolved_parts.append(resolve_path(part))
+            args_dict[key] = ', '.join(resolved_parts) if ',' in value else resolved_parts[0]
+
+            
+
 def checkArgs(ARGS, PARSER):
     global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
 
+    # Check all providen arguments in the list of arguments to check to resolve the paths correctly for both, docker instance and normal instance.
+    keys_to_check = ['input-folder', 'output-folder', 'albums-folder', 'google-input-takeout-folder',
+                     'synology-upload-albums', 'synology-download-albums', 'synology-upload-all', 'synology-download-all'
+                     'immich-upload-albums', 'immich-download-albums', 'immich-upload-all', 'immich-download-all'
+                     'find-duplicates', 'fix-symlinks-broken', 'rename-folders-content-based'
+                     ]
+
+    resolve_all_possible_paths(args_dict=ARGS, keys_to_check=keys_to_check)
+    
     # Remove '_' at the begining of the string in case it has it.
     ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
 
@@ -257,7 +319,7 @@ def checkArgs(ARGS, PARSER):
     if ARGS['target'] and not ARGS['source']:
         PARSER.error(f"\n\n❌ ERROR   : Invalid syntax. Argument '--target' detected but not '--source' providen'. You must specify both, --source and --target to execute AUTOMATED-MIGRATION task.\n")
         exit(1)
-    if ARGS['source'] and ARGS['source'] not in choices_for_AUTOMATED_MIGRATION_TGT and not os.path.isdir(ARGS['source']):
+    if ARGS['source'] and ARGS['source'] not in choices_for_AUTOMATED_MIGRATION_SRC and not os.path.isdir(ARGS['source']):
         PARSER.error(f"\n\n❌ ERROR   : Invalid source '{ARGS['source']}'. Must be one of {choices_for_AUTOMATED_MIGRATION_TGT} or an existing local folder.\n")
         exit(1)
     if ARGS['target'] and ARGS['target'] not in choices_for_AUTOMATED_MIGRATION_TGT and not os.path.isdir(ARGS['target']):
