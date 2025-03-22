@@ -1,4 +1,4 @@
-# 1. Instructions to execute from Compiled Binaries: (simplest way)
+# 1. Instructions to execute from Compiled Binaries: \(simplest way)
 
 ### 1.1 You can copy and unzip the downloaded compiled tool into any local folder or to any Shared folder of your server or Synology NAS.
 
@@ -16,10 +16,10 @@ Open `Config.ini` in any text editor and update it with your credentials and set
 
 
 ---
-# 2. Instructions to execute from Docker Container:  (recommended)
+# 2. Instructions to execute from Docker Container: \(recommended)
 
 > [!IMPORTANT] 
-> ### ✅ Prerequisites
+> ### ✅ Prerequisites:
 > - Install Docker in your system (if it is not installed yet) and run it.  You can find instructions of how to install Docker in the following links:  
 >     - [Install Docker on Windows](/help/install-docker-windows.md)  
 >     - [Install Docker on Linux](/help/install-docker-linux.md)  
@@ -78,7 +78,7 @@ Make sure Docker is running, then:
 # 3. Instructions to execute from Source Repository:
 
 > [!IMPORTANT]  
-> ### ✅ Prerequisites
+> ### ✅ Prerequisites:
 > You have to make sure that you have Python 3.8 or higher on your system before to do the following steps.
 
 Here are simple instructions to clone the GitHub repository, create a Python virtual environment, install dependencies, and run the main script.  
