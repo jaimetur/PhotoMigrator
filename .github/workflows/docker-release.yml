@@ -13,9 +13,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Get version from tag
-        id: get_version
-        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      - name: Get normalized release version
+        run: |
+          # Extrae el nombre del tag o rama
+          RAW_VERSION=${GITHUB_REF##*/}
+          # Elimina la letra 'v' inicial si existe
+          CLEAN_VERSION=${RAW_VERSION#v}
+          echo "RELEASE_VERSION=$CLEAN_VERSION" >> $GITHUB_ENV
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
