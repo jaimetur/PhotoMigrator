@@ -46,37 +46,81 @@ SIDECAR_EXT                     = ['.xmp', '.json']
 def is_inside_docker():
     return os.path.exists("/.dockerenv") or os.environ.get("RUNNING_IN_DOCKER") == "1"
 
+
 def resolve_path(user_path):
     """
-    Converts a given user_path into a valid absolute path.
-    If running inside Docker and the path is an absolute Windows path (C:/...),
-    it raises an error to prevent mapping outside /data.
+    Converts user_path into a valid absolute path.
 
-    Example flows:
-    - ".\\folder" -> /data/folder
-    - "C:\\Absolute\\path" -> ValueError (in Docker)
+    Inside Docker:
+      - If user_path is an absolute Windows path, check if it's inside HOST_MOUNT_PATH.
+        If so, strip that prefix and map the remainder to /data.
+        If outside, raise ValueError.
+      - If user_path is a relative path, join it under /data.
+      - If user_path starts with /data, accept it as is.
+    Outside Docker:
+      - Return the absolute local path normally.
     """
-    # Ignore non-string or empty inputs
+
     if not isinstance(user_path, str) or user_path.strip() == "":
         return user_path
 
-    # Remove trailing/leading spaces
     path_clean = user_path.strip()
 
-    # Convert Windows backslashes to forward slashes
+    # Convert backslashes to forward slashes for consistency
     path_clean = path_clean.replace("\\", "/")
 
-    # Normalize path (handles "./", "../", etc.)
+    # Normalize (e.g. handle ./, ../)
     path_clean = os.path.normpath(path_clean)
 
-    # If running inside Docker, map the path under /data
     if is_inside_docker():
-        # Remove any leading slash to avoid double slashes (e.g., "//data")
-        path_clean = path_clean.lstrip("/")
-        # Join with /data and get the absolute path
-        return os.path.abspath(os.path.join("/data", path_clean))
+        host_mount = get_host_mount_path().replace("\\", "/").rstrip("/")
+        # If HOST_MOUNT_PATH is empty, we can't handle absolute Windows paths
+        # so any such path is invalid.
+
+        # Detect if the user_path ya es una ruta /data
+        if path_clean.startswith("/data"):
+            # The user gave a Docker-based absolute path, accept it
+            return os.path.abspath(path_clean)
+
+        # If path is absolute in a Unix sense (like /folder), but not /data → error
+        if path_clean.startswith("/"):
+            raise ValueError(
+                f"Absolute path '{user_path}' is outside /data in Docker. "
+                f"Please use a relative path or a path under /data."
+            )
+
+        drive, tail = os.path.splitdrive(path_clean)
+        # Check if there's a drive letter like 'C:'
+        if len(drive) == 2 and drive[1] == ":" and drive[0].isalpha():
+            if not host_mount:
+                raise ValueError(
+                    f"Cannot use absolute Windows path '{user_path}' because HOST_MOUNT_PATH is not defined."
+                )
+            # e.g. drive="C:", tail="/Temp_Unsync/Folder"
+            # Confirm it's inside host_mount
+            absolute_win_path = drive + tail  # "C:/Temp_Unsync/Folder"
+
+            # If the host_mount is "C:/Temp_Unsync", then absolute_win_path must start with that
+            # after normalization. For safety, let's ensure both are absolute and normalized.
+            absolute_win_path = os.path.normpath(absolute_win_path.lstrip("/"))
+            host_mount_norm = os.path.normpath(host_mount.lstrip("/"))
+
+            # Check if it starts with e.g. "C:/Temp_Unsync"
+            if not absolute_win_path.startswith(host_mount_norm):
+                raise ValueError(
+                    f"The path '{user_path}' is outside the mounted folder '{host_mount}'."
+                )
+            # Remove that prefix. E.g. if host_mount_norm="C:/Temp_Unsync"
+            # and absolute_win_path="C:/Temp_Unsync/Folder/Sub"
+            # remainder = "Folder/Sub"
+            remainder = absolute_win_path[len(host_mount_norm):].lstrip("/\\")
+            # Map remainder under /data
+            return os.path.abspath(os.path.join("/data", remainder))
+        else:
+            # If no drive letter, treat as relative to /data
+            return os.path.abspath(os.path.join("/data", path_clean.lstrip("/")))
     else:
-        # Outside Docker, return the absolute path on the local system
+        # Outside Docker: just return absolute local path
         return os.path.abspath(path_clean)
 
 
