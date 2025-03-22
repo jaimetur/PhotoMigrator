@@ -27,7 +27,7 @@ jobs:
         run: ls -R
 
       - name: Build Docker image
-        run: docker build -t jaimetur/cloudphotomigrator:latest -f docker/Dockerfile .
+        run: docker build -t jaimetur/cloudphotomigrator:latest .
 
       - name: Push Docker image
         run: docker push jaimetur/cloudphotomigrator:${{ env.RELEASE_VERSION }}
