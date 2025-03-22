@@ -19,5 +19,4 @@ __pycache__/
 # Workflows de GitHub
 .github/
 
-# Exclusión de los propios scripts de docker (no necesarios dentro del contenedor)
-docker/
+

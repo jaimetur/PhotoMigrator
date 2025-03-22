@@ -13,9 +13,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Get version from tag
-        id: get_version
-        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Determine version variables
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "release" ]]; then
+            TAG_VERSION="${{ github.event.release.tag_name }}"
+          else
+            TAG_VERSION="${GITHUB_REF##*/}"
+          fi      
+          # Elimina la 'v' inicial si existe
+          RELEASE_VERSION="${TAG_VERSION#v}"
+          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
+
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -24,7 +34,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t jaimetur/cloudphotomigrator:latest -f docker/Dockerfile .
+        run: docker build -t jaimetur/cloudphotomigrator:${{ env.RELEASE_VERSION }} -f docker/Dockerfile .
 
       - name: Push Docker image
         run: docker push jaimetur/cloudphotomigrator:${{ env.RELEASE_VERSION }}
@@ -40,9 +50,11 @@ jobs:
           zip -r CloudPhotoMigrator_v${{ env.RELEASE_VERSION }}_docker.zip CloudPhotoMigrator_Package
 
       - name: Upload release asset
+        if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
           files: |
             CloudPhotoMigrator_v${{ env.RELEASE_VERSION }}_docker.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
