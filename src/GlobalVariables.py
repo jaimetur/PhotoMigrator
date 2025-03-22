@@ -55,7 +55,7 @@ def set_LOGGER():
     global LOGGER, LOG_FOLDER_FILENAME
     script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     current_directory = os.getcwd()
-    log_folder="Logs"
+    log_folder = resolve_path("Logs")
     log_filename=f"{script_name}_{TIMESTAMP}"
     LOG_FOLDER_FILENAME = os.path.join(current_directory, log_folder, log_filename)
     LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=LOG_LEVEL_MIN, plain_log=False)
