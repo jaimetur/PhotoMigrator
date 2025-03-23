@@ -31,9 +31,16 @@ Example for Linux / MacOS:
   docker run -it --rm -v "$(pwd)":/docker jaimetur/cloudphotomigrator:latest --source=./MyTakeout --target=immich
   ```
 
-## 2. Run Docker from a Pre-built Shell Script:
+## 2. Run Docker from a Pre-built Shell Script (recommended):
 
-Follow the following steps:
+This is the recommended option, since it will download a small package that contains:
+- A shell script to run the docker container in a easier way
+- Default Configuration file (Config.ini)
+- Documentation folder
+- Help follder
+- docker.conf file to easilly select the docker container image that you want to run
+
+If you chose this option, just need to follow the next steps:
 
 ### 1. Download the ZIP package:
 
@@ -63,9 +70,9 @@ Download the latest version of the Docker package from the [Releases page](https
     cd CloudPhotoMigrator
     ```
 
-### 3. Edit the .env file (optional):   
+### 3. Edit the docker.conf file (optional):   
 
-If you want to pull a different container image (default: latest) you can change the .env file  
+If you want to pull a different release image (default: latest) you can change the .env file  
 
 ```
 # Set the RELEASE_TAG for the image that you want to pull
