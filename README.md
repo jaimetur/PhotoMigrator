@@ -81,7 +81,7 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 ## Execution Instructions:
 In the links below, you can find all the details to execute the Tool from 3 different alternatives:
 
-- [Execution from Compiled Binaries](/help/execution-from-binaries.md) (easier way)  
+- [Execution from Compiled Binaries](/help/execution/execution-from-binaries.md) (easier way)  
   - **Pros:** 
     - No need any knowledge.
   - **Cons:**
@@ -90,7 +90,7 @@ In the links below, you can find all the details to execute the Tool from 3 diff
     - Some Anti-virus could detect the Tool as susspicious in Windows Systems.
 
 
-- [Execution from Docker Container](/help/execution-from-docker.md) (recommended)   
+- [Execution from Docker Container](/help/execution/execution-from-docker.md) (recommended)   
   - **Pros:** 
     - Plattform and arquitecture independent.
     - Latest image is pulled automatically, so you will always run the latest version.
@@ -100,7 +100,7 @@ In the links below, you can find all the details to execute the Tool from 3 diff
     - All paths given as arguments must be relative to the execution folder.
 
 
-- [Execution from Source Repository](/help/execution-from-source.md) (more difficult)  
+- [Execution from Source Repository](/help/execution/execution-from-source.md) (more difficult)  
   - **Pros:** 
     - Plattform and arquitecture independent.
   - **Cons:**
