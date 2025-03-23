@@ -78,17 +78,16 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)
 
 
-## Execution Methods Comparison
-| Feature                                             | [Compiled Binaries](#) | [Docker Container](#) | [Source Repository](#) |
-|-----------------------------------------------------|-------------------------|------------------------|-------------------------|
-| Technical knowledge required                        | ★☆☆☆☆                  | ★★★☆☆                 | ★★★★★                  |
-| Platform and architecture independence              | ★☆☆☆☆                  | ★★★★★                 | ★★★★★                  |
-| Ease of updating to new release                     | ★☆☆☆☆                  | ★★★★★                 | ★★☆☆☆                  |
-| Command line knowledge required                     | ★★☆☆☆                  | ★★★★☆                 | ★★★★★                  |
-| Requires additional tools/software                  | ★★★☆☆                  | ★★☆☆☆                 | ★★☆☆☆                  |
-| Allow paths arguments point outside execution folder| ★★★★★                  | ★☆☆☆☆                 | ★★★★★                  |
-| Antivirus alert risk (especially on Windows)        | ★★☆☆☆                  | ★★★★★                 | ★★★★★                  |
-
+# Execution Methods Comparison
+| Feature                                              | [Compiled Binaries](#)<br>*easier way* | [Docker Container](#)<br>*recommended* | [Source Repository](#)<br>*more difficult* |
+|------------------------------------------------------|----------------------------------------|----------------------------------------|---------------------------------------------|
+| Technical knowledge required                         | ★☆☆☆☆                                 | ★★★☆☆                                 | ★★★★★                                      |
+| Platform and architecture independence               | ★☆☆☆☆                                 | ★★★★★                                 | ★★★★★                                      |
+| Ease of updating to new release                      | ★☆☆☆☆                                 | ★★★★★                                 | ★★☆☆☆                                      |
+| Command line knowledge required                      | ★★☆☆☆                                 | ★★★★☆                                 | ★★★★★                                      |
+| Requires additional tools/software                   | ★★★☆☆                                 | ★★☆☆☆                                 | ★★☆☆☆                                      |
+| Allow paths arguments point outside execution folder | ★★★★★                                 | ★☆☆☆☆                                 | ★★★★★                                      |
+| Antivirus alert risk (especially on Windows)         | ★★☆☆☆                                 | ★★★★★                                 | ★★★★★                                      |
 
 ## Execution Methods Comparison
 | Execution Method                                                               | Difficulty         | Pros                                                                                                                                                                     | Cons                                                                                                                                                                           |
