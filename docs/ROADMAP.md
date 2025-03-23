@@ -24,6 +24,8 @@
 - [x] Added new Class ClassLocalFolder with the same methods as other supported Cloud Services Classes to manage Local Folders in the same way as a Photo Cloud Service.
 - [x] ClassTakeoutFolder inherits all methods from ClassLocalFolder and includes specific methods to process Google Takeouts since at the end Google Takeout is a local folder structure.
 - [x] Updated GPTH version to cop latest changes in Google Takeouts. 
+- [x] Documentation completelly re-written and structured in different filels
+- [x] Documentation is now included as part oof the distribution packages.
 - [x] Bug Fixing.
 
 - [x] Tests Pending:
