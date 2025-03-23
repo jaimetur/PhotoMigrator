@@ -4,9 +4,9 @@
 > ### ✅ Prerequisites:
 > - Docker need to be installed & running in your system.
 > - To install and run Docker (if it is not installed yet), you can follow the next instructions:  
->     - [Install Docker on Windows](/help/docker-install/docker-install-windows.md)  
->     - [Install Docker on Linux](/help/docker-install/docker-install-linux.md)  
->     - [Install Docker on MacOS](/help/docker-install/docker-install-macos.md)  
+>     - [Install Docker on Windows](/help/install-docker/install-docker-windows.md)  
+>     - [Install Docker on Linux](/help/install-docker/install-docker-linux.md)  
+>     - [Install Docker on MacOS](/help/install-docker/install-docker-macos.md)  
 
 
 Once you have Docker installed and running on your system, you have twoo options to run the Tool from a Docker Container Image:

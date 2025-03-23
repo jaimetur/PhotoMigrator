@@ -3,8 +3,8 @@
 > [!IMPORTANT]  
 > ### ✅ Prerequisites:
 > - You have to make sure that you have the following tools instaled on your system:
->   - Python 3.8 or higher
->   - Git
+>   - Python 3.8 or higher - [Install Instructions](/help/install-python/install-python.md)
+>   - Git - [Install Instructions](/help/install-git/install-git)
 
 Here are simple instructions to clone the GitHub repository, create a Python virtual environment, install dependencies, and run the main script.  
 
@@ -49,7 +49,7 @@ Find below the needed steps:
 
 Open `Config.ini` in any text editor and update it with your credentials and settings.
 
-> For more information, refer to [Configuration File](/help/0-configuration-file.md) .
+> For more information, refer to [Configuration File](/help/0-configuration-file.md).
 
 
 ### 7. Run the Tool to show the command line help:
