@@ -14,7 +14,7 @@ Once you have Docker installed and running on your system, you have twoo options
 
 ### 1.1. First Pull the image for the desired release:
   ```bash
-  docker pull "jaimetur/cloudphotomigrator:[RELEASE_TAG]"
+  docker pull jaimetur/cloudphotomigrator:[RELEASE_TAG]
   ```
 
 #### Where,
@@ -23,11 +23,11 @@ Once you have Docker installed and running on your system, you have twoo options
 #### Example:
   - For latest release:
     ```bash
-    docker pull "jaimetur/cloudphotomigrator:latest
+    docker pull jaimetur/cloudphotomigrator:latest
     ```
   - For specific release.
     ```
-    docker pull "jaimetur/cloudphotomigrator:3.1.0
+    docker pull jaimetur/cloudphotomigrator:3.1.0
     ```
 
 
