@@ -2,24 +2,24 @@
 Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
 
 **Linux:**:  
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta1/CloudPhotoMigrator_v3.1.0-beta1_linux_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta1/CloudPhotoMigrator_v3.1.0-beta1_linux_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta2/CloudPhotoMigrator_v3.1.0-beta2_linux_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta2/CloudPhotoMigrator_v3.1.0-beta2_linux_arm64.zip)  
 
 **Mac OS:**
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta1/CloudPhotoMigrator_v3.1.0-beta1_macos_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta1/CloudPhotoMigrator_v3.1.0-beta1_macos_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta2/CloudPhotoMigrator_v3.1.0-beta2_macos_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta2/CloudPhotoMigrator_v3.1.0-beta2_macos_arm64.zip)  
 
 **Windows:**  
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta1/CloudPhotoMigrator_v3.1.0-beta1_windows_amd64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta2/CloudPhotoMigrator_v3.1.0-beta2_windows_amd64.zip)  
 
 **Docker Launcher:**  
-  - [Download Docker Launcher](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta1/CloudPhotoMigrator_v3.1.0-beta1_docker.zip)  
+  - [Download Docker Launcher](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta2/CloudPhotoMigrator_v3.1.0-beta2_docker.zip)  
 
 ---
 
 ## Release Notes:
 
-**Release**: v3.1.0-beta1  
+**Release**: v3.1.0-beta2  
 **Release Date**: (estimated)
   - Alpha version.   : 2025-03-14
   - Beta version     : 2025-03-21
