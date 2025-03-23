@@ -112,8 +112,8 @@ Download the latest version of the Docker package from the [Releases page](https
 If you want to pull a different release image (default: latest) you can change the .env file  
 
 ```
-# Set the RELEASE_TAG for the image that you want to pull
-RELEASE_TAG=latest
+RELEASE_TAG=latest      # Set the RELEASE_TAG for the image that you want to pull
+TZ=Europe/Madrid        # Set the Time Zone for the Docker container
 ```
 
 
