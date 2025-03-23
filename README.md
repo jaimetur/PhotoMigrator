@@ -196,7 +196,7 @@ You can check the whole list of functions and arguments with the right syntax he
 - [x] ClassTakeoutFolder inherits all methods from ClassLocalFolder and includes specific methods to process Google Takeouts since at the end Google Takeout is a local folder structure.
 - [x] Updated GPTH version to cop latest changes in Google Takeouts. 
 - [x] Documentation completelly re-written and structured in different filels
-- [x] Documentation is now included as part oof the distribution packages.
+- [x] Documentation is now included as part of the distribution packages.
 - [x] Bug Fixing.
 
 - [x] Tests Pending:
