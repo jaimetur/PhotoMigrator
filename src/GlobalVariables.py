@@ -3,6 +3,7 @@ from datetime import datetime
 import textwrap
 import os,sys
 import logging
+import posixpath
 
 #---------------------------------------
 # GLOBAL VARIABLES FOR THE WHOLE PROJECT
@@ -51,49 +52,68 @@ def resolve_path(user_path):
     Converts a user_path into a valid absolute path.
 
     Inside Docker:
-      - If the path has a Windows drive letter (e.g., C:), raise an error.
+      - If the path has a Windows drive letter (e.g. C:), raise an error.
       - If it's an absolute path and doesn't start with /docker, raise an error.
-      - If it's relative, map it under /docker.
       - If it's absolute and starts with /docker, accept it as is.
+      - If it's relative, join it under /docker, then normalize. If the result
+        escapes /docker (e.g. /docker/../somefolder => /somefolder), raise an error.
     Outside Docker:
-      - Return the absolute path normally (e.g., C:/ for Windows, /home for Linux).
+      - Return the absolute path normally.
     """
 
-    # Skip non-string or empty inputs
+    # 1) Skip non-string or empty inputs
     if not isinstance(user_path, str) or user_path.strip() == "":
         return user_path
 
-    # Remove extra spaces and convert backslashes to forward slashes
+    # 2) Clean up the string and unify slashes
     path_clean = user_path.strip().replace("\\", "/")
 
-    # Normalize (handles . , .. , etc.)
-    path_clean = os.path.normpath(path_clean)
+    # 3) Normalize (handles ".", "..", etc.)
+    path_clean = posixpath.normpath(path_clean)
 
-    # Split any Windows drive letter, e.g. "C:/stuff" => drive="C:", tail="/stuff"
+    # 4) Split any Windows drive letter (e.g. "C:/stuff" => drive="C:", tail="/stuff")
     drive, tail = os.path.splitdrive(path_clean)
 
     if is_inside_docker():
-        # 1) If there's a Windows drive letter (e.g., "C:"), raise an error
+        # (a) If there's a Windows drive letter, raise an error
         if len(drive) == 2 and drive[1] == ":" and drive[0].isalpha():
             raise ValueError(
-                f"Cannot use a Windows drive letter '{drive}' inside Docker. "
-                "Please provide a path under /docker or a relative path."
+                f"Cannot use paths with a Windows drive letter '{drive}' inside Docker."
+                f"\nWrong Path detected: {user_path}"
+                f"\nPlease provide a path under /docker or under the execution folder."
             )
 
-        # 2) Check if path is absolute in a Unix sense
-        if os.path.isabs(path_clean):
-            # If it's an absolute path and does not start with /docker, raise an error
+        # (b) Check if path is absolute in a Unix sense
+        if path_clean.startswith("/"):
+            # Must start with "/docker" or raise an error
             if not path_clean.startswith("/docker"):
                 raise ValueError(
-                    f"Absolute path '{path_clean}' is outside Docker foder '/docker'. "
-                    "Please provide a relative path or a /docker-based path."
+                    f"Absolute path '{path_clean}' is outside the '/docker' folder."
+                    f"\nPlease provide a path under /docker or under the execution folder."
                 )
-            # Otherwise, accept it as is (absolute under /docker)
-            return os.path.abspath(path_clean)
+            # Accept as is, but let's posix-normalize again
+            final_path = posixpath.normpath(path_clean)
+            # Check if it still starts with /docker after possible ../
+            if not final_path.startswith("/docker"):
+                raise ValueError(
+                    f"Path '{user_path}' escapes from '/docker' after normalization."
+                    f"\nResult: '{final_path}'"
+                    f"\nPlease provide a path under /docker or under the execution folder."
+                )
+            return final_path
         else:
-            # 3) If it's relative, map it under /docker
-            final_path = os.path.join("/docker", path_clean.lstrip("/"))
-            return os.path.abspath(final_path)
+            # (c) If it's relative, join it under /docker and then normalize again
+            joined_path = posixpath.join("/docker", path_clean.lstrip("/"))
+            final_path = posixpath.normpath(joined_path)
+            # If after normalization it no longer starts with /docker, that means
+            # we used '..' to escape the /docker directory => raise an error
+            if not final_path.startswith("/docker"):
+                raise ValueError(
+                    f"Relative path '{user_path}' escapes from '/docker' after normalization.\n"
+                    f"Resulting path: '{final_path}'\n"
+                    "Please do not use '..' to go outside /docker."
+                )
+            return final_path
     else:
         # Outside Docker, return absolute path on the local system
         return os.path.abspath(path_clean)
