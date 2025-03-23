@@ -116,7 +116,7 @@ Youn can see how to configure the Config.ini file in this help section:
 
 ## Command Line Syntax:
 You can check the whole list of functions and arguments with the right syntax here:
-[Command Line Syntax](help/1-command-line-syntax)
+[Command Line Syntax](help/1-command-line-syntax.md)
 
 
 ## All Documentation Links:
