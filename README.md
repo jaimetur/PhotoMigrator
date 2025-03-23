@@ -94,6 +94,7 @@ In the links below, you can find all the details to execute the Tool from 3 diff
   - **Pros:** 
     - Plattform and arquitecture independent.
     - Latest image is pulled automatically, so you will always run the latest version.
+    - You can easily configure RELEASE_TAG and TIMEZONE with a docker.config file.
   - **Cons:**
     - Need basic knowledge of running command line instructions.
     - Need to install Docker (if your system does not include it).

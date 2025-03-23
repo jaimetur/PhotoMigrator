@@ -34,36 +34,37 @@ Once you have Docker installed and running on your system, you have twoo options
 ### 1.2. Execute the pulled image with docker:
 - For Linux / MacOS: 
   ```bash
-  docker run -it --rm -v "$(pwd)":/docker jaimetur/cloudphotomigrator:[RELEASE_TAG] [OPTIONS]
+  docker run -it --rm -v "$(pwd)":/docker -e TZ=[TIMEZONE] jaimetur/cloudphotomigrator:[RELEASE_TAG] [OPTIONS]
   ```
 - For Windows (PowerShell): 
   ```bash
-  docker run -it --rm -v "${PWD}:/docker" jaimetur/cloudphotomigrator:[RELEASE_TAG] [OPTIONS]
+  docker run -it --rm -v "${PWD}:/docker" -e TZ=[TIMEZONE] jaimetur/cloudphotomigrator:[RELEASE_TAG] [OPTIONS]
   ```
 - For Windows (Command Prompt): 
   ```bash
-  docker run -it --rm -v "%cd%":/docker jaimetur/cloudphotomigrator:[RELEASE_TAG] [OPTIONS]
+  docker run -it --rm -v "%cd%":/docker -e TZ=[TIMEZONE] jaimetur/cloudphotomigrator:[RELEASE_TAG] [OPTIONS]
   ```
 
 #### Where,
+  - **[TIMEZONE]** is the Time Zone that you want to use. (i.e: Europe/Madrid)
   - **[RELEASE_TAG]** is the Tag of the release that you want to execute.
-  - **[OPTIONS]** are the arguments that you want to pass to the Tool (i.e: -h)
+  - **[OPTIONS]** are the arguments that you want to pass to the Tool. (i.e: -h)
 
 #### Example for Linux / MacOS:
   - Execute the Tool to show the command line help:
     ```bash
-    docker run -it --rm -v "$(pwd)":/docker jaimetur/cloudphotomigrator:latest -h
+    docker run -it --rm -v "$(pwd)":/docker -e TZ=Europe/Madrid jaimetur/cloudphotomigrator:latest -h
     ```
   - Execute the Tool to do an Automated Migration:
     ```bash
-    docker run -it --rm -v "$(pwd)":/docker jaimetur/cloudphotomigrator:latest --source=./MyTakeout --target=immich-photos
+    docker run -it --rm -v "$(pwd)":/docker -e TZ=Europe/Madrid jaimetur/cloudphotomigrator:latest --source=./MyTakeout --target=immich-photos
     ```
 
 > [!IMPORTANT]
 > - If your system requires elevation to run docker commands, you have to call it using 'sudo' and enter admin password.
 > - Example:
 >   ```bash
->   sudo docker run -it --rm -v "$(pwd)":/docker jaimetur/cloudphotomigrator:latest -h
+>   sudo docker run -it --rm -v "$(pwd)":/docker -e TZ=Europe/Madrid jaimetur/cloudphotomigrator:latest -h
 >   ```
 
 ## 2. Run Docker from a Pre-built Shell Script (recommended):
