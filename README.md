@@ -81,6 +81,17 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 ## Execution Instructions:
 In the links below, you can find all the details to execute the Tool from 3 different alternatives:
 
+| Execution Method                       | Difficulty     | Pros                                                                 | Cons                                                                                         |
+|----------------------------------------|----------------|----------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| **Compiled Binaries**                 | 🟢 *Easier way* | ✅ No need any knowledge.                                             | ❌ Platform and architecture dependent.                                                      |
+|                                        |                |                                                                      | ❌ Need basic knowledge of running command line instructions.                                |
+|                                        |                |                                                                      | ❌ Some anti-virus may detect the tool as suspicious in Windows systems.                     |
+| **Docker Container**                  | ⭐ *Recommended*| ✅ Platform and architecture independent.                             | ❌ Need basic knowledge of running command line instructions.                                |
+|                                        |                | ✅ Easy configuration via `docker.config` file (RELEASE_TAG, TIMEZONE).| ❌ Need to install Docker (if not already installed).                                        |
+|                                        |                | ✅ Automatically pulls latest image if `RELEASE_TAG=latest`.          | ❌ All paths given as arguments must be relative to the execution folder.                    |
+| **Source Repository**                 | 🔴 *More difficult*| ✅ Platform and architecture independent.                             | ❌ Need basic knowledge of running command line instructions.                                |
+|                                        |                |                                                                      | ❌ Need to install Git and Python 3.8+ (if not already installed).                           |
+
 - [Execution from Compiled Binaries](/help/execution/execution-from-binaries.md) (easier way)  
   - **Pros:** 
     - No need any knowledge.
