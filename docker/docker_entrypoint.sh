@@ -7,7 +7,7 @@ CONFIG_FILE="/docker/Config.ini"
 DEFAULT_CONFIG="/app/default_config.ini"
 
 # To enter in interective shell moode we can call this from Shell:
-# docker run -it --rm -v "${PWD}:/docker" jaimetur/cloudphotomigrator:latest bash
+# docker run -it --rm -v "${PWD}:/docker" -e TZ=Europe/Madrid jaimetur/cloudphotomigrator:latest bash
 if [[ "$1" == "bash" ]]; then
     echo "🔧 Entering interactive shell..."
     exec /bin/bash

@@ -93,8 +93,8 @@ In the links below, you can find all the details to execute the Tool from 3 diff
 - [Execution from Docker Container](/help/execution/execution-from-docker.md) (recommended)   
   - **Pros:** 
     - Plattform and arquitecture independent.
-    - Latest image is pulled automatically, so you will always run the latest version.
     - You can easily configure RELEASE_TAG and TIMEZONE with a docker.config file.
+    - Latest image is pulled automatically if you use RELEASE_TAG=latest, so you will always run the latest version.
   - **Cons:**
     - Need basic knowledge of running command line instructions.
     - Need to install Docker (if your system does not include it).
