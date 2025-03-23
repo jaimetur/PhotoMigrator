@@ -115,7 +115,7 @@ If you want to pull a different release image (default: latest) you can change t
 # Configuration file for the Docker container
 
 RELEASE_TAG=latest      # Set the RELEASE_TAG for the image that you want to pull and launch in Docker container
-TZ=Europe/Madrid        # Set the Time Zone for the Docker container
+TZ=Europe/Madrid        # Set the Time Zone for the Docker container (Important to see correct Timestamps in Logs and files/folder suffix)
 ```
 
 

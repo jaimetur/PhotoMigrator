@@ -7,17 +7,21 @@ set "TZ=UTC"
 
 REM Load variables from docker.conf file if it exists
 if exist "docker.conf" (
-    for /f "usebackq tokens=1,* delims==" %%A in ("docker.conf") do (
-        if /i "%%A"=="RELEASE_TAG" (
-            REM El segundo token %%B puede contener inline comments. Ej: Europe/Madrid # comentario
-            for /f "usebackq tokens=1 delims=#" %%X in ("%%B") do (
-                set "RELEASE_TAG=%%~X"
-            )
-        ) else if /i "%%A"=="TZ" (
-            REM Lo mismo para TZ
-            for /f "usebackq tokens=1 delims=#" %%X in ("%%B") do (
-                set "TZ=%%~X"
-            )
+    for /f "tokens=1,* delims==" %%A in (docker.conf) do (
+        set "key=%%A"
+        set "value=%%B"
+        REM Remove inline comments (anything after #)
+        for /f "tokens=1 delims=#" %%C in ("!value!") do (
+            set "cleaned=%%C"
+        )
+        REM Remove any extra spaces
+        for /f "tokens=* delims= " %%D in ("!cleaned!") do (
+            set "final=%%D"
+        )
+        if /i "!key!"=="RELEASE_TAG" (
+            set "RELEASE_TAG=!final!"
+        ) else if /i "!key!"=="TZ" (
+            set "TZ=!final!"
         )
     )
 )
@@ -32,7 +36,7 @@ set CURRENT_DIR=%cd%
 echo 🐳 Pulling Docker image: jaimetur/cloudphotomigrator:%RELEASE_TAG%
 docker pull jaimetur/cloudphotomigrator:%RELEASE_TAG%
 
-echo 🚀 Launching container with tag: %RELEASE_TAG%
+echo 🚀 Launching container with tag:%RELEASE_TAG% and TZ=%TZ%...
 docker run -it --rm ^
   -v "%CURRENT_DIR%":/docker ^
   -e TZ=%TZ% ^
