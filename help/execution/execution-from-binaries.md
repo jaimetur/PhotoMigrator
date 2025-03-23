@@ -1,4 +1,4 @@
-# Execution from Compiled Binaries: \(easier way)
+# Execution from Compiled Binaries: \(easiest way)
 
 ### 1. You can copy and unzip the downloaded compiled tool into any local folder or to any Shared folder of your server or Synology NAS.
 

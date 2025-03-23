@@ -81,7 +81,7 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 ## Execution Instructions:
 In the links below, you can find all the details to execute the Tool from 3 different alternatives:
 
-- [Execution from Compiled Binaries](/help/execution/execution-from-binaries.md) (easier way)  
+- [Execution from Compiled Binaries](/help/execution/execution-from-binaries.md) (easiest way)  
   - **Pros:** 
     - No need any knowledge.
   - **Cons:**
