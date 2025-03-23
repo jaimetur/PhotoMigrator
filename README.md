@@ -81,15 +81,26 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 ## Execution Instructions:
 In the links below, you can find all the details to execute the Tool from 3 different alternatives:
 
+# Execution Methods Comparison (Transposed)
+
+| Feature                                             | [Compiled Binaries](#) | [Docker Container](#) | [Source Repository](#) |
+|-----------------------------------------------------|-------------------------|------------------------|-------------------------|
+| Technical knowledge required                        | ★☆☆☆☆                  | ★★★☆☆                 | ★★★★★                  |
+| Platform and architecture independence              | ★☆☆☆☆                  | ★★★★★                 | ★★★★★                  |
+| Ease of updating to new release                     | ★☆☆☆☆                  | ★★★★★                 | ★★☆☆☆                  |
+| Command line knowledge required                     | ★★☆☆☆                  | ★★★★☆                 | ★★★★★                  |
+| Requires additional tools/software                  | ★★★☆☆                  | ★★☆☆☆                 | ★★☆☆☆                  |
+| Allow paths arguments point outside execution folder| ★★★★★                  | ★☆☆☆☆                 | ★★★★★                  |
+| Antivirus alert risk (especially on Windows)        | ★★☆☆☆                  | ★★★★★                 | ★★★★★                  |
+
+
 # Execution Methods Comparison
 
 | Execution Method                                                               | Difficulty         | Pros                                                                                                                                                                     | Cons                                                                                                                                                                           |
 |--------------------------------------------------------------------------------|--------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **[Compiled Binaries](#)**                                                     | 🟢 *Easier way*    | ✅ No need any knowledge.                                                                                                                                               | ❌ Platform and architecture dependent.<br><br>❌ Need basic knowledge of running command line instructions.<br><br>❌ Some anti-virus may detect the tool as suspicious in Windows systems.  |
-| **[Docker Container](#)**                                                      | ⭐ *Recommended*    | ✅ Platform and architecture independent.<br><br>✅ Easy configuration via `docker.config` file (RELEASE_TAG, TIMEZONE).<br><br>✅ Automatically pulls latest image if `RELEASE_TAG=latest`. | ❌ Need basic knowledge of running command line instructions.<br><br>❌ Need to install Docker (if not already installed).<br><br>❌ All paths given as arguments must be relative to the execution folder. |
-| **[Source Repository](#)**                                                     | 🔴 *More difficult*| ✅ Platform and architecture independent.                                                                                                                                | ❌ Need basic knowledge of running command line instructions.<br><br>❌ Need to install Git and Python 3.8+ (if not already installed).                                               |
-
-
+| **[Compiled Binaries](#)** *(easier way)*                                      | 🟢 *Easier way*    | ✅ No need any knowledge.                                                                                                                                                | ❌ Platform and architecture dependent.<br>❌ Need basic knowledge of running command line instructions.<br>❌ Some anti-virus may detect the tool as suspicious in Windows systems.  |
+| **[Docker Container](#)** *(recommended)*                                      | ⭐ *Recommended*    | ✅ Platform and architecture independent.<br>✅ Easy configuration via `docker.config` file (RELEASE_TAG, TIMEZONE).<br>✅ Automatically pulls latest image if `RELEASE_TAG=latest`. | ❌ Need basic knowledge of running command line instructions.<br>❌ Need to install Docker (if not already installed).<br>❌ All paths given as arguments must be relative to the execution folder. |
+| **[Source Repository](#)** *(more difficult)*                                  | 🔴 *More difficult*| ✅ Platform and architecture independent.                                                                                                                                | ❌ Need basic knowledge of running command line instructions.<br>❌ Need to install Git and Python 3.8+ (if not already installed).                                               |
 | Execution Method                       | Difficulty     | Pros                                                                 | Cons                                                                                         |
 |----------------------------------------|----------------|----------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
 | **Compiled Binaries**                 | 🟢 *Easier way* | ✅ No need any knowledge.                                             | ❌ Platform and architecture dependent.                                                      |
