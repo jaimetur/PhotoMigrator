@@ -61,8 +61,6 @@ Once you have Docker installed and running on your system, you have twoo options
 
 > [!IMPORTANT]
 > - If your system requires elevation to run docker commands, you have to call it using 'sudo' and enter admin password.
->
->
 > - Example:
 >   ```bash
 >   sudo docker run -it --rm -v "$(pwd)":/docker jaimetur/cloudphotomigrator:latest -h
@@ -88,7 +86,7 @@ Download the latest version of the Docker package from the [Releases page](https
     curl -L -o CloudPhotoMigrator_v3.1.0-beta2_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta2/CloudPhotoMigrator_v3.1.0-beta2_docker.zip
     ```
   
-- **Windows (Command Prompt):**
+- **Windows (PoowerShell):**
     ```bash
     curl.exe -L -o CloudPhotoMigrator_v3.1.0-beta2_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta2/CloudPhotoMigrator_v3.1.0-beta2_docker.zip
     ```
@@ -101,7 +99,7 @@ Download the latest version of the Docker package from the [Releases page](https
     cd CloudPhotoMigrator
     ```
 
-- **Windows (Command Prompt):**
+- **Windows (PoowerShell):**
     ```bash
     powershell -Command "Expand-Archive -Path CloudPhotoMigrator_v3.1.0-beta2_docker.zip -DestinationPath CloudPhotoMigrator"
     cd CloudPhotoMigrator
@@ -131,16 +129,12 @@ Make sure Docker is running, then:
 - **Linux / MacOS:**
     ```bash
     ./CloudPhotoMigrator.sh [OPTIONS]
-    ```
-  or, if your system requires elevation to execute docker:
-    ```bash
-    sudo ./CloudPhotoMigrator.sh [OPTIONS]
-    ```
-
+    ``` 
 - **Windows (Command Prompt):**
     ```bash
     CloudPhotoMigrator.bat [OPTIONS]
     ```
+
 #### Where,
   - **[OPTIONS]** are the arguments that you want to pass to the Tool (i.e: -h)
  
@@ -160,8 +154,6 @@ Make sure Docker is running, then:
 
 > [!IMPORTANT]
 > - If your system requires elevation to run docker commands, you have to call it using 'sudo' and enter admin password.
->
->
 > - Example:
 >   ```bash
 >   sudo ./CloudPhotoMigrator.sh -h
