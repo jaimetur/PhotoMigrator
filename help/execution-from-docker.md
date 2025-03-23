@@ -71,11 +71,11 @@ Once you have Docker installed and running on your system, you have twoo options
 ## 2. Run Docker from a Pre-built Shell Script (recommended):
 
 This is the recommended option, since it will download a small package that contains:
-- A shell script to run the docker container in a easier way
-- Default Configuration file (Config.ini)
-- Documentation folder
-- Help folder
-- docker.conf file to easilly select the docker container image that you want to run
+- A shell script to run the docker container in an easier way.
+- Documentation folder.
+- Help folder.
+- Default Configuration file (Config.ini).
+- docker.conf file to easilly select the docker container image that you want to run.
 
 If you chose this option, just need to follow the next steps:
 
