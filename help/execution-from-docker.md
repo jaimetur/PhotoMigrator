@@ -91,6 +91,7 @@ Download the latest version of the Docker package from the [Releases page](https
     curl.exe -L -o CloudPhotoMigrator_v3.1.0-beta2_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta2/CloudPhotoMigrator_v3.1.0-beta2_docker.zip
     ```
 
+
 ### 2.2. Unzip the downloaded package:
 
 - **Linux/macOS:**
@@ -104,6 +105,7 @@ Download the latest version of the Docker package from the [Releases page](https
     powershell -Command "Expand-Archive -Path CloudPhotoMigrator_v3.1.0-beta2_docker.zip -DestinationPath CloudPhotoMigrator"
     cd CloudPhotoMigrator
     ```
+
 
 ### 2.3. Edit the docker.conf file (optional):   
 
