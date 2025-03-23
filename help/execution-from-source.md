@@ -2,7 +2,9 @@
 
 > [!IMPORTANT]  
 > ### ✅ Prerequisites:
-> You have to make sure that you have Python 8 or higher on your system before to do the following steps.
+> - You have to make sure that you have the following tools instaled on your system:
+>   - Python 3.8 or higher
+>   - Git
 
 Here are simple instructions to clone the GitHub repository, create a Python virtual environment, install dependencies, and run the main script.  
 

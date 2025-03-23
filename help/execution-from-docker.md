@@ -2,7 +2,8 @@
 
 > [!IMPORTANT] 
 > ### ✅ Prerequisites:
-> - Install Docker in your system (if it is not installed yet) and run it.  You can find instructions of how to install Docker in the following links:  
+> - Docker need to be installed & running in your system.
+> - To install and run Docker (if it is not installed yet), you can follow the next instructions:  
 >     - [Install Docker on Windows](/help/install-docker-windows.md)  
 >     - [Install Docker on Linux](/help/install-docker-linux.md)  
 >     - [Install Docker on MacOS](/help/install-docker-macos.md)  
