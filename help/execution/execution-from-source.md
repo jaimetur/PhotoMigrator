@@ -1,4 +1,4 @@
-# Instructions to execute from Source Repository:
+# Execution from Source Repository:
 
 > [!IMPORTANT]  
 > ### ✅ Prerequisites:

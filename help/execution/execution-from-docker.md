@@ -1,4 +1,4 @@
-# Instructions to execute from Docker Container: \(recommended)
+# Execution from Docker Container: \(recommended)
 
 > [!IMPORTANT] 
 > ### ✅ Prerequisites:
