@@ -14,7 +14,8 @@ on:
       #- _src_versions/**
       #- _buildt_versions/**
       #- .github/**
-#  schedule:               # Ejecución diaria a las 2 AM UTC
+#  schedule:
+# Ejecución diaria a las 2 AM UTC
 #    - cron: '0 2 * * *'
 
 jobs:
@@ -168,15 +169,15 @@ jobs:
       - name: Prepare unified ZIP docker package
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         run: |
-          mkdir CloudPhotoMigrator_Docker
-          cp docker/CloudPhotoMigrator.sh CloudPhotoMigrator_Docker/
-          cp docker/CloudPhotoMigrator.bat CloudPhotoMigrator_Docker/
-          cp docker/docker.conf CloudPhotoMigrator_Docker/
-          cp Config.ini CloudPhotoMigrator_Docker/
-          cp -r docs CloudPhotoMigrator_Docker/
-          cp -r help CloudPhotoMigrator_Docker/
-          cp README.md CloudPhotoMigrator_Docker/docs/README.md
-          zip -r CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip CloudPhotoMigrator_Docker
+          mkdir -p CloudPhotoMigrator/docker
+          cp docker/CloudPhotoMigrator.sh CloudPhotoMigrator/docker/
+          cp docker/CloudPhotoMigrator.bat CloudPhotoMigrator/docker/
+          cp docker/docker.conf CloudPhotoMigrator/docker/
+          cp Config.ini CloudPhotoMigrator/docker/
+          cp -r docs CloudPhotoMigrator/docker/
+          cp -r help CloudPhotoMigrator/docker/
+          cp README.md CloudPhotoMigrator/docker/docs/README.md
+          zip -r CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip CloudPhotoMigrator
 
       - name: Upload release asset
         uses: softprops/action-gh-release@v2
