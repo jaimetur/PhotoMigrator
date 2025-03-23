@@ -107,17 +107,19 @@ Download the latest version of the Docker package from the [Releases page](https
     ```
 
 
-### 2.3. Edit the docker.conf file (optional):   
+### 2.3. Edit Docker Configuration file:   
 
-If you want to pull a different release image (default: latest) you can change the .env file  
+If you want to pull a different release image (default: latest) you can change the file 'docker.conf'.  
 
 ```
-RELEASE_TAG=latest      # Set the RELEASE_TAG for the image that you want to pull
+# Configuration file for the Docker container
+
+RELEASE_TAG=latest      # Set the RELEASE_TAG for the image that you want to pull and launch in Docker container
 TZ=Europe/Madrid        # Set the Time Zone for the Docker container
 ```
 
 
-### 2.4. Edit the configuration file:
+### 2.4. Edit Tool Configuration file:
 
 Open `Config.ini` in any text editor and update it with your credentials and settings.
 
