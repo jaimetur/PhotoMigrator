@@ -240,7 +240,9 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS["show-gpth-progress"], capture_errors=ARGS["show-gpth-errors"], log_level=log_level)
 
         # Count files in Takeout Folder
-        initial_takeout_total_files = Utils.count_files_in_folder(input_folder)
+        if need_unzip:
+            input_folder = f"{input_folder}_unzipped_{TIMESTAMP}"
+        # initial_takeout_total_files = Utils.count_files_in_folder(input_folder)
         initial_takeout_total_images = Utils.count_images_in_folder(input_folder)
         initial_takeout_total_videos = Utils.count_videos_in_folder(input_folder)
         initial_takeout_total_sidecars = Utils.count_sidecars_in_folder(input_folder)
@@ -268,14 +270,15 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("=====================================================")
         LOGGER.info("                    FINAL SUMMARY:                   ")
         LOGGER.info("=====================================================")
-        LOGGER.info(f"Total Supported files in Takeout folder     : {initial_takeout_numfiles}")
+        LOGGER.info(f"Total Files files in Takeout folder         : {initial_takeout_numfiles}")
+        LOGGER.info(f"Total Supported files in Takeout folder     : {initial_takeout_total_supported_files}")
         LOGGER.info(f"   - Total Images in Takeout folder         : {initial_takeout_total_images}")
         LOGGER.info(f"   - Total Videos in Takeout folder         : {initial_takeout_total_videos}")
         LOGGER.info(f"   - Total Sidecars in Takeout folder       : {initial_takeout_total_sidecars}")
         LOGGER.info(f"   - Total Metadata in Takeout folder       : {initial_takeout_total_metadata}")
         LOGGER.info(f"Total Non-Supported files in Takeout folder : {initial_takeout_numfiles-initial_takeout_total_supported_files}")
         LOGGER.info("")
-        LOGGER.info(f"Total final files in Output folder          : {total_files}")
+        LOGGER.info(f"Total Files in Output folder                : {total_files}")
         LOGGER.info(f"Total Supported files in Output folder      : {total_supported_files}")
         LOGGER.info(f"   - Total Images in Output folder          : {total_images}")
         LOGGER.info(f"   - Total Videos in Output folder          : {total_videos}")
