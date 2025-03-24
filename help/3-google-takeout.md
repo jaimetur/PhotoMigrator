@@ -18,7 +18,9 @@
 
 - Where, <INPUT_TAKEOUT_FOLDER> is the folder that content the Google Takeout to process (if the Takeout is in Zip files, it will be extracted first into folder '<INPUT_TAKEOUT_FOLDER>_extracted'.  
 
-- The Takeout Processing can be configured with different settings, depoending on the flags used during the call to the Tool.  
+- The Takeout Processing can be configured qith different settings, depoending on the flags used during the call to the Tool.
+
+- The whole process will do the next actions if all flags are false (by default):  
 
 0. Unzip all the Takeout Zips from the <INPUT_TAKEOUT_FOLDER> into a subfolder named './Unzipped_Takeout_{TIMESTAMP}' (by default). This step will be skipped if you already have your Takeout folder unzipped.
    
