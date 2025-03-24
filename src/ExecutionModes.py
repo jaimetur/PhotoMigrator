@@ -284,8 +284,8 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"   - Total Videos in Output folder          : {total_videos}")
         LOGGER.info(f"   - Total Sidecars in Output folder        : {total_sidecars}")
         LOGGER.info(f"   - Total Metadata in Output folder        : {total_metadata}")
-        LOGGER.info(f"Total Albums folders found                  : {albums_found}")
         LOGGER.info(f"Total Non-Supported files in Output folder  : {total_files-total_supported_files}")
+        LOGGER.info(f"Total Albums folders found in Output folder : {albums_found}")
         LOGGER.info("")
         if ARGS['google-create-symbolic-albums']:
             LOGGER.info(f"Total Symlinks Fixed                        : {symlink_fixed}")
