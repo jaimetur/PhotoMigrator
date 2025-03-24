@@ -11,7 +11,7 @@ tqdm~=4.67.1
 urllib3
 zipp
 pathvalidate
-halo~=0.0.31
+halo==0.0.30
 tabulate~=0.9.0
 requests-toolbelt~=1.0.0
 piexif~=1.1.3
