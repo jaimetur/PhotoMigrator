@@ -14,7 +14,7 @@
 
 ### <span style="color:blue">Google Takeout Feature: Process Explained:</span>
 
-- To execute the Google Takeout Processing, you need to call the tool with the argument _**'-gitf, --google-input-takeout-folder <INPUT_TAKEOUT_FOLDER>'**_.   
+- To execute the Google Takeout Processing, you need to call the tool with the argument _**'-gtProc, --google-takeout-to-process <INPUT_TAKEOUT_FOLDER>'**_.   
 
 - Where, <INPUT_TAKEOUT_FOLDER> is the folder that content the Google Takeout to process (if the Takeout is in Zip files, it will be extracted first into folder '<INPUT_TAKEOUT_FOLDER>_extracted'.  
 
@@ -76,7 +76,7 @@ The final OUTPUT_FOLDER will include:
 
 - **Example 1:**
 ```
-./CloudPhotoMigrator.run --google-input-takeout-folder ./MyTakeout --google-remove-duplicates-files
+./CloudPhotoMigrator.run --google-takeout-to-process ./MyTakeout --google-remove-duplicates-files
 ```
  
 In this example, the tool will do the Takeout Processing with the following steps:
@@ -89,7 +89,7 @@ In this example, the tool will do the Takeout Processing with the following step
 
 - **Example 2:**
 ```
-./CloudPhotoMigrator.run --google-input-takeout-folder ./MyTakeout --google-remove-duplicates-files google-create-symbolic-albums
+./CloudPhotoMigrator.run --google-takeout-to-process ./MyTakeout --google-remove-duplicates-files google-create-symbolic-albums
 ```
  
 In this example, the tool will do the Takeout Processing with the following steps:

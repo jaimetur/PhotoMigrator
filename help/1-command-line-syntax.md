@@ -9,7 +9,7 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>
                                   [-gpthProg [=[true,false]]] [-gpthErr [=[true,false]]]
                                   [-nolog]
                                   [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
-                                  [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
+                                  [-gtProc <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gnas ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gcsa] [-gics] [-gmtf] [-grdf] [-gsef] [-gsma] [-gsgt]
@@ -117,7 +117,7 @@ If only the argument -gtif, --google-takeout-input-folder <TAKEOUT_FOLDER> is de
 then the Tool will use the default values for the rest of the arguments for this extra
 mode.
 
--gitf,     --google-input-takeout-folder <TAKEOUT_FOLDER>
+-gtProc,   --google-takeout-to-process <TAKEOUT_FOLDER>
              Specify the Takeout folder to process. If any Zip file is found inside it,
              the Zip will be extracted to the folder 'Unzipped_Takeout_TIMESTAMP', and
              will use the that folder as input <TAKEOUT_FOLDER>.

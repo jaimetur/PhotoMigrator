@@ -106,7 +106,11 @@ def parse_arguments():
     # FEATURES FOR GOOGLE PHOTOS:
     # ------------------------------
     # PARSER.add_argument("-gizf", "--google-input-zip-folder", metavar="<ZIP_FOLDER>", default="", help="Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files will be skipped.")
-    PARSER.add_argument("-gitf", "--google-input-takeout-folder", metavar="<TAKEOUT_FOLDER>", default="",
+    PARSER.add_argument("-gtProc", "--google-takeout-to-process", metavar="<TAKEOUT_FOLDER>", default="",
+                        help="Specify the Takeout folder to process. If any Zip file is found inside it, the Zip will be extracted to the folder 'Unzipped_Takeout_TIMESTAMP', and will use the that folder as input <TAKEOUT_FOLDER>."
+                          "\nThis argument is mandatory to run the Google Takeout Processor Feature."
+                        )
+    PARSER.add_argument("-gtProc", "--google-takeout-to-process", metavar="<TAKEOUT_FOLDER>", default="",
                         help="Specify the Takeout folder to process. If any Zip file is found inside it, the Zip will be extracted to the folder 'Unzipped_Takeout_TIMESTAMP', and will use the that folder as input <TAKEOUT_FOLDER>."
                           "\nThis argument is mandatory to run the Google Takeout Processor Feature."
                         )
@@ -262,7 +266,7 @@ def checkArgs(ARGS, PARSER):
     global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
 
     # Check all providen arguments in the list of arguments to check to resolve the paths correctly for both, docker instance and normal instance.
-    keys_to_check = ['source', 'target', 'input-folder', 'output-folder', 'albums-folder', 'google-input-takeout-folder',
+    keys_to_check = ['source', 'target', 'input-folder', 'output-folder', 'albums-folder', 'google-takeout-to-process',
                      'synology-upload-albums', 'synology-download-albums', 'synology-upload-all', 'synology-download-all',
                      'immich-upload-albums', 'immich-download-albums', 'immich-upload-all', 'immich-download-all',
                      'find-duplicates', 'fix-symlinks-broken', 'rename-folders-content-based',
@@ -276,7 +280,7 @@ def checkArgs(ARGS, PARSER):
     # Remove last / for all folders expected as arguments:
     ARGS['input-folder']                    = ARGS['input-folder'].rstrip('/\\')
     ARGS['output-folder']                   = ARGS['output-folder'].rstrip('/\\')
-    ARGS['google-input-takeout-folder']     = ARGS['google-input-takeout-folder'].rstrip('/\\')
+    ARGS['google-takeout-to-process']     = ARGS['google-takeout-to-process'].rstrip('/\\')
     ARGS['synology-upload-albums']          = ARGS['synology-upload-albums'].rstrip('/\\')
     ARGS['synology-upload-all']             = ARGS['synology-upload-all'].rstrip('/\\')
     ARGS['synology-download-all']           = ARGS['synology-download-all'].rstrip('/\\')
