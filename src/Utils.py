@@ -169,8 +169,9 @@ def count_metadatas_in_folder(folder_path, log_level=logging.INFO):
     3. The sidecar file name may include the image extension before the sidecar extension.
     """
     from GlobalVariables import PHOTO_EXT, METADATA_EXT
+    metadata_filenames = ['metadatas', 'metadatos']
     with set_log_level(LOGGER, log_level):  # Change log level temporarily
-        total_sidecars = 0
+        total_metadatas = 0
         for path, dirs, files in os.walk(folder_path):
             # Extract base names of image files without extensions
             image_base_names = set()
@@ -183,9 +184,9 @@ def count_metadatas_in_folder(folder_path, log_level=logging.INFO):
                 base_name, ext = os.path.splitext(file_name)
                 if ext.lower() in METADATA_EXT:
                     # Check if there's a matching image file (direct match or with image extension included)
-                    if any(base_name.startswith(image_name) for image_name in image_base_names):
-                        total_sidecars += 1
-        return total_sidecars
+                    if any(base_name.startswith(image_name) for image_name in image_base_names) or file_name in metadata_filenames:
+                        total_metadatas += 1
+        return total_metadatas
 
 
 def count_valid_albums(folder_path, log_level=logging.INFO):
