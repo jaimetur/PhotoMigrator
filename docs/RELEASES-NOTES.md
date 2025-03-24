@@ -86,7 +86,7 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 - [x] Refactor and group All Google Takeout arguments in one block for 'Google Photos Takeout' Support.
 - [X] Refactor normal_mode to google_takeout_mode.
 - [x] Changed the logic to detect google_takeout_mode (former normal_mode)
-- [x] Merged -z and -t options in just one option ('-gtProc, -google-takeout-to-process') and detect if contains Takeout Zip files, in that case Zip files will be Unzipped to <TAKEOUT_FOLDER>_TIMESTAMP folder.
+- [x] Merged -z and -t options in just one option ('-gtProc, -google-takeout-to-process') and detect if contains Takeout Zip files, in that case Zip files will be Unzipped to <TAKEOUT_FOLDER>_<TIMESTAMP> folder.
 - [x] Unificate a single Config.ini file and included tags for the different configuration sections.
 - [x] Removed SYNOLOGY_ROOT_PHOTOS_PATH from Config.ini, since it is not needed anymore.
 - [x] Removed Indexing Functions on ServiceSynology file (not needed anymore)
