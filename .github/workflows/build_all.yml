@@ -1,4 +1,4 @@
-name: Build Executables for Multiple Platforms
+name: Build Executables Binaries for Multiple Platforms and Docker image
 
 on:
   workflow_dispatch:      # Allows manual execution of the workflow

@@ -9,7 +9,7 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>
                                   [-gpthProg [=[true,false]]] [-gpthErr [=[true,false]]]
                                   [-nolog]
                                   [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
-                                  [-gitf <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
+                                  [-gtProc <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gnas ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gcsa] [-gics] [-gmtf] [-grdf] [-gsef] [-gsma] [-gsgt]
@@ -25,7 +25,7 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>
                                   [-procDup <DUPLICATES_REVISED_CSV>]
                                   [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
 
-CloudPhotoMigrator v3.1.0-beta2 - 2025-03-31
+CloudPhotoMigrator v3.1.0-beta3 - 2025-03-31
 
 Multi-Platform/Multi-Arch toot designed to Interact and Manage different Photo Cloud Services
 such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
@@ -117,9 +117,9 @@ If only the argument -gtif, --google-takeout-input-folder <TAKEOUT_FOLDER> is de
 then the Tool will use the default values for the rest of the arguments for this extra
 mode.
 
--gitf,     --google-input-takeout-folder <TAKEOUT_FOLDER>
+-gtProc,   --google-takeout-to-process <TAKEOUT_FOLDER>
              Specify the Takeout folder to process. If any Zip file is found inside it,
-             the Zip will be extracted to the folder 'Unzipped_Takeout_TIMESTAMP', and
+             the Zip will be extracted to the folder 'Unzipped_Takeout_<TIMESTAMP>', and
              will use the that folder as input <TAKEOUT_FOLDER>.
              This argument is mandatory to run the Google Takeout Processor Feature.
 -gofs,     --google-output-folder-suffix <SUFFIX>
