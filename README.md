@@ -78,35 +78,31 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)
 
 
-## Execution Instructions:
-In the links below, you can find all the details to execute the Tool from 3 different alternatives:
+## Execution Methods:
+There are three different methods to execute this Tool:
+- From **Compiled Binaries**
+- From **Docker Container**
+- From **Source Repository**
 
-- [Execution from Compiled Binaries](/help/execution/execution-from-binaries.md) (easier way)  
-  - **Pros:** 
-    - No need any knowledge.
-  - **Cons:**
-    - Plattform and arquitecture dependent.
-    - Need basic knowledge of running command line instructions.
-    - Some Anti-virus could detect the Tool as susspicious in Windows Systems.
+The below tables show the pros and cons of each method together with a comparative rating of each one of them for you to decide wich one fits best with your needed: 
 
+- ### Execution Methods Comparison
+  | Execution Method                                                        | Instructions Link                                               | Difficulty          | Pros                                                                                                                                                                                 | Cons                                                                                                                                                                                                              |
+  |-------------------------------------------------------------------------|-----------------------------------------------------------------|---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | **[Compiled <br>Binaries](/help/execution/execution-from-binaries.md)** | **[Instructions](/help/execution/execution-from-binaries.md)**  | 🟢 *Easiest way*    | ✅ Only basic knowledge on command line commands needed.                                                                                                                             | ❌ Platform and architecture dependent.<br>❌ Need basic knowledge of running command line instructions.<br>❌ Some anti-virus may detect the tool as suspicious in Windows systems.                             |
+  | **[Docker <br>Container](/help/execution/execution-from-docker.md)**    | **[Instructions](/help/execution/execution-from-docker.md)**    | ⭐ *Recommended*    | ✅ Platform and architecture independent.<br>✅ Easy configuration via `docker.config` file (RELEASE_TAG, TIMEZONE).<br>✅ Automatically pulls latest image if `RELEASE_TAG=latest`. | ❌ Need intermediate knowledge of running command line instructions.<br>❌ Need to install Docker (if not already installed).<br>❌ All paths given as arguments must be relative to the execution folder.       |
+  | **[Source <br>Repository](/help/execution/execution-from-source.md)**   | **[Instructions](/help/execution/execution-from-source.md)**    | 🔴 *More difficult* | ✅ Platform and architecture independent.                                                                                                                                            | ❌ Need advance knowledge of running command line instructions.<br>❌ Need to install Git and Python 3.8+ (if not already installed). <br>❌ Need to pull the source repository again to update to a new release.|
 
-- [Execution from Docker Container](/help/execution/execution-from-docker.md) (recommended)   
-  - **Pros:** 
-    - Plattform and arquitecture independent.
-    - You can easily configure RELEASE_TAG and TIMEZONE with a docker.config file.
-    - Latest image is pulled automatically if you use RELEASE_TAG=latest, so you will always run the latest version.
-  - **Cons:**
-    - Need basic knowledge of running command line instructions.
-    - Need to install Docker (if your system does not include it).
-    - All paths given as arguments must be relative to the execution folder.
-
-
-- [Execution from Source Repository](/help/execution/execution-from-source.md) (more difficult)  
-  - **Pros:** 
-    - Plattform and arquitecture independent.
-  - **Cons:**
-    - Need basic knowledge of running command line instructions.
-    - Need to install Git and Python 3.8 or higher (if your system does not include it).
+- ### Execution Methods Comparison Rating
+  | Feature                                               | [Compiled <br>Binaries](/help/execution/execution-from-binaries.md)<br>*easiest way* | [Docker <br>Container](/help/execution/execution-from-docker.md)<br>*recommended* | [Source <br>Repository](/help/execution/execution-from-source.md)<br>*more difficult* |
+  |-------------------------------------------------------|--------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+  | Platform and architecture independence                | ⭐☆☆☆☆                                                                              | ⭐⭐⭐⭐⭐                                                                       | ⭐⭐⭐⭐⭐                                                                           |
+  | Ease of updating to new release                       | ⭐⭐⭐☆☆                                                                            | ⭐⭐⭐⭐⭐                                                                       | ⭐☆☆☆☆                                                                               |
+  | Allow paths arguments point outside execution folder  | ⭐⭐⭐⭐⭐                                                                          | ⭐☆☆☆☆                                                                           | ⭐⭐⭐⭐⭐                                                                           |
+  | No Requires Technical knowledge (Command line syntax) | ⭐⭐⭐⭐⭐                                                                          | ⭐⭐⭐☆☆                                                                         | ⭐☆☆☆☆                                                                               |
+  | No Requires additional tools/software                 | ⭐⭐⭐⭐⭐                                                                          | ⭐⭐⭐☆☆                                                                         | ⭐☆☆☆☆                                                                               |
+  | No Risk of Antivirus alert (especially on Windows)    | ⭐⭐☆☆                                                                              | ⭐⭐⭐⭐⭐                                                                       | ⭐⭐⭐⭐⭐                                                                            |
+  | **Average Rating**                                    | ⭐⭐⭐⭐☆ (3.5)                                                                     | ⭐⭐⭐⭐☆ (3.7)                                                                  | ⭐⭐⭐☆☆ (3.0)                                                                       |
 
 
 ## Configuration File:
@@ -116,7 +112,7 @@ Youn can see how to configure the Config.ini file in this help section:
 
 ## Command Line Syntax:
 You can check the whole list of functions and arguments with the right syntax here:
-[Command Line Syntax](help/1-command-line-syntax.md)
+[Command Line Syntax](/help/1-command-line-syntax.md)
 
 
 ## All Documentation Links:
