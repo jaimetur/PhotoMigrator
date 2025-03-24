@@ -247,7 +247,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         initial_takeout_total_videos = Utils.count_videos_in_folder(input_folder)
         initial_takeout_total_sidecars = Utils.count_sidecars_in_folder(input_folder)
         initial_takeout_total_metadata = Utils.count_metadatas_in_folder(input_folder)
-        initial_takeout_total_supported_files = initial_takeout_total_images+initial_takeout_total_videos+initial_takeout_total_sidecars
+        initial_takeout_total_supported_files = initial_takeout_total_images + initial_takeout_total_videos + initial_takeout_total_sidecars + initial_takeout_total_metadata
 
         # Count Files in Output Folder
         total_files = Utils.count_files_in_folder(OUTPUT_TAKEOUT_FOLDER)
@@ -255,7 +255,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         total_videos = Utils.count_videos_in_folder(OUTPUT_TAKEOUT_FOLDER)
         total_sidecars = Utils.count_sidecars_in_folder(OUTPUT_TAKEOUT_FOLDER)
         total_metadata = Utils.count_metadatas_in_folder(OUTPUT_TAKEOUT_FOLDER)
-        total_supported_files = total_images+total_videos+total_sidecars
+        total_supported_files = total_images + total_videos + total_sidecars + total_metadata
 
         # FINAL SUMMARY
         end_time = datetime.now()
