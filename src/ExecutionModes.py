@@ -245,6 +245,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         total_images = Utils.count_images_in_folder(OUTPUT_TAKEOUT_FOLDER)
         total_videos = Utils.count_videos_in_folder(OUTPUT_TAKEOUT_FOLDER)
         total_sidecars = Utils.count_sidecars_in_folder(OUTPUT_TAKEOUT_FOLDER)
+        total_metadata = Utils.count_metadatas_in_folder(OUTPUT_TAKEOUT_FOLDER)
         total_supported_files = total_images+total_videos+total_sidecars
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
         LOGGER.info("")
@@ -264,6 +265,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"   - Total Images in Output folder          : {total_images}")
         LOGGER.info(f"   - Total Videos in Output folder          : {total_videos}")
         LOGGER.info(f"   - Total Sidecars in Output folder        : {total_sidecars}")
+        LOGGER.info(f"   - Total Metadata in Output folder        : {total_metadata}")
         LOGGER.info(f"Total Albums folders found                  : {albums_found}")
         if ARGS['google-create-symbolic-albums']:
             LOGGER.info(f"Total Symlinks Fixed                        : {symlink_fixed}")

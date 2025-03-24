@@ -133,6 +133,7 @@ def count_videos_in_folder(folder_path, log_level=logging.INFO):
                     total_videos += 1
         return total_videos
 
+
 def count_sidecars_in_folder(folder_path, log_level=logging.INFO):
     """
     Counts the number of sidecar files in a folder. A file is considered a sidecar if:
@@ -154,6 +155,33 @@ def count_sidecars_in_folder(folder_path, log_level=logging.INFO):
             for file_name in files:
                 base_name, ext = os.path.splitext(file_name)
                 if ext.lower() in SIDECAR_EXT:
+                    # Check if there's a matching image file (direct match or with image extension included)
+                    if any(base_name.startswith(image_name) for image_name in image_base_names):
+                        total_sidecars += 1
+        return total_sidecars
+
+
+def count_metadatas_in_folder(folder_path, log_level=logging.INFO):
+    """
+    Counts the number of metadata files in a folder. A file is considered a metadata if:
+    1. Its extension is listed in the global variable METADATA_EXT (in lowercase).
+    2. It shares the same base name as an image file in the same directory.
+    3. The sidecar file name may include the image extension before the sidecar extension.
+    """
+    from GlobalVariables import PHOTO_EXT, METADATA_EXT
+    with set_log_level(LOGGER, log_level):  # Change log level temporarily
+        total_sidecars = 0
+        for path, dirs, files in os.walk(folder_path):
+            # Extract base names of image files without extensions
+            image_base_names = set()
+            for file_name in files:
+                base_name, ext = os.path.splitext(file_name)
+                if ext.lower() in PHOTO_EXT:
+                    image_base_names.add(base_name)
+            # Count valid sidecar files
+            for file_name in files:
+                base_name, ext = os.path.splitext(file_name)
+                if ext.lower() in METADATA_EXT:
                     # Check if there's a matching image file (direct match or with image extension included)
                     if any(base_name.startswith(image_name) for image_name in image_base_names):
                         total_sidecars += 1
