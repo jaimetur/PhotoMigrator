@@ -162,9 +162,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
         with set_log_level(LOGGER, log_level):  # Temporarily adjust log level
             # Unzip files
             LOGGER.info("")
-            LOGGER.info(f"==============================")
-            LOGGER.info(f"UNPACKING TAKEOUT FOLDER...")
-            LOGGER.info(f"==============================")
+            LOGGER.info(f"=====================================")
+            LOGGER.info(f"INFO    : UNPACKING TAKEOUT FOLDER...")
+            LOGGER.info(f"=====================================")
             LOGGER.info("")
 
             LOGGER.info(f"INFO    : ⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂")
