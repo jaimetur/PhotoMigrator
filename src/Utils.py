@@ -184,7 +184,7 @@ def count_metadatas_in_folder(folder_path, log_level=logging.INFO):
                 base_name, ext = os.path.splitext(file_name)
                 if ext.lower() in METADATA_EXT:
                     # Check if there's a matching image file (direct match or with image extension included)
-                    if any(base_name.startswith(image_name) for image_name in image_base_names) or file_name in metadata_filenames:
+                    if any(base_name.startswith(image_name) for image_name in image_base_names) or base_name in metadata_filenames:
                         total_metadatas += 1
         return total_metadatas
 
