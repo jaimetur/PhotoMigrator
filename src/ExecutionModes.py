@@ -238,8 +238,15 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         takeout = ClassTakeoutFolder(ARGS['google-takeout-to-process'])
         # Call the Function
         albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS["show-gpth-progress"], capture_errors=ARGS["show-gpth-errors"], log_level=log_level)
-        # FINAL SUMMARY
-        end_time = datetime.now()
+
+        # Count files in Takeout Folder
+        initial_takeout_total_files = Utils.count_files_in_folder(input_folder)
+        initial_takeout_total_images = Utils.count_images_in_folder(input_folder)
+        initial_takeout_total_videos = Utils.count_videos_in_folder(input_folder)
+        initial_takeout_total_sidecars = Utils.count_sidecars_in_folder(input_folder)
+        initial_takeout_total_metadata = Utils.count_metadatas_in_folder(input_folder)
+        initial_takeout_total_supported_files = initial_takeout_total_images+initial_takeout_total_videos+initial_takeout_total_sidecars
+
         # Count Files in Output Folder
         total_files = Utils.count_files_in_folder(OUTPUT_TAKEOUT_FOLDER)
         total_images = Utils.count_images_in_folder(OUTPUT_TAKEOUT_FOLDER)
@@ -247,6 +254,9 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         total_sidecars = Utils.count_sidecars_in_folder(OUTPUT_TAKEOUT_FOLDER)
         total_metadata = Utils.count_metadatas_in_folder(OUTPUT_TAKEOUT_FOLDER)
         total_supported_files = total_images+total_videos+total_sidecars
+
+        # FINAL SUMMARY
+        end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
         LOGGER.info("")
         LOGGER.info("=====================================================")
@@ -258,15 +268,22 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("=====================================================")
         LOGGER.info("                    FINAL SUMMARY:                   ")
         LOGGER.info("=====================================================")
-        LOGGER.info(f"Total files in Takeout folder               : {initial_takeout_numfiles}")
+        LOGGER.info(f"Total Supported files in Takeout folder     : {initial_takeout_numfiles}")
+        LOGGER.info(f"   - Total Images in Takeout folder         : {initial_takeout_total_images}")
+        LOGGER.info(f"   - Total Videos in Takeout folder         : {initial_takeout_total_videos}")
+        LOGGER.info(f"   - Total Sidecars in Takeout folder       : {initial_takeout_total_sidecars}")
+        LOGGER.info(f"   - Total Metadata in Takeout folder       : {initial_takeout_total_metadata}")
+        LOGGER.info(f"Total Non-Supported files in Takeout folder : {initial_takeout_numfiles-initial_takeout_total_supported_files}")
+        LOGGER.info("")
         LOGGER.info(f"Total final files in Output folder          : {total_files}")
-        LOGGER.info(f"Total Non-Supported files in Output folder  : {total_files-total_supported_files}")
         LOGGER.info(f"Total Supported files in Output folder      : {total_supported_files}")
         LOGGER.info(f"   - Total Images in Output folder          : {total_images}")
         LOGGER.info(f"   - Total Videos in Output folder          : {total_videos}")
         LOGGER.info(f"   - Total Sidecars in Output folder        : {total_sidecars}")
         LOGGER.info(f"   - Total Metadata in Output folder        : {total_metadata}")
         LOGGER.info(f"Total Albums folders found                  : {albums_found}")
+        LOGGER.info(f"Total Non-Supported files in Output folder  : {total_files-total_supported_files}")
+
         if ARGS['google-create-symbolic-albums']:
             LOGGER.info(f"Total Symlinks Fixed                        : {symlink_fixed}")
             LOGGER.info(f"Total Symlinks Not Fixed                    : {symlink_not_fixed}")
