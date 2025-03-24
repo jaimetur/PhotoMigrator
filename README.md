@@ -72,10 +72,29 @@ Apart from Manage the different Photo Cloud Services, the Tool also contains som
 
 ## Download:
 Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
-
 - [Latest Stable Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/tag/v3.0.0)
 - [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)
+
+
+## Configuration File:
+Youn can see how to configure the Config.ini file in this help section:
+[Configuration File](/help/0-configuration-file.md) 
+
+
+## Command Line Syntax:
+You can check the whole list of functions and arguments with the right syntax here:
+[Command Line Syntax](/help/1-command-line-syntax.md)
+
+
+## All Documentation Links:
+- [Configuration File](/help/0-configuration-file.md)  
+- [Command Line Syntax](/help/1-command-line-syntax.md)  
+- [Automated Migration Feature](/help/2-automated-migration.md)  
+- [Google Takeout Management](/help/3-google-takeout.md)  
+- [Synology Photos Management](/help/4-synology-photos.md)  
+- [Immich Photos Management](/help/5-immich-photos.md)  
+- [Other Features](/help/6-other-features.md)  
 
 
 ## Execution Methods:
@@ -103,26 +122,6 @@ The below tables show the pros and cons of each method together with a comparati
   | No Requires additional tools/software                 | ⭐⭐⭐⭐⭐                                                                          | ⭐⭐⭐☆☆                                                                         | ⭐☆☆☆☆                                                                               |
   | No Risk of Antivirus alert (especially on Windows)    | ⭐⭐☆☆                                                                              | ⭐⭐⭐⭐⭐                                                                       | ⭐⭐⭐⭐⭐                                                                            |
   | **Average Rating**                                    | ⭐⭐⭐⭐☆ (3.5)                                                                     | ⭐⭐⭐⭐☆ (3.7)                                                                  | ⭐⭐⭐☆☆ (3.0)                                                                       |
-
-
-## Configuration File:
-Youn can see how to configure the Config.ini file in this help section:
-[Configuration File](/help/0-configuration-file.md) 
-
-
-## Command Line Syntax:
-You can check the whole list of functions and arguments with the right syntax here:
-[Command Line Syntax](/help/1-command-line-syntax.md)
-
-
-## All Documentation Links:
-- [Configuration File](/help/0-configuration-file.md)  
-- [Command Line Syntax](/help/1-command-line-syntax.md)  
-- [Automated Migration Feature](/help/2-automated-migration.md)  
-- [Google Takeout Management](/help/3-google-takeout.md)  
-- [Synology Photos Management](/help/4-synology-photos.md)  
-- [Immich Photos Management](/help/5-immich-photos.md)  
-- [Other Features](/help/6-other-features.md)  
 
 
 ## Main Use Case: Automated Migration Feature
