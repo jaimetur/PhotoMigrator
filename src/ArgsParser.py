@@ -108,7 +108,7 @@ def parse_arguments():
     # PARSER.add_argument("-gizf", "--google-input-zip-folder", metavar="<ZIP_FOLDER>", default="", help="Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files will be skipped.")
     PARSER.add_argument("-gtProc", "--google-takeout-to-process", metavar="<TAKEOUT_FOLDER>", default="",
                         help="Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it. If any Zip file is found inside it, the Zip will be extracted to the folder '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>', and will use the that folder as input <TAKEOUT_FOLDER>."
-                          "\nThe processed Takeout will be saved into the folder '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>"
+                          "\nThe processed Takeout will be saved into the folder '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'"
                           "\nThis argument is mandatory to run the Google Takeout Processor Feature."
                         )
     PARSER.add_argument("-gofs", "--google-output-folder-suffix", metavar="<SUFFIX>", default="processed", help="Specify the suffix for the output folder. Default: 'processed'")
