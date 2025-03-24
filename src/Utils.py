@@ -169,7 +169,7 @@ def count_metadatas_in_folder(folder_path, log_level=logging.INFO):
     3. The sidecar file name may include the image extension before the sidecar extension.
     """
     from GlobalVariables import PHOTO_EXT, METADATA_EXT
-    metadata_filenames = ['metadatas', 'metadatos']
+    metadata_filenames = ['metadata', 'metadatas', 'metadatos']
     with set_log_level(LOGGER, log_level):  # Change log level temporarily
         total_metadatas = 0
         for path, dirs, files in os.walk(folder_path):
