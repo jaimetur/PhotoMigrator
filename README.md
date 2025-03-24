@@ -78,68 +78,31 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)
 
 
-## Execution Methods Comparison (Transposed)
-| Feature                                              | [Compiled Binaries](#)<br>*easier way* | [Docker Container](#)<br>*recommended* | [Source Repository](#)<br>*more difficult* |
-|------------------------------------------------------|----------------------------------------|----------------------------------------|---------------------------------------------|
-| Technical knowledge required                         | ⭐☆☆☆☆                                 | ⭐⭐⭐☆☆                                 | ⭐⭐⭐⭐⭐                                      |
-| Platform and architecture independence               | ⭐☆☆☆☆                                 | ⭐⭐⭐⭐⭐                                 | ⭐⭐⭐⭐⭐                                      |
-| Ease of updating to new release                      | ⭐☆☆☆☆                                 | ⭐⭐⭐⭐⭐                                 | ⭐⭐☆☆☆                                      |
-| Command line knowledge required                      | ⭐⭐☆☆☆                                 | ⭐⭐⭐⭐☆                                 | ⭐⭐⭐⭐⭐                                      |
-| Requires additional tools/software                   | ⭐⭐⭐☆☆                                 | ⭐⭐☆☆☆                                 | ⭐⭐☆☆☆                                      |
-| Allow paths arguments point outside execution folder | ⭐⭐⭐⭐⭐                                 | ⭐☆☆☆☆                                 | ⭐⭐⭐⭐⭐                                      |
-| Antivirus alert risk (especially on Windows)         | ⭐⭐☆☆☆                                 | ⭐⭐⭐⭐⭐                                 | ⭐⭐⭐⭐⭐                                      |
+## Execution Methods:
+There are three different methods to execute this Tool:
+- From **Compiled Binaries**
+- From **Docker Container**
+- From **Source Repository**
 
+The below tables show the pros and cons of each method together with a comparative rating of each one of them for you to decide wich one fits best with your needed: 
 
-## Execution Methods Comparison
-| Execution Method                                                               | Difficulty         | Pros                                                                                                                                                                     | Cons                                                                                                                                                                           |
-|--------------------------------------------------------------------------------|--------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **[Compiled Binaries](#)** *(easier way)*                                      | 🟢 *Easier way*    | ✅ No need any knowledge.                                                                                                                                                | ❌ Platform and architecture dependent.<br>❌ Need basic knowledge of running command line instructions.<br>❌ Some anti-virus may detect the tool as suspicious in Windows systems.  |
-| **[Docker Container](#)** *(recommended)*                                      | ⭐ *Recommended*    | ✅ Platform and architecture independent.<br>✅ Easy configuration via `docker.config` file (RELEASE_TAG, TIMEZONE).<br>✅ Automatically pulls latest image if `RELEASE_TAG=latest`. | ❌ Need basic knowledge of running command line instructions.<br>❌ Need to install Docker (if not already installed).<br>❌ All paths given as arguments must be relative to the execution folder. |
-| **[Source Repository](#)** *(more difficult)*                                  | 🔴 *More difficult*| ✅ Platform and architecture independent.                                                                                                                                | ❌ Need basic knowledge of running command line instructions.<br>❌ Need to install Git and Python 3.8+ (if not already installed).                                               |
+- ### Execution Methods Comparison
+  | Execution Method       | Instructions Link                                               | Difficulty           | Pros                                                                                                                                                                              | Cons                                                                                                                                                                                                    |
+  |------------------------|-----------------------------------------------------------------|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | **Compiled Binaries**  | **[Instructions](/help/execution/execution-from-binaries.md)**  | 🟢 *Easier way*      | ✅ Only basic knowledge on command line commands needed.                                                                                                                           | ❌ Platform and architecture dependent.<br>❌ Need basic knowledge of running command line instructions.<br>❌ Some anti-virus may detect the tool as suspicious in Windows systems.                       |
+  | **Docker Container**   | **[Instructions](/help/execution/execution-from-docker.md)**    | ⭐ *Recommended*     | ✅ Platform and architecture independent.<br>✅ Easy configuration via `docker.config` file (RELEASE_TAG, TIMEZONE).<br>✅ Automatically pulls latest image if `RELEASE_TAG=latest`. | ❌ Need intermediate knowledge of running command line instructions.<br>❌ Need to install Docker (if not already installed).<br>❌ All paths given as arguments must be relative to the execution folder. |
+  | **Source Repository**  | **[Instructions](/help/execution/execution-from-source.md)**    | 🔴 *More difficult*  | ✅ Platform and architecture independent.                                                                                                                                          | ❌ Need advance knowledge of running command line instructions.<br>❌ Need to install Git and Python 3.8+ (if not already installed).                                                                     |
 
-
-## Execution Methods Comparison
-| Execution Method                       | Difficulty     | Pros                                                                 | Cons                                                                                         |
-|----------------------------------------|----------------|----------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
-| **Compiled Binaries**                 | 🟢 *Easier way* | ✅ No need any knowledge.                                             | ❌ Platform and architecture dependent.                                                      |
-|                                        |                |                                                                      | ❌ Need basic knowledge of running command line instructions.                                |
-|                                        |                |                                                                      | ❌ Some anti-virus may detect the tool as suspicious in Windows systems.                     |
-| **Docker Container**                  | ⭐ *Recommended*| ✅ Platform and architecture independent.                             | ❌ Need basic knowledge of running command line instructions.                                |
-|                                        |                | ✅ Easy configuration via `docker.config` file (RELEASE_TAG, TIMEZONE).| ❌ Need to install Docker (if not already installed).                                        |
-|                                        |                | ✅ Automatically pulls latest image if `RELEASE_TAG=latest`.          | ❌ All paths given as arguments must be relative to the execution folder.                    |
-| **Source Repository**                 | 🔴 *More difficult*| ✅ Platform and architecture independent.                             | ❌ Need basic knowledge of running command line instructions.                                |
-|                                        |                |                                                                      | ❌ Need to install Git and Python 3.8+ (if not already installed).                           |
-
-
-## Execution Instructions:
-In the links below, you can find all the details to execute the Tool from 3 different alternatives:
-
-- [Execution from Compiled Binaries](/help/execution/execution-from-binaries.md) (easiest way)  
-  - **Pros:** 
-    - No need any knowledge.
-  - **Cons:**
-    - Plattform and arquitecture dependent.
-    - Need basic knowledge of running command line instructions.
-    - Some Anti-virus could detect the Tool as susspicious in Windows Systems.
-
-
-- [Execution from Docker Container](/help/execution/execution-from-docker.md) (recommended)   
-  - **Pros:** 
-    - Plattform and arquitecture independent.
-    - You can easily configure RELEASE_TAG and TIMEZONE with a docker.config file.
-    - Latest image is pulled automatically if you use RELEASE_TAG=latest, so you will always run the latest version.
-  - **Cons:**
-    - Need basic knowledge of running command line instructions.
-    - Need to install Docker (if your system does not include it).
-    - All paths given as arguments must be relative to the execution folder.
-
-
-- [Execution from Source Repository](/help/execution/execution-from-source.md) (more difficult)  
-  - **Pros:** 
-    - Plattform and arquitecture independent.
-  - **Cons:**
-    - Need basic knowledge of running command line instructions.
-    - Need to install Git and Python 3.8 or higher (if your system does not include it).
+- ### Execution Methods Comparison Rating
+  | Feature                                               | [Compiled Binaries](/help/execution/execution-from-binaries.md)<br>*easier way* | [Docker Container](/help/execution/execution-from-docker.md)<br>*recommended* | [Source Repository](/help/execution/execution-from-source.md)<br>*more difficult* |
+  |-------------------------------------------------------|----------------------|----------------------|----------------------|
+  | Platform and architecture independence                | ⭐☆☆☆☆              | ⭐⭐⭐⭐⭐          | ⭐⭐⭐⭐⭐          |
+  | Ease of updating to new release                       | ⭐⭐⭐☆☆            | ⭐⭐⭐⭐⭐          | ⭐☆☆☆☆              |
+  | Allow paths arguments point outside execution folder  | ⭐⭐⭐⭐⭐          | ⭐☆☆☆☆              | ⭐⭐⭐⭐⭐          |
+  | No Requires Technical knowledge (Command line syntax) | ⭐⭐⭐⭐⭐          | ⭐⭐⭐☆☆            | ⭐☆☆☆☆              |
+  | No Requires additional tools/software                 | ⭐⭐⭐⭐⭐          | ⭐⭐⭐☆☆            | ⭐☆☆☆☆              |
+  | No Risk of Antivirus alert (especially on Windows)    | ⭐⭐☆☆              | ⭐⭐⭐⭐⭐          | ⭐⭐⭐⭐⭐          |
+  | **Average Rating**                                    | ⭐⭐⭐⭐☆ (3.5)     | ⭐⭐⭐⭐☆ (3.7)     | ⭐⭐⭐☆☆ (3.0)      |
 
 
 ## Configuration File:
