@@ -198,8 +198,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
 
 
-            # FEATURES for Google Photos Takeout Management: two lines before "Specify the Takeout folder to process."
-            if help_text.find("Specify the Takeout folder to process.")!=-1:
+            # FEATURES for Google Photos Takeout Management: two lines before "Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata"
+            if help_text.find("Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
                 GOOGLE PHOTOS TAKEOUT MANAGEMENT:
