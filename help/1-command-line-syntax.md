@@ -113,14 +113,17 @@ GOOGLE PHOTOS TAKEOUT MANAGEMENT:
 ---------------------------------
 Following arguments allow you to interact with Google Photos Takeout Folder.
 In this mode, you can use more than one optional arguments from the below list.
-If only the argument -gtif, --google-takeout-input-folder <TAKEOUT_FOLDER> is detected,
+If only the argument -gtProc, --google-takeout-to-process <TAKEOUT_FOLDER> is detected,
 then the Tool will use the default values for the rest of the arguments for this extra
 mode.
 
 -gtProc,   --google-takeout-to-process <TAKEOUT_FOLDER>
-             Specify the Takeout folder to process. If any Zip file is found inside it,
-             the Zip will be extracted to the folder 'Unzipped_Takeout_<TIMESTAMP>', and
+             Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and
+             organize assets inside it. If any Zip file is found inside it, the Zip will
+             be extracted to the folder '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>', and
              will use the that folder as input <TAKEOUT_FOLDER>.
+             The processed Takeout will be saved into the folder
+             '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'
              This argument is mandatory to run the Google Takeout Processor Feature.
 -gofs,     --google-output-folder-suffix <SUFFIX>
              Specify the suffix for the output folder. Default: 'processed'

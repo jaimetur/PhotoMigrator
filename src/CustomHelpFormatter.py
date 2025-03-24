@@ -198,15 +198,15 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
 
 
-            # FEATURES for Google Photos Takeout Management: two lines before "Specify the Takeout folder to process."
-            if help_text.find("Specify the Takeout folder to process.")!=-1:
+            # FEATURES for Google Photos Takeout Management: two lines before "Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata"
+            if help_text.find("Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
                 GOOGLE PHOTOS TAKEOUT MANAGEMENT:
                 ---------------------------------{Style.RESET_ALL}
                 Following arguments allow you to interact with Google Photos Takeout Folder. 
                 In this mode, you can use more than one optional arguments from the below list.
-                If only the argument -gtif, --google-takeout-input-folder <TAKEOUT_FOLDER> is detected, then the Tool will use the default values for the rest of the arguments for this extra mode.
+                If only the argument -gtProc, --google-takeout-to-process <TAKEOUT_FOLDER> is detected, then the Tool will use the default values for the rest of the arguments for this extra mode.
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
