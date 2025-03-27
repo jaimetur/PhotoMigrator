@@ -72,7 +72,7 @@ Apart from Manage the different Photo Cloud Services, the Tool also contains som
 
 ## Download:
 Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
-- [Latest Stable Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/tag/v3.0.0)
+- [Latest Stable Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/latest)
 - [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)
 
