@@ -7,13 +7,16 @@
   - Release Candidate: 2025-04-25
   - Official Release : 2025-04-30
 
-### Main Changes:
+### TODO:
 - [ ] Add option to filter assets in all Immich/Synology/LocalFolder Actions:
     - [ ] by Dates
     - [ ] by Country
     - [ ] by City
     - [ ] by Archive
     - [ ] by Person
+- [ ] Update Documentation
+- [ ] Update README.md
+- [ ] Update RELEASES-NOTES.md
 
 ## v4.0.0:
 ### Release Date: (estimated)
