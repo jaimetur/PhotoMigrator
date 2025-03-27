@@ -19,6 +19,17 @@ Once you have Docker installed and running on your system, you have twoo options
 
 #### Where,
   - **[RELEASE_TAG]** is the Tag of the release that you want to pull.
+    
+    You can obtain the different RELEASE_TAG using below command:
+    ```bash
+    curl -s "https://registry.hub.docker.com/v2/repositories/jaimetur/cloudphotomigrator/tags?page_size=100" | jq '.results[].name'
+    ```
+    The result should be something like this:  
+      "latest"  
+      "3.1.0"  
+      "3.1.0-beta3"  
+      "3.1.0-beta2"  
+      "3.1.0-beta1"
 
 #### Example:
   - For latest release:
@@ -84,12 +95,12 @@ Download the latest version of the Docker package from the [Releases page](https
 
 - **Linux/macOS:**
     ```bash
-    curl -L -o CloudPhotoMigrator_v3.1.0-beta3_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta3/CloudPhotoMigrator_v3.1.0-beta3_docker.zip
+    curl -L -o CloudPhotoMigrator_v3.1.0_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0/CloudPhotoMigrator_v3.1.0_docker.zip
     ```
   
 - **Windows (PoowerShell):**
     ```bash
-    curl.exe -L -o CloudPhotoMigrator_v3.1.0-beta3_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0-beta3/CloudPhotoMigrator_v3.1.0-beta3_docker.zip
+    curl.exe -L -o CloudPhotoMigrator_v3.1.0_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0/CloudPhotoMigrator_v3.1.0_docker.zip
     ```
 
 
@@ -97,13 +108,13 @@ Download the latest version of the Docker package from the [Releases page](https
 
 - **Linux/macOS:**
     ```bash
-    unzip CloudPhotoMigrator_v3.1.0-beta3_docker.zip -d ./
+    unzip CloudPhotoMigrator_v3.1.0_docker.zip -d ./
     cd CloudPhotoMigrator
     ```
 
 - **Windows (PoowerShell):**
     ```bash
-    powershell -Command "Expand-Archive -Path CloudPhotoMigrator_v3.1.0-beta3_docker.zip -DestinationPath ./"
+    powershell -Command "Expand-Archive -Path CloudPhotoMigrator_v3.1.0_docker.zip -DestinationPath ./"
     cd CloudPhotoMigrator
     ```
 

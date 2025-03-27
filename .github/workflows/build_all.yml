@@ -269,7 +269,7 @@ jobs:
           fi
 
           # Realizar commit y push
-          git commit -m "Actualizar README.md tras compilación"
+          git commit -m "Update README.md after compilation"
           git push origin ${{ github.ref_name }}
 
 
