@@ -19,6 +19,17 @@ Once you have Docker installed and running on your system, you have twoo options
 
 #### Where,
   - **[RELEASE_TAG]** is the Tag of the release that you want to pull.
+    
+    You can obtain the different RELEASE_TAG using below command:
+    ```bash
+    curl -s "https://registry.hub.docker.com/v2/repositories/jaimetur/cloudphotomigrator/tags?page_size=100" | jq '.results[].name'
+    ```
+    The result should be something like this:  
+      "latest"  
+      "3.1.0"  
+      "3.1.0-beta3"  
+      "3.1.0-beta2"  
+      "3.1.0-beta1"
 
 #### Example:
   - For latest release:
