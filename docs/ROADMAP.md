@@ -22,11 +22,6 @@
     - [ ] -guAlb, --google-upload-albums
     - [ ] -guAll, --google-upload-all
 - [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATED-MODE
-- [ ] Add option to filter assets in all Immich Actions:
-    - [ ] by Dates
-    - [ ] by Country
-    - [ ] by City
-    - [ ] by Archive
-    - [ ] by Person
+- [ ] Update Documentation
 - [ ] Update README.md
 - [ ] Update RELEASES-NOTES.md
