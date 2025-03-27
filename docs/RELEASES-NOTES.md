@@ -27,7 +27,12 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
   - Official Release : 2025-04-30
 
 ### Main Changes:
-- [x] Support to run
+- [ ] Add option to filter assets in all Immich/Synology/LocalFolder Actions:
+    - [ ] by Dates
+    - [ ] by Country
+    - [ ] by City
+    - [ ] by Archive
+    - [ ] by Person
 
 ## Release Notes:
 
