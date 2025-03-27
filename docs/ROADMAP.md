@@ -1,5 +1,20 @@
 # ROADMAP:
 
+## v3.2.0  
+### Release Date: (estimated)
+  - Alpha version.   : 2025-04-07
+  - Beta version     : 2025-04-14
+  - Release Candidate: 2025-04-25
+  - Official Release : 2025-04-30
+
+### Main Changes:
+- [ ] Add option to filter assets in all Immich/Synology/LocalFolder Actions:
+    - [ ] by Dates
+    - [ ] by Country
+    - [ ] by City
+    - [ ] by Archive
+    - [ ] by Person
+
 ## v4.0.0:
 ### Release Date: (estimated)
   - Alpha version.   : (No estimated date)
