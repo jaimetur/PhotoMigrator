@@ -1,5 +1,23 @@
 # ROADMAP:
 
+## v3.2.0  
+### Release Date: (estimated)
+  - Alpha version.   : 2025-04-07
+  - Beta version     : 2025-04-14
+  - Release Candidate: 2025-04-25
+  - Official Release : 2025-04-30
+
+### TODO:
+- [ ] Add option to filter assets in all Immich/Synology/LocalFolder Actions:
+    - [ ] by Dates
+    - [ ] by Country
+    - [ ] by City
+    - [ ] by Archive
+    - [ ] by Person
+- [ ] Update Documentation
+- [ ] Update README.md
+- [ ] Update RELEASES-NOTES.md
+
 ## v4.0.0:
 ### Release Date: (estimated)
   - Alpha version.   : (No estimated date)
@@ -22,11 +40,6 @@
     - [ ] -guAlb, --google-upload-albums
     - [ ] -guAll, --google-upload-all
 - [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATED-MODE
-- [ ] Add option to filter assets in all Immich Actions:
-    - [ ] by Dates
-    - [ ] by Country
-    - [ ] by City
-    - [ ] by Archive
-    - [ ] by Person
+- [ ] Update Documentation
 - [ ] Update README.md
 - [ ] Update RELEASES-NOTES.md

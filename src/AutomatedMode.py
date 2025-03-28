@@ -1141,7 +1141,7 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         Devuelve un Panel con todo el historial (de modo que se pueda hacer
         scroll en la terminal si usas vertical_overflow='visible').
         """
-        title_logs_panel = f"📜 Logs Panel (Only last {logs_panel_height} rows showed. Complete log file at: '{log_file}')"
+        title_logs_panel = f"📜 Logs Panel (Only last {logs_panel_height} rows shown. Complete log file at: '{log_file}')"
         try:
             while True:
                 # 1) Vaciamos la cola de logs, construyendo el historial completo
