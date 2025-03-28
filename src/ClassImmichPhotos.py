@@ -45,7 +45,7 @@ from Utils import update_metadata, convert_to_list, tqdm, sha1_checksum
 from CustomLogger import set_log_level
 
 # Import the global LOGGER from GlobalVariables
-from GlobalVariables import LOGGER
+from GlobalVariables import LOGGER, ARGS
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -590,6 +590,9 @@ class ClassImmichPhotos:
         Returns:
             list: A list of assets (dict) matching the specified filters in the entire library or Empty list on error.
         """
+        createdAfter = ARGS.get('from-date', '').strip() or None
+        createdBefore = ARGS.get('to-date', '').strip() or None
+
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/search/metadata"

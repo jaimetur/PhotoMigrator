@@ -270,7 +270,30 @@ def resolve_all_possible_paths(args_dict, keys_to_check=None):
                     resolved_parts.append(resolve_path(part))
             args_dict[key] = ', '.join(resolved_parts) if ',' in value else resolved_parts[0]
 
-            
+
+def parse_to_iso8601(date_str):
+    if not date_str or not date_str.strip():
+        return ""
+
+    date_str = date_str.strip()
+
+    # Lista de formatos a probar
+    date_formats = [
+        "%d/%m/%Y",
+        "%Y-%m-%d",
+        "%d-%m-%Y",
+        "%Y/%m/%d",
+    ]
+
+    for fmt in date_formats:
+        try:
+            dt = datetime.strptime(date_str, fmt)
+            return dt.strftime("%Y-%m-%dT00:00:00.000Z")
+        except ValueError:
+            continue
+
+    # Si no se pudo convertir, devuelve cadena vacía
+    return ""
 
 def checkArgs(ARGS, PARSER):
     global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
@@ -396,6 +419,10 @@ def checkArgs(ARGS, PARSER):
     if ARGS['remove-albums-assets'] and not ARGS['immich-remove-all-albums']:
         PARSER.error(f"\n\n❌ ERROR   : --remove-albums-assets is a modifier of argument --immich-remove-all-albums and cannot work alone.\n")
         exit(1)
+
+    # Parseamos las fechas de ARGS['from-date'] y ARGS['to-date'] para devolver una fecha en valida en formato iso8601 en caso de que contenga alguna fecha válida, o cadena vacía en caso contrario
+    ARGS['from-date'] = parse_to_iso8601(ARGS.get('from-date', ''))
+    ARGS['to-date'] = parse_to_iso8601(ARGS.get('to-date', ''))
 
     return ARGS
 
