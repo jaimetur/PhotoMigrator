@@ -5,6 +5,7 @@ from CustomHelpFormatter import CustomHelpFormatter
 from CustomPager import PagedParser
 import argparse
 import os
+from datetime import datetime
 
 choices_for_message_levels          = ['debug', 'info', 'warning', 'error', 'critical']
 choices_for_folder_structure        = ['flatten', 'year', 'year/month', 'year-month']
