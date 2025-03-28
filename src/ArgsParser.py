@@ -80,6 +80,19 @@ def parse_arguments():
                         help="Enable or disable Live Dashboard feature during Autometed Migration Job. This argument only applies if both '--source' and '--target' argument are given (AUTOMATED-MIGRATION FEATURE). (default: True)."
     )
 
+    PARSER.add_argument("-from", "--from-date", metavar="<FROM_DATE>", default="", help="Specify the initial date to filter assets in the different Photo Cloud Services.")
+    PARSER.add_argument("-to", "--to-date", metavar="<TO_DATE>", default="", help="Specify the final date to filter assets in the different Photo Cloud Services.")
+    PARSER.add_argument("-country", "--country", metavar="<COUNTRY>", default="", help="Specify the Country to filter assets in the different Photo Cloud Services.")
+    PARSER.add_argument("-city", "--city", metavar="<CITY>", default="", help="Specify the City to filter assets in the different Photo Cloud Services.")
+    PARSER.add_argument("-archive", "--archive",
+                        metavar="= [true,false]",
+                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
+                        default=False,  # Si no se pasa el argumento, el valor por defecto es True
+                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        help="Specify if you want to filter only Archived assets in the different Photo Cloud Services."
+    )
+
     PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
     PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
     PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-suAll, --synology-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
@@ -277,7 +290,7 @@ def checkArgs(ARGS, PARSER):
     # Remove last / for all folders expected as arguments:
     ARGS['input-folder']                    = ARGS['input-folder'].rstrip('/\\')
     ARGS['output-folder']                   = ARGS['output-folder'].rstrip('/\\')
-    ARGS['google-takeout-to-process']     = ARGS['google-takeout-to-process'].rstrip('/\\')
+    ARGS['google-takeout-to-process']       = ARGS['google-takeout-to-process'].rstrip('/\\')
     ARGS['synology-upload-albums']          = ARGS['synology-upload-albums'].rstrip('/\\')
     ARGS['synology-upload-all']             = ARGS['synology-upload-all'].rstrip('/\\')
     ARGS['synology-download-all']           = ARGS['synology-download-all'].rstrip('/\\')
