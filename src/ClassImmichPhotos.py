@@ -579,7 +579,7 @@ class ClassImmichPhotos:
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
     def get_all_assets(self, type=None, isNotInAlbum=None, isArchived=None,
-                       createdAfter=None, createdBefore=None, country=None,
+                       takenAfter=None, takenBefore=None, country=None,
                        city=None, personIds=None, withDeleted=None, log_level=logging.INFO):
         """
         Lists all assets in Immich Photos that match with the specified filters.
@@ -590,8 +590,8 @@ class ClassImmichPhotos:
         Returns:
             list: A list of assets (dict) matching the specified filters in the entire library or Empty list on error.
         """
-        createdAfter = ARGS.get('from-date', '').strip() or None
-        createdBefore = ARGS.get('to-date', '').strip() or None
+        takenAfter = ARGS.get('from-date', '') or None
+        takenBefore = ARGS.get('to-date', '') or None
 
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
@@ -632,8 +632,8 @@ class ClassImmichPhotos:
                     if type: payload_data["type"] = type
                     if isNotInAlbum: payload_data["isNotInAlbum"] = isNotInAlbum
                     if isArchived: payload_data["isArchived"] = isArchived
-                    if createdAfter: payload_data["createdAfter"] = createdAfter
-                    if createdBefore: payload_data["createdBefore"] = createdBefore
+                    if takenAfter: payload_data["takenAfter"] = takenAfter
+                    if takenBefore: payload_data["takenBefore"] = takenBefore
                     if country: payload_data["country"] = country
                     if city: payload_data["city"] = city
                     if personIds: payload_data["personIds"] = personIds
