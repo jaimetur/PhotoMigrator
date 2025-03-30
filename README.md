@@ -41,7 +41,7 @@ As of today, the Supported Photo Cloud Services are:
   - Remove Orphans Assets
 
 - **Apple Photos**  
-  (not available yet but is on the ![ROADMAP](/doc/ROADMAP.md) for next release)
+  (not available yet but is on the [ROADMAP](/doc/ROADMAP.md) for next release)
 
 - **Google Photos**  
   (not available yet but is on the ROADMAP.md for next release)
