@@ -590,14 +590,14 @@ class ClassImmichPhotos:
         Returns:
             list: A list of assets (dict) matching the specified filters in the entire library or Empty list on error.
         """
-        takenAfter = ARGS.get('from-date', '') or None
-        takenBefore = ARGS.get('to-date', '') or None
-
         with set_log_level(LOGGER, log_level):
-            self.login(log_level=log_level)
-            url = f"{self.IMMICH_URL}/api/search/metadata"
-            all_assets = []
             try:
+                takenAfter = ARGS.get('from-date', '') or None
+                takenBefore = ARGS.get('to-date', '') or None
+                self.login(log_level=log_level)
+                url = f"{self.IMMICH_URL}/api/search/metadata"
+                all_assets = []
+
                 next_page = 1
                 while True:
                     payload_data = {

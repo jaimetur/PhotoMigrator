@@ -34,22 +34,23 @@ Single-class version of ClassSynologyPhotos.py:
 import os
 import sys
 import fnmatch
-from datetime import datetime
 import requests
+import json
 import urllib3
 import mimetypes
 from requests_toolbelt.multipart.encoder import MultipartEncoder
+from datetime import datetime, timezone
 import time
 import logging
 import inspect
 
-from Utils import update_metadata, convert_to_list, convert_asset_ids_to_str, get_unique_items, organize_files_by_date, tqdm
+from Utils import update_metadata, convert_to_list, convert_asset_ids_to_str, get_unique_items, organize_files_by_date, tqdm, iso8601_to_epoch
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
 
 # Import the global LOGGER from GlobalVariables
-from GlobalVariables import LOGGER
+from GlobalVariables import LOGGER, ARGS
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -666,6 +667,14 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
+                # Get the values from the arguments (if exists)
+                takenAfter = ARGS.get('from-date', '') or None
+                takenBefore = ARGS.get('to-date', '') or None
+
+                # Convert the values from iso to epoch
+                takenAfter = iso8601_to_epoch(takenAfter)
+                takenBefore = iso8601_to_epoch(takenBefore)
+
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
                 headers = {}
@@ -675,19 +684,29 @@ class ClassSynologyPhotos:
                 offset = 0
                 limit = 5000
                 all_assets = []
-                combined_assets = []
-
                 while True:
-                    params = {
+                    payload_data = {
                         'api': 'SYNO.Foto.Browse.Item',
-                        'version': '4',
-                        'method': 'list',
-                        "offset": offset,
-                        "limit": limit
+                        # 'version': '4',
+                        # 'method': 'list',
+                        'version': '2',
+                        'method': 'list_with_filter',
+                        'offset': offset,
+                        'limit': limit,
                     }
+
+                    time_dic = {}
+
+                    # Solo añade las claves si tienen valor
+                    if takenAfter:  time_dic["start_time"] = takenAfter
+                    if takenBefore: time_dic["end_time"] = takenBefore
+
+                    # Si hay al menos una clave, la añadimos al payload como JSON válido
+                    if time_dic: payload_data["time"] = json.dumps([time_dic])
+
                     try:
-                        r = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                        data = r.json()
+                        resp = self.SESSION.get(url, headers=headers, params=payload_data, verify=False)
+                        data = resp.json()
                         if not data.get("success"):
                             LOGGER.error(f"ERROR   : Failed to list assets")
                             return []

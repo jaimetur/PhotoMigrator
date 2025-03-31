@@ -15,6 +15,8 @@ from PIL import Image
 import hashlib
 import base64
 import inspect
+from typing import Union
+from datetime import datetime, timezone
 from tqdm import tqdm as original_tqdm
 from CustomLogger import LoggerConsoleTqdm
 from GlobalVariables import LOGGER, ARGS, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT
@@ -1192,3 +1194,48 @@ def get_logger_filename(logger):
             return handler.baseFilename  # Devuelve el path del archivo de logs
     return ""  # Si no hay un FileHandler, retorna ""
 
+
+def iso8601_to_epoch(iso_date: str) -> Union[int, str, None]:
+    """
+    Convierte una fecha en formato ISO 8601 a timestamp Unix (en segundos).
+    Si el argumento es None o una cadena vacía, devuelve el mismo valor.
+
+    Ejemplo:
+        iso8601_to_epoch("2021-12-01T00:00:00Z") -> 1638316800
+        iso8601_to_epoch("") -> ""
+        iso8601_to_epoch(None) -> None
+    """
+    if not iso_date:
+        return iso_date
+
+    try:
+        if iso_date.endswith("Z"):
+            iso_date = iso_date.replace("Z", "+00:00")
+        dt = datetime.fromisoformat(iso_date)
+        return int(dt.timestamp())
+    except Exception:
+        # En caso de error inesperado, se devuelve el valor original
+        return iso_date
+
+
+def epoch_to_iso8601(epoch: Union[int, str, None]) -> Union[str, int, None]:
+    """
+    Convierte un timestamp Unix (en segundos) a una cadena en formato ISO 8601 (UTC).
+    Si el argumento es None o una cadena vacía, devuelve el mismo valor.
+
+    Ejemplo:
+        epoch_to_iso8601(1638316800) -> "2021-12-01T00:00:00Z"
+        epoch_to_iso8601("") -> ""
+        epoch_to_iso8601(None) -> None
+    """
+    if epoch is None or epoch == "":
+        return epoch
+
+    try:
+        # Asegura que sea un número entero
+        epoch = int(epoch)
+        dt = datetime.fromtimestamp(epoch, tz=timezone.utc)
+        return dt.isoformat().replace("+00:00", "Z")
+    except Exception:
+        # En caso de error inesperado, se devuelve el valor original
+        return epoch
