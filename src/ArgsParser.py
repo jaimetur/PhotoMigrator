@@ -274,7 +274,7 @@ def resolve_all_possible_paths(args_dict, keys_to_check=None):
 
 def parse_to_iso8601(date_str):
     if not date_str or not date_str.strip():
-        return ""
+        return None
 
     date_str = date_str.strip()
 
@@ -293,8 +293,8 @@ def parse_to_iso8601(date_str):
         except ValueError:
             continue
 
-    # Si no se pudo convertir, devuelve cadena vacía
-    return ""
+    # Si no se pudo convertir, devuelve None
+    return None
 
 def checkArgs(ARGS, PARSER):
     global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL

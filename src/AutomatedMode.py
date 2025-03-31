@@ -435,7 +435,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             return SHARED_DATA.counters
 
     # --------------------------------------------------------------------------------
-    # ) PULLER: Función puller_worker para descargar assets y poner en la cola
+    # 1) PULLER: Función puller_worker para descargar assets y poner en la cola
     # --------------------------------------------------------------------------------
     def puller_worker(log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):

@@ -1195,18 +1195,18 @@ def get_logger_filename(logger):
     return ""  # Si no hay un FileHandler, retorna ""
 
 
-def iso8601_to_epoch(iso_date: str) -> Union[int, str, None]:
+def iso8601_to_epoch(iso_date):
     """
     Convierte una fecha en formato ISO 8601 a timestamp Unix (en segundos).
     Si el argumento es None o una cadena vacía, devuelve el mismo valor.
 
     Ejemplo:
         iso8601_to_epoch("2021-12-01T00:00:00Z") -> 1638316800
-        iso8601_to_epoch("") -> ""
-        iso8601_to_epoch(None) -> None
+        iso8601_to_epoch("") -> -1
+        iso8601_to_epoch(None) -> -1
     """
     if not iso_date:
-        return iso_date
+        return -1
 
     try:
         if iso_date.endswith("Z"):
@@ -1214,11 +1214,11 @@ def iso8601_to_epoch(iso_date: str) -> Union[int, str, None]:
         dt = datetime.fromisoformat(iso_date)
         return int(dt.timestamp())
     except Exception:
-        # En caso de error inesperado, se devuelve el valor original
-        return iso_date
+        # En caso de error inesperado, se devuelve -1
+        return -1
 
 
-def epoch_to_iso8601(epoch: Union[int, str, None]) -> Union[str, int, None]:
+def epoch_to_iso8601(epoch):
     """
     Convierte un timestamp Unix (en segundos) a una cadena en formato ISO 8601 (UTC).
     Si el argumento es None o una cadena vacía, devuelve el mismo valor.
@@ -1226,10 +1226,10 @@ def epoch_to_iso8601(epoch: Union[int, str, None]) -> Union[str, int, None]:
     Ejemplo:
         epoch_to_iso8601(1638316800) -> "2021-12-01T00:00:00Z"
         epoch_to_iso8601("") -> ""
-        epoch_to_iso8601(None) -> None
+        epoch_to_iso8601(None) -> ""
     """
     if epoch is None or epoch == "":
-        return epoch
+        return ""
 
     try:
         # Asegura que sea un número entero
@@ -1238,4 +1238,4 @@ def epoch_to_iso8601(epoch: Union[int, str, None]) -> Union[str, int, None]:
         return dt.isoformat().replace("+00:00", "Z")
     except Exception:
         # En caso de error inesperado, se devuelve el valor original
-        return epoch
+        return ""

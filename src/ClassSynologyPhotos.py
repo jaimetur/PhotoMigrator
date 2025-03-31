@@ -69,10 +69,6 @@ class ClassSynologyPhotos:
         Constructor that initializes what were previously global variables.
         Also imports the global LOGGER from GlobalVariables.
         """
-        # # Import the global LOGGER from GlobalVariables
-        # from GlobalVariables import LOGGER
-        # LOGGER = LOGGER
-
         self.ACCOUNT_ID = str(account_id)  # Used to identify wich Account to use from the configuration file
         if account_id not in [1, 2]:
             LOGGER.error(f"ERROR   : Cannot create Immich Photos object with ACCOUNT_ID: {account_id}. Valid valies are [1, 2]. Exiting...")
@@ -650,7 +646,37 @@ class ClassSynologyPhotos:
                 return album_exists, album_id
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while checking if Album exists on Synology Photos. {e}")
-            
+
+
+    ###########################################################################
+    #                            ASSETS FILTERING                             #
+    ###########################################################################
+    def filter_assets(self, assets, log_level=logging.INFO):
+        with set_log_level(LOGGER, log_level):
+            # Get the values from the arguments (if exists)
+            # type = ARGS.get('asset-type', None)
+            # inAlbum = ARGS.get('in-album', None)
+            # if inAlbum: isNotInAlbum = not inAlbum
+            # country = ARGS.get('country', None)
+            # city = ARGS.get('city', None)
+            # personIds = ARGS.get('person-ids', None)
+            takenAfter = ARGS.get('from-date', None)
+            takenBefore = ARGS.get('to-date', None)
+
+            # Convert dates from iso to epoch
+            takenAfter = iso8601_to_epoch(takenAfter)
+            takenBefore = iso8601_to_epoch(takenBefore)
+
+            if not takenAfter: takenAfter = 0                   # Fecha más antigua aceptada por muchas APIs: 1970-01-01
+            if not takenBefore: takenBefore = int(time.time())  # Fecha actual
+
+            filtered_assets = []
+            for asset in assets:
+                time_value = asset.get('time', -1)
+                if takenAfter <= time_value <= takenBefore:
+                    filtered_assets.append(asset)
+            return filtered_assets
+
 
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
@@ -668,8 +694,14 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 # Get the values from the arguments (if exists)
-                takenAfter = ARGS.get('from-date', '') or None
-                takenBefore = ARGS.get('to-date', '') or None
+                takenAfter = ARGS.get('from-date', None)
+                takenBefore = ARGS.get('to-date', None)
+                type = ARGS.get('asset-type', None)
+                inAlbum = ARGS.get('in-album', None)
+                if inAlbum: isNotInAlbum = not inAlbum
+                country = ARGS.get('country', None)
+                city = ARGS.get('city', None)
+                personIds = ARGS.get('person-ids', None)
 
                 # Convert the values from iso to epoch
                 takenAfter = iso8601_to_epoch(takenAfter)
@@ -685,27 +717,34 @@ class ClassSynologyPhotos:
                 limit = 5000
                 all_assets = []
                 while True:
-                    payload_data = {
+                    params = {
                         'api': 'SYNO.Foto.Browse.Item',
                         # 'version': '4',
                         # 'method': 'list',
                         'version': '2',
                         'method': 'list_with_filter',
+                        'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
                         'offset': offset,
                         'limit': limit,
                     }
 
+                    # Add time to params only if takenAfter or takenBefore has some values
                     time_dic = {}
-
-                    # Solo añade las claves si tienen valor
                     if takenAfter:  time_dic["start_time"] = takenAfter
                     if takenBefore: time_dic["end_time"] = takenBefore
+                    if time_dic: params["time"] = json.dumps([time_dic])
 
-                    # Si hay al menos una clave, la añadimos al payload como JSON válido
-                    if time_dic: payload_data["time"] = json.dumps([time_dic])
+                    # Add types to params if have been providen
+                    types = []
+                    if type:
+                        if type.lower() in ['photo', 'photos']:
+                            types.append(0)
+                        if type.lower() in ['video', 'videos']:
+                            types.append(1)
+                    if types: params["item_type"] = types
 
                     try:
-                        resp = self.SESSION.get(url, headers=headers, params=payload_data, verify=False)
+                        resp = self.SESSION.get(url, headers=headers, params=params, verify=False)
                         data = resp.json()
                         if not data.get("success"):
                             LOGGER.error(f"ERROR   : Failed to list assets")
@@ -717,7 +756,6 @@ class ClassSynologyPhotos:
                     except Exception as e:
                         LOGGER.error(f"ERROR   : Exception while listing assets {e}")
                         return []
-                    
 
                 return all_assets
             except Exception as e:
@@ -746,17 +784,19 @@ class ClassSynologyPhotos:
 
                 offset = 0
                 limit = 5000
-                album_items = []
+                album_assets = []
 
                 while True:
                     params = {
                         'api': 'SYNO.Foto.Browse.Item',
                         'version': '4',
                         'method': 'list',
+                        'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
                         'album_id': album_id,
-                        "offset": offset,
-                        "limit": limit
+                        'offset': offset,
+                        'limit': limit,
                     }
+
                     try:
                         resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
                         data = resp.json()
@@ -766,7 +806,7 @@ class ClassSynologyPhotos:
                             else:
                                 LOGGER.error(f"ERROR   : Failed to list photos in the album ID={album_id}")
                             return []
-                        album_items.extend(data["data"]["list"])
+                        album_assets.extend(data["data"]["list"])
 
                         if len(data["data"]["list"]) < limit:
                             break
@@ -778,7 +818,8 @@ class ClassSynologyPhotos:
                             LOGGER.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                         return []
 
-                return album_items
+                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                return filtered_album_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
 
@@ -806,13 +847,14 @@ class ClassSynologyPhotos:
 
                 offset = 0
                 limit = 5000
-                album_items = []
+                album_assets = []
 
                 while True:
                     params = {
                         'api': 'SYNO.Foto.Browse.Item',
                         'version': '4',
                         'method': 'list',
+                        'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
                         'passphrase': album_passphrase,
                         "offset": offset,
                         "limit": limit
@@ -826,7 +868,7 @@ class ClassSynologyPhotos:
                             else:
                                 LOGGER.error(f"ERROR   : Failed to list photos in the album ID={album_id}")
                             return []
-                        album_items.extend(data["data"]["list"])
+                        album_assets.extend(data["data"]["list"])
 
                         if len(data["data"]["list"]) < limit:
                             break
@@ -838,7 +880,8 @@ class ClassSynologyPhotos:
                             LOGGER.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                         return []
 
-                return album_items
+                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                return filtered_album_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
 

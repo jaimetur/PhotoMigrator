@@ -33,13 +33,14 @@ import json
 import urllib3
 import fnmatch
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
+import time
 from dateutil import parser
 from urllib.parse import urlparse
 from halo import Halo
 from tabulate import tabulate
 
-from Utils import update_metadata, convert_to_list, tqdm, sha1_checksum
+from Utils import update_metadata, convert_to_list, tqdm, sha1_checksum, iso8601_to_epoch
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
@@ -62,10 +63,6 @@ class ClassImmichPhotos:
         Constructor that initializes what used to be global variables.
         Also imports the global LOGGER from GlobalVariables.
         """
-        # # Import the global LOGGER from GlobalVariables
-        # from GlobalVariables import LOGGER
-        # self.logger = LOGGER
-
         self.ACCOUNT_ID = str(account_id)        # Used to identify wich Account to use from the configuration file
         if account_id not in [1, 2]:
             LOGGER.error(f"ERROR   : Cannot create Immich Photos object with ACCOUNT_ID: {account_id}. Valid valies are [1, 2]. Exiting...")
@@ -576,6 +573,35 @@ class ClassImmichPhotos:
 
 
     ###########################################################################
+    #                            ASSETS FILTERING                             #
+    ###########################################################################
+    def filter_assets(self, assets, log_level=logging.INFO):
+        with set_log_level(LOGGER, log_level):
+            # Get the values from the arguments (if exists)
+            # type = ARGS.get('asset-type', None)
+            # inAlbum = ARGS.get('in-album', None)
+            # if inAlbum: isNotInAlbum = not inAlbum
+            # country = ARGS.get('country', None)
+            # city = ARGS.get('city', None)
+            # personIds = ARGS.get('person-ids', None)
+            takenAfter = ARGS.get('from-date', None)
+            takenBefore = ARGS.get('to-date', None)
+
+            # Convert dates from iso to epoch
+            takenAfter = iso8601_to_epoch(takenAfter)
+            takenBefore = iso8601_to_epoch(takenBefore)
+
+            if not takenAfter: takenAfter = 0                   # Fecha más antigua aceptada por muchas APIs: 1970-01-01
+            if not takenBefore: takenBefore = int(time.time())  # Fecha actual
+
+            filtered_assets = []
+            for asset in assets:
+                time_value = iso8601_to_epoch(asset.get('time', -1))
+                if takenAfter <= time_value <= takenBefore:
+                    filtered_assets.append(asset)
+            return filtered_assets
+
+    ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
     def get_all_assets(self, type=None, isNotInAlbum=None, isArchived=None,
@@ -678,12 +704,14 @@ class ClassImmichPhotos:
                 resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
                 resp.raise_for_status()
                 data = resp.json()
-                all_assets = data.get("assets", [])
+                album_assets = data.get("assets", [])
                 # Add new fields "time" with the same value as "fileCreatedAt" and "filename" with the same value as "originalFileName" to allign with Synology Photos
-                for asset in all_assets:
+                for asset in album_assets:
                     asset["time"] = asset["fileCreatedAt"]
                     asset["filename"] = asset["originalFileName"]
-                return all_assets
+
+                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                return filtered_album_assets
             except Exception as e:
                 if album_name:
                     LOGGER.error(f"ERROR   : Failed to retrieve assets from album '{album_name}': {str(e)}")
