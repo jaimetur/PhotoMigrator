@@ -317,6 +317,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
             # Get all assets and filter out those blocked assets (from blocked shared albums) if any
             all_supported_assets = source_client.get_all_assets()
+            # all_albums_assets = source_client.get_all_albums_assets()
             blocked_assets_ids = {asset["id"] for asset in blocked_assets}
             filtered_all_supported_assets = [asset for asset in all_supported_assets if asset["id"] not in blocked_assets_ids]
 
@@ -420,10 +421,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"INFO    : {source_client_name} --> {target_client_name}")
             LOGGER.info(f"INFO    : Pulled Albums               : {SHARED_DATA.counters['total_pulled_albums']}")
             LOGGER.info(f"INFO    : Pushed Albums               : {SHARED_DATA.counters['total_pushed_albums']}")
-            LOGGER.info(
-                f"INFO    : Pulled Assets               : {SHARED_DATA.counters['total_pulled_assets']} (Photos: {SHARED_DATA.counters['total_pulled_photos']}, Videos: {SHARED_DATA.counters['total_pulled_videos']})")
-            LOGGER.info(
-                f"INFO    : Pushed Assets               : {SHARED_DATA.counters['total_pushed_assets']} (Photos: {SHARED_DATA.counters['total_pushed_photos']}, Videos: {SHARED_DATA.counters['total_pushed_videos']})")
+            LOGGER.info(f"INFO    : Pulled Assets               : {SHARED_DATA.counters['total_pulled_assets']} (Photos: {SHARED_DATA.counters['total_pulled_photos']}, Videos: {SHARED_DATA.counters['total_pulled_videos']})")
+            LOGGER.info(f"INFO    : Pushed Assets               : {SHARED_DATA.counters['total_pushed_assets']} (Photos: {SHARED_DATA.counters['total_pushed_photos']}, Videos: {SHARED_DATA.counters['total_pushed_videos']})")
             LOGGER.info(f"INFO    : Push Duplicates (skipped)   : {SHARED_DATA.counters['total_push_duplicates_assets']}")
             LOGGER.info(f"INFO    : Pull Failed Assets          : {SHARED_DATA.counters['total_pull_failed_assets']}")
             LOGGER.info(f"INFO    : Push Failed Assets          : {SHARED_DATA.counters['total_push_failed_assets']}")
@@ -443,6 +442,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             # 1.1) Descarga de álbumes
             albums = source_client.get_albums_including_shared_with_user()
             pulled_assets = 0
+            pulled_assets_ids = set()
             for album in albums:
                 album_assets = []
                 album_id = album['id']
@@ -505,11 +505,12 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         if pulled_assets > 0:
                             # set_log_level(LOGGER, log_level)
                             LOGGER.info(f"INFO    : Asset Pulled    : '{os.path.join(album_folder, os.path.basename(asset_filename))}'")
-                            SHARED_DATA.counters['total_pulled_assets'] += pulled_assets
+                            pulled_assets_ids.add(asset["id"])
+                            SHARED_DATA.counters['total_pulled_assets'] += 1
                             if asset_type.lower() == 'video':
-                                SHARED_DATA.counters['total_pulled_videos'] += pulled_assets
+                                SHARED_DATA.counters['total_pulled_videos'] += 1
                             else:
-                                SHARED_DATA.counters['total_pulled_photos'] += pulled_assets
+                                SHARED_DATA.counters['total_pulled_photos'] += 1
                         else:
                             SHARED_DATA.counters['total_pull_failed_assets'] += 1
                             if asset_type.lower() == 'video':
@@ -598,25 +599,26 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     # Si se ha hecho correctamente el pull del asset, actualizamos contadores y enviamos el asset a la cola de push
                     if pulled_assets > 0:
                         # Actualizamos Contadores de descargas
-                        LOGGER.info(f"INFO    : Asset Pulled    : '{os.path.join(temp_folder, os.path.basename(asset_filename))}'")
-                        SHARED_DATA.counters['total_pulled_assets'] += pulled_assets
-                        if asset_type.lower() == 'video':
-                            SHARED_DATA.counters['total_pulled_videos'] += pulled_assets
-                        else:
-                            SHARED_DATA.counters['total_pulled_photos'] += pulled_assets
+                        if asset_id not in pulled_assets_ids:
+                            LOGGER.info(f"INFO    : Asset Pulled    : '{os.path.join(temp_folder, os.path.basename(asset_filename))}'")
+                            SHARED_DATA.counters['total_pulled_assets'] += 1
+                            if asset_type.lower() == 'video':
+                                SHARED_DATA.counters['total_pulled_videos'] += 1
+                            else:
+                                SHARED_DATA.counters['total_pulled_photos'] += 1
 
-                        # Enviar a la cola de push con la información necesaria para la subida (sin album_name)
-                        local_file_path = os.path.join(temp_folder, asset_filename)
-                        asset_dict = {
-                            'asset_id': asset_id,
-                            'asset_file_path': local_file_path,
-                            'asset_datetime': asset_datetime,
-                            'asset_type': asset_type,
-                            'album_name': None,
-                        }
-                        enqueue_unique(push_queue, asset_dict)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
-                        # sys.stdout.flush()
-                        # sys.stderr.flush()
+                            # Enviar a la cola de push con la información necesaria para la subida (sin album_name)
+                            local_file_path = os.path.join(temp_folder, asset_filename)
+                            asset_dict = {
+                                'asset_id': asset_id,
+                                'asset_file_path': local_file_path,
+                                'asset_datetime': asset_datetime,
+                                'asset_type': asset_type,
+                                'album_name': None,
+                            }
+                            enqueue_unique(push_queue, asset_dict)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
+                            # sys.stdout.flush()
+                            # sys.stderr.flush()
                     else:
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
                         if asset_type.lower() == 'video':
