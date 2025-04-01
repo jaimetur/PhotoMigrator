@@ -169,7 +169,7 @@ The below tables show the pros and cons of each method together with a comparati
 
 ## v3.2.0  
 ### Release Date: (estimated)
-  - Alpha version.   : 2025-04-07
+  - Alpha version    : 2025-04-07
   - Beta version     : 2025-04-14
   - Release Candidate: 2025-04-25
   - Official Release : 2025-04-30
@@ -187,7 +187,7 @@ The below tables show the pros and cons of each method together with a comparati
 
 ## v4.0.0:
 ### Release Date: (estimated)
-  - Alpha version.   : (No estimated date)
+  - Alpha version    : (No estimated date)
   - Beta version     : (No estimated date)
   - Release Candidate: (No estimated date)
   - Official Release : (No estimated date)
