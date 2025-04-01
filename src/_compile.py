@@ -188,7 +188,7 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
         f.writelines(updated_readme)
 
 
-def compile():
+def compile(arg=None):
     global SCRIPT_NAME
     global SCRIPT_NAME_VERSION
     global OS
@@ -257,34 +257,35 @@ def compile():
             script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
             add_gpth_command = f"../gpth_tool/gpth_{OPERATING_SYSTEM}.bin:gpth_tool"
 
-        print("Añadiendo paquetes necesarios al entorno Python antes de compilar...")
-        subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', '../requirements.txt'])
-        if OPERATING_SYSTEM=='windows':
-            subprocess.run([sys.executable, '-m', 'pip', 'install', 'windows-curses'])
-        print("")
-        print(f"Compilando para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}'...")
-        subprocess.run([
-            'pyinstaller',
-            '--runtime-tmpdir', '/var/tmp',
-            '--onefile',
-            '--add-data', add_gpth_command,
-            # '--add-data', f"../exif_tool_{OPERATING_SYSTEM}:exif_tool",
-            f'{SCRIPT_SOURCE_NAME}'
-        ])
+        if arg.lower() != 'skip_compile':
+            print("Añadiendo paquetes necesarios al entorno Python antes de compilar...")
+            subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', '../requirements.txt'])
+            if OPERATING_SYSTEM=='windows':
+                subprocess.run([sys.executable, '-m', 'pip', 'install', 'windows-curses'])
+            print("")
+            print(f"Compilando para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}'...")
+            subprocess.run([
+                'pyinstaller',
+                '--runtime-tmpdir', '/var/tmp',
+                '--onefile',
+                '--add-data', add_gpth_command,
+                # '--add-data', f"../exif_tool_{OPERATING_SYSTEM}:exif_tool",
+                f'{SCRIPT_SOURCE_NAME}'
+            ])
 
-        # Movemos el fichero compilado a la carpeta padre
-        print(f"\nMoviendo script compilado '{script_compiled_with_version_os_arch_extension}'...")
-        shutil.move(f'./dist/{script_compiled}', f'../{script_compiled_with_version_os_arch_extension}')
-        # Comprimimos la carpeta con el script compilado y los ficheros y directorios a incluir
-        include_extrafiles_and_zip(f'../{script_compiled_with_version_os_arch_extension}', script_zip_file)
-        # Borramos los ficheros y directorios temporales de la compilación
-        print("Borrando archivos temporales de la compilación...")
-        Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
-        shutil.rmtree('build', ignore_errors=True)
-        shutil.rmtree('dist', ignore_errors=True)
-        print(f"Compilación para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}' concluida con éxito.")
-        print(f"Script compilado: {script_compiled_with_version_os_arch_extension}")
-        print(f"Script comprimido: {script_zip_file}")
+            # Movemos el fichero compilado a la carpeta padre
+            print(f"\nMoviendo script compilado '{script_compiled_with_version_os_arch_extension}'...")
+            shutil.move(f'./dist/{script_compiled}', f'../{script_compiled_with_version_os_arch_extension}')
+            # Comprimimos la carpeta con el script compilado y los ficheros y directorios a incluir
+            include_extrafiles_and_zip(f'../{script_compiled_with_version_os_arch_extension}', script_zip_file)
+            # Borramos los ficheros y directorios temporales de la compilación
+            print("Borrando archivos temporales de la compilación...")
+            Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
+            shutil.rmtree('build', ignore_errors=True)
+            shutil.rmtree('dist', ignore_errors=True)
+            print(f"Compilación para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}' concluida con éxito.")
+            print(f"Script compilado: {script_compiled_with_version_os_arch_extension}")
+            print(f"Script comprimido: {script_zip_file}")
 
     elif COMPILER=='nuitka':
         ARCHITECTURES = ["amd64", "arm64"]
@@ -301,51 +302,53 @@ def compile():
                 add_gpth_command = f'../gpth_tool/gpth_{OPERATING_SYSTEM}.bin=gpth_tool/gpth_{OPERATING_SYSTEM}.bin'
                                 
             script_zip_file = Path(f"../_built_versions/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
-            print("")
-            print(f"Compilando para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}'...")
-            if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
-                os.environ['CC'] = 'gcc'
-            elif ARCHITECTURE in ["arm64", "aarch64"]:
-                os.environ['CC'] = 'aarch64-linux-gnu-gcc'
-            else:
-                print(f"Arquitectura desconocida: {ARCHITECTURE}")
-                sys.exit(1)
-            subprocess.run([
-                'nuitka',
-                f'{SCRIPT_SOURCE_NAME}',
-                # '--standalone',
-                '--onefile',
-                '--onefile-no-compression',
-                f'--onefile-tempdir-spec=/var/tmp/{script_name_with_version_os_arch}',
-                '--jobs=4',
-                '--static-libpython=yes',
-                '--lto=yes',
-                '--remove-output',
-                '--output-dir=./dist',
-                f'--file-version={SCRIPT_VERSION_INT}',
-                f'--copyright={COPYRIGHT_TEXT}',
-                f'--include-data-file={add_gpth_command}',
-                #f'--include-raw-dir=../gpth_tool=gpth_tool',
-                # '--include-raw-dir=../exif_tool=exif_tool',
-                # '--include-data-dir=../gpth_tool=gpth_tool',
-                # '--include-data-dir=../exif_tool=exif_tool',
-                '--include-data-file=Synology.config=Synology.config',
-                '--include-data-file=../README.md=README.md'
-            ])
-            
-            # Movemos el fichero compilado a la carpeta padre
-            print(f"\nMoviendo script compilado '{script_compiled_with_version_os_arch_extension}'...")
-            shutil.move(f'./dist/{script_compiled}', f'../{script_compiled_with_version_os_arch_extension}')
-            # Comprimimos la carpeta con el script compilado y los ficheros y directorios a incluir
-            include_extrafiles_and_zip(f'../{script_compiled_with_version_os_arch_extension}', script_zip_file)
-            # Borramos los ficheros y directorios temporales de la compilación
-            print("Borrando archivos temporales de la compilación...")
-            Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
-            shutil.rmtree('build', ignore_errors=True)
-            shutil.rmtree('dist', ignore_errors=True)
-            print(f"Compilación para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}' concluida con éxito.")
-            print(f"Script compilado: {script_compiled}")
-            print(f"Script comprimido: {script_zip_file}")
+
+            if arg.lower() != 'skip_compile':
+                print("")
+                print(f"Compilando para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}'...")
+                if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
+                    os.environ['CC'] = 'gcc'
+                elif ARCHITECTURE in ["arm64", "aarch64"]:
+                    os.environ['CC'] = 'aarch64-linux-gnu-gcc'
+                else:
+                    print(f"Arquitectura desconocida: {ARCHITECTURE}")
+                    sys.exit(1)
+                subprocess.run([
+                    'nuitka',
+                    f'{SCRIPT_SOURCE_NAME}',
+                    # '--standalone',
+                    '--onefile',
+                    '--onefile-no-compression',
+                    f'--onefile-tempdir-spec=/var/tmp/{script_name_with_version_os_arch}',
+                    '--jobs=4',
+                    '--static-libpython=yes',
+                    '--lto=yes',
+                    '--remove-output',
+                    '--output-dir=./dist',
+                    f'--file-version={SCRIPT_VERSION_INT}',
+                    f'--copyright={COPYRIGHT_TEXT}',
+                    f'--include-data-file={add_gpth_command}',
+                    #f'--include-raw-dir=../gpth_tool=gpth_tool',
+                    # '--include-raw-dir=../exif_tool=exif_tool',
+                    # '--include-data-dir=../gpth_tool=gpth_tool',
+                    # '--include-data-dir=../exif_tool=exif_tool',
+                    '--include-data-file=Synology.config=Synology.config',
+                    '--include-data-file=../README.md=README.md'
+                ])
+
+                # Movemos el fichero compilado a la carpeta padre
+                print(f"\nMoviendo script compilado '{script_compiled_with_version_os_arch_extension}'...")
+                shutil.move(f'./dist/{script_compiled}', f'../{script_compiled_with_version_os_arch_extension}')
+                # Comprimimos la carpeta con el script compilado y los ficheros y directorios a incluir
+                include_extrafiles_and_zip(f'../{script_compiled_with_version_os_arch_extension}', script_zip_file)
+                # Borramos los ficheros y directorios temporales de la compilación
+                print("Borrando archivos temporales de la compilación...")
+                Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
+                shutil.rmtree('build', ignore_errors=True)
+                shutil.rmtree('dist', ignore_errors=True)
+                print(f"Compilación para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}' concluida con éxito.")
+                print(f"Script compilado: {script_compiled}")
+                print(f"Script comprimido: {script_zip_file}")
 
     print("Todas las compilaciones han finalizado correctamente.")
     
@@ -360,7 +363,10 @@ def compile():
     return True
 
 if __name__ == "__main__":
-    ok = compile()
+    # Obtener argumento si existe
+    arg = sys.argv[1] if len(sys.argv) > 1 else None
+
+    ok = compile(arg)
     if ok:
-        print(f'COMPILATION FINISHED SUCCESSFULLY!')
+        print('COMPILATION FINISHED SUCCESSFULLY!')
     sys.exit(0)
