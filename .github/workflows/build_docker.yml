@@ -27,7 +27,7 @@ jobs:
         exclude:
           - os: windows-latest
             arch: arm64  # Windows is only compiled for x86 (32/64-bit)
-        python-version: ["3.12.3"]
+        python-version: ["3.10.0"]
 
     runs-on: ${{ matrix.os }}
 
@@ -93,7 +93,7 @@ jobs:
       # ===========================
       # 4. Log in to Docker Hub
       - name: 4. Log in to Docker Hub
-        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+        if: ${{ startsWith(matrix.os, 'macos') && matrix.arch == 'x86_64' }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -101,7 +101,7 @@ jobs:
 
       # 5. Build & Push Docker image
       - name: 5. Build & Push Docker image
-        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+        if: ${{ startsWith(matrix.os, 'macos') && matrix.arch == 'x86_64' }}
         run: |
           # Fuerza a Docker a:
           #  1) descargar la base actualizada ( --pull )
@@ -125,7 +125,7 @@ jobs:
       
       # 6. Prepare unified ZIP docker package
       - name: 6. Prepare unified ZIP docker package
-        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+        if: ${{ startsWith(matrix.os, 'macos') && matrix.arch == 'x86_64' }}
         run: |
           mkdir -p CloudPhotoMigrator/docker
           cp docker/CloudPhotoMigrator.sh CloudPhotoMigrator/docker/
