@@ -90,15 +90,16 @@ jobs:
       # ===========================
       # Generate the Docker version
       # ===========================
-      - name: Log in to Docker Hub
+      # 4. Log in to Docker Hub
+      - name: 4. Log in to Docker Hub
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-
-      - name: Build & Push Docker image
+      # 5. Build & Push Docker image
+      - name: 5. Build & Push Docker image
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         run: |
           # Fuerza a Docker a:
@@ -121,8 +122,8 @@ jobs:
           docker push jaimetur/cloudphotomigrator:${SCRIPT_VERSION}
           docker push jaimetur/cloudphotomigrator:latest
       
-
-      - name: Prepare unified ZIP docker package
+      # 6. Prepare unified ZIP docker package
+      - name: 6. Prepare unified ZIP docker package
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         run: |
           mkdir -p CloudPhotoMigrator/docker
@@ -135,8 +136,8 @@ jobs:
           cp README.md CloudPhotoMigrator/docker/docs/README.md
           zip -r CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip CloudPhotoMigrator
 
-
-      - name: Upload release asset
+      # 7. Upload release asset
+      - name: 7. Upload release asset
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
@@ -149,8 +150,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
 
-      # 4. - Cleanup (Linux/macOS)
-      - name: 4. - Cleanup (Linux/macOS)
+      # 8. - Cleanup (Linux/macOS)
+      - name: 8. - Cleanup (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
           if [ -f artifact_base64.txt ]; then
@@ -160,18 +161,11 @@ jobs:
             rm artifact_base64.txt
             echo "Archivo artifact_base64.txt eliminado de src."
           fi
-          # if [ -f ${{ env.ARCHIVE_PATH }} ]; then
-            # rm ${{ env.ARCHIVE_PATH }}
-            # echo "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta raiz."
-          # elif [ -f src/${{ env.ARCHIVE_PATH }} ]; then
-            # rm ${{ env.ARCHIVE_PATH }}
-            # echo "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta src."
-          # fi
         shell: bash
 
 
-      # 5. Commit y push README.md (Solo si OS = MacOS* y arch = x86_64)
-      - name: 5. Commit y push README.md
+      # 9. Commit y push README.md (Solo si OS = MacOS* y arch = x86_64)
+      - name: 9. Commit y push README.md
         if: ${{ startsWith(matrix.os, 'macos') && matrix.arch == 'x86_64' }}
         run: |
           git config --global user.name "github-actions[bot]"
