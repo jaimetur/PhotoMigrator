@@ -22,7 +22,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [windows-latest]  # os list
+        os: [ubuntu-latest]  # os list
         arch: [x86_64]  # arch list
         exclude:
           - os: windows-latest
