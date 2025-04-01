@@ -223,83 +223,6 @@ def parse_arguments():
     return ARGS, PARSER
 
 
-def resolve_all_possible_paths(args_dict, keys_to_check=None):
-    """
-    Resolves all path-like values in args_dict (strings, lists, comma-separated strings),
-    skipping values in known predefined choice lists or invalid types.
-
-    Optional: you can restrict resolution to specific keys with `keys_to_check`.
-
-    Modifies args_dict in-place.
-    """
-    skip_values = set(
-        choices_for_message_levels +
-        choices_for_folder_structure +
-        choices_for_remove_duplicates +
-        choices_for_AUTOMATED_MIGRATION_SRC +
-        choices_for_AUTOMATED_MIGRATION_TGT
-    )
-
-    for key, value in args_dict.items():
-        if keys_to_check is not None and key not in keys_to_check:
-            continue  # saltar claves no incluidas
-
-        # Saltar valores claramente no válidos
-        if value is None or isinstance(value, (bool, int, float)) or value == "":
-            continue
-
-        # Si es lista de valores
-        if isinstance(value, list):
-            resolved_list = []
-            for item in value:
-                if isinstance(item, str):
-                    item_clean = item.strip()
-                    if item_clean == "" or item_clean in skip_values:
-                        resolved_list.append(item_clean)
-                    else:
-                        resolved_list.append(resolve_path(item_clean))
-                else:
-                    resolved_list.append(item)
-            args_dict[key] = resolved_list
-
-        # Si es cadena (simple o separada por comas)
-        elif isinstance(value, str):
-            if value.strip() == "":
-                continue  # no tocar cadena vacía
-            parts = [part.strip() for part in value.split(',')]
-            resolved_parts = []
-            for part in parts:
-                if part in skip_values:
-                    resolved_parts.append(part)
-                else:
-                    resolved_parts.append(resolve_path(part))
-            args_dict[key] = ', '.join(resolved_parts) if ',' in value else resolved_parts[0]
-
-
-def parse_to_iso8601(date_str):
-    if not date_str or not date_str.strip():
-        return None
-
-    date_str = date_str.strip()
-
-    # Lista de formatos a probar
-    date_formats = [
-        "%d/%m/%Y",
-        "%Y-%m-%d",
-        "%d-%m-%Y",
-        "%Y/%m/%d",
-    ]
-
-    for fmt in date_formats:
-        try:
-            dt = datetime.strptime(date_str, fmt)
-            return dt.strftime("%Y-%m-%dT00:00:00.000Z")
-        except ValueError:
-            continue
-
-    # Si no se pudo convertir, devuelve None
-    return None
-
 def checkArgs(ARGS, PARSER):
     global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
 
@@ -446,3 +369,75 @@ def create_global_variable_from_args(args):
 
 def getParser():
     return PARSER
+
+def parse_to_iso8601(date_str):
+    if not date_str or not date_str.strip():
+        return None
+    date_str = date_str.strip()
+    # Lista de formatos a probar
+    date_formats = [
+        "%d/%m/%Y",
+        "%Y-%m-%d",
+        "%d-%m-%Y",
+        "%Y/%m/%d",
+    ]
+    for fmt in date_formats:
+        try:
+            dt = datetime.strptime(date_str, fmt)
+            return dt.strftime("%Y-%m-%dT00:00:00.000Z")
+        except ValueError:
+            continue
+    # Si no se pudo convertir, devuelve None
+    return None
+
+def resolve_all_possible_paths(args_dict, keys_to_check=None):
+    """
+    Resolves all path-like values in args_dict (strings, lists, comma-separated strings),
+    skipping values in known predefined choice lists or invalid types.
+
+    Optional: you can restrict resolution to specific keys with `keys_to_check`.
+
+    Modifies args_dict in-place.
+    """
+    skip_values = set(
+        choices_for_message_levels +
+        choices_for_folder_structure +
+        choices_for_remove_duplicates +
+        choices_for_AUTOMATED_MIGRATION_SRC +
+        choices_for_AUTOMATED_MIGRATION_TGT
+    )
+
+    for key, value in args_dict.items():
+        if keys_to_check is not None and key not in keys_to_check:
+            continue  # saltar claves no incluidas
+
+        # Saltar valores claramente no válidos
+        if value is None or isinstance(value, (bool, int, float)) or value == "":
+            continue
+
+        # Si es lista de valores
+        if isinstance(value, list):
+            resolved_list = []
+            for item in value:
+                if isinstance(item, str):
+                    item_clean = item.strip()
+                    if item_clean == "" or item_clean in skip_values:
+                        resolved_list.append(item_clean)
+                    else:
+                        resolved_list.append(resolve_path(item_clean))
+                else:
+                    resolved_list.append(item)
+            args_dict[key] = resolved_list
+
+        # Si es cadena (simple o separada por comas)
+        elif isinstance(value, str):
+            if value.strip() == "":
+                continue  # no tocar cadena vacía
+            parts = [part.strip() for part in value.split(',')]
+            resolved_parts = []
+            for part in parts:
+                if part in skip_values:
+                    resolved_parts.append(part)
+                else:
+                    resolved_parts.append(resolve_path(part))
+            args_dict[key] = ', '.join(resolved_parts) if ',' in value else resolved_parts[0]
