@@ -22,7 +22,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest]  # os list
+        os: [macos-latest]  # os list
         arch: [x86_64]  # arch list
         exclude:
           - os: windows-latest
@@ -97,8 +97,6 @@ jobs:
           draft: true
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
-          files: |
-            ${{ env.ARCHIVE_PATH }}
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
@@ -185,9 +183,9 @@ jobs:
         shell: bash
 
 
-      # 5. Commit y push README.md (Solo si OS = Ubuntu* y arch = x86_64)
+      # 5. Commit y push README.md (Solo si OS = MacOS* y arch = x86_64)
       - name: 5. Commit y push README.md
-        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+        if: ${{ startsWith(matrix.os, 'macos') && matrix.arch == 'x86_64' }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
