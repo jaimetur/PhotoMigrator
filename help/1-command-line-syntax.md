@@ -2,11 +2,14 @@
 ```
 ---------------------------------------------------------------------------------------------------------
 usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
-                                  [-dashboard [=[true,false]]]
+                                  [-dashb [= [true,false]]] [-type = [photos,videos,all]]
+                                  [-from <FROM_DATE>] [-to <TO_DATE>]
+                                  [-country <COUNTRY_ID>] [-city <CITY_ID>]
+                                  [-people <PEOPLE_ID>]
                                   [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
                                   [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
                                   [-rAlbAss]
-                                  [-gpthProg [=[true,false]]] [-gpthErr [=[true,false]]]
+                                  [-gpthProg [= [true,false]]] [-gpthErr [= [true,false]]]
                                   [-nolog]
                                   [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
                                   [-gtProc <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
@@ -76,10 +79,27 @@ same Photo Cloud service.
               ​--source=immich-1 -> Select Immich Photos account 1 as Target.
               ​--source=synology-2 -> Select Synology Photos account 2 as Target.
               ​--source=/home/local_folder -> Select this local folder as Target.
---dashboard =[true,false]
+-dashb,    --dashboard = [true,false]
              Enable or disable Live Dashboard feature during Autometed Migration Job.
              This argument only applies if both '--source' and '--target' argument are
              given (AUTOMATED-MIGRATION FEATURE). (default: True).
+-type,     --type = [photos,videos,all]
+             Specify the Asset Type to filter assets in the different Photo Cloud
+             Services. Default: all
+-from,     --from-date <FROM_DATE>
+             Specify the initial date to filter assets in the different Photo Cloud
+             Services.
+-to,       --to-date <TO_DATE>
+             Specify the final date to filter assets in the different Photo Cloud
+             Services.
+-country,  --country <COUNTRY_ID>
+             Specify the Country ID to filter assets in the different Photo Cloud
+             Services.
+-city,     --city <CITY_ID>
+             Specify the City ID to filter assets in the different Photo Cloud Services.
+-people,   --people <PEOPLE_ID>
+             Specify the People ID to filter assets in the different Photo Cloud
+             Services.
 
 
 GENERAL ARGUMENTS:
@@ -98,10 +118,10 @@ Following general arguments have different purposses depending on the Execution 
              If used together with '-srAllAlb, --synology-remove-all-albums' or
              '-irAllAlb, --immich-remove-all-albums', it will also delete the assets
              (photos/videos) inside each album.
--gpthProg, --show-gpth-progress =[true,false]
+-gpthProg, --show-gpth-progress = [true,false]
              Enable or disable Progress messages during GPTH Processing. (default:
              False).
--gpthErr,  --show-gpth-errors =[true,false]
+-gpthErr,  --show-gpth-errors = [true,false]
              Enable or disable Error messages during GPTH Processing. (default: True).
 -nolog,    --no-log-file
              Skip saving output messages to execution log file.
