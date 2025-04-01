@@ -72,7 +72,7 @@ def parse_arguments():
     #                        "\n    <SOURCE> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2'] or <INPUT_FOLDER>"
     #                        "\n    <TARGET> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2']or <OUTPUT_FOLDER>"
     #                     )
-    PARSER.add_argument("-dashboard", "--dashboard",
+    PARSER.add_argument("-dashb", "--dashboard",
                         metavar="= [true,false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
@@ -83,16 +83,18 @@ def parse_arguments():
 
     PARSER.add_argument("-from", "--from-date", metavar="<FROM_DATE>", default="", help="Specify the initial date to filter assets in the different Photo Cloud Services.")
     PARSER.add_argument("-to", "--to-date", metavar="<TO_DATE>", default="", help="Specify the final date to filter assets in the different Photo Cloud Services.")
-    PARSER.add_argument("-country", "--country", metavar="<COUNTRY>", default="", help="Specify the Country to filter assets in the different Photo Cloud Services.")
-    PARSER.add_argument("-city", "--city", metavar="<CITY>", default="", help="Specify the City to filter assets in the different Photo Cloud Services.")
-    PARSER.add_argument("-archive", "--archive",
-                        metavar="= [true,false]",
-                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
-                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
-                        default=False,  # Si no se pasa el argumento, el valor por defecto es True
-                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="Specify if you want to filter only Archived assets in the different Photo Cloud Services."
-    )
+    PARSER.add_argument("-type", "--type", metavar="= [photos,videos,all]", default="all", help="Specify the Asset Type to filter assets in the different Photo Cloud Services. Default: all")
+    PARSER.add_argument("-country", "--country", metavar="<COUNTRY_ID>", default="", help="Specify the Country ID to filter assets in the different Photo Cloud Services.")
+    PARSER.add_argument("-city", "--city", metavar="<CITY_ID>", default="", help="Specify the City ID to filter assets in the different Photo Cloud Services.")
+    PARSER.add_argument("-people", "--people", metavar="<PEOPLE_ID>", default="", help="Specify the People ID to filter assets in the different Photo Cloud Services.")
+    # PARSER.add_argument("-archive", "--archive",
+    #                     metavar="= [true,false]",
+    #                     nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+    #                     const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
+    #                     default=False,  # Si no se pasa el argumento, el valor por defecto es True
+    #                     type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+    #                     help="Specify if you want to filter only Archived assets in the different Photo Cloud Services."
+    # )
 
     PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
     PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
@@ -299,7 +301,7 @@ def parse_to_iso8601(date_str):
 def checkArgs(ARGS, PARSER):
     global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
 
-    # Check all providen arguments in the list of arguments to check to resolve the paths correctly for both, docker instance and normal instance.
+    # Check all provided arguments in the list of arguments to check to resolve the paths correctly for both, docker instance and normal instance.
     keys_to_check = ['source', 'target', 'input-folder', 'output-folder', 'albums-folder', 'google-takeout-to-process',
                      'synology-upload-albums', 'synology-download-albums', 'synology-upload-all', 'synology-download-all',
                      'immich-upload-albums', 'immich-download-albums', 'immich-upload-all', 'immich-download-all',
@@ -308,7 +310,7 @@ def checkArgs(ARGS, PARSER):
 
     resolve_all_possible_paths(args_dict=ARGS, keys_to_check=keys_to_check)
 
-    # Remove '_' at the begining of the string in case it has it.
+    # Remove '_' at the beginning of the string in case it has it.
     ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
 
     # Remove last / for all folders expected as arguments:
@@ -329,25 +331,6 @@ def checkArgs(ARGS, PARSER):
 
     # Set None for MIGRATION argument, and only if both source and target argument are providin, it will set properly.
     ARGS['AUTOMATED-MIGRATION'] = None
-
-    # # Parse AUTOMATED-MIGRATION Arguments
-    # ARGS['SOURCE-TYPE-TAKEOUT-FOLDER'] = None
-    # ARGS['TARGET-TYPE-TAKEOUT-FOLDER'] = None
-    # if len(ARGS['AUTOMATED-MIGRATION']) >0:
-    #     source = ARGS['AUTOMATED-MIGRATION'][0]
-    #     target = ARGS['AUTOMATED-MIGRATION'][1]
-    #     # If source is not in the list of valid sources choices, then if it is a valid Input Takeout Folder from Google Photos
-    #     if source.lower() not in choices_for_AUTOMATED_MIGRATION_SRC:
-    #         if not os.path.isdir(source):
-    #             PARSER.error(f"\n\n❌ ERROR   : Target value '{source}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_SRC} and is not a valid existing folder.\n")
-    #             exit(1)
-    #         ARGS['SOURCE-TYPE-TAKEOUT-FOLDER'] = True
-    #     # If the target is not in the list of valid targets choices, exit.
-    #     if target.lower() not in choices_for_AUTOMATED_MIGRATION_TGT:
-    #         if not os.path.isdir(target):
-    #             PARSER.error(f"\n\n❌ ERROR   : Target value '{target}' is not in the list of valid values: {choices_for_AUTOMATED_MIGRATION_TGT} and is not a valid existing folder.\n")
-    #             exit(1)
-    #         ARGS['TARGET-TYPE-TAKEOUT-FOLDER'] = True
 
 
     # Parse AUTOMATED-MIGRATION Arguments

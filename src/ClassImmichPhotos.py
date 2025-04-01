@@ -33,7 +33,7 @@ import json
 import urllib3
 import fnmatch
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 import time
 from dateutil import parser
 from urllib.parse import urlparse
@@ -430,7 +430,6 @@ class ClassImmichPhotos:
                 return False
 
 
-
     def get_albums_owned_by_user(self, log_level=logging.INFO):
         """
         Get all albums in Immich Photos for the current user.
@@ -459,7 +458,11 @@ class ClassImmichPhotos:
                 own_albums = []
                 for album in albums:
                     if album.get('ownerId') == user_id:
-                        own_albums.append(album)
+                        album_id = album.get('id')
+                        album_name = album.get("albumName", "")
+                        album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
+                        if len(album_assets) > 0:
+                            own_albums.append(album)
                 return own_albums
             except Exception as e:
                 LOGGER.error(f"ERROR   : Error while listing albums: {e}")
@@ -489,7 +492,15 @@ class ClassImmichPhotos:
             try:
                 resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
                 resp.raise_for_status()
-                return resp.json()
+                albums = resp.json()
+                albums_filtered = []
+                for album in albums:
+                    album_id = album.get('id')
+                    album_name = album.get("albumName", "")
+                    album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
+                    if len(album_assets)>0:
+                        albums_filtered.append(album)
+                return albums_filtered
             except Exception as e:
                 LOGGER.error(f"ERROR   : Error while listing albums: {e}")
                 return None
@@ -579,11 +590,9 @@ class ClassImmichPhotos:
         with set_log_level(LOGGER, log_level):
             # Get the values from the arguments (if exists)
             # type = ARGS.get('asset-type', None)
-            # inAlbum = ARGS.get('in-album', None)
-            # if inAlbum: isNotInAlbum = not inAlbum
             # country = ARGS.get('country', None)
             # city = ARGS.get('city', None)
-            # personIds = ARGS.get('person-ids', None)
+            # people = ARGS.get('people', None)
             takenAfter = ARGS.get('from-date', None)
             takenBefore = ARGS.get('to-date', None)
 
@@ -606,7 +615,7 @@ class ClassImmichPhotos:
     ###########################################################################
     def get_all_assets(self, type=None, isNotInAlbum=None, isArchived=None,
                        takenAfter=None, takenBefore=None, country=None,
-                       city=None, personIds=None, withDeleted=None, log_level=logging.INFO):
+                       city=None, people=None, withDeleted=None, log_level=logging.INFO):
         """
         Lists all assets in Immich Photos that match with the specified filters.
 
@@ -618,8 +627,14 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
-                takenAfter = ARGS.get('from-date', '') or None
-                takenBefore = ARGS.get('to-date', '') or None
+                # Get the values from the arguments (if exists)
+                takenAfter = ARGS.get('from-date', None)
+                takenBefore = ARGS.get('to-date', None)
+                type = ARGS.get('asset-type', None)
+                country = ARGS.get('country', None)
+                city = ARGS.get('city', None)
+                people = ARGS.get('people', None)
+
                 self.login(log_level=log_level)
                 url = f"{self.IMMICH_URL}/api/search/metadata"
                 all_assets = []
@@ -662,7 +677,7 @@ class ClassImmichPhotos:
                     if takenBefore: payload_data["takenBefore"] = takenBefore
                     if country: payload_data["country"] = country
                     if city: payload_data["city"] = city
-                    if personIds: payload_data["personIds"] = personIds
+                    if people: payload_data["personIds"] = people
                     if withDeleted: payload_data["withDeleted"] = withDeleted
 
                     payload = json.dumps(payload_data)

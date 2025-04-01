@@ -39,7 +39,7 @@ import json
 import urllib3
 import mimetypes
 from requests_toolbelt.multipart.encoder import MultipartEncoder
-from datetime import datetime, timezone
+from datetime import datetime
 import time
 import logging
 import inspect
@@ -456,7 +456,14 @@ class ClassSynologyPhotos:
                     if "name" in item:
                         item["albumName"] = item.pop("name")
 
-                return album_list
+                albums_filtered = []
+                for album in album_list:
+                    album_id = album.get('id')
+                    album_name = album.get("albumName", "")
+                    album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
+                    if len(album_assets) > 0:
+                        albums_filtered.append(album)
+                return albums_filtered
             except Exception as e:
                 LOGGER.warning(f"WARNING : Cannot get albums due to API call error. Skipped! {e}")
 
@@ -516,11 +523,18 @@ class ClassSynologyPhotos:
             
 
             # Replace the key "name" by "albumName" to make it equal to Immich Photos
-            for item in album_list:
-                if "name" in item:
-                    item["albumName"] = item.pop("name")
+            for album in album_list:
+                if "name" in album:
+                    album["albumName"] = album.pop("name")
 
-            return album_list
+            albums_filtered = []
+            for album in album_list:
+                album_id = album.get('id')
+                album_name = album.get("albumName", "")
+                album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
+                if len(album_assets) > 0:
+                    albums_filtered.append(album)
+            return albums_filtered
 
 
     def get_album_assets_size(self, album_id, album_name, log_level=logging.INFO):
@@ -655,11 +669,9 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             # Get the values from the arguments (if exists)
             # type = ARGS.get('asset-type', None)
-            # inAlbum = ARGS.get('in-album', None)
-            # if inAlbum: isNotInAlbum = not inAlbum
             # country = ARGS.get('country', None)
             # city = ARGS.get('city', None)
-            # personIds = ARGS.get('person-ids', None)
+            # people = ARGS.get('people', None)
             takenAfter = ARGS.get('from-date', None)
             takenBefore = ARGS.get('to-date', None)
 
@@ -697,11 +709,9 @@ class ClassSynologyPhotos:
                 takenAfter = ARGS.get('from-date', None)
                 takenBefore = ARGS.get('to-date', None)
                 type = ARGS.get('asset-type', None)
-                inAlbum = ARGS.get('in-album', None)
-                if inAlbum: isNotInAlbum = not inAlbum
                 country = ARGS.get('country', None)
                 city = ARGS.get('city', None)
-                personIds = ARGS.get('person-ids', None)
+                people = ARGS.get('people', None)
 
                 # Convert the values from iso to epoch
                 takenAfter = iso8601_to_epoch(takenAfter)
