@@ -39,6 +39,9 @@ def parse_arguments():
 
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the Tool name, version, and date, then exit.")
 
+
+    # FEATURES FOR AUTOMATED MIGRATION:
+    # ---------------------------------
     PARSER.add_argument( "-source", "--source", metavar="<SOURCE>", default="",
                         help="Select the <SOURCE> for the AUTOMATED-MIGRATION Process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
                          "\n"
@@ -65,13 +68,6 @@ def parse_arguments():
                          "\n ​--source=synology-2 -> Select Synology Photos account 2 as Target."
                          "\n ​--source=/home/local_folder -> Select this local folder as Target."
                          )
-    # PARSER.add_argument("-AUTO", "--AUTOMATED-MIGRATION", metavar=("<SOURCE>", "<TARGET>"), nargs=2, default="",
-    #                     help="This process will do an AUTOMATED-MIGRATION process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
-    #                        "\n"
-    #                        "\nPossible values for:"
-    #                        "\n    <SOURCE> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2'] or <INPUT_FOLDER>"
-    #                        "\n    <TARGET> : ['synology-photos-1', 'synology-photos-2', 'immich-photos-1', 'immich-photos-2']or <OUTPUT_FOLDER>"
-    #                     )
     PARSER.add_argument("-dashb", "--dashboard",
                         metavar="= [true,false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
@@ -96,6 +92,9 @@ def parse_arguments():
     #                     help="Specify if you want to filter only Archived assets in the different Photo Cloud Services."
     # )
 
+
+    # GENERAL FEATURES:
+    # -----------------
     PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
     PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
     PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-suAll, --synology-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
@@ -119,8 +118,9 @@ def parse_arguments():
     PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
     PARSER.add_argument("-loglevel", "--log-level", metavar=f"{choices_for_message_levels}", choices=choices_for_message_levels, default="info", help="Specify the log level for logging and screen messages.")
 
+
     # FEATURES FOR GOOGLE PHOTOS:
-    # ------------------------------
+    # ---------------------------
     # PARSER.add_argument("-gizf", "--google-input-zip-folder", metavar="<ZIP_FOLDER>", default="", help="Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files will be skipped.")
     PARSER.add_argument("-gtProc", "--google-takeout-to-process", metavar="<TAKEOUT_FOLDER>", default="",
                         help="Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it. If any Zip file is found inside it, the Zip will be extracted to the folder '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>', and will use the that folder as input <TAKEOUT_FOLDER>."
@@ -143,6 +143,7 @@ def parse_arguments():
     PARSER.add_argument("-gsef", "--google-skip-extras-files", action="store_true", help="Skip processing extra photos such as  -edited, -effects photos.")
     PARSER.add_argument("-gsma", "--google-skip-move-albums", action="store_true", help="Skip moving albums to 'Albums' folder.")
     PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skip processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposses.")
+
 
     # FEATURES FOR SYNOLOGY PHOTOS:
     # --------------------------------
@@ -170,6 +171,7 @@ def parse_arguments():
                         help="CAUTION!!! The Tool will delete ALL your Albums from Synology database."
                            "\nOptionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
                         )
+
 
     # FEATURES FOR IMMICH PHOTOS:
     # -------------------------------
@@ -353,14 +355,13 @@ def checkArgs(ARGS, PARSER):
         ARGS['AUTOMATED-MIGRATION'] = [ARGS['source'], ARGS['target']]
 
 
-    # Check if --dashboard=True and not --AUTOMATED-MIGRATION have been given
-    # Detectar si el usuario ha pasado --dashboard
+    # Check if --dashboard=True and not --source and --target have been given
     args = PARSER.parse_args()
     dashboard_provided = "--dashboard" in [arg.split("=")[0] for arg in vars(args).keys()]
     if dashboard_provided and not (ARGS['source'] or ARGS['target']):
-        # PARSER.error(f"\n\n❌ ERROR   : Argument '--dashboard' can only be used when '-AUTO, --AUTOMATED-MIGRATION' argument is used.\n")
         PARSER.error(f"\n\n❌ ERROR   : Argument '--dashboard' can only be used with Automated Migration feature. Arguments --source and --target are required.\n")
         exit(1)
+
 
     # Parse log-levels
     if ARGS['log-level'].lower() == 'debug':
@@ -374,6 +375,7 @@ def checkArgs(ARGS, PARSER):
     elif ARGS['log-level'].lower() == 'critical':
         LOG_LEVEL = logging.CRITICAL
 
+
     # Parse synology-download-albums and immich-download-albums to ensure than ARGS['output-folder'] is used to specify <OUTPUT_FOLDER>
     if ARGS['synology-download-albums'] != "" and ARGS['output-folder'] == "":
         PARSER.error(f"\n\n❌ ERROR   : When use flag -sdAlb, --synology-download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n")
@@ -382,10 +384,10 @@ def checkArgs(ARGS, PARSER):
         PARSER.error(f"\n\n❌ ERROR   : When use flag -idAlb, --immich-download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n")
         exit(1)
 
+
     # Parse albums-folders Arguments to convert to a List if more than one Album folder is provide
     ARGS['albums-folders'] = parse_folders_list(ARGS['albums-folders'])
-    # if ARGS['albums-folders'] == []:
-    #     ARGS['albums-folders'] = 'Albums'
+
 
     # Parse duplicates-folders Arguments
     ARGS['duplicates-folders'] = []
@@ -401,10 +403,12 @@ def checkArgs(ARGS, PARSER):
         DEFAULT_DUPLICATES_ACTION = True
     ARGS['duplicates-folders'] = parse_folders_list(ARGS['duplicates-folders'])
 
+
     # Parse 'immich-remove-all-albums in combination with 'including-albums-assets'
     if ARGS['remove-albums-assets'] and not ARGS['immich-remove-all-albums']:
         PARSER.error(f"\n\n❌ ERROR   : --remove-albums-assets is a modifier of argument --immich-remove-all-albums and cannot work alone.\n")
         exit(1)
+
 
     # Parseamos las fechas de ARGS['from-date'] y ARGS['to-date'] para devolver una fecha en valida en formato iso8601 en caso de que contenga alguna fecha válida, o cadena vacía en caso contrario
     ARGS['from-date'] = parse_to_iso8601(ARGS.get('from-date', ''))
