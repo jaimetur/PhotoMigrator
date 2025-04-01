@@ -60,12 +60,6 @@ In this section you have to provide:
 >
 > If you choose API_KEY authentification method, then, you don't need to provide any username/password for htat account.  
 
-- **IMMICH_FILTER_ARCHIVE:** This field is not used yet
-- **IMMICH_FILTER_FROM:** This field is not used yet
-- **IMMICH_FILTER_TO:** This field is not used yet
-- **IMMICH_FILTER_COUNTRY:** This field is not used yet
-- **IMMICH_FILTER_CITY:** This field is not used yet
-- **IMMICH_FILTER_PERSON:** This field is not used yet
 
 ---
 
