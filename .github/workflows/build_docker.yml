@@ -1,4 +1,4 @@
-name: Build Docker Image and Linux AMD64 binary
+name: Build Docker Image Only
 
 on:
   workflow_dispatch:      # Allows manual execution of the workflow
