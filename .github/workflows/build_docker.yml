@@ -155,7 +155,6 @@ jobs:
           docker push jaimetur/cloudphotomigrator:${SCRIPT_VERSION}
           docker push jaimetur/cloudphotomigrator:latest
       
-      
 
       - name: Prepare unified ZIP docker package
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
@@ -169,6 +168,7 @@ jobs:
           cp -r help CloudPhotoMigrator/docker/
           cp README.md CloudPhotoMigrator/docker/docs/README.md
           zip -r CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip CloudPhotoMigrator
+
 
       - name: Upload release asset
         uses: softprops/action-gh-release@v2
