@@ -344,12 +344,12 @@ def checkArgs(ARGS, PARSER):
         PARSER.error(f"\n\n❌ ERROR   : Invalid syntax. Argument '--target' detected but not '--source' providen'. You must specify both, --source and --target to execute AUTOMATED-MIGRATION task.\n")
         exit(1)
     if ARGS['source'] and ARGS['source'] not in choices_for_AUTOMATED_MIGRATION_SRC and not os.path.isdir(ARGS['source']):
-        PARSER.error(f"\n\n❌ ERROR   : Invalid source '{ARGS['source']}'. \nMust be one of the following values: \n{choices_for_AUTOMATED_MIGRATION_SRC} \nor an existing local folder.\n")
         print("Directorio actual:", os.getcwd())
+        PARSER.error(f"\n\n❌ ERROR   : Invalid source '{ARGS['source']}'. \nMust be an existing local folder or one of the following values: \n{choices_for_AUTOMATED_MIGRATION_SRC}.\n")
         exit(1)
     if ARGS['target'] and ARGS['target'] not in choices_for_AUTOMATED_MIGRATION_TGT and not os.path.isdir(ARGS['target']):
-        PARSER.error(f"\n\n❌ ERROR   : Invalid target '{ARGS['target']}'. \nMust be one of the following values: \n{choices_for_AUTOMATED_MIGRATION_TGT} \nor an existing local folder.\n")
         print("Directorio actual:", os.getcwd())
+        PARSER.error(f"\n\n❌ ERROR   : Invalid target '{ARGS['target']}'. \nMust be an existing local folder one of the following values: \n{choices_for_AUTOMATED_MIGRATION_TGT}.\n")
         exit(1)
     if ARGS['source'] and ARGS['target']:
         ARGS['AUTOMATED-MIGRATION'] = [ARGS['source'], ARGS['target']]
