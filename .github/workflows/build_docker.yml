@@ -71,7 +71,7 @@ jobs:
         shell: bash
 
       # 2. Read SCRIPT_VERSION and ARCHIVE_PATH from script_info.txt (Linux/macOS)
-      - name: 2a. Read SCRIPT_VERSION and ARCHIVE_PATH from script_info.txt (Linux/macOS)
+      - name: 2. Read SCRIPT_VERSION and ARCHIVE_PATH from script_info.txt (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
           # Read SCRIPT_VERSION from the first line
@@ -165,7 +165,7 @@ jobs:
 
 
       # 4. - Cleanup (Linux/macOS)
-      - name: 4a. - Cleanup (Linux/macOS)
+      - name: 4. - Cleanup (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
           if [ -f artifact_base64.txt ]; then
