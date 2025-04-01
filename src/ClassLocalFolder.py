@@ -341,27 +341,31 @@ class ClassLocalFolder:
                         - 'albumName': Name of the album folder.
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Retrieving owned and shared albums.")
+            try:
+                LOGGER.info("INFO    : Retrieving owned and shared albums.")
 
-            albums = [
-                {"id": str(p.resolve()), "albumName": p.name}
-                for p in self.albums_folder.iterdir() if p.is_dir()
-            ]
-            shared_albums = [
-                {"id": str(p.resolve()), "albumName": p.name}
-                for p in self.shared_albums_folder.iterdir() if p.is_dir()
-            ]
+                albums = [
+                    {"id": str(p.resolve()), "albumName": p.name}
+                    for p in self.albums_folder.iterdir() if p.is_dir()
+                ]
+                shared_albums = [
+                    {"id": str(p.resolve()), "albumName": p.name}
+                    for p in self.shared_albums_folder.iterdir() if p.is_dir()
+                ]
 
-            all_albums = albums + shared_albums
+                all_albums = albums + shared_albums
 
-            albums_filtered = []
-            for album in all_albums:
-                album_id = album.get('id')
-                album_name = album.get("albumName", "")
-                album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
-                if len(album_assets) > 0:
-                    albums_filtered.append(album)
-            LOGGER.info(f"INFO    : Found {len(albums_filtered)} albums in total (owned + shared).")
+                albums_filtered = []
+                for album in all_albums:
+                    album_id = album.get('id')
+                    album_name = album.get("albumName", "")
+                    album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
+                    if len(album_assets) > 0:
+                        albums_filtered.append(album)
+                LOGGER.info(f"INFO    : Found {len(albums_filtered)} albums in total (owned + shared).")
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Failed to get albums (owned + shared): {str(e)}")
+
             return albums_filtered
 
     def get_album_assets_size(self, album_id, type='all', log_level=logging.INFO):

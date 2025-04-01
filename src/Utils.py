@@ -1205,8 +1205,8 @@ def iso8601_to_epoch(iso_date):
         iso8601_to_epoch("") -> -1
         iso8601_to_epoch(None) -> -1
     """
-    if not iso_date:
-        return -1
+    if iso_date is None:
+        return None
 
     try:
         if iso_date.endswith("Z"):

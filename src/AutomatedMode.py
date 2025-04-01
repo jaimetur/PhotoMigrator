@@ -347,7 +347,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             total_albums_blocked_count = 0
             total_assets_blocked_count = 0
 
-            all_albums = source_client.get_albums_including_shared_with_user()
+            all_albums = source_client.get_albums_including_shared_with_user(log_level=logging.DEBUG)
             for album in all_albums:
                 album_id = album['id']
                 album_name = album['albumName']
