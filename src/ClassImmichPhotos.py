@@ -84,14 +84,6 @@ class ClassImmichPhotos:
         self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS = []
         self.ALLOWED_IMMICH_EXTENSIONS = []
 
-        # Additional filters that might be in your config
-        self.IMMICH_FILTER_ARCHIVE = None
-        self.IMMICH_FILTER_FROM = None
-        self.IMMICH_FILTER_TO = None
-        self.IMMICH_FILTER_COUNTRY = None
-        self.IMMICH_FILTER_CITY = None
-        self.IMMICH_FILTER_PERSON = None
-
         # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_ownned_by_user()
         self.albums_owned_by_user = {}
 
@@ -144,12 +136,6 @@ class ClassImmichPhotos:
             self.IMMICH_USERNAME = self.CONFIG.get(section_to_load).get(f'IMMICH_USERNAME_{self.ACCOUNT_ID}', None)              # Read the configuration for the user account given by the suffix ACCAUNT_ID
             self.IMMICH_PASSWORD = self.CONFIG.get(section_to_load).get(f'IMMICH_PASSWORD_{self.ACCOUNT_ID}', None)              # Read the configuration for the user account given by the suffix ACCAUNT_ID
 
-            self.IMMICH_FILTER_ARCHIVE = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_ARCHIVE', None)
-            self.IMMICH_FILTER_FROM = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_FROM', None)
-            self.IMMICH_FILTER_TO = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_TO', None)
-            self.IMMICH_FILTER_COUNTRY = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_COUNTRY', None)
-            self.IMMICH_FILTER_CITY = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_CITY', None)
-            self.IMMICH_FILTER_PERSON = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_PERSON', None)
             # Verify required parameters and prompt on screen if missing
             if not self.IMMICH_URL or self.IMMICH_URL.strip() == '':
                 LOGGER.warning(f"WARNING : IMMICH_URL not found. It will be requested on screen.")
@@ -179,12 +165,6 @@ class ClassImmichPhotos:
                     LOGGER.info(f"INFO    : IMMICH_USERNAME       : {self.IMMICH_USERNAME}")
                     masked_password = '*' * len(self.IMMICH_PASSWORD)
                     LOGGER.info(f"INFO    : IMMICH_PASSWORD       : {masked_password}")
-                LOGGER.info(f"INFO    : IMMICH_FILTER_ARCHIVE : {self.IMMICH_FILTER_ARCHIVE}")
-                LOGGER.info(f"INFO    : IMMICH_FILTER_FROM    : {self.IMMICH_FILTER_FROM}")
-                LOGGER.info(f"INFO    : IMMICH_FILTER_TO      : {self.IMMICH_FILTER_TO}")
-                LOGGER.info(f"INFO    : IMMICH_FILTER_COUNTRY : {self.IMMICH_FILTER_COUNTRY}")
-                LOGGER.info(f"INFO    : IMMICH_FILTER_CITY    : {self.IMMICH_FILTER_CITY}")
-                LOGGER.info(f"INFO    : IMMICH_FILTER_PERSON  : {self.IMMICH_FILTER_PERSON}")
 
             return self.CONFIG
 

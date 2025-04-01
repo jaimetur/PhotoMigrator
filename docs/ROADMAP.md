@@ -9,10 +9,10 @@
 
 ### TODO:
 - [ ] Add option to filter assets in all Immich/Synology/LocalFolder Actions:
-    - [ ] by Dates
+    - [x] by Dates
     - [ ] by Country
     - [ ] by City
-    - [ ] by Archive
+    - [ ] by Type
     - [ ] by Person
 - [ ] Update Documentation
 - [ ] Update README.md

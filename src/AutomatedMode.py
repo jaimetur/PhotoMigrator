@@ -171,7 +171,6 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(f"INFO    : - City         : {city}")
         if people:
             LOGGER.info(f"INFO    : - People       : {people}")
-        LOGGER.info(f"INFO    :")
         LOGGER.info("")
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
@@ -340,7 +339,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 LOGGER.info(f"INFO    : - City         : {city}")
             if people:
                 LOGGER.info(f"INFO    : - People       : {people}")
-            LOGGER.info(f"INFO    :")
+            LOGGER.info("")
             LOGGER.info(f"INFO    : Starting Pulling/Pushing Workers...")
 
             # Get source client statistics:

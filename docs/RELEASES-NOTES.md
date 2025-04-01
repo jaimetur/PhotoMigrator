@@ -28,10 +28,10 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 
 ### Main Changes:
 - [ ] Add option to filter assets in all Immich/Synology/LocalFolder Actions:
-    - [ ] by Dates
+    - [x] by Dates
     - [ ] by Country
     - [ ] by City
-    - [ ] by Archive
+    - [ ] by Type
     - [ ] by Person
 
 ## Release Notes:
@@ -40,7 +40,7 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 **Release Date**: 2025-03-31
 
 ### Main Changes:
-- [x] Support to runnning the Tool from Docker container.
+- [x] Support for running the Tool from Docker container.
 - [x] Included Live Progress Dashboard in Automated Migration process for a better visualization of the job progress.
 - [x] Added a new argument **'--source'** to specify the \<SOURCE> client for the Automated Migration process.
 - [x] Added a new argument **'--target'** to specify the \<TARGET> client for the Automated Migration process.
