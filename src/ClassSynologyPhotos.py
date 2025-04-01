@@ -321,6 +321,49 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while getting user mail. {e}")
             
 
+    def get_geocoding(self, log_level=logging.INFO):
+        """
+        Gets the Geocoding list.
+
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+        Returns:
+             int: List of Geocoding used in the database.
+        """
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+                offset = 0
+                limit = 5000
+                geocoding_list = []
+                while True:
+                    params = {
+                        "api": "SYNO.Foto.Browse.Geocoding",
+                        "method": "list",
+                        "version": "1",
+                        "offset": offset,
+                        "limit": limit
+                    }
+                    resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    resp.raise_for_status()
+                    data = resp.json()
+                    if data["success"]:
+                        geocoding_list.extend(data["data"]["list"])
+                    else:
+                        LOGGER.error("ERROR   : Failed to get Geocoding list: ", data)
+                        return None
+                    if len(data["data"]["list"]) < limit:
+                        break
+                    offset += limit
+                return geocoding_list
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting Geocoding List from Synology Photos. {e}")
+
+
     ###########################################################################
     #                            ALBUMS FUNCTIONS                             #
     ###########################################################################
@@ -716,6 +759,8 @@ class ClassSynologyPhotos:
                 # Convert the values from iso to epoch
                 takenAfter = iso8601_to_epoch(takenAfter)
                 takenBefore = iso8601_to_epoch(takenBefore)
+
+                geocoding_list = self.get_geocoding(log_level=log_level)
 
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -2318,8 +2363,8 @@ class ClassSynologyPhotos:
 ##############################################################################
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-    from ChangeWrkingDir import change_workingdir
-    change_workingdir()
+    from ChangeWorkingDir import change_working_dir
+    change_working_dir()
 
     # Create the Object
     syno = ClassSynologyPhotos()
