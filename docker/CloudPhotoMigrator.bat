@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 REM Set default values (in case docker.conf doesn't define them)
-set "RELEASE_TAG=latest"
+set "RELEASE_TAG=latest-stable"
 set "TZ=UTC"
 
 REM Load variables from docker.conf file if it exists

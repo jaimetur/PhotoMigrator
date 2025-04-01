@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set default tag
-RELEASE_TAG="latest"
+RELEASE_TAG="latest-stable"
 
 # Set a default TZ (e.g. UTC) in case docker.conf does not provide one
 TZ="UTC"
