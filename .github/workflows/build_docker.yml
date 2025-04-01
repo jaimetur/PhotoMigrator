@@ -45,10 +45,10 @@ jobs:
         run: |
           echo "::group::Execute for ${{ matrix.os }}"
                     
-          # Execute for macOS (any architecture)
+          # Execute for macOS
           if [[ "${{ matrix.os }}" == *"macos"* ]]; then
             cd src
-            arch -${{ matrix.arch }} python3 _compile.py skip_compile
+            arch -x86_64 python3 _compile.py skip_compile
           fi
           
           echo "::endgroup::"
@@ -161,7 +161,7 @@ jobs:
         shell: bash
 
 
-      # 9. Commit y push README.md (Solo si OS = MacOS* y arch = x86_64)
+      # 9. Commit y push README.md (Solo si OS = MacOS*)
       - name: 9. Commit y push README.md
         if: ${{ startsWith(matrix.os, 'macos') }}
         run: |
