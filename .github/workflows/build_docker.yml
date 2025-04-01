@@ -22,8 +22,8 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [macos-latest]  # os list
-        python-version: ["3.10"]
+        os: [ubuntu-latest]  # os list
+        python-version: ["3.10.11"]
 
     runs-on: ${{ matrix.os }}
 
@@ -40,13 +40,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # 1. - Execute for MacOS and amd64 Architecture
-      - name: 1. - Execute for MacOS and amd64 Architecture
+      # 1. - Execute for ubuntu
+      - name: 1. - Execute for ubuntu
         run: |
           echo "::group::Execute for ${{ matrix.os }}"
                     
           # Execute for macOS
-          if [[ "${{ matrix.os }}" == *"macos"* ]]; then
+          if [[ "${{ matrix.os }}" == *"ubuntu"* ]]; then
             cd src
             python3 _compile.py skip_compile
           fi
@@ -89,7 +89,7 @@ jobs:
       # ===========================
       # 4. Log in to Docker Hub
       - name: 4. Log in to Docker Hub
-        if: ${{ startsWith(matrix.os, 'macos') }}
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -97,7 +97,7 @@ jobs:
 
       # 5. Build & Push Docker image
       - name: 5. Build & Push Docker image
-        if: ${{ startsWith(matrix.os, 'macos') }}
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           # Fuerza a Docker a:
           #  1) descargar la base actualizada ( --pull )
@@ -121,7 +121,7 @@ jobs:
       
       # 6. Prepare unified ZIP docker package
       - name: 6. Prepare unified ZIP docker package
-        if: ${{ startsWith(matrix.os, 'macos') }}
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           mkdir -p CloudPhotoMigrator/docker
           cp docker/CloudPhotoMigrator.sh CloudPhotoMigrator/docker/
@@ -145,7 +145,9 @@ jobs:
             CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-
+      # ================================
+      # End of Docker version Generation
+      # ================================
 
       # 8. - Cleanup (Linux/macOS)
       - name: 8. - Cleanup (Linux/macOS)
@@ -161,9 +163,9 @@ jobs:
         shell: bash
 
 
-      # 9. Commit y push README.md (Solo si OS = MacOS*)
+      # 9. Commit y push README.md (Solo si OS = ubuntu*)
       - name: 9. Commit y push README.md
-        if: ${{ startsWith(matrix.os, 'macos') }}
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
