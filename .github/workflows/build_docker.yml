@@ -155,14 +155,21 @@ jobs:
           docker build --pull --no-cache \
             -t jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }} \
             -f docker/Dockerfile .
-              
-          # Etiquetar también como latest
-          docker tag jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }} jaimetur/cloudphotomigrator:latest
-      
-          # Subir ambas etiquetas
-          docker push jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }}
-          docker push jaimetur/cloudphotomigrator:latest
 
+          # Etiquetar como latest
+          docker tag jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }} jaimetur/cloudphotomigrator:latest
+
+          # Si es versión estable (no alpha, beta ni RC), etiquetar también como latest-stable
+          if [[ "${SCRIPT_VERSION}" != *alpha* && "${SCRIPT_VERSION}" != *beta* && "${SCRIPT_VERSION}" != *RC* ]]; then
+            docker tag jaimetur/cloudphotomigrator:${SCRIPT_VERSION} jaimetur/cloudphotomigrator:latest-stable
+            docker push jaimetur/cloudphotomigrator:latest-stable
+          fi
+
+          # Subir etiquetas latest y con versión específica
+          docker push jaimetur/cloudphotomigrator:${SCRIPT_VERSION}
+          docker push jaimetur/cloudphotomigrator:latest
+      
+      
 
       - name: Prepare unified ZIP docker package
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
