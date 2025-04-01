@@ -23,11 +23,11 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest]  # os list
-        arch: [x86_64]  # arch list
+        arch: [x64]  # arch list
         exclude:
           - os: windows-latest
             arch: arm64  # Windows is only compiled for x86 (32/64-bit)
-        python-version: ["3.10.0"]
+        python-version: ["3.10"]
 
     runs-on: ${{ matrix.os }}
 
