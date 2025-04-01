@@ -2,18 +2,14 @@ name: Build Docker Image Only
 
 on:
   workflow_dispatch:      # Allows manual execution of the workflow
-  push:                   # Ejecución tras push en main, excepto en los path-ignore
+  push:                   # Ejecución tras push en cualquier rama, excepto en los path-ignore
     #branches:
-      #- main
-    #paths-ignore:
-      #- '_built_versions/**'  # Ignore any changes in _built_versions
-      #- .gitignore
-      #- gpth*/**
-      #- exif*/**
-      #- .idea/**
-      #- _src_versions/**
-      #- _buildt_versions/**
-      #- .github/**
+      #- main             # Ejecución tras push en main, excepto en los path-ignore
+    paths-ignore:
+      - .gitignore
+      - .idea/**
+      - .github/**
+      - gpth*/**
 #  schedule:
 # Ejecución diaria a las 2 AM UTC
 #    - cron: '0 2 * * *'
