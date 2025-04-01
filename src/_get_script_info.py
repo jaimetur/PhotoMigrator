@@ -155,8 +155,10 @@ def get_script_info():
     print(f"Archivo README.md actualizado correctamente con el ROADMAP.md")
 
     # Calcular el path relativo
+    script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
+    script_zip_file = Path(f"../_built_versions/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
     relative_path = os.path.relpath(script_zip_file, root_dir)
-    
+
     # Guardar script_info.txt en un fichero de texto
     with open(os.path.join(root_dir,'script_info.txt'), 'w') as file:
         file.write(SCRIPT_VERSION_INT + '\n')
