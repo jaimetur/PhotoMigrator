@@ -477,6 +477,7 @@ class ClassLocalFolder:
                     filtered_assets.append(asset)
             return filtered_assets
 
+
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
