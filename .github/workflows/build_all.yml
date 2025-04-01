@@ -140,15 +140,16 @@ jobs:
       # ===========================
       # Generate the Docker version
       # ===========================
-      - name: Log in to Docker Hub
+      # 4. Log in to Docker Hub
+      - name: 4. Log in to Docker Hub
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
           
-
-      - name: Build & Push Docker image
+      # 5. Build & Push Docker image
+      - name: 5. Build & Push Docker image
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         run: |
           # Fuerza a Docker a:
@@ -171,7 +172,8 @@ jobs:
           docker push jaimetur/cloudphotomigrator:${SCRIPT_VERSION}
           docker push jaimetur/cloudphotomigrator:latest
 
-      - name: Prepare unified ZIP docker package
+      # 6. Prepare unified ZIP docker package
+      - name: 6. Prepare unified ZIP docker package
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         run: |
           mkdir -p CloudPhotoMigrator/docker
@@ -184,7 +186,8 @@ jobs:
           cp README.md CloudPhotoMigrator/docker/docs/README.md
           zip -r CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip CloudPhotoMigrator
 
-      - name: Upload release asset
+      # 7. Upload release asset
+      - name: 7. Upload release asset
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
@@ -197,8 +200,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
         
-      # 4a. - Cleanup (Linux/macOS)
-      - name: 4a. - Cleanup (Linux/macOS)
+      # 8a. - Cleanup (Linux/macOS)
+      - name: 8a. - Cleanup (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
           if [ -f artifact_base64.txt ]; then
@@ -217,8 +220,8 @@ jobs:
           # fi
         shell: bash
 
-      # 4b. - Cleanup (Windows)
-      - name: 4b. - Cleanup (Windows)
+      # 8b. - Cleanup (Windows)
+      - name: 8b. - Cleanup (Windows)
         if: runner.os == 'Windows'
         run: |
           if (Test-Path "artifact_base64.txt") {
@@ -239,8 +242,8 @@ jobs:
           }
         shell: pwsh
 
-      # 5. Commit y push README.md (Solo si OS = Ubuntu* y arch = x86_64)
-      - name: 5. Commit y push README.md
+      # 9. Commit y push README.md (Solo si OS = Ubuntu* y arch = x86_64)
+      - name: 9. Commit y push README.md
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         run: |
           git config --global user.name "github-actions[bot]"
@@ -277,149 +280,3 @@ jobs:
           git commit -m "Update README.md after compilation"
           git push origin ${{ github.ref_name }}
 
-
-
-#      # 3. Commit and tag
-#      - name: 3. Commit and tag
-#        id: push-tag
-#        uses: EndBug/add-and-commit@v9
-#        with:
-#          default_author: github_actions
-#          message: 'SCRIPT_VERSION: ${{ env.SCRIPT_VERSION }}'
-#          tag: ${{ env.SCRIPT_VERSION }}
-#          push: true
-#        env:
-#          TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
-#
-#      # 4a. - Upload artifact to GitHub repos with API (Linux/macOS)
-#      - name: 4a. - Upload artifact to GitHub repos with API (Linux/macOS)
-#        if: runner.os != 'Windows'
-#        run: |
-#          FILE_TO_ADD=${{ env.ARCHIVE_PATH }}
-#          echo "Uploading file '${FILE_TO_ADD}' to dev and prod repositories..."
-#          # Encode Artifact to Base64 (Linux/macOS)
-#          cat ${FILE_TO_ADD} | base64 | tr -d '\n' > artifact_base64.txt
-#          # Leer el contenido codificado en base64 desde el archivo
-#          BASE64_ARTIFACT=$(cat artifact_base64.txt)
-#          # Parameters
-#          COMMIT_MESSAGE="Added from GitHub Actions"
-#          REPOS=("CloudPhotoMigrator-dev" "CloudPhotoMigrator")
-#          for REPO in "${REPOS[@]}"; do
-#            echo "Uploading to $REPO..."
-#            URL=https://api.github.com/repos/jaimetur/$REPO/contents/${FILE_TO_ADD}
-#            # Extraer SHA si el archivo existe
-#            command="curl -s -f -H 'Authorization: token ${{ secrets.TOKEN_GITHUB }}' '${URL}' | grep '\"sha\"' | awk -F '\"' '{print \$4}' || echo \"\""
-#            # echo "Command: ${command}"
-#            SHA=$(eval ${command})
-#            echo "SHA: ${SHA}"
-#            # Crear archivo temporal para el payload
-#            PAYLOAD_FILE=$(mktemp)
-#            # Generar el contenido del JSON y guardarlo en el archivo temporal
-#            echo "{
-#              \"message\": \"${COMMIT_MESSAGE}\",
-#              \"content\": \"${BASE64_ARTIFACT}\",
-#              \"branch\": \"main\",
-#              \"sha\": \"${SHA}\"
-#            }" > ${PAYLOAD_FILE}
-#            # Subir el archivo (crear o sobrescribir)
-#            curl -X PUT \
-#                -H "Authorization: token ${{ secrets.TOKEN_GITHUB }}" \
-#                -H "Content-Type: application/json" \
-#                -d @${PAYLOAD_FILE} \
-#                ${URL}
-#            # Limpiar el archivo temporal
-#            rm ${PAYLOAD_FILE}
-#          done
-#        shell: bash
-#
-#      # 4b. - Upload artifact to GitHub repos with API (Windows)
-#      - name: 4b. - Upload artifact to GitHub repos with API (Windows)
-#        if: runner.os == 'Windows'
-#        run: |
-#          $FILE_TO_ADD = $env:ARCHIVE_PATH
-#          Write-Host "Uploading file '${FILE_TO_ADD}' to dev and prod repositories..."
-#
-#          # Encode Artifact to Base64 (Windows)
-#          $BASE64_ARTIFACT = [Convert]::ToBase64String([IO.File]::ReadAllBytes("${FILE_TO_ADD}"))
-#          # Parameters
-#          $COMMIT_MESSAGE = "Added from GitHub Actions"
-#          $REPOS = @("CloudPhotoMigrator-dev", "CloudPhotoMigrator")
-#          foreach ($REPO in $REPOS) {
-#            Write-Host "Uploading to $REPO..."
-#            # Set URL
-#            $URL = "https://api.github.com/repos/jaimetur/$REPO/contents/${FILE_TO_ADD}"
-#            # Try to get the SHA of the existing file (if it exists)
-#            try {
-#              $SHA = (Invoke-RestMethod -Uri $URL -Headers @{Authorization="token ${{ secrets.TOKEN_GITHUB }}"} -ErrorAction Stop).sha
-#            } catch {
-#              # If the file does not exist, SHA should be empty
-#              $SHA = $null
-#              Write-Host "File does not exist in $REPO. Creating new file."
-#            }
-#            # Create payload
-#            $Payload = @{
-#              message = $COMMIT_MESSAGE
-#              content = $BASE64_ARTIFACT
-#              branch = "main"
-#            }
-#            # Include SHA only if the file exists
-#            if ($SHA) {
-#              $Payload.sha = $SHA
-#            }
-#            # Convert payload to JSON
-#            $PayloadJson = $Payload | ConvertTo-Json -Compress
-#            # Upload the file (create or overwrite)
-#            Invoke-RestMethod -Method Put -Uri $URL -Headers @{Authorization="token ${{ secrets.TOKEN_GITHUB }}"} -Body $PayloadJson
-#            Write-Host "File uploaded to $REPO successfully."
-#          }
-#        shell: pwsh
-#
-#      # 5. - Update README.md, RELEASES-NOTES.md, ROADMAP.md in prod repo with API
-#      - name: 5 - Update README.md, RELEASES-NOTES.md, ROADMAP.md in prod repo with API
-#        if: runner.os != 'Windows'
-#        run: |
-#          FILES_TO_ADD=("README.md" "RELEASES-NOTES.md" "ROADMAP.md")
-#          for FILE_TO_ADD in "${FILES_TO_ADD[@]}"; do
-#            echo "Uploading file '${FILE_TO_ADD}' to prod repository..."
-#            # Encode Artifact to Base64 (Linux/macOS)
-#            cat ${FILE_TO_ADD} | base64 | tr -d '\n' > artifact_base64.txt
-#            # Leer el contenido codificado en base64 desde el archivo
-#            BASE64_ARTIFACT=$(cat artifact_base64.txt)
-#            # Parameters
-#            COMMIT_MESSAGE="Added from GitHub Actions"
-#            REPOS=("CloudPhotoMigrator")
-#            for REPO in "${REPOS[@]}"; do
-#              echo "Uploading to $REPO..."
-#              URL=https://api.github.com/repos/jaimetur/$REPO/contents/${FILE_TO_ADD}
-#              # Extraer SHA si el archivo existe
-#              command="curl -s -f -H 'Authorization: token ${{ secrets.TOKEN_GITHUB }}' '${URL}' | grep '\"sha\"' | awk -F '\"' '{print \$4}' || echo \"\""
-#              # echo "Command: ${command}"
-#              SHA=$(eval ${command})
-#              echo "SHA: ${SHA}"
-#              # Crear archivo temporal para el payload
-#              PAYLOAD_FILE=$(mktemp)
-#              # Generar el contenido del JSON y guardarlo en el archivo temporal
-#              echo "{
-#                \"message\": \"${COMMIT_MESSAGE}\",
-#                \"content\": \"${BASE64_ARTIFACT}\",
-#                \"branch\": \"main\",
-#                \"sha\": \"${SHA}\"
-#              }" > ${PAYLOAD_FILE}
-#              # Subir el archivo (crear o sobrescribir)
-#              curl -X PUT \
-#                  -H "Authorization: token ${{ secrets.TOKEN_GITHUB }}" \
-#                  -H "Content-Type: application/json" \
-#                  -d @${PAYLOAD_FILE} \
-#                  ${URL}
-#              # Limpiar el archivo temporal
-#              rm ${PAYLOAD_FILE}
-#            done
-#          done
-#        shell: bash
-#
-#      # Upload the compiled compressed file to the Actions task
-#      - name: Archive Artifacts
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: ${{ env.ARCHIVE_NAME }}
-#          path: ${{ env.ARCHIVE_PATH }}
