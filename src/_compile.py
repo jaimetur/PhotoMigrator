@@ -257,7 +257,7 @@ def compile(arg=None):
             script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
             add_gpth_command = f"../gpth_tool/gpth_{OPERATING_SYSTEM}.bin:gpth_tool"
 
-        if arg.lower() != 'skip_compile':
+        if arg is not None and arg.lower() != 'skip_compile':
             print("Añadiendo paquetes necesarios al entorno Python antes de compilar...")
             subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', '../requirements.txt'])
             if OPERATING_SYSTEM=='windows':
@@ -303,7 +303,7 @@ def compile(arg=None):
                                 
             script_zip_file = Path(f"../_built_versions/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
 
-            if arg.lower() != 'skip_compile':
+            if arg is not None and arg.lower() != 'skip_compile':
                 print("")
                 print(f"Compilando para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}'...")
                 if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
