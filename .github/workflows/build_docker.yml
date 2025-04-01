@@ -23,10 +23,6 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest]  # os list
-        arch: [x64]  # arch list
-        exclude:
-          - os: windows-latest
-            arch: arm64  # Windows is only compiled for x86 (32/64-bit)
         python-version: ["3.10"]
 
     runs-on: ${{ matrix.os }}
@@ -47,7 +43,7 @@ jobs:
       # 1. - Execute for MacOS and amd64 Architecture
       - name: 1. - Execute for MacOS and amd64 Architecture
         run: |
-          echo "::group::Execute for ${{ matrix.os }} - ${{ matrix.arch }}"
+          echo "::group::Execute for ${{ matrix.os }}"
                     
           # Execute for macOS (any architecture)
           if [[ "${{ matrix.os }}" == *"macos"* ]]; then
@@ -93,7 +89,7 @@ jobs:
       # ===========================
       # 4. Log in to Docker Hub
       - name: 4. Log in to Docker Hub
-        if: ${{ startsWith(matrix.os, 'macos') && matrix.arch == 'x86_64' }}
+        if: ${{ startsWith(matrix.os, 'macos') }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -101,7 +97,7 @@ jobs:
 
       # 5. Build & Push Docker image
       - name: 5. Build & Push Docker image
-        if: ${{ startsWith(matrix.os, 'macos') && matrix.arch == 'x86_64' }}
+        if: ${{ startsWith(matrix.os, 'macos') }}
         run: |
           # Fuerza a Docker a:
           #  1) descargar la base actualizada ( --pull )
@@ -125,7 +121,7 @@ jobs:
       
       # 6. Prepare unified ZIP docker package
       - name: 6. Prepare unified ZIP docker package
-        if: ${{ startsWith(matrix.os, 'macos') && matrix.arch == 'x86_64' }}
+        if: ${{ startsWith(matrix.os, 'macos') }}
         run: |
           mkdir -p CloudPhotoMigrator/docker
           cp docker/CloudPhotoMigrator.sh CloudPhotoMigrator/docker/
@@ -167,7 +163,7 @@ jobs:
 
       # 9. Commit y push README.md (Solo si OS = MacOS* y arch = x86_64)
       - name: 9. Commit y push README.md
-        if: ${{ startsWith(matrix.os, 'macos') && matrix.arch == 'x86_64' }}
+        if: ${{ startsWith(matrix.os, 'macos') }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
