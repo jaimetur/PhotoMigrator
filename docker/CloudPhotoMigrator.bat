@@ -33,10 +33,10 @@ set "TZ=%TZ: =%"
 REM Get the current directory
 set CURRENT_DIR=%cd%
 
-echo 🐳 Pulling Docker image: jaimetur/cloudphotomigrator:%RELEASE_TAG%
+echo Pulling Docker image: jaimetur/cloudphotomigrator:%RELEASE_TAG%
 docker pull jaimetur/cloudphotomigrator:%RELEASE_TAG%
 
-echo 🚀 Launching container with TAG:'%RELEASE_TAG%' and TZ='%TZ%'...
+echo Launching container with TAG:'%RELEASE_TAG%' and TZ='%TZ%'...
 docker run -it --rm ^
   -v "%CURRENT_DIR%":/docker ^
   -e TZ=%TZ% ^
