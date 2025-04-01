@@ -74,7 +74,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
-          draft: true
+          draft: false
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
         env:
