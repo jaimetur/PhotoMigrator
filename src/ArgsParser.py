@@ -267,29 +267,9 @@ def checkArgs(ARGS, PARSER):
         PARSER.error(f"\n\n❌ ERROR   : Invalid syntax. Argument '--target' detected but not '--source' providen'. You must specify both, --source and --target to execute AUTOMATED-MIGRATION task.\n")
         exit(1)
     if ARGS['source'] and ARGS['source'] not in choices_for_AUTOMATED_MIGRATION_SRC and not os.path.isdir(ARGS['source']):
-        host_path = os.getcwd()
-        docker_mount_path = "/docker"
-        print("📁 Directorio actual (dentro del contenedor):", host_path)
-        if os.path.exists(docker_mount_path):
-            print("📦 Directorio montado desde el host (ruta /docker):", docker_mount_path)
-            print("📦 Contenido de /docker:")
-            for item in os.listdir(docker_mount_path):
-                print("   -", item)
-        else:
-            print("❌ El directorio /docker no está montado.")
         PARSER.error(f"\n\n❌ ERROR   : Invalid choice detected for --source='{ARGS['source']}'. \nMust be an existing local folder or one of the following values: \n{choices_for_AUTOMATED_MIGRATION_SRC}.\n")
         exit(1)
     if ARGS['target'] and ARGS['target'] not in choices_for_AUTOMATED_MIGRATION_TGT and not os.path.isdir(ARGS['target']):
-        host_path = os.getcwd()
-        docker_mount_path = "/docker"
-        print("📁 Directorio actual (dentro del contenedor):", host_path)
-        if os.path.exists(docker_mount_path):
-            print("📦 Directorio montado desde el host (ruta /docker):", docker_mount_path)
-            print("📦 Contenido de /docker:")
-            for item in os.listdir(docker_mount_path):
-                print("   -", item)
-        else:
-            print("❌ El directorio /docker no está montado.")
         PARSER.error(f"\n\n❌ ERROR   : Invalid choice detected for --target='{ARGS['target']}'. \nMust be an existing local folder one of the following values: \n{choices_for_AUTOMATED_MIGRATION_TGT}.\n")
         exit(1)
     if ARGS['source'] and ARGS['target']:
