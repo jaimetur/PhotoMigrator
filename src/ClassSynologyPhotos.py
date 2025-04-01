@@ -363,6 +363,30 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Geocoding List from Synology Photos. {e}")
 
+    def get_ids_for_place(self, place, log_level=logging.INFO):
+        with set_log_level(LOGGER, log_level):
+            geocoding_list = self.get_geocoding(log_level=log_level)
+            result_ids = set()
+
+            for item in geocoding_list:
+                # Coincidencia con el país
+                if item.get("country") == place:
+                    result_ids.add(item.get("country_id"))
+                    result_ids.add(item.get("id"))
+
+                # Coincidencia con primer nivel (por ejemplo, ciudad o región)
+                if item.get("first_level") == place:
+                    result_ids.add(item.get("id"))
+
+                # Coincidencia con el nombre del lugar
+                if item.get("name") == place:
+                    result_ids.add(item.get("id"))
+
+                # Coincidencia con segundo nivel si aplica
+                if item.get("second_level") == place:
+                    result_ids.add(item.get("id"))
+
+            return list(result_ids)
 
     ###########################################################################
     #                            ALBUMS FUNCTIONS                             #
@@ -760,7 +784,12 @@ class ClassSynologyPhotos:
                 takenAfter = iso8601_to_epoch(takenAfter)
                 takenBefore = iso8601_to_epoch(takenBefore)
 
-                geocoding_list = self.get_geocoding(log_level=log_level)
+                geocoding_country_list = []
+                geocoding_city_list = []
+                if country: geocoding_country_list = self.get_ids_for_place(country)
+                if city: geocoding_city_list = self.get_ids_for_place(city)
+
+                geocoding_list = geocoding_country_list + geocoding_city_list
 
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -788,6 +817,9 @@ class ClassSynologyPhotos:
                     if takenAfter:  time_dic["start_time"] = takenAfter
                     if takenBefore: time_dic["end_time"] = takenBefore
                     if time_dic: params["time"] = json.dumps([time_dic])
+
+                    # Add geocoding key if geocoding_list has some value
+                    if geocoding_list: params["geocoding"] = json.dumps(geocoding_list)
 
                     # Add types to params if have been providen
                     types = []
