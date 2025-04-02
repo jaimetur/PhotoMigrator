@@ -184,9 +184,11 @@ The below tables show the pros and cons of each method together with a comparati
 - [ ] Test Filters in other Synology/Immich Features
 - [x] Include Live Dashboard in secuential Automated Migration
 - [x] Test secuential Automated Migration
+- [x] Minor bugs fixing
 - [ ] Update Documentation
 - [ ] Update README.md
 - [ ] Update RELEASES-NOTES.md
+
 
 ## v4.0.0:
 ### Release Date: (estimated)
