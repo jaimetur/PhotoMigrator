@@ -12,7 +12,7 @@ from threading import main_thread
 
 import Utils
 import traceback
-from GlobalVariables import LOGGER, ARGS, TIMESTAMP, START_TIME, HELP_TEXTS, DEPRIORITIZE_FOLDERS_PATTERNS, SCRIPT_DESCRIPTION, SCRIPT_VERSION, SCRIPT_NAME_VERSION
+from GlobalVariables import LOGGER, ARGS, TIMESTAMP, START_TIME, HELP_TEXTS, DEPRIORITIZE_FOLDERS_PATTERNS, SCRIPT_DESCRIPTION, SCRIPT_VERSION, SCRIPT_NAME_VERSION, resolve_path
 from Duplicates import find_duplicates, process_duplicates_actions
 from CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, CustomLogFormatter, clone_logger
 from ClassTakeoutFolder import ClassTakeoutFolder
@@ -104,7 +104,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
         if show_gpth_errors is None: show_gpth_errors = ARGS['show-gpth-errors']
 
         # Define the INTERMEDIATE_FOLDER
-        INTERMEDIATE_FOLDER = f'./Temp_folder_{TIMESTAMP}'
+        INTERMEDIATE_FOLDER = resolve_path(f'./Temp_folder_{TIMESTAMP}')
 
         # ---------------------------------------------------------------------------------------------------------
         # 1) Creamos los objetos source_client y target_client en función de los argumentos source y target
@@ -146,7 +146,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
         # Check if source_client support specified filters
         unsupported_text = ""
         if isinstance(source_client, ClassTakeoutFolder) or isinstance(source_client, ClassTakeoutFolder):
-            unsupported_text = (f"(Unsupported for this source client: {source_client_name}. Filter Ignored)")
+            unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
         # Get the values from the arguments (if exists)
         from_date = ARGS.get('from-date', None)
@@ -241,7 +241,6 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             # 4) Ejecutamos la migración en el hilo principal (ya sea con descargas y subidas en paralelo o secuencial)
             # ---------------------------------------------------------------------------------------------------------
             try:
-
                 parallel_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, parallel=parallel, log_level=logging.INFO)
                 # if parallel:
                 #     parallel_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, parallel=parallel, log_level=logging.INFO)

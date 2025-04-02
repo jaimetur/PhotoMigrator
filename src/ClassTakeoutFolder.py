@@ -208,7 +208,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info("=============================================")
             LOGGER.info("")
             step_start_time = datetime.now()
-            # Pre process the object with skip_process=True to just unzip files in case they are zipped.
+            # Pre-process the object with skip_process=True to just unzip files in case they are zipped.
             self.pre_process(skip_process=True)
             # Select the input_folder deppending if the Takeout have been unzipped or not
             if self.unzipped_folder:
