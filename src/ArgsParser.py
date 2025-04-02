@@ -87,9 +87,9 @@ def parse_arguments():
 
     PARSER.add_argument("-from", "--from-date", metavar="<FROM_DATE>", default="", help="Specify the initial date to filter assets in the different Photo Cloud Services.")
     PARSER.add_argument("-to", "--to-date", metavar="<TO_DATE>", default="", help="Specify the final date to filter assets in the different Photo Cloud Services.")
-    PARSER.add_argument("-country", "--country", metavar="<COUNTRY_ID>", default="", help="Specify the Country ID to filter assets in the different Photo Cloud Services.")
-    PARSER.add_argument("-city", "--city", metavar="<CITY_ID>", default="", help="Specify the City ID to filter assets in the different Photo Cloud Services.")
-    PARSER.add_argument("-people", "--people", metavar="<PEOPLE_ID>", default="", help="Specify the People ID to filter assets in the different Photo Cloud Services.")
+    PARSER.add_argument("-country", "--country", metavar="<COUNTRY_NAME>", default="", help="Specify the Country Name to filter assets in the different Photo Cloud Services.")
+    PARSER.add_argument("-city", "--city", metavar="<CITY_NAME>", default="", help="Specify the City Name to filter assets in the different Photo Cloud Services.")
+    PARSER.add_argument("-people", "--people", metavar="<PEOPLE_NAME>", default="", help="Specify the People Name to filter assets in the different Photo Cloud Services.")
     PARSER.add_argument("-type", "--type", metavar="= [photos,videos,all]", default="all", help="Specify the Asset Type to filter assets in the different Photo Cloud Services. Default: all")
     # PARSER.add_argument("-archive", "--archive",
     #                     metavar="= [true,false]",

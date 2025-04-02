@@ -31,8 +31,8 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
     - [x] by Dates
     - [x] by Country
     - [x] by City
+    - [ ] by People
     - [ ] by Type
-    - [ ] by Person
 - [ ] Test Filters in other Synology/Immich Features
 - [x] Include Live Dashboard in secuential Automated Migration
 - [x] Test secuential Automated Migration
