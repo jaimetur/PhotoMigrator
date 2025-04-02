@@ -37,15 +37,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # 1. - Execute for ubuntu
-      - name: 1. - Execute for ubuntu
+      # 1. - Execute for ubuntu without compile any build
+      - name: 1. - Execute for ubuntu without compile any build
         run: |
           echo "::group::Execute for ${{ matrix.os }}"
                     
           # Execute for macOS
           if [[ "${{ matrix.os }}" == *"ubuntu"* ]]; then
             cd src
-            python3 _compile.py false
+            python3 _build.py false
           fi
           
           echo "::endgroup::"
