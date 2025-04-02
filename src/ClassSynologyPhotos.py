@@ -1,36 +1,4 @@
 # -*- coding: utf-8 -*-
-
-"""
-----------------------
-ClassSynologyPhotos.py
-----------------------
-Python module with example functions to interact with Synology Photos, including followfing functions:
-  - Configuration (read config)
-  - Authentication (login/logout)
-  - Indexing and Reindexing functions
-  - Listing and managing albums
-  - Listing, uploading, and downloading assets
-  - Deleting empty or duplicate albums
-  - Main functions for use in other modules:
-     - synology_delete_empty_albums()
-     - synology_delete_duplicates_albums()
-     - synology_upload_folder()
-     - synology_upload_albums()
-     - synology_download_albums()
-     - pull_ALL()
-"""
-
-# ClassSynologyPhotos.py
-# -*- coding: utf-8 -*-
-
-"""
-Single-class version of ClassSynologyPhotos.py:
- - Preserves original log messages without modifying their text.
- - All docstrings/comments in English.
- - Imports CustomLogger.set_log_level, Utils.update_metadata, etc. remain outside the class.
- - Uses a global LOGGER from GlobalVariables inside the class constructor.
-"""
-
 import os
 import sys
 import fnmatch
@@ -42,15 +10,35 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 from datetime import datetime
 import time
 import logging
-import inspect
 
-from Utils import update_metadata, convert_to_list, convert_asset_ids_to_str, get_unique_items, organize_files_by_date, tqdm, iso8601_to_epoch, to_epoch
+from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm, to_epoch
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
 
 # Import the global LOGGER from GlobalVariables
 from GlobalVariables import LOGGER, ARGS
+
+
+"""
+----------------------
+ClassSynologyPhotos.py
+----------------------
+Python module with example functions to interact with Synology Photos, including following functions:
+  - Configuration (read config)
+  - Authentication (login/logout)
+  - Indexing and Reindexing functions
+  - Listing and managing albums
+  - Listing, uploading, and downloading assets
+  - Deleting empty or duplicate albums
+  - Main functions for use in other modules:
+     - synology_delete_empty_albums()
+     - delete_duplicates_albums()
+     - upload_folder()
+     - upload_albums()
+     - pull_albums()
+     - pull_ALL()
+"""
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -938,8 +926,8 @@ class ClassSynologyPhotos:
                 people = ARGS.get('people', None)
 
                 # Convert the values from iso to epoch
-                takenAfter = iso8601_to_epoch(takenAfter)
-                takenBefore = iso8601_to_epoch(takenBefore)
+                takenAfter = to_epoch(takenAfter)
+                takenBefore = to_epoch(takenBefore)
 
                 geocoding_country_list = []
                 geocoding_city_list = []
@@ -2563,69 +2551,64 @@ if __name__ == "__main__":
     syno.login(use_syno_token=True)
     # login(use_syno_token=False)
 
-    # # Example: remove_empty_albums()
-    # print("=== EXAMPLE: remove_empty_albums() ===")
-    # syno.deleted = synology_remove_empty_albums()
-    # print(f"[RESULT] Empty albums deleted: {deleted}\n")
+    # Example: remove_empty_albums()
+    print("=== EXAMPLE: remove_empty_albums() ===")
+    deleted = syno.remove_empty_albums()
+    print(f"[RESULT] Empty albums deleted: {deleted}\n")
 
-    # # Example: remove_duplicates_albums()
-    # print("=== EXAMPLE: remove_duplicates_albums() ===")
-    # syno.duplicates = synology_remove_duplicates_albums()
-    # print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
+    # Example: remove_duplicates_albums()
+    print("=== EXAMPLE: remove_duplicates_albums() ===")
+    duplicates = syno.remove_duplicates_albums()
+    print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
 
-    # # Example: Upload_asset()
-    # print("\n=== EXAMPLE: push_asset() ===")
-    # file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\1994 - Recuerdos\169859_10150125237566327_578986326_8330690_6545.jpg"                # For Windows
-    # asset_id = syno.push_asset(file_path)
-    # if not asset_id:
-    #     print(f"Error uploading asset '{file_path}'.")
-    # else:
-    #     print(f"New Asset uploaded successfully with id: {asset_id}")
+    # Example: push_asset()
+    print("\n=== EXAMPLE: push_asset() ===")
+    file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\1994 - Recuerdos\169859_10150125237566327_578986326_8330690_6545.jpg"                # For Windows
+    asset_id = syno.push_asset(file_path)
+    if not asset_id:
+        print(f"Error uploading asset '{file_path}'.")
+    else:
+        print(f"New Asset uploaded successfully with id: {asset_id}")
 
-    # # Example: synology_upload_no_albums()
-    # print("\n=== EXAMPLE: synology_upload_no_albums() ===")
-    # # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
-    # input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
-    # syno.push_no_albums(input_folder)
+    # Example: push_no_albums()
+    print("\n=== EXAMPLE: push_no_albums() ===")
+    # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    syno.push_no_albums(input_folder)
 
-    # # Example: synology_upload_albums()
-    # print("\n=== EXAMPLE: synology_upload_albums() ===")
-    # # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
-    # input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
-    # syno.push_albums(input_folder)
+    # Example: push_albums()
+    print("\n=== EXAMPLE: push_albums() ===")
+    # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    syno.push_albums(input_folder)
 
-    # # Example: synology_upload_ALL()
-    # print("\n=== EXAMPLE: synology_upload_ALL() ===")
-    # # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
-    # input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
-    # syno.push_ALL(input_folder)
+    # Example: push_ALL()
+    print("\n=== EXAMPLE: push_ALL() ===")
+    # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    syno.push_ALL(input_folder)
 
-    # Example: synology_download_albums()
-    print("\n=== EXAMPLE: synology_download_albums() ===")
+    # Example: pull_albums()
+    print("\n=== EXAMPLE: pull_albums() ===")
     download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
     total = syno.pull_albums(albums_name='ALL', output_folder=download_folder)
     print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
-    # # Example: synology_download_no_albums()
-    # print("\n=== EXAMPLE: synology_download_albums() ===")
-    # download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
-    # total = syno.pull_no_albums(no_albums_folder=download_folder)
-    # print(f"[RESULT] A total of {total} assets have been downloaded.\n")
+    # Example: pull_no_albums()
+    print("\n=== EXAMPLE: pull_no_albums() ===")
+    download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
+    total = syno.pull_no_albums(no_albums_folder=download_folder)
+    print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
-    # # Example: pull_ALL
-    # print("=== EXAMPLE: pull_ALL() ===")
-    # total_struct = syno.pull_ALL(output_folder="Downloads_Synology")
-    # # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
+    # Example: pull_ALL
+    print("=== EXAMPLE: pull_ALL() ===")
+    total_struct = syno.pull_ALL(output_folder="Downloads_Synology")
+    # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
 
-    # # Test: get_photos_root_folder_id()
-    # print("=== EXAMPLE: get_photos_root_folder_id() ===")
-    # root_folder_id = syno.get_photos_root_folder_id()
-    # print (root_folder_id)
-
-    # # Example: remove_empty_folders()
-    # print("\n=== EXAMPLE: remove_empty_folders() ===")
-    # total = syno.remove_empty_folders()
-    # print(f"[RESULT] A total of {total} folders have been removed.\n")
+    # Example: remove_empty_folders()
+    print("\n=== EXAMPLE: remove_empty_folders() ===")
+    total = syno.remove_empty_folders()
+    print(f"[RESULT] A total of {total} folders have been removed.\n")
 
     # logout()
     syno.logout()

@@ -1,32 +1,5 @@
 # -*- coding: utf-8 -*-
 
-"""
-ClassImmichPhotos.py
----------------
-Python module with example functions to interact with Immich Photos, including followfing functions:
-  - Configuration (read config)
-  - Authentication (login/logout)
-  - Listing and managing albums
-  - Listing, uploading, and downloading assets
-  - Removing empty or duplicate albums
-  - Main functions for use in other modules:
-     - remove_empty_albums()
-     - remove_duplicates_albums()
-     - immich_upload_folder()
-     - push_albums()
-     - pull_albums()
-     - pull_ALL()
-"""
-# ClassImmichPhotos.py
-# -*- coding: utf-8 -*-
-
-"""
-Single class version of ClassImmichPhotos.py:
-- All docstrings and comments in English.
-- Preserves original LOGGER text (e.g., "INFO    :", "WARNING :", etc.).
-- Uses a global LOGGER from GlobalVariables.
-"""
-
 import os,sys
 import requests
 import json
@@ -40,13 +13,32 @@ from urllib.parse import urlparse
 from halo import Halo
 from tabulate import tabulate
 
-from Utils import update_metadata, convert_to_list, tqdm, sha1_checksum, iso8601_to_epoch
+from Utils import update_metadata, convert_to_list, tqdm, to_epoch
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
 
 # Import the global LOGGER from GlobalVariables
 from GlobalVariables import LOGGER, ARGS
+
+"""
+--------------------
+ClassImmichPhotos.py
+--------------------
+Python module with example functions to interact with Immich Photos, including following functions:
+  - Configuration (read config)
+  - Authentication (login/logout)
+  - Listing and managing albums
+  - Listing, uploading, and downloading assets
+  - Removing empty or duplicate albums
+  - Main functions for use in other modules:
+     - remove_empty_albums()
+     - remove_duplicates_albums()
+     - immich_upload_folder()
+     - push_albums()
+     - pull_albums()
+     - pull_ALL()
+"""
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -1900,46 +1892,46 @@ if __name__ == "__main__":
     immich.read_config_file('Config.ini')
     immich.login()
 
-    # # 1) Example: Remove empty albums
-    # print("\n=== EXAMPLE: remove_empty_albums() ===")
-    # removed = immich.remove_empty_albums(log_level=logging.DEBUG)
-    # print(f"[RESULT] Empty albums removed: {removed}")
-    #
-    # # 2) Example: Remove duplicate albums
-    # print("\n=== EXAMPLE: remove_duplicates_albums() ===")
-    # duplicates = immich.remove_duplicates_albums(log_level=logging.DEBUG)
-    # print(f"[RESULT] Duplicate albums removed: {duplicates}")
-    #
-    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums'
-    # print("\n=== EXAMPLE: push_no_albums() ===")
-    # big_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums"
-    # immich.push_no_albums(big_folder, log_level=logging.DEBUG)
-    #
-    # # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums'
-    # print("\n=== EXAMPLE: push_albums() ===")
-    # input_albums_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums"
-    # immich.push_albums(input_albums_folder, log_level=logging.DEBUG)
-    #
-    # # 5) Example: Download all photos from ALL albums
+    # 1) Example: Remove empty albums
+    print("\n=== EXAMPLE: remove_empty_albums() ===")
+    removed = immich.remove_empty_albums(log_level=logging.DEBUG)
+    print(f"[RESULT] Empty albums removed: {removed}")
+
+    # 2) Example: Remove duplicate albums
+    print("\n=== EXAMPLE: remove_duplicates_albums() ===")
+    duplicates = immich.remove_duplicates_albums(log_level=logging.DEBUG)
+    print(f"[RESULT] Duplicate albums removed: {duplicates}")
+
+    # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums'
+    print("\n=== EXAMPLE: push_no_albums() ===")
+    big_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums"
+    immich.push_no_albums(big_folder, log_level=logging.DEBUG)
+
+    # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums'
+    print("\n=== EXAMPLE: push_albums() ===")
+    input_albums_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums"
+    immich.push_albums(input_albums_folder, log_level=logging.DEBUG)
+
+    # 5) Example: Download all photos from ALL albums
     print("\n=== EXAMPLE: pull_albums() ===")
     # total = pull_albums('ALL', output_folder="Downloads_Immich")
     total_albums, total_assets = immich.pull_albums("1994 - Recuerdos", output_folder="Downloads_Immich", log_level=logging.DEBUG)
     print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums} different albbums.")
-    #
-    # # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
-    # print("\n=== EXAMPLE: pull_ALL() ===")
-    # # total_struct = pull_ALL(output_folder="Downloads_Immich")
-    # total_albums_downloaded, total_assets_downloaded = immich.pull_ALL(output_folder="Downloads_Immich", log_level=logging.DEBUG)
-    # print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
-    #
-    # # 7) Example: Remove Orphan Assets
-    # immich.remove_orphan_assets(user_confirmation=True, log_level=logging.DEBUG)
-    #
-    # # 8) Example: Remove ALL Assets
-    # immich.remove_all_assets(log_level=logging.DEBUG)
-    #
-    # # 9) Example: Remove ALL Assets
-    # immich.remove_all_albums(removeAlbumsAssets=True, log_level=logging.DEBUG)
-    #
-    # # 10) Local logout
-    # immich.logout()
+
+    # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
+    print("\n=== EXAMPLE: pull_ALL() ===")
+    # total_struct = pull_ALL(output_folder="Downloads_Immich")
+    total_albums_downloaded, total_assets_downloaded = immich.pull_ALL(output_folder="Downloads_Immich", log_level=logging.DEBUG)
+    print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
+
+    # 7) Example: Remove Orphan Assets
+    immich.remove_orphan_assets(user_confirmation=True, log_level=logging.DEBUG)
+
+    # 8) Example: Remove ALL Assets
+    immich.remove_all_assets(log_level=logging.DEBUG)
+
+    # 9) Example: Remove ALL Assets
+    immich.remove_all_albums(removeAlbumsAssets=True, log_level=logging.DEBUG)
+
+    # 10) Local logout
+    immich.logout()

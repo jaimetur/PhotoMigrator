@@ -1,14 +1,13 @@
+# -*- coding: utf-8 -*-
 import os
 import shutil
 import logging
 import re
 import Utils
-from Utils import iso8601_to_epoch
+from Utils import to_epoch
 from datetime import datetime
 import time
 from pathlib import Path
-from collections import defaultdict
-from contextlib import contextmanager
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
@@ -16,6 +15,22 @@ from CustomLogger import set_log_level
 # Import the global LOGGER from GlobalVariables
 from GlobalVariables import LOGGER, ARGS
 
+"""
+-------------------
+ClassLocalFolder.py
+-------------------
+Python module with example functions to interact with Local Folder, including following functions:
+  - Listing and managing albums
+  - Listing, uploading, and downloading assets
+  - Deleting empty or duplicate albums
+  - Main functions for use in other modules:
+     - delete_empty_albums()
+     - delete_duplicates_albums()
+     - upload_folder()
+     - upload_albums()
+     - download_albums()
+     - pull_ALL()
+"""
 
 ##############################################################################
 #                              START OF CLASS                                #
@@ -1171,46 +1186,46 @@ if __name__ == "__main__":
     localFolder = ClassLocalFolder()
 
     # 0) Read configuration and log in
-    # localFolder.read_config_file('Config.ini')
+    localFolder.read_config_file('Config.ini')
     localFolder.login()
 
-    # # 1) Example: Remove empty albums
-    # print("\n=== EXAMPLE: remove_empty_albums() ===")
-    # removed = localFolder.remove_empty_albums(log_level=logging.DEBUG)
-    # print(f"[RESULT] Empty albums removed: {removed}")
-    #
-    # # 2) Example: Remove duplicate albums
-    # print("\n=== EXAMPLE: remove_duplicates_albums() ===")
-    # duplicates = localFolder.remove_duplicates_albums(log_level=logging.DEBUG)
-    # print(f"[RESULT] Duplicate albums removed: {duplicates}")
-    #
-    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums'
-    # print("\n=== EXAMPLE: push_no_albums() ===")
-    # big_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums"
-    # localFolder.push_no_albums(big_folder, log_level=logging.DEBUG)
-    #
-    # # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums'
-    # print("\n=== EXAMPLE: push_albums() ===")
-    # input_albums_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums"
-    # localFolder.push_albums(input_albums_folder, log_level=logging.DEBUG)
-    #
-    # # 5) Example: Download all photos from ALL albums
+    # 1) Example: Remove empty albums
+    print("\n=== EXAMPLE: remove_empty_albums() ===")
+    removed = localFolder.remove_empty_albums(log_level=logging.DEBUG)
+    print(f"[RESULT] Empty albums removed: {removed}")
+
+    # 2) Example: Remove duplicate albums
+    print("\n=== EXAMPLE: remove_duplicates_albums() ===")
+    duplicates = localFolder.remove_duplicates_albums(log_level=logging.DEBUG)
+    print(f"[RESULT] Duplicate albums removed: {duplicates}")
+
+    # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums'
+    print("\n=== EXAMPLE: push_no_albums() ===")
+    big_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums"
+    localFolder.push_no_albums(big_folder, log_level=logging.DEBUG)
+
+    # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums'
+    print("\n=== EXAMPLE: push_albums() ===")
+    input_albums_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums"
+    localFolder.push_albums(input_albums_folder, log_level=logging.DEBUG)
+
+    # 5) Example: Download all photos from ALL albums
     print("\n=== EXAMPLE: pull_albums() ===")
     # total = pull_albums('ALL', output_folder="Downloads_Immich")
     total_albums, total_assets = localFolder.pull_albums("1994 - Recuerdos", output_folder="Downloads_Immich", log_level=logging.DEBUG)
     print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums} different albbums.")
-    #
-    # # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
-    # print("\n=== EXAMPLE: pull_ALL() ===")
-    # # total_struct = pull_ALL(output_folder="Downloads_Immich")
-    # total_albums_downloaded, total_assets_downloaded = localFolder.pull_ALL(output_folder="Downloads_Immich", log_level=logging.DEBUG)
-    # print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
-    #
-    # # 8) Example: Remove ALL Assets
-    # localFolder.remove_all_assets(log_level=logging.DEBUG)
-    #
-    # # 9) Example: Remove ALL Assets
-    # localFolder.remove_all_albums(removeAlbumsAssets=True, log_level=logging.DEBUG)
-    #
-    # # 10) Local logout
-    # localFolder.logout()
+
+    # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
+    print("\n=== EXAMPLE: pull_ALL() ===")
+    # total_struct = pull_ALL(output_folder="Downloads_Immich")
+    total_albums_downloaded, total_assets_downloaded = localFolder.pull_ALL(output_folder="Downloads_Immich", log_level=logging.DEBUG)
+    print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
+
+    # 8) Example: Remove ALL Assets
+    localFolder.remove_all_assets(log_level=logging.DEBUG)
+
+    # 9) Example: Remove ALL Assets
+    localFolder.remove_all_albums(removeAlbumsAssets=True, log_level=logging.DEBUG)
+
+    # 10) Local logout
+    localFolder.logout()
