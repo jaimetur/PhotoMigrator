@@ -199,7 +199,9 @@ def main(compile=True):
 
     clear_screen()
 
-    print(f"Ejecutando módulo main({compile})...")
+    print("======================================================")
+    print(f"INFO:    Ejecutando módulo main(compile={compile})...")
+    print("======================================================")
 
     # Select Compiler
     COMPILER = 'nuitka'
