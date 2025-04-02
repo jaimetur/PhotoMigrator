@@ -30,7 +30,7 @@ class SharedData:
 ####################################
 # FEATURE: AUTOMATED-MIGRATION: #
 ####################################
-def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show_gpth_progress=None, show_gpth_errors=None, parallel=True, log_level=logging.INFO):
+def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show_gpth_progress=None, show_gpth_errors=None, parallel=None, log_level=logging.INFO):
     
     with set_log_level(LOGGER, log_level):
 
@@ -86,6 +86,9 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
         }
 
         SHARED_DATA = SharedData(input_info, counters, logs_queue)
+
+        # Check if parallel=None, and in that case, get it from ARGS
+        if parallel is None: parallel = ARGS['parallel-migration']
 
         # Detect source and target from the given arguments if have not been provided on the function call
         # if not source: source = ARGS['AUTOMATED-MIGRATION'][0]
@@ -156,6 +159,10 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{source}'").replace('<TARGET>', f"'{target}'").replace('Pulling', 'Analyzing and Fixing'))
         LOGGER.info(f"INFO    : Source Client  : {source_client_name}")
         LOGGER.info(f"INFO    : Target Client  : {target_client_name}")
+        if parallel:
+            LOGGER.info(f"INFO    : Migration Mode : Parallel")
+        else:
+            LOGGER.info(f"INFO    : Migration Mode : Secuential")
         if from_date or to_date or type or country or city or people:
             LOGGER.info(f"INFO    : Assets Filters :")
         else:
@@ -200,6 +207,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
                     kwargs={
                         "migration_finished": migration_finished,  # Pasamos un evento para indicar cuando ha terminado el proceso de migración
                         "SHARED_DATA": SHARED_DATA,  # Pasamos la instancia de la clase
+                        "parallel": parallel, # Pasamos el modo de migración (parallel=True/False)
                         "log_level": logging.INFO
                     },
                     daemon=True  # El show_dashboard se cierra si el proceso principal termina
@@ -228,10 +236,12 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             # 4) Ejecutamos la migración en el hilo principal (ya sea con descargas y subidas en paralelo o secuencial)
             # ---------------------------------------------------------------------------------------------------------
             try:
-                if parallel:
-                    parallel_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, log_level=logging.INFO)
-                else:
-                    secuencial_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, log_level=logging.INFO)
+
+                parallel_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, parallel=parallel, log_level=logging.INFO)
+                # if parallel:
+                #     parallel_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, parallel=parallel, log_level=logging.INFO)
+                # else:
+                #     secuencial_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, log_level=logging.INFO)
             finally:
                 migration_finished.set()
 
@@ -329,6 +339,10 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"INFO    : 🚀 Starting Automated Migration Process: {source_client_name} ➜ {target_client_name}...")
             LOGGER.info(f"INFO    : Source Client  : {source_client_name}")
             LOGGER.info(f"INFO    : Target Client  : {target_client_name}")
+            if parallel:
+                LOGGER.info(f"INFO    : Migration Mode : Parallel")
+            else:
+                LOGGER.info(f"INFO    : Migration Mode : Secuential")
             if from_date or to_date or type or country or city or people:
                 LOGGER.info(f"INFO    : Assets Filters :")
             else:
@@ -818,7 +832,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     temp_folder = Utils.normalize_path(temp_folder)
 
     # Check if parallel=None, and in that case, get it from ARGS
-    if parallel == None: parallel = ARGS['parallel-migration']
+    if parallel is None: parallel = ARGS['parallel-migration']
 
     # Llamada al hilo principal
     main_thread(parallel=parallel, log_level=log_level)
@@ -881,7 +895,7 @@ def secuencial_automated_migration(source_client, target_client, temp_folder, SH
 ###########################
 # start_dashboard Function #
 ###########################
-def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
+def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=logging.INFO):
     import time, random, threading
     from datetime import datetime
     from rich.console import Console
@@ -1068,8 +1082,12 @@ def start_dashboard(migration_finished, SHARED_DATA, log_level=logging.INFO):
         empty_blocks = BAR_WIDTH - filled_blocks
         # 🔹 Crear la barra de progreso con "█" y espacios
         queue_bar = "█" * filled_blocks + " " * empty_blocks
-        # 🔹 Mostrar la barra con la cantidad actual de elementos en la cola
-        queue_bar = f"[{queue_bar}] {current_queue_size:>3}/100"
+        if parallel:
+            # 🔹 Mostrar la barra con la cantidad actual de elementos en la cola y el máximo de 100 al final
+            queue_bar = f"[{queue_bar}] {current_queue_size:>3}/100"
+        else:
+            # 🔹 Mostrar la barra con la cantidad actual de elementos en la cola aquí sin máximo, y dando espacio para 7 dígitos
+            queue_bar = f"[{queue_bar}] {current_queue_size:>7}"
         # 🔹 borra la barra al final
         if clean_queue_history:
             queue_bar = 0
