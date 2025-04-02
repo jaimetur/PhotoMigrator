@@ -102,8 +102,8 @@ def resolve_path(user_path):
                     f"\nPlease provide a path under /docker or under the execution folder."
                 )
             return final_path
+        # (c) If it's relative, join it under /docker and then normalize again
         else:
-            # (c) If it's relative, join it under /docker and then normalize again
             joined_path = posixpath.join("/docker", path_clean.lstrip("/"))
             final_path = posixpath.normpath(joined_path)
             # If after normalization it no longer starts with /docker, that means
