@@ -844,6 +844,23 @@ class ClassSynologyPhotos:
         return filtered
 
     def filter_assets(self, assets, log_level=logging.INFO):
+        """
+        Filters a list of assets based on user-defined criteria such as date range,
+        country, city, and asset type. Filter parameters are retrieved from the global ARGS dictionary.
+
+        The filtering steps are applied in the following order:
+        1. By date range (from-date, to-date)
+        2. By country (matched in address or exifInfo)
+        3. By city (matched in address or exifInfo)
+        4. Additional filters (e.g., people or type) can be added later
+
+        Args:
+            assets (list): List of asset dictionaries to be filtered.
+            log_level (int, optional): Logging level to apply during filtering. Defaults to logging.INFO.
+
+        Returns:
+            list: A filtered list of assets that match the specified criteria.
+        """
         with set_log_level(LOGGER, log_level):
             # Get the values from the arguments (if exists)
             type = ARGS.get('asset-type', None)
