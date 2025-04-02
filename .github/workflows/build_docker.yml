@@ -117,6 +117,9 @@ jobs:
           cp -r help CloudPhotoMigrator/docker/
           cp README.md CloudPhotoMigrator/docker/docs/README.md
           zip -r CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip CloudPhotoMigrator
+      # ================================
+      # End of Docker version Generation
+      # ================================
 
       # 6. Create Release and Upload artifact to it
       - name: 6. Create Release and Upload artifact to it
@@ -130,9 +133,6 @@ jobs:
             CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-      # ================================
-      # End of Docker version Generation
-      # ================================
 
       # 7. - Cleanup (Linux/macOS)
       - name: 7. - Cleanup (Linux/macOS)
