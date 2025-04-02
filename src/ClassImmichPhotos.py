@@ -355,7 +355,7 @@ class ClassImmichPhotos:
                 resp.raise_for_status()
                 data = resp.json()
                 if data:
-                    person_id = data.get("id")
+                    person_id = data[0].get("id")
                     LOGGER.info(f"INFO    : ID '{person_id}' found for person '{name}'.")
                     return person_id
                 else:
@@ -694,7 +694,7 @@ class ClassImmichPhotos:
             type = ARGS.get('asset-type', None)
 
             if person:
-                person = self.get_person_id(name=person, log_level=log_level)
+                person = self.get_person_id(name=person, log_level=logging.WARNING)
 
             # Now Filter the assets list based on the filters given by ARGS
             filtered_assets = assets
@@ -728,12 +728,26 @@ class ClassImmichPhotos:
                 # Get the values from the arguments (if exists)
                 from_date = ARGS.get('from-date', None)
                 to_date = ARGS.get('to-date', None)
-                type = ARGS.get('asset-type', None)
                 country = ARGS.get('country', None)
                 city = ARGS.get('city', None)
                 person = ARGS.get('person', None)
+                type = ARGS.get('asset-type', None)
+
+                if type:
+                    image_aliases = {"image", "images", "photo", "photos"}
+                    video_aliases = {"video", "videos"}
+                    type_lower = type.lower()
+                    if type_lower in image_aliases:
+                        type = "IMAGE"
+                    elif type_lower in video_aliases:
+                        type = "VIDEO"
+                    elif type_lower == "all":
+                        type = None  # No filtering needed
+                    else:
+                        type = None  # Unknown alias, treat as no filtering
+
                 if person:
-                    person = self.get_person_id(name=person, log_level=log_level)
+                    person = [self.get_person_id(name=person, log_level=log_level)]
 
                 self.login(log_level=log_level)
                 url = f"{self.IMMICH_URL}/api/search/metadata"
