@@ -156,7 +156,10 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{source}'").replace('<TARGET>', f"'{target}'").replace('Pulling', 'Analyzing and Fixing'))
         LOGGER.info(f"INFO    : Source Client  : {source_client_name}")
         LOGGER.info(f"INFO    : Target Client  : {target_client_name}")
-        LOGGER.info(f"INFO    : Assets Filters :")
+        if from_date or to_date or type or country or city or people:
+            LOGGER.info(f"INFO    : Assets Filters :")
+        else:
+            LOGGER.info(f"INFO    : Assets Filters : None")
         if from_date:
             date_obj = datetime.strptime(from_date, "%Y-%m-%dT%H:%M:%S.%fZ")
             LOGGER.info(f"INFO    : - From Date    : {date_obj.strftime('%Y-%m-%d')}")
@@ -324,7 +327,10 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"INFO    : 🚀 Starting Automated Migration Process: {source_client_name} ➜ {target_client_name}...")
             LOGGER.info(f"INFO    : Source Client  : {source_client_name}")
             LOGGER.info(f"INFO    : Target Client  : {target_client_name}")
-            LOGGER.info(f"INFO    : Assets Filters :")
+            if from_date or to_date or type or country or city or people:
+                LOGGER.info(f"INFO    : Assets Filters :")
+            else:
+                LOGGER.info(f"INFO    : Assets Filters : None")
             if from_date:
                 date_obj = datetime.strptime(from_date, "%Y-%m-%dT%H:%M:%S.%fZ")
                 LOGGER.info(f"INFO    : - From Date    : {date_obj.strftime('%Y-%m-%d')}")
