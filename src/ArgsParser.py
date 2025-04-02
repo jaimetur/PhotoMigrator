@@ -85,12 +85,12 @@ def parse_arguments():
                         help="Select Parallel/Secuencial Migration during Autometed Migration Job. This argument only applies if both '--source' and '--target' argument are given (AUTOMATED-MIGRATION FEATURE). (default: True)."
     )
 
-    PARSER.add_argument("-type", "--type", metavar="= [photos,videos,all]", default="all", help="Specify the Asset Type to filter assets in the different Photo Cloud Services. Default: all")
     PARSER.add_argument("-from", "--from-date", metavar="<FROM_DATE>", default="", help="Specify the initial date to filter assets in the different Photo Cloud Services.")
     PARSER.add_argument("-to", "--to-date", metavar="<TO_DATE>", default="", help="Specify the final date to filter assets in the different Photo Cloud Services.")
     PARSER.add_argument("-country", "--country", metavar="<COUNTRY_ID>", default="", help="Specify the Country ID to filter assets in the different Photo Cloud Services.")
     PARSER.add_argument("-city", "--city", metavar="<CITY_ID>", default="", help="Specify the City ID to filter assets in the different Photo Cloud Services.")
     PARSER.add_argument("-people", "--people", metavar="<PEOPLE_ID>", default="", help="Specify the People ID to filter assets in the different Photo Cloud Services.")
+    PARSER.add_argument("-type", "--type", metavar="= [photos,videos,all]", default="all", help="Specify the Asset Type to filter assets in the different Photo Cloud Services. Default: all")
     # PARSER.add_argument("-archive", "--archive",
     #                     metavar="= [true,false]",
     #                     nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
