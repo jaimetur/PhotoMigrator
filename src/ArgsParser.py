@@ -14,6 +14,7 @@ choices_for_AUTOMATED_MIGRATION_SRC = ['synology-photos', 'synology', 'synology-
                                        'immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1', 'immich-photos-2', 'immich-photos2', 'immich-2', 'immich2']
 choices_for_AUTOMATED_MIGRATION_TGT = ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1', 'synology-photos-2', 'synology-photos2', 'synology-2', 'synology2',
                                        'immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1', 'immich-photos-2', 'immich-photos2', 'immich-2', 'immich2']
+valid_asset_types                         = ['all', 'image', 'images', 'photo', 'photos', 'video', 'videos']
 
 PARSER = None
 
@@ -90,7 +91,7 @@ def parse_arguments():
     PARSER.add_argument("-country", "--country", metavar="<COUNTRY_NAME>", default="", help="Specify the Country Name to filter assets in the different Photo Clients.")
     PARSER.add_argument("-city", "--city", metavar="<CITY_NAME>", default="", help="Specify the City Name to filter assets in the different Photo Clients.")
     PARSER.add_argument("-people", "--people", metavar="<PEOPLE_NAME>", default="", help="Specify the People Name to filter assets in the different Photo Clients.")
-    PARSER.add_argument("-type", "--type", metavar="= [photos,videos,all]", default="all", help="Specify the Asset Type to filter assets in the different Photo Clients. (default: all)")
+    PARSER.add_argument("-type", "--asset-type", metavar="= [image,video,all]", default="all", help="Specify the Asset Type to filter assets in the different Photo Clients. (default: all)")
     # PARSER.add_argument("-archive", "--archive",
     #                     metavar="= [true,false]",
     #                     nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
@@ -350,6 +351,12 @@ def checkArgs(ARGS, PARSER):
     # Parseamos las fechas de ARGS['from-date'] y ARGS['to-date'] para devolver una fecha en valida en formato iso8601 en caso de que contenga alguna fecha válida, o cadena vacía en caso contrario
     ARGS['from-date'] = parse_to_iso8601(ARGS.get('from-date', ''))
     ARGS['to-date'] = parse_to_iso8601(ARGS.get('to-date', ''))
+
+
+    # Parseamos type
+    if ARGS['asset-type'].lower() not in valid_asset_types:
+        PARSER.error(f"\n\n❌ ERROR   : --asset-type argument is invalid. Valid values are:\n{valid_asset_types}")
+        exit(1)
 
     return ARGS
 

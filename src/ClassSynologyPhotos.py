@@ -867,7 +867,7 @@ class ClassSynologyPhotos:
         image_aliases = {"image", "images", "photo", "photos"}
         video_aliases = {"video", "videos"}
         if type_lower in image_aliases:
-            target_type = "IMAGE"
+            target_type = "PHOTO"
         elif type_lower in video_aliases:
             target_type = "VIDEO"
         else:
