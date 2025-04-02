@@ -483,7 +483,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             for _ in range(num_push_threads):
                 push_queue.put(None)
 
-            # If secuential mode, then initiate push threads only when pull threads have finished
+            # If sequential mode, then initiate push threads only when pull threads have finished
             if not parallel:
                 for t in push_threads:
                     t.start()
