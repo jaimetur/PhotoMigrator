@@ -791,6 +791,20 @@ class ClassSynologyPhotos:
     #                            ASSETS FILTERING                             #
     ###########################################################################
     def filter_assets_by_place(self, assets, place):
+        """
+        Filters a list of assets by checking if the given place name appears in any of the
+        string fields inside the 'address' dictionary (under 'additional') of each asset.
+
+        Matching is case-insensitive and partial (substring match). Assets without an
+        'address' dictionary will be skipped.
+
+        Args:
+            assets (list): List of asset dictionaries.
+            place (str): Name of the place to match (case-insensitive).
+
+        Returns:
+            list: A filtered list of assets where the given place appears in any address field.
+        """
         filtered = []
         place_lower = place.lower()
         for asset in assets:

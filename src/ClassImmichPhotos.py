@@ -567,16 +567,31 @@ class ClassImmichPhotos:
     #                            ASSETS FILTERING                             #
     ###########################################################################
     def filter_assets_by_place(self, assets, place):
+        """
+        Filters a list of assets by matching the given place name against the 'city', 'state',
+        or 'country' fields in the 'exifInfo' dictionary of each asset.
+
+        Matching is case-insensitive and partial (substring match). Assets without 'exifInfo'
+        or with none of the fields present will be ignored.
+
+        Args:
+            assets (list): List of asset dictionaries.
+            place (str): Name of the place to match (case-insensitive).
+
+        Returns:
+            list: A filtered list of assets that match the given place in 'city', 'state', or 'country'.
+        """
         filtered = []
         place_lower = place.lower()
         for asset in assets:
-            address = asset.get("additional", {}).get("address", {})
-            if not address:
+            exif = asset.get("exifInfo", {})
+            if not exif:
                 continue
-            for value in address.values():
+            for key in ("city", "state", "country"):
+                value = exif.get(key)
                 if isinstance(value, str) and place_lower in value.lower():
                     filtered.append(asset)
-                    break  # Basta con un match para incluirlo
+                    break  # Match found, no need to check other fields
         return filtered
 
     def filter_assets_by_date(self, assets, from_date=None, to_date=None):
