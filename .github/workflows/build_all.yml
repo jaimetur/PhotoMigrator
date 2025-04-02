@@ -185,9 +185,7 @@ jobs:
           prerelease: true
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
-          files: |
-            ${{ env.ARCHIVE_PATH }}
-            CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
+          files: ${{ env.ARCHIVE_PATH }},CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
