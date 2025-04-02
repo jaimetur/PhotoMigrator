@@ -339,7 +339,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             # Check if source_client support specified filters
             unsupported_text = ""
             if isinstance(source_client, ClassTakeoutFolder) or isinstance(source_client, ClassTakeoutFolder):
-                unsupported_text = (f"(Unsupported for this source client: {source_client_name}. Filter Ignored)")
+                unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
             # Get the values from the arguments (if exists)
             from_date = ARGS.get('from-date', None)
@@ -355,7 +355,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             if parallel:
                 LOGGER.info(f"INFO    : Migration Mode : Parallel")
             else:
-                LOGGER.info(f"INFO    : Migration Mode : Secuential")
+                LOGGER.info(f"INFO    : Migration Mode : Sequential")
 
             if from_date or to_date or type or country or city or person:
                 LOGGER.info(f"INFO    : Assets Filters :")

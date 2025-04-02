@@ -580,6 +580,32 @@ class ClassImmichPhotos:
     ###########################################################################
     #                            ASSETS FILTERING                             #
     ###########################################################################
+    def filter_assets_by_date(self, assets, from_date=None, to_date=None):
+        """
+        Filters a list of assets by their 'time' field using a date range.
+
+        If any of the date inputs (from_date, to_date, or asset['time']) are not in epoch format,
+        they will be converted using `to_epoch()`.
+
+        Args:
+            assets (list): List of asset dictionaries.
+            from_date (str | int | float | datetime, optional): Start date (inclusive). Defaults to epoch 0.
+            to_date (str | int | float | datetime, optional): End date (inclusive). Defaults to current time.
+
+        Returns:
+            list: A filtered list of assets whose 'time' field is within the specified range.
+        """
+        epoch_start = 0 if from_date is None else to_epoch(from_date)
+        epoch_end = int(time.time()) if to_date is None else to_epoch(to_date)
+        filtered = []
+        for asset in assets:
+            asset_time = to_epoch(asset.get("time"))
+            if asset_time is None:
+                continue
+            if epoch_start <= asset_time <= epoch_end:
+                filtered.append(asset)
+        return filtered
+
     def filter_assets_by_place(self, assets, place):
         """
         Filters a list of assets by matching the given place name against the 'city', 'state',
@@ -608,30 +634,32 @@ class ClassImmichPhotos:
                     break  # Match found, no need to check other fields
         return filtered
 
-    def filter_assets_by_date(self, assets, from_date=None, to_date=None):
+    def filter_assets_by_person(self, assets, person_name):
         """
-        Filters a list of assets by their 'time' field using a date range.
+        Filters a list of assets by person name.
 
-        If any of the date inputs (from_date, to_date, or asset['time']) are not in epoch format,
-        they will be converted using `to_epoch()`.
+        The method looks for a match in the 'name' field of each person listed in the
+        'people' key of each asset. Matching is case-insensitive and allows partial matches.
 
         Args:
             assets (list): List of asset dictionaries.
-            from_date (str | int | float | datetime, optional): Start date (inclusive). Defaults to epoch 0.
-            to_date (str | int | float | datetime, optional): End date (inclusive). Defaults to current time.
+            person_name (str): Name (or partial name) of the person to search for.
 
         Returns:
-            list: A filtered list of assets whose 'time' field is within the specified range.
+            list: A filtered list of assets that include the specified person.
         """
-        epoch_start = 0 if from_date is None else to_epoch(from_date)
-        epoch_end = int(time.time()) if to_date is None else to_epoch(to_date)
+        if not person_name:
+            return assets
+        name_lower = person_name.lower()
         filtered = []
         for asset in assets:
-            asset_time = to_epoch(asset.get("time"))
-            if asset_time is None:
-                continue
-            if epoch_start <= asset_time <= epoch_end:
-                filtered.append(asset)
+            people = asset.get("people", [])
+            for person in people:
+                if isinstance(person, dict):
+                    person_name_field = person.get("name", "")
+                    if isinstance(person_name_field, str) and name_lower in person_name_field.lower():
+                        filtered.append(asset)
+                        break  # One match is enough
         return filtered
 
     def filter_assets_by_type(self, assets, type):
@@ -704,6 +732,8 @@ class ClassImmichPhotos:
                 filtered_assets = self.filter_assets_by_place(filtered_assets, country)
             if city:
                 filtered_assets = self.filter_assets_by_place(filtered_assets, city)
+            if person:
+                filtered_assets = self.filter_assets_by_p(filtered_assets, city)
             if type:
                 filtered_assets = self.filter_assets_by_type(filtered_assets, type)
             return filtered_assets
