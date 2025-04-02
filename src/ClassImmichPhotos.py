@@ -13,9 +13,9 @@ Python module with example functions to interact with Immich Photos, including f
      - remove_empty_albums()
      - remove_duplicates_albums()
      - immich_upload_folder()
-     - upload_albums()
-     - download_albums()
-     - download_ALL()
+     - push_albums()
+     - pull_albums()
+     - pull_ALL()
 """
 # ClassImmichPhotos.py
 # -*- coding: utf-8 -*-
@@ -751,13 +751,14 @@ class ClassImmichPhotos:
                     LOGGER.error(f"ERROR   : Failed to retrieve assets from album ID={album_id}: {str(e)}")
                 return []
 
-    def get_all_assets_from_album_shared(self, album_id, album_name=None, log_level=logging.INFO):
+    def get_all_assets_from_album_shared(self, album_id, album_name=None, album_passphrase=None, log_level=logging.INFO):
         """
         Get assets in a specific album.
 
         Args:
             album_id (str): ID of the album.
             album_name (str): Name of the album.
+            album_passphrase (str): Shared album passphrase
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns:
@@ -921,7 +922,7 @@ class ClassImmichPhotos:
             return 0
 
 
-    def upload_asset(self, file_path, log_level=logging.INFO):
+    def push_asset(self, file_path, log_level=logging.INFO):
         """
         Uploads a local file (photo/video) to Immich Photos via /api/assets.
 
@@ -1011,7 +1012,7 @@ class ClassImmichPhotos:
                 return None, None
 
 
-    def download_asset(self, asset_id, asset_filename, asset_time, album_passphrase="", download_folder="Downloaded_Immich", log_level=logging.INFO):
+    def pull_asset(self, asset_id, asset_filename, asset_time, album_passphrase="", download_folder="Downloaded_Immich", log_level=logging.INFO):
         """
         Downloads an asset (photo/video) from Immich Photos to a local folder,
         preserving the original timestamp if available.
@@ -1066,7 +1067,7 @@ class ClassImmichPhotos:
     ###########################################################################
     #                  HIGH-LEVEL MAIN FUNCTIONS (UPLOAD/DOWNLOAD)            #
     ###########################################################################
-    def upload_albums(self, input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
+    def push_albums(self, input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         """
         Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals
         the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on
@@ -1163,7 +1164,7 @@ class ClassImmichPhotos:
                         if ext not in self.ALLOWED_IMMICH_EXTENSIONS:
                             continue
 
-                        asset_id, is_dup = self.upload_asset(file_path, log_level=log_level)
+                        asset_id, is_dup = self.push_asset(file_path, log_level=log_level)
                         if is_dup:
                             total_duplicates_assets_skipped += 1
                             LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} skipped")
@@ -1202,11 +1203,11 @@ class ClassImmichPhotos:
                     total_duplicates_assets_skipped)
 
 
-    def upload_no_albums(self, input_folder,
-                         subfolders_exclusion='Albums',
-                         subfolders_inclusion=None,
-                         remove_duplicates=True,
-                         log_level=logging.WARNING):
+    def push_no_albums(self, input_folder,
+                       subfolders_exclusion='Albums',
+                       subfolders_inclusion=None,
+                       remove_duplicates=True,
+                       log_level=logging.WARNING):
         """
         Recursively traverses 'input_folder' and its subfolders_inclusion to upload all
         compatible files (photos/videos) to Immich without associating them to any album.
@@ -1263,7 +1264,7 @@ class ClassImmichPhotos:
                         LOGGER.debug(f"DEBUG   : Unsopported Extension: '{ext}'. Skipped")
                         continue
 
-                    asset_id, is_dup = self.upload_asset(file_path, log_level=log_level)
+                    asset_id, is_dup = self.push_asset(file_path, log_level=log_level)
                     if is_dup:
                         total_duplicated_assets_skipped += 1
                         LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} skipped")
@@ -1284,7 +1285,7 @@ class ClassImmichPhotos:
             return total_assets_uploaded, total_duplicated_assets_skipped, duplicates_assets_removed
 
 
-    def upload_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
+    def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
         """
         Uploads ALL photos/videos from input_folder into Immich Photos.
         Returns details about how many albums and assets were uploaded.
@@ -1312,7 +1313,7 @@ class ClassImmichPhotos:
             LOGGER.info("")
             LOGGER.info(f"INFO    : Uploading Assets and creating Albums into immich Photos from '{albums_folders}' subfolders...")
 
-            (total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed_1, total_dupplicated_assets_skipped_1) = self.upload_albums(
+            (total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed_1, total_dupplicated_assets_skipped_1) = self.push_albums(
                  input_folder=input_folder,
                  subfolders_inclusion=albums_folders,
                  remove_duplicates=False,
@@ -1322,7 +1323,7 @@ class ClassImmichPhotos:
             LOGGER.info("")
             LOGGER.info(f"INFO    : Uploading Assets without Albums creation into immich Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
 
-            (total_assets_uploaded_without_albums, total_dupplicated_assets_skipped_2, total_duplicates_assets_removed_2) = self.upload_no_albums(
+            (total_assets_uploaded_without_albums, total_dupplicated_assets_skipped_2, total_duplicates_assets_removed_2) = self.push_no_albums(
                  input_folder=input_folder,
                  subfolders_exclusion=albums_folders,
                  remove_duplicates=False,
@@ -1347,7 +1348,7 @@ class ClassImmichPhotos:
             )
 
 
-    def download_albums(self, albums_name='ALL', output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_albums(self, albums_name='ALL', output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Downloads photos/videos from albums by name pattern or ID. 'ALL' downloads all.
 
@@ -1413,7 +1414,7 @@ class ClassImmichPhotos:
                     asset_filename = os.path.basename(asset.get("originalFileName", "unknown"))
                     if asset_id:
                         asset_time = asset.get('fileCreatedAt')
-                        total_assets_downloaded += self.download_asset(asset_id, asset_filename, asset_time, alb_folder, log_level=log_level)
+                        total_assets_downloaded += self.pull_asset(asset_id, asset_filename, asset_time, alb_folder, log_level=log_level)
 
                 total_albums_downloaded += 1
                 LOGGER.info(f"INFO    : Downloaded Album [{total_albums_downloaded}/{total_albums}] - '{alb_name}'. {len(assets_in_album)} asset(s) have been downloaded.")
@@ -1426,7 +1427,7 @@ class ClassImmichPhotos:
             return total_albums_downloaded, total_assets_downloaded
 
 
-    def download_no_albums(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_no_albums(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Downloads assets not associated to any album from Immich Photos into output_folder/No-Albums/.
         Then organizes them by year/month inside that folder.
@@ -1465,7 +1466,7 @@ class ClassImmichPhotos:
                 os.makedirs(target_folder, exist_ok=True)
 
                 asset_time = asset.get('fileCreatedAt')
-                total_assets_downloaded += self.download_asset(asset_id, asset_filename, asset_time, target_folder, log_level=log_level)
+                total_assets_downloaded += self.pull_asset(asset_id, asset_filename, asset_time, target_folder, log_level=log_level)
 
             LOGGER.info(f"INFO    : Download of assets without associated albums completed.")
             LOGGER.info(f"INFO    : Total Assets downloaded: {total_assets_downloaded}")
@@ -1474,7 +1475,7 @@ class ClassImmichPhotos:
             return total_assets_downloaded
 
 
-    def download_ALL(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_ALL(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Downloads ALL photos and videos from Immich Photos into output_folder creating a Folder Structure like this:
         output_folder/
@@ -1494,12 +1495,12 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            total_albums_downloaded, total_assets_in_albums = self.download_albums(
+            total_albums_downloaded, total_assets_in_albums = self.pull_albums(
                 albums_name='ALL',
                 output_folder=output_folder,
                 log_level=log_level
             )
-            total_assets_no_albums = self.download_no_albums(
+            total_assets_no_albums = self.pull_no_albums(
                 output_folder=output_folder,
                 log_level=log_level
             )
@@ -1845,25 +1846,25 @@ if __name__ == "__main__":
     # print(f"[RESULT] Duplicate albums removed: {duplicates}")
     #
     # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums'
-    # print("\n=== EXAMPLE: upload_no_albums() ===")
+    # print("\n=== EXAMPLE: push_no_albums() ===")
     # big_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums"
-    # immich.upload_no_albums(big_folder, log_level=logging.DEBUG)
+    # immich.push_no_albums(big_folder, log_level=logging.DEBUG)
     #
     # # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums'
-    # print("\n=== EXAMPLE: upload_albums() ===")
+    # print("\n=== EXAMPLE: push_albums() ===")
     # input_albums_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums"
-    # immich.upload_albums(input_albums_folder, log_level=logging.DEBUG)
+    # immich.push_albums(input_albums_folder, log_level=logging.DEBUG)
     #
     # # 5) Example: Download all photos from ALL albums
-    print("\n=== EXAMPLE: download_albums() ===")
-    # total = download_albums('ALL', output_folder="Downloads_Immich")
-    total_albums, total_assets = immich.download_albums("1994 - Recuerdos", output_folder="Downloads_Immich", log_level=logging.DEBUG)
+    print("\n=== EXAMPLE: pull_albums() ===")
+    # total = pull_albums('ALL', output_folder="Downloads_Immich")
+    total_albums, total_assets = immich.pull_albums("1994 - Recuerdos", output_folder="Downloads_Immich", log_level=logging.DEBUG)
     print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums} different albbums.")
     #
     # # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
-    # print("\n=== EXAMPLE: download_ALL() ===")
-    # # total_struct = download_ALL(output_folder="Downloads_Immich")
-    # total_albums_downloaded, total_assets_downloaded = immich.download_ALL(output_folder="Downloads_Immich", log_level=logging.DEBUG)
+    # print("\n=== EXAMPLE: pull_ALL() ===")
+    # # total_struct = pull_ALL(output_folder="Downloads_Immich")
+    # total_albums_downloaded, total_assets_downloaded = immich.pull_ALL(output_folder="Downloads_Immich", log_level=logging.DEBUG)
     # print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
     #
     # # 7) Example: Remove Orphan Assets

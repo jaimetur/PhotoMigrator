@@ -598,15 +598,14 @@ class ClassLocalFolder:
                 return []
 
 
-    def get_all_assets_from_album_shared(self, album_id, album_name=None, type='all', log_level=logging.WARNING):
+    def get_all_assets_from_album_shared(self, album_id, album_name=None, album_passphrase=None, log_level=logging.WARNING):
         """
         Lists the assets within a given album, with optional filtering by file type.
 
         Args:
             album_id (str): Path to the album folder.
             album_name (str, optional): Name of the album for logging.
-            type (str): Type of assets to retrieve. Options are 'all', 'photo', 'image', 'video', 'media', 'metadata',
-                        'sidecar', 'unsupported'.
+            album_passphrase (str): Shared album passphrase
             log_level (int): Logging level.
 
         Returns:
@@ -868,7 +867,7 @@ class ClassLocalFolder:
             return count_removed
 
 
-    def upload_asset(self, file_path, log_level=logging.INFO):
+    def push_asset(self, file_path, log_level=logging.INFO):
         """
         Uploads (copies) a local file to the No-Albums directory following a year/month structure.
 
@@ -903,7 +902,7 @@ class ClassLocalFolder:
             return str(dest), False
 
 
-    def download_asset(self, asset_id, asset_filename, asset_time, album_passphrase="", download_folder="Downloaded_LocalFolder", log_level=logging.INFO):
+    def pull_asset(self, asset_id, asset_filename, asset_time, album_passphrase="", download_folder="Downloaded_LocalFolder", log_level=logging.INFO):
         """
         Downloads (copies) an asset to a specified local folder, preserving the file's timestamp.
 
@@ -935,8 +934,8 @@ class ClassLocalFolder:
             return 1
 
 
-    def upload_albums(self, input_folder, subfolders_exclusion='No-Albums',
-                      subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
+    def push_albums(self, input_folder, subfolders_exclusion='No-Albums',
+                    subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         """
         Recursively uploads each subfolder of 'input_folder' as an album,
         simulating local album creation.
@@ -955,9 +954,9 @@ class ClassLocalFolder:
         pass
 
 
-    def upload_no_albums(self, input_folder, subfolders_exclusion='Albums',
-                         subfolders_inclusion=None, remove_duplicates=True,
-                         log_level=logging.WARNING):
+    def push_no_albums(self, input_folder, subfolders_exclusion='Albums',
+                       subfolders_inclusion=None, remove_duplicates=True,
+                       log_level=logging.WARNING):
         """
         Recursively uploads all compatible files from 'input_folder' to the No-Albums folder,
         ignoring any subfolders named in 'subfolders_exclusion'.
@@ -969,7 +968,7 @@ class ClassLocalFolder:
         pass
 
 
-    def upload_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
+    def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
         """
         Uploads all photos/videos from input_folder to local storage,
         dividing them between 'albums_folders' and 'No-Albums'.
@@ -981,7 +980,7 @@ class ClassLocalFolder:
         pass
 
 
-    def download_albums(self, albums_name='ALL', output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_albums(self, albums_name='ALL', output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Simulates downloading albums by copying album folders to output_folder/Albums.
 
@@ -991,7 +990,7 @@ class ClassLocalFolder:
         pass
 
 
-    def download_no_albums(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_no_albums(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Simulates downloading 'no albums' assets to output_folder/No-Albums, organizing by year/month.
 
@@ -1001,7 +1000,7 @@ class ClassLocalFolder:
         pass
 
 
-    def download_ALL(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_ALL(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Simulates downloading all albums and no-albums assets to output_folder.
 
@@ -1121,25 +1120,25 @@ if __name__ == "__main__":
     # print(f"[RESULT] Duplicate albums removed: {duplicates}")
     #
     # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums'
-    # print("\n=== EXAMPLE: upload_no_albums() ===")
+    # print("\n=== EXAMPLE: push_no_albums() ===")
     # big_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums"
-    # localFolder.upload_no_albums(big_folder, log_level=logging.DEBUG)
+    # localFolder.push_no_albums(big_folder, log_level=logging.DEBUG)
     #
     # # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums'
-    # print("\n=== EXAMPLE: upload_albums() ===")
+    # print("\n=== EXAMPLE: push_albums() ===")
     # input_albums_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums"
-    # localFolder.upload_albums(input_albums_folder, log_level=logging.DEBUG)
+    # localFolder.push_albums(input_albums_folder, log_level=logging.DEBUG)
     #
     # # 5) Example: Download all photos from ALL albums
-    print("\n=== EXAMPLE: download_albums() ===")
-    # total = download_albums('ALL', output_folder="Downloads_Immich")
-    total_albums, total_assets = localFolder.download_albums("1994 - Recuerdos", output_folder="Downloads_Immich", log_level=logging.DEBUG)
+    print("\n=== EXAMPLE: pull_albums() ===")
+    # total = pull_albums('ALL', output_folder="Downloads_Immich")
+    total_albums, total_assets = localFolder.pull_albums("1994 - Recuerdos", output_folder="Downloads_Immich", log_level=logging.DEBUG)
     print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums} different albbums.")
     #
     # # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
-    # print("\n=== EXAMPLE: download_ALL() ===")
-    # # total_struct = download_ALL(output_folder="Downloads_Immich")
-    # total_albums_downloaded, total_assets_downloaded = localFolder.download_ALL(output_folder="Downloads_Immich", log_level=logging.DEBUG)
+    # print("\n=== EXAMPLE: pull_ALL() ===")
+    # # total_struct = pull_ALL(output_folder="Downloads_Immich")
+    # total_albums_downloaded, total_assets_downloaded = localFolder.pull_ALL(output_folder="Downloads_Immich", log_level=logging.DEBUG)
     # print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
     #
     # # 8) Example: Remove ALL Assets

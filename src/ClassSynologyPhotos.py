@@ -17,7 +17,7 @@ Python module with example functions to interact with Synology Photos, including
      - synology_upload_folder()
      - synology_upload_albums()
      - synology_download_albums()
-     - download_ALL()
+     - pull_ALL()
 """
 
 # ClassSynologyPhotos.py
@@ -1004,14 +1004,14 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
 
 
-    def get_all_assets_from_album_shared(self, album_passphrase, album_id, album_name=None, log_level=logging.INFO):
+    def get_all_assets_from_album_shared(self, album_id, album_name=None, album_passphrase=None, log_level=logging.INFO):
         """
         Get assets in a specific shared album.
 
         Args:
-            album_passphrase (str): Shared album passphrase
             album_id (str): ID of the album.
             album_name (str): Name of the album.
+            album_passphrase (str): Shared album passphrase
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns:
@@ -1255,7 +1255,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while removing duplicates assets from Synology Photos. {e}")
             
 
-    def upload_asset(self, file_path, log_level=logging.INFO):
+    def push_asset(self, file_path, log_level=logging.INFO):
         """
         Uploads a local file (photo/video) to Synology Photos.
 
@@ -1326,7 +1326,7 @@ class ClassSynologyPhotos:
                 LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
             
 
-    def download_asset(self, asset_id, asset_filename, asset_time, album_passphrase=None, download_folder="Downloaded_Synology", log_level=logging.INFO):
+    def pull_asset(self, asset_id, asset_filename, asset_time, album_passphrase=None, download_folder="Downloaded_Synology", log_level=logging.INFO):
         """
         Downloads an asset (photo/video) from Synology Photos to a local folder,
         preserving the original timestamp if available.
@@ -1786,7 +1786,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #             MAIN FUNCTIONS TO CALL FROM OTHER MODULES (API)            #
     ###########################################################################
-    def upload_albums(self, input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
+    def push_albums(self, input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         """
         Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals
         the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on
@@ -1895,7 +1895,7 @@ class ClassSynologyPhotos:
                                 if ext not in self.ALLOWED_EXTENSIONS:
                                     continue
 
-                                asset_id = self.upload_asset(file_path, log_level=logging.WARNING)
+                                asset_id = self.push_asset(file_path, log_level=logging.WARNING)
                                 if asset_id:
                                     total_assets_uploaded += 1
                                     # Associate only if ext is photo/video
@@ -1922,7 +1922,7 @@ class ClassSynologyPhotos:
         return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed
 
 
-    def upload_no_albums(self, input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, log_level=logging.WARNING):
+    def push_no_albums(self, input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, log_level=logging.WARNING):
         """
         Recursively traverses 'input_folder' and its subfolders_inclusion to upload all
         compatible files (photos/videos) to Synology without associating them to any album.
@@ -1972,7 +1972,7 @@ class ClassSynologyPhotos:
 
                 with tqdm(total=total_files, smoothing=0.1, desc="INFO    : Uploading Assets", unit=" asset") as pbar:
                     for file_ in file_paths:
-                        asset_id = self.upload_asset(file_, log_level=logging.WARNING)
+                        asset_id = self.push_asset(file_, log_level=logging.WARNING)
                         if asset_id:
                             total_assets_uploaded += 1
                         pbar.update(1)
@@ -1986,7 +1986,7 @@ class ClassSynologyPhotos:
         return total_assets_uploaded
 
 
-    def upload_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.INFO):
+    def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.INFO):
         """
         Uploads ALL photos/videos from input_folder into Synology Photos.
         Returns details about how many albums and assets were uploaded.
@@ -2014,7 +2014,7 @@ class ClassSynologyPhotos:
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : Uploading Assets and creating Albums into synology Photos from '{albums_folders}' subfolders...")
 
-                total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed = self.upload_albums(
+                total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed = self.push_albums(
                     input_folder=input_folder,
                     subfolders_inclusion=albums_folders,
                     remove_duplicates=False,
@@ -2024,7 +2024,7 @@ class ClassSynologyPhotos:
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : Uploading Assets without Albums creation into synology Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
 
-                total_assets_uploaded_without_albums = self.upload_no_albums(
+                total_assets_uploaded_without_albums = self.push_no_albums(
                     input_folder=input_folder,
                     subfolders_exclusion=albums_folders,
                     log_level=logging.WARNING
@@ -2050,7 +2050,7 @@ class ClassSynologyPhotos:
             )
 
 
-    def download_albums(self, albums_name='ALL', output_folder='Downloads_Synology', log_level=logging.WARNING):
+    def pull_albums(self, albums_name='ALL', output_folder='Downloads_Synology', log_level=logging.WARNING):
         """
         Downloads photos/videos from albums by name pattern or ID. 'ALL' downloads all.
 
@@ -2124,7 +2124,7 @@ class ClassSynologyPhotos:
                         asset_time = asset.get('time')
                         asset_filename = asset.get('filename')
                         # Download
-                        assets_downloaded += self.download_asset(asset_id, asset_filename, asset_time, album_folder_path, log_level=logging.INFO)
+                        assets_downloaded += self.pull_asset(asset_id, asset_filename, asset_time, album_folder_path, log_level=logging.INFO)
 
                 LOGGER.info(f"INFO    : Album(s) downloaded successfully. You can find them in '{output_folder}'")
                 self.logout(log_level=log_level)
@@ -2135,7 +2135,7 @@ class ClassSynologyPhotos:
             return albums_downloaded, assets_downloaded
 
 
-    def download_no_albums(self, no_albums_folder='Downloads_Synology', log_level=logging.WARNING):
+    def pull_no_albums(self, no_albums_folder='Downloads_Synology', log_level=logging.WARNING):
         """
         Downloads assets not associated to any album from Synology Photos into output_folder/No-Albums/.
         Then organizes them by year/month inside that folder.
@@ -2164,7 +2164,7 @@ class ClassSynologyPhotos:
                     asset_id = asset.get('id')
                     asset_name = asset.get('filename')
                     asset_time = asset.get('time')
-                    total_assets_downloaded += self.download_asset(asset_id, asset_name, asset_time, no_albums_folder, log_level=logging.INFO)
+                    total_assets_downloaded += self.pull_asset(asset_id, asset_name, asset_time, no_albums_folder, log_level=logging.INFO)
 
                 # Now organize them by date (year/month)
                 organize_files_by_date(input_folder=no_albums_folder, type='year/month')
@@ -2177,7 +2177,7 @@ class ClassSynologyPhotos:
             return total_assets_downloaded
 
 
-    def download_ALL(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_ALL(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Downloads ALL photos and videos from Synology Photos into output_folder creating a Folder Structure like this:
         output_folder/
@@ -2197,12 +2197,12 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
-                (total_albums_downloaded, total_assets_downloaded_within_albums) = self.download_albums(
+                (total_albums_downloaded, total_assets_downloaded_within_albums) = self.pull_albums(
                     albums_name='ALL',
                     output_folder=output_folder,
                     log_level=logging.WARNING
                 )
-                total_assets_downloaded_without_albums = self.download_no_albums(
+                total_assets_downloaded_without_albums = self.pull_no_albums(
                     no_albums_folder=output_folder,
                     log_level=logging.WARNING
                 )
@@ -2510,9 +2510,9 @@ if __name__ == "__main__":
     # print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
 
     # # Example: Upload_asset()
-    # print("\n=== EXAMPLE: upload_asset() ===")
+    # print("\n=== EXAMPLE: push_asset() ===")
     # file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\1994 - Recuerdos\169859_10150125237566327_578986326_8330690_6545.jpg"                # For Windows
-    # asset_id = syno.upload_asset(file_path)
+    # asset_id = syno.push_asset(file_path)
     # if not asset_id:
     #     print(f"Error uploading asset '{file_path}'.")
     # else:
@@ -2522,35 +2522,35 @@ if __name__ == "__main__":
     # print("\n=== EXAMPLE: synology_upload_no_albums() ===")
     # # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
     # input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
-    # syno.upload_no_albums(input_folder)
+    # syno.push_no_albums(input_folder)
 
     # # Example: synology_upload_albums()
     # print("\n=== EXAMPLE: synology_upload_albums() ===")
     # # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
     # input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
-    # syno.upload_albums(input_folder)
+    # syno.push_albums(input_folder)
 
     # # Example: synology_upload_ALL()
     # print("\n=== EXAMPLE: synology_upload_ALL() ===")
     # # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
     # input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
-    # syno.upload_ALL(input_folder)
+    # syno.push_ALL(input_folder)
 
     # Example: synology_download_albums()
     print("\n=== EXAMPLE: synology_download_albums() ===")
     download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
-    total = syno.download_albums(albums_name='ALL', output_folder=download_folder)
+    total = syno.pull_albums(albums_name='ALL', output_folder=download_folder)
     print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
     # # Example: synology_download_no_albums()
     # print("\n=== EXAMPLE: synology_download_albums() ===")
     # download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
-    # total = syno.download_no_albums(no_albums_folder=download_folder)
+    # total = syno.pull_no_albums(no_albums_folder=download_folder)
     # print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
-    # # Example: download_ALL
-    # print("=== EXAMPLE: download_ALL() ===")
-    # total_struct = syno.download_ALL(output_folder="Downloads_Synology")
+    # # Example: pull_ALL
+    # print("=== EXAMPLE: pull_ALL() ===")
+    # total_struct = syno.pull_ALL(output_folder="Downloads_Synology")
     # # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
 
     # # Test: get_photos_root_folder_id()

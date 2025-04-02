@@ -273,16 +273,20 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     Parámetros:
     -----------
     source_client: objeto con los métodos:
+        - get_client_name()
         - get_albums_including_shared_with_user() -> [ { 'id': ..., 'name': ... }, ... ]
-        - get_all_assets_from_album(album_id) -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
+        - get_all_assets_from_all_albums() -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
         - get_all_assets_without_albums() -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
-        - download_asset(asset_id, download_path) -> str (ruta local del archivo descargado)
+        - get_all_assets_from_album(album_id) -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
+        - get_all_assets_from_album_shared(album_id) -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
+        - pull_asset(asset_id, download_path) -> str (ruta local del archivo descargado)
 
     target_client: objeto con los métodos:
-        - create_album(album_name) -> album_id
+        - get_client_name()
         - album_exists(album_name) -> (bool, album_id_o_None)
-        - upload_asset(asset_file_path, asset_datetime) -> asset_id
+        - create_album(album_name) -> album_id
         - add_asset_to_album(album_id, asset_id) -> None
+        - push_asset(asset_file_path, asset_datetime) -> asset_id
 
     temp_folder: str
         Carpeta temporal donde se descargarán los assets antes de subirse.
@@ -393,7 +397,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     LOGGER.info(f"INFO    : Album '{album_name}' cannot be pulled because is a blocked shared album. Skipped!")
                     total_albums_blocked_count += 1
                     total_assets_blocked_count += album.get('item_count')
-                    blocked_assets.extend(source_client.get_album_shared_assets(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name))
+                    blocked_assets.extend(source_client.get_all_assets_from_album_shared(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name))
 
             # Get all assets and filter out those blocked assets (from blocked shared albums) if any
             all_no_albums_assets = source_client.get_all_assets_without_albums(log_level=logging.WARNING)
@@ -549,7 +553,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         album_assets = source_client.get_all_assets_from_album(album_id=album_id, album_name=album_name, log_level=logging.WARNING)
                     else:
                         if album_shared_role.lower() != 'view':
-                            album_assets = source_client.get_all_assets_from_album_shared(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name, log_level=logging.WARNING)
+                            album_assets = source_client.get_all_assets_from_album_shared(album_id=album_id, album_name=album_name, album_passphrase=album_passphrase, log_level=logging.WARNING)
                     if not album_assets:
                         # SHARED_DATA.counters['total_pull_failed_albums'] += 1     # If we uncomment this line, it will count as failed Empties albums
                         continue
@@ -585,7 +589,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         with open(lock_file, 'w') as lock:
                             lock.write("Pulling Asset")
                         # Descargar el asset
-                        pulled_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, album_passphrase=album_passphrase, download_folder=album_folder, log_level=logging.WARNING)
+                        pulled_assets = source_client.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, album_passphrase=album_passphrase, download_folder=album_folder, log_level=logging.WARNING)
                         # Eliminar archivo de bloqueo después de la descarga
                         os.remove(lock_file)
 
@@ -668,7 +672,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         with open(lock_file, 'w') as lock:
                             lock.write("Pulling")
                         # Descargar directamente en temp_folder
-                        pulled_assets = source_client.download_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
+                        pulled_assets = source_client.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
                         # Eliminar archivo de bloqueo después de la descarga
                         os.remove(lock_file)
                     except Exception as e:
@@ -738,7 +742,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     asset_pushed = False
                     try:
                         # SUBIR el asset
-                        asset_id, isDuplicated = target_client.upload_asset(file_path=asset_file_path, log_level=logging.WARNING)
+                        asset_id, isDuplicated = target_client.push_asset(file_path=asset_file_path, log_level=logging.WARNING)
 
                         # Actualizamos Contadores de subidas
                         if asset_id:
@@ -863,12 +867,12 @@ def secuencial_automated_migration(source_client, target_client, temp_folder, SH
         - get_albums_including_shared_with_user() -> [ { 'id': ..., 'name': ... }, ... ]
         - get_all_assets_from_album(album_id) -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
         - get_all_assets_without_albums() -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
-        - download_asset(asset_id, download_path) -> str (ruta local del archivo descargado)
+        - pull_asset(asset_id, download_path) -> str (ruta local del archivo descargado)
 
     target_client: objeto con los métodos:
         - create_album(album_name) -> album_id
         - album_exists(album_name) -> (bool, album_id_o_None)
-        - upload_asset(asset_file_path, asset_datetime) -> asset_id
+        - push_asset(asset_file_path, asset_datetime) -> asset_id
         - add_asset_to_album(album_id, asset_id) -> None
 
     temp_folder: str
@@ -887,7 +891,7 @@ def secuencial_automated_migration(source_client, target_client, temp_folder, SH
         LOGGER.info("")
         LOGGER.info(f'INFO    : Pulling/Processing Assets from: {SOURCE}...')
 
-        source_client.download_ALL(output_folder=temp_folder, log_level=log_level)
+        source_client.pull_ALL(output_folder=temp_folder, log_level=log_level)
 
         # =========================
         # SECOND PROCESS THE TARGET:
@@ -900,7 +904,7 @@ def secuencial_automated_migration(source_client, target_client, temp_folder, SH
         LOGGER.info("")
         LOGGER.info(f'INFO    : Pushing/Processing Assets to: {TARGET}...')
 
-        target_client.upload_ALL(input_folder=temp_folder, remove_duplicates=True, log_level=log_level)
+        target_client.push_ALL(input_folder=temp_folder, remove_duplicates=True, log_level=log_level)
 
 
 ###########################
