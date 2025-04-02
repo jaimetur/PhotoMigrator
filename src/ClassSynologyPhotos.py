@@ -44,7 +44,7 @@ import time
 import logging
 import inspect
 
-from Utils import update_metadata, convert_to_list, convert_asset_ids_to_str, get_unique_items, organize_files_by_date, tqdm, iso8601_to_epoch
+from Utils import update_metadata, convert_to_list, convert_asset_ids_to_str, get_unique_items, organize_files_by_date, tqdm, iso8601_to_epoch, to_epoch
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
@@ -363,9 +363,67 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Geocoding List from Synology Photos. {e}")
 
-    def get_ids_for_place(self, place, log_level=logging.INFO):
+
+    def get_geocoding_person_lists(self, log_level=logging.INFO):
+        """
+        Gets the Geocoding list.
+
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+        Returns:
+             int: List of Geocoding used in the database.
+        """
         with set_log_level(LOGGER, log_level):
-            geocoding_list = self.get_geocoding(log_level=log_level)
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+                geocoding_list = []
+                person_list = []
+                params = {
+                    "api": "SYNO.Foto.Search.Filter",
+                    "method": "list",
+                    "version": "2",
+                    "setting": '{"geocoding":true,"person":true}'
+                }
+                resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                resp.raise_for_status()
+                data = resp.json()
+                if data["success"]:
+                    geocoding_list.extend(data["data"]["geocoding"])
+                    person_list.extend(data["data"]["person"])
+                else:
+                    LOGGER.error("ERROR   : Failed to get Geocoding list: ", data)
+                    return None, None
+                return geocoding_list, person_list
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting Geocoding List from Synology Photos. {e}")
+
+    def get_geocoding_person_ids(self, place, log_level=logging.INFO):
+        def collect_ids(node):
+            """Recorre recursivamente un nodo y extrae su id y el de todos sus hijos"""
+            ids = [node.get("id")]
+            for child in node.get("children", []):
+                ids.extend(collect_ids(child))
+            return ids
+
+        with set_log_level(LOGGER, log_level):
+            geocoding_list, person_list = self.get_geocoding_person_lists(log_level=log_level)
+            for item in geocoding_list:
+                stack = [item]
+                while stack:
+                    current = stack.pop()
+                    if current.get("name") == place:
+                        return collect_ids(current)
+                    stack.extend(current.get("children", []))
+
+            return []  # Si no se encuentra el lugar
+
+    def get_geocoding_person_ids_old(self, place, log_level=logging.INFO):
+        with set_log_level(LOGGER, log_level):
+            geocoding_list, person_list = self.get_geocoding_person_lists(log_level=log_level)
             result_ids = set()
 
             for item in geocoding_list:
@@ -732,29 +790,77 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                            ASSETS FILTERING                             #
     ###########################################################################
+    def filter_assets_by_place(self, assets, place):
+        filtered = []
+        place_lower = place.lower()
+        for asset in assets:
+            address = asset.get("additional", {}).get("address", {})
+            if not address:
+                continue
+            for value in address.values():
+                if isinstance(value, str) and place_lower in value.lower():
+                    filtered.append(asset)
+                    break  # Basta con un match para incluirlo
+        return filtered
+
+    def filter_assets_by_date(self, assets, from_date=None, to_date=None):
+        """
+        Filters a list of assets by their 'time' field using a date range.
+
+        If any of the date inputs (from_date, to_date, or asset['time']) are not in epoch format,
+        they will be converted using `to_epoch()`.
+
+        Args:
+            assets (list): List of asset dictionaries.
+            from_date (str | int | float | datetime, optional): Start date (inclusive). Defaults to epoch 0.
+            to_date (str | int | float | datetime, optional): End date (inclusive). Defaults to current time.
+
+        Returns:
+            list: A filtered list of assets whose 'time' field is within the specified range.
+        """
+        epoch_start = 0 if from_date is None else to_epoch(from_date)
+        epoch_end = int(time.time()) if to_date is None else to_epoch(to_date)
+        filtered = []
+        for asset in assets:
+            asset_time = to_epoch(asset.get("time"))
+            if asset_time is None:
+                continue
+            if epoch_start <= asset_time <= epoch_end:
+                filtered.append(asset)
+        return filtered
+
     def filter_assets(self, assets, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):
             # Get the values from the arguments (if exists)
-            # type = ARGS.get('asset-type', None)
-            # country = ARGS.get('country', None)
-            # city = ARGS.get('city', None)
-            # people = ARGS.get('people', None)
-            takenAfter = ARGS.get('from-date', None)
-            takenBefore = ARGS.get('to-date', None)
-
-            # Convert dates from iso to epoch
-            takenAfter = iso8601_to_epoch(takenAfter)
-            takenBefore = iso8601_to_epoch(takenBefore)
-
-            if not takenAfter: takenAfter = 0                   # Fecha más antigua aceptada por muchas APIs: 1970-01-01
-            if not takenBefore: takenBefore = int(time.time())  # Fecha actual
-
-            filtered_assets = []
-            for asset in assets:
-                time_value = asset.get('time', -1)
-                if takenAfter <= time_value <= takenBefore:
-                    filtered_assets.append(asset)
+            type = ARGS.get('asset-type', None)
+            country = ARGS.get('country', None)
+            city = ARGS.get('city', None)
+            people = ARGS.get('people', None)
+            from_date = ARGS.get('from-date', None)
+            to_date = ARGS.get('to-date', None)
+            # Now Filter the assets list based on the filters given by ARGS
+            filtered_assets = assets
+            if from_date or to_date:
+                filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
+            if country:
+                filtered_assets = self.filter_assets_by_place(filtered_assets, country)
+            if city:
+                filtered_assets = self.filter_assets_by_place(filtered_assets, city)
             return filtered_assets
+
+            # # Convert dates from iso to epoch
+            # from_date = iso8601_to_epoch(from_date)
+            # to_date = iso8601_to_epoch(to_date)
+            #
+            # if not from_date: from_date = 0                   # Fecha más antigua aceptada por muchas APIs: 1970-01-01
+            # if not to_date: to_date = int(time.time())  # Fecha actual
+            #
+            # filtered_assets = []
+            # for asset in assets:
+            #     time_value = asset.get('time', -1)
+            #     if from_date <= time_value <= to_date:
+            #         filtered_assets.append(asset)
+            # return filtered_assets
 
 
     ###########################################################################
@@ -786,8 +892,8 @@ class ClassSynologyPhotos:
 
                 geocoding_country_list = []
                 geocoding_city_list = []
-                if country: geocoding_country_list = self.get_ids_for_place(country)
-                if city: geocoding_city_list = self.get_ids_for_place(city)
+                if country: geocoding_country_list = self.get_geocoding_person_ids(country)
+                if city: geocoding_city_list = self.get_geocoding_person_ids(city)
 
                 geocoding_list = geocoding_country_list + geocoding_city_list
 

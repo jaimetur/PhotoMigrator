@@ -17,6 +17,7 @@ import base64
 import inspect
 from typing import Union
 from datetime import datetime, timezone
+from dateutil import parser as date_parser
 from tqdm import tqdm as original_tqdm
 from CustomLogger import LoggerConsoleTqdm
 from GlobalVariables import LOGGER, ARGS, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT
@@ -1239,3 +1240,46 @@ def epoch_to_iso8601(epoch):
     except Exception:
         # En caso de error inesperado, se devuelve el valor original
         return ""
+
+def to_epoch(value):
+    """
+    Converts a datetime-like input into a UNIX epoch timestamp (in seconds).
+
+    Priority for string parsing:
+    1. ISO 8601 with timezone or 'Z' (e.g., '2024-02-01T00:00:00.000Z', '2024-02-01T00:00:00+01:00')
+    2. ISO format without timezone (e.g., '2024-02-01 00:00:00')
+    3. Float or int string (e.g., '1700000000.0')
+
+    Args:
+        value (str | int | float | datetime): The input value to convert.
+
+    Returns:
+        int | None: The epoch timestamp in seconds, or None if parsing fails.
+    """
+    if isinstance(value, (int, float)):
+        return int(value)
+
+    if isinstance(value, str):
+        try:
+            # Priority 1: ISO with timezone or 'Z'
+            dt = date_parser.isoparse(value)
+            return int(dt.timestamp())
+        except Exception:
+            pass
+        try:
+            # Priority 2: ISO without timezone
+            dt = datetime.fromisoformat(value)
+            return int(dt.timestamp())
+        except Exception:
+            pass
+        try:
+            # Priority 3: float/int string
+            return int(float(value))
+        except Exception:
+            return None
+
+    if isinstance(value, datetime):
+        return int(value.timestamp())
+
+    return None
+
