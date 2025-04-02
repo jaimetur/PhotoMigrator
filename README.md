@@ -176,17 +176,17 @@ The below tables show the pros and cons of each method together with a comparati
     - [x] by Dates
     - [x] by Country
     - [x] by City
-    - [ ] by People
+    - [ ] by Person
     - [x] by Type
 - [x] Added new flag _**-from, --from-date <FROM_DATE>**_ to select the Initial Date of the Assets to download
 - [x] Added new flag _**-to, --to-date <TO_DATE>**_ to select the Final Date of the Assets to download
 - [x] Added new flag _**-country, --country <COUNTRY_NAME>**_ to select the Country Name of the Assets to download
 - [x] Added new flag _**-city, --city <CITY_NAME>**_ to select the City Name of the Assets to download
-- [x] Added new flag _**-people, --people <PEOPLE_NAME>**_ to select the People Name of the Assets to download
+- [x] Added new flag _**-person, --person <PERSON_NAME>**_ to select the Person Name of the Assets to download
 - [x] Added new flag _**-type, --type = [image, video, all]**_ to select the Asset Type to download (default: all)
 - [x] Added new flag _**-parallel, --parallel-migration =[true,false]**_ to select the Migration Mode (Parallel or Secuential). Default: true (parallel)
-- [x] Include Live Dashboard in secuential Automated Migration
-- [x] Test secuential Automated Migration
+- [x] Include Live Dashboard in sequential Automated Migration
+- [x] Test sequential Automated Migration
 - [ ] Test Filters in other Synology/Immich Features
 - [x] Minor bugs fixing
 - [ ] Update Documentation
