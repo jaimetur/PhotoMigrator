@@ -274,8 +274,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     -----------
     source_client: objeto con los métodos:
         - get_albums_including_shared_with_user() -> [ { 'id': ..., 'name': ... }, ... ]
-        - get_album_assets(album_id) -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
-        - get_no_albums_assets() -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
+        - get_all_assets_from_album(album_id) -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
+        - get_all_assets_without_albums() -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
         - download_asset(asset_id, download_path) -> str (ruta local del archivo descargado)
 
     target_client: objeto con los métodos:
@@ -396,8 +396,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     blocked_assets.extend(source_client.get_album_shared_assets(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name))
 
             # Get all assets and filter out those blocked assets (from blocked shared albums) if any
-            all_no_albums_assets = source_client.get_no_albums_assets(log_level=logging.WARNING)
-            all_albums_assets = source_client.get_all_albums_assets(log_level=logging.WARNING)
+            all_no_albums_assets = source_client.get_all_assets_without_albums(log_level=logging.WARNING)
+            all_albums_assets = source_client.get_all_assets_from_all_albums(log_level=logging.WARNING)
             all_supported_assets = all_no_albums_assets + all_albums_assets
             blocked_assets_ids = {asset["id"] for asset in blocked_assets}
             filtered_all_supported_assets = [asset for asset in all_supported_assets if asset["id"] not in blocked_assets_ids]
@@ -546,10 +546,10 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 # Descargar todos los assets de este álbum
                 try:
                     if not is_shared:
-                        album_assets = source_client.get_album_assets(album_id=album_id, album_name=album_name, log_level=logging.WARNING)
+                        album_assets = source_client.get_all_assets_from_album(album_id=album_id, album_name=album_name, log_level=logging.WARNING)
                     else:
                         if album_shared_role.lower() != 'view':
-                            album_assets = source_client.get_album_shared_assets(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name, log_level=logging.WARNING)
+                            album_assets = source_client.get_all_assets_from_album_shared(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name, log_level=logging.WARNING)
                     if not album_assets:
                         # SHARED_DATA.counters['total_pull_failed_albums'] += 1     # If we uncomment this line, it will count as failed Empties albums
                         continue
@@ -636,7 +636,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             # 1.2) Descarga de assets sin álbum
             assets_no_album = []
             try:
-                assets_no_album = source_client.get_no_albums_assets()
+                assets_no_album = source_client.get_all_assets_without_albums()
             except Exception as e:
                 LOGGER.error(f"ERROR  : Error Getting Asset without Albums - {e} \n{traceback.format_exc()}")
 
@@ -861,8 +861,8 @@ def secuencial_automated_migration(source_client, target_client, temp_folder, SH
     -----------
     source_client: objeto con los métodos:
         - get_albums_including_shared_with_user() -> [ { 'id': ..., 'name': ... }, ... ]
-        - get_album_assets(album_id) -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
-        - get_no_albums_assets() -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
+        - get_all_assets_from_album(album_id) -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
+        - get_all_assets_without_albums() -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
         - download_asset(asset_id, download_path) -> str (ruta local del archivo descargado)
 
     target_client: objeto con los métodos:

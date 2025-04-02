@@ -323,7 +323,7 @@ class ClassLocalFolder:
             for album in albums:
                 album_id = album.get('id')
                 album_name = album.get("albumName", "")
-                album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
+                album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                 if len(album_assets) > 0:
                     albums_filtered.append(album)
             LOGGER.info(f"INFO    : Found {len(albums_filtered)} owned albums.")
@@ -359,7 +359,7 @@ class ClassLocalFolder:
                 for album in all_albums:
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
-                    album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
+                    album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                     if len(album_assets) > 0:
                         albums_filtered.append(album)
                 LOGGER.info(f"INFO    : Found {len(albums_filtered)} albums in total (owned + shared).")
@@ -428,7 +428,7 @@ class ClassLocalFolder:
             int: Number of assets in the album.
         """
         with set_log_level(LOGGER, log_level):
-            return len(self.get_album_assets(album_id, log_level))
+            return len(self.get_all_assets_from_album(album_id, log_level))
 
 
     def album_exists(self, album_name, log_level=logging.INFO):
@@ -533,7 +533,7 @@ class ClassLocalFolder:
             LOGGER.info(f"INFO    : Found {len(filtered_assets)} assets of type '{type}' in the base folder.")
             return filtered_assets
 
-    def get_album_assets(self, album_id, album_name=None, type='all', log_level=logging.WARNING):
+    def get_all_assets_from_album(self, album_id, album_name=None, type='all', log_level=logging.WARNING):
         """
         Lists the assets within a given album, with optional filtering by file type.
 
@@ -598,7 +598,73 @@ class ClassLocalFolder:
                 return []
 
 
-    def get_no_albums_assets(self, type='all', log_level=logging.WARNING):
+    def get_all_assets_from_album_shared(self, album_id, album_name=None, type='all', log_level=logging.WARNING):
+        """
+        Lists the assets within a given album, with optional filtering by file type.
+
+        Args:
+            album_id (str): Path to the album folder.
+            album_name (str, optional): Name of the album for logging.
+            type (str): Type of assets to retrieve. Options are 'all', 'photo', 'image', 'video', 'media', 'metadata',
+                        'sidecar', 'unsupported'.
+            log_level (int): Logging level.
+
+        Returns:
+            list[dict]: A list of asset dictionaries, each containing:
+                        - 'id': Absolute path to the file.
+                        - 'time': Creation timestamp of the file.
+                        - 'filename': File name (no path).
+                        - 'filepath': Absolute path to the file.
+                        - 'type': Type of the file (image, video, metadata, sidecar, unknown).
+        """
+        # TODO: This metthod is just a copy of get_all_assets_from_album. Change to filter only shared albums
+        with set_log_level(LOGGER, log_level):
+            try:
+                LOGGER.debug(f"DEBUG   : Retrieving '{type}' assets for album: {album_id}")
+
+                album_path = Path(album_id)
+                if not album_path.exists() or not album_path.is_dir():
+                    LOGGER.warning(f"WARNING : Album path '{album_id}' does not exist or is not a directory.")
+                    return []
+
+                selected_type_extensions = self._get_selected_extensions(type)
+
+                album_assets = []
+                for file in album_path.iterdir():
+                    if file.is_file() or file.is_symlink():
+                        # Aplicar exclusiones de carpetas y archivos
+                        if self._should_exclude(file):
+                            continue
+
+                        file_extension = file.suffix.lower()
+
+                        # Filtrado por tipo de archivo
+                        if selected_type_extensions == "unsupported":
+                            if file_extension in self.ALLOWED_EXTENSIONS:
+                                continue
+                        elif selected_type_extensions is not None and file_extension not in selected_type_extensions:
+                            continue
+
+                        album_assets.append({
+                            "id": str(file.resolve()),
+                            # "time": file.stat().st_ctime,
+                            "time": file.stat().st_mtime,
+                            "filename": file.name,
+                            "filepath": str(file.resolve()),
+                            "type": self._determine_file_type(file),
+                        })
+
+                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                LOGGER.debug(f"DEBUG   : Found {len(filtered_album_assets)} assets of type '{type}' in album {album_id}.")
+                return filtered_album_assets
+
+            except Exception as e:
+                error_message = f"ERROR   : Failed to retrieve {type} assets from album '{album_name}'" if album_name else f"ERROR   : Failed to retrieve {type} assets from album ID={album_id}"
+                LOGGER.error(f"{error_message}: {str(e)}")
+                return []
+
+
+    def get_all_assets_without_albums(self, type='all', log_level=logging.WARNING):
         """
         Lists assets that are in self.base_folder but not in self.albums_folder or self.shared_albums_folder,
         with optional filtering by file type.
@@ -665,7 +731,7 @@ class ClassLocalFolder:
             LOGGER.info(f"INFO    : Found {len(filtered_assets)} assets of type '{type}' in No-Album folders.")
             return filtered_assets
 
-    def get_all_albums_assets(self, log_level=logging.WARNING):
+    def get_all_assets_from_all_albums(self, log_level=logging.WARNING):
         """
         Gathers assets from all known albums, merges them into a single list.
 
@@ -681,7 +747,7 @@ class ClassLocalFolder:
             all_albums = self.get_albums_including_shared_with_user(log_level)
             for album in all_albums:
                 album_id = album["id"]
-                combined_assets.extend(self.get_album_assets(album_id, log_level))
+                combined_assets.extend(self.get_all_assets_from_album(album_id, log_level))
             return combined_assets
 
 
