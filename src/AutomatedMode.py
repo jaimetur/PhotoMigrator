@@ -143,6 +143,11 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
         target_client_name = target_client.get_client_name()
         SHARED_DATA.info.update({"target_client_name": target_client_name})
 
+        # Check if source_client support specified filters
+        unsupported_text = ""
+        if isinstance(source_client, ClassTakeoutFolder) or isinstance(source_client, ClassTakeoutFolder):
+            unsupported_text = (f"(Unsupported for this source client: {source_client_name}. Filter Ignored)")
+
         # Get the values from the arguments (if exists)
         from_date = ARGS.get('from-date', None)
         to_date = ARGS.get('to-date', None)
@@ -176,11 +181,11 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
         if type:
             LOGGER.info(f"INFO    : - Type         : {type}")
         if country:
-            LOGGER.info(f"INFO    : - Country      : {country}")
+            LOGGER.info(f"INFO    : - Country      : {country} {unsupported_text}")
         if city:
-            LOGGER.info(f"INFO    : - City         : {city}")
+            LOGGER.info(f"INFO    : - City         : {city} {unsupported_text}")
         if people:
-            LOGGER.info(f"INFO    : - People       : {people}")
+            LOGGER.info(f"INFO    : - People       : {people} {unsupported_text}")
         LOGGER.info("")
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
@@ -328,6 +333,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             source_client_name = source_client.get_client_name()
             target_client_name = target_client.get_client_name()
 
+            # Check if source_client support specified filters
+            unsupported_text = ""
+            if isinstance(source_client, ClassTakeoutFolder) or isinstance(source_client, ClassTakeoutFolder):
+                unsupported_text = (f"(Unsupported for this source client: {source_client_name}. Filter Ignored)")
+
             # Get the values from the arguments (if exists)
             from_date = ARGS.get('from-date', None)
             to_date = ARGS.get('to-date', None)
@@ -343,6 +353,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 LOGGER.info(f"INFO    : Migration Mode : Parallel")
             else:
                 LOGGER.info(f"INFO    : Migration Mode : Secuential")
+
             if from_date or to_date or type or country or city or people:
                 LOGGER.info(f"INFO    : Assets Filters :")
             else:
@@ -356,11 +367,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             if type:
                 LOGGER.info(f"INFO    : - Type         : {type}")
             if country:
-                LOGGER.info(f"INFO    : - Country      : {country}")
+                LOGGER.info(f"INFO    : - Country      : {country} {unsupported_text}")
             if city:
-                LOGGER.info(f"INFO    : - City         : {city}")
+                LOGGER.info(f"INFO    : - City         : {city} {unsupported_text}")
             if people:
-                LOGGER.info(f"INFO    : - People       : {people}")
+                LOGGER.info(f"INFO    : - People       : {people} {unsupported_text}")
             LOGGER.info("")
             LOGGER.info(f"INFO    : Starting Pulling/Pushing Workers...")
 
@@ -840,6 +851,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 ###########################################
 # secuencial_automated_migration Function #
 ###########################################
+# This fucntion is deprecated. Replaced by parallel_automated_migration(parallel=False)
 def secuencial_automated_migration(source_client, target_client, temp_folder, SHARED_DATA, log_level=logging.INFO):
     """
     Sincroniza fotos y vídeos entre un 'source_client' y un 'destination_client',
