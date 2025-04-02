@@ -128,6 +128,7 @@ jobs:
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
           draft: false
+          prerelease: true
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
           files: |
