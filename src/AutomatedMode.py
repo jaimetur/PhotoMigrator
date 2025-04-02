@@ -250,7 +250,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
 #########################################
 # parallel_automated_migration Function #
 #########################################
-def parallel_automated_migration(source_client, target_client, temp_folder, SHARED_DATA, log_level=logging.INFO):
+def parallel_automated_migration(source_client, target_client, temp_folder, SHARED_DATA, parallel=None, log_level=logging.INFO):
     """
     Sincroniza fotos y vídeos entre un 'source_client' y un 'destination_client',
     descargando álbumes y assets desde la fuente, y luego subiéndolos a destino,
@@ -277,7 +277,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     # ----------------------------------------------------------------------------------------
     # function to ensure that the puller put only 1 asset with the same filepath to the queue
     # ----------------------------------------------------------------------------------------
-    def enqueue_unique(push_queue, item_dict):
+    def enqueue_unique(push_queue, item_dict, parallel=True):
         """
         Añade item_dict a la cola si su asset_file_path no ha sido añadido previamente.
         Thread-safe gracias al lock global.
@@ -290,16 +290,18 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 # El item ya fue añadido anteriormente
                 return False
 
-            # Pausa si la cola tiene más de 100 elementos, pero no bloquea innecesariamente, y reanuda cuando tenga 10.
-            while push_queue.qsize() >= 100:
-                while push_queue.qsize() > 25:
-                    time.sleep(1)  # Hacemos pausas de 1s hasta que la cola se vacíe (25 elementos)
-                    SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
+            # If parallel mode, then manage waiting time to avoid queue size go beyond 100 elements.
+            if parallel:
+                # Pausa si la cola tiene más de 100 elementos, pero no bloquea innecesariamente, y reanuda cuando tenga 10.
+                while push_queue.qsize() >= 100:
+                    while push_queue.qsize() > 25:
+                        time.sleep(1)  # Hacemos pausas de 1s hasta que la cola se vacíe (25 elementos)
+                        SHARED_DATA.info['assets_in_queue'] = push_queue.qsize()
 
-            # Si la cola está muy llena (entre 50 y 100), reducir la velocidad en vez de bloquear
-            if push_queue.qsize() > 50:
-                time.sleep(0.1)  # Pequeña pausa para no sobrecargar la cola
-                pass
+                # Si la cola está muy llena (entre 50 y 100), reducir la velocidad en vez de bloquear
+                if push_queue.qsize() > 50:
+                    time.sleep(0.1)  # Pequeña pausa para no sobrecargar la cola
+                    pass
 
             # Añadir a la cola y al registro global
             push_queue.put(item_dict)
@@ -310,7 +312,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     # ------------------
     # 1) HILO PRINCIPAL
     # ------------------
-    def main_thread(log_level=logging.INFO):
+    def main_thread(parallel=None, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # Get source and target client names
             source_client_name = source_client.get_client_name()
@@ -428,14 +430,17 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             num_pull_threads = 1  # no Iniciar más de 1 hilo de descarga, de lo contrario los assets se descargarán multiples veces.
 
             # Crear hilos
-            pull_threads = [threading.Thread(target=puller_worker, daemon=True) for _ in range(num_pull_threads)]
+            pull_threads = [threading.Thread(target=puller_worker, kwargs={"parallel": parallel}, daemon=True) for _ in range(num_pull_threads)]
             push_threads = [threading.Thread(target=pusher_worker, kwargs={"processed_albums": processed_albums, "worker_id": worker_id + 1}, daemon=True) for worker_id in range(num_push_threads)]
 
-            # Iniciar hilos
-            for t in push_threads:
-                t.start()
+            # Initiate pull threads
             for t in pull_threads:
                 t.start()
+
+            # If parallel mode, then initiate push threads in parallel
+            if parallel:
+                for t in push_threads:
+                    t.start()
 
             # ----------------------------------------------------------------------------------------------
             # 2) Esperamos a que terminen los hilos de pull para mandar Nones a la cola de push,
@@ -449,6 +454,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             # Enviamos tantos None como hilos de push para avisar que finalicen
             for _ in range(num_push_threads):
                 push_queue.put(None)
+
+            # If secuential mode, then initiate push threads only when pull threads have finished
+            if not parallel:
+                for t in push_threads:
+                    t.start()
 
             # Esperamos a que la cola termine de procesarse
             # push_queue.join()
@@ -491,7 +501,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     # --------------------------------------------------------------------------------
     # 1) PULLER: Función puller_worker para descargar assets y poner en la cola
     # --------------------------------------------------------------------------------
-    def puller_worker(log_level=logging.INFO):
+    def puller_worker(parallel=None, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):
 
             # 1.1) Descarga de álbumes
@@ -574,7 +584,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                                 'album_name': album_name,
                             }
                             # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
-                            enqueue_unique(push_queue, asset_dict)
+                            enqueue_unique(push_queue, asset_dict, parallel=parallel)
                     else:
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
                         if asset_type.lower() == 'video':
@@ -665,7 +675,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             'asset_type': asset_type,
                             'album_name': None,
                         }
-                        enqueue_unique(push_queue, asset_dict)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
+                        enqueue_unique(push_queue, asset_dict, parallel=parallel)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
                     else:
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
                         if asset_type.lower() == 'video':
@@ -807,8 +817,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     # Normalizamos temp_folder
     temp_folder = Utils.normalize_path(temp_folder)
 
+    # Check if parallel=None, and in that case, get it from ARGS
+    if parallel == None: parallel = ARGS['parallel-migration']
+
     # Llamada al hilo principal
-    main_thread(log_level=log_level)
+    main_thread(parallel=parallel, log_level=log_level)
 
 ###########################################
 # secuencial_automated_migration Function #

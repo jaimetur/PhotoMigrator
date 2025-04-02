@@ -76,6 +76,14 @@ def parse_arguments():
                         type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="Enable or disable Live Dashboard feature during Autometed Migration Job. This argument only applies if both '--source' and '--target' argument are given (AUTOMATED-MIGRATION FEATURE). (default: True)."
     )
+    PARSER.add_argument("-parallel", "--parallel-migration",
+                        metavar="= [true,false]",
+                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
+                        default=True,  # Si no se pasa el argumento, el valor por defecto es True
+                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        help="Select Parallel/Secuencial Migration during Autometed Migration Job. This argument only applies if both '--source' and '--target' argument are given (AUTOMATED-MIGRATION FEATURE). (default: True)."
+    )
 
     PARSER.add_argument("-type", "--type", metavar="= [photos,videos,all]", default="all", help="Specify the Asset Type to filter assets in the different Photo Cloud Services. Default: all")
     PARSER.add_argument("-from", "--from-date", metavar="<FROM_DATE>", default="", help="Specify the initial date to filter assets in the different Photo Cloud Services.")
@@ -281,6 +289,14 @@ def checkArgs(ARGS, PARSER):
     dashboard_provided = "--dashboard" in [arg.split("=")[0] for arg in vars(args).keys()]
     if dashboard_provided and not (ARGS['source'] or ARGS['target']):
         PARSER.error(f"\n\n❌ ERROR   : Argument '--dashboard' can only be used with Automated Migration feature. Arguments --source and --target are required.\n")
+        exit(1)
+
+
+    # Check if --parallel-migration=True and not --source and --target have been given
+    args = PARSER.parse_args()
+    dashboard_provided = "--parallel-migration" in [arg.split("=")[0] for arg in vars(args).keys()]
+    if dashboard_provided and not (ARGS['source'] or ARGS['target']):
+        PARSER.error(f"\n\n❌ ERROR   : Argument '--parallel-migration' can only be used with Automated Migration feature. Arguments --source and --target are required.\n")
         exit(1)
 
 
