@@ -82,22 +82,22 @@ def parse_arguments():
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=True,  # Si no se pasa el argumento, el valor por defecto es True
                         type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="Select Parallel/Secuencial Migration during Autometed Migration Job. This argument only applies if both '--source' and '--target' argument are given (AUTOMATED-MIGRATION FEATURE). (default: True)."
+                        help="Select Parallel/Secuencial Migration during Automated Migration Job. This argument only applies if both '--source' and '--target' argument are given (AUTOMATED-MIGRATION FEATURE). (default: True)."
     )
 
-    PARSER.add_argument("-from", "--from-date", metavar="<FROM_DATE>", default="", help="Specify the initial date to filter assets in the different Photo Cloud Services.")
-    PARSER.add_argument("-to", "--to-date", metavar="<TO_DATE>", default="", help="Specify the final date to filter assets in the different Photo Cloud Services.")
-    PARSER.add_argument("-country", "--country", metavar="<COUNTRY_NAME>", default="", help="Specify the Country Name to filter assets in the different Photo Cloud Services.")
-    PARSER.add_argument("-city", "--city", metavar="<CITY_NAME>", default="", help="Specify the City Name to filter assets in the different Photo Cloud Services.")
-    PARSER.add_argument("-people", "--people", metavar="<PEOPLE_NAME>", default="", help="Specify the People Name to filter assets in the different Photo Cloud Services.")
-    PARSER.add_argument("-type", "--type", metavar="= [photos,videos,all]", default="all", help="Specify the Asset Type to filter assets in the different Photo Cloud Services. Default: all")
+    PARSER.add_argument("-from", "--from-date", metavar="<FROM_DATE>", default="", help="Specify the initial date to filter assets in the different Photo Clients.")
+    PARSER.add_argument("-to", "--to-date", metavar="<TO_DATE>", default="", help="Specify the final date to filter assets in the different Photo Clients.")
+    PARSER.add_argument("-country", "--country", metavar="<COUNTRY_NAME>", default="", help="Specify the Country Name to filter assets in the different Photo Clients.")
+    PARSER.add_argument("-city", "--city", metavar="<CITY_NAME>", default="", help="Specify the City Name to filter assets in the different Photo Clients.")
+    PARSER.add_argument("-people", "--people", metavar="<PEOPLE_NAME>", default="", help="Specify the People Name to filter assets in the different Photo Clients.")
+    PARSER.add_argument("-type", "--type", metavar="= [photos,videos,all]", default="all", help="Specify the Asset Type to filter assets in the different Photo Clients. Default: all")
     # PARSER.add_argument("-archive", "--archive",
     #                     metavar="= [true,false]",
     #                     nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
     #                     const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
     #                     default=False,  # Si no se pasa el argumento, el valor por defecto es True
     #                     type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-    #                     help="Specify if you want to filter only Archived assets in the different Photo Cloud Services."
+    #                     help="Specify if you want to filter only Archived assets in the different Photo Clients."
     # )
 
 
