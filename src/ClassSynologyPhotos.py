@@ -838,6 +838,7 @@ class ClassSynologyPhotos:
             people = ARGS.get('people', None)
             from_date = ARGS.get('from-date', None)
             to_date = ARGS.get('to-date', None)
+
             # Now Filter the assets list based on the filters given by ARGS
             filtered_assets = assets
             if from_date or to_date:
