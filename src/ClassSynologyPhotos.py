@@ -849,20 +849,6 @@ class ClassSynologyPhotos:
                 filtered_assets = self.filter_assets_by_place(filtered_assets, city)
             return filtered_assets
 
-            # # Convert dates from iso to epoch
-            # from_date = iso8601_to_epoch(from_date)
-            # to_date = iso8601_to_epoch(to_date)
-            #
-            # if not from_date: from_date = 0                   # Fecha más antigua aceptada por muchas APIs: 1970-01-01
-            # if not to_date: to_date = int(time.time())  # Fecha actual
-            #
-            # filtered_assets = []
-            # for asset in assets:
-            #     time_value = asset.get('time', -1)
-            #     if from_date <= time_value <= to_date:
-            #         filtered_assets.append(asset)
-            # return filtered_assets
-
 
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
