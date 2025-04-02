@@ -151,10 +151,10 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
         # Get the values from the arguments (if exists)
         from_date = ARGS.get('from-date', None)
         to_date = ARGS.get('to-date', None)
-        type = ARGS.get('asset-type', None)
         country = ARGS.get('country', None)
         city = ARGS.get('city', None)
         people = ARGS.get('people', None)
+        type = ARGS.get('asset-type', None)
 
         LOGGER.info("")
         LOGGER.info(f"INFO    : -AUTO, --AUTOMATED-MIGRATION Mode detected")
@@ -344,10 +344,10 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             # Get the values from the arguments (if exists)
             from_date = ARGS.get('from-date', None)
             to_date = ARGS.get('to-date', None)
-            type = ARGS.get('asset-type', None)
             country = ARGS.get('country', None)
             city = ARGS.get('city', None)
             people = ARGS.get('people', None)
+            type = ARGS.get('asset-type', None)
 
             LOGGER.info(f"INFO    : 🚀 Starting Automated Migration Process: {source_client_name} ➜ {target_client_name}...")
             LOGGER.info(f"INFO    : Source Client  : {source_client_name}")
