@@ -19,8 +19,8 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 
 ## Release Notes:
 
-### **Release**: v3.2.0  
-### **Release Date**: (estimated)
+**Release**: v3.2.0  
+**Release Date**: (estimated)
   - Alpha version    : 2025-04-07
   - Beta version     : 2025-04-14
   - Release Candidate: 2025-04-25
@@ -34,6 +34,7 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
     - [ ] by Type
     - [ ] by Person
 
+---
 
 **Release**: v3.1.0  
 **Release Date**: 2025-03-31
