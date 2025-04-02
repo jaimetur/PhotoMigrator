@@ -177,8 +177,8 @@ The below tables show the pros and cons of each method together with a comparati
 ### TODO:
 - [ ] Add option to filter assets in all Immich/Synology/LocalFolder Actions:
     - [x] by Dates
-    - [ ] by Country
-    - [ ] by City
+    - [x] by Country
+    - [x] by City
     - [ ] by Type
     - [ ] by Person
 - [ ] Update Documentation
