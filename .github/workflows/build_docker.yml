@@ -45,7 +45,7 @@ jobs:
           # Execute for macOS
           if [[ "${{ matrix.os }}" == *"ubuntu"* ]]; then
             cd src
-            python3 _compile.py skip_compile
+            python3 _compile.py false
           fi
           
           echo "::endgroup::"
