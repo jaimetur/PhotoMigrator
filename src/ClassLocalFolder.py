@@ -1225,7 +1225,7 @@ if __name__ == "__main__":
     localFolder.remove_all_assets(log_level=logging.DEBUG)
 
     # 9) Example: Remove ALL Assets
-    localFolder.remove_all_albums(removeAlbumsAssets=True, log_level=logging.DEBUG)
+    localFolder.remove_all_albums(log_level=logging.DEBUG)
 
     # 10) Local logout
     localFolder.logout()
