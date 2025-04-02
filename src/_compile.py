@@ -199,6 +199,8 @@ def compile(arg=None):
 
     clear_screen()
 
+    print(f"Ejecutando módulo compile({arg})...")
+
     # Select Compiler
     COMPILER = 'nuitka'
     COMPILER = 'pyinstaller'
