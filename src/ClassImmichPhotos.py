@@ -342,6 +342,28 @@ class ClassImmichPhotos:
                 LOGGER.error(f"ERROR   : Cannot find User ID for user '{self.IMMICH_USERNAME}': {e}")
                 return None
 
+    def get_person_id(self, name, log_level=logging.INFO):
+        """
+        Returns the ID of the first person matching the given name.
+        """
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            url = f"{self.IMMICH_URL}/api/search/person"
+            params = {"name": name}
+            try:
+                resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, params=params)
+                resp.raise_for_status()
+                data = resp.json()
+                if data:
+                    person_id = data.get("id")
+                    LOGGER.info(f"INFO    : ID '{person_id}' found for person '{name}'.")
+                    return person_id
+                else:
+                    LOGGER.info(f"INFO    : No person found with name '{name}'.")
+                    return None
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Cannot find ID for person '{name}': {e}")
+                return None
 
     ###########################################################################
     #                           ALBUMS FUNCTIONS                              #
@@ -652,7 +674,8 @@ class ClassImmichPhotos:
         1. By date range (from-date, to-date)
         2. By country (matched in address or exifInfo)
         3. By city (matched in address or exifInfo)
-        4. Additional filters (e.g., people or type) can be added later
+        4. By person
+        5. By asset_type
 
         Args:
             assets (list): List of asset dictionaries to be filtered.
@@ -667,8 +690,11 @@ class ClassImmichPhotos:
             to_date = ARGS.get('to-date', None)
             country = ARGS.get('country', None)
             city = ARGS.get('city', None)
-            people = ARGS.get('people', None)
+            person = ARGS.get('person', None)
             type = ARGS.get('asset-type', None)
+
+            if person:
+                person = self.get_person_id(name=person, log_level=log_level)
 
             # Now Filter the assets list based on the filters given by ARGS
             filtered_assets = assets
@@ -686,8 +712,8 @@ class ClassImmichPhotos:
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
     def get_all_assets(self, type=None, isNotInAlbum=None, isArchived=None,
-                       takenAfter=None, takenBefore=None, country=None,
-                       city=None, people=None, withDeleted=None, log_level=logging.INFO):
+                       from_date=None, to_date=None, country=None,
+                       city=None, person=None, withDeleted=None, log_level=logging.INFO):
         """
         Lists all assets in Immich Photos that match with the specified filters.
 
@@ -700,12 +726,14 @@ class ClassImmichPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 # Get the values from the arguments (if exists)
-                takenAfter = ARGS.get('from-date', None)
-                takenBefore = ARGS.get('to-date', None)
+                from_date = ARGS.get('from-date', None)
+                to_date = ARGS.get('to-date', None)
                 type = ARGS.get('asset-type', None)
                 country = ARGS.get('country', None)
                 city = ARGS.get('city', None)
-                people = ARGS.get('people', None)
+                person = ARGS.get('person', None)
+                if person:
+                    person = self.get_person_id(name=person, log_level=log_level)
 
                 self.login(log_level=log_level)
                 url = f"{self.IMMICH_URL}/api/search/metadata"
@@ -744,15 +772,15 @@ class ClassImmichPhotos:
                         #   "3fa85f64-5717-4562-b3fc-2c963f66afa6"
                         # ],
                     }
-                    if type: payload_data["type"] = type
+                    if withDeleted: payload_data["withDeleted"] = withDeleted
                     if isNotInAlbum: payload_data["isNotInAlbum"] = isNotInAlbum
                     if isArchived: payload_data["isArchived"] = isArchived
-                    if takenAfter: payload_data["takenAfter"] = takenAfter
-                    if takenBefore: payload_data["takenBefore"] = takenBefore
+                    if from_date: payload_data["takenAfter"] = from_date
+                    if to_date: payload_data["takenBefore"] = to_date
                     if country: payload_data["country"] = country
                     if city: payload_data["city"] = city
-                    if people: payload_data["personIds"] = people
-                    if withDeleted: payload_data["withDeleted"] = withDeleted
+                    if person: payload_data["personIds"] = person
+                    if type: payload_data["type"] = type
 
                     payload = json.dumps(payload_data)
                     resp = requests.post(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload, verify=False)

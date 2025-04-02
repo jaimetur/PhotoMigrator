@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 import os
 import shutil
 import logging
@@ -532,9 +533,7 @@ class ClassLocalFolder:
 
         The filtering steps are applied in the following order:
         1. By date range (from-date, to-date)
-        2. By country (matched in address or exifInfo)
-        3. By city (matched in address or exifInfo)
-        4. Additional filters (e.g., people or type) can be added later
+        2. By asset_type
 
         Args:
             assets (list): List of asset dictionaries to be filtered.

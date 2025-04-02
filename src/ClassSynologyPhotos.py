@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 import os
 import sys
 import fnmatch
@@ -871,7 +872,8 @@ class ClassSynologyPhotos:
         1. By date range (from-date, to-date)
         2. By country (matched in address or exifInfo)
         3. By city (matched in address or exifInfo)
-        4. Additional filters (e.g., people or type) can be added later
+        4. By person
+        5. By asset_type
 
         Args:
             assets (list): List of asset dictionaries to be filtered.
@@ -886,7 +888,7 @@ class ClassSynologyPhotos:
             to_date = ARGS.get('to-date', None)
             country = ARGS.get('country', None)
             city = ARGS.get('city', None)
-            people = ARGS.get('people', None)
+            person = ARGS.get('person', None)
             type = ARGS.get('asset-type', None)
 
             # Now Filter the assets list based on the filters given by ARGS
@@ -918,16 +920,16 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 # Get the values from the arguments (if exists)
-                takenAfter = ARGS.get('from-date', None)
-                takenBefore = ARGS.get('to-date', None)
+                from_date = ARGS.get('from-date', None)
+                to_date = ARGS.get('to-date', None)
                 type = ARGS.get('asset-type', None)
                 country = ARGS.get('country', None)
                 city = ARGS.get('city', None)
-                people = ARGS.get('people', None)
+                person = ARGS.get('person', None)
 
                 # Convert the values from iso to epoch
-                takenAfter = to_epoch(takenAfter)
-                takenBefore = to_epoch(takenBefore)
+                from_date = to_epoch(from_date)
+                to_date = to_epoch(to_date)
 
                 geocoding_country_list = []
                 geocoding_city_list = []
@@ -957,10 +959,10 @@ class ClassSynologyPhotos:
                         'limit': limit,
                     }
 
-                    # Add time to params only if takenAfter or takenBefore has some values
+                    # Add time to params only if from_date or to_date have some values
                     time_dic = {}
-                    if takenAfter:  time_dic["start_time"] = takenAfter
-                    if takenBefore: time_dic["end_time"] = takenBefore
+                    if from_date:  time_dic["start_time"] = from_date
+                    if to_date: time_dic["end_time"] = to_date
                     if time_dic: params["time"] = json.dumps([time_dic])
 
                     # Add geocoding key if geocoding_list has some value

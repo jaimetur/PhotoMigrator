@@ -153,7 +153,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
         to_date = ARGS.get('to-date', None)
         country = ARGS.get('country', None)
         city = ARGS.get('city', None)
-        people = ARGS.get('people', None)
+        person = ARGS.get('person', None)
         type = ARGS.get('asset-type', None)
 
         LOGGER.info("")
@@ -168,7 +168,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(f"INFO    : Migration Mode : Parallel")
         else:
             LOGGER.info(f"INFO    : Migration Mode : Secuential")
-        if from_date or to_date or type or country or city or people:
+        if from_date or to_date or type or country or city or person:
             LOGGER.info(f"INFO    : Assets Filters :")
         else:
             LOGGER.info(f"INFO    : Assets Filters : None")
@@ -184,8 +184,8 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(f"INFO    : - Country      : {country} {unsupported_text}")
         if city:
             LOGGER.info(f"INFO    : - City         : {city} {unsupported_text}")
-        if people:
-            LOGGER.info(f"INFO    : - People       : {people} {unsupported_text}")
+        if person:
+            LOGGER.info(f"INFO    : - People       : {person} {unsupported_text}")
         LOGGER.info("")
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
@@ -346,7 +346,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             to_date = ARGS.get('to-date', None)
             country = ARGS.get('country', None)
             city = ARGS.get('city', None)
-            people = ARGS.get('people', None)
+            person = ARGS.get('person', None)
             type = ARGS.get('asset-type', None)
 
             LOGGER.info(f"INFO    : 🚀 Starting Automated Migration Process: {source_client_name} ➜ {target_client_name}...")
@@ -357,7 +357,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             else:
                 LOGGER.info(f"INFO    : Migration Mode : Secuential")
 
-            if from_date or to_date or type or country or city or people:
+            if from_date or to_date or type or country or city or person:
                 LOGGER.info(f"INFO    : Assets Filters :")
             else:
                 LOGGER.info(f"INFO    : Assets Filters : None")
@@ -373,8 +373,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 LOGGER.info(f"INFO    : - Country      : {country} {unsupported_text}")
             if city:
                 LOGGER.info(f"INFO    : - City         : {city} {unsupported_text}")
-            if people:
-                LOGGER.info(f"INFO    : - People       : {people} {unsupported_text}")
+            if person:
+                LOGGER.info(f"INFO    : - People       : {person} {unsupported_text}")
             LOGGER.info("")
             LOGGER.info(f"INFO    : Starting Pulling/Pushing Workers...")
 
