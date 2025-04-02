@@ -122,8 +122,8 @@ jobs:
       # End of Docker version Generation
       # ================================
 
-      # 6. Create Release and Upload artifact to it
-      - name: 6. Create Release and Upload artifact to it
+      # 6. Create Release and Upload Artifact to it
+      - name: 6. Create Release and Upload Artifact to it
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
