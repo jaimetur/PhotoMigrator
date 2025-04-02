@@ -38,7 +38,7 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 - [x] Added new flag _**-country, --country <COUNTRY_NAME>**_ to select the Country Name of the Assets to download
 - [x] Added new flag _**-city, --city <CITY_NAME>**_ to select the City Name of the Assets to download
 - [x] Added new flag _**-people, --people <PEOPLE_NAME>**_ to select the People Name of the Assets to download
-- [x] Added new flag _**-type, --type = [photos, videos, all]**_ to select the Asset Type to download (default: all)
+- [x] Added new flag _**-type, --type = [image, video, all]**_ to select the Asset Type to download (default: all)
 - [x] Added new flag _**-parallel, --parallel-migration =[true,false]**_ to select the Migration Mode (Parallel or Secuential). Default: true (parallel)
 - [x] Include Live Dashboard in secuential Automated Migration
 - [x] Test secuential Automated Migration
