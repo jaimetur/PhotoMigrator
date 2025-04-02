@@ -198,10 +198,11 @@ def main(compile=True):
     global COMPILER
 
     clear_screen()
-
+    print("")
     print("======================================================")
     print(f"INFO:    Ejecutando módulo main(compile={compile})...")
     print("======================================================")
+    print("")
 
     # Select Compiler
     COMPILER = 'nuitka'
