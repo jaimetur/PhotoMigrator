@@ -479,6 +479,37 @@ class ClassLocalFolder:
                 filtered.append(asset)
         return filtered
 
+    def filter_assets_by_type(self, assets, type):
+        """
+        Filters a list of assets by their type, supporting flexible type aliases.
+
+        Accepted values for 'type':
+        - 'image', 'images', 'photo', 'photos' → treated as 'IMAGE'
+        - 'video', 'videos' → treated as 'VIDEO'
+        - 'all' → returns all assets (no filtering)
+
+        Matching is case-insensitive.
+
+        Args:
+            assets (list): List of asset dictionaries to be filtered.
+            type (str): The asset type to match.
+
+        Returns:
+            list: A filtered list of assets with the specified type.
+        """
+        if not type or type.lower() == "all":
+            return assets
+        type_lower = type.lower()
+        image_aliases = {"image", "images", "photo", "photos"}
+        video_aliases = {"video", "videos"}
+        if type_lower in image_aliases:
+            target_type = "IMAGE"
+        elif type_lower in video_aliases:
+            target_type = "VIDEO"
+        else:
+            return []  # Unknown type alias
+        return [asset for asset in assets if asset.get("type", "").upper() == target_type]
+
     def filter_assets(self, assets, log_level=logging.INFO):
         """
         Filters a list of assets based on user-defined criteria such as date range,
@@ -507,6 +538,8 @@ class ClassLocalFolder:
             filtered_assets = assets
             if from_date or to_date:
                 filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
+            if type:
+                filtered_assets = self.filter_assets_by_type(filtered_assets, type)
             return filtered_assets
 
 
