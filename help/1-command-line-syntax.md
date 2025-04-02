@@ -2,13 +2,12 @@
 ```
 ---------------------------------------------------------------------------------------------------------
 usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
-                                  [-dashb [= [true,false]]] [-type = [photos,videos,all]]
+                                  [-dashb [= [true,false]]] [-parallel [= [true,false]]]
                                   [-from <FROM_DATE>] [-to <TO_DATE>]
-                                  [-country <COUNTRY_ID>] [-city <CITY_ID>]
-                                  [-people <PEOPLE_ID>]
+                                  [-country <COUNTRY_NAME>] [-city <CITY_NAME>]
+                                  [-people <PEOPLE_NAME>] [-type = [photos,videos,all]]
                                   [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
-                                  [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
-                                  [-rAlbAss]
+                                  [-AlbFld [<ALBUMS_FOLDER> ...]] [-rAlbAss]
                                   [-gpthProg [= [true,false]]] [-gpthErr [= [true,false]]]
                                   [-nolog]
                                   [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
@@ -35,7 +34,7 @@ such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
 
 (c) 2024-2025 by Jaime Tur (@jaimetur)
 
-optional arguments:
+options:
 
 -h,        --help
              show this help message and exit
@@ -83,23 +82,23 @@ same Photo Cloud service.
              Enable or disable Live Dashboard feature during Autometed Migration Job.
              This argument only applies if both '--source' and '--target' argument are
              given (AUTOMATED-MIGRATION FEATURE). (default: True).
--type,     --type = [photos,videos,all]
-             Specify the Asset Type to filter assets in the different Photo Cloud
-             Services. Default: all
+-parallel, --parallel-migration = [true,false]
+             Select Parallel/Secuencial Migration during Automated Migration Job. This
+             argument only applies if both '--source' and '--target' argument are given
+             (AUTOMATED-MIGRATION FEATURE). (default: True).
 -from,     --from-date <FROM_DATE>
-             Specify the initial date to filter assets in the different Photo Cloud
-             Services.
+             Specify the initial date to filter assets in the different Photo Clients.
 -to,       --to-date <TO_DATE>
-             Specify the final date to filter assets in the different Photo Cloud
-             Services.
--country,  --country <COUNTRY_ID>
-             Specify the Country ID to filter assets in the different Photo Cloud
-             Services.
--city,     --city <CITY_ID>
-             Specify the City ID to filter assets in the different Photo Cloud Services.
--people,   --people <PEOPLE_ID>
-             Specify the People ID to filter assets in the different Photo Cloud
-             Services.
+             Specify the final date to filter assets in the different Photo Clients.
+-country,  --country <COUNTRY_NAME>
+             Specify the Country Name to filter assets in the different Photo Clients.
+-city,     --city <CITY_NAME>
+             Specify the City Name to filter assets in the different Photo Clients.
+-people,   --people <PEOPLE_NAME>
+             Specify the People Name to filter assets in the different Photo Clients.
+-type,     --type = [photos,videos,all]
+             Specify the Asset Type to filter assets in the different Photo Clients.
+             (default: all)
 
 
 GENERAL ARGUMENTS:

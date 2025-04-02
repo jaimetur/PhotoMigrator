@@ -104,7 +104,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
         if show_gpth_errors is None: show_gpth_errors = ARGS['show-gpth-errors']
 
         # Define the INTERMEDIATE_FOLDER
-        INTERMEDIATE_FOLDER = resolve_path(f'./Temp_folder_{TIMESTAMP}')
+        INTERMEDIATE_FOLDER = resolve_path(f'Temp_folder_{TIMESTAMP}')
 
         # ---------------------------------------------------------------------------------------------------------
         # 1) Creamos los objetos source_client y target_client en función de los argumentos source y target

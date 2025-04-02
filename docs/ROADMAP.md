@@ -14,9 +14,16 @@
     - [x] by City
     - [ ] by People
     - [ ] by Type
-- [ ] Test Filters in other Synology/Immich Features
+- [x] Added new flag _**-from, --from-date <FROM_DATE>**_ to select the Initial Date of the Assets to download
+- [x] Added new flag _**-to, --to-date <TO_DATE>**_ to select the Final Date of the Assets to download
+- [x] Added new flag _**-country, --country <COUNTRY_NAME>**_ to select the Country Name of the Assets to download
+- [x] Added new flag _**-city, --city <CITY_NAME>**_ to select the City Name of the Assets to download
+- [x] Added new flag _**-people, --people <PEOPLE_NAME>**_ to select the People Name of the Assets to download
+- [x] Added new flag _**-type, --type = [photos, videos, all]**_ to select the Asset Type to download (default: all)
+- [x] Added new flag _**-parallel, --parallel-migration =[true,false]**_ to select the Migration Mode (Parallel or Secuential). Default: true (parallel)
 - [x] Include Live Dashboard in secuential Automated Migration
 - [x] Test secuential Automated Migration
+- [ ] Test Filters in other Synology/Immich Features
 - [x] Minor bugs fixing
 - [ ] Update Documentation
 - [ ] Update README.md

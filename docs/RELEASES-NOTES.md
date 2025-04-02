@@ -27,15 +27,22 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
   - Official Release : 2025-04-30
 
 ### Main Changes:
-- [ ] Add option to filter assets in all Immich/Synology/LocalFolder Actions:
+- [ ] Add options to filter assets in all Immich/Synology/LocalFolder Actions:
     - [x] by Dates
     - [x] by Country
     - [x] by City
     - [ ] by People
     - [ ] by Type
-- [ ] Test Filters in other Synology/Immich Features
+- [x] Added new flag _**-from, --from-date <FROM_DATE>**_ to select the Initial Date of the Assets to download
+- [x] Added new flag _**-to, --to-date <TO_DATE>**_ to select the Final Date of the Assets to download
+- [x] Added new flag _**-country, --country <COUNTRY_NAME>**_ to select the Country Name of the Assets to download
+- [x] Added new flag _**-city, --city <CITY_NAME>**_ to select the City Name of the Assets to download
+- [x] Added new flag _**-people, --people <PEOPLE_NAME>**_ to select the People Name of the Assets to download
+- [x] Added new flag _**-type, --type = [photos, videos, all]**_ to select the Asset Type to download (default: all)
+- [x] Added new flag _**-parallel, --parallel-migration =[true,false]**_ to select the Migration Mode (Parallel or Secuential). Default: true (parallel)
 - [x] Include Live Dashboard in secuential Automated Migration
 - [x] Test secuential Automated Migration
+- [ ] Test Filters in other Synology/Immich Features
 - [x] Minor bugs fixing
 
 ---
@@ -84,8 +91,8 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
   - #### AUTOMATED MIGRATION FEATURE:
     - **-AUTO,   --AUTOMATED-MIGRATION \<SOURCE> \<TARGET>**  
       This process will do an AUTOMATED-MIGRATION process to Download all your Assets
-             (including Albums) from the <SOURCE> Cloud Service and Upload them to the
-             <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE>
+             (including Albums) from the \<SOURCE> Cloud Service and Upload them to the
+             \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE>
              Cloud Service.
       
              possible values for:
