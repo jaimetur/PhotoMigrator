@@ -217,9 +217,9 @@ The below tables show the pros and cons of each method together with a comparati
 - [x] Test sequential Automated Migration
 - [ ] Test Filters in other Synology/Immich Features
 - [x] Minor bugs fixing
-- [ ] Update Documentation
-- [ ] Update README.md
-- [ ] Update RELEASES-NOTES.md
+- [x] Update Documentation
+- [x] Update README.md
+- [x] Update RELEASES-NOTES.md
 
 
 ## v4.0.0:
