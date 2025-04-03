@@ -245,7 +245,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
                 # if parallel:
                 #     parallel_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, parallel=parallel, log_level=logging.INFO)
                 # else:
-                #     secuencial_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, log_level=logging.INFO)
+                #     sequential_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, log_level=logging.INFO)
             finally:
                 migration_finished.set()
 
@@ -854,10 +854,10 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     main_thread(parallel=parallel, log_level=log_level)
 
 ###########################################
-# secuencial_automated_migration Function #
+# sequential_automated_migration Function #
 ###########################################
 # This fucntion is deprecated. Replaced by parallel_automated_migration(parallel=False)
-def secuencial_automated_migration(source_client, target_client, temp_folder, SHARED_DATA, log_level=logging.INFO):
+def sequential_automated_migration(source_client, target_client, temp_folder, SHARED_DATA, log_level=logging.INFO):
     """
     Sincroniza fotos y vídeos entre un 'source_client' y un 'destination_client',
     descargando álbumes y assets desde la fuente, y luego subiéndolos a destino,
