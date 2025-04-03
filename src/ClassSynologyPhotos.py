@@ -1021,7 +1021,9 @@ class ClassSynologyPhotos:
                     if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
 
                     # Add person key if person_ids_list has some value
-                    if geocoding_ids_list: params["person"] = json.dumps(person_ids_list)
+                    if geocoding_ids_list:
+                        params["person"] = json.dumps(person_ids_list)
+                        params["person_policy"] = '"or"'
 
                     # Add types to params if have been providen
                     types = []
@@ -1096,7 +1098,7 @@ class ClassSynologyPhotos:
 
                 offset = 0
                 limit = 5000
-                all_assets = []
+                album_assets = []
                 while True:
                     params = {
                         'api': 'SYNO.Foto.Browse.Item',
@@ -1120,7 +1122,9 @@ class ClassSynologyPhotos:
                     if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
 
                     # Add person key if person_ids_list has some value
-                    if geocoding_ids_list: params["person"] = json.dumps(person_ids_list)
+                    if geocoding_ids_list:
+                        params["person"] = json.dumps(person_ids_list)
+                        params["person_policy"] = '"or"'
 
                     # Add types to params if have been providen
                     types = []
@@ -1140,7 +1144,8 @@ class ClassSynologyPhotos:
                             else:
                                 LOGGER.error(f"ERROR   : Failed to list photos in the album ID={album_id}")
                             return []
-                        album_assets.extend(data["data"]["list"])
+                        if len(data["data"]["list"])>0:
+                            album_assets.extend(data["data"]["list"])
 
                         if len(data["data"]["list"]) < limit:
                             break
@@ -1204,7 +1209,7 @@ class ClassSynologyPhotos:
 
                 offset = 0
                 limit = 5000
-                all_assets = []
+                album_assets = []
                 while True:
                     params = {
                         'api': 'SYNO.Foto.Browse.Item',
@@ -1228,7 +1233,9 @@ class ClassSynologyPhotos:
                     if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
 
                     # Add person key if person_ids_list has some value
-                    if geocoding_ids_list: params["person"] = json.dumps(person_ids_list)
+                    if geocoding_ids_list:
+                        params["person"] = json.dumps(person_ids_list)
+                        params["person_policy"] = '"or"'
 
                     # Add types to params if have been providen
                     types = []
@@ -1248,7 +1255,8 @@ class ClassSynologyPhotos:
                             else:
                                 LOGGER.error(f"ERROR   : Failed to list photos in the album ID={album_id}")
                             return []
-                        album_assets.extend(data["data"]["list"])
+                        if len(data["data"]["list"]) > 0:
+                            album_assets.extend(data["data"]["list"])
 
                         if len(data["data"]["list"]) < limit:
                             break

@@ -384,7 +384,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             total_albums_blocked_count = 0
             total_assets_blocked_count = 0
 
-            all_albums = source_client.get_albums_including_shared_with_user(log_level=logging.DEBUG)
+            all_albums = source_client.get_albums_including_shared_with_user(log_level=logging.WARNING)
             for album in all_albums:
                 album_id = album['id']
                 album_name = album['albumName']
@@ -398,7 +398,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     LOGGER.info(f"INFO    : Album '{album_name}' cannot be pulled because is a blocked shared album. Skipped!")
                     total_albums_blocked_count += 1
                     total_assets_blocked_count += album.get('item_count')
-                    blocked_assets.extend(source_client.get_all_assets_from_album_shared(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name))
+                    blocked_assets.extend(source_client.get_all_assets_from_album_shared(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name, log_level=logging.WARNING))
 
             # Get all assets and filter out those blocked assets (from blocked shared albums) if any
             all_no_albums_assets = source_client.get_all_assets_without_albums(log_level=logging.WARNING)
@@ -535,7 +535,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         with set_log_level(LOGGER, log_level):
 
             # 1.1) Descarga de álbumes
-            albums = source_client.get_albums_including_shared_with_user()
+            albums = source_client.get_albums_including_shared_with_user(log_level=logging.WARNING)
             pulled_assets = 0
             for album in albums:
                 album_assets = []
@@ -642,7 +642,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             # 1.2) Descarga de assets sin álbum
             assets_no_album = []
             try:
-                assets_no_album = source_client.get_all_assets_without_albums()
+                assets_no_album = source_client.get_all_assets_without_albums(log_level=logging.WARNING)
             except Exception as e:
                 LOGGER.error(f"ERROR  : Error Getting Asset without Albums - {e} \n{traceback.format_exc()}")
 
