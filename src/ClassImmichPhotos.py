@@ -891,7 +891,7 @@ class ClassImmichPhotos:
         Returns:
             list: A list of photos in the album (dict objects). [] if no assets found.
         """
-        # TODO: This metthod is just a copy of get_all_assets_from_album. Change to filter only shared albums
+        # TODO: This method is just a copy of get_all_assets_from_album. Change to filter only shared albums
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             url = f"{self.IMMICH_URL}/api/albums/{album_id}"

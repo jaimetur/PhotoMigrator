@@ -695,7 +695,7 @@ class ClassLocalFolder:
                         - 'filepath': Absolute path to the file.
                         - 'type': Type of the file (image, video, metadata, sidecar, unknown).
         """
-        # TODO: This metthod is just a copy of get_all_assets_from_album. Change to filter only shared albums
+        # TODO: This method is just a copy of get_all_assets_from_album. Change to filter only shared albums
         with set_log_level(LOGGER, log_level):
             try:
                 LOGGER.debug(f"DEBUG   : Retrieving '{type}' assets for album: {album_id}")
