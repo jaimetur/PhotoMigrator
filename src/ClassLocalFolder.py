@@ -469,31 +469,35 @@ class ClassLocalFolder:
     ###########################################################################
     #                            ASSETS FILTERING                             #
     ###########################################################################
-    def filter_assets_by_date(self, assets, from_date=None, to_date=None):
+    def filter_assets(self, assets, log_level=logging.INFO):
         """
-        Filters a list of assets by their 'time' field using a date range.
+        Filters a list of assets based on user-defined criteria such as date range,
+        country, city, and asset type. Filter parameters are retrieved from the global ARGS dictionary.
 
-        If any of the date inputs (from_date, to_date, or asset['time']) are not in epoch format,
-        they will be converted using `to_epoch()`.
+        The filtering steps are applied in the following order:
+        1. By date range (from-date, to-date)
+        2. By asset_type
 
         Args:
-            assets (list): List of asset dictionaries.
-            from_date (str | int | float | datetime, optional): Start date (inclusive). Defaults to epoch 0.
-            to_date (str | int | float | datetime, optional): End date (inclusive). Defaults to current time.
+            assets (list): List of asset dictionaries to be filtered.
+            log_level (int, optional): Logging level to apply during filtering. Defaults to logging.INFO.
 
         Returns:
-            list: A filtered list of assets whose 'time' field is within the specified range.
+            list: A filtered list of assets that match the specified criteria.
         """
-        epoch_start = 0 if from_date is None else to_epoch(from_date)
-        epoch_end = int(time.time()) if to_date is None else to_epoch(to_date)
-        filtered = []
-        for asset in assets:
-            asset_time = to_epoch(asset.get("time"))
-            if asset_time is None:
-                continue
-            if epoch_start <= asset_time <= epoch_end:
-                filtered.append(asset)
-        return filtered
+        with set_log_level(LOGGER, log_level):
+            # Get the values from the arguments (if exists)
+            from_date = ARGS.get('from-date', None)
+            to_date = ARGS.get('to-date', None)
+            type = ARGS.get('asset-type', None)
+
+            # Now Filter the assets list based on the filters given by ARGS
+            filtered_assets = assets
+            if type:
+                filtered_assets = self.filter_assets_by_type(filtered_assets, type)
+            if from_date or to_date:
+                filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
+            return filtered_assets
 
     def filter_assets_by_type(self, assets, type):
         """
@@ -526,35 +530,31 @@ class ClassLocalFolder:
             return []  # Unknown type alias
         return [asset for asset in assets if asset.get("type", "").upper() == target_type]
 
-    def filter_assets(self, assets, log_level=logging.INFO):
+    def filter_assets_by_date(self, assets, from_date=None, to_date=None):
         """
-        Filters a list of assets based on user-defined criteria such as date range,
-        country, city, and asset type. Filter parameters are retrieved from the global ARGS dictionary.
+        Filters a list of assets by their 'time' field using a date range.
 
-        The filtering steps are applied in the following order:
-        1. By date range (from-date, to-date)
-        2. By asset_type
+        If any of the date inputs (from_date, to_date, or asset['time']) are not in epoch format,
+        they will be converted using `to_epoch()`.
 
         Args:
-            assets (list): List of asset dictionaries to be filtered.
-            log_level (int, optional): Logging level to apply during filtering. Defaults to logging.INFO.
+            assets (list): List of asset dictionaries.
+            from_date (str | int | float | datetime, optional): Start date (inclusive). Defaults to epoch 0.
+            to_date (str | int | float | datetime, optional): End date (inclusive). Defaults to current time.
 
         Returns:
-            list: A filtered list of assets that match the specified criteria.
+            list: A filtered list of assets whose 'time' field is within the specified range.
         """
-        with set_log_level(LOGGER, log_level):
-            # Get the values from the arguments (if exists)
-            from_date = ARGS.get('from-date', None)
-            to_date = ARGS.get('to-date', None)
-            type = ARGS.get('asset-type', None)
-
-            # Now Filter the assets list based on the filters given by ARGS
-            filtered_assets = assets
-            if from_date or to_date:
-                filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
-            if type:
-                filtered_assets = self.filter_assets_by_type(filtered_assets, type)
-            return filtered_assets
+        epoch_start = 0 if from_date is None else to_epoch(from_date)
+        epoch_end = int(time.time()) if to_date is None else to_epoch(to_date)
+        filtered = []
+        for asset in assets:
+            asset_time = to_epoch(asset.get("time"))
+            if asset_time is None:
+                continue
+            if epoch_start <= asset_time <= epoch_end:
+                filtered.append(asset)
+        return filtered
 
 
     ###########################################################################

@@ -580,6 +580,82 @@ class ClassImmichPhotos:
     ###########################################################################
     #                            ASSETS FILTERING                             #
     ###########################################################################
+    def filter_assets(self, assets, log_level=logging.INFO):
+        """
+        Filters a list of assets based on user-defined criteria such as date range,
+        country, city, and asset type. Filter parameters are retrieved from the global ARGS dictionary.
+
+        The filtering steps are applied in the following order:
+        1. By date range (from-date, to-date)
+        2. By country (matched in address or exifInfo)
+        3. By city (matched in address or exifInfo)
+        4. By person
+        5. By asset_type
+
+        Args:
+            assets (list): List of asset dictionaries to be filtered.
+            log_level (int, optional): Logging level to apply during filtering. Defaults to logging.INFO.
+
+        Returns:
+            list: A filtered list of assets that match the specified criteria.
+        """
+        with set_log_level(LOGGER, log_level):
+            # Get the values from the arguments (if exists)
+            from_date = ARGS.get('from-date', None)
+            to_date = ARGS.get('to-date', None)
+            country = ARGS.get('country', None)
+            city = ARGS.get('city', None)
+            person = ARGS.get('person', None)
+            type = ARGS.get('asset-type', None)
+
+            if person:
+                person = self.get_person_id(name=person, log_level=logging.WARNING)
+
+            # Now Filter the assets list based on the filters given by ARGS
+            filtered_assets = assets
+            if type:
+                filtered_assets = self.filter_assets_by_type(filtered_assets, type)
+            if from_date or to_date:
+                filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
+            if country:
+                filtered_assets = self.filter_assets_by_place(filtered_assets, country)
+            if city:
+                filtered_assets = self.filter_assets_by_place(filtered_assets, city)
+            if person:
+                filtered_assets = self.filter_assets_by_person(filtered_assets, person)
+            return filtered_assets
+
+    def filter_assets_by_type(self, assets, type):
+        """
+        Filters a list of assets by their type, supporting flexible type aliases.
+
+        Accepted values for 'type':
+        - 'image', 'images', 'photo', 'photos' → treated as 'IMAGE'
+        - 'video', 'videos' → treated as 'VIDEO'
+        - 'all' → returns all assets (no filtering)
+
+        Matching is case-insensitive.
+
+        Args:
+            assets (list): List of asset dictionaries to be filtered.
+            type (str): The asset type to match.
+
+        Returns:
+            list: A filtered list of assets with the specified type.
+        """
+        if not type or type.lower() == "all":
+            return assets
+        type_lower = type.lower()
+        image_aliases = {"image", "images", "photo", "photos"}
+        video_aliases = {"video", "videos"}
+        if type_lower in image_aliases:
+            target_type = "IMAGE"
+        elif type_lower in video_aliases:
+            target_type = "VIDEO"
+        else:
+            return []  # Unknown type alias
+        return [asset for asset in assets if asset.get("type", "").upper() == target_type]
+
     def filter_assets_by_date(self, assets, from_date=None, to_date=None):
         """
         Filters a list of assets by their 'time' field using a date range.
@@ -662,81 +738,6 @@ class ClassImmichPhotos:
                         break  # One match is enough
         return filtered
 
-    def filter_assets_by_type(self, assets, type):
-        """
-        Filters a list of assets by their type, supporting flexible type aliases.
-
-        Accepted values for 'type':
-        - 'image', 'images', 'photo', 'photos' → treated as 'IMAGE'
-        - 'video', 'videos' → treated as 'VIDEO'
-        - 'all' → returns all assets (no filtering)
-
-        Matching is case-insensitive.
-
-        Args:
-            assets (list): List of asset dictionaries to be filtered.
-            type (str): The asset type to match.
-
-        Returns:
-            list: A filtered list of assets with the specified type.
-        """
-        if not type or type.lower() == "all":
-            return assets
-        type_lower = type.lower()
-        image_aliases = {"image", "images", "photo", "photos"}
-        video_aliases = {"video", "videos"}
-        if type_lower in image_aliases:
-            target_type = "IMAGE"
-        elif type_lower in video_aliases:
-            target_type = "VIDEO"
-        else:
-            return []  # Unknown type alias
-        return [asset for asset in assets if asset.get("type", "").upper() == target_type]
-
-    def filter_assets(self, assets, log_level=logging.INFO):
-        """
-        Filters a list of assets based on user-defined criteria such as date range,
-        country, city, and asset type. Filter parameters are retrieved from the global ARGS dictionary.
-
-        The filtering steps are applied in the following order:
-        1. By date range (from-date, to-date)
-        2. By country (matched in address or exifInfo)
-        3. By city (matched in address or exifInfo)
-        4. By person
-        5. By asset_type
-
-        Args:
-            assets (list): List of asset dictionaries to be filtered.
-            log_level (int, optional): Logging level to apply during filtering. Defaults to logging.INFO.
-
-        Returns:
-            list: A filtered list of assets that match the specified criteria.
-        """
-        with set_log_level(LOGGER, log_level):
-            # Get the values from the arguments (if exists)
-            from_date = ARGS.get('from-date', None)
-            to_date = ARGS.get('to-date', None)
-            country = ARGS.get('country', None)
-            city = ARGS.get('city', None)
-            person = ARGS.get('person', None)
-            type = ARGS.get('asset-type', None)
-
-            if person:
-                person = self.get_person_id(name=person, log_level=logging.WARNING)
-
-            # Now Filter the assets list based on the filters given by ARGS
-            filtered_assets = assets
-            if from_date or to_date:
-                filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
-            if country:
-                filtered_assets = self.filter_assets_by_place(filtered_assets, country)
-            if city:
-                filtered_assets = self.filter_assets_by_place(filtered_assets, city)
-            if person:
-                filtered_assets = self.filter_assets_by_p(filtered_assets, city)
-            if type:
-                filtered_assets = self.filter_assets_by_type(filtered_assets, type)
-            return filtered_assets
 
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #

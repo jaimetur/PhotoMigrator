@@ -14,17 +14,11 @@ choices_for_AUTOMATED_MIGRATION_SRC = ['synology-photos', 'synology', 'synology-
                                        'immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1', 'immich-photos-2', 'immich-photos2', 'immich-2', 'immich2']
 choices_for_AUTOMATED_MIGRATION_TGT = ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1', 'synology-photos-2', 'synology-photos2', 'synology-2', 'synology2',
                                        'immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1', 'immich-photos-2', 'immich-photos2', 'immich-2', 'immich2']
-valid_asset_types                         = ['all', 'image', 'images', 'photo', 'photos', 'video', 'videos']
+valid_asset_types                   = ['all', 'image', 'images', 'photo', 'photos', 'video', 'videos']
 
 PARSER = None
 
 def parse_arguments():
-    # # Regular Parser without Pagination
-    # PARSER = argparse.ArgumentParser(
-    #         description=SCRIPT_DESCRIPTION,
-    #         formatter_class=CustomHelpFormatter,  # Aplica el formatter
-    # )
-
     # Parser with Pagination:
     PARSER = PagedParser(
         description=SCRIPT_DESCRIPTION,
@@ -37,9 +31,7 @@ def parse_arguments():
             print(f"\n{SCRIPT_NAME} {SCRIPT_VERSION} {SCRIPT_DATE} by Jaime Tur (@jaimetur)\n")
             parser.exit()
 
-
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the Tool name, version, and date, then exit.")
-
 
     # FEATURES FOR AUTOMATED MIGRATION:
     # ---------------------------------
@@ -91,7 +83,7 @@ def parse_arguments():
     PARSER.add_argument("-country", "--country", metavar="<COUNTRY_NAME>", default="", help="Specify the Country Name to filter assets in the different Photo Clients.")
     PARSER.add_argument("-city", "--city", metavar="<CITY_NAME>", default="", help="Specify the City Name to filter assets in the different Photo Clients.")
     PARSER.add_argument("-person", "--person", metavar="<PERSON_NAME>", default="", help="Specify the Person Name to filter assets in the different Photo Clients.")
-    PARSER.add_argument("-type", "--asset-type", metavar="= [image,video,all]", default="all", help="Specify the Asset Type to filter assets in the different Photo Clients. (default: all)")
+    PARSER.add_argument("-type", "--asset-type", metavar="= [image,video,all]", default=None, help="Specify the Asset Type to filter assets in the different Photo Clients. (default: all)")
     # PARSER.add_argument("-archive", "--archive",
     #                     metavar="= [true,false]",
     #                     nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
@@ -354,7 +346,7 @@ def checkArgs(ARGS, PARSER):
 
 
     # Parseamos type
-    if ARGS['asset-type'].lower() not in valid_asset_types:
+    if ARGS['asset-type'] and ARGS['asset-type'].lower() not in valid_asset_types:
         PARSER.error(f"\n\n❌ ERROR   : --asset-type argument is invalid. Valid values are:\n{valid_asset_types}")
         exit(1)
 

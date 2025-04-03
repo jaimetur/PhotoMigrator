@@ -27,12 +27,12 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
   - Official Release : 2025-04-30
 
 ### Main Changes:
-- [x] Add options to filter assets in all Immich/Synology/LocalFolder Actions:
+- [x] Added options to filter assets in all Immich/Synology/LocalFolder Actions:
+    - [x] by Type
     - [x] by Dates
     - [x] by Country
     - [x] by City
     - [x] by Person
-    - [x] by Type
 - [x] Added new flag _**-from, --from-date <FROM_DATE>**_ to select the Initial Date of the Assets to download
 - [x] Added new flag _**-to, --to-date <TO_DATE>**_ to select the Final Date of the Assets to download
 - [x] Added new flag _**-country, --country <COUNTRY_NAME>**_ to select the Country Name of the Assets to download
