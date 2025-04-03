@@ -58,9 +58,9 @@ def parse_arguments():
                          "\n  [id] = [1, 2] select which account to use from the Config.ini file."
                          "\n"    
                          "\nExamples: "
-                         "\n ​--source=immich-1 -> Select Immich Photos account 1 as Target."
-                         "\n ​--source=synology-2 -> Select Synology Photos account 2 as Target."
-                         "\n ​--source=/home/local_folder -> Select this local folder as Target."
+                         "\n ​--target=immich-1 -> Select Immich Photos account 1 as Target."
+                         "\n ​--target=synology-2 -> Select Synology Photos account 2 as Target."
+                         "\n ​--target=/home/local_folder -> Select this local folder as Target."
                          )
     PARSER.add_argument("-dashb", "--dashboard",
                         metavar="= [true,false]",
