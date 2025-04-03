@@ -800,12 +800,12 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             # Get the values from the arguments (if exists)
+            type = ARGS.get('asset-type', None)
             from_date = ARGS.get('from-date', None)
             to_date = ARGS.get('to-date', None)
             country = ARGS.get('country', None)
             city = ARGS.get('city', None)
             person = ARGS.get('person', None)
-            type = ARGS.get('asset-type', None)
 
             # Now Filter the assets list based on the filters given by ARGS
             filtered_assets = assets
