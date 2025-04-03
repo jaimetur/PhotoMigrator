@@ -75,9 +75,9 @@ same Photo Cloud service.
                [id] = [1, 2] select which account to use from the Config.ini file.
 
              Examples:
-              ​--source=immich-1 -> Select Immich Photos account 1 as Target.
-              ​--source=synology-2 -> Select Synology Photos account 2 as Target.
-              ​--source=/home/local_folder -> Select this local folder as Target.
+              ​--target=immich-1 -> Select Immich Photos account 1 as Target.
+              ​--target=synology-2 -> Select Synology Photos account 2 as Target.
+              ​--target=/home/local_folder -> Select this local folder as Target.
 -dashb,    --dashboard = [true,false]
              Enable or disable Live Dashboard feature during Autometed Migration Job.
              This argument only applies if both '--source' and '--target' argument are
