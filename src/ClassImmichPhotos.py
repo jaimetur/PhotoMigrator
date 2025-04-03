@@ -739,9 +739,7 @@ class ClassImmichPhotos:
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
-    def get_all_assets(self, type=None, isNotInAlbum=None, isArchived=None,
-                       from_date=None, to_date=None, country=None,
-                       city=None, person=None, withDeleted=None, log_level=logging.INFO):
+    def get_all_assets(self, isNotInAlbum=None, isArchived=None, withDeleted=None, log_level=logging.INFO):
         """
         Lists all assets in Immich Photos that match with the specified filters.
 
@@ -817,6 +815,7 @@ class ClassImmichPhotos:
                     if withDeleted: payload_data["withDeleted"] = withDeleted
                     if isNotInAlbum: payload_data["isNotInAlbum"] = isNotInAlbum
                     if isArchived: payload_data["isArchived"] = isArchived
+
                     if from_date: payload_data["takenAfter"] = from_date
                     if to_date: payload_data["takenBefore"] = to_date
                     if country: payload_data["country"] = country
