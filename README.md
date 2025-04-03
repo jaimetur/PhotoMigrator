@@ -172,12 +172,12 @@ The below tables show the pros and cons of each method together with a comparati
   - Official Release : 2025-04-30
 
 ### TODO:
-- [ ] Add option to filter assets in all Immich/Synology/LocalFolder Actions:
+- [x] Add option to filter assets in all Immich/Synology/LocalFolder Actions:
+    - [x] by Type
     - [x] by Dates
     - [x] by Country
     - [x] by City
-    - [ ] by Person
-    - [x] by Type
+    - [x] by Person
 - [x] Added new flag _**-from, --from-date <FROM_DATE>**_ to select the Initial Date of the Assets to download
 - [x] Added new flag _**-to, --to-date <TO_DATE>**_ to select the Final Date of the Assets to download
 - [x] Added new flag _**-country, --country <COUNTRY_NAME>**_ to select the Country Name of the Assets to download
