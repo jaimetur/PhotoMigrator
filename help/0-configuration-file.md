@@ -49,9 +49,9 @@ In this section you have to provide:
 - **IMMICH_API_KEY_USER_1:** The API_KEY for the Immich Account 1  
 
 
-- **IMMICH_USERNAME_2:** The username for the Immich Account 1 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
-- **IMMICH_PASSWORD_2:** The password for the Immich Account 1 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
-- **IMMICH_API_KEY_USER_1:** The API_KEY for the Immich Account 1
+- **IMMICH_USERNAME_2:** The username for the Immich Account 2 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
+- **IMMICH_PASSWORD_2:** The password for the Immich Account 2 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
+- **IMMICH_API_KEY_USER_2:** The API_KEY for the Immich Account 2 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
 
 > [!NOTE]  
 > In Immich you can choose if you want to login with username/password or you prefeer to use an API_KEY instead.  
