@@ -109,13 +109,13 @@ In this example, the Tool will do an Automated Migration Process which has two s
 
 - **Example 3**:
 ```
-./CloudPhotoMigrator.run --source=immich-2 target=/homes/local_folder
+./CloudPhotoMigrator.run --source=immich-2 target=/homes/local_folder --person=Peter --from-date=2024
 ```
 
 In this example, the Tool will do an Automated Migration Process which has two steps:  
 
-  - First, the Tool will connect to your Immich Photos account 1 (if you have configured properly the Config.ini file) and will
-    pull all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
+  - First, the Tool will connect to your Immich Photos account 2 (if you have configured properly the Config.ini file) and will
+    pull all the assets found in your account where Peter have been labeled as person, and whose date is after 01/02/2024 (separating those associated to som Album(s), of those without any Album associated).  
 
   - In parallel, the Tool will push all the pulled assets into the local folder '/homes/local_folder' creating a folder structure
     with all the Albums in the subfolder 'Albums' and all the assets without albums associated into the subfolder 'No-Albums'. 
@@ -124,13 +124,13 @@ In this example, the Tool will do an Automated Migration Process which has two s
 
 - **Example 4**:
 ```
-./CloudPhotoMigrator.run --source=immich-1 target=immich-2
+./CloudPhotoMigrator.run --source=immich-1 target=immich-2 --city=Rome --person=Mery
 ```
 
 In this example, the Tool will do an Automated Migration Process which has two steps:  
 
   - First, the Tool will connect to your Immich Photos account 1 (if you have configured properly the Config.ini file) and will
-    pull all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
+    pull all the assets found in your account that have been taken in Rome and where Mery have been labeled as person (separating those associated to som Album(s), of those without any Album associated).  
 
   - In parallel, the Tool will connect to your Immich Photos account 2 (if you have configured properly the Config.ini file) and 
     push all the assets pulled from previous step, creating a new Album per each Album found in your Synology Photos and associating
