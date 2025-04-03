@@ -773,7 +773,7 @@ class ClassImmichPhotos:
                         type = None  # Unknown alias, treat as no filtering
 
                 if person:
-                    person = [self.get_person_id(name=person, log_level=log_level)]
+                    person_ids = self.get_person_id(name=person, log_level=log_level)
 
                 self.login(log_level=log_level)
                 url = f"{self.IMMICH_URL}/api/search/metadata"
@@ -820,7 +820,7 @@ class ClassImmichPhotos:
                     if to_date: payload_data["takenBefore"] = to_date
                     if country: payload_data["country"] = country
                     if city: payload_data["city"] = city
-                    if person: payload_data["personIds"] = person
+                    if person_ids: payload_data["personIds"] = [person_ids]
                     if type: payload_data["type"] = type
 
                     payload = json.dumps(payload_data)
