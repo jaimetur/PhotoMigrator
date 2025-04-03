@@ -726,6 +726,8 @@ class ClassImmichPhotos:
         name_lower = person_name.lower()
         filtered = []
         for asset in assets:
+            asset_id = asset.get("id")
+            # people = self.get_asset_people(asset_id)
             people = asset.get("people", [])
             for person in people:
                 if isinstance(person, dict):
@@ -739,6 +741,30 @@ class ClassImmichPhotos:
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
+    def get_asset_people(self, asset_id, log_level=logging.INFO):
+        """
+        Get assets iinfo.
+
+        Args:
+            asset_id (str): ID of the asset.
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            list: A list of asset info (dict objects). [] if no assets found.
+        """
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            url = f"{self.IMMICH_URL}/api/assets/{asset_id}"
+            try:
+                resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
+                resp.raise_for_status()
+                data = resp.json()
+                people_list = data.get("people", [])
+                return people_list
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Failed to retrieve assets info for '{asset_id}': {str(e)}")
+                return []
+
     def get_all_assets(self, isNotInAlbum=None, isArchived=None, withDeleted=None, log_level=logging.INFO):
         """
         Lists all assets in Immich Photos that match with the specified filters.
