@@ -29,7 +29,7 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>
 
 CloudPhotoMigrator v3.2.0-alpha - 2025-04-30
 
-Multi-Platform/Multi-Arch toot designed to Interact and Manage different Photo Cloud Services
+Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
 such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
 
 (c) 2024-2025 by Jaime Tur (@jaimetur)
