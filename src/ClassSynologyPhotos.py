@@ -384,20 +384,38 @@ class ClassSynologyPhotos:
                     geocoding_list.extend(data["data"]["geocoding"])
                     person_list.extend(data["data"]["person"])
                 else:
-                    LOGGER.error("ERROR   : Failed to get Geocoding list: ", data)
+                    LOGGER.error("ERROR   : Failed to get Geocoding/Person list: ", data)
                     return None, None
                 return geocoding_list, person_list
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Geocoding List from Synology Photos. {e}")
 
-    def get_geocoding_person_ids(self, place, log_level=logging.INFO):
+    def get_person_ids(self, person, log_level=logging.INFO):
+        """
+        Retrieves the ID(s) of the person matching the provided name.
+
+        Args:
+            person (str): The name of the person to look for.
+            log_level (int, optional): Logging level. Defaults to logging.INFO.
+
+        Returns:
+            list: A list with the matching person ID(s). Empty if no match is found.
+        """
+        with set_log_level(LOGGER, log_level):
+            geocoding_list, person_list = self.get_geocoding_person_lists(log_level=log_level)
+            person_ids = []
+            for item in person_list:
+                if item.get("name").lower() == person.lower():
+                    person_ids.append(item.get("id"))
+            return person_ids
+
+    def get_geocoding_ids(self, place, log_level=logging.INFO):
         def collect_ids(node):
             """Recorre recursivamente un nodo y extrae su id y el de todos sus hijos"""
             ids = [node.get("id")]
             for child in node.get("children", []):
                 ids.extend(collect_ids(child))
             return ids
-
         with set_log_level(LOGGER, log_level):
             geocoding_list, person_list = self.get_geocoding_person_lists(log_level=log_level)
             for item in geocoding_list:
@@ -407,10 +425,9 @@ class ClassSynologyPhotos:
                     if current.get("name") == place:
                         return collect_ids(current)
                     stack.extend(current.get("children", []))
-
             return []  # Si no se encuentra el lugar
 
-    def get_geocoding_person_ids_old(self, place, log_level=logging.INFO):
+    def get_geocoding_ids_old(self, place, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):
             geocoding_list, person_list = self.get_geocoding_person_lists(log_level=log_level)
             result_ids = set()
@@ -962,12 +979,16 @@ class ClassSynologyPhotos:
                 from_date = to_epoch(from_date)
                 to_date = to_epoch(to_date)
 
-                geocoding_country_list = []
-                geocoding_city_list = []
-                if country: geocoding_country_list = self.get_geocoding_person_ids(country)
-                if city: geocoding_city_list = self.get_geocoding_person_ids(city)
+                # Obtain the place_ids for country and city
+                geocoding_country_ids_list = []
+                geocoding_city_ids_list = []
+                if country: geocoding_country_ids_list = self.get_geocoding_ids(place=country, log_level=log_level)
+                if city: geocoding_city_ids_list = self.get_geocoding_ids(place=city, log_level=log_level)
+                geocoding_ids_list = geocoding_country_ids_list + geocoding_city_ids_list
 
-                geocoding_list = geocoding_country_list + geocoding_city_list
+                # Obtain the person_ids for person
+                person_ids_list = []
+                if person: person_ids_list = self.get_person_ids(person, log_level=log_level)
 
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -996,8 +1017,11 @@ class ClassSynologyPhotos:
                     if to_date: time_dic["end_time"] = to_date
                     if time_dic: params["time"] = json.dumps([time_dic])
 
-                    # Add geocoding key if geocoding_list has some value
-                    if geocoding_list: params["geocoding"] = json.dumps(geocoding_list)
+                    # Add geocoding key if geocoding_ids_list has some value
+                    if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
+
+                    # Add person key if person_ids_list has some value
+                    if geocoding_ids_list: params["person"] = json.dumps(person_ids_list)
 
                     # Add types to params if have been providen
                     types = []
@@ -1041,6 +1065,29 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
+                # Get the values from the arguments (if exists)
+                from_date = ARGS.get('from-date', None)
+                to_date = ARGS.get('to-date', None)
+                type = ARGS.get('asset-type', None)
+                country = ARGS.get('country', None)
+                city = ARGS.get('city', None)
+                person = ARGS.get('person', None)
+
+                # Convert the values from iso to epoch
+                from_date = to_epoch(from_date)
+                to_date = to_epoch(to_date)
+
+                # Obtain the place_ids for country and city
+                geocoding_country_ids_list = []
+                geocoding_city_ids_list = []
+                if country: geocoding_country_ids_list = self.get_geocoding_ids(place=country, log_level=log_level)
+                if city: geocoding_city_ids_list = self.get_geocoding_ids(place=city, log_level=log_level)
+                geocoding_ids_list = geocoding_country_ids_list + geocoding_city_ids_list
+
+                # Obtain the person_ids for person
+                person_ids_list = []
+                if person: person_ids_list = self.get_person_ids(person, log_level=log_level)
+
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
                 headers = {}
@@ -1049,18 +1096,40 @@ class ClassSynologyPhotos:
 
                 offset = 0
                 limit = 5000
-                album_assets = []
-
+                all_assets = []
                 while True:
                     params = {
                         'api': 'SYNO.Foto.Browse.Item',
-                        'version': '4',
-                        'method': 'list',
+                        # 'version': '4',
+                        # 'method': 'list',
+                        'version': '2',
+                        'method': 'list_with_filter',
                         'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
                         'album_id': album_id,
                         'offset': offset,
                         'limit': limit,
                     }
+
+                    # Add time to params only if from_date or to_date have some values
+                    time_dic = {}
+                    if from_date:  time_dic["start_time"] = from_date
+                    if to_date: time_dic["end_time"] = to_date
+                    if time_dic: params["time"] = json.dumps([time_dic])
+
+                    # Add geocoding key if geocoding_ids_list has some value
+                    if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
+
+                    # Add person key if person_ids_list has some value
+                    if geocoding_ids_list: params["person"] = json.dumps(person_ids_list)
+
+                    # Add types to params if have been providen
+                    types = []
+                    if type:
+                        if type.lower() in ['photo', 'photos']:
+                            types.append(0)
+                        if type.lower() in ['video', 'videos']:
+                            types.append(1)
+                    if types: params["item_type"] = types
 
                     try:
                         resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
@@ -1104,6 +1173,29 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
+                # Get the values from the arguments (if exists)
+                from_date = ARGS.get('from-date', None)
+                to_date = ARGS.get('to-date', None)
+                type = ARGS.get('asset-type', None)
+                country = ARGS.get('country', None)
+                city = ARGS.get('city', None)
+                person = ARGS.get('person', None)
+
+                # Convert the values from iso to epoch
+                from_date = to_epoch(from_date)
+                to_date = to_epoch(to_date)
+
+                # Obtain the place_ids for country and city
+                geocoding_country_ids_list = []
+                geocoding_city_ids_list = []
+                if country: geocoding_country_ids_list = self.get_geocoding_ids(place=country, log_level=log_level)
+                if city: geocoding_city_ids_list = self.get_geocoding_ids(place=city, log_level=log_level)
+                geocoding_ids_list = geocoding_country_ids_list + geocoding_city_ids_list
+
+                # Obtain the person_ids for person
+                person_ids_list = []
+                if person: person_ids_list = self.get_person_ids(person, log_level=log_level)
+
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
                 headers = {}
@@ -1112,18 +1204,41 @@ class ClassSynologyPhotos:
 
                 offset = 0
                 limit = 5000
-                album_assets = []
-
+                all_assets = []
                 while True:
                     params = {
                         'api': 'SYNO.Foto.Browse.Item',
-                        'version': '4',
-                        'method': 'list',
+                        # 'version': '4',
+                        # 'method': 'list',
+                        'version': '2',
+                        'method': 'list_with_filter',
                         'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
                         'passphrase': album_passphrase,
-                        "offset": offset,
-                        "limit": limit
+                        'offset': offset,
+                        'limit': limit,
                     }
+
+                    # Add time to params only if from_date or to_date have some values
+                    time_dic = {}
+                    if from_date:  time_dic["start_time"] = from_date
+                    if to_date: time_dic["end_time"] = to_date
+                    if time_dic: params["time"] = json.dumps([time_dic])
+
+                    # Add geocoding key if geocoding_ids_list has some value
+                    if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
+
+                    # Add person key if person_ids_list has some value
+                    if geocoding_ids_list: params["person"] = json.dumps(person_ids_list)
+
+                    # Add types to params if have been providen
+                    types = []
+                    if type:
+                        if type.lower() in ['photo', 'photos']:
+                            types.append(0)
+                        if type.lower() in ['video', 'videos']:
+                            types.append(1)
+                    if types: params["item_type"] = types
+
                     try:
                         resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
                         data = resp.json()
