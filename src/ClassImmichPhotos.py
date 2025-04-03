@@ -727,8 +727,8 @@ class ClassImmichPhotos:
         filtered = []
         for asset in assets:
             asset_id = asset.get("id")
-            # people = self.get_asset_people(asset_id)
             people = asset.get("people", [])
+            people = self.get_asset_people(asset_id)
             for person in people:
                 if isinstance(person, dict):
                     person_name_field = person.get("name", "")
