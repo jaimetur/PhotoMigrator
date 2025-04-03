@@ -25,6 +25,34 @@
 > By default, (if your terminal size has enough width and heigh) a Live Dashboard will show you all the details about the migration process, including most relevant log messages, and counter status. You can disable this Live Dashboard using the flag **'-dashboard=false or --dashboard=false'**.   
 > 
 > Additionally, this Automated Migration process can also be executed sequentially instead of in parallel, using flag **--parallel=false**, so first, all the assets will be pulled from <SOURCE> and when finish, they will be pushed into <TARGET>, but take into account that in this case, you will need enough disk space to store all your assets pulled from <SOURCE> service.
+>
+> Finally, you can apply filters to filter assets to pull from \<SOURCE> client. The available filters are: 
+>    - by Type
+>      - flag: -type, --type
+>        - Valid values are [image, video, all]
+>    - by Dates
+>      - flags
+>        - from-date
+>        - to-date
+>      - Valid values are in one of those formats: 
+>        - dd/mm/yyyy
+>        - dd-mm-yyyy
+>        - yyyy/mm/dd
+>        - yyyy-mm-dd
+>        - mm/yyyy
+>        - mm-yyyy
+>        - yyyy/mm
+>        - yyyy-mm
+>        - yyyy 
+>    - by Country
+>      - flag: -country, --country
+>        - Valid values are any existing country in the \<SOURCE> client.
+>    - by City
+>      - flag: -city, --city
+>        - Valid values are any existing city in the \<SOURCE> client.
+>    - by Person
+>      - flag: -person, --person
+>        - Valid values are any existing person in the \<SOURCE> client.
 
 > [!WARNING]  
 > If you use a local folder <INPUT_FOLDER> as source client, all your Albums should be placed into a subfolder called *'Albums'* within <INPUT_FOLDER>, creating one Album subfolder per Album, otherwise the tool will no create any Album in the target client.  

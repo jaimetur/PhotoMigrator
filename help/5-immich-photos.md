@@ -14,6 +14,36 @@
 > 8. Remove Duplicates Albums
 > 9. Remove Orphans Assets
 > 
+> You can apply filters to filter assets to download assets from Immich using any Download feature included.  
+> 
+> The available filters are: 
+>    - by Type
+>      - flag: -type, --type
+>        - Valid values are [image, video, all]
+>    - by Dates
+>      - flags
+>        - from-date
+>        - to-date
+>      - Valid values are in one of those formats: 
+>        - dd/mm/yyyy
+>        - dd-mm-yyyy
+>        - yyyy/mm/dd
+>        - yyyy-mm-dd
+>        - mm/yyyy
+>        - mm-yyyy
+>        - yyyy/mm
+>        - yyyy-mm
+>        - yyyy 
+>    - by Country
+>      - flag: -country, --country
+>        - Valid values are any existing country in the \<SOURCE> client.
+>    - by City
+>      - flag: -city, --city
+>        - Valid values are any existing city in the \<SOURCE> client.
+>    - by Person
+>      - flag: -person, --person
+>        - Valid values are any existing person in the \<SOURCE> client.
+>
 >The credentials/API Key need to be loaded from the 'Config.ini' file that  have this format:
 >
 >>#### <span style="color:green">Example 'Config.ini' for Immich Photos:</span>

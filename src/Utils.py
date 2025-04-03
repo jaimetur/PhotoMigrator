@@ -1230,7 +1230,6 @@ def parse_text_to_iso8601(date_str):
             return dt.strftime("%Y-%m-%dT00:00:00.000Z")
         except ValueError:
             continue
-
     # Año y mes: YYYY-MM, YYYY/MM, MM-YYYY, MM/YYYY
     try:
         match = re.fullmatch(r"(\d{4})[-/](\d{1,2})", date_str)
@@ -1245,7 +1244,6 @@ def parse_text_to_iso8601(date_str):
             return dt.strftime("%Y-%m-%dT00:00:00.000Z")
     except Exception:
         pass
-
     # Solo año
     if re.fullmatch(r"\d{4}", date_str):
         try:
@@ -1253,7 +1251,6 @@ def parse_text_to_iso8601(date_str):
             return dt.strftime("%Y-%m-%dT00:00:00.000Z")
         except Exception:
             pass
-
     return None
 
 
@@ -1276,7 +1273,6 @@ def parse_text_datetime_to_epoch(value):
     """
     if isinstance(value, (int, float)):
         return int(value)
-
     if isinstance(value, str):
         try:
             # Priority 1: ISO with timezone or 'Z'
@@ -1313,10 +1309,8 @@ def parse_text_datetime_to_epoch(value):
             return int(float(value))
         except Exception:
             return None
-
     if isinstance(value, datetime):
         return int(value.timestamp())
-
     return None
 
 # Deprecated fucntion

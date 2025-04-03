@@ -377,6 +377,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 LOGGER.info(f"INFO    : - Person       : {person} {unsupported_text}")
             LOGGER.info("")
             LOGGER.info(f"INFO    : Starting Pulling/Pushing Workers...")
+            LOGGER.info(f"INFO    : Analyzing Source Client and Applying filters. This process may take some time, please be patient...")
 
             # Get source client statistics:
             blocked_assets = []
@@ -456,6 +457,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             num_push_threads = max(1, int(cpu_total_threads / 2))
             LOGGER.info(f"INFO    : Launching {num_push_threads} Push workers in parallel...")
             num_pull_threads = 1  # no Iniciar más de 1 hilo de descarga, de lo contrario los assets se descargarán multiples veces.
+            LOGGER.info(f"INFO    : Launching {num_push_threads} Pull worker in parallel...")
 
             # Crear hilos
             pull_threads = [threading.Thread(target=puller_worker, kwargs={"parallel": parallel}, daemon=True) for _ in range(num_pull_threads)]
@@ -1253,9 +1255,9 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
                     line_colored = f"[red]{line}[/red]"
                 elif "debug   :" in line_lower:
                     line_colored = f"[#EEEEEE]{line}[/#EEEEEE]"
-                elif "pull" in line_lower:
+                elif "pull" in line_lower and not "push" in line_lower:
                     line_colored = f"[cyan]{line}[/cyan]"
-                elif any(word in line_lower for word in ("push", "created", "duplicated")):
+                elif any(word in line_lower for word in ("push", "created", "duplicated")) and not "pull" in line_lower:
                     line_colored = f"[green]{line}[/green]"
                 else:
                     line_colored = f"[bright_white]{line}[/bright_white]"

@@ -3,9 +3,9 @@ import logging
 from GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE, resolve_path
 from CustomHelpFormatter import CustomHelpFormatter
 from CustomPager import PagedParser
-from Utils import parse_text_to_iso8601
 import argparse
 import os
+import re
 from datetime import datetime
 
 choices_for_message_levels          = ['debug', 'info', 'warning', 'error', 'critical']
@@ -435,3 +435,58 @@ def resolve_all_possible_paths(args_dict, keys_to_check=None):
                 else:
                     resolved_parts.append(resolve_path(part))
             args_dict[key] = ', '.join(resolved_parts) if ',' in value else resolved_parts[0]
+
+def parse_text_to_iso8601(date_str):
+    """
+    Intenta convertir una cadena de fecha a formato ISO 8601 (UTC a medianoche).
+
+    Soporta:
+    - Día/Mes/Año (varios formatos)
+    - Año/Mes o Mes/Año (como '2024-03' o '03/2024')
+    - Solo año (como '2024')
+
+    Args:
+        date_str (str): La cadena de fecha.
+
+    Returns:
+        str | None: Fecha en formato ISO 8601 o None si no se pudo convertir.
+    """
+    if not date_str or not date_str.strip():
+        return None
+    date_str = date_str.strip()
+
+    # Lista de formatos con día, mes y año
+    date_formats = [
+        "%d/%m/%Y",
+        "%d-%m-%Y",
+        "%Y-%m-%d",
+        "%Y/%m/%d",
+    ]
+    for fmt in date_formats:
+        try:
+            dt = datetime.strptime(date_str, fmt)
+            return dt.strftime("%Y-%m-%dT00:00:00.000Z")
+        except ValueError:
+            continue
+    # Año y mes: YYYY-MM, YYYY/MM, MM-YYYY, MM/YYYY
+    try:
+        match = re.fullmatch(r"(\d{4})[-/](\d{1,2})", date_str)
+        if match:
+            year, month = int(match.group(1)), int(match.group(2))
+            dt = datetime(year, month, 1)
+            return dt.strftime("%Y-%m-%dT00:00:00.000Z")
+        match = re.fullmatch(r"(\d{1,2})[-/](\d{4})", date_str)
+        if match:
+            month, year = int(match.group(1)), int(match.group(2))
+            dt = datetime(year, month, 1)
+            return dt.strftime("%Y-%m-%dT00:00:00.000Z")
+    except Exception:
+        pass
+    # Solo año
+    if re.fullmatch(r"\d{4}", date_str):
+        try:
+            dt = datetime(int(date_str), 1, 1)
+            return dt.strftime("%Y-%m-%dT00:00:00.000Z")
+        except Exception:
+            pass
+    return None
