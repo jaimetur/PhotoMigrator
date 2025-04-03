@@ -1246,9 +1246,11 @@ def to_epoch(value):
     Converts a datetime-like input into a UNIX epoch timestamp (in seconds).
 
     Priority for string parsing:
-    1. ISO 8601 with timezone or 'Z' (e.g., '2024-02-01T00:00:00.000Z', '2024-02-01T00:00:00+01:00')
-    2. ISO format without timezone (e.g., '2024-02-01 00:00:00')
-    3. Float or int string (e.g., '1700000000.0')
+    1. ISO 8601 with timezone or 'Z'
+    2. ISO format without timezone
+    3. Year only (e.g., '2024') → '2024-01-01'
+    4. Year and month (various formats) → 'YYYY-MM-01'
+    5. Float or int string (epoch-like)
 
     Args:
         value (str | int | float | datetime): The input value to convert.
@@ -1273,7 +1275,25 @@ def to_epoch(value):
         except Exception:
             pass
         try:
-            # Priority 3: float/int string
+            # Priority 3: Year only
+            if re.fullmatch(r"\d{4}", value):
+                dt = datetime(int(value), 1, 1)
+                return int(dt.timestamp())
+            # Priority 4: Year and month (various formats)
+            match = re.fullmatch(r"(\d{4})[-/](\d{1,2})", value)
+            if match:
+                year, month = int(match.group(1)), int(match.group(2))
+                dt = datetime(year, month, 1)
+                return int(dt.timestamp())
+            match = re.fullmatch(r"(\d{1,2})[-/](\d{4})", value)
+            if match:
+                month, year = int(match.group(1)), int(match.group(2))
+                dt = datetime(year, month, 1)
+                return int(dt.timestamp())
+        except Exception:
+            pass
+        try:
+            # Priority 5: float/int string
             return int(float(value))
         except Exception:
             return None
