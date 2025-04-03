@@ -29,7 +29,7 @@ DEPRIORITIZE_FOLDERS_PATTERNS   = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS',
 SCRIPT_DESCRIPTION              = textwrap.dedent(f"""
                                 {SCRIPT_NAME_VERSION} - {SCRIPT_DATE}
                                 
-                                Multi-Platform/Multi-Arch toot designed to Interact and Manage different Photo Cloud Services
+                                Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
                                 such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
                                 
                                 (c) 2024-2025 by Jaime Tur (@jaimetur)
