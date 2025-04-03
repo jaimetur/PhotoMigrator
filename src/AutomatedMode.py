@@ -377,7 +377,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 LOGGER.info(f"INFO    : - Person       : {person} {unsupported_text}")
             LOGGER.info("")
             LOGGER.info(f"INFO    : Starting Pulling/Pushing Workers...")
-            LOGGER.info(f"INFO    : Analyzing Source Client and Applying filters. This process may take some time, please be patient...")
+            LOGGER.info(f"INFO    : Analyzing Source client and Applying filters. This process may take some time, please be patient...")
 
             # Get source client statistics:
             blocked_assets = []
