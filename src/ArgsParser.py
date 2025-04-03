@@ -3,6 +3,7 @@ import logging
 from GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE, resolve_path
 from CustomHelpFormatter import CustomHelpFormatter
 from CustomPager import PagedParser
+from Utils import parse_text_to_iso8601
 import argparse
 import os
 from datetime import datetime
@@ -341,8 +342,8 @@ def checkArgs(ARGS, PARSER):
 
 
     # Parseamos las fechas de ARGS['from-date'] y ARGS['to-date'] para devolver una fecha en valida en formato iso8601 en caso de que contenga alguna fecha válida, o cadena vacía en caso contrario
-    ARGS['from-date'] = parse_to_iso8601(ARGS.get('from-date', ''))
-    ARGS['to-date'] = parse_to_iso8601(ARGS.get('to-date', ''))
+    ARGS['from-date'] = parse_text_to_iso8601(ARGS.get('from-date', ''))
+    ARGS['to-date'] = parse_text_to_iso8601(ARGS.get('to-date', ''))
 
 
     # Parseamos type
@@ -382,26 +383,6 @@ def create_global_variable_from_args(args):
 
 def getParser():
     return PARSER
-
-def parse_to_iso8601(date_str):
-    if not date_str or not date_str.strip():
-        return None
-    date_str = date_str.strip()
-    # Lista de formatos a probar
-    date_formats = [
-        "%d/%m/%Y",
-        "%Y-%m-%d",
-        "%d-%m-%Y",
-        "%Y/%m/%d",
-    ]
-    for fmt in date_formats:
-        try:
-            dt = datetime.strptime(date_str, fmt)
-            return dt.strftime("%Y-%m-%dT00:00:00.000Z")
-        except ValueError:
-            continue
-    # Si no se pudo convertir, devuelve None
-    return None
 
 def resolve_all_possible_paths(args_dict, keys_to_check=None):
     """

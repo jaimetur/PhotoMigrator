@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 from halo import Halo
 from tabulate import tabulate
 
-from Utils import update_metadata, convert_to_list, tqdm, to_epoch
+from Utils import update_metadata, convert_to_list, tqdm, parse_text_datetime_to_epoch
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
@@ -658,7 +658,7 @@ class ClassImmichPhotos:
         Filters a list of assets by their 'time' field using a date range.
 
         If any of the date inputs (from_date, to_date, or asset['time']) are not in epoch format,
-        they will be converted using `to_epoch()`.
+        they will be converted using `parse_text_datetime_to_epoch()`.
 
         Args:
             assets (list): List of asset dictionaries.
@@ -668,11 +668,11 @@ class ClassImmichPhotos:
         Returns:
             list: A filtered list of assets whose 'time' field is within the specified range.
         """
-        epoch_start = 0 if from_date is None else to_epoch(from_date)
-        epoch_end = int(time.time()) if to_date is None else to_epoch(to_date)
+        epoch_start = 0 if from_date is None else parse_text_datetime_to_epoch(from_date)
+        epoch_end = int(time.time()) if to_date is None else parse_text_datetime_to_epoch(to_date)
         filtered = []
         for asset in assets:
-            asset_time = to_epoch(asset.get("time"))
+            asset_time = parse_text_datetime_to_epoch(asset.get("time"))
             if asset_time is None:
                 continue
             if epoch_start <= asset_time <= epoch_end:

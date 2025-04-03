@@ -12,7 +12,7 @@ from datetime import datetime
 import time
 import logging
 
-from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm, to_epoch
+from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm, parse_text_datetime_to_epoch
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
@@ -874,7 +874,7 @@ class ClassSynologyPhotos:
         Filters a list of assets by their 'time' field using a date range.
 
         If any of the date inputs (from_date, to_date, or asset['time']) are not in epoch format,
-        they will be converted using `to_epoch()`.
+        they will be converted using `parse_text_datetime_to_epoch()`.
 
         Args:
             assets (list): List of asset dictionaries.
@@ -884,11 +884,11 @@ class ClassSynologyPhotos:
         Returns:
             list: A filtered list of assets whose 'time' field is within the specified range.
         """
-        epoch_start = 0 if from_date is None else to_epoch(from_date)
-        epoch_end = int(time.time()) if to_date is None else to_epoch(to_date)
+        epoch_start = 0 if from_date is None else parse_text_datetime_to_epoch(from_date)
+        epoch_end = int(time.time()) if to_date is None else parse_text_datetime_to_epoch(to_date)
         filtered = []
         for asset in assets:
-            asset_time = to_epoch(asset.get("time"))
+            asset_time = parse_text_datetime_to_epoch(asset.get("time"))
             if asset_time is None:
                 continue
             if epoch_start <= asset_time <= epoch_end:
@@ -976,8 +976,8 @@ class ClassSynologyPhotos:
                 person = ARGS.get('person', None)
 
                 # Convert the values from iso to epoch
-                from_date = to_epoch(from_date)
-                to_date = to_epoch(to_date)
+                from_date = parse_text_datetime_to_epoch(from_date)
+                to_date = parse_text_datetime_to_epoch(to_date)
 
                 # Obtain the place_ids for country and city
                 geocoding_country_ids_list = []
@@ -1074,8 +1074,8 @@ class ClassSynologyPhotos:
                 person = ARGS.get('person', None)
 
                 # Convert the values from iso to epoch
-                from_date = to_epoch(from_date)
-                to_date = to_epoch(to_date)
+                from_date = parse_text_datetime_to_epoch(from_date)
+                to_date = parse_text_datetime_to_epoch(to_date)
 
                 # Obtain the place_ids for country and city
                 geocoding_country_ids_list = []
@@ -1182,8 +1182,8 @@ class ClassSynologyPhotos:
                 person = ARGS.get('person', None)
 
                 # Convert the values from iso to epoch
-                from_date = to_epoch(from_date)
-                to_date = to_epoch(to_date)
+                from_date = parse_text_datetime_to_epoch(from_date)
+                to_date = parse_text_datetime_to_epoch(to_date)
 
                 # Obtain the place_ids for country and city
                 geocoding_country_ids_list = []

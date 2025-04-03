@@ -1195,53 +1195,69 @@ def get_logger_filename(logger):
             return handler.baseFilename  # Devuelve el path del archivo de logs
     return ""  # Si no hay un FileHandler, retorna ""
 
-
-def iso8601_to_epoch(iso_date):
+# ===============================================================================
+#                               DATE PARSERS
+# ==============================================================================
+def parse_text_to_iso8601(date_str):
     """
-    Convierte una fecha en formato ISO 8601 a timestamp Unix (en segundos).
-    Si el argumento es None o una cadena vacía, devuelve el mismo valor.
+    Intenta convertir una cadena de fecha a formato ISO 8601 (UTC a medianoche).
 
-    Ejemplo:
-        iso8601_to_epoch("2021-12-01T00:00:00Z") -> 1638316800
-        iso8601_to_epoch("") -> -1
-        iso8601_to_epoch(None) -> -1
+    Soporta:
+    - Día/Mes/Año (varios formatos)
+    - Año/Mes o Mes/Año (como '2024-03' o '03/2024')
+    - Solo año (como '2024')
+
+    Args:
+        date_str (str): La cadena de fecha.
+
+    Returns:
+        str | None: Fecha en formato ISO 8601 o None si no se pudo convertir.
     """
-    if iso_date is None:
+    if not date_str or not date_str.strip():
         return None
+    date_str = date_str.strip()
 
+    # Lista de formatos con día, mes y año
+    date_formats = [
+        "%d/%m/%Y",
+        "%d-%m-%Y",
+        "%Y-%m-%d",
+        "%Y/%m/%d",
+    ]
+    for fmt in date_formats:
+        try:
+            dt = datetime.strptime(date_str, fmt)
+            return dt.strftime("%Y-%m-%dT00:00:00.000Z")
+        except ValueError:
+            continue
+
+    # Año y mes: YYYY-MM, YYYY/MM, MM-YYYY, MM/YYYY
     try:
-        if iso_date.endswith("Z"):
-            iso_date = iso_date.replace("Z", "+00:00")
-        dt = datetime.fromisoformat(iso_date)
-        return int(dt.timestamp())
+        match = re.fullmatch(r"(\d{4})[-/](\d{1,2})", date_str)
+        if match:
+            year, month = int(match.group(1)), int(match.group(2))
+            dt = datetime(year, month, 1)
+            return dt.strftime("%Y-%m-%dT00:00:00.000Z")
+        match = re.fullmatch(r"(\d{1,2})[-/](\d{4})", date_str)
+        if match:
+            month, year = int(match.group(1)), int(match.group(2))
+            dt = datetime(year, month, 1)
+            return dt.strftime("%Y-%m-%dT00:00:00.000Z")
     except Exception:
-        # En caso de error inesperado, se devuelve -1
-        return -1
+        pass
+
+    # Solo año
+    if re.fullmatch(r"\d{4}", date_str):
+        try:
+            dt = datetime(int(date_str), 1, 1)
+            return dt.strftime("%Y-%m-%dT00:00:00.000Z")
+        except Exception:
+            pass
+
+    return None
 
 
-def epoch_to_iso8601(epoch):
-    """
-    Convierte un timestamp Unix (en segundos) a una cadena en formato ISO 8601 (UTC).
-    Si el argumento es None o una cadena vacía, devuelve el mismo valor.
-
-    Ejemplo:
-        epoch_to_iso8601(1638316800) -> "2021-12-01T00:00:00Z"
-        epoch_to_iso8601("") -> ""
-        epoch_to_iso8601(None) -> ""
-    """
-    if epoch is None or epoch == "":
-        return ""
-
-    try:
-        # Asegura que sea un número entero
-        epoch = int(epoch)
-        dt = datetime.fromtimestamp(epoch, tz=timezone.utc)
-        return dt.isoformat().replace("+00:00", "Z")
-    except Exception:
-        # En caso de error inesperado, se devuelve el valor original
-        return ""
-
-def to_epoch(value):
+def parse_text_datetime_to_epoch(value):
     """
     Converts a datetime-like input into a UNIX epoch timestamp (in seconds).
 
@@ -1302,4 +1318,52 @@ def to_epoch(value):
         return int(value.timestamp())
 
     return None
+
+# Deprecated fucntion
+def iso8601_to_epoch(iso_date):
+    """
+    Convierte una fecha en formato ISO 8601 a timestamp Unix (en segundos).
+    Si el argumento es None o una cadena vacía, devuelve el mismo valor.
+
+    Ejemplo:
+        iso8601_to_epoch("2021-12-01T00:00:00Z") -> 1638316800
+        iso8601_to_epoch("") -> -1
+        iso8601_to_epoch(None) -> -1
+    """
+    if iso_date is None:
+        return None
+
+    try:
+        if iso_date.endswith("Z"):
+            iso_date = iso_date.replace("Z", "+00:00")
+        dt = datetime.fromisoformat(iso_date)
+        return int(dt.timestamp())
+    except Exception:
+        # En caso de error inesperado, se devuelve -1
+        return -1
+
+# Deprecated fucntion
+def epoch_to_iso8601(epoch):
+    """
+    Convierte un timestamp Unix (en segundos) a una cadena en formato ISO 8601 (UTC).
+    Si el argumento es None o una cadena vacía, devuelve el mismo valor.
+
+    Ejemplo:
+        epoch_to_iso8601(1638316800) -> "2021-12-01T00:00:00Z"
+        epoch_to_iso8601("") -> ""
+        epoch_to_iso8601(None) -> ""
+    """
+    if epoch is None or epoch == "":
+        return ""
+
+    try:
+        # Asegura que sea un número entero
+        epoch = int(epoch)
+        dt = datetime.fromtimestamp(epoch, tz=timezone.utc)
+        return dt.isoformat().replace("+00:00", "Z")
+    except Exception:
+        # En caso de error inesperado, se devuelve el valor original
+        return ""
+
+
 

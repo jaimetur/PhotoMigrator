@@ -5,7 +5,7 @@ import shutil
 import logging
 import re
 import Utils
-from Utils import to_epoch
+from Utils import parse_text_datetime_to_epoch
 from datetime import datetime
 import time
 from pathlib import Path
@@ -535,7 +535,7 @@ class ClassLocalFolder:
         Filters a list of assets by their 'time' field using a date range.
 
         If any of the date inputs (from_date, to_date, or asset['time']) are not in epoch format,
-        they will be converted using `to_epoch()`.
+        they will be converted using `parse_text_datetime_to_epoch()`.
 
         Args:
             assets (list): List of asset dictionaries.
@@ -545,11 +545,11 @@ class ClassLocalFolder:
         Returns:
             list: A filtered list of assets whose 'time' field is within the specified range.
         """
-        epoch_start = 0 if from_date is None else to_epoch(from_date)
-        epoch_end = int(time.time()) if to_date is None else to_epoch(to_date)
+        epoch_start = 0 if from_date is None else parse_text_datetime_to_epoch(from_date)
+        epoch_end = int(time.time()) if to_date is None else parse_text_datetime_to_epoch(to_date)
         filtered = []
         for asset in assets:
-            asset_time = to_epoch(asset.get("time"))
+            asset_time = parse_text_datetime_to_epoch(asset.get("time"))
             if asset_time is None:
                 continue
             if epoch_start <= asset_time <= epoch_end:
