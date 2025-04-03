@@ -21,9 +21,9 @@
 >      - flag: -type, --type
 >        - Valid values are [image, video, all]
 >    - by Dates
->      - flags
->        - from-date
->        - to-date
+>      - flags:
+>        - -from, --from-date
+>        - -to, --to-date
 >      - Valid values are in one of those formats: 
 >        - dd/mm/yyyy
 >        - dd-mm-yyyy
