@@ -94,8 +94,8 @@ same Photo Cloud service.
              Specify the Country Name to filter assets in the different Photo Clients.
 -city,     --city <CITY_NAME>
              Specify the City Name to filter assets in the different Photo Clients.
--people,   --people <PEOPLE_NAME>
-             Specify the People Name to filter assets in the different Photo Clients.
+-person,   --person <PERSON_NAME>
+             Specify the Person Name to filter assets in the different Photo Clients.
 -type,     --asset-type = [image,video,all]
              Specify the Asset Type to filter assets in the different Photo Clients.
              (default: all)
