@@ -13,7 +13,7 @@
 > 7. Remove Empty Albums
 > 8. Remove Duplicates Albums
 >
-> You can apply filters to filter assets to download assets from Immich using any Download feature included.  
+> You can apply filters to filter assets to download from Synology Photos using any Download feature included.  
 > 
 > The available filters are: 
 >    - by Type
