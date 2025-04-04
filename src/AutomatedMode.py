@@ -845,7 +845,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     file_paths_lock = threading.Lock()
 
     # Normalizamos temp_folder
-    # temp_folder = Utils.normalize_path(temp_folder)
+    temp_folder = Utils.normalize_path(temp_folder)
 
     # Check if parallel=None, and in that case, get it from ARGS
     if parallel is None: parallel = ARGS['parallel-migration']

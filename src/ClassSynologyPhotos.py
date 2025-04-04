@@ -500,9 +500,9 @@ class ClassSynologyPhotos:
                         "offset": offset,
                         "limit": limit
                     }
-                    r = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                    r.raise_for_status()
-                    data = r.json()
+                    resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    resp.raise_for_status()
+                    data = resp.json()
 
                     if data["success"]:
                         album_list.extend(data["data"]["list"])
@@ -514,13 +514,10 @@ class ClassSynologyPhotos:
                         break
                     offset += limit
 
-                # Replace the key "name" by "albumName" to make it equal to Immich Photos
-                for item in album_list:
-                    if "name" in item:
-                        item["albumName"] = item.pop("name")
-
                 albums_filtered = []
                 for album in album_list:
+                    if "name" in album:  # Replace the key "name" by "albumName" to make it equal to Immich Photos
+                        album["albumName"] = album.pop("name")
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
                     album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
@@ -584,14 +581,10 @@ class ClassSynologyPhotos:
                 LOGGER.error("ERROR   : Exception while listing own albums. {e}")
                 return None
             
-
-            # Replace the key "name" by "albumName" to make it equal to Immich Photos
-            for album in album_list:
-                if "name" in album:
-                    album["albumName"] = album.pop("name")
-
             albums_filtered = []
             for album in album_list:
+                if "name" in album:  # Replace the key "name" by "albumName" to make it equal to Immich Photos
+                    album["albumName"] = album.pop("name")
                 album_id = album.get('id')
                 album_name = album.get("albumName", "")
                 album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
