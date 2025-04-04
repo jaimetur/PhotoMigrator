@@ -104,7 +104,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
         if show_gpth_errors is None: show_gpth_errors = ARGS['show-gpth-errors']
 
         # Define the INTERMEDIATE_FOLDER
-        INTERMEDIATE_FOLDER = resolve_path(f'Temp_folder_{TIMESTAMP}')
+        INTERMEDIATE_FOLDER = resolve_path(f'./Temp_folder_{TIMESTAMP}')
 
         # ---------------------------------------------------------------------------------------------------------
         # 1) Creamos los objetos source_client y target_client en función de los argumentos source y target
@@ -375,6 +375,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 LOGGER.info(f"INFO    : - City         : {city} {unsupported_text}")
             if person:
                 LOGGER.info(f"INFO    : - Person       : {person} {unsupported_text}")
+            LOGGER.info(f"INFO    : Temp Folder    : {temp_folder}")
             LOGGER.info("")
             LOGGER.info(f"INFO    : Starting Pulling/Pushing Workers...")
             LOGGER.info(f"INFO    : Analyzing Source client and Applying filters. This process may take some time, please be patient...")

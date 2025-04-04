@@ -609,18 +609,21 @@ class ClassImmichPhotos:
             person = ARGS.get('person', None)
 
             # Now Filter the assets list based on the filters given by ARGS
-            filtered_assets = assets
-            if type:
-                filtered_assets = self.filter_assets_by_type(filtered_assets, type)
-            if from_date or to_date:
-                filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
-            if country:
-                filtered_assets = self.filter_assets_by_place(filtered_assets, country)
-            if city:
-                filtered_assets = self.filter_assets_by_place(filtered_assets, city)
-            if person:
-                filtered_assets = self.filter_assets_by_person(filtered_assets, person)
-            return filtered_assets
+            try:
+                filtered_assets = assets
+                if type:
+                    filtered_assets = self.filter_assets_by_type(filtered_assets, type)
+                if from_date or to_date:
+                    filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
+                if country:
+                    filtered_assets = self.filter_assets_by_place(filtered_assets, country)
+                if city:
+                    filtered_assets = self.filter_assets_by_place(filtered_assets, city)
+                if person:
+                    filtered_assets = self.filter_assets_by_person(filtered_assets, person)
+                return filtered_assets
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while filtering Assets from Immich Photos. {e}")
 
     def filter_assets_by_type(self, assets, type):
         """
