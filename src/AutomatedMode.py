@@ -617,13 +617,13 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             }
                             # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
                             enqueue_unique(push_queue, asset_dict, parallel=parallel)
-                    else:
-                        LOGGER.warning(f"WARNING : Asset Pull Fail : '{os.path.join(album_folder, os.path.basename(asset_filename))}' from Album '{album_name}'")
-                        SHARED_DATA.counters['total_pull_failed_assets'] += 1
-                        if asset_type.lower() == 'video':
-                            SHARED_DATA.counters['total_pull_failed_videos'] += 1
                         else:
-                            SHARED_DATA.counters['total_pull_failed_photos'] += 1
+                            LOGGER.warning(f"WARNING : Asset Pull Fail : '{os.path.join(album_folder, os.path.basename(asset_filename))}' from Album '{album_name}'")
+                            SHARED_DATA.counters['total_pull_failed_assets'] += 1
+                            if asset_type.lower() == 'video':
+                                SHARED_DATA.counters['total_pull_failed_videos'] += 1
+                            else:
+                                SHARED_DATA.counters['total_pull_failed_photos'] += 1
 
                 except Exception as e:
                     LOGGER.error(f"ERROR  : Asset Pull Error: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e} \n{traceback.format_exc()}")
