@@ -818,8 +818,6 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                                 pass
 
                     push_queue.task_done()
-                    # sys.stdout.flush()
-                    # sys.stderr.flush()
 
                 except Exception as e:
                     LOGGER.error(f"ERROR   : Error in Pusher worker while pushing asset: {asset}")
@@ -852,61 +850,6 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
     # Llamada al hilo principal
     main_thread(parallel=parallel, log_level=log_level)
-
-###########################################
-# sequential_automated_migration Function #
-###########################################
-# This fucntion is deprecated. Replaced by parallel_automated_migration(parallel=False)
-def sequential_automated_migration(source_client, target_client, temp_folder, SHARED_DATA, log_level=logging.INFO):
-    """
-    Sincroniza fotos y vídeos entre un 'source_client' y un 'destination_client',
-    descargando álbumes y assets desde la fuente, y luego subiéndolos a destino,
-    de forma secuencial, primero descargas y luego subidas (requiere suficiente espacio en disco).
-
-    Parámetros:
-    -----------
-    source_client: objeto con los métodos:
-        - get_albums_including_shared_with_user() -> [ { 'id': ..., 'name': ... }, ... ]
-        - get_all_assets_from_album(album_id) -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
-        - get_all_assets_without_albums() -> [ { 'id': ..., 'asset_datetime': ..., 'type': ... }, ... ]
-        - pull_asset(asset_id, download_path) -> str (ruta local del archivo descargado)
-
-    target_client: objeto con los métodos:
-        - create_album(album_name) -> album_id
-        - album_exists(album_name) -> (bool, album_id_o_None)
-        - push_asset(asset_file_path, asset_datetime) -> asset_id
-        - add_asset_to_album(album_id, asset_id) -> None
-
-    temp_folder: str
-        Carpeta temporal donde se descargarán los assets antes de subirse.
-    """
-    
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # =========================
-        # FIRST PROCESS THE SOURCE:
-        # =========================
-        SOURCE = source_client.get_client_name()
-        LOGGER.info("")
-        LOGGER.info(f'============================================================================')
-        LOGGER.info(f'INFO    : STEP 1 - PULL ASSETS FROM: {SOURCE}')
-        LOGGER.info(f'============================================================================')
-        LOGGER.info("")
-        LOGGER.info(f'INFO    : Pulling/Processing Assets from: {SOURCE}...')
-
-        source_client.pull_ALL(output_folder=temp_folder, log_level=log_level)
-
-        # =========================
-        # SECOND PROCESS THE TARGET:
-        # =========================
-        TARGET = target_client.get_client_name()
-        LOGGER.info("")
-        LOGGER.info(f'============================================================================')
-        LOGGER.info(f'INFO    : STEP 2 - PUSH ASSETS TO: {TARGET}')
-        LOGGER.info(f'============================================================================')
-        LOGGER.info("")
-        LOGGER.info(f'INFO    : Pushing/Processing Assets to: {TARGET}...')
-
-        target_client.push_ALL(input_folder=temp_folder, remove_duplicates=True, log_level=log_level)
 
 
 ###########################

@@ -92,9 +92,8 @@ def resolve_path(user_path):
                     f"Absolute path '{path_clean}' is outside the '/docker' folder."
                     f"\nPlease provide a path under /docker or under the execution folder."
                 )
-            # Accept as is, but let's posix-normalize again
+            # Normalize again and ensure it still stays under /docker
             final_path = posixpath.normpath(path_clean)
-            # Check if it still starts with /docker after possible ../
             if not final_path.startswith("/docker"):
                 raise ValueError(
                     f"Path '{user_path}' escapes from '/docker' after normalization."
@@ -102,10 +101,12 @@ def resolve_path(user_path):
                     f"\nPlease provide a path under /docker or under the execution folder."
                 )
             return final_path
+
         # (c) If it's relative, join it under /docker and then normalize again
         else:
-            joined_path = posixpath.join("/docker", path_clean.lstrip("/"))
+            joined_path = posixpath.join("/docker", path_clean)
             final_path = posixpath.normpath(joined_path)
+
             # If after normalization it no longer starts with /docker, that means
             # we used '..' to escape the /docker directory => raise an error
             if not final_path.startswith("/docker"):
