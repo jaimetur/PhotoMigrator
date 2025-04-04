@@ -308,50 +308,6 @@ class ClassSynologyPhotos:
                 return self.SYNOLOGY_USERNAME
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting user mail. {e}")
-            
-
-    def get_geocoding(self, log_level=logging.INFO):
-        """
-        Gets the Geocoding list.
-
-        Args:
-            log_level (logging.LEVEL): log_level for logs and console
-        Returns:
-             int: List of Geocoding used in the database.
-        """
-        with set_log_level(LOGGER, log_level):
-            try:
-                self.login(log_level=log_level)
-                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-                headers = {}
-                if self.SYNO_TOKEN_HEADER:
-                    headers.update(self.SYNO_TOKEN_HEADER)
-                offset = 0
-                limit = 5000
-                geocoding_list = []
-                while True:
-                    params = {
-                        "api": "SYNO.Foto.Browse.Geocoding",
-                        "method": "list",
-                        "version": "1",
-                        "offset": offset,
-                        "limit": limit
-                    }
-                    resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                    resp.raise_for_status()
-                    data = resp.json()
-                    if data["success"]:
-                        geocoding_list.extend(data["data"]["list"])
-                    else:
-                        LOGGER.error("ERROR   : Failed to get Geocoding list: ", data)
-                        return None
-                    if len(data["data"]["list"]) < limit:
-                        break
-                    offset += limit
-                return geocoding_list
-            except Exception as e:
-                LOGGER.error(f"ERROR   : Exception while getting Geocoding List from Synology Photos. {e}")
-
 
     def get_geocoding_person_lists(self, log_level=logging.INFO):
         """
@@ -427,30 +383,6 @@ class ClassSynologyPhotos:
                     stack.extend(current.get("children", []))
             return []  # Si no se encuentra el lugar
 
-    def get_geocoding_ids_old(self, place, log_level=logging.INFO):
-        with set_log_level(LOGGER, log_level):
-            geocoding_list, person_list = self.get_geocoding_person_lists(log_level=log_level)
-            result_ids = set()
-
-            for item in geocoding_list:
-                # Coincidencia con el país
-                if item.get("country") == place:
-                    result_ids.add(item.get("country_id"))
-                    result_ids.add(item.get("id"))
-
-                # Coincidencia con primer nivel (por ejemplo, ciudad o región)
-                if item.get("first_level") == place:
-                    result_ids.add(item.get("id"))
-
-                # Coincidencia con el nombre del lugar
-                if item.get("name") == place:
-                    result_ids.add(item.get("id"))
-
-                # Coincidencia con segundo nivel si aplica
-                if item.get("second_level") == place:
-                    result_ids.add(item.get("id"))
-
-            return list(result_ids)
 
     ###########################################################################
     #                            ALBUMS FUNCTIONS                             #
