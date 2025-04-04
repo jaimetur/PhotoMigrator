@@ -26,10 +26,8 @@ Once you have Docker installed and running on your system, you have twoo options
     ```
     The result should be something like this:  
       "latest"  
+      "3.2.0"  
       "3.1.0"  
-      "3.1.0-beta3"  
-      "3.1.0-beta2"  
-      "3.1.0-beta1"
 
 #### Example:
   - For latest release:
