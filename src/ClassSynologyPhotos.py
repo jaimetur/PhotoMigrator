@@ -1031,6 +1031,40 @@ class ClassSynologyPhotos:
                 person_ids_list = []
                 if person: person_ids_list = self.get_person_ids(person, log_level=log_level)
 
+                # base_params settings
+                base_params = {
+                    'api': 'SYNO.Foto.Browse.Item',
+                    # 'version': '4',
+                    # 'method': 'list',
+                    'version': '2',
+                    'method': 'list_with_filter',
+                    'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
+                    'album_id': album_id,
+                }
+
+                # Add time to params only if from_date or to_date have some values
+                time_dic = {}
+                if from_date:  time_dic["start_time"] = from_date
+                if to_date: time_dic["end_time"] = to_date
+                if time_dic: base_params["time"] = json.dumps([time_dic])
+
+                # Add geocoding key if geocoding_ids_list has some value
+                if geocoding_ids_list: base_params["geocoding"] = json.dumps(geocoding_ids_list)
+
+                # Add person key if person_ids_list has some value
+                if person_ids_list:
+                    base_params["person"] = json.dumps(person_ids_list)
+                    base_params["person_policy"] = '"or"'
+
+                # Add types to params if have been providen
+                types = []
+                if type:
+                    if type.lower() in ['photo', 'photos']:
+                        types.append(0)
+                    if type.lower() in ['video', 'videos']:
+                        types.append(1)
+                if types: base_params["item_type"] = types
+
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
                 headers = {}
@@ -1041,41 +1075,9 @@ class ClassSynologyPhotos:
                 limit = 5000
                 album_assets = []
                 while True:
-                    params = {
-                        'api': 'SYNO.Foto.Browse.Item',
-                        # 'version': '4',
-                        # 'method': 'list',
-                        'version': '2',
-                        'method': 'list_with_filter',
-                        'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
-                        'album_id': album_id,
-                        'offset': offset,
-                        'limit': limit,
-                    }
-
-                    # Add time to params only if from_date or to_date have some values
-                    time_dic = {}
-                    if from_date:  time_dic["start_time"] = from_date
-                    if to_date: time_dic["end_time"] = to_date
-                    if time_dic: params["time"] = json.dumps([time_dic])
-
-                    # Add geocoding key if geocoding_ids_list has some value
-                    if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
-
-                    # Add person key if person_ids_list has some value
-                    if person_ids_list:
-                        params["person"] = json.dumps(person_ids_list)
-                        params["person_policy"] = '"or"'
-
-                    # Add types to params if have been providen
-                    types = []
-                    if type:
-                        if type.lower() in ['photo', 'photos']:
-                            types.append(0)
-                        if type.lower() in ['video', 'videos']:
-                            types.append(1)
-                    if types: params["item_type"] = types
-
+                    params = base_params.copy()  # Hacemos una copia para no modificar el original
+                    params['offset'] = offset
+                    params['limit'] = limit
                     try:
                         resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
                         data = resp.json()
@@ -1144,6 +1146,43 @@ class ClassSynologyPhotos:
                 person_ids_list = []
                 if person: person_ids_list = self.get_person_ids(person, log_level=log_level)
 
+                # base_params settings
+                base_params = {
+                    'api': 'SYNO.Foto.Browse.Item',
+                    'version': '2',
+                    'method': 'list_with_filter',
+                    'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
+                    'passphrase': album_passphrase,
+                }
+
+                # Añadir rango de fechas si existen
+                time_dic = {}
+                if from_date:
+                    time_dic["start_time"] = from_date
+                if to_date:
+                    time_dic["end_time"] = to_date
+                if time_dic:
+                    base_params["time"] = json.dumps([time_dic])
+
+                # Añadir geocoding si existen
+                if geocoding_ids_list:
+                    base_params["geocoding"] = json.dumps(geocoding_ids_list)
+
+                # Añadir personas si existen
+                if person_ids_list:
+                    base_params["person"] = json.dumps(person_ids_list)
+                    base_params["person_policy"] = '"or"'
+
+                # Añadir tipo de ítem
+                types = []
+                if type:
+                    if type.lower() in ['photo', 'photos']:
+                        types.append(0)
+                    if type.lower() in ['video', 'videos']:
+                        types.append(1)
+                if types:
+                    base_params["item_type"] = types
+
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
                 headers = {}
@@ -1154,41 +1193,9 @@ class ClassSynologyPhotos:
                 limit = 5000
                 album_assets = []
                 while True:
-                    params = {
-                        'api': 'SYNO.Foto.Browse.Item',
-                        # 'version': '4',
-                        # 'method': 'list',
-                        'version': '2',
-                        'method': 'list_with_filter',
-                        'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
-                        'passphrase': album_passphrase,
-                        'offset': offset,
-                        'limit': limit,
-                    }
-
-                    # Add time to params only if from_date or to_date have some values
-                    time_dic = {}
-                    if from_date:  time_dic["start_time"] = from_date
-                    if to_date: time_dic["end_time"] = to_date
-                    if time_dic: params["time"] = json.dumps([time_dic])
-
-                    # Add geocoding key if geocoding_ids_list has some value
-                    if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
-
-                    # Add person key if person_ids_list has some value
-                    if person_ids_list:
-                        params["person"] = json.dumps(person_ids_list)
-                        params["person_policy"] = '"or"'
-
-                    # Add types to params if have been providen
-                    types = []
-                    if type:
-                        if type.lower() in ['photo', 'photos']:
-                            types.append(0)
-                        if type.lower() in ['video', 'videos']:
-                            types.append(1)
-                    if types: params["item_type"] = types
-
+                    params = base_params.copy()  # Hacemos una copia para no modificar el original
+                    params['offset'] = offset
+                    params['limit'] = limit
                     try:
                         resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
                         data = resp.json()

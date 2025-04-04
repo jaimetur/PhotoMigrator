@@ -618,6 +618,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
                             enqueue_unique(push_queue, asset_dict, parallel=parallel)
                     else:
+                        LOGGER.warning(f"WARNING : Fail to Pull asset '{os.path.join(album_folder, os.path.basename(asset_filename))}' from Album '{album_name}'")
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
                         if asset_type.lower() == 'video':
                             SHARED_DATA.counters['total_pull_failed_videos'] += 1
@@ -709,6 +710,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         }
                         enqueue_unique(push_queue, asset_dict, parallel=parallel)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
                     else:
+                        LOGGER.warning(f"WARNING : Fail to Pull asset '{os.path.basename(asset_filename)}'")
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
                         if asset_type.lower() == 'video':
                             SHARED_DATA.counters['total_pull_failed_videos'] += 1
@@ -762,6 +764,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                                     SHARED_DATA.counters['total_pushed_photos'] += 1
                                 LOGGER.info(f"INFO    : Asset Pushed    : '{asset_file_path}'")
                         else:
+                            LOGGER.warning(f"WARNING : Fail to Push asset '{os.path.basename(asset_filename)}'")
                             SHARED_DATA.counters['total_push_failed_assets'] += 1
                             if asset_type.lower() == 'video':
                                 SHARED_DATA.counters['total_push_failed_videos'] += 1
