@@ -319,7 +319,7 @@ def mode_synology_upload_albums(user_confirmation=True, log_level=logging.INFO):
         syno.login(log_level=logging.WARNING)
         LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['synology-upload-albums']}")
         # Call the Function
-        albums_crated, albums_skipped, photos_added = syno.upload_albums(ARGS['synology-upload-albums'], log_level=logging.WARNING)
+        albums_crated, albums_skipped, photos_added = syno.push_albums(ARGS['synology-upload-albums'], log_level=logging.WARNING)
         # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
         total_duplicates_albums_removed = syno.remove_duplicates_albums(log_level=logging.WARNING)
         # logout
@@ -366,7 +366,7 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         syno.login(log_level=logging.WARNING)
         LOGGER.info(f"INFO    : Uploading Assets in Folder    : {ARGS['synology-upload-all']}")
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed = syno.upload_ALL (ARGS['synology-upload-all'], albums_folders=albums_folders, log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed = syno.push_ALL (ARGS['synology-upload-all'], albums_folders=albums_folders, log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("INFO    : Cleaning-up Synology Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
@@ -424,7 +424,7 @@ def mode_synology_download_albums(user_confirmation=True, log_level=logging.INFO
         LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
         syno.login(log_level=logging.WARNING)
         # Call the Function
-        albums_downloaded, photos_downloaded = syno.download_albums(albums_name=ARGS['synology-download-albums'], output_folder=ARGS['output-folder'], log_level=logging.WARNING)
+        albums_downloaded, photos_downloaded = syno.pull_albums(albums_name=ARGS['synology-download-albums'], output_folder=ARGS['output-folder'], log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Synology Photos.")
@@ -472,7 +472,7 @@ def mode_synology_download_ALL(user_confirmation=True, log_level=logging.INFO):
         # Execute remove_duplicates_assets
         duplicates_assets_removed = syno.remove_duplicates_assets(log_level=logging.WARNING)
         # Call the Function
-        albums_downloaded, assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums = syno.download_ALL(output_folder=ARGS['synology-download-all'], log_level=logging.WARNING)
+        albums_downloaded, assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums = syno.pull_ALL(output_folder=ARGS['synology-download-all'], log_level=logging.WARNING)
         # logout
         LOGGER.info("INFO    : Logged out from Synology Photos.")
         syno.logout(log_level=logging.WARNING)
@@ -686,7 +686,7 @@ def mode_immich_upload_albums(user_confirmation=True, log_level=logging.INFO):
         immich.login(log_level=logging.WARNING)
         LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed, total_dupplicated_assets_skipped = immich.upload_albums(ARGS['immich-upload-albums'], log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed, total_dupplicated_assets_skipped = immich.push_albums(ARGS['immich-upload-albums'], log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("INFO    : Cleaning-up Immich Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
@@ -746,7 +746,7 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         immich.login(log_level=logging.WARNING)
         LOGGER.info(f"INFO    : Uploading Assets in Folder    : {ARGS['immich-upload-all']}")
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed, total_dupplicated_assets_skipped = immich.upload_ALL(ARGS['immich-upload-all'], albums_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed, total_dupplicated_assets_skipped = immich.push_ALL(ARGS['immich-upload-all'], albums_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("INFO    : Cleaning-up Immich Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
@@ -820,7 +820,7 @@ def mode_immich_download_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("INFO    : Removing Duplicates Assets...")
         duplicates_assets_removed = immich.remove_duplicates_assets(log_level=logging.WARNING)
         # Call the Function
-        albums_downloaded, assets_downloaded = immich.download_albums(albums_name=ARGS['immich-download-albums'], output_folder=ARGS['output-folder'], log_level=logging.WARNING)
+        albums_downloaded, assets_downloaded = immich.pull_albums(albums_name=ARGS['immich-download-albums'], output_folder=ARGS['output-folder'], log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
@@ -868,7 +868,7 @@ def mode_immich_download_ALL(user_confirmation=True, log_level=logging.INFO):
         # Execute remove_duplicates_assets
         duplicates_assets_removed = immich.remove_duplicates_assets(log_level=logging.WARNING)
         # Call the Function
-        albums_downloaded, assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums = immich.download_ALL(output_folder=ARGS['immich-download-all'], log_level=logging.WARNING)
+        albums_downloaded, assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums = immich.pull_ALL(output_folder=ARGS['immich-download-all'], log_level=logging.WARNING)
         # logout
         LOGGER.info("INFO    : Logged out from Immich Photos.")
         immich.logout(log_level=logging.WARNING)

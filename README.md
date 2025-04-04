@@ -4,7 +4,7 @@
 [![Open Github issues](https://img.shields.io/github/issues/jaimetur/CloudPhotoMigrator?label=Open%20Issues)](https://github.com/jaimetur/CloudPhotoMigrator/issues)
 [![Total Github Releases downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/total?label=Total%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases)
 [![Latest version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/latest/total?label=Latest%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases/latest)
-[![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.1.0/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
+[![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.2.0-alpha/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 
 # **CloudPhotoMigrator**
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">**Automated Migration** </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
@@ -129,7 +129,7 @@ The below tables show the pros and cons of each method together with a comparati
 >## <span style="color:green">Automated Migration Feature</span>
 >From version 3.0.0 onwards, the Tool supports a new Feature called '**Automated Migration**'. 
 >
-> Use the argument **'--source'** to select the \<SOURCE> and the argument **'--target'** to select \<TARGET> for the Automated Migration Process to Pull all your Assets (including Albums) from the \<SOURCE> Cloud Service and Push them to the \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
+> Use the argument **'--source'** to select the \<SOURCE> client and the argument **'--target'** to select \<TARGET> client for the Automated Migration Process to Pull all your Assets (including Albums) from the \<SOURCE> Cloud Service and Push them to the \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
 > 
 >  - Possible values for:
 >    - **\<SOURCE\>** : ['synology-photos', 'immich-photos']-[id] or <INPUT_FOLDER>  (id=[1, 2] to select which account to use from the Config.ini file).  
@@ -149,10 +149,35 @@ The below tables show the pros and cons of each method together with a comparati
 > 
 > By default, (if your terminal size has enough width and heigh) a Live Dashboard will show you all the details about the migration process, including most relevant log messages, and counter status. You can disable this Live Dashboard using the flag **'-dashboard=false or --dashboard=false'**.   
 > 
-> Additionally, this Automated Migration process can also be executed secuencially instead of in parallel, so first, all the assets will be pulled from <SOURCE> and when finish, they will be pushed into <TARGET>, but take into account that in this case, you will need enough disk space to store all your assets pulled from <SOURCE> service.
-> 
-> Also, take into account that in this case, the Live Dashboard will not be displayed, so you only will see the different messages log in the screen, but not the live counters during the migration.  
-> and execute this feature, the Tool will automatically do the whole migration job from \<SOURCE> Cloud Service to \<TARGET> Cloud Service.  
+> Additionally, this Automated Migration process can also be executed sequentially instead of in parallel, using flag **--parallel=false**, so first, all the assets will be pulled from <SOURCE> and when finish, they will be pushed into <TARGET>, but take into account that in this case, you will need enough disk space to store all your assets pulled from <SOURCE> service.
+>
+> Finally, you can apply filters to filter assets to pull from \<SOURCE> client. The available filters are: 
+>    - by Type
+>      - flag: -type, --type
+>        - Valid values are [image, video, all]
+>    - by Dates
+>      - flags:
+>        - -from, --from-date
+>        - -to, --to-date
+>      - Valid values are in one of those formats: 
+>        - dd/mm/yyyy
+>        - dd-mm-yyyy
+>        - yyyy/mm/dd
+>        - yyyy-mm-dd
+>        - mm/yyyy
+>        - mm-yyyy
+>        - yyyy/mm
+>        - yyyy-mm
+>        - yyyy 
+>    - by Country
+>      - flag: -country, --country
+>        - Valid values are any existing country in the \<SOURCE> client.
+>    - by City
+>      - flag: -city, --city
+>        - Valid values are any existing city in the \<SOURCE> client.
+>    - by Person
+>      - flag: -person, --person
+>        - Valid values are any existing person in the \<SOURCE> client.
 
 > [!WARNING]  
 > If you use a local folder <INPUT_FOLDER> as source client, all your Albums should be placed into a subfolder called *'Albums'* within <INPUT_FOLDER>, creating one Album subfolder per Album, otherwise the tool will no create any Album in the target client.  
@@ -162,32 +187,42 @@ The below tables show the pros and cons of each method together with a comparati
 > <INPUT_FOLDER>/Album2  
 
 > [!IMPORTANT]  
-> It is important that you configure properly the file 'Config.ini' (included with the tool), to set properly the accounts for your Photo Cloud Services.  
+> It is important that you configure properly the file 'Config.ini' (included with the tool), to set properly the accounts for your Photo Cloud Service.  
 
 
 # ROADMAP:
 
 ## v3.2.0  
 ### Release Date: (estimated)
-  - Alpha version.   : 2025-04-07
+  - Alpha version    : 2025-04-07
   - Beta version     : 2025-04-14
   - Release Candidate: 2025-04-25
   - Official Release : 2025-04-30
 
 ### TODO:
-- [ ] Add option to filter assets in all Immich/Synology/LocalFolder Actions:
-    - [ ] by Dates
-    - [ ] by Country
-    - [ ] by City
-    - [ ] by Archive
-    - [ ] by Person
-- [ ] Update Documentation
-- [ ] Update README.md
-- [ ] Update RELEASES-NOTES.md
+- [x] Add option to filter assets in all Immich/Synology/LocalFolder Actions:
+    - [x] by Type
+    - [x] by Dates
+    - [x] by Country
+    - [x] by City
+    - [x] by Person
+- [x] Added new flag _**-type, --type = [image, video, all]**_ to select the Asset Type to download (default: all)
+- [x] Added new flag _**-from, --from-date <FROM_DATE>**_ to select the Initial Date of the Assets to download
+- [x] Added new flag _**-to, --to-date <TO_DATE>**_ to select the Final Date of the Assets to download
+- [x] Added new flag _**-country, --country <COUNTRY_NAME>**_ to select the Country Name of the Assets to download
+- [x] Added new flag _**-city, --city <CITY_NAME>**_ to select the City Name of the Assets to download
+- [x] Added new flag _**-person, --person <PERSON_NAME>**_ to select the Person Name of the Assets to download
+- [x] Added new flag _**-parallel, --parallel-migration =[true,false]**_ to select the Migration Mode (Parallel or Sequential). Default: true (parallel)
+- [x] Include Live Dashboard in sequential Automated Migration
+- [x] Minor bugs fixing
+- [x] Test sequential Automated Migration
+- [x] Test Filters in Automated Migration Feature
+- [ ] Test Filters in other Synology/Immich Features
+
 
 ## v4.0.0:
 ### Release Date: (estimated)
-  - Alpha version.   : (No estimated date)
+  - Alpha version    : (No estimated date)
   - Beta version     : (No estimated date)
   - Release Candidate: (No estimated date)
   - Official Release : (No estimated date)

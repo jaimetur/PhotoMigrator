@@ -2,11 +2,13 @@
 ```
 ---------------------------------------------------------------------------------------------------------
 usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
-                                  [-dashboard [=[true,false]]]
+                                  [-dashb [= [true,false]]] [-parallel [= [true,false]]]
+                                  [-from <FROM_DATE>] [-to <TO_DATE>]
+                                  [-country <COUNTRY_NAME>] [-city <CITY_NAME>]
+                                  [-people <PEOPLE_NAME>] [-type = [photos,videos,all]]
                                   [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
-                                  [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
-                                  [-rAlbAss]
-                                  [-gpthProg [=[true,false]]] [-gpthErr [=[true,false]]]
+                                  [-AlbFld [<ALBUMS_FOLDER> ...]] [-rAlbAss]
+                                  [-gpthProg [= [true,false]]] [-gpthErr [= [true,false]]]
                                   [-nolog]
                                   [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
                                   [-gtProc <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
@@ -25,14 +27,14 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>
                                   [-procDup <DUPLICATES_REVISED_CSV>]
                                   [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
 
-CloudPhotoMigrator v3.1.0 - 2025-03-31
+CloudPhotoMigrator v3.2.0-alpha - 2025-04-30
 
-Multi-Platform/Multi-Arch toot designed to Interact and Manage different Photo Cloud Services
+Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
 such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
 
 (c) 2024-2025 by Jaime Tur (@jaimetur)
 
-optional arguments:
+options:
 
 -h,        --help
              show this help message and exit
@@ -73,13 +75,30 @@ same Photo Cloud service.
                [id] = [1, 2] select which account to use from the Config.ini file.
 
              Examples:
-              ​--source=immich-1 -> Select Immich Photos account 1 as Target.
-              ​--source=synology-2 -> Select Synology Photos account 2 as Target.
-              ​--source=/home/local_folder -> Select this local folder as Target.
---dashboard =[true,false]
+              ​--target=immich-1 -> Select Immich Photos account 1 as Target.
+              ​--target=synology-2 -> Select Synology Photos account 2 as Target.
+              ​--target=/home/local_folder -> Select this local folder as Target.
+-dashb,    --dashboard = [true,false]
              Enable or disable Live Dashboard feature during Autometed Migration Job.
              This argument only applies if both '--source' and '--target' argument are
              given (AUTOMATED-MIGRATION FEATURE). (default: True).
+-parallel, --parallel-migration = [true,false]
+             Select Parallel/Secuencial Migration during Automated Migration Job. This
+             argument only applies if both '--source' and '--target' argument are given
+             (AUTOMATED-MIGRATION FEATURE). (default: True).
+-from,     --from-date <FROM_DATE>
+             Specify the initial date to filter assets in the different Photo Clients.
+-to,       --to-date <TO_DATE>
+             Specify the final date to filter assets in the different Photo Clients.
+-country,  --country <COUNTRY_NAME>
+             Specify the Country Name to filter assets in the different Photo Clients.
+-city,     --city <CITY_NAME>
+             Specify the City Name to filter assets in the different Photo Clients.
+-person,   --person <PERSON_NAME>
+             Specify the Person Name to filter assets in the different Photo Clients.
+-type,     --asset-type = [image,video,all]
+             Specify the Asset Type to filter assets in the different Photo Clients.
+             (default: all)
 
 
 GENERAL ARGUMENTS:
@@ -98,10 +117,10 @@ Following general arguments have different purposses depending on the Execution 
              If used together with '-srAllAlb, --synology-remove-all-albums' or
              '-irAllAlb, --immich-remove-all-albums', it will also delete the assets
              (photos/videos) inside each album.
--gpthProg, --show-gpth-progress =[true,false]
+-gpthProg, --show-gpth-progress = [true,false]
              Enable or disable Progress messages during GPTH Processing. (default:
              False).
--gpthErr,  --show-gpth-errors =[true,false]
+-gpthErr,  --show-gpth-errors = [true,false]
              Enable or disable Error messages during GPTH Processing. (default: True).
 -nolog,    --no-log-file
              Skip saving output messages to execution log file.

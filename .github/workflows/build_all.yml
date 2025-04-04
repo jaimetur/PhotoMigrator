@@ -23,9 +23,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]  # os list
-#        os: [ubuntu-latest]  # os list
         arch: [x86_64, arm64]  # arch list
-#        arch: [x86_64]  # arch list
         exclude:
           - os: windows-latest
             arch: arm64  # Windows is only compiled for x86 (32/64-bit)
@@ -46,22 +44,22 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # 1. - Compile for All Operating System (Linux, MacOS, Windows) and All Architectures (amd64, arm64)
-      - name: 1. - Compile for All Operating System (Linux, MacOS, Windows) and All Architectures (amd64, arm64)
+      # 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (amd64, arm64)
+      - name: 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (amd64, arm64)
         run: |
-          echo "::group::Compile for ${{ matrix.os }} - ${{ matrix.arch }}"
+          echo "::group::Build for ${{ matrix.os }} - ${{ matrix.arch }}"
                     
-          # Compile for macOS (any architecture)
+          # Build for macOS (any architecture)
           if [[ "${{ matrix.os }}" == *"macos"* ]]; then
             cd src
-            arch -${{ matrix.arch }} python3 _compile.py
+            arch -${{ matrix.arch }} python3 _build.py
           
-          # Compile for Windows (amd64)
+          # Build for Windows (amd64)
           elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
             cd src
-            python _compile.py
+            python _build.py
                
-          # Compile for Linux (arm64)
+          # Build for Linux (arm64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
             sudo apt-get update
             sudo apt-get install -y software-properties-common
@@ -72,14 +70,14 @@ jobs:
             sudo apt-get install -y qemu-user-static binfmt-support
             docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace/src ubuntu:20.04 bash -c "
                 apt update && apt install -y gcc-aarch64-linux-gnu python3 python3-pip &&
-                python3 _compile.py
+                python3 _build.py
                 "
           
-          # Compile for Linux (amd64)
+          # Build for Linux (amd64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
             docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src jaimetur/centos-amd64:7 bash -c "
                 cd src
-                python3 _compile.py
+                python3 _build.py
                 "
           fi
 
@@ -124,32 +122,19 @@ jobs:
           Write-Output "ARCHIVE_PATH (Windows)  : $ARCHIVE_PATH"
 
 
-      # 3. Create Release and Upload Artifact to it
-      - name: 3. Create Release and Upload Artifact to it
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ env.SCRIPT_VERSION }}
-          draft: true
-          generate_release_notes: true
-          body_path: CURRENT-RELEASE.md
-          files: |
-            ${{ env.ARCHIVE_PATH }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-
       # ===========================
       # Generate the Docker version
       # ===========================
-      # 4. Log in to Docker Hub
-      - name: 4. Log in to Docker Hub
+      # 3. Log in to Docker Hub
+      - name: 3. Log in to Docker Hub
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
           
-      # 5. Build & Push Docker image
-      - name: 5. Build & Push Docker image
+      # 4. Build & Push Docker image
+      - name: 4. Build & Push Docker image
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         run: |
           # Fuerza a Docker a:
@@ -172,8 +157,8 @@ jobs:
           docker push jaimetur/cloudphotomigrator:${SCRIPT_VERSION}
           docker push jaimetur/cloudphotomigrator:latest
 
-      # 6. Prepare unified ZIP docker package
-      - name: 6. Prepare unified ZIP docker package
+      # 5. Prepare unified ZIP docker package
+      - name: 5. Prepare unified ZIP docker package
         if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
         run: |
           mkdir -p CloudPhotoMigrator/docker
@@ -185,20 +170,62 @@ jobs:
           cp -r help CloudPhotoMigrator/docker/
           cp README.md CloudPhotoMigrator/docker/docs/README.md
           zip -r CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip CloudPhotoMigrator
+      # ================================
+      # End of Docker version Generation
+      # ================================
 
-      # 7. Upload release asset
-      - name: 7. Upload release asset
+      # 6. Create Release and Upload Artifact to it
+      - name: 6. Create Release and Upload Artifacts to it
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
-          draft: true
+          draft: false
+          prerelease: true
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
           files: |
             CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
+            ${{ env.ARCHIVE_PATH }}
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
+      # 7. Commit y push README.md (Solo si OS = Ubuntu* y arch = x86_64)
+      - name: 7. Commit y push README.md
+        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Añadir solo README.md, evitando archivos no deseados
+          git add README.md
+
+          # Si NO hay cambios en README.md, salir sin error
+          if git diff --cached --quiet; then
+            echo "No hay cambios en README.md"
+            exit 0
+          fi
+
+          # Guardar cambios en stash antes de pull --rebase
+          git stash push -m "Pre-rebase stash"
+
+          # Actualizar la rama
+          git pull --rebase origin ${{ github.ref_name }}
+
+          # Restaurar cambios del stash si existen
+          git stash pop || echo "No hay stash para aplicar"
+
+          # Asegurar que README.md está agregado después del pop
+          git add README.md
+
+          # Verificar nuevamente si hay cambios antes de hacer commit
+          if git diff --cached --quiet; then
+            echo "No hay cambios después del stash pop"
+            exit 0
+          fi
+
+          # Realizar commit y push
+          git commit -m "Update README.md after compilation"
+          git push origin ${{ github.ref_name }}
         
       # 8a. - Cleanup (Linux/macOS)
       - name: 8a. - Cleanup (Linux/macOS)
@@ -241,42 +268,3 @@ jobs:
             Write-Host "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta src\."
           }
         shell: pwsh
-
-      # 9. Commit y push README.md (Solo si OS = Ubuntu* y arch = x86_64)
-      - name: 9. Commit y push README.md
-        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Añadir solo README.md, evitando archivos no deseados
-          git add README.md
-
-          # Si NO hay cambios en README.md, salir sin error
-          if git diff --cached --quiet; then
-            echo "No hay cambios en README.md"
-            exit 0
-          fi
-
-          # Guardar cambios en stash antes de pull --rebase
-          git stash push -m "Pre-rebase stash"
-
-          # Actualizar la rama
-          git pull --rebase origin ${{ github.ref_name }}
-
-          # Restaurar cambios del stash si existen
-          git stash pop || echo "No hay stash para aplicar"
-
-          # Asegurar que README.md está agregado después del pop
-          git add README.md
-
-          # Verificar nuevamente si hay cambios antes de hacer commit
-          if git diff --cached --quiet; then
-            echo "No hay cambios después del stash pop"
-            exit 0
-          fi
-
-          # Realizar commit y push
-          git commit -m "Update README.md after compilation"
-          git push origin ${{ github.ref_name }}
-

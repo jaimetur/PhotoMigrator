@@ -13,7 +13,36 @@
 > 7. Remove Empty Albums
 > 8. Remove Duplicates Albums
 >
+> You can apply filters to filter assets to download from Synology Photos using any Download feature included.  
 > 
+> The available filters are: 
+>    - by Type
+>      - flag: -type, --type
+>        - Valid values are [image, video, all]
+>    - by Dates
+>      - flags:
+>        - -from, --from-date
+>        - -to, --to-date
+>      - Valid values are in one of those formats: 
+>        - dd/mm/yyyy
+>        - dd-mm-yyyy
+>        - yyyy/mm/dd
+>        - yyyy-mm-dd
+>        - mm/yyyy
+>        - mm-yyyy
+>        - yyyy/mm
+>        - yyyy-mm
+>        - yyyy 
+>    - by Country
+>      - flag: -country, --country
+>        - Valid values are any existing country in the \<SOURCE> client.
+>    - by City
+>      - flag: -city, --city
+>        - Valid values are any existing city in the \<SOURCE> client.
+>    - by Person
+>      - flag: -person, --person
+>        - Valid values are any existing person in the \<SOURCE> client.
+>        
 >The credentials need to be loaded from 'Config.ini' file and will have this format:
 > 
 >>#### <span style="color:green">Example 'Config.ini' for Synology Photos:</span>

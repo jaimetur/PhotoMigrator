@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set default tag
-RELEASE_TAG="latest"
+RELEASE_TAG="latest-stable"
 
 # Set a default TZ (e.g. UTC) in case docker.conf does not provide one
 TZ="UTC"
@@ -37,7 +37,7 @@ CURRENT_DIR="$(pwd)"
 echo "🐳 Pulling Docker image: jaimetur/cloudphotomigrator:${RELEASE_TAG}"
 docker pull "jaimetur/cloudphotomigrator:${RELEASE_TAG}"
 
-echo "🚀 Launching container with tag:${RELEASE_TAG} and TimeZone: ${TZ}..."
+echo "🚀 Launching container with TAG='${RELEASE_TAG}' and TZ='${TZ}'..."
 docker run -it --rm \
   -v "$CURRENT_DIR":/docker \
   -e TZ="${TZ}" \

@@ -1,6 +1,6 @@
 # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
 import ChangeWorkingDir
-ChangeWorkingDir.change_working_dir(change_dir=False)
+ChangeWorkingDir.change_working_dir(change_dir=True)
 
 import os,sys
 from Utils import check_OS_and_Terminal

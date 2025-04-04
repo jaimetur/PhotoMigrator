@@ -68,7 +68,7 @@ def load_config(config_file='Config.ini', section_to_load='all'):
     # Define the Sections and Keys to find in config_file
     config_keys = {
         'Synology Photos': ['SYNOLOGY_URL', 'SYNOLOGY_USERNAME_1', 'SYNOLOGY_PASSWORD_1', 'SYNOLOGY_USERNAME_2', 'SYNOLOGY_PASSWORD_2'],
-        'Immich Photos': ['IMMICH_URL', 'IMMICH_API_KEY_ADMIN', 'IMMICH_API_KEY_USER_1', 'IMMICH_USERNAME_1', 'IMMICH_PASSWORD_1', 'IMMICH_API_KEY_USER_2', 'IMMICH_USERNAME_2', 'IMMICH_PASSWORD_2', 'IMMICH_FILTER_ARCHIVE', 'IMMICH_FILTER_FROM', 'IMMICH_FILTER_TO', 'IMMICH_FILTER_COUNTRY', 'IMMICH_FILTER_CITY', 'IMMICH_FILTER_PERSON'],
+        'Immich Photos': ['IMMICH_URL', 'IMMICH_API_KEY_ADMIN', 'IMMICH_API_KEY_USER_1', 'IMMICH_USERNAME_1', 'IMMICH_PASSWORD_1', 'IMMICH_API_KEY_USER_2', 'IMMICH_USERNAME_2', 'IMMICH_PASSWORD_2'],
         'Apple Photos': ['max_photos', 'appleid', 'applepwd', 'album', 'to_directory', 'date_from', 'date_to', 'asset_from', 'asset_to'],
         'TimeZone': ['timezone']
     }

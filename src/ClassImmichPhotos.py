@@ -1,9 +1,31 @@
 # -*- coding: utf-8 -*-
 
+import os,sys
+import requests
+import json
+import urllib3
+import fnmatch
+import logging
+from datetime import datetime
+import time
+from dateutil import parser
+from urllib.parse import urlparse
+from halo import Halo
+from tabulate import tabulate
+
+from Utils import update_metadata, convert_to_list, tqdm, parse_text_datetime_to_epoch
+
+# We also keep references to your custom logger context manager and utility functions:
+from CustomLogger import set_log_level
+
+# Import the global LOGGER from GlobalVariables
+from GlobalVariables import LOGGER, ARGS
+
 """
+--------------------
 ClassImmichPhotos.py
----------------
-Python module with example functions to interact with Immich Photos, including followfing functions:
+--------------------
+Python module with example functions to interact with Immich Photos, including following functions:
   - Configuration (read config)
   - Authentication (login/logout)
   - Listing and managing albums
@@ -13,39 +35,10 @@ Python module with example functions to interact with Immich Photos, including f
      - remove_empty_albums()
      - remove_duplicates_albums()
      - immich_upload_folder()
-     - upload_albums()
-     - download_albums()
-     - download_ALL()
+     - push_albums()
+     - pull_albums()
+     - pull_ALL()
 """
-# ClassImmichPhotos.py
-# -*- coding: utf-8 -*-
-
-"""
-Single class version of ClassImmichPhotos.py:
-- All docstrings and comments in English.
-- Preserves original LOGGER text (e.g., "INFO    :", "WARNING :", etc.).
-- Uses a global LOGGER from GlobalVariables.
-"""
-
-import os,sys
-import requests
-import json
-import urllib3
-import fnmatch
-import logging
-from datetime import datetime
-from dateutil import parser
-from urllib.parse import urlparse
-from halo import Halo
-from tabulate import tabulate
-
-from Utils import update_metadata, convert_to_list, tqdm, sha1_checksum
-
-# We also keep references to your custom logger context manager and utility functions:
-from CustomLogger import set_log_level
-
-# Import the global LOGGER from GlobalVariables
-from GlobalVariables import LOGGER
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -62,10 +55,6 @@ class ClassImmichPhotos:
         Constructor that initializes what used to be global variables.
         Also imports the global LOGGER from GlobalVariables.
         """
-        # # Import the global LOGGER from GlobalVariables
-        # from GlobalVariables import LOGGER
-        # self.logger = LOGGER
-
         self.ACCOUNT_ID = str(account_id)        # Used to identify wich Account to use from the configuration file
         if account_id not in [1, 2]:
             LOGGER.error(f"ERROR   : Cannot create Immich Photos object with ACCOUNT_ID: {account_id}. Valid valies are [1, 2]. Exiting...")
@@ -86,14 +75,6 @@ class ClassImmichPhotos:
         self.ALLOWED_IMMICH_MEDIA_EXTENSIONS = []
         self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS = []
         self.ALLOWED_IMMICH_EXTENSIONS = []
-
-        # Additional filters that might be in your config
-        self.IMMICH_FILTER_ARCHIVE = None
-        self.IMMICH_FILTER_FROM = None
-        self.IMMICH_FILTER_TO = None
-        self.IMMICH_FILTER_COUNTRY = None
-        self.IMMICH_FILTER_CITY = None
-        self.IMMICH_FILTER_PERSON = None
 
         # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_ownned_by_user()
         self.albums_owned_by_user = {}
@@ -147,12 +128,6 @@ class ClassImmichPhotos:
             self.IMMICH_USERNAME = self.CONFIG.get(section_to_load).get(f'IMMICH_USERNAME_{self.ACCOUNT_ID}', None)              # Read the configuration for the user account given by the suffix ACCAUNT_ID
             self.IMMICH_PASSWORD = self.CONFIG.get(section_to_load).get(f'IMMICH_PASSWORD_{self.ACCOUNT_ID}', None)              # Read the configuration for the user account given by the suffix ACCAUNT_ID
 
-            self.IMMICH_FILTER_ARCHIVE = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_ARCHIVE', None)
-            self.IMMICH_FILTER_FROM = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_FROM', None)
-            self.IMMICH_FILTER_TO = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_TO', None)
-            self.IMMICH_FILTER_COUNTRY = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_COUNTRY', None)
-            self.IMMICH_FILTER_CITY = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_CITY', None)
-            self.IMMICH_FILTER_PERSON = self.CONFIG.get(section_to_load).get('IMMICH_FILTER_PERSON', None)
             # Verify required parameters and prompt on screen if missing
             if not self.IMMICH_URL or self.IMMICH_URL.strip() == '':
                 LOGGER.warning(f"WARNING : IMMICH_URL not found. It will be requested on screen.")
@@ -182,12 +157,6 @@ class ClassImmichPhotos:
                     LOGGER.info(f"INFO    : IMMICH_USERNAME       : {self.IMMICH_USERNAME}")
                     masked_password = '*' * len(self.IMMICH_PASSWORD)
                     LOGGER.info(f"INFO    : IMMICH_PASSWORD       : {masked_password}")
-                LOGGER.info(f"INFO    : IMMICH_FILTER_ARCHIVE : {self.IMMICH_FILTER_ARCHIVE}")
-                LOGGER.info(f"INFO    : IMMICH_FILTER_FROM    : {self.IMMICH_FILTER_FROM}")
-                LOGGER.info(f"INFO    : IMMICH_FILTER_TO      : {self.IMMICH_FILTER_TO}")
-                LOGGER.info(f"INFO    : IMMICH_FILTER_COUNTRY : {self.IMMICH_FILTER_COUNTRY}")
-                LOGGER.info(f"INFO    : IMMICH_FILTER_CITY    : {self.IMMICH_FILTER_CITY}")
-                LOGGER.info(f"INFO    : IMMICH_FILTER_PERSON  : {self.IMMICH_FILTER_PERSON}")
 
             return self.CONFIG
 
@@ -373,6 +342,28 @@ class ClassImmichPhotos:
                 LOGGER.error(f"ERROR   : Cannot find User ID for user '{self.IMMICH_USERNAME}': {e}")
                 return None
 
+    def get_person_id(self, name, log_level=logging.INFO):
+        """
+        Returns the ID of the first person matching the given name.
+        """
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            url = f"{self.IMMICH_URL}/api/search/person"
+            params = {"name": name}
+            try:
+                resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, params=params)
+                resp.raise_for_status()
+                data = resp.json()
+                if data:
+                    person_id = data[0].get("id")
+                    LOGGER.info(f"INFO    : ID '{person_id}' found for person '{name}'.")
+                    return person_id
+                else:
+                    LOGGER.info(f"INFO    : No person found with name '{name}'.")
+                    return None
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Cannot find ID for person '{name}': {e}")
+                return None
 
     ###########################################################################
     #                           ALBUMS FUNCTIONS                              #
@@ -433,7 +424,6 @@ class ClassImmichPhotos:
                 return False
 
 
-
     def get_albums_owned_by_user(self, log_level=logging.INFO):
         """
         Get all albums in Immich Photos for the current user.
@@ -462,7 +452,11 @@ class ClassImmichPhotos:
                 own_albums = []
                 for album in albums:
                     if album.get('ownerId') == user_id:
-                        own_albums.append(album)
+                        album_id = album.get('id')
+                        album_name = album.get("albumName", "")
+                        album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                        if len(album_assets) > 0:
+                            own_albums.append(album)
                 return own_albums
             except Exception as e:
                 LOGGER.error(f"ERROR   : Error while listing albums: {e}")
@@ -492,7 +486,15 @@ class ClassImmichPhotos:
             try:
                 resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
                 resp.raise_for_status()
-                return resp.json()
+                albums = resp.json()
+                albums_filtered = []
+                for album in albums:
+                    album_id = album.get('id')
+                    album_name = album.get("albumName", "")
+                    album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                    if len(album_assets)>0:
+                        albums_filtered.append(album)
+                return albums_filtered
             except Exception as e:
                 LOGGER.error(f"ERROR   : Error while listing albums: {e}")
                 return None
@@ -512,7 +514,7 @@ class ClassImmichPhotos:
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             try:
-                assets = self.get_album_assets(album_id, log_level=log_level)
+                assets = self.get_all_assets_from_album(album_id, log_level=log_level)
                 total_size = 0
                 for asset in assets:
                     exif_info = asset.get("exifInfo", {})
@@ -537,7 +539,7 @@ class ClassImmichPhotos:
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             try:
-                assets = self.get_album_assets(album_id, log_level=log_level)
+                assets = self.get_all_assets_from_album(album_id, log_level=log_level)
                 return len(assets)
             except Exception:
                 return -1
@@ -576,11 +578,194 @@ class ClassImmichPhotos:
 
 
     ###########################################################################
+    #                            ASSETS FILTERING                             #
+    ###########################################################################
+    def filter_assets(self, assets, log_level=logging.INFO):
+        """
+        Filters a list of assets based on user-defined criteria such as date range,
+        country, city, and asset type. Filter parameters are retrieved from the global ARGS dictionary.
+
+        The filtering steps are applied in the following order:
+        1. By date range (from-date, to-date)
+        2. By country (matched in address or exifInfo)
+        3. By city (matched in address or exifInfo)
+        4. By person
+        5. By asset_type
+
+        Args:
+            assets (list): List of asset dictionaries to be filtered.
+            log_level (int, optional): Logging level to apply during filtering. Defaults to logging.INFO.
+
+        Returns:
+            list: A filtered list of assets that match the specified criteria.
+        """
+        with set_log_level(LOGGER, log_level):
+            # Get the values from the arguments (if exists)
+            type = ARGS.get('asset-type', None)
+            from_date = ARGS.get('from-date', None)
+            to_date = ARGS.get('to-date', None)
+            country = ARGS.get('country', None)
+            city = ARGS.get('city', None)
+            person = ARGS.get('person', None)
+
+            # Now Filter the assets list based on the filters given by ARGS
+            filtered_assets = assets
+            if type:
+                filtered_assets = self.filter_assets_by_type(filtered_assets, type)
+            if from_date or to_date:
+                filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
+            if country:
+                filtered_assets = self.filter_assets_by_place(filtered_assets, country)
+            if city:
+                filtered_assets = self.filter_assets_by_place(filtered_assets, city)
+            if person:
+                filtered_assets = self.filter_assets_by_person(filtered_assets, person)
+            return filtered_assets
+
+    def filter_assets_by_type(self, assets, type):
+        """
+        Filters a list of assets by their type, supporting flexible type aliases.
+
+        Accepted values for 'type':
+        - 'image', 'images', 'photo', 'photos' → treated as 'IMAGE'
+        - 'video', 'videos' → treated as 'VIDEO'
+        - 'all' → returns all assets (no filtering)
+
+        Matching is case-insensitive.
+
+        Args:
+            assets (list): List of asset dictionaries to be filtered.
+            type (str): The asset type to match.
+
+        Returns:
+            list: A filtered list of assets with the specified type.
+        """
+        if not type or type.lower() == "all":
+            return assets
+        type_lower = type.lower()
+        image_aliases = {"image", "images", "photo", "photos"}
+        video_aliases = {"video", "videos"}
+        if type_lower in image_aliases:
+            target_type = "IMAGE"
+        elif type_lower in video_aliases:
+            target_type = "VIDEO"
+        else:
+            return []  # Unknown type alias
+        return [asset for asset in assets if asset.get("type", "").upper() == target_type]
+
+    def filter_assets_by_date(self, assets, from_date=None, to_date=None):
+        """
+        Filters a list of assets by their 'time' field using a date range.
+
+        If any of the date inputs (from_date, to_date, or asset['time']) are not in epoch format,
+        they will be converted using `parse_text_datetime_to_epoch()`.
+
+        Args:
+            assets (list): List of asset dictionaries.
+            from_date (str | int | float | datetime, optional): Start date (inclusive). Defaults to epoch 0.
+            to_date (str | int | float | datetime, optional): End date (inclusive). Defaults to current time.
+
+        Returns:
+            list: A filtered list of assets whose 'time' field is within the specified range.
+        """
+        epoch_start = 0 if from_date is None else parse_text_datetime_to_epoch(from_date)
+        epoch_end = int(time.time()) if to_date is None else parse_text_datetime_to_epoch(to_date)
+        filtered = []
+        for asset in assets:
+            asset_time = parse_text_datetime_to_epoch(asset.get("time"))
+            if asset_time is None:
+                continue
+            if epoch_start <= asset_time <= epoch_end:
+                filtered.append(asset)
+        return filtered
+
+    def filter_assets_by_place(self, assets, place):
+        """
+        Filters a list of assets by matching the given place name against the 'city', 'state',
+        or 'country' fields in the 'exifInfo' dictionary of each asset.
+
+        Matching is case-insensitive and partial (substring match). Assets without 'exifInfo'
+        or with none of the fields present will be ignored.
+
+        Args:
+            assets (list): List of asset dictionaries.
+            place (str): Name of the place to match (case-insensitive).
+
+        Returns:
+            list: A filtered list of assets that match the given place in 'city', 'state', or 'country'.
+        """
+        filtered = []
+        place_lower = place.lower()
+        for asset in assets:
+            exif = asset.get("exifInfo", {})
+            if not exif:
+                continue
+            for key in ("city", "state", "country"):
+                value = exif.get(key)
+                if isinstance(value, str) and place_lower in value.lower():
+                    filtered.append(asset)
+                    break  # Match found, no need to check other fields
+        return filtered
+
+    def filter_assets_by_person(self, assets, person_name):
+        """
+        Filters a list of assets by person name.
+
+        The method looks for a match in the 'name' field of each person listed in the
+        'people' key of each asset. Matching is case-insensitive and allows partial matches.
+
+        Args:
+            assets (list): List of asset dictionaries.
+            person_name (str): Name (or partial name) of the person to search for.
+
+        Returns:
+            list: A filtered list of assets that include the specified person.
+        """
+        if not person_name:
+            return assets
+        name_lower = person_name.lower()
+        filtered = []
+        for asset in assets:
+            asset_id = asset.get("id")
+            people = asset.get("people", [])
+            people = self.get_asset_people(asset_id)
+            for person in people:
+                if isinstance(person, dict):
+                    person_name_field = person.get("name", "")
+                    if isinstance(person_name_field, str) and name_lower in person_name_field.lower():
+                        filtered.append(asset)
+                        break  # One match is enough
+        return filtered
+
+
+    ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
-    def get_all_assets(self, type=None, isNotInAlbum=None, isArchived=None,
-                       createdAfter=None, createdBefore=None, country=None,
-                       city=None, personIds=None, withDeleted=None, log_level=logging.INFO):
+    def get_asset_people(self, asset_id, log_level=logging.INFO):
+        """
+        Get assets iinfo.
+
+        Args:
+            asset_id (str): ID of the asset.
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            list: A list of asset info (dict objects). [] if no assets found.
+        """
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            url = f"{self.IMMICH_URL}/api/assets/{asset_id}"
+            try:
+                resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
+                resp.raise_for_status()
+                data = resp.json()
+                people_list = data.get("people", [])
+                return people_list
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Failed to retrieve assets info for '{asset_id}': {str(e)}")
+                return []
+
+    def get_all_assets(self, isNotInAlbum=None, isArchived=None, withDeleted=None, log_level=logging.INFO):
         """
         Lists all assets in Immich Photos that match with the specified filters.
 
@@ -591,10 +776,35 @@ class ClassImmichPhotos:
             list: A list of assets (dict) matching the specified filters in the entire library or Empty list on error.
         """
         with set_log_level(LOGGER, log_level):
-            self.login(log_level=log_level)
-            url = f"{self.IMMICH_URL}/api/search/metadata"
-            all_assets = []
             try:
+                # Get the values from the arguments (if exists)
+                from_date = ARGS.get('from-date', None)
+                to_date = ARGS.get('to-date', None)
+                country = ARGS.get('country', None)
+                city = ARGS.get('city', None)
+                person = ARGS.get('person', None)
+                type = ARGS.get('asset-type', None)
+
+                if type:
+                    image_aliases = {"image", "images", "photo", "photos"}
+                    video_aliases = {"video", "videos"}
+                    type_lower = type.lower()
+                    if type_lower in image_aliases:
+                        type = "IMAGE"
+                    elif type_lower in video_aliases:
+                        type = "VIDEO"
+                    elif type_lower == "all":
+                        type = None  # No filtering needed
+                    else:
+                        type = None  # Unknown alias, treat as no filtering
+
+                if person:
+                    person_ids = self.get_person_id(name=person, log_level=log_level)
+
+                self.login(log_level=log_level)
+                url = f"{self.IMMICH_URL}/api/search/metadata"
+                all_assets = []
+
                 next_page = 1
                 while True:
                     payload_data = {
@@ -616,25 +826,28 @@ class ClassImmichPhotos:
                         # "withExif": True,
                         # "withPeople": True,
                         # "withStacked": True,
+
                         # "createdAfter": "string",
                         # "createdBefore": "string",
                         # "takenAfter": "string",
                         # "takenBefore": "string",
                         # "updatedAfter": "string",
                         # "updatedBefore": "string",
+
                         # "personIds": [
                         #   "3fa85f64-5717-4562-b3fc-2c963f66afa6"
                         # ],
                     }
-                    if type: payload_data["type"] = type
+                    if withDeleted: payload_data["withDeleted"] = withDeleted
                     if isNotInAlbum: payload_data["isNotInAlbum"] = isNotInAlbum
                     if isArchived: payload_data["isArchived"] = isArchived
-                    if createdAfter: payload_data["createdAfter"] = createdAfter
-                    if createdBefore: payload_data["createdBefore"] = createdBefore
+
+                    if from_date: payload_data["takenAfter"] = from_date
+                    if to_date: payload_data["takenBefore"] = to_date
                     if country: payload_data["country"] = country
                     if city: payload_data["city"] = city
-                    if personIds: payload_data["personIds"] = personIds
-                    if withDeleted: payload_data["withDeleted"] = withDeleted
+                    if person_ids: payload_data["personIds"] = [person_ids]
+                    if type: payload_data["type"] = type
 
                     payload = json.dumps(payload_data)
                     resp = requests.post(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
@@ -656,7 +869,7 @@ class ClassImmichPhotos:
             return all_assets
 
 
-    def get_album_assets(self, album_id, album_name=None, log_level=logging.INFO):
+    def get_all_assets_from_album(self, album_id, album_name=None, log_level=logging.INFO):
         """
         Get assets in a specific album.
 
@@ -675,12 +888,14 @@ class ClassImmichPhotos:
                 resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
                 resp.raise_for_status()
                 data = resp.json()
-                all_assets = data.get("assets", [])
+                album_assets = data.get("assets", [])
                 # Add new fields "time" with the same value as "fileCreatedAt" and "filename" with the same value as "originalFileName" to allign with Synology Photos
-                for asset in all_assets:
+                for asset in album_assets:
                     asset["time"] = asset["fileCreatedAt"]
                     asset["filename"] = asset["originalFileName"]
-                return all_assets
+
+                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                return filtered_album_assets
             except Exception as e:
                 if album_name:
                     LOGGER.error(f"ERROR   : Failed to retrieve assets from album '{album_name}': {str(e)}")
@@ -688,8 +903,43 @@ class ClassImmichPhotos:
                     LOGGER.error(f"ERROR   : Failed to retrieve assets from album ID={album_id}: {str(e)}")
                 return []
 
+    def get_all_assets_from_album_shared(self, album_id, album_name=None, album_passphrase=None, log_level=logging.INFO):
+        """
+        Get assets in a specific album.
 
-    def get_no_albums_assets(self, log_level=logging.WARNING):
+        Args:
+            album_id (str): ID of the album.
+            album_name (str): Name of the album.
+            album_passphrase (str): Shared album passphrase
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            list: A list of photos in the album (dict objects). [] if no assets found.
+        """
+        # TODO: This method is just a copy of get_all_assets_from_album. Change to filter only shared albums
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            url = f"{self.IMMICH_URL}/api/albums/{album_id}"
+            try:
+                resp = requests.get(url, headers=self.HEADERS_WITH_CREDENTIALS, verify=False)
+                resp.raise_for_status()
+                data = resp.json()
+                album_assets = data.get("assets", [])
+                # Add new fields "time" with the same value as "fileCreatedAt" and "filename" with the same value as "originalFileName" to allign with Synology Photos
+                for asset in album_assets:
+                    asset["time"] = asset["fileCreatedAt"]
+                    asset["filename"] = asset["originalFileName"]
+
+                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                return filtered_album_assets
+            except Exception as e:
+                if album_name:
+                    LOGGER.error(f"ERROR   : Failed to retrieve assets from album '{album_name}': {str(e)}")
+                else:
+                    LOGGER.error(f"ERROR   : Failed to retrieve assets from album ID={album_id}: {str(e)}")
+                return []
+
+    def get_all_assets_without_albums(self, log_level=logging.WARNING):
         """
         Get assets not associated to any album from Immich Photos.
 
@@ -705,7 +955,7 @@ class ClassImmichPhotos:
             return assets_without_albums
 
 
-    def get_all_albums_assets(self, log_level=logging.WARNING):
+    def get_all_assets_from_all_albums(self, log_level=logging.WARNING):
         """
         Gathers assets from all known albums, merges them into a single list.
 
@@ -724,7 +974,7 @@ class ClassImmichPhotos:
             for album in all_albums:
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
-                album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
+                album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                 combined_assets.extend(album_assets)
             return combined_assets
 
@@ -824,7 +1074,7 @@ class ClassImmichPhotos:
             return 0
 
 
-    def upload_asset(self, file_path, log_level=logging.INFO):
+    def push_asset(self, file_path, log_level=logging.INFO):
         """
         Uploads a local file (photo/video) to Immich Photos via /api/assets.
 
@@ -914,7 +1164,7 @@ class ClassImmichPhotos:
                 return None, None
 
 
-    def download_asset(self, asset_id, asset_filename, asset_time, album_passphrase="", download_folder="Downloaded_Immich", log_level=logging.INFO):
+    def pull_asset(self, asset_id, asset_filename, asset_time, album_passphrase="", download_folder="Downloaded_Immich", log_level=logging.INFO):
         """
         Downloads an asset (photo/video) from Immich Photos to a local folder,
         preserving the original timestamp if available.
@@ -969,7 +1219,7 @@ class ClassImmichPhotos:
     ###########################################################################
     #                  HIGH-LEVEL MAIN FUNCTIONS (UPLOAD/DOWNLOAD)            #
     ###########################################################################
-    def upload_albums(self, input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
+    def push_albums(self, input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         """
         Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals
         the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on
@@ -1066,7 +1316,7 @@ class ClassImmichPhotos:
                         if ext not in self.ALLOWED_IMMICH_EXTENSIONS:
                             continue
 
-                        asset_id, is_dup = self.upload_asset(file_path, log_level=log_level)
+                        asset_id, is_dup = self.push_asset(file_path, log_level=log_level)
                         if is_dup:
                             total_duplicates_assets_skipped += 1
                             LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} skipped")
@@ -1105,11 +1355,11 @@ class ClassImmichPhotos:
                     total_duplicates_assets_skipped)
 
 
-    def upload_no_albums(self, input_folder,
-                         subfolders_exclusion='Albums',
-                         subfolders_inclusion=None,
-                         remove_duplicates=True,
-                         log_level=logging.WARNING):
+    def push_no_albums(self, input_folder,
+                       subfolders_exclusion='Albums',
+                       subfolders_inclusion=None,
+                       remove_duplicates=True,
+                       log_level=logging.WARNING):
         """
         Recursively traverses 'input_folder' and its subfolders_inclusion to upload all
         compatible files (photos/videos) to Immich without associating them to any album.
@@ -1166,7 +1416,7 @@ class ClassImmichPhotos:
                         LOGGER.debug(f"DEBUG   : Unsopported Extension: '{ext}'. Skipped")
                         continue
 
-                    asset_id, is_dup = self.upload_asset(file_path, log_level=log_level)
+                    asset_id, is_dup = self.push_asset(file_path, log_level=log_level)
                     if is_dup:
                         total_duplicated_assets_skipped += 1
                         LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} skipped")
@@ -1187,7 +1437,7 @@ class ClassImmichPhotos:
             return total_assets_uploaded, total_duplicated_assets_skipped, duplicates_assets_removed
 
 
-    def upload_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
+    def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
         """
         Uploads ALL photos/videos from input_folder into Immich Photos.
         Returns details about how many albums and assets were uploaded.
@@ -1215,7 +1465,7 @@ class ClassImmichPhotos:
             LOGGER.info("")
             LOGGER.info(f"INFO    : Uploading Assets and creating Albums into immich Photos from '{albums_folders}' subfolders...")
 
-            (total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed_1, total_dupplicated_assets_skipped_1) = self.upload_albums(
+            (total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed_1, total_dupplicated_assets_skipped_1) = self.push_albums(
                  input_folder=input_folder,
                  subfolders_inclusion=albums_folders,
                  remove_duplicates=False,
@@ -1225,7 +1475,7 @@ class ClassImmichPhotos:
             LOGGER.info("")
             LOGGER.info(f"INFO    : Uploading Assets without Albums creation into immich Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
 
-            (total_assets_uploaded_without_albums, total_dupplicated_assets_skipped_2, total_duplicates_assets_removed_2) = self.upload_no_albums(
+            (total_assets_uploaded_without_albums, total_dupplicated_assets_skipped_2, total_duplicates_assets_removed_2) = self.push_no_albums(
                  input_folder=input_folder,
                  subfolders_exclusion=albums_folders,
                  remove_duplicates=False,
@@ -1250,7 +1500,7 @@ class ClassImmichPhotos:
             )
 
 
-    def download_albums(self, albums_name='ALL', output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_albums(self, albums_name='ALL', output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Downloads photos/videos from albums by name pattern or ID. 'ALL' downloads all.
 
@@ -1310,13 +1560,13 @@ class ClassImmichPhotos:
                 alb_folder = os.path.join(output_folder, alb_name)
                 os.makedirs(alb_folder, exist_ok=True)
 
-                assets_in_album = self.get_album_assets(alb_id, log_level=log_level)
+                assets_in_album = self.get_all_assets_from_album(alb_id, log_level=log_level)
                 for asset in tqdm(assets_in_album, desc=f"INFO    : Downloading '{alb_name}'", unit=" assets"):
                     asset_id = asset.get("id")
                     asset_filename = os.path.basename(asset.get("originalFileName", "unknown"))
                     if asset_id:
                         asset_time = asset.get('fileCreatedAt')
-                        total_assets_downloaded += self.download_asset(asset_id, asset_filename, asset_time, alb_folder, log_level=log_level)
+                        total_assets_downloaded += self.pull_asset(asset_id, asset_filename, asset_time, alb_folder, log_level=log_level)
 
                 total_albums_downloaded += 1
                 LOGGER.info(f"INFO    : Downloaded Album [{total_albums_downloaded}/{total_albums}] - '{alb_name}'. {len(assets_in_album)} asset(s) have been downloaded.")
@@ -1329,7 +1579,7 @@ class ClassImmichPhotos:
             return total_albums_downloaded, total_assets_downloaded
 
 
-    def download_no_albums(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_no_albums(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Downloads assets not associated to any album from Immich Photos into output_folder/No-Albums/.
         Then organizes them by year/month inside that folder.
@@ -1344,7 +1594,7 @@ class ClassImmichPhotos:
             self.login(log_level=log_level)
             total_assets_downloaded = 0
 
-            all_assets_without_albums = self.get_no_albums_assets(log_level=log_level)
+            all_assets_without_albums = self.get_all_assets_without_albums(log_level=log_level)
             no_albums_folder = os.path.join(output_folder, 'No-Albums')
             os.makedirs(no_albums_folder, exist_ok=True)
 
@@ -1368,7 +1618,7 @@ class ClassImmichPhotos:
                 os.makedirs(target_folder, exist_ok=True)
 
                 asset_time = asset.get('fileCreatedAt')
-                total_assets_downloaded += self.download_asset(asset_id, asset_filename, asset_time, target_folder, log_level=log_level)
+                total_assets_downloaded += self.pull_asset(asset_id, asset_filename, asset_time, target_folder, log_level=log_level)
 
             LOGGER.info(f"INFO    : Download of assets without associated albums completed.")
             LOGGER.info(f"INFO    : Total Assets downloaded: {total_assets_downloaded}")
@@ -1377,7 +1627,7 @@ class ClassImmichPhotos:
             return total_assets_downloaded
 
 
-    def download_ALL(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_ALL(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Downloads ALL photos and videos from Immich Photos into output_folder creating a Folder Structure like this:
         output_folder/
@@ -1397,12 +1647,12 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            total_albums_downloaded, total_assets_in_albums = self.download_albums(
+            total_albums_downloaded, total_assets_in_albums = self.pull_albums(
                 albums_name='ALL',
                 output_folder=output_folder,
                 log_level=log_level
             )
-            total_assets_no_albums = self.download_no_albums(
+            total_assets_no_albums = self.pull_no_albums(
                 output_folder=output_folder,
                 log_level=log_level
             )
@@ -1696,7 +1946,7 @@ class ClassImmichPhotos:
                 album_assets_ids = []
 
                 if removeAlbumsAssets:
-                    album_assets = self.get_album_assets(album_id, log_level=log_level)
+                    album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
                     for asset in album_assets:
                         asset_id = asset.get("id")
                         if asset_id:
@@ -1737,46 +1987,46 @@ if __name__ == "__main__":
     immich.read_config_file('Config.ini')
     immich.login()
 
-    # # 1) Example: Remove empty albums
-    # print("\n=== EXAMPLE: remove_empty_albums() ===")
-    # removed = immich.remove_empty_albums(log_level=logging.DEBUG)
-    # print(f"[RESULT] Empty albums removed: {removed}")
-    #
-    # # 2) Example: Remove duplicate albums
-    # print("\n=== EXAMPLE: remove_duplicates_albums() ===")
-    # duplicates = immich.remove_duplicates_albums(log_level=logging.DEBUG)
-    # print(f"[RESULT] Duplicate albums removed: {duplicates}")
-    #
-    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums'
-    # print("\n=== EXAMPLE: upload_no_albums() ===")
-    # big_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums"
-    # immich.upload_no_albums(big_folder, log_level=logging.DEBUG)
-    #
-    # # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums'
-    # print("\n=== EXAMPLE: upload_albums() ===")
-    # input_albums_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums"
-    # immich.upload_albums(input_albums_folder, log_level=logging.DEBUG)
-    #
-    # # 5) Example: Download all photos from ALL albums
-    print("\n=== EXAMPLE: download_albums() ===")
-    # total = download_albums('ALL', output_folder="Downloads_Immich")
-    total_albums, total_assets = immich.download_albums("1994 - Recuerdos", output_folder="Downloads_Immich", log_level=logging.DEBUG)
+    # 1) Example: Remove empty albums
+    print("\n=== EXAMPLE: remove_empty_albums() ===")
+    removed = immich.remove_empty_albums(log_level=logging.DEBUG)
+    print(f"[RESULT] Empty albums removed: {removed}")
+
+    # 2) Example: Remove duplicate albums
+    print("\n=== EXAMPLE: remove_duplicates_albums() ===")
+    duplicates = immich.remove_duplicates_albums(log_level=logging.DEBUG)
+    print(f"[RESULT] Duplicate albums removed: {duplicates}")
+
+    # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums'
+    print("\n=== EXAMPLE: push_no_albums() ===")
+    big_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums"
+    immich.push_no_albums(big_folder, log_level=logging.DEBUG)
+
+    # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums'
+    print("\n=== EXAMPLE: push_albums() ===")
+    input_albums_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums"
+    immich.push_albums(input_albums_folder, log_level=logging.DEBUG)
+
+    # 5) Example: Download all photos from ALL albums
+    print("\n=== EXAMPLE: pull_albums() ===")
+    # total = pull_albums('ALL', output_folder="Downloads_Immich")
+    total_albums, total_assets = immich.pull_albums("1994 - Recuerdos", output_folder="Downloads_Immich", log_level=logging.DEBUG)
     print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums} different albbums.")
-    #
-    # # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
-    # print("\n=== EXAMPLE: download_ALL() ===")
-    # # total_struct = download_ALL(output_folder="Downloads_Immich")
-    # total_albums_downloaded, total_assets_downloaded = immich.download_ALL(output_folder="Downloads_Immich", log_level=logging.DEBUG)
-    # print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
-    #
-    # # 7) Example: Remove Orphan Assets
-    # immich.remove_orphan_assets(user_confirmation=True, log_level=logging.DEBUG)
-    #
-    # # 8) Example: Remove ALL Assets
-    # immich.remove_all_assets(log_level=logging.DEBUG)
-    #
-    # # 9) Example: Remove ALL Assets
-    # immich.remove_all_albums(removeAlbumsAssets=True, log_level=logging.DEBUG)
-    #
-    # # 10) Local logout
-    # immich.logout()
+
+    # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
+    print("\n=== EXAMPLE: pull_ALL() ===")
+    # total_struct = pull_ALL(output_folder="Downloads_Immich")
+    total_albums_downloaded, total_assets_downloaded = immich.pull_ALL(output_folder="Downloads_Immich", log_level=logging.DEBUG)
+    print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
+
+    # 7) Example: Remove Orphan Assets
+    immich.remove_orphan_assets(user_confirmation=True, log_level=logging.DEBUG)
+
+    # 8) Example: Remove ALL Assets
+    immich.remove_all_assets(log_level=logging.DEBUG)
+
+    # 9) Example: Remove ALL Assets
+    immich.remove_all_albums(removeAlbumsAssets=True, log_level=logging.DEBUG)
+
+    # 10) Local logout
+    immich.logout()

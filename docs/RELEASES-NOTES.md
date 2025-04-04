@@ -2,18 +2,18 @@
 Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
 
 **Linux:**:  
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0/CloudPhotoMigrator_v3.1.0_linux_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0/CloudPhotoMigrator_v3.1.0_linux_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.2.0-alpha/CloudPhotoMigrator_v3.2.0-alpha_linux_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.2.0-alpha/CloudPhotoMigrator_v3.2.0-alpha_linux_arm64.zip)  
 
 **Mac OS:**
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0/CloudPhotoMigrator_v3.1.0_macos_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0/CloudPhotoMigrator_v3.1.0_macos_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.2.0-alpha/CloudPhotoMigrator_v3.2.0-alpha_macos_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.2.0-alpha/CloudPhotoMigrator_v3.2.0-alpha_macos_arm64.zip)  
 
 **Windows:**  
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0/CloudPhotoMigrator_v3.1.0_windows_amd64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.2.0-alpha/CloudPhotoMigrator_v3.2.0-alpha_windows_amd64.zip)  
 
 **Docker Launcher:**  
-  - [Download Docker Launcher](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0/CloudPhotoMigrator_v3.1.0_docker.zip)  
+  - [Download Docker Launcher](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.2.0-alpha/CloudPhotoMigrator_v3.2.0-alpha_docker.zip)  
 
 ---
 
@@ -21,26 +21,38 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 
 **Release**: v3.2.0  
 **Release Date**: (estimated)
-  - Alpha version.   : 2025-04-07
+  - Alpha version    : 2025-04-07
   - Beta version     : 2025-04-14
   - Release Candidate: 2025-04-25
   - Official Release : 2025-04-30
 
 ### Main Changes:
-- [ ] Add option to filter assets in all Immich/Synology/LocalFolder Actions:
-    - [ ] by Dates
-    - [ ] by Country
-    - [ ] by City
-    - [ ] by Archive
-    - [ ] by Person
+- [x] Added options to filter assets in all Immich/Synology/LocalFolder Actions:
+    - [x] by Type
+    - [x] by Dates
+    - [x] by Country
+    - [x] by City
+    - [x] by Person
+- [x] Added new flag _**-type, --type = [image, video, all]**_ to select the Asset Type to download (default: all)
+- [x] Added new flag _**-from, --from-date <FROM_DATE>**_ to select the Initial Date of the Assets to download
+- [x] Added new flag _**-to, --to-date <TO_DATE>**_ to select the Final Date of the Assets to download
+- [x] Added new flag _**-country, --country <COUNTRY_NAME>**_ to select the Country Name of the Assets to download
+- [x] Added new flag _**-city, --city <CITY_NAME>**_ to select the City Name of the Assets to download
+- [x] Added new flag _**-person, --person <PERSON_NAME>**_ to select the Person Name of the Assets to download
+- [x] Added new flag _**-parallel, --parallel-migration =[true,false]**_ to select the Migration Mode (Parallel or Sequential). Default: true (parallel)
+- [x] Include Live Dashboard in sequential Automated Migration
+- [x] Minor bugs fixing
+- [x] Test sequential Automated Migration
+- [x] Test Filters in Automated Migration Feature
+- [ ] Test Filters in other Synology/Immich Features
 
-## Release Notes:
+---
 
 **Release**: v3.1.0  
 **Release Date**: 2025-03-31
 
 ### Main Changes:
-- [x] Support to runnning the Tool from Docker container.
+- [x] Support for running the Tool from Docker container.
 - [x] Included Live Progress Dashboard in Automated Migration process for a better visualization of the job progress.
 - [x] Added a new argument **'--source'** to specify the \<SOURCE> client for the Automated Migration process.
 - [x] Added a new argument **'--target'** to specify the \<TARGET> client for the Automated Migration process.
@@ -80,8 +92,8 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
   - #### AUTOMATED MIGRATION FEATURE:
     - **-AUTO,   --AUTOMATED-MIGRATION \<SOURCE> \<TARGET>**  
       This process will do an AUTOMATED-MIGRATION process to Download all your Assets
-             (including Albums) from the <SOURCE> Cloud Service and Upload them to the
-             <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE>
+             (including Albums) from the \<SOURCE> Cloud Service and Upload them to the
+             \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE>
              Cloud Service.
       
              possible values for:

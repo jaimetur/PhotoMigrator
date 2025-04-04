@@ -2,18 +2,15 @@ name: Build Docker Image Only
 
 on:
   workflow_dispatch:      # Allows manual execution of the workflow
-  #push:                   # Ejecución tras push en main, excepto en los path-ignore
+  push:                   # Ejecución tras push en cualquier rama, excepto en los path-ignore
     #branches:
-      #- main
-    #paths-ignore:
-      #- '_built_versions/**'  # Ignore any changes in _built_versions
-      #- .gitignore
-      #- gpth*/**
-      #- exif*/**
-      #- .idea/**
-      #- _src_versions/**
-      #- _buildt_versions/**
-      #- .github/**
+      #- main             # Ejecución tras push en main, excepto en los path-ignore
+    paths-ignore:
+      - .gitignore
+      - .idea/**
+      - .github/**
+      - gpth*/**
+      - README.md
 #  schedule:
 # Ejecución diaria a las 2 AM UTC
 #    - cron: '0 2 * * *'
@@ -22,8 +19,8 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [macos-latest]  # os list
-        python-version: ["3.10"]
+        os: [ubuntu-latest]  # os list
+        python-version: ["3.12.3"]
 
     runs-on: ${{ matrix.os }}
 
@@ -40,15 +37,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # 1. - Execute for MacOS and amd64 Architecture
-      - name: 1. - Execute for MacOS and amd64 Architecture
+      # 1. - Execute for ubuntu without compile any build
+      - name: 1. - Execute for ubuntu without compile any build
         run: |
           echo "::group::Execute for ${{ matrix.os }}"
                     
           # Execute for macOS
-          if [[ "${{ matrix.os }}" == *"macos"* ]]; then
+          if [[ "${{ matrix.os }}" == *"ubuntu"* ]]; then
             cd src
-            python3 _compile.py skip_compile
+            python3 _build.py false
           fi
           
           echo "::endgroup::"
@@ -73,31 +70,20 @@ jobs:
           echo "ARCHIVE_PATH (Linux/macOS)  : ${ARCHIVE_PATH}"
 
 
-      # 3. Create Release and Upload Artifact to it
-      - name: 3. Create Release and Upload Artifact to it
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ env.SCRIPT_VERSION }}
-          draft: true
-          generate_release_notes: true
-          body_path: CURRENT-RELEASE.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-
       # ===========================
       # Generate the Docker version
       # ===========================
-      # 4. Log in to Docker Hub
-      - name: 4. Log in to Docker Hub
-        if: ${{ startsWith(matrix.os, 'macos') }}
+      # 3. Log in to Docker Hub
+      - name: 3. Log in to Docker Hub
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      # 5. Build & Push Docker image
-      - name: 5. Build & Push Docker image
-        if: ${{ startsWith(matrix.os, 'macos') }}
+      # 4. Build & Push Docker image
+      - name: 4. Build & Push Docker image
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           # Fuerza a Docker a:
           #  1) descargar la base actualizada ( --pull )
@@ -119,9 +105,9 @@ jobs:
           docker push jaimetur/cloudphotomigrator:${SCRIPT_VERSION}
           docker push jaimetur/cloudphotomigrator:latest
       
-      # 6. Prepare unified ZIP docker package
-      - name: 6. Prepare unified ZIP docker package
-        if: ${{ startsWith(matrix.os, 'macos') }}
+      # 5. Prepare unified ZIP docker package
+      - name: 5. Prepare unified ZIP docker package
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           mkdir -p CloudPhotoMigrator/docker
           cp docker/CloudPhotoMigrator.sh CloudPhotoMigrator/docker/
@@ -132,13 +118,17 @@ jobs:
           cp -r help CloudPhotoMigrator/docker/
           cp README.md CloudPhotoMigrator/docker/docs/README.md
           zip -r CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip CloudPhotoMigrator
+      # ================================
+      # End of Docker version Generation
+      # ================================
 
-      # 7. Upload release asset
-      - name: 7. Upload release asset
+      # 6. Create Release and Upload Artifact to it
+      - name: 6. Create Release and Upload Artifact to it
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
-          draft: true
+          draft: false
+          prerelease: true
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
           files: |
@@ -146,9 +136,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
-
-      # 8. - Cleanup (Linux/macOS)
-      - name: 8. - Cleanup (Linux/macOS)
+      # 7. - Cleanup (Linux/macOS)
+      - name: 7. - Cleanup (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
           if [ -f artifact_base64.txt ]; then
@@ -161,9 +150,9 @@ jobs:
         shell: bash
 
 
-      # 9. Commit y push README.md (Solo si OS = MacOS*)
-      - name: 9. Commit y push README.md
-        if: ${{ startsWith(matrix.os, 'macos') }}
+      # 8. Commit y push README.md (Solo si OS = ubuntu*)
+      - name: 8. Commit y push README.md
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -198,5 +187,3 @@ jobs:
           # Realizar commit y push
           git commit -m "Actualizar README.md tras compilación"
           git push origin ${{ github.ref_name }}
-
-

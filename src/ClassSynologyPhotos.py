@@ -1,10 +1,31 @@
 # -*- coding: utf-8 -*-
 
+import os
+import sys
+import fnmatch
+import requests
+import json
+import urllib3
+import mimetypes
+from requests_toolbelt.multipart.encoder import MultipartEncoder
+from datetime import datetime
+import time
+import logging
+
+from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm, parse_text_datetime_to_epoch
+
+# We also keep references to your custom logger context manager and utility functions:
+from CustomLogger import set_log_level
+
+# Import the global LOGGER from GlobalVariables
+from GlobalVariables import LOGGER, ARGS
+
+
 """
 ----------------------
 ClassSynologyPhotos.py
 ----------------------
-Python module with example functions to interact with Synology Photos, including followfing functions:
+Python module with example functions to interact with Synology Photos, including following functions:
   - Configuration (read config)
   - Authentication (login/logout)
   - Indexing and Reindexing functions
@@ -13,43 +34,12 @@ Python module with example functions to interact with Synology Photos, including
   - Deleting empty or duplicate albums
   - Main functions for use in other modules:
      - synology_delete_empty_albums()
-     - synology_delete_duplicates_albums()
-     - synology_upload_folder()
-     - synology_upload_albums()
-     - synology_download_albums()
-     - download_ALL()
+     - delete_duplicates_albums()
+     - upload_folder()
+     - upload_albums()
+     - pull_albums()
+     - pull_ALL()
 """
-
-# ClassSynologyPhotos.py
-# -*- coding: utf-8 -*-
-
-"""
-Single-class version of ClassSynologyPhotos.py:
- - Preserves original log messages without modifying their text.
- - All docstrings/comments in English.
- - Imports CustomLogger.set_log_level, Utils.update_metadata, etc. remain outside the class.
- - Uses a global LOGGER from GlobalVariables inside the class constructor.
-"""
-
-import os
-import sys
-import fnmatch
-from datetime import datetime
-import requests
-import urllib3
-import mimetypes
-from requests_toolbelt.multipart.encoder import MultipartEncoder
-import time
-import logging
-import inspect
-
-from Utils import update_metadata, convert_to_list, convert_asset_ids_to_str, get_unique_items, organize_files_by_date, tqdm
-
-# We also keep references to your custom logger context manager and utility functions:
-from CustomLogger import set_log_level
-
-# Import the global LOGGER from GlobalVariables
-from GlobalVariables import LOGGER
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -68,10 +58,6 @@ class ClassSynologyPhotos:
         Constructor that initializes what were previously global variables.
         Also imports the global LOGGER from GlobalVariables.
         """
-        # # Import the global LOGGER from GlobalVariables
-        # from GlobalVariables import LOGGER
-        # LOGGER = LOGGER
-
         self.ACCOUNT_ID = str(account_id)  # Used to identify wich Account to use from the configuration file
         if account_id not in [1, 2]:
             LOGGER.error(f"ERROR   : Cannot create Immich Photos object with ACCOUNT_ID: {account_id}. Valid valies are [1, 2]. Exiting...")
@@ -324,6 +310,148 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while getting user mail. {e}")
             
 
+    def get_geocoding(self, log_level=logging.INFO):
+        """
+        Gets the Geocoding list.
+
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+        Returns:
+             int: List of Geocoding used in the database.
+        """
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+                offset = 0
+                limit = 5000
+                geocoding_list = []
+                while True:
+                    params = {
+                        "api": "SYNO.Foto.Browse.Geocoding",
+                        "method": "list",
+                        "version": "1",
+                        "offset": offset,
+                        "limit": limit
+                    }
+                    resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    resp.raise_for_status()
+                    data = resp.json()
+                    if data["success"]:
+                        geocoding_list.extend(data["data"]["list"])
+                    else:
+                        LOGGER.error("ERROR   : Failed to get Geocoding list: ", data)
+                        return None
+                    if len(data["data"]["list"]) < limit:
+                        break
+                    offset += limit
+                return geocoding_list
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting Geocoding List from Synology Photos. {e}")
+
+
+    def get_geocoding_person_lists(self, log_level=logging.INFO):
+        """
+        Gets the Geocoding list.
+
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+        Returns:
+             int: List of Geocoding used in the database.
+        """
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+                geocoding_list = []
+                person_list = []
+                params = {
+                    "api": "SYNO.Foto.Search.Filter",
+                    "method": "list",
+                    "version": "2",
+                    "setting": '{"geocoding":true,"person":true}'
+                }
+                resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                resp.raise_for_status()
+                data = resp.json()
+                if data["success"]:
+                    geocoding_list.extend(data["data"]["geocoding"])
+                    person_list.extend(data["data"]["person"])
+                else:
+                    LOGGER.error("ERROR   : Failed to get Geocoding/Person list: ", data)
+                    return None, None
+                return geocoding_list, person_list
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while getting Geocoding List from Synology Photos. {e}")
+
+    def get_person_ids(self, person, log_level=logging.INFO):
+        """
+        Retrieves the ID(s) of the person matching the provided name.
+
+        Args:
+            person (str): The name of the person to look for.
+            log_level (int, optional): Logging level. Defaults to logging.INFO.
+
+        Returns:
+            list: A list with the matching person ID(s). Empty if no match is found.
+        """
+        with set_log_level(LOGGER, log_level):
+            geocoding_list, person_list = self.get_geocoding_person_lists(log_level=log_level)
+            person_ids = []
+            for item in person_list:
+                if item.get("name").lower() == person.lower():
+                    person_ids.append(item.get("id"))
+            return person_ids
+
+    def get_geocoding_ids(self, place, log_level=logging.INFO):
+        def collect_ids(node):
+            """Recorre recursivamente un nodo y extrae su id y el de todos sus hijos"""
+            ids = [node.get("id")]
+            for child in node.get("children", []):
+                ids.extend(collect_ids(child))
+            return ids
+        with set_log_level(LOGGER, log_level):
+            geocoding_list, person_list = self.get_geocoding_person_lists(log_level=log_level)
+            for item in geocoding_list:
+                stack = [item]
+                while stack:
+                    current = stack.pop()
+                    if current.get("name") == place:
+                        return collect_ids(current)
+                    stack.extend(current.get("children", []))
+            return []  # Si no se encuentra el lugar
+
+    def get_geocoding_ids_old(self, place, log_level=logging.INFO):
+        with set_log_level(LOGGER, log_level):
+            geocoding_list, person_list = self.get_geocoding_person_lists(log_level=log_level)
+            result_ids = set()
+
+            for item in geocoding_list:
+                # Coincidencia con el país
+                if item.get("country") == place:
+                    result_ids.add(item.get("country_id"))
+                    result_ids.add(item.get("id"))
+
+                # Coincidencia con primer nivel (por ejemplo, ciudad o región)
+                if item.get("first_level") == place:
+                    result_ids.add(item.get("id"))
+
+                # Coincidencia con el nombre del lugar
+                if item.get("name") == place:
+                    result_ids.add(item.get("id"))
+
+                # Coincidencia con segundo nivel si aplica
+                if item.get("second_level") == place:
+                    result_ids.add(item.get("id"))
+
+            return list(result_ids)
+
     ###########################################################################
     #                            ALBUMS FUNCTIONS                             #
     ###########################################################################
@@ -459,7 +587,14 @@ class ClassSynologyPhotos:
                     if "name" in item:
                         item["albumName"] = item.pop("name")
 
-                return album_list
+                albums_filtered = []
+                for album in album_list:
+                    album_id = album.get('id')
+                    album_name = album.get("albumName", "")
+                    album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                    if len(album_assets) > 0:
+                        albums_filtered.append(album)
+                return albums_filtered
             except Exception as e:
                 LOGGER.warning(f"WARNING : Cannot get albums due to API call error. Skipped! {e}")
 
@@ -519,11 +654,18 @@ class ClassSynologyPhotos:
             
 
             # Replace the key "name" by "albumName" to make it equal to Immich Photos
-            for item in album_list:
-                if "name" in item:
-                    item["albumName"] = item.pop("name")
+            for album in album_list:
+                if "name" in album:
+                    album["albumName"] = album.pop("name")
 
-            return album_list
+            albums_filtered = []
+            for album in album_list:
+                album_id = album.get('id')
+                album_name = album.get("albumName", "")
+                album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                if len(album_assets) > 0:
+                    albums_filtered.append(album)
+            return albums_filtered
 
 
     def get_album_assets_size(self, album_id, album_name, log_level=logging.INFO):
@@ -649,7 +791,166 @@ class ClassSynologyPhotos:
                 return album_exists, album_id
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while checking if Album exists on Synology Photos. {e}")
-            
+
+
+    ###########################################################################
+    #                            ASSETS FILTERING                             #
+    ###########################################################################
+    def filter_assets(self, assets, log_level=logging.INFO):
+        """
+        Filters a list of assets based on user-defined criteria such as date range,
+        country, city, and asset type. Filter parameters are retrieved from the global ARGS dictionary.
+
+        The filtering steps are applied in the following order:
+        1. By date range (from-date, to-date)
+        2. By country (matched in address or exifInfo)
+        3. By city (matched in address or exifInfo)
+        4. By person
+        5. By asset_type
+
+        Args:
+            assets (list): List of asset dictionaries to be filtered.
+            log_level (int, optional): Logging level to apply during filtering. Defaults to logging.INFO.
+
+        Returns:
+            list: A filtered list of assets that match the specified criteria.
+        """
+        with set_log_level(LOGGER, log_level):
+            # Get the values from the arguments (if exists)
+            type = ARGS.get('asset-type', None)
+            from_date = ARGS.get('from-date', None)
+            to_date = ARGS.get('to-date', None)
+            country = ARGS.get('country', None)
+            city = ARGS.get('city', None)
+            person = ARGS.get('person', None)
+
+            # Now Filter the assets list based on the filters given by ARGS
+            filtered_assets = assets
+            if type:
+                filtered_assets = self.filter_assets_by_type(filtered_assets, type)
+            if from_date or to_date:
+                filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
+            if country:
+                filtered_assets = self.filter_assets_by_place(filtered_assets, country)
+            if city:
+                filtered_assets = self.filter_assets_by_place(filtered_assets, city)
+            if person:
+                filtered_assets = self.filter_assets_by_person(filtered_assets, person)
+            return filtered_assets
+
+    def filter_assets_by_type(self, assets, type):
+        """
+        Filters a list of assets by their type, supporting flexible type aliases.
+
+        Accepted values for 'type':
+        - 'image', 'images', 'photo', 'photos' → treated as 'IMAGE'
+        - 'video', 'videos' → treated as 'VIDEO'
+        - 'all' → returns all assets (no filtering)
+
+        Matching is case-insensitive.
+
+        Args:
+            assets (list): List of asset dictionaries to be filtered.
+            type (str): The asset type to match.
+
+        Returns:
+            list: A filtered list of assets with the specified type.
+        """
+        if not type or type.lower() == "all":
+            return assets
+        type_lower = type.lower()
+        image_aliases = {"image", "images", "photo", "photos"}
+        video_aliases = {"video", "videos"}
+        if type_lower in image_aliases:
+            target_type = "PHOTO"
+        elif type_lower in video_aliases:
+            target_type = "VIDEO"
+        else:
+            return []  # Unknown type alias
+        return [asset for asset in assets if asset.get("type", "").upper() == target_type]
+
+    def filter_assets_by_date(self, assets, from_date=None, to_date=None):
+        """
+        Filters a list of assets by their 'time' field using a date range.
+
+        If any of the date inputs (from_date, to_date, or asset['time']) are not in epoch format,
+        they will be converted using `parse_text_datetime_to_epoch()`.
+
+        Args:
+            assets (list): List of asset dictionaries.
+            from_date (str | int | float | datetime, optional): Start date (inclusive). Defaults to epoch 0.
+            to_date (str | int | float | datetime, optional): End date (inclusive). Defaults to current time.
+
+        Returns:
+            list: A filtered list of assets whose 'time' field is within the specified range.
+        """
+        epoch_start = 0 if from_date is None else parse_text_datetime_to_epoch(from_date)
+        epoch_end = int(time.time()) if to_date is None else parse_text_datetime_to_epoch(to_date)
+        filtered = []
+        for asset in assets:
+            asset_time = parse_text_datetime_to_epoch(asset.get("time"))
+            if asset_time is None:
+                continue
+            if epoch_start <= asset_time <= epoch_end:
+                filtered.append(asset)
+        return filtered
+
+    def filter_assets_by_place(self, assets, place):
+        """
+        Filters a list of assets by checking if the given place name appears in any of the
+        string fields inside the 'address' dictionary (under 'additional') of each asset.
+
+        Matching is case-insensitive and partial (substring match). Assets without an
+        'address' dictionary will be skipped.
+
+        Args:
+            assets (list): List of asset dictionaries.
+            place (str): Name of the place to match (case-insensitive).
+
+        Returns:
+            list: A filtered list of assets where the given place appears in any address field.
+        """
+        filtered = []
+        place_lower = place.lower()
+        for asset in assets:
+            address = asset.get("additional", {}).get("address", {})
+            if not address:
+                continue
+            for value in address.values():
+                if isinstance(value, str) and place_lower in value.lower():
+                    filtered.append(asset)
+                    break  # Basta con un match para incluirlo
+        return filtered
+
+    def filter_assets_by_person(self, assets, person_name):
+        """
+        Filters a list of assets by person name.
+
+        The method looks for a match in the 'name' field of each person listed in the
+        'people' key of each asset. Matching is case-insensitive and allows partial matches.
+
+        Args:
+            assets (list): List of asset dictionaries.
+            person_name (str): Name (or partial name) of the person to search for.
+
+        Returns:
+            list: A filtered list of assets that include the specified person.
+        """
+        # TODO: Adapt this method to Synology because have been copied from Immich Class
+        if not person_name:
+            return assets
+        name_lower = person_name.lower()
+        filtered = []
+        for asset in assets:
+            people = asset.get("people", [])
+            for person in people:
+                if isinstance(person, dict):
+                    person_name_field = person.get("name", "")
+                    if isinstance(person_name_field, str) and name_lower in person_name_field.lower():
+                        filtered.append(asset)
+                        break  # One match is enough
+        return filtered
+
 
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
@@ -666,6 +967,29 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
+                # Get the values from the arguments (if exists)
+                from_date = ARGS.get('from-date', None)
+                to_date = ARGS.get('to-date', None)
+                type = ARGS.get('asset-type', None)
+                country = ARGS.get('country', None)
+                city = ARGS.get('city', None)
+                person = ARGS.get('person', None)
+
+                # Convert the values from iso to epoch
+                from_date = parse_text_datetime_to_epoch(from_date)
+                to_date = parse_text_datetime_to_epoch(to_date)
+
+                # Obtain the place_ids for country and city
+                geocoding_country_ids_list = []
+                geocoding_city_ids_list = []
+                if country: geocoding_country_ids_list = self.get_geocoding_ids(place=country, log_level=log_level)
+                if city: geocoding_city_ids_list = self.get_geocoding_ids(place=city, log_level=log_level)
+                geocoding_ids_list = geocoding_country_ids_list + geocoding_city_ids_list
+
+                # Obtain the person_ids for person
+                person_ids_list = []
+                if person: person_ids_list = self.get_person_ids(person, log_level=log_level)
+
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
                 headers = {}
@@ -675,19 +999,44 @@ class ClassSynologyPhotos:
                 offset = 0
                 limit = 5000
                 all_assets = []
-                combined_assets = []
-
                 while True:
                     params = {
                         'api': 'SYNO.Foto.Browse.Item',
-                        'version': '4',
-                        'method': 'list',
-                        "offset": offset,
-                        "limit": limit
+                        # 'version': '4',
+                        # 'method': 'list',
+                        'version': '2',
+                        'method': 'list_with_filter',
+                        'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
+                        'offset': offset,
+                        'limit': limit,
                     }
+
+                    # Add time to params only if from_date or to_date have some values
+                    time_dic = {}
+                    if from_date:  time_dic["start_time"] = from_date
+                    if to_date: time_dic["end_time"] = to_date
+                    if time_dic: params["time"] = json.dumps([time_dic])
+
+                    # Add geocoding key if geocoding_ids_list has some value
+                    if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
+
+                    # Add person key if person_ids_list has some value
+                    if geocoding_ids_list:
+                        params["person"] = json.dumps(person_ids_list)
+                        params["person_policy"] = '"or"'
+
+                    # Add types to params if have been providen
+                    types = []
+                    if type:
+                        if type.lower() in ['photo', 'photos']:
+                            types.append(0)
+                        if type.lower() in ['video', 'videos']:
+                            types.append(1)
+                    if types: params["item_type"] = types
+
                     try:
-                        r = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                        data = r.json()
+                        resp = self.SESSION.get(url, headers=headers, params=params, verify=False)
+                        data = resp.json()
                         if not data.get("success"):
                             LOGGER.error(f"ERROR   : Failed to list assets")
                             return []
@@ -698,14 +1047,13 @@ class ClassSynologyPhotos:
                     except Exception as e:
                         LOGGER.error(f"ERROR   : Exception while listing assets {e}")
                         return []
-                    
 
                 return all_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting all Assets from Synology Photos. {e}")
             
 
-    def get_album_assets(self, album_id, album_name=None, log_level=logging.INFO):
+    def get_all_assets_from_album(self, album_id, album_name=None, log_level=logging.INFO):
         """
         Get assets in a specific album.
 
@@ -719,6 +1067,29 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
+                # Get the values from the arguments (if exists)
+                from_date = ARGS.get('from-date', None)
+                to_date = ARGS.get('to-date', None)
+                type = ARGS.get('asset-type', None)
+                country = ARGS.get('country', None)
+                city = ARGS.get('city', None)
+                person = ARGS.get('person', None)
+
+                # Convert the values from iso to epoch
+                from_date = parse_text_datetime_to_epoch(from_date)
+                to_date = parse_text_datetime_to_epoch(to_date)
+
+                # Obtain the place_ids for country and city
+                geocoding_country_ids_list = []
+                geocoding_city_ids_list = []
+                if country: geocoding_country_ids_list = self.get_geocoding_ids(place=country, log_level=log_level)
+                if city: geocoding_city_ids_list = self.get_geocoding_ids(place=city, log_level=log_level)
+                geocoding_ids_list = geocoding_country_ids_list + geocoding_city_ids_list
+
+                # Obtain the person_ids for person
+                person_ids_list = []
+                if person: person_ids_list = self.get_person_ids(person, log_level=log_level)
+
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
                 headers = {}
@@ -727,17 +1098,43 @@ class ClassSynologyPhotos:
 
                 offset = 0
                 limit = 5000
-                album_items = []
-
+                album_assets = []
                 while True:
                     params = {
                         'api': 'SYNO.Foto.Browse.Item',
-                        'version': '4',
-                        'method': 'list',
+                        # 'version': '4',
+                        # 'method': 'list',
+                        'version': '2',
+                        'method': 'list_with_filter',
+                        'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
                         'album_id': album_id,
-                        "offset": offset,
-                        "limit": limit
+                        'offset': offset,
+                        'limit': limit,
                     }
+
+                    # Add time to params only if from_date or to_date have some values
+                    time_dic = {}
+                    if from_date:  time_dic["start_time"] = from_date
+                    if to_date: time_dic["end_time"] = to_date
+                    if time_dic: params["time"] = json.dumps([time_dic])
+
+                    # Add geocoding key if geocoding_ids_list has some value
+                    if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
+
+                    # Add person key if person_ids_list has some value
+                    if geocoding_ids_list:
+                        params["person"] = json.dumps(person_ids_list)
+                        params["person_policy"] = '"or"'
+
+                    # Add types to params if have been providen
+                    types = []
+                    if type:
+                        if type.lower() in ['photo', 'photos']:
+                            types.append(0)
+                        if type.lower() in ['video', 'videos']:
+                            types.append(1)
+                    if types: params["item_type"] = types
+
                     try:
                         resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
                         data = resp.json()
@@ -747,7 +1144,8 @@ class ClassSynologyPhotos:
                             else:
                                 LOGGER.error(f"ERROR   : Failed to list photos in the album ID={album_id}")
                             return []
-                        album_items.extend(data["data"]["list"])
+                        if len(data["data"]["list"])>0:
+                            album_assets.extend(data["data"]["list"])
 
                         if len(data["data"]["list"]) < limit:
                             break
@@ -759,19 +1157,20 @@ class ClassSynologyPhotos:
                             LOGGER.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                         return []
 
-                return album_items
+                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                return filtered_album_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
 
 
-    def get_album_shared_assets(self, album_passphrase, album_id, album_name=None, log_level=logging.INFO):
+    def get_all_assets_from_album_shared(self, album_id, album_name=None, album_passphrase=None, log_level=logging.INFO):
         """
         Get assets in a specific shared album.
 
         Args:
-            album_passphrase (str): Shared album passphrase
             album_id (str): ID of the album.
             album_name (str): Name of the album.
+            album_passphrase (str): Shared album passphrase
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns:
@@ -779,6 +1178,29 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
+                # Get the values from the arguments (if exists)
+                from_date = ARGS.get('from-date', None)
+                to_date = ARGS.get('to-date', None)
+                type = ARGS.get('asset-type', None)
+                country = ARGS.get('country', None)
+                city = ARGS.get('city', None)
+                person = ARGS.get('person', None)
+
+                # Convert the values from iso to epoch
+                from_date = parse_text_datetime_to_epoch(from_date)
+                to_date = parse_text_datetime_to_epoch(to_date)
+
+                # Obtain the place_ids for country and city
+                geocoding_country_ids_list = []
+                geocoding_city_ids_list = []
+                if country: geocoding_country_ids_list = self.get_geocoding_ids(place=country, log_level=log_level)
+                if city: geocoding_city_ids_list = self.get_geocoding_ids(place=city, log_level=log_level)
+                geocoding_ids_list = geocoding_country_ids_list + geocoding_city_ids_list
+
+                # Obtain the person_ids for person
+                person_ids_list = []
+                if person: person_ids_list = self.get_person_ids(person, log_level=log_level)
+
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
                 headers = {}
@@ -787,17 +1209,43 @@ class ClassSynologyPhotos:
 
                 offset = 0
                 limit = 5000
-                album_items = []
-
+                album_assets = []
                 while True:
                     params = {
                         'api': 'SYNO.Foto.Browse.Item',
-                        'version': '4',
-                        'method': 'list',
+                        # 'version': '4',
+                        # 'method': 'list',
+                        'version': '2',
+                        'method': 'list_with_filter',
+                        'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
                         'passphrase': album_passphrase,
-                        "offset": offset,
-                        "limit": limit
+                        'offset': offset,
+                        'limit': limit,
                     }
+
+                    # Add time to params only if from_date or to_date have some values
+                    time_dic = {}
+                    if from_date:  time_dic["start_time"] = from_date
+                    if to_date: time_dic["end_time"] = to_date
+                    if time_dic: params["time"] = json.dumps([time_dic])
+
+                    # Add geocoding key if geocoding_ids_list has some value
+                    if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
+
+                    # Add person key if person_ids_list has some value
+                    if geocoding_ids_list:
+                        params["person"] = json.dumps(person_ids_list)
+                        params["person_policy"] = '"or"'
+
+                    # Add types to params if have been providen
+                    types = []
+                    if type:
+                        if type.lower() in ['photo', 'photos']:
+                            types.append(0)
+                        if type.lower() in ['video', 'videos']:
+                            types.append(1)
+                    if types: params["item_type"] = types
+
                     try:
                         resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
                         data = resp.json()
@@ -807,7 +1255,8 @@ class ClassSynologyPhotos:
                             else:
                                 LOGGER.error(f"ERROR   : Failed to list photos in the album ID={album_id}")
                             return []
-                        album_items.extend(data["data"]["list"])
+                        if len(data["data"]["list"]) > 0:
+                            album_assets.extend(data["data"]["list"])
 
                         if len(data["data"]["list"]) < limit:
                             break
@@ -819,12 +1268,13 @@ class ClassSynologyPhotos:
                             LOGGER.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                         return []
 
-                return album_items
+                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                return filtered_album_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
 
 
-    def get_no_albums_assets(self, log_level=logging.WARNING):
+    def get_all_assets_without_albums(self, log_level=logging.WARNING):
         """
         Get assets not associated to any album from Synology Photos.
 
@@ -837,7 +1287,7 @@ class ClassSynologyPhotos:
             try:
                 self.login(log_level=log_level)
                 all_assets = self.get_all_assets(log_level=logging.INFO)
-                album_asset = self.get_all_albums_assets(log_level=logging.INFO)
+                album_asset = self.get_all_assets_from_all_albums(log_level=logging.INFO)
                 # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
                 assets_without_albums = get_unique_items(all_assets, album_asset, key='filename')
                 LOGGER.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
@@ -846,7 +1296,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while getting No-Albums Assets from Synology Photos. {e}")
 
 
-    def get_all_albums_assets(self, log_level=logging.WARNING):
+    def get_all_assets_from_all_albums(self, log_level=logging.WARNING):
         """
         Gathers assets from all known albums, merges them into a single list.
 
@@ -870,7 +1320,7 @@ class ClassSynologyPhotos:
                 for album in all_albums:
                     album_id = album.get("id")
                     album_name = album.get("albumName", "")
-                    album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
+                    album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                     combined_assets.extend(album_assets)
                 return combined_assets
             except Exception as e:
@@ -995,7 +1445,7 @@ class ClassSynologyPhotos:
                 removed_count = len(asset_ids)
 
                 # Wait for background remove task to finish
-                self.wait_for_remove_task(task_id, log_level=log_level)
+                self.wait_for_background_remove_task(task_id, log_level=log_level)
                 return removed_count
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing Assets from Synology Photos. {e}")
@@ -1013,7 +1463,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while removing duplicates assets from Synology Photos. {e}")
             
 
-    def upload_asset(self, file_path, log_level=logging.INFO):
+    def push_asset(self, file_path, log_level=logging.INFO):
         """
         Uploads a local file (photo/video) to Synology Photos.
 
@@ -1084,7 +1534,7 @@ class ClassSynologyPhotos:
                 LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
             
 
-    def download_asset(self, asset_id, asset_filename, asset_time, album_passphrase=None, download_folder="Downloaded_Synology", log_level=logging.INFO):
+    def pull_asset(self, asset_id, asset_filename, asset_time, album_passphrase=None, download_folder="Downloaded_Synology", log_level=logging.INFO):
         """
         Downloads an asset (photo/video) from Synology Photos to a local folder,
         preserving the original timestamp if available.
@@ -1480,7 +1930,7 @@ class ClassSynologyPhotos:
     #                         BACKGROUND TASKS MANAGEMENT                     #
     #             (This block is exclusive for ClassSynologyPhotos)           #
     ###########################################################################
-    def wait_for_remove_task(self, task_id, log_level=logging.INFO):
+    def wait_for_background_remove_task(self, task_id, log_level=logging.INFO):
         """
         Internal helper to poll a background remove task until done.
 
@@ -1490,7 +1940,7 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 while True:
-                    status = self.check_background_remove_task_finished(task_id, log_level=log_level)
+                    status = self.wait_for_background_remove_task_finished_check(task_id, log_level=log_level)
                     if status == 'done' or status is True:
                         LOGGER.info(f'INFO    : Waiting for removing assets to finish...')
                         time.sleep(5)
@@ -1502,7 +1952,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while waitting for remove task to finish in Synology Photos. {e}")
 
 
-    def check_background_remove_task_finished(self, task_id, log_level=logging.INFO):
+    def wait_for_background_remove_task_finished_check(self, task_id, log_level=logging.INFO):
         """
         Checks whether a background removal task is finished.
 
@@ -1544,7 +1994,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #             MAIN FUNCTIONS TO CALL FROM OTHER MODULES (API)            #
     ###########################################################################
-    def upload_albums(self, input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
+    def push_albums(self, input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         """
         Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals
         the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on
@@ -1653,7 +2103,7 @@ class ClassSynologyPhotos:
                                 if ext not in self.ALLOWED_EXTENSIONS:
                                     continue
 
-                                asset_id = self.upload_asset(file_path, log_level=logging.WARNING)
+                                asset_id = self.push_asset(file_path, log_level=logging.WARNING)
                                 if asset_id:
                                     total_assets_uploaded += 1
                                     # Associate only if ext is photo/video
@@ -1680,7 +2130,7 @@ class ClassSynologyPhotos:
         return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed
 
 
-    def upload_no_albums(self, input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, log_level=logging.WARNING):
+    def push_no_albums(self, input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, log_level=logging.WARNING):
         """
         Recursively traverses 'input_folder' and its subfolders_inclusion to upload all
         compatible files (photos/videos) to Synology without associating them to any album.
@@ -1730,7 +2180,7 @@ class ClassSynologyPhotos:
 
                 with tqdm(total=total_files, smoothing=0.1, desc="INFO    : Uploading Assets", unit=" asset") as pbar:
                     for file_ in file_paths:
-                        asset_id = self.upload_asset(file_, log_level=logging.WARNING)
+                        asset_id = self.push_asset(file_, log_level=logging.WARNING)
                         if asset_id:
                             total_assets_uploaded += 1
                         pbar.update(1)
@@ -1744,7 +2194,7 @@ class ClassSynologyPhotos:
         return total_assets_uploaded
 
 
-    def upload_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.INFO):
+    def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.INFO):
         """
         Uploads ALL photos/videos from input_folder into Synology Photos.
         Returns details about how many albums and assets were uploaded.
@@ -1772,7 +2222,7 @@ class ClassSynologyPhotos:
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : Uploading Assets and creating Albums into synology Photos from '{albums_folders}' subfolders...")
 
-                total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed = self.upload_albums(
+                total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed = self.push_albums(
                     input_folder=input_folder,
                     subfolders_inclusion=albums_folders,
                     remove_duplicates=False,
@@ -1782,7 +2232,7 @@ class ClassSynologyPhotos:
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : Uploading Assets without Albums creation into synology Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
 
-                total_assets_uploaded_without_albums = self.upload_no_albums(
+                total_assets_uploaded_without_albums = self.push_no_albums(
                     input_folder=input_folder,
                     subfolders_exclusion=albums_folders,
                     log_level=logging.WARNING
@@ -1808,7 +2258,7 @@ class ClassSynologyPhotos:
             )
 
 
-    def download_albums(self, albums_name='ALL', output_folder='Downloads_Synology', log_level=logging.WARNING):
+    def pull_albums(self, albums_name='ALL', output_folder='Downloads_Synology', log_level=logging.WARNING):
         """
         Downloads photos/videos from albums by name pattern or ID. 'ALL' downloads all.
 
@@ -1868,7 +2318,7 @@ class ClassSynologyPhotos:
                     album_name = album.get("albumName", "")
                     album_id = album.get('id')
                     LOGGER.info(f"INFO    : Processing album: '{album_name}' (ID: {album_id})")
-                    album_assets = self.get_album_assets(album_id, album_name, log_level=log_level)
+                    album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                     LOGGER.info(f"INFO    : Number of album_assets in the album '{album_name}': {len(album_assets)}")
                     if not album_assets:
                         LOGGER.warning(f"WARNING : No album_assets to download in the album '{album_name}'.")
@@ -1882,7 +2332,7 @@ class ClassSynologyPhotos:
                         asset_time = asset.get('time')
                         asset_filename = asset.get('filename')
                         # Download
-                        assets_downloaded += self.download_asset(asset_id, asset_filename, asset_time, album_folder_path, log_level=logging.INFO)
+                        assets_downloaded += self.pull_asset(asset_id, asset_filename, asset_time, album_folder_path, log_level=logging.INFO)
 
                 LOGGER.info(f"INFO    : Album(s) downloaded successfully. You can find them in '{output_folder}'")
                 self.logout(log_level=log_level)
@@ -1893,7 +2343,7 @@ class ClassSynologyPhotos:
             return albums_downloaded, assets_downloaded
 
 
-    def download_no_albums(self, no_albums_folder='Downloads_Synology', log_level=logging.WARNING):
+    def pull_no_albums(self, no_albums_folder='Downloads_Synology', log_level=logging.WARNING):
         """
         Downloads assets not associated to any album from Synology Photos into output_folder/No-Albums/.
         Then organizes them by year/month inside that folder.
@@ -1909,7 +2359,7 @@ class ClassSynologyPhotos:
                 self.login(log_level=log_level)
                 total_assets_downloaded = 0
 
-                assets_without_albums = self.get_no_albums_assets(log_level=logging.INFO)
+                assets_without_albums = self.get_all_assets_without_albums(log_level=logging.INFO)
                 no_albums_folder = os.path.join(no_albums_folder, 'No-Albums')
                 os.makedirs(no_albums_folder, exist_ok=True)
 
@@ -1922,7 +2372,7 @@ class ClassSynologyPhotos:
                     asset_id = asset.get('id')
                     asset_name = asset.get('filename')
                     asset_time = asset.get('time')
-                    total_assets_downloaded += self.download_asset(asset_id, asset_name, asset_time, no_albums_folder, log_level=logging.INFO)
+                    total_assets_downloaded += self.pull_asset(asset_id, asset_name, asset_time, no_albums_folder, log_level=logging.INFO)
 
                 # Now organize them by date (year/month)
                 organize_files_by_date(input_folder=no_albums_folder, type='year/month')
@@ -1935,7 +2385,7 @@ class ClassSynologyPhotos:
             return total_assets_downloaded
 
 
-    def download_ALL(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_ALL(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Downloads ALL photos and videos from Synology Photos into output_folder creating a Folder Structure like this:
         output_folder/
@@ -1955,12 +2405,12 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
-                (total_albums_downloaded, total_assets_downloaded_within_albums) = self.download_albums(
+                (total_albums_downloaded, total_assets_downloaded_within_albums) = self.pull_albums(
                     albums_name='ALL',
                     output_folder=output_folder,
                     log_level=logging.WARNING
                 )
-                total_assets_downloaded_without_albums = self.download_no_albums(
+                total_assets_downloaded_without_albums = self.pull_no_albums(
                     no_albums_folder=output_folder,
                     log_level=logging.WARNING
                 )
@@ -2213,7 +2663,7 @@ class ClassSynologyPhotos:
                     album_assets_ids = []
 
                     if removeAlbumsAssets:
-                        album_assets = self.get_album_assets(album_id, log_level=log_level)
+                        album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
                         for asset in album_assets:
                             asset_id = asset.get("id")
                             if asset_id:
@@ -2246,8 +2696,8 @@ class ClassSynologyPhotos:
 ##############################################################################
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-    from ChangeWrkingDir import change_workingdir
-    change_workingdir()
+    from ChangeWorkingDir import change_working_dir
+    change_working_dir()
 
     # Create the Object
     syno = ClassSynologyPhotos()
@@ -2257,69 +2707,64 @@ if __name__ == "__main__":
     syno.login(use_syno_token=True)
     # login(use_syno_token=False)
 
-    # # Example: remove_empty_albums()
-    # print("=== EXAMPLE: remove_empty_albums() ===")
-    # syno.deleted = synology_remove_empty_albums()
-    # print(f"[RESULT] Empty albums deleted: {deleted}\n")
+    # Example: remove_empty_albums()
+    print("=== EXAMPLE: remove_empty_albums() ===")
+    deleted = syno.remove_empty_albums()
+    print(f"[RESULT] Empty albums deleted: {deleted}\n")
 
-    # # Example: remove_duplicates_albums()
-    # print("=== EXAMPLE: remove_duplicates_albums() ===")
-    # syno.duplicates = synology_remove_duplicates_albums()
-    # print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
+    # Example: remove_duplicates_albums()
+    print("=== EXAMPLE: remove_duplicates_albums() ===")
+    duplicates = syno.remove_duplicates_albums()
+    print(f"[RESULT] Duplicate albums deleted: {duplicates}\n")
 
-    # # Example: Upload_asset()
-    # print("\n=== EXAMPLE: upload_asset() ===")
-    # file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\1994 - Recuerdos\169859_10150125237566327_578986326_8330690_6545.jpg"                # For Windows
-    # asset_id = syno.upload_asset(file_path)
-    # if not asset_id:
-    #     print(f"Error uploading asset '{file_path}'.")
-    # else:
-    #     print(f"New Asset uploaded successfully with id: {asset_id}")
+    # Example: push_asset()
+    print("\n=== EXAMPLE: push_asset() ===")
+    file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\1994 - Recuerdos\169859_10150125237566327_578986326_8330690_6545.jpg"                # For Windows
+    asset_id = syno.push_asset(file_path)
+    if not asset_id:
+        print(f"Error uploading asset '{file_path}'.")
+    else:
+        print(f"New Asset uploaded successfully with id: {asset_id}")
 
-    # # Example: synology_upload_no_albums()
-    # print("\n=== EXAMPLE: synology_upload_no_albums() ===")
-    # # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
-    # input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
-    # syno.upload_no_albums(input_folder)
+    # Example: push_no_albums()
+    print("\n=== EXAMPLE: push_no_albums() ===")
+    # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    syno.push_no_albums(input_folder)
 
-    # # Example: synology_upload_albums()
-    # print("\n=== EXAMPLE: synology_upload_albums() ===")
-    # # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
-    # input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
-    # syno.upload_albums(input_folder)
+    # Example: push_albums()
+    print("\n=== EXAMPLE: push_albums() ===")
+    # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    syno.push_albums(input_folder)
 
-    # # Example: synology_upload_ALL()
-    # print("\n=== EXAMPLE: synology_upload_ALL() ===")
-    # # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
-    # input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
-    # syno.upload_ALL(input_folder)
+    # Example: push_ALL()
+    print("\n=== EXAMPLE: push_ALL() ===")
+    # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    syno.push_ALL(input_folder)
 
-    # Example: synology_download_albums()
-    print("\n=== EXAMPLE: synology_download_albums() ===")
+    # Example: pull_albums()
+    print("\n=== EXAMPLE: pull_albums() ===")
     download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
-    total = syno.download_albums(albums_name='ALL', output_folder=download_folder)
+    total = syno.pull_albums(albums_name='ALL', output_folder=download_folder)
     print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
-    # # Example: synology_download_no_albums()
-    # print("\n=== EXAMPLE: synology_download_albums() ===")
-    # download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
-    # total = syno.download_no_albums(no_albums_folder=download_folder)
-    # print(f"[RESULT] A total of {total} assets have been downloaded.\n")
+    # Example: pull_no_albums()
+    print("\n=== EXAMPLE: pull_no_albums() ===")
+    download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
+    total = syno.pull_no_albums(no_albums_folder=download_folder)
+    print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
-    # # Example: download_ALL
-    # print("=== EXAMPLE: download_ALL() ===")
-    # total_struct = syno.download_ALL(output_folder="Downloads_Synology")
-    # # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
+    # Example: pull_ALL
+    print("=== EXAMPLE: pull_ALL() ===")
+    total_struct = syno.pull_ALL(output_folder="Downloads_Synology")
+    # print(f"[RESULT] Bulk download completed. Total assets: {total_struct}\n")
 
-    # # Test: get_photos_root_folder_id()
-    # print("=== EXAMPLE: get_photos_root_folder_id() ===")
-    # root_folder_id = syno.get_photos_root_folder_id()
-    # print (root_folder_id)
-
-    # # Example: remove_empty_folders()
-    # print("\n=== EXAMPLE: remove_empty_folders() ===")
-    # total = syno.remove_empty_folders()
-    # print(f"[RESULT] A total of {total} folders have been removed.\n")
+    # Example: remove_empty_folders()
+    print("\n=== EXAMPLE: remove_empty_folders() ===")
+    total = syno.remove_empty_folders()
+    print(f"[RESULT] A total of {total} folders have been removed.\n")
 
     # logout()
     syno.logout()

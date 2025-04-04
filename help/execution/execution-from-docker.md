@@ -26,10 +26,9 @@ Once you have Docker installed and running on your system, you have twoo options
     ```
     The result should be something like this:  
       "latest"  
+      "latest-stable"  
+      "3.2.0"  
       "3.1.0"  
-      "3.1.0-beta3"  
-      "3.1.0-beta2"  
-      "3.1.0-beta1"
 
 #### Example:
   - For latest release:
@@ -95,12 +94,12 @@ Download the latest version of the Docker package from the [Releases page](https
 
 - **Linux/macOS:**
     ```bash
-    curl -L -o CloudPhotoMigrator_v3.1.0_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0/CloudPhotoMigrator_v3.1.0_docker.zip
+    curl -L -o CloudPhotoMigrator_v3.2.0-alpha_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.2.0-alpha/CloudPhotoMigrator_v3.2.0-alpha_docker.zip
     ```
   
 - **Windows (PoowerShell):**
     ```bash
-    curl.exe -L -o CloudPhotoMigrator_v3.1.0_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.1.0/CloudPhotoMigrator_v3.1.0_docker.zip
+    curl.exe -L -o CloudPhotoMigrator_v3.2.0-alpha_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.2.0-alpha/CloudPhotoMigrator_v3.2.0-alpha_docker.zip
     ```
 
 
@@ -108,13 +107,13 @@ Download the latest version of the Docker package from the [Releases page](https
 
 - **Linux/macOS:**
     ```bash
-    unzip CloudPhotoMigrator_v3.1.0_docker.zip -d ./
+    unzip CloudPhotoMigrator_v3.2.0-alpha_docker.zip -d ./
     cd CloudPhotoMigrator
     ```
 
 - **Windows (PoowerShell):**
     ```bash
-    powershell -Command "Expand-Archive -Path CloudPhotoMigrator_v3.1.0_docker.zip -DestinationPath ./"
+    powershell -Command "Expand-Archive -Path CloudPhotoMigrator_v3.2.0-alpha_docker.zip -DestinationPath ./"
     cd CloudPhotoMigrator
     ```
 

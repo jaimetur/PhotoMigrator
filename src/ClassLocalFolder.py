@@ -1,19 +1,37 @@
+# -*- coding: utf-8 -*-
+
 import os
 import shutil
 import logging
 import re
 import Utils
+from Utils import parse_text_datetime_to_epoch
 from datetime import datetime
+import time
 from pathlib import Path
-from collections import defaultdict
-from contextlib import contextmanager
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
 
 # Import the global LOGGER from GlobalVariables
-from GlobalVariables import LOGGER
+from GlobalVariables import LOGGER, ARGS
 
+"""
+-------------------
+ClassLocalFolder.py
+-------------------
+Python module with example functions to interact with Local Folder, including following functions:
+  - Listing and managing albums
+  - Listing, uploading, and downloading assets
+  - Deleting empty or duplicate albums
+  - Main functions for use in other modules:
+     - delete_empty_albums()
+     - delete_duplicates_albums()
+     - upload_folder()
+     - upload_albums()
+     - download_albums()
+     - pull_ALL()
+"""
 
 ##############################################################################
 #                              START OF CLASS                                #
@@ -317,8 +335,15 @@ class ClassLocalFolder:
                 for p in self.albums_folder.iterdir() if p.is_dir()
             ]
 
-            LOGGER.info(f"INFO    : Found {len(albums)} owned albums.")
-            return albums
+            albums_filtered = []
+            for album in albums:
+                album_id = album.get('id')
+                album_name = album.get("albumName", "")
+                album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                if len(album_assets) > 0:
+                    albums_filtered.append(album)
+            LOGGER.info(f"INFO    : Found {len(albums_filtered)} owned albums.")
+            return albums_filtered
 
 
     def get_albums_including_shared_with_user(self, log_level=logging.INFO):
@@ -332,21 +357,32 @@ class ClassLocalFolder:
                         - 'albumName': Name of the album folder.
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Retrieving owned and shared albums.")
+            try:
+                LOGGER.info("INFO    : Retrieving owned and shared albums.")
 
-            albums = [
-                {"id": str(p.resolve()), "albumName": p.name}
-                for p in self.albums_folder.iterdir() if p.is_dir()
-            ]
-            shared_albums = [
-                {"id": str(p.resolve()), "albumName": p.name}
-                for p in self.shared_albums_folder.iterdir() if p.is_dir()
-            ]
+                albums = [
+                    {"id": str(p.resolve()), "albumName": p.name}
+                    for p in self.albums_folder.iterdir() if p.is_dir()
+                ]
+                shared_albums = [
+                    {"id": str(p.resolve()), "albumName": p.name}
+                    for p in self.shared_albums_folder.iterdir() if p.is_dir()
+                ]
 
-            all_albums = albums + shared_albums
+                all_albums = albums + shared_albums
 
-            LOGGER.info(f"INFO    : Found {len(all_albums)} albums in total (owned + shared).")
-            return all_albums
+                albums_filtered = []
+                for album in all_albums:
+                    album_id = album.get('id')
+                    album_name = album.get("albumName", "")
+                    album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                    if len(album_assets) > 0:
+                        albums_filtered.append(album)
+                LOGGER.info(f"INFO    : Found {len(albums_filtered)} albums in total (owned + shared).")
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Failed to get albums (owned + shared): {str(e)}")
+
+            return albums_filtered
 
     def get_album_assets_size(self, album_id, type='all', log_level=logging.INFO):
         """
@@ -408,7 +444,7 @@ class ClassLocalFolder:
             int: Number of assets in the album.
         """
         with set_log_level(LOGGER, log_level):
-            return len(self.get_album_assets(album_id, log_level))
+            return len(self.get_all_assets_from_album(album_id, log_level))
 
 
     def album_exists(self, album_name, log_level=logging.INFO):
@@ -431,9 +467,100 @@ class ClassLocalFolder:
 
 
     ###########################################################################
+    #                            ASSETS FILTERING                             #
+    ###########################################################################
+    def filter_assets(self, assets, log_level=logging.INFO):
+        """
+        Filters a list of assets based on user-defined criteria such as date range,
+        country, city, and asset type. Filter parameters are retrieved from the global ARGS dictionary.
+
+        The filtering steps are applied in the following order:
+        1. By date range (from-date, to-date)
+        2. By asset_type
+
+        Args:
+            assets (list): List of asset dictionaries to be filtered.
+            log_level (int, optional): Logging level to apply during filtering. Defaults to logging.INFO.
+
+        Returns:
+            list: A filtered list of assets that match the specified criteria.
+        """
+        with set_log_level(LOGGER, log_level):
+            # Get the values from the arguments (if exists)
+            type = ARGS.get('asset-type', None)
+            from_date = ARGS.get('from-date', None)
+            to_date = ARGS.get('to-date', None)
+
+            # Now Filter the assets list based on the filters given by ARGS
+            filtered_assets = assets
+            if type:
+                filtered_assets = self.filter_assets_by_type(filtered_assets, type)
+            if from_date or to_date:
+                filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
+            return filtered_assets
+
+    def filter_assets_by_type(self, assets, type):
+        """
+        Filters a list of assets by their type, supporting flexible type aliases.
+
+        Accepted values for 'type':
+        - 'image', 'images', 'photo', 'photos' → treated as 'IMAGE'
+        - 'video', 'videos' → treated as 'VIDEO'
+        - 'all' → returns all assets (no filtering)
+
+        Matching is case-insensitive.
+
+        Args:
+            assets (list): List of asset dictionaries to be filtered.
+            type (str): The asset type to match.
+
+        Returns:
+            list: A filtered list of assets with the specified type.
+        """
+        if not type or type.lower() == "all":
+            return assets
+        type_lower = type.lower()
+        image_aliases = {"image", "images", "photo", "photos"}
+        video_aliases = {"video", "videos"}
+        if type_lower in image_aliases:
+            target_type = "IMAGE"
+        elif type_lower in video_aliases:
+            target_type = "VIDEO"
+        else:
+            return []  # Unknown type alias
+        return [asset for asset in assets if asset.get("type", "").upper() == target_type]
+
+    def filter_assets_by_date(self, assets, from_date=None, to_date=None):
+        """
+        Filters a list of assets by their 'time' field using a date range.
+
+        If any of the date inputs (from_date, to_date, or asset['time']) are not in epoch format,
+        they will be converted using `parse_text_datetime_to_epoch()`.
+
+        Args:
+            assets (list): List of asset dictionaries.
+            from_date (str | int | float | datetime, optional): Start date (inclusive). Defaults to epoch 0.
+            to_date (str | int | float | datetime, optional): End date (inclusive). Defaults to current time.
+
+        Returns:
+            list: A filtered list of assets whose 'time' field is within the specified range.
+        """
+        epoch_start = 0 if from_date is None else parse_text_datetime_to_epoch(from_date)
+        epoch_end = int(time.time()) if to_date is None else parse_text_datetime_to_epoch(to_date)
+        filtered = []
+        for asset in assets:
+            asset_time = parse_text_datetime_to_epoch(asset.get("time"))
+            if asset_time is None:
+                continue
+            if epoch_start <= asset_time <= epoch_end:
+                filtered.append(asset)
+        return filtered
+
+
+    ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
-    def get_all_assets(self, type='all', log_level=logging.INFO):
+    def get_all_assets(self, type='all', log_level=logging.WARNING):
         """
         Retrieves assets stored in the base folder, filtering by type and applying folder and file exclusions.
 
@@ -456,7 +583,7 @@ class ClassLocalFolder:
             base_folder = self.base_folder.resolve()
             selected_type_extensions = self._get_selected_extensions(type)
 
-            assets = []
+            all_assets = []
             for file in base_folder.rglob("*"):
                 if file.is_file():
                     # Aplicar exclusión de carpetas y archivos
@@ -472,18 +599,20 @@ class ClassLocalFolder:
                     elif selected_type_extensions is not None and file_extension not in selected_type_extensions:
                         continue  # Omitir archivos que no están en el tipo solicitado
 
-                    assets.append({
+                    all_assets.append({
                         "id": str(file.resolve()),
-                        "time": file.stat().st_ctime,
+                        # "time": file.stat().st_ctime,
+                        "time": file.stat().st_mtime,
                         "filename": file.name,
                         "filepath": str(file.resolve()),
                         "type": self._determine_file_type(file),
                     })
 
-            LOGGER.info(f"INFO    : Found {len(assets)} assets of type '{type}' in the base folder.")
-            return assets
+            filtered_assets = self.filter_assets(assets=all_assets, log_level=log_level)
+            LOGGER.info(f"INFO    : Found {len(filtered_assets)} assets of type '{type}' in the base folder.")
+            return filtered_assets
 
-    def get_album_assets(self, album_id, album_name=None, type='all', log_level=logging.INFO):
+    def get_all_assets_from_album(self, album_id, album_name=None, type='all', log_level=logging.WARNING):
         """
         Lists the assets within a given album, with optional filtering by file type.
 
@@ -504,7 +633,7 @@ class ClassLocalFolder:
         """
         with set_log_level(LOGGER, log_level):
             try:
-                LOGGER.info(f"INFO    : Retrieving {type} assets for album: {album_id}")
+                LOGGER.debug(f"DEBUG   : Retrieving '{type}' assets for album: {album_id}")
 
                 album_path = Path(album_id)
                 if not album_path.exists() or not album_path.is_dir():
@@ -513,7 +642,7 @@ class ClassLocalFolder:
 
                 selected_type_extensions = self._get_selected_extensions(type)
 
-                assets = []
+                album_assets = []
                 for file in album_path.iterdir():
                     if file.is_file() or file.is_symlink():
                         # Aplicar exclusiones de carpetas y archivos
@@ -529,52 +658,91 @@ class ClassLocalFolder:
                         elif selected_type_extensions is not None and file_extension not in selected_type_extensions:
                             continue
 
-                        assets.append({
+                        album_assets.append({
                             "id": str(file.resolve()),
-                            "time": file.stat().st_ctime,
+                            # "time": file.stat().st_ctime,
+                            "time": file.stat().st_mtime,
                             "filename": file.name,
                             "filepath": str(file.resolve()),
                             "type": self._determine_file_type(file),
                         })
 
-                LOGGER.info(f"INFO    : Found {len(assets)} assets of type '{type}' in album {album_id}.")
-                return assets
+                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                LOGGER.debug(f"DEBUG   : Found {len(filtered_album_assets)} assets of type '{type}' in album {album_id}.")
+                return filtered_album_assets
 
             except Exception as e:
                 error_message = f"ERROR   : Failed to retrieve {type} assets from album '{album_name}'" if album_name else f"ERROR   : Failed to retrieve {type} assets from album ID={album_id}"
                 LOGGER.error(f"{error_message}: {str(e)}")
                 return []
 
-    # def get_no_albums_assets(self, log_level=logging.INFO):
-    #     """
-    #     Lists assets that are not assigned to any album.
-    #
-    #     Returns:
-    #         list[dict]: A list of asset dictionaries, each containing:
-    #                     - 'id': Absolute path to the file.
-    #                     - 'time': Creation timestamp of the file.
-    #                     - 'filename': File name (no path).
-    #                     - 'filepath': Absolute path to the file.
-    #                     - 'type': Type of the file (image, video, metadata, sidecar, unknown).
-    #     """
-    #     with set_log_level(LOGGER, log_level):
-    #         LOGGER.info("INFO    : Retrieving assets without albums.")
-    #
-    #         assets = [
-    #             {
-    #                 "id": str(file.resolve()),
-    #                 "time": file.stat().st_ctime,
-    #                 "filename": file.name,
-    #                 "filepath": str(file.resolve()),
-    #                 "type": self._determine_file_type(file),
-    #             }
-    #             for file in self.no_albums_folder.rglob("*") if file.is_file()
-    #         ]
-    #
-    #         LOGGER.info(f"INFO    : Found {len(assets)} assets without albums.")
-    #         return assets
 
-    def get_no_albums_assets(self, type='all', log_level=logging.INFO):
+    def get_all_assets_from_album_shared(self, album_id, album_name=None, album_passphrase=None, log_level=logging.WARNING):
+        """
+        Lists the assets within a given album, with optional filtering by file type.
+
+        Args:
+            album_id (str): Path to the album folder.
+            album_name (str, optional): Name of the album for logging.
+            album_passphrase (str): Shared album passphrase
+            log_level (int): Logging level.
+
+        Returns:
+            list[dict]: A list of asset dictionaries, each containing:
+                        - 'id': Absolute path to the file.
+                        - 'time': Creation timestamp of the file.
+                        - 'filename': File name (no path).
+                        - 'filepath': Absolute path to the file.
+                        - 'type': Type of the file (image, video, metadata, sidecar, unknown).
+        """
+        # TODO: This method is just a copy of get_all_assets_from_album. Change to filter only shared albums
+        with set_log_level(LOGGER, log_level):
+            try:
+                LOGGER.debug(f"DEBUG   : Retrieving '{type}' assets for album: {album_id}")
+
+                album_path = Path(album_id)
+                if not album_path.exists() or not album_path.is_dir():
+                    LOGGER.warning(f"WARNING : Album path '{album_id}' does not exist or is not a directory.")
+                    return []
+
+                selected_type_extensions = self._get_selected_extensions(type)
+
+                album_assets = []
+                for file in album_path.iterdir():
+                    if file.is_file() or file.is_symlink():
+                        # Aplicar exclusiones de carpetas y archivos
+                        if self._should_exclude(file):
+                            continue
+
+                        file_extension = file.suffix.lower()
+
+                        # Filtrado por tipo de archivo
+                        if selected_type_extensions == "unsupported":
+                            if file_extension in self.ALLOWED_EXTENSIONS:
+                                continue
+                        elif selected_type_extensions is not None and file_extension not in selected_type_extensions:
+                            continue
+
+                        album_assets.append({
+                            "id": str(file.resolve()),
+                            # "time": file.stat().st_ctime,
+                            "time": file.stat().st_mtime,
+                            "filename": file.name,
+                            "filepath": str(file.resolve()),
+                            "type": self._determine_file_type(file),
+                        })
+
+                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                LOGGER.debug(f"DEBUG   : Found {len(filtered_album_assets)} assets of type '{type}' in album {album_id}.")
+                return filtered_album_assets
+
+            except Exception as e:
+                error_message = f"ERROR   : Failed to retrieve {type} assets from album '{album_name}'" if album_name else f"ERROR   : Failed to retrieve {type} assets from album ID={album_id}"
+                LOGGER.error(f"{error_message}: {str(e)}")
+                return []
+
+
+    def get_all_assets_without_albums(self, type='all', log_level=logging.WARNING):
         """
         Lists assets that are in self.base_folder but not in self.albums_folder or self.shared_albums_folder,
         with optional filtering by file type.
@@ -630,16 +798,18 @@ class ClassLocalFolder:
 
                     assets.append({
                         "id": str(file.resolve()),
-                        "time": file.stat().st_ctime,
+                        # "time": file.stat().st_ctime,
+                        "time": file.stat().st_mtime,
                         "filename": file.name,
                         "filepath": str(file.resolve()),
                         "type": self._determine_file_type(file),
                     })
 
-            LOGGER.info(f"INFO    : Found {len(assets)} assets of type '{type}' in No-Album folders.")
-            return assets
+            filtered_assets = self.filter_assets(assets=assets, log_level=log_level)
+            LOGGER.info(f"INFO    : Found {len(filtered_assets)} assets of type '{type}' in No-Album folders.")
+            return filtered_assets
 
-    def get_all_albums_assets(self, log_level=logging.WARNING):
+    def get_all_assets_from_all_albums(self, log_level=logging.WARNING):
         """
         Gathers assets from all known albums, merges them into a single list.
 
@@ -655,7 +825,7 @@ class ClassLocalFolder:
             all_albums = self.get_albums_including_shared_with_user(log_level)
             for album in all_albums:
                 album_id = album["id"]
-                combined_assets.extend(self.get_album_assets(album_id, log_level))
+                combined_assets.extend(self.get_all_assets_from_album(album_id, log_level))
             return combined_assets
 
 
@@ -776,7 +946,7 @@ class ClassLocalFolder:
             return count_removed
 
 
-    def upload_asset(self, file_path, log_level=logging.INFO):
+    def push_asset(self, file_path, log_level=logging.INFO):
         """
         Uploads (copies) a local file to the No-Albums directory following a year/month structure.
 
@@ -811,7 +981,7 @@ class ClassLocalFolder:
             return str(dest), False
 
 
-    def download_asset(self, asset_id, asset_filename, asset_time, album_passphrase="", download_folder="Downloaded_LocalFolder", log_level=logging.INFO):
+    def pull_asset(self, asset_id, asset_filename, asset_time, album_passphrase="", download_folder="Downloaded_LocalFolder", log_level=logging.INFO):
         """
         Downloads (copies) an asset to a specified local folder, preserving the file's timestamp.
 
@@ -843,8 +1013,8 @@ class ClassLocalFolder:
             return 1
 
 
-    def upload_albums(self, input_folder, subfolders_exclusion='No-Albums',
-                      subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
+    def push_albums(self, input_folder, subfolders_exclusion='No-Albums',
+                    subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         """
         Recursively uploads each subfolder of 'input_folder' as an album,
         simulating local album creation.
@@ -863,9 +1033,9 @@ class ClassLocalFolder:
         pass
 
 
-    def upload_no_albums(self, input_folder, subfolders_exclusion='Albums',
-                         subfolders_inclusion=None, remove_duplicates=True,
-                         log_level=logging.WARNING):
+    def push_no_albums(self, input_folder, subfolders_exclusion='Albums',
+                       subfolders_inclusion=None, remove_duplicates=True,
+                       log_level=logging.WARNING):
         """
         Recursively uploads all compatible files from 'input_folder' to the No-Albums folder,
         ignoring any subfolders named in 'subfolders_exclusion'.
@@ -877,7 +1047,7 @@ class ClassLocalFolder:
         pass
 
 
-    def upload_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
+    def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
         """
         Uploads all photos/videos from input_folder to local storage,
         dividing them between 'albums_folders' and 'No-Albums'.
@@ -889,7 +1059,7 @@ class ClassLocalFolder:
         pass
 
 
-    def download_albums(self, albums_name='ALL', output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_albums(self, albums_name='ALL', output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Simulates downloading albums by copying album folders to output_folder/Albums.
 
@@ -899,7 +1069,7 @@ class ClassLocalFolder:
         pass
 
 
-    def download_no_albums(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_no_albums(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Simulates downloading 'no albums' assets to output_folder/No-Albums, organizing by year/month.
 
@@ -909,7 +1079,7 @@ class ClassLocalFolder:
         pass
 
 
-    def download_ALL(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
+    def pull_ALL(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
         Simulates downloading all albums and no-albums assets to output_folder.
 
@@ -1012,52 +1182,49 @@ if __name__ == "__main__":
     ChangeWorkingDir.change_working_dir(change_dir=False)
 
     # Create the Object
-    immich = ClassImmichPhotos()
+    localFolder = ClassLocalFolder()
 
     # 0) Read configuration and log in
-    immich.read_config_file('Config.ini')
-    immich.login()
+    localFolder.read_config_file('Config.ini')
+    localFolder.login()
 
-    # # 1) Example: Remove empty albums
-    # print("\n=== EXAMPLE: remove_empty_albums() ===")
-    # removed = immich.remove_empty_albums(log_level=logging.DEBUG)
-    # print(f"[RESULT] Empty albums removed: {removed}")
-    #
-    # # 2) Example: Remove duplicate albums
-    # print("\n=== EXAMPLE: remove_duplicates_albums() ===")
-    # duplicates = immich.remove_duplicates_albums(log_level=logging.DEBUG)
-    # print(f"[RESULT] Duplicate albums removed: {duplicates}")
-    #
-    # # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums'
-    # print("\n=== EXAMPLE: upload_no_albums() ===")
-    # big_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums"
-    # immich.upload_no_albums(big_folder, log_level=logging.DEBUG)
-    #
-    # # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums'
-    # print("\n=== EXAMPLE: upload_albums() ===")
-    # input_albums_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums"
-    # immich.upload_albums(input_albums_folder, log_level=logging.DEBUG)
-    #
-    # # 5) Example: Download all photos from ALL albums
-    print("\n=== EXAMPLE: download_albums() ===")
-    # total = download_albums('ALL', output_folder="Downloads_Immich")
-    total_albums, total_assets = immich.download_albums("1994 - Recuerdos", output_folder="Downloads_Immich", log_level=logging.DEBUG)
+    # 1) Example: Remove empty albums
+    print("\n=== EXAMPLE: remove_empty_albums() ===")
+    removed = localFolder.remove_empty_albums(log_level=logging.DEBUG)
+    print(f"[RESULT] Empty albums removed: {removed}")
+
+    # 2) Example: Remove duplicate albums
+    print("\n=== EXAMPLE: remove_duplicates_albums() ===")
+    duplicates = localFolder.remove_duplicates_albums(log_level=logging.DEBUG)
+    print(f"[RESULT] Duplicate albums removed: {duplicates}")
+
+    # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums'
+    print("\n=== EXAMPLE: push_no_albums() ===")
+    big_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums"
+    localFolder.push_no_albums(big_folder, log_level=logging.DEBUG)
+
+    # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums'
+    print("\n=== EXAMPLE: push_albums() ===")
+    input_albums_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums"
+    localFolder.push_albums(input_albums_folder, log_level=logging.DEBUG)
+
+    # 5) Example: Download all photos from ALL albums
+    print("\n=== EXAMPLE: pull_albums() ===")
+    # total = pull_albums('ALL', output_folder="Downloads_Immich")
+    total_albums, total_assets = localFolder.pull_albums("1994 - Recuerdos", output_folder="Downloads_Immich", log_level=logging.DEBUG)
     print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums} different albbums.")
-    #
-    # # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
-    # print("\n=== EXAMPLE: download_ALL() ===")
-    # # total_struct = download_ALL(output_folder="Downloads_Immich")
-    # total_albums_downloaded, total_assets_downloaded = immich.download_ALL(output_folder="Downloads_Immich", log_level=logging.DEBUG)
-    # print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
-    #
-    # # 7) Example: Remove Orphan Assets
-    # immich.remove_orphan_assets(user_confirmation=True, log_level=logging.DEBUG)
-    #
-    # # 8) Example: Remove ALL Assets
-    # immich.remove_all_assets(log_level=logging.DEBUG)
-    #
-    # # 9) Example: Remove ALL Assets
-    # immich.remove_all_albums(removeAlbumsAssets=True, log_level=logging.DEBUG)
-    #
-    # # 10) Local logout
-    # immich.logout()
+
+    # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
+    print("\n=== EXAMPLE: pull_ALL() ===")
+    # total_struct = pull_ALL(output_folder="Downloads_Immich")
+    total_albums_downloaded, total_assets_downloaded = localFolder.pull_ALL(output_folder="Downloads_Immich", log_level=logging.DEBUG)
+    print(f"[RESULT] Bulk download completed. \nTotal albums: {total_albums_downloaded}\nTotal assets: {total_assets_downloaded}.")
+
+    # 8) Example: Remove ALL Assets
+    localFolder.remove_all_assets(log_level=logging.DEBUG)
+
+    # 9) Example: Remove ALL Assets
+    localFolder.remove_all_albums(log_level=logging.DEBUG)
+
+    # 10) Local logout
+    localFolder.logout()

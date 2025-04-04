@@ -9,8 +9,8 @@ import posixpath
 # GLOBAL VARIABLES FOR THE WHOLE PROJECT
 #---------------------------------------
 SCRIPT_NAME                     = "CloudPhotoMigrator"
-SCRIPT_VERSION                  = "v3.1.0"
-SCRIPT_DATE                     = "2025-03-31"
+SCRIPT_VERSION                  = "v3.2.0-alpha"
+SCRIPT_DATE                     = "2025-04-30"
 SCRIPT_NAME_VERSION             = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
 LOG_FOLDER_FILENAME             = ""
 START_TIME                      = datetime.now()
@@ -29,7 +29,7 @@ DEPRIORITIZE_FOLDERS_PATTERNS   = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS',
 SCRIPT_DESCRIPTION              = textwrap.dedent(f"""
                                 {SCRIPT_NAME_VERSION} - {SCRIPT_DATE}
                                 
-                                Multi-Platform/Multi-Arch toot designed to Interact and Manage different Photo Cloud Services
+                                Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
                                 such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
                                 
                                 (c) 2024-2025 by Jaime Tur (@jaimetur)
@@ -102,8 +102,8 @@ def resolve_path(user_path):
                     f"\nPlease provide a path under /docker or under the execution folder."
                 )
             return final_path
+        # (c) If it's relative, join it under /docker and then normalize again
         else:
-            # (c) If it's relative, join it under /docker and then normalize again
             joined_path = posixpath.join("/docker", path_clean.lstrip("/"))
             final_path = posixpath.normpath(joined_path)
             # If after normalization it no longer starts with /docker, that means

@@ -188,7 +188,7 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
         f.writelines(updated_readme)
 
 
-def compile(arg=None):
+def main(compile=True):
     global SCRIPT_NAME
     global SCRIPT_NAME_VERSION
     global OS
@@ -198,6 +198,11 @@ def compile(arg=None):
     global COMPILER
 
     clear_screen()
+    print("")
+    print("======================================================")
+    print(f"INFO:    Ejecutando módulo main(compile={compile})...")
+    print("======================================================")
+    print("")
 
     # Select Compiler
     COMPILER = 'nuitka'
@@ -257,7 +262,7 @@ def compile(arg=None):
             script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
             add_gpth_command = f"../gpth_tool/gpth_{OPERATING_SYSTEM}.bin:gpth_tool"
 
-        if arg is not None and arg.lower() != 'skip_compile':
+        if compile:
             print("Añadiendo paquetes necesarios al entorno Python antes de compilar...")
             subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', '../requirements.txt'])
             if OPERATING_SYSTEM=='windows':
@@ -303,7 +308,7 @@ def compile(arg=None):
                                 
             script_zip_file = Path(f"../_built_versions/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
 
-            if arg is not None and arg.lower() != 'skip_compile':
+            if compile:
                 print("")
                 print(f"Compilando para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}'...")
                 if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
@@ -366,7 +371,20 @@ if __name__ == "__main__":
     # Obtener argumento si existe
     arg = sys.argv[1] if len(sys.argv) > 1 else None
 
-    ok = compile(arg)
+    # Convertir a booleano
+    if arg is not None:
+        arg_lower = arg.lower()
+        if arg_lower in ['true', '1', 'yes', 'y']:
+            compile_flag = True
+        elif arg_lower in ['false', '0', 'no', 'n']:
+            compile_flag = False
+        else:
+            print(f"Valor inválido para compile: {arg}")
+            sys.exit(1)
+    else:
+        compile_flag = True  # valor por defecto
+
+    ok = main(compile=compile_flag)
     if ok:
         print('COMPILATION FINISHED SUCCESSFULLY!')
     sys.exit(0)
