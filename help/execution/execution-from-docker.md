@@ -26,7 +26,7 @@ Once you have Docker installed and running on your system, you have twoo options
     ```
     The result should be something like this:  
       "latest"  
-      "latest-stable"
+      "latest-stable"  
       "3.2.0"  
       "3.1.0"  
 
