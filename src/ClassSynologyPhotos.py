@@ -1212,8 +1212,8 @@ class ClassSynologyPhotos:
                         return []
 
                 # It is not necesary to apply filters to album_assets because the API already include the filters
-                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
-                # filtered_album_assets = album_assets
+                # filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                filtered_album_assets = album_assets
                 return filtered_album_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
