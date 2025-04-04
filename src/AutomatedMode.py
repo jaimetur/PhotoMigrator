@@ -186,6 +186,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(f"INFO    : - City         : {city} {unsupported_text}")
         if person:
             LOGGER.info(f"INFO    : - Person       : {person} {unsupported_text}")
+        LOGGER.info(f"INFO    : Temp Folder    : {INTERMEDIATE_FOLDER}")
         LOGGER.info("")
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
