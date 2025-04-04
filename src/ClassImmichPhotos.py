@@ -424,7 +424,7 @@ class ClassImmichPhotos:
                 return False
 
 
-    def get_albums_owned_by_user(self, log_level=logging.INFO):
+    def get_albums_owned_by_user(self, with_filters=True, log_level=logging.INFO):
         """
         Get all albums in Immich Photos for the current user.
 
@@ -449,21 +449,24 @@ class ClassImmichPhotos:
                 resp.raise_for_status()
                 albums = resp.json()
                 user_id = self.get_user_id(log_level=logging.WARNING)
-                own_albums = []
+                albums_filtered = []
                 for album in albums:
                     if album.get('ownerId') == user_id:
                         album_id = album.get('id')
                         album_name = album.get("albumName", "")
-                        album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
-                        if len(album_assets) > 0:
-                            own_albums.append(album)
-                return own_albums
+                        if with_filters:
+                            album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                            if len(album_assets) > 0:
+                                albums_filtered.append(album)
+                        else:
+                            albums_filtered.append(album)
+                return albums_filtered
             except Exception as e:
                 LOGGER.error(f"ERROR   : Error while listing albums: {e}")
                 return None
 
 
-    def get_albums_including_shared_with_user(self, log_level=logging.INFO):
+    def get_albums_including_shared_with_user(self, with_filters=True, log_level=logging.INFO):
         """
         Get both own and shared albums in Immich Photos.
 
@@ -491,8 +494,11 @@ class ClassImmichPhotos:
                 for album in albums:
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
-                    album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
-                    if len(album_assets)>0:
+                    if with_filters:
+                        album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                        if len(album_assets) > 0:
+                            albums_filtered.append(album)
+                    else:
                         albums_filtered.append(album)
                 return albums_filtered
             except Exception as e:
@@ -567,7 +573,7 @@ class ClassImmichPhotos:
                 album_id = self.albums_owned_by_user[album_name]
             else:
                 # If not found, retrieve the list of owned albums (from an API)
-                albums = self.get_albums_owned_by_user(log_level=log_level)
+                albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
                 for album in albums:
                     if album_name == album.get("albumName"):
                         album_exists = True
