@@ -616,7 +616,16 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                                 'album_name': album_name,
                             }
                             # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
-                            enqueue_unique(push_queue, asset_dict, parallel=parallel)
+                            unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
+                            if not unique:
+                                LOGGER.info(f"INFO    : Asset Duplicated: '{os.path.basename(local_file_path)}' from Album '{album_name}. Skipped")
+                                SHARED_DATA.counters['total_push_duplicates_assets'] += 1
+                                # Borrar asset de la carpeta temp_folder
+                                if os.path.exists(local_file_path):
+                                    try:
+                                        os.remove(local_file_path)
+                                    except:
+                                        pass
                         else:
                             LOGGER.warning(f"WARNING : Asset Pull Fail : '{os.path.join(album_folder, os.path.basename(asset_filename))}' from Album '{album_name}'")
                             SHARED_DATA.counters['total_pull_failed_assets'] += 1
@@ -708,7 +717,16 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             'asset_type': asset_type,
                             'album_name': None,
                         }
-                        enqueue_unique(push_queue, asset_dict, parallel=parallel)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
+                        unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
+                        if not unique:
+                            LOGGER.info(f"INFO    : Asset Duplicated: '{os.path.basename(local_file_path)}'. Skipped")
+                            SHARED_DATA.counters['total_push_duplicates_assets'] += 1
+                            # Borrar asset de la carpeta temp_folder
+                            if os.path.exists(local_file_path):
+                                try:
+                                    os.remove(local_file_path)
+                                except:
+                                    pass
                     else:
                         LOGGER.warning(f"WARNING : Asset Pull Fail : '{os.path.basename(asset_filename)}'")
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
