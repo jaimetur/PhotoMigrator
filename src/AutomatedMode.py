@@ -618,7 +618,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
                             enqueue_unique(push_queue, asset_dict, parallel=parallel)
                     else:
-                        LOGGER.warning(f"WARNING : Fail to Pull asset '{os.path.join(album_folder, os.path.basename(asset_filename))}' from Album '{album_name}'")
+                        LOGGER.warning(f"WARNING : Asset Pull Fail : '{os.path.join(album_folder, os.path.basename(asset_filename))}' from Album '{album_name}'")
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
                         if asset_type.lower() == 'video':
                             SHARED_DATA.counters['total_pull_failed_videos'] += 1
@@ -626,7 +626,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             SHARED_DATA.counters['total_pull_failed_photos'] += 1
 
                 except Exception as e:
-                    LOGGER.error(f"ERROR  : Error Pulling Asset: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e} \n{traceback.format_exc()}")
+                    LOGGER.error(f"ERROR  : Asset Pull Error: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e} \n{traceback.format_exc()}")
                     SHARED_DATA.counters['total_pull_failed_assets'] += 1
                     if asset_type.lower() == 'video':
                         SHARED_DATA.counters['total_pull_failed_videos'] += 1
@@ -681,7 +681,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         # Eliminar archivo de bloqueo después de la descarga
                         os.remove(lock_file)
                     except Exception as e:
-                        LOGGER.error(f"ERROR  : Error Pulling Asset: '{os.path.basename(asset_filename)}' - {e} \n{traceback.format_exc()}")
+                        LOGGER.error(f"ERROR  : Asset Pull Error: '{os.path.basename(asset_filename)}' - {e} \n{traceback.format_exc()}")
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
                         if asset_type.lower() == 'video':
                             SHARED_DATA.counters['total_pull_failed_videos'] += 1
@@ -710,7 +710,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         }
                         enqueue_unique(push_queue, asset_dict, parallel=parallel)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
                     else:
-                        LOGGER.warning(f"WARNING : Fail to Pull asset '{os.path.basename(asset_filename)}'")
+                        LOGGER.warning(f"WARNING : Asset Pull Fail : '{os.path.basename(asset_filename)}'")
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
                         if asset_type.lower() == 'video':
                             SHARED_DATA.counters['total_pull_failed_videos'] += 1
@@ -764,7 +764,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                                     SHARED_DATA.counters['total_pushed_photos'] += 1
                                 LOGGER.info(f"INFO    : Asset Pushed    : '{asset_file_path}'")
                         else:
-                            LOGGER.warning(f"WARNING : Fail to Push asset '{os.path.basename(asset_filename)}'")
+                            LOGGER.warning(f"WARNING : Asset Push Fail : '{os.path.basename(asset_filename)}'")
                             SHARED_DATA.counters['total_push_failed_assets'] += 1
                             if asset_type.lower() == 'video':
                                 SHARED_DATA.counters['total_push_failed_videos'] += 1
@@ -778,6 +778,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             except:
                                 pass
                     except:
+                        LOGGER.error(f"ERROR   : Asset Push Fail : '{os.path.basename(asset_filename)}'")
                         LOGGER.error(f"ERROR   : Error Pushing Asset: '{os.path.basename(asset_file_path)}'")
                         LOGGER.error(f"ERROR   : Caught Exception: {e} \n{traceback.format_exc()}")
                         SHARED_DATA.counters['total_push_failed_assets'] += 1
@@ -796,7 +797,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             # Añadir el asset al álbum
                             target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.WARNING)
                         except Exception as e:
-                            LOGGER.error(f"ERROR   : Error Pushing Album '{album_name}'")
+                            LOGGER.error(f"ERROR   : Album Push Fail : '{album_name}'")
                             LOGGER.error(f"ERROR   : Caught Exception: {e} \n{traceback.format_exc()}")
                             SHARED_DATA.counters['total_push_failed_albums'] += 1
 
