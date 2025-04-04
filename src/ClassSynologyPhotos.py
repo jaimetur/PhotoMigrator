@@ -1098,7 +1098,9 @@ class ClassSynologyPhotos:
                             LOGGER.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                         return []
 
-                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                # It is not necesary to apply filters to album_assets because the API already include the filters
+                # filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                filtered_album_assets = album_assets
                 return filtered_album_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
@@ -1209,7 +1211,9 @@ class ClassSynologyPhotos:
                             LOGGER.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                         return []
 
+                # It is not necesary to apply filters to album_assets because the API already include the filters
                 filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                # filtered_album_assets = album_assets
                 return filtered_album_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
