@@ -41,9 +41,10 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 - [x] Added new flag _**-person, --person <PERSON_NAME>**_ to select the Person Name of the Assets to download
 - [x] Added new flag _**-parallel, --parallel-migration =[true,false]**_ to select the Migration Mode (Parallel or Secuential). Default: true (parallel)
 - [x] Include Live Dashboard in sequential Automated Migration
-- [x] Test sequential Automated Migration
-- [ ] Test Filters in other Synology/Immich Features
 - [x] Minor bugs fixing
+- [x] Test sequential Automated Migration
+- [x] Test Filters in Automated Migration Feature
+- [ ] Test Filters in other Synology/Immich Features
 
 ---
 
