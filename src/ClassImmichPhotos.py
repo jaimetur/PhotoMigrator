@@ -424,7 +424,7 @@ class ClassImmichPhotos:
                 return False
 
 
-    def get_albums_owned_by_user(self, log_level=logging.INFO):
+    def get_albums_owned_by_user(self, with_filters=True, log_level=logging.INFO):
         """
         Get all albums in Immich Photos for the current user.
 
@@ -449,21 +449,24 @@ class ClassImmichPhotos:
                 resp.raise_for_status()
                 albums = resp.json()
                 user_id = self.get_user_id(log_level=logging.WARNING)
-                own_albums = []
+                albums_filtered = []
                 for album in albums:
                     if album.get('ownerId') == user_id:
                         album_id = album.get('id')
                         album_name = album.get("albumName", "")
-                        album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
-                        if len(album_assets) > 0:
-                            own_albums.append(album)
-                return own_albums
+                        if with_filters:
+                            album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                            if len(album_assets) > 0:
+                                albums_filtered.append(album)
+                        else:
+                            albums_filtered.append(album)
+                return albums_filtered
             except Exception as e:
                 LOGGER.error(f"ERROR   : Error while listing albums: {e}")
                 return None
 
 
-    def get_albums_including_shared_with_user(self, log_level=logging.INFO):
+    def get_albums_including_shared_with_user(self, with_filters=True, log_level=logging.INFO):
         """
         Get both own and shared albums in Immich Photos.
 
@@ -491,8 +494,11 @@ class ClassImmichPhotos:
                 for album in albums:
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
-                    album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
-                    if len(album_assets)>0:
+                    if with_filters:
+                        album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                        if len(album_assets) > 0:
+                            albums_filtered.append(album)
+                    else:
                         albums_filtered.append(album)
                 return albums_filtered
             except Exception as e:
@@ -567,7 +573,7 @@ class ClassImmichPhotos:
                 album_id = self.albums_owned_by_user[album_name]
             else:
                 # If not found, retrieve the list of owned albums (from an API)
-                albums = self.get_albums_owned_by_user(log_level=log_level)
+                albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
                 for album in albums:
                     if album_name == album.get("albumName"):
                         album_exists = True
@@ -609,18 +615,21 @@ class ClassImmichPhotos:
             person = ARGS.get('person', None)
 
             # Now Filter the assets list based on the filters given by ARGS
-            filtered_assets = assets
-            if type:
-                filtered_assets = self.filter_assets_by_type(filtered_assets, type)
-            if from_date or to_date:
-                filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
-            if country:
-                filtered_assets = self.filter_assets_by_place(filtered_assets, country)
-            if city:
-                filtered_assets = self.filter_assets_by_place(filtered_assets, city)
-            if person:
-                filtered_assets = self.filter_assets_by_person(filtered_assets, person)
-            return filtered_assets
+            try:
+                filtered_assets = assets
+                if type:
+                    filtered_assets = self.filter_assets_by_type(filtered_assets, type)
+                if from_date or to_date:
+                    filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
+                if country:
+                    filtered_assets = self.filter_assets_by_place(filtered_assets, country)
+                if city:
+                    filtered_assets = self.filter_assets_by_place(filtered_assets, city)
+                if person:
+                    filtered_assets = self.filter_assets_by_person(filtered_assets, person)
+                return filtered_assets
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while filtering Assets from Immich Photos. {e}")
 
     def filter_assets_by_type(self, assets, type):
         """
@@ -727,7 +736,7 @@ class ClassImmichPhotos:
         filtered = []
         for asset in assets:
             asset_id = asset.get("id")
-            people = asset.get("people", [])
+            # people = asset.get("people", [])
             people = self.get_asset_people(asset_id)
             for person in people:
                 if isinstance(person, dict):
@@ -785,6 +794,7 @@ class ClassImmichPhotos:
                 person = ARGS.get('person', None)
                 type = ARGS.get('asset-type', None)
 
+                # Obtain the correct type for the API call
                 if type:
                     image_aliases = {"image", "images", "photo", "photos"}
                     video_aliases = {"video", "videos"}
@@ -798,8 +808,10 @@ class ClassImmichPhotos:
                     else:
                         type = None  # Unknown alias, treat as no filtering
 
+                # Obtain the person_ids_list to include in the API call
+                person_ids_list = []
                 if person:
-                    person_ids = self.get_person_id(name=person, log_level=log_level)
+                    person_ids_list = self.get_person_id(name=person, log_level=log_level)
 
                 self.login(log_level=log_level)
                 url = f"{self.IMMICH_URL}/api/search/metadata"
@@ -846,7 +858,7 @@ class ClassImmichPhotos:
                     if to_date: payload_data["takenBefore"] = to_date
                     if country: payload_data["country"] = country
                     if city: payload_data["city"] = city
-                    if person_ids: payload_data["personIds"] = [person_ids]
+                    if person_ids_list: payload_data["personIds"] = [person_ids_list]
                     if type: payload_data["type"] = type
 
                     payload = json.dumps(payload_data)

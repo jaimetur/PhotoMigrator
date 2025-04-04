@@ -46,7 +46,8 @@ def run_from_synology(log_level=logging.INFO):
 
 def normalize_path(path, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        return os.path.normpath(path).strip(os.sep)
+        # return os.path.normpath(path).strip(os.sep)
+        return os.path.normpath(path)
 
 def check_OS_and_Terminal(log_level=logging.INFO):
     """ Check OS and Terminal Type """

@@ -21,7 +21,7 @@
 - [x] Added new flag _**-city, --city <CITY_NAME>**_ to select the City Name of the Assets to download
 - [x] Added new flag _**-person, --person <PERSON_NAME>**_ to select the Person Name of the Assets to download
 - [x] Added new flag _**-parallel, --parallel-migration =[true,false]**_ to select the Migration Mode (Parallel or Sequential). Default: true (parallel)
-- [x] Include Live Dashboard in sequential Automated Migration
+- [x] Included Live Dashboard in sequential Automated Migration
 - [x] Minor bugs fixing
 - [x] Test sequential Automated Migration
 - [x] Test Filters in Automated Migration Feature

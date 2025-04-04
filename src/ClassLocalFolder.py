@@ -492,12 +492,15 @@ class ClassLocalFolder:
             to_date = ARGS.get('to-date', None)
 
             # Now Filter the assets list based on the filters given by ARGS
-            filtered_assets = assets
-            if type:
-                filtered_assets = self.filter_assets_by_type(filtered_assets, type)
-            if from_date or to_date:
-                filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
-            return filtered_assets
+            try:
+                filtered_assets = assets
+                if type:
+                    filtered_assets = self.filter_assets_by_type(filtered_assets, type)
+                if from_date or to_date:
+                    filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
+                return filtered_assets
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while filtering Assets from Local Folder. {e}")
 
     def filter_assets_by_type(self, assets, type):
         """

@@ -308,50 +308,6 @@ class ClassSynologyPhotos:
                 return self.SYNOLOGY_USERNAME
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting user mail. {e}")
-            
-
-    def get_geocoding(self, log_level=logging.INFO):
-        """
-        Gets the Geocoding list.
-
-        Args:
-            log_level (logging.LEVEL): log_level for logs and console
-        Returns:
-             int: List of Geocoding used in the database.
-        """
-        with set_log_level(LOGGER, log_level):
-            try:
-                self.login(log_level=log_level)
-                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-                headers = {}
-                if self.SYNO_TOKEN_HEADER:
-                    headers.update(self.SYNO_TOKEN_HEADER)
-                offset = 0
-                limit = 5000
-                geocoding_list = []
-                while True:
-                    params = {
-                        "api": "SYNO.Foto.Browse.Geocoding",
-                        "method": "list",
-                        "version": "1",
-                        "offset": offset,
-                        "limit": limit
-                    }
-                    resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                    resp.raise_for_status()
-                    data = resp.json()
-                    if data["success"]:
-                        geocoding_list.extend(data["data"]["list"])
-                    else:
-                        LOGGER.error("ERROR   : Failed to get Geocoding list: ", data)
-                        return None
-                    if len(data["data"]["list"]) < limit:
-                        break
-                    offset += limit
-                return geocoding_list
-            except Exception as e:
-                LOGGER.error(f"ERROR   : Exception while getting Geocoding List from Synology Photos. {e}")
-
 
     def get_geocoding_person_lists(self, log_level=logging.INFO):
         """
@@ -403,11 +359,11 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             geocoding_list, person_list = self.get_geocoding_person_lists(log_level=log_level)
-            person_ids = []
+            person_ids_list = []
             for item in person_list:
                 if item.get("name").lower() == person.lower():
-                    person_ids.append(item.get("id"))
-            return person_ids
+                    person_ids_list.append(item.get("id"))
+            return person_ids_list
 
     def get_geocoding_ids(self, place, log_level=logging.INFO):
         def collect_ids(node):
@@ -427,30 +383,6 @@ class ClassSynologyPhotos:
                     stack.extend(current.get("children", []))
             return []  # Si no se encuentra el lugar
 
-    def get_geocoding_ids_old(self, place, log_level=logging.INFO):
-        with set_log_level(LOGGER, log_level):
-            geocoding_list, person_list = self.get_geocoding_person_lists(log_level=log_level)
-            result_ids = set()
-
-            for item in geocoding_list:
-                # Coincidencia con el país
-                if item.get("country") == place:
-                    result_ids.add(item.get("country_id"))
-                    result_ids.add(item.get("id"))
-
-                # Coincidencia con primer nivel (por ejemplo, ciudad o región)
-                if item.get("first_level") == place:
-                    result_ids.add(item.get("id"))
-
-                # Coincidencia con el nombre del lugar
-                if item.get("name") == place:
-                    result_ids.add(item.get("id"))
-
-                # Coincidencia con segundo nivel si aplica
-                if item.get("second_level") == place:
-                    result_ids.add(item.get("id"))
-
-            return list(result_ids)
 
     ###########################################################################
     #                            ALBUMS FUNCTIONS                             #
@@ -533,7 +465,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while removing Album from Synology Photos. {e}")
 
 
-    def get_albums_owned_by_user(self, log_level=logging.INFO):
+    def get_albums_owned_by_user(self, with_filters=True, log_level=logging.INFO):
         """
         Get all albums in Synology Photos for the current user.
 
@@ -568,9 +500,9 @@ class ClassSynologyPhotos:
                         "offset": offset,
                         "limit": limit
                     }
-                    r = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                    r.raise_for_status()
-                    data = r.json()
+                    resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                    resp.raise_for_status()
+                    data = resp.json()
 
                     if data["success"]:
                         album_list.extend(data["data"]["list"])
@@ -582,24 +514,24 @@ class ClassSynologyPhotos:
                         break
                     offset += limit
 
-                # Replace the key "name" by "albumName" to make it equal to Immich Photos
-                for item in album_list:
-                    if "name" in item:
-                        item["albumName"] = item.pop("name")
-
                 albums_filtered = []
                 for album in album_list:
+                    if "name" in album:  # Replace the key "name" by "albumName" to make it equal to Immich Photos
+                        album["albumName"] = album.pop("name")
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
-                    album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
-                    if len(album_assets) > 0:
+                    if with_filters:
+                        album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                        if len(album_assets) > 0:
+                            albums_filtered.append(album)
+                    else:
                         albums_filtered.append(album)
                 return albums_filtered
             except Exception as e:
                 LOGGER.warning(f"WARNING : Cannot get albums due to API call error. Skipped! {e}")
 
 
-    def get_albums_including_shared_with_user(self, log_level=logging.INFO):
+    def get_albums_including_shared_with_user(self, with_filters=True, log_level=logging.INFO):
         """
         Get both own and shared albums in Synology Photos.
 
@@ -652,18 +584,17 @@ class ClassSynologyPhotos:
                 LOGGER.error("ERROR   : Exception while listing own albums. {e}")
                 return None
             
-
-            # Replace the key "name" by "albumName" to make it equal to Immich Photos
-            for album in album_list:
-                if "name" in album:
-                    album["albumName"] = album.pop("name")
-
             albums_filtered = []
             for album in album_list:
+                if "name" in album:  # Replace the key "name" by "albumName" to make it equal to Immich Photos
+                    album["albumName"] = album.pop("name")
                 album_id = album.get('id')
                 album_name = album.get("albumName", "")
-                album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
-                if len(album_assets) > 0:
+                if with_filters:
+                    album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                    if len(album_assets) > 0:
+                        albums_filtered.append(album)
+                else:
                     albums_filtered.append(album)
             return albums_filtered
 
@@ -781,7 +712,7 @@ class ClassSynologyPhotos:
                 else:
                     album_exists = False
                     album_id = None
-                    albums = self.get_albums_owned_by_user(log_level=log_level)
+                    albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
                     for album in albums:
                         if album_name == album.get("albumName"):
                             album_exists = True
@@ -825,26 +756,29 @@ class ClassSynologyPhotos:
             person = ARGS.get('person', None)
 
             # Now Filter the assets list based on the filters given by ARGS
-            filtered_assets = assets
-            if type:
-                filtered_assets = self.filter_assets_by_type(filtered_assets, type)
-            if from_date or to_date:
-                filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
-            if country:
-                filtered_assets = self.filter_assets_by_place(filtered_assets, country)
-            if city:
-                filtered_assets = self.filter_assets_by_place(filtered_assets, city)
-            if person:
-                filtered_assets = self.filter_assets_by_person(filtered_assets, person)
-            return filtered_assets
+            try:
+                filtered_assets = assets
+                if type:
+                    filtered_assets = self.filter_assets_by_type(filtered_assets, type)
+                if from_date or to_date:
+                    filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
+                if country:
+                    filtered_assets = self.filter_assets_by_place(filtered_assets, country)
+                if city:
+                    filtered_assets = self.filter_assets_by_place(filtered_assets, city)
+                if person:
+                    filtered_assets = self.filter_assets_by_person(filtered_assets, person)
+                return filtered_assets
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while filtering Assets from Synology Photos. {e}")
 
     def filter_assets_by_type(self, assets, type):
         """
         Filters a list of assets by their type, supporting flexible type aliases.
 
         Accepted values for 'type':
-        - 'image', 'images', 'photo', 'photos' → treated as 'IMAGE'
-        - 'video', 'videos' → treated as 'VIDEO'
+        - 'image', 'images', 'photo', 'photos' → treated as ['PHOTO', 'LIVE']
+        - 'video', 'videos' → treated as ['VIDEO']
         - 'all' → returns all assets (no filtering)
 
         Matching is case-insensitive.
@@ -854,20 +788,26 @@ class ClassSynologyPhotos:
             type (str): The asset type to match.
 
         Returns:
-            list: A filtered list of assets with the specified type.
+            list: A filtered list of assets with the specified type(s).
         """
         if not type or type.lower() == "all":
             return assets
+
         type_lower = type.lower()
         image_aliases = {"image", "images", "photo", "photos"}
         video_aliases = {"video", "videos"}
+
         if type_lower in image_aliases:
-            target_type = "PHOTO"
+            target_types = {"PHOTO", "LIVE"}
         elif type_lower in video_aliases:
-            target_type = "VIDEO"
+            target_types = {"VIDEO"}
         else:
             return []  # Unknown type alias
-        return [asset for asset in assets if asset.get("type", "").upper() == target_type]
+
+        return [
+            asset for asset in assets
+            if asset.get("type", "").upper() in target_types
+        ]
 
     def filter_assets_by_date(self, assets, from_date=None, to_date=None):
         """
@@ -941,6 +881,7 @@ class ClassSynologyPhotos:
             return assets
         name_lower = person_name.lower()
         filtered = []
+        filtered = assets # TODO: Remove this line if you want to apply person filter with this function. Right now Synology does not support this kind of filtering because there is no Person/People list in the assset info.
         for asset in assets:
             people = asset.get("people", [])
             for person in people:
@@ -986,7 +927,7 @@ class ClassSynologyPhotos:
                 if city: geocoding_city_ids_list = self.get_geocoding_ids(place=city, log_level=log_level)
                 geocoding_ids_list = geocoding_country_ids_list + geocoding_city_ids_list
 
-                # Obtain the person_ids for person
+                # Obtain the person_ids_list for person
                 person_ids_list = []
                 if person: person_ids_list = self.get_person_ids(person, log_level=log_level)
 
@@ -1021,7 +962,7 @@ class ClassSynologyPhotos:
                     if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
 
                     # Add person key if person_ids_list has some value
-                    if geocoding_ids_list:
+                    if person_ids_list:
                         params["person"] = json.dumps(person_ids_list)
                         params["person_policy"] = '"or"'
 
@@ -1086,7 +1027,7 @@ class ClassSynologyPhotos:
                 if city: geocoding_city_ids_list = self.get_geocoding_ids(place=city, log_level=log_level)
                 geocoding_ids_list = geocoding_country_ids_list + geocoding_city_ids_list
 
-                # Obtain the person_ids for person
+                # Obtain the person_ids_list for person
                 person_ids_list = []
                 if person: person_ids_list = self.get_person_ids(person, log_level=log_level)
 
@@ -1122,7 +1063,7 @@ class ClassSynologyPhotos:
                     if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
 
                     # Add person key if person_ids_list has some value
-                    if geocoding_ids_list:
+                    if person_ids_list:
                         params["person"] = json.dumps(person_ids_list)
                         params["person_policy"] = '"or"'
 
@@ -1157,7 +1098,9 @@ class ClassSynologyPhotos:
                             LOGGER.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                         return []
 
-                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                # It is not necesary to apply filters to album_assets because the API already include the filters
+                # filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                filtered_album_assets = album_assets
                 return filtered_album_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
@@ -1197,7 +1140,7 @@ class ClassSynologyPhotos:
                 if city: geocoding_city_ids_list = self.get_geocoding_ids(place=city, log_level=log_level)
                 geocoding_ids_list = geocoding_country_ids_list + geocoding_city_ids_list
 
-                # Obtain the person_ids for person
+                # Obtain the person_ids_list for person
                 person_ids_list = []
                 if person: person_ids_list = self.get_person_ids(person, log_level=log_level)
 
@@ -1233,7 +1176,7 @@ class ClassSynologyPhotos:
                     if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
 
                     # Add person key if person_ids_list has some value
-                    if geocoding_ids_list:
+                    if person_ids_list:
                         params["person"] = json.dumps(person_ids_list)
                         params["person_policy"] = '"or"'
 
@@ -1268,7 +1211,9 @@ class ClassSynologyPhotos:
                             LOGGER.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                         return []
 
-                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                # It is not necesary to apply filters to album_assets because the API already include the filters
+                # filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
+                filtered_album_assets = album_assets
                 return filtered_album_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
@@ -1733,62 +1678,6 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting folder ID from Synology Photos. {e}")
             
-
-    def create_folder(self, folder_name, parent_folder_id=None, log_level=logging.INFO):
-        """
-        Retrieves the folder ID of a given folder name within a parent folder in Synology Photos.
-        If the folder does not exist, it will be created.
-
-        Args:
-            folder_name (str): The name of the folder to find or create.
-            parent_folder_id (str, optional): The ID of the parent folder.
-                If not provided, the root folder of Synology Photos is used.
-            log_level (logging.LEVEL): log_level for logs and console
-
-        Returns:
-            str: The folder ID if found or successfully created, otherwise None.
-        """
-        with set_log_level(LOGGER, log_level):
-            try:
-                self.login(log_level=log_level)
-                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-                headers = {}
-                if self.SYNO_TOKEN_HEADER:
-                    headers.update(self.SYNO_TOKEN_HEADER)
-
-                if not parent_folder_id:
-                    photos_root_folder_id = self.get_root_folder_id()
-                    parent_folder_id = photos_root_folder_id
-                    LOGGER.warning(f"WARNING : Parent Folder ID not provided, using Synology Photos root folder ID: '{photos_root_folder_id}' as parent folder.")
-
-                # Check if the folder already exists
-                folder_id = self.get_folder_id(parent_folder_id, folder_name, log_level=log_level)
-                if folder_id:
-                    # Already exists
-                    return folder_id
-
-                # If the folder does not exist, create it
-                params = {
-                    'api': 'SYNO.Foto.Browse.Folder',
-                    'version': '1',
-                    'method': 'create',
-                    'target_id': parent_folder_id,
-                    'name': folder_name
-                }
-                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                data = response.json()
-
-                self.logout(log_level=log_level)
-                if data.get("success"):
-                    LOGGER.info(f"INFO    : Folder '{folder_name}' successfully created.")
-                    return data['data']['folder']['id']
-                else:
-                    LOGGER.error(f"ERROR   : Failed to create the folder: '{folder_name}'")
-                    return None
-            except Exception as e:
-                LOGGER.error(f"ERROR   : Exception while creating folder into Synology Photos. {e}")
-            
-
     def get_folders(self, parent_folder_id, log_level=logging.INFO):
         """
         Lists all subfolders under a specified parent_folder_id in Synology Photos.
