@@ -1665,62 +1665,6 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting folder ID from Synology Photos. {e}")
             
-
-    def create_folder(self, folder_name, parent_folder_id=None, log_level=logging.INFO):
-        """
-        Retrieves the folder ID of a given folder name within a parent folder in Synology Photos.
-        If the folder does not exist, it will be created.
-
-        Args:
-            folder_name (str): The name of the folder to find or create.
-            parent_folder_id (str, optional): The ID of the parent folder.
-                If not provided, the root folder of Synology Photos is used.
-            log_level (logging.LEVEL): log_level for logs and console
-
-        Returns:
-            str: The folder ID if found or successfully created, otherwise None.
-        """
-        with set_log_level(LOGGER, log_level):
-            try:
-                self.login(log_level=log_level)
-                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-                headers = {}
-                if self.SYNO_TOKEN_HEADER:
-                    headers.update(self.SYNO_TOKEN_HEADER)
-
-                if not parent_folder_id:
-                    photos_root_folder_id = self.get_root_folder_id()
-                    parent_folder_id = photos_root_folder_id
-                    LOGGER.warning(f"WARNING : Parent Folder ID not provided, using Synology Photos root folder ID: '{photos_root_folder_id}' as parent folder.")
-
-                # Check if the folder already exists
-                folder_id = self.get_folder_id(parent_folder_id, folder_name, log_level=log_level)
-                if folder_id:
-                    # Already exists
-                    return folder_id
-
-                # If the folder does not exist, create it
-                params = {
-                    'api': 'SYNO.Foto.Browse.Folder',
-                    'version': '1',
-                    'method': 'create',
-                    'target_id': parent_folder_id,
-                    'name': folder_name
-                }
-                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                data = response.json()
-
-                self.logout(log_level=log_level)
-                if data.get("success"):
-                    LOGGER.info(f"INFO    : Folder '{folder_name}' successfully created.")
-                    return data['data']['folder']['id']
-                else:
-                    LOGGER.error(f"ERROR   : Failed to create the folder: '{folder_name}'")
-                    return None
-            except Exception as e:
-                LOGGER.error(f"ERROR   : Exception while creating folder into Synology Photos. {e}")
-            
-
     def get_folders(self, parent_folder_id, log_level=logging.INFO):
         """
         Lists all subfolders under a specified parent_folder_id in Synology Photos.
