@@ -84,7 +84,7 @@ def parse_arguments():
     PARSER.add_argument("-country", "--country", metavar="<COUNTRY_NAME>", default=None, help="Specify the Country Name to filter assets in the different Photo Clients.")
     PARSER.add_argument("-city", "--city", metavar="<CITY_NAME>", default=None, help="Specify the City Name to filter assets in the different Photo Clients.")
     PARSER.add_argument("-person", "--person", metavar="<PERSON_NAME>", default=None, help="Specify the Person Name to filter assets in the different Photo Clients.")
-    PARSER.add_argument("-type", "--asset-type", metavar="= [image,video,all]", default=None, help="Specify the Asset Type to filter assets in the different Photo Clients. (default: all)")
+    PARSER.add_argument("-type", "--type", metavar="= [image,video,all]", default=None, help="Specify the Asset Type to filter assets in the different Photo Clients. (default: all)")
     # PARSER.add_argument("-archive", "--archive",
     #                     metavar="= [true,false]",
     #                     nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
@@ -347,8 +347,8 @@ def checkArgs(ARGS, PARSER):
 
 
     # Parseamos type
-    if ARGS['asset-type'] and ARGS['asset-type'].lower() not in valid_asset_types:
-        PARSER.error(f"\n\n❌ ERROR   : --asset-type argument is invalid. Valid values are:\n{valid_asset_types}")
+    if ARGS['type'] and ARGS['type'].lower() not in valid_asset_types:
+        PARSER.error(f"\n\n❌ ERROR   : --type argument is invalid. Valid values are:\n{valid_asset_types}")
         exit(1)
 
     return ARGS
