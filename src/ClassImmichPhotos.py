@@ -785,6 +785,7 @@ class ClassImmichPhotos:
                 person = ARGS.get('person', None)
                 type = ARGS.get('asset-type', None)
 
+                # Obtain the correct type for the API call
                 if type:
                     image_aliases = {"image", "images", "photo", "photos"}
                     video_aliases = {"video", "videos"}
@@ -798,8 +799,10 @@ class ClassImmichPhotos:
                     else:
                         type = None  # Unknown alias, treat as no filtering
 
+                # Obtain the person_ids_list to include in the API call
+                person_ids_list = []
                 if person:
-                    person_ids = self.get_person_id(name=person, log_level=log_level)
+                    person_ids_list = self.get_person_id(name=person, log_level=log_level)
 
                 self.login(log_level=log_level)
                 url = f"{self.IMMICH_URL}/api/search/metadata"
@@ -846,7 +849,7 @@ class ClassImmichPhotos:
                     if to_date: payload_data["takenBefore"] = to_date
                     if country: payload_data["country"] = country
                     if city: payload_data["city"] = city
-                    if person_ids: payload_data["personIds"] = [person_ids]
+                    if person_ids_list: payload_data["personIds"] = [person_ids_list]
                     if type: payload_data["type"] = type
 
                     payload = json.dumps(payload_data)

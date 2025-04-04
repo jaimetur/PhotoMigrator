@@ -403,11 +403,11 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             geocoding_list, person_list = self.get_geocoding_person_lists(log_level=log_level)
-            person_ids = []
+            person_ids_list = []
             for item in person_list:
                 if item.get("name").lower() == person.lower():
-                    person_ids.append(item.get("id"))
-            return person_ids
+                    person_ids_list.append(item.get("id"))
+            return person_ids_list
 
     def get_geocoding_ids(self, place, log_level=logging.INFO):
         def collect_ids(node):
@@ -986,7 +986,7 @@ class ClassSynologyPhotos:
                 if city: geocoding_city_ids_list = self.get_geocoding_ids(place=city, log_level=log_level)
                 geocoding_ids_list = geocoding_country_ids_list + geocoding_city_ids_list
 
-                # Obtain the person_ids for person
+                # Obtain the person_ids_list for person
                 person_ids_list = []
                 if person: person_ids_list = self.get_person_ids(person, log_level=log_level)
 
@@ -1021,7 +1021,7 @@ class ClassSynologyPhotos:
                     if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
 
                     # Add person key if person_ids_list has some value
-                    if geocoding_ids_list:
+                    if person_ids_list:
                         params["person"] = json.dumps(person_ids_list)
                         params["person_policy"] = '"or"'
 
@@ -1086,7 +1086,7 @@ class ClassSynologyPhotos:
                 if city: geocoding_city_ids_list = self.get_geocoding_ids(place=city, log_level=log_level)
                 geocoding_ids_list = geocoding_country_ids_list + geocoding_city_ids_list
 
-                # Obtain the person_ids for person
+                # Obtain the person_ids_list for person
                 person_ids_list = []
                 if person: person_ids_list = self.get_person_ids(person, log_level=log_level)
 
@@ -1122,7 +1122,7 @@ class ClassSynologyPhotos:
                     if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
 
                     # Add person key if person_ids_list has some value
-                    if geocoding_ids_list:
+                    if person_ids_list:
                         params["person"] = json.dumps(person_ids_list)
                         params["person_policy"] = '"or"'
 
@@ -1197,7 +1197,7 @@ class ClassSynologyPhotos:
                 if city: geocoding_city_ids_list = self.get_geocoding_ids(place=city, log_level=log_level)
                 geocoding_ids_list = geocoding_country_ids_list + geocoding_city_ids_list
 
-                # Obtain the person_ids for person
+                # Obtain the person_ids_list for person
                 person_ids_list = []
                 if person: person_ids_list = self.get_person_ids(person, log_level=log_level)
 
@@ -1233,7 +1233,7 @@ class ClassSynologyPhotos:
                     if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
 
                     # Add person key if person_ids_list has some value
-                    if geocoding_ids_list:
+                    if person_ids_list:
                         params["person"] = json.dumps(person_ids_list)
                         params["person_policy"] = '"or"'
 
