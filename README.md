@@ -215,11 +215,10 @@ The below tables show the pros and cons of each method together with a comparati
 - [x] Added new flag _**-parallel, --parallel-migration =[true,false]**_ to select the Migration Mode (Parallel or Secuential). Default: true (parallel)
 - [x] Include Live Dashboard in sequential Automated Migration
 - [x] Test sequential Automated Migration
-- [ ] Test Filters in other Synology/Immich Features
 - [x] Minor bugs fixing
-- [x] Update Documentation
-- [x] Update README.md
-- [x] Update RELEASES-NOTES.md
+- [x] Test sequential Automated Migration
+- [x] Test Filters in Automated Migration Feature
+- [ ] Test Filters in other Synology/Immich Features
 
 
 ## v4.0.0:
