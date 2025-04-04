@@ -465,7 +465,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while removing Album from Synology Photos. {e}")
 
 
-    def get_albums_owned_by_user(self, log_level=logging.INFO):
+    def get_albums_owned_by_user(self, with_filters=True, log_level=logging.INFO):
         """
         Get all albums in Synology Photos for the current user.
 
@@ -520,15 +520,18 @@ class ClassSynologyPhotos:
                         album["albumName"] = album.pop("name")
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
-                    album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
-                    if len(album_assets) > 0:
+                    if with_filters:
+                        album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                        if len(album_assets) > 0:
+                            albums_filtered.append(album)
+                    else:
                         albums_filtered.append(album)
                 return albums_filtered
             except Exception as e:
                 LOGGER.warning(f"WARNING : Cannot get albums due to API call error. Skipped! {e}")
 
 
-    def get_albums_including_shared_with_user(self, log_level=logging.INFO):
+    def get_albums_including_shared_with_user(self, with_filters=True, log_level=logging.INFO):
         """
         Get both own and shared albums in Synology Photos.
 
@@ -587,8 +590,11 @@ class ClassSynologyPhotos:
                     album["albumName"] = album.pop("name")
                 album_id = album.get('id')
                 album_name = album.get("albumName", "")
-                album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
-                if len(album_assets) > 0:
+                if with_filters:
+                    album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
+                    if len(album_assets) > 0:
+                        albums_filtered.append(album)
+                else:
                     albums_filtered.append(album)
             return albums_filtered
 
@@ -706,7 +712,7 @@ class ClassSynologyPhotos:
                 else:
                     album_exists = False
                     album_id = None
-                    albums = self.get_albums_owned_by_user(log_level=log_level)
+                    albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
                     for album in albums:
                         if album_name == album.get("albumName"):
                             album_exists = True
@@ -771,8 +777,8 @@ class ClassSynologyPhotos:
         Filters a list of assets by their type, supporting flexible type aliases.
 
         Accepted values for 'type':
-        - 'image', 'images', 'photo', 'photos' → treated as 'IMAGE'
-        - 'video', 'videos' → treated as 'VIDEO'
+        - 'image', 'images', 'photo', 'photos' → treated as ['PHOTO', 'LIVE']
+        - 'video', 'videos' → treated as ['VIDEO']
         - 'all' → returns all assets (no filtering)
 
         Matching is case-insensitive.
@@ -782,20 +788,26 @@ class ClassSynologyPhotos:
             type (str): The asset type to match.
 
         Returns:
-            list: A filtered list of assets with the specified type.
+            list: A filtered list of assets with the specified type(s).
         """
         if not type or type.lower() == "all":
             return assets
+
         type_lower = type.lower()
         image_aliases = {"image", "images", "photo", "photos"}
         video_aliases = {"video", "videos"}
+
         if type_lower in image_aliases:
-            target_type = "PHOTO"
+            target_types = {"PHOTO", "LIVE"}
         elif type_lower in video_aliases:
-            target_type = "VIDEO"
+            target_types = {"VIDEO"}
         else:
             return []  # Unknown type alias
-        return [asset for asset in assets if asset.get("type", "").upper() == target_type]
+
+        return [
+            asset for asset in assets
+            if asset.get("type", "").upper() in target_types
+        ]
 
     def filter_assets_by_date(self, assets, from_date=None, to_date=None):
         """
@@ -869,6 +881,7 @@ class ClassSynologyPhotos:
             return assets
         name_lower = person_name.lower()
         filtered = []
+        filtered = assets # TODO: Remove this line if you want to apply person filter with this function. Right now Synology does not support this kind of filtering because there is no Person/People list in the assset info.
         for asset in assets:
             people = asset.get("people", [])
             for person in people:
