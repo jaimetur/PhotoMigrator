@@ -487,7 +487,7 @@ class ClassLocalFolder:
         """
         with set_log_level(LOGGER, log_level):
             # Get the values from the arguments (if exists)
-            type = ARGS.get('asset-type', None)
+            type = ARGS.get('type', None)
             from_date = ARGS.get('from-date', None)
             to_date = ARGS.get('to-date', None)
 

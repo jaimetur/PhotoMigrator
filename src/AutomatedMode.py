@@ -149,7 +149,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
         # Get the values from the arguments (if exists)
-        type = ARGS.get('asset-type', None)
+        type = ARGS.get('type', None)
         from_date = ARGS.get('from-date', None)
         to_date = ARGS.get('to-date', None)
         country = ARGS.get('country', None)
@@ -343,7 +343,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
             # Get the values from the arguments (if exists)
-            type = ARGS.get('asset-type', None)
+            type = ARGS.get('type', None)
             from_date = ARGS.get('from-date', None)
             to_date = ARGS.get('to-date', None)
             country = ARGS.get('country', None)
