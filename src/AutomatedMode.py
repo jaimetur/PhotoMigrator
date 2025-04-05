@@ -393,6 +393,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 all_albums = source_client.get_albums_including_shared_with_user(log_level=logging.WARNING)
             except Exception as e:
                 LOGGER.error(f"ERROR:   : Error Retrieving All Albums from '{source_client_name}'. - {e}")
+            LOGGER.info(f"INFO    : {len(all_albums)} Albums found on '{source_client_name}'")
             for album in all_albums:
                 album_id = album['id']
                 album_name = album['albumName']

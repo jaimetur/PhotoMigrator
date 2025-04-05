@@ -65,7 +65,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         self.CLIENT_NAME = f'Google Takeout Folder ({self.takeout_folder.name})'
 
     # sobreescribimos el método get_all_assets() para que obtenga los assets de takeout_folder directamente en lugar de base_folder, para poder hacer el recuento de metadatos, sidecar, y archivos no soportados.
-    def get_all_assets(self, type='all', log_level=logging.INFO):
+    def get_all_assets_by_filters(self, type='all', log_level=logging.INFO):
         """
         Retrieves assets stored in the base folder, filtering by type.
 

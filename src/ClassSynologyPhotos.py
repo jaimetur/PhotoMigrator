@@ -95,9 +95,9 @@ class ClassSynologyPhotos:
         self.albums_owned_by_user = {}
 
         # Create caches
-        self.all_assets = []
-        self.albums_assets = []
-        self.assets_without_albums = []
+        self.all_assets_filtered = []
+        self.assets_without_albums_filtered = []
+        self.albums_assets_filtered = []
 
         # Read the Config File to get CLIENT_ID
         self.read_config_file()
@@ -113,6 +113,9 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             return self.CLIENT_NAME
 
+    def asset_exists_in_all_assets_filtered(self, asset_id, log_level=logging.INFO):
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+            return any(asset.get('id') == asset_id for asset in self.get_all_assets_by_filters(log_level=log_level))
 
     ###########################################################################
     #                           CONFIGURATION READING                         #
@@ -732,6 +735,28 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                            ASSETS FILTERING                             #
     ###########################################################################
+    def filter_assets_new(self, assets, log_level=logging.INFO):
+        """
+        Filters a list of assets by person name.
+
+        The method looks for a match in the 'name' field of each person listed in the
+        'people' key of each asset. Matching is case-insensitive and allows partial matches.
+
+        Args:
+            assets (list): List of asset dictionaries.
+
+        Returns:
+            list: A filtered list of assets that include the specified person.
+        """
+        with set_log_level(LOGGER, log_level):
+            filtered = []
+            for asset in assets:
+                asset_id = asset.get('id')
+                # if assets exists in all_assets_filtered is because match all filters criteria, so will include in the filtered list to return
+                if self.asset_exists_in_all_assets_filtered(asset_id):
+                    filtered.append(asset)
+            return filtered
+
     def filter_assets(self, assets, log_level=logging.INFO):
         """
         Filters a list of assets based on user-defined criteria such as date range,
@@ -897,11 +922,10 @@ class ClassSynologyPhotos:
                         break  # One match is enough
         return filtered
 
-
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
-    def get_all_assets(self, log_level=logging.INFO):
+    def get_all_assets_by_filters(self, log_level=logging.INFO):
         """
         Lists all assets in Synology Photos.
 
@@ -914,8 +938,8 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 # If all_assets is already cached, return it
-                if self.all_assets:
-                    return self.all_assets
+                if self.all_assets_filtered:
+                    return self.all_assets_filtered
 
                 # Get the values from the arguments (if exists)
                 from_date = ARGS.get('from-date', None)
@@ -998,7 +1022,7 @@ class ClassSynologyPhotos:
                         LOGGER.error(f"ERROR   : Exception while listing assets {e}")
                         return []
 
-                self.all_assets = all_assets # Cache all_assets for future use
+                self.all_assets_filtered = all_assets # Cache all_assets for future use
                 return all_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting all Assets from Synology Photos. {e}")
@@ -1044,12 +1068,13 @@ class ClassSynologyPhotos:
                 # base_params settings
                 base_params = {
                     'api': 'SYNO.Foto.Browse.Item',
-                    # 'version': '4',
-                    # 'method': 'list',
-                    'version': '2',
-                    'method': 'list_with_filter',
-                    'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
+                    'version': '4',
+                    'method': 'list',
                     'album_id': album_id,
+                    # 'version': '2',
+                    # 'method': 'list_with_filter',
+                    # 'album_id': f"[{album_id}]",
+                    'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
                 }
 
                 # Add time to params only if from_date or to_date have some values
@@ -1110,9 +1135,7 @@ class ClassSynologyPhotos:
                             LOGGER.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                         return []
 
-                # It is not necesary to apply filters to album_assets because the API already include the filters
-                # filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
-                filtered_album_assets = album_assets
+                filtered_album_assets = self.filter_assets_new(assets=album_assets, log_level=log_level)
                 return filtered_album_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
@@ -1159,10 +1182,13 @@ class ClassSynologyPhotos:
                 # base_params settings
                 base_params = {
                     'api': 'SYNO.Foto.Browse.Item',
-                    'version': '2',
-                    'method': 'list_with_filter',
-                    'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
+                    'version': '4',
+                    'method': 'list',
                     'passphrase': album_passphrase,
+                    # 'version': '2',
+                    # 'method': 'list_with_filter',
+                    # 'passphrase': album_passphrase,
+                    'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
                 }
 
                 # Añadir rango de fechas si existen
@@ -1228,9 +1254,7 @@ class ClassSynologyPhotos:
                             LOGGER.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                         return []
 
-                # It is not necesary to apply filters to album_assets because the API already include the filters
-                # filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
-                filtered_album_assets = album_assets
+                filtered_album_assets = self.filter_assets_new(assets=album_assets, log_level=log_level)
                 return filtered_album_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
@@ -1248,15 +1272,15 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 # If assets_without_albums is already cached, return it.
-                if self.assets_without_albums:
-                    return self.assets_without_albums
+                if self.assets_without_albums_filtered:
+                    return self.assets_without_albums_filtered
                 self.login(log_level=log_level)
-                all_assets = self.get_all_assets(log_level=logging.INFO)
+                all_assets = self.get_all_assets_by_filters(log_level=logging.INFO)
                 album_assets = self.get_all_assets_from_all_albums(log_level=logging.INFO)
                 # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
                 assets_without_albums = get_unique_items(all_assets, album_assets, key='filename')
                 LOGGER.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
-                self.assets_without_albums = assets_without_albums # Cache assets_without_albums for future use
+                self.assets_without_albums_filtered = assets_without_albums # Cache assets_without_albums for future use
                 return assets_without_albums
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting No-Albums Assets from Synology Photos. {e}")
@@ -1275,8 +1299,8 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 # If albums_assets is already cached, return it
-                if self.albums_assets:
-                    return self.albums_assets
+                if self.albums_assets_filtered:
+                    return self.albums_assets_filtered
 
                 self.login(log_level=log_level)
                 headers = {}
@@ -1292,7 +1316,7 @@ class ClassSynologyPhotos:
                     album_name = album.get("albumName", "")
                     album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                     combined_assets.extend(album_assets)
-                self.albums_assets = combined_assets # Cache albums_assets for future use
+                self.albums_assets_filtered = combined_assets # Cache albums_assets for future use
                 return combined_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting All Albums Assets from Synology Photos. {e}")
@@ -2526,7 +2550,7 @@ class ClassSynologyPhotos:
                 self.login(log_level=log_level)
                 LOGGER.info(f"INFO    : Getting list of asset(s) to remove...")
 
-                all_assets = self.get_all_assets(log_level=log_level)
+                all_assets = self.get_all_assets_by_filters(log_level=log_level)
                 combined_ids = [a.get("id") for a in all_assets if a.get("id")]
 
                 total_assets_found = len(combined_ids)

@@ -13,7 +13,7 @@
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/CloudPhotoMigrator.py" />
-    <option name="PARAMETERS" value="-source=immich -target=synology" />
+    <option name="PARAMETERS" value="-source=synology -target=immich -from=2024 -city=Oslo -person=Jaime" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="true" />
     <option name="MODULE_MODE" value="false" />
