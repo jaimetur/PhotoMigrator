@@ -84,6 +84,15 @@ class ClassImmichPhotos:
         self.assets_without_albums_filtered = []
         self.albums_assets_filtered = []
 
+        # Get the values from the arguments (if exists)
+        self.type = ARGS.get('filter-by-type', None)
+        self.from_date = ARGS.get('filter-from-date', None)
+        self.to_date = ARGS.get('filter-to-date', None)
+        self.country = ARGS.get('filter-by-country', None)
+        self.city = ARGS.get('filter-by-city', None)
+        self.person = ARGS.get('filter-by-person', None)
+        self.person_ids_list = []
+
         # Read the Config File to get CLIENT_ID
         self.read_config_file()
         self.CLIENT_ID = self.get_user_mail()
@@ -101,7 +110,7 @@ class ClassImmichPhotos:
     def _asset_exists_in_all_assets_filtered(self, asset_id, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             if not self.all_assets_filtered:
-                self.all_assets_filtered = self.get_all_assets_by_filters(log_level=log_level)
+                self.all_assets_filtered = self.get_assets_by_filters(log_level=log_level)
             return any(asset.get('id') == asset_id for asset in self.all_assets_filtered)
 
 
@@ -641,27 +650,21 @@ class ClassImmichPhotos:
             list: A filtered list of assets that match the specified criteria.
         """
         with set_log_level(LOGGER, log_level):
-            # Get the values from the arguments (if exists)
-            type = ARGS.get('type', None)
-            from_date = ARGS.get('from-date', None)
-            to_date = ARGS.get('to-date', None)
-            country = ARGS.get('country', None)
-            city = ARGS.get('city', None)
-            person = ARGS.get('person', None)
+
 
             # Now Filter the assets list based on the filters given by ARGS
             try:
                 filtered_assets = assets
-                if type:
-                    filtered_assets = self.filter_assets_by_type(filtered_assets, type)
-                if from_date or to_date:
-                    filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
-                if country:
-                    filtered_assets = self.filter_assets_by_place(filtered_assets, country)
-                if city:
-                    filtered_assets = self.filter_assets_by_place(filtered_assets, city)
-                if person:
-                    filtered_assets = self.filter_assets_by_person(filtered_assets, person)
+                if self.type:
+                    filtered_assets = self.filter_assets_by_type(filtered_assets, self.type)
+                if self.from_date or self.to_date:
+                    filtered_assets = self.filter_assets_by_date(filtered_assets, self.from_date, self.to_date)
+                if self.country:
+                    filtered_assets = self.filter_assets_by_place(filtered_assets, self.country)
+                if self.city:
+                    filtered_assets = self.filter_assets_by_place(filtered_assets, self.city)
+                if self.person:
+                    filtered_assets = self.filter_assets_by_person(filtered_assets, self.person)
                 return filtered_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while filtering Assets from Immich Photos. {e}")
@@ -809,7 +812,7 @@ class ClassImmichPhotos:
                 LOGGER.error(f"ERROR   : Failed to retrieve assets info for '{asset_id}': {str(e)}")
                 return []
 
-    def get_all_assets_by_filters(self, isNotInAlbum=None, isArchived=None, withDeleted=None, log_level=logging.INFO):
+    def get_assets_by_filters(self, isNotInAlbum=None, isArchived=None, withDeleted=None, log_level=logging.INFO):
         """
         Lists all assets in Immich Photos that match with the specified filters.
 
@@ -825,19 +828,11 @@ class ClassImmichPhotos:
                 if self.all_assets_filtered:
                     return self.all_assets_filtered
 
-                # Get the values from the arguments (if exists)
-                from_date = ARGS.get('from-date', None)
-                to_date = ARGS.get('to-date', None)
-                country = ARGS.get('country', None)
-                city = ARGS.get('city', None)
-                person = ARGS.get('person', None)
-                type = ARGS.get('type', None)
-
                 # Obtain the correct type for the API call
-                if type:
+                if self.type:
                     image_aliases = {"image", "images", "photo", "photos"}
                     video_aliases = {"video", "videos"}
-                    type_lower = type.lower()
+                    type_lower = self.type.lower()
                     if type_lower in image_aliases:
                         type = "IMAGE"
                     elif type_lower in video_aliases:
@@ -848,11 +843,11 @@ class ClassImmichPhotos:
                         type = None  # Unknown alias, treat as no filtering
 
                 # Obtain the person_ids_list to include in the API call
-                person_ids_list = []
-                if person:
-                    person_ids_list = self.get_person_id(name=person, log_level=log_level)
+                self.person_ids_list = []
+                if self.person:
+                    self.person_ids_list = self.get_person_id(name=self.person, log_level=log_level)
                     # If person was provided but person_ids_list is empty means that the person does not exists, so return []
-                    if not person_ids_list:
+                    if not self.person_ids_list:
                         self.all_assets_filtered = []
                         return []
 
@@ -898,12 +893,12 @@ class ClassImmichPhotos:
                     if isNotInAlbum: payload_data["isNotInAlbum"] = isNotInAlbum
                     if isArchived: payload_data["isArchived"] = isArchived
 
-                    if from_date: payload_data["takenAfter"] = from_date
-                    if to_date: payload_data["takenBefore"] = to_date
-                    if country: payload_data["country"] = country
-                    if city: payload_data["city"] = city
-                    if person_ids_list: payload_data["personIds"] = [person_ids_list]
-                    if type: payload_data["type"] = type
+                    if self.from_date: payload_data["takenAfter"] = self.from_date
+                    if self.to_date: payload_data["takenBefore"] = self.to_date
+                    if self.country: payload_data["country"] = self.country
+                    if self.city: payload_data["city"] = self.city
+                    if self.person_ids_list: payload_data["personIds"] = [self.person_ids_list]
+                    if self.type: payload_data["type"] = self.type
 
                     payload = json.dumps(payload_data)
                     resp = requests.post(url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload, verify=False)
@@ -1011,7 +1006,7 @@ class ClassImmichPhotos:
                 return self.assets_without_albums_filtered
 
             self.login(log_level=log_level)
-            assets_without_albums = self.get_all_assets_by_filters(isNotInAlbum=True, log_level=log_level)
+            assets_without_albums = self.get_assets_by_filters(isNotInAlbum=True, log_level=log_level)
             LOGGER.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
             self.assets_without_albums_filtered = assets_without_albums  # Cache assets_without_albums for future use
             return assets_without_albums
@@ -1949,8 +1944,8 @@ class ClassImmichPhotos:
             LOGGER.info(f"INFO    : Getting list of asset(s) to remove...")
 
             # Collect
-            all_assets_items = self.get_all_assets_by_filters(log_level=log_level)
-            all_assets_items_withDeleted = self.get_all_assets_by_filters(withDeleted=True, log_level=log_level)
+            all_assets_items = self.get_assets_by_filters(log_level=log_level)
+            all_assets_items_withDeleted = self.get_assets_by_filters(withDeleted=True, log_level=log_level)
             all_assets_items.extend(all_assets_items_withDeleted)
 
             total_assets_found = len(all_assets_items)

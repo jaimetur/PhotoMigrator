@@ -79,12 +79,12 @@ def parse_arguments():
                         help="Select Parallel/Secuencial Migration during Automated Migration Job. This argument only applies if both '--source' and '--target' argument are given (AUTOMATED-MIGRATION FEATURE). (default: True)."
     )
 
-    PARSER.add_argument("-from", "--from-date", metavar="<FROM_DATE>", default=None, help="Specify the initial date to filter assets in the different Photo Clients.")
-    PARSER.add_argument("-to", "--to-date", metavar="<TO_DATE>", default=None, help="Specify the final date to filter assets in the different Photo Clients.")
-    PARSER.add_argument("-country", "--country", metavar="<COUNTRY_NAME>", default=None, help="Specify the Country Name to filter assets in the different Photo Clients.")
-    PARSER.add_argument("-city", "--city", metavar="<CITY_NAME>", default=None, help="Specify the City Name to filter assets in the different Photo Clients.")
-    PARSER.add_argument("-person", "--person", metavar="<PERSON_NAME>", default=None, help="Specify the Person Name to filter assets in the different Photo Clients.")
-    PARSER.add_argument("-type", "--type", metavar="= [image,video,all]", default=None, help="Specify the Asset Type to filter assets in the different Photo Clients. (default: all)")
+    PARSER.add_argument("-from", "--filter-from-date", metavar="<FROM_DATE>", default=None, help="Specify the initial date to filter assets in the different Photo Clients.")
+    PARSER.add_argument("-to", "--filter-to-date", metavar="<TO_DATE>", default=None, help="Specify the final date to filter assets in the different Photo Clients.")
+    PARSER.add_argument("-country", "--filter-by-country", metavar="<COUNTRY_NAME>", default=None, help="Specify the Country Name to filter assets in the different Photo Clients.")
+    PARSER.add_argument("-city", "--filter-by-city", metavar="<CITY_NAME>", default=None, help="Specify the City Name to filter assets in the different Photo Clients.")
+    PARSER.add_argument("-person", "--filter-by-person", metavar="<PERSON_NAME>", default=None, help="Specify the Person Name to filter assets in the different Photo Clients.")
+    PARSER.add_argument("-type", "--filter-by-type", metavar="= [image,video,all]", default=None, help="Specify the Asset Type to filter assets in the different Photo Clients. (default: all)")
     # PARSER.add_argument("-archive", "--archive",
     #                     metavar="= [true,false]",
     #                     nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
@@ -341,14 +341,14 @@ def checkArgs(ARGS, PARSER):
         exit(1)
 
 
-    # Parseamos las fechas de ARGS['from-date'] y ARGS['to-date'] para devolver una fecha en valida en formato iso8601 en caso de que contenga alguna fecha válida, o cadena vacía en caso contrario
-    ARGS['from-date'] = parse_text_to_iso8601(ARGS.get('from-date', ''))
-    ARGS['to-date'] = parse_text_to_iso8601(ARGS.get('to-date', ''))
+    # Parseamos las fechas de ARGS['filter-from-date'] y ARGS['filter-to-date'] para devolver una fecha en valida en formato iso8601 en caso de que contenga alguna fecha válida, o cadena vacía en caso contrario
+    ARGS['filter-from-date'] = parse_text_to_iso8601(ARGS.get('filter-from-date', ''))
+    ARGS['filter-to-date'] = parse_text_to_iso8601(ARGS.get('filter-to-date', ''))
 
 
     # Parseamos type
-    if ARGS['type'] and ARGS['type'].lower() not in valid_asset_types:
-        PARSER.error(f"\n\n❌ ERROR   : --type argument is invalid. Valid values are:\n{valid_asset_types}")
+    if ARGS['filter-by-type'] and ARGS['filter-by-type'].lower() not in valid_asset_types:
+        PARSER.error(f"\n\n❌ ERROR   : --filter-by-type argument is invalid. Valid values are:\n{valid_asset_types}")
         exit(1)
 
     return ARGS
@@ -374,7 +374,7 @@ def parse_folders_list(folders):
 def create_global_variable_from_args(args):
     """
     Crea una única variable global ARGS que contenga todos los argumentos proporcionados en un objeto Namespace.
-    Se puede acceder a cada argumento mediante ARGS["nombre-argumento"] o ARGS.nombre_argumento.
+    Se puede acceder a cada argumento mediante ARGS['nombre-argumento'] o ARGS.nombre_argumento.
 
     :param args: Namespace con los argumentos del PARSER
     """

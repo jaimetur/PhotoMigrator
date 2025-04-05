@@ -14,12 +14,12 @@
     - [x] by Country
     - [x] by City
     - [x] by Person
-- [x] Added new flag _**-type, --type = [image, video, all]**_ to select the Asset Type to download (default: all)
-- [x] Added new flag _**-from, --from-date <FROM_DATE>**_ to select the Initial Date of the Assets to download
-- [x] Added new flag _**-to, --to-date <TO_DATE>**_ to select the Final Date of the Assets to download
-- [x] Added new flag _**-country, --country <COUNTRY_NAME>**_ to select the Country Name of the Assets to download
-- [x] Added new flag _**-city, --city <CITY_NAME>**_ to select the City Name of the Assets to download
-- [x] Added new flag _**-person, --person <PERSON_NAME>**_ to select the Person Name of the Assets to download
+- [x] Added new flag _**-type, --filter-by-type = [image, video, all]**_ to select the Asset Type to download (default: all)
+- [x] Added new flag _**-from, --filter-from-date <FROM_DATE>**_ to select the Initial Date of the Assets to download
+- [x] Added new flag _**-to, --filter-to-date <TO_DATE>**_ to select the Final Date of the Assets to download
+- [x] Added new flag _**-country, --filter-by-country <COUNTRY_NAME>**_ to select the Country Name of the Assets to download
+- [x] Added new flag _**-city, --filter-by-city <CITY_NAME>**_ to select the City Name of the Assets to download
+- [x] Added new flag _**-person, --filter-by-person <PERSON_NAME>**_ to select the Person Name of the Assets to download
 - [x] Added new flag _**-parallel, --parallel-migration =[true,false]**_ to select the Migration Mode (Parallel or Sequential). Default: true (parallel)
 - [x] Included Live Dashboard in sequential Automated Migration
 - [x] Minor bugs fixing

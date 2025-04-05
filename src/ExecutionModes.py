@@ -65,7 +65,7 @@ def detect_and_run_execution_mode():
 
     # Google Photos Mode:
     # elif "-gtProc" in sys.argv or "--google-takeout-to-process" in sys.argv:
-    elif ARGS["google-takeout-to-process"]:
+    elif ARGS['google-takeout-to-process']:
         EXECUTION_MODE = 'google-takeout'
         mode_google_takeout()
 
@@ -237,7 +237,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         # Create the Object
         takeout = ClassTakeoutFolder(ARGS['google-takeout-to-process'])
         # Call the Function
-        albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS["show-gpth-progress"], capture_errors=ARGS["show-gpth-errors"], log_level=log_level)
+        albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-progress'], capture_errors=ARGS['show-gpth-errors'], log_level=log_level)
 
         # Count files in Takeout Folder
         if need_unzip:

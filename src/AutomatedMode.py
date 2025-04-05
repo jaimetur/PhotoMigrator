@@ -149,12 +149,12 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
         # Get the values from the arguments (if exists)
-        type = ARGS.get('type', None)
-        from_date = ARGS.get('from-date', None)
-        to_date = ARGS.get('to-date', None)
-        country = ARGS.get('country', None)
-        city = ARGS.get('city', None)
-        person = ARGS.get('person', None)
+        type = ARGS.get('filter-by-type', None)
+        from_date = ARGS.get('filter-from-date', None)
+        to_date = ARGS.get('filter-to-date', None)
+        country = ARGS.get('filter-by-country', None)
+        city = ARGS.get('filter-by-city', None)
+        person = ARGS.get('filter-by-person', None)
 
         LOGGER.info("")
         LOGGER.info(f"INFO    : -AUTO, --AUTOMATED-MIGRATION Mode detected")
@@ -177,10 +177,10 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(f"INFO    : Assets Filters : None")
         if from_date:
             date_obj = datetime.strptime(from_date, "%Y-%m-%dT%H:%M:%S.%fZ")
-            LOGGER.info(f"INFO    :      From Date : {date_obj.strftime('%Y-%m-%d')}")
+            LOGGER.info(f"INFO    :      from Date : {date_obj.strftime('%Y-%m-%d')}")
         if to_date:
             date_obj = datetime.strptime(to_date, "%Y-%m-%dT%H:%M:%S.%fZ")
-            LOGGER.info(f"INFO    :        To Date : {date_obj.strftime('%Y-%m-%d')}")
+            LOGGER.info(f"INFO    :        to Date : {date_obj.strftime('%Y-%m-%d')}")
         if type:
             LOGGER.info(f"INFO    :        by Type : {type}")
         if country:
@@ -350,12 +350,12 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
             # Get the values from the arguments (if exists)
-            type = ARGS.get('type', None)
-            from_date = ARGS.get('from-date', None)
-            to_date = ARGS.get('to-date', None)
-            country = ARGS.get('country', None)
-            city = ARGS.get('city', None)
-            person = ARGS.get('person', None)
+            type = ARGS.get('filter-by-type', None)
+            from_date = ARGS.get('filter-from-date', None)
+            to_date = ARGS.get('filter-to-date', None)
+            country = ARGS.get('filter-by-country', None)
+            city = ARGS.get('filter-by-city', None)
+            person = ARGS.get('filter-by-person', None)
 
             LOGGER.info(f"INFO    : 🚀 Starting Automated Migration Process: {source_client_name} ➜ {target_client_name}...")
             LOGGER.info(f"INFO    : Source Client  : {source_client_name}")
@@ -373,10 +373,10 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 LOGGER.info(f"INFO    : Assets Filters : None")
             if from_date:
                 date_obj = datetime.strptime(from_date, "%Y-%m-%dT%H:%M:%S.%fZ")
-                LOGGER.info(f"INFO    :      From Date : {date_obj.strftime('%Y-%m-%d')}")
+                LOGGER.info(f"INFO    :      from Date : {date_obj.strftime('%Y-%m-%d')}")
             if to_date:
                 date_obj = datetime.strptime(to_date, "%Y-%m-%dT%H:%M:%S.%fZ")
-                LOGGER.info(f"INFO    :        To Date : {date_obj.strftime('%Y-%m-%d')}")
+                LOGGER.info(f"INFO    :        to Date : {date_obj.strftime('%Y-%m-%d')}")
             if type:
                 LOGGER.info(f"INFO    :        by Type : {type}")
             if country:
