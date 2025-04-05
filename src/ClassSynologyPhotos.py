@@ -113,7 +113,7 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             return self.CLIENT_NAME
 
-    def asset_exists_in_all_assets_filtered(self, asset_id, log_level=logging.INFO):
+    def _asset_exists_in_all_assets_filtered(self, asset_id, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             if not self.all_assets_filtered:
                 self.all_assets_filtered = self.get_all_assets_by_filters(log_level=log_level)
@@ -755,7 +755,7 @@ class ClassSynologyPhotos:
             for asset in assets:
                 asset_id = asset.get('id')
                 # if assets exists in all_assets_filtered is because match all filters criteria, so will include in the filtered list to return
-                if self.asset_exists_in_all_assets_filtered(asset_id):
+                if self._asset_exists_in_all_assets_filtered(asset_id):
                     filtered.append(asset)
             return filtered
 
@@ -939,7 +939,7 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
-                # If all_assets is already cached, return it
+                # If all_filtered_assets is already cached, return it
                 if self.all_assets_filtered:
                     return self.all_assets_filtered
 
@@ -1016,7 +1016,7 @@ class ClassSynologyPhotos:
 
                 offset = 0
                 limit = 5000
-                all_assets = []
+                all_filtered_assets = []
                 while True:
                     params = base_params.copy()  # Hacemos una copia para no modificar el original
                     params['offset'] = offset
@@ -1027,7 +1027,7 @@ class ClassSynologyPhotos:
                         if not data.get("success"):
                             LOGGER.error(f"ERROR   : Failed to list assets")
                             return []
-                        all_assets.extend(data["data"]["list"])
+                        all_filtered_assets.extend(data["data"]["list"])
                         if len(data["data"]["list"]) < limit:
                             break
                         offset += limit
@@ -1035,8 +1035,8 @@ class ClassSynologyPhotos:
                         LOGGER.error(f"ERROR   : Exception while listing assets {e}")
                         return []
 
-                self.all_assets_filtered = all_assets # Cache all_assets for future use
-                return all_assets
+                self.all_assets_filtered = all_filtered_assets # Cache all_filtered_assets for future use
+                return all_filtered_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting all Assets from Synology Photos. {e}")
             
@@ -1226,6 +1226,7 @@ class ClassSynologyPhotos:
                 all_albums = self.get_albums_including_shared_with_user(log_level=log_level)
                 combined_assets = []
                 if not all_albums:
+                    self.albums_assets_filtered = combined_assets  # Cache albums_assets for future use
                     return []
                 for album in all_albums:
                     album_id = album.get("id")

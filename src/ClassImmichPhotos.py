@@ -79,6 +79,11 @@ class ClassImmichPhotos:
         # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_ownned_by_user()
         self.albums_owned_by_user = {}
 
+        # Create caches
+        self.all_assets_filtered = []
+        self.assets_without_albums_filtered = []
+        self.albums_assets_filtered = []
+
         # Read the Config File to get CLIENT_ID
         self.read_config_file()
         self.CLIENT_ID = self.get_user_mail()
@@ -92,6 +97,12 @@ class ClassImmichPhotos:
     def get_client_name(self, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             return self.CLIENT_NAME
+
+    def _asset_exists_in_all_assets_filtered(self, asset_id, log_level=logging.INFO):
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+            if not self.all_assets_filtered:
+                self.all_assets_filtered = self.get_all_assets_by_filters(log_level=log_level)
+            return any(asset.get('id') == asset_id for asset in self.all_assets_filtered)
 
 
     ###########################################################################
@@ -590,6 +601,28 @@ class ClassImmichPhotos:
     ###########################################################################
     def filter_assets(self, assets, log_level=logging.INFO):
         """
+        Filters a list of assets by person name.
+
+        The method looks for a match in the 'name' field of each person listed in the
+        'people' key of each asset. Matching is case-insensitive and allows partial matches.
+
+        Args:
+            assets (list): List of asset dictionaries.
+
+        Returns:
+            list: A filtered list of assets that include the specified person.
+        """
+        with set_log_level(LOGGER, log_level):
+            filtered = []
+            for asset in assets:
+                asset_id = asset.get('id')
+                # if assets exists in all_assets_filtered is because match all filters criteria, so will include in the filtered list to return
+                if self._asset_exists_in_all_assets_filtered(asset_id):
+                    filtered.append(asset)
+            return filtered
+
+    def filter_assets_old(self, assets, log_level=logging.INFO):
+        """
         Filters a list of assets based on user-defined criteria such as date range,
         country, city, and asset type. Filter parameters are retrieved from the global ARGS dictionary.
 
@@ -788,6 +821,10 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
+                # If all_filtered_assets is already cached, return it
+                if self.all_assets_filtered:
+                    return self.all_assets_filtered
+
                 # Get the values from the arguments (if exists)
                 from_date = ARGS.get('from-date', None)
                 to_date = ARGS.get('to-date', None)
@@ -814,10 +851,15 @@ class ClassImmichPhotos:
                 person_ids_list = []
                 if person:
                     person_ids_list = self.get_person_id(name=person, log_level=log_level)
+                    # If person was provided but person_ids_list is empty means that the person does not exists, so return []
+                    if not person_ids_list:
+                        self.all_assets_filtered = []
+                        return []
+
 
                 self.login(log_level=log_level)
                 url = f"{self.IMMICH_URL}/api/search/metadata"
-                all_assets = []
+                all_filtered_assets = []
 
                 next_page = 1
                 while True:
@@ -868,7 +910,7 @@ class ClassImmichPhotos:
                     resp.raise_for_status()
                     data = resp.json()
                     items = data.get("assets", {}).get("items", [])
-                    all_assets.extend(items)
+                    all_filtered_assets.extend(items)
                     next_page = data.get("assets", {}).get("nextPage", None)
                     if next_page is None:
                         break
@@ -876,11 +918,12 @@ class ClassImmichPhotos:
                 LOGGER.error(f"ERROR   : Failed to retrieve assets: {str(e)}")
 
             # Add new fields "time" with the same value as "fileCreatedAt" and "filename" with the same value as "originalFileName" to allign with Synology Photos
-            for asset in all_assets:
+            for asset in all_filtered_assets:
                 asset["time"] = asset["fileCreatedAt"]
                 asset["filename"] = asset["originalFileName"]
 
-            return all_assets
+            self.all_assets_filtered = all_filtered_assets  # Cache all_filtered_assets for future use
+            return all_filtered_assets
 
 
     def get_all_assets_from_album(self, album_id, album_name=None, log_level=logging.INFO):
@@ -963,9 +1006,14 @@ class ClassImmichPhotos:
         Returns assets_without_albums
         """
         with set_log_level(LOGGER, log_level):
+            # If assets_without_albums is already cached, return it.
+            if self.assets_without_albums_filtered:
+                return self.assets_without_albums_filtered
+
             self.login(log_level=log_level)
             assets_without_albums = self.get_all_assets_by_filters(isNotInAlbum=True, log_level=log_level)
             LOGGER.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
+            self.assets_without_albums_filtered = assets_without_albums  # Cache assets_without_albums for future use
             return assets_without_albums
 
 
@@ -980,16 +1028,22 @@ class ClassImmichPhotos:
             list: Albums Assets
         """
         with set_log_level(LOGGER, log_level):
+            # If albums_assets is already cached, return it
+            if self.albums_assets_filtered:
+                return self.albums_assets_filtered
+
             self.login(log_level=log_level)
             all_albums = self.get_albums_including_shared_with_user(log_level=log_level)
             combined_assets = []
             if not all_albums:
+                self.albums_assets_filtered = combined_assets  # Cache albums_assets for future use
                 return []
             for album in all_albums:
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
                 album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                 combined_assets.extend(album_assets)
+            self.albums_assets_filtered = combined_assets  # Cache albums_assets for future use
             return combined_assets
 
 
