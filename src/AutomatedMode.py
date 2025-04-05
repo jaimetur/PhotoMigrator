@@ -182,13 +182,13 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             date_obj = datetime.strptime(to_date, "%Y-%m-%dT%H:%M:%S.%fZ")
             LOGGER.info(f"INFO    :        To Date : {date_obj.strftime('%Y-%m-%d')}")
         if type:
-            LOGGER.info(f"INFO    :           Type : {type}")
+            LOGGER.info(f"INFO    :        by Type : {type}")
         if country:
-            LOGGER.info(f"INFO    :        Country : {country} {unsupported_text}")
+            LOGGER.info(f"INFO    :     by Country : {country} {unsupported_text}")
         if city:
-            LOGGER.info(f"INFO    :           City : {city} {unsupported_text}")
+            LOGGER.info(f"INFO    :        by City : {city} {unsupported_text}")
         if person:
-            LOGGER.info(f"INFO    :         Person : {person} {unsupported_text}")
+            LOGGER.info(f"INFO    :      by Person : {person} {unsupported_text}")
 
         LOGGER.info("")
         if not Utils.confirm_continue():
@@ -378,13 +378,13 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 date_obj = datetime.strptime(to_date, "%Y-%m-%dT%H:%M:%S.%fZ")
                 LOGGER.info(f"INFO    :        To Date : {date_obj.strftime('%Y-%m-%d')}")
             if type:
-                LOGGER.info(f"INFO    :           Type : {type}")
+                LOGGER.info(f"INFO    :        by Type : {type}")
             if country:
-                LOGGER.info(f"INFO    :        Country : {country} {unsupported_text}")
+                LOGGER.info(f"INFO    :     by Country : {country} {unsupported_text}")
             if city:
-                LOGGER.info(f"INFO    :           City : {city} {unsupported_text}")
+                LOGGER.info(f"INFO    :        by City : {city} {unsupported_text}")
             if person:
-                LOGGER.info(f"INFO    :         Person : {person} {unsupported_text}")
+                LOGGER.info(f"INFO    :      by Person : {person} {unsupported_text}")
 
             LOGGER.info("")
             LOGGER.info(f"INFO    : Starting Pulling/Pushing Workers...")
