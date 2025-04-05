@@ -85,6 +85,14 @@ class ClassLocalFolder:
             r"SYNOFILE_THUMB.*"  # Excluye cualquier archivo que empiece por "SYNOFILE_THUMB"
         ]
 
+        # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_ownned_by_user()
+        self.albums_owned_by_user = {}
+
+        # Create caches
+        self.all_assets_filtered = []
+        self.assets_without_albums_filtered = []
+        self.albums_assets_filtered = []
+
         self.CLIENT_NAME = f'Local Folder ({self.base_folder.name})'
 
 
@@ -148,18 +156,21 @@ class ClassLocalFolder:
             bool: True if the file or folder should be excluded, False otherwise.
         """
         file_name = file_path.name
-
         # Verificar exclusión de carpetas
         for pattern in self.FOLDER_EXCLUSION_PATTERNS:
             if any(re.fullmatch(pattern, part) for part in file_path.parts):
                 return True
-
         # Verificar exclusión de archivos
         for pattern in self.FILE_EXCLUSION_PATTERNS:
             if re.fullmatch(pattern, file_name):
                 return True
-
         return False
+
+    def _asset_exists_in_all_assets_filtered(self, asset_id, log_level=logging.INFO):
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+            if not self.all_assets_filtered:
+                self.all_assets_filtered = self.get_all_assets_by_filters(log_level=log_level)
+            return any(asset.get('id') == asset_id for asset in self.all_assets_filtered)
 
     ###########################################################################
     #                           CLASS PROPERTIES GETS                         #
@@ -471,6 +482,28 @@ class ClassLocalFolder:
     ###########################################################################
     def filter_assets(self, assets, log_level=logging.INFO):
         """
+        Filters a list of assets by person name.
+
+        The method looks for a match in the 'name' field of each person listed in the
+        'people' key of each asset. Matching is case-insensitive and allows partial matches.
+
+        Args:
+            assets (list): List of asset dictionaries.
+
+        Returns:
+            list: A filtered list of assets that include the specified person.
+        """
+        with set_log_level(LOGGER, log_level):
+            filtered = []
+            for asset in assets:
+                asset_id = asset.get('id')
+                # if assets exists in all_assets_filtered is because match all filters criteria, so will include in the filtered list to return
+                if self._asset_exists_in_all_assets_filtered(asset_id):
+                    filtered.append(asset)
+            return filtered
+
+    def filter_assets_old(self, assets, log_level=logging.INFO):
+        """
         Filters a list of assets based on user-defined criteria such as date range,
         country, city, and asset type. Filter parameters are retrieved from the global ARGS dictionary.
 
@@ -582,6 +615,9 @@ class ClassLocalFolder:
         """
         with set_log_level(LOGGER, log_level):
             LOGGER.info(f"INFO    : Retrieving {type} assets from the base folder, excluding system folders and unwanted files.")
+            # If all_assets is already cached, return it
+            if self.all_assets_filtered:
+                return self.all_assets_filtered
 
             base_folder = self.base_folder.resolve()
             selected_type_extensions = self._get_selected_extensions(type)
@@ -610,10 +646,11 @@ class ClassLocalFolder:
                         "filepath": str(file.resolve()),
                         "type": self._determine_file_type(file),
                     })
-
-            filtered_assets = self.filter_assets(assets=all_assets, log_level=log_level)
-            LOGGER.info(f"INFO    : Found {len(filtered_assets)} assets of type '{type}' in the base folder.")
-            return filtered_assets
+            # Here we have to use the old filter_assets method in order to apply the filter to all_assets_filtered. Then the other methods can use the new filter_assets based in this pre-filtered list.
+            all_filtered_assets = self.filter_assets_old(assets=all_assets, log_level=log_level)
+            LOGGER.info(f"INFO    : Found {len(all_filtered_assets)} assets of type '{type}' in the base folder.")
+            self.all_assets_filtered = all_filtered_assets  # Cache all_assets for future use
+            return all_filtered_assets
 
     def get_all_assets_from_album(self, album_id, album_name=None, type='all', log_level=logging.WARNING):
         """
@@ -765,6 +802,9 @@ class ClassLocalFolder:
         """
         with set_log_level(LOGGER, log_level):
             LOGGER.info(f"INFO    : Retrieving {type} assets excluding albums, shared albums, and excluded patterns.")
+            # If assets_without_albums is already cached, return it.
+            if self.assets_without_albums_filtered:
+                return self.assets_without_albums_filtered
 
             base_folder = self.base_folder.resolve()
             albums_folder = self.albums_folder.resolve() if self.albums_folder else None
@@ -808,9 +848,10 @@ class ClassLocalFolder:
                         "type": self._determine_file_type(file),
                     })
 
-            filtered_assets = self.filter_assets(assets=assets, log_level=log_level)
-            LOGGER.info(f"INFO    : Found {len(filtered_assets)} assets of type '{type}' in No-Album folders.")
-            return filtered_assets
+            assets_without_albums = self.filter_assets(assets=assets, log_level=log_level)
+            LOGGER.info(f"INFO    : Found {len(assets_without_albums)} assets of type '{type}' in No-Album folders.")
+            self.assets_without_albums_filtered = assets_without_albums  # Cache assets_without_albums for future use
+            return assets_without_albums
 
     def get_all_assets_from_all_albums(self, log_level=logging.WARNING):
         """
@@ -824,11 +865,16 @@ class ClassLocalFolder:
         """
         with set_log_level(LOGGER, log_level):
             LOGGER.info("INFO    : Gathering all albums' assets.")
+            # If albums_assets is already cached, return it
+            if self.albums_assets_filtered:
+                return self.albums_assets_filtered
+
             combined_assets = []
             all_albums = self.get_albums_including_shared_with_user(log_level)
             for album in all_albums:
                 album_id = album["id"]
                 combined_assets.extend(self.get_all_assets_from_album(album_id, log_level))
+            self.albums_assets_filtered = combined_assets  # Cache albums_assets for future use
             return combined_assets
 
 

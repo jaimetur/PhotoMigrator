@@ -145,7 +145,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
 
         # Check if source_client support specified filters
         unsupported_text = ""
-        if isinstance(source_client, ClassTakeoutFolder) or isinstance(source_client, ClassTakeoutFolder):
+        if isinstance(source_client, ClassTakeoutFolder) or isinstance(source_client, ClassLocalFolder):
             unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
         # Get the values from the arguments (if exists)
@@ -164,29 +164,32 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{source}'").replace('<TARGET>', f"'{target}'").replace('Pulling', 'Analyzing and Fixing'))
         LOGGER.info(f"INFO    : Source Client  : {source_client_name}")
         LOGGER.info(f"INFO    : Target Client  : {target_client_name}")
+        LOGGER.info(f"INFO    : Temp Folder    : {INTERMEDIATE_FOLDER}")
+
         if parallel:
             LOGGER.info(f"INFO    : Migration Mode : Parallel")
         else:
             LOGGER.info(f"INFO    : Migration Mode : Secuential")
+
         if from_date or to_date or type or country or city or person:
             LOGGER.info(f"INFO    : Assets Filters :")
         else:
             LOGGER.info(f"INFO    : Assets Filters : None")
         if from_date:
             date_obj = datetime.strptime(from_date, "%Y-%m-%dT%H:%M:%S.%fZ")
-            LOGGER.info(f"INFO    : - From Date    : {date_obj.strftime('%Y-%m-%d')}")
+            LOGGER.info(f"INFO    :      From Date : {date_obj.strftime('%Y-%m-%d')}")
         if to_date:
             date_obj = datetime.strptime(to_date, "%Y-%m-%dT%H:%M:%S.%fZ")
-            LOGGER.info(f"INFO    : - To Date      : {date_obj.strftime('%Y-%m-%d')}")
+            LOGGER.info(f"INFO    :        To Date : {date_obj.strftime('%Y-%m-%d')}")
         if type:
-            LOGGER.info(f"INFO    : - Type         : {type}")
+            LOGGER.info(f"INFO    :        by Type : {type}")
         if country:
-            LOGGER.info(f"INFO    : - Country      : {country} {unsupported_text}")
+            LOGGER.info(f"INFO    :     by Country : {country} {unsupported_text}")
         if city:
-            LOGGER.info(f"INFO    : - City         : {city} {unsupported_text}")
+            LOGGER.info(f"INFO    :        by City : {city} {unsupported_text}")
         if person:
-            LOGGER.info(f"INFO    : - Person       : {person} {unsupported_text}")
-        LOGGER.info(f"INFO    : Temp Folder    : {INTERMEDIATE_FOLDER}")
+            LOGGER.info(f"INFO    :      by Person : {person} {unsupported_text}")
+
         LOGGER.info("")
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
@@ -343,7 +346,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
             # Check if source_client support specified filters
             unsupported_text = ""
-            if isinstance(source_client, ClassTakeoutFolder) or isinstance(source_client, ClassTakeoutFolder):
+            if isinstance(source_client, ClassTakeoutFolder) or isinstance(source_client, ClassLocalFolder):
                 unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
             # Get the values from the arguments (if exists)
@@ -357,6 +360,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"INFO    : 🚀 Starting Automated Migration Process: {source_client_name} ➜ {target_client_name}...")
             LOGGER.info(f"INFO    : Source Client  : {source_client_name}")
             LOGGER.info(f"INFO    : Target Client  : {target_client_name}")
+            LOGGER.info(f"INFO    : Temp Folder    : {temp_folder}")
+
             if parallel:
                 LOGGER.info(f"INFO    : Migration Mode : Parallel")
             else:
@@ -368,19 +373,19 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 LOGGER.info(f"INFO    : Assets Filters : None")
             if from_date:
                 date_obj = datetime.strptime(from_date, "%Y-%m-%dT%H:%M:%S.%fZ")
-                LOGGER.info(f"INFO    : - From Date    : {date_obj.strftime('%Y-%m-%d')}")
+                LOGGER.info(f"INFO    :      From Date : {date_obj.strftime('%Y-%m-%d')}")
             if to_date:
                 date_obj = datetime.strptime(to_date, "%Y-%m-%dT%H:%M:%S.%fZ")
-                LOGGER.info(f"INFO    : - To Date      : {date_obj.strftime('%Y-%m-%d')}")
+                LOGGER.info(f"INFO    :        To Date : {date_obj.strftime('%Y-%m-%d')}")
             if type:
-                LOGGER.info(f"INFO    : - Type         : {type}")
+                LOGGER.info(f"INFO    :        by Type : {type}")
             if country:
-                LOGGER.info(f"INFO    : - Country      : {country} {unsupported_text}")
+                LOGGER.info(f"INFO    :     by Country : {country} {unsupported_text}")
             if city:
-                LOGGER.info(f"INFO    : - City         : {city} {unsupported_text}")
+                LOGGER.info(f"INFO    :        by City : {city} {unsupported_text}")
             if person:
-                LOGGER.info(f"INFO    : - Person       : {person} {unsupported_text}")
-            LOGGER.info(f"INFO    : Temp Folder    : {temp_folder}")
+                LOGGER.info(f"INFO    :      by Person : {person} {unsupported_text}")
+
             LOGGER.info("")
             LOGGER.info(f"INFO    : Starting Pulling/Pushing Workers...")
             LOGGER.info(f"INFO    : Analyzing Source client and Applying filters. This process may take some time, please be patient...")
