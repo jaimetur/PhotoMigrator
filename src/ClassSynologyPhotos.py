@@ -1004,7 +1004,7 @@ class ClassSynologyPhotos:
                 # Add types to params if have been providen
                 types = []
                 if self.type:
-                    if self.type.lower() in ['photo', 'photos']:
+                    if self.type.lower() in ['photo', 'photos', 'image', 'images']:
                         types.append(0)
                     if self.type.lower() in ['video', 'videos']:
                         types.append(1)
