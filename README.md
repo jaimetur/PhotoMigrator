@@ -152,12 +152,12 @@ The below tables show the pros and cons of each method together with a comparati
 >
 > Finally, you can apply filters to filter assets to pull from \<SOURCE> client. The available filters are: 
 >    - by Type
->      - flag: -type, --type
+>      - flag: -type, --filter-by-type
 >        - Valid values are [image, video, all]
 >    - by Dates
 >      - flags:
->        - -from, --from-date
->        - -to, --to-date
+>        - -from, --filter-from-date
+>        - -to, --filter-to-date
 >      - Valid values are in one of those formats: 
 >        - dd/mm/yyyy
 >        - dd-mm-yyyy
@@ -169,13 +169,13 @@ The below tables show the pros and cons of each method together with a comparati
 >        - yyyy-mm
 >        - yyyy 
 >    - by Country
->      - flag: -country, --country
+>      - flag: -country, --filter-by-country
 >        - Valid values are any existing country in the \<SOURCE> client.
 >    - by City
->      - flag: -city, --city
+>      - flag: -city, --filter-by-city
 >        - Valid values are any existing city in the \<SOURCE> client.
 >    - by Person
->      - flag: -person, --person
+>      - flag: -person, --filter-by-person
 >        - Valid values are any existing person in the \<SOURCE> client.
 
 > [!WARNING]  
@@ -205,12 +205,12 @@ The below tables show the pros and cons of each method together with a comparati
     - [x] by Country
     - [x] by City
     - [x] by Person
-- [x] Added new flag _**-type, --type = [image, video, all]**_ to select the Asset Type to download (default: all)
-- [x] Added new flag _**-from, --from-date <FROM_DATE>**_ to select the Initial Date of the Assets to download
-- [x] Added new flag _**-to, --to-date <TO_DATE>**_ to select the Final Date of the Assets to download
-- [x] Added new flag _**-country, --country <COUNTRY_NAME>**_ to select the Country Name of the Assets to download
-- [x] Added new flag _**-city, --city <CITY_NAME>**_ to select the City Name of the Assets to download
-- [x] Added new flag _**-person, --person <PERSON_NAME>**_ to select the Person Name of the Assets to download
+- [x] Added new flag _**-type, --filter-by-type = [image, video, all]**_ to select the Asset Type to download (default: all)
+- [x] Added new flag _**-from, --filter-from-date <FROM_DATE>**_ to select the Initial Date of the Assets to download
+- [x] Added new flag _**-to, --filter-to-date <TO_DATE>**_ to select the Final Date of the Assets to download
+- [x] Added new flag _**-country, --filter-by-country <COUNTRY_NAME>**_ to select the Country Name of the Assets to download
+- [x] Added new flag _**-city, --filter-by-city <CITY_NAME>**_ to select the City Name of the Assets to download
+- [x] Added new flag _**-person, --filter-by-person <PERSON_NAME>**_ to select the Person Name of the Assets to download
 - [x] Added new flag _**-parallel, --parallel-migration =[true,false]**_ to select the Migration Mode (Parallel or Sequential). Default: true (parallel)
 - [x] Included Live Dashboard in sequential Automated Migration
 - [x] Minor bugs fixing

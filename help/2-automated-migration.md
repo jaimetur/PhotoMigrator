@@ -27,12 +27,12 @@
 >
 > Finally, you can apply filters to filter assets to pull from \<SOURCE> client. The available filters are: 
 >    - by Type
->      - flag: -type, --type
+>      - flag: -type, --filter-by-type
 >        - Valid values are [image, video, all]
 >    - by Dates
 >      - flags:
->        - -from, --from-date
->        - -to, --to-date
+>        - -from, --filter-from-date
+>        - -to, --filter-to-date
 >      - Valid values are in one of those formats: 
 >        - dd/mm/yyyy
 >        - dd-mm-yyyy
@@ -44,13 +44,13 @@
 >        - yyyy-mm
 >        - yyyy 
 >    - by Country
->      - flag: -country, --country
+>      - flag: -country, --filter-by-country
 >        - Valid values are any existing country in the \<SOURCE> client.
 >    - by City
->      - flag: -city, --city
+>      - flag: -city, --filter-by-city
 >        - Valid values are any existing city in the \<SOURCE> client.
 >    - by Person
->      - flag: -person, --person
+>      - flag: -person, --filter-by-person
 >        - Valid values are any existing person in the \<SOURCE> client.
 
 > [!WARNING]  
@@ -108,7 +108,7 @@ In this example, the Tool will do an Automated Migration Process which has two s
 
 - **Example 3**:
 ```
-./CloudPhotoMigrator.run --source=immich-2 target=/homes/local_folder --person=Peter --from-date=2024
+./CloudPhotoMigrator.run --source=immich-2 target=/homes/local_folder --filter-by-person=Peter --filter-from-date=2024
 ```
 
 In this example, the Tool will do an Automated Migration Process which has two steps:  
@@ -123,7 +123,7 @@ In this example, the Tool will do an Automated Migration Process which has two s
 
 - **Example 4**:
 ```
-./CloudPhotoMigrator.run --source=immich-1 target=immich-2 --city=Rome --person=Mery
+./CloudPhotoMigrator.run --source=immich-1 target=immich-2 --filter-by-city=Rome --filter-by-person=Mery
 ```
 
 In this example, the Tool will do an Automated Migration Process which has two steps:  

@@ -99,6 +99,18 @@ class ClassSynologyPhotos:
         self.assets_without_albums_filtered = []
         self.albums_assets_filtered = []
 
+        # Get the values from the arguments (if exists)
+        self.type = ARGS.get('filter-by-type', None)
+        self.from_date = ARGS.get('filter-from-date', None)
+        self.to_date = ARGS.get('filter-to-date', None)
+        self.country = ARGS.get('filter-by-country', None)
+        self.city = ARGS.get('filter-by-city', None)
+        self.person = ARGS.get('filter-by-person', None)
+        self.person_ids_list = []
+        self.geocoding_ids_list = []
+        self.geocoding_country_ids_list = []
+        self.geocoding_city_ids_list = []
+
         # Read the Config File to get CLIENT_ID
         self.read_config_file()
         self.CLIENT_ID = self.get_user_mail()
@@ -116,7 +128,7 @@ class ClassSynologyPhotos:
     def _asset_exists_in_all_assets_filtered(self, asset_id, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             if not self.all_assets_filtered:
-                self.all_assets_filtered = self.get_all_assets_by_filters(log_level=log_level)
+                self.all_assets_filtered = self.get_assets_by_filters(log_level=log_level)
             return any(asset.get('id') == asset_id for asset in self.all_assets_filtered)
 
     ###########################################################################
@@ -779,27 +791,19 @@ class ClassSynologyPhotos:
             list: A filtered list of assets that match the specified criteria.
         """
         with set_log_level(LOGGER, log_level):
-            # Get the values from the arguments (if exists)
-            type = ARGS.get('type', None)
-            from_date = ARGS.get('from-date', None)
-            to_date = ARGS.get('to-date', None)
-            country = ARGS.get('country', None)
-            city = ARGS.get('city', None)
-            person = ARGS.get('person', None)
-
             # Now Filter the assets list based on the filters given by ARGS
             try:
                 filtered_assets = assets
-                if type:
-                    filtered_assets = self.filter_assets_by_type(filtered_assets, type)
-                if from_date or to_date:
-                    filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
-                if country:
-                    filtered_assets = self.filter_assets_by_place(filtered_assets, country)
-                if city:
-                    filtered_assets = self.filter_assets_by_place(filtered_assets, city)
-                if person:
-                    filtered_assets = self.filter_assets_by_person(filtered_assets, person)
+                if self.type:
+                    filtered_assets = self.filter_assets_by_type(filtered_assets, self.type)
+                if self.from_date or self.to_date:
+                    filtered_assets = self.filter_assets_by_date(filtered_assets, self.from_date, self.to_date)
+                if self.country:
+                    filtered_assets = self.filter_assets_by_place(filtered_assets, self.country)
+                if self.city:
+                    filtered_assets = self.filter_assets_by_place(filtered_assets, self.city)
+                if self.person:
+                    filtered_assets = self.filter_assets_by_person(filtered_assets, self.person)
                 return filtered_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while filtering Assets from Synology Photos. {e}")
@@ -927,7 +931,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
-    def get_all_assets_by_filters(self, log_level=logging.INFO):
+    def get_assets_by_filters(self, log_level=logging.INFO):
         """
         Lists all assets in Synology Photos.
 
@@ -943,36 +947,28 @@ class ClassSynologyPhotos:
                 if self.all_assets_filtered:
                     return self.all_assets_filtered
 
-                # Get the values from the arguments (if exists)
-                from_date = ARGS.get('from-date', None)
-                to_date = ARGS.get('to-date', None)
-                type = ARGS.get('type', None)
-                country = ARGS.get('country', None)
-                city = ARGS.get('city', None)
-                person = ARGS.get('person', None)
-
                 # Convert the values from iso to epoch
-                from_date = parse_text_datetime_to_epoch(from_date)
-                to_date = parse_text_datetime_to_epoch(to_date)
+                self.from_date = parse_text_datetime_to_epoch(self.from_date)
+                self.to_date = parse_text_datetime_to_epoch(self.to_date)
 
                 # Obtain the place_ids for country and city
-                geocoding_country_ids_list = []
-                geocoding_city_ids_list = []
-                if country: geocoding_country_ids_list = self.get_geocoding_ids(place=country, log_level=log_level)
-                if city: geocoding_city_ids_list = self.get_geocoding_ids(place=city, log_level=log_level)
-                geocoding_ids_list = geocoding_country_ids_list + geocoding_city_ids_list
+                self.geocoding_country_ids_list = []
+                self.geocoding_city_ids_list = []
+                if self.country: self.geocoding_country_ids_list = self.get_geocoding_ids(place=self.country, log_level=log_level)
+                if self.city: self.geocoding_city_ids_list = self.get_geocoding_ids(place=self.city, log_level=log_level)
+                self.geocoding_ids_list = self.geocoding_country_ids_list + self.geocoding_city_ids_list
 
                 # If city or country filter was provided but geocoding_ids_list is empty means that the place does not exists, so return []
-                if (city or country) and not geocoding_ids_list:
+                if (self.city or self.country) and not self.geocoding_ids_list:
                     self.all_assets_filtered = []
                     return []
 
                 # Obtain the person_ids_list for person
-                person_ids_list = []
-                if person:
-                    person_ids_list = self.get_person_ids(person, log_level=log_level)
+                self.person_ids_list = []
+                if self.person:
+                    self.person_ids_list = self.get_person_ids(self.person, log_level=log_level)
                     # If person was provided but person_ids_list is empty means that the person does not exists, so return []
-                    if not person_ids_list:
+                    if not self.person_ids_list:
                         self.all_assets_filtered = []
                         return []
 
@@ -993,26 +989,27 @@ class ClassSynologyPhotos:
 
                 # Add time to params only if from_date or to_date have some values
                 time_dic = {}
-                if from_date:  time_dic["start_time"] = from_date
-                if to_date: time_dic["end_time"] = to_date
+                if self.from_date:  time_dic["start_time"] = self.from_date
+                if self.to_date: time_dic["end_time"] = self.to_date
                 if time_dic: base_params["time"] = json.dumps([time_dic])
 
                 # Add geocoding key if geocoding_ids_list has some value
-                if geocoding_ids_list: base_params["geocoding"] = json.dumps(geocoding_ids_list)
+                if self.geocoding_ids_list: base_params["geocoding"] = json.dumps(self.geocoding_ids_list)
 
                 # Add person key if person_ids_list has some value
-                if person_ids_list:
-                    base_params["person"] = json.dumps(person_ids_list)
+                if self.person_ids_list:
+                    base_params["person"] = json.dumps(self.person_ids_list)
                     base_params["person_policy"] = '"or"'
 
                 # Add types to params if have been providen
                 types = []
-                if type:
-                    if type.lower() in ['photo', 'photos']:
+                if self.type:
+                    if self.type.lower() in ['photo', 'photos', 'image', 'images']:
                         types.append(0)
-                    if type.lower() in ['video', 'videos']:
+                    if self.type.lower() in ['video', 'videos']:
                         types.append(1)
-                if types: base_params["item_type"] = types
+                if types: base_params["item_type"] = json.dumps(types)
+                # LOGGER.error(f"base_params: {json.dumps(base_params, indent=4)}")
 
                 offset = 0
                 limit = 5000
@@ -1191,7 +1188,7 @@ class ClassSynologyPhotos:
                 if self.assets_without_albums_filtered:
                     return self.assets_without_albums_filtered
                 self.login(log_level=log_level)
-                all_assets = self.get_all_assets_by_filters(log_level=logging.INFO)
+                all_assets = self.get_assets_by_filters(log_level=logging.INFO)
                 album_assets = self.get_all_assets_from_all_albums(log_level=logging.INFO)
                 # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
                 assets_without_albums = get_unique_items(all_assets, album_assets, key='filename')
@@ -2467,7 +2464,7 @@ class ClassSynologyPhotos:
                 self.login(log_level=log_level)
                 LOGGER.info(f"INFO    : Getting list of asset(s) to remove...")
 
-                all_assets = self.get_all_assets_by_filters(log_level=log_level)
+                all_assets = self.get_assets_by_filters(log_level=log_level)
                 combined_ids = [a.get("id") for a in all_assets if a.get("id")]
 
                 total_assets_found = len(combined_ids)

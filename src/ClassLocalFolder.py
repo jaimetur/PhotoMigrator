@@ -93,6 +93,11 @@ class ClassLocalFolder:
         self.assets_without_albums_filtered = []
         self.albums_assets_filtered = []
 
+        # Get the values from the arguments (if exists)
+        self.type = ARGS.get('filter-by-type', None)
+        self.from_date = ARGS.get('filter-from-date', None)
+        self.to_date = ARGS.get('filter-to-date', None)
+
         self.CLIENT_NAME = f'Local Folder ({self.base_folder.name})'
 
 
@@ -169,7 +174,7 @@ class ClassLocalFolder:
     def _asset_exists_in_all_assets_filtered(self, asset_id, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             if not self.all_assets_filtered:
-                self.all_assets_filtered = self.get_all_assets_by_filters(log_level=log_level)
+                self.all_assets_filtered = self.get_assets_by_filters(log_level=log_level)
             return any(asset.get('id') == asset_id for asset in self.all_assets_filtered)
 
     ###########################################################################
@@ -519,18 +524,13 @@ class ClassLocalFolder:
             list: A filtered list of assets that match the specified criteria.
         """
         with set_log_level(LOGGER, log_level):
-            # Get the values from the arguments (if exists)
-            type = ARGS.get('type', None)
-            from_date = ARGS.get('from-date', None)
-            to_date = ARGS.get('to-date', None)
-
             # Now Filter the assets list based on the filters given by ARGS
             try:
                 filtered_assets = assets
-                if type:
-                    filtered_assets = self.filter_assets_by_type(filtered_assets, type)
-                if from_date or to_date:
-                    filtered_assets = self.filter_assets_by_date(filtered_assets, from_date, to_date)
+                if self.type:
+                    filtered_assets = self.filter_assets_by_type(filtered_assets, self.type)
+                if self.from_date or self.to_date:
+                    filtered_assets = self.filter_assets_by_date(filtered_assets, self.from_date, self.to_date)
                 return filtered_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while filtering Assets from Local Folder. {e}")
@@ -596,7 +596,7 @@ class ClassLocalFolder:
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
-    def get_all_assets_by_filters(self, type='all', log_level=logging.WARNING):
+    def get_assets_by_filters(self, type='all', log_level=logging.WARNING):
         """
         Retrieves assets stored in the base folder, filtering by type and applying folder and file exclusions.
 

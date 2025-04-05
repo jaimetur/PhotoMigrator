@@ -17,12 +17,12 @@
 > 
 > The available filters are: 
 >    - by Type
->      - flag: -type, --type
+>      - flag: -type, --filter-by-type
 >        - Valid values are [image, video, all]
 >    - by Dates
 >      - flags:
->        - -from, --from-date
->        - -to, --to-date
+>        - -from, --filter-from-date
+>        - -to, --filter-to-date
 >      - Valid values are in one of those formats: 
 >        - dd/mm/yyyy
 >        - dd-mm-yyyy
@@ -34,13 +34,13 @@
 >        - yyyy-mm
 >        - yyyy 
 >    - by Country
->      - flag: -country, --country
+>      - flag: -country, --filter-by-country
 >        - Valid values are any existing country in the \<SOURCE> client.
 >    - by City
->      - flag: -city, --city
+>      - flag: -city, --filter-by-city
 >        - Valid values are any existing city in the \<SOURCE> client.
 >    - by Person
->      - flag: -person, --person
+>      - flag: -person, --filter-by-person
 >        - Valid values are any existing person in the \<SOURCE> client.
 >        
 >The credentials need to be loaded from 'Config.ini' file and will have this format:

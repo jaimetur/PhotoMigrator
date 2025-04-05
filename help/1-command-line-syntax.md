@@ -5,9 +5,10 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>
                                   [-dashb [= [true,false]]] [-parallel [= [true,false]]]
                                   [-from <FROM_DATE>] [-to <TO_DATE>]
                                   [-country <COUNTRY_NAME>] [-city <CITY_NAME>]
-                                  [-people <PEOPLE_NAME>] [-type = [photos,videos,all]]
+                                  [-person <PERSON_NAME>] [-type = [image,video,all]]
                                   [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
-                                  [-AlbFld [<ALBUMS_FOLDER> ...]] [-rAlbAss]
+                                  [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
+                                  [-rAlbAss]
                                   [-gpthProg [= [true,false]]] [-gpthErr [= [true,false]]]
                                   [-nolog]
                                   [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
@@ -34,7 +35,7 @@ such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
 
 (c) 2024-2025 by Jaime Tur (@jaimetur)
 
-options:
+optional arguments:
 
 -h,        --help
              show this help message and exit
@@ -86,17 +87,17 @@ same Photo Cloud service.
              Select Parallel/Secuencial Migration during Automated Migration Job. This
              argument only applies if both '--source' and '--target' argument are given
              (AUTOMATED-MIGRATION FEATURE). (default: True).
--from,     --from-date <FROM_DATE>
+-from,     --filter-from-date <FROM_DATE>
              Specify the initial date to filter assets in the different Photo Clients.
--to,       --to-date <TO_DATE>
+-to,       --filter-to-date <TO_DATE>
              Specify the final date to filter assets in the different Photo Clients.
--country,  --country <COUNTRY_NAME>
+-country,  --filter-by-country <COUNTRY_NAME>
              Specify the Country Name to filter assets in the different Photo Clients.
--city,     --city <CITY_NAME>
+-city,     --filter-by-city <CITY_NAME>
              Specify the City Name to filter assets in the different Photo Clients.
--person,   --person <PERSON_NAME>
+-person,   --filter-by-person <PERSON_NAME>
              Specify the Person Name to filter assets in the different Photo Clients.
--type,     --type = [image,video,all]
+-type,     --filter-by-type = [image,video,all]
              Specify the Asset Type to filter assets in the different Photo Clients.
              (default: all)
 
