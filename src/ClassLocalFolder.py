@@ -563,7 +563,7 @@ class ClassLocalFolder:
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
-    def get_all_assets(self, type='all', log_level=logging.WARNING):
+    def get_all_assets_by_filters(self, type='all', log_level=logging.WARNING):
         """
         Retrieves assets stored in the base folder, filtering by type and applying folder and file exclusions.
 

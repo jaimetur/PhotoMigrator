@@ -574,6 +574,8 @@ class ClassImmichPhotos:
             else:
                 # If not found, retrieve the list of owned albums (from an API)
                 albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+                if not albums:
+                    return False, None
                 for album in albums:
                     if album_name == album.get("albumName"):
                         album_exists = True
@@ -774,7 +776,7 @@ class ClassImmichPhotos:
                 LOGGER.error(f"ERROR   : Failed to retrieve assets info for '{asset_id}': {str(e)}")
                 return []
 
-    def get_all_assets(self, isNotInAlbum=None, isArchived=None, withDeleted=None, log_level=logging.INFO):
+    def get_all_assets_by_filters(self, isNotInAlbum=None, isArchived=None, withDeleted=None, log_level=logging.INFO):
         """
         Lists all assets in Immich Photos that match with the specified filters.
 
@@ -962,7 +964,7 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            assets_without_albums = self.get_all_assets(isNotInAlbum=True, log_level=log_level)
+            assets_without_albums = self.get_all_assets_by_filters(isNotInAlbum=True, log_level=log_level)
             LOGGER.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
             return assets_without_albums
 
@@ -1893,8 +1895,8 @@ class ClassImmichPhotos:
             LOGGER.info(f"INFO    : Getting list of asset(s) to remove...")
 
             # Collect
-            all_assets_items = self.get_all_assets(log_level=log_level)
-            all_assets_items_withDeleted = self.get_all_assets(withDeleted=True, log_level=log_level)
+            all_assets_items = self.get_all_assets_by_filters(log_level=log_level)
+            all_assets_items_withDeleted = self.get_all_assets_by_filters(withDeleted=True, log_level=log_level)
             all_assets_items.extend(all_assets_items_withDeleted)
 
             total_assets_found = len(all_assets_items)

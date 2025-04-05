@@ -224,9 +224,9 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
                 time.sleep(2)
 
             LOGGER.info("")
-            LOGGER.info(f'=======================================================================================================================================================')
+            LOGGER.info(f'=========================================================================================================================================================')
             LOGGER.info(f'INFO    : 🚀 AUTOMATED MIGRATION JOB STARTED - {source_client_name} ➜ {target_client_name}')
-            LOGGER.info(f'========================================================================================================================================================')
+            LOGGER.info(f'=========================================================================================================================================================')
             LOGGER.info("")
 
             # ------------------------------------------------------------------------------------------------------
@@ -389,8 +389,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             blocked_assets = []
             total_albums_blocked_count = 0
             total_assets_blocked_count = 0
-
-            all_albums = source_client.get_albums_including_shared_with_user(log_level=logging.WARNING)
+            try:
+                all_albums = source_client.get_albums_including_shared_with_user(log_level=logging.WARNING)
+            except Exception as e:
+                LOGGER.error(f"ERROR:   : Error Retrieving All Albums from '{source_client_name}'. - {e}")
+            LOGGER.info(f"INFO    : {len(all_albums)} Albums found on '{source_client_name}' matching filters criteria")
             for album in all_albums:
                 album_id = album['id']
                 album_name = album['albumName']
@@ -404,11 +407,19 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     LOGGER.info(f"INFO    : Album '{album_name}' cannot be pulled because is a blocked shared album. Skipped!")
                     total_albums_blocked_count += 1
                     total_assets_blocked_count += album.get('item_count')
-                    blocked_assets.extend(source_client.get_all_assets_from_album_shared(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name, log_level=logging.WARNING))
-
+                    try:
+                        blocked_assets.extend(source_client.get_all_assets_from_album_shared(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name, log_level=logging.WARNING))
+                    except Exception as e:
+                        LOGGER.error(f"ERROR   : Error Retrieving Shared Albums's Assets from '{source_client_name}' - {e}")
             # Get all assets and filter out those blocked assets (from blocked shared albums) if any
-            all_no_albums_assets = source_client.get_all_assets_without_albums(log_level=logging.WARNING)
-            all_albums_assets = source_client.get_all_assets_from_all_albums(log_level=logging.WARNING)
+            try:
+                all_no_albums_assets = source_client.get_all_assets_without_albums(log_level=logging.WARNING)
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Error Retrieving Assets without albums from '{source_client_name}' - {e}")
+            try:
+                all_albums_assets = source_client.get_all_assets_from_all_albums(log_level=logging.WARNING)
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Error Retrieving Albums's Assets from '{source_client_name}' - {e}")
             all_supported_assets = all_no_albums_assets + all_albums_assets
             blocked_assets_ids = {asset["id"] for asset in blocked_assets}
             filtered_all_supported_assets = [asset for asset in all_supported_assets if asset["id"] not in blocked_assets_ids]
