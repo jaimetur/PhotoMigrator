@@ -115,7 +115,7 @@ class ClassSynologyPhotos:
 
     def asset_exists_in_all_assets_filtered(self, asset_id, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-            if self.all_assets_filtered is None:
+            if not self.all_assets_filtered:
                 self.all_assets_filtered = self.get_all_assets_by_filters(log_level=log_level)
             return any(asset.get('id') == asset_id for asset in self.all_assets_filtered)
 
