@@ -115,7 +115,9 @@ class ClassSynologyPhotos:
 
     def asset_exists_in_all_assets_filtered(self, asset_id, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-            return any(asset.get('id') == asset_id for asset in self.get_all_assets_by_filters(log_level=log_level))
+            if self.all_assets_filtered is None:
+                self.all_assets_filtered = self.get_all_assets_by_filters(log_level=log_level)
+            return any(asset.get('id') == asset_id for asset in self.all_assets_filtered)
 
     ###########################################################################
     #                           CONFIGURATION READING                         #
@@ -735,7 +737,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                            ASSETS FILTERING                             #
     ###########################################################################
-    def filter_assets_new(self, assets, log_level=logging.INFO):
+    def filter_assets(self, assets, log_level=logging.INFO):
         """
         Filters a list of assets by person name.
 
@@ -757,7 +759,7 @@ class ClassSynologyPhotos:
                     filtered.append(asset)
             return filtered
 
-    def filter_assets(self, assets, log_level=logging.INFO):
+    def filter_assets_old(self, assets, log_level=logging.INFO):
         """
         Filters a list of assets based on user-defined criteria such as date range,
         country, city, and asset type. Filter parameters are retrieved from the global ARGS dictionary.
@@ -1053,29 +1055,6 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
-                # Get the values from the arguments (if exists)
-                from_date = ARGS.get('from-date', None)
-                to_date = ARGS.get('to-date', None)
-                type = ARGS.get('type', None)
-                country = ARGS.get('country', None)
-                city = ARGS.get('city', None)
-                person = ARGS.get('person', None)
-
-                # Convert the values from iso to epoch
-                from_date = parse_text_datetime_to_epoch(from_date)
-                to_date = parse_text_datetime_to_epoch(to_date)
-
-                # Obtain the place_ids for country and city
-                geocoding_country_ids_list = []
-                geocoding_city_ids_list = []
-                if country: geocoding_country_ids_list = self.get_geocoding_ids(place=country, log_level=log_level)
-                if city: geocoding_city_ids_list = self.get_geocoding_ids(place=city, log_level=log_level)
-                geocoding_ids_list = geocoding_country_ids_list + geocoding_city_ids_list
-
-                # Obtain the person_ids_list for person
-                person_ids_list = []
-                if person: person_ids_list = self.get_person_ids(person, log_level=log_level)
-
                 # base_params settings
                 base_params = {
                     'api': 'SYNO.Foto.Browse.Item',
@@ -1087,29 +1066,6 @@ class ClassSynologyPhotos:
                     # 'album_id': f"[{album_id}]",
                     'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
                 }
-
-                # Add time to params only if from_date or to_date have some values
-                time_dic = {}
-                if from_date:  time_dic["start_time"] = from_date
-                if to_date: time_dic["end_time"] = to_date
-                if time_dic: base_params["time"] = json.dumps([time_dic])
-
-                # Add geocoding key if geocoding_ids_list has some value
-                if geocoding_ids_list: base_params["geocoding"] = json.dumps(geocoding_ids_list)
-
-                # Add person key if person_ids_list has some value
-                if person_ids_list:
-                    base_params["person"] = json.dumps(person_ids_list)
-                    base_params["person_policy"] = '"or"'
-
-                # Add types to params if have been providen
-                types = []
-                if type:
-                    if type.lower() in ['photo', 'photos']:
-                        types.append(0)
-                    if type.lower() in ['video', 'videos']:
-                        types.append(1)
-                if types: base_params["item_type"] = types
 
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -1146,7 +1102,7 @@ class ClassSynologyPhotos:
                             LOGGER.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                         return []
 
-                filtered_album_assets = self.filter_assets_new(assets=album_assets, log_level=log_level)
+                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
                 return filtered_album_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
@@ -1167,29 +1123,6 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
-                # Get the values from the arguments (if exists)
-                from_date = ARGS.get('from-date', None)
-                to_date = ARGS.get('to-date', None)
-                type = ARGS.get('type', None)
-                country = ARGS.get('country', None)
-                city = ARGS.get('city', None)
-                person = ARGS.get('person', None)
-
-                # Convert the values from iso to epoch
-                from_date = parse_text_datetime_to_epoch(from_date)
-                to_date = parse_text_datetime_to_epoch(to_date)
-
-                # Obtain the place_ids for country and city
-                geocoding_country_ids_list = []
-                geocoding_city_ids_list = []
-                if country: geocoding_country_ids_list = self.get_geocoding_ids(place=country, log_level=log_level)
-                if city: geocoding_city_ids_list = self.get_geocoding_ids(place=city, log_level=log_level)
-                geocoding_ids_list = geocoding_country_ids_list + geocoding_city_ids_list
-
-                # Obtain the person_ids_list for person
-                person_ids_list = []
-                if person: person_ids_list = self.get_person_ids(person, log_level=log_level)
-
                 # base_params settings
                 base_params = {
                     'api': 'SYNO.Foto.Browse.Item',
@@ -1201,34 +1134,6 @@ class ClassSynologyPhotos:
                     # 'passphrase': album_passphrase,
                     'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
                 }
-
-                # Añadir rango de fechas si existen
-                time_dic = {}
-                if from_date:
-                    time_dic["start_time"] = from_date
-                if to_date:
-                    time_dic["end_time"] = to_date
-                if time_dic:
-                    base_params["time"] = json.dumps([time_dic])
-
-                # Añadir geocoding si existen
-                if geocoding_ids_list:
-                    base_params["geocoding"] = json.dumps(geocoding_ids_list)
-
-                # Añadir personas si existen
-                if person_ids_list:
-                    base_params["person"] = json.dumps(person_ids_list)
-                    base_params["person_policy"] = '"or"'
-
-                # Añadir tipo de ítem
-                types = []
-                if type:
-                    if type.lower() in ['photo', 'photos']:
-                        types.append(0)
-                    if type.lower() in ['video', 'videos']:
-                        types.append(1)
-                if types:
-                    base_params["item_type"] = types
 
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -1265,7 +1170,7 @@ class ClassSynologyPhotos:
                             LOGGER.error(f"ERROR   : Exception while listing photos in the album ID={album_id} {e}")
                         return []
 
-                filtered_album_assets = self.filter_assets_new(assets=album_assets, log_level=log_level)
+                filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
                 return filtered_album_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
