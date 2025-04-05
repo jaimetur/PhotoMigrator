@@ -834,13 +834,13 @@ class ClassImmichPhotos:
                     video_aliases = {"video", "videos"}
                     type_lower = self.type.lower()
                     if type_lower in image_aliases:
-                        type = "IMAGE"
+                        self.type = "IMAGE"
                     elif type_lower in video_aliases:
-                        type = "VIDEO"
+                        self.type = "VIDEO"
                     elif type_lower == "all":
-                        type = None  # No filtering needed
+                        self.type = None  # No filtering needed
                     else:
-                        type = None  # Unknown alias, treat as no filtering
+                        self.type = None  # Unknown alias, treat as no filtering
 
                 # Obtain the person_ids_list to include in the API call
                 self.person_ids_list = []
