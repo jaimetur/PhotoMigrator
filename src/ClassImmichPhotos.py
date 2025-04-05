@@ -574,6 +574,8 @@ class ClassImmichPhotos:
             else:
                 # If not found, retrieve the list of owned albums (from an API)
                 albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+                if not albums:
+                    return False, None
                 for album in albums:
                     if album_name == album.get("albumName"):
                         album_exists = True
