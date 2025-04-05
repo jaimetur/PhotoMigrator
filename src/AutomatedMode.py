@@ -327,6 +327,10 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             added_file_paths.add(asset_file_path)
             return True
 
+    def is_asset_path_in_queue(queue, path):
+        """Comprueba si el path está presente en la cola (sin distinguir mayúsculas/minúsculas)."""
+        with queue.mutex:
+            return any(item['asset_file_path'].lower() == path.lower() for item in list(queue.queue))
 
     # ------------------
     # 1) HILO PRINCIPAL
@@ -537,7 +541,13 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
         with set_log_level(LOGGER, log_level):
 
             # 1.1) Descarga de álbumes
-            albums = source_client.get_albums_including_shared_with_user(log_level=logging.WARNING)
+            albums = []
+            try:
+                albums = source_client.get_albums_including_shared_with_user(log_level=logging.ERROR)
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Error Retrieving All Albums - {e} \n{traceback.format_exc()}")
+                LOGGER.info(f"INFO    : Albums Assets Skipped")
+
             pulled_assets = 0
             for album in albums:
                 album_assets = []
@@ -554,15 +564,15 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 # Descargar todos los assets de este álbum
                 try:
                     if not is_shared:
-                        album_assets = source_client.get_all_assets_from_album(album_id=album_id, album_name=album_name, log_level=logging.WARNING)
+                        album_assets = source_client.get_all_assets_from_album(album_id=album_id, album_name=album_name, log_level=logging.ERROR)
                     else:
                         if album_shared_role.lower() != 'view':
-                            album_assets = source_client.get_all_assets_from_album_shared(album_id=album_id, album_name=album_name, album_passphrase=album_passphrase, log_level=logging.WARNING)
+                            album_assets = source_client.get_all_assets_from_album_shared(album_id=album_id, album_name=album_name, album_passphrase=album_passphrase, log_level=logging.ERROR)
                     if not album_assets:
                         # SHARED_DATA.counters['total_pull_failed_albums'] += 1     # If we uncomment this line, it will count as failed Empties albums
                         continue
                 except Exception as e:
-                    LOGGER.error(f"ERROR   : Error listing Album Assets for album {album_name} - {e} \n{traceback.format_exc()}")
+                    LOGGER.error(f"ERROR   : Error Retrieving All Assets from album {album_name} - {e} \n{traceback.format_exc()}")
                     SHARED_DATA.counters['total_pull_failed_albums'] += 1
                     continue
 
@@ -593,13 +603,13 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         with open(lock_file, 'w') as lock:
                             lock.write("Pulling Asset")
                         # Descargar el asset
-                        pulled_assets = source_client.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, album_passphrase=album_passphrase, download_folder=album_folder, log_level=logging.WARNING)
+                        pulled_assets = source_client.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, album_passphrase=album_passphrase, download_folder=album_folder, log_level=logging.ERROR)
                         # Eliminar archivo de bloqueo después de la descarga
                         os.remove(lock_file)
 
                         # Actualizamos Contadores de descargas
                         if pulled_assets > 0:
-                            LOGGER.info(f"INFO    : Asset Pulled    : '{os.path.join(album_folder, os.path.basename(asset_filename))}'")
+                            LOGGER.info(f"INFO    : Asset Pulled    : '{os.path.basename(local_file_path)}'")
                             # pulled_assets_ids.add(asset["id"])
                             SHARED_DATA.counters['total_pulled_assets'] += 1
                             if asset_type.lower() == 'video':
@@ -616,9 +626,18 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                                 'album_name': album_name,
                             }
                             # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
-                            enqueue_unique(push_queue, asset_dict, parallel=parallel)
+                            unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
+                            if not unique:
+                                LOGGER.info(f"INFO    : Asset Duplicated: '{os.path.basename(local_file_path)}' from Album '{album_name}. Skipped")
+                                SHARED_DATA.counters['total_push_duplicates_assets'] += 1
+                                # Solo borramos si ya no está en la cola (ignorando mayúsculas)
+                                if not is_asset_path_in_queue(push_queue, local_file_path) and os.path.exists(local_file_path):
+                                    try:
+                                        os.remove(local_file_path)
+                                    except Exception as e:
+                                        LOGGER.warning(f"WARNING : Could not remove file '{local_file_path}': {e}")
                         else:
-                            LOGGER.warning(f"WARNING : Asset Pull Fail : '{os.path.join(album_folder, os.path.basename(asset_filename))}' from Album '{album_name}'")
+                            LOGGER.warning(f"WARNING : Asset Pull Fail : '{os.path.basename(local_file_path)}' from Album '{album_name}'")
                             SHARED_DATA.counters['total_pull_failed_assets'] += 1
                             if asset_type.lower() == 'video':
                                 SHARED_DATA.counters['total_pull_failed_videos'] += 1
@@ -645,9 +664,9 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             # 1.2) Descarga de assets sin álbum
             assets_no_album = []
             try:
-                assets_no_album = source_client.get_all_assets_without_albums(log_level=logging.WARNING)
+                assets_no_album = source_client.get_all_assets_without_albums(log_level=logging.ERROR)
             except Exception as e:
-                LOGGER.error(f"ERROR  : Error Getting Asset without Albums - {e} \n{traceback.format_exc()}")
+                LOGGER.error(f"ERROR  : Error Retrieving All Assets without Albums - {e} \n{traceback.format_exc()}")
 
             # Crear carpeta temp_folder si no existe, y bloquea su eliminación hasta que terminen las descargas
             os.makedirs(temp_folder, exist_ok=True)
@@ -677,11 +696,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         with open(lock_file, 'w') as lock:
                             lock.write("Pulling")
                         # Descargar directamente en temp_folder
-                        pulled_assets = source_client.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.WARNING)
+                        pulled_assets = source_client.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=temp_folder, log_level=logging.ERROR)
                         # Eliminar archivo de bloqueo después de la descarga
                         os.remove(lock_file)
                     except Exception as e:
-                        LOGGER.error(f"ERROR  : Asset Pull Error: '{os.path.basename(asset_filename)}' - {e} \n{traceback.format_exc()}")
+                        LOGGER.error(f"ERROR  : Asset Pull Error: '{os.path.basename(local_file_path)}' - {e} \n{traceback.format_exc()}")
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
                         if asset_type.lower() == 'video':
                             SHARED_DATA.counters['total_pull_failed_videos'] += 1
@@ -708,9 +727,18 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             'asset_type': asset_type,
                             'album_name': None,
                         }
-                        enqueue_unique(push_queue, asset_dict, parallel=parallel)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
+                        unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
+                        if not unique:
+                            LOGGER.info(f"INFO    : Asset Duplicated: '{os.path.basename(local_file_path)}'. Skipped")
+                            SHARED_DATA.counters['total_push_duplicates_assets'] += 1
+                            # Solo borramos si ya no está en la cola (ignorando mayúsculas)
+                            if not is_asset_path_in_queue(push_queue, local_file_path) and os.path.exists(local_file_path):
+                                try:
+                                    os.remove(local_file_path)
+                                except Exception as e:
+                                    LOGGER.warning(f"WARNING : Could not remove file '{local_file_path}': {e}")
                     else:
-                        LOGGER.warning(f"WARNING : Asset Pull Fail : '{os.path.basename(asset_filename)}'")
+                        LOGGER.warning(f"WARNING : Asset Pull Fail : '{os.path.basename(local_file_path)}'")
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
                         if asset_type.lower() == 'video':
                             SHARED_DATA.counters['total_pull_failed_videos'] += 1
@@ -748,7 +776,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     asset_pushed = False
                     try:
                         # SUBIR el asset
-                        asset_id, isDuplicated = target_client.push_asset(file_path=asset_file_path, log_level=logging.WARNING)
+                        asset_id, isDuplicated = target_client.push_asset(file_path=asset_file_path, log_level=logging.ERROR)
 
                         # Actualizamos Contadores de subidas
                         if asset_id:
@@ -762,9 +790,12 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                                     SHARED_DATA.counters['total_pushed_videos'] += 1
                                 else:
                                     SHARED_DATA.counters['total_pushed_photos'] += 1
-                                LOGGER.info(f"INFO    : Asset Pushed    : '{asset_file_path}'")
+                                LOGGER.info(f"INFO    : Asset Pushed    : '{os.path.basename(asset_file_path)}'")
                         else:
-                            LOGGER.warning(f"WARNING : Asset Push Fail : '{os.path.basename(asset_filename)}'")
+                            if album_name:
+                                LOGGER.warning(f"WARNING : Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
+                            else:
+                                LOGGER.warning(f"WARNING : Asset Push Fail : '{os.path.basename(asset_file_path)}'")
                             SHARED_DATA.counters['total_push_failed_assets'] += 1
                             if asset_type.lower() == 'video':
                                 SHARED_DATA.counters['total_push_failed_videos'] += 1
@@ -777,10 +808,12 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                                 os.remove(asset_file_path)
                             except:
                                 pass
-                    except:
-                        LOGGER.error(f"ERROR   : Asset Push Fail : '{os.path.basename(asset_filename)}'")
-                        LOGGER.error(f"ERROR   : Error Pushing Asset: '{os.path.basename(asset_file_path)}'")
-                        LOGGER.error(f"ERROR   : Caught Exception: {e} \n{traceback.format_exc()}")
+                    except Exception as e:
+                        if album_name:
+                            LOGGER.error(f"ERROR   : Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
+                        else:
+                            LOGGER.error(f"ERROR   : Asset Push Fail : '{os.path.basename(asset_file_path)}'")
+                        LOGGER.error(f"ERROR   : Caught Exception: {str(e)} \n{traceback.format_exc()}")
                         SHARED_DATA.counters['total_push_failed_assets'] += 1
                         if asset_type.lower() == 'video':
                             SHARED_DATA.counters['total_push_failed_videos'] += 1
@@ -791,14 +824,14 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     if album_name and asset_pushed:
                         try:
                             # Si el álbum no existe en destino, lo creamos
-                            album_exists, album_id_dest = target_client.album_exists(album_name=album_name, log_level=logging.WARNING)
+                            album_exists, album_id_dest = target_client.album_exists(album_name=album_name, log_level=logging.ERROR)
                             if not album_exists:
-                                album_id_dest = target_client.create_album(album_name=album_name, log_level=logging.WARNING)
+                                album_id_dest = target_client.create_album(album_name=album_name, log_level=logging.ERROR)
                             # Añadir el asset al álbum
-                            target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.WARNING)
+                            target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.ERROR)
                         except Exception as e:
                             LOGGER.error(f"ERROR   : Album Push Fail : '{album_name}'")
-                            LOGGER.error(f"ERROR   : Caught Exception: {e} \n{traceback.format_exc()}")
+                            LOGGER.error(f"ERROR   : Caught Exception: {str(e)} \n{traceback.format_exc()}")
                             SHARED_DATA.counters['total_push_failed_albums'] += 1
 
                         # Verificar si la carpeta local del álbum está vacía y borrarla
@@ -826,8 +859,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     push_queue.task_done()
 
                 except Exception as e:
-                    LOGGER.error(f"ERROR   : Error in Pusher worker while pushing asset: {asset}")
-                    LOGGER.error(f"ERROR   : Caught Exception: {e} \n{traceback.format_exc()}")
+                    if album_name:
+                        LOGGER.error(f"ERROR   : Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
+                    else:
+                        LOGGER.error(f"ERROR   : Asset Push Fail : '{os.path.basename(asset_file_path)}'")
+                    LOGGER.error(f"ERROR   : Caught Exception: {str(e)} \n{traceback.format_exc()}")
 
             LOGGER.info(f"INFO    : Pusher {worker_id} - Task Finished!")
 
