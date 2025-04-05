@@ -386,7 +386,7 @@ class ClassSynologyPhotos:
                 stack = [item]
                 while stack:
                     current = stack.pop()
-                    if current.get("name") == place:
+                    if place.lower() in current.get("name").lower():
                         return collect_ids(current)
                     stack.extend(current.get("children", []))
             return []  # Si no se encuentra el lugar
@@ -960,9 +960,19 @@ class ClassSynologyPhotos:
                 if city: geocoding_city_ids_list = self.get_geocoding_ids(place=city, log_level=log_level)
                 geocoding_ids_list = geocoding_country_ids_list + geocoding_city_ids_list
 
+                # If city or country filter was provided but geocoding_ids_list is empty means that the place does not exists, so return []
+                if (city or country) and not geocoding_ids_list:
+                    self.all_assets_filtered = []
+                    return []
+
                 # Obtain the person_ids_list for person
                 person_ids_list = []
-                if person: person_ids_list = self.get_person_ids(person, log_level=log_level)
+                if person:
+                    person_ids_list = self.get_person_ids(person, log_level=log_level)
+                    # If person was provided but person_ids_list is empty means that the person does not exists, so return []
+                    if not person_ids_list:
+                        self.all_assets_filtered = []
+                        return []
 
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -970,44 +980,45 @@ class ClassSynologyPhotos:
                 if self.SYNO_TOKEN_HEADER:
                     headers.update(self.SYNO_TOKEN_HEADER)
 
+                base_params = {
+                    'api': 'SYNO.Foto.Browse.Item',
+                    # 'version': '4',
+                    # 'method': 'list',
+                    'version': '2',
+                    'method': 'list_with_filter',
+                    'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
+                }
+
+                # Add time to params only if from_date or to_date have some values
+                time_dic = {}
+                if from_date:  time_dic["start_time"] = from_date
+                if to_date: time_dic["end_time"] = to_date
+                if time_dic: base_params["time"] = json.dumps([time_dic])
+
+                # Add geocoding key if geocoding_ids_list has some value
+                if geocoding_ids_list: base_params["geocoding"] = json.dumps(geocoding_ids_list)
+
+                # Add person key if person_ids_list has some value
+                if person_ids_list:
+                    base_params["person"] = json.dumps(person_ids_list)
+                    base_params["person_policy"] = '"or"'
+
+                # Add types to params if have been providen
+                types = []
+                if type:
+                    if type.lower() in ['photo', 'photos']:
+                        types.append(0)
+                    if type.lower() in ['video', 'videos']:
+                        types.append(1)
+                if types: base_params["item_type"] = types
+
                 offset = 0
                 limit = 5000
                 all_assets = []
                 while True:
-                    params = {
-                        'api': 'SYNO.Foto.Browse.Item',
-                        # 'version': '4',
-                        # 'method': 'list',
-                        'version': '2',
-                        'method': 'list_with_filter',
-                        'additional': '["thumbnail","resolution","orientation","video_convert","video_meta","address"]',
-                        'offset': offset,
-                        'limit': limit,
-                    }
-
-                    # Add time to params only if from_date or to_date have some values
-                    time_dic = {}
-                    if from_date:  time_dic["start_time"] = from_date
-                    if to_date: time_dic["end_time"] = to_date
-                    if time_dic: params["time"] = json.dumps([time_dic])
-
-                    # Add geocoding key if geocoding_ids_list has some value
-                    if geocoding_ids_list: params["geocoding"] = json.dumps(geocoding_ids_list)
-
-                    # Add person key if person_ids_list has some value
-                    if person_ids_list:
-                        params["person"] = json.dumps(person_ids_list)
-                        params["person_policy"] = '"or"'
-
-                    # Add types to params if have been providen
-                    types = []
-                    if type:
-                        if type.lower() in ['photo', 'photos']:
-                            types.append(0)
-                        if type.lower() in ['video', 'videos']:
-                            types.append(1)
-                    if types: params["item_type"] = types
-
+                    params = base_params.copy()  # Hacemos una copia para no modificar el original
+                    params['offset'] = offset
+                    params['limit'] = limit
                     try:
                         resp = self.SESSION.get(url, headers=headers, params=params, verify=False)
                         data = resp.json()
