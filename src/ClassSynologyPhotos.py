@@ -94,6 +94,11 @@ class ClassSynologyPhotos:
         # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_ownned_by_user()
         self.albums_owned_by_user = {}
 
+        # Create caches
+        self.all_assets = []
+        self.albums_assets = []
+        self.assets_without_albums = []
+
         # Read the Config File to get CLIENT_ID
         self.read_config_file()
         self.CLIENT_ID = self.get_user_mail()
@@ -908,6 +913,10 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
+                # If all_assets is already cached, return it
+                if self.all_assets:
+                    return self.all_assets
+
                 # Get the values from the arguments (if exists)
                 from_date = ARGS.get('from-date', None)
                 to_date = ARGS.get('to-date', None)
@@ -989,6 +998,7 @@ class ClassSynologyPhotos:
                         LOGGER.error(f"ERROR   : Exception while listing assets {e}")
                         return []
 
+                self.all_assets = all_assets # Cache all_assets for future use
                 return all_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting all Assets from Synology Photos. {e}")
@@ -1237,12 +1247,16 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
+                # If assets_without_albums is already cached, return it.
+                if self.assets_without_albums:
+                    return self.assets_without_albums
                 self.login(log_level=log_level)
                 all_assets = self.get_all_assets(log_level=logging.INFO)
-                album_asset = self.get_all_assets_from_all_albums(log_level=logging.INFO)
+                album_assets = self.get_all_assets_from_all_albums(log_level=logging.INFO)
                 # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
-                assets_without_albums = get_unique_items(all_assets, album_asset, key='filename')
+                assets_without_albums = get_unique_items(all_assets, album_assets, key='filename')
                 LOGGER.info(f"INFO    : Number of all_assets without Albums associated: {len(assets_without_albums)}")
+                self.assets_without_albums = assets_without_albums # Cache assets_without_albums for future use
                 return assets_without_albums
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting No-Albums Assets from Synology Photos. {e}")
@@ -1260,6 +1274,10 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
+                # If albums_assets is already cached, return it
+                if self.albums_assets:
+                    return self.albums_assets
+
                 self.login(log_level=log_level)
                 headers = {}
                 if self.SYNO_TOKEN_HEADER:
@@ -1274,6 +1292,7 @@ class ClassSynologyPhotos:
                     album_name = album.get("albumName", "")
                     album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                     combined_assets.extend(album_assets)
+                self.albums_assets = combined_assets # Cache albums_assets for future use
                 return combined_assets
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting All Albums Assets from Synology Photos. {e}")
