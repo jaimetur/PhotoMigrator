@@ -429,11 +429,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             blocked_assets_ids = {asset["id"] for asset in blocked_assets}
             filtered_all_supported_assets = [asset for asset in all_supported_assets if asset["id"] not in blocked_assets_ids]
 
-            all_photos = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['photo', 'image']]
-            all_videos = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['video', 'live']]
+            all_photos = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in image_labels]
+            all_videos = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in video_labels]
             all_assets = all_photos + all_videos
-            all_metadata = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['metadata']]
-            all_sidecar = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['sidecar']]
+            all_metadata = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in metadata_labels]
+            all_sidecar = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in sidecar_labels]
             all_invalid = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['unknown']]
 
             SHARED_DATA.info.update({
@@ -628,7 +628,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             LOGGER.info(f"INFO    : Asset Pulled    : '{os.path.basename(local_file_path)}'")
                             # pulled_assets_ids.add(asset["id"])
                             SHARED_DATA.counters['total_pulled_assets'] += 1
-                            if asset_type.lower() == 'video':
+                            if asset_type.lower() in video_labels:
                                 SHARED_DATA.counters['total_pulled_videos'] += 1
                             else:
                                 SHARED_DATA.counters['total_pulled_photos'] += 1
@@ -655,7 +655,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         else:
                             LOGGER.warning(f"WARNING : Asset Pull Fail : '{os.path.basename(local_file_path)}' from Album '{album_name}'")
                             SHARED_DATA.counters['total_pull_failed_assets'] += 1
-                            if asset_type.lower() == 'video':
+                            if asset_type.lower() in video_labels:
                                 SHARED_DATA.counters['total_pull_failed_videos'] += 1
                             else:
                                 SHARED_DATA.counters['total_pull_failed_photos'] += 1
@@ -663,7 +663,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                 except Exception as e:
                     LOGGER.error(f"ERROR  : Asset Pull Error: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e} \n{traceback.format_exc()}")
                     SHARED_DATA.counters['total_pull_failed_assets'] += 1
-                    if asset_type.lower() == 'video':
+                    if asset_type.lower() in video_labels:
                         SHARED_DATA.counters['total_pull_failed_videos'] += 1
                     else:
                         SHARED_DATA.counters['total_pull_failed_photos'] += 1
@@ -718,7 +718,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     except Exception as e:
                         LOGGER.error(f"ERROR  : Asset Pull Error: '{os.path.basename(local_file_path)}' - {e} \n{traceback.format_exc()}")
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
-                        if asset_type.lower() == 'video':
+                        if asset_type.lower() in video_labels:
                             SHARED_DATA.counters['total_pull_failed_videos'] += 1
                         else:
                             SHARED_DATA.counters['total_pull_failed_photos'] += 1
@@ -729,7 +729,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         # Actualizamos Contadores de descargas
                         LOGGER.info(f"INFO    : Asset Pulled    : '{os.path.join(temp_folder, os.path.basename(asset_filename))}'")
                         SHARED_DATA.counters['total_pulled_assets'] += 1
-                        if asset_type.lower() == 'video':
+                        if asset_type.lower() in video_labels:
                             SHARED_DATA.counters['total_pulled_videos'] += 1
                         else:
                             SHARED_DATA.counters['total_pulled_photos'] += 1
@@ -756,7 +756,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     else:
                         LOGGER.warning(f"WARNING : Asset Pull Fail : '{os.path.basename(local_file_path)}'")
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
-                        if asset_type.lower() == 'video':
+                        if asset_type.lower() in video_labels:
                             SHARED_DATA.counters['total_pull_failed_videos'] += 1
                         else:
                             SHARED_DATA.counters['total_pull_failed_photos'] += 1
@@ -802,7 +802,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                                 SHARED_DATA.counters['total_push_duplicates_assets'] += 1
                             else:
                                 SHARED_DATA.counters['total_pushed_assets'] += 1
-                                if asset_type.lower() == 'video':
+                                if asset_type.lower() in video_labels:
                                     SHARED_DATA.counters['total_pushed_videos'] += 1
                                 else:
                                     SHARED_DATA.counters['total_pushed_photos'] += 1
@@ -813,7 +813,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             else:
                                 LOGGER.warning(f"WARNING : Asset Push Fail : '{os.path.basename(asset_file_path)}'")
                             SHARED_DATA.counters['total_push_failed_assets'] += 1
-                            if asset_type.lower() == 'video':
+                            if asset_type.lower() in video_labels:
                                 SHARED_DATA.counters['total_push_failed_videos'] += 1
                             else:
                                 SHARED_DATA.counters['total_push_failed_photos'] += 1
@@ -831,7 +831,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             LOGGER.error(f"ERROR   : Asset Push Fail : '{os.path.basename(asset_file_path)}'")
                         LOGGER.error(f"ERROR   : Caught Exception: {str(e)} \n{traceback.format_exc()}")
                         SHARED_DATA.counters['total_push_failed_assets'] += 1
-                        if asset_type.lower() == 'video':
+                        if asset_type.lower() in video_labels:
                             SHARED_DATA.counters['total_push_failed_videos'] += 1
                         else:
                             SHARED_DATA.counters['total_push_failed_photos'] += 1
@@ -902,6 +902,12 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
 
     # Normalizamos temp_folder
     temp_folder = Utils.normalize_path(temp_folder)
+
+    # Listas de posibles etiquetas para los distintos tipos de archivos en los diferentes clientes
+    image_labels    = ['photo', 'image']
+    video_labels    = ['video', 'live']
+    metadata_labels = ['metadata']
+    sidecar_labels  = ['sidecar']
 
     # Check if parallel=None, and in that case, get it from ARGS
     if parallel is None: parallel = ARGS['parallel-migration']
