@@ -88,10 +88,10 @@ class ClassLocalFolder:
         # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_ownned_by_user()
         self.albums_owned_by_user = {}
 
-        # Create caches
-        self.all_assets_filtered = []
-        self.assets_without_albums_filtered = []
-        self.albums_assets_filtered = []
+        # Create cache lists for future use
+        self.all_assets_filtered = None
+        self.assets_without_albums_filtered = None
+        self.albums_assets_filtered = None
 
         # Get the values from the arguments (if exists)
         self.type = ARGS.get('filter-by-type', None)
@@ -170,12 +170,6 @@ class ClassLocalFolder:
             if re.fullmatch(pattern, file_name):
                 return True
         return False
-
-    def _asset_exists_in_all_assets_filtered(self, asset_id, log_level=logging.INFO):
-        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-            if not self.all_assets_filtered:
-                self.all_assets_filtered = self.get_assets_by_filters(log_level=log_level)
-            return any(asset.get('id') == asset_id for asset in self.all_assets_filtered)
 
     ###########################################################################
     #                           CLASS PROPERTIES GETS                         #
@@ -503,7 +497,9 @@ class ClassLocalFolder:
             for asset in assets:
                 asset_id = asset.get('id')
                 # if assets exists in all_assets_filtered is because match all filters criteria, so will include in the filtered list to return
-                if self._asset_exists_in_all_assets_filtered(asset_id):
+                if self.all_assets_filtered is None:
+                    self.all_assets_filtered = self.get_assets_by_filters(log_level=log_level)
+                if any(asset.get('id') == asset_id for asset in self.all_assets_filtered):
                     filtered.append(asset)
             return filtered
 
@@ -616,7 +612,7 @@ class ClassLocalFolder:
         with set_log_level(LOGGER, log_level):
             LOGGER.info(f"INFO    : Retrieving {type} assets from the base folder, excluding system folders and unwanted files.")
             # If all_assets is already cached, return it
-            if self.all_assets_filtered:
+            if self.all_assets_filtered is not None:
                 return self.all_assets_filtered
 
             base_folder = self.base_folder.resolve()
@@ -803,7 +799,7 @@ class ClassLocalFolder:
         with set_log_level(LOGGER, log_level):
             LOGGER.info(f"INFO    : Retrieving {type} assets excluding albums, shared albums, and excluded patterns.")
             # If assets_without_albums is already cached, return it.
-            if self.assets_without_albums_filtered:
+            if self.assets_without_albums_filtered is not None:
                 return self.assets_without_albums_filtered
 
             base_folder = self.base_folder.resolve()
@@ -866,7 +862,7 @@ class ClassLocalFolder:
         with set_log_level(LOGGER, log_level):
             LOGGER.info("INFO    : Gathering all albums' assets.")
             # If albums_assets is already cached, return it
-            if self.albums_assets_filtered:
+            if self.albums_assets_filtered is not None:
                 return self.albums_assets_filtered
 
             combined_assets = []
