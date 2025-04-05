@@ -1005,7 +1005,7 @@ class ClassSynologyPhotos:
                     if self.type.lower() in ['video', 'videos']:
                         types.append(1)
                 if types: base_params["item_type"] = json.dumps(types)
-                LOGGER.error(f"base_params: {json.dumps(base_params, indent=4)}")
+                LOGGER.debug(f"base_params: {json.dumps(base_params, indent=4)}")
 
                 offset = 0
                 limit = 5000
