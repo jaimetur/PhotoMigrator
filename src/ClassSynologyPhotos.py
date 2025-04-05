@@ -1455,7 +1455,6 @@ class ClassSynologyPhotos:
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi/SYNO.Foto.Upload.Item?api={api}&method={method}&version={version}"
 
                 mime_type = mimetypes.guess_type(file_path)[0] or "application/octet-stream"
-
                 with open(file_path, "rb") as file_:
                     multipart_data = MultipartEncoder(
                         fields=[
@@ -1480,10 +1479,16 @@ class ClassSynologyPhotos:
                         return None, None
                     else:
                         asset_id = data["data"].get("id")
-                        return asset_id, False
+                        is_duplicated = data["data"].get("action") == "ignore"
+                        if is_duplicated:
+                            LOGGER.debug(f"DEBUG   : Duplicated Asset: '{os.path.basename(file_path)}'. Skipped!")
+                        else:
+                            LOGGER.debug(f"DEBUG   : Uploaded '{os.path.basename(file_path)}' with asset_id={asset_id}")
+                        return asset_id, is_duplicated
 
             except Exception as e:
                 LOGGER.warning(f"WARNING : Cannot upload asset: '{file_path}' due to API call error. Skipped!")
+                return None, None
             
 
     def pull_asset(self, asset_id, asset_filename, asset_time, album_passphrase=None, download_folder="Downloaded_Synology", log_level=logging.INFO):
