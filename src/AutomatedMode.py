@@ -330,7 +330,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             added_file_paths.add(asset_file_path)
             return True
 
-    def is_asset_path_in_queue(queue, path):
+    def is_asset_in_queue(queue, path):
         """Comprueba si el path está presente en la cola (sin distinguir mayúsculas/minúsculas)."""
         with queue.mutex:
             return any(item['asset_file_path'].lower() == path.lower() for item in list(queue.queue))
@@ -429,8 +429,8 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             blocked_assets_ids = {asset["id"] for asset in blocked_assets}
             filtered_all_supported_assets = [asset for asset in all_supported_assets if asset["id"] not in blocked_assets_ids]
 
-            all_photos = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['photo', 'live', 'image']]
-            all_videos = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['video']]
+            all_photos = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['photo', 'image']]
+            all_videos = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['video', 'live']]
             all_assets = all_photos + all_videos
             all_metadata = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['metadata']]
             all_sidecar = [asset for asset in filtered_all_supported_assets if asset['type'].lower() in ['sidecar']]
@@ -647,7 +647,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                                 LOGGER.info(f"INFO    : Asset Duplicated: '{os.path.basename(local_file_path)}' from Album '{album_name}. Skipped")
                                 SHARED_DATA.counters['total_push_duplicates_assets'] += 1
                                 # Solo borramos si ya no está en la cola (ignorando mayúsculas)
-                                if not is_asset_path_in_queue(push_queue, local_file_path) and os.path.exists(local_file_path):
+                                if not is_asset_in_queue(push_queue, local_file_path) and os.path.exists(local_file_path):
                                     try:
                                         os.remove(local_file_path)
                                     except Exception as e:
@@ -748,7 +748,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             LOGGER.info(f"INFO    : Asset Duplicated: '{os.path.basename(local_file_path)}'. Skipped")
                             SHARED_DATA.counters['total_push_duplicates_assets'] += 1
                             # Solo borramos si ya no está en la cola (ignorando mayúsculas)
-                            if not is_asset_path_in_queue(push_queue, local_file_path) and os.path.exists(local_file_path):
+                            if not is_asset_in_queue(push_queue, local_file_path) and os.path.exists(local_file_path):
                                 try:
                                     os.remove(local_file_path)
                                 except Exception as e:
