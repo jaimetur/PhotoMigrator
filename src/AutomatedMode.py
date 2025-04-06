@@ -633,7 +633,6 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             else:
                                 SHARED_DATA.counters['total_pulled_photos'] += 1
                             # Enviar a la cola con la información necesaria para la subida
-                            local_file_path = os.path.join(album_folder, asset_filename)
                             asset_dict = {
                                 'asset_id': asset_id,
                                 'asset_file_path': local_file_path,
@@ -727,7 +726,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                     # Si se ha hecho correctamente el pull del asset, actualizamos contadores y enviamos el asset a la cola de push
                     if pulled_assets > 0:
                         # Actualizamos Contadores de descargas
-                        LOGGER.info(f"INFO    : Asset Pulled    : '{os.path.join(temp_folder, os.path.basename(asset_filename))}'")
+                        LOGGER.info(f"INFO    : Asset Pulled    : '{os.path.basename(local_file_path)}'")
                         SHARED_DATA.counters['total_pulled_assets'] += 1
                         if asset_type.lower() in video_labels:
                             SHARED_DATA.counters['total_pulled_videos'] += 1
@@ -735,7 +734,6 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                             SHARED_DATA.counters['total_pulled_photos'] += 1
 
                         # Enviar a la cola de push con la información necesaria para la subida (sin album_name)
-                        local_file_path = os.path.join(temp_folder, asset_filename)
                         asset_dict = {
                             'asset_id': asset_id,
                             'asset_file_path': local_file_path,
