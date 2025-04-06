@@ -79,10 +79,10 @@ class ClassImmichPhotos:
         # Create a cache dictionary of albums_owned_by_user to save in memmory all the albums owned by this user to avoid multiple calls to method get_albums_ownned_by_user()
         self.albums_owned_by_user = {}
 
-        # Create caches
-        self.all_assets_filtered = []
-        self.assets_without_albums_filtered = []
-        self.albums_assets_filtered = []
+        # Create cache lists for future use
+        self.all_assets_filtered = None
+        self.assets_without_albums_filtered = None
+        self.albums_assets_filtered = None
 
         # Get the values from the arguments (if exists)
         self.type = ARGS.get('filter-by-type', None)
@@ -91,7 +91,7 @@ class ClassImmichPhotos:
         self.country = ARGS.get('filter-by-country', None)
         self.city = ARGS.get('filter-by-city', None)
         self.person = ARGS.get('filter-by-person', None)
-        self.person_ids_list = []
+        self.person_ids_list = None
 
         # Read the Config File to get CLIENT_ID
         self.read_config_file()
@@ -106,13 +106,6 @@ class ClassImmichPhotos:
     def get_client_name(self, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             return self.CLIENT_NAME
-
-    def _asset_exists_in_all_assets_filtered(self, asset_id, log_level=logging.INFO):
-        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-            if not self.all_assets_filtered:
-                self.all_assets_filtered = self.get_assets_by_filters(log_level=log_level)
-            return any(asset.get('id') == asset_id for asset in self.all_assets_filtered)
-
 
     ###########################################################################
     #                           CONFIGURATION READING                         #
@@ -626,7 +619,9 @@ class ClassImmichPhotos:
             for asset in assets:
                 asset_id = asset.get('id')
                 # if assets exists in all_assets_filtered is because match all filters criteria, so will include in the filtered list to return
-                if self._asset_exists_in_all_assets_filtered(asset_id):
+                if self.all_assets_filtered is None:
+                    self.all_assets_filtered = self.get_assets_by_filters(log_level=log_level)
+                if any(asset.get('id') == asset_id for asset in self.all_assets_filtered):
                     filtered.append(asset)
             return filtered
 
@@ -825,7 +820,7 @@ class ClassImmichPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 # If all_filtered_assets is already cached, return it
-                if self.all_assets_filtered:
+                if self.all_assets_filtered is not None:
                     return self.all_assets_filtered
 
                 # Obtain the correct type for the API call
@@ -1002,7 +997,7 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             # If assets_without_albums is already cached, return it.
-            if self.assets_without_albums_filtered:
+            if self.assets_without_albums_filtered is not None:
                 return self.assets_without_albums_filtered
 
             self.login(log_level=log_level)
@@ -1024,7 +1019,7 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             # If albums_assets is already cached, return it
-            if self.albums_assets_filtered:
+            if self.albums_assets_filtered is not None:
                 return self.albums_assets_filtered
 
             self.login(log_level=log_level)
