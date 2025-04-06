@@ -151,10 +151,10 @@ The below tables show the pros and cons of each method together with a comparati
 > Additionally, this Automated Migration process can also be executed sequentially instead of in parallel, using flag **--parallel=false**, so first, all the assets will be pulled from <SOURCE> and when finish, they will be pushed into <TARGET>, but take into account that in this case, you will need enough disk space to store all your assets pulled from <SOURCE> service.
 >
 > Finally, you can apply filters to filter assets to pull from \<SOURCE> client. The available filters are: 
->    - by Type
+>    - **by Type:**
 >      - flag: -type, --filter-by-type
 >        - Valid values are [image, video, all]
->    - by Dates
+>    - **by Dates:**
 >      - flags:
 >        - -from, --filter-from-date
 >        - -to, --filter-to-date
@@ -168,13 +168,13 @@ The below tables show the pros and cons of each method together with a comparati
 >        - yyyy/mm
 >        - yyyy-mm
 >        - yyyy 
->    - by Country
+>    - **by Country:**
 >      - flag: -country, --filter-by-country
 >        - Valid values are any existing country in the \<SOURCE> client.
->    - by City
+>    - **by City:**
 >      - flag: -city, --filter-by-city
 >        - Valid values are any existing city in the \<SOURCE> client.
->    - by Person
+>    - **by Person:**
 >      - flag: -person, --filter-by-person
 >        - Valid values are any existing person in the \<SOURCE> client.
 
