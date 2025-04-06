@@ -14,13 +14,13 @@
 > 8. Remove Duplicates Albums
 > 9. Remove Orphans Assets
 > 
-> You can apply filters to filter assets to download from Immich Photos using any Download feature included.  
+> You can apply filters to filter assets to download from Synology Photos using any Download feature included.  
 > 
 > The available filters are: 
->    - by Type
+>    - **by Type:**
 >      - flag: -type, --filter-by-type
 >        - Valid values are [image, video, all]
->    - by Dates
+>    - **by Dates:**
 >      - flags:
 >        - -from, --filter-from-date
 >        - -to, --filter-to-date
@@ -34,13 +34,13 @@
 >        - yyyy/mm
 >        - yyyy-mm
 >        - yyyy 
->    - by Country
+>    - **by Country:**
 >      - flag: -country, --filter-by-country
 >        - Valid values are any existing country in the \<SOURCE> client.
->    - by City
+>    - **by City:**
 >      - flag: -city, --filter-by-city
 >        - Valid values are any existing city in the \<SOURCE> client.
->    - by Person
+>    - **by Person:**
 >      - flag: -person, --filter-by-person
 >        - Valid values are any existing person in the \<SOURCE> client.
 >
