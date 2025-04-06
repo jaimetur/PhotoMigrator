@@ -340,6 +340,9 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
     # ------------------
     def main_thread(parallel=None, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+            # Get Log_filename
+            log_file = Utils.get_logger_filename(LOGGER)
+
             # Get source and target client names
             source_client_name = source_client.get_client_name()
             target_client_name = target_client.get_client_name()
@@ -361,12 +364,14 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"INFO    : Source Client  : {source_client_name}")
             LOGGER.info(f"INFO    : Target Client  : {target_client_name}")
             LOGGER.info(f"INFO    : Temp Folder    : {temp_folder}")
+            LOGGER.info(f"INFO    : Log File       : {log_file}")
 
             if parallel:
                 LOGGER.info(f"INFO    : Migration Mode : Parallel")
             else:
                 LOGGER.info(f"INFO    : Migration Mode : Sequential")
 
+            LOGGER.info("")
             if from_date or to_date or type or country or city or person:
                 LOGGER.info(f"INFO    : Assets Filters :")
             else:
@@ -1243,7 +1248,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
         Devuelve un Panel con todo el historial (de modo que se pueda hacer
         scroll en la terminal si usas vertical_overflow='visible').
         """
-        title_logs_panel = f"📜 Logs Panel (Only last {logs_panel_height} rows shown. Complete log file at: '{log_file}')"
+        title_logs_panel = f"📜 Logs Panel (Only last {logs_panel_height} rows shown. Complete log file at: 'Logs/{os.path.basename(log_file)}')"
         try:
             while True:
                 # 1) Vaciamos la cola de logs, construyendo el historial completo
