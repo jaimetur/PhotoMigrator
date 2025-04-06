@@ -42,9 +42,6 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 - [x] Added new flag _**-parallel, --parallel-migration =[true,false]**_ to select the Migration Mode (Parallel or Sequential). Default: true (parallel)
 - [x] Included Live Dashboard in sequential Automated Migration
 - [x] Minor bugs fixing
-- [x] Test sequential Automated Migration
-- [x] Test Filters in Automated Migration Feature
-- [ ] Test Filters in other Synology/Immich Features
 
 ---
 
