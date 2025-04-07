@@ -127,6 +127,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
+          name: v${{ env.SCRIPT_VERSION }}
           draft: false
           prerelease: true
           generate_release_notes: true
