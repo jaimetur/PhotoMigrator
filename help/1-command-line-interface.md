@@ -1,23 +1,28 @@
 # Command Line Interface (CLI):
 
-This section shows how to use the Command Line Interface (CLI) for this tool.
+This section shows how to use the Command Line Interface (CLI) for this Tool.
 
 Most of the argument can be given with two formats:
-- Short format: Prefix '-' followed by the short name
-- Long format: Prefix '--' followed by the long name
+- Short format: '-' followed by the short name
+- Long format: '--' followed by the long name
 
 Both methods are exactly the same, long name is more conveninet in some cases to remember better what the command does, while short format is easier to write
 
 Some arguments must be followed by a value. This value can be separated from the argument by '=' or just by space ' ', both ways are valid.
+
 - Example 1: Following commmands are exactly the same
   - -country Spain
   - -country=Spain
   - --filter-by-country Spain
   - --filter-by-country=Spain
     
+
 - Example 2: Following commands are exactly the same
   - -source synology-photos
   - -source=synology-photos
+
+## Command Line Syntax:
+Below you can find the list of all commands that the Tool can receive to execute any of the implemented features:
 
 ```
 ---------------------------------------------------------------------------------------------------------
