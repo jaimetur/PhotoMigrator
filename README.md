@@ -76,14 +76,16 @@ Youn can see how to configure the Config.ini file in this help section:
 [Configuration File](/help/0-configuration-file.md) 
 
 
-## Command Line Syntax:
-You can check the whole list of functions and arguments with the right syntax here:
-[Command Line Syntax](/help/1-command-line-syntax.md)
+## Command Line Interface (CLI):
+This Tool is based in commands given through the Command Line Interface (CLI), so it is important to know the syntax of that interface.  
+
+You can check the whole list of all features and arguments with the right syntax here:
+[Command Line Interface (CLI)](/help/1-command-line-interface.md)
 
 
 ## All Documentation Links:
 - [Configuration File](/help/0-configuration-file.md)  
-- [Command Line Syntax](/help/1-command-line-syntax.md)  
+- [Command Line Interface (CLI)](/help/1-command-line-interface.md)  
 - [Automated Migration Feature](/help/2-automated-migration.md)  
 - [Google Takeout Management](/help/3-google-takeout.md)  
 - [Synology Photos Management](/help/4-synology-photos.md)  
