@@ -74,7 +74,7 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 ## Configuration File:
 In order to connect to the different Photo Cloud Services, you must configure the conection settings using the Configuration file (Config.ini) provided with the Tool.  
 
-Youn can see how to configure the Config.ini file in this help section:
+Youn can see how to configure the Configuration File in this help section:
 [Configuration File](/help/0-configuration-file.md) 
 
 
