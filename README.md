@@ -4,7 +4,7 @@
 [![Open Github issues](https://img.shields.io/github/issues/jaimetur/CloudPhotoMigrator?label=Open%20Issues)](https://github.com/jaimetur/CloudPhotoMigrator/issues)
 [![Total Github Releases downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/total?label=Total%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases)
 [![Latest version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/latest/total?label=Latest%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases/latest)
-[![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.2.0-alpha/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=alpha&expanded=true)
+[![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.2.0-alpha/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 
 # **CloudPhotoMigrator**
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">**Automated Migration** </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
@@ -67,23 +67,27 @@ Apart from Manage the different Photo Cloud Services, the Tool also contains som
 ## Download:
 Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
 - [Latest Stable Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/latest)
-- [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=alpha&expanded=true)
+- [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)
 
 
 ## Configuration File:
+In order to connect to the different Photo Cloud Services, you must configure the conection settings using the Configuration file (Config.ini) provided with the Tool.  
+
 Youn can see how to configure the Config.ini file in this help section:
 [Configuration File](/help/0-configuration-file.md) 
 
 
-## Command Line Syntax:
-You can check the whole list of functions and arguments with the right syntax here:
-[Command Line Syntax](/help/1-command-line-syntax.md)
+## Command Line Interface (CLI):
+This Tool is based in commands given through the Command Line Interface (CLI), so it is important to know the syntax of that interface.  
+
+You can check the whole list of all features and arguments with the right syntax here:
+[Command Line Interface (CLI)](/help/1-command-line-interface.md)
 
 
 ## All Documentation Links:
 - [Configuration File](/help/0-configuration-file.md)  
-- [Command Line Syntax](/help/1-command-line-syntax.md)  
+- [Command Line Interface (CLI)](/help/1-command-line-interface.md)  
 - [Automated Migration Feature](/help/2-automated-migration.md)  
 - [Google Takeout Management](/help/3-google-takeout.md)  
 - [Synology Photos Management](/help/4-synology-photos.md)  
