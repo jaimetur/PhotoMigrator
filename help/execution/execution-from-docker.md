@@ -9,7 +9,7 @@
 >     - [Install Docker on MacOS](/help/install-docker/install-docker-macos.md)  
 
 
-Once you have Docker installed and running on your system, you have twoo options to run the Tool from a Docker Container Image:
+Once you have Docker installed and running on your system, you have two options to run the Tool from a Docker Container Image:
 ## 1. Run Docker from a Pre-built Shell Script (recommended):
 
 This is the recommended option, since it will download a small package that contains:
