@@ -40,6 +40,7 @@ Download the latest version of the Docker package from the [Releases page](https
 
 - **Linux/macOS:**
     ```bash
+    sudo apt install 7zip
     7z x CloudPhotoMigrator_v3.2.0-beta_docker.zip
     cd CloudPhotoMigrator/docker
     ```
