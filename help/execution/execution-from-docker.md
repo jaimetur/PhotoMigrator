@@ -108,13 +108,13 @@ Download the latest version of the Docker package from the [Releases page](https
 - **Linux/macOS:**
     ```bash
     unzip CloudPhotoMigrator_v3.2.0-beta_docker.zip -d ./
-    cd CloudPhotoMigrator
+    cd CloudPhotoMigrator/docker
     ```
 
 - **Windows (PoowerShell):**
     ```bash
     powershell -Command "Expand-Archive -Path CloudPhotoMigrator_v3.2.0-beta_docker.zip -DestinationPath ./"
-    cd CloudPhotoMigrator
+    cd CloudPhotoMigrator/docker
     ```
 
 
