@@ -143,6 +143,7 @@ Make sure Docker is running, then:
 
 - **Linux / MacOS:**
     ```bash
+    chmod +x ./CloudPhotoMigrator.sh
     ./CloudPhotoMigrator.sh [OPTIONS]
     ``` 
 - **Windows (Command Prompt):**
