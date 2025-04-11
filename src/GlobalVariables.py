@@ -9,7 +9,7 @@ import posixpath
 # GLOBAL VARIABLES FOR THE WHOLE PROJECT
 #---------------------------------------
 SCRIPT_NAME                     = "CloudPhotoMigrator"
-SCRIPT_VERSION                  = "v3.2.0-alpha"
+SCRIPT_VERSION                  = "v3.2.0-beta"
 SCRIPT_DATE                     = "2025-04-30"
 SCRIPT_NAME_VERSION             = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
 LOG_FOLDER_FILENAME             = ""
