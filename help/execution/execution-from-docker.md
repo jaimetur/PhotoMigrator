@@ -78,7 +78,7 @@ The result should be something like this:
 
 Open `Config.ini` in any text editor and update it with your credentials and settings.
 
-> For more information, refer to [Configuration File](/help/0-configuration-file.md) .
+> For more information, refer to [Configuration File](/help/0-configuration-file.md).
 
 
 ### 1.5. Run the Tool:
@@ -151,8 +151,14 @@ Make sure Docker is running, then:
     docker pull jaimetur/cloudphotomigrator:3.2.0
     ```
 
+### 2.2. Edit Tool Configuration file:
 
-### 2.2. Execute the pulled image with docker:
+Open `Config.ini` in any text editor and update it with your credentials and settings.
+
+> For more information, refer to [Configuration File](/help/0-configuration-file.md).
+
+
+### 2.3. Execute the pulled image with docker:
 - For Linux / MacOS: 
   ```bash
   docker run -it --rm -v "$(pwd)":/docker -e TZ=[TIMEZONE] jaimetur/cloudphotomigrator:[RELEASE_TAG] [OPTIONS]
