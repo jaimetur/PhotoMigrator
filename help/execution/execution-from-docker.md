@@ -107,7 +107,7 @@ Download the latest version of the Docker package from the [Releases page](https
 
 - **Linux/macOS:**
     ```bash
-    unzip CloudPhotoMigrator_v3.2.0-beta_docker.zip -d ./
+    7z x CloudPhotoMigrator_v3.2.0-beta_docker.zip
     cd CloudPhotoMigrator/docker
     ```
 
@@ -129,6 +129,15 @@ RELEASE_TAG=latest      # Set the RELEASE_TAG for the image that you want to pul
 TZ=Europe/Madrid        # Set the Time Zone for the Docker container (Important to see correct Timestamps in Logs and files/folder suffix)
 ```
 
+You can obtain the different RELEASE_TAG using below command:
+```bash
+curl -s "https://registry.hub.docker.com/v2/repositories/jaimetur/cloudphotomigrator/tags?page_size=100" | jq '.results[].name'
+```
+The result should be something like this:  
+  "latest"  
+  "latest-stable"  
+  "3.2.0"  
+  "3.1.0"  
 
 ### 2.4. Edit Tool Configuration file:
 
