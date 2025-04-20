@@ -195,6 +195,18 @@ The below tables show the pros and cons of each method together with a comparati
 
 # ROADMAP:
 
+## v3.3.0  
+### Release Date:
+  - Alpha version    : 2025-05-16
+  - Beta version     : 2025-05-23
+  - Release Candidate: 2025-05-30
+  - Official Release : 2025-05-30
+
+### TODO:
+- [ ] Merge Albums with the same name and different assets. 
+- [ ] Rename Albums using regular expresions. 
+
+
 ## v3.2.0  
 ### Release Date:
   - Alpha version    : 2025-04-07
