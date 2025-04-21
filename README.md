@@ -4,7 +4,7 @@
 [![Open Github issues](https://img.shields.io/github/issues/jaimetur/CloudPhotoMigrator?label=Open%20Issues)](https://github.com/jaimetur/CloudPhotoMigrator/issues)
 [![Total Github Releases downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/total?label=Total%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases)
 [![Latest version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/latest/total?label=Latest%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases/latest)
-[![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.2.0-beta/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
+[![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.2.0/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 
 # **CloudPhotoMigrator**
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">**Automated Migration** </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
@@ -195,32 +195,16 @@ The below tables show the pros and cons of each method together with a comparati
 
 # ROADMAP:
 
-## v3.2.0  
+## v3.3.0  
 ### Release Date:
-  - Alpha version    : 2025-04-07
-  - Beta version     : 2025-04-14
-  - Release Candidate: 2025-04-25
-  - Official Release : 2025-04-30
+  - Alpha version    : 2025-05-16
+  - Beta version     : 2025-05-23
+  - Release Candidate: 2025-05-30
+  - Official Release : 2025-05-30
 
 ### TODO:
-- [x] Add option to filter assets in all Immich/Synology/LocalFolder Actions:
-    - [x] by Type
-    - [x] by Dates
-    - [x] by Country
-    - [x] by City
-    - [x] by Person
-- [x] Added new flag _**-type, --filter-by-type=[image, video, all]**_ to select the Asset Type to download (default: all)
-- [x] Added new flag _**-from, --filter-from-date <FROM_DATE>**_ to select the Initial Date of the Assets to download
-- [x] Added new flag _**-to, --filter-to-date <TO_DATE>**_ to select the Final Date of the Assets to download
-- [x] Added new flag _**-country, --filter-by-country <COUNTRY_NAME>**_ to select the Country Name of the Assets to download
-- [x] Added new flag _**-city, --filter-by-city <CITY_NAME>**_ to select the City Name of the Assets to download
-- [x] Added new flag _**-person, --filter-by-person <PERSON_NAME>**_ to select the Person Name of the Assets to download
-- [x] Added new flag _**-parallel, --parallel-migration=[true, false]**_ to select the Migration Mode (Parallel or Sequential). Default: true (parallel)
-- [x] Included Live Dashboard in sequential Automated Migration
-- [x] Minor bugs fixing
-- [x] Test sequential Automated Migration
-- [x] Test Filters in Automated Migration Feature
-- [ ] Test Filters in other Synology/Immich Features
+- [ ] Merge Albums with the same name and different assets. 
+- [ ] Rename Albums using regular expresions. 
 
 
 ## v4.0.0:

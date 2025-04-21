@@ -624,7 +624,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
                         with open(lock_file, 'w') as lock:
                             lock.write("Pulling Asset")
                         # Descargar el asset
-                        pulled_assets = source_client.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, album_passphrase=album_passphrase, download_folder=album_folder, log_level=logging.ERROR)
+                        pulled_assets = source_client.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_datetime, download_folder=album_folder, album_passphrase=album_passphrase, log_level=logging.ERROR)
                         # Eliminar archivo de bloqueo después de la descarga
                         os.remove(lock_file)
 
