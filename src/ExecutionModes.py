@@ -367,7 +367,7 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"INFO    : Uploading Assets in Folder    : {ARGS['synology-upload-all']}")
         # Call the Function
         total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed = syno.push_ALL (ARGS['synology-upload-all'], albums_folders=albums_folders, log_level=logging.WARNING)
-        # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
+        # After Upload Assets/Albums from Synology Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("INFO    : Cleaning-up Synology Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
         LOGGER.info("INFO    : Removing Empty Albums...")
@@ -424,7 +424,7 @@ def mode_synology_download_albums(user_confirmation=True, log_level=logging.INFO
         LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
         syno.login(log_level=logging.WARNING)
         # Call the Function
-        albums_downloaded, photos_downloaded = syno.pull_albums(albums_name=ARGS['synology-download-albums'], output_folder=ARGS['output-folder'], log_level=logging.WARNING)
+        albums_downloaded, assets_downloaded = syno.pull_albums(albums_name=ARGS['synology-download-albums'], output_folder=ARGS['output-folder'], log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Synology Photos.")
@@ -441,7 +441,7 @@ def mode_synology_download_albums(user_confirmation=True, log_level=logging.INFO
         LOGGER.info("                  FINAL SUMMARY:                  ")
         LOGGER.info("==================================================")
         LOGGER.info(f"Total Albums downloaded                 : {albums_downloaded}")
-        LOGGER.info(f"Total Photos downloaded from Albums     : {photos_downloaded}")
+        LOGGER.info(f"Total Assets downloaded from Albums     : {assets_downloaded}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -463,8 +463,8 @@ def mode_synology_download_ALL(user_confirmation=True, log_level=logging.INFO):
         # login
         LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
         syno.login(log_level=logging.WARNING)
-        # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
-        LOGGER.info("INFO    : Cleaning-up Immich Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
+        # Before to Download Assets/Albums from Synology Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
+        LOGGER.info("INFO    : Cleaning-up Synology Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
         total_empty_albums_removed = syno.remove_empty_albums(log_level=logging.WARNING)
         # Execute mode_delete_duplicates_albums

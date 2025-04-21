@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 from halo import Halo
 from tabulate import tabulate
 
-from Utils import update_metadata, convert_to_list, tqdm, parse_text_datetime_to_epoch
+from Utils import update_metadata, convert_to_list, tqdm, parse_text_datetime_to_epoch, organize_files_by_date
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
@@ -1589,15 +1589,15 @@ class ClassImmichPhotos:
                 LOGGER.info(f"INFO    : ALL albums ({len(all_albums)}) will be downloaded...")
             else:
                 found_albums = []
-                for alb in all_albums:
-                    alb_id = alb.get("id")
-                    alb_name = alb.get("albumName", "")
+                for album in all_albums:
+                    album_id = album.get("id")
+                    album_name = album.get("albumName", "")
                     for pattern in albums_name:
-                        if alb_id == str(pattern):
-                            found_albums.append(alb)
+                        if album_id == str(pattern):
+                            found_albums.append(album)
                             break
-                        if fnmatch.fnmatch(alb_name.lower(), pattern.lower()):
-                            found_albums.append(alb)
+                        if fnmatch.fnmatch(album_name.lower(), pattern.lower()):
+                            found_albums.append(album)
                             break
 
                 if found_albums:
@@ -1612,22 +1612,24 @@ class ClassImmichPhotos:
             total_albums_downloaded = 0
             total_albums = len(albums_to_download)
 
-            for alb in albums_to_download:
-                alb_id = alb.get("id")
-                alb_name = alb.get("albumName", f"album_{alb_id}")
-                alb_folder = os.path.join(output_folder, alb_name)
-                os.makedirs(alb_folder, exist_ok=True)
+            for album in tqdm(albums_to_download, desc="INFO    : Downloading Albums", unit=" albums"):
+            # for album in albums_to_download:
+                album_id = album.get("id")
+                album_name = album.get("albumName", f"album_{album_id}")
+                album_folder = os.path.join(output_folder, album_name)
+                os.makedirs(album_folder, exist_ok=True)
 
-                assets_in_album = self.get_all_assets_from_album(alb_id, log_level=log_level)
-                for asset in tqdm(assets_in_album, desc=f"INFO    : Downloading '{alb_name}'", unit=" assets"):
+                album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
+                for asset in album_assets:
+                # for asset in tqdm(album_assets, desc=f"INFO    : Downloading '{alb_name}'", unit=" assets"):
                     asset_id = asset.get("id")
                     asset_filename = os.path.basename(asset.get("originalFileName", "unknown"))
                     if asset_id:
                         asset_time = asset.get('fileCreatedAt')
-                        total_assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=alb_folder, log_level=log_level)
+                        total_assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=album_folder, log_level=log_level)
 
                 total_albums_downloaded += 1
-                LOGGER.info(f"INFO    : Downloaded Album [{total_albums_downloaded}/{total_albums}] - '{alb_name}'. {len(assets_in_album)} asset(s) have been downloaded.")
+                LOGGER.info(f"INFO    : Downloaded Album [{total_albums_downloaded}/{total_albums}] - '{album_name}'. {len(album_assets)} asset(s) have been downloaded.")
 
             LOGGER.info(f"INFO    : Download of Albums completed.")
             LOGGER.info(f"INFO    : Total Albums downloaded: {total_albums_downloaded}")
@@ -1677,6 +1679,9 @@ class ClassImmichPhotos:
 
                 asset_time = asset.get('fileCreatedAt')
                 total_assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=target_folder, log_level=log_level)
+
+            # Now organize them by date (year/month)
+            organize_files_by_date(input_folder=no_albums_folder, type='year/month')
 
             LOGGER.info(f"INFO    : Download of assets without associated albums completed.")
             LOGGER.info(f"INFO    : Total Assets downloaded: {total_assets_downloaded}")

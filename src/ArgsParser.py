@@ -230,8 +230,8 @@ def checkArgs(ARGS, PARSER):
 
     # Check all provided arguments in the list of arguments to check to resolve the paths correctly for both, docker instance and normal instance.
     keys_to_check = ['source', 'target', 'input-folder', 'output-folder', 'albums-folder', 'google-takeout-to-process',
-                     'synology-upload-albums', 'synology-download-albums', 'synology-upload-all', 'synology-download-all',
-                     'immich-upload-albums', 'immich-download-albums', 'immich-upload-all', 'immich-download-all',
+                     'synology-upload-albums', 'synology-upload-all', 'synology-download-all',
+                     'immich-upload-albums', 'immich-upload-all', 'immich-download-all',
                      'find-duplicates', 'fix-symlinks-broken', 'rename-folders-content-based',
                      ]
 

@@ -2140,7 +2140,7 @@ class ClassSynologyPhotos:
                 all_albums = self.get_albums_including_shared_with_user(log_level=log_level)
 
                 if not all_albums:
-                    return (0, 0)
+                    return 0, 0
 
                 if 'ALL' in [x.strip().upper() for x in albums_name]:
                     albums_to_download = all_albums
@@ -2163,14 +2163,14 @@ class ClassSynologyPhotos:
                     if not albums_to_download:
                         LOGGER.error("ERROR   : No albums found matching the provided patterns.")
                         self.logout(log_level=log_level)
-                        return (0, 0)
+                        return 0, 0
                     LOGGER.info(f"INFO    : {len(albums_to_download)} albums from Synology Photos will be downloaded to '{output_folder}'...")
 
                 albums_downloaded = len(albums_to_download)
 
                 for album in tqdm(albums_to_download, desc="INFO    : Downloading Albums", unit=" albums"):
-                    album_name = album.get("albumName", "")
                     album_id = album.get('id')
+                    album_name = album.get("albumName", "")
                     LOGGER.info(f"INFO    : Processing album: '{album_name}' (ID: {album_id})")
                     album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                     LOGGER.info(f"INFO    : Number of album_assets in the album '{album_name}': {len(album_assets)}")
@@ -2224,9 +2224,25 @@ class ClassSynologyPhotos:
 
                 for asset in tqdm(assets_without_albums, desc="INFO    : Downloading Assets without associated Albums", unit=" assets"):
                     asset_id = asset.get('id')
-                    asset_name = asset.get('filename')
+                    asset_filename = asset.get('filename')
                     asset_time = asset.get('time')
-                    total_assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_name, asset_time=asset_time, download_folder=no_albums_folder, log_level=logging.INFO)
+
+                    if not asset_id:
+                        continue
+
+                    created_at_str = asset.get("time", "")
+                    try:
+                        dt_created = datetime.fromtimestamp(int(created_at_str))
+                    except Exception:
+                        dt_created = datetime.now()
+
+                    year_str = dt_created.strftime("%Y")
+                    month_str = dt_created.strftime("%m")
+                    target_folder = os.path.join(no_albums_folder, year_str, month_str)
+                    os.makedirs(target_folder, exist_ok=True)
+
+
+                    total_assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=target_folder, log_level=logging.INFO)
 
                 # Now organize them by date (year/month)
                 organize_files_by_date(input_folder=no_albums_folder, type='year/month')
@@ -2259,15 +2275,8 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
-                (total_albums_downloaded, total_assets_downloaded_within_albums) = self.pull_albums(
-                    albums_name='ALL',
-                    output_folder=output_folder,
-                    log_level=logging.WARNING
-                )
-                total_assets_downloaded_without_albums = self.pull_no_albums(
-                    no_albums_folder=output_folder,
-                    log_level=logging.WARNING
-                )
+                total_albums_downloaded, total_assets_downloaded_within_albums = self.pull_albums(albums_name='ALL', output_folder=output_folder, log_level=logging.WARNING)
+                total_assets_downloaded_without_albums = self.pull_no_albums(no_albums_folder=output_folder, log_level=logging.WARNING)
                 total_assets_downloaded = total_assets_downloaded_within_albums + total_assets_downloaded_without_albums
                 LOGGER.info(f"INFO    : Download of ALL assets completed.")
                 LOGGER.info(f"Total Albums downloaded                   : {total_albums_downloaded}")
@@ -2277,12 +2286,7 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while downloading ALL assets from Synology Photos. {e}")
             
-            return (
-                total_albums_downloaded,
-                total_assets_downloaded,
-                total_assets_downloaded_within_albums,
-                total_assets_downloaded_without_albums
-            )
+            return (total_albums_downloaded, total_assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums)
 
 
     ###########################################################################
@@ -2601,8 +2605,8 @@ if __name__ == "__main__":
     # Example: pull_albums()
     print("\n=== EXAMPLE: pull_albums() ===")
     download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
-    total = syno.pull_albums(albums_name='ALL', output_folder=download_folder)
-    print(f"[RESULT] A total of {total} assets have been downloaded.\n")
+    total_albums, total_assets = syno.pull_albums(albums_name='ALL', output_folder=download_folder)
+    print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums}.\n")
 
     # Example: pull_no_albums()
     print("\n=== EXAMPLE: pull_no_albums() ===")
