@@ -9,7 +9,7 @@
 
 ### TODO:
 - [x] Add Feature to Merge Albums with the same name and different assets. 
-- [x] Add new flags _**-sMergAlb, --synology-merge-suplicates-albums**_ and _**-iMergAlb, --immich-merge-suplicates-albums**_ to activate this feature.
+- [x] Add new flags _**-sMergAlb, --synology-merge-duplicates-albums**_ and _**-iMergAlb, --immich-merge-duplicates-albums**_ to activate this feature.
 - [ ] Rename Albums using regular expresions. 
 
 

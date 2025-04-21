@@ -2,18 +2,18 @@
 Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
 
 **Linux:**:  
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.2.0/CloudPhotoMigrator_v3.2.0_linux_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.2.0/CloudPhotoMigrator_v3.2.0_linux_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.3.0-alpha/CloudPhotoMigrator_v3.3.0-alpha_linux_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.3.0-alpha/CloudPhotoMigrator_v3.3.0-alpha_linux_arm64.zip)  
 
 **Mac OS:**
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.2.0/CloudPhotoMigrator_v3.2.0_macos_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.2.0/CloudPhotoMigrator_v3.2.0_macos_arm64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.3.0-alpha/CloudPhotoMigrator_v3.3.0-alpha_macos_amd64.zip)  
+  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.3.0-alpha/CloudPhotoMigrator_v3.3.0-alpha_macos_arm64.zip)  
 
 **Windows:**  
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.2.0/CloudPhotoMigrator_v3.2.0_windows_amd64.zip)  
+  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.3.0-alpha/CloudPhotoMigrator_v3.3.0-alpha_windows_amd64.zip)  
 
 **Docker Launcher:**  
-  - [Download Docker Launcher](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.2.0/CloudPhotoMigrator_v3.2.0_docker.zip)  
+  - [Download Docker Launcher](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.3.0-alpha/CloudPhotoMigrator_v3.3.0-alpha_docker.zip)  
 
 ---
 
@@ -28,10 +28,10 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 
 ### Main Changes:
 - [x] Added Feature to Merge Albums with the same name and different assets. 
-- [x] Added new flags _**-sMergAlb, --synology-merge-suplicates-albums**_ and _**-iMergAlb, --immich-merge-suplicates-albums**_ to activate this feature.
+- [x] Added new flags _**-sMergAlb, --synology-merge-duplicates-albums**_ and _**-iMergAlb, --immich-merge-duplicates-albums**_ to activate this feature.
 
 
-**Release**: v3.2.0  
+**Release**: v3.3.0-alpha  
 **Release Date**: 2025-04-30
 
 ### Main Changes:

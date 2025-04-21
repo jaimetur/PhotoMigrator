@@ -43,16 +43,17 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>
                                   [-suAlb <ALBUMS_FOLDER>]
                                   [-sdAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
                                   [-suAll <INPUT_FOLDER>] [-sdAll <OUTPUT_FOLDER>]
-                                  [-srEmpAlb] [-srDupAlb] [-srAll] [-srAllAlb]
+                                  [-srEmpAlb] [-srDupAlb] [-sMergAlb] [-srAll] [-srAllAlb]
                                   [-iuAlb <ALBUMS_FOLDER>]
                                   [-idAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
                                   [-iuAll <INPUT_FOLDER>] [-idAll <OUTPUT_FOLDER>]
-                                  [-irEmpAlb] [-irDupAlb] [-irAll] [-irAllAlb] [-irOrphan]
+                                  [-irEmpAlb] [-irDupAlb] [-iMergAlb] [-irAll] [-irAllAlb]
+                                  [-irOrphan]
                                   [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
                                   [-procDup <DUPLICATES_REVISED_CSV>]
                                   [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
 
-CloudPhotoMigrator v3.2.0 - 2025-04-30
+CloudPhotoMigrator v3.3.0 - 2025-05-30
 
 Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
 such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
@@ -246,7 +247,12 @@ If more than one optional arguments are detected, only the first one will be exe
              any Album is empty, will remove it from your Synology Photos account.
 -srDupAlb, --synology-remove-duplicates-albums
              The Tool will look for all Albums in your Synology Photos account and if
-             any Album is duplicated, will remove it from your Synology Photos account.
+             any Album is duplicated (with the same name and size), will remove it from
+             your Synology Photos account.
+-sMergAlb, --synology-merge-duplicates-albums
+             The Tool will look for all Albums in your Synology Photos account and if
+             any Album is duplicated (with the same name), will transfer all its assets
+             to the most relevant album and remove it from your Synology Photos account.
 -srAll,    --synology-remove-all-assets
              CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also
              ALL your Albums from Synology database.
@@ -299,7 +305,12 @@ If more than one optional arguments are detected, only the first one will be exe
              Album is empty, will remove it from your Immich Photos account.
 -irDupAlb, --immich-remove-duplicates-albums
              The Tool will look for all Albums in your Immich Photos account and if any
-             Album is duplicated, will remove it from your Immich Photos account.
+             Album is duplicated (with the same name and size), will remove it from your
+             Immich Photos account.
+-iMergAlb, --immich-merge-duplicates-albums
+             The Tool will look for all Albums in your Immich Photos account and if any
+             Album is duplicated (with the same name), will transfer all its assets to
+             the most relevant album and remove it from your Immich Photos account.
 -irAll,    --immich-remove-all-assets
              CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also
              ALL your Albums from Immich database.
