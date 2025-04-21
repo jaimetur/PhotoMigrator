@@ -2076,21 +2076,12 @@ class ClassSynologyPhotos:
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : Uploading Assets and creating Albums into synology Photos from '{albums_folders}' subfolders...")
 
-                total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed = self.push_albums(
-                    input_folder=input_folder,
-                    subfolders_inclusion=albums_folders,
-                    remove_duplicates=False,
-                    log_level=logging.WARNING
-                )
+                total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed = self.push_albums(input_folder=input_folder, subfolders_inclusion=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
 
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : Uploading Assets without Albums creation into synology Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
 
-                total_assets_uploaded_without_albums = self.push_no_albums(
-                    input_folder=input_folder,
-                    subfolders_exclusion=albums_folders,
-                    log_level=logging.WARNING
-                )
+                total_assets_uploaded_without_albums = self.push_no_albums(input_folder=input_folder, subfolders_exclusion=albums_folders, log_level=logging.WARNING)
 
                 total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
 
@@ -2100,16 +2091,8 @@ class ClassSynologyPhotos:
 
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while uploading ALL assets into Synology Photos. {e}")
-            
 
-            return (
-                total_albums_uploaded,
-                total_albums_skipped,
-                total_assets_uploaded,
-                total_assets_uploaded_within_albums,
-                total_assets_uploaded_without_albums,
-                total_duplicates_assets_removed
-            )
+            return (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed)
 
 
     def pull_albums(self, albums_name='ALL', output_folder='Downloads_Synology', log_level=logging.WARNING):
@@ -2432,6 +2415,81 @@ class ClassSynologyPhotos:
             
             return total_removed_duplicated_albums
 
+    def merge_duplicates_albums(self, strategy='count', log_level=logging.WARNING):
+        """
+        Remove all duplicate albums in Synology Photos. Duplicates are albums
+        that share the same album name. Keeps the one with the most assets or largest size
+        (depending on strategy), merges the rest into it, and removes the duplicates.
+
+        Args:
+            strategy (str): 'count' to keep album with most assets, 'size' to keep album with largest size
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            int: The number of duplicate albums deleted.
+        """
+        with set_log_level(LOGGER, log_level):
+            try:
+                self.login(log_level=log_level)
+                albums = self.get_albums_owned_by_user(log_level=log_level)
+
+                if not albums:
+                    return 0
+
+                LOGGER.info("INFO    : Looking for duplicate albums in Synology Photos...")
+                albums_by_name = {}
+                for album in tqdm(albums, smoothing=0.1, desc="INFO    : Grouping Albums by Name", unit=" albums"):
+                    album_id = album.get("id")
+                    album_name = album.get("albumName", "")
+                    assets_count = self.get_album_assets_count(album_id, album_name, log_level=log_level)
+                    assets_size = self.get_album_assets_size(album_id, album_name, log_level=log_level)
+                    albums_by_name.setdefault(album_name, []).append({
+                        "id": album_id,
+                        "name": album_name,
+                        "count": assets_count,
+                        "size": assets_size
+                    })
+
+                total_removed_duplicated_albums = 0
+
+                for album_name, group in albums_by_name.items():
+                    if len(group) <= 1:
+                        continue  # no duplicates
+
+                    # Select strategy
+                    if strategy == 'size':
+                        sorted_group = sorted(group, key=lambda x: x['size'], reverse=True)
+                    else:
+                        sorted_group = sorted(group, key=lambda x: x['count'], reverse=True)
+
+                    keeper = sorted_group[0]
+                    keeper_id = keeper["id"]
+                    keeper_name = keeper["name"]
+
+                    LOGGER.info(f"INFO    : Keeping album '{keeper_name}' (ID={keeper_id}) with "
+                                f"{keeper['count']} assets and {keeper['size']} bytes.")
+
+                    for duplicate in sorted_group[1:]:
+                        dup_id = duplicate["id"]
+                        dup_name = duplicate["name"]
+
+                        LOGGER.debug(f"DEBUG   : Transferring assets from duplicate album '{dup_name}' (ID={dup_id})")
+                        assets = self.get_all_assets_from_album(dup_id, dup_name, log_level=log_level)
+                        asset_ids = [asset["id"] for asset in assets] if assets else []
+                        if asset_ids:
+                            self.add_assets_to_album(keeper_id, asset_ids, keeper_name, log_level=log_level)
+
+                        LOGGER.info(f"INFO    : Removing duplicate album: '{dup_name}' (ID={dup_id})")
+                        if self.remove_album(dup_id, dup_name, log_level=log_level):
+                            total_removed_duplicated_albums += 1
+
+                LOGGER.info(f"INFO    : Removed {total_removed_duplicated_albums} duplicate albums.")
+                self.logout(log_level=log_level)
+
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while removing duplicates albums from Synology Photos. {e}")
+
+            return total_removed_duplicated_albums
 
     # -----------------------------------------------------------------------------
     #          DELETE ORPHANS ASSETS FROM IMMICH DATABASE

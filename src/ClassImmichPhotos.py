@@ -1279,9 +1279,8 @@ class ClassImmichPhotos:
     ###########################################################################
     def push_albums(self, input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         """
-        Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals
-        the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on
-        self.ALLOWED_IMMICH_EXTENSIONS) and associates them with the album.
+        Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals the subfolder name).
+        Within each subfolder, it uploads all files with allowed extensions (based on self.ALLOWED_IMMICH_EXTENSIONS) and associates them with the album.
         
         Example structure:
         input_folder/
@@ -1334,11 +1333,7 @@ class ClassImmichPhotos:
                     if not os.path.isdir(dir_path):
                         continue
                     # Check if there's at least one supported file
-                    has_supported = any(
-                        os.path.splitext(f)[-1].lower() in self.ALLOWED_IMMICH_EXTENSIONS
-                        for f in os.listdir(dir_path)
-                        if os.path.isfile(os.path.join(dir_path, f))
-                    )
+                    has_supported = any(os.path.splitext(f)[-1].lower() in self.ALLOWED_IMMICH_EXTENSIONS for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f)))
                     if has_supported:
                         valid_folders.append(dir_path)
 
@@ -1346,8 +1341,7 @@ class ClassImmichPhotos:
             if subfolders_inclusion:
                 first_level_folders += subfolders_inclusion
 
-            with tqdm(total=len(valid_folders), smoothing=0.1,
-                      desc="INFO    : Uploading Albums from Folders", unit=" folders") as pbar:
+            with tqdm(total=len(valid_folders), smoothing=0.1, desc="INFO    : Uploading Albums from Folders", unit=" folders") as pbar:
                 for subpath in valid_folders:
                     pbar.update(1)
                     album_assets_ids = []
@@ -1820,6 +1814,78 @@ class ClassImmichPhotos:
             self.logout(log_level=log_level)
             return total_removed_duplicated_albums
 
+
+    def merge_duplicates_albums(self, strategy='count', log_level=logging.WARNING):
+        """
+        Merge all duplicate albums in Immich Photos. Duplicates are albums
+        with the same name but different assets. Keeps the album with the highest
+        number of assets or largest size (based on strategy), moves the assets from the
+        others into it, then deletes the others.
+
+        Args:
+            strategy (str): 'count' to keep album with most assets, 'size' to keep album with largest size
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            int: The number of duplicate albums deleted.
+        """
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            albums = self.get_albums_owned_by_user(log_level=log_level)
+            if not albums:
+                self.logout(log_level=log_level)
+                return 0
+
+            LOGGER.info("INFO    : Looking for duplicate albums in Immich Photos...")
+            albums_by_name = {}
+            for album in tqdm(albums, desc="INFO    : Grouping Albums by Name", unit=" albums"):
+                album_id = album.get("id")
+                album_name = album.get("albumName", "")
+                asset_count = album.get("assetCount", 0)
+                assets_size = self.get_album_assets_size(album_id, log_level=log_level)
+
+                albums_by_name.setdefault(album_name, []).append({
+                    "id": album_id,
+                    "name": album_name,
+                    "count": asset_count,
+                    "size": assets_size
+                })
+
+            total_removed_duplicated_albums = 0
+
+            for album_name, album_group in albums_by_name.items():
+                if len(album_group) <= 1:
+                    continue  # No duplicates
+
+                if strategy == 'size':
+                    sorted_group = sorted(album_group, key=lambda x: x["size"], reverse=True)
+                else:  # Default to 'count'
+                    sorted_group = sorted(album_group, key=lambda x: x["count"], reverse=True)
+
+                keeper = sorted_group[0]
+                keeper_id = keeper["id"]
+                keeper_name = keeper["name"]
+
+                LOGGER.info(f"INFO    : Merging duplicates of album '{album_name}' into ID={keeper_id} with {keeper['count']} assets and {keeper['size']} bytes.")
+
+                for duplicate in sorted_group[1:]:
+                    dup_id = duplicate["id"]
+                    dup_name = duplicate["name"]
+                    dup_size = duplicate["size"]
+
+                    LOGGER.debug(f"DEBUG   : Transferring assets from duplicate album '{dup_name}' (ID={dup_id}, Size={dup_size} bytes)")
+                    assets = self.get_all_assets_from_album(dup_id, dup_name, log_level=log_level)
+                    asset_ids = [asset["id"] for asset in assets] if assets else []
+                    if asset_ids:
+                        self.add_assets_to_album(keeper_id, asset_ids, keeper_name, log_level=log_level)
+
+                    LOGGER.info(f"INFO    : Removing duplicate album: '{dup_name}' (ID={dup_id})")
+                    if self.remove_album(dup_id, dup_name, log_level=log_level):
+                        total_removed_duplicated_albums += 1
+
+            LOGGER.info(f"INFO    : Removed {total_removed_duplicated_albums} duplicate albums.")
+            self.logout(log_level=log_level)
+            return total_removed_duplicated_albums
 
     # -----------------------------------------------------------------------------
     #          DELETE ORPHANS ASSETS FROM IMMICH DATABASE

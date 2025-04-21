@@ -19,6 +19,18 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 
 ## Release Notes:
 
+**Release**: v3.3.0  
+**Release Date**: 2025-05-30
+  - Alpha version    : 2025-05-16
+  - Beta version     : 2025-05-23
+  - Release Candidate: 2025-05-30
+  - Official Release : 2025-05-30
+
+### Main Changes:
+- [x] Added Feature to Merge Albums with the same name and different assets. 
+- [x] Added new flags _**-sMergAlb, --synology-merge-suplicates-albums**_ and _**-iMergAlb, --immich-merge-suplicates-albums**_ to activate this feature.
+
+
 **Release**: v3.2.0  
 **Release Date**: 2025-04-30
 
