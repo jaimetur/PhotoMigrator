@@ -2466,8 +2466,7 @@ class ClassSynologyPhotos:
                     keeper_id = keeper["id"]
                     keeper_name = keeper["name"]
 
-                    LOGGER.info(f"INFO    : Keeping album '{keeper_name}' (ID={keeper_id}) with "
-                                f"{keeper['count']} assets and {keeper['size']} bytes.")
+                    LOGGER.info(f"INFO    : Keeping album '{keeper_name}' (ID={keeper_id}) with {keeper['count']} assets and {keeper['size']} bytes.")
 
                     for duplicate in sorted_group[1:]:
                         dup_id = duplicate["id"]
