@@ -1026,7 +1026,7 @@ class ClassLocalFolder:
             return str(dest), False
 
 
-    def pull_asset(self, asset_id, asset_filename, asset_time, album_passphrase="", download_folder="Downloaded_LocalFolder", log_level=logging.INFO):
+    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_LocalFolder", album_passphrase=None, log_level=logging.INFO):
         """
         Downloads (copies) an asset to a specified local folder, preserving the file's timestamp.
 

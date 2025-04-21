@@ -1444,7 +1444,7 @@ class ClassSynologyPhotos:
                 return None, None
             
 
-    def pull_asset(self, asset_id, asset_filename, asset_time, album_passphrase=None, download_folder="Downloaded_Synology", log_level=logging.INFO):
+    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Synology", album_passphrase=None, log_level=logging.INFO):
         """
         Downloads an asset (photo/video) from Synology Photos to a local folder,
         preserving the original timestamp if available.
@@ -2186,7 +2186,7 @@ class ClassSynologyPhotos:
                         asset_time = asset.get('time')
                         asset_filename = asset.get('filename')
                         # Download
-                        assets_downloaded += self.pull_asset(asset_id, asset_filename, asset_time, album_folder_path, log_level=logging.INFO)
+                        assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=album_folder_path, log_level=logging.INFO)
 
                 LOGGER.info(f"INFO    : Album(s) downloaded successfully. You can find them in '{output_folder}'")
                 self.logout(log_level=log_level)
@@ -2226,7 +2226,7 @@ class ClassSynologyPhotos:
                     asset_id = asset.get('id')
                     asset_name = asset.get('filename')
                     asset_time = asset.get('time')
-                    total_assets_downloaded += self.pull_asset(asset_id, asset_name, asset_time, no_albums_folder, log_level=logging.INFO)
+                    total_assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_name, asset_time=asset_time, download_folder=no_albums_folder, log_level=logging.INFO)
 
                 # Now organize them by date (year/month)
                 organize_files_by_date(input_folder=no_albums_folder, type='year/month')

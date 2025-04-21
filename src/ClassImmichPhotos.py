@@ -1222,7 +1222,7 @@ class ClassImmichPhotos:
                 return None, None
 
 
-    def pull_asset(self, asset_id, asset_filename, asset_time, album_passphrase="", download_folder="Downloaded_Immich", log_level=logging.INFO):
+    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Immich", album_passphrase=None, log_level=logging.INFO):
         """
         Downloads an asset (photo/video) from Immich Photos to a local folder,
         preserving the original timestamp if available.
@@ -1624,7 +1624,7 @@ class ClassImmichPhotos:
                     asset_filename = os.path.basename(asset.get("originalFileName", "unknown"))
                     if asset_id:
                         asset_time = asset.get('fileCreatedAt')
-                        total_assets_downloaded += self.pull_asset(asset_id, asset_filename, asset_time, alb_folder, log_level=log_level)
+                        total_assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=alb_folder, log_level=log_level)
 
                 total_albums_downloaded += 1
                 LOGGER.info(f"INFO    : Downloaded Album [{total_albums_downloaded}/{total_albums}] - '{alb_name}'. {len(assets_in_album)} asset(s) have been downloaded.")
@@ -1676,7 +1676,7 @@ class ClassImmichPhotos:
                 os.makedirs(target_folder, exist_ok=True)
 
                 asset_time = asset.get('fileCreatedAt')
-                total_assets_downloaded += self.pull_asset(asset_id, asset_filename, asset_time, target_folder, log_level=log_level)
+                total_assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=target_folder, log_level=log_level)
 
             LOGGER.info(f"INFO    : Download of assets without associated albums completed.")
             LOGGER.info(f"INFO    : Total Assets downloaded: {total_assets_downloaded}")
@@ -1705,15 +1705,8 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            total_albums_downloaded, total_assets_in_albums = self.pull_albums(
-                albums_name='ALL',
-                output_folder=output_folder,
-                log_level=log_level
-            )
-            total_assets_no_albums = self.pull_no_albums(
-                output_folder=output_folder,
-                log_level=log_level
-            )
+            total_albums_downloaded, total_assets_in_albums = self.pull_albums(albums_name='ALL', output_folder=output_folder, log_level=log_level)
+            total_assets_no_albums = self.pull_no_albums(output_folder=output_folder, log_level=log_level)
             total_assets = total_assets_in_albums + total_assets_no_albums
 
             LOGGER.info(f"INFO    : Download of ALL assets completed.")
@@ -1723,10 +1716,7 @@ class ClassImmichPhotos:
             LOGGER.info(f"Total Assets downloaded without albums    : {total_assets_no_albums}")
 
             self.logout(log_level=log_level)
-            return (total_albums_downloaded,
-                    total_assets,
-                    total_assets_in_albums,
-                    total_assets_no_albums)
+            return (total_albums_downloaded, total_assets, total_assets_in_albums, total_assets_no_albums)
 
 
     ###########################################################################
