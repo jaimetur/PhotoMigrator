@@ -15,7 +15,9 @@ from PIL import Image
 import hashlib
 import base64
 import inspect
+from pathlib import Path
 from typing import Union
+import time
 from datetime import datetime, timezone
 from dateutil import parser as date_parser
 from tqdm import tqdm as original_tqdm
@@ -889,6 +891,7 @@ def remove_quotes(input_string: str, log_level=logging.INFO) -> str:
 
 def contains_zip_files(input_folder, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        LOGGER.info("INFO    : Searching .zip files in input folder...")
         for file in os.listdir(input_folder):
             if file.endswith('.zip'):
                 return True
@@ -896,16 +899,25 @@ def contains_zip_files(input_folder, log_level=logging.INFO):
 
 def contains_takeout_structure(input_folder, log_level=logging.INFO):
     """
-    Recursively traverses all subfolders in the given input directory and checks
-    if any subfolder starts with 'Photos from ' followed by four digits.
-
-    Returns True if at least one matching subfolder is found, False otherwise.
+    Iteratively scans directories using a manual stack instead of recursion or os.walk.
+    This can reduce overhead in large, nested folder structures.
     """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        for root, dirs, _ in os.walk(input_folder):
-            for folder in dirs:
-                if folder.startswith("Photos from ") and len(folder) >= 15 and folder[12:16].isdigit():
-                    return True
+    with set_log_level(LOGGER, log_level):
+        LOGGER.info("INFO    : Searching Google Takeout structure in input folder...")
+        stack = [input_folder]
+        while stack:
+            current = stack.pop()
+            try:
+                with os.scandir(current) as entries:
+                    for entry in entries:
+                        if entry.is_dir():
+                            name = entry.name
+                            if name.startswith("Photos from ") and name[12:16].isdigit():
+                                LOGGER.info(f"Found Takeout structure in: {entry.path}")
+                                return True
+                            stack.append(entry.path)
+            except Exception as e:
+                LOGGER.warning(f"Error scanning {current}: {e}")
         return False
 
 def remove_server_name(path, log_level=logging.INFO):
