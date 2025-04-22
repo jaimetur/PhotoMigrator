@@ -93,8 +93,8 @@ class ClassImmichPhotos:
         self.person = ARGS.get('filter-by-person', None)
         self.person_ids_list = None
 
-        # Read the Config File to get CLIENT_ID
-        self.read_config_file()
+        # login to get CLIENT_ID
+        self.login()
         self.CLIENT_ID = self.get_user_mail()
 
         self.CLIENT_NAME = f'Immich Photos ({self.CLIENT_ID})'
@@ -256,9 +256,6 @@ class ClassImmichPhotos:
             self.ALLOWED_IMMICH_MEDIA_EXTENSIONS = self.get_supported_media_types(log_level=logging.WARNING)
             self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS = self.get_supported_media_types(type='sidecar', log_level=logging.WARNING)
             self.ALLOWED_IMMICH_EXTENSIONS = self.ALLOWED_IMMICH_MEDIA_EXTENSIONS + self.ALLOWED_IMMICH_SIDECAR_EXTENSIONS
-
-            # Restore log_level of the parent method
-            # set_log_level(LOGGER, parent_log_level, manual=True)
             return True
 
 
@@ -329,6 +326,7 @@ class ClassImmichPhotos:
                 user_id = data.get("id")
                 user_mail = data.get("email")
                 LOGGER.info(f"INFO    : User ID: '{user_id}' found for user '{user_mail}'.")
+                LOGGER.info("")
                 return user_id
             except Exception as e:
                 LOGGER.error(f"ERROR   : Cannot find User ID for user '{self.IMMICH_USERNAME}': {e}")
@@ -350,6 +348,7 @@ class ClassImmichPhotos:
                 user_id = data.get("id")
                 user_mail = data.get("email")
                 LOGGER.info(f"INFO    : User ID: '{user_id}' found for user '{user_mail}'.")
+                LOGGER.info("")
                 return user_mail
             except Exception as e:
                 LOGGER.error(f"ERROR   : Cannot find User ID for user '{self.IMMICH_USERNAME}': {e}")

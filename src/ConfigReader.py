@@ -39,17 +39,20 @@ def load_config(config_file='Config.ini', section_to_load='all'):
             stripped_line = line.strip()
             if stripped_line.startswith("[") and stripped_line.endswith("]"):  # Detectar sección
                 section = stripped_line
-                cleaned_lines.append(line)
+                if section_to_load in section or section_to_load.lower() == 'all':
+                    cleaned_lines.append(line)
             elif "=" in stripped_line and section:  # Detectar clave dentro de una sección
-                key = stripped_line.split("=", 1)[0].strip()
-                unique_key = (section, key)  # Crear clave única combinando sección y clave
-                if unique_key in seen_keys:
-                    if unique_key not in logged_warnings:  # Solo mostrar el mensaje una vez
-                        LOGGER.warning(f"WARNING : Duplicate key found in '{config_file}. Key: '{key}' in section {section}, keeping first.")
-                        logged_warnings.add(unique_key)  # Registrar que ya mostramos el mensaje
-                    continue  # Omitir clave duplicada
-                seen_keys.add(unique_key)
-                cleaned_lines.append(line)
+                # Only process those sections indicated in section_to_load
+                if section_to_load in section or section_to_load.lower() == 'all':
+                    key = stripped_line.split("=", 1)[0].strip()
+                    unique_key = (section, key)  # Crear clave única combinando sección y clave
+                    if unique_key in seen_keys:
+                        if unique_key not in logged_warnings:  # Solo mostrar el mensaje una vez
+                            LOGGER.warning(f"WARNING : Duplicate key found in '{config_file}. Key: '{key}' in section {section}, keeping first.")
+                            logged_warnings.add(unique_key)  # Registrar que ya mostramos el mensaje
+                        continue  # Omitir clave duplicada
+                    seen_keys.add(unique_key)
+                    cleaned_lines.append(line)
             else:
                 cleaned_lines.append(line)  # Mantener comentarios y líneas vacías
 

@@ -91,8 +91,6 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
         if parallel is None: parallel = ARGS['parallel-migration']
 
         # Detect source and target from the given arguments if have not been provided on the function call
-        # if not source: source = ARGS['AUTOMATED-MIGRATION'][0]
-        # if not target: target = ARGS['AUTOMATED-MIGRATION'][1]
         if not source: source = ARGS['source']
         if not target: target = ARGS['target']
 
@@ -195,9 +193,6 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-        # Login into source and target clients before to start_dashboard
-        source_client.login(log_level=log_level)
-        target_client.login(log_level=log_level)
 
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────

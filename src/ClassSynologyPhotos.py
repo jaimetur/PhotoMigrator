@@ -111,8 +111,8 @@ class ClassSynologyPhotos:
         self.geocoding_country_ids_list = []
         self.geocoding_city_ids_list = []
 
-        # Read the Config File to get CLIENT_ID
-        self.read_config_file()
+        # login to get CLIENT_ID
+        self.login()
         self.CLIENT_ID = self.get_user_mail()
 
         self.CLIENT_NAME = f'Synology Photos ({self.CLIENT_ID})'
@@ -223,7 +223,7 @@ class ClassSynologyPhotos:
                     params.update({"enable_syno_token": "yes"})
 
                 if use_OTP:
-                    LOGGER.warning(f"\nWARNING : SYNOLOGY OTP TOKEN required (flag -sOTP, --synology-OTP detected). OTP Token will be requested on screen...")
+                    LOGGER.warning(f"WARNING : SYNOLOGY OTP TOKEN required (flag -sOTP, --synology-OTP detected). OTP Token will be requested on screen...")
                     OTP = input("INFO    : Enter SYNOLOGY OTP Token: ")
                     params.update({"otp_code": {OTP}})
                     params.update({"enable_device_token": "yes"})
@@ -239,9 +239,7 @@ class ClassSynologyPhotos:
                     LOGGER.info(f"INFO    : Authentication Successfully with user/password found in Config file. Cookie properly set with session id.")
                     if use_syno_token:
                         LOGGER.info(f"INFO    : SYNO_TOKEN_HEADER created as global variable. You must include 'SYNO_TOKEN_HEADER' in your request to work with this session.")
-                        self.SYNO_TOKEN_HEADER = {
-                            "X-SYNO-TOKEN": data["data"]["synotoken"],
-                        }
+                        self.SYNO_TOKEN_HEADER = {"X-SYNO-TOKEN": data["data"]["synotoken"],}
                         return (self.SESSION, self.SID, self.SYNO_TOKEN_HEADER)
                     else:
                         return (self.SESSION, self.SID)
@@ -318,6 +316,8 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
+                LOGGER.info(f"INFO    : User ID: '{self.SYNOLOGY_USERNAME}' found.")
+                LOGGER.info("")
                 return self.SYNOLOGY_USERNAME
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting user id. {e}")
@@ -328,6 +328,8 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             try:
+                LOGGER.info(f"INFO    : User ID: '{self.SYNOLOGY_USERNAME}' found.")
+                LOGGER.info("")
                 return self.SYNOLOGY_USERNAME
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting user mail. {e}")
