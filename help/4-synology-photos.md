@@ -57,7 +57,8 @@
 >>SYNOLOGY_USERNAME_2         = username_2                                    # Account 2: Your username for Synology Photos
 >>SYNOLOGY_PASSWORD_2         = password_2                                    # Account 2: Your password for Synology Photos
 >>```
-> [!IMPORTANT]  
+
+> [!INPORTANT]  
 > If your Synology Photo Account requires 2FA Authentification, you must use the flag _**'-sOTP, --synology-OTP'**_ in order to enable the OTP Token request during authentification process. 
 
 
