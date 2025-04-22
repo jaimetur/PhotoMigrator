@@ -195,6 +195,10 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
+        # Login into source and target clients before to start_dashboard
+        source_client.login(log_level=log_level)
+        target_client.login(log_level=log_level)
+
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
             # Call the parallel_automated_migration module to do the whole migration process
@@ -208,7 +212,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             # ---------------------------------------------------------------------------------------------------------
 
             # ------------------------------------------------------------------------------------------------------
-            # 2) Lanzamos el show_dashboard en un hilo secundario (o viceversa).
+            # 2) Lanzamos el start_dashboard en un hilo secundario (o viceversa).
             # ------------------------------------------------------------------------------------------------------
             if show_dashboard:
                 dashboard_thread = threading.Thread(
@@ -352,6 +356,11 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             if isinstance(source_client, ClassTakeoutFolder) or isinstance(source_client, ClassLocalFolder):
                 unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
+            # Check if there is some filter applied
+            with_filters = False
+            if ARGS.get('filter-by-type', None) or ARGS.get('filter-from-date', None) or ARGS.get('filter-to-date', None) or ARGS.get('filter-by-country', None) or ARGS.get('filter-by-city', None) or ARGS.get('filter-by-person', None):
+                with_filters = True
+
             # Get the values from the arguments (if exists)
             type = ARGS.get('filter-by-type', None)
             from_date = ARGS.get('filter-from-date', None)
@@ -400,7 +409,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             total_albums_blocked_count = 0
             total_assets_blocked_count = 0
             try:
-                all_albums = source_client.get_albums_including_shared_with_user(log_level=logging.WARNING)
+                all_albums = source_client.get_albums_including_shared_with_user(with_filters=with_filters, log_level=logging.WARNING)
             except Exception as e:
                 LOGGER.error(f"ERROR:   : Error Retrieving All Albums from '{source_client_name}'. - {e}")
             LOGGER.info(f"INFO    : {len(all_albums)} Albums found on '{source_client_name}' matching filters criteria")

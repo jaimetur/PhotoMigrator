@@ -185,7 +185,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                         AUTHENTICATION / LOGOUT                         #
     ###########################################################################
-    def login(self, use_syno_token=False, log_level=logging.INFO):
+    def login(self, use_syno_token=False, use_OTP=ARGS['synology-OTP'], log_level=logging.INFO):
         """
         Logs into the NAS and returns the active session with the SID and Synology DSM URL.
 
@@ -221,6 +221,13 @@ class ClassSynologyPhotos:
                 }
                 if use_syno_token:
                     params.update({"enable_syno_token": "yes"})
+
+                if use_OTP:
+                    LOGGER.warning(f"\nWARNING : SYNOLOGY OTP TOKEN required (flag -sOTP, --synology-OTP detected). OTP Token will be requested on screen...")
+                    OTP = input("INFO    : Enter SYNOLOGY OTP Token: ")
+                    params.update({"otp_code": {OTP}})
+                    params.update({"enable_device_token": "yes"})
+                    params.update({"device_name": "CloudPhotoMigrator"})
 
                 response = self.SESSION.get(url, params=params, verify=False)
                 response.raise_for_status()
@@ -2120,7 +2127,12 @@ class ClassSynologyPhotos:
                 if isinstance(albums_name, str):
                     albums_name = [albums_name]
 
-                all_albums = self.get_albums_including_shared_with_user(log_level=log_level)
+                # Check if there is some filter applied
+                with_filters = False
+                if ARGS.get('filter-by-type', None) or ARGS.get('filter-from-date', None) or ARGS.get('filter-to-date', None) or ARGS.get('filter-by-country', None) or ARGS.get('filter-by-city', None) or ARGS.get('filter-by-person', None):
+                    with_filters = True
+
+                all_albums = self.get_albums_including_shared_with_user(with_filters=with_filters ,log_level=log_level)
 
                 if not all_albums:
                     return 0, 0
@@ -2341,7 +2353,7 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
-                albums = self.get_albums_owned_by_user(log_level=log_level)
+                albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
                 if not albums:
                     LOGGER.info("INFO    : No albums found.")
                     self.logout(log_level=log_level)
@@ -2381,7 +2393,7 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
-                albums = self.get_albums_owned_by_user(log_level=log_level)
+                albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
 
                 if not albums:
                     return 0
@@ -2431,7 +2443,7 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
-                albums = self.get_albums_owned_by_user(log_level=log_level)
+                albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
 
                 if not albums:
                     return 0

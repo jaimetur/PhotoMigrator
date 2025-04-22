@@ -44,6 +44,7 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>
                                   [-sdAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
                                   [-suAll <INPUT_FOLDER>] [-sdAll <OUTPUT_FOLDER>]
                                   [-srEmpAlb] [-srDupAlb] [-sMergAlb] [-srAll] [-srAllAlb]
+                                  [-sOTP]
                                   [-iuAlb <ALBUMS_FOLDER>]
                                   [-idAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
                                   [-iuAll <INPUT_FOLDER>] [-idAll <OUTPUT_FOLDER>]
@@ -53,7 +54,7 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>
                                   [-procDup <DUPLICATES_REVISED_CSV>]
                                   [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
 
-CloudPhotoMigrator v3.3.0 - 2025-05-30
+CloudPhotoMigrator v3.3.0-alpha - 2025-05-30
 
 Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
 such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
@@ -260,6 +261,9 @@ If more than one optional arguments are detected, only the first one will be exe
              CAUTION!!! The Tool will delete ALL your Albums from Synology database.
              Optionally ALL the Assets associated to each Album can be deleted If you
              also include the argument '-rAlbAss, --remove-albums-assets' argument.
+-sOTP,     --synology-OTP
+             This Flag allow you to login into Synology Photos using 2FA with an OTP
+             Token.
 
 
 IMMICH PHOTOS MANAGEMENT:

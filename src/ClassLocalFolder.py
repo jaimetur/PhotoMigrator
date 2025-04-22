@@ -327,7 +327,7 @@ class ClassLocalFolder:
             return False
 
 
-    def get_albums_owned_by_user(self, log_level=logging.INFO):
+    def get_albums_owned_by_user(self, with_filters=True, log_level=logging.INFO):
         """
         Retrieves the list of owned albums.
 
@@ -356,7 +356,7 @@ class ClassLocalFolder:
             return albums_filtered
 
 
-    def get_albums_including_shared_with_user(self, log_level=logging.INFO):
+    def get_albums_including_shared_with_user(self, with_filters=True, log_level=logging.INFO):
         """
         Retrieves both owned and shared albums.
 
@@ -366,6 +366,7 @@ class ClassLocalFolder:
                         - 'id': Full path of the album folder.
                         - 'albumName': Name of the album folder.
         """
+        # TODO: Apply Filters to this method.
         with set_log_level(LOGGER, log_level):
             try:
                 LOGGER.info("INFO    : Retrieving owned and shared albums.")
@@ -470,7 +471,7 @@ class ClassLocalFolder:
         """
         with set_log_level(LOGGER, log_level):
             LOGGER.info(f"INFO    : Checking if album '{album_name}' exists.")
-            for album in self.get_albums_owned_by_user(log_level):
+            for album in self.get_albums_owned_by_user(with_filters=False, log_level=log_level):
                 if album_name == album["albumName"]:
                     return True, album["id"]
             return False, None
@@ -1111,6 +1112,10 @@ class ClassLocalFolder:
         Returns:
             tuple: (albums_downloaded, assets_downloaded)
         """
+        # Check if there is some filter applied
+        with_filters = False
+        if ARGS.get('filter-by-type', None) or ARGS.get('filter-from-date', None) or ARGS.get('filter-to-date', None) or ARGS.get('filter-by-country', None) or ARGS.get('filter-by-city', None) or ARGS.get('filter-by-person', None):
+            with_filters = True
         pass
 
 

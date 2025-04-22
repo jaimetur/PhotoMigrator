@@ -174,6 +174,8 @@ def parse_arguments():
                         help="CAUTION!!! The Tool will delete ALL your Albums from Synology database."
                            "\nOptionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
                         )
+    PARSER.add_argument("-sOTP", "--synology-OTP", action="store_true", default="", help="This Flag allow you to login into Synology Photos using 2FA with an OTP Token.")
+
 
 
     # FEATURES FOR IMMICH PHOTOS:

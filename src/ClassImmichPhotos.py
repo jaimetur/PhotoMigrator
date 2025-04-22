@@ -1569,7 +1569,12 @@ class ClassImmichPhotos:
             output_folder = os.path.join(output_folder, "Albums")
             os.makedirs(output_folder, exist_ok=True)
 
-            all_albums = self.get_albums_including_shared_with_user(log_level=log_level)
+            # Check if there is some filter applied
+            with_filters = False
+            if ARGS.get('filter-by-type', None) or ARGS.get('filter-from-date', None) or ARGS.get('filter-to-date', None) or ARGS.get('filter-by-country', None) or ARGS.get('filter-by-city', None) or ARGS.get('filter-by-person', None):
+                with_filters = True
+
+            all_albums = self.get_albums_including_shared_with_user(with_filters=with_filters, log_level=log_level)
             if not all_albums:
                 LOGGER.warning("WARNING : No albums available or could not retrieve the list.")
                 self.logout(log_level=log_level)
@@ -1748,7 +1753,7 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            albums = self.get_albums_owned_by_user(log_level=log_level)
+            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
                 self.logout(log_level=log_level)
@@ -1784,7 +1789,7 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            albums = self.get_albums_owned_by_user(log_level=log_level)
+            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
             if not albums:
                 self.logout(log_level=log_level)
                 return 0
@@ -1831,7 +1836,7 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            albums = self.get_albums_owned_by_user(log_level=log_level)
+            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
             if not albums:
                 self.logout(log_level=log_level)
                 return 0

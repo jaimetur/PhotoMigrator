@@ -9,7 +9,8 @@
 
 ### TODO:
 - [x] Add Feature to Merge Albums with the same name and different assets. 
-- [x] Add new flags _**-sMergAlb, --synology-merge-duplicates-albums**_ and _**-iMergAlb, --immich-merge-duplicates-albums**_ to activate this feature.
+- [x] Add new flags _**'-sMergAlb, --synology-merge-duplicates-albums'**_ and _**'-iMergAlb, --immich-merge-duplicates-albums'**_ to activate this feature.
+- [x] Support for 2FA in Synology Photos requesting the OTP Token if flag _**'-sOTP, --synology-OTP'**_ is detected.
 - [ ] Rename Albums using regular expresions. 
 
 

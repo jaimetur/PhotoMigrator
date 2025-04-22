@@ -131,6 +131,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             "[-gpthProg [= [true,false]]]": False   # Salto de línea antes, pero sigue reagrupando
             ,"[-i <INPUT_FOLDER>]": False   # Salto de línea antes, pero sigue reagrupando
             ,"[-gtProc <TAKEOUT_FOLDER>]": False   # Salto de línea antes, pero sigue reagrupando
+            ,"[-iuAlb <ALBUMS_FOLDER>]": False   # Salto de línea antes, pero sigue reagrupando
             ,"[-irEmpAlb]": False   # Salto de línea antes, pero sigue reagrupando
             ,"[-fixSym <FOLDER_TO_FIX>]": False   # Salto de línea antes, pero sigue reagrupando
             ,"[-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]": True  # Va solo
