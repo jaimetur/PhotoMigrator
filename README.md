@@ -202,6 +202,9 @@ The Historical Releases Notes can be checked in the following link:
 
 
 ## ROADMAP:
+Planed Roadmap for the following releases
+
+---
 
 ## v3.3.0  
 ### Release Date:
@@ -251,7 +254,6 @@ The Historical Releases Notes can be checked in the following link:
 - [ ] Update Documentation
 - [ ] Update README.md
 - [ ] Update RELEASES-NOTES.md
-
 
 ## Credits
 I hope this can be useful for any of you.  
