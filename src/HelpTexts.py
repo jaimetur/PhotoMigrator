@@ -43,7 +43,7 @@ def set_help_texts():
     HELP_TEXTS["synology-upload-all"] = textwrap.dedent(f"""
         ATTENTION!!!: This process will connect to your Synology Photos account and will Upload all Assets found in <INPUT_FOLDER> 
         
-        All the Subfolders with valid assets inside <INPUT_FOLDER> will be considered as an Album, and will create new Album in Synology Photos with the name of the Subfolder.
+        All the Subfolders with valid assets inside '<INPUT_FOLDER>/Albums' will be considered as an Album, and will create new Album in Synology Photos with the name of the Subfolder.
         
         If the <INPUT_FOLDER> contains a Subfolder called 'No-Albums' then, all assets inside each that subfolder will be uploaded without creating any Album for them.
         """)
@@ -97,7 +97,7 @@ def set_help_texts():
     HELP_TEXTS["immich-upload-all"] = textwrap.dedent(f"""
         ATTENTION!!!: This process will connect to your to your Immich Photos account and will Upload all Assets found in <INPUT_FOLDER> 
         
-        All the Subfolders with valid assets inside <INPUT_FOLDER> will be considered as an Album, and will create new Album in Immich Photos with the name of the Subfolder.
+        All the Subfolders with valid assets inside '<INPUT_FOLDER>/Albums' will be considered as an Album, and will create new Album in Immich Photos with the name of the Subfolder.
         
         If the <INPUT_FOLDER> contains a Subfolder called 'No-Albums' then, all assets inside each that subfolder will be uploaded without creating any Album for them.
         """)

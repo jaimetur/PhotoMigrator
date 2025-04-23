@@ -1883,7 +1883,7 @@ class ClassSynologyPhotos:
 
                 if not os.path.isdir(input_folder):
                     LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
-                    return 0, 0, 0, 0
+                    return 0, 0, 0, 0, 0
 
                 subfolders_exclusion = convert_to_list(subfolders_exclusion)
                 subfolders_inclusion = convert_to_list(subfolders_inclusion) if subfolders_inclusion else []
@@ -1891,6 +1891,7 @@ class ClassSynologyPhotos:
                 total_albums_skipped = 0
                 total_assets_uploaded = 0
                 total_duplicates_assets_removed = 0
+                total_duplicates_assets_skipped = 0
 
                 # If 'Albums' is not in subfolders_inclusion, add it (like original code).
                 albums_folder_included = any(rel.lower() == 'albums' for rel in subfolders_inclusion)
@@ -1929,6 +1930,7 @@ class ClassSynologyPhotos:
                 first_level_folders = os.listdir(input_folder)
                 if subfolders_inclusion:
                     first_level_folders += subfolders_inclusion
+                    first_level_folders = list(dict.fromkeys(first_level_folders))
 
                 with tqdm(total=len(valid_folders), smoothing=0.1, desc="INFO    : Uploading Albums from Folders", unit=" folders") as pbar:
                     for subpath in valid_folders:
@@ -1966,8 +1968,11 @@ class ClassSynologyPhotos:
                                 if ext not in self.ALLOWED_EXTENSIONS:
                                     continue
 
-                                asset_id = self.push_asset(file_path, log_level=logging.WARNING)
-                                if asset_id:
+                                asset_id, is_dup = self.push_asset(file_path, log_level=logging.WARNING)
+                                if is_dup:
+                                    total_duplicates_assets_skipped += 1
+                                    LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} skipped")
+                                elif asset_id:
                                     total_assets_uploaded += 1
                                     # Associate only if ext is photo/video
                                     if ext in self.ALLOWED_MEDIA_EXTENSIONS:
@@ -1985,15 +1990,16 @@ class ClassSynologyPhotos:
                 LOGGER.info(f"INFO    : Uploaded {total_assets_uploaded} asset(s) from '{input_folder}' to Albums.")
                 LOGGER.info(f"INFO    : Skipped {total_albums_skipped} album(s) from '{input_folder}'.")
                 LOGGER.info(f"INFO    : Removed {total_duplicates_assets_removed} duplicates asset(s) from Synology Database.")
+                LOGGER.info(f"INFO    : Skipped {total_duplicates_assets_skipped} duplicated asset(s) from '{input_folder}' to Albums.")
 
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while uploading Albums assets into Synology Photos. {e}")
-                return 0,0,0,0
+                return 0,0,0,0,0
             
-        return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed
+        return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed, total_duplicates_assets_skipped
 
 
-    def push_no_albums(self, input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, log_level=logging.WARNING):
+    def push_no_albums(self, input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         """
         Recursively traverses 'input_folder' and its subfolders_inclusion to upload all
         compatible files (photos/videos) to Synology without associating them to any album.
@@ -2011,7 +2017,7 @@ class ClassSynologyPhotos:
             self.login(log_level=log_level)
             if not os.path.isdir(input_folder):
                 LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
-                return 0
+                return 0,0,0
 
             subfolders_exclusion = convert_to_list(subfolders_exclusion)
             subfolders_inclusion = convert_to_list(subfolders_inclusion) if subfolders_inclusion else []
@@ -2040,21 +2046,33 @@ class ClassSynologyPhotos:
                 file_paths = collect_files(input_folder, subfolders_inclusion)
                 total_files = len(file_paths)
                 total_assets_uploaded = 0
+                total_duplicated_assets_skipped = 0
 
                 with tqdm(total=total_files, smoothing=0.1, desc="INFO    : Uploading Assets", unit=" asset") as pbar:
                     for file_ in file_paths:
-                        asset_id = self.push_asset(file_, log_level=logging.WARNING)
-                        if asset_id:
+                        asset_id, is_dup = self.push_asset(file_, log_level=logging.WARNING)
+                        if is_dup:
+                            total_duplicated_assets_skipped += 1
+                            LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} skipped")
+                        elif asset_id:
+                            LOGGER.debug(f"DEBUG   : Asset ID: {asset_id} uploaded to Immich Photos")
                             total_assets_uploaded += 1
                         pbar.update(1)
 
+                duplicates_assets_removed = 0
+                if remove_duplicates:
+                    LOGGER.info("INFO    : Removing Duplicates Assets...")
+                    duplicates_assets_removed = self.remove_duplicates_assets(log_level=log_level)
+
                 LOGGER.info(f"INFO    : Uploaded {total_assets_uploaded} files (without album) from '{input_folder}'.")
+                LOGGER.info(f"INFO    : Skipped {total_duplicated_assets_skipped} duplicated asset(s) from '{input_folder}'.")
+                LOGGER.info(f"INFO    : Removed {duplicates_assets_removed} duplicates asset(s) from Synology Database.")
 
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while uploading No-Albums assets into Synology Photos. {e}")
-                return 0
+                return 0,0,0
             
-        return total_assets_uploaded
+        return total_assets_uploaded, total_duplicated_assets_skipped, duplicates_assets_removed
 
 
     def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.INFO):
@@ -2085,13 +2103,15 @@ class ClassSynologyPhotos:
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : Uploading Assets and creating Albums into synology Photos from '{albums_folders}' subfolders...")
 
-                total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed = self.push_albums(input_folder=input_folder, subfolders_inclusion=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
+                total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed_1, total_dupplicated_assets_skipped_1 = self.push_albums(input_folder=input_folder, subfolders_inclusion=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
 
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : Uploading Assets without Albums creation into synology Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
 
-                total_assets_uploaded_without_albums = self.push_no_albums(input_folder=input_folder, subfolders_exclusion=albums_folders, log_level=logging.WARNING)
+                total_assets_uploaded_without_albums, total_dupplicated_assets_skipped_2, total_duplicates_assets_removed_2 = self.push_no_albums(input_folder=input_folder, subfolders_exclusion=albums_folders, log_level=logging.WARNING)
 
+                total_duplicates_assets_removed = total_duplicates_assets_removed_1 + total_duplicates_assets_removed_2
+                total_dupplicated_assets_skipped = total_dupplicated_assets_skipped_1 + total_dupplicated_assets_skipped_2
                 total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
 
                 if remove_duplicates:
@@ -2101,7 +2121,7 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while uploading ALL assets into Synology Photos. {e}")
 
-            return (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed)
+            return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed, total_dupplicated_assets_skipped
 
 
     def pull_albums(self, albums_name='ALL', output_folder='Downloads_Synology', log_level=logging.WARNING):
