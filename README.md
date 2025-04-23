@@ -212,9 +212,13 @@ The below tables show the pros and cons of each method together with a comparati
 - [x] Improve performance when searching Google Takeout structure on huge local folder with many subfolders
 - [x] Add Multi-Account support for all Synology Photos and Immich Photos Features (not only Automated Mode Feature as before)
 - [x] Add Support for 3 accounts of each Cloud Photo Service (before it was only 2)
+= [x] Add new flag _**'=id, --account-id <ID>'**_ to specify which account to use for Synology Photos and Immich Photos from Config.ini
+= [x] Add new flag _**'=sOTP, --synology-OTP'**_ to allow login into Synology Photos accounts with 2FA activated
 - [x] Support for 2FA in Synology Photos requesting the OTP Token if flag _**'-sOTP, --synology-OTP'**_ is detected. [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218)
 - [x] Fix issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218)
-- [ ] Rename Albums using regular expresions. 
+- [ ] Rename Albums using regular expresions or patterns in the name
+- [ ] Delete Albums using regular expresions or patterns in the name
+
 
 
 ## v4.0.0:
