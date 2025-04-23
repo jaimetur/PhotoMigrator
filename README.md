@@ -196,12 +196,12 @@ The below tables show the pros and cons of each method together with a comparati
 > It is important that you configure properly the file 'Config.ini' (included with the tool), to set properly the accounts for your Photo Cloud Service.  
 
 
-# RELEASES-NOTES:
+## RELEASES-NOTES:
 The Historical Releases Notes can be checked in the following link:
 [RELEASES-NOTES.md](/docs/RELEASES-NOTES.md)
 
 
-# ROADMAP:
+## ROADMAP:
 
 ## v3.3.0  
 ### Release Date:
