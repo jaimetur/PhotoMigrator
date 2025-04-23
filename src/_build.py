@@ -164,7 +164,7 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
     # Buscar el bloque ROADMAP existente
     start_index, end_index = None, None
     for i, line in enumerate(readme_lines):
-        if line.strip() == "# ROADMAP:":
+        if line.strip() == "## ROADMAP:":
             start_index = i
         if start_index is not None and line.strip() == "## Credits":
             end_index = i
