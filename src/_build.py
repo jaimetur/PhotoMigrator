@@ -115,20 +115,16 @@ def extract_release_body(download_file, input_file, output_file):
     release_count = 0
     # Loop through lines to find the start of the "Release Notes" section and locate the second occurrence of "**Release**"
     for i, line in enumerate(lines):
-        if line.strip() == "## Release Notes:":
+        if line.strip() == "## Releases Notes:":
             release_notes_index = i
         if "**Release**" in line:
             release_count += 1
             if release_count == 2:
                 second_release_index = i
                 break
-    # Loop through lines to find the "Download Latest Version" section
-    for i, line in enumerate(lines):
-        if line.strip().startswith("## Download:"):
-            download_section_index = i
-            break
-    # Validate that all required sections exist
-    if release_notes_index is None or download_section_index is None:
+
+    # Validate that all releases notes section exists
+    if release_notes_index is None:
         print("Required sections not found in the file.")
         return
     # Extract content from "## Release Notes:" to the second "**Release**"
@@ -136,17 +132,13 @@ def extract_release_body(download_file, input_file, output_file):
         release_section = lines[release_notes_index:second_release_index]
     else:
         release_section = lines[release_notes_index:]
-    # Extract content from "## Download:" to "## Release Notes:"
-    download_section = lines[download_section_index:release_notes_index]
-    # Rearrange sections: first the extracted release notes, then the modified download section
-    new_content = download_section + ["\n"] + release_section
-    
-    # Firs copy download_file to output_file, overwriting if exists
+
+    # First copy download_file to output_file, overwriting if exists
     shutil.copy2(download_file, output_file)
 
     # Write the modified content to the output file
     with open(output_file, 'a', encoding='utf-8') as outfile:
-        outfile.writelines(new_content)
+        outfile.writelines(release_section)
 
 def add_roadmap_to_readme(readme_file, roadmap_file):
     """
