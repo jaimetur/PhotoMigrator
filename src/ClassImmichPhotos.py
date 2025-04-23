@@ -1372,8 +1372,10 @@ class ClassImmichPhotos:
                         if is_dup:
                             total_duplicates_assets_skipped += 1
                             LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} upload skipped")
-                        if asset_id:
+                        else:
                             total_assets_uploaded += 1
+                            
+                        if asset_id:
                             # Associate only if ext is photo/video
                             if ext in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
                                 album_assets_ids.append(asset_id)

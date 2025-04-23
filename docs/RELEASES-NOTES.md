@@ -1,23 +1,4 @@
-## Download:
-Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
-
-**Linux:**:  
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.3.0-alpha/CloudPhotoMigrator_v3.3.0-alpha_linux_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.3.0-alpha/CloudPhotoMigrator_v3.3.0-alpha_linux_arm64.zip)  
-
-**Mac OS:**
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.3.0-alpha/CloudPhotoMigrator_v3.3.0-alpha_macos_amd64.zip)  
-  - [Download ARM 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.3.0-alpha/CloudPhotoMigrator_v3.3.0-alpha_macos_arm64.zip)  
-
-**Windows:**  
-  - [Download AMD 64 bits version](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.3.0-alpha/CloudPhotoMigrator_v3.3.0-alpha_windows_amd64.zip)  
-
-**Docker Launcher:**  
-  - [Download Docker Launcher](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.3.0-alpha/CloudPhotoMigrator_v3.3.0-alpha_docker.zip)  
-
----
-
-## Release Notes:
+## Releases Notes:
 
 **Release**: v3.3.0  
 **Release Date**: 2025-05-30
@@ -33,10 +14,14 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 - [x] Improved performance when searching Google Takeout structure on huge local folder with many subfolders
 - [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automated Mode Feature as before)
 - [x] Added Support for 3 accounts of each Cloud Photo Service (before it was only 2)
+- [x] Added new flag _**'-id, --account-id \<ID>'**_ to specify which account to use for Synology Photos and Immich Photos from Config.ini
+- [x] Added new flag _**'-sOTP, --synology-OTP'**_ to allow login into Synology Photos accounts with 2FA activated
 - [x] Support for 2FA in Synology Photos requesting the OTP Token if flag _**'-sOTP, --synology-OTP'**_ is detected. [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218)
 - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218)
 
-**Release**: v3.3.0-alpha  
+---
+
+**Release**: v3.2.0  
 **Release Date**: 2025-04-30
 
 ### Main Changes:

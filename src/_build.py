@@ -103,7 +103,7 @@ def get_clean_version(version: str):
     clean_version = version.lstrip('v')
     return clean_version
 
-def extract_release_body(input_file, output_file):
+def extract_release_body(download_file, input_file, output_file):
     """Extracts two specific sections from the release notes file, modifies a header, and rearranges them."""
     # Open the file and read its content into a list
     with open(input_file, 'r', encoding='utf-8') as infile:
@@ -115,20 +115,17 @@ def extract_release_body(input_file, output_file):
     release_count = 0
     # Loop through lines to find the start of the "Release Notes" section and locate the second occurrence of "**Release**"
     for i, line in enumerate(lines):
-        if line.strip() == "## Release Notes:":
+        if line.strip() == "## Releases Notes:":
             release_notes_index = i
+            lines[i] = lines[i].replace("## Releases Notes:", "## Release Notes:")
         if "**Release**" in line:
             release_count += 1
             if release_count == 2:
                 second_release_index = i
                 break
-    # Loop through lines to find the "Download Latest Version" section
-    for i, line in enumerate(lines):
-        if line.strip().startswith("## Download:"):
-            download_section_index = i
-            break
-    # Validate that all required sections exist
-    if release_notes_index is None or download_section_index is None:
+
+    # Validate that all releases notes section exists
+    if release_notes_index is None:
         print("Required sections not found in the file.")
         return
     # Extract content from "## Release Notes:" to the second "**Release**"
@@ -136,13 +133,13 @@ def extract_release_body(input_file, output_file):
         release_section = lines[release_notes_index:second_release_index]
     else:
         release_section = lines[release_notes_index:]
-    # Extract content from "## Download:" to "## Release Notes:"
-    download_section = lines[download_section_index:release_notes_index]
-    # Rearrange sections: first the extracted release notes, then the modified download section
-    new_content = download_section + ["\n"] + release_section
+
+    # First copy download_file to output_file, overwriting if exists
+    shutil.copy2(download_file, output_file)
+
     # Write the modified content to the output file
-    with open(output_file, 'w', encoding='utf-8') as outfile:
-        outfile.writelines(new_content)
+    with open(output_file, 'a', encoding='utf-8') as outfile:
+        outfile.writelines(release_section)
 
 def add_roadmap_to_readme(readme_file, roadmap_file):
     """
@@ -164,7 +161,7 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
     # Buscar el bloque ROADMAP existente
     start_index, end_index = None, None
     for i, line in enumerate(readme_lines):
-        if line.strip() == "# ROADMAP:":
+        if line.strip() == "## ROADMAP:":
             start_index = i
         if start_index is not None and line.strip() == "## Credits":
             end_index = i
@@ -236,13 +233,14 @@ def main(compile=True):
     root_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 
     # Ruta de los archivos RELEASES-NOTES.md, CURRENT-RELEASE.md, README.md y ROADMAP.md
+    download_filepath = os.path.join(root_dir, 'docs', 'DOWNLOAD.md')
     releases_filepath = os.path.join(root_dir, 'docs', 'RELEASES-NOTES.md')
     current_release_filepath = os.path.join(root_dir, 'CURRENT-RELEASE.md')
     roadmap_filepath = os.path.join(root_dir, 'docs', 'ROADMAP.md')
     readme_filepath = os.path.join(root_dir,'README.md')
 
     # Extraer el cuerpo de la Release actual de RELEASES-NOTES.md
-    extract_release_body(releases_filepath, current_release_filepath)
+    extract_release_body(download_filepath, releases_filepath, current_release_filepath)
     print(f"Archivo {current_release_filepath} creado correctamente.")
     
     # Añadimos el ROADMAP en el fichero README
