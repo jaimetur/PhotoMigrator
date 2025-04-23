@@ -17,7 +17,7 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 
 ---
 
-## Release Notes:
+## Releases Notes:
 
 **Release**: v3.3.0  
 **Release Date**: 2025-05-30
