@@ -200,11 +200,12 @@ The below tables show the pros and cons of each method together with a comparati
 The Historical Releases Notes can be checked in the following link:
 [RELEASES-NOTES.md](/docs/RELEASES-NOTES.md)
 
+---
 
 ## ROADMAP:
 Planed Roadmap for the following releases
 
----
+
 
 ## v3.3.0  
 ### Release Date:
