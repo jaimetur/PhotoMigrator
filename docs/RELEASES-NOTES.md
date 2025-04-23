@@ -33,6 +33,8 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 - [x] Improved performance when searching Google Takeout structure on huge local folder with many subfolders
 - [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automated Mode Feature as before)
 - [x] Added Support for 3 accounts of each Cloud Photo Service (before it was only 2)
+= [x] Added new flag _**'=id, --account-id <ID>'**_ to specify which account to use for Synology Photos and Immich Photos from Config.ini
+= [x] Added new flag _**'=sOTP, --synology-OTP'**_ to allow login into Synology Photos accounts with 2FA activated
 - [x] Support for 2FA in Synology Photos requesting the OTP Token if flag _**'-sOTP, --synology-OTP'**_ is detected. [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218)
 - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218)
 
