@@ -1,6 +1,7 @@
 from configparser import ConfigParser
 from GlobalVariables import LOGGER  # Import global LOGGER
 import os, sys
+import re
 from GlobalVariables import resolve_path
 
 CONFIG = None
@@ -66,7 +67,7 @@ def load_config(config_file='Config.ini', section_to_load='all'):
 
     # Remove in-line comments from config_file
     def clean_value(value):
-        return value.split('#', 1)[0].strip() if value else None  # Evita errores si el valor es None
+        return re.split(r'\s+#', value, maxsplit=1)[0].strip()
 
     # Define the Sections and Keys to find in config_file
     config_keys = {
