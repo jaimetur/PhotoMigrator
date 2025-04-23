@@ -1971,8 +1971,8 @@ class ClassSynologyPhotos:
                                 asset_id, is_dup = self.push_asset(file_path, log_level=logging.WARNING)
                                 if is_dup:
                                     total_duplicates_assets_skipped += 1
-                                    LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} skipped")
-                                elif asset_id:
+                                    LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} upload skipped")
+                                if asset_id:
                                     total_assets_uploaded += 1
                                     # Associate only if ext is photo/video
                                     if ext in self.ALLOWED_MEDIA_EXTENSIONS:
