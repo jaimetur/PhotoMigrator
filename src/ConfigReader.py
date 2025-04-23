@@ -67,6 +67,8 @@ def load_config(config_file='Config.ini', section_to_load='all'):
 
     # Remove in-line comments from config_file
     def clean_value(value):
+        if value.strip().startswith('#'):
+            return ''
         return re.split(r'\s+#', value, maxsplit=1)[0].strip()
 
     # Define the Sections and Keys to find in config_file
@@ -89,6 +91,7 @@ def load_config(config_file='Config.ini', section_to_load='all'):
             'IMMICH_API_KEY_USER_2',
             'IMMICH_USERNAME_2',
             'IMMICH_PASSWORD_2',
+            'IMMICH_API_KEY_USER_3',
             'IMMICH_USERNAME_3',
             'IMMICH_PASSWORD_3',
         ],
