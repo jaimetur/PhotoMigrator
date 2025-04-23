@@ -759,7 +759,7 @@ def mode_immich_upload_albums(user_confirmation=True, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Upload Albums' Mode detected. Only this module will be run!!!")
         # Create the Object
-        immich = ClassImmichPhotos()
+        immich = ClassImmichPhotos(account_id=ARGS['account-id'])
         # login
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
         immich.login(log_level=logging.WARNING)
@@ -821,7 +821,7 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
         # Create the Object
-        immich = ClassImmichPhotos()
+        immich = ClassImmichPhotos(account_id=ARGS['account-id'])
         # login
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
         immich.login(log_level=logging.WARNING)
