@@ -64,6 +64,9 @@
 >>IMMICH_PASSWORD_2           = password_2                                    # Account 2: Your password for Immich Photos (mandatory if not API_KEY is providen)
 >>```
 
+> [!NOTE]  
+> If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the flag _**-id, -account-id**_ to specify the account 2 or 3 as needed. 
+
 
 ## <span style="color:blue">Upload Albums (from Local Folder) into Immich Photos:</span>
 - **From:** v3.0.0 

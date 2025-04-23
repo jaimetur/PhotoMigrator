@@ -117,16 +117,16 @@ def parse_arguments():
                         type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="Enable or disable Error messages during GPTH Processing. (default: True)."
     )
+    PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
+    PARSER.add_argument("-loglevel", "--log-level", metavar=f"{choices_for_message_levels}", choices=choices_for_message_levels, default="info", help="Specify the log level for logging and screen messages.")
     PARSER.add_argument("-id", "--account-id",
                         metavar="= [1,2,3]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=1,  # Si el usuario pasa --account-id sin valor, se asigna 1
                         default=1,  # Si no se pasa el argumento, también se asigna 1
                         type=validate_account_id,  # Ahora espera un entero como tipo de argumento
-                        help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exists in the Configuration file as suffix of USERNAME/PASSORD/API_KEY_USER."
+                        help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the Configuration file as suffix of USERNAME/PASSORD or API_KEY_USER. (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini file)."
                         )
-    PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
-    PARSER.add_argument("-loglevel", "--log-level", metavar=f"{choices_for_message_levels}", choices=choices_for_message_levels, default="info", help="Specify the log level for logging and screen messages.")
 
 
     # FEATURES FOR GOOGLE PHOTOS:
