@@ -1339,6 +1339,7 @@ class ClassImmichPhotos:
             first_level_folders = os.listdir(input_folder)
             if subfolders_inclusion:
                 first_level_folders += subfolders_inclusion
+                first_level_folders = list(dict.fromkeys(first_level_folders))
 
             with tqdm(total=len(valid_folders), smoothing=0.1, desc="INFO    : Uploading Albums from Folders", unit=" folders") as pbar:
                 for subpath in valid_folders:
@@ -1373,6 +1374,7 @@ class ClassImmichPhotos:
                             LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} skipped")
                         elif asset_id:
                             total_assets_uploaded += 1
+                            # Associate only if ext is photo/video
                             if ext in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
                                 album_assets_ids.append(asset_id)
 
@@ -1406,11 +1408,7 @@ class ClassImmichPhotos:
                     total_duplicates_assets_skipped)
 
 
-    def push_no_albums(self, input_folder,
-                       subfolders_exclusion='Albums',
-                       subfolders_inclusion=None,
-                       remove_duplicates=True,
-                       log_level=logging.WARNING):
+    def push_no_albums(self, input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         """
         Recursively traverses 'input_folder' and its subfolders_inclusion to upload all
         compatible files (photos/videos) to Immich without associating them to any album.
@@ -1516,22 +1514,13 @@ class ClassImmichPhotos:
             LOGGER.info("")
             LOGGER.info(f"INFO    : Uploading Assets and creating Albums into immich Photos from '{albums_folders}' subfolders...")
 
-            (total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed_1, total_dupplicated_assets_skipped_1) = self.push_albums(
-                 input_folder=input_folder,
-                 subfolders_inclusion=albums_folders,
-                 remove_duplicates=False,
-                 log_level=logging.WARNING
-            )
+            total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed_1, total_dupplicated_assets_skipped_1 = self.push_albums(input_folder=input_folder, subfolders_inclusion=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
 
             LOGGER.info("")
             LOGGER.info(f"INFO    : Uploading Assets without Albums creation into immich Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
 
-            (total_assets_uploaded_without_albums, total_dupplicated_assets_skipped_2, total_duplicates_assets_removed_2) = self.push_no_albums(
-                 input_folder=input_folder,
-                 subfolders_exclusion=albums_folders,
-                 remove_duplicates=False,
-                 log_level=logging.WARNING
-            )
+            total_assets_uploaded_without_albums, total_dupplicated_assets_skipped_2, total_duplicates_assets_removed_2 = self.push_no_albums(input_folder=input_folder, subfolders_exclusion=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
+
             total_duplicates_assets_removed = total_duplicates_assets_removed_1 + total_duplicates_assets_removed_2
             total_dupplicated_assets_skipped = total_dupplicated_assets_skipped_1 + total_dupplicated_assets_skipped_2
             total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
@@ -1541,14 +1530,8 @@ class ClassImmichPhotos:
                 total_duplicates_assets_removed += self.remove_duplicates_assets(log_level=logging.WARNING)
 
             self.logout(log_level=log_level)
-            return (total_albums_uploaded,
-                    total_albums_skipped,
-                    total_assets_uploaded,
-                    total_assets_uploaded_within_albums,
-                    total_assets_uploaded_without_albums,
-                    total_duplicates_assets_removed,
-                    total_dupplicated_assets_skipped
-            )
+
+            return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed, total_dupplicated_assets_skipped
 
 
     def pull_albums(self, albums_name='ALL', output_folder="Downloads_Immich", log_level=logging.WARNING):

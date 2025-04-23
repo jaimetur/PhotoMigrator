@@ -325,7 +325,7 @@ def mode_synology_upload_albums(user_confirmation=True, log_level=logging.INFO):
         syno.login(log_level=logging.WARNING)
         LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['synology-upload-albums']}")
         # Call the Function
-        albums_crated, albums_skipped, photos_added = syno.push_albums(ARGS['synology-upload-albums'], log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed, total_dupplicated_assets_skipped  = syno.push_albums(input_folder=ARGS['synology-upload-albums'], log_level=logging.WARNING)
         # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
         total_duplicates_albums_removed = syno.remove_duplicates_albums(log_level=logging.WARNING)
         # logout
@@ -342,10 +342,14 @@ def mode_synology_upload_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("==================================================")
         LOGGER.info("                  FINAL SUMMARY:                  ")
         LOGGER.info("==================================================")
-        LOGGER.info(f"Total Albums created                    : {albums_crated}")
-        LOGGER.info(f"Total Albums skipped                    : {albums_skipped}")
-        LOGGER.info(f"Total Photos added to Albums            : {photos_added}")
+        LOGGER.info(f"Total Assets uploaded                   : {total_assets_uploaded}")
+        LOGGER.info(f"Total Albums uploaded                   : {total_albums_uploaded}")
+        LOGGER.info(f"Total Duplicated Assets skipped         : {total_dupplicated_assets_skipped}")
+        LOGGER.info(f"Total Albums skipped                    : {total_albums_skipped}")
+        LOGGER.info(f"Total Assets added to Albums            : {total_assets_uploaded}")
+        LOGGER.info(f"Total Empty Albums removed              : {total_empty_albums_removed}")
         LOGGER.info(f"Total Duplicated Albums removed         : {total_duplicates_albums_removed}")
+        LOGGER.info(f"Total Duplicated Assets removed         : {duplicates_assets_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -358,7 +362,7 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"INFO    : Flag detected '-suAll, --synology-upload-all'.")
         if albums_folders:
             LOGGER.info(f"INFO    : Flag detected '-AlbFld, --albums-folders' = ['{albums_folders}'].")
-        LOGGER.info(HELP_TEXTS["synology-upload-all"].replace('<INPUT_FOLDER>', f"'{ARGS['synology-upload-all']}'"))
+        LOGGER.info(HELP_TEXTS["synology-upload-all"].replace('<INPUT_FOLDER>', f"{ARGS['synology-upload-all']}"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
@@ -372,7 +376,7 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         syno.login(log_level=logging.WARNING)
         LOGGER.info(f"INFO    : Uploading Assets in Folder    : {ARGS['synology-upload-all']}")
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed = syno.push_ALL (ARGS['synology-upload-all'], albums_folders=albums_folders, log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed, total_dupplicated_assets_skipped = syno.push_ALL (ARGS['synology-upload-all'], albums_folders=albums_folders, log_level=logging.WARNING)
         # After Upload Assets/Albums from Synology Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("INFO    : Cleaning-up Synology Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
@@ -401,6 +405,7 @@ def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("==================================================")
         LOGGER.info(f"Total Assets uploaded                   : {total_assets_uploaded}")
         LOGGER.info(f"Total Albums uploaded                   : {total_albums_uploaded}")
+        LOGGER.info(f"Total Duplicated Assets skipped         : {total_dupplicated_assets_skipped}")
         LOGGER.info(f"Total Albums skipped                    : {total_albums_skipped}")
         LOGGER.info(f"Total Assets added to Albums            : {total_assets_uploaded_within_albums}")
         LOGGER.info(f"Total Assets added without Albums       : {total_assets_uploaded_without_albums}")
@@ -736,7 +741,7 @@ def mode_immich_upload_albums(user_confirmation=True, log_level=logging.INFO):
         immich.login(log_level=logging.WARNING)
         LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed, total_dupplicated_assets_skipped = immich.push_albums(ARGS['immich-upload-albums'], log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed, total_dupplicated_assets_skipped = immich.push_albums(input_folder=ARGS['immich-upload-albums'], log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("INFO    : Cleaning-up Immich Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
@@ -782,7 +787,7 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"INFO    : Flag detected '-iuAll, --immich-upload-all'.")
         if albums_folders:
             LOGGER.info(f"INFO    : Flag detected '-AlbFld, --albums-folders'.")
-        LOGGER.info(HELP_TEXTS["immich-upload-all"].replace('<INPUT_FOLDER>', f"'{ARGS['immich-upload-all']}'"))
+        LOGGER.info(HELP_TEXTS["immich-upload-all"].replace('<INPUT_FOLDER>', f"{ARGS['immich-upload-all']}"))
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
