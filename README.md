@@ -197,7 +197,7 @@ The below tables show the pros and cons of each method together with a comparati
 
 
 # RELEASES-NOTES:
-The Historical Releases Notes can be check in the following link:
+The Historical Releases Notes can be checked in the following link:
 [RELEASES-NOTES.md](/docs/RELEASES-NOTES.md)
 
 
