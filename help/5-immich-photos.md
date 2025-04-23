@@ -12,7 +12,8 @@
 > 6. Remove ALL Albums
 > 7. Remove Empty Albums
 > 8. Remove Duplicates Albums
-> 9. Remove Orphans Assets
+> 9. Merge Duplicates Albums
+> 10. Remove Orphans Assets
 > 
 > You can apply filters to filter assets to download from Synology Photos using any Download feature included.  
 > 
@@ -207,6 +208,21 @@
   ./CloudPhotoMigrator.run --immich-remove-duplicates-albums'
   ```
   With this example, the Tool will connect to your Immich Photos account and will remove all Duplicates Albums found except the first one.
+
+
+## <span style="color:blue">Merge Duplicates Albums from Immich Photos:</span>
+- **From:** v3.3.0
+- **Usage:**
+  - To run this feature you have to use the flag _'--immich-merge-duplicates-albums'_
+- **Pre-Requisites:**
+  - Configure properly the file 'Config.ini' to include your Immich account credentials and url. 
+- **Explanation:**
+  - The Tool will connect automatically to your Immich Photos account and will remove all Duplicates Albums found except the most relevant one (with highest number of assets) and will transfer all the assets associated to the other albums into the main one.  
+- **Example of use:**
+  ```
+  ./CloudPhotoMigrator.run --immich-merge-duplicates-albums'
+  ```
+  With this example, the Tool will connect to your Immich Photos account and will remove all Duplicates Albums found except the first one trasferring all the assets from the removed albums into the main one.
 
 
 ## <span style="color:blue">Remove Orphans Assets from Immich Photos:</span>

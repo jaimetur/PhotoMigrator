@@ -27,12 +27,12 @@ Download the latest version of the Docker package from the [Releases page](https
 
 - **Linux/macOS:**
     ```bash
-    curl -L -o CloudPhotoMigrator_v3.2.0_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.2.0/CloudPhotoMigrator_v3.2.0_docker.zip
+    curl -L -o CloudPhotoMigrator_v3.3.0-alpha_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.3.0-alpha/CloudPhotoMigrator_v3.3.0-alpha_docker.zip
     ```
   
 - **Windows (PoowerShell):**
     ```bash
-    curl.exe -L -o CloudPhotoMigrator_v3.2.0_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.2.0/CloudPhotoMigrator_v3.2.0_docker.zip
+    curl.exe -L -o CloudPhotoMigrator_v3.3.0-alpha_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.3.0-alpha/CloudPhotoMigrator_v3.3.0-alpha_docker.zip
     ```
 
 
@@ -41,13 +41,13 @@ Download the latest version of the Docker package from the [Releases page](https
 - **Linux/macOS:**
     ```bash
     sudo apt install 7zip
-    7z x CloudPhotoMigrator_v3.2.0_docker.zip
+    7z x CloudPhotoMigrator_v3.3.0-alpha_docker.zip
     cd CloudPhotoMigrator/docker
     ```
 
 - **Windows (PoowerShell):**
     ```bash
-    powershell -Command "Expand-Archive -Path CloudPhotoMigrator_v3.2.0_docker.zip -DestinationPath ./"
+    powershell -Command "Expand-Archive -Path CloudPhotoMigrator_v3.3.0-alpha_docker.zip -DestinationPath ./"
     cd CloudPhotoMigrator\docker
     ```
 

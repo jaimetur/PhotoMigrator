@@ -327,7 +327,7 @@ class ClassLocalFolder:
             return False
 
 
-    def get_albums_owned_by_user(self, log_level=logging.INFO):
+    def get_albums_owned_by_user(self, with_filters=True, log_level=logging.INFO):
         """
         Retrieves the list of owned albums.
 
@@ -356,7 +356,7 @@ class ClassLocalFolder:
             return albums_filtered
 
 
-    def get_albums_including_shared_with_user(self, log_level=logging.INFO):
+    def get_albums_including_shared_with_user(self, with_filters=True, log_level=logging.INFO):
         """
         Retrieves both owned and shared albums.
 
@@ -366,6 +366,7 @@ class ClassLocalFolder:
                         - 'id': Full path of the album folder.
                         - 'albumName': Name of the album folder.
         """
+        # TODO: Apply Filters to this method.
         with set_log_level(LOGGER, log_level):
             try:
                 LOGGER.info("INFO    : Retrieving owned and shared albums.")
@@ -470,7 +471,7 @@ class ClassLocalFolder:
         """
         with set_log_level(LOGGER, log_level):
             LOGGER.info(f"INFO    : Checking if album '{album_name}' exists.")
-            for album in self.get_albums_owned_by_user(log_level):
+            for album in self.get_albums_owned_by_user(with_filters=False, log_level=log_level):
                 if album_name == album["albumName"]:
                     return True, album["id"]
             return False, None
@@ -1111,6 +1112,10 @@ class ClassLocalFolder:
         Returns:
             tuple: (albums_downloaded, assets_downloaded)
         """
+        # Check if there is some filter applied
+        with_filters = False
+        if ARGS.get('filter-by-type', None) or ARGS.get('filter-from-date', None) or ARGS.get('filter-to-date', None) or ARGS.get('filter-by-country', None) or ARGS.get('filter-by-city', None) or ARGS.get('filter-by-person', None):
+            with_filters = True
         pass
 
 
@@ -1142,7 +1147,29 @@ class ClassLocalFolder:
         Returns:
             int: The number of empty folders removed.
         """
-        pass
+        with set_log_level(LOGGER, log_level):
+            if not self.base_folder.exists():
+                LOGGER.warning(f"WARN    : Base folder does not exist: {self.base_folder}")
+                return 0
+
+            LOGGER.info(f"INFO    : Looking for empty folders in '{self.base_folder}'...")
+
+            empty_folders_removed = 0
+
+            # Recorremos en orden inverso para asegurar que primero se limpien las subcarpetas
+            for folder in sorted(self.base_folder.rglob("*"), key=lambda p: len(p.parts), reverse=True):
+                if folder.is_dir():
+                    try:
+                        # Solo la eliminamos si no tiene archivos ni subdirectorios
+                        if not any(folder.iterdir()):
+                            folder.rmdir()
+                            empty_folders_removed += 1
+                            LOGGER.info(f"INFO    : Removed empty folder: {folder}")
+                    except Exception as e:
+                        LOGGER.warning(f"WARN    : Could not remove folder '{folder}': {e}")
+
+            LOGGER.info(f"INFO    : Removed {empty_folders_removed} empty folders.")
+            return empty_folders_removed
 
 
     def remove_empty_albums(self, log_level=logging.INFO):
@@ -1162,12 +1189,124 @@ class ClassLocalFolder:
 
     def remove_duplicates_albums(self, log_level=logging.WARNING):
         """
-        Removes duplicate albums that contain the exact same set of files.
+        Removes duplicate albums in local folders. Duplicates are folders with the same name
+        and same total size (sum of all files). Keeps one and removes the rest.
 
         Returns:
             int: Number of duplicate albums removed.
         """
-        pass
+        with set_log_level(LOGGER, log_level):
+            from collections import defaultdict
+
+            if not self.albums_folder.exists():
+                LOGGER.warning(f"WARN    : Albums folder does not exist: {self.albums_folder}")
+                return 0
+
+            LOGGER.info("INFO    : Looking for exact duplicate albums in local folders...")
+
+            duplicates_map = defaultdict(list)
+
+            for folder in self.albums_folder.glob("*"):
+                if folder.is_dir():
+                    album_name = folder.name
+                    total_size = sum(f.stat().st_size for f in folder.rglob("*") if f.is_file())
+                    duplicates_map[(album_name, total_size)].append(folder)
+
+            total_removed = 0
+
+            for (album_name, total_size), folders in duplicates_map.items():
+                if len(folders) > 1:
+                    # Keep the first one, remove the rest
+                    keeper = folders[0]
+                    LOGGER.info(f"INFO    : Keeping folder '{keeper}' with size {total_size} bytes.")
+
+                    for dup_folder in folders[1:]:
+                        try:
+                            shutil.rmtree(dup_folder)
+                            LOGGER.info(f"INFO    : Removed duplicate folder: {dup_folder}")
+                            total_removed += 1
+                        except Exception as e:
+                            LOGGER.error(f"ERROR   : Failed to remove folder '{dup_folder}': {e}")
+
+            LOGGER.info(f"INFO    : Removed {total_removed} exact duplicate folders.")
+            return total_removed
+
+
+    def merge_duplicates_albums(self, strategy='count', log_level=logging.WARNING):
+        """
+        Merge all duplicate albums in local folders. Duplicates are folders with the same name.
+        Keeps the folder with the most files or largest total size (based on strategy), moves all
+        files from the others into it, and deletes the duplicate folders.
+
+        Args:
+            strategy (str): 'count' to keep album with most files, 'size' to keep album with largest size
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            int: The number of duplicate albums deleted.
+        """
+        with set_log_level(LOGGER, log_level):
+            from collections import defaultdict
+
+            if not self.albums_folder.exists():
+                LOGGER.warning(f"WARN    : Albums folder does not exist: {self.albums_folder}")
+                return 0
+
+            LOGGER.info("INFO    : Looking for duplicate albums in local folders...")
+
+            # Map from album name to list of folders
+            albums_by_name = defaultdict(list)
+            for folder in self.albums_folder.glob("*"):
+                if folder.is_dir():
+                    album_name = folder.name
+                    file_count = sum(1 for f in folder.rglob("*") if f.is_file())
+                    total_size = sum(f.stat().st_size for f in folder.rglob("*") if f.is_file())
+                    albums_by_name[album_name].append({
+                        "path": folder,
+                        "count": file_count,
+                        "size": total_size
+                    })
+
+            total_removed_duplicated_albums = 0
+
+            for album_name, folder_group in albums_by_name.items():
+                if len(folder_group) <= 1:
+                    continue  # No duplicates
+
+                if strategy == 'size':
+                    sorted_group = sorted(folder_group, key=lambda x: x['size'], reverse=True)
+                else:  # Default to 'count'
+                    sorted_group = sorted(folder_group, key=lambda x: x['count'], reverse=True)
+
+                keeper = sorted_group[0]
+                keeper_path = keeper["path"]
+                LOGGER.info(f"INFO    : Keeping folder '{keeper_path}' with {keeper['count']} files and {keeper['size']} bytes.")
+
+                for duplicate in sorted_group[1:]:
+                    dup_path = duplicate["path"]
+                    LOGGER.debug(f"DEBUG   : Moving files from duplicate folder: {dup_path}")
+
+                    for file in dup_path.rglob("*"):
+                        if file.is_file():
+                            relative_path = file.relative_to(dup_path)
+                            target_file = keeper_path / relative_path
+                            target_file.parent.mkdir(parents=True, exist_ok=True)
+                            if not target_file.exists():
+                                file.rename(target_file)
+                            else:
+                                LOGGER.warning(f"WARN    : Skipped moving '{file}' as it already exists at destination.")
+
+                    try:
+                        dup_path.rmdir()  # only works if empty
+                        total_removed_duplicated_albums += 1
+                        LOGGER.info(f"INFO    : Removed duplicate folder: {dup_path}")
+                    except OSError:
+                        shutil.rmtree(dup_path)
+                        total_removed_duplicated_albums += 1
+                        LOGGER.info(f"INFO    : Removed duplicate folder and contents: {dup_path}")
+
+            LOGGER.info(f"INFO    : Removed {total_removed_duplicated_albums} duplicate folders.")
+            return total_removed_duplicated_albums
 
 
     def remove_orphan_assets(self, user_confirmation=True, log_level=logging.WARNING):
@@ -1182,6 +1321,7 @@ class ClassLocalFolder:
             int: Number of orphan assets removed (always 0 if not implemented).
         """
         pass
+
 
     ###########################################################################
     #                     REMOVE ALL ASSETS / ALL ALBUMS                      #

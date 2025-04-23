@@ -12,6 +12,7 @@
 > 6. Remove ALL Albums
 > 7. Remove Empty Albums
 > 8. Remove Duplicates Albums
+> 9. Merge Duplicates Albums
 >
 > You can apply filters to filter assets to download from Synology Photos using any Download feature included.  
 > 
@@ -56,6 +57,9 @@
 >>SYNOLOGY_USERNAME_2         = username_2                                    # Account 2: Your username for Synology Photos
 >>SYNOLOGY_PASSWORD_2         = password_2                                    # Account 2: Your password for Synology Photos
 >>```
+
+> [!IMPORTANT]  
+> If your Synology Photo Account requires 2FA Authentification, you must use the flag _**'-sOTP, --synology-OTP'**_ in order to enable the OTP Token request during authentification process. 
 
 
 ## <span style="color:blue">Upload Albums (from Local Folder) into Synology Photos:</span>
@@ -201,7 +205,24 @@
   ./CloudPhotoMigrator.run --synology-remove-duplicates-albums'
   ```
   With this example, the Tool will connect to your Synology Photos account and will remove all Duplicates Albums found except the first one.
-  
+
+
+
+## <span style="color:blue">Merge Duplicates Albums from Synology Photos:</span>
+- **From:** v3.3.0
+- **Usage:**
+  - To run this feature you have to use the flag _'--synology-merge-duplicates-albums'_
+- **Pre-Requisites:**
+  - Configure properly the file 'Config.ini' to include your Synology account credentials and url. 
+- **Explanation:**
+  - The Tool will connect automatically to your Synology Photos account and will remove all Duplicates Albums found except the most relevant one (with highest number of assets) and will transfer all the assets associated to the other albums into the main one.  
+- **Example of use:**
+  ```
+  ./CloudPhotoMigrator.run --synology-merge-duplicates-albums'
+  ```
+  With this example, the Tool will connect to your Synology Photos account and will remove all Duplicates Albums found except the first one trasferring all the assets from the removed albums into the main one.
+
+
 
 ## Config.ini
 Youn can see how to configure the Config.ini file in this help section:

@@ -76,6 +76,9 @@ def detect_and_run_execution_mode():
     elif ARGS['synology-remove-duplicates-albums']:
         EXECUTION_MODE = 'synology-remove-duplicates-albums'
         mode_synology_remove_duplicates_albums()
+    elif ARGS['synology-merge-duplicates-albums']:
+        EXECUTION_MODE = 'synology-merge-duplicates-albums'
+        mode_synology_merge_duplicates_albums()
     elif ARGS['immich-remove-all-albums'] != "":
         EXECUTION_MODE = 'synology-remove-all-albums'
         mode_synology_remove_all_albums()
@@ -107,6 +110,9 @@ def detect_and_run_execution_mode():
     elif ARGS['immich-remove-duplicates-albums']:
         EXECUTION_MODE = 'immich-remove-duplicates-albums'
         mode_immich_remove_duplicates_albums()
+    elif ARGS['immich-merge-duplicates-albums']:
+        EXECUTION_MODE = 'immich-merge-duplicates-albums'
+        mode_immich_merge_duplicates_albums()
     elif ARGS['immich-remove-all-albums'] != "":
         EXECUTION_MODE = 'immich-remove-all-albums'
         mode_immich_remove_all_albums()
@@ -576,6 +582,50 @@ def mode_synology_remove_duplicates_albums(user_confirmation=True, log_level=log
         LOGGER.info("==================================================")
         LOGGER.info("")
 
+def mode_synology_merge_duplicates_albums(user_confirmation=True, log_level=logging.INFO):
+    if user_confirmation:
+        LOGGER.info(f"INFO    : Flag detected '-sMergAlb, --synology-merge-duplicates-albums'.")
+        LOGGER.info(HELP_TEXTS["synology-remove-duplicates-albums"])
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO    : Exiting program.")
+            sys.exit(0)
+
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        LOGGER.info(f"INFO    : Synology Photos: 'Merge Duplicates Album' Mode detected. Only this module will be run!!!")
+        LOGGER.info(f"INFO    : Flag detected '-sMergAlb, --synology-merge-duplicates-albums'. The Tool will look for any duplicated album in your Synology Photos account, merge their content into the most relevant one, and remove the duplicates.")
+
+        # Create the Object
+        syno = ClassSynologyPhotos()
+
+        # Login
+        LOGGER.info("")
+        LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
+        syno.login(log_level=logging.WARNING)
+
+        # Call the Function using 'count' as strategy (you can change to 'size')
+        albums_removed = syno.merge_duplicates_albums(strategy='count', log_level=logging.WARNING)
+
+        # Logout
+        LOGGER.info("")
+        LOGGER.info("INFO    : Logged out from Synology Photos.")
+        syno.logout(log_level=logging.WARNING)
+
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Duplicate Albums merged and removed : {albums_removed}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                        : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
 
 def mode_synology_remove_ALL(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
@@ -971,6 +1021,52 @@ def mode_immich_remove_duplicates_albums(user_confirmation=True, log_level=loggi
         LOGGER.info(f"Total Duplicates Albums removed         : {albums_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+
+def mode_immich_merge_duplicates_albums(user_confirmation=True, log_level=logging.INFO):
+    if user_confirmation:
+        LOGGER.info(f"INFO    : Flag detected '-iMergAlb, --immich-merge-duplicates-albums'.")
+        LOGGER.info(HELP_TEXTS["immich-remove-duplicates-albums"])
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO    : Exiting program.")
+            sys.exit(0)
+
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        LOGGER.info(f"INFO    : Immich Photos: 'Merge Duplicates Album' Mode detected. Only this module will be run!!!")
+        LOGGER.info(f"INFO    : Flag detected '-iMergAlb, --immich-merge-duplicates-albums'. The Tool will look for any duplicated album in your Immich Photos account, merge their content into the most relevant one, and remove the duplicates.")
+
+        # Create the Object
+        immich = ClassImmichPhotos()
+
+        # Login
+        LOGGER.info("")
+        LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
+        immich.login(log_level=logging.WARNING)
+
+        # Call the Function using 'count' as strategy (you can change to 'size')
+        albums_removed = immich.merge_duplicates_albums(strategy='count', log_level=logging.WARNING)
+
+        # Logout
+        LOGGER.info("")
+        LOGGER.info("INFO    : Logged out from Immich Photos.")
+        immich.logout(log_level=logging.WARNING)
+
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Duplicate Albums merged and removed : {albums_removed}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                        : {formatted_duration}")
         LOGGER.info("==================================================")
         LOGGER.info("")
 

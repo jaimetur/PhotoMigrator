@@ -167,12 +167,15 @@ def parse_arguments():
                            "\n- Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
                         )
     PARSER.add_argument("-srEmpAlb", "--synology-remove-empty-albums", action="store_true", default="", help="The Tool will look for all Albums in your Synology Photos account and if any Album is empty, will remove it from your Synology Photos account.")
-    PARSER.add_argument("-srDupAlb", "--synology-remove-duplicates-albums", action="store_true", default="", help="The Tool will look for all Albums in your Synology Photos account and if any Album is duplicated, will remove it from your Synology Photos account.")
+    PARSER.add_argument("-srDupAlb", "--synology-remove-duplicates-albums", action="store_true", default="", help="The Tool will look for all Albums in your Synology Photos account and if any Album is duplicated (with the same name and size), will remove it from your Synology Photos account.")
+    PARSER.add_argument("-sMergAlb", "--synology-merge-duplicates-albums", action="store_true", default="", help="The Tool will look for all Albums in your Synology Photos account and if any Album is duplicated (with the same name), will transfer all its assets to the most relevant album and remove it from your Synology Photos account.")
     PARSER.add_argument("-srAll", "--synology-remove-all-assets", action="store_true", default="", help="CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Synology database.")
     PARSER.add_argument("-srAllAlb", "--synology-remove-all-albums", action="store_true", default="",
                         help="CAUTION!!! The Tool will delete ALL your Albums from Synology database."
                            "\nOptionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
                         )
+    PARSER.add_argument("-sOTP", "--synology-OTP", action="store_true", default="", help="This Flag allow you to login into Synology Photos using 2FA with an OTP Token.")
+
 
 
     # FEATURES FOR IMMICH PHOTOS:
@@ -195,7 +198,8 @@ def parse_arguments():
                            "\n- Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
                         )
     PARSER.add_argument("-irEmpAlb", "--immich-remove-empty-albums", action="store_true", default="", help="The Tool will look for all Albums in your Immich Photos account and if any Album is empty, will remove it from your Immich Photos account.")
-    PARSER.add_argument("-irDupAlb", "--immich-remove-duplicates-albums", action="store_true", default="", help="The Tool will look for all Albums in your Immich Photos account and if any Album is duplicated, will remove it from your Immich Photos account.")
+    PARSER.add_argument("-irDupAlb", "--immich-remove-duplicates-albums", action="store_true", default="", help="The Tool will look for all Albums in your Immich Photos account and if any Album is duplicated (with the same name and size), will remove it from your Immich Photos account.")
+    PARSER.add_argument("-iMergAlb", "--immich-merge-duplicates-albums", action="store_true", default="", help="The Tool will look for all Albums in your Immich Photos account and if any Album is duplicated (with the same name), will transfer all its assets to the most relevant album and remove it from your Immich Photos account.")
     PARSER.add_argument("-irAll", "--immich-remove-all-assets", action="store_true", default="", help="CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Immich database.")
     PARSER.add_argument("-irAllAlb", "--immich-remove-all-albums", action="store_true", default="",
                         help="CAUTION!!! The Tool will delete ALL your Albums from Immich database."
