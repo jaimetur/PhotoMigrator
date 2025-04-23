@@ -31,6 +31,8 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 - [x] Added new flags _**'-sMergAlb, --synology-merge-duplicates-albums'**_ and _**'-iMergAlb, --immich-merge-duplicates-albums'**_ to activate this feature.
 - [x] Improved Performance on Pull functions when no filtering options have been given
 - [x] Improved performance when searching Google Takeout structure on huge local folder with many subfolders
+- [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automated Mode Feature as before)
+- [x] Added Support for 3 accounts of each Cloud Photo Service (before it was only 2)
 - [x] Support for 2FA in Synology Photos requesting the OTP Token if flag _**'-sOTP, --synology-OTP'**_ is detected. [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218)
 - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218)
 

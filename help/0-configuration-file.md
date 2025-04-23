@@ -14,6 +14,8 @@ You can see the default Config.ini file here
 >SYNOLOGY_PASSWORD_1         = password_1                                    # Account 1: Your password for Synology Photos
 >SYNOLOGY_USERNAME_2         = username_2                                    # Account 2: Your username for Synology Photos
 >SYNOLOGY_PASSWORD_2         = password_2                                    # Account 2: Your password for Synology Photos
+>SYNOLOGY_USERNAME_3         = username_3                                    # Account 3: Your username for Synology Photos
+>SYNOLOGY_PASSWORD_3         = password_3                                    # Account 3: Your password for Synology Photos
 >
 ># Configuration for Immich Photos
 >[Immich Photos]
@@ -25,10 +27,13 @@ You can see the default Config.ini file here
 >IMMICH_API_KEY_USER_2       = API_KEY_USER_2                                # Account 2: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
 >IMMICH_USERNAME_2           = username_2                                    # Account 2: Your username for Immich Photos (mandatory if not API_KEY is providen)
 >IMMICH_PASSWORD_2           = password_2                                    # Account 2: Your password for Immich Photos (mandatory if not API_KEY is providen)
+>IMMICH_API_KEY_USER_3       = API_KEY_USER_3                                # Account 3: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
+>IMMICH_USERNAME_3           = username_3                                    # Account 3: Your username for Immich Photos (mandatory if not API_KEY is providen)
+>IMMICH_PASSWORD_3           = password_3                                    # Account 3: Your password for Immich Photos (mandatory if not API_KEY is providen)
 >```
 
 ## Google Takeout Section:
-In this section you don't have to provide to provide any settings (it is here for futures purposses:
+In this section you don't have to provide any settings (it is here for futures purposses):
 
 ## Synology Photos Section:
 In this section you have to provide:

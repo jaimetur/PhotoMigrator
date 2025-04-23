@@ -36,6 +36,7 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>
                                   [-gpthProg [= [true,false]]] [-gpthErr [= [true,false]]]
                                   [-nolog]
                                   [-loglevel ['debug', 'info', 'warning', 'error', 'critical']]
+                                  [-id [= [1,2,3]]]
                                   [-gtProc <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gnas ['flatten', 'year', 'year/month', 'year-month']]
@@ -153,6 +154,11 @@ Following general arguments have different purposses depending on the Execution 
              Skip saving output messages to execution log file.
 -loglevel, --log-level ['debug', 'info', 'warning', 'error', 'critical']
              Specify the log level for logging and screen messages.
+-id,       --account-id = [1,2,3]
+             Set the account ID for Synology Photos or Immich Photos. (default: 1). This
+             value must exist in the Configuration file as suffix of USERNAME/PASSORD or
+             API_KEY_USER. (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2
+             or IMMICH_API_KEY_USER_2 entries must exist in Config.ini file).
 
 
 GOOGLE PHOTOS TAKEOUT MANAGEMENT:

@@ -59,7 +59,7 @@ class ClassSynologyPhotos:
         Also imports the global LOGGER from GlobalVariables.
         """
         self.ACCOUNT_ID = str(account_id)  # Used to identify wich Account to use from the configuration file
-        if account_id not in [1, 2]:
+        if account_id not in [1, 2, 3]:
             LOGGER.error(f"ERROR   : Cannot create Immich Photos object with ACCOUNT_ID: {account_id}. Valid valies are [1, 2]. Exiting...")
             sys.exit(-1)
 
@@ -1971,8 +1971,8 @@ class ClassSynologyPhotos:
                                 asset_id, is_dup = self.push_asset(file_path, log_level=logging.WARNING)
                                 if is_dup:
                                     total_duplicates_assets_skipped += 1
-                                    LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} skipped")
-                                elif asset_id:
+                                    LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} upload skipped")
+                                if asset_id:
                                     total_assets_uploaded += 1
                                     # Associate only if ext is photo/video
                                     if ext in self.ALLOWED_MEDIA_EXTENSIONS:

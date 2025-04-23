@@ -129,6 +129,7 @@ The below tables show the pros and cons of each method together with a comparati
 
 
 ## Main Use Case: Automated Migration Feature
+
 > [!NOTE]  
 >## <span style="color:green">Automated Migration Feature</span>
 >From version 3.0.0 onwards, the Tool supports a new Feature called '**Automated Migration**'. 
@@ -136,15 +137,17 @@ The below tables show the pros and cons of each method together with a comparati
 > Use the argument **'--source'** to select the \<SOURCE> client and the argument **'--target'** to select \<TARGET> client for the Automated Migration Process to Pull all your Assets (including Albums) from the \<SOURCE> Cloud Service and Push them to the \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
 > 
 >  - Possible values for:
->    - **\<SOURCE\>** : ['synology-photos', 'immich-photos']-[id] or <INPUT_FOLDER>  (id=[1, 2] to select which account to use from the Config.ini file).  
->    - **\<TARGET\>** : ['synology-photos', 'immich-photos']-[id] or <OUTPUT_FOLDER> (id=[1, 2] to select which account to use from the Config.ini file).  
+>    - **\<SOURCE\>** : ['synology-photos', 'immich-photos']-[id] or <INPUT_FOLDER>  (id=[1, 2, 3] to select which account to use from the Config.ini file).  
+>    - **\<TARGET\>** : ['synology-photos', 'immich-photos']-[id] or <OUTPUT_FOLDER> (id=[1, 2, 3] to select which account to use from the Config.ini file).  
 >    
 > 
 >  - The idea is complete above list to allow also Google Photos and Apple Photos (iCloud), so when this is done, the allowed values will be:
->    - **\<SOURCE\>** : ['synology-photos', 'immich-photos', 'google-photos', 'apple-photos']-[id]  or <INPUT_FOLDER> (id=[1, 2] to select which account to use from the Config.ini file).  
->    - **\<TARGET\>** : ['synology-photos', 'immich-photos', 'google-photos', 'apple-photos']-[id]  or <OUTPUT_FOLDER> (id=[1, 2] to select which account to use from the Config.ini file).  
+>    - **\<SOURCE\>** : ['synology-photos', 'immich-photos', 'google-photos', 'apple-photos']-[id]  or <INPUT_FOLDER> (id=[1, 2, 3] to select which account to use from the Config.ini file).  
+>    - **\<TARGET\>** : ['synology-photos', 'immich-photos', 'google-photos', 'apple-photos']-[id]  or <OUTPUT_FOLDER> (id=[1, 2, 3] to select which account to use from the Config.ini file).  
 >
 > If you ommit the suffix -[id], the tool will assume that account 1 will be used for the specified client (ie: --source=synology-photos means that Synology Photos account 1 will be used as \<SOURCE> client.)  
+>
+> It is also possible to specify the account-id using the flag _**-id, --account-id**_ (ie: --source=synology --account-id=2 means that Synology Photos account 2 will be used as \<SOURCE> client.) 
 > 
 > Also, you can ommit the suffix -photos in both \<SOURCE> and \<TARGET> clients, so, you can just use --source=synology --target=immich to set Synology Photos account 1 as \<SOURCE> client and Immich Photos account 1 as \<TARGET> client.  
 > 
@@ -207,6 +210,8 @@ The below tables show the pros and cons of each method together with a comparati
 - [x] Add new flags _**'-sMergAlb, --synology-merge-duplicates-albums'**_ and _**'-iMergAlb, --immich-merge-duplicates-albums'**_ to activate this feature.
 - [x] Improve Performance on Pull functions when no filtering options have been given
 - [x] Improve performance when searching Google Takeout structure on huge local folder with many subfolders
+- [x] Add Multi-Account support for all Synology Photos and Immich Photos Features (not only Automated Mode Feature as before)
+- [x] Add Support for 3 accounts of each Cloud Photo Service (before it was only 2)
 - [x] Support for 2FA in Synology Photos requesting the OTP Token if flag _**'-sOTP, --synology-OTP'**_ is detected. [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218)
 - [x] Fix issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218)
 - [ ] Rename Albums using regular expresions. 

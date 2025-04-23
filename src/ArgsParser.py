@@ -11,10 +11,10 @@ from datetime import datetime
 choices_for_message_levels          = ['debug', 'info', 'warning', 'error', 'critical']
 choices_for_folder_structure        = ['flatten', 'year', 'year/month', 'year-month']
 choices_for_remove_duplicates       = ['list', 'move', 'remove']
-choices_for_AUTOMATED_MIGRATION_SRC = ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1', 'synology-photos-2', 'synology-photos2', 'synology-2', 'synology2',
-                                       'immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1', 'immich-photos-2', 'immich-photos2', 'immich-2', 'immich2']
-choices_for_AUTOMATED_MIGRATION_TGT = ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1', 'synology-photos-2', 'synology-photos2', 'synology-2', 'synology2',
-                                       'immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1', 'immich-photos-2', 'immich-photos2', 'immich-2', 'immich2']
+choices_for_AUTOMATED_MIGRATION_SRC = ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1', 'synology-photos-2', 'synology-photos2', 'synology-2', 'synology2', 'synology-photos-3', 'synology-photos3', 'synology-3', 'synology3',
+                                       'immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1', 'immich-photos-2', 'immich-photos2', 'immich-2', 'immich2', 'immich-photos-', 'immich-photos3', 'immich-3', 'immich3']
+choices_for_AUTOMATED_MIGRATION_TGT = ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1', 'synology-photos-2', 'synology-photos2', 'synology-2', 'synology2', 'synology-photos-3', 'synology-photos3', 'synology-3', 'synology3',
+                                       'immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1', 'immich-photos-2', 'immich-photos2', 'immich-2', 'immich2', 'immich-photos-', 'immich-photos3', 'immich-3', 'immich3']
 valid_asset_types                   = ['all', 'image', 'images', 'photo', 'photos', 'video', 'videos']
 
 PARSER = None
@@ -119,6 +119,14 @@ def parse_arguments():
     )
     PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
     PARSER.add_argument("-loglevel", "--log-level", metavar=f"{choices_for_message_levels}", choices=choices_for_message_levels, default="info", help="Specify the log level for logging and screen messages.")
+    PARSER.add_argument("-id", "--account-id",
+                        metavar="= [1,2,3]",
+                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+                        const=1,  # Si el usuario pasa --account-id sin valor, se asigna 1
+                        default=1,  # Si no se pasa el argumento, también se asigna 1
+                        type=validate_account_id,  # Ahora espera un entero como tipo de argumento
+                        help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the Configuration file as suffix of USERNAME/PASSORD or API_KEY_USER. (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini file)."
+                        )
 
 
     # FEATURES FOR GOOGLE PHOTOS:
@@ -228,6 +236,14 @@ def parse_arguments():
 
     return ARGS, PARSER
 
+def validate_account_id(valor):
+    try:
+        valor_int = int(valor)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"The value '{valor}' is not  valid number.")
+    if valor_int not in [1, 2, 3]:
+        raise argparse.ArgumentTypeError("The account-id must be one of the following values: 1, 2 o 3.")
+    return valor_int
 
 def checkArgs(ARGS, PARSER):
     global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
