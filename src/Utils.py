@@ -17,6 +17,7 @@ import base64
 import inspect
 from pathlib import Path
 from typing import Union
+import glob
 import time
 from datetime import datetime, timezone
 from dateutil import parser as date_parser
@@ -895,6 +896,7 @@ def contains_zip_files(input_folder, log_level=logging.INFO):
         for file in os.listdir(input_folder):
             if file.endswith('.zip'):
                 return True
+        LOGGER.info(f"INFO    : No .zip files found in input folder.")
         return False
 
 def contains_takeout_structure(input_folder, log_level=logging.INFO):
@@ -913,12 +915,32 @@ def contains_takeout_structure(input_folder, log_level=logging.INFO):
                         if entry.is_dir():
                             name = entry.name
                             if name.startswith("Photos from ") and name[12:16].isdigit():
-                                LOGGER.info(f"Found Takeout structure in: {entry.path}")
+                                LOGGER.info(f"INFO    : Found Takeout structure in: {entry.path}")
                                 return True
                             stack.append(entry.path)
+            except PermissionError:
+                LOGGER.warning(f"WARNING : Permission denied accessing: {current}")
             except Exception as e:
-                LOGGER.warning(f"Error scanning {current}: {e}")
+                LOGGER.warning(f"WARNING : Error scanning {current}: {e}")
+        LOGGER.info(f"INFO    : No Takeout structure found in input folder.")
         return False
+
+
+# def contains_takeout_structure(input_folder, log_level=logging.INFO):
+#     """
+#     Quickly checks if any immediate subdirectories or deeper directories match
+#     the pattern 'Photos from YYYY'.
+#     """
+#     with set_log_level(LOGGER, log_level):
+#         LOGGER.info("INFO    : Searching Google Takeout structure in input folder...")
+#         pattern = os.path.join(input_folder, '**', 'Photos from [1-2][0-9][0-9][0-9]*')
+#         matches = glob.glob(pattern, recursive=True)
+#         if matches:
+#             LOGGER.info(f"INFO    : Found Takeout structure in: {matches[0]}")
+#             return True
+#         LOGGER.info(f"INFO    : No Takeout structure found in input folder.")
+#         return False
+
 
 def remove_server_name(path, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function

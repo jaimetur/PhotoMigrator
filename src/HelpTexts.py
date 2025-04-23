@@ -58,12 +58,11 @@ def set_help_texts():
         """)
 
     HELP_TEXTS["synology-remove-all-assets"]  = textwrap.dedent(f"""
-        CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Synology database.         
+        CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Synology database.
         """)
 
     HELP_TEXTS["synology-remove-all-albums"] = textwrap.dedent(f"""
         CAUTION!!! The Tool will delete ALL your Albums from Synology database.
-
         Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument.
         """)
 

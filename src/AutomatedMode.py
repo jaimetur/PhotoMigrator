@@ -20,6 +20,8 @@ from ClassLocalFolder import ClassLocalFolder
 from ClassSynologyPhotos import ClassSynologyPhotos
 from ClassImmichPhotos import ClassImmichPhotos
 
+terminal_width = shutil.get_terminal_size().columns
+
 class SharedData:
     def __init__(self, info, counters, logs_queue):
         self.info = info
@@ -111,16 +113,24 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             """Retorna la instancia del cliente en función del tipo de fuente o destino."""
 
             # Return ClassSynologyPhotos
-            if client_type.lower() in ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1']:
+            if client_type.lower() in ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1'] and not ARGS['account-id'] > 1:
                 return ClassSynologyPhotos(account_id=1)
             elif client_type.lower() in ['synology-photos-2', 'synology-photos2', 'synology-2', 'synology2']:
                 return ClassSynologyPhotos(account_id=2)
+            elif client_type.lower() in ['synology-photos-3', 'synology-photos3', 'synology-3', 'synology3']:
+                return ClassSynologyPhotos(account_id=3)
+            elif client_type.lower() in ['synology-photos', 'synology'] and ARGS['account-id'] > 1:
+                return ClassSynologyPhotos(account_id=ARGS['account-id'])
 
             # Return ClassImmichPhotos
-            elif client_type.lower() in ['immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1']:
+            elif client_type.lower() in ['immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1'] and not ARGS['account-id'] > 1:
                 return ClassImmichPhotos(account_id=1)
             elif client_type.lower() in ['immich-photos-2', 'immich-photos2', 'immich-2', 'immich2']:
                 return ClassImmichPhotos(account_id=2)
+            elif client_type.lower() in ['immich-photos-3', 'immich-photos3', 'immich-3', 'immich3']:
+                return ClassImmichPhotos(account_id=3)
+            elif client_type.lower() in ['immich-photos', 'immich'] and ARGS['account-id'] > 1:
+                return ClassImmichPhotos(account_id=ARGS['account-id'])
 
             # Return ClassTakeoutFolder
             elif Path(client_type).is_dir() and (Utils.contains_zip_files(client_type) or Utils.contains_takeout_structure(client_type)):
@@ -156,10 +166,12 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
 
         LOGGER.info("")
         LOGGER.info(f"INFO    : -AUTO, --AUTOMATED-MIGRATION Mode detected")
+        LOGGER.warning('\n' + '-' * terminal_width)
         if not isinstance(source_client, ClassTakeoutFolder):
-            LOGGER.info(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE>', f"'{source}'").replace('<TARGET>', f"'{target}'"))
+            LOGGER.warning(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE>', f"'{source}'").replace('<TARGET>', f"'{target}'"))
         else:
-            LOGGER.info(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{source}'").replace('<TARGET>', f"'{target}'").replace('Pulling', 'Analyzing and Fixing'))
+            LOGGER.warning(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{source}'").replace('<TARGET>', f"'{target}'").replace('Pulling', 'Analyzing and Fixing'))
+        LOGGER.warning('-' * terminal_width)
         LOGGER.info(f"INFO    : Source Client  : {source_client_name}")
         LOGGER.info(f"INFO    : Target Client  : {target_client_name}")
         LOGGER.info(f"INFO    : Temp Folder    : {INTERMEDIATE_FOLDER}")

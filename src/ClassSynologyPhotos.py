@@ -59,7 +59,7 @@ class ClassSynologyPhotos:
         Also imports the global LOGGER from GlobalVariables.
         """
         self.ACCOUNT_ID = str(account_id)  # Used to identify wich Account to use from the configuration file
-        if account_id not in [1, 2]:
+        if account_id not in [1, 2, 3]:
             LOGGER.error(f"ERROR   : Cannot create Immich Photos object with ACCOUNT_ID: {account_id}. Valid valies are [1, 2]. Exiting...")
             sys.exit(-1)
 
