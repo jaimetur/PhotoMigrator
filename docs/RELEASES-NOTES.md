@@ -38,7 +38,9 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 - [x] Support for 2FA in Synology Photos requesting the OTP Token if flag _**'-sOTP, --synology-OTP'**_ is detected. [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218)
 - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218)
 
-**Release**: v3.3.0-alpha  
+---
+
+**Release**: v3.2.0  
 **Release Date**: 2025-04-30
 
 ### Main Changes:
