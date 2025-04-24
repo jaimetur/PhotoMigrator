@@ -49,6 +49,7 @@ Planed Roadmap for the following releases
     - [ ] remove-empty-albums
     - [ ] remove-duplicates-albums
     - [ ] rename-albums
+    - [ ] merge-albums
   - [ ] Deep Tests for new Features
   - [ ] Deep Test for upload-albums/upload-all features (include filtering options)
   - [ ] Bug Fixing
