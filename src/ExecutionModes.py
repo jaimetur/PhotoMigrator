@@ -344,7 +344,11 @@ def mode_synology_upload_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['synology-upload-albums']}")
         # Call the Function
         total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed, total_dupplicated_assets_skipped  = syno.push_albums(input_folder=ARGS['synology-upload-albums'], log_level=logging.WARNING)
-        # Finally Execute mode_delete_duplicates_albums & mode_delete_empty_albums
+        # Execute mode_delete_empty_albums
+        LOGGER.info("INFO    : Removing Empty Albums...")
+        total_empty_albums_removed = syno.remove_empty_albums(log_level=logging.WARNING)
+        # Execute mode_delete_duplicates_albums
+        LOGGER.info("INFO    : Removing Duplicates Albums...")
         total_duplicates_albums_removed = syno.remove_duplicates_albums(log_level=logging.WARNING)
         # logout
         LOGGER.info("INFO    : Logged out from Synology Photos.")

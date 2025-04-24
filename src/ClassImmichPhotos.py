@@ -1311,9 +1311,13 @@ class ClassImmichPhotos:
             total_duplicates_assets_removed = 0
             total_duplicates_assets_skipped = 0
 
-            SUBFOLDERS_EXCLUSIONS = ['@eaDir'] + subfolders_exclusion
+            # # If 'Albums' is not in subfolders_inclusion, add it (like original code).
+            # first_level_folders = [name.lower() for name in os.listdir(input_folder) if os.path.isdir(os.path.join(input_folder, name))]
+            # albums_folder_included = any(rel.lower() == 'albums' for rel in subfolders_inclusion)
+            # if not albums_folder_included and 'albums' in first_level_folders:
+            #     subfolders_inclusion.append('Albums')
 
-            # user_id = self.get_user_id(log_level=log_level)
+            SUBFOLDERS_EXCLUSIONS = ['@eaDir'] + subfolders_exclusion
             valid_folders = []
 
             for root, folders, _ in os.walk(input_folder):
@@ -1341,7 +1345,8 @@ class ClassImmichPhotos:
                 first_level_folders += subfolders_inclusion
                 first_level_folders = list(dict.fromkeys(first_level_folders))
 
-            with tqdm(total=len(valid_folders), smoothing=0.1, desc="INFO    : Uploading Albums from Folders", unit=" folders") as pbar:
+            with tqdm(total=len(valid_folders), smoothing=0.1, desc=f"INFO    : Uploading Albums from '{os.path.basename(input_folder)}' sub-folders", unit=" sub-folder") as pbar:
+
                 for subpath in valid_folders:
                     pbar.update(1)
                     album_assets_ids = []
