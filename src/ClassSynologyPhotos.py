@@ -1805,8 +1805,6 @@ class ClassSynologyPhotos:
                 while True:
                     status = self.wait_for_background_remove_task_finished_check(task_id, log_level=log_level)
                     if status == 'done' or status is True:
-                        LOGGER.info(f'INFO    : Waiting for removing assets to finish...')
-                        time.sleep(5)
                         break
                     else:
                         LOGGER.debug(f"DEBUG   : Task not finished yet. Waiting 5 seconds more.")
@@ -2376,14 +2374,14 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            albums = self.get_albums_owned_by_user(with_filters=True, log_level=log_level)
+            LOGGER.warning("WARNING : Searching for Albums that matches the provided pattern. This process may take some time. Please be patient!...")
+            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
                 self.logout(log_level=log_level)
                 return 0
 
             total_renamed_albums = 0
-            LOGGER.info("INFO    : Searching for albums whose name matches with the provided pattern in Synology Photos...")
             for album in tqdm(albums, desc=f"INFO    : Searching for Albums to rename", unit=" albums"):
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
@@ -2425,7 +2423,8 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            albums = self.get_albums_owned_by_user(with_filters=True, log_level=log_level)
+            LOGGER.warning("WARNING : Searching for Albums that matches the provided pattern. This process may take some time. Please be patient!...")
+            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
                 self.logout(log_level=log_level)
@@ -2433,7 +2432,6 @@ class ClassSynologyPhotos:
 
             total_removed_albums = 0
             total_removed_assets = 0
-            LOGGER.info("INFO    : Searching for albums whose name matches with the provided pattern in Synology Photos...")
             for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")

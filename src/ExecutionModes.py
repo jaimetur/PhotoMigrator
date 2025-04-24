@@ -706,102 +706,6 @@ def mode_synology_remove_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("")
 
 
-def mode_synology_remove_albums(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-sRemAlb, --synology-remove-albums'.")
-        if ARGS['remove-albums-assets']:
-            LOGGER.info(f"INFO    : Flag detected '-rAlbAss, --remove-albums-assets'.")
-        LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["synology-remove-albums"].replace('<ALBUMS_NAME_PATTERN>', ARGS['synology-remove-albums']))
-        LOGGER.warning('-' * terminal_width)
-        if ARGS['remove-albums-assets']:
-            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any Albums will also be deleted.")
-            LOGGER.info("")
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
-
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Synology Photos: 'Delete Albums' Mode detected. Only this module will be run!!!")
-        # Create the Object
-        syno = ClassSynologyPhotos(account_id=ARGS['account-id'])
-        # login
-        LOGGER.info("")
-        LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        syno.login(log_level=logging.WARNING)
-        # Call the Function
-        albums_removed, assets_removed = syno.remove_albums(pattern=ARGS['immich-remove-albums'], removeAlbumsAssets=ARGS['remove-albums-assets'], log_level=logging.WARNING)
-        # logout
-        LOGGER.info("")
-        LOGGER.info("INFO    : Logged out from Immich Photos.")
-        syno.logout(log_level=logging.WARNING)
-        # FINAL SUMMARY
-        end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("                  FINAL SUMMARY:                  ")
-        LOGGER.info("==================================================")
-        LOGGER.info(f"Total Assets removed                    : {assets_removed}")
-        LOGGER.info(f"Total Albums removed                    : {albums_removed}")
-        LOGGER.info("")
-        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-
-
-def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-srAllAlb, --synology-remove-all-albums'.")
-        if ARGS['remove-albums-assets']:
-            LOGGER.info(f"INFO    : Flag detected '-rAlbAss, --remove-albums-assets'.")
-        LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["synology-remove-all-albums"])
-        LOGGER.warning('-' * terminal_width)
-        if ARGS['remove-albums-assets']:
-            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any Albums will also be deleted.")
-            LOGGER.info("")
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
-
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Synology Photos: 'Delete ALL Albums' Mode detected. Only this module will be run!!!")
-        # Create the Object
-        syno = ClassSynologyPhotos(account_id=ARGS['account-id'])
-        # login
-        LOGGER.info("")
-        LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
-        syno.login(log_level=logging.WARNING)
-        # Call the Function
-        assets_removed, albums_removed, folders_removed = syno.remove_all_albums(removeAlbumsAssets= ARGS['remove-albums-assets'], log_level=logging.WARNING)
-        # logout
-        LOGGER.info("")
-        LOGGER.info("INFO    : Logged out from Synology Photos.")
-        syno.logout(log_level=logging.WARNING)
-        # FINAL SUMMARY
-        end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("                  FINAL SUMMARY:                  ")
-        LOGGER.info("==================================================")
-        LOGGER.info(f"Total Assets removed                    : {assets_removed}")
-        LOGGER.info(f"Total Albums removed                    : {albums_removed}")
-        LOGGER.info(f"Total Folders removed                   : {folders_removed}")
-        LOGGER.info("")
-        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-
 def mode_synology_rename_albums(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
         LOGGER.info(f"INFO    : Flag detected '-iRenAlb, --synology-rename-albums'.")
@@ -838,6 +742,103 @@ def mode_synology_rename_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("                  FINAL SUMMARY:                  ")
         LOGGER.info("==================================================")
         LOGGER.info(f"Total Albums renamed                    : {albums_renamed}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+
+def mode_synology_remove_albums(user_confirmation=True, log_level=logging.INFO):
+    if user_confirmation:
+        LOGGER.info(f"INFO    : Flag detected '-sRemAlb, --synology-remove-albums'.")
+        if ARGS['remove-albums-assets']:
+            LOGGER.info(f"INFO    : Flag detected '-rAlbAss, --remove-albums-assets'.")
+        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning(HELP_TEXTS["synology-remove-albums"].replace('<ALBUMS_NAME_PATTERN>', ARGS['synology-remove-albums']))
+        LOGGER.warning('-' * terminal_width)
+        if ARGS['remove-albums-assets']:
+            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any deleted Albums will also be deleted.")
+            LOGGER.info("")
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO    : Exiting program.")
+            sys.exit(0)
+
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        LOGGER.info(f"INFO    : Synology Photos: 'Delete Albums' Mode detected. Only this module will be run!!!")
+        # Create the Object
+        syno = ClassSynologyPhotos(account_id=ARGS['account-id'])
+        # login
+        LOGGER.info("")
+        LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
+        syno.login(log_level=logging.WARNING)
+        # Call the Function
+        albums_removed, assets_removed = syno.remove_albums(pattern=ARGS['synology-remove-albums'], removeAlbumsAssets=ARGS['remove-albums-assets'], log_level=logging.WARNING)
+        # logout
+        LOGGER.info("")
+        LOGGER.info("INFO    : Logged out from Synology Photos.")
+        syno.logout(log_level=logging.WARNING)
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Assets removed                    : {assets_removed}")
+        LOGGER.info(f"Total Albums removed                    : {albums_removed}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+
+def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.INFO):
+    if user_confirmation:
+        LOGGER.info(f"INFO    : Flag detected '-srAllAlb, --synology-remove-all-albums'.")
+        if ARGS['remove-albums-assets']:
+            LOGGER.info(f"INFO    : Flag detected '-rAlbAss, --remove-albums-assets'.")
+        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning(HELP_TEXTS["synology-remove-all-albums"])
+        LOGGER.warning('-' * terminal_width)
+        if ARGS['remove-albums-assets']:
+            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any deleted Albums will also be deleted.")
+            LOGGER.info("")
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO    : Exiting program.")
+            sys.exit(0)
+
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        LOGGER.info(f"INFO    : Synology Photos: 'Delete ALL Albums' Mode detected. Only this module will be run!!!")
+        # Create the Object
+        syno = ClassSynologyPhotos(account_id=ARGS['account-id'])
+        # login
+        LOGGER.info("")
+        LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
+        syno.login(log_level=logging.WARNING)
+        # Call the Function
+        assets_removed, albums_removed, folders_removed = syno.remove_all_albums(removeAlbumsAssets= ARGS['remove-albums-assets'], log_level=logging.WARNING)
+        # logout
+        LOGGER.info("")
+        LOGGER.info("INFO    : Logged out from Synology Photos.")
+        syno.logout(log_level=logging.WARNING)
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Assets removed                    : {assets_removed}")
+        LOGGER.info(f"Total Albums removed                    : {albums_removed}")
+        LOGGER.info(f"Total Folders removed                   : {folders_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -1349,7 +1350,7 @@ def mode_immich_remove_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.warning(HELP_TEXTS["immich-remove-albums"].replace('<ALBUMS_NAME_PATTERN>', ARGS['immich-remove-albums']))
         LOGGER.warning('-' * terminal_width)
         if ARGS['remove-albums-assets']:
-            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any Albums will also be deleted.")
+            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any deleted Albums will also be deleted.")
             LOGGER.info("")
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
@@ -1397,7 +1398,7 @@ def mode_immich_remove_all_albums(user_confirmation=True, log_level=logging.INFO
         LOGGER.warning(HELP_TEXTS["immich-remove-all-albums"])
         LOGGER.warning('-' * terminal_width)
         if ARGS['remove-albums-assets']:
-            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any Albums will also be deleted.")
+            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any deleted Albums will also be deleted.")
             LOGGER.info("")
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
