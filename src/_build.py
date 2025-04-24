@@ -103,8 +103,9 @@ def get_clean_version(version: str):
     clean_version = version.lstrip('v')
     return clean_version
 
+
 def extract_release_body(download_file, input_file, output_file):
-    """Extracts two specific sections from the release notes file, modifies a header, and rearranges them."""
+    """Extracts two specific sections from the release notes file, modifies a header, and appends them along with additional content from another file."""
     # Open the file and read its content into a list
     with open(input_file, 'r', encoding='utf-8') as infile:
         lines = infile.readlines()
@@ -123,21 +124,24 @@ def extract_release_body(download_file, input_file, output_file):
                 second_release_index = i
                 break
 
-    # Validate that all releases notes section exists
+    # Validate that all release notes section exists
     if release_notes_index is None:
         print("Required sections not found in the file.")
         return
+
     # Extract content from "## Release Notes:" to the second "**Release**"
     if second_release_index is not None:
         release_section = lines[release_notes_index:second_release_index]
     else:
         release_section = lines[release_notes_index:]
 
-    # First copy download_file to output_file, overwriting if exists
-    shutil.copy2(download_file, output_file)
+    # Read content of download_file
+    with open(download_file, 'r', encoding='utf-8') as df:
+        download_content = df.readlines()
 
-    # Write the modified content to the output file
+    # Append both the download file content and the release section to the output file
     with open(output_file, 'a', encoding='utf-8') as outfile:
+        outfile.writelines(download_content)
         outfile.writelines(release_section)
 
 def add_roadmap_to_readme(readme_file, roadmap_file):

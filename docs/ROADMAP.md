@@ -43,7 +43,10 @@ Planed Roadmap for the following releases
 - ### TODO:
   - [ ] Test --synology-rename-albums feature
 
-## v4.0.0:
+---
+
+## **Release**: v4.0.0 
+
 - ### Release Date: (estimated)
   - Alpha version    : (No estimated date)
   - Beta version     : (No estimated date)
