@@ -10,10 +10,12 @@
 > 4. Download ALL (into folder)
 > 5. Remove ALL Assets
 > 6. Remove ALL Albums
-> 7. Remove Empty Albums
-> 8. Remove Duplicates Albums
-> 9. Merge Duplicates Albums
-> 10. Remove Orphans Assets
+> 7. Rename Albums by Name Pattern
+> 8. Remove Albums by Name Pattern
+> 9. Remove Empty Albums
+> 10. Remove Duplicates Albums
+> 11. Merge Duplicates Albums
+> 12. Remove Orphans Assets
 > 
 > You can apply filters to filter assets to download from Synology Photos using any Download feature included.  
 > 
@@ -182,6 +184,37 @@
 > [!CAUTION]  
 > This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Immich Photos account. Use it if you are completelly sure of what you are doing.
     
+
+## <span style="color:blue">Rename Albums by Name Pattern from Immich Photos:</span>
+- **From:** v3.3.0
+- **Usage:**
+  - To run this feature you have to use the flag _**'--immich-rename-albums <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>'**_
+- **Pre-Requisites:**
+  - Configure properly the file 'Config.ini' to include your Immich account credentials and url. 
+- **Explanation:**
+  - The Tool will connect automatically to your Immich Photos account and will rename all Albums whose name matches with the provided pattern.  
+- **Example of use:**
+  ```
+  ./CloudPhotoMigrator.run --immich-rename-albums "\d{4}-\d{2}-\d{2}", "DATE"
+  ```
+  With this example, the Tool will connect to your Immich Photos account and will rename all Albums whose name contains a date like this ("2023-08-15 - Vacation photos") replacing the date with the string "DATE", as a result the new album name would be: "DATE - Vacation photos".
+
+
+## <span style="color:blue">Remove Albums by Name Pattern from Immich Photos:</span>
+- **From:** v3.3.0
+- **Usage:**
+  - To run this feature you have to use the flag _**'--immich-remove-albums <ALBUMS_NAME_PATTERN>'**_
+- **Pre-Requisites:**
+  - Configure properly the file 'Config.ini' to include your Immich account credentials and url. 
+- **Explanation:**
+  - The Tool will connect automatically to your Immich Photos account and will rename all Albums whose name matches with the provided pattern.  
+  - Optionally ALL the Assets associated to each removed Album can be removed If you also include the complementary argument _'-rAlbAss, --remove-albums-assets'_
+- **Example of use:**
+  ```
+  ./CloudPhotoMigrator.run --immich-rename-albums "\d{4}-\d{2}-\d{2}" --remove-albums-assets
+  ```
+  With this example, the Tool will connect to your Immich Photos account and will remove all Albums whose name contains a date like this ("2023-08-15 - Vacation photos"), including all the assets contained on them, because we are using the complementary flag.
+
 
 ## <span style="color:blue">Remove Empty Albums from Immich Photos:</span>
 - **From:** v3.0.0

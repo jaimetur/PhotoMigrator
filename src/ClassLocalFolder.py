@@ -5,7 +5,7 @@ import shutil
 import logging
 import re
 import Utils
-from Utils import parse_text_datetime_to_epoch
+from Utils import parse_text_datetime_to_epoch, match_pattern, replace_pattern
 from datetime import datetime
 import time
 from pathlib import Path

@@ -72,6 +72,12 @@ def detect_and_run_execution_mode():
         mode_google_takeout()
 
     # Synology Photos Modes:
+    elif ARGS['synology-remove-albums']:
+        EXECUTION_MODE = 'synology-remove-albums'
+        mode_synology_remove_albums()
+    elif ARGS['synology-rename-albums'][0]:
+        EXECUTION_MODE = 'synology-rename-albums'
+        mode_synology_rename_albums()
     elif ARGS['synology-remove-empty-albums']:
         EXECUTION_MODE = 'synology-remove-empty-albums'
         mode_synology_remove_empty_albums()
@@ -81,7 +87,7 @@ def detect_and_run_execution_mode():
     elif ARGS['synology-merge-duplicates-albums']:
         EXECUTION_MODE = 'synology-merge-duplicates-albums'
         mode_synology_merge_duplicates_albums()
-    elif ARGS['immich-remove-all-albums'] != "":
+    elif ARGS['synology-remove-all-albums'] != "":
         EXECUTION_MODE = 'synology-remove-all-albums'
         mode_synology_remove_all_albums()
     elif ARGS['synology-remove-all-assets'] != "":
@@ -106,6 +112,12 @@ def detect_and_run_execution_mode():
 
 
     # Immich Photos Modes:
+    elif ARGS['immich-remove-albums']:
+        EXECUTION_MODE = 'immich-remove-albums'
+        mode_immich_remove_albums()
+    elif ARGS['immich-rename-albums'][0]:
+        EXECUTION_MODE = 'immich-rename-albums'
+        mode_immich_rename_albums()
     elif ARGS['immich-remove-empty-albums']:
         EXECUTION_MODE = 'immich-remove-empty-albums'
         mode_immich_remove_empty_albums()
@@ -694,6 +706,54 @@ def mode_synology_remove_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("")
 
 
+def mode_synology_remove_albums(user_confirmation=True, log_level=logging.INFO):
+    if user_confirmation:
+        LOGGER.info(f"INFO    : Flag detected '-sremAlb, --synology-remove-albums'.")
+        if ARGS['remove-albums-assets']:
+            LOGGER.info(f"INFO    : Flag detected '-rAlbAss, --remove-albums-assets'.")
+        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning(HELP_TEXTS["synology-remove-albums"].replace('<ALBUMS_NAME_PATTERN>', ARGS['synology-remove-albums']))
+        LOGGER.warning('-' * terminal_width)
+        if ARGS['remove-albums-assets']:
+            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any Albums will also be deleted.")
+            LOGGER.info("")
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO    : Exiting program.")
+            sys.exit(0)
+
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        LOGGER.info(f"INFO    : Synology Photos: 'Delete Albums' Mode detected. Only this module will be run!!!")
+        # Create the Object
+        syno = ClassSynologyPhotos(account_id=ARGS['account-id'])
+        # login
+        LOGGER.info("")
+        LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
+        syno.login(log_level=logging.WARNING)
+        # Call the Function
+        albums_removed, assets_removed = syno.remove_albums(pattern=ARGS['immich-remove-albums'], removeAlbumsAssets=ARGS['remove-albums-assets'], log_level=logging.WARNING)
+        # logout
+        LOGGER.info("")
+        LOGGER.info("INFO    : Logged out from Immich Photos.")
+        syno.logout(log_level=logging.WARNING)
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Assets removed                    : {assets_removed}")
+        LOGGER.info(f"Total Albums removed                    : {albums_removed}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+
 def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
         LOGGER.info(f"INFO    : Flag detected '-srAllAlb, --synology-remove-all-albums'.")
@@ -737,6 +797,47 @@ def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.IN
         LOGGER.info(f"Total Assets removed                    : {assets_removed}")
         LOGGER.info(f"Total Albums removed                    : {albums_removed}")
         LOGGER.info(f"Total Folders removed                   : {folders_removed}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+def mode_synology_rename_albums(user_confirmation=True, log_level=logging.INFO):
+    if user_confirmation:
+        LOGGER.info(f"INFO    : Flag detected '-irenAlb, --synology-rename-albums'.")
+        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning(HELP_TEXTS["synology-rename-albums"].replace('<ALBUMS_NAME_PATTERN>', ARGS['synology-rename-albums'][0]).replace('<ALBUMS_NAME_REPLACEMENT_PATTERN>', ARGS['synology-rename-albums'][1]))
+        LOGGER.warning('-' * terminal_width)
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO    : Exiting program.")
+            sys.exit(0)
+
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        LOGGER.info(f"INFO    : Synology Photos: 'Rename Albums' Mode detected. Only this module will be run!!!")
+        # Create the Object
+        syno = ClassSynologyPhotos(account_id=ARGS['account-id'])
+        # login
+        LOGGER.info("")
+        LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
+        syno.login(log_level=logging.WARNING)
+        # Call the Function
+        albums_renamed = syno.rename_albums(pattern=ARGS['immich-rename-albums'][0], replace_pattern=ARGS['immich-rename-albums'][1], log_level=logging.WARNING)
+        # logout
+        LOGGER.info("")
+        LOGGER.info("INFO    : Logged out from Immich Photos.")
+        syno.logout(log_level=logging.WARNING)
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Albums renamed                    : {albums_renamed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -1131,7 +1232,7 @@ def mode_immich_remove_orphan_assets(user_confirmation=True, log_level=logging.I
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
         immich.login(log_level=logging.WARNING)
         # Call the Function
-        assets_removed = immich.remove_orphan_assets(user_confirmation=user_confirmation, log_level=logging.WARNING)
+        assets_removed = immich.remove_orphan_assets(user_confirmation=False, log_level=logging.WARNING)
         #logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
@@ -1174,6 +1275,96 @@ def mode_immich_remove_ALL(user_confirmation=True, log_level=logging.INFO):
         immich.login(log_level=logging.WARNING)
         # Call the Function
         assets_removed, albums_removed = immich.remove_all_assets(log_level=logging.WARNING)
+        # logout
+        LOGGER.info("")
+        LOGGER.info("INFO    : Logged out from Immich Photos.")
+        immich.logout(log_level=logging.WARNING)
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Assets removed                    : {assets_removed}")
+        LOGGER.info(f"Total Albums removed                    : {albums_removed}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+
+def mode_immich_rename_albums(user_confirmation=True, log_level=logging.INFO):
+    if user_confirmation:
+        LOGGER.info(f"INFO    : Flag detected '-irenAlb, --immich-rename-albums'.")
+        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning(HELP_TEXTS["immich-rename-albums"].replace('<ALBUMS_NAME_PATTERN>', ARGS['immich-rename-albums'][0]).replace('<ALBUMS_NAME_REPLACEMENT_PATTERN>', ARGS['immich-rename-albums'][1]))
+        LOGGER.warning('-' * terminal_width)
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO    : Exiting program.")
+            sys.exit(0)
+
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        LOGGER.info(f"INFO    : Immich Photos: 'Rename Albums' Mode detected. Only this module will be run!!!")
+        # Create the Object
+        immich = ClassImmichPhotos(account_id=ARGS['account-id'])
+        # login
+        LOGGER.info("")
+        LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
+        immich.login(log_level=logging.WARNING)
+        # Call the Function
+        albums_renamed = immich.rename_albums(pattern=ARGS['immich-rename-albums'][0], pattern_to_replace=ARGS['immich-rename-albums'][1], log_level=logging.WARNING)
+        # logout
+        LOGGER.info("")
+        LOGGER.info("INFO    : Logged out from Immich Photos.")
+        immich.logout(log_level=logging.WARNING)
+        # FINAL SUMMARY
+        end_time = datetime.now()
+        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+        LOGGER.info("==================================================")
+        LOGGER.info("                  FINAL SUMMARY:                  ")
+        LOGGER.info("==================================================")
+        LOGGER.info(f"Total Albums renamed                    : {albums_renamed}")
+        LOGGER.info("")
+        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
+        LOGGER.info("==================================================")
+        LOGGER.info("")
+
+
+def mode_immich_remove_albums(user_confirmation=True, log_level=logging.INFO):
+    if user_confirmation:
+        LOGGER.info(f"INFO    : Flag detected '-iremAlb, --immich-remove-albums'.")
+        if ARGS['remove-albums-assets']:
+            LOGGER.info(f"INFO    : Flag detected '-rAlbAss, --remove-albums-assets'.")
+        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning(HELP_TEXTS["immich-remove-albums"].replace('<ALBUMS_NAME_PATTERN>', ARGS['immich-remove-albums']))
+        LOGGER.warning('-' * terminal_width)
+        if ARGS['remove-albums-assets']:
+            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any Albums will also be deleted.")
+            LOGGER.info("")
+        if not Utils.confirm_continue():
+            LOGGER.info(f"INFO    : Exiting program.")
+            sys.exit(0)
+
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        LOGGER.info(f"INFO    : Immich Photos: 'Delete Albums' Mode detected. Only this module will be run!!!")
+        # Create the Object
+        immich = ClassImmichPhotos(account_id=ARGS['account-id'])
+        # login
+        LOGGER.info("")
+        LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
+        immich.login(log_level=logging.WARNING)
+        # Call the Function
+        albums_removed, assets_removed = immich.remove_albums(pattern=ARGS['immich-remove-albums'], removeAlbumsAssets=ARGS['remove-albums-assets'], log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")

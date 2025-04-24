@@ -26,8 +26,11 @@ Currently, the Supported Photo Cloud Services are:
   - Download ALL (into folder)
   - Remove ALL Assets
   - Remove ALL Albums
+  - Rename Albums by Name Pattern
+  - Remove Albums by Name Pattern
   - Remove Empty Albums
   - Remove Duplicates Albums
+  - Merge Duplicates Albums
 
 - **Immich Photos** - Features included:
   - Upload Album(s)
@@ -36,8 +39,11 @@ Currently, the Supported Photo Cloud Services are:
   - Download ALL (into folder)
   - Remove ALL Assets
   - Remove ALL Albums
+  - Rename Albums by Name Pattern
+  - Remove Albums by Name Pattern
   - Remove Empty Albums
   - Remove Duplicates Albums
+  - Merge Duplicates Albums
   - Remove Orphans Assets
 
 - **Apple Photos**  

@@ -12,7 +12,7 @@ from datetime import datetime
 import time
 import logging
 
-from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm, parse_text_datetime_to_epoch
+from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm, parse_text_datetime_to_epoch, match_pattern, replace_pattern
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
@@ -2364,6 +2364,98 @@ class ClassSynologyPhotos:
             return total_removed
 
 
+    def rename_albums(self, pattern, pattern_to_replace, log_level=logging.WARNING):
+        """
+        Removes all albums in Synology Photos whose name match with the provided pattern.
+
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            int: The number of albums removed.
+        """
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+            if not albums:
+                LOGGER.info("INFO    : No albums found.")
+                self.logout(log_level=log_level)
+                return 0
+
+            total_renamed_albums = 0
+            LOGGER.info("INFO    : Searching for albums whose name matches with the provided pattern in Synology Photos...")
+            # TODO: Modify this block to adapt from Immich to Synology
+            for album in tqdm(albums, desc=f"INFO    : Searching for Albums to rename", unit=" albums"):
+                album_id = album.get("id")
+                album_name = album.get("albumName", "")
+                album_description = album.get("description", "")
+                album_thumbnail = album.get("albumThumbnailAssetId", "")
+                if match_pattern(album_name, pattern):
+                    new_name = replace_pattern(album_name, pattern=pattern, pattern_to_replace=pattern_to_replace)
+
+                    url = f"/api/albums/{album_id}"
+                    payload = json.dumps({
+                        "albumName": new_name,
+                        "albumThumbnailAssetId": album_thumbnail,
+                        "description": album_description,
+                        "isActivityEnabled": True,
+                        "order": "asc"
+                    })
+                    response = requests.request("PATCH", url, headers = self.HEADERS_WITH_CREDENTIALS, data=payload, verify = False)
+                    response.raise_for_status()
+                    if response.ok:
+                        LOGGER.info(f"INFO    : Album '{album_name}' (ID={album_id}) renamed to {new_name} .")
+                        total_renamed_albums += 1
+            LOGGER.info(f"INFO    : Removed {total_renamed_albums} albums whose names matched with the provided pattern.")
+            self.logout(log_level=log_level)
+            return total_renamed_albums
+
+
+
+    def remove_albums(self, pattern, removeAlbumsAssets=False, log_level=logging.WARNING):
+        """
+        Removes all albums in Synology Photos whose name match with the provided pattern.
+
+        Args:
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns:
+            int: The number of albums removed.
+        """
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+            if not albums:
+                LOGGER.info("INFO    : No albums found.")
+                self.logout(log_level=log_level)
+                return 0
+
+            total_removed_albums = 0
+            total_removed_assets = 0
+            LOGGER.info("INFO    : Searching for albums whose name matches with the provided pattern in Synology Photos...")
+            for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
+                album_id = album.get("id")
+                album_name = album.get("albumName", "")
+                if match_pattern(album_name, pattern):
+                    if removeAlbumsAssets:
+                        album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
+                        album_assets_ids = []
+                        for asset in album_assets:
+                            asset_id = asset.get("id")
+                            if asset_id:
+                                album_assets_ids.append(asset_id)
+                        self.remove_assets(album_assets_ids, log_level=logging.WARNING)
+                        total_removed_assets += len(album_assets_ids)
+
+                    if self.remove_album(album_id, album_name):
+                        LOGGER.info(f"INFO    : Album '{album_name}' (ID={album_id}) removed.")
+                        total_removed_albums += 1
+            LOGGER.info(f"INFO    : Removed {total_removed_albums} albums whose names matched with the provided pattern.")
+            LOGGER.info(f"INFO    : Removed {total_removed_assets} from those removed albums.")
+            self.logout(log_level=log_level)
+            return total_removed_albums, total_removed_assets
+
+
     def remove_empty_albums(self, log_level=logging.WARNING):
         """
         Removes all empty albums in Synology Photos.
@@ -2611,16 +2703,16 @@ class ClassSynologyPhotos:
                 for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
                     album_id = album.get("id")
                     album_name = album.get("albumName", "")
-                    album_assets_ids = []
 
                     if removeAlbumsAssets:
                         album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
+                        album_assets_ids = []
                         for asset in album_assets:
                             asset_id = asset.get("id")
                             if asset_id:
                                 album_assets_ids.append(asset_id)
-                        self.remove_assets(album_assets_ids, log_level=logging.WARNING)
-                        total_removed_assets += len(album_assets_ids)
+                        assets_removed = self.remove_assets(album_assets_ids, log_level=logging.WARNING)
+                        total_removed_assets += assets_removed
 
                     if self.remove_album(album_id, album_name, log_level=logging.WARNING):
                         total_removed_albums += 1
