@@ -2376,7 +2376,7 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+            albums = self.get_albums_owned_by_user(with_filters=True, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
                 self.logout(log_level=log_level)
@@ -2384,25 +2384,26 @@ class ClassSynologyPhotos:
 
             total_renamed_albums = 0
             LOGGER.info("INFO    : Searching for albums whose name matches with the provided pattern in Synology Photos...")
-            # TODO: Modify this block to adapt from Immich to Synology
             for album in tqdm(albums, desc=f"INFO    : Searching for Albums to rename", unit=" albums"):
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
-                album_description = album.get("description", "")
-                album_thumbnail = album.get("albumThumbnailAssetId", "")
                 if match_pattern(album_name, pattern):
                     new_name = replace_pattern(album_name, pattern=pattern, pattern_to_replace=pattern_to_replace)
 
-                    url = f"/api/albums/{album_id}"
-                    payload = json.dumps({
-                        "albumName": new_name,
-                        "albumThumbnailAssetId": album_thumbnail,
-                        "description": album_description,
-                        "isActivityEnabled": True,
-                        "order": "asc"
-                    })
-                    response = requests.request("PATCH", url, headers = self.HEADERS_WITH_CREDENTIALS, data=payload, verify = False)
-                    response.raise_for_status()
+                    url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                    headers = {}
+                    if self.SYNO_TOKEN_HEADER:
+                        headers.update(self.SYNO_TOKEN_HEADER)
+
+                    params = {
+                        'api': 'SYNO.Foto.Browse.Album',
+                        'version': '1',
+                        'method': 'set_name',
+                        'id': album_id,
+                        'name': new_name,
+                    }
+
+                    response = self.SESSION.get(url, params=params, headers=headers, verify=False)
                     if response.ok:
                         LOGGER.info(f"INFO    : Album '{album_name}' (ID={album_id}) renamed to {new_name} .")
                         total_renamed_albums += 1
@@ -2424,7 +2425,7 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+            albums = self.get_albums_owned_by_user(with_filters=True, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
                 self.logout(log_level=log_level)

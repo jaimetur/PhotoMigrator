@@ -212,6 +212,9 @@
   ```
   With this example, the Tool will connect to your Synology Photos account and will remove all Albums whose name contains a date like this ("2023-08-15 - Vacation photos"), including all the assets contained on them, because we are using the complementary flag.
 
+> [!CAUTION]  
+> This process is irreversible and will remove all the Albums (and optionally also all the assets included) whose name matches with the provided pattern from your Synology Photos account. Use it if you are completelly sure of what you are doing.
+   
 
 ## <span style="color:blue">Remove Empty Albums from Synology Photos:</span>
 - **From:** v2.0.0

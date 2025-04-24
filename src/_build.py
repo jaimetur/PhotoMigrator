@@ -103,28 +103,27 @@ def get_clean_version(version: str):
     clean_version = version.lstrip('v')
     return clean_version
 
+
 def extract_release_body(download_file, input_file, output_file):
-    """Extracts two specific sections from the release notes file, modifies a header, and rearranges them."""
+    """Extracts two specific sections from the release notes file, modifies a header, and appends them along with additional content from another file."""
     # Open the file and read its content into a list
     with open(input_file, 'r', encoding='utf-8') as infile:
         lines = infile.readlines()
     # Initialize key indices and counter
     release_notes_index = None
     second_release_index = None
-    download_section_index = None
     release_count = 0
     # Loop through lines to find the start of the "Release Notes" section and locate the second occurrence of "**Release**"
     for i, line in enumerate(lines):
-        if line.strip() == "## Releases Notes:":
+        if line.strip() == "# Releases Notes:":
             release_notes_index = i
-            lines[i] = lines[i].replace("## Releases Notes:", "## Release Notes:")
-        if "**Release**" in line:
+            lines[i] = lines[i].replace("# Releases Notes:", "# Release Notes:")
+        if "## **Release**:" in line:
             release_count += 1
             if release_count == 2:
                 second_release_index = i
                 break
-
-    # Validate that all releases notes section exists
+    # Validate that all release notes section exists
     if release_notes_index is None:
         print("Required sections not found in the file.")
         return
@@ -133,13 +132,14 @@ def extract_release_body(download_file, input_file, output_file):
         release_section = lines[release_notes_index:second_release_index]
     else:
         release_section = lines[release_notes_index:]
-
-    # First copy download_file to output_file, overwriting if exists
-    shutil.copy2(download_file, output_file)
-
-    # Write the modified content to the output file
+    # Read content of download_file
+    with open(download_file, 'r', encoding='utf-8') as df:
+        download_content = df.readlines()
+    # Append both the download file content and the release section to the output file
     with open(output_file, 'a', encoding='utf-8') as outfile:
         outfile.writelines(release_section)
+        outfile.writelines(download_content)
+
 
 def add_roadmap_to_readme(readme_file, roadmap_file):
     """
@@ -149,15 +149,12 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
     :param readme_file: Ruta al archivo README.md.
     :param roadmap_file: Ruta al archivo ROADMAP.md.
     """
-
     # Leer el contenido del archivo README
     with open(readme_file, "r", encoding="utf-8") as f:
         readme_lines = f.readlines()
-
     # Leer el contenido del archivo ROADMAP
     with open(roadmap_file, "r", encoding="utf-8") as f:
         roadmap_content = f.read().strip() + "\n\n"  # Asegurar un salto de línea final
-
     # Buscar el bloque ROADMAP existente
     start_index, end_index = None, None
     for i, line in enumerate(readme_lines):
@@ -166,20 +163,17 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
         if start_index is not None and line.strip() == "## Credits":
             end_index = i
             break
-
     if start_index is not None and end_index is not None:
         # Sustituir el bloque ROADMAP existente
         updated_readme = readme_lines[:start_index] + [roadmap_content] + readme_lines[end_index:]
     else:
         # Buscar la línea donde comienza "## Credits" para insertar el bloque ROADMAP antes
         credits_index = next((i for i, line in enumerate(readme_lines) if line.strip() == "## Credits"), None)
-
         if credits_index is not None:
             updated_readme = readme_lines[:credits_index] + [roadmap_content] + readme_lines[credits_index:]
         else:
             # Si no se encuentra "## Credits", simplemente añadir al final del archivo
             updated_readme = readme_lines + [roadmap_content]
-
     # Escribir el contenido actualizado en el archivo README
     with open(readme_file, "w", encoding="utf-8") as f:
         f.writelines(updated_readme)

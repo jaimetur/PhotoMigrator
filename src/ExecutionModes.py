@@ -821,10 +821,10 @@ def mode_synology_rename_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
         syno.login(log_level=logging.WARNING)
         # Call the Function
-        albums_renamed = syno.rename_albums(pattern=ARGS['immich-rename-albums'][0], replace_pattern=ARGS['immich-rename-albums'][1], log_level=logging.WARNING)
+        albums_renamed = syno.rename_albums(pattern=ARGS['synology-rename-albums'][0], pattern_to_replace=ARGS['synology-rename-albums'][1], log_level=logging.WARNING)
         # logout
         LOGGER.info("")
-        LOGGER.info("INFO    : Logged out from Immich Photos.")
+        LOGGER.info("INFO    : Logged out from Synology Photos.")
         syno.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()

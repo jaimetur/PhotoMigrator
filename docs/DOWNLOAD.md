@@ -15,4 +15,3 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 **Docker Launcher:**  
   - [Download Docker Launcher](https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.3.0-alpha/CloudPhotoMigrator_v3.3.0-alpha_docker.zip)  
 
----

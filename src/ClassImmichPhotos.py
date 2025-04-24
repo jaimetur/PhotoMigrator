@@ -1737,7 +1737,7 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+            albums = self.get_albums_owned_by_user(with_filters=True, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
                 self.logout(log_level=log_level)
@@ -1783,7 +1783,7 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+            albums = self.get_albums_owned_by_user(with_filters=True, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
                 self.logout(log_level=log_level)
