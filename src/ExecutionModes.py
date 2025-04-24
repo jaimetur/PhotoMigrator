@@ -715,7 +715,7 @@ def mode_synology_remove_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.warning(HELP_TEXTS["synology-remove-albums"].replace('<ALBUMS_NAME_PATTERN>', ARGS['synology-remove-albums']))
         LOGGER.warning('-' * terminal_width)
         if ARGS['remove-albums-assets']:
-            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any Albums will also be deleted.")
+            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any deleted Albums will also be deleted.")
             LOGGER.info("")
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
@@ -763,7 +763,7 @@ def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.IN
         LOGGER.warning(HELP_TEXTS["synology-remove-all-albums"])
         LOGGER.warning('-' * terminal_width)
         if ARGS['remove-albums-assets']:
-            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any Albums will also be deleted.")
+            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any deleted Albums will also be deleted.")
             LOGGER.info("")
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
@@ -1349,7 +1349,7 @@ def mode_immich_remove_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.warning(HELP_TEXTS["immich-remove-albums"].replace('<ALBUMS_NAME_PATTERN>', ARGS['immich-remove-albums']))
         LOGGER.warning('-' * terminal_width)
         if ARGS['remove-albums-assets']:
-            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any Albums will also be deleted.")
+            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any deleted Albums will also be deleted.")
             LOGGER.info("")
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
@@ -1397,7 +1397,7 @@ def mode_immich_remove_all_albums(user_confirmation=True, log_level=logging.INFO
         LOGGER.warning(HELP_TEXTS["immich-remove-all-albums"])
         LOGGER.warning('-' * terminal_width)
         if ARGS['remove-albums-assets']:
-            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any Albums will also be deleted.")
+            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any deleted Albums will also be deleted.")
             LOGGER.info("")
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
