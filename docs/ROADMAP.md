@@ -28,6 +28,7 @@ Planed Roadmap for the following releases
   - [x] _**'-irenAlb, --immich-rename-albums \<ALBUM_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>'**_
 - [x] Add new Feature to Merge Albums with the same name and different assets. 
 - [x] Add new flags _**'-sMergAlb, --synology-merge-duplicates-albums'**_ and _**'-iMergAlb, --immich-merge-duplicates-albums'**_ to activate this feature.
+- [ ] Test --synology-rename-albums feature
 
 
 ## v4.0.0:
