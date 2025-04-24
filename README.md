@@ -252,7 +252,8 @@ Planed Roadmap for the following releases
     - [x] Minor bugs fixing
 
 - ### TODO:
-  - [ ] Test --synology-rename-albums feature
+  - [ ] Deep Tests for new Features
+  - [ ] Bug Fixing
 
 ---
 
