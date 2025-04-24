@@ -58,6 +58,8 @@
 >>SYNOLOGY_PASSWORD_1         = password_1                                    # Account 1: Your password for Synology Photos
 >>SYNOLOGY_USERNAME_2         = username_2                                    # Account 2: Your username for Synology Photos
 >>SYNOLOGY_PASSWORD_2         = password_2                                    # Account 2: Your password for Synology Photos
+>>SYNOLOGY_USERNAME_2         = username_2                                    # Account 2: Your username for Synology Photos
+>>SYNOLOGY_PASSWORD_2         = password_2                                    # Account 2: Your password for Synology Photos
 >>```
 
 > [!NOTE]  
