@@ -1805,8 +1805,6 @@ class ClassSynologyPhotos:
                 while True:
                     status = self.wait_for_background_remove_task_finished_check(task_id, log_level=log_level)
                     if status == 'done' or status is True:
-                        LOGGER.info(f'INFO    : Waiting for removing assets to finish...')
-                        time.sleep(5)
                         break
                     else:
                         LOGGER.debug(f"DEBUG   : Task not finished yet. Waiting 5 seconds more.")
@@ -2376,7 +2374,7 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            LOGGER.warning("WARNING : Searching for albums that matches the provided pattern. This process may take some time. Please be patient!...")
+            LOGGER.warning("WARNING : Searching for Albums that matches the provided pattern. This process may take some time. Please be patient!...")
             albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
@@ -2425,7 +2423,7 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            LOGGER.warning("WARNING : Searching for albums that matches the provided pattern. This process may take some time. Please be patient!...")
+            LOGGER.warning("WARNING : Searching for Albums that matches the provided pattern. This process may take some time. Please be patient!...")
             albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")

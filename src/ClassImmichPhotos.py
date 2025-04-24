@@ -1737,7 +1737,7 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            LOGGER.warning("WARNING : Searching for albums that matches the provided pattern. This process may take some time. Please be patient!...")
+            LOGGER.warning("WARNING : Searching for Albums that matches the provided pattern. This process may take some time. Please be patient!...")
             albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
@@ -1783,7 +1783,7 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            LOGGER.warning("WARNING : Searching for albums that matches the provided pattern. This process may take some time. Please be patient!...")
+            LOGGER.warning("WARNING : Searching for Albums that matches the provided pattern. This process may take some time. Please be patient!...")
             albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
