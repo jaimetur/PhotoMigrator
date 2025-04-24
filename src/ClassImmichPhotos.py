@@ -1311,9 +1311,13 @@ class ClassImmichPhotos:
             total_duplicates_assets_removed = 0
             total_duplicates_assets_skipped = 0
 
-            SUBFOLDERS_EXCLUSIONS = ['@eaDir'] + subfolders_exclusion
+            # # If 'Albums' is not in subfolders_inclusion, add it (like original code).
+            # first_level_folders = [name.lower() for name in os.listdir(input_folder) if os.path.isdir(os.path.join(input_folder, name))]
+            # albums_folder_included = any(rel.lower() == 'albums' for rel in subfolders_inclusion)
+            # if not albums_folder_included and 'albums' in first_level_folders:
+            #     subfolders_inclusion.append('Albums')
 
-            # user_id = self.get_user_id(log_level=log_level)
+            SUBFOLDERS_EXCLUSIONS = ['@eaDir'] + subfolders_exclusion
             valid_folders = []
 
             for root, folders, _ in os.walk(input_folder):
