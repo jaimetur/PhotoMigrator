@@ -124,9 +124,13 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         usage = remove_chain(usage, "[<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...] ...]")
         # 3) Quitamos los espacios antes de los ... y antes del último corchete
         usage = usage.replace(" ...] ]", "...]]")
-        # 4) Tokenizamos con la nueva lógica (anidado)
+        # 4) Eliminamos el bloque con <ALBUMS_NAME_PATTERN> ...
+        usage = remove_chain(usage, "[<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN> ...]")
+        # 5) Quitamos los espacios antes del último corchete
+        usage = usage.replace(" ]", "]")
+        # 6) Tokenizamos con la nueva lógica (anidado)
         tokenized = self._tokenize_usage(usage)
-        # 5) Diccionario de tokens forzados
+        # 7) Diccionario de tokens forzados
         force_new_line_for_tokens = {
             "[-gpthProg [= [true,false]]]": False   # Salto de línea antes, pero sigue reagrupando
             ,"[-i <INPUT_FOLDER>]": False   # Salto de línea antes, pero sigue reagrupando

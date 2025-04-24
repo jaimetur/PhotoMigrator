@@ -22,10 +22,10 @@ Planed Roadmap for the following releases
 - [x] Add new Feature to remove all Albums from Synology Photos and Immich Photos whose name matches with a provided pattern (using regular expresions)
 - [x] Add new Feature to rename all Albums from Synology Photos and Immich Photos  whose name matches with a provided pattern (using regular expresions)
 - [x] Add following new flags to execute those two new features:
-  - [x] _**'-sremAlb, --synology-remove-albums \<ALBUM_NAME_PATTERN>'**_
-  - [x] _**'-iremAlb, --immich-remove-albums \<ALBUM_NAME_PATTERN>'**_
-  - [x] _**'-srenAlb, --synology-rename-albums \<ALBUM_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>'**_
-  - [x] _**'-irenAlb, --immich-rename-albums \<ALBUM_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>'**_
+  - [x] _**'-sRemAlb, --synology-remove-albums \<ALBUM_NAME_PATTERN>'**_
+  - [x] _**'-iRemAlb, --immich-remove-albums \<ALBUM_NAME_PATTERN>'**_
+  - [x] _**'-sRenAlb, --synology-rename-albums \<ALBUM_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>'**_
+  - [x] _**'-iRenAlb, --immich-rename-albums \<ALBUM_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>'**_
 - [x] Add new Feature to Merge Albums with the same name and different assets. 
 - [x] Add new flags _**'-sMergAlb, --synology-merge-duplicates-albums'**_ and _**'-iMergAlb, --immich-merge-duplicates-albums'**_ to activate this feature.
 - [ ] Test --synology-rename-albums feature

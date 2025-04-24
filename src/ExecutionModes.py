@@ -708,7 +708,7 @@ def mode_synology_remove_ALL(user_confirmation=True, log_level=logging.INFO):
 
 def mode_synology_remove_albums(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-sremAlb, --synology-remove-albums'.")
+        LOGGER.info(f"INFO    : Flag detected '-sRemAlb, --synology-remove-albums'.")
         if ARGS['remove-albums-assets']:
             LOGGER.info(f"INFO    : Flag detected '-rAlbAss, --remove-albums-assets'.")
         LOGGER.warning('\n' + '-' * terminal_width)
@@ -804,7 +804,7 @@ def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.IN
 
 def mode_synology_rename_albums(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-irenAlb, --synology-rename-albums'.")
+        LOGGER.info(f"INFO    : Flag detected '-iRenAlb, --synology-rename-albums'.")
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["synology-rename-albums"].replace('<ALBUMS_NAME_PATTERN>', ARGS['synology-rename-albums'][0]).replace('<ALBUMS_NAME_REPLACEMENT_PATTERN>', ARGS['synology-rename-albums'][1]))
         LOGGER.warning('-' * terminal_width)
@@ -1300,7 +1300,7 @@ def mode_immich_remove_ALL(user_confirmation=True, log_level=logging.INFO):
 
 def mode_immich_rename_albums(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-irenAlb, --immich-rename-albums'.")
+        LOGGER.info(f"INFO    : Flag detected '-iRenAlb, --immich-rename-albums'.")
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["immich-rename-albums"].replace('<ALBUMS_NAME_PATTERN>', ARGS['immich-rename-albums'][0]).replace('<ALBUMS_NAME_REPLACEMENT_PATTERN>', ARGS['immich-rename-albums'][1]))
         LOGGER.warning('-' * terminal_width)
@@ -1342,7 +1342,7 @@ def mode_immich_rename_albums(user_confirmation=True, log_level=logging.INFO):
 
 def mode_immich_remove_albums(user_confirmation=True, log_level=logging.INFO):
     if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-iremAlb, --immich-remove-albums'.")
+        LOGGER.info(f"INFO    : Flag detected '-iRemAlb, --immich-remove-albums'.")
         if ARGS['remove-albums-assets']:
             LOGGER.info(f"INFO    : Flag detected '-rAlbAss, --remove-albums-assets'.")
         LOGGER.warning('\n' + '-' * terminal_width)

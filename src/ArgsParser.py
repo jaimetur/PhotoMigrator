@@ -174,10 +174,10 @@ def parse_arguments():
                            "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
                            "\n- Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
                         )
-    PARSER.add_argument("-srenAlb", "--synology-rename-albums", metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>", nargs="+", default=[None, None],
+    PARSER.add_argument("-sRenAlb", "--synology-rename-albums", metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>", nargs="+", default=[None, None],
                         help="CAUTION!!! The Tool will look for all Albums in Synology Photos whose names matches with the pattern and will rename them from with the replacement pattern."
                         )
-    PARSER.add_argument("-sremAlb", "--synology-remove-albums", metavar="<ALBUMS_NAME_PATTERN>", default="",
+    PARSER.add_argument("-sRemAlb", "--synology-remove-albums", metavar="<ALBUMS_NAME_PATTERN>", default="",
                         help="CAUTION!!! The Tool will look for all Albums in Synology Photos whose names matches with the pattern and will remove."
                            "\nOptionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
                         )
@@ -212,10 +212,10 @@ def parse_arguments():
                            "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
                            "\n- Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
                         )
-    PARSER.add_argument("-irenAlb", "--immich-rename-albums", metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>", nargs="+", default=[None, None],
+    PARSER.add_argument("-iRenAlb", "--immich-rename-albums", metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>", nargs="+", default=[None, None],
                         help="CAUTION!!! The Tool will look for all Albums in Immich Photos whose names matches with the pattern and will rename them from with the replacement pattern."
                         )
-    PARSER.add_argument("-iremAlb", "--immich-remove-albums", metavar="<ALBUMS_NAME_PATTERN>", default="",
+    PARSER.add_argument("-iRemAlb", "--immich-remove-albums", metavar="<ALBUMS_NAME_PATTERN>", default="",
                         help="CAUTION!!! The Tool will look for all Albums in Immich Photos whose names matches with the pattern and will remove them."
                            "\nOptionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
                         )
