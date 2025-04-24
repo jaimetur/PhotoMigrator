@@ -14,16 +14,16 @@
     - [x] Added Support for 3 accounts of each Cloud Photo Service (before it was only 2).
     - [x] Added new flag _**'-id, --account-id \<ID>'**_ to specify which account to use for Synology Photos and Immich Photos from Config.ini.
     - [x] Added support for 2FA in Synology Photos requesting the OTP Token if flag _**'-sOTP, --synology-OTP'**_ is detected. [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218).
-      - [x] Added new flag _**'-sOTP, --synology-OTP'**_ to allow login into Synology Photos accounts with 2FA activated.
+      - New flag _**'-sOTP, --synology-OTP'**_ to allow login into Synology Photos accounts with 2FA activated.
     - [x] Added new Feature to **Remove Albums by Name Pattern** from Synology Photos and Immich Photos to remove those albums whose name matches with a provided pattern (using regular expresions). Added following new flags to execute this new features:
-      - [x] _**'-sRemAlb, --synology-remove-albums \<ALBUM_NAME_PATTERN>'**_
-      - [x] _**'-iRemAlb, --immich-remove-albums \<ALBUM_NAME_PATTERN>'**_
+      - _**'-sRemAlb, --synology-remove-albums \<ALBUM_NAME_PATTERN>'**_
+      - _**'-iRemAlb, --immich-remove-albums \<ALBUM_NAME_PATTERN>'**_
     - [x] Added new Feature to **Rename Albums by Name Pattern** from Synology Photos and Immich Photos to rename those albums whose name matches with a provided pattern (using regular expresions). Added following new flags to execute this new features:
-      - [x] _**'-sRenAlb, --synology-rename-albums \<ALBUM_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>'**_
-      - [x] _**'-iRenAlb, --immich-rename-albums \<ALBUM_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>'**_
+      - _**'-sRenAlb, --synology-rename-albums \<ALBUM_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>'**_
+      - _**'-iRenAlb, --immich-rename-albums \<ALBUM_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>'**_
     - [x] Added new Feature to **Merge Albums** with the same name and different assets. Added following new flags to execute this new feature:
-      - [x] _**'-sMergAlb, --synology-merge-duplicates-albums'**_ 
-      - [x] _**'-iMergAlb, --immich-merge-duplicates-albums'**_.
+      - _**'-sMergAlb, --synology-merge-duplicates-albums'**_ 
+      - _**'-iMergAlb, --immich-merge-duplicates-albums'**_.
   
   - #### Enhancements:
     - [x] Improved Performance on Pull functions when no filtering options have been given.
