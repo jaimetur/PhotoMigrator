@@ -42,7 +42,7 @@ Planed Roadmap for the following releases
     - [x] Minor bugs fixing
 
 - ### TODO:
-  - [ ] Allow filter by date in Remove/Rename Albums features for Synology/Immich Photos
+  - [ ] Allow filter by date in Remove/Rename/Merge Albums features for Synology/Immich Photos
   - [ ] Automatic filters flags detection for all Remove/Rename Albums features for Synology/Immich Photos
     - [ ] remove-all-assets
     - [ ] remove-all-albums
