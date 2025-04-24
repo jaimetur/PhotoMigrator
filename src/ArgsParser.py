@@ -174,13 +174,20 @@ def parse_arguments():
                            "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
                            "\n- Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
                         )
+    PARSER.add_argument("-sRenAlb", "--synology-rename-albums", metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>", nargs="+", default=[None, None],
+                        help="CAUTION!!! The Tool will look for all Albums in Synology Photos whose names matches with the pattern and will rename them from with the replacement pattern."
+                        )
+    PARSER.add_argument("-sRemAlb", "--synology-remove-albums", metavar="<ALBUMS_NAME_PATTERN>", default="",
+                        help="CAUTION!!! The Tool will look for all Albums in Synology Photos whose names matches with the pattern and will remove."
+                           "\nOptionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
+                        )
     PARSER.add_argument("-srEmpAlb", "--synology-remove-empty-albums", action="store_true", default="", help="The Tool will look for all Albums in your Synology Photos account and if any Album is empty, will remove it from your Synology Photos account.")
     PARSER.add_argument("-srDupAlb", "--synology-remove-duplicates-albums", action="store_true", default="", help="The Tool will look for all Albums in your Synology Photos account and if any Album is duplicated (with the same name and size), will remove it from your Synology Photos account.")
     PARSER.add_argument("-sMergAlb", "--synology-merge-duplicates-albums", action="store_true", default="", help="The Tool will look for all Albums in your Synology Photos account and if any Album is duplicated (with the same name), will transfer all its assets to the most relevant album and remove it from your Synology Photos account.")
-    PARSER.add_argument("-srAll", "--synology-remove-all-assets", action="store_true", default="", help="CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Synology database.")
+    PARSER.add_argument("-srAll", "--synology-remove-all-assets", action="store_true", default="", help="CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also ALL your Albums from Synology database.")
     PARSER.add_argument("-srAllAlb", "--synology-remove-all-albums", action="store_true", default="",
-                        help="CAUTION!!! The Tool will delete ALL your Albums from Synology database."
-                           "\nOptionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
+                        help="CAUTION!!! The Tool will remove ALL your Albums from Synology database."
+                           "\nOptionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
                         )
     PARSER.add_argument("-sOTP", "--synology-OTP", action="store_true", default="", help="This Flag allow you to login into Synology Photos using 2FA with an OTP Token.")
 
@@ -205,15 +212,23 @@ def parse_arguments():
                            "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
                            "\n- Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
                         )
+    PARSER.add_argument("-iRenAlb", "--immich-rename-albums", metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>", nargs="+", default=[None, None],
+                        help="CAUTION!!! The Tool will look for all Albums in Immich Photos whose names matches with the pattern and will rename them from with the replacement pattern."
+                        )
+    PARSER.add_argument("-iRemAlb", "--immich-remove-albums", metavar="<ALBUMS_NAME_PATTERN>", default="",
+                        help="CAUTION!!! The Tool will look for all Albums in Immich Photos whose names matches with the pattern and will remove them."
+                           "\nOptionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
+                        )
+
     PARSER.add_argument("-irEmpAlb", "--immich-remove-empty-albums", action="store_true", default="", help="The Tool will look for all Albums in your Immich Photos account and if any Album is empty, will remove it from your Immich Photos account.")
     PARSER.add_argument("-irDupAlb", "--immich-remove-duplicates-albums", action="store_true", default="", help="The Tool will look for all Albums in your Immich Photos account and if any Album is duplicated (with the same name and size), will remove it from your Immich Photos account.")
     PARSER.add_argument("-iMergAlb", "--immich-merge-duplicates-albums", action="store_true", default="", help="The Tool will look for all Albums in your Immich Photos account and if any Album is duplicated (with the same name), will transfer all its assets to the most relevant album and remove it from your Immich Photos account.")
-    PARSER.add_argument("-irAll", "--immich-remove-all-assets", action="store_true", default="", help="CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also ALL your Albums from Immich database.")
+    PARSER.add_argument("-irAll", "--immich-remove-all-assets", action="store_true", default="", help="CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also ALL your Albums from Immich database.")
     PARSER.add_argument("-irAllAlb", "--immich-remove-all-albums", action="store_true", default="",
-                        help="CAUTION!!! The Tool will delete ALL your Albums from Immich database."
-                           "\nOptionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
+                        help="CAUTION!!! The Tool will remove ALL your Albums from Immich database."
+                           "\nOptionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
                         )
-    PARSER.add_argument("-irOrphan", "--immich-remove-orphan-assets", action="store_true", default="", help="The Tool will look for all Orphan Assets in Immich Database and will delete them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in Config.ini.")
+    PARSER.add_argument("-irOrphan", "--immich-remove-orphan-assets", action="store_true", default="", help="The Tool will look for all Orphan Assets in Immich Database and will remove them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in Config.ini.")
 
 
 
@@ -354,10 +369,34 @@ def checkArgs(ARGS, PARSER):
         DEFAULT_DUPLICATES_ACTION = True
     ARGS['duplicates-folders'] = parse_folders_list(ARGS['duplicates-folders'])
 
+    # Parse synology-rename-albums
+    if ARGS['synology-rename-albums'][0]:
+        if len(ARGS['synology-rename-albums']) != 2:
+            PARSER.error(f"\n\n❌ ERROR   : --synology-rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
+            exit(1)
+        for subarg in ARGS['synology-rename-albums']:
+            if subarg is None:
+                PARSER.error(f"\n\n❌ ERROR   : --synology-rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
+                exit(1)
+
+    # Parse immich-rename-albums
+    if ARGS['immich-rename-albums'][0]:
+        if len(ARGS['immich-rename-albums']) != 2:
+            PARSER.error(f"\n\n❌ ERROR   : --immich-rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
+            exit(1)
+        for subarg in ARGS['immich-rename-albums']:
+            if subarg is None:
+                PARSER.error(f"\n\n❌ ERROR   : --immich-rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
+                exit(1)
 
     # Parse 'immich-remove-all-albums in combination with 'including-albums-assets'
-    if ARGS['remove-albums-assets'] and not ARGS['immich-remove-all-albums']:
-        PARSER.error(f"\n\n❌ ERROR   : --remove-albums-assets is a modifier of argument --immich-remove-all-albums and cannot work alone.\n")
+    if ARGS['remove-albums-assets'] and not (ARGS['synology-remove-all-albums'] or ARGS['immich-remove-all-albums'] or ARGS['synology-remove-albums'] or ARGS['immich-remove-albums']):
+        PARSER.error(f"\n\n❌ ERROR   : --remove-albums-assets is a modifier of argument. It need to be used together with one of the following arguments:"
+                     f"\n--synology-remove-all-albums"
+                     f"\n--immich-remove-all-albums"
+                     f"\n--synology-remove-albums"
+                     f"\n--immich-remove-albums"
+                     f"\n")
         exit(1)
 
 

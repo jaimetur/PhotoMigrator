@@ -1395,4 +1395,17 @@ def epoch_to_iso8601(epoch):
         return ""
 
 
+def match_pattern(string, pattern):
+    """
+    Returns True if the regex pattern is found in the given string.
+    """
+    return re.search(pattern, string) is not None
+
+
+def replace_pattern(string, pattern, pattern_to_replace):
+    """
+    Replaces all occurrences of the regex pattern in the string with replace_pattern.
+    """
+    return re.sub(pattern, pattern_to_replace, string)
+
 

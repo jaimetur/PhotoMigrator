@@ -8,8 +8,6 @@
   - Official Release : 2025-05-30
 
 ### Main Changes:
-- [x] Added Feature to Merge Albums with the same name and different assets. 
-- [x] Added new flags _**'-sMergAlb, --synology-merge-duplicates-albums'**_ and _**'-iMergAlb, --immich-merge-duplicates-albums'**_ to activate this feature.
 - [x] Improved Performance on Pull functions when no filtering options have been given
 - [x] Improved performance when searching Google Takeout structure on huge local folder with many subfolders
 - [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automated Mode Feature as before)
@@ -18,6 +16,15 @@
 - [x] Added new flag _**'-sOTP, --synology-OTP'**_ to allow login into Synology Photos accounts with 2FA activated
 - [x] Support for 2FA in Synology Photos requesting the OTP Token if flag _**'-sOTP, --synology-OTP'**_ is detected. [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218)
 - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218)
+- [x] Added new Feature to remove all Albums from Synology Photos and Immich Photos whose name matches with a provided pattern (using regular expresions)
+- [x] Added new Feature to rename all Albums from Synology Photos and Immich Photos  whose name matches with a provided pattern (using regular expresions)
+- [x] Added following new flags to execute those two new features:
+  - [x] _**'-sRemAlb, --synology-remove-albums \<ALBUM_NAME_PATTERN>'**_
+  - [x] _**'-iRemAlb, --immich-remove-albums \<ALBUM_NAME_PATTERN>'**_
+  - [x] _**'-sRenAlb, --synology-rename-albums \<ALBUM_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>'**_
+  - [x] _**'-iRenAlb, --immich-rename-albums \<ALBUM_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>'**_
+- [x] Added new Feature to Merge Albums with the same name and different assets. 
+- [x] Added new flags _**'-sMergAlb, --synology-merge-duplicates-albums'**_ and _**'-iMergAlb, --immich-merge-duplicates-albums'**_ to activate this feature.
 
 ---
 

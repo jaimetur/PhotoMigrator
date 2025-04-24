@@ -44,11 +44,14 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>
                                   [-suAlb <ALBUMS_FOLDER>]
                                   [-sdAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
                                   [-suAll <INPUT_FOLDER>] [-sdAll <OUTPUT_FOLDER>]
-                                  [-srEmpAlb] [-srDupAlb] [-sMergAlb] [-srAll] [-srAllAlb]
-                                  [-sOTP]
+                                  [-sRenAlb <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>]
+                                  [-sRemAlb <ALBUMS_NAME_PATTERN>] [-srEmpAlb] [-srDupAlb]
+                                  [-sMergAlb] [-srAll] [-srAllAlb] [-sOTP]
                                   [-iuAlb <ALBUMS_FOLDER>]
                                   [-idAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
                                   [-iuAll <INPUT_FOLDER>] [-idAll <OUTPUT_FOLDER>]
+                                  [-iRenAlb <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>]
+                                  [-iRemAlb <ALBUMS_NAME_PATTERN>]
                                   [-irEmpAlb] [-irDupAlb] [-iMergAlb] [-irAll] [-irAllAlb]
                                   [-irOrphan]
                                   [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
@@ -249,6 +252,15 @@ If more than one optional arguments are detected, only the first one will be exe
              - Assets with no Albums associated will be downloaded within a subfolder
              called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure
              inside.
+-sRenAlb,  --synology-rename-albums <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>
+             CAUTION!!! The Tool will look for all Albums in Synology Photos whose names
+             matches with the pattern and will rename them from with the replacement
+             pattern.
+-sRemAlb,  --synology-remove-albums <ALBUMS_NAME_PATTERN>
+             CAUTION!!! The Tool will look for all Albums in Synology Photos whose names
+             matches with the pattern and will remove.
+             Optionally ALL the Assets associated to each Album can be removed If you
+             also include the argument '-rAlbAss, --remove-albums-assets' argument.
 -srEmpAlb, --synology-remove-empty-albums
              The Tool will look for all Albums in your Synology Photos account and if
              any Album is empty, will remove it from your Synology Photos account.
@@ -261,11 +273,11 @@ If more than one optional arguments are detected, only the first one will be exe
              any Album is duplicated (with the same name), will transfer all its assets
              to the most relevant album and remove it from your Synology Photos account.
 -srAll,    --synology-remove-all-assets
-             CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also
+             CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also
              ALL your Albums from Synology database.
 -srAllAlb, --synology-remove-all-albums
-             CAUTION!!! The Tool will delete ALL your Albums from Synology database.
-             Optionally ALL the Assets associated to each Album can be deleted If you
+             CAUTION!!! The Tool will remove ALL your Albums from Synology database.
+             Optionally ALL the Assets associated to each Album can be removed If you
              also include the argument '-rAlbAss, --remove-albums-assets' argument.
 -sOTP,     --synology-OTP
              This Flag allow you to login into Synology Photos using 2FA with an OTP
@@ -310,6 +322,15 @@ If more than one optional arguments are detected, only the first one will be exe
              - Assets with no Albums associated will be downloaded within a subfolder
              called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure
              inside.
+-iRenAlb,  --immich-rename-albums <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>
+             CAUTION!!! The Tool will look for all Albums in Immich Photos whose names
+             matches with the pattern and will rename them from with the replacement
+             pattern.
+-iRemAlb,  --immich-remove-albums <ALBUMS_NAME_PATTERN>
+             CAUTION!!! The Tool will look for all Albums in Immich Photos whose names
+             matches with the pattern and will remove them.
+             Optionally ALL the Assets associated to each Album can be removed If you
+             also include the argument '-rAlbAss, --remove-albums-assets' argument.
 -irEmpAlb, --immich-remove-empty-albums
              The Tool will look for all Albums in your Immich Photos account and if any
              Album is empty, will remove it from your Immich Photos account.
@@ -322,14 +343,14 @@ If more than one optional arguments are detected, only the first one will be exe
              Album is duplicated (with the same name), will transfer all its assets to
              the most relevant album and remove it from your Immich Photos account.
 -irAll,    --immich-remove-all-assets
-             CAUTION!!! The Tool will delete ALL your Assets (Photos & Videos) and also
+             CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also
              ALL your Albums from Immich database.
 -irAllAlb, --immich-remove-all-albums
-             CAUTION!!! The Tool will delete ALL your Albums from Immich database.
-             Optionally ALL the Assets associated to each Album can be deleted If you
+             CAUTION!!! The Tool will remove ALL your Albums from Immich database.
+             Optionally ALL the Assets associated to each Album can be removed If you
              also include the argument '-rAlbAss, --remove-albums-assets' argument.
 -irOrphan, --immich-remove-orphan-assets
-             The Tool will look for all Orphan Assets in Immich Database and will delete
+             The Tool will look for all Orphan Assets in Immich Database and will remove
              them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in
              Config.ini.
 

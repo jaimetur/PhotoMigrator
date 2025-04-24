@@ -66,6 +66,15 @@ def set_help_texts():
         Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument.
         """)
 
+    HELP_TEXTS["synology-remove-albums"] = textwrap.dedent(f"""
+        CAUTION!!! The Tool will delete those Albums from Synology database whose name matches with the provided pattern '<ALBUMS_NAME_PATTERN>'.
+        Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument.
+        """)
+
+    HELP_TEXTS["synology-rename-albums"] = textwrap.dedent(f"""
+        CAUTION!!! The Tool will rename those Albums from Synology database whose name matches with the provided pattern '<ALBUMS_NAME_PATTERN>' and will replace them with the pattern '<ALBUMS_NAME_REPLACEMENT_PATTERN>'.
+        """)
+
     ###########################
     # FEATURES: IMMICH PHOTOS #
     ###########################
@@ -118,6 +127,15 @@ def set_help_texts():
     HELP_TEXTS["immich-remove-all-albums"]  = textwrap.dedent(f"""
         CAUTION!!! The Tool will delete ALL your Albums from Immich database.
         Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument.
+        """)
+
+    HELP_TEXTS["immich-remove-albums"]  = textwrap.dedent(f"""
+        CAUTION!!! The Tool will delete those Albums from Immich database whose name matches with the provided pattern '<ALBUMS_NAME_PATTERN>'.
+        Optionally ALL the Assets associated to each Album can be deleted If you also include the argument '-rAlbAss, --remove-albums-assets' argument.
+        """)
+
+    HELP_TEXTS["immich-rename-albums"]  = textwrap.dedent(f"""
+        CAUTION!!! The Tool will rename those Albums from Immich database whose name matches with the provided pattern '<ALBUMS_NAME_PATTERN>' and will replace them with the pattern '<ALBUMS_NAME_REPLACEMENT_PATTERN>'.
         """)
 
     ############################

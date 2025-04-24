@@ -26,8 +26,11 @@ Currently, the Supported Photo Cloud Services are:
   - Download ALL (into folder)
   - Remove ALL Assets
   - Remove ALL Albums
+  - Rename Albums by Name Pattern
+  - Remove Albums by Name Pattern
   - Remove Empty Albums
   - Remove Duplicates Albums
+  - Merge Duplicates Albums
 
 - **Immich Photos** - Features included:
   - Upload Album(s)
@@ -36,8 +39,11 @@ Currently, the Supported Photo Cloud Services are:
   - Download ALL (into folder)
   - Remove ALL Assets
   - Remove ALL Albums
+  - Rename Albums by Name Pattern
+  - Remove Albums by Name Pattern
   - Remove Empty Albums
   - Remove Duplicates Albums
+  - Merge Duplicates Albums
   - Remove Orphans Assets
 
 - **Apple Photos**  
@@ -195,11 +201,13 @@ The below tables show the pros and cons of each method together with a comparati
 > [!IMPORTANT]  
 > It is important that you configure properly the file 'Config.ini' (included with the tool), to set properly the accounts for your Photo Cloud Service.  
 
+---
 
 ## RELEASES-NOTES:
 The Historical Releases Notes can be checked in the following link:
 [RELEASES-NOTES.md](/docs/RELEASES-NOTES.md)
 
+---
 
 ## ROADMAP:
 Planed Roadmap for the following releases
@@ -214,8 +222,6 @@ Planed Roadmap for the following releases
   - Official Release : 2025-05-30
 
 ### TODO:
-- [x] Add Feature to Merge Albums with the same name and different assets. 
-- [x] Add new flags _**'-sMergAlb, --synology-merge-duplicates-albums'**_ and _**'-iMergAlb, --immich-merge-duplicates-albums'**_ to activate this feature.
 - [x] Improve Performance on Pull functions when no filtering options have been given
 - [x] Improve performance when searching Google Takeout structure on huge local folder with many subfolders
 - [x] Add Multi-Account support for all Synology Photos and Immich Photos Features (not only Automated Mode Feature as before)
@@ -224,9 +230,16 @@ Planed Roadmap for the following releases
 - [x] Add new flag _**'-sOTP, --synology-OTP'**_ to allow login into Synology Photos accounts with 2FA activated
 - [x] Support for 2FA in Synology Photos requesting the OTP Token if flag _**'-sOTP, --synology-OTP'**_ is detected. [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218)
 - [x] Fix issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218)
-- [ ] Rename Albums using regular expresions or patterns in the name
-- [ ] Delete Albums using regular expresions or patterns in the name
-
+- [x] Add new Feature to remove all Albums from Synology Photos and Immich Photos whose name matches with a provided pattern (using regular expresions)
+- [x] Add new Feature to rename all Albums from Synology Photos and Immich Photos  whose name matches with a provided pattern (using regular expresions)
+- [x] Add following new flags to execute those two new features:
+  - [x] _**'-sRemAlb, --synology-remove-albums \<ALBUM_NAME_PATTERN>'**_
+  - [x] _**'-iRemAlb, --immich-remove-albums \<ALBUM_NAME_PATTERN>'**_
+  - [x] _**'-sRenAlb, --synology-rename-albums \<ALBUM_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>'**_
+  - [x] _**'-iRenAlb, --immich-rename-albums \<ALBUM_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>'**_
+- [x] Add new Feature to Merge Albums with the same name and different assets. 
+- [x] Add new flags _**'-sMergAlb, --synology-merge-duplicates-albums'**_ and _**'-iMergAlb, --immich-merge-duplicates-albums'**_ to activate this feature.
+- [ ] Test --synology-rename-albums feature
 
 
 ## v4.0.0:
