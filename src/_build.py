@@ -141,8 +141,8 @@ def extract_release_body(download_file, input_file, output_file):
 
     # Append both the download file content and the release section to the output file
     with open(output_file, 'a', encoding='utf-8') as outfile:
-        outfile.writelines(download_content)
         outfile.writelines(release_section)
+        outfile.writelines(download_content)
 
 def add_roadmap_to_readme(readme_file, roadmap_file):
     """
