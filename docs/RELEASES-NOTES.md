@@ -81,9 +81,9 @@
     - [x] Support for 'Uploads Queue' to limit the max number of assets that the Downloader worker will store in the temporary folder to 100 (this save disk space). In this way the Downloader worker will never put more than 100 assets pending to Upload in the local folder.
     - [x] Support to use Local Folders as SOURCE/TARGET during Automated Migration Process. Now the selected local folder works equal to other supported cloud services.
     - [x] Support Migration between 2 different accounts on the same Cloud Photo Service. 
-      > [!IMPORTANT]  
-      > **Breaking Change!**  
-      > Config.ini file has changed to support multi-accounts over the same Cloud Photo Service
+> [!IMPORTANT]  
+> **Breaking Change!**  
+> Config.ini file has changed to support multi-accounts over the same Cloud Photo Service
 
   - #### Enhancements:
     - [x] Completely refactored Automated Migration Process to allow parallel threads for Downloads and Uploads jobs avoiding downloading all assets before to upload them (this will save disk space and improve performance). Also objects support has been added to this mode for an easier implementation and future enhancements.
