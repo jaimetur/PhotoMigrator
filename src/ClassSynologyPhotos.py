@@ -2376,9 +2376,7 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            LOGGER.info("")
-            LOGGER.info("INFO    : Searching for albums that matches the provided pattern and filters (if applies). This process may take some time. Please be patient!...")
-            LOGGER.info("")
+            LOGGER.warning("WARNING : Searching for albums that matches the provided pattern and filters (if applies). This process may take some time. Please be patient!...")
             albums = self.get_albums_owned_by_user(with_filters=True, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
@@ -2386,7 +2384,6 @@ class ClassSynologyPhotos:
                 return 0
 
             total_renamed_albums = 0
-            LOGGER.info("INFO    : Searching for albums whose name matches with the provided pattern in Synology Photos...")
             for album in tqdm(albums, desc=f"INFO    : Searching for Albums to rename", unit=" albums"):
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
@@ -2428,9 +2425,7 @@ class ClassSynologyPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            LOGGER.info("")
-            LOGGER.info("INFO    : Searching for albums that matches the provided pattern and filters (if applies). This process may take some time. Please be patient!...")
-            LOGGER.info("")
+            LOGGER.warning("WARNING : Searching for albums that matches the provided pattern and filters (if applies). This process may take some time. Please be patient!...")
             albums = self.get_albums_owned_by_user(with_filters=True, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
@@ -2439,7 +2434,6 @@ class ClassSynologyPhotos:
 
             total_removed_albums = 0
             total_removed_assets = 0
-            LOGGER.info("INFO    : Searching for albums whose name matches with the provided pattern in Synology Photos...")
             for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
