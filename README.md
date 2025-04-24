@@ -253,7 +253,15 @@ Planed Roadmap for the following releases
     - [x] Minor bugs fixing
 
 - ### TODO:
+  - [ ] Allow filter by date in Remove/Rename Albums features for Synology/Immich Photos
+  - [ ] Automatic filters flags detection for all Remove/Rename Albums features for Synology/Immich Photos
+    - [ ] remove-All
+    - [ ] remove-albums
+    - [ ] remove-empty-albums
+    - [ ] remove-duplicates-albums
+    - [ ] rename-albums
   - [ ] Deep Tests for new Features
+  - [ ] Deep Test for upload-albums/upload-all features (include filtering options)
   - [ ] Bug Fixing
 
 ---
