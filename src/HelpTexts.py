@@ -28,6 +28,10 @@ def set_help_texts():
         ATTENTION!!!: This process will connect to your to your Synology Photos account and will delete all Duplicates Albums found in your Synology Photos account.
         """)
 
+    HELP_TEXTS["synology-merge-duplicates-albums"] = textwrap.dedent(f"""
+        ATTENTION!!!: This process will connect to your to your Immich Photos account and will merge all Duplicates Albums (with the same name) found in your Immich Photos account, removing all of them except the albums with highest number of assets and assigning all assets from removed albums to it.
+        """)
+
     HELP_TEXTS["synology-upload-folder"] = textwrap.dedent(f"""
         ATTENTION!!!: This process will connect to your to your Synology Photos account and will upload all Photos/Videos found within <FOLDER> (including subfolders, except 'Albums' subfolder).
         """)
@@ -84,6 +88,10 @@ def set_help_texts():
 
     HELP_TEXTS["immich-remove-duplicates-albums"] = textwrap.dedent(f"""
         ATTENTION!!!: This process will connect to your to your Immich Photos account and will delete all Duplicates Albums found in your Immich Photos account.
+        """)
+
+    HELP_TEXTS["immich-merge-duplicates-albums"] = textwrap.dedent(f"""
+        ATTENTION!!!: This process will connect to your to your Immich Photos account and will merge all Duplicates Albums (with the same name) found in your Immich Photos account, removing all of them except the albums with highest number of assets and assigning all assets from removed albums to it.
         """)
 
     HELP_TEXTS["immich-upload-folder"] = textwrap.dedent(f"""

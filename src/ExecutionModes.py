@@ -625,7 +625,7 @@ def mode_synology_merge_duplicates_albums(user_confirmation=True, log_level=logg
     if user_confirmation:
         LOGGER.info(f"INFO    : Flag detected '-sMergAlb, --synology-merge-duplicates-albums'.")
         LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["synology-remove-duplicates-albums"])
+        LOGGER.warning(HELP_TEXTS["synology-merge-duplicates-albums"])
         LOGGER.warning('-' * terminal_width)
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
@@ -1177,7 +1177,7 @@ def mode_immich_merge_duplicates_albums(user_confirmation=True, log_level=loggin
     if user_confirmation:
         LOGGER.info(f"INFO    : Flag detected '-iMergAlb, --immich-merge-duplicates-albums'.")
         LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["immich-remove-duplicates-albums"])
+        LOGGER.warning(HELP_TEXTS["immich-merge-duplicates-albums"])
         LOGGER.warning('-' * terminal_width)
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
