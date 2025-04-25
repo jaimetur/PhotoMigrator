@@ -26,8 +26,8 @@ Currently, the Supported Photo Cloud Services and included Features are:
   - Download ALL (into folder)
   - Remove ALL Assets
   - Remove ALL Albums
-  - Rename Albums by Name Pattern
   - Remove Albums by Name Pattern
+  - Rename Albums by Name Pattern
   - Remove Empty Albums
   - Remove Duplicates Albums
   - Merge Duplicates Albums
@@ -39,8 +39,8 @@ Currently, the Supported Photo Cloud Services and included Features are:
   - Download ALL (into folder)
   - Remove ALL Assets
   - Remove ALL Albums
-  - Rename Albums by Name Pattern
   - Remove Albums by Name Pattern
+  - Rename Albums by Name Pattern
   - Remove Empty Albums
   - Remove Duplicates Albums
   - Merge Duplicates Albums
