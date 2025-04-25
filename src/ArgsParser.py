@@ -11,9 +11,9 @@ from datetime import datetime
 choices_for_message_levels          = ['debug', 'info', 'warning', 'error', 'critical']
 choices_for_folder_structure        = ['flatten', 'year', 'year/month', 'year-month']
 choices_for_remove_duplicates       = ['list', 'move', 'remove']
-choices_for_AUTOMATED_MIGRATION_SRC = ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1', 'synology-photos-2', 'synology-photos2', 'synology-2', 'synology2', 'synology-photos-3', 'synology-photos3', 'synology-3', 'synology3',
+choices_for_AUTOMATIC_MIGRATION_SRC = ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1', 'synology-photos-2', 'synology-photos2', 'synology-2', 'synology2', 'synology-photos-3', 'synology-photos3', 'synology-3', 'synology3',
                                        'immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1', 'immich-photos-2', 'immich-photos2', 'immich-2', 'immich2', 'immich-photos-', 'immich-photos3', 'immich-3', 'immich3']
-choices_for_AUTOMATED_MIGRATION_TGT = ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1', 'synology-photos-2', 'synology-photos2', 'synology-2', 'synology2', 'synology-photos-3', 'synology-photos3', 'synology-3', 'synology3',
+choices_for_AUTOMATIC_MIGRATION_TGT = ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1', 'synology-photos-2', 'synology-photos2', 'synology-2', 'synology2', 'synology-photos-3', 'synology-photos3', 'synology-3', 'synology3',
                                        'immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1', 'immich-photos-2', 'immich-photos2', 'immich-2', 'immich2', 'immich-photos-', 'immich-photos3', 'immich-3', 'immich3']
 valid_asset_types                   = ['all', 'image', 'images', 'photo', 'photos', 'video', 'videos']
 
@@ -34,10 +34,10 @@ def parse_arguments():
 
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the Tool name, version, and date, then exit.")
 
-    # FEATURES FOR AUTOMATED MIGRATION:
+    # FEATURES FOR AUTOMATIC MIGRATION:
     # ---------------------------------
     PARSER.add_argument( "-source", "--source", metavar="<SOURCE>", default="",
-                        help="Select the <SOURCE> for the AUTOMATED-MIGRATION Process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
+                        help="Select the <SOURCE> for the AUTOMATIC-MIGRATION Process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
                          "\n"
                          "\nPossible values:"
                          "\n  ['synology', 'immich']-[id] or <INPUT_FOLDER>"
@@ -51,7 +51,7 @@ def parse_arguments():
                          "\n ​                      (both, zipped and unzipped format are supported)"
                          )
     PARSER.add_argument( "-target", "--target", metavar="<TARGET>", default="",
-                        help="Select the <TARGET> for the AUTOMATED-MIGRATION Process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
+                        help="Select the <TARGET> for the AUTOMATIC-MIGRATION Process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
                          "\n"
                          "\nPossible values:"
                          "\n  ['synology', 'immich']-[id] or <OUTPUT_FOLDER>"
@@ -68,7 +68,7 @@ def parse_arguments():
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=True,  # Si no se pasa el argumento, el valor por defecto es True
                         type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="Enable or disable Live Dashboard feature during Autometed Migration Job. This argument only applies if both '--source' and '--target' argument are given (AUTOMATED-MIGRATION FEATURE). (default: True)."
+                        help="Enable or disable Live Dashboard feature during Autometed Migration Job. This argument only applies if both '--source' and '--target' argument are given (AUTOMATIC-MIGRATION FEATURE). (default: True)."
     )
     PARSER.add_argument("-parallel", "--parallel-migration",
                         metavar="= [true,false]",
@@ -76,7 +76,7 @@ def parse_arguments():
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=True,  # Si no se pasa el argumento, el valor por defecto es True
                         type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="Select Parallel/Secuencial Migration during Automated Migration Job. This argument only applies if both '--source' and '--target' argument are given (AUTOMATED-MIGRATION FEATURE). (default: True)."
+                        help="Select Parallel/Secuencial Migration during Automatic Migration Job. This argument only applies if both '--source' and '--target' argument are given (AUTOMATIC-MIGRATION FEATURE). (default: True)."
     )
 
     PARSER.add_argument("-from", "--filter-from-date", metavar="<FROM_DATE>", default=None, help="Specify the initial date to filter assets in the different Photo Clients.")
@@ -292,32 +292,32 @@ def checkArgs(ARGS, PARSER):
     ARGS['google-input-zip-folder'] = None
 
     # Set None for MIGRATION argument, and only if both source and target argument are providin, it will set properly.
-    ARGS['AUTOMATED-MIGRATION'] = None
+    ARGS['AUTOMATIC-MIGRATION'] = None
 
 
-    # Parse AUTOMATED-MIGRATION Arguments
+    # Parse AUTOMATIC-MIGRATION Arguments
     # Manual validation of --source and --target to allow predefined values but also local folders.
     if ARGS['source'] and not ARGS['target']:
-        PARSER.error(f"\n\n❌ ERROR   : Invalid syntax. Argument '--source' detected but not '--target' providen'. You must specify both, --source and --target to execute AUTOMATED-MIGRATION task.\n")
+        PARSER.error(f"\n\n❌ ERROR   : Invalid syntax. Argument '--source' detected but not '--target' providen'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n")
         exit(1)
     if ARGS['target'] and not ARGS['source']:
-        PARSER.error(f"\n\n❌ ERROR   : Invalid syntax. Argument '--target' detected but not '--source' providen'. You must specify both, --source and --target to execute AUTOMATED-MIGRATION task.\n")
+        PARSER.error(f"\n\n❌ ERROR   : Invalid syntax. Argument '--target' detected but not '--source' providen'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n")
         exit(1)
-    if ARGS['source'] and ARGS['source'] not in choices_for_AUTOMATED_MIGRATION_SRC and not os.path.isdir(ARGS['source']):
-        PARSER.error(f"\n\n❌ ERROR   : Invalid choice detected for --source='{ARGS['source']}'. \nMust be an existing local folder or one of the following values: \n{choices_for_AUTOMATED_MIGRATION_SRC}.\n")
+    if ARGS['source'] and ARGS['source'] not in choices_for_AUTOMATIC_MIGRATION_SRC and not os.path.isdir(ARGS['source']):
+        PARSER.error(f"\n\n❌ ERROR   : Invalid choice detected for --source='{ARGS['source']}'. \nMust be an existing local folder or one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_SRC}.\n")
         exit(1)
-    if ARGS['target'] and ARGS['target'] not in choices_for_AUTOMATED_MIGRATION_TGT and not os.path.isdir(ARGS['target']):
-        PARSER.error(f"\n\n❌ ERROR   : Invalid choice detected for --target='{ARGS['target']}'. \nMust be an existing local folder one of the following values: \n{choices_for_AUTOMATED_MIGRATION_TGT}.\n")
+    if ARGS['target'] and ARGS['target'] not in choices_for_AUTOMATIC_MIGRATION_TGT and not os.path.isdir(ARGS['target']):
+        PARSER.error(f"\n\n❌ ERROR   : Invalid choice detected for --target='{ARGS['target']}'. \nMust be an existing local folder one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_TGT}.\n")
         exit(1)
     if ARGS['source'] and ARGS['target']:
-        ARGS['AUTOMATED-MIGRATION'] = [ARGS['source'], ARGS['target']]
+        ARGS['AUTOMATIC-MIGRATION'] = [ARGS['source'], ARGS['target']]
 
 
     # Check if --dashboard=True and not --source and --target have been given
     args = PARSER.parse_args()
     dashboard_provided = "--dashboard" in [arg.split("=")[0] for arg in vars(args).keys()]
     if dashboard_provided and not (ARGS['source'] or ARGS['target']):
-        PARSER.error(f"\n\n❌ ERROR   : Argument '--dashboard' can only be used with Automated Migration feature. Arguments --source and --target are required.\n")
+        PARSER.error(f"\n\n❌ ERROR   : Argument '--dashboard' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n")
         exit(1)
 
 
@@ -325,7 +325,7 @@ def checkArgs(ARGS, PARSER):
     args = PARSER.parse_args()
     dashboard_provided = "--parallel-migration" in [arg.split("=")[0] for arg in vars(args).keys()]
     if dashboard_provided and not (ARGS['source'] or ARGS['target']):
-        PARSER.error(f"\n\n❌ ERROR   : Argument '--parallel-migration' can only be used with Automated Migration feature. Arguments --source and --target are required.\n")
+        PARSER.error(f"\n\n❌ ERROR   : Argument '--parallel-migration' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n")
         exit(1)
 
 
@@ -456,8 +456,8 @@ def resolve_all_possible_paths(args_dict, keys_to_check=None):
         choices_for_message_levels +
         choices_for_folder_structure +
         choices_for_remove_duplicates +
-        choices_for_AUTOMATED_MIGRATION_SRC +
-        choices_for_AUTOMATED_MIGRATION_TGT
+        choices_for_AUTOMATIC_MIGRATION_SRC +
+        choices_for_AUTOMATIC_MIGRATION_TGT
     )
 
     for key, value in args_dict.items():

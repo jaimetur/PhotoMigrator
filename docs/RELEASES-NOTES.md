@@ -10,7 +10,7 @@
 
 - ### Main Changes:
   - #### New Features:
-    - [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automated Mode Feature as before).
+    - [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automatic Mode Feature as before).
     - [x] Added Support for 3 accounts of each Cloud Photo Service (before it was only 2).
     - [x] Added new flag _**'-id, --account-id \<ID>'**_ to specify which account to use for Synology Photos and Immich Photos from Config.ini.
     - [x] Added support for 2FA in Synology Photos requesting the OTP Token if flag _**'-sOTP, --synology-OTP'**_ is detected. [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218).
@@ -28,6 +28,7 @@
   - #### Enhancements:
     - [x] Improved Performance on Pull functions when no filtering options have been given.
     - [x] Improved performance when searching Google Takeout structure on huge local folder with many subfolders.
+    - [x] Renamed Automated Mode to Automatic Mode.
   
   - #### Bug Fixing:
     - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218).
@@ -56,7 +57,7 @@
     - [x] Added new flag _**-city, --filter-by-city <CITY_NAME>**_ to select the City Name of the Assets to download
     - [x] Added new flag _**-person, --filter-by-person <PERSON_NAME>**_ to select the Person Name of the Assets to download
     - [x] Added new flag _**-parallel, --parallel-migration=[true, false]**_ to select the Migration Mode (Parallel or Sequential). Default: true (parallel)
-    - [x] Included Live Dashboard in sequential Automated Migration
+    - [x] Included Live Dashboard in sequential Automatic Migration
   
   - #### Bug Fixing:
     - [x] Minor bugs fixing
@@ -70,22 +71,22 @@
 - ### Main Changes:
   - #### New Features:
     - [x] Support for running the Tool from Docker container.
-    - [x] Included Live Progress Dashboard in Automated Migration process for a better visualization of the job progress.
-    - [x] Added a new argument **'--source'** to specify the \<SOURCE> client for the Automated Migration process.
-    - [x] Added a new argument **'--target'** to specify the \<TARGET> client for the Automated Migration process.
+    - [x] Included Live Progress Dashboard in Automatic Migration process for a better visualization of the job progress.
+    - [x] Added a new argument **'--source'** to specify the \<SOURCE> client for the Automatic Migration process.
+    - [x] Added a new argument **'--target'** to specify the \<TARGET> client for the Automatic Migration process.
     - [x] Added new flag '**-dashboard, --dashboard=[true, false]**' (default=true) to show/hide Live Dashboard during Atomated Migration Job.
     - [x] Added new flag '**-gpthProg, --show-gpth-progress=[true, false]**' (default=false) to show/hide progress messages during GPTH processing.
     - [x] Added new flag '**--gpthErr, --show-gpth-errors=[true, false]**' (default=true) to show/hide errors messages during GPTH processing.
     - [x] Support for 'Uploads Queue' to limit the max number of assets that the Downloader worker will store in the temporary folder to 100 (this save disk space). In this way the Downloader worker will never put more than 100 assets pending to Upload in the local folder.
-    - [x] Support to use Local Folders as SOURCE/TARGET during Automated Migration Process. Now the selected local folder works equal to other supported cloud services.
+    - [x] Support to use Local Folders as SOURCE/TARGET during Automatic Migration Process. Now the selected local folder works equal to other supported cloud services.
     - [x] Support Migration between 2 different accounts on the same Cloud Photo Service. 
 > [!IMPORTANT]  
 > **Breaking Change!**  
 > Config.ini file has changed to support multi-accounts over the same Cloud Photo Service
 
   - #### Enhancements:
-    - [x] Completely refactored Automated Migration Process to allow parallel threads for Downloads and Uploads jobs avoiding downloading all assets before to upload them (this will save disk space and improve performance). Also objects support has been added to this mode for an easier implementation and future enhancements.
-    - [x] Removed argument **'-AUTO, --AUTOMATED-MIGRATION \<SOURCE> \<TARGET>'** because have been replaced with two above arguments for a better visualization.
+    - [x] Completely refactored Automatic Migration Process to allow parallel threads for Downloads and Uploads jobs avoiding downloading all assets before to upload them (this will save disk space and improve performance). Also objects support has been added to this mode for an easier implementation and future enhancements.
+    - [x] Removed argument **'-AUTO, --AUTOMATIC-MIGRATION \<SOURCE> \<TARGET>'** because have been replaced with two above arguments for a better visualization.
     - [x] Renamed flag '**-gitf, --google-input-takeout-folder**' to '**-gtProc, --google-takeout-to-process**' for a better understanding.
     - [x] Code Refactored to convert ServiceGooglePhotos, ServiceSynologyPhotos and ServiceImmichPhotos into Classes (ClassTakeoutFolder, ClassSynologyPhotos, ClassImmichPhotos) and homogenized all functions of all these classes.
     - [x] Added new Class ClassLocalFolder with the same methods as other supported Cloud Services Classes to manage Local Folders in the same way as a Photo Cloud Service.
@@ -109,10 +110,10 @@
 - ### Main Changes:
   - #### New Features:
     - [x] Added **_Immich Photos Support_**.
-    - [x] Added **_New Automated Migration Feature_** to perform Fully Automated Migration Process between different Photo Cloud Services
-      - #### AUTOMATED MIGRATION FEATURE:
-        - **-AUTO,   --AUTOMATED-MIGRATION \<SOURCE> \<TARGET>**  
-          This process will do an AUTOMATED-MIGRATION process to Download all your Assets
+    - [x] Added **_New Automatic Migration Feature_** to perform Fully Automatic Migration Process between different Photo Cloud Services
+      - #### AUTOMATIC MIGRATION FEATURE:
+        - **-AUTO,   --AUTOMATIC-MIGRATION \<SOURCE> \<TARGET>**  
+          This process will do an AUTOMATIC-MIGRATION process to Download all your Assets
                  (including Albums) from the \<SOURCE> Cloud Service and Upload them to the
                  \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE>
                  Cloud Service.
@@ -256,7 +257,7 @@
         - [x] Windows_amd64: ready
   - #### Enhancements:
     - GitHub Integration for version control and automate Actions
-    - Automated Compilation for all OS and supported Architectures
+    - Automatic Compilation for all OS and supported Architectures
     - Code refactored
   - #### Bug Fixing:
     - Minor Bug Fixing

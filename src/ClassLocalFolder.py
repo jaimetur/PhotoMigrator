@@ -5,7 +5,7 @@ import shutil
 import logging
 import re
 import Utils
-from Utils import parse_text_datetime_to_epoch, match_pattern, replace_pattern
+from Utils import parse_text_datetime_to_epoch, match_pattern, replace_pattern, any_filter, get_filters
 from datetime import datetime
 import time
 from pathlib import Path
@@ -1113,9 +1113,7 @@ class ClassLocalFolder:
             tuple: (albums_downloaded, assets_downloaded)
         """
         # Check if there is some filter applied
-        with_filters = False
-        if ARGS.get('filter-by-type', None) or ARGS.get('filter-from-date', None) or ARGS.get('filter-to-date', None) or ARGS.get('filter-by-country', None) or ARGS.get('filter-by-city', None) or ARGS.get('filter-by-person', None):
-            with_filters = True
+        with_filters = any_filter()
         pass
 
 

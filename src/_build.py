@@ -47,7 +47,7 @@ def include_extrafiles_and_zip(input_file, output_file):
         {
             'subdir': 'help',  # Estos ficheros van al subdirectorio 'docs'
             'files': ["../help/*.md"]
-            # 'files': ["../help/1-command-line-interface.md", "../help/2-automated-migration.md", "../help/3-google-takeout.md", "../help/4-synology-photos.md", "../help/5-immich-photos.md", "../help/6-other-features.md"]
+            # 'files': ["../help/1-command-line-interface.md", "../help/2-automatic-migration.md", "../help/3-google-takeout.md", "../help/4-synology-photos.md", "../help/5-immich-photos.md", "../help/6-other-features.md"]
         }
     ]
     if not input_file or not output_file:

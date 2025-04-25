@@ -13,7 +13,7 @@ from Duplicates import find_duplicates, process_duplicates_actions
 from ClassTakeoutFolder import ClassTakeoutFolder
 from ClassSynologyPhotos import ClassSynologyPhotos
 from ClassImmichPhotos import ClassImmichPhotos
-from AutomatedMode import mode_AUTOMATED_MIGRATION
+from AutomaticMode import mode_AUTOMATIC_MIGRATION
 
 DEFAULT_DUPLICATES_ACTION = False
 EXECUTION_MODE = "default"
@@ -53,17 +53,17 @@ def profile_and_print(function_to_analyze, *args, **kwargs):
 # Determine the Execution mode based on the provide arguments:
 # -------------------------------------------------------------
 def detect_and_run_execution_mode():
-    # # AUTOMATED-MIGRATION MODE:
-    # if ARGS['AUTOMATED-MIGRATION']:
-    #     EXECUTION_MODE = 'AUTOMATED-MIGRATION'
-    #     mode_AUTOMATED_MIGRATION()
-    #     # profile_and_print(function_to_analyze=mode_AUTOMATED_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.
+    # # AUTOMATIC-MIGRATION MODE:
+    # if ARGS['AUTOMATIC-MIGRATION']:
+    #     EXECUTION_MODE = 'AUTOMATIC-MIGRATION'
+    #     mode_AUTOMATIC_MIGRATION()
+    #     # profile_and_print(function_to_analyze=mode_AUTOMATIC_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.
 
-    # AUTOMATED-MIGRATION MODE:
+    # AUTOMATIC-MIGRATION MODE:
     if ARGS['source'] and ARGS['target']:
-        EXECUTION_MODE = 'AUTOMATED-MIGRATION'
-        mode_AUTOMATED_MIGRATION(show_gpth_progress=ARGS['show-gpth-progress'])
-        # profile_and_print(function_to_analyze=mode_AUTOMATED_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.
+        EXECUTION_MODE = 'AUTOMATIC-MIGRATION'
+        mode_AUTOMATIC_MIGRATION(show_gpth_progress=ARGS['show-gpth-progress'])
+        # profile_and_print(function_to_analyze=mode_AUTOMATIC_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.
 
     # Google Photos Mode:
     # elif "-gtProc" in sys.argv or "--google-takeout-to-process" in sys.argv:
