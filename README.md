@@ -249,21 +249,20 @@ Planed Roadmap for the following releases
     - [x] Minor bugs fixing
 
 - ### TODO:
-  - [ ] Allow filter by date in Remove/Rename/Merge Albums features for Synology/Immich Photos
   - [ ] Automatic filters flags detection for all Remove/Rename/Merge Albums features for Synology/Immich Photos
     - [ ] remove-all-assets
-    - [ ] remove-all-albums
-    - [ ] remove-albums
-    - [ ] remove-empty-albums
-    - [ ] remove-duplicates-albums
-    - [ ] rename-albums
-    - [ ] merge-albums
+    - [x] remove-all-albums
+    - [x] remove-albums
+    - [x] remove-empty-albums
+    - [x] remove-duplicates-albums
+    - [x] rename-albums
+    - [x] merge-albums
   - [ ] Automatic filters flags detection for Upload/Dowload features for Synology/Immich Photos
     - [ ] upload-all
     - [ ] upload-albums
     - [ ] download-all
     - [ ] download-albums
-  - [ ] Improve performance retrieving assets when filters are detected. Use smart filtering detection to avoid person filterimg if not apply (this filter is very slow in Synology Photos)
+  - [x] Improve performance retrieving assets when filters are detected. Use smart filtering detection to avoid person filterimg if not apply (this filter is very slow in Synology Photos)
   - [ ] Deep Tests for new Features
   - [ ] Deep Test for upload-albums/upload-all features
   - [ ] Bug Fixing
