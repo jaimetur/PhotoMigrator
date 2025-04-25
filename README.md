@@ -7,10 +7,10 @@
 [![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.3.0-alpha/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 
 # **CloudPhotoMigrator**
-This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">**Automated Migration** </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
+This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automated Migration**](/help/2-automated-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
 
 Currently, the Supported Photo Cloud Services are:
-- **Google Photos Takeout**
+- [**Google Photos Takeout Management**](/help/3-google-takeout.md)
   - Unpack your Takeout Zip files.
   - Process .json files to fix metadata (including creation date and time) of all your assets.
   - Merge Live picture with separate files (.HEIC and .MP4).
@@ -19,10 +19,10 @@ Currently, the Supported Photo Cloud Services are:
   - Create Symbolic Links for assets within any Album (to save disk space).
   - Detect and remove duplicates.
 
-- **Synology Photos** - Features included:
-  - Upload Album(s)
+- [**Synology Photos Management**](/help/4-synology-photos.md) - Features included:
+  - Upload Album(s) (from folder)
+  - Download Album(s) (into folder)
   - Upload ALL (from folder)
-  - Download Album(s)
   - Download ALL (into folder)
   - Remove ALL Assets
   - Remove ALL Albums
@@ -32,10 +32,10 @@ Currently, the Supported Photo Cloud Services are:
   - Remove Duplicates Albums
   - Merge Duplicates Albums
 
-- **Immich Photos** - Features included:
-  - Upload Album(s)
+- [**Immich Photos Management**](/help/5-immich-photos.md) - Features included:
+  - Upload Album(s) (from folder)
+  - Download Album(s) (into folder)
   - Upload ALL (from folder)
-  - Download Album(s)
   - Download ALL (into folder)
   - Remove ALL Assets
   - Remove ALL Albums
@@ -53,7 +53,7 @@ Currently, the Supported Photo Cloud Services are:
   (not available yet but is on the [ROADMAP.md](/docs/ROADMAP.md) for next release)
 
 
-Apart from Manage the different Photo Cloud Services, the Tool also contains some other useful features such as:
+Apart from Manage the different Photo Cloud Services, the Tool also contains some [Other Useful Features](/help/6-other-features.md) such as:
 - **Metadata fixing** of any Photo Library in your local drive (not necesarely needs to be a Google Takeout folder)
 - **Library Organization** features:
   - Manage Duplicates assets
@@ -62,19 +62,23 @@ Apart from Manage the different Photo Cloud Services, the Tool also contains som
 - **Symbolic Links Support** for Albums folders
   - Fix Symbolic Links Broken
 - **Homogenize Albums folders name based on content**
-- **Remove Empty Albums in Photo Cloud Services** 
-- **Remove Duplicates Albums in Photo Cloud Services** 
-
 
 ## Live Dashboard Preview:
 ![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
 
-## Download:
+## Tool Download:
 Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
 - [Latest Stable Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/latest)
 - [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
-- [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)
+- [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)  
+
+Or check the [Historical Releases Notes](/docs/RELEASES-NOTES.md) to choose any specific release. 
+
+> [!NOTE]  
+> The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), so feel free to download the version according to your system. 
+> 
+> You can also execute the Tool from a Docker container or from sources files for a better compatibility. In below sections you can find the execution instructions to run the Tool from the different methods.
 
 
 ## Configuration File:
@@ -99,12 +103,6 @@ You can check the whole list of all features and arguments with the right syntax
 - [Synology Photos Management](/help/4-synology-photos.md)  
 - [Immich Photos Management](/help/5-immich-photos.md)  
 - [Other Features](/help/6-other-features.md)  
-
-
-> [!NOTE]  
-> The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), so feel free to download the version according to your system. 
-> 
-> You can also execute the Tool from a Docker container or from sources files for a better compatibility. In below sections you can find the execution instructions to run the Tool from the different methods.
 
 
 ## Execution Methods:
