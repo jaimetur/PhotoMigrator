@@ -47,10 +47,10 @@ Currently, the Supported Photo Cloud Services and included Features are:
   - Remove Orphans Assets
 
 - **Apple Photos Management**  
-  (not available yet but is on the [ROADMAP](/docs/ROADMAP.md) for next release)
+  (not available yet but is on the [Roadmap](/docs/ROADMAP.md) for next release)
 
 - **Google Photos Management**  
-  (not available yet but is on the [ROADMAP](/docs/ROADMAP.md) for next release)
+  (not available yet but is on the [Roadmap](/docs/ROADMAP.md) for next release)
 
 - [**Other Useful Features**](/help/6-other-features.md)  
 Apart from Manage the different Photo Cloud Services, the Tool also contains Other Useful Features such as:
