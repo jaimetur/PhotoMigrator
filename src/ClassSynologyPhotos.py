@@ -1394,7 +1394,7 @@ class ClassSynologyPhotos:
                 self.login(log_level=log_level)
 
                 if not os.path.exists(file_path):
-                    raise FileNotFoundError(f"El archivo '{file_path}' no existe.")
+                    raise FileNotFoundError(f"ERROR   : The file '{file_path}' does not exists.")
 
                 filename, ext = os.path.splitext(file_path)
                 ext = ext.lower()
@@ -1402,9 +1402,7 @@ class ClassSynologyPhotos:
                     if ext in self.ALLOWED_SIDECAR_EXTENSIONS:
                         return None, None
                     else:
-                        LOGGER.warning(f"")
                         LOGGER.warning(f"WARNING : File '{file_path}' has an unsupported extension. Skipped.")
-                        LOGGER.warning(f"")
                         return None, None
 
                 headers = {}
