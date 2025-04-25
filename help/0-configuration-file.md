@@ -40,8 +40,10 @@ In this section you have to provide:
 - **SYNOLOGY_URL:** In the format that you have above (change only your IP address)
 - **SYNOLOGY_USERNAME_1:** The username for the Synology Account 1
 - **SYNOLOGY_PASSWORD_1:** The password for the Synology Account 1
-- **SYNOLOGY_USERNAME_2:** The username for the Synology Account 1 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
-- **SYNOLOGY_PASSWORD_2:** The password for the Synology Account 1 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
+- **SYNOLOGY_USERNAME_2:** The username for the Synology Account 3 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
+- **SYNOLOGY_PASSWORD_2:** The password for the Synology Account 2 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
+- **SYNOLOGY_USERNAME_3:** The username for the Synology Account 3 (Optional: just in case that you need to migrate assets from Account 1 to Account 3)
+- **SYNOLOGY_PASSWORD_3:** The password for the Synology Account 3 (Optional: just in case that you need to migrate assets from Account 1 to Account 3)
 
 ## Immich Photos Section:
 In this section you have to provide:
@@ -57,6 +59,11 @@ In this section you have to provide:
 - **IMMICH_USERNAME_2:** The username for the Immich Account 2 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
 - **IMMICH_PASSWORD_2:** The password for the Immich Account 2 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
 - **IMMICH_API_KEY_USER_2:** The API_KEY for the Immich Account 2 (Optional: just in case that you need to migrate assets from Account 1 to Account 2)
+
+
+- **IMMICH_USERNAME_3:** The username for the Immich Account 3 (Optional: just in case that you need to migrate assets from Account 1 to Account 3)
+- **IMMICH_PASSWORD_3:** The password for the Immich Account 3 (Optional: just in case that you need to migrate assets from Account 1 to Account 3)
+- **IMMICH_API_KEY_USER_3:** The API_KEY for the Immich Account 3 (Optional: just in case that you need to migrate assets from Account 1 to Account 3)
 
 > [!NOTE]  
 > In Immich you can choose if you want to login with username/password or you prefeer to use an API_KEY instead.  
