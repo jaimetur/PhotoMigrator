@@ -1998,7 +1998,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while uploading Albums assets into Synology Photos. {e}")
                 return 0,0,0,0,0
 
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed, total_duplicates_assets_skipped
 
 
@@ -2180,7 +2180,7 @@ class ClassSynologyPhotos:
 
                     if not albums_to_download:
                         LOGGER.error("ERROR   : No albums found matching the provided patterns.")
-                        self.logout(log_level=log_level)
+                        # self.logout(log_level=log_level)
                         return 0, 0
                     LOGGER.info(f"INFO    : {len(albums_to_download)} albums from Synology Photos will be downloaded to '{output_folder}'...")
 
@@ -2207,7 +2207,7 @@ class ClassSynologyPhotos:
                         assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=album_folder_path, log_level=logging.INFO)
 
                 LOGGER.info(f"INFO    : Album(s) downloaded successfully. You can find them in '{output_folder}'")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while uploading ALL assets into Synology Photos. {e}")
                 return 0,0
@@ -2266,7 +2266,7 @@ class ClassSynologyPhotos:
                 organize_files_by_date(input_folder=no_albums_folder, type='year/month')
 
                 LOGGER.info(f"INFO    : Album(s) downloaded successfully. You can find them in '{no_albums_folder}'")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while downloading No-Albums assets from Synology Photos. {e}")
             
@@ -2356,7 +2356,7 @@ class ClassSynologyPhotos:
                 total_removed = remove_empty_folders_recursive(root_folder_id, '/')
 
                 LOGGER.info(f"INFO    : Process Remove empty folders from Synology Photos finished. Total removed folders: {total_removed}")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing empty folders from Synology Photos. {e}")
             
@@ -2379,7 +2379,7 @@ class ClassSynologyPhotos:
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0
 
             total_renamed_albums = 0
@@ -2412,7 +2412,7 @@ class ClassSynologyPhotos:
                         LOGGER.info(f"INFO    : Album '{album_name}' (ID={album_id}) renamed to {new_name} .")
                         total_renamed_albums += 1
             LOGGER.info(f"INFO    : Removed {total_renamed_albums} albums whose names matched with the provided pattern.")
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_renamed_albums
 
 
@@ -2461,7 +2461,7 @@ class ClassSynologyPhotos:
                         total_removed_albums += 1
             LOGGER.info(f"INFO    : Removed {total_removed_albums} albums whose names matched with the provided pattern.")
             LOGGER.info(f"INFO    : Removed {total_removed_assets} from those removed albums.")
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_removed_albums, total_removed_assets
 
 
@@ -2481,7 +2481,7 @@ class ClassSynologyPhotos:
                 albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
                 if not albums:
                     LOGGER.info("INFO    : No albums found.")
-                    self.logout(log_level=log_level)
+                    # self.logout(log_level=log_level)
                     return 0, 0
 
                 total_removed_albums = 0
@@ -2515,7 +2515,7 @@ class ClassSynologyPhotos:
                 if removeAlbumsAssets:
                     LOGGER.info(f"INFO    : Removed {total_removed_assets} assets associated to albums.")
 
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing All albums from Synology Photos. {e}")
 
@@ -2537,7 +2537,7 @@ class ClassSynologyPhotos:
                 albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
                 if not albums:
                     LOGGER.info("INFO    : No albums found.")
-                    self.logout(log_level=log_level)
+                    # self.logout(log_level=log_level)
                     return 0
 
                 total_removed_empty_albums = 0
@@ -2557,7 +2557,7 @@ class ClassSynologyPhotos:
                             total_removed_empty_albums += 1
 
                 LOGGER.info(f"INFO    : Removed {total_removed_empty_albums} empty albums.")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing empties albums from Synology Photos. {e}")
             
@@ -2612,7 +2612,7 @@ class ClassSynologyPhotos:
                                 total_removed_duplicated_albums += 1
 
                 LOGGER.info(f"INFO    : Removed {total_removed_duplicated_albums} duplicate albums.")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing duplicates albums from Synology Photos. {e}")
             
@@ -2691,7 +2691,7 @@ class ClassSynologyPhotos:
                             total_removed_duplicated_albums += 1
 
                 LOGGER.info(f"INFO    : Removed {total_removed_duplicated_albums} duplicate albums.")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
 
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing duplicates albums from Synology Photos. {e}")
@@ -2751,7 +2751,7 @@ class ClassSynologyPhotos:
                 LOGGER.info(f"INFO    : Removing empty albums if remain...")
                 removed_albums = self.remove_empty_albums(log_level=log_level)
 
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while removing ALL assets from Synology Photos. {e}")
             

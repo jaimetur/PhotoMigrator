@@ -1300,7 +1300,7 @@ class ClassImmichPhotos:
                 self.login(log_level=log_level)
                 if not os.path.isdir(input_folder):
                     LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
-                    self.logout(log_level=log_level)
+                    # self.logout(log_level=log_level)
                     return 0, 0, 0, 0, 0
 
                 subfolders_exclusion = convert_to_list(subfolders_exclusion)
@@ -1417,7 +1417,7 @@ class ClassImmichPhotos:
                 LOGGER.error(f"ERROR   : Exception while uploading Albums assets into Immich Photos. {e}")
                 return 0,0,0,0,0
 
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed, total_duplicates_assets_skipped)
 
 
@@ -1436,7 +1436,7 @@ class ClassImmichPhotos:
             self.login(log_level=log_level)
             if not os.path.isdir(input_folder):
                 LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0, 0, 0
 
             subfolders_exclusion = convert_to_list(subfolders_exclusion)
@@ -1495,7 +1495,7 @@ class ClassImmichPhotos:
             LOGGER.info(f"INFO    : Skipped {total_duplicated_assets_skipped} duplicated asset(s) from '{input_folder}'.")
             LOGGER.info(f"INFO    : Removed {duplicates_assets_removed} duplicates asset(s) from Immich Database.")
 
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_assets_uploaded, total_duplicated_assets_skipped, duplicates_assets_removed
 
 
@@ -1542,7 +1542,7 @@ class ClassImmichPhotos:
                 LOGGER.info("INFO    : Removing Duplicates Assets...")
                 total_duplicates_assets_removed += self.remove_duplicates_assets(log_level=logging.WARNING)
 
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
 
             return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed, total_dupplicated_assets_skipped
 
@@ -1570,7 +1570,7 @@ class ClassImmichPhotos:
             all_albums = self.get_albums_including_shared_with_user(filter_assets=filters_provided, log_level=log_level)
             if not all_albums:
                 LOGGER.warning("WARNING : No albums available or could not retrieve the list.")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0, 0
 
             if isinstance(albums_name, str):
@@ -1597,7 +1597,7 @@ class ClassImmichPhotos:
                     LOGGER.info(f"INFO    : {len(found_albums)} album(s) matched pattern(s) '{albums_name}'.")
                 else:
                     LOGGER.warning(f"WARNING : No albums found matching pattern(s) '{albums_name}'.")
-                    self.logout(log_level=log_level)
+                    # self.logout(log_level=log_level)
                     return 0, 0
 
             total_assets_downloaded = 0
@@ -1627,7 +1627,7 @@ class ClassImmichPhotos:
             LOGGER.info(f"INFO    : Total Albums downloaded: {total_albums_downloaded}")
             LOGGER.info(f"INFO    : Total Assets downloaded: {total_assets_downloaded}")
 
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_albums_downloaded, total_assets_downloaded
 
 
@@ -1678,7 +1678,7 @@ class ClassImmichPhotos:
             LOGGER.info(f"INFO    : Download of assets without associated albums completed.")
             LOGGER.info(f"INFO    : Total Assets downloaded: {total_assets_downloaded}")
 
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_assets_downloaded
 
 
@@ -1712,7 +1712,7 @@ class ClassImmichPhotos:
             LOGGER.info(f"Total Assets downloaded within albums     : {total_assets_in_albums}")
             LOGGER.info(f"Total Assets downloaded without albums    : {total_assets_no_albums}")
 
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return (total_albums_downloaded, total_assets, total_assets_in_albums, total_assets_no_albums)
 
 
@@ -1750,7 +1750,7 @@ class ClassImmichPhotos:
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0
 
             total_renamed_albums = 0
@@ -1781,7 +1781,7 @@ class ClassImmichPhotos:
                         LOGGER.info(f"INFO    : Album '{album_name}' (ID={album_id}) renamed to {new_name} .")
                         total_renamed_albums += 1
             LOGGER.info(f"INFO    : Removed {total_renamed_albums} albums whose names matched with the provided pattern.")
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_renamed_albums
 
 
@@ -1801,7 +1801,7 @@ class ClassImmichPhotos:
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0
 
             total_removed_albums = 0
@@ -1830,7 +1830,7 @@ class ClassImmichPhotos:
                         total_removed_albums += 1
             LOGGER.info(f"INFO    : Removed {total_removed_albums} albums whose names matched with the provided pattern.")
             LOGGER.info(f"INFO    : Removed {total_removed_assets} from those removed albums.")
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_removed_albums, total_removed_assets
 
 
@@ -1849,7 +1849,7 @@ class ClassImmichPhotos:
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0, 0
 
             total_removed_albums = 0
@@ -1884,7 +1884,7 @@ class ClassImmichPhotos:
             if removeAlbumsAssets:
                 LOGGER.info(f"INFO    : Removed {total_removed_assets} assets associated to albums.")
 
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_removed_albums, total_removed_assets
 
 
@@ -1903,7 +1903,7 @@ class ClassImmichPhotos:
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0
 
             total_removed_empty_albums = 0
@@ -1923,7 +1923,7 @@ class ClassImmichPhotos:
                         total_removed_empty_albums += 1
 
             LOGGER.info(f"INFO    : Removed {total_removed_empty_albums} empty albums.")
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_removed_empty_albums
 
 
@@ -1943,7 +1943,7 @@ class ClassImmichPhotos:
             self.login(log_level=log_level)
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0
 
             LOGGER.info("INFO    : Looking for duplicate albums in Immich Photos...")
@@ -1973,7 +1973,7 @@ class ClassImmichPhotos:
                             total_removed_duplicated_albums += 1
 
             LOGGER.info(f"INFO    : Removed {total_removed_duplicated_albums} duplicate albums.")
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_removed_duplicated_albums
 
 
@@ -1995,7 +1995,7 @@ class ClassImmichPhotos:
             self.login(log_level=log_level)
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0
 
             LOGGER.info("INFO    : Looking for duplicate albums in Immich Photos...")
@@ -2051,7 +2051,7 @@ class ClassImmichPhotos:
                         total_removed_duplicated_albums += 1
 
             LOGGER.info(f"INFO    : Removed {total_removed_duplicated_albums} duplicate albums.")
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_removed_duplicated_albums
 
     # -----------------------------------------------------------------------------
@@ -2076,7 +2076,7 @@ class ClassImmichPhotos:
             if not self.IMMICH_API_KEY_ADMIN or not self.IMMICH_USER_API_KEY:
                 LOGGER.error(f"ERROR   : Both admin and user API keys are required.")
                 # logout_immich
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0
 
             immich_parsed_url = urlparse(self.IMMICH_URL)
@@ -2097,7 +2097,7 @@ class ClassImmichPhotos:
             except requests.exceptions.RequestException as e:
                 spinner.fail(f'Failed to fetch assets: {str(e)}')
                 # logout_immich
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0
 
 
@@ -2107,7 +2107,7 @@ class ClassImmichPhotos:
             if num_entries == 0:
                 LOGGER.info(f"INFO    : No orphaned media assets found.")
                 # logout_immich
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return total_removed_assets
 
             if user_confirmation:
@@ -2122,7 +2122,7 @@ class ClassImmichPhotos:
                 if user_input not in ('y', 'yes'):
                     LOGGER.info(f"INFO    : Exiting without making any changes.")
                     # logout_immich
-                    self.logout(log_level=log_level)
+                    # self.logout(log_level=log_level)
                     return 0
 
             headers['x-api-key'] = self.IMMICH_USER_API_KEY  # Use user API key for deletion
@@ -2146,7 +2146,7 @@ class ClassImmichPhotos:
                     total_removed_assets += 1
             LOGGER.info(f"INFO    : Orphaned media assets removed successfully!")
             # logout_immich
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_removed_assets
 
 
@@ -2198,7 +2198,7 @@ class ClassImmichPhotos:
             LOGGER.info(f"INFO    : Getting empty albums to remove...")
             total_removed_albums = self.remove_empty_albums(log_level=logging.WARNING)
 
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             LOGGER.info(f"INFO    : Total Assets removed: {total_removed_assets}")
             LOGGER.info(f"INFO    : Total Albums removed: {total_removed_albums}")
 
