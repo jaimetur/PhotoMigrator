@@ -7,7 +7,7 @@
 [![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.3.0-alpha/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 
 # **CloudPhotoMigrator**
-This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">**Automated Migration** </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
+This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automated Migration**](/help/2-automated-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
 
 Currently, the Supported Photo Cloud Services are:
 - **Google Photos Takeout**
@@ -62,9 +62,6 @@ Apart from Manage the different Photo Cloud Services, the Tool also contains som
 - **Symbolic Links Support** for Albums folders
   - Fix Symbolic Links Broken
 - **Homogenize Albums folders name based on content**
-- **Remove Empty Albums in Photo Cloud Services** 
-- **Remove Duplicates Albums in Photo Cloud Services** 
-
 
 ## Live Dashboard Preview:
 ![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
