@@ -1,10 +1,10 @@
-# <span style="color:green">Automated Migration Feature:</span>
+# <span style="color:green">Automatic Migration Feature:</span>
 
 > [!NOTE]  
->## <span style="color:green">Automated Migration Feature</span>
->From version 3.0.0 onwards, the Tool supports a new Feature called '**Automated Migration**'. 
+>## <span style="color:green">Automatic Migration Feature</span>
+>From version 3.0.0 onwards, the Tool supports a new Feature called '**Automatic Migration**'. 
 >
-> Use the argument **'--source'** to select the \<SOURCE> client and the argument **'--target'** to select \<TARGET> client for the Automated Migration Process to Pull all your Assets (including Albums) from the \<SOURCE> Cloud Service and Push them to the \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
+> Use the argument **'--source'** to select the \<SOURCE> client and the argument **'--target'** to select \<TARGET> client for the Automatic Migration Process to Pull all your Assets (including Albums) from the \<SOURCE> Cloud Service and Push them to the \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
 > 
 >  - Possible values for:
 >    - **\<SOURCE\>** : ['synology-photos', 'immich-photos']-[id] or <INPUT_FOLDER>  (id=[1, 2, 3] to select which account to use from the Config.ini file).  
@@ -25,7 +25,7 @@
 > 
 > By default, (if your terminal size has enough width and heigh) a Live Dashboard will show you all the details about the migration process, including most relevant log messages, and counter status. You can disable this Live Dashboard using the flag **'-dashboard=false or --dashboard=false'**.   
 > 
-> Additionally, this Automated Migration process can also be executed sequentially instead of in parallel, using flag **--parallel=false**, so first, all the assets will be pulled from <SOURCE> and when finish, they will be pushed into <TARGET>, but take into account that in this case, you will need enough disk space to store all your assets pulled from <SOURCE> service.
+> Additionally, this Automatic Migration process can also be executed sequentially instead of in parallel, using flag **--parallel=false**, so first, all the assets will be pulled from <SOURCE> and when finish, they will be pushed into <TARGET>, but take into account that in this case, you will need enough disk space to store all your assets pulled from <SOURCE> service.
 >
 > Finally, you can apply filters to filter assets to pull from \<SOURCE> client. The available filters are: 
 >    - **by Type:**
@@ -82,7 +82,7 @@ Youn can see how to configure the Config.ini file in this help section:
 ./CloudPhotoMigrator.run --source=/homes/MyTakeout --target=synology-1
 ```
 
-In this example, the Tool will do an Automated Migration Process which has two steps:  
+In this example, the Tool will do an Automatic Migration Process which has two steps:  
 
   - First, the Tool will process the folder '/homes/MyTakeout' (Unzipping them if needed), fixing all files found on it, to set the
     correct date and time, and identifying which assets belongs to each Album created on Google Photos.  
@@ -98,7 +98,7 @@ In this example, the Tool will do an Automated Migration Process which has two s
 ./CloudPhotoMigrator.run --source=synology-2 --target=immich-1
 ```
 
-In this example, the Tool will do an Automated Migration Process which has two steps:  
+In this example, the Tool will do an Automatic Migration Process which has two steps:  
 
   - First, the Tool will connect to your Synology Photos account 2 (if you have configured properly the Config.ini file) and will
     pull all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
@@ -113,7 +113,7 @@ In this example, the Tool will do an Automated Migration Process which has two s
 ./CloudPhotoMigrator.run --source=immich-2 --target=/homes/local_folder --filter-by-person=Peter --filter-from-date=2024
 ```
 
-In this example, the Tool will do an Automated Migration Process which has two steps:  
+In this example, the Tool will do an Automatic Migration Process which has two steps:  
 
   - First, the Tool will connect to your Immich Photos account 2 (if you have configured properly the Config.ini file) and will
     pull all the assets found in your account where Peter have been labeled as person, and whose date is after 01/02/2024 (separating those associated to som Album(s), of those without any Album associated).  
@@ -128,7 +128,7 @@ In this example, the Tool will do an Automated Migration Process which has two s
 ./CloudPhotoMigrator.run --source=immich-1 --target=immich-2 --filter-by-city=Rome --filter-by-person=Mery
 ```
 
-In this example, the Tool will do an Automated Migration Process which has two steps:  
+In this example, the Tool will do an Automatic Migration Process which has two steps:  
 
   - First, the Tool will connect to your Immich Photos account 1 (if you have configured properly the Config.ini file) and will
     pull all the assets found in your account that have been taken in Rome and where Mery have been labeled as person (separating those associated to som Album(s), of those without any Album associated).  

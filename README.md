@@ -7,9 +7,9 @@
 [![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.3.0-alpha/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 
 # **CloudPhotoMigrator**
-This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automated Migration**](/help/2-automated-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
+This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automatic Migration**](/help/2-automatic-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
 
-Currently, the Supported Photo Cloud Services are:
+Currently, the Supported Photo Cloud Services and included Features are:
 - [**Google Photos Takeout Management**](/help/3-google-takeout.md)
   - Unpack your Takeout Zip files.
   - Process .json files to fix metadata (including creation date and time) of all your assets.
@@ -98,7 +98,7 @@ You can check the whole list of all features and arguments with the right syntax
 ## All Documentation Links:
 - [Configuration File](/help/0-configuration-file.md)  
 - [Command Line Interface (CLI)](/help/1-command-line-interface.md)  
-- [Automated Migration Feature](/help/2-automated-migration.md)  
+- [Automatic Migration Feature](/help/2-automatic-migration.md)  
 - [Google Takeout Management](/help/3-google-takeout.md)  
 - [Synology Photos Management](/help/4-synology-photos.md)  
 - [Immich Photos Management](/help/5-immich-photos.md)  
@@ -132,13 +132,13 @@ The below tables show the pros and cons of each method together with a comparati
   | **Average Rating**                                    | ⭐⭐⭐⭐☆ (3.5)                                                                     | ⭐⭐⭐⭐☆ (3.7)                                                                  | ⭐⭐⭐☆☆ (3.0)                                                                       |
 
 
-## Main Use Case: Automated Migration Feature
+## Main Use Case: Automatic Migration Feature
 
 > [!NOTE]  
->## <span style="color:green">Automated Migration Feature</span>
->From version 3.0.0 onwards, the Tool supports a new Feature called '**Automated Migration**'. 
+>## <span style="color:green">Automatic Migration Feature</span>
+>From version 3.0.0 onwards, the Tool supports a new Feature called '**Automatic Migration**'. 
 >
-> Use the argument **'--source'** to select the \<SOURCE> client and the argument **'--target'** to select \<TARGET> client for the Automated Migration Process to Pull all your Assets (including Albums) from the \<SOURCE> Cloud Service and Push them to the \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
+> Use the argument **'--source'** to select the \<SOURCE> client and the argument **'--target'** to select \<TARGET> client for the Automatic Migration Process to Pull all your Assets (including Albums) from the \<SOURCE> Cloud Service and Push them to the \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
 > 
 >  - Possible values for:
 >    - **\<SOURCE\>** : ['synology-photos', 'immich-photos']-[id] or <INPUT_FOLDER>  (id=[1, 2, 3] to select which account to use from the Config.ini file).  
@@ -159,7 +159,7 @@ The below tables show the pros and cons of each method together with a comparati
 > 
 > By default, (if your terminal size has enough width and heigh) a Live Dashboard will show you all the details about the migration process, including most relevant log messages, and counter status. You can disable this Live Dashboard using the flag **'-dashboard=false or --dashboard=false'**.   
 > 
-> Additionally, this Automated Migration process can also be executed sequentially instead of in parallel, using flag **--parallel=false**, so first, all the assets will be pulled from <SOURCE> and when finish, they will be pushed into <TARGET>, but take into account that in this case, you will need enough disk space to store all your assets pulled from <SOURCE> service.
+> Additionally, this Automatic Migration process can also be executed sequentially instead of in parallel, using flag **--parallel=false**, so first, all the assets will be pulled from <SOURCE> and when finish, they will be pushed into <TARGET>, but take into account that in this case, you will need enough disk space to store all your assets pulled from <SOURCE> service.
 >
 > Finally, you can apply filters to filter assets to pull from \<SOURCE> client. The available filters are: 
 >    - **by Type:**
@@ -222,7 +222,7 @@ Planed Roadmap for the following releases
 
 - ### DONE:
   - #### New Features:
-    - [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automated Mode Feature as before).
+    - [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automatic Mode Feature as before).
     - [x] Added Support for 3 accounts of each Cloud Photo Service (before it was only 2).
     - [x] Added new flag _**'-id, --account-id \<ID>'**_ to specify which account to use for Synology Photos and Immich Photos from Config.ini.
     - [x] Added support for 2FA in Synology Photos requesting the OTP Token if flag _**'-sOTP, --synology-OTP'**_ is detected. [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218).
@@ -240,6 +240,7 @@ Planed Roadmap for the following releases
   - #### Enhancements:
     - [x] Improved Performance on Pull functions when no filtering options have been given.
     - [x] Improved performance when searching Google Takeout structure on huge local folder with many subfolders.
+    - [x] Renamed Automated Mode to Automatic Mode.
   
   - #### Bug Fixing:
     - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218).
@@ -249,7 +250,7 @@ Planed Roadmap for the following releases
 
 - ### TODO:
   - [ ] Allow filter by date in Remove/Rename/Merge Albums features for Synology/Immich Photos
-  - [ ] Automatic filters flags detection for all Remove/Rename Albums features for Synology/Immich Photos
+  - [ ] Automatic filters flags detection for all Remove/Rename/Merge Albums features for Synology/Immich Photos
     - [ ] remove-all-assets
     - [ ] remove-all-albums
     - [ ] remove-albums
@@ -291,7 +292,7 @@ Planed Roadmap for the following releases
       - [ ] -gdAll, --google-download-all
       - [ ] -guAlb, --google-upload-albums
       - [ ] -guAll, --google-upload-all
-  - [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATED-MODE
+  - [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATIC-MODE
   - [ ] Update Documentation
   - [ ] Update README.md
   - [ ] Update RELEASES-NOTES.md

@@ -34,7 +34,7 @@ TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
 
 # Redefinir `tqdm` para usar `TQDM_LOGGER_INSTANCE` si no se especifica `file`
 def tqdm(*args, **kwargs):
-    if ARGS['AUTOMATED-MIGRATION'] and ARGS['dashboard'] == True:
+    if ARGS['AUTOMATIC-MIGRATION'] and ARGS['dashboard'] == True:
         if 'file' not in kwargs:  # Si el usuario no especifica `file`, usar `TQDM_LOGGER_INSTANCE`
             kwargs['file'] = TQDM_LOGGER_INSTANCE
     return original_tqdm(*args, **kwargs)
@@ -1408,4 +1408,22 @@ def replace_pattern(string, pattern, pattern_to_replace):
     """
     return re.sub(pattern, pattern_to_replace, string)
 
+
+def any_filter():
+    return ARGS.get('filter-by-type', None) or ARGS.get('filter-from-date', None) or ARGS.get('filter-to-date', None) or ARGS.get('filter-by-country', None) or ARGS.get('filter-by-city', None) or ARGS.get('filter-by-person', None)
+
+
+def get_filters():
+    filters = {}
+    keys = [
+        'filter-by-type',
+        'filter-from-date',
+        'filter-to-date',
+        'filter-by-country',
+        'filter-by-city',
+        'filter-by-person',
+    ]
+    for key in keys:
+        filters[key] = ARGS.get(key)
+    return filters
 

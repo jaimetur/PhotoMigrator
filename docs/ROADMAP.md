@@ -13,7 +13,7 @@ Planed Roadmap for the following releases
 
 - ### DONE:
   - #### New Features:
-    - [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automated Mode Feature as before).
+    - [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automatic Mode Feature as before).
     - [x] Added Support for 3 accounts of each Cloud Photo Service (before it was only 2).
     - [x] Added new flag _**'-id, --account-id \<ID>'**_ to specify which account to use for Synology Photos and Immich Photos from Config.ini.
     - [x] Added support for 2FA in Synology Photos requesting the OTP Token if flag _**'-sOTP, --synology-OTP'**_ is detected. [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218).
@@ -31,6 +31,7 @@ Planed Roadmap for the following releases
   - #### Enhancements:
     - [x] Improved Performance on Pull functions when no filtering options have been given.
     - [x] Improved performance when searching Google Takeout structure on huge local folder with many subfolders.
+    - [x] Renamed Automated Mode to Automatic Mode.
   
   - #### Bug Fixing:
     - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218).
@@ -40,7 +41,7 @@ Planed Roadmap for the following releases
 
 - ### TODO:
   - [ ] Allow filter by date in Remove/Rename/Merge Albums features for Synology/Immich Photos
-  - [ ] Automatic filters flags detection for all Remove/Rename Albums features for Synology/Immich Photos
+  - [ ] Automatic filters flags detection for all Remove/Rename/Merge Albums features for Synology/Immich Photos
     - [ ] remove-all-assets
     - [ ] remove-all-albums
     - [ ] remove-albums
@@ -82,7 +83,7 @@ Planed Roadmap for the following releases
       - [ ] -gdAll, --google-download-all
       - [ ] -guAlb, --google-upload-albums
       - [ ] -guAll, --google-upload-all
-  - [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATED-MODE
+  - [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATIC-MODE
   - [ ] Update Documentation
   - [ ] Update README.md
   - [ ] Update RELEASES-NOTES.md

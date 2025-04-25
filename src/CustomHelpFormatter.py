@@ -178,20 +178,20 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             ident_spaces = 13
             help_text = justificar_texto(action.help, initial_indent=" " * ident_spaces, subsequent_indent=" " * ident_spaces)
 
-            # AUTOMATED-MIGRATION PROCESS: two lines before "Select the <SOURCE> for the AUTOMATED-MIGRATION Process"
-            if help_text.find("Select the <SOURCE> for the AUTOMATED-MIGRATION Process")!=-1:
+            # AUTOMATIC-MIGRATION PROCESS: two lines before "Select the <SOURCE> for the AUTOMATIC-MIGRATION Process"
+            if help_text.find("Select the <SOURCE> for the AUTOMATIC-MIGRATION Process")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
-                AUTOMATED MIGRATION PROCESS:
+                AUTOMATIC MIGRATION PROCESS:
                 ----------------------------{Style.RESET_ALL}
-                Following arguments allow you execute the Automated Migration Process to migrate your assets from one Photo Cloud Service to other, or from two different accounts within the same Photo Cloud service. 
+                Following arguments allow you execute the Automatic Migration Process to migrate your assets from one Photo Cloud Service to other, or from two different accounts within the same Photo Cloud service. 
 
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
 
 
-            # AUTOMATED-MIGRATION PROCESS: two lines before "Select the <SOURCE> for the AUTOMATED-MIGRATION Process"
+            # AUTOMATIC-MIGRATION PROCESS: two lines before "Select the <SOURCE> for the AUTOMATIC-MIGRATION Process"
             if help_text.find("Specify the input folder that you want to process.")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}

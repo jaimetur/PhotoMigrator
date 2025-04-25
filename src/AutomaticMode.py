@@ -30,9 +30,9 @@ class SharedData:
 
 
 ####################################
-# FEATURE: AUTOMATED-MIGRATION: #
+# FEATURE: AUTOMATIC-MIGRATION: #
 ####################################
-def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show_gpth_progress=None, show_gpth_errors=None, parallel=None, log_level=logging.INFO):
+def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show_gpth_progress=None, show_gpth_errors=None, parallel=None, log_level=logging.INFO):
     
     with set_log_level(LOGGER, log_level):
 
@@ -165,12 +165,12 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
         person = ARGS.get('filter-by-person', None)
 
         LOGGER.info("")
-        LOGGER.info(f"INFO    : -AUTO, --AUTOMATED-MIGRATION Mode detected")
+        LOGGER.info(f"INFO    : -AUTO, --AUTOMATIC-MIGRATION Mode detected")
         LOGGER.warning('\n' + '-' * terminal_width)
         if not isinstance(source_client, ClassTakeoutFolder):
-            LOGGER.warning(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE>', f"'{source}'").replace('<TARGET>', f"'{target}'"))
+            LOGGER.warning(HELP_TEXTS["AUTOMATIC-MIGRATION"].replace('<SOURCE>', f"'{source}'").replace('<TARGET>', f"'{target}'"))
         else:
-            LOGGER.warning(HELP_TEXTS["AUTOMATED-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{source}'").replace('<TARGET>', f"'{target}'").replace('Pulling', 'Analyzing and Fixing'))
+            LOGGER.warning(HELP_TEXTS["AUTOMATIC-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{source}'").replace('<TARGET>', f"'{target}'").replace('Pulling', 'Analyzing and Fixing'))
         LOGGER.warning('-' * terminal_width)
         LOGGER.info(f"INFO    : Source Client  : {source_client_name}")
         LOGGER.info(f"INFO    : Target Client  : {target_client_name}")
@@ -208,8 +208,8 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
 
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-            # Call the parallel_automated_migration module to do the whole migration process
-            # parallel_automated_migration(source, target, temp_folder, SHARED_DATA.input_info, SHARED_DATA.counters, SHARED_DATA.logs_queue)
+            # Call the parallel_automatic_migration module to do the whole migration process
+            # parallel_automatic_migration(source, target, temp_folder, SHARED_DATA.input_info, SHARED_DATA.counters, SHARED_DATA.logs_queue)
             # and if show_dashboard=True, launch start_dashboard function to show a Live Dashboard of the whole process
             # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -239,7 +239,7 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
 
             LOGGER.info("")
             LOGGER.info(f'=========================================================================================================================================================')
-            LOGGER.info(f'INFO    : 🚀 AUTOMATED MIGRATION JOB STARTED - {source_client_name} ➜ {target_client_name}')
+            LOGGER.info(f'INFO    : 🚀 AUTOMATIC MIGRATION JOB STARTED - {source_client_name} ➜ {target_client_name}')
             LOGGER.info(f'=========================================================================================================================================================')
             LOGGER.info("")
 
@@ -256,11 +256,11 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
             # 4) Ejecutamos la migración en el hilo principal (ya sea con descargas y subidas en paralelo o secuencial)
             # ---------------------------------------------------------------------------------------------------------
             try:
-                parallel_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, parallel=parallel, log_level=logging.INFO)
+                parallel_automatic_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, parallel=parallel, log_level=logging.INFO)
                 # if parallel:
-                #     parallel_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, parallel=parallel, log_level=logging.INFO)
+                #     parallel_automatic_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, parallel=parallel, log_level=logging.INFO)
                 # else:
-                #     sequential_automated_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, log_level=logging.INFO)
+                #     sequential_automatic_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, log_level=logging.INFO)
             finally:
                 migration_finished.set()
 
@@ -277,9 +277,9 @@ def mode_AUTOMATED_MIGRATION(source=None, target=None, show_dashboard=None, show
 
 
 #########################################
-# parallel_automated_migration Function #
+# parallel_automatic_migration Function #
 #########################################
-def parallel_automated_migration(source_client, target_client, temp_folder, SHARED_DATA, parallel=None, log_level=logging.INFO):
+def parallel_automatic_migration(source_client, target_client, temp_folder, SHARED_DATA, parallel=None, log_level=logging.INFO):
     """
     Sincroniza fotos y vídeos entre un 'source_client' y un 'destination_client',
     descargando álbumes y assets desde la fuente, y luego subiéndolos a destino,
@@ -376,7 +376,7 @@ def parallel_automated_migration(source_client, target_client, temp_folder, SHAR
             city = ARGS.get('filter-by-city', None)
             person = ARGS.get('filter-by-person', None)
 
-            LOGGER.info(f"INFO    : 🚀 Starting Automated Migration Process: {source_client_name} ➜ {target_client_name}...")
+            LOGGER.info(f"INFO    : 🚀 Starting Automatic Migration Process: {source_client_name} ➜ {target_client_name}...")
             LOGGER.info(f"INFO    : Source Client  : {source_client_name}")
             LOGGER.info(f"INFO    : Target Client  : {target_client_name}")
             LOGGER.info(f"INFO    : Temp Folder    : {temp_folder}")
@@ -1064,12 +1064,12 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
     # ─────────────────────────────────────────────────────────────────────────
     # 1) Title Panel
     # ─────────────────────────────────────────────────────────────────────────
-    title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] 🡆 [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
+    title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] 🡆 [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automatic Migration - {SCRIPT_NAME_VERSION}"
 
     layout["title_panel"].update(Panel(f"🚀 {title}", border_style="bright_blue", expand=True))
 
     def update_title_panel():
-        title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] 🡆 [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automated Migration - {SCRIPT_NAME_VERSION}"
+        title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] 🡆 [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automatic Migration - {SCRIPT_NAME_VERSION}"
         layout["title_panel"].update(Panel(f"🚀 {title}", border_style="bright_blue", expand=True))
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -1363,4 +1363,4 @@ if __name__ == "__main__":
     source = takeout_folder_zipped
     target = 'synology-photos'
 
-    mode_AUTOMATED_MIGRATION(source=source, target=target, show_dashboard=True, parallel=True, show_gpth_progress=True)
+    mode_AUTOMATIC_MIGRATION(source=source, target=target, show_dashboard=True, parallel=True, show_gpth_progress=True)

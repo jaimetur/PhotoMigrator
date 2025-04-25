@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 from halo import Halo
 from tabulate import tabulate
 
-from Utils import update_metadata, convert_to_list, tqdm, parse_text_datetime_to_epoch, organize_files_by_date, match_pattern, replace_pattern
+from Utils import update_metadata, convert_to_list, tqdm, parse_text_datetime_to_epoch, organize_files_by_date, match_pattern, replace_pattern, any_filter, get_filters
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
@@ -1559,9 +1559,7 @@ class ClassImmichPhotos:
             os.makedirs(output_folder, exist_ok=True)
 
             # Check if there is some filter applied
-            with_filters = False
-            if ARGS.get('filter-by-type', None) or ARGS.get('filter-from-date', None) or ARGS.get('filter-to-date', None) or ARGS.get('filter-by-country', None) or ARGS.get('filter-by-city', None) or ARGS.get('filter-by-person', None):
-                with_filters = True
+            with_filters = any_filter()
 
             all_albums = self.get_albums_including_shared_with_user(with_filters=with_filters, log_level=log_level)
             if not all_albums:

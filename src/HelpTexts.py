@@ -3,10 +3,10 @@ def set_help_texts():
     HELP_TEXTS = {}
 
     ################################
-    # FEATURE: AUTOMATED-MIGRATION #
+    # FEATURE: AUTOMATIC-MIGRATION #
     ################################
-    HELP_TEXTS["AUTOMATED-MIGRATION"] = textwrap.dedent(f"""
-        ATTENTION!!!: This process will do an AUTOMATED-MIGRATION process, Pulling all your Assets (including Albums) from the <SOURCE> Cloud Service
+    HELP_TEXTS["AUTOMATIC-MIGRATION"] = textwrap.dedent(f"""
+        ATTENTION!!!: This process will do an AUTOMATIC-MIGRATION process, Pulling all your Assets (including Albums) from the <SOURCE> Cloud Service
         and Pushing them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
         """)
 
