@@ -2438,6 +2438,11 @@ class ClassSynologyPhotos:
             total_removed_albums = 0
             total_removed_assets = 0
             for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
+                # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+                album_date = album.get("create_time")
+                if is_date_outside_range(album_date):
+                    continue
+
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
                 if match_pattern(album_name, pattern):
