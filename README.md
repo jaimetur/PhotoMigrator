@@ -46,22 +46,22 @@ Currently, the Supported Photo Cloud Services are:
   - Merge Duplicates Albums
   - Remove Orphans Assets
 
-- **Apple Photos**  
-  (not available yet but is on the [ROADMAP.md](/docs/ROADMAP.md) for next release)
+- **Apple Photos Management**  
+  (not available yet but is on the [ROADMAP](/docs/ROADMAP.md) for next release)
 
-- **Google Photos**  
-  (not available yet but is on the [ROADMAP.md](/docs/ROADMAP.md) for next release)
+- **Google Photos Management**  
+  (not available yet but is on the [ROADMAP](/docs/ROADMAP.md) for next release)
 
-
-Apart from Manage the different Photo Cloud Services, the Tool also contains some [Other Useful Features](/help/6-other-features.md) such as:
-- **Metadata fixing** of any Photo Library in your local drive (not necesarely needs to be a Google Takeout folder)
-- **Library Organization** features:
-  - Manage Duplicates assets
-  - Splitting of assets with and without associated albums
-  - Folder Structure (customizable) for 'Albums' and 'No Albums' folders
-- **Symbolic Links Support** for Albums folders
-  - Fix Symbolic Links Broken
-- **Homogenize Albums folders name based on content**
+- [**Other Useful Features**](/help/6-other-features.md)  
+Apart from Manage the different Photo Cloud Services, the Tool also contains Other Useful Features such as:
+  - **Metadata fixing** of any Photo Library in your local drive (not necesarely needs to be a Google Takeout folder)
+  - **Library Organization** features:
+    - Manage Duplicates assets
+    - Splitting of assets with and without associated albums
+    - Folder Structure (customizable) for 'Albums' and 'No Albums' folders
+  - **Symbolic Links Support** for Albums folders
+    - Fix Symbolic Links Broken
+  - **Homogenize Albums folders name based on content**
 
 ## Live Dashboard Preview:
 ![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
