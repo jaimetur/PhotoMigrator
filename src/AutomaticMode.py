@@ -416,7 +416,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             total_albums_blocked_count = 0
             total_assets_blocked_count = 0
             try:
-                all_albums = source_client.get_albums_including_shared_with_user(with_filters=with_filters, log_level=logging.WARNING)
+                all_albums = source_client.get_albums_including_shared_with_user(filter_assets=with_filters, log_level=logging.WARNING)
             except Exception as e:
                 LOGGER.error(f"ERROR:   : Error Retrieving All Albums from '{source_client_name}'. - {e}")
             LOGGER.info(f"INFO    : {len(all_albums)} Albums found on '{source_client_name}' matching filters criteria")
@@ -580,7 +580,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             # 1.1) Descarga de álbumes
             albums = []
             try:
-                albums = source_client.get_albums_including_shared_with_user(log_level=logging.ERROR)
+                albums = source_client.get_albums_including_shared_with_user(filter_assets=True, log_level=logging.ERROR)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Error Retrieving All Albums - {e} \n{traceback.format_exc()}")
                 LOGGER.info(f"INFO    : Albums Assets Skipped")

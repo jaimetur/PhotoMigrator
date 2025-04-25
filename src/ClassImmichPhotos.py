@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 from halo import Halo
 from tabulate import tabulate
 
-from Utils import update_metadata, convert_to_list, tqdm, parse_text_datetime_to_epoch, organize_files_by_date, match_pattern, replace_pattern, any_filter, get_filters
+from Utils import update_metadata, convert_to_list, tqdm, parse_text_datetime_to_epoch, organize_files_by_date, match_pattern, replace_pattern, has_any_filter, get_filters
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
@@ -436,7 +436,7 @@ class ClassImmichPhotos:
                 return False
 
 
-    def get_albums_owned_by_user(self, with_filters=True, log_level=logging.INFO):
+    def get_albums_owned_by_user(self, filter_assets=True, log_level=logging.INFO):
         """
         Get all albums in Immich Photos for the current user.
 
@@ -466,7 +466,7 @@ class ClassImmichPhotos:
                     if album.get('ownerId') == user_id:
                         album_id = album.get('id')
                         album_name = album.get("albumName", "")
-                        if with_filters:
+                        if filter_assets and has_any_filter():
                             album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                             if len(album_assets) > 0:
                                 albums_filtered.append(album)
@@ -478,7 +478,7 @@ class ClassImmichPhotos:
                 return None
 
 
-    def get_albums_including_shared_with_user(self, with_filters=True, log_level=logging.INFO):
+    def get_albums_including_shared_with_user(self, filter_assets=True, log_level=logging.INFO):
         """
         Get both own and shared albums in Immich Photos.
 
@@ -506,7 +506,7 @@ class ClassImmichPhotos:
                 for album in albums:
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
-                    if with_filters:
+                    if filter_assets and has_any_filter():
                         album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                         if len(album_assets) > 0:
                             albums_filtered.append(album)
@@ -585,7 +585,7 @@ class ClassImmichPhotos:
                 album_id = self.albums_owned_by_user[album_name]
             else:
                 # If not found, retrieve the list of owned albums (from an API)
-                albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+                albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
                 if not albums:
                     return False, None
                 for album in albums:
@@ -1022,7 +1022,7 @@ class ClassImmichPhotos:
                 return self.albums_assets_filtered
 
             self.login(log_level=log_level)
-            all_albums = self.get_albums_including_shared_with_user(log_level=log_level)
+            all_albums = self.get_albums_including_shared_with_user(filter_assets=True, log_level=log_level)
             combined_assets = []
             if not all_albums:
                 self.albums_assets_filtered = combined_assets  # Cache albums_assets for future use
@@ -1559,9 +1559,9 @@ class ClassImmichPhotos:
             os.makedirs(output_folder, exist_ok=True)
 
             # Check if there is some filter applied
-            with_filters = any_filter()
+            filters_provided = has_any_filter()
 
-            all_albums = self.get_albums_including_shared_with_user(with_filters=with_filters, log_level=log_level)
+            all_albums = self.get_albums_including_shared_with_user(filter_assets=filters_provided, log_level=log_level)
             if not all_albums:
                 LOGGER.warning("WARNING : No albums available or could not retrieve the list.")
                 self.logout(log_level=log_level)
@@ -1741,7 +1741,7 @@ class ClassImmichPhotos:
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             LOGGER.warning("WARNING : Searching for Albums that matches the provided pattern. This process may take some time. Please be patient!...")
-            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+            albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
                 self.logout(log_level=log_level)
@@ -1749,6 +1749,11 @@ class ClassImmichPhotos:
 
             total_renamed_albums = 0
             for album in tqdm(albums, desc=f"INFO    : Searching for Albums to rename", unit=" albums"):
+                # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+                album_date = album.get("createdAt")
+                if is_date_outside_range(album_date):
+                    continue
+
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
                 album_description = album.get("description", "")
@@ -1787,7 +1792,7 @@ class ClassImmichPhotos:
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             LOGGER.warning("WARNING : Searching for Albums that matches the provided pattern. This process may take some time. Please be patient!...")
-            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+            albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
                 self.logout(log_level=log_level)
@@ -1796,6 +1801,11 @@ class ClassImmichPhotos:
             total_removed_albums = 0
             total_removed_assets = 0
             for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
+                # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+                album_date = album.get("createdAt")
+                if is_date_outside_range(album_date):
+                    continue
+
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
                 if match_pattern(album_name, pattern):
@@ -1830,7 +1840,7 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+            albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
                 self.logout(log_level=log_level)
@@ -1839,6 +1849,11 @@ class ClassImmichPhotos:
             total_removed_empty_albums = 0
             LOGGER.info("INFO    : Looking for empty albums in Immich Photos...")
             for album in tqdm(albums, desc=f"INFO    : Searching for Empty Albums", unit=" albums"):
+                # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+                album_date = album.get("createdAt")
+                if is_date_outside_range(album_date):
+                    continue
+
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
                 asset_count = album.get("assetCount")
@@ -1866,7 +1881,7 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+            albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 self.logout(log_level=log_level)
                 return 0
@@ -1874,6 +1889,11 @@ class ClassImmichPhotos:
             LOGGER.info("INFO    : Looking for duplicate albums in Immich Photos...")
             duplicates_map = {}
             for album in tqdm(albums, desc=f"INFO    : Searching for Duplicates Albums", unit=" albums"):
+                # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+                album_date = album.get("createdAt")
+                if is_date_outside_range(album_date):
+                    continue
+
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
                 assets_count = album.get("assetCount")
@@ -1913,7 +1933,7 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+            albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 self.logout(log_level=log_level)
                 return 0
@@ -1921,6 +1941,11 @@ class ClassImmichPhotos:
             LOGGER.info("INFO    : Looking for duplicate albums in Immich Photos...")
             albums_by_name = {}
             for album in tqdm(albums, desc="INFO    : Grouping Albums by Name", unit=" albums"):
+                # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+                album_date = album.get("create_time")
+                if is_date_outside_range(album_date):
+                    continue
+
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
                 asset_count = album.get("assetCount", 0)
@@ -2132,7 +2157,7 @@ class ClassImmichPhotos:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            albums = self.get_albums_owned_by_user(log_level=log_level)
+            albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
                 self.logout(log_level=log_level)
@@ -2142,6 +2167,11 @@ class ClassImmichPhotos:
             total_removed_assets = 0
 
             for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
+                # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+                album_date = album.get("createdAt")
+                if is_date_outside_range(album_date):
+                    continue
+
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
 

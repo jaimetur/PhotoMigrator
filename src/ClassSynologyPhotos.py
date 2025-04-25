@@ -12,7 +12,7 @@ from datetime import datetime
 import time
 import logging
 
-from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm, parse_text_datetime_to_epoch, match_pattern, replace_pattern, any_filter, get_filters
+from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm, parse_text_datetime_to_epoch, match_pattern, replace_pattern, has_any_filter, get_filters, is_date_outside_range
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
@@ -490,7 +490,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while removing Album from Synology Photos. {e}")
 
 
-    def get_albums_owned_by_user(self, with_filters=True, log_level=logging.INFO):
+    def get_albums_owned_by_user(self, filter_assets=True, log_level=logging.INFO):
         """
         Get all albums in Synology Photos for the current user.
 
@@ -545,7 +545,7 @@ class ClassSynologyPhotos:
                         album["albumName"] = album.pop("name")
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
-                    if with_filters:
+                    if filter_assets and has_any_filter():
                         album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                         if len(album_assets) > 0:
                             albums_filtered.append(album)
@@ -556,7 +556,7 @@ class ClassSynologyPhotos:
                 LOGGER.warning(f"WARNING : Cannot get albums due to API call error. Skipped! {e}")
 
 
-    def get_albums_including_shared_with_user(self, with_filters=True, log_level=logging.INFO):
+    def get_albums_including_shared_with_user(self, filter_assets=True, log_level=logging.INFO):
         """
         Get both own and shared albums in Synology Photos.
 
@@ -615,7 +615,7 @@ class ClassSynologyPhotos:
                     album["albumName"] = album.pop("name")
                 album_id = album.get('id')
                 album_name = album.get("albumName", "")
-                if with_filters:
+                if filter_assets and has_any_filter():
                     album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                     if len(album_assets) > 0:
                         albums_filtered.append(album)
@@ -737,7 +737,7 @@ class ClassSynologyPhotos:
                 else:
                     album_exists = False
                     album_id = None
-                    albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+                    albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
                     for album in albums:
                         if album_name == album.get("albumName"):
                             album_exists = True
@@ -1225,7 +1225,7 @@ class ClassSynologyPhotos:
                 if self.SYNO_TOKEN_HEADER:
                     headers.update(self.SYNO_TOKEN_HEADER)
 
-                all_albums = self.get_albums_including_shared_with_user(log_level=log_level)
+                all_albums = self.get_albums_including_shared_with_user(filter_assets=True, log_level=log_level)
                 combined_assets = []
                 if not all_albums:
                     self.albums_assets_filtered = combined_assets  # Cache albums_assets for future use
@@ -2152,9 +2152,9 @@ class ClassSynologyPhotos:
                     albums_name = [albums_name]
 
                 # Check if there is some filter applied
-                with_filters = any_filter()
+                filters_provided = has_any_filter()
 
-                all_albums = self.get_albums_including_shared_with_user(with_filters=with_filters ,log_level=log_level)
+                all_albums = self.get_albums_including_shared_with_user(filter_assets=filters_provided, log_level=log_level)
 
                 if not all_albums:
                     return 0, 0
@@ -2375,7 +2375,7 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             LOGGER.warning("WARNING : Searching for Albums that matches the provided pattern. This process may take some time. Please be patient!...")
-            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+            albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
                 self.logout(log_level=log_level)
@@ -2383,6 +2383,11 @@ class ClassSynologyPhotos:
 
             total_renamed_albums = 0
             for album in tqdm(albums, desc=f"INFO    : Searching for Albums to rename", unit=" albums"):
+                # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+                album_date = album.get("create_time")
+                if is_date_outside_range(album_date):
+                    continue
+
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
                 if match_pattern(album_name, pattern):
@@ -2424,7 +2429,7 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
             LOGGER.warning("WARNING : Searching for Albums that matches the provided pattern. This process may take some time. Please be patient!...")
-            albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+            albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
                 self.logout(log_level=log_level)
@@ -2468,7 +2473,7 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
-                albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+                albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
                 if not albums:
                     LOGGER.info("INFO    : No albums found.")
                     self.logout(log_level=log_level)
@@ -2477,6 +2482,11 @@ class ClassSynologyPhotos:
                 total_removed_empty_albums = 0
                 LOGGER.info("INFO    : Looking for empty albums in Synology Photos...")
                 for album in tqdm(albums, desc=f"INFO    : Searching for Empty Albums", unit=" albums"):
+                    # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+                    album_date = album.get("create_time")
+                    if is_date_outside_range(album_date):
+                        continue
+
                     album_id = album.get("id")
                     album_name = album.get("albumName", "")
                     asset_count = self.get_album_assets_count(album_id, album_name, log_level=logging.WARNING)
@@ -2508,7 +2518,7 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
-                albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+                albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
 
                 if not albums:
                     return 0
@@ -2516,6 +2526,11 @@ class ClassSynologyPhotos:
                 LOGGER.info("INFO    : Looking for duplicate albums in Synology Photos...")
                 duplicates_map = {}
                 for album in tqdm(albums, smoothing=0.1, desc="INFO    : Removing Duplicates Albums", unit=" albums"):
+                    # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+                    album_date = album.get("create_time")
+                    if is_date_outside_range(album_date):
+                        continue
+
                     album_id = album.get("id")
                     album_name = album.get("albumName", "")
                     assets_count = self.get_album_assets_count(album_id, album_name, log_level=log_level)
@@ -2558,7 +2573,7 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
-                albums = self.get_albums_owned_by_user(with_filters=False, log_level=log_level)
+                albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
 
                 if not albums:
                     return 0
@@ -2566,6 +2581,11 @@ class ClassSynologyPhotos:
                 LOGGER.info("INFO    : Looking for duplicate albums in Synology Photos...")
                 albums_by_name = {}
                 for album in tqdm(albums, smoothing=0.1, desc="INFO    : Grouping Albums by Name", unit=" albums"):
+                    # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+                    album_date = album.get("create_time")
+                    if is_date_outside_range(album_date):
+                        continue
+
                     album_id = album.get("id")
                     album_name = album.get("albumName", "")
                     assets_count = self.get_album_assets_count(album_id, album_name, log_level=log_level)
@@ -2690,7 +2710,7 @@ class ClassSynologyPhotos:
         with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
-                albums = self.get_albums_owned_by_user(log_level=log_level)
+                albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
                 if not albums:
                     LOGGER.info("INFO    : No albums found.")
                     self.logout(log_level=log_level)
@@ -2698,8 +2718,12 @@ class ClassSynologyPhotos:
 
                 total_removed_albums = 0
                 total_removed_assets = 0
-
                 for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
+                    # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+                    album_date = album.get("create_time")
+                    if is_date_outside_range(album_date):
+                        continue
+
                     album_id = album.get("id")
                     album_name = album.get("albumName", "")
 

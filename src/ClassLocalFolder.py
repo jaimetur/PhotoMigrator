@@ -5,7 +5,7 @@ import shutil
 import logging
 import re
 import Utils
-from Utils import parse_text_datetime_to_epoch, match_pattern, replace_pattern, any_filter, get_filters
+from Utils import parse_text_datetime_to_epoch, match_pattern, replace_pattern, has_any_filter, get_filters
 from datetime import datetime
 import time
 from pathlib import Path
@@ -327,7 +327,7 @@ class ClassLocalFolder:
             return False
 
 
-    def get_albums_owned_by_user(self, with_filters=True, log_level=logging.INFO):
+    def get_albums_owned_by_user(self, filter_assets=True, log_level=logging.INFO):
         """
         Retrieves the list of owned albums.
 
@@ -356,7 +356,7 @@ class ClassLocalFolder:
             return albums_filtered
 
 
-    def get_albums_including_shared_with_user(self, with_filters=True, log_level=logging.INFO):
+    def get_albums_including_shared_with_user(self, filter_assets=True, log_level=logging.INFO):
         """
         Retrieves both owned and shared albums.
 
@@ -471,7 +471,7 @@ class ClassLocalFolder:
         """
         with set_log_level(LOGGER, log_level):
             LOGGER.info(f"INFO    : Checking if album '{album_name}' exists.")
-            for album in self.get_albums_owned_by_user(with_filters=False, log_level=log_level):
+            for album in self.get_albums_owned_by_user(filter_assets=False, log_level=log_level):
                 if album_name == album["albumName"]:
                     return True, album["id"]
             return False, None
@@ -867,7 +867,7 @@ class ClassLocalFolder:
                 return self.albums_assets_filtered
 
             combined_assets = []
-            all_albums = self.get_albums_including_shared_with_user(log_level)
+            all_albums = self.get_albums_including_shared_with_user(filter_assets=True, log_level=log_level)
             for album in all_albums:
                 album_id = album["id"]
                 combined_assets.extend(self.get_all_assets_from_album(album_id, log_level))
@@ -1113,7 +1113,7 @@ class ClassLocalFolder:
             tuple: (albums_downloaded, assets_downloaded)
         """
         # Check if there is some filter applied
-        with_filters = any_filter()
+        filters_provided = has_any_filter()
         pass
 
 
