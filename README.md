@@ -75,6 +75,11 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 
 Or check the [Historical Releases Notes](/docs/RELEASES-NOTES.md) to choose any specific release. 
 
+> [!NOTE]  
+> The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), so feel free to download the version according to your system. 
+> 
+> You can also execute the Tool from a Docker container or from sources files for a better compatibility. In below sections you can find the execution instructions to run the Tool from the different methods.
+
 
 ## Configuration File:
 In order to connect to the different Photo Cloud Services, you must configure the conection settings using the Configuration file (Config.ini) provided with the Tool.  
@@ -98,12 +103,6 @@ You can check the whole list of all features and arguments with the right syntax
 - [Synology Photos Management](/help/4-synology-photos.md)  
 - [Immich Photos Management](/help/5-immich-photos.md)  
 - [Other Features](/help/6-other-features.md)  
-
-
-> [!NOTE]  
-> The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), so feel free to download the version according to your system. 
-> 
-> You can also execute the Tool from a Docker container or from sources files for a better compatibility. In below sections you can find the execution instructions to run the Tool from the different methods.
 
 
 ## Execution Methods:
