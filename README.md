@@ -10,7 +10,7 @@
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automated Migration**](/help/2-automated-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
 
 Currently, the Supported Photo Cloud Services are:
-- **Google Photos Takeout**
+- [**Google Photos Takeout Management**](/help/3-google-takeout.md)
   - Unpack your Takeout Zip files.
   - Process .json files to fix metadata (including creation date and time) of all your assets.
   - Merge Live picture with separate files (.HEIC and .MP4).
@@ -19,7 +19,7 @@ Currently, the Supported Photo Cloud Services are:
   - Create Symbolic Links for assets within any Album (to save disk space).
   - Detect and remove duplicates.
 
-- **Synology Photos** - Features included:
+- [**Synology Photos Management**](/help/4-synology-photos.md) - Features included:
   - Upload Album(s) (from folder)
   - Download Album(s) (into folder)
   - Upload ALL (from folder)
@@ -32,7 +32,7 @@ Currently, the Supported Photo Cloud Services are:
   - Remove Duplicates Albums
   - Merge Duplicates Albums
 
-- **Immich Photos** - Features included:
+- [**Immich Photos Management**](/help/5-immich-photos.md) - Features included:
   - Upload Album(s) (from folder)
   - Download Album(s) (into folder)
   - Upload ALL (from folder)
@@ -53,7 +53,7 @@ Currently, the Supported Photo Cloud Services are:
   (not available yet but is on the [ROADMAP.md](/docs/ROADMAP.md) for next release)
 
 
-Apart from Manage the different Photo Cloud Services, the Tool also contains some other useful features such as:
+Apart from Manage the different Photo Cloud Services, the Tool also contains some [Other Useful Features](/help/6-other-features.md) such as:
 - **Metadata fixing** of any Photo Library in your local drive (not necesarely needs to be a Google Takeout folder)
 - **Library Organization** features:
   - Manage Duplicates assets
