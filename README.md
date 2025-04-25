@@ -21,8 +21,8 @@ Currently, the Supported Photo Cloud Services are:
 
 - **Synology Photos** - Features included:
   - Upload Album(s)
-  - Upload ALL (from folder)
   - Download Album(s)
+  - Upload ALL (from folder)
   - Download ALL (into folder)
   - Remove ALL Assets
   - Remove ALL Albums
@@ -34,8 +34,8 @@ Currently, the Supported Photo Cloud Services are:
 
 - **Immich Photos** - Features included:
   - Upload Album(s)
-  - Upload ALL (from folder)
   - Download Album(s)
+  - Upload ALL (from folder)
   - Download ALL (into folder)
   - Remove ALL Assets
   - Remove ALL Albums
