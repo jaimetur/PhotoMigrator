@@ -46,10 +46,10 @@ Currently, the Supported Photo Cloud Services are:
   - Merge Duplicates Albums
   - Remove Orphans Assets
 
-- **Apple Photos**  
+- **Apple Photos Management**  
   (not available yet but is on the [ROADMAP](/docs/ROADMAP.md) for next release)
 
-- **Google Photos**  
+- **Google Photos Management**  
   (not available yet but is on the [ROADMAP](/docs/ROADMAP.md) for next release)
 
 - [**Other Useful Features**](/help/6-other-features.md)  
