@@ -1296,123 +1296,129 @@ class ClassImmichPhotos:
         Returns: (albums_uploaded, albums_skipped, assets_uploaded, total_duplicates_assets_removed, total_duplicates_assets_skipped)
         """
         with set_log_level(LOGGER, log_level):
-            self.login(log_level=log_level)
-            if not os.path.isdir(input_folder):
-                LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
-                self.logout(log_level=log_level)
-                return 0, 0, 0, 0, 0
+            try:
+                self.login(log_level=log_level)
+                if not os.path.isdir(input_folder):
+                    LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
+                    # self.logout(log_level=log_level)
+                    return 0, 0, 0, 0, 0
 
-            subfolders_exclusion = convert_to_list(subfolders_exclusion)
-            subfolders_inclusion = convert_to_list(subfolders_inclusion)
+                subfolders_exclusion = convert_to_list(subfolders_exclusion)
+                subfolders_inclusion = convert_to_list(subfolders_inclusion)
 
-            total_albums_uploaded = 0
-            total_albums_skipped = 0
-            total_assets_uploaded = 0
-            total_duplicates_assets_removed = 0
-            total_duplicates_assets_skipped = 0
+                total_albums_uploaded = 0
+                total_albums_skipped = 0
+                total_assets_uploaded = 0
+                total_duplicates_assets_removed = 0
+                total_duplicates_assets_skipped = 0
 
-            # # If 'Albums' is not in subfolders_inclusion, add it (like original code).
-            # first_level_folders = [name.lower() for name in os.listdir(input_folder) if os.path.isdir(os.path.join(input_folder, name))]
-            # albums_folder_included = any(rel.lower() == 'albums' for rel in subfolders_inclusion)
-            # if not albums_folder_included and 'albums' in first_level_folders:
-            #     subfolders_inclusion.append('Albums')
+                # # If 'Albums' is not in subfolders_inclusion, add it (like original code).
+                # first_level_folders = [name.lower() for name in os.listdir(input_folder) if os.path.isdir(os.path.join(input_folder, name))]
+                # albums_folder_included = any(rel.lower() == 'albums' for rel in subfolders_inclusion)
+                # if not albums_folder_included and 'albums' in first_level_folders:
+                #     subfolders_inclusion.append('Albums')
 
-            SUBFOLDERS_EXCLUSIONS = ['@eaDir'] + subfolders_exclusion
-            valid_folders = []
+                SUBFOLDERS_EXCLUSIONS = ['@eaDir'] + subfolders_exclusion
+                valid_folders = []
 
-            for root, folders, _ in os.walk(input_folder):
-                folders[:] = [d for d in folders if d not in SUBFOLDERS_EXCLUSIONS]
+                for root, folders, _ in os.walk(input_folder):
+                    # Filter out excluded folders
+                    folders[:] = [d for d in folders if d not in SUBFOLDERS_EXCLUSIONS]
+                    if subfolders_inclusion:
+                        relative_path = os.path.relpath(root, input_folder)
+                        if relative_path == ".":
+                            folders[:] = [d for d in folders if d in subfolders_inclusion]
+                        else:
+                            first_dir = relative_path.split(os.sep)[0]
+                            if first_dir not in subfolders_inclusion:
+                                folders[:] = []
+
+                    for folder in folders:
+                        dir_path = os.path.join(root, folder)
+                        if not os.path.isdir(dir_path):
+                            continue
+                        # Check if there's at least one supported file
+                        has_supported_files = any(os.path.splitext(f)[-1].lower() in self.ALLOWED_IMMICH_EXTENSIONS for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f)))
+                        if has_supported_files:
+                            valid_folders.append(dir_path)
+
+                first_level_folders = os.listdir(input_folder)
                 if subfolders_inclusion:
-                    rel_path = os.path.relpath(root, input_folder)
-                    if rel_path == ".":
-                        folders[:] = [d for d in folders if d in subfolders_inclusion]
-                    else:
-                        first_dir = rel_path.split(os.sep)[0]
-                        if first_dir not in subfolders_inclusion:
-                            folders[:] = []
+                    first_level_folders += subfolders_inclusion
+                    first_level_folders = list(dict.fromkeys(first_level_folders))
 
-                for folder in folders:
-                    dir_path = os.path.join(root, folder)
-                    if not os.path.isdir(dir_path):
-                        continue
-                    # Check if there's at least one supported file
-                    has_supported = any(os.path.splitext(f)[-1].lower() in self.ALLOWED_IMMICH_EXTENSIONS for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f)))
-                    if has_supported:
-                        valid_folders.append(dir_path)
-
-            first_level_folders = os.listdir(input_folder)
-            if subfolders_inclusion:
-                first_level_folders += subfolders_inclusion
-                first_level_folders = list(dict.fromkeys(first_level_folders))
-
-            with tqdm(total=len(valid_folders), smoothing=0.1, desc=f"INFO    : Uploading Albums from '{os.path.basename(input_folder)}' sub-folders", unit=" sub-folder") as pbar:
-
-                for subpath in valid_folders:
-                    pbar.update(1)
-                    album_assets_ids = []
-                    rel_path = os.path.relpath(subpath, input_folder)
-                    path_parts = rel_path.split(os.sep)
-
-                    if len(path_parts) == 1:
-                        album_name = path_parts[0]
-                    else:
-                        if path_parts[0] in first_level_folders:
-                            album_name = " - ".join(path_parts[1:])
-                        else:
-                            album_name = " - ".join(path_parts)
-
-                    if not album_name:
-                        total_albums_skipped += 1
-                        continue
-
-                    for f in os.listdir(subpath):
-                        file_path = os.path.join(subpath, f)
-                        if not os.path.isfile(file_path):
-                            continue
-                        ext = os.path.splitext(f)[-1].lower()
-                        if ext not in self.ALLOWED_IMMICH_EXTENSIONS:
-                            continue
-
-                        asset_id, is_dup = self.push_asset(file_path, log_level=log_level)
-                        if is_dup:
-                            total_duplicates_assets_skipped += 1
-                            LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} upload skipped")
-                        else:
-                            total_assets_uploaded += 1
-                            
-                        if asset_id:
-                            # Associate only if ext is photo/video
-                            if ext in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
-                                album_assets_ids.append(asset_id)
-
-                    if album_assets_ids:
-                        album_id = self.create_album(album_name, log_level=log_level)
-                        if not album_id:
+                with tqdm(total=len(valid_folders), smoothing=0.1, desc=f"INFO    : Uploading Albums from '{os.path.basename(input_folder)}' sub-folders", unit=" sub-folder") as pbar:
+                    for subpath in valid_folders:
+                        pbar.update(1)
+                        album_assets_ids = []
+                        if not os.path.isdir(subpath):
                             LOGGER.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
                             total_albums_skipped += 1
+                            continue
+
+                        relative_path = os.path.relpath(subpath, input_folder)
+                        path_parts = relative_path.split(os.sep)
+
+                        if len(path_parts) == 1:
+                            album_name = path_parts[0]
                         else:
-                            self.add_assets_to_album(album_id, album_assets_ids, album_name=album_name, log_level=log_level)
-                            LOGGER.debug(f"DEBUG   : Album '{album_name}' created with ID: {album_id}. Total Assets added to Album: {len(album_assets_ids)}.")
-                            total_albums_uploaded += 1
-                    else:
-                        total_albums_skipped += 1
+                            if path_parts[0] in first_level_folders:
+                                album_name = " - ".join(path_parts[1:])
+                            else:
+                                album_name = " - ".join(path_parts)
 
-            if remove_duplicates:
-                LOGGER.info("INFO    : Removing Duplicates Assets...")
-                total_duplicates_assets_removed = self.remove_duplicates_assets(log_level=log_level)
+                        if not album_name:
+                            total_albums_skipped += 1
+                            continue
 
-            LOGGER.info(f"INFO    : Uploaded {total_albums_uploaded} album(s) from '{input_folder}'.")
-            LOGGER.info(f"INFO    : Uploaded {total_assets_uploaded} asset(s) from '{input_folder}' to Albums.")
-            LOGGER.info(f"INFO    : Skipped {total_albums_skipped} album(s) from '{input_folder}'.")
-            LOGGER.info(f"INFO    : Removed {total_duplicates_assets_removed} duplicates asset(s) from Immich Database.")
-            LOGGER.info(f"INFO    : Skipped {total_duplicates_assets_skipped} duplicated asset(s) from '{input_folder}' to Albums.")
+                        for file in os.listdir(subpath):
+                            file_path = os.path.join(subpath, file)
+                            if not os.path.isfile(file_path):
+                                continue
+                            ext = os.path.splitext(file)[-1].lower()
+                            if ext not in self.ALLOWED_IMMICH_EXTENSIONS:
+                                continue
 
-            self.logout(log_level=log_level)
-            return (total_albums_uploaded,
-                    total_albums_skipped,
-                    total_assets_uploaded,
-                    total_duplicates_assets_removed,
-                    total_duplicates_assets_skipped)
+                            asset_id, is_dup = self.push_asset(file_path, log_level=log_level)
+                            if is_dup:
+                                total_duplicates_assets_skipped += 1
+                                LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} upload skipped")
+                            else:
+                                total_assets_uploaded += 1
+
+                            if asset_id:
+                                # Associate only if ext is photo/video
+                                if ext in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
+                                    album_assets_ids.append(asset_id)
+
+                        if album_assets_ids:
+                            album_id = self.create_album(album_name, log_level=log_level)
+                            if not album_id:
+                                LOGGER.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
+                                total_albums_skipped += 1
+                            else:
+                                self.add_assets_to_album(album_id, album_assets_ids, album_name=album_name, log_level=log_level)
+                                LOGGER.debug(f"DEBUG   : Album '{album_name}' created with ID: {album_id}. Total Assets added to Album: {len(album_assets_ids)}.")
+                                total_albums_uploaded += 1
+                        else:
+                            total_albums_skipped += 1
+
+                if remove_duplicates:
+                    LOGGER.info("INFO    : Removing Duplicates Assets...")
+                    total_duplicates_assets_removed = self.remove_duplicates_assets(log_level=log_level)
+
+                LOGGER.info(f"INFO    : Uploaded {total_albums_uploaded} album(s) from '{input_folder}'.")
+                LOGGER.info(f"INFO    : Uploaded {total_assets_uploaded} asset(s) from '{input_folder}' to Albums.")
+                LOGGER.info(f"INFO    : Skipped {total_albums_skipped} album(s) from '{input_folder}'.")
+                LOGGER.info(f"INFO    : Removed {total_duplicates_assets_removed} duplicates asset(s) from Immich Database.")
+                LOGGER.info(f"INFO    : Skipped {total_duplicates_assets_skipped} duplicated asset(s) from '{input_folder}' to Albums.")
+
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while uploading Albums assets into Immich Photos. {e}")
+                return 0,0,0,0,0
+
+            # self.logout(log_level=log_level)
+            return (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed, total_duplicates_assets_skipped)
 
 
     def push_no_albums(self, input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
@@ -1430,7 +1436,7 @@ class ClassImmichPhotos:
             self.login(log_level=log_level)
             if not os.path.isdir(input_folder):
                 LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0, 0, 0
 
             subfolders_exclusion = convert_to_list(subfolders_exclusion)
@@ -1489,7 +1495,7 @@ class ClassImmichPhotos:
             LOGGER.info(f"INFO    : Skipped {total_duplicated_assets_skipped} duplicated asset(s) from '{input_folder}'.")
             LOGGER.info(f"INFO    : Removed {duplicates_assets_removed} duplicates asset(s) from Immich Database.")
 
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_assets_uploaded, total_duplicated_assets_skipped, duplicates_assets_removed
 
 
@@ -1536,7 +1542,7 @@ class ClassImmichPhotos:
                 LOGGER.info("INFO    : Removing Duplicates Assets...")
                 total_duplicates_assets_removed += self.remove_duplicates_assets(log_level=logging.WARNING)
 
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
 
             return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed, total_dupplicated_assets_skipped
 
@@ -1564,7 +1570,7 @@ class ClassImmichPhotos:
             all_albums = self.get_albums_including_shared_with_user(filter_assets=filters_provided, log_level=log_level)
             if not all_albums:
                 LOGGER.warning("WARNING : No albums available or could not retrieve the list.")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0, 0
 
             if isinstance(albums_name, str):
@@ -1591,7 +1597,7 @@ class ClassImmichPhotos:
                     LOGGER.info(f"INFO    : {len(found_albums)} album(s) matched pattern(s) '{albums_name}'.")
                 else:
                     LOGGER.warning(f"WARNING : No albums found matching pattern(s) '{albums_name}'.")
-                    self.logout(log_level=log_level)
+                    # self.logout(log_level=log_level)
                     return 0, 0
 
             total_assets_downloaded = 0
@@ -1621,7 +1627,7 @@ class ClassImmichPhotos:
             LOGGER.info(f"INFO    : Total Albums downloaded: {total_albums_downloaded}")
             LOGGER.info(f"INFO    : Total Assets downloaded: {total_assets_downloaded}")
 
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_albums_downloaded, total_assets_downloaded
 
 
@@ -1672,7 +1678,7 @@ class ClassImmichPhotos:
             LOGGER.info(f"INFO    : Download of assets without associated albums completed.")
             LOGGER.info(f"INFO    : Total Assets downloaded: {total_assets_downloaded}")
 
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_assets_downloaded
 
 
@@ -1706,7 +1712,7 @@ class ClassImmichPhotos:
             LOGGER.info(f"Total Assets downloaded within albums     : {total_assets_in_albums}")
             LOGGER.info(f"Total Assets downloaded without albums    : {total_assets_no_albums}")
 
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return (total_albums_downloaded, total_assets, total_assets_in_albums, total_assets_no_albums)
 
 
@@ -1744,7 +1750,7 @@ class ClassImmichPhotos:
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0
 
             total_renamed_albums = 0
@@ -1775,7 +1781,7 @@ class ClassImmichPhotos:
                         LOGGER.info(f"INFO    : Album '{album_name}' (ID={album_id}) renamed to {new_name} .")
                         total_renamed_albums += 1
             LOGGER.info(f"INFO    : Removed {total_renamed_albums} albums whose names matched with the provided pattern.")
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_renamed_albums
 
 
@@ -1795,7 +1801,7 @@ class ClassImmichPhotos:
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0
 
             total_removed_albums = 0
@@ -1824,7 +1830,7 @@ class ClassImmichPhotos:
                         total_removed_albums += 1
             LOGGER.info(f"INFO    : Removed {total_removed_albums} albums whose names matched with the provided pattern.")
             LOGGER.info(f"INFO    : Removed {total_removed_assets} from those removed albums.")
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_removed_albums, total_removed_assets
 
 
@@ -1843,7 +1849,7 @@ class ClassImmichPhotos:
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0, 0
 
             total_removed_albums = 0
@@ -1878,7 +1884,7 @@ class ClassImmichPhotos:
             if removeAlbumsAssets:
                 LOGGER.info(f"INFO    : Removed {total_removed_assets} assets associated to albums.")
 
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_removed_albums, total_removed_assets
 
 
@@ -1897,7 +1903,7 @@ class ClassImmichPhotos:
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0
 
             total_removed_empty_albums = 0
@@ -1917,7 +1923,7 @@ class ClassImmichPhotos:
                         total_removed_empty_albums += 1
 
             LOGGER.info(f"INFO    : Removed {total_removed_empty_albums} empty albums.")
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_removed_empty_albums
 
 
@@ -1937,7 +1943,7 @@ class ClassImmichPhotos:
             self.login(log_level=log_level)
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0
 
             LOGGER.info("INFO    : Looking for duplicate albums in Immich Photos...")
@@ -1967,7 +1973,7 @@ class ClassImmichPhotos:
                             total_removed_duplicated_albums += 1
 
             LOGGER.info(f"INFO    : Removed {total_removed_duplicated_albums} duplicate albums.")
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_removed_duplicated_albums
 
 
@@ -1989,7 +1995,7 @@ class ClassImmichPhotos:
             self.login(log_level=log_level)
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0
 
             LOGGER.info("INFO    : Looking for duplicate albums in Immich Photos...")
@@ -2045,7 +2051,7 @@ class ClassImmichPhotos:
                         total_removed_duplicated_albums += 1
 
             LOGGER.info(f"INFO    : Removed {total_removed_duplicated_albums} duplicate albums.")
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_removed_duplicated_albums
 
     # -----------------------------------------------------------------------------
@@ -2070,7 +2076,7 @@ class ClassImmichPhotos:
             if not self.IMMICH_API_KEY_ADMIN or not self.IMMICH_USER_API_KEY:
                 LOGGER.error(f"ERROR   : Both admin and user API keys are required.")
                 # logout_immich
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0
 
             immich_parsed_url = urlparse(self.IMMICH_URL)
@@ -2091,7 +2097,7 @@ class ClassImmichPhotos:
             except requests.exceptions.RequestException as e:
                 spinner.fail(f'Failed to fetch assets: {str(e)}')
                 # logout_immich
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return 0
 
 
@@ -2101,7 +2107,7 @@ class ClassImmichPhotos:
             if num_entries == 0:
                 LOGGER.info(f"INFO    : No orphaned media assets found.")
                 # logout_immich
-                self.logout(log_level=log_level)
+                # self.logout(log_level=log_level)
                 return total_removed_assets
 
             if user_confirmation:
@@ -2116,7 +2122,7 @@ class ClassImmichPhotos:
                 if user_input not in ('y', 'yes'):
                     LOGGER.info(f"INFO    : Exiting without making any changes.")
                     # logout_immich
-                    self.logout(log_level=log_level)
+                    # self.logout(log_level=log_level)
                     return 0
 
             headers['x-api-key'] = self.IMMICH_USER_API_KEY  # Use user API key for deletion
@@ -2140,7 +2146,7 @@ class ClassImmichPhotos:
                     total_removed_assets += 1
             LOGGER.info(f"INFO    : Orphaned media assets removed successfully!")
             # logout_immich
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             return total_removed_assets
 
 
@@ -2192,7 +2198,7 @@ class ClassImmichPhotos:
             LOGGER.info(f"INFO    : Getting empty albums to remove...")
             total_removed_albums = self.remove_empty_albums(log_level=logging.WARNING)
 
-            self.logout(log_level=log_level)
+            # self.logout(log_level=log_level)
             LOGGER.info(f"INFO    : Total Assets removed: {total_removed_assets}")
             LOGGER.info(f"INFO    : Total Albums removed: {total_removed_albums}")
 
