@@ -2678,7 +2678,7 @@ class ClassSynologyPhotos:
 
                 total_assets_found = len(combined_ids)
                 if total_assets_found == 0:
-                    LOGGER.warning(f"WARNING : No Assets found in Synology Photos.")
+                    LOGGER.warning(f"WARNING : No Assets found that matches filters criteria in Synology Photos.")
                 LOGGER.info(f"INFO    : Found {total_assets_found} asset(s) to remove.")
 
                 removed_assets = 0

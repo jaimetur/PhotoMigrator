@@ -824,7 +824,7 @@ def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.IN
         LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
         syno.login(log_level=logging.WARNING)
         # Call the Function
-        assets_removed, albums_removed = syno.remove_all_albums(removeAlbumsAssets= ARGS['remove-albums-assets'], log_level=logging.WARNING)
+        assets_removed, albums_removed = syno.remove_all_albums(removeAlbumsAssets=ARGS['remove-albums-assets'], log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Synology Photos.")

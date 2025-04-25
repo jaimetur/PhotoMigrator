@@ -2113,7 +2113,7 @@ class ClassImmichPhotos:
 
             total_assets_found = len(all_assets_items)
             if total_assets_found == 0:
-                LOGGER.warning(f"WARNING : No Assets found in Immich Database.")
+                LOGGER.warning(f"WARNING : No Assets found that matches filters criteria in Immich Database.")
             LOGGER.info(f"INFO    : Found {total_assets_found} asset(s) to remove.")
 
             assets_ids = []

@@ -24,7 +24,15 @@
     - [x] Added new Feature to **Merge Albums** with the same name and different assets. Added following new flags to execute this new feature:
       - _**'-sMergAlb, --synology-merge-duplicates-albums'**_ 
       - _**'-iMergAlb, --immich-merge-duplicates-albums'**_.
-  
+    - [x] Automatic filters flags detection for all Remove/Rename/Merge Albums features for Synology/Immich Photos
+      - [x] remove-all-assets
+      - [x] remove-all-albums
+      - [x] remove-albums
+      - [x] remove-empty-albums
+      - [x] remove-duplicates-albums
+      - [x] rename-albums
+      - [x] merge-albums
+      
   - #### Enhancements:
     - [x] Improved Performance on Pull functions when no filtering options have been given.
     - [x] Improved performance when searching Google Takeout structure on huge local folder with many subfolders.
