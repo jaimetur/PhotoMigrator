@@ -24,11 +24,20 @@
     - [x] Added new Feature to **Merge Albums** with the same name and different assets. Added following new flags to execute this new feature:
       - _**'-sMergAlb, --synology-merge-duplicates-albums'**_ 
       - _**'-iMergAlb, --immich-merge-duplicates-albums'**_.
-  
+    - [x] Automatic filters flags detection for all Remove/Rename/Merge Albums features for Synology/Immich Photos
+      - [x] remove-all-assets
+      - [x] remove-all-albums
+      - [x] remove-albums
+      - [x] remove-empty-albums
+      - [x] remove-duplicates-albums
+      - [x] rename-albums
+      - [x] merge-albums
+      
   - #### Enhancements:
     - [x] Improved Performance on Pull functions when no filtering options have been given.
     - [x] Improved performance when searching Google Takeout structure on huge local folder with many subfolders.
     - [x] Renamed Automated Mode to Automatic Mode.
+    - [x] Improve performance retrieving assets when filters are detected. Use smart filtering detection to avoid person filterimg if not apply (this filter is very slow in Synology Photos)
   
   - #### Bug Fixing:
     - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218).

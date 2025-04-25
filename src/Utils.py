@@ -1306,6 +1306,8 @@ def parse_text_datetime_to_epoch(value):
     Returns:
         int | None: The epoch timestamp in seconds, or None if parsing fails.
     """
+    if value is None:
+        return None
     if isinstance(value, (int, float)):
         return int(value)
     if isinstance(value, str):
@@ -1409,7 +1411,7 @@ def replace_pattern(string, pattern, pattern_to_replace):
     return re.sub(pattern, pattern_to_replace, string)
 
 
-def any_filter():
+def has_any_filter():
     return ARGS.get('filter-by-type', None) or ARGS.get('filter-from-date', None) or ARGS.get('filter-to-date', None) or ARGS.get('filter-by-country', None) or ARGS.get('filter-by-city', None) or ARGS.get('filter-by-person', None)
 
 
@@ -1427,3 +1429,13 @@ def get_filters():
         filters[key] = ARGS.get(key)
     return filters
 
+
+def is_date_outside_range(date_to_check):
+    from_date = parse_text_datetime_to_epoch(ARGS.get('filter-from-date'))
+    to_date = parse_text_datetime_to_epoch(ARGS.get('filter-to-date'))
+    date_to_check = parse_text_datetime_to_epoch(date_to_check)
+    if from_date is not None and date_to_check < from_date:
+        return True
+    if to_date is not None and date_to_check > to_date:
+        return True
+    return False

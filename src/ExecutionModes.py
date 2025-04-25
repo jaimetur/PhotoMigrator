@@ -776,7 +776,7 @@ def mode_synology_remove_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
         syno.login(log_level=logging.WARNING)
         # Call the Function
-        albums_removed, assets_removed = syno.remove_albums(pattern=ARGS['synology-remove-albums'], removeAlbumsAssets=ARGS['remove-albums-assets'], log_level=logging.WARNING)
+        albums_removed, assets_removed = syno.remove_albums_by_name(pattern=ARGS['synology-remove-albums'], removeAlbumsAssets=ARGS['remove-albums-assets'], log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Synology Photos.")
@@ -824,7 +824,7 @@ def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.IN
         LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
         syno.login(log_level=logging.WARNING)
         # Call the Function
-        assets_removed, albums_removed, folders_removed = syno.remove_all_albums(removeAlbumsAssets= ARGS['remove-albums-assets'], log_level=logging.WARNING)
+        albums_removed, assets_removed = syno.remove_all_albums(removeAlbumsAssets=ARGS['remove-albums-assets'], log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Synology Photos.")
@@ -842,7 +842,6 @@ def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.IN
         LOGGER.info("==================================================")
         LOGGER.info(f"Total Assets removed                    : {assets_removed}")
         LOGGER.info(f"Total Albums removed                    : {albums_removed}")
-        LOGGER.info(f"Total Folders removed                   : {folders_removed}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
         LOGGER.info("==================================================")
@@ -1369,7 +1368,7 @@ def mode_immich_remove_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
         immich.login(log_level=logging.WARNING)
         # Call the Function
-        albums_removed, assets_removed = immich.remove_albums(pattern=ARGS['immich-remove-albums'], removeAlbumsAssets=ARGS['remove-albums-assets'], log_level=logging.WARNING)
+        albums_removed, assets_removed = immich.remove_albums_by_name(pattern=ARGS['immich-remove-albums'], removeAlbumsAssets=ARGS['remove-albums-assets'], log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
