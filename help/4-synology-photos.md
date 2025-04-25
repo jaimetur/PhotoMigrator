@@ -151,10 +151,9 @@
 - **Usage:**
   - To run this feature you have to use the flag _'-srAll, --synology-remove-all-assets'_
 - **Pre-Requisites:**
-  - Configure properly the file 'Config.ini' to include your Synology account credentials and url. 
+  - Configure properly the file 'Config.ini' to include your Synology account credentials and url.
 - **Explanation:**
-  - The Tool will connect automatically to your Synology Photos account and will remove ALL the assets and Albums found.  
-      
+  - The Tool will connect automatically to your Synology Photos account and will remove ALL the assets and Albums found.
 - **Example of use:**
   ```
   ./CloudPhotoMigrator.run --synology-remove-all-assets
