@@ -1296,123 +1296,129 @@ class ClassImmichPhotos:
         Returns: (albums_uploaded, albums_skipped, assets_uploaded, total_duplicates_assets_removed, total_duplicates_assets_skipped)
         """
         with set_log_level(LOGGER, log_level):
-            self.login(log_level=log_level)
-            if not os.path.isdir(input_folder):
-                LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
-                self.logout(log_level=log_level)
-                return 0, 0, 0, 0, 0
+            try:
+                self.login(log_level=log_level)
+                if not os.path.isdir(input_folder):
+                    LOGGER.error(f"ERROR   : The folder '{input_folder}' does not exist.")
+                    self.logout(log_level=log_level)
+                    return 0, 0, 0, 0, 0
 
-            subfolders_exclusion = convert_to_list(subfolders_exclusion)
-            subfolders_inclusion = convert_to_list(subfolders_inclusion)
+                subfolders_exclusion = convert_to_list(subfolders_exclusion)
+                subfolders_inclusion = convert_to_list(subfolders_inclusion)
 
-            total_albums_uploaded = 0
-            total_albums_skipped = 0
-            total_assets_uploaded = 0
-            total_duplicates_assets_removed = 0
-            total_duplicates_assets_skipped = 0
+                total_albums_uploaded = 0
+                total_albums_skipped = 0
+                total_assets_uploaded = 0
+                total_duplicates_assets_removed = 0
+                total_duplicates_assets_skipped = 0
 
-            # # If 'Albums' is not in subfolders_inclusion, add it (like original code).
-            # first_level_folders = [name.lower() for name in os.listdir(input_folder) if os.path.isdir(os.path.join(input_folder, name))]
-            # albums_folder_included = any(rel.lower() == 'albums' for rel in subfolders_inclusion)
-            # if not albums_folder_included and 'albums' in first_level_folders:
-            #     subfolders_inclusion.append('Albums')
+                # # If 'Albums' is not in subfolders_inclusion, add it (like original code).
+                # first_level_folders = [name.lower() for name in os.listdir(input_folder) if os.path.isdir(os.path.join(input_folder, name))]
+                # albums_folder_included = any(rel.lower() == 'albums' for rel in subfolders_inclusion)
+                # if not albums_folder_included and 'albums' in first_level_folders:
+                #     subfolders_inclusion.append('Albums')
 
-            SUBFOLDERS_EXCLUSIONS = ['@eaDir'] + subfolders_exclusion
-            valid_folders = []
+                SUBFOLDERS_EXCLUSIONS = ['@eaDir'] + subfolders_exclusion
+                valid_folders = []
 
-            for root, folders, _ in os.walk(input_folder):
-                folders[:] = [d for d in folders if d not in SUBFOLDERS_EXCLUSIONS]
+                for root, folders, _ in os.walk(input_folder):
+                    # Filter out excluded folders
+                    folders[:] = [d for d in folders if d not in SUBFOLDERS_EXCLUSIONS]
+                    if subfolders_inclusion:
+                        relative_path = os.path.relpath(root, input_folder)
+                        if relative_path == ".":
+                            folders[:] = [d for d in folders if d in subfolders_inclusion]
+                        else:
+                            first_dir = relative_path.split(os.sep)[0]
+                            if first_dir not in subfolders_inclusion:
+                                folders[:] = []
+
+                    for folder in folders:
+                        dir_path = os.path.join(root, folder)
+                        if not os.path.isdir(dir_path):
+                            continue
+                        # Check if there's at least one supported file
+                        has_supported = any(os.path.splitext(f)[-1].lower() in self.ALLOWED_IMMICH_EXTENSIONS for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f)))
+                        if has_supported:
+                            valid_folders.append(dir_path)
+
+                first_level_folders = os.listdir(input_folder)
                 if subfolders_inclusion:
-                    rel_path = os.path.relpath(root, input_folder)
-                    if rel_path == ".":
-                        folders[:] = [d for d in folders if d in subfolders_inclusion]
-                    else:
-                        first_dir = rel_path.split(os.sep)[0]
-                        if first_dir not in subfolders_inclusion:
-                            folders[:] = []
+                    first_level_folders += subfolders_inclusion
+                    first_level_folders = list(dict.fromkeys(first_level_folders))
 
-                for folder in folders:
-                    dir_path = os.path.join(root, folder)
-                    if not os.path.isdir(dir_path):
-                        continue
-                    # Check if there's at least one supported file
-                    has_supported = any(os.path.splitext(f)[-1].lower() in self.ALLOWED_IMMICH_EXTENSIONS for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f)))
-                    if has_supported:
-                        valid_folders.append(dir_path)
-
-            first_level_folders = os.listdir(input_folder)
-            if subfolders_inclusion:
-                first_level_folders += subfolders_inclusion
-                first_level_folders = list(dict.fromkeys(first_level_folders))
-
-            with tqdm(total=len(valid_folders), smoothing=0.1, desc=f"INFO    : Uploading Albums from '{os.path.basename(input_folder)}' sub-folders", unit=" sub-folder") as pbar:
-
-                for subpath in valid_folders:
-                    pbar.update(1)
-                    album_assets_ids = []
-                    rel_path = os.path.relpath(subpath, input_folder)
-                    path_parts = rel_path.split(os.sep)
-
-                    if len(path_parts) == 1:
-                        album_name = path_parts[0]
-                    else:
-                        if path_parts[0] in first_level_folders:
-                            album_name = " - ".join(path_parts[1:])
-                        else:
-                            album_name = " - ".join(path_parts)
-
-                    if not album_name:
-                        total_albums_skipped += 1
-                        continue
-
-                    for f in os.listdir(subpath):
-                        file_path = os.path.join(subpath, f)
-                        if not os.path.isfile(file_path):
-                            continue
-                        ext = os.path.splitext(f)[-1].lower()
-                        if ext not in self.ALLOWED_IMMICH_EXTENSIONS:
-                            continue
-
-                        asset_id, is_dup = self.push_asset(file_path, log_level=log_level)
-                        if is_dup:
-                            total_duplicates_assets_skipped += 1
-                            LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} upload skipped")
-                        else:
-                            total_assets_uploaded += 1
-                            
-                        if asset_id:
-                            # Associate only if ext is photo/video
-                            if ext in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
-                                album_assets_ids.append(asset_id)
-
-                    if album_assets_ids:
-                        album_id = self.create_album(album_name, log_level=log_level)
-                        if not album_id:
+                with tqdm(total=len(valid_folders), smoothing=0.1, desc=f"INFO    : Uploading Albums from '{os.path.basename(input_folder)}' sub-folders", unit=" sub-folder") as pbar:
+                    for subpath in valid_folders:
+                        pbar.update(1)
+                        album_assets_ids = []
+                        if not os.path.isdir(subpath):
                             LOGGER.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
                             total_albums_skipped += 1
+                            continue
+
+                        relative_path = os.path.relpath(subpath, input_folder)
+                        path_parts = relative_path.split(os.sep)
+
+                        if len(path_parts) == 1:
+                            album_name = path_parts[0]
                         else:
-                            self.add_assets_to_album(album_id, album_assets_ids, album_name=album_name, log_level=log_level)
-                            LOGGER.debug(f"DEBUG   : Album '{album_name}' created with ID: {album_id}. Total Assets added to Album: {len(album_assets_ids)}.")
-                            total_albums_uploaded += 1
-                    else:
-                        total_albums_skipped += 1
+                            if path_parts[0] in first_level_folders:
+                                album_name = " - ".join(path_parts[1:])
+                            else:
+                                album_name = " - ".join(path_parts)
 
-            if remove_duplicates:
-                LOGGER.info("INFO    : Removing Duplicates Assets...")
-                total_duplicates_assets_removed = self.remove_duplicates_assets(log_level=log_level)
+                        if not album_name:
+                            total_albums_skipped += 1
+                            continue
 
-            LOGGER.info(f"INFO    : Uploaded {total_albums_uploaded} album(s) from '{input_folder}'.")
-            LOGGER.info(f"INFO    : Uploaded {total_assets_uploaded} asset(s) from '{input_folder}' to Albums.")
-            LOGGER.info(f"INFO    : Skipped {total_albums_skipped} album(s) from '{input_folder}'.")
-            LOGGER.info(f"INFO    : Removed {total_duplicates_assets_removed} duplicates asset(s) from Immich Database.")
-            LOGGER.info(f"INFO    : Skipped {total_duplicates_assets_skipped} duplicated asset(s) from '{input_folder}' to Albums.")
+                        for file in os.listdir(subpath):
+                            file_path = os.path.join(subpath, file)
+                            if not os.path.isfile(file_path):
+                                continue
+                            ext = os.path.splitext(file)[-1].lower()
+                            if ext not in self.ALLOWED_IMMICH_EXTENSIONS:
+                                continue
+
+                            asset_id, is_dup = self.push_asset(file_path, log_level=log_level)
+                            if is_dup:
+                                total_duplicates_assets_skipped += 1
+                                LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} upload skipped")
+                            else:
+                                total_assets_uploaded += 1
+
+                            if asset_id:
+                                # Associate only if ext is photo/video
+                                if ext in self.ALLOWED_IMMICH_MEDIA_EXTENSIONS:
+                                    album_assets_ids.append(asset_id)
+
+                        if album_assets_ids:
+                            album_id = self.create_album(album_name, log_level=log_level)
+                            if not album_id:
+                                LOGGER.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
+                                total_albums_skipped += 1
+                            else:
+                                self.add_assets_to_album(album_id, album_assets_ids, album_name=album_name, log_level=log_level)
+                                LOGGER.debug(f"DEBUG   : Album '{album_name}' created with ID: {album_id}. Total Assets added to Album: {len(album_assets_ids)}.")
+                                total_albums_uploaded += 1
+                        else:
+                            total_albums_skipped += 1
+
+                if remove_duplicates:
+                    LOGGER.info("INFO    : Removing Duplicates Assets...")
+                    total_duplicates_assets_removed = self.remove_duplicates_assets(log_level=log_level)
+
+                LOGGER.info(f"INFO    : Uploaded {total_albums_uploaded} album(s) from '{input_folder}'.")
+                LOGGER.info(f"INFO    : Uploaded {total_assets_uploaded} asset(s) from '{input_folder}' to Albums.")
+                LOGGER.info(f"INFO    : Skipped {total_albums_skipped} album(s) from '{input_folder}'.")
+                LOGGER.info(f"INFO    : Removed {total_duplicates_assets_removed} duplicates asset(s) from Immich Database.")
+                LOGGER.info(f"INFO    : Skipped {total_duplicates_assets_skipped} duplicated asset(s) from '{input_folder}' to Albums.")
+
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Exception while uploading Albums assets into Immich Photos. {e}")
+                return 0,0,0,0,0
 
             self.logout(log_level=log_level)
-            return (total_albums_uploaded,
-                    total_albums_skipped,
-                    total_assets_uploaded,
-                    total_duplicates_assets_removed,
-                    total_duplicates_assets_skipped)
+            return (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed, total_duplicates_assets_skipped)
 
 
     def push_no_albums(self, input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):

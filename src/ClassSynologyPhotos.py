@@ -1884,7 +1884,8 @@ class ClassSynologyPhotos:
                     return 0, 0, 0, 0, 0
 
                 subfolders_exclusion = convert_to_list(subfolders_exclusion)
-                subfolders_inclusion = convert_to_list(subfolders_inclusion) if subfolders_inclusion else []
+                subfolders_inclusion = convert_to_list(subfolders_inclusion)
+
                 total_albums_uploaded = 0
                 total_albums_skipped = 0
                 total_assets_uploaded = 0
@@ -1917,15 +1918,10 @@ class ClassSynologyPhotos:
                         dir_path = os.path.join(root, folder)
                         if isinstance(dir_path, bytes):
                             dir_path = dir_path.decode()
-
-                        has_supported_files = any(
-                            os.path.splitext(file)[-1].lower() in self.ALLOWED_EXTENSIONS
-                            for file in os.listdir(dir_path)
-                            if os.path.isfile(os.path.join(dir_path, file))
-                        )
-                        if not has_supported_files:
-                            continue
-                        valid_folders.append(dir_path)
+                        # Check if there's at least one supported file
+                        has_supported_files = any(os.path.splitext(file)[-1].lower() in self.ALLOWED_EXTENSIONS for file in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, file)))
+                        if has_supported:
+                            valid_folders.append(dir_path)
 
                 first_level_folders = os.listdir(input_folder)
                 if subfolders_inclusion:
@@ -1935,7 +1931,7 @@ class ClassSynologyPhotos:
                 with tqdm(total=len(valid_folders), smoothing=0.1, desc=f"INFO    : Uploading Albums from '{os.path.basename(input_folder)}' sub-folders", unit=" sub-folder") as pbar:
                     for subpath in valid_folders:
                         pbar.update(1)
-                        new_album_assets_ids = []
+                        album_assets_ids = []
                         if not os.path.isdir(subpath):
                             LOGGER.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
                             total_albums_skipped += 1
@@ -1943,6 +1939,7 @@ class ClassSynologyPhotos:
 
                         relative_path = os.path.relpath(subpath, input_folder)
                         path_parts = relative_path.split(os.sep)
+
                         if len(path_parts) == 1:
                             album_name = path_parts[0]
                         else:
@@ -1951,36 +1948,39 @@ class ClassSynologyPhotos:
                             else:
                                 album_name = " - ".join(path_parts)
 
-                        if album_name:
-                            album_id = self.create_album(album_name, log_level=logging.WARNING)
+                        if not album_name:
+                            total_albums_skipped += 1
+                            continue
+
+                        for file in os.listdir(subpath):
+                            file_path = os.path.join(subpath, file)
+                            if not os.path.isfile(file_path):
+                                continue
+                            ext = os.path.splitext(file)[-1].lower()
+                            if ext not in self.ALLOWED_EXTENSIONS:
+                                continue
+
+                            asset_id, is_dup = self.push_asset(file_path, log_level=logging.WARNING)
+                            if is_dup:
+                                total_duplicates_assets_skipped += 1
+                                LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} upload skipped")
+                            else:
+                                total_assets_uploaded += 1
+
+                            if asset_id:
+                                # Associate only if ext is photo/video
+                                if ext in self.ALLOWED_MEDIA_EXTENSIONS:
+                                    album_assets_ids.append(asset_id)
+
+                        if album_assets_ids:
+                            album_id = self.create_album(album_name, log_level=log_level)
                             if not album_id:
                                 LOGGER.warning(f"WARNING : Could not create album for subfolder '{subpath}'.")
                                 total_albums_skipped += 1
-                                continue
                             else:
+                                self.add_assets_to_album(album_id, album_assets_ids, album_name=album_name, log_level=log_level)
+                                LOGGER.debug(f"DEBUG   : Album '{album_name}' created with ID: {album_id}. Total Assets added to Album: {len(album_assets_ids)}.")
                                 total_albums_uploaded += 1
-
-                            for file_ in os.listdir(subpath):
-                                file_path = os.path.join(subpath, file_)
-                                if not os.path.isfile(file_path):
-                                    continue
-                                ext = os.path.splitext(file_)[-1].lower()
-                                if ext not in self.ALLOWED_EXTENSIONS:
-                                    continue
-
-                                asset_id, is_dup = self.push_asset(file_path, log_level=logging.WARNING)
-                                if is_dup:
-                                    total_duplicates_assets_skipped += 1
-                                    LOGGER.debug(f"DEBUG   : Dupplicated Asset: {file_path}. Asset ID: {asset_id} upload skipped")
-                                else:
-                                    total_assets_uploaded += 1
-                            
-                                if asset_id:
-                                    # Associate only if ext is photo/video
-                                    if ext in self.ALLOWED_MEDIA_EXTENSIONS:
-                                        new_album_assets_ids.append(asset_id)
-                            if new_album_assets_ids:
-                                self.add_assets_to_album(album_id, new_album_assets_ids, album_name=album_name, log_level=logging.WARNING)
                         else:
                             total_albums_skipped += 1
 
@@ -1997,8 +1997,9 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while uploading Albums assets into Synology Photos. {e}")
                 return 0,0,0,0,0
-            
-        return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed, total_duplicates_assets_skipped
+
+            self.logout(log_level=log_level)
+            return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed, total_duplicates_assets_skipped
 
 
     def push_no_albums(self, input_folder, subfolders_exclusion='Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
