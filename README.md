@@ -9,7 +9,7 @@
 # **CloudPhotoMigrator**
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automated Migration**](/help/2-automated-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
 
-Currently, the Supported Photo Cloud Services are:
+Currently, the Supported Photo Cloud Services and included Features are:
 - [**Google Photos Takeout Management**](/help/3-google-takeout.md)
   - Unpack your Takeout Zip files.
   - Process .json files to fix metadata (including creation date and time) of all your assets.
