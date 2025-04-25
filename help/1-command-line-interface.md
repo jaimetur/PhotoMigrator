@@ -51,9 +51,8 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>
                                   [-idAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
                                   [-iuAll <INPUT_FOLDER>] [-idAll <OUTPUT_FOLDER>]
                                   [-iRenAlb <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>]
-                                  [-iRemAlb <ALBUMS_NAME_PATTERN>]
-                                  [-irEmpAlb] [-irDupAlb] [-iMergAlb] [-irAll] [-irAllAlb]
-                                  [-irOrphan]
+                                  [-iRemAlb <ALBUMS_NAME_PATTERN>] [-irEmpAlb] [-irDupAlb]
+                                  [-iMergAlb] [-irAll] [-irAllAlb] [-irOrphan]
                                   [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
                                   [-procDup <DUPLICATES_REVISED_CSV>]
                                   [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
@@ -73,14 +72,14 @@ optional arguments:
              Show the Tool name, version, and date, then exit.
 
 
-AUTOMATED MIGRATION PROCESS:
+AUTOMATIC MIGRATION PROCESS:
 ----------------------------
-Following arguments allow you execute the Automated Migration Process to migrate your
+Following arguments allow you execute the Automatic Migration Process to migrate your
 assets from one Photo Cloud Service to other, or from two different accounts within the
 same Photo Cloud service.
 
 -source,   --source <SOURCE>
-             Select the <SOURCE> for the AUTOMATED-MIGRATION Process to Pull all your
+             Select the <SOURCE> for the AUTOMATIC-MIGRATION Process to Pull all your
              Assets (including Albums) from the <SOURCE> Cloud Service and Push them to
              the <TARGET> Cloud Service (including all Albums that you may have on the
              <SOURCE> Cloud Service).
@@ -96,7 +95,7 @@ same Photo Cloud service.
               ​--source=/home/Takeout -> Select this Takeout folder as Source.
               ​                      (both, zipped and unzipped format are supported)
 -target,   --target <TARGET>
-             Select the <TARGET> for the AUTOMATED-MIGRATION Process to Pull all your
+             Select the <TARGET> for the AUTOMATIC-MIGRATION Process to Pull all your
              Assets (including Albums) from the <SOURCE> Cloud Service and Push them to
              the <TARGET> Cloud Service (including all Albums that you may have on the
              <SOURCE> Cloud Service).
@@ -112,11 +111,11 @@ same Photo Cloud service.
 -dashb,    --dashboard = [true,false]
              Enable or disable Live Dashboard feature during Autometed Migration Job.
              This argument only applies if both '--source' and '--target' argument are
-             given (AUTOMATED-MIGRATION FEATURE). (default: True).
+             given (AUTOMATIC-MIGRATION FEATURE). (default: True).
 -parallel, --parallel-migration = [true,false]
-             Select Parallel/Secuencial Migration during Automated Migration Job. This
+             Select Parallel/Secuencial Migration during Automatic Migration Job. This
              argument only applies if both '--source' and '--target' argument are given
-             (AUTOMATED-MIGRATION FEATURE). (default: True).
+             (AUTOMATIC-MIGRATION FEATURE). (default: True).
 -from,     --filter-from-date <FROM_DATE>
              Specify the initial date to filter assets in the different Photo Clients.
 -to,       --filter-to-date <TO_DATE>
