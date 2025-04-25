@@ -1338,8 +1338,8 @@ class ClassImmichPhotos:
                         if not os.path.isdir(dir_path):
                             continue
                         # Check if there's at least one supported file
-                        has_supported = any(os.path.splitext(f)[-1].lower() in self.ALLOWED_IMMICH_EXTENSIONS for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f)))
-                        if has_supported:
+                        has_supported_files = any(os.path.splitext(f)[-1].lower() in self.ALLOWED_IMMICH_EXTENSIONS for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f)))
+                        if has_supported_files:
                             valid_folders.append(dir_path)
 
                 first_level_folders = os.listdir(input_folder)

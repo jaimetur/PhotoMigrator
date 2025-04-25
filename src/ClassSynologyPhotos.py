@@ -1920,7 +1920,7 @@ class ClassSynologyPhotos:
                             dir_path = dir_path.decode()
                         # Check if there's at least one supported file
                         has_supported_files = any(os.path.splitext(file)[-1].lower() in self.ALLOWED_EXTENSIONS for file in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, file)))
-                        if has_supported:
+                        if has_supported_files:
                             valid_folders.append(dir_path)
 
                 first_level_folders = os.listdir(input_folder)
