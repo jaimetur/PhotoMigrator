@@ -20,8 +20,8 @@ Currently, the Supported Photo Cloud Services are:
   - Detect and remove duplicates.
 
 - **Synology Photos** - Features included:
-  - Upload Album(s)
-  - Download Album(s)
+  - Upload Album(s) (from folder)
+  - Download Album(s) (into folder)
   - Upload ALL (from folder)
   - Download ALL (into folder)
   - Remove ALL Assets
@@ -33,8 +33,8 @@ Currently, the Supported Photo Cloud Services are:
   - Merge Duplicates Albums
 
 - **Immich Photos** - Features included:
-  - Upload Album(s)
-  - Download Album(s)
+  - Upload Album(s) (from folder)
+  - Download Album(s) (into folder)
   - Upload ALL (from folder)
   - Download ALL (into folder)
   - Remove ALL Assets
