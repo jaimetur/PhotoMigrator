@@ -83,7 +83,6 @@
   - Configure properly the file 'Config.ini' to include your Immich account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Immich Photos account and will create one Album per each Subfolder found in <ALBUMS_FOLDER> that contains at least one file supported by Immich Photos and with the same Album name as Album folder.
-
 - **Example of use:**
   ```
   ./CloudPhotoMigrator.run --immich-upload-albums ./My_Albums_Folder
