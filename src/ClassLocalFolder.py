@@ -1170,6 +1170,24 @@ class ClassLocalFolder:
             return empty_folders_removed
 
 
+    def remove_all_albums(self, log_level=logging.INFO):
+        """
+        Removes all album folders. If removeAlbumsAssets=True, also removes files inside them.
+
+        Returns:
+            tuple(int, int): (#albums_removed, #assets_removed_if_requested).
+        """
+        with set_log_level(LOGGER, log_level):
+            LOGGER.info("INFO    : Removing all albums.")
+
+            for album in self.albums_folder.iterdir():
+                if album.is_dir():
+                    shutil.rmtree(album)
+
+            LOGGER.info("INFO    : All albums have been removed.")
+            return True
+
+
     def remove_empty_albums(self, log_level=logging.INFO):
         """
         Removes all empty album folders.
@@ -1332,24 +1350,6 @@ class ClassLocalFolder:
             bool: True if success.
         """
         pass
-
-    def remove_all_albums(self, log_level=logging.INFO):
-        """
-        Removes all album folders. If removeAlbumsAssets=True, also removes files inside them.
-
-        Returns:
-            tuple(int, int): (#albums_removed, #assets_removed_if_requested).
-        """
-        with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Removing all albums.")
-
-            for album in self.albums_folder.iterdir():
-                if album.is_dir():
-                    shutil.rmtree(album)
-
-            LOGGER.info("INFO    : All albums have been removed.")
-            return True
-
 
 ##############################################################################
 #                                END OF CLASS                                #

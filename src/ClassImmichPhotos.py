@@ -1779,7 +1779,7 @@ class ClassImmichPhotos:
             return total_renamed_albums
 
 
-    def remove_albums(self, pattern, removeAlbumsAssets=False, log_level=logging.WARNING):
+    def remove_albums_by_name(self, pattern, removeAlbumsAssets=False, log_level=logging.WARNING):
         """
         Removes all albums in Immich Photos whose name match with the provided pattern.
 
@@ -1824,6 +1824,60 @@ class ClassImmichPhotos:
                         total_removed_albums += 1
             LOGGER.info(f"INFO    : Removed {total_removed_albums} albums whose names matched with the provided pattern.")
             LOGGER.info(f"INFO    : Removed {total_removed_assets} from those removed albums.")
+            self.logout(log_level=log_level)
+            return total_removed_albums, total_removed_assets
+
+
+    def remove_all_albums(self, removeAlbumsAssets=False, log_level=logging.WARNING):
+        """
+        Removes all albums and optionally also all their associated assets.
+
+        Args:
+            removeAlbumsAssets (bool): If True, removes also all the assets associated to all albums
+            log_level (logging.LEVEL): log_level for logs and console
+
+        Returns (#albums_removed, #assets_removed).
+        """
+        with set_log_level(LOGGER, log_level):
+            self.login(log_level=log_level)
+            albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
+            if not albums:
+                LOGGER.info("INFO    : No albums found.")
+                self.logout(log_level=log_level)
+                return 0, 0
+
+            total_removed_albums = 0
+            total_removed_assets = 0
+
+            for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
+                # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+                album_date = album.get("createdAt")
+                if is_date_outside_range(album_date):
+                    continue
+
+                album_id = album.get("id")
+                album_name = album.get("albumName", "")
+
+                if removeAlbumsAssets:
+                    album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
+                    album_assets_ids = []
+                    for asset in album_assets:
+                        asset_id = asset.get("id")
+                        if asset_id:
+                            album_assets_ids.append(asset_id)
+                    self.remove_assets(album_assets_ids, log_level=logging.WARNING)
+                    total_removed_assets += len(album_assets_ids)
+
+                if self.remove_album(album_id, album_name, log_level=logging.WARNING):
+                    total_removed_albums += 1
+
+            LOGGER.info(f"INFO    : Getting empty albums to remove...")
+            total_removed_albums += self.remove_empty_albums(log_level=logging.WARNING)
+
+            LOGGER.info(f"INFO    : Removed {total_removed_albums} albums.")
+            if removeAlbumsAssets:
+                LOGGER.info(f"INFO    : Removed {total_removed_assets} assets associated to albums.")
+
             self.logout(log_level=log_level)
             return total_removed_albums, total_removed_assets
 
@@ -2143,60 +2197,6 @@ class ClassImmichPhotos:
             LOGGER.info(f"INFO    : Total Albums removed: {total_removed_albums}")
 
             return total_removed_assets, total_removed_albums
-
-
-    def remove_all_albums(self, removeAlbumsAssets=False, log_level=logging.WARNING):
-        """
-        Removes all albums and optionally also all their associated assets.
-
-        Args:
-            removeAlbumsAssets (bool): If True, removes also all the assets associated to all albums
-            log_level (logging.LEVEL): log_level for logs and console
-
-        Returns (#albums_removed, #assets_removed).
-        """
-        with set_log_level(LOGGER, log_level):
-            self.login(log_level=log_level)
-            albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
-            if not albums:
-                LOGGER.info("INFO    : No albums found.")
-                self.logout(log_level=log_level)
-                return 0, 0
-
-            total_removed_albums = 0
-            total_removed_assets = 0
-
-            for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
-                # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
-                album_date = album.get("createdAt")
-                if is_date_outside_range(album_date):
-                    continue
-
-                album_id = album.get("id")
-                album_name = album.get("albumName", "")
-
-                if removeAlbumsAssets:
-                    album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
-                    album_assets_ids = []
-                    for asset in album_assets:
-                        asset_id = asset.get("id")
-                        if asset_id:
-                            album_assets_ids.append(asset_id)
-                    self.remove_assets(album_assets_ids, log_level=logging.WARNING)
-                    total_removed_assets += len(album_assets_ids)
-
-                if self.remove_album(album_id, album_name, log_level=logging.WARNING):
-                    total_removed_albums += 1
-
-            LOGGER.info(f"INFO    : Getting empty albums to remove...")
-            total_removed_albums += self.remove_empty_albums(log_level=logging.WARNING)
-
-            LOGGER.info(f"INFO    : Removed {total_removed_albums} albums.")
-            if removeAlbumsAssets:
-                LOGGER.info(f"INFO    : Removed {total_removed_assets} assets associated to albums.")
-
-            self.logout(log_level=log_level)
-            return total_removed_albums, total_removed_assets
 
 ##############################################################################
 #                                END OF CLASS                                #
