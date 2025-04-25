@@ -177,6 +177,7 @@
   - Configure properly the file 'Config.ini' to include your Immich account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Immich Photos account and will remove all the Albums found.
+  - If you specify any date filter with flags _**'-from, --filter-from-date'**_ or _**'-to, --filter-to-date'**_ then, only those albums whose creation date matches with the filters will be removed.  
   - Optionally ALL the Assets associated to each Album can be removed If you also include the complementary argument _'-rAlbAss, --remove-albums-assets'_
 - **Example of use:**
   ```
@@ -196,6 +197,7 @@
   - Configure properly the file 'Config.ini' to include your Immich account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Immich Photos account and will rename all Albums whose name matches with the provided pattern.  
+  - If you specify any date filter with flags _**'-from, --filter-from-date'**_ or _**'-to, --filter-to-date'**_ then, only those albums whose creation date matches with the filters will be renamed.  
 - **Example of use:**
   ```
   ./CloudPhotoMigrator.run --immich-rename-albums "\d{4}-\d{2}-\d{2}", "DATE"
@@ -211,6 +213,7 @@
   - Configure properly the file 'Config.ini' to include your Immich account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Immich Photos account and will rename all Albums whose name matches with the provided pattern.  
+  - If you specify any date filter with flags _**'-from, --filter-from-date'**_ or _**'-to, --filter-to-date'**_ then, only those albums whose creation date matches with the filters will be removed.  
   - Optionally ALL the Assets associated to each removed Album can be removed If you also include the complementary argument _'-rAlbAss, --remove-albums-assets'_
 - **Example of use:**
   ```
@@ -230,6 +233,7 @@
   - Configure properly the file 'Config.ini' to include your Immich account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Immich Photos account and will remove all Empty Albums found.  
+  - If you specify any date filter with flags _**'-from, --filter-from-date'**_ or _**'-to, --filter-to-date'**_ then, only those albums whose creation date matches with the filters will be removed.  
 - **Example of use:**
   ```
   ./CloudPhotoMigrator.run --immich-remove-empty-albums
@@ -245,6 +249,7 @@
   - Configure properly the file 'Config.ini' to include your Immich account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Immich Photos account and will remove all Duplicates Albums found except the first one (but will not remove the assets associated to them, because they will still be associated with the first Album).  
+  - If you specify any date filter with flags _**'-from, --filter-from-date'**_ or _**'-to, --filter-to-date'**_ then, only those albums whose creation date matches with the filters will be removed.
 - **Example of use:**
   ```
   ./CloudPhotoMigrator.run --immich-remove-duplicates-albums'
@@ -260,6 +265,7 @@
   - Configure properly the file 'Config.ini' to include your Immich account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Immich Photos account and will remove all Duplicates Albums found except the most relevant one (with highest number of assets) and will transfer all the assets associated to the other albums into the main one.  
+  - If you specify any date filter with flags _**'-from, --filter-from-date'**_ or _**'-to, --filter-to-date'**_ then, only those albums whose creation date matches with the filters will be merged.
 - **Example of use:**
   ```
   ./CloudPhotoMigrator.run --immich-merge-duplicates-albums'
