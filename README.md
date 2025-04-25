@@ -26,8 +26,8 @@ Currently, the Supported Photo Cloud Services and included Features are:
   - Download ALL (into folder)
   - Remove ALL Assets
   - Remove ALL Albums
-  - Rename Albums by Name Pattern
   - Remove Albums by Name Pattern
+  - Rename Albums by Name Pattern
   - Remove Empty Albums
   - Remove Duplicates Albums
   - Merge Duplicates Albums
@@ -39,8 +39,8 @@ Currently, the Supported Photo Cloud Services and included Features are:
   - Download ALL (into folder)
   - Remove ALL Assets
   - Remove ALL Albums
-  - Rename Albums by Name Pattern
   - Remove Albums by Name Pattern
+  - Rename Albums by Name Pattern
   - Remove Empty Albums
   - Remove Duplicates Albums
   - Merge Duplicates Albums
@@ -250,7 +250,7 @@ Planed Roadmap for the following releases
   - #### Enhancements:
     - [x] Improved Performance on Pull functions when no filtering options have been given.
     - [x] Improved performance when searching Google Takeout structure on huge local folder with many subfolders.
-    - [x] Renamed Automated Mode to Automatic Mode.
+    - [x] Renamed 'Automated Mode' to 'Automatic Mode'.
     - [x] Improve performance retrieving assets when filters are detected. Use smart filtering detection to avoid person filterimg if not apply (this filter is very slow in Synology Photos)
     - [x] Avoid logout from Synology Photos when some mode uses more than one call to Synology Photos API (to avoid OTP token expiration)  
 
