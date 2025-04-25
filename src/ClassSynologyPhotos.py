@@ -12,7 +12,7 @@ from datetime import datetime
 import time
 import logging
 
-from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm, parse_text_datetime_to_epoch, match_pattern, replace_pattern, has_any_filter, get_filters, is_date_outside_range
+from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm, parse_text_datetime_to_epoch, match_pattern, replace_pattern, has_any_filter, is_date_outside_range
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level

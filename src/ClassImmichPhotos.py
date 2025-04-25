@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 from halo import Halo
 from tabulate import tabulate
 
-from Utils import update_metadata, convert_to_list, tqdm, parse_text_datetime_to_epoch, organize_files_by_date, match_pattern, replace_pattern, has_any_filter, get_filters
+from Utils import update_metadata, convert_to_list, tqdm, parse_text_datetime_to_epoch, organize_files_by_date, match_pattern, replace_pattern, has_any_filter, is_date_outside_range
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
