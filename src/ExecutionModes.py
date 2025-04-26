@@ -518,7 +518,7 @@ def mode_cloud_download_albums(cloud=None, user_confirmation=True, log_level=log
         # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("")
         LOGGER.info("INFO    : Cleaning-up Immich Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
-        # Execute mode_delete_empty_albums
+        # Execute mode_remove_empty_albums
         LOGGER.info("")
         LOGGER.info("INFO    : Removing Empty Albums...")
         total_empty_albums_removed = cloud_client.remove_empty_albums(log_level=logging.WARNING)
@@ -588,7 +588,7 @@ def mode_cloud_download_ALL(cloud=None, user_confirmation=True, log_level=loggin
         cloud_client.login(log_level=logging.WARNING)
         # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("INFO    : Cleaning-up Immich Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
-        # Execute mode_delete_empty_albums
+        # Execute mode_remove_empty_albums
         total_empty_albums_removed = cloud_client.remove_empty_albums(log_level=logging.WARNING)
         # Execute merge_duplicates_albums
         total_duplicates_albums_removed = cloud_client.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
@@ -623,13 +623,13 @@ def mode_cloud_download_ALL(cloud=None, user_confirmation=True, log_level=loggin
 def mode_cloud_remove_empty_albums(cloud=None, user_confirmation=True, log_level=logging.INFO):
     if cloud == 'Immich':
         LOGGER.info(f"INFO    : Flag detected '-irEmpAlb, --immich-remove-empty-albums'.")
-        LOGGER.info(f"INFO    : The Tool will look for any empty album in your {cloud} Photos account and will delete them (if any empty album is found).")
+        LOGGER.info(f"INFO    : The Tool will look for any empty album in your {cloud} Photos account and will remove them (if any empty album is found).")
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["cloud-remove-empty-albums"])
         LOGGER.warning('-' * terminal_width)
     elif cloud == 'Synology':
         LOGGER.info(f"INFO    : Flag detected '-srEmpAlb, --synology-remove-empty-albums'.")
-        LOGGER.info(f"INFO    : The Tool will look for any empty album in your {cloud} Photos account and will delete them (if any empty album is found).")
+        LOGGER.info(f"INFO    : The Tool will look for any empty album in your {cloud} Photos account and will remove them (if any empty album is found).")
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["cloud-remove-empty-albums"])
         LOGGER.warning('-' * terminal_width)
@@ -679,13 +679,13 @@ def mode_cloud_remove_empty_albums(cloud=None, user_confirmation=True, log_level
 def mode_cloud_remove_duplicates_albums(cloud=None, user_confirmation=True, log_level=logging.INFO):
     if cloud == 'Immich':
         LOGGER.info(f"INFO    : Flag detected '-irDupAlb, --immich-remove-duplicates-albums'.")
-        LOGGER.info(f"INFO    : The Tool will look for any duplicated album in your {cloud} Photos account and will delete them (if any duplicated album is found).")
+        LOGGER.info(f"INFO    : The Tool will look for any duplicated album (based on assets counts and assets size) in your {cloud} Photos account and will remove them (if any duplicated album is found).")
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["cloud-remove-duplicates-albums"])
         LOGGER.warning('-' * terminal_width)
     elif cloud == 'Synology':
         LOGGER.info(f"INFO    : Flag detected '-srDupAlb, --synology-remove-duplicates-albums'")
-        LOGGER.info(f"INFO    : The Tool will look for any duplicated album in your {cloud} Photos account and will delete them (if any duplicated album is found).")
+        LOGGER.info(f"INFO    : The Tool will look for any duplicated album (based on assets counts and assets size) in your {cloud} Photos account and will remove them (if any duplicated album is found).")
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["cloud-remove-duplicates-albums"])
         LOGGER.warning('-' * terminal_width)
@@ -983,7 +983,7 @@ def mode_cloud_remove_albums_by_name_pattern(cloud=None, user_confirmation=True,
         sys.exit(0)
     if ARGS['remove-albums-assets']:
         LOGGER.info(f"INFO    : Flag detected '-rAlbAss, --remove-albums-assets'.")
-        LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any deleted Albums will also be deleted.")
+        LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any removed Albums will also be removed.")
         LOGGER.info("")
     if user_confirmation and not Utils.confirm_continue():
         LOGGER.info(f"INFO    : Exiting program.")
@@ -1044,7 +1044,7 @@ def mode_cloud_remove_all_albums(cloud=None, user_confirmation=True, log_level=l
         sys.exit(0)
     if ARGS['remove-albums-assets']:
         LOGGER.info(f"INFO    : Flag detected '-rAlbAss, --remove-albums-assets'.")
-        LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any deleted Albums will also be deleted.")
+        LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any removed Albums will also be removed.")
         LOGGER.info("")
     if user_confirmation and not Utils.confirm_continue():
         LOGGER.info(f"INFO    : Exiting program.")

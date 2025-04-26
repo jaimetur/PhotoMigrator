@@ -22,11 +22,11 @@ def set_help_texts():
     # FEATURES: SYNOLOGY/IMMICH PHOTOS #
     ####################################
     HELP_TEXTS["cloud-remove-empty-albums"] = textwrap.dedent(f"""
-            ATTENTION!!!: This process will connect to your to your Photos account and will delete all Empty Albums found in it.
+            ATTENTION!!!: This process will connect to your to your Photos account and will remove all Empty Albums found in it.
             """)
 
     HELP_TEXTS["cloud-remove-duplicates-albums"] = textwrap.dedent(f"""
-            ATTENTION!!!: This process will connect to your to your Photos account and will delete all Duplicates Albums found in it.
+            ATTENTION!!!: This process will connect to your to your Photos account and will remove all Duplicates Albums (based on assets counts and assets size) found in it.
             """)
 
     HELP_TEXTS["cloud-merge-duplicates-albums"] = textwrap.dedent(f"""
@@ -63,7 +63,7 @@ def set_help_texts():
             """)
 
     HELP_TEXTS["cloud-remove-orphan-assets"] = textwrap.dedent(f"""
-            ATTENTION!!!: In this process, the Tool will look for all Orphan Assets in your Photos account Database and will delete them. 
+            ATTENTION!!!: In this process, the Tool will look for all Orphan Assets in your Photos account Database and will remove them. 
             IMPORTANT!!!: This feature requires a valid ADMIN_API_KEY configured in Config.ini.
             """)
 
