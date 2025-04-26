@@ -262,14 +262,17 @@ Planed Roadmap for the following releases
 
 - ### TODO:
 
-  - [ ] Automatic filters flags detection for Upload/Dowload features for Synology/Immich Photos
+  - [ ] Automatic filters flags detection for Upload/Dowload features for Synology/Immich Photos.
     - [x] upload-all
     - [x] upload-albums
     - [ ] download-all
     - [ ] download-albums
-  - [ ] Deep Tests for new Features
-  - [ ] Deep Test for upload-albums/upload-all features
-  - [ ] Bug Fixing
+  - [ ] Request user confirmation before Rename/Remove massive Albums (show the affected Albums).
+  - [ ] Merge Remove All Albums & Remove Albums by name features (add the posibility to delete all using * as pattern).
+  - [ ] Merge Synology/Immich execution modes using a parameter and replacing Comments and Class based on it. 
+  - [ ] Deep Tests for new Features.
+  - [ ] Deep Test for upload-albums/upload-all features.
+  - [ ] Bug Fixing.
 
 ---
 
