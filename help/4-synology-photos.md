@@ -247,7 +247,7 @@
   - If you specify any date filter with flags _**'-from, --filter-from-date'**_ or _**'-to, --filter-to-date'**_ then, only those albums whose creation date matches with the filters will be removed.
 - **Example of use:**
   ```
-  ./CloudPhotoMigrator.run --synology-remove-duplicates-albums'
+  ./CloudPhotoMigrator.run --synology-remove-duplicates-albums
   ```
   With this example, the Tool will connect to your Synology Photos account and will remove all Duplicates Albums found except the first one.
 
@@ -263,7 +263,7 @@
   - If you specify any date filter with flags _**'-from, --filter-from-date'**_ or _**'-to, --filter-to-date'**_ then, only those albums whose creation date matches with the filters will be merged.
 - **Example of use:**
   ```
-  ./CloudPhotoMigrator.run --synology-merge-duplicates-albums'
+  ./CloudPhotoMigrator.run --synology-merge-duplicates-albums
   ```
   With this example, the Tool will connect to your Synology Photos account and will remove all Duplicates Albums found except the first one trasferring all the assets from the removed albums into the main one.
 
