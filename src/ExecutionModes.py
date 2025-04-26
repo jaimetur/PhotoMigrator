@@ -346,34 +346,34 @@ def mode_cloud_upload_albums(cloud=None, user_confirmation=True, log_level=loggi
         LOGGER.info(f"INFO    : Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client Object
+    # Create the cloud_client_obj Object
     if cloud == 'Immich':
-        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
     elif cloud == 'Synology':
-        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : {cloud} Photos: 'Upload Albums' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info(f"INFO    : Reading Configuration file and Login into {cloud} Photos...")
-        cloud_client.login(log_level=logging.WARNING)
+        cloud_client_obj.login(log_level=logging.WARNING)
         LOGGER.info(f"INFO    : Find Albums in Folder    : {input_folder}")
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed, total_dupplicated_assets_skipped = cloud_client.push_albums(input_folder=input_folder, log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed, total_dupplicated_assets_skipped = cloud_client_obj.push_albums(input_folder=input_folder, log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info(f"INFO    : Cleaning-up {cloud} Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_remove_empty_albums
         LOGGER.info("INFO    : Removing Empty Albums...")
-        total_empty_albums_removed = cloud_client.remove_empty_albums(log_level=logging.WARNING)
+        total_empty_albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.WARNING)
         # Execute mode_merge_duplicates_albums
         LOGGER.info("INFO    : Merging Duplicates Albums...")
-        total_duplicates_albums_removed = cloud_client.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        total_duplicates_albums_removed = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
         # Execute remove_duplicates_assets
         LOGGER.info("INFO    : Removing Duplicates Assets...")
-        duplicates_assets_removed = cloud_client.remove_duplicates_assets(log_level=logging.WARNING)
+        duplicates_assets_removed = cloud_client_obj.remove_duplicates_assets(log_level=logging.WARNING)
         # logout
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        cloud_client.logout(log_level=logging.WARNING)
+        cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -424,34 +424,34 @@ def mode_cloud_upload_ALL(cloud=None, user_confirmation=True, log_level=logging.
         LOGGER.info(f"INFO    : Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client Object
+    # Create the cloud_client_obj Object
     if cloud == 'Immich':
-        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
     elif cloud == 'Synology':
-        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : {cloud} Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        cloud_client.login(log_level=logging.WARNING)
+        cloud_client_obj.login(log_level=logging.WARNING)
         LOGGER.info(f"INFO    : Uploading Assets in Folder    : {ARGS['immich-upload-all']}")
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed, total_dupplicated_assets_skipped = cloud_client.push_ALL(input_folder=input_folder, albums_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed, total_dupplicated_assets_skipped = cloud_client_obj.push_ALL(input_folder=input_folder, albums_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info(f"INFO    : Cleaning-up {cloud} Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_remove_empty_albums
         LOGGER.info("INFO    : Removing Empty Albums...")
-        total_empty_albums_removed = cloud_client.remove_empty_albums(log_level=logging.WARNING)
+        total_empty_albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.WARNING)
         # Execute mode_merge_duplicates_albums
         LOGGER.info("INFO    : Merging Duplicates Albums...")
-        total_duplicates_albums_removed = cloud_client.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        total_duplicates_albums_removed = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
         # Execute merge_duplicates_assets
         LOGGER.info("INFO    : Removing Duplicates Assets...")
-        duplicates_assets_removed = cloud_client.remove_duplicates_assets(log_level=logging.WARNING)
+        duplicates_assets_removed = cloud_client_obj.remove_duplicates_assets(log_level=logging.WARNING)
         # logout
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        cloud_client.logout(log_level=logging.WARNING)
+        cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -503,39 +503,39 @@ def mode_cloud_download_albums(cloud=None, user_confirmation=True, log_level=log
         LOGGER.info(f"INFO    : Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client Object
+    # Create the cloud_client_obj Object
     if cloud == 'Immich':
-        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
     elif cloud == 'Synology':
-        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : {cloud} Photos: 'Download Albums' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        cloud_client.login(log_level=logging.WARNING)
+        cloud_client_obj.login(log_level=logging.WARNING)
         # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("")
         LOGGER.info("INFO    : Cleaning-up Immich Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_remove_empty_albums
         LOGGER.info("")
         LOGGER.info("INFO    : Removing Empty Albums...")
-        total_empty_albums_removed = cloud_client.remove_empty_albums(log_level=logging.WARNING)
+        total_empty_albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.WARNING)
         # Execute mode_merge_duplicates_albums
         LOGGER.info("")
         LOGGER.info("INFO    : Merging Duplicates Albums...")
-        total_duplicates_albums_removed = cloud_client.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        total_duplicates_albums_removed = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
         # Execute remove_duplicates_assets
         LOGGER.info("")
         LOGGER.info("INFO    : Removing Duplicates Assets...")
-        duplicates_assets_removed = cloud_client.remove_duplicates_assets(log_level=logging.WARNING)
+        duplicates_assets_removed = cloud_client_obj.remove_duplicates_assets(log_level=logging.WARNING)
         # Call the Function
-        albums_downloaded, assets_downloaded = cloud_client.pull_albums(albums_name=albums_name, output_folder=output_folder, log_level=logging.WARNING)
+        albums_downloaded, assets_downloaded = cloud_client_obj.pull_albums(albums_name=albums_name, output_folder=output_folder, log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        cloud_client.logout(log_level=logging.WARNING)
+        cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -575,30 +575,30 @@ def mode_cloud_download_ALL(cloud=None, user_confirmation=True, log_level=loggin
         LOGGER.info(f"INFO    : Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client Object
+    # Create the cloud_client_obj Object
     if cloud == 'Immich':
-        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
     elif cloud == 'Synology':
-        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : {cloud} Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        cloud_client.login(log_level=logging.WARNING)
+        cloud_client_obj.login(log_level=logging.WARNING)
         # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("INFO    : Cleaning-up Immich Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_remove_empty_albums
-        total_empty_albums_removed = cloud_client.remove_empty_albums(log_level=logging.WARNING)
+        total_empty_albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.WARNING)
         # Execute merge_duplicates_albums
-        total_duplicates_albums_removed = cloud_client.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        total_duplicates_albums_removed = cloud_client_obj.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
         # Execute remove_duplicates_assets
-        duplicates_assets_removed = cloud_client.remove_duplicates_assets(log_level=logging.WARNING)
+        duplicates_assets_removed = cloud_client_obj.remove_duplicates_assets(log_level=logging.WARNING)
         # Call the Function
-        albums_downloaded, assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums = cloud_client.pull_ALL(output_folder=output_folder, log_level=logging.WARNING)
+        albums_downloaded, assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums = cloud_client_obj.pull_ALL(output_folder=output_folder, log_level=logging.WARNING)
         # logout
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        cloud_client.logout(log_level=logging.WARNING)
+        cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -640,24 +640,24 @@ def mode_cloud_remove_empty_albums(cloud=None, user_confirmation=True, log_level
         LOGGER.info(f"INFO    : Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client Object
+    # Create the cloud_client_obj Object
     if cloud == 'Immich':
-        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
     elif cloud == 'Synology':
-        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : {cloud} Photos: 'Remove Empty Album' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        cloud_client.login(log_level=logging.WARNING)
+        cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
-        albums_removed = cloud_client.remove_empty_albums(log_level=logging.WARNING)
+        albums_removed = cloud_client_obj.remove_empty_albums(log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        cloud_client.logout(log_level=logging.WARNING)
+        cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -696,24 +696,24 @@ def mode_cloud_remove_duplicates_albums(cloud=None, user_confirmation=True, log_
         LOGGER.info(f"INFO    : Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client Object
+    # Create the cloud_client_obj Object
     if cloud == 'Immich':
-        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
     elif cloud == 'Synology':
-        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : {cloud} Photos: 'Remove Duplicates Album' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        cloud_client.login(log_level=logging.WARNING)
+        cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
-        albums_removed = cloud_client.remove_duplicates_albums(log_level=logging.WARNING)
+        albums_removed = cloud_client_obj.remove_duplicates_albums(log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        cloud_client.logout(log_level=logging.WARNING)
+        cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -752,11 +752,11 @@ def mode_cloud_merge_duplicates_albums(cloud=None, user_confirmation=True, log_l
         LOGGER.info(f"INFO    : Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client Object
+    # Create the cloud_client_obj Object
     if cloud == 'Immich':
-        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
     elif cloud == 'Synology':
-        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Merge Duplicates Album' Mode detected. Only this module will be run!!!")
@@ -764,15 +764,15 @@ def mode_cloud_merge_duplicates_albums(cloud=None, user_confirmation=True, log_l
         # Login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        cloud_client.login(log_level=logging.WARNING)
+        cloud_client_obj.login(log_level=logging.WARNING)
 
         # Call the Function using 'count' as strategy (you can change to 'size')
-        albums_removed = cloud_client.merge_duplicates_albums(strategy='count', log_level=logging.INFO)
+        albums_removed = cloud_client_obj.merge_duplicates_albums(strategy='count', log_level=logging.INFO)
 
         # Logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        cloud_client.logout(log_level=logging.WARNING)
+        cloud_client_obj.logout(log_level=logging.WARNING)
 
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -808,24 +808,24 @@ def mode_cloud_remove_orphan_assets(cloud=None, user_confirmation=True, log_leve
         LOGGER.info(f"INFO    : Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client Object
+    # Create the cloud_client_obj Object
     if cloud == 'Immich':
-        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
     elif cloud == 'Synology':
-        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : {cloud} Photos: 'Remove Orphan Assets' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        cloud_client.login(log_level=logging.WARNING)
+        cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
-        assets_removed = cloud_client.remove_orphan_assets(user_confirmation=False, log_level=logging.WARNING)
+        assets_removed = cloud_client_obj.remove_orphan_assets(user_confirmation=False, log_level=logging.WARNING)
         #logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        cloud_client.logout(log_level=logging.WARNING)
+        cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -862,24 +862,24 @@ def mode_cloud_remove_ALL(cloud=None, user_confirmation=True, log_level=logging.
         LOGGER.info(f"INFO    : Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client Object
+    # Create the cloud_client_obj Object
     if cloud == 'Immich':
-        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
     elif cloud == 'Synology':
-        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : {cloud} Photos: 'Remove ALL Assets' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        cloud_client.login(log_level=logging.WARNING)
+        cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
-        assets_removed, albums_removed = cloud_client.remove_all_assets(log_level=logging.WARNING)
+        assets_removed, albums_removed = cloud_client_obj.remove_all_assets(log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        cloud_client.logout(log_level=logging.WARNING)
+        cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -921,24 +921,24 @@ def mode_cloud_rename_albums(cloud=None, user_confirmation=True, log_level=loggi
         LOGGER.info(f"INFO    : Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client Object
+    # Create the cloud_client_obj Object
     if cloud == 'Immich':
-        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
     elif cloud == 'Synology':
-        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : {cloud} Photos: 'Rename Albums' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        cloud_client.login(log_level=logging.WARNING)
+        cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
-        albums_renamed = cloud_client.rename_albums(pattern=ARGS['immich-rename-albums'][0], pattern_to_replace=ARGS['immich-rename-albums'][1], log_level=logging.WARNING)
+        albums_renamed = cloud_client_obj.rename_albums(pattern=ARGS['immich-rename-albums'][0], pattern_to_replace=ARGS['immich-rename-albums'][1], log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        cloud_client.logout(log_level=logging.WARNING)
+        cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -989,24 +989,24 @@ def mode_cloud_remove_albums_by_name_pattern(cloud=None, user_confirmation=True,
         LOGGER.info(f"INFO    : Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client Object
+    # Create the cloud_client_obj Object
     if cloud == 'Immich':
-        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
     elif cloud == 'Synology':
-        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : {cloud} Photos: 'Delete Albums' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        cloud_client.login(log_level=logging.WARNING)
+        cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
-        albums_removed, assets_removed = cloud_client.remove_albums_by_name(pattern=albums_name_pattern, removeAlbumsAssets=remove_albums_assets, log_level=logging.WARNING)
+        albums_removed, assets_removed = cloud_client_obj.remove_albums_by_name(pattern=albums_name_pattern, removeAlbumsAssets=remove_albums_assets, log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        cloud_client.logout(log_level=logging.WARNING)
+        cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -1050,24 +1050,24 @@ def mode_cloud_remove_all_albums(cloud=None, user_confirmation=True, log_level=l
         LOGGER.info(f"INFO    : Exiting program.")
         sys.exit(0)
 
-    # Create the cloud_client Object
+    # Create the cloud_client_obj Object
     if cloud == 'Immich':
-        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
     elif cloud == 'Synology':
-        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
+        cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : {cloud} Photos: 'Delete ALL Albums' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        cloud_client.login(log_level=logging.WARNING)
+        cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
-        albums_removed, assets_removed = cloud_client.remove_all_albums(removeAlbumsAssets=remove_albums_assets, log_level=logging.WARNING)
+        albums_removed, assets_removed = cloud_client_obj.remove_all_albums(removeAlbumsAssets=remove_albums_assets, log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        cloud_client.logout(log_level=logging.WARNING)
+        cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
