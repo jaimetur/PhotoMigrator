@@ -12,7 +12,7 @@ from datetime import datetime
 import time
 import logging
 
-from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm, parse_text_datetime_to_epoch, match_pattern, replace_pattern, has_any_filter, is_date_outside_range
+from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm, parse_text_datetime_to_epoch, match_pattern, replace_pattern, has_any_filter, is_date_outside_range, confirm_continue
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
@@ -2360,108 +2360,155 @@ class ClassSynologyPhotos:
             
             return total_removed
 
-
-    def rename_albums(self, pattern, pattern_to_replace, log_level=logging.WARNING):
+    def rename_albums(self, pattern, pattern_to_replace, request_user_confirmation=True, log_level=logging.WARNING):
         """
-        Removes all albums in Synology Photos whose name match with the provided pattern.
+        Renames all albums in Synology Photos whose name matches the provided pattern.
+
+        First, collects all albums that match the pattern and prepares the new names.
+        Then, displays the list of albums to rename and asks the user for confirmation.
+        If the user confirms, performs the renaming through the API.
 
         Args:
-            log_level (logging.LEVEL): log_level for logs and console
+            pattern (str): The regex pattern to match album names.
+            pattern_to_replace (str): The pattern to replace matches with.
+            log_level (logging.LEVEL): The log level for logging and console output.
 
         Returns:
-            int: The number of albums removed.
+            int: The number of albums renamed.
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            LOGGER.warning("WARNING : Searching for Albums that matches the provided pattern. This process may take some time. Please be patient!...")
+            LOGGER.warning("WARNING : Searching for albums that match the provided pattern. This process may take some time. Please be patient...")
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
                 # self.logout(log_level=log_level)
                 return 0
 
-            total_renamed_albums = 0
-            for album in tqdm(albums, desc=f"INFO    : Searching for Albums to rename", unit=" albums"):
-                # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+            albums_to_rename = {}
+            for album in tqdm(albums, desc="INFO    : Searching for albums to rename", unit="albums"):
                 album_date = album.get("create_time")
                 if is_date_outside_range(album_date):
                     continue
-
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
                 if match_pattern(album_name, pattern):
                     new_name = replace_pattern(album_name, pattern=pattern, pattern_to_replace=pattern_to_replace)
-
-                    url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
-                    headers = {}
-                    if self.SYNO_TOKEN_HEADER:
-                        headers.update(self.SYNO_TOKEN_HEADER)
-
-                    params = {
-                        'api': 'SYNO.Foto.Browse.Album',
-                        'version': '1',
-                        'method': 'set_name',
-                        'id': album_id,
-                        'name': new_name,
+                    albums_to_rename[album_id] = {
+                        "album_name": album_name,
+                        "new_name": new_name,
                     }
 
-                    response = self.SESSION.get(url, params=params, headers=headers, verify=False)
-                    if response.ok:
-                        LOGGER.info(f"INFO    : Album '{album_name}' (ID={album_id}) renamed to {new_name} .")
-                        total_renamed_albums += 1
-            LOGGER.info(f"INFO    : Removed {total_renamed_albums} albums whose names matched with the provided pattern.")
+            if not albums_to_rename:
+                LOGGER.info("INFO    : No albums matched the pattern.")
+                # self.logout(log_level=log_level)
+                return 0
+
+            # Display the albums that will be renamed
+            LOGGER.info("INFO    : Albums to be renamed:")
+            for album_info in albums_to_rename.values():
+                print(f"  '{album_info['album_name']}' --> '{album_info['new_name']}'")
+
+            # Ask for confirmation only if requested
+            if request_user_confirmation and not confirm_continue():
+                LOGGER.info("INFO    : Exiting program.")
+                return 0
+
+            total_renamed_albums = 0
+            for album_id, album_info in albums_to_rename.items():
+                url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
+                headers = {}
+                if self.SYNO_TOKEN_HEADER:
+                    headers.update(self.SYNO_TOKEN_HEADER)
+                params = {
+                    'api': 'SYNO.Foto.Browse.Album',
+                    'version': '1',
+                    'method': 'set_name',
+                    'id': album_id,
+                    'name': album_info["new_name"],
+                }
+                response = self.SESSION.get(url, params=params, headers=headers, verify=False)
+                if response.ok:
+                    LOGGER.info(f"INFO    : Album '{album_info['album_name']}' (ID={album_id}) renamed to '{album_info['new_name']}'.")
+                    total_renamed_albums += 1
+
+            LOGGER.info(f"INFO    : Renamed {total_renamed_albums} albums whose names matched the provided pattern.")
             # self.logout(log_level=log_level)
             return total_renamed_albums
 
-
-    def remove_albums_by_name(self, pattern, removeAlbumsAssets=False, log_level=logging.WARNING):
+    def remove_albums_by_name(self, pattern, removeAlbumsAssets=False, request_user_confirmation=True, log_level=logging.WARNING):
         """
-        Removes all albums in Synology Photos whose name match with the provided pattern.
+        Removes all albums in Synology Photos whose name matches the provided pattern.
+
+        If removeAlbumsAssets is True, it also deletes all assets inside the matching albums.
+        If request_user_confirmation is True, displays the albums to be deleted and asks for user confirmation before proceeding.
 
         Args:
-            log_level (logging.LEVEL): log_level for logs and console
+            pattern (str): The regex pattern to match album names.
+            removeAlbumsAssets (bool): Whether to delete all assets contained in the albums.
+            request_user_confirmation (bool): Whether to ask for confirmation before deleting.
+            log_level (logging.LEVEL): The log level for logging and console output.
 
         Returns:
-            int: The number of albums removed.
+            tuple: (number of albums removed, number of assets removed)
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            LOGGER.warning("WARNING : Searching for Albums that matches the provided pattern. This process may take some time. Please be patient!...")
+            LOGGER.warning("WARNING : Searching for albums that match the provided pattern. This process may take some time. Please be patient...")
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
-                self.logout(log_level=log_level)
-                return 0
+                # self.logout(log_level=log_level)
+                return 0, 0
 
-            total_removed_albums = 0
-            total_removed_assets = 0
-            for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
-                # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+            albums_to_remove = []
+            for album in tqdm(albums, desc="INFO    : Searching for albums to remove", unit="albums"):
                 album_date = album.get("create_time")
                 if is_date_outside_range(album_date):
                     continue
-
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
                 if match_pattern(album_name, pattern):
-                    if removeAlbumsAssets:
-                        album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
-                        album_assets_ids = []
-                        for asset in album_assets:
-                            asset_id = asset.get("id")
-                            if asset_id:
-                                album_assets_ids.append(asset_id)
+                    albums_to_remove.append({
+                        "album_id": album_id,
+                        "album_name": album_name
+                    })
+
+            if not albums_to_remove:
+                LOGGER.info("INFO    : No albums matched the pattern.")
+                # self.logout(log_level=log_level)
+                return 0, 0
+
+            # Display the albums that will be removed
+            LOGGER.warning("WARNING : Albums marked for deletion:")
+            for album_info in albums_to_remove:
+                LOGGER.warning(f"WARNING : {album_info['album_name']}' (ID={album_info['album_id']})")
+
+            # Ask for confirmation only if requested
+            if request_user_confirmation and not confirm_continue():
+                LOGGER.info("INFO    : Exiting program.")
+                # self.logout(log_level=log_level)
+                return 0, 0
+
+            total_removed_albums = 0
+            total_removed_assets = 0
+            for album_info in albums_to_remove:
+                album_id = album_info["album_id"]
+                album_name = album_info["album_name"]
+                if removeAlbumsAssets:
+                    album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
+                    album_assets_ids = [asset.get("id") for asset in album_assets if asset.get("id")]
+                    if album_assets_ids:
                         self.remove_assets(album_assets_ids, log_level=logging.WARNING)
                         total_removed_assets += len(album_assets_ids)
+                if self.remove_album(album_id, album_name):
+                    LOGGER.info(f"INFO    : Album '{album_name}' (ID={album_id}) removed.")
+                    total_removed_albums += 1
 
-                    if self.remove_album(album_id, album_name):
-                        LOGGER.info(f"INFO    : Album '{album_name}' (ID={album_id}) removed.")
-                        total_removed_albums += 1
-            LOGGER.info(f"INFO    : Removed {total_removed_albums} albums whose names matched with the provided pattern.")
-            LOGGER.info(f"INFO    : Removed {total_removed_assets} from those removed albums.")
+            LOGGER.info(f"INFO    : Removed {total_removed_albums} albums whose names matched the provided pattern.")
+            LOGGER.info(f"INFO    : Removed {total_removed_assets} assets from those removed albums.")
             # self.logout(log_level=log_level)
             return total_removed_albums, total_removed_assets
-
 
     def remove_all_albums(self, removeAlbumsAssets=False, log_level=logging.WARNING):
         """
@@ -2561,15 +2608,16 @@ class ClassSynologyPhotos:
             
             return total_removed_empty_albums
 
-
-    def remove_duplicates_albums(self, log_level=logging.WARNING):
+    def remove_duplicates_albums(self, request_user_confirmation=True, log_level=logging.WARNING):
         """
-        Remove all duplicate albums in Synology Photos. Duplicates are albums
-        that share the same assets_count and total assets_size. It keeps the first
-        album, removes the others from each duplicate group.
+        Removes all duplicate albums in Synology Photos.
+
+        Duplicates are albums that share the same asset count and total asset size.
+        The function keeps the first album (sorted by album ID) and removes the rest.
+        Before deleting, it displays the list of albums to be removed and asks for user confirmation.
 
         Args:
-            log_level (logging.LEVEL): log_level for logs and console
+            log_level (logging.LEVEL): The log level for logging and console output.
 
         Returns:
             int: The number of duplicate albums deleted.
@@ -2580,43 +2628,61 @@ class ClassSynologyPhotos:
                 albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
 
                 if not albums:
+                    # self.logout(log_level=log_level)
                     return 0
 
-                LOGGER.info("INFO    : Looking for duplicate albums in Synology Photos...")
+                LOGGER.info("INFO    : Searching for duplicate albums in Synology Photos...")
                 duplicates_map = {}
-                for album in tqdm(albums, smoothing=0.1, desc="INFO    : Removing Duplicates Albums", unit=" albums"):
-                    # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+                for album in tqdm(albums, smoothing=0.1, desc="INFO    : Searching for duplicate albums", unit="albums"):
                     album_date = album.get("create_time")
                     if is_date_outside_range(album_date):
                         continue
-
                     album_id = album.get("id")
                     album_name = album.get("albumName", "")
                     assets_count = self.get_album_assets_count(album_id, album_name, log_level=log_level)
                     assets_size = self.get_album_assets_size(album_id, album_name, log_level=log_level)
                     duplicates_map.setdefault((assets_count, assets_size), []).append((album_id, album_name))
 
-                # for (assets_count, assets_size), group in duplicates_map.items():
-                total_removed_duplicated_albums = 0
+                albums_to_remove = []
                 for (assets_count, assets_size), group in duplicates_map.items():
-                    LOGGER.debug(f'DEBUG:   : Assets Count: {assets_count}. Assets Size: {assets_size}.')
+                    LOGGER.debug(f"DEBUG   : Assets Count: {assets_count}. Assets Size: {assets_size}.")
                     if len(group) > 1:
-                        # keep the first, remove the rest
-                        group_sorted = sorted(group, key=lambda x: x[0])  # sort by album_id string
-                        to_remove = group_sorted[1:]
-                        for (alb_id, alb_name) in to_remove:
-                            LOGGER.info(f"INFO    : Removing duplicate album: '{alb_name}' (ID={alb_id})")
-                            if self.remove_album(alb_id, alb_name, log_level=log_level):
-                                total_removed_duplicated_albums += 1
+                        group_sorted = sorted(group, key=lambda x: x[0])  # Sort by album ID
+                        to_remove = group_sorted[1:]  # Keep the first, remove the rest
+                        albums_to_remove.extend(to_remove)
+
+                if not albums_to_remove:
+                    LOGGER.info("INFO    : No duplicate albums found.")
+                    # self.logout(log_level=log_level)
+                    return 0
+
+                # Display the albums that will be removed
+                LOGGER.info("INFO    : Albums marked for deletion:")
+                for alb_id, alb_name in albums_to_remove:
+                    print(f"  '{alb_name}' (ID={alb_id})")
+
+                # Ask for confirmation
+                if not confirm_continue():
+                    LOGGER.info("INFO    : Exiting program.")
+                    # self.logout(log_level=log_level)
+                    return 0
+
+                total_removed_duplicated_albums = 0
+                for alb_id, alb_name in albums_to_remove:
+                    LOGGER.info(f"INFO    : Removing duplicate album: '{alb_name}' (ID={alb_id})")
+                    if self.remove_album(alb_id, alb_name, log_level=log_level):
+                        total_removed_duplicated_albums += 1
 
                 LOGGER.info(f"INFO    : Removed {total_removed_duplicated_albums} duplicate albums.")
-                # self.logout(log_level=log_level)
+
             except Exception as e:
-                LOGGER.error(f"ERROR   : Exception while removing duplicates albums from Synology Photos. {e}")
-            
+                LOGGER.error(f"ERROR   : Exception while removing duplicate albums from Synology Photos: {e}")
+
+            # self.logout(log_level=log_level)
             return total_removed_duplicated_albums
 
-    def merge_duplicates_albums(self, strategy='count', log_level=logging.WARNING):
+
+    def merge_duplicates_albums(self, strategy='count', request_user_confirmation=True, log_level=logging.WARNING):
         """
         Remove all duplicate albums in Synology Photos. Duplicates are albums
         that share the same album name. Keeps the one with the most assets or largest size
@@ -2648,7 +2714,10 @@ class ClassSynologyPhotos:
                     album_id = album.get("id")
                     album_name = album.get("albumName", "")
                     assets_count = self.get_album_assets_count(album_id, album_name, log_level=log_level)
-                    assets_size = self.get_album_assets_size(album_id, album_name, log_level=log_level)
+                    if strategy == 'size':
+                        assets_size = self.get_album_assets_size(album_id, album_name, log_level=log_level)
+                    else:
+                        assets_size = 'Undefined'
                     albums_by_name.setdefault(album_name, []).append({
                         "id": album_id,
                         "name": album_name,
@@ -2656,8 +2725,36 @@ class ClassSynologyPhotos:
                         "size": assets_size
                     })
 
-                total_removed_duplicated_albums = 0
+                # Comprobar si hay algún grupo con más de un álbum
+                if any(len(album_group) > 1 for album_group in albums_by_name.values()):
+                    # Loop through each album name and its group to show all Duplicates Albums and request User Confifmation to continue
+                    LOGGER.info(f"INFO    : The following Albums are duplicates (by Name) and will be merged into the first album:")
+                    for album_name, album_group in albums_by_name.items():
+                        if len(album_group) > 1:
+                            # Ordenar el grupo según la estrategia
+                            if strategy == 'size':
+                                sorted_group = sorted(album_group, key=lambda x: x["size"], reverse=True)
+                            else:  # Default to 'count'
+                                sorted_group = sorted(album_group, key=lambda x: x["count"], reverse=True)
 
+                            # El primero es el que se queda
+                            main_album = sorted_group[0]
+                            albums_to_delete = sorted_group[1:]
+
+                            # Mostrarlo en el log
+                            LOGGER.info(f"INFO    : {album_name}:")
+                            LOGGER.info(f"          [KEEP ] {main_album}")
+                            for album in albums_to_delete:
+                                LOGGER.info(f"          [MERGE] {album}")
+                    LOGGER.info("")
+
+                    # Ask for confirmation only if requested
+                    if request_user_confirmation and not confirm_continue():
+                        LOGGER.info("INFO    : Exiting program.")
+                        return 0
+
+
+                total_removed_duplicated_albums = 0
                 for album_name, group in albums_by_name.items():
                     if len(group) <= 1:
                         continue  # no duplicates

@@ -74,84 +74,86 @@ def detect_and_run_execution_mode():
     # Synology Photos Modes:
     elif ARGS['synology-remove-albums']:
         EXECUTION_MODE = 'synology-remove-albums'
-        mode_synology_remove_albums()
+        mode_cloud_remove_albums_by_name_pattern(cloud='Synology')
     elif ARGS['synology-rename-albums'][0]:
         EXECUTION_MODE = 'synology-rename-albums'
-        mode_synology_rename_albums()
+        mode_cloud_rename_albums(cloud='Synology')
     elif ARGS['synology-remove-empty-albums']:
         EXECUTION_MODE = 'synology-remove-empty-albums'
-        mode_synology_remove_empty_albums()
+        mode_cloud_remove_empty_albums(cloud='Synology')
     elif ARGS['synology-remove-duplicates-albums']:
         EXECUTION_MODE = 'synology-remove-duplicates-albums'
-        mode_synology_remove_duplicates_albums()
+        mode_cloud_remove_duplicates_albums(cloud='Synology')
     elif ARGS['synology-merge-duplicates-albums']:
         EXECUTION_MODE = 'synology-merge-duplicates-albums'
-        mode_synology_merge_duplicates_albums()
+        mode_cloud_merge_duplicates_albums(cloud='Synology')
     elif ARGS['synology-remove-all-albums'] != "":
         EXECUTION_MODE = 'synology-remove-all-albums'
-        mode_synology_remove_all_albums()
+        # mode_cloud_remove_all_albums(cloud='Synology')
+        mode_cloud_remove_albums_by_name_pattern(cloud='Synology')
     elif ARGS['synology-remove-all-assets'] != "":
         EXECUTION_MODE = 'synology-remove-all-assets'
-        mode_synology_remove_ALL()
+        mode_cloud_remove_ALL(cloud='Synology')
     elif ARGS['synology-upload-albums'] != "":
         # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to upload (default albums_to_upload='all')
         EXECUTION_MODE = 'synology-upload-albums'
-        mode_synology_upload_albums()
+        mode_cloud_upload_albums(cloud='Synology')
     elif ARGS['synology-upload-all'] != "":
         # TODO: Launch this with -AUTO MODE and compare execution time
         EXECUTION_MODE = 'synology-upload-all'
-        mode_synology_upload_ALL()
+        mode_cloud_upload_ALL(cloud='Synology')
     elif ARGS['synology-download-albums'] != "":
         # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to download (default albums_to_download='all')
         EXECUTION_MODE = 'synology-download-albums'
-        mode_synology_download_albums()
+        mode_cloud_download_albums(cloud='Synology')
     elif ARGS['synology-download-all'] != "":
         # TODO: Launch this with -AUTO MODE and compare execution time
         EXECUTION_MODE = 'synology-download-all'
-        mode_synology_download_ALL()
+        mode_cloud_download_ALL(cloud='Synology')
 
 
     # Immich Photos Modes:
     elif ARGS['immich-remove-albums']:
         EXECUTION_MODE = 'immich-remove-albums'
-        mode_immich_remove_albums()
+        mode_cloud_remove_albums_by_name_pattern(cloud='Immich')
     elif ARGS['immich-rename-albums'][0]:
         EXECUTION_MODE = 'immich-rename-albums'
-        mode_immich_rename_albums()
+        mode_cloud_rename_albums(cloud='Immich')
     elif ARGS['immich-remove-empty-albums']:
         EXECUTION_MODE = 'immich-remove-empty-albums'
-        mode_immich_remove_empty_albums()
+        mode_cloud_remove_empty_albums(cloud='Immich')
     elif ARGS['immich-remove-duplicates-albums']:
         EXECUTION_MODE = 'immich-remove-duplicates-albums'
-        mode_immich_remove_duplicates_albums()
+        mode_cloud_remove_duplicates_albums(cloud='Immich')
     elif ARGS['immich-merge-duplicates-albums']:
         EXECUTION_MODE = 'immich-merge-duplicates-albums'
-        mode_immich_merge_duplicates_albums()
+        mode_cloud_merge_duplicates_albums(cloud='Immich')
     elif ARGS['immich-remove-all-albums'] != "":
         EXECUTION_MODE = 'immich-remove-all-albums'
-        mode_immich_remove_all_albums()
+        # mode_cloud_remove_all_albums(cloud='Immich')
+        mode_cloud_remove_albums_by_name_pattern(cloud='Immich')
     elif ARGS['immich-remove-all-assets'] != "":
         EXECUTION_MODE = 'immich-remove-all-assets'
-        mode_immich_remove_ALL()
+        mode_cloud_remove_ALL(cloud='Immich')
     elif ARGS['immich-remove-orphan-assets'] != "":
         EXECUTION_MODE = 'immich-remove-orphan-assets'
-        mode_immich_remove_orphan_assets()
+        mode_cloud_remove_orphan_assets(cloud='Immich')
     elif ARGS['immich-upload-albums'] != "":
         # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to upload (default albums_to_upload='all')
         EXECUTION_MODE = 'immich-upload-albums'
-        mode_immich_upload_albums()
+        mode_cloud_upload_albums(cloud='Immich')
     elif ARGS['immich-upload-all'] != "":
         # TODO: Launch this with -AUTO MODE and compare execution time
         EXECUTION_MODE = 'immich-upload-all'
-        mode_immich_upload_ALL()
+        mode_cloud_upload_ALL(cloud='Immich')
     elif ARGS['immich-download-albums'] != "":
         # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to download (default albums_to_download='all')
         EXECUTION_MODE = 'immich-download-albums'
-        mode_immich_download_albums()
+        mode_cloud_download_albums(cloud='Immich')
     elif ARGS['immich-download-all'] != "":
         # TODO: Launch this with -AUTO MODE and compare execution time
         EXECUTION_MODE = 'immich-download-all'
-        mode_immich_download_ALL()
+        mode_cloud_download_ALL(cloud='Immich')
 
 
     # Other Stand-alone Extra Features:
@@ -176,9 +178,9 @@ def detect_and_run_execution_mode():
         # PARSER.print_help()
         sys.exit(1)
 
-##############################
-# FEATURE: GOOGLE PHOTOS: #
-##############################
+###################################
+# FEATURE: GOOGLE PHOTOS TAKEOUT: #
+###################################
 def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
     # Configure default arguments for mode_google_takeout() execution
     LOGGER.info(f"Starting Google Takeout Photos Processor Feature...")
@@ -321,572 +323,57 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("")
 
 
-#################################
-# FEATURES: SYNOLOGY PHOTOS: #
-#################################
-def mode_synology_upload_albums(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-suAlb, --synology-upload-albums'.")
-        LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["synology-upload-albums"].replace('<ALBUMS_FOLDER>', f"'{ARGS['synology-upload-albums']}'"))
-        LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
-        LOGGER.info(f"INFO    : Synology Photos: 'Upload Albums' Mode detected. Only this module will be run!!!")
-
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Create the Object
-        syno = ClassSynologyPhotos(account_id=ARGS['account-id'])
-        # login
-        LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
-        syno.login(log_level=logging.WARNING)
-        LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['synology-upload-albums']}")
-        # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed, total_dupplicated_assets_skipped  = syno.push_albums(input_folder=ARGS['synology-upload-albums'], log_level=logging.WARNING)
-        # Execute mode_delete_empty_albums
-        LOGGER.info("INFO    : Removing Empty Albums...")
-        total_empty_albums_removed = syno.remove_empty_albums(log_level=logging.WARNING)
-        # Execute mode_delete_duplicates_albums
-        LOGGER.info("INFO    : Removing Duplicates Albums...")
-        total_duplicates_albums_removed = syno.remove_duplicates_albums(log_level=logging.WARNING)
-        # logout
-        LOGGER.info("INFO    : Logged out from Synology Photos.")
-        syno.logout(log_level=logging.WARNING)
-        # FINAL SUMMARY
-        end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("                  FINAL SUMMARY:                  ")
-        LOGGER.info("==================================================")
-        LOGGER.info(f"Total Assets                            : {total_assets_uploaded + total_dupplicated_assets_skipped}")
-        LOGGER.info(f"Total Assets uploaded                   : {total_assets_uploaded}")
-        LOGGER.info(f"Total Assets skipped (Duplicated)       : {total_dupplicated_assets_skipped}")
-        LOGGER.info(f"Total Assets added to Albums            : {total_assets_uploaded + total_dupplicated_assets_skipped}")
-        LOGGER.info(f"Total Albums uploaded                   : {total_albums_uploaded}")
-        LOGGER.info(f"Total Albums skipped                    : {total_albums_skipped}")
-        LOGGER.info(f"Total Empty Albums removed              : {total_empty_albums_removed}")
-        LOGGER.info(f"Total Duplicated Albums removed         : {total_duplicates_albums_removed}")
-        LOGGER.info(f"Total Duplicated Assets removed         : {duplicates_assets_removed}")
-        LOGGER.info("")
-        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-
-
-def mode_synology_upload_ALL(user_confirmation=True, log_level=logging.INFO):
-    albums_folders = ARGS['albums-folders']
-    if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-suAll, --synology-upload-all'.")
-        if albums_folders:
-            LOGGER.info(f"INFO    : Flag detected '-AlbFld, --albums-folders' = ['{albums_folders}'].")
-        LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["synology-upload-all"].replace('<INPUT_FOLDER>', f"{ARGS['synology-upload-all']}"))
-        LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
-
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Synology Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
-        # Create the Object
-        syno = ClassSynologyPhotos(account_id=ARGS['account-id'])
-        # login
-        LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
-        syno.login(log_level=logging.WARNING)
-        LOGGER.info(f"INFO    : Uploading Assets in Folder    : {ARGS['synology-upload-all']}")
-        # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed, total_dupplicated_assets_skipped = syno.push_ALL (ARGS['synology-upload-all'], albums_folders=albums_folders, log_level=logging.WARNING)
-        # After Upload Assets/Albums from Synology Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
-        LOGGER.info("INFO    : Cleaning-up Synology Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
-        # Execute mode_delete_empty_albums
-        LOGGER.info("INFO    : Removing Empty Albums...")
-        total_empty_albums_removed = syno.remove_empty_albums(log_level=logging.WARNING)
-        # Execute mode_delete_duplicates_albums
-        LOGGER.info("INFO    : Removing Duplicates Albums...")
-        total_duplicates_albums_removed = syno.remove_duplicates_albums(log_level=logging.WARNING)
-        # Execute remove_duplicates_assets
-        LOGGER.info("INFO    : Removing Duplicates Assets...")
-        duplicates_assets_removed = syno.remove_duplicates_assets(log_level=logging.WARNING)
-        # logout
-        LOGGER.info("INFO    : Logged out from Synology Photos.")
-        # logout
-        syno.logout(log_level=logging.WARNING)
-        # FINAL SUMMARY
-        end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("                  FINAL SUMMARY:                  ")
-        LOGGER.info("==================================================")
-        LOGGER.info(f"Total Assets                            : {total_assets_uploaded + total_dupplicated_assets_skipped}")
-        LOGGER.info(f"Total Assets uploaded                   : {total_assets_uploaded}")
-        LOGGER.info(f"Total Assets skipped (Duplicated)       : {total_dupplicated_assets_skipped}")
-        LOGGER.info(f"Total Assets added to Albums            : {total_assets_uploaded_within_albums}")
-        LOGGER.info(f"Total Assets added without Albums       : {total_assets_uploaded_without_albums}")
-        LOGGER.info(f"Total Albums uploaded                   : {total_albums_uploaded}")
-        LOGGER.info(f"Total Albums skipped                    : {total_albums_skipped}")
-        LOGGER.info(f"Total Empty Albums removed              : {total_empty_albums_removed}")
-        LOGGER.info(f"Total Duplicated Albums removed         : {total_duplicates_albums_removed}")
-        LOGGER.info(f"Total Duplicated Assets removed         : {duplicates_assets_removed}")
-        LOGGER.info("")
-        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-        LOGGER.info("==================================================")
-
-
-def mode_synology_download_albums(user_confirmation=True, log_level=logging.INFO):
-    LOGGER.info(f"INFO    : Synology Photos: 'Download Albums' Mode detected. Only this module will be run!!!")
-    LOGGER.info(f"INFO    : Albums to extract   : {ARGS['synology-download-albums']}")
-    if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-sdAlb, --synology-download-albums <ALBUMS_NAME>'.".replace("'<ALBUMS_NAME>'", f"{ARGS['synology-download-albums']}"))
-        LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["synology-download-albums"].replace("'<ALBUMS_NAME>'", f"{ARGS['synology-download-albums']}").replace("<OUTPUT_FOLDER>", ARGS['output-folder']))
-        LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
-
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Create the Object
-        syno = ClassSynologyPhotos(account_id=ARGS['account-id'])
-        # login
-        LOGGER.info("")
-        LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
-        syno.login(log_level=logging.WARNING)
-        # Call the Function
-        albums_downloaded, assets_downloaded = syno.pull_albums(albums_name=ARGS['synology-download-albums'], output_folder=ARGS['output-folder'], log_level=logging.WARNING)
-        # logout
-        LOGGER.info("")
-        LOGGER.info("INFO    : Logged out from Synology Photos.")
-        syno.logout(log_level=logging.WARNING)
-        # FINAL SUMMARY
-        end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("                  FINAL SUMMARY:                  ")
-        LOGGER.info("==================================================")
-        LOGGER.info(f"Total Albums downloaded                 : {albums_downloaded}")
-        LOGGER.info(f"Total Assets downloaded from Albums     : {assets_downloaded}")
-        LOGGER.info("")
-        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-
-
-def mode_synology_download_ALL(user_confirmation=True, log_level=logging.INFO):
-    LOGGER.info(f"INFO    : Synology Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
-    if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-sdAll, --synology-download-all'.")
-        LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["synology-download-all"].replace('<OUTPUT_FOLDER>', f"{ARGS['synology-download-all']}"))
-        LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
-    
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Create the Object
-        syno = ClassSynologyPhotos(account_id=ARGS['account-id'])
-        # login
-        LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
-        syno.login(log_level=logging.WARNING)
-        # Before to Download Assets/Albums from Synology Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
-        LOGGER.info("INFO    : Cleaning-up Synology Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
-        # Execute mode_delete_empty_albums
-        total_empty_albums_removed = syno.remove_empty_albums(log_level=logging.WARNING)
-        # Execute mode_delete_duplicates_albums
-        total_duplicates_albums_removed = syno.remove_duplicates_albums(log_level=logging.WARNING)
-        # Execute remove_duplicates_assets
-        duplicates_assets_removed = syno.remove_duplicates_assets(log_level=logging.WARNING)
-        # Call the Function
-        albums_downloaded, assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums = syno.pull_ALL(output_folder=ARGS['synology-download-all'], log_level=logging.WARNING)
-        # logout
-        LOGGER.info("INFO    : Logged out from Synology Photos.")
-        syno.logout(log_level=logging.WARNING)
-        # FINAL SUMMARY
-        end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("                  FINAL SUMMARY:                  ")
-        LOGGER.info("==================================================")
-        LOGGER.info(f"Total Albums downloaded                 : {albums_downloaded}")
-        LOGGER.info(f"Total Assets downloaded                 : {assets_downloaded}")
-        LOGGER.info(f"Total Assets downloaded within albums   : {total_assets_downloaded_within_albums}")
-        LOGGER.info(f"Total Assets downloaded without albums  : {total_assets_downloaded_without_albums}")
-        LOGGER.info("")
-        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-
-def mode_synology_remove_empty_albums(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-srEmpAlb, --synology-remove-empty-albums'.")
-        LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["synology-remove-empty-albums"])
-        LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
-
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Synology Photos: 'Remove Empty Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO    : Flag detected '-srEmpAlb, --synology-remove-empty-albums'. The Tool will look for any empty album in your Synology Photos account and will delete them (if any empty album is found).")
-        # Create the Object
-        syno = ClassSynologyPhotos(account_id=ARGS['account-id'])
-        # login
-        LOGGER.info("")
-        LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
-        syno.login(log_level=logging.WARNING)
-        # Call the Function
-        albums_removed = syno.remove_empty_albums(log_level=logging.WARNING)
-        # logout
-        LOGGER.info("")
-        LOGGER.info("INFO    : Logged out from Synology Photos.")
-        syno.logout(log_level=logging.WARNING)
-        # FINAL SUMMARY
-        end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("                  FINAL SUMMARY:                  ")
-        LOGGER.info("==================================================")
-        LOGGER.info(f"Total Empty Albums removed              : {albums_removed}")
-        LOGGER.info("")
-        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-
-def mode_synology_remove_duplicates_albums(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-srDupAlb, --synology-remove-duplicates-albums'.")
-        LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["synology-remove-duplicates-albums"])
-        LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
-
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Synology Photos: 'Remove Duplicates Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO    : Flag detected '-srDupAlb, --synology-remove-duplicates-albums'. The Tool will look for any duplicated album in your Synology Photos account and will delete them (if any duplicated album is found).")
-        # Create the Object
-        syno = ClassSynologyPhotos(account_id=ARGS['account-id'])
-        # login
-        LOGGER.info("")
-        LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
-        syno.login(log_level=logging.WARNING)
-        # Call the Function
-        albums_removed = syno.remove_duplicates_albums(log_level=logging.WARNING)
-        # logout
-        LOGGER.info("")
-        LOGGER.info("INFO    : Logged out from Synology Photos.")
-        syno.logout(log_level=logging.WARNING)
-        # FINAL SUMMARY
-        end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("                  FINAL SUMMARY:                  ")
-        LOGGER.info("==================================================")
-        LOGGER.info(f"Total Duplicates Albums removed         : {albums_removed}")
-        LOGGER.info("")
-        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-
-def mode_synology_merge_duplicates_albums(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-sMergAlb, --synology-merge-duplicates-albums'.")
-        LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["synology-merge-duplicates-albums"])
-        LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
-
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Synology Photos: 'Merge Duplicates Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO    : Flag detected '-sMergAlb, --synology-merge-duplicates-albums'. The Tool will look for any duplicated album in your Synology Photos account, merge their content into the most relevant one, and remove the duplicates.")
-
-        # Create the Object
-        syno = ClassSynologyPhotos(account_id=ARGS['account-id'])
-
-        # Login
-        LOGGER.info("")
-        LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
-        syno.login(log_level=logging.WARNING)
-
-        # Call the Function using 'count' as strategy (you can change to 'size')
-        albums_removed = syno.merge_duplicates_albums(strategy='count', log_level=logging.WARNING)
-
-        # Logout
-        LOGGER.info("")
-        LOGGER.info("INFO    : Logged out from Synology Photos.")
-        syno.logout(log_level=logging.WARNING)
-
-        # FINAL SUMMARY
-        end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("                  FINAL SUMMARY:                  ")
-        LOGGER.info("==================================================")
-        LOGGER.info(f"Total Duplicate Albums merged and removed : {albums_removed}")
-        LOGGER.info("")
-        LOGGER.info(f"Total time elapsed                        : {formatted_duration}")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-
-def mode_synology_remove_ALL(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-srAll, --synology-remove-all-assets'.")
-        LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["synology-remove-all-assets"])
-        LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
-
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Synology Photos: 'Remove ALL Assets' Mode detected. Only this module will be run!!!")
-        # Create the Object
-        syno = ClassSynologyPhotos(account_id=ARGS['account-id'])
-        # login
-        LOGGER.info("")
-        LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
-        syno.login(log_level=logging.WARNING)
-        # Call the Function
-        assets_removed, albums_removed, folders_removed = syno.remove_all_assets(log_level=logging.WARNING)
-        # logout
-        LOGGER.info("")
-        LOGGER.info("INFO    : Logged out from Synology Photos.")
-        syno.logout(log_level=logging.WARNING)
-        # FINAL SUMMARY
-        end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("                  FINAL SUMMARY:                  ")
-        LOGGER.info("==================================================")
-        LOGGER.info(f"Total Assets removed                    : {assets_removed}")
-        LOGGER.info(f"Total Albums removed                    : {albums_removed}")
-        LOGGER.info(f"Total Folders removed                   : {folders_removed}")
-        LOGGER.info("")
-        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-
-
-def mode_synology_rename_albums(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-iRenAlb, --synology-rename-albums'.")
-        LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["synology-rename-albums"].replace('<ALBUMS_NAME_PATTERN>', ARGS['synology-rename-albums'][0]).replace('<ALBUMS_NAME_REPLACEMENT_PATTERN>', ARGS['synology-rename-albums'][1]))
-        LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
-
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Synology Photos: 'Rename Albums' Mode detected. Only this module will be run!!!")
-        # Create the Object
-        syno = ClassSynologyPhotos(account_id=ARGS['account-id'])
-        # login
-        LOGGER.info("")
-        LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        syno.login(log_level=logging.WARNING)
-        # Call the Function
-        albums_renamed = syno.rename_albums(pattern=ARGS['synology-rename-albums'][0], pattern_to_replace=ARGS['synology-rename-albums'][1], log_level=logging.WARNING)
-        # logout
-        LOGGER.info("")
-        LOGGER.info("INFO    : Logged out from Synology Photos.")
-        syno.logout(log_level=logging.WARNING)
-        # FINAL SUMMARY
-        end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("                  FINAL SUMMARY:                  ")
-        LOGGER.info("==================================================")
-        LOGGER.info(f"Total Albums renamed                    : {albums_renamed}")
-        LOGGER.info("")
-        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-
-
-def mode_synology_remove_albums(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-sRemAlb, --synology-remove-albums'.")
-        if ARGS['remove-albums-assets']:
-            LOGGER.info(f"INFO    : Flag detected '-rAlbAss, --remove-albums-assets'.")
-        LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["synology-remove-albums"].replace('<ALBUMS_NAME_PATTERN>', ARGS['synology-remove-albums']))
-        LOGGER.warning('-' * terminal_width)
-        if ARGS['remove-albums-assets']:
-            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any deleted Albums will also be deleted.")
-            LOGGER.info("")
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
-
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Synology Photos: 'Delete Albums' Mode detected. Only this module will be run!!!")
-        # Create the Object
-        syno = ClassSynologyPhotos(account_id=ARGS['account-id'])
-        # login
-        LOGGER.info("")
-        LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        syno.login(log_level=logging.WARNING)
-        # Call the Function
-        albums_removed, assets_removed = syno.remove_albums_by_name(pattern=ARGS['synology-remove-albums'], removeAlbumsAssets=ARGS['remove-albums-assets'], log_level=logging.WARNING)
-        # logout
-        LOGGER.info("")
-        LOGGER.info("INFO    : Logged out from Synology Photos.")
-        syno.logout(log_level=logging.WARNING)
-        # FINAL SUMMARY
-        end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("                  FINAL SUMMARY:                  ")
-        LOGGER.info("==================================================")
-        LOGGER.info(f"Total Assets removed                    : {assets_removed}")
-        LOGGER.info(f"Total Albums removed                    : {albums_removed}")
-        LOGGER.info("")
-        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-
-
-def mode_synology_remove_all_albums(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-srAllAlb, --synology-remove-all-albums'.")
-        if ARGS['remove-albums-assets']:
-            LOGGER.info(f"INFO    : Flag detected '-rAlbAss, --remove-albums-assets'.")
-        LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["synology-remove-all-albums"])
-        LOGGER.warning('-' * terminal_width)
-        if ARGS['remove-albums-assets']:
-            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any deleted Albums will also be deleted.")
-            LOGGER.info("")
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
-
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Synology Photos: 'Delete ALL Albums' Mode detected. Only this module will be run!!!")
-        # Create the Object
-        syno = ClassSynologyPhotos(account_id=ARGS['account-id'])
-        # login
-        LOGGER.info("")
-        LOGGER.info("INFO    : Reading Configuration file and Login into Synology Photos...")
-        syno.login(log_level=logging.WARNING)
-        # Call the Function
-        albums_removed, assets_removed = syno.remove_all_albums(removeAlbumsAssets=ARGS['remove-albums-assets'], log_level=logging.WARNING)
-        # logout
-        LOGGER.info("")
-        LOGGER.info("INFO    : Logged out from Synology Photos.")
-        syno.logout(log_level=logging.WARNING)
-        # FINAL SUMMARY
-        end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-        LOGGER.info("==================================================")
-        LOGGER.info("                  FINAL SUMMARY:                  ")
-        LOGGER.info("==================================================")
-        LOGGER.info(f"Total Assets removed                    : {assets_removed}")
-        LOGGER.info(f"Total Albums removed                    : {albums_removed}")
-        LOGGER.info("")
-        LOGGER.info(f"Total time elapsed                      : {formatted_duration}")
-        LOGGER.info("==================================================")
-        LOGGER.info("")
-
-
-###############################
-# FEATURES: IMMICH PHOTOS: #
-###############################
-def mode_immich_upload_albums(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
+#############################
+# SYNOLOGY/IMMICH FEATURES: #
+#############################
+def mode_cloud_upload_albums(cloud=None, user_confirmation=True, log_level=logging.INFO):
+    if cloud=='Immich':
+        input_folder = ARGS['immich-upload-albums']
         LOGGER.info(f"INFO    : Flag detected '-iuAlb, --immich-upload-albums'.")
         LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["immich-upload-albums"].replace('<ALBUMS_FOLDER>', f"'{ARGS['immich-upload-albums']}'"))
+        LOGGER.warning(HELP_TEXTS["cloud-upload-albums"].replace('<ALBUMS_FOLDER>', f"'{ARGS['immich-upload-albums']}'"))
         LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
+    elif cloud=='Synology':
+        input_folder = ARGS['synology-upload-albums']
+        LOGGER.info(f"INFO    : Flag detected '-suAlb, --synology-upload-albums'.")
+        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning(HELP_TEXTS["cloud-upload-albums"].replace('<ALBUMS_FOLDER>', f"'{ARGS['synology-upload-albums']}'"))
+        LOGGER.warning('-' * terminal_width)
+    else:
+        LOGGER.info(f"INFO    : Cloud service not valid ({cloud}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        sys.exit(0)
+    if user_confirmation and not Utils.confirm_continue():
+        LOGGER.info(f"INFO    : Exiting program.")
+        sys.exit(0)
+
+    # Create the cloud_client Object
+    if cloud == 'Immich':
+        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+    elif cloud == 'Synology':
+        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Immich Photos: 'Upload Albums' Mode detected. Only this module will be run!!!")
-        # Create the Object
-        immich = ClassImmichPhotos(account_id=ARGS['account-id'])
+        LOGGER.info(f"INFO    : {cloud} Photos: 'Upload Albums' Mode detected. Only this module will be run!!!")
         # login
-        LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        immich.login(log_level=logging.WARNING)
-        LOGGER.info(f"INFO    : Find Albums in Folder    : {ARGS['immich-upload-albums']}")
+        LOGGER.info(f"INFO    : Reading Configuration file and Login into {cloud} Photos...")
+        cloud_client.login(log_level=logging.WARNING)
+        LOGGER.info(f"INFO    : Find Albums in Folder    : {input_folder}")
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed, total_dupplicated_assets_skipped = immich.push_albums(input_folder=ARGS['immich-upload-albums'], log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, duplicates_assets_removed, total_dupplicated_assets_skipped = cloud_client.push_albums(input_folder=input_folder, log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
-        LOGGER.info("INFO    : Cleaning-up Immich Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
-        # Execute mode_delete_empty_albums
+        LOGGER.info(f"INFO    : Cleaning-up {cloud} Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
+        # Execute mode_remove_empty_albums
         LOGGER.info("INFO    : Removing Empty Albums...")
-        total_empty_albums_removed = immich.remove_empty_albums(log_level=logging.WARNING)
-        # Execute mode_delete_duplicates_albums
-        LOGGER.info("INFO    : Removing Duplicates Albums...")
-        total_duplicates_albums_removed = immich.remove_duplicates_albums(log_level=logging.WARNING)
+        total_empty_albums_removed = cloud_client.remove_empty_albums(log_level=logging.WARNING)
+        # Execute mode_merge_duplicates_albums
+        LOGGER.info("INFO    : Merging Duplicates Albums...")
+        total_duplicates_albums_removed = cloud_client.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
         # Execute remove_duplicates_assets
         LOGGER.info("INFO    : Removing Duplicates Assets...")
-        duplicates_assets_removed = immich.remove_duplicates_assets(log_level=logging.WARNING)
+        duplicates_assets_removed = cloud_client.remove_duplicates_assets(log_level=logging.WARNING)
         # logout
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        immich.logout(log_level=logging.WARNING)
+        cloud_client.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -913,43 +400,58 @@ def mode_immich_upload_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("")
 
 
-def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
+def mode_cloud_upload_ALL(cloud=None, user_confirmation=True, log_level=logging.INFO):
     albums_folders = ARGS['albums-folders']
-    if user_confirmation:
+    if albums_folders:
+        LOGGER.info(f"INFO    : Flag detected '-AlbFld, --albums-folders'.")
+
+    if cloud == 'Immich':
+        input_folder = ARGS['immich-upload-all']
         LOGGER.info(f"INFO    : Flag detected '-iuAll, --immich-upload-all'.")
-        if albums_folders:
-            LOGGER.info(f"INFO    : Flag detected '-AlbFld, --albums-folders'.")
         LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["immich-upload-all"].replace('<INPUT_FOLDER>', f"{ARGS['immich-upload-all']}"))
+        LOGGER.warning(HELP_TEXTS["cloud-upload-all"].replace('<INPUT_FOLDER>', f"{input_folder}"))
         LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
+    elif cloud == 'Synology':
+        input_folder = ARGS['synology-upload-all']
+        LOGGER.info(f"INFO    : Flag detected '-suAll, --synology-upload-all'.")
+        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning(HELP_TEXTS["cloud-upload-all"].replace('<INPUT_FOLDER>', f"{input_folder}"))
+        LOGGER.warning('-' * terminal_width)
+    else:
+        LOGGER.info(f"INFO    : Cloud service not valid ({cloud}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        sys.exit(0)
+    if user_confirmation and not Utils.confirm_continue():
+        LOGGER.info(f"INFO    : Exiting program.")
+        sys.exit(0)
+
+    # Create the cloud_client Object
+    if cloud == 'Immich':
+        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+    elif cloud == 'Synology':
+        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Immich Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
-        # Create the Object
-        immich = ClassImmichPhotos(account_id=ARGS['account-id'])
+        LOGGER.info(f"INFO    : {cloud} Photos: 'Upload ALL' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        immich.login(log_level=logging.WARNING)
+        cloud_client.login(log_level=logging.WARNING)
         LOGGER.info(f"INFO    : Uploading Assets in Folder    : {ARGS['immich-upload-all']}")
         # Call the Function
-        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed, total_dupplicated_assets_skipped = immich.push_ALL(ARGS['immich-upload-all'], albums_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
+        total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed, total_dupplicated_assets_skipped = cloud_client.push_ALL(input_folder=input_folder, albums_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
-        LOGGER.info("INFO    : Cleaning-up Immich Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
-        # Execute mode_delete_empty_albums
+        LOGGER.info(f"INFO    : Cleaning-up {cloud} Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
+        # Execute mode_remove_empty_albums
         LOGGER.info("INFO    : Removing Empty Albums...")
-        total_empty_albums_removed = immich.remove_empty_albums(log_level=logging.WARNING)
-        # Execute mode_delete_duplicates_albums
-        LOGGER.info("INFO    : Removing Duplicates Albums...")
-        total_duplicates_albums_removed = immich.remove_duplicates_albums(log_level=logging.WARNING)
-        # Execute remove_duplicates_assets
+        total_empty_albums_removed = cloud_client.remove_empty_albums(log_level=logging.WARNING)
+        # Execute mode_merge_duplicates_albums
+        LOGGER.info("INFO    : Merging Duplicates Albums...")
+        total_duplicates_albums_removed = cloud_client.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
+        # Execute merge_duplicates_assets
         LOGGER.info("INFO    : Removing Duplicates Assets...")
-        duplicates_assets_removed = immich.remove_duplicates_assets(log_level=logging.WARNING)
+        duplicates_assets_removed = cloud_client.remove_duplicates_assets(log_level=logging.WARNING)
         # logout
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        immich.logout(log_level=logging.WARNING)
+        cloud_client.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -977,46 +479,63 @@ def mode_immich_upload_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("")
 
 
-def mode_immich_download_albums(user_confirmation=True, log_level=logging.INFO):
-    LOGGER.info(f"INFO    : Immich Photos: 'Download Albums' Mode detected. Only this module will be run!!!")
-    LOGGER.info(f"INFO    : Albums to extract   : {ARGS['immich-download-albums']}")
-    if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-idAlb, --immich-download-albums <ALBUMS_NAME>'.".replace("'<ALBUMS_NAME>'", f"{ARGS['immich-download-albums']}"))
+def mode_cloud_download_albums(cloud=None, user_confirmation=True, log_level=logging.INFO):
+    if cloud == 'Immich':
+        albums_name = ARGS['immich-download-albums']
+        output_folder = ARGS['output-folder']
+        LOGGER.info(f"INFO    : Flag detected '-idAlb, --immich-download-albums <ALBUMS_NAME>'.".replace("'<ALBUMS_NAME>'", albums_name))
+        LOGGER.info(f"INFO    : Albums to extract   : {albums_name}")
         LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["immich-download-albums"].replace("'<ALBUMS_NAME>'", f"{ARGS['immich-download-albums']}").replace("<OUTPUT_FOLDER>", ARGS['output-folder']))
+        LOGGER.warning(HELP_TEXTS["cloud-download-albums"].replace("'<ALBUMS_NAME>'", f"{ARGS['immich-download-albums']}").replace("<OUTPUT_FOLDER>", output_folder))
         LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
+    elif cloud == 'Synology':
+        albums_name = ARGS['synology-download-albums']
+        output_folder = ARGS['output-folder']
+        LOGGER.info(f"INFO    : Flag detected '-sdAlb, --synology-download-albums <ALBUMS_NAME>'.".replace("'<ALBUMS_NAME>'", albums_name))
+        LOGGER.info(f"INFO    : Albums to extract   : {albums_name}")
+        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning(HELP_TEXTS["cloud-download-albums"].replace("'<ALBUMS_NAME>'", f"{ARGS['synology-download-albums']}").replace("<OUTPUT_FOLDER>", output_folder))
+        LOGGER.warning('-' * terminal_width)
+    else:
+        LOGGER.info(f"INFO    : Cloud service not valid ({cloud}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        sys.exit(0)
+    if user_confirmation and not Utils.confirm_continue():
+        LOGGER.info(f"INFO    : Exiting program.")
+        sys.exit(0)
+
+    # Create the cloud_client Object
+    if cloud == 'Immich':
+        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+    elif cloud == 'Synology':
+        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Create the Object
-        immich = ClassImmichPhotos(account_id=ARGS['account-id'])
+        LOGGER.info(f"INFO    : {cloud} Photos: 'Download Albums' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        immich.login(log_level=logging.WARNING)
+        cloud_client.login(log_level=logging.WARNING)
         # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("")
         LOGGER.info("INFO    : Cleaning-up Immich Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
         LOGGER.info("")
         LOGGER.info("INFO    : Removing Empty Albums...")
-        total_empty_albums_removed = immich.remove_empty_albums(log_level=logging.WARNING)
-        # Execute mode_delete_duplicates_albums
+        total_empty_albums_removed = cloud_client.remove_empty_albums(log_level=logging.WARNING)
+        # Execute mode_merge_duplicates_albums
         LOGGER.info("")
-        LOGGER.info("INFO    : Removing Duplicates Albums...")
-        total_duplicates_albums_removed = immich.remove_duplicates_albums(log_level=logging.WARNING)
+        LOGGER.info("INFO    : Merging Duplicates Albums...")
+        total_duplicates_albums_removed = cloud_client.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
         # Execute remove_duplicates_assets
         LOGGER.info("")
         LOGGER.info("INFO    : Removing Duplicates Assets...")
-        duplicates_assets_removed = immich.remove_duplicates_assets(log_level=logging.WARNING)
+        duplicates_assets_removed = cloud_client.remove_duplicates_assets(log_level=logging.WARNING)
         # Call the Function
-        albums_downloaded, assets_downloaded = immich.pull_albums(albums_name=ARGS['immich-download-albums'], output_folder=ARGS['output-folder'], log_level=logging.WARNING)
+        albums_downloaded, assets_downloaded = cloud_client.pull_albums(albums_name=albums_name, output_folder=output_folder, log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        immich.logout(log_level=logging.WARNING)
+        cloud_client.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -1036,36 +555,50 @@ def mode_immich_download_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("")
 
 
-def mode_immich_download_ALL(user_confirmation=True, log_level=logging.INFO):
-    LOGGER.info(f"INFO    : Immich Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
-    if user_confirmation:
+def mode_cloud_download_ALL(cloud=None, user_confirmation=True, log_level=logging.INFO):
+    if cloud == 'Immich':
+        output_folder = ARGS['immich-download-all']
         LOGGER.info(f"INFO    : Flag detected '-idAll, --immich-download-all'.")
         LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["immich-download-all"].replace('<OUTPUT_FOLDER>', f"{ARGS['immich-download-all']}"))
+        LOGGER.warning(HELP_TEXTS["cloud-download-all"].replace('<OUTPUT_FOLDER>', output_folder))
         LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
+    elif cloud == 'Synology':
+        output_folder = ARGS['synology-download-all']
+        LOGGER.info(f"INFO    : Flag detected '-sdAll, --synology-download-all'.")
+        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning(HELP_TEXTS["cloud-download-all"].replace('<OUTPUT_FOLDER>', output_folder))
+        LOGGER.warning('-' * terminal_width)
+    else:
+        LOGGER.info(f"INFO    : Cloud service not valid ({cloud}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        sys.exit(0)
+    if user_confirmation and not Utils.confirm_continue():
+        LOGGER.info(f"INFO    : Exiting program.")
+        sys.exit(0)
+
+    # Create the cloud_client Object
+    if cloud == 'Immich':
+        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+    elif cloud == 'Synology':
+        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Create the Object
-        immich = ClassImmichPhotos(account_id=ARGS['account-id'])
+        LOGGER.info(f"INFO    : {cloud} Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        immich.login(log_level=logging.WARNING)
+        cloud_client.login(log_level=logging.WARNING)
         # Before to Download Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
         LOGGER.info("INFO    : Cleaning-up Immich Photos account (Removing Empty/Duplicates Albums and Duplicates Assets)...")
         # Execute mode_delete_empty_albums
-        total_empty_albums_removed = immich.remove_empty_albums(log_level=logging.WARNING)
-        # Execute mode_delete_duplicates_albums
-        total_duplicates_albums_removed = immich.remove_duplicates_albums(log_level=logging.WARNING)
+        total_empty_albums_removed = cloud_client.remove_empty_albums(log_level=logging.WARNING)
+        # Execute merge_duplicates_albums
+        total_duplicates_albums_removed = cloud_client.merge_duplicates_albums(request_user_confirmation=False, log_level=logging.WARNING)
         # Execute remove_duplicates_assets
-        duplicates_assets_removed = immich.remove_duplicates_assets(log_level=logging.WARNING)
+        duplicates_assets_removed = cloud_client.remove_duplicates_assets(log_level=logging.WARNING)
         # Call the Function
-        albums_downloaded, assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums = immich.pull_ALL(output_folder=ARGS['immich-download-all'], log_level=logging.WARNING)
+        albums_downloaded, assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums = cloud_client.pull_ALL(output_folder=output_folder, log_level=logging.WARNING)
         # logout
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        immich.logout(log_level=logging.WARNING)
+        cloud_client.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -1087,31 +620,42 @@ def mode_immich_download_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("")
 
 
-def mode_immich_remove_empty_albums(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-irEmpAlb, --immich-remove-empty-albums'.")
+def mode_cloud_remove_empty_albums(cloud=None, user_confirmation=True, log_level=logging.INFO):
+    if cloud == 'Immich':
+        LOGGER.info(f"INFO    : Flag detected '-irEmpAlb, --immich-remove-empty-albums'. The Tool will look for any empty album in your {cloud} Photos account and will delete them (if any empty album is found).")
         LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["immich-remove-empty-albums"])
+        LOGGER.warning(HELP_TEXTS["cloud-remove-empty-albums"])
         LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
+    elif cloud == 'Synology':
+        LOGGER.info(f"INFO    : Flag detected '-srEmpAlb, --synology-remove-empty-albums'. The Tool will look for any empty album in your {cloud} Photos account and will delete them (if any empty album is found).")
+        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning(HELP_TEXTS["cloud-remove-empty-albums"])
+        LOGGER.warning('-' * terminal_width)
+    else:
+        LOGGER.info(f"INFO    : Cloud service not valid ({cloud}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        sys.exit(0)
+    if user_confirmation and not Utils.confirm_continue():
+        LOGGER.info(f"INFO    : Exiting program.")
+        sys.exit(0)
+
+    # Create the cloud_client Object
+    if cloud == 'Immich':
+        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+    elif cloud == 'Synology':
+        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Immich Photos: 'Delete Empty Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO    : Flag detected '-irEmpAlb, --immich-remove-empty-albums'. The Tool will look for any empty album in your Immich Photos account and will delete them (if any empty album is found).")
-        # Create the Object
-        immich = ClassImmichPhotos(account_id=ARGS['account-id'])
+        LOGGER.info(f"INFO    : {cloud} Photos: 'Remove Empty Album' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        immich.login(log_level=logging.WARNING)
+        cloud_client.login(log_level=logging.WARNING)
         # Call the Function
-        albums_removed = immich.remove_empty_albums(log_level=logging.WARNING)
+        albums_removed = cloud_client.remove_empty_albums(log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        immich.logout(log_level=logging.WARNING)
+        cloud_client.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -1130,31 +674,42 @@ def mode_immich_remove_empty_albums(user_confirmation=True, log_level=logging.IN
         LOGGER.info("")
 
 
-def mode_immich_remove_duplicates_albums(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-irDupAlb, --immich-remove-duplicates-albums'.")
+def mode_cloud_remove_duplicates_albums(cloud=None, user_confirmation=True, log_level=logging.INFO):
+    if cloud == 'Immich':
+        LOGGER.info(f"INFO    : Flag detected '-irDupAlb, --immich-remove-duplicates-albums'. The Tool will look for any duplicated album in your {cloud} Photos account and will delete them (if any duplicated album is found).")
         LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["immich-remove-duplicates-albums"])
+        LOGGER.warning(HELP_TEXTS["cloud-remove-duplicates-albums"])
         LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
+    elif cloud == 'Synology':
+        LOGGER.info(f"INFO    : Flag detected '-srDupAlb, --synology-remove-duplicates-albums'. The Tool will look for any duplicated album in your {cloud} Photos account and will delete them (if any duplicated album is found).")
+        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning(HELP_TEXTS["cloud-remove-duplicates-albums"])
+        LOGGER.warning('-' * terminal_width)
+    else:
+        LOGGER.info(f"INFO    : Cloud service not valid ({cloud}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        sys.exit(0)
+    if user_confirmation and not Utils.confirm_continue():
+        LOGGER.info(f"INFO    : Exiting program.")
+        sys.exit(0)
+
+    # Create the cloud_client Object
+    if cloud == 'Immich':
+        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+    elif cloud == 'Synology':
+        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Immich Photos: 'Delete Duplicates Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO    : Flag detected '-irDupAlb, --immich-remove-duplicates-albums'. The Tool will look for any duplicated album in your Immich Photos account and will delete them (if any duplicated album is found).")
-        # Create the Object
-        immich = ClassImmichPhotos(account_id=ARGS['account-id'])
+        LOGGER.info(f"INFO    : {cloud} Photos: 'Remove Duplicates Album' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        immich.login(log_level=logging.WARNING)
+        cloud_client.login(log_level=logging.WARNING)
         # Call the Function
-        albums_removed = immich.remove_duplicates_albums(log_level=logging.WARNING)
+        albums_removed = cloud_client.remove_duplicates_albums(log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        immich.logout(log_level=logging.WARNING)
+        cloud_client.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -1173,35 +728,45 @@ def mode_immich_remove_duplicates_albums(user_confirmation=True, log_level=loggi
         LOGGER.info("")
 
 
-def mode_immich_merge_duplicates_albums(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
-        LOGGER.info(f"INFO    : Flag detected '-iMergAlb, --immich-merge-duplicates-albums'.")
+def mode_cloud_merge_duplicates_albums(cloud=None, user_confirmation=True, log_level=logging.INFO):
+    if cloud == 'Immich':
+        LOGGER.info(f"INFO    : Flag detected '-iMergAlb, --immich-merge-duplicates-albums'. The Tool will look for any duplicated album in your {cloud} Photos account, merge their content into the most relevant one, and remove the duplicates.")
         LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["immich-merge-duplicates-albums"])
+        LOGGER.warning(HELP_TEXTS["cloud-merge-duplicates-albums"])
         LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
+    elif cloud == 'Synology':
+        LOGGER.info(f"INFO    : Flag detected '-sMergAlb, --synology-merge-duplicates-albums'. The Tool will look for any duplicated album in your {cloud} Photos account, merge their content into the most relevant one, and remove the duplicates.")
+        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning(HELP_TEXTS["cloud-merge-duplicates-albums"])
+        LOGGER.warning('-' * terminal_width)
+    else:
+        LOGGER.info(f"INFO    : Cloud service not valid ({cloud}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        sys.exit(0)
+    if user_confirmation and not Utils.confirm_continue():
+        LOGGER.info(f"INFO    : Exiting program.")
+        sys.exit(0)
+
+    # Create the cloud_client Object
+    if cloud == 'Immich':
+        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+    elif cloud == 'Synology':
+        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Immich Photos: 'Merge Duplicates Album' Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO    : Flag detected '-iMergAlb, --immich-merge-duplicates-albums'. The Tool will look for any duplicated album in your Immich Photos account, merge their content into the most relevant one, and remove the duplicates.")
-
-        # Create the Object
-        immich = ClassImmichPhotos(account_id=ARGS['account-id'])
 
         # Login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        immich.login(log_level=logging.WARNING)
+        cloud_client.login(log_level=logging.WARNING)
 
         # Call the Function using 'count' as strategy (you can change to 'size')
-        albums_removed = immich.merge_duplicates_albums(strategy='count', log_level=logging.WARNING)
+        albums_removed = cloud_client.merge_duplicates_albums(strategy='count', log_level=logging.INFO)
 
         # Logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        immich.logout(log_level=logging.WARNING)
+        cloud_client.logout(log_level=logging.WARNING)
 
         # FINAL SUMMARY
         end_time = datetime.now()
@@ -1221,30 +786,40 @@ def mode_immich_merge_duplicates_albums(user_confirmation=True, log_level=loggin
         LOGGER.info("")
 
 
-def mode_immich_remove_orphan_assets(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
+def mode_cloud_remove_orphan_assets(cloud=None, user_confirmation=True, log_level=logging.INFO):
+    if cloud == 'Immich':
         LOGGER.info(f"INFO    : Flag detected '-irOrphan, --immich-remove-orphan-assets'.")
         LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["immich-remove-orphan-assets"])
+        LOGGER.warning(HELP_TEXTS["cloud-remove-orphan-assets"])
         LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
+    elif cloud == 'Synology':
+        LOGGER.warning(f"WARNING : Flag detected '-srOrphan, --synology-remove-orphan-assets'. But this feature is not available for Synology Photos. Exiting program.")
+        sys.exit(0)
+    else:
+        LOGGER.info(f"INFO    : Cloud service not valid ({cloud}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        sys.exit(0)
+    if user_confirmation and not Utils.confirm_continue():
+        LOGGER.info(f"INFO    : Exiting program.")
+        sys.exit(0)
+
+    # Create the cloud_client Object
+    if cloud == 'Immich':
+        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+    elif cloud == 'Synology':
+        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Immich Photos: 'Download ALL' Mode detected. Only this module will be run!!!")
-        # Create the Object
-        immich = ClassImmichPhotos(account_id=ARGS['account-id'])
+        LOGGER.info(f"INFO    : {cloud} Photos: 'Remove Orphan Assets' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        immich.login(log_level=logging.WARNING)
+        cloud_client.login(log_level=logging.WARNING)
         # Call the Function
-        assets_removed = immich.remove_orphan_assets(user_confirmation=False, log_level=logging.WARNING)
+        assets_removed = cloud_client.remove_orphan_assets(user_confirmation=False, log_level=logging.WARNING)
         #logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        immich.logout(log_level=logging.WARNING)
+        cloud_client.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -1263,30 +838,42 @@ def mode_immich_remove_orphan_assets(user_confirmation=True, log_level=logging.I
         LOGGER.info("")
 
 
-def mode_immich_remove_ALL(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
+def mode_cloud_remove_ALL(cloud=None, user_confirmation=True, log_level=logging.INFO):
+    if cloud == 'Immich':
         LOGGER.info(f"INFO    : Flag detected '-irAll, --immich-remove-all-assets'.")
         LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["immich-remove-all-assets"])
+        LOGGER.warning(HELP_TEXTS["cloud-remove-all-assets"])
         LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
+    elif cloud == 'Synology':
+        LOGGER.info(f"INFO    : Flag detected '-srAll, --synology-remove-all-assets'.")
+        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning(HELP_TEXTS["cloud-remove-all-assets"])
+        LOGGER.warning('-' * terminal_width)
+    else:
+        LOGGER.info(f"INFO    : Cloud service not valid ({cloud}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        sys.exit(0)
+    if user_confirmation and not Utils.confirm_continue():
+        LOGGER.info(f"INFO    : Exiting program.")
+        sys.exit(0)
+
+    # Create the cloud_client Object
+    if cloud == 'Immich':
+        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+    elif cloud == 'Synology':
+        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Immich Photos: 'Delete ALL Assets' Mode detected. Only this module will be run!!!")
-        # Create the Object
-        immich = ClassImmichPhotos(account_id=ARGS['account-id'])
+        LOGGER.info(f"INFO    : {cloud} Photos: 'Remove ALL Assets' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        immich.login(log_level=logging.WARNING)
+        cloud_client.login(log_level=logging.WARNING)
         # Call the Function
-        assets_removed, albums_removed = immich.remove_all_assets(log_level=logging.WARNING)
+        assets_removed, albums_removed = cloud_client.remove_all_assets(log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        immich.logout(log_level=logging.WARNING)
+        cloud_client.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -1306,30 +893,46 @@ def mode_immich_remove_ALL(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("")
 
 
-def mode_immich_rename_albums(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
+def mode_cloud_rename_albums(cloud=None, user_confirmation=True, log_level=logging.INFO):
+    if cloud == 'Immich':
+        albums_name_pattern = ARGS['immich-rename-albums'][0]
+        albums_name_replacement_pattern = ARGS['immich-rename-albums'][1]
         LOGGER.info(f"INFO    : Flag detected '-iRenAlb, --immich-rename-albums'.")
         LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["immich-rename-albums"].replace('<ALBUMS_NAME_PATTERN>', ARGS['immich-rename-albums'][0]).replace('<ALBUMS_NAME_REPLACEMENT_PATTERN>', ARGS['immich-rename-albums'][1]))
+        LOGGER.warning(HELP_TEXTS["cloud-rename-albums"].replace('<ALBUMS_NAME_PATTERN>', albums_name_pattern).replace('<ALBUMS_NAME_REPLACEMENT_PATTERN>',albums_name_replacement_pattern))
         LOGGER.warning('-' * terminal_width)
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
+    elif cloud == 'Synology':
+        albums_name_pattern = ARGS['synology-rename-albums'][0]
+        albums_name_replacement_pattern = ARGS['synology-rename-albums'][1]
+        LOGGER.info(f"INFO    : Flag detected '-sRenAlb, --synology-rename-albums'.")
+        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning(HELP_TEXTS["cloud-rename-albums"].replace('<ALBUMS_NAME_PATTERN>', albums_name_pattern).replace('<ALBUMS_NAME_REPLACEMENT_PATTERN>',albums_name_replacement_pattern))
+        LOGGER.warning('-' * terminal_width)
+    else:
+        LOGGER.info(f"INFO    : Cloud service not valid ({cloud}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        sys.exit(0)
+    if user_confirmation and not Utils.confirm_continue():
+        LOGGER.info(f"INFO    : Exiting program.")
+        sys.exit(0)
+
+    # Create the cloud_client Object
+    if cloud == 'Immich':
+        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+    elif cloud == 'Synology':
+        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Immich Photos: 'Rename Albums' Mode detected. Only this module will be run!!!")
-        # Create the Object
-        immich = ClassImmichPhotos(account_id=ARGS['account-id'])
+        LOGGER.info(f"INFO    : {cloud} Photos: 'Rename Albums' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        immich.login(log_level=logging.WARNING)
+        cloud_client.login(log_level=logging.WARNING)
         # Call the Function
-        albums_renamed = immich.rename_albums(pattern=ARGS['immich-rename-albums'][0], pattern_to_replace=ARGS['immich-rename-albums'][1], log_level=logging.WARNING)
+        albums_renamed = cloud_client.rename_albums(pattern=ARGS['immich-rename-albums'][0], pattern_to_replace=ARGS['immich-rename-albums'][1], log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        immich.logout(log_level=logging.WARNING)
+        cloud_client.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -1348,35 +951,56 @@ def mode_immich_rename_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("")
 
 
-def mode_immich_remove_albums(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
+def mode_cloud_remove_albums_by_name_pattern(cloud=None, user_confirmation=True, log_level=logging.INFO):
+    if cloud == 'Immich':
+        if ARGS['immich-remove-all-albums'] != "":
+            albums_name_pattern = '.*'
+        else:
+            albums_name_pattern = ARGS['immich-remove-albums']
+        remove_albums_assets = ARGS['remove-albums-assets']
         LOGGER.info(f"INFO    : Flag detected '-iRemAlb, --immich-remove-albums'.")
-        if ARGS['remove-albums-assets']:
-            LOGGER.info(f"INFO    : Flag detected '-rAlbAss, --remove-albums-assets'.")
         LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["immich-remove-albums"].replace('<ALBUMS_NAME_PATTERN>', ARGS['immich-remove-albums']))
+        LOGGER.warning(HELP_TEXTS["cloud-remove-albums"].replace('<ALBUMS_NAME_PATTERN>', albums_name_pattern))
         LOGGER.warning('-' * terminal_width)
-        if ARGS['remove-albums-assets']:
-            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any deleted Albums will also be deleted.")
-            LOGGER.info("")
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
+    elif cloud == 'Synology':
+        if ARGS['synology-remove-all-albums'] != "":
+            albums_name_pattern = '.*'
+        else:
+            albums_name_pattern = ARGS['synology-remove-albums']
+        remove_albums_assets = ARGS['remove-albums-assets']
+        LOGGER.info(f"INFO    : Flag detected '-iRemAlb, --synology-remove-albums'.")
+        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning(HELP_TEXTS["cloud-remove-albums"].replace('<ALBUMS_NAME_PATTERN>', albums_name_pattern))
+        LOGGER.warning('-' * terminal_width)
+    else:
+        LOGGER.info(f"INFO    : Cloud service not valid ({cloud}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        sys.exit(0)
+    if ARGS['remove-albums-assets']:
+        LOGGER.info(f"INFO    : Flag detected '-rAlbAss, --remove-albums-assets'.")
+        LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any deleted Albums will also be deleted.")
+        LOGGER.info("")
+    if user_confirmation and not Utils.confirm_continue():
+        LOGGER.info(f"INFO    : Exiting program.")
+        sys.exit(0)
+
+    # Create the cloud_client Object
+    if cloud == 'Immich':
+        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+    elif cloud == 'Synology':
+        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Immich Photos: 'Delete Albums' Mode detected. Only this module will be run!!!")
-        # Create the Object
-        immich = ClassImmichPhotos(account_id=ARGS['account-id'])
+        LOGGER.info(f"INFO    : {cloud} Photos: 'Delete Albums' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        immich.login(log_level=logging.WARNING)
+        cloud_client.login(log_level=logging.WARNING)
         # Call the Function
-        albums_removed, assets_removed = immich.remove_albums_by_name(pattern=ARGS['immich-remove-albums'], removeAlbumsAssets=ARGS['remove-albums-assets'], log_level=logging.WARNING)
+        albums_removed, assets_removed = cloud_client.remove_albums_by_name(pattern=albums_name_pattern, removeAlbumsAssets=remove_albums_assets, log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        immich.logout(log_level=logging.WARNING)
+        cloud_client.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -1396,35 +1020,48 @@ def mode_immich_remove_albums(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("")
 
 
-def mode_immich_remove_all_albums(user_confirmation=True, log_level=logging.INFO):
-    if user_confirmation:
+def mode_cloud_remove_all_albums(cloud=None, user_confirmation=True, log_level=logging.INFO):
+    if cloud == 'Immich':
+        remove_albums_assets = ARGS['remove-albums-assets']
         LOGGER.info(f"INFO    : Flag detected '-irAllAlb, --immich-remove-all-albums'.")
-        if ARGS['remove-albums-assets']:
-            LOGGER.info(f"INFO    : Flag detected '-rAlbAss, --remove-albums-assets'.")
         LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["immich-remove-all-albums"])
+        LOGGER.warning(HELP_TEXTS["cloud-remove-all-albums"])
         LOGGER.warning('-' * terminal_width)
-        if ARGS['remove-albums-assets']:
-            LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any deleted Albums will also be deleted.")
-            LOGGER.info("")
-        if not Utils.confirm_continue():
-            LOGGER.info(f"INFO    : Exiting program.")
-            sys.exit(0)
+    elif cloud == 'Synology':
+        remove_albums_assets = ARGS['remove-albums-assets']
+        LOGGER.info(f"INFO    : Flag detected '-srAllAlb, --synology-remove-all-albums'.")
+        LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.warning(HELP_TEXTS["cloud-remove-all-albums"])
+        LOGGER.warning('-' * terminal_width)
+    else:
+        LOGGER.info(f"INFO    : Cloud service not valid ({cloud}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        sys.exit(0)
+    if ARGS['remove-albums-assets']:
+        LOGGER.info(f"INFO    : Flag detected '-rAlbAss, --remove-albums-assets'.")
+        LOGGER.info(f"Since, flag '-rAlbAss, --remove-albums-assets' have been detected, ALL the Assets associated to any deleted Albums will also be deleted.")
+        LOGGER.info("")
+    if user_confirmation and not Utils.confirm_continue():
+        LOGGER.info(f"INFO    : Exiting program.")
+        sys.exit(0)
+
+    # Create the cloud_client Object
+    if cloud == 'Immich':
+        cloud_client = ClassImmichPhotos(account_id=ARGS['account-id'])
+    elif cloud == 'Synology':
+        cloud_client = ClassSynologyPhotos(account_id=ARGS['account-id'])
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Immich Photos: 'Delete ALL Albums' Mode detected. Only this module will be run!!!")
-        # Create the Object
-        immich = ClassImmichPhotos(account_id=ARGS['account-id'])
+        LOGGER.info(f"INFO    : {cloud} Photos: 'Delete ALL Albums' Mode detected. Only this module will be run!!!")
         # login
         LOGGER.info("")
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
-        immich.login(log_level=logging.WARNING)
+        cloud_client.login(log_level=logging.WARNING)
         # Call the Function
-        albums_removed, assets_removed = immich.remove_all_albums(removeAlbumsAssets= ARGS['remove-albums-assets'], log_level=logging.WARNING)
+        albums_removed, assets_removed = cloud_client.remove_all_albums(removeAlbumsAssets=remove_albums_assets, log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info("INFO    : Logged out from Immich Photos.")
-        immich.logout(log_level=logging.WARNING)
+        cloud_client.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
