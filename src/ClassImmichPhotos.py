@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 from halo import Halo
 from tabulate import tabulate
 
-from Utils import update_metadata, convert_to_list, tqdm, parse_text_datetime_to_epoch, organize_files_by_date, match_pattern, replace_pattern, has_any_filter, is_date_outside_range
+from Utils import update_metadata, convert_to_list, tqdm, parse_text_datetime_to_epoch, organize_files_by_date, match_pattern, replace_pattern, has_any_filter, is_date_outside_range, confirm_continue
 
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
@@ -1734,28 +1734,33 @@ class ClassImmichPhotos:
         return 0
 
 
-    def rename_albums(self, pattern, pattern_to_replace, log_level=logging.WARNING):
+    def rename_albums(self, pattern, pattern_to_replace, request_user_confirmation=True, log_level=logging.WARNING):
         """
-        Removes all albums in Immich Photos whose name match with the provided pattern.
+        Renames all albums in Immich Photos whose name matches the provided pattern.
+
+        First, collects all albums that match the pattern and prepares the new names.
+        Then, displays the list of albums to rename and asks the user for confirmation.
+        If the user confirms, performs the renaming through the API.
 
         Args:
-            log_level (logging.LEVEL): log_level for logs and console
+            pattern (str): The regex pattern to match album names.
+            pattern_to_replace (str): The pattern to replace matches with.
+            log_level (logging.LEVEL): The log level for logging and console output.
 
         Returns:
-            int: The number of albums removed.
+            int: The number of albums renamed.
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            LOGGER.warning("WARNING : Searching for Albums that matches the provided pattern. This process may take some time. Please be patient!...")
+            LOGGER.warning("WARNING : Searching for albums that match the provided pattern. This process may take some time. Please be patient...")
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
                 # self.logout(log_level=log_level)
                 return 0
 
-            total_renamed_albums = 0
-            for album in tqdm(albums, desc=f"INFO    : Searching for Albums to rename", unit=" albums"):
-                # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+            albums_to_rename = {}
+            for album in tqdm(albums, desc="INFO    : Searching for albums to rename", unit="albums"):
                 album_date = album.get("createdAt")
                 if is_date_outside_range(album_date):
                     continue
@@ -1766,70 +1771,123 @@ class ClassImmichPhotos:
                 album_thumbnail = album.get("albumThumbnailAssetId", "")
                 if match_pattern(album_name, pattern):
                     new_name = replace_pattern(album_name, pattern=pattern, pattern_to_replace=pattern_to_replace)
+                    albums_to_rename[album_id] = {
+                        "album_name": album_name,
+                        "new_name": new_name,
+                        "album_thumbnail": album_thumbnail,
+                        "album_description": album_description
+                    }
 
-                    url = f"{self.IMMICH_URL}/api/albums/{album_id}"
-                    payload = json.dumps({
-                        "albumName": new_name,
-                        "albumThumbnailAssetId": album_thumbnail,
-                        "description": album_description,
-                        "isActivityEnabled": True,
-                        "order": "asc"
-                    })
-                    response = requests.request("PATCH", url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload)
-                    response.raise_for_status()
-                    if response.ok:
-                        LOGGER.info(f"INFO    : Album '{album_name}' (ID={album_id}) renamed to {new_name} .")
-                        total_renamed_albums += 1
-            LOGGER.info(f"INFO    : Removed {total_renamed_albums} albums whose names matched with the provided pattern.")
+            if not albums_to_rename:
+                LOGGER.info("INFO    : No albums matched the pattern.")
+                # self.logout(log_level=log_level)
+                return 0
+
+            # Display the albums that will be renamed
+            LOGGER.info("INFO    : Albums to be renamed:")
+            for album_info in albums_to_rename.values():
+                print(f"  '{album_info['album_name']}' --> '{album_info['new_name']}'")
+
+            # Ask for confirmation only if requested
+            if request_user_confirmation and not confirm_continue():
+                LOGGER.info("INFO    : Exiting program.")
+                return 0
+
+            total_renamed_albums = 0
+            for album_id, album_info in albums_to_rename.items():
+                url = f"{self.IMMICH_URL}/api/albums/{album_id}"
+                payload = json.dumps({
+                    "albumName": album_info["new_name"],
+                    "albumThumbnailAssetId": album_info["album_thumbnail"],
+                    "description": album_info["album_description"],
+                    "isActivityEnabled": True,
+                    "order": "asc"
+                })
+                response = requests.request("PATCH", url, headers=self.HEADERS_WITH_CREDENTIALS, data=payload)
+                response.raise_for_status()
+                if response.ok:
+                    LOGGER.info(f"INFO    : Album '{album_info['album_name']}' (ID={album_id}) renamed to '{album_info['new_name']}'.")
+                    total_renamed_albums += 1
+
+            LOGGER.info(f"INFO    : Renamed {total_renamed_albums} albums whose names matched the provided pattern.")
             # self.logout(log_level=log_level)
             return total_renamed_albums
 
-
-    def remove_albums_by_name(self, pattern, removeAlbumsAssets=False, log_level=logging.WARNING):
+    def remove_albums_by_name(self, pattern, removeAlbumsAssets=False, request_user_confirmation=True, log_level=logging.WARNING):
         """
-        Removes all albums in Immich Photos whose name match with the provided pattern.
+        Removes all albums in Immich Photos whose name matches the provided pattern.
+
+        If removeAlbumsAssets is True, it also deletes all assets inside the matching albums.
+        If request_user_confirmation is True, displays the albums to be deleted and asks for user confirmation before proceeding.
 
         Args:
-            log_level (logging.LEVEL): log_level for logs and console
+            pattern (str): The regex pattern to match album names.
+            removeAlbumsAssets (bool): Whether to delete all assets contained in the albums.
+            request_user_confirmation (bool): Whether to ask for confirmation before deleting.
+            log_level (logging.LEVEL): The log level for logging and console output.
 
         Returns:
-            int: The number of albums removed.
+            tuple: (number of albums removed, number of assets removed)
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            LOGGER.warning("WARNING : Searching for Albums that matches the provided pattern. This process may take some time. Please be patient!...")
+            LOGGER.warning("WARNING : Searching for albums that match the provided pattern. This process may take some time. Please be patient...")
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
                 LOGGER.info("INFO    : No albums found.")
                 # self.logout(log_level=log_level)
-                return 0
+                return 0, 0
 
-            total_removed_albums = 0
-            total_removed_assets = 0
-            for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
-                # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+            albums_to_remove = []
+            for album in tqdm(albums, desc="INFO    : Searching for albums to remove", unit="albums"):
                 album_date = album.get("createdAt")
                 if is_date_outside_range(album_date):
                     continue
 
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
+
                 if match_pattern(album_name, pattern):
-                    if removeAlbumsAssets:
-                        album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
-                        album_assets_ids = []
-                        for asset in album_assets:
-                            asset_id = asset.get("id")
-                            if asset_id:
-                                album_assets_ids.append(asset_id)
+                    albums_to_remove.append({
+                        "album_id": album_id,
+                        "album_name": album_name
+                    })
+
+            if not albums_to_remove:
+                LOGGER.info("INFO    : No albums matched the pattern.")
+                # self.logout(log_level=log_level)
+                return 0, 0
+
+            # Display the albums that will be removed
+            LOGGER.warning("WARNING : Albums marked for deletion:")
+            for album_info in albums_to_remove:
+                LOGGER.warning(f"WARNING : {album_info['album_name']}' (ID={album_info['album_id']})")
+
+            # Ask for confirmation only if requested
+            if request_user_confirmation and not confirm_continue():
+                LOGGER.info("INFO    : Exiting program.")
+                # self.logout(log_level=log_level)
+                return 0, 0
+
+            total_removed_albums = 0
+            total_removed_assets = 0
+            for album_info in albums_to_remove:
+                album_id = album_info["album_id"]
+                album_name = album_info["album_name"]
+
+                if removeAlbumsAssets:
+                    album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
+                    album_assets_ids = [asset.get("id") for asset in album_assets if asset.get("id")]
+                    if album_assets_ids:
                         assets_removed = self.remove_assets(album_assets_ids, log_level=logging.WARNING)
                         total_removed_assets += assets_removed
 
-                    if self.remove_album(album_id, album_name):
-                        LOGGER.info(f"INFO    : Album '{album_name}' (ID={album_id}) removed.")
-                        total_removed_albums += 1
-            LOGGER.info(f"INFO    : Removed {total_removed_albums} albums whose names matched with the provided pattern.")
-            LOGGER.info(f"INFO    : Removed {total_removed_assets} from those removed albums.")
+                if self.remove_album(album_id, album_name):
+                    LOGGER.info(f"INFO    : Album '{album_name}' (ID={album_id}) removed.")
+                    total_removed_albums += 1
+
+            LOGGER.info(f"INFO    : Removed {total_removed_albums} albums whose names matched the provided pattern.")
+            LOGGER.info(f"INFO    : Removed {total_removed_assets} assets from those removed albums.")
             # self.logout(log_level=log_level)
             return total_removed_albums, total_removed_assets
 
@@ -1926,15 +1984,16 @@ class ClassImmichPhotos:
             # self.logout(log_level=log_level)
             return total_removed_empty_albums
 
-
-    def remove_duplicates_albums(self, log_level=logging.WARNING):
+    def remove_duplicates_albums(self, request_user_confirmation=True, log_level=logging.WARNING):
         """
-        Remove all duplicate albums in Immich Photos. Duplicates are albums
-        that share the same item_count and total item_size. It keeps the first
-        album, removes the others from each duplicate group.
+        Removes all duplicate albums in Immich Photos.
+
+        Duplicates are albums that share the same item count and total item size.
+        The function keeps the first album (sorted by album name) and removes the rest.
+        Before deleting, it displays the list of albums to be removed and asks for user confirmation.
 
         Args:
-            log_level (logging.LEVEL): log_level for logs and console
+            log_level (logging.LEVEL): The log level for logging and console output.
 
         Returns:
             int: The number of duplicate albums deleted.
@@ -1946,38 +2005,53 @@ class ClassImmichPhotos:
                 # self.logout(log_level=log_level)
                 return 0
 
-            LOGGER.info("INFO    : Looking for duplicate albums in Immich Photos...")
+            LOGGER.info("INFO    : Searching for duplicate albums in Immich Photos...")
             duplicates_map = {}
-            for album in tqdm(albums, desc=f"INFO    : Searching for Duplicates Albums", unit=" albums"):
-                # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+            for album in tqdm(albums, desc="INFO    : Searching for duplicate albums", unit="albums"):
                 album_date = album.get("createdAt")
                 if is_date_outside_range(album_date):
                     continue
-
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
                 assets_count = album.get("assetCount")
                 assets_size = self.get_album_assets_size(album_id, log_level=log_level)
                 duplicates_map.setdefault((assets_count, assets_size), []).append((album_id, album_name))
 
-            total_removed_duplicated_albums = 0
+            albums_to_remove = []
             for (assets_count, assets_size), group in duplicates_map.items():
                 LOGGER.debug(f"DEBUG   : Assets Count: {assets_count}. Assets Size: {assets_size}.")
                 if len(group) > 1:
-                    # Keep the first, remove the rest
-                    group_sorted = sorted(group, key=lambda x: x[1])  # sort by album_id string
-                    to_remove = group_sorted[1:]
-                    for (alb_id, alb_name) in to_remove:
-                        LOGGER.info(f"INFO    : Removing duplicate album: '{alb_name}' (ID={alb_id})")
-                        if self.remove_album(alb_id, alb_name):
-                            total_removed_duplicated_albums += 1
+                    group_sorted = sorted(group, key=lambda x: x[1])  # Sort by album name
+                    to_remove = group_sorted[1:]  # Keep the first, remove the rest
+                    albums_to_remove.extend(to_remove)
+
+            if not albums_to_remove:
+                LOGGER.info("INFO    : No duplicate albums found.")
+                # self.logout(log_level=log_level)
+                return 0
+
+            # Display the albums that will be removed
+            LOGGER.info("INFO    : Albums marked for deletion:")
+            for alb_id, alb_name in albums_to_remove:
+                print(f"  '{alb_name}' (ID={alb_id})")
+
+            # Ask for confirmation only if requested
+            if request_user_confirmation and not confirm_continue():
+                LOGGER.info("INFO    : Exiting program.")
+                return 0
+
+            total_removed_duplicated_albums = 0
+            for alb_id, alb_name in albums_to_remove:
+                LOGGER.info(f"INFO    : Removing duplicate album: '{alb_name}' (ID={alb_id})")
+                if self.remove_album(alb_id, alb_name):
+                    total_removed_duplicated_albums += 1
 
             LOGGER.info(f"INFO    : Removed {total_removed_duplicated_albums} duplicate albums.")
             # self.logout(log_level=log_level)
             return total_removed_duplicated_albums
 
 
-    def merge_duplicates_albums(self, strategy='count', log_level=logging.WARNING):
+    def merge_duplicates_albums(self, strategy='count', request_user_confirmation=True, log_level=logging.WARNING):
         """
         Merge all duplicate albums in Immich Photos. Duplicates are albums
         with the same name but different assets. Keeps the album with the highest
@@ -2009,7 +2083,10 @@ class ClassImmichPhotos:
                 album_id = album.get("id")
                 album_name = album.get("albumName", "")
                 asset_count = album.get("assetCount", 0)
-                assets_size = self.get_album_assets_size(album_id, log_level=log_level)
+                if strategy=='size':
+                    assets_size = self.get_album_assets_size(album_id, log_level=log_level)
+                else:
+                    assets_size = 'Undefined'
 
                 albums_by_name.setdefault(album_name, []).append({
                     "id": album_id,
@@ -2018,8 +2095,35 @@ class ClassImmichPhotos:
                     "size": assets_size
                 })
 
-            total_removed_duplicated_albums = 0
+            # Comprobar si hay algún grupo con más de un álbum
+            if any(len(album_group) > 1 for album_group in albums_by_name.values()):
+                # Loop through each album name and its group to show all Duplicates Albums and request User Confifmation to continue
+                LOGGER.info(f"INFO    : The following Albums are duplicates (by Name) and will be merged into the first album:")
+                for album_name, album_group in albums_by_name.items():
+                    if len(album_group) > 1:
+                        # Ordenar el grupo según la estrategia
+                        if strategy == 'size':
+                            sorted_group = sorted(album_group, key=lambda x: x["size"], reverse=True)
+                        else:  # Default to 'count'
+                            sorted_group = sorted(album_group, key=lambda x: x["count"], reverse=True)
 
+                        # El primero es el que se queda
+                        main_album = sorted_group[0]
+                        albums_to_delete = sorted_group[1:]
+
+                        # Mostrarlo en el log
+                        LOGGER.info(f"INFO    : {album_name}:")
+                        LOGGER.info(f"          [KEEP ] {main_album}")
+                        for album in albums_to_delete:
+                            LOGGER.info(f"          [MERGE] {album}")
+                LOGGER.info("")
+
+                # Ask for confirmation only if requested
+                if request_user_confirmation and not confirm_continue():
+                    LOGGER.info("INFO    : Exiting program.")
+                    return 0
+
+            total_removed_duplicated_albums = 0
             for album_name, album_group in albums_by_name.items():
                 if len(album_group) <= 1:
                     continue  # No duplicates
