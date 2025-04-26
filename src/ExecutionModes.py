@@ -622,12 +622,14 @@ def mode_cloud_download_ALL(cloud=None, user_confirmation=True, log_level=loggin
 
 def mode_cloud_remove_empty_albums(cloud=None, user_confirmation=True, log_level=logging.INFO):
     if cloud == 'Immich':
-        LOGGER.info(f"INFO    : Flag detected '-irEmpAlb, --immich-remove-empty-albums'. The Tool will look for any empty album in your {cloud} Photos account and will delete them (if any empty album is found).")
+        LOGGER.info(f"INFO    : Flag detected '-irEmpAlb, --immich-remove-empty-albums'.")
+        LOGGER.info(f"INFO    : The Tool will look for any empty album in your {cloud} Photos account and will delete them (if any empty album is found).")
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["cloud-remove-empty-albums"])
         LOGGER.warning('-' * terminal_width)
     elif cloud == 'Synology':
-        LOGGER.info(f"INFO    : Flag detected '-srEmpAlb, --synology-remove-empty-albums'. The Tool will look for any empty album in your {cloud} Photos account and will delete them (if any empty album is found).")
+        LOGGER.info(f"INFO    : Flag detected '-srEmpAlb, --synology-remove-empty-albums'.")
+        LOGGER.info(f"INFO    : The Tool will look for any empty album in your {cloud} Photos account and will delete them (if any empty album is found).")
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["cloud-remove-empty-albums"])
         LOGGER.warning('-' * terminal_width)
@@ -676,12 +678,14 @@ def mode_cloud_remove_empty_albums(cloud=None, user_confirmation=True, log_level
 
 def mode_cloud_remove_duplicates_albums(cloud=None, user_confirmation=True, log_level=logging.INFO):
     if cloud == 'Immich':
-        LOGGER.info(f"INFO    : Flag detected '-irDupAlb, --immich-remove-duplicates-albums'. The Tool will look for any duplicated album in your {cloud} Photos account and will delete them (if any duplicated album is found).")
+        LOGGER.info(f"INFO    : Flag detected '-irDupAlb, --immich-remove-duplicates-albums'.")
+        LOGGER.info(f"INFO    : The Tool will look for any duplicated album in your {cloud} Photos account and will delete them (if any duplicated album is found).")
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["cloud-remove-duplicates-albums"])
         LOGGER.warning('-' * terminal_width)
     elif cloud == 'Synology':
-        LOGGER.info(f"INFO    : Flag detected '-srDupAlb, --synology-remove-duplicates-albums'. The Tool will look for any duplicated album in your {cloud} Photos account and will delete them (if any duplicated album is found).")
+        LOGGER.info(f"INFO    : Flag detected '-srDupAlb, --synology-remove-duplicates-albums'")
+        LOGGER.info(f"INFO    : The Tool will look for any duplicated album in your {cloud} Photos account and will delete them (if any duplicated album is found).")
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["cloud-remove-duplicates-albums"])
         LOGGER.warning('-' * terminal_width)
@@ -730,12 +734,14 @@ def mode_cloud_remove_duplicates_albums(cloud=None, user_confirmation=True, log_
 
 def mode_cloud_merge_duplicates_albums(cloud=None, user_confirmation=True, log_level=logging.INFO):
     if cloud == 'Immich':
-        LOGGER.info(f"INFO    : Flag detected '-iMergAlb, --immich-merge-duplicates-albums'. The Tool will look for any duplicated album in your {cloud} Photos account, merge their content into the most relevant one, and remove the duplicates.")
+        LOGGER.info(f"INFO    : Flag detected '-iMergAlb, --immich-merge-duplicates-albums'.")
+        LOGGER.info(f"INFO    : The Tool will look for any duplicated album in your {cloud} Photos account, merge their content into the most relevant one, and remove the duplicates.")
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["cloud-merge-duplicates-albums"])
         LOGGER.warning('-' * terminal_width)
     elif cloud == 'Synology':
-        LOGGER.info(f"INFO    : Flag detected '-sMergAlb, --synology-merge-duplicates-albums'. The Tool will look for any duplicated album in your {cloud} Photos account, merge their content into the most relevant one, and remove the duplicates.")
+        LOGGER.info(f"INFO    : Flag detected '-sMergAlb, --synology-merge-duplicates-albums'.")
+        LOGGER.info(f"INFO    : The Tool will look for any duplicated album in your {cloud} Photos account, merge their content into the most relevant one, and remove the duplicates.")
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["cloud-merge-duplicates-albums"])
         LOGGER.warning('-' * terminal_width)

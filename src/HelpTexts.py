@@ -22,15 +22,15 @@ def set_help_texts():
     # FEATURES: SYNOLOGY/IMMICH PHOTOS #
     ####################################
     HELP_TEXTS["cloud-remove-empty-albums"] = textwrap.dedent(f"""
-            ATTENTION!!!: This process will connect to your to your Photos account and will delete all Empty Albums found in your Photos account.
+            ATTENTION!!!: This process will connect to your to your Photos account and will delete all Empty Albums found in it.
             """)
 
     HELP_TEXTS["cloud-remove-duplicates-albums"] = textwrap.dedent(f"""
-            ATTENTION!!!: This process will connect to your to your Photos account and will delete all Duplicates Albums found in your Photos account.
+            ATTENTION!!!: This process will connect to your to your Photos account and will delete all Duplicates Albums found in it.
             """)
 
     HELP_TEXTS["cloud-merge-duplicates-albums"] = textwrap.dedent(f"""
-            ATTENTION!!!: This process will connect to your to your Photos account and will merge all Duplicates Albums (with the same name) found in your Photos account, removing all of them except the albums with highest number of assets and assigning all assets from removed albums to it.
+            ATTENTION!!!: This process will connect to your to your Photos account and will merge all Duplicates Albums (with the same name) found in it, removing all of them except the albums with highest number of assets and assigning all assets from removed albums to it.
             """)
 
     HELP_TEXTS["cloud-upload-folder"] = textwrap.dedent(f"""
