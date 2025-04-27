@@ -228,7 +228,7 @@
     - [x] Updated -h, --help to reflect the new changes.
     - [x] Code refactored.
     - [x] Renamed options:
-      - -sca,  --synology-create-albums is now **suAlb,  --synology-upload-albums <ALBUMS_FOLDER>**.
+      - -sca,  --synology-create-albums is now **-suAlb,  --synology-upload-albums <ALBUMS_FOLDER>**.
       - -sea,  --synology-extract-albums is now **-sdAlb,  --synology-download-albums <ALBUMS_NAME>**.
       - -fsym, --fix-symlinks-broken <FOLDER_TO_FIX> is now **-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>**.
       - -fdup, --find-duplicates <ACTION> <DUPLICATES_FOLDER> is now **-findDup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>**.
