@@ -3,6 +3,14 @@ import ChangeWorkingDir
 ChangeWorkingDir.change_working_dir(change_dir=True)
 
 import os,sys
+import tkinter as tk
+from tkinter import filedialog
+
+def select_folder_gui():
+    root = tk.Tk()
+    root.withdraw()
+    return filedialog.askdirectory(title="Select the Google Takeout folder to process")
+
 # Verificar si el script se ejecutó con un solo argumento que sea una ruta de una carpeta existente
 if len(sys.argv) == 2 and os.path.isdir(sys.argv[1]):
     print(f"INFO    : Valid folder detected as input: '{sys.argv[1]}'")
@@ -11,6 +19,26 @@ if len(sys.argv) == 2 and os.path.isdir(sys.argv[1]):
     sys.argv[1] = "--google-takeout-to-process"
     sys.argv.append(input_folder)
 
+# Verificar si el script se ejecutó sin argumentos, en ese caso se pedira al usuario queue introduzca la ruta de la caroeta que contiene el Takeout a procesar
+elif len(sys.argv) == 1:
+    print("INFO    : No input folder provided. By default, the Google Takeout Photos Processor feature will be executed.")
+    # Detectar si hay entorno gráfico
+    has_display = os.environ.get("DISPLAY") is not None or sys.platform == "win32"
+    if has_display:
+        print("INFO    : GUI environment detected. Opening folder selection dialog...")
+        selected_folder = select_folder_gui()
+    else:
+        print("INFO    : No GUI detected. Please type the full path to the Takeout folder:")
+        selected_folder = input("Folder path: ").strip()
+
+    if selected_folder and os.path.isdir(selected_folder):
+        print(f"INFO    : Folder selected: '{selected_folder}'")
+        sys.argv.append("--google-takeout-to-process")
+        sys.argv.append(selected_folder)
+    else:
+        print("ERROR   : No valid folder selected. Exiting.")
+        sys.exit(1)
+        
 from Utils import check_OS_and_Terminal
 from GlobalVariables import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME
 from ExecutionModes import detect_and_run_execution_mode
