@@ -42,7 +42,7 @@ elif len(sys.argv) == 1:
 
     if selected_folder and os.path.isdir(selected_folder):
         print(f"INFO    : Folder selected: '{selected_folder}'")
-        sys.argv[1] = "--google-takeout-to-process"
+        sys.argv.append("--google-takeout-to-process")
         sys.argv.append(selected_folder)
     else:
         print("ERROR   : No valid folder selected. Exiting.")
