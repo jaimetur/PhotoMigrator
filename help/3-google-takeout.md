@@ -18,7 +18,9 @@
 
 - Where, <INPUT_TAKEOUT_FOLDER> is the folder that content the Google Takeout to process (if the Takeout is in Zip files, it will be extracted first into folder '<INPUT_TAKEOUT_FOLDER>_extracted'.  
 
-- The Takeout Processing can be configured qith different settings, depoending on the flags used during the call to the Tool.
+- If you execute the tool without arguments or with your Takeout folder as unique argument by default the tool will execute the Feature **Google Takeout Process** (requesting the user to select the Takeout folder if not detected). 
+
+- The Takeout Processing can be configured with different settings, depoending on the flags used during the call to the Tool.
 
 - The whole process will do the next actions if all flags are false (by default):  
 
