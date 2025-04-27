@@ -248,6 +248,7 @@ Planed Roadmap for the following releases
       - [x] merge-albums
     - [x] Request user confirmation before Rename/Remove/Merge massive Albums (show the affected Albums).
     - [x] Run Google Takeout Photos Processor Feature by default when running the tool with a valid folder as unique argument.
+    - [x] Run Google Takeout Photos Processor Feature by default when running the tool without arguments, requesting the user to introduce Google Takeout folder. 
 
   - #### Enhancements:
     - [x] Improved Performance on Pull functions when no filtering options have been given.
