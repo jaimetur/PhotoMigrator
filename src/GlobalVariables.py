@@ -121,13 +121,6 @@ def resolve_path(user_path):
         return os.path.abspath(path_clean)
 
 
-def set_ARGS_PARSER():
-    from ArgsParser import parse_arguments, checkArgs, getParser
-    global ARGS, PARSER
-    ARGS, PARSER = parse_arguments()
-    ARGS = checkArgs(ARGS, PARSER)
-    # PARSER = getParser()
-
 def set_LOGGER():
     from CustomLogger import log_setup
     global LOGGER, LOG_FOLDER_FILENAME
@@ -138,6 +131,18 @@ def set_LOGGER():
     LOG_FOLDER_FILENAME = os.path.join(current_directory, log_folder, log_filename)
     LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=LOG_LEVEL_MIN, plain_log=False)
     LOGGER.setLevel(LOG_LEVEL)
+
+def set_ARGS_PARSER():
+    from ArgsParser import parse_arguments, checkArgs, getParser
+    global ARGS, PARSER
+    ARGS, PARSER = parse_arguments()
+    ARGS = checkArgs(ARGS, PARSER)
+    # PARSER = getParser()def set_ARGS_PARSER():
+    #     from ArgsParser import parse_arguments, checkArgs, getParser
+    #     global ARGS, PARSER
+    #     ARGS, PARSER = parse_arguments()
+    #     ARGS = checkArgs(ARGS, PARSER)
+    #     # PARSER = getParser()
 
 def set_HELP_TEXT():
     from HelpTexts import set_help_texts

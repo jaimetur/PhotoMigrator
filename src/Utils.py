@@ -1439,3 +1439,8 @@ def is_date_outside_range(date_to_check):
     if to_date is not None and date_to_check > to_date:
         return True
     return False
+
+def capitalize_first_letter(text):
+    if not text:
+        return text
+    return text[0].upper() + text[1:]

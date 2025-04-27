@@ -185,7 +185,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                         AUTHENTICATION / LOGOUT                         #
     ###########################################################################
-    def login(self, use_syno_token=False, use_OTP=ARGS['synology-OTP'], log_level=logging.INFO):
+    def login(self, use_syno_token=False, use_OTP=ARGS['one-time-password'], log_level=logging.INFO):
         """
         Logs into the NAS and returns the active session with the SID and Synology DSM URL.
 
@@ -223,7 +223,7 @@ class ClassSynologyPhotos:
                     params.update({"enable_syno_token": "yes"})
 
                 if use_OTP:
-                    LOGGER.warning(f"WARNING : SYNOLOGY OTP TOKEN required (flag -sOTP, --synology-OTP detected). OTP Token will be requested on screen...")
+                    LOGGER.warning(f"WARNING : SYNOLOGY OTP TOKEN required (flag -OTP, --one-time-password detected). OTP Token will be requested on screen...")
                     OTP = input("INFO    : Enter SYNOLOGY OTP Token: ")
                     params.update({"otp_code": {OTP}})
                     params.update({"enable_device_token": "yes"})
@@ -2510,15 +2510,20 @@ class ClassSynologyPhotos:
             # self.logout(log_level=log_level)
             return total_removed_albums, total_removed_assets
 
-    def remove_all_albums(self, removeAlbumsAssets=False, log_level=logging.WARNING):
+
+    def remove_all_albums(self, removeAlbumsAssets=False, request_user_confirmation=True, log_level=logging.WARNING):
         """
-        Removes all albums and optionally also all their associated assets.
+        Removes all albums in Synology Photos, and optionally all their associated assets.
+
+        If request_user_confirmation is True, displays the albums to be deleted and asks for user confirmation before proceeding.
 
         Args:
-            removeAlbumsAssets (bool): If True, removes also all the assets associated to all albums
-            log_level (logging.LEVEL): log_level for logs and console
+            removeAlbumsAssets (bool): Whether to remove all assets inside the albums.
+            request_user_confirmation (bool): Whether to ask for confirmation before deleting.
+            log_level (logging.LEVEL): The log level for logging and console output.
 
-        Returns (#albums_removed, #assets_removed).
+        Returns:
+            tuple: (number of albums removed, number of assets removed)
         """
         with set_log_level(LOGGER, log_level):
             try:
@@ -2526,13 +2531,10 @@ class ClassSynologyPhotos:
                 albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
                 if not albums:
                     LOGGER.info("INFO    : No albums found.")
-                    # self.logout(log_level=log_level)
                     return 0, 0
 
-                total_removed_albums = 0
-                total_removed_assets = 0
-                for album in tqdm(albums, desc=f"INFO    : Searching for Albums to remove", unit=" albums"):
-                    # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
+                albums_to_remove = []
+                for album in tqdm(albums, desc="INFO    : Searching for albums to remove", unit="albums"):
                     album_date = album.get("create_time")
                     if is_date_outside_range(album_date):
                         continue
@@ -2540,31 +2542,57 @@ class ClassSynologyPhotos:
                     album_id = album.get("id")
                     album_name = album.get("albumName", "")
 
+                    albums_to_remove.append({
+                        "album_id": album_id,
+                        "album_name": album_name
+                    })
+
+                if not albums_to_remove:
+                    LOGGER.info("INFO    : No albums found to remove after date filtering.")
+                    return 0, 0
+
+                # Display albums that will be removed
+                LOGGER.warning("WARNING : Albums marked for deletion:")
+                for album_info in albums_to_remove:
+                    LOGGER.warning(f"WARNING : '{album_info['album_name']}' (ID={album_info['album_id']})")
+
+                # Ask for confirmation only if requested
+                if request_user_confirmation and not confirm_continue():
+                    LOGGER.info("INFO    : Exiting program.")
+                    return 0, 0
+
+                total_removed_albums = 0
+                total_removed_assets = 0
+
+                for album_info in albums_to_remove:
+                    album_id = album_info["album_id"]
+                    album_name = album_info["album_name"]
+
                     if removeAlbumsAssets:
                         album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
-                        album_assets_ids = []
-                        for asset in album_assets:
-                            asset_id = asset.get("id")
-                            if asset_id:
-                                album_assets_ids.append(asset_id)
-                        assets_removed = self.remove_assets(album_assets_ids, log_level=logging.WARNING)
-                        total_removed_assets += assets_removed
+                        album_assets_ids = [asset.get("id") for asset in album_assets if asset.get("id")]
+                        if album_assets_ids:
+                            assets_removed = self.remove_assets(album_assets_ids, log_level=logging.WARNING)
+                            total_removed_assets += assets_removed
 
                     if self.remove_album(album_id, album_name, log_level=logging.WARNING):
+                        LOGGER.info(f"INFO    : Album '{album_name}' (ID={album_id}) removed.")
                         total_removed_albums += 1
 
+                # Try to remove empty albums if any remain
                 LOGGER.info(f"INFO    : Getting empty albums to remove...")
-                total_removed_albums += self.remove_empty_albums(log_level=logging.WARNING)
+                empty_albums_removed = self.remove_empty_albums(log_level=logging.WARNING)
+                total_removed_albums += empty_albums_removed
 
                 LOGGER.info(f"INFO    : Removed {total_removed_albums} albums.")
                 if removeAlbumsAssets:
-                    LOGGER.info(f"INFO    : Removed {total_removed_assets} assets associated to albums.")
+                    LOGGER.info(f"INFO    : Removed {total_removed_assets} assets associated with those albums.")
 
-                # self.logout(log_level=log_level)
             except Exception as e:
-                LOGGER.error(f"ERROR   : Exception while removing All albums from Synology Photos. {e}")
+                LOGGER.error(f"ERROR   : Exception while removing all albums from Synology Photos: {e}")
 
             return total_removed_albums, total_removed_assets
+
 
     def remove_empty_albums(self, log_level=logging.WARNING):
         """
