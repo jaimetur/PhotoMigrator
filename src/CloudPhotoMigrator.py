@@ -3,8 +3,12 @@ import ChangeWorkingDir
 ChangeWorkingDir.change_working_dir(change_dir=True)
 
 import os,sys
-import tkinter as tk
-from tkinter import filedialog
+try:
+    import tkinter as tk
+    from tkinter import filedialog
+    TKINTER_AVAILABLE = True
+except ImportError:
+    TKINTER_AVAILABLE = False
 
 def select_folder_gui():
     root = tk.Tk()
@@ -22,13 +26,18 @@ if len(sys.argv) == 2 and os.path.isdir(sys.argv[1]):
 # Verificar si el script se ejecutó sin argumentos, en ese caso se pedira al usuario queue introduzca la ruta de la caroeta que contiene el Takeout a procesar
 elif len(sys.argv) == 1:
     print("INFO    : No input folder provided. By default, the Google Takeout Photos Processor feature will be executed.")
-    # Detectar si hay entorno gráfico
     has_display = os.environ.get("DISPLAY") is not None or sys.platform == "win32"
-    if has_display:
+    selected_folder = None
+
+    if has_display and TKINTER_AVAILABLE:
         print("INFO    : GUI environment detected. Opening folder selection dialog...")
         selected_folder = select_folder_gui()
     else:
-        print("INFO    : No GUI detected. Please type the full path to the Takeout folder:")
+        if not TKINTER_AVAILABLE and has_display:
+            print("WARNING : Tkinter is not installed. Falling back to console input.")
+        else:
+            print("INFO    : No GUI detected. Using console input.")
+        print("Please type the full path to the Takeout folder:")
         selected_folder = input("Folder path: ").strip()
 
     if selected_folder and os.path.isdir(selected_folder):
@@ -38,7 +47,7 @@ elif len(sys.argv) == 1:
     else:
         print("ERROR   : No valid folder selected. Exiting.")
         sys.exit(1)
-        
+
 from Utils import check_OS_and_Terminal
 from GlobalVariables import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME
 from ExecutionModes import detect_and_run_execution_mode
