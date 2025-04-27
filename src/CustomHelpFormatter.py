@@ -6,7 +6,7 @@ from colorama import  Fore, Style
 class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
     def __init__(self, *args, **kwargs):
         # Configura la anchura máxima del texto de ayuda
-        kwargs['width'] = 88  # Ancho total del texto de ayuda
+        kwargs['width'] = 90  # Ancho total del texto de ayuda
         kwargs['max_help_position'] = 55  # Ajusta la posición de inicio de las descripciones
         super().__init__(*args, **kwargs)
 
@@ -132,13 +132,16 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         tokenized = self._tokenize_usage(usage)
         # 7) Diccionario de tokens forzados
         force_new_line_for_tokens = {
-            "[-gpthProg [= [true,false]]]": False   # Salto de línea antes, pero sigue reagrupando
-            ,"[-i <INPUT_FOLDER>]": False   # Salto de línea antes, pero sigue reagrupando
-            ,"[-gtProc <TAKEOUT_FOLDER>]": False   # Salto de línea antes, pero sigue reagrupando
-            ,"[-iuAlb <ALBUMS_FOLDER>]": False   # Salto de línea antes, pero sigue reagrupando
-            # ,"[-irEmpAlb]": False   # Salto de línea antes, pero sigue reagrupando
-            ,"[-fixSym <FOLDER_TO_FIX>]": False   # Salto de línea antes, pero sigue reagrupando
-            ,"[-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]": True  # Va solo
+            "[-from <FROM_DATE>]": False,   # Salto de línea antes, pero sigue reagrupando
+            "[-country <COUNTRY_NAME>]": False,   # Salto de línea antes, pero sigue reagrupando
+            "[-gpthProg [= [true,false]]]": False,   # Salto de línea antes, pero sigue reagrupando
+            "[-i <INPUT_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
+            "[-gtProc <TAKEOUT_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
+            "[-iuAlb <ALBUMS_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
+            "[-uAlb <ALBUMS_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
+            # "[-irEmpAlb]": False,   # Salto de línea antes, pero sigue reagrupando
+            "[-fixSym <FOLDER_TO_FIX>]": False,   # Salto de línea antes, pero sigue reagrupando
+            "[-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]": True,  # Va solo
         }
         # 6) Ancho real
         max_width = getattr(self, '_width', 90)
@@ -235,6 +238,18 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 IMMICH PHOTOS MANAGEMENT:
                 -------------------------{Style.RESET_ALL}
                 Following arguments allow you to interact with Immich Photos. 
+                If more than one optional arguments are detected, only the first one will be executed.
+                """)
+                TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
+                parts.insert(-1,f"{TEXT_TO_INSERT}")
+
+            # FEATURES for Synology/Immich Photos Management: two lines before the string
+            if help_text.find("will create one Album per subfolder into the selected Photo client.")!=-1:
+                TEXT_TO_INSERT =textwrap.dedent(f"""
+                {Fore.YELLOW}
+                SYNOLOGY/IMMICH PHOTOS MANAGEMENT:
+                ----------------------------------{Style.RESET_ALL}
+                Following arguments allow you to interact with Synology/Immich Photos. 
                 If more than one optional arguments are detected, only the first one will be executed.
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'

@@ -185,7 +185,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                         AUTHENTICATION / LOGOUT                         #
     ###########################################################################
-    def login(self, use_syno_token=False, use_OTP=ARGS['synology-OTP'], log_level=logging.INFO):
+    def login(self, use_syno_token=False, use_OTP=ARGS['one-time-password'], log_level=logging.INFO):
         """
         Logs into the NAS and returns the active session with the SID and Synology DSM URL.
 
@@ -223,7 +223,7 @@ class ClassSynologyPhotos:
                     params.update({"enable_syno_token": "yes"})
 
                 if use_OTP:
-                    LOGGER.warning(f"WARNING : SYNOLOGY OTP TOKEN required (flag -sOTP, --synology-OTP detected). OTP Token will be requested on screen...")
+                    LOGGER.warning(f"WARNING : SYNOLOGY OTP TOKEN required (flag -OTP, --one-time-password detected). OTP Token will be requested on screen...")
                     OTP = input("INFO    : Enter SYNOLOGY OTP Token: ")
                     params.update({"otp_code": {OTP}})
                     params.update({"enable_device_token": "yes"})

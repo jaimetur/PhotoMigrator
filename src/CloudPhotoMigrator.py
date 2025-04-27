@@ -3,6 +3,14 @@ import ChangeWorkingDir
 ChangeWorkingDir.change_working_dir(change_dir=True)
 
 import os,sys
+# Verificar si el script se ejecutó con un solo argumento que sea una ruta de una carpeta existente
+if len(sys.argv) == 2 and os.path.isdir(sys.argv[1]):
+    print(f"INFO    : Valid folder detected as input: '{sys.argv[1]}'")
+    print(f"INFO    : Executing Google Takeout Photos Processor Feature with the provided input folder...")
+    input_folder = sys.argv[1]
+    sys.argv[1] = "--google-takeout-to-process"
+    sys.argv.append(input_folder)
+
 from Utils import check_OS_and_Terminal
 from GlobalVariables import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME
 from ExecutionModes import detect_and_run_execution_mode
@@ -34,10 +42,4 @@ def main():
     detect_and_run_execution_mode()
 
 if __name__ == "__main__":
-    # Verificar si el script se ejecutó sin argumentos
-    # if len(sys.argv) == 1:
-    #     # Agregar argumento predeterminado
-    #     sys.argv.append("-z")
-    #     sys.argv.append("Zip_folder")
-    #     print(f"INFO    : No argument detected. Using default value '{sys.argv[2]}' for <ZIP_FOLDER>'.")
     main()

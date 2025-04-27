@@ -8,7 +8,7 @@ import os
 import re
 from datetime import datetime
 
-choices_for_message_levels          = ['debug', 'info', 'warning', 'error', 'critical']
+choices_for_message_levels          = ['debug', 'info', 'warning', 'error']
 choices_for_folder_structure        = ['flatten', 'year', 'year/month', 'year-month']
 choices_for_remove_duplicates       = ['list', 'move', 'remove']
 choices_for_AUTOMATIC_MIGRATION_SRC = ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1', 'synology-photos-2', 'synology-photos2', 'synology-2', 'synology2', 'synology-photos-3', 'synology-photos3', 'synology-3', 'synology3',
@@ -79,6 +79,27 @@ def parse_arguments():
                         help="Select Parallel/Secuencial Migration during Automatic Migration Job. This argument only applies if both '--source' and '--target' argument are given (AUTOMATIC-MIGRATION FEATURE). (default: True)."
     )
 
+
+    # GENERAL FEATURES:
+    # -----------------
+    PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
+    PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
+    PARSER.add_argument("-client", "--client",
+                        metavar="= ['google-takeout', 'synology', 'immich']",
+                        default='google-takeout',  # Si no se pasa el argumento, se asigna 'google-takeout'
+                        type=validate_client,      # Ahora espera un string con el nombre del cliente como tipo de argumento
+                        help="Set the client to use for the selected feature."
+                        )
+    PARSER.add_argument("-id", "--account-id",
+                        metavar="= [1,2,3]",
+                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+                        const=1,  # Si el usuario pasa --account-id sin valor, se asigna 1
+                        default=1,  # Si no se pasa el argumento, también se asigna 1
+                        type=validate_account_id,  # Ahora espera un entero como tipo de argumento
+                        help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the Configuration file as suffix of USERNAME/PASSORD or API_KEY_USER. (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini file)."
+                        )
+    PARSER.add_argument("-OTP", "--one-time-password", action="store_true", default="", help="This Flag allow you to login into Synology Photos using 2FA with an OTP Token.")
+
     PARSER.add_argument("-from", "--filter-from-date", metavar="<FROM_DATE>", default=None, help="Specify the initial date to filter assets in the different Photo Clients.")
     PARSER.add_argument("-to", "--filter-to-date", metavar="<TO_DATE>", default=None, help="Specify the final date to filter assets in the different Photo Clients.")
     PARSER.add_argument("-country", "--filter-by-country", metavar="<COUNTRY_NAME>", default=None, help="Specify the Country Name to filter assets in the different Photo Clients.")
@@ -94,11 +115,6 @@ def parse_arguments():
     #                     help="Specify if you want to filter only Archived assets in the different Photo Clients."
     # )
 
-
-    # GENERAL FEATURES:
-    # -----------------
-    PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
-    PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
     PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-suAll, --synology-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
     PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False, help="If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums', it will also delete the assets (photos/videos) inside each album.")
     PARSER.add_argument("-gpthProg", "--show-gpth-progress",
@@ -119,19 +135,10 @@ def parse_arguments():
     )
     PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
     PARSER.add_argument("-loglevel", "--log-level", metavar=f"{choices_for_message_levels}", choices=choices_for_message_levels, default="info", help="Specify the log level for logging and screen messages.")
-    PARSER.add_argument("-id", "--account-id",
-                        metavar="= [1,2,3]",
-                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
-                        const=1,  # Si el usuario pasa --account-id sin valor, se asigna 1
-                        default=1,  # Si no se pasa el argumento, también se asigna 1
-                        type=validate_account_id,  # Ahora espera un entero como tipo de argumento
-                        help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the Configuration file as suffix of USERNAME/PASSORD or API_KEY_USER. (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini file)."
-                        )
 
 
     # FEATURES FOR GOOGLE PHOTOS:
     # ---------------------------
-    # PARSER.add_argument("-gizf", "--google-input-zip-folder", metavar="<ZIP_FOLDER>", default="", help="Specify the Zip folder where the Zip files are placed. If this option is omitted, unzip of input files will be skipped.")
     PARSER.add_argument("-gtProc", "--google-takeout-to-process", metavar="<TAKEOUT_FOLDER>", default="",
                         help="Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it. If any Zip file is found inside it, the Zip will be extracted to the folder '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>', and will use the that folder as input <TAKEOUT_FOLDER>."
                           "\nThe processed Takeout will be saved into the folder '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'"
@@ -155,81 +162,51 @@ def parse_arguments():
     PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skip processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposses.")
 
 
-    # FEATURES FOR SYNOLOGY PHOTOS:
-    # --------------------------------
-    PARSER.add_argument("-suAlb", "--synology-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Synology Photos.")
-    PARSER.add_argument("-sdAlb", "--synology-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
-                        help="The Tool will connect to Synology Photos and will download those Albums whose name is in '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this feature)."
-                           "\n- To download ALL Albums use 'ALL' as <ALBUMS_NAME>."
-                           "\n- To download all albums mathing any pattern you can use patterns in <ALBUMS_NAME>, i.e: --synology-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
-                           "\n- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --synology-download-albums 'album1', 'album2', 'album3'."
-                        )
-    PARSER.add_argument("-suAll", "--synology-upload-all", metavar="<INPUT_FOLDER>", default="",
-                        help="The Tool will look for all Assets within <INPUT_FOLDER> and will upload them into Synology Photos."
-                           "\n- The Tool will create a new Album per each Subfolder found in 'Albums' subfolder and all assets inside each subfolder will be associated to a new Album in Synology Photos with the same name as the subfolder."
-                           "\n- If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also passed, then this function will create Albums also for each subfolder found in <ALBUMS_FOLDER>."
-                        )
-    PARSER.add_argument("-sdAll", "--synology-download-all", metavar="<OUTPUT_FOLDER>", default="",
-                        help="The Tool will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
-                           "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
-                           "\n- Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
-                        )
-    PARSER.add_argument("-sRenAlb", "--synology-rename-albums", metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>", nargs="+", default=[None, None],
-                        help="CAUTION!!! The Tool will look for all Albums in Synology Photos whose names matches with the pattern and will rename them from with the replacement pattern."
-                        )
-    PARSER.add_argument("-sRemAlb", "--synology-remove-albums", metavar="<ALBUMS_NAME_PATTERN>", default="",
-                        help="CAUTION!!! The Tool will look for all Albums in Synology Photos whose names matches with the pattern and will remove."
-                           "\nOptionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
-                        )
-    PARSER.add_argument("-srEmpAlb", "--synology-remove-empty-albums", action="store_true", default="", help="The Tool will look for all Albums in your Synology Photos account and if any Album is empty, will remove it from your Synology Photos account.")
-    PARSER.add_argument("-srDupAlb", "--synology-remove-duplicates-albums", action="store_true", default="", help="The Tool will look for all Albums in your Synology Photos account and if any Album is duplicated (with the same name and size), will remove it from your Synology Photos account.")
-    PARSER.add_argument("-sMergAlb", "--synology-merge-duplicates-albums", action="store_true", default="", help="The Tool will look for all Albums in your Synology Photos account and if any Album is duplicated (with the same name), will transfer all its assets to the most relevant album and remove it from your Synology Photos account.")
-    PARSER.add_argument("-srAll", "--synology-remove-all-assets", action="store_true", default="", help="CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also ALL your Albums from Synology database.")
-    PARSER.add_argument("-srAllAlb", "--synology-remove-all-albums", action="store_true", default="",
-                        help="CAUTION!!! The Tool will remove ALL your Albums from Synology database."
-                           "\nOptionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
-                        )
-    PARSER.add_argument("-sOTP", "--synology-OTP", action="store_true", default="", help="This Flag allow you to login into Synology Photos using 2FA with an OTP Token.")
-
-
-
-    # FEATURES FOR IMMICH PHOTOS:
+    # FEATURES FOR SYNOLOGY/IMMICH PHOTOS:
     # -------------------------------
-    PARSER.add_argument("-iuAlb", "--immich-upload-albums", metavar="<ALBUMS_FOLDER>", default="", help="The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into Immich Photos.")
-    PARSER.add_argument("-idAlb", "--immich-download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
-                        help="The Tool will connect to Immich Photos and will download those Albums whose name is in '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this feature)."
-                           "\n- To download ALL Albums use 'ALL' as <ALBUMS_NAME>."
-                           "\n- To download all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: --immich-download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
-                           "\n- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --immich-download-albums 'album1', 'album2', 'album3'."
+    PARSER.add_argument("-uAlb", "--upload-albums", metavar="<ALBUMS_FOLDER>", default="",
+                        help="The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into the selected Photo client.")
+    PARSER.add_argument("-dAlb", "--download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
+                        help="The Tool will connect to the selected Photo client and will download those Albums whose name is in '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this feature)."
+                             "\n- To download ALL Albums use 'ALL' as <ALBUMS_NAME>."
+                             "\n- To download all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: --download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
+                             "\n- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --download-albums 'album1', 'album2', 'album3'."
                         )
-    PARSER.add_argument("-iuAll", "--immich-upload-all", metavar="<INPUT_FOLDER>", default="",
-                        help="The Tool will look for all Assets within <INPUT_FOLDER> and will upload them into Immich Photos."
-                           "\n- The Tool will create a new Album per each Subfolder found in 'Albums' subfolder and all assets inside each subfolder will be associated to a new Album in Immich Photos with the same name as the subfolder."
-                           "\n- If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also passed, then this function will create Albums also for each subfolder found in <ALBUMS_FOLDER>."
+    PARSER.add_argument("-uAll", "--upload-all", metavar="<INPUT_FOLDER>", default="",
+                        help="The Tool will look for all Assets within <INPUT_FOLDER> and will upload them into the selected Photo client."
+                             "\n- The Tool will create a new Album per each Subfolder found in 'Albums' subfolder and all assets inside each subfolder will be associated to a new Album in the selected Photo client with the same name as the subfolder."
+                             "\n- If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also passed, then this function will create Albums also for each subfolder found in <ALBUMS_FOLDER>."
                         )
-    PARSER.add_argument("-idAll", "--immich-download-all", metavar="<OUTPUT_FOLDER>", default="",
-                        help="The Tool will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
-                           "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
-                           "\n- Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
-                        )
-    PARSER.add_argument("-iRenAlb", "--immich-rename-albums", metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>", nargs="+", default=[None, None],
-                        help="CAUTION!!! The Tool will look for all Albums in Immich Photos whose names matches with the pattern and will rename them from with the replacement pattern."
-                        )
-    PARSER.add_argument("-iRemAlb", "--immich-remove-albums", metavar="<ALBUMS_NAME_PATTERN>", default="",
-                        help="CAUTION!!! The Tool will look for all Albums in Immich Photos whose names matches with the pattern and will remove them."
-                           "\nOptionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
+    PARSER.add_argument("-dAll", "--download-all", metavar="<OUTPUT_FOLDER>", default="",
+                        help="The Tool will connect to the selected Photo client and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
+                             "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
+                             "\n- Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
                         )
 
-    PARSER.add_argument("-irEmpAlb", "--immich-remove-empty-albums", action="store_true", default="", help="The Tool will look for all Albums in your Immich Photos account and if any Album is empty, will remove it from your Immich Photos account.")
-    PARSER.add_argument("-irDupAlb", "--immich-remove-duplicates-albums", action="store_true", default="", help="The Tool will look for all Albums in your Immich Photos account and if any Album is duplicated (with the same name and size), will remove it from your Immich Photos account.")
-    PARSER.add_argument("-iMergAlb", "--immich-merge-duplicates-albums", action="store_true", default="", help="The Tool will look for all Albums in your Immich Photos account and if any Album is duplicated (with the same name), will transfer all its assets to the most relevant album and remove it from your Immich Photos account.")
-    PARSER.add_argument("-irAll", "--immich-remove-all-assets", action="store_true", default="", help="CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also ALL your Albums from Immich database.")
-    PARSER.add_argument("-irAllAlb", "--immich-remove-all-albums", action="store_true", default="",
-                        help="CAUTION!!! The Tool will remove ALL your Albums from Immich database."
-                           "\nOptionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
-                        )
-    PARSER.add_argument("-irOrphan", "--immich-remove-orphan-assets", action="store_true", default="", help="The Tool will look for all Orphan Assets in Immich Database and will remove them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in Config.ini.")
+    PARSER.add_argument("-rOrphan", "--remove-orphan-assets", action="store_true", default="",
+                        help="The Tool will look for all Orphan Assets in the selected Photo client and will remove them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in Config.ini.")
 
+    PARSER.add_argument("-rAll", "--remove-all-assets", action="store_true", default="",
+                        help="CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also ALL your Albums from the selected Photo client.")
+    PARSER.add_argument("-rAllAlb", "--remove-all-albums", action="store_true", default="",
+                        help="CAUTION!!! The Tool will remove ALL your Albums from the selected Photo client."
+                             "\nOptionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
+                        )
+    PARSER.add_argument("-rAlb", "--remove-albums", metavar="<ALBUMS_NAME_PATTERN>", default="",
+                        help="CAUTION!!! The Tool will look for all Albums in the selected Photo client whose names matches with the pattern and will remove them."
+                             "\nOptionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
+                        )
+    PARSER.add_argument("-rEmpAlb", "--remove-empty-albums", action="store_true", default="",
+                        help="The Tool will look for all Albums in the selected Photo client account and if any Album is empty, will remove it from the selected Photo client account.")
+    PARSER.add_argument("-rDupAlb", "--remove-duplicates-albums", action="store_true", default="",
+                        help="The Tool will look for all Albums in the selected Photo client account and if any Album is duplicated (with the same name and size), will remove it from the selected Photo client account.")
+
+    PARSER.add_argument("-mDupAlb", "--merge-duplicates-albums", action="store_true", default="",
+                        help="The Tool will look for all Albums in the selected Photo client account and if any Album is duplicated (with the same name), will transfer all its assets to the most relevant album and remove it from the selected Photo client account.")
+
+    PARSER.add_argument("-renAlb", "--rename-albums", metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>", nargs="+", default=[None, None],
+                        help="CAUTION!!! The Tool will look for all Albums in the selected Photo client whose names matches with the pattern and will rename them from with the replacement pattern."
+                        )
 
 
     # OTHERS STAND-ALONE FEATURES:
@@ -255,10 +232,45 @@ def validate_account_id(valor):
     try:
         valor_int = int(valor)
     except ValueError:
-        raise argparse.ArgumentTypeError(f"The value '{valor}' is not  valid number.")
+        raise argparse.ArgumentTypeError(f"The value '{valor}' is not a valid number.")
     if valor_int not in [1, 2, 3]:
         raise argparse.ArgumentTypeError("The account-id must be one of the following values: 1, 2 o 3.")
     return valor_int
+
+def validate_client(valor):
+    valid_clients = ['google-takeout', 'synology', 'immich']
+    try:
+        valor_lower = valor.lower()
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"The value '{valor}' is not a valid string.")
+    if valor_lower not in valid_clients:
+        raise argparse.ArgumentTypeError(f"The client must be one of the following values: {valid_clients}")
+    return valor_lower
+
+def validate_client_arg(ARGS, PARSER):
+    # Lista de flags que requieren --client
+    client_required_flags = [
+        'remove-empty-albums',
+        'upload-albums',
+        'download-albums',
+        'upload-all',
+        'download-all',
+        'rename-albums',
+        'remove-albums',
+        'remove-duplicates-albums',
+        'merge-duplicates-albums',
+        'immich-remove-all-assets',
+        'remove-all-albums',
+        'remove-orphan-assets'
+    ]
+
+    # Recorrer todos los flags que requieren client
+    for flag in client_required_flags:
+        if ARGS.get(flag):  # Si el usuario ha pasado este argumento
+            if ARGS.get('client')=='google-takeout':
+                PARSER.error(f"\n\n❌ ERROR   : The argument '--{flag}' requires that '--client' is also specified.\n")
+                exit(1)
+
 
 def checkArgs(ARGS, PARSER):
     global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
@@ -285,6 +297,9 @@ def checkArgs(ARGS, PARSER):
     ARGS['immich-upload-albums']            = ARGS['immich-upload-albums'].rstrip('/\\')
     ARGS['immich-upload-all']               = ARGS['immich-upload-all'].rstrip('/\\')
     ARGS['immich-download-all']             = ARGS['immich-download-all'].rstrip('/\\')
+    ARGS['upload-albums']                   = ARGS['upload-albums'].rstrip('/\\')
+    ARGS['upload-all']                      = ARGS['upload-all'].rstrip('/\\')
+    ARGS['download-all']                    = ARGS['download-all'].rstrip('/\\')
     ARGS['fix-symlinks-broken']             = ARGS['fix-symlinks-broken'].rstrip('/\\')
     ARGS['rename-folders-content-based']    = ARGS['rename-folders-content-based'].rstrip('/\\')
 
@@ -409,6 +424,9 @@ def checkArgs(ARGS, PARSER):
     if ARGS['filter-by-type'] and ARGS['filter-by-type'].lower() not in valid_asset_types:
         PARSER.error(f"\n\n❌ ERROR   : --filter-by-type argument is invalid. Valid values are:\n{valid_asset_types}")
         exit(1)
+
+    # Validamos que se haya pasado --client cuando pasamos como argumento una feature de Synology/Immich
+    validate_client_arg(ARGS, PARSER)
 
     return ARGS
 
