@@ -204,7 +204,7 @@ def parse_arguments():
     PARSER.add_argument("-mDupAlb", "--merge-duplicates-albums", action="store_true", default="",
                         help="The Tool will look for all Albums in the selected Photo client account and if any Album is duplicated (with the same name), will transfer all its assets to the most relevant album and remove it from the selected Photo client account.")
 
-    PARSER.add_argument("-renAlb", "--rename-albums", metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>", nargs="+", default=[None, None],
+    PARSER.add_argument("-renAlb", "--rename-albums", metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>", nargs="+", default="",
                         help="CAUTION!!! The Tool will look for all Albums in the selected Photo client whose names matches with the pattern and will rename them from with the replacement pattern."
                         )
 
@@ -376,7 +376,7 @@ def checkArgs(ARGS, PARSER):
     ARGS['duplicates-folders'] = parse_folders_list(ARGS['duplicates-folders'])
 
     # Parse rename-albums
-    if ARGS['rename-albums'][0]:
+    if ARGS['rename-albums']:
         if len(ARGS['rename-albums']) != 2:
             PARSER.error(f"\n\n❌ ERROR   : --rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
             exit(1)
