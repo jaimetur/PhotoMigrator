@@ -78,7 +78,7 @@
 - **From:** v3.0.0 
 - **Usage:**
   - To run this feature, first, is mandatory that you set 'immich' as client using the flag _**'-client=immich'**_ or _**'--client=immich'**_
-  - To run this feature you have to use the flag _**'-uAlb, --upload-albums \<ALBUMS_FOLDER>'**_
+  - Also, you have to use the flag _**'-uAlb, --upload-albums \<ALBUMS_FOLDER>'**_
   - Where \<ALBUMS_FOLDER> is the folder that contains all the Albums that you want to upload,
 - **Pre-Requisites:**
   - Configure properly the file 'Config.ini' to include your Immich account credentials and url. 
