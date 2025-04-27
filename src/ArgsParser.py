@@ -376,7 +376,7 @@ def checkArgs(ARGS, PARSER):
     ARGS['duplicates-folders'] = parse_folders_list(ARGS['duplicates-folders'])
 
     # Parse rename-albums
-    if ARGS['rename-albums'][0]:
+    if ARGS['rename-albums']:
         if len(ARGS['rename-albums']) != 2:
             PARSER.error(f"\n\n❌ ERROR   : --rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
             exit(1)
