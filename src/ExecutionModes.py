@@ -48,7 +48,6 @@ def profile_and_print(function_to_analyze, *args, **kwargs):
     stats.strip_dirs().sort_stats("cumulative").print_stats(20)  # Show top 20 slowest functions
 
 
-
 # -------------------------------------------------------------
 # Determine the Execution mode based on the provide arguments:
 # -------------------------------------------------------------
@@ -71,89 +70,49 @@ def detect_and_run_execution_mode():
         EXECUTION_MODE = 'google-takeout'
         mode_google_takeout()
 
-    # Synology Photos Modes:
-    elif ARGS['synology-remove-albums'] or (ARGS['remove-albums'] and ARGS['client']=='synology'):
-        EXECUTION_MODE = 'synology-remove-albums'
-        mode_cloud_remove_albums_by_name_pattern(client='Synology')
-    elif ARGS['synology-rename-albums'][0] or (ARGS['rename-albums'][0] and ARGS['client']=='synology'):
-        EXECUTION_MODE = 'synology-rename-albums'
-        mode_cloud_rename_albums(client='Synology')
-    elif ARGS['synology-remove-empty-albums'] or (ARGS['remove-empty-albums'] and ARGS['client']=='synology'):
-        EXECUTION_MODE = 'synology-remove-empty-albums'
-        mode_cloud_remove_empty_albums(client='Synology')
-    elif ARGS['synology-remove-duplicates-albums'] or (ARGS['remove-duplicates-albums'] and ARGS['client']=='synology'):
-        EXECUTION_MODE = 'synology-remove-duplicates-albums'
-        mode_cloud_remove_duplicates_albums(client='Synology')
-    elif ARGS['synology-merge-duplicates-albums'] or (ARGS['merge-duplicates-albums'] and ARGS['client']=='synology'):
-        EXECUTION_MODE = 'synology-merge-duplicates-albums'
-        mode_cloud_merge_duplicates_albums(client='Synology')
-    elif ARGS['synology-remove-all-albums'] != "" or (ARGS['remove-all-albums'] != "" and ARGS['client']=='synology'):
-        EXECUTION_MODE = 'synology-remove-all-albums'
-        # mode_cloud_remove_all_albums(client='Synology')
-        mode_cloud_remove_albums_by_name_pattern(client='Synology')
-    elif ARGS['synology-remove-all-assets'] != "" or (ARGS['remove-all-assets'] != "" and ARGS['client']=='synology'):
-        EXECUTION_MODE = 'synology-remove-all-assets'
-        mode_cloud_remove_ALL(client='Synology')
-    elif ARGS['synology-upload-albums'] != "" or (ARGS['upload-albums'] != "" and ARGS['client']=='synology'):
+
+    # Synology/Immich Photos Modes:
+    elif ARGS['remove-albums']:
+        EXECUTION_MODE = 'remove-albums'
+        mode_cloud_remove_albums_by_name_pattern(client=ARGS['client'])
+    elif ARGS['rename-albums'][0]:
+        EXECUTION_MODE = 'rename-albums'
+        mode_cloud_rename_albums(client=ARGS['client'])
+    elif ARGS['remove-empty-albums']:
+        EXECUTION_MODE = 'remove-empty-albums'
+        mode_cloud_remove_empty_albums(client=ARGS['client'])
+    elif ARGS['remove-duplicates-albums']:
+        EXECUTION_MODE = 'remove-duplicates-albums'
+        mode_cloud_remove_duplicates_albums(client=ARGS['client'])
+    elif ARGS['merge-duplicates-albums']:
+        EXECUTION_MODE = 'merge-duplicates-albums'
+        mode_cloud_merge_duplicates_albums(client=ARGS['client'])
+    elif ARGS['remove-all-albums'] != "":
+        EXECUTION_MODE = 'remove-all-albums'
+        # mode_cloud_remove_all_albums(client=ARGS['client'])
+        mode_cloud_remove_albums_by_name_pattern(client=ARGS['client'])
+    elif ARGS['remove-all-assets'] != "":
+        EXECUTION_MODE = 'remove-all-assets'
+        mode_cloud_remove_ALL(client=ARGS['client'])
+    elif ARGS['upload-albums'] != "":
         # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to upload (default albums_to_upload='all')
-        EXECUTION_MODE = 'synology-upload-albums'
-        mode_cloud_upload_albums(client='Synology')
-    elif ARGS['synology-upload-all'] != "" or (ARGS['upload-all'] != "" and ARGS['client']=='synology'):
+        EXECUTION_MODE = 'upload-albums'
+        mode_cloud_upload_albums(client=ARGS['client'])
+    elif ARGS['upload-all'] != "":
         # TODO: Launch this with -AUTO MODE and compare execution time
-        EXECUTION_MODE = 'synology-upload-all'
-        mode_cloud_upload_ALL(client='Synology')
-    elif ARGS['synology-download-albums'] != "" or (ARGS['download-albums'] != "" and ARGS['client']=='synology'):
+        EXECUTION_MODE = 'upload-all'
+        mode_cloud_upload_ALL(client=ARGS['client'])
+    elif ARGS['download-albums'] != "":
         # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to download (default albums_to_download='all')
-        EXECUTION_MODE = 'synology-download-albums'
-        mode_cloud_download_albums(client='Synology')
-    elif ARGS['synology-download-all'] != "" or (ARGS['download-all'] != "" and ARGS['client']=='synology'):
+        EXECUTION_MODE = 'download-albums'
+        mode_cloud_download_albums(client=ARGS['client'])
+    elif ARGS['download-all'] != "":
         # TODO: Launch this with -AUTO MODE and compare execution time
-        EXECUTION_MODE = 'synology-download-all'
-        mode_cloud_download_ALL(client='Synology')
-
-
-    # Immich Photos Modes:
-    elif ARGS['immich-remove-albums'] or (ARGS['remove-albums'] and ARGS['client']=='immich'):
-        EXECUTION_MODE = 'immich-remove-albums'
-        mode_cloud_remove_albums_by_name_pattern(client='Immich')
-    elif ARGS['immich-rename-albums'][0] or (ARGS['rename-albums'][0] and ARGS['client']=='immich'):
-        EXECUTION_MODE = 'immich-rename-albums'
-        mode_cloud_rename_albums(client='Immich')
-    elif ARGS['immich-remove-empty-albums'] or (ARGS['remove-empty-albums'] and ARGS['client']=='immich'):
-        EXECUTION_MODE = 'immich-remove-empty-albums'
-        mode_cloud_remove_empty_albums(client='Immich')
-    elif ARGS['immich-remove-duplicates-albums'] or (ARGS['remove-duplicates-albums'] and ARGS['client']=='immich'):
-        EXECUTION_MODE = 'immich-remove-duplicates-albums'
-        mode_cloud_remove_duplicates_albums(client='Immich')
-    elif ARGS['immich-merge-duplicates-albums'] or (ARGS['merge-duplicates-albums'] and ARGS['client']=='immich'):
-        EXECUTION_MODE = 'immich-merge-duplicates-albums'
-        mode_cloud_merge_duplicates_albums(client='Immich')
-    elif ARGS['immich-remove-all-albums'] != "" or (ARGS['remove-all-albums'] != "" and ARGS['client']=='immich'):
-        EXECUTION_MODE = 'immich-remove-all-albums'
-        # mode_cloud_remove_all_albums(client='Immich')
-        mode_cloud_remove_albums_by_name_pattern(client='Immich')
-    elif ARGS['immich-remove-all-assets'] != "" or (ARGS['remove-all-assets'] != "" and ARGS['client']=='immich'):
-        EXECUTION_MODE = 'immich-remove-all-assets'
-        mode_cloud_remove_ALL(client='Immich')
-    elif ARGS['immich-remove-orphan-assets'] != "" or (ARGS['remove-orphan-assets'] != "" and ARGS['client']=='immich'):
+        EXECUTION_MODE = 'download-all'
+        mode_cloud_download_ALL(client=ARGS['client'])
+    elif ARGS['remove-orphan-assets'] != "":
         EXECUTION_MODE = 'immich-remove-orphan-assets'
-        mode_cloud_remove_orphan_assets(client='Immich')
-    elif ARGS['immich-upload-albums'] != "" or (ARGS['upload-albums'] != "" and ARGS['client']=='immich'):
-        # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to upload (default albums_to_upload='all')
-        EXECUTION_MODE = 'immich-upload-albums'
-        mode_cloud_upload_albums(client='Immich')
-    elif ARGS['immich-upload-all'] != "" or (ARGS['upload-all'] != "" and ARGS['client']=='immich'):
-        # TODO: Launch this with -AUTO MODE and compare execution time
-        EXECUTION_MODE = 'immich-upload-all'
-        mode_cloud_upload_ALL(client='Immich')
-    elif ARGS['immich-download-albums'] != "" or (ARGS['download-albums'] != "" and ARGS['client']=='immich'):
-        # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to download (default albums_to_download='all')
-        EXECUTION_MODE = 'immich-download-albums'
-        mode_cloud_download_albums(client='Immich')
-    elif ARGS['immich-download-all'] != "" or (ARGS['download-all'] != "" and ARGS['client']=='immich'):
-        # TODO: Launch this with -AUTO MODE and compare execution time
-        EXECUTION_MODE = 'immich-download-all'
-        mode_cloud_download_ALL(client='Immich')
+        mode_cloud_remove_orphan_assets(client=ARGS['client'])
 
 
     # Other Stand-alone Extra Features:
@@ -327,6 +286,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
 # SYNOLOGY/IMMICH FEATURES: #
 #############################
 def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=logging.INFO):
+    client = Utils.capitalize_first_letter(client)
     input_folder = ARGS['upload-albums']
     LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
     LOGGER.info(f"INFO    : Flag detected  : '-uAlb, --upload-albums'.")
@@ -339,12 +299,12 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=logg
         sys.exit(0)
 
     # Create the cloud_client_obj Object
-    if client == 'Immich':
+    if client.lower() == 'immich':
         cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client == 'Synology':
+    elif client.lower() == 'synology':
         cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
     else:
-        LOGGER.info(f"INFO    : Client not valid ({client}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        LOGGER.info(f"INFO    : Client not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
         sys.exit(0)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -396,6 +356,7 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=logg
 
 
 def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=logging.INFO):
+    client = Utils.capitalize_first_letter(client)
     input_folder = ARGS['upload-all']
     albums_folders = ARGS['albums-folders']
     LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
@@ -411,12 +372,12 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=logging
         sys.exit(0)
 
     # Create the cloud_client_obj Object
-    if client == 'Immich':
+    if client.lower() == 'immich':
         cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client == 'Synology':
+    elif client.lower() == 'synology':
         cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
     else:
-        LOGGER.info(f"INFO    : Client not valid ({client}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        LOGGER.info(f"INFO    : Client not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
         sys.exit(0)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -469,6 +430,7 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=logging
 
 
 def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=logging.INFO):
+    client = Utils.capitalize_first_letter(client)
     albums_name = ARGS['download-albums']
     output_folder = ARGS['output-folder']
     LOGGER.info(f"INFO    : Client detected  : '{client} Photos'.")
@@ -483,12 +445,12 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=lo
         sys.exit(0)
 
     # Create the cloud_client_obj Object
-    if client == 'Immich':
+    if client.lower() == 'immich':
         cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client == 'Synology':
+    elif client.lower() == 'synology':
         cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
     else:
-        LOGGER.info(f"INFO    : Client not valid ({client}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        LOGGER.info(f"INFO    : Client not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
         sys.exit(0)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -538,6 +500,7 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=lo
 
 
 def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=logging.INFO):
+    client = Utils.capitalize_first_letter(client)
     output_folder = ARGS['download-all']
     LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
     LOGGER.info(f"INFO    : Flag detected  : 'idAll, --download-all'.")
@@ -550,12 +513,12 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=loggi
         sys.exit(0)
 
     # Create the cloud_client_obj Object
-    if client == 'Immich':
+    if client.lower() == 'immich':
         cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client == 'Synology':
+    elif client.lower() == 'synology':
         cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
     else:
-        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
         sys.exit(0)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -598,6 +561,7 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=loggi
 
 
 def mode_cloud_remove_empty_albums(client=None, user_confirmation=True, log_level=logging.INFO):
+    client = Utils.capitalize_first_letter(client)
     LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
     LOGGER.info(f"INFO    : Flag detected  : '-rEmpAlb, --remove-empty-albums'.")
     LOGGER.info(f"INFO    : The Tool will look for any empty album in your {client} Photos account and will remove them (if any empty album is found).")
@@ -610,12 +574,12 @@ def mode_cloud_remove_empty_albums(client=None, user_confirmation=True, log_leve
         sys.exit(0)
 
     # Create the cloud_client_obj Object
-    if client == 'Immich':
+    if client.lower() == 'immich':
         cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client == 'Synology':
+    elif client.lower() == 'synology':
         cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
     else:
-        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
         sys.exit(0)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -649,6 +613,7 @@ def mode_cloud_remove_empty_albums(client=None, user_confirmation=True, log_leve
 
 
 def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log_level=logging.INFO):
+    client = Utils.capitalize_first_letter(client)
     LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
     LOGGER.info(f"INFO    : Flag detected  : '-rDupAlb, --remove-duplicates-albums'.")
     LOGGER.info(f"INFO    : The Tool will look for any duplicated album (based on assets counts and assets size) in your {client} Photos account and will remove them (if any duplicated album is found).")
@@ -661,12 +626,12 @@ def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log
         sys.exit(0)
 
     # Create the cloud_client_obj Object
-    if client == 'Immich':
+    if client.lower() == 'immich':
         cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client == 'Synology':
+    elif client.lower() == 'synology':
         cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
     else:
-        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
         sys.exit(0)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -700,6 +665,7 @@ def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log
 
 
 def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_level=logging.INFO):
+    client = Utils.capitalize_first_letter(client)
     LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
     LOGGER.info(f"INFO    : Flag detected  : '-mDupAlb, --merge-duplicates-albums'.")
     LOGGER.info(f"INFO    : The Tool will look for any duplicated album in your {client} Photos account, merge their content into the most relevant one, and remove the duplicates.")
@@ -712,12 +678,12 @@ def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_
         sys.exit(0)
 
     # Create the cloud_client_obj Object
-    if client == 'Immich':
+    if client.lower() == 'immich':
         cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client == 'Synology':
+    elif client.lower() == 'synology':
         cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
     else:
-        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
         sys.exit(0)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -755,10 +721,11 @@ def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_
 
 
 def mode_cloud_remove_orphan_assets(client=None, user_confirmation=True, log_level=logging.INFO):
+    client = Utils.capitalize_first_letter(client)
     LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
     LOGGER.info(f"INFO    : Flag detected  : '-rOrphan, --remove-orphan-assets'.")
 
-    if client == 'Synology':
+    if client.lower() == 'synology':
         LOGGER.warning(f"WARNING : This feature is not available for {client} Photos. Exiting program.")
         sys.exit(0)
 
@@ -771,12 +738,12 @@ def mode_cloud_remove_orphan_assets(client=None, user_confirmation=True, log_lev
         sys.exit(0)
 
     # Create the cloud_client_obj Object
-    if client == 'Immich':
+    if client.lower() == 'immich':
         cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client == 'Synology':
+    elif client.lower() == 'synology':
         cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
     else:
-        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
         sys.exit(0)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -810,6 +777,7 @@ def mode_cloud_remove_orphan_assets(client=None, user_confirmation=True, log_lev
 
 
 def mode_cloud_remove_ALL(client=None, user_confirmation=True, log_level=logging.INFO):
+    client = Utils.capitalize_first_letter(client)
     LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
     LOGGER.info(f"INFO    : Flag detected  : '-rAll, --remove-all-assets'.")
     LOGGER.warning('\n' + '-' * terminal_width)
@@ -821,12 +789,12 @@ def mode_cloud_remove_ALL(client=None, user_confirmation=True, log_level=logging
         sys.exit(0)
 
     # Create the cloud_client_obj Object
-    if client == 'Immich':
+    if client.lower() == 'immich':
         cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client == 'Synology':
+    elif client.lower() == 'synology':
         cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
     else:
-        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
         sys.exit(0)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -861,6 +829,7 @@ def mode_cloud_remove_ALL(client=None, user_confirmation=True, log_level=logging
 
 
 def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=logging.INFO):
+    client = Utils.capitalize_first_letter(client)
     albums_name_pattern = ARGS['rename-albums'][0]
     albums_name_replacement_pattern = ARGS['rename-albums'][1]
     LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
@@ -874,12 +843,12 @@ def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=logg
         sys.exit(0)
 
     # Create the cloud_client_obj Object
-    if client == 'Immich':
+    if client.lower() == 'immich':
         cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client == 'Synology':
+    elif client.lower() == 'synology':
         cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
     else:
-        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
         sys.exit(0)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -913,6 +882,7 @@ def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=logg
 
 
 def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True, log_level=logging.INFO):
+    client = Utils.capitalize_first_letter(client)
     if ARGS['remove-all-albums'] != "":
         albums_name_pattern = '.*'
     else:
@@ -934,12 +904,12 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
         sys.exit(0)
 
     # Create the cloud_client_obj Object
-    if client == 'Immich':
+    if client.lower() == 'immich':
         cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client == 'Synology':
+    elif client.lower() == 'synology':
         cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
     else:
-        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
         sys.exit(0)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -974,6 +944,7 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
 
 
 def mode_cloud_remove_all_albums(client=None, user_confirmation=True, log_level=logging.INFO):
+    client = Utils.capitalize_first_letter(client)
     remove_albums_assets = ARGS['remove-albums-assets']
     LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
     LOGGER.info(f"INFO    : Flag detected  : '-rAllAlb, --remove-all-albums'.")
@@ -990,12 +961,12 @@ def mode_cloud_remove_all_albums(client=None, user_confirmation=True, log_level=
         sys.exit(0)
 
     # Create the cloud_client_obj Object
-    if client == 'Immich':
+    if client.lower() == 'immich':
         cloud_client_obj = ClassImmichPhotos(account_id=ARGS['account-id'])
-    elif client == 'Synology':
+    elif client.lower() == 'synology':
         cloud_client_obj = ClassSynologyPhotos(account_id=ARGS['account-id'])
     else:
-        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['Immich', 'Synology']. Exiting program.")
+        LOGGER.info(f"INFO    : Cloud service not valid ({client}). Valid clients are ['immich', 'synology']. Exiting program.")
         sys.exit(0)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function

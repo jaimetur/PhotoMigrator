@@ -291,12 +291,6 @@ def checkArgs(ARGS, PARSER):
     ARGS['input-folder']                    = ARGS['input-folder'].rstrip('/\\')
     ARGS['output-folder']                   = ARGS['output-folder'].rstrip('/\\')
     ARGS['google-takeout-to-process']       = ARGS['google-takeout-to-process'].rstrip('/\\')
-    ARGS['synology-upload-albums']          = ARGS['synology-upload-albums'].rstrip('/\\')
-    ARGS['synology-upload-all']             = ARGS['synology-upload-all'].rstrip('/\\')
-    ARGS['synology-download-all']           = ARGS['synology-download-all'].rstrip('/\\')
-    ARGS['immich-upload-albums']            = ARGS['immich-upload-albums'].rstrip('/\\')
-    ARGS['immich-upload-all']               = ARGS['immich-upload-all'].rstrip('/\\')
-    ARGS['immich-download-all']             = ARGS['immich-download-all'].rstrip('/\\')
     ARGS['upload-albums']                   = ARGS['upload-albums'].rstrip('/\\')
     ARGS['upload-all']                      = ARGS['upload-all'].rstrip('/\\')
     ARGS['download-all']                    = ARGS['download-all'].rstrip('/\\')
@@ -357,12 +351,9 @@ def checkArgs(ARGS, PARSER):
         LOG_LEVEL = logging.CRITICAL
 
 
-    # Parse synology-download-albums and immich-download-albums to ensure than ARGS['output-folder'] is used to specify <OUTPUT_FOLDER>
-    if ARGS['synology-download-albums'] != "" and ARGS['output-folder'] == "":
-        PARSER.error(f"\n\n❌ ERROR   : When use flag -sdAlb, --synology-download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n")
-        exit(1)
-    if ARGS['immich-download-albums'] != "" and ARGS['output-folder'] == "":
-        PARSER.error(f"\n\n❌ ERROR   : When use flag -idAlb, --immich-download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n")
+    # Parse download-albums to ensure than ARGS['output-folder'] is used to specify <OUTPUT_FOLDER>
+    if ARGS['download-albums'] != "" and ARGS['output-folder'] == "":
+        PARSER.error(f"\n\n❌ ERROR   : When use flag -dAlb, --download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n")
         exit(1)
 
 
@@ -384,33 +375,22 @@ def checkArgs(ARGS, PARSER):
         DEFAULT_DUPLICATES_ACTION = True
     ARGS['duplicates-folders'] = parse_folders_list(ARGS['duplicates-folders'])
 
-    # Parse synology-rename-albums
-    if ARGS['synology-rename-albums'][0]:
-        if len(ARGS['synology-rename-albums']) != 2:
-            PARSER.error(f"\n\n❌ ERROR   : --synology-rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
+    # Parse rename-albums
+    if ARGS['rename-albums'][0]:
+        if len(ARGS['rename-albums']) != 2:
+            PARSER.error(f"\n\n❌ ERROR   : --rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
             exit(1)
-        for subarg in ARGS['synology-rename-albums']:
+        for subarg in ARGS['rename-albums']:
             if subarg is None:
-                PARSER.error(f"\n\n❌ ERROR   : --synology-rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
+                PARSER.error(f"\n\n❌ ERROR   : --rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
                 exit(1)
 
-    # Parse immich-rename-albums
-    if ARGS['immich-rename-albums'][0]:
-        if len(ARGS['immich-rename-albums']) != 2:
-            PARSER.error(f"\n\n❌ ERROR   : --immich-rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
-            exit(1)
-        for subarg in ARGS['immich-rename-albums']:
-            if subarg is None:
-                PARSER.error(f"\n\n❌ ERROR   : --immich-rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
-                exit(1)
 
-    # Parse 'immich-remove-all-albums in combination with 'including-albums-assets'
-    if ARGS['remove-albums-assets'] and not (ARGS['synology-remove-all-albums'] or ARGS['immich-remove-all-albums'] or ARGS['synology-remove-albums'] or ARGS['immich-remove-albums']):
+    # Parse 'remove-all-albums in combination with 'including-albums-assets'
+    if ARGS['remove-albums-assets'] and not (ARGS['remove-all-albums'] or ARGS['remove-albums']):
         PARSER.error(f"\n\n❌ ERROR   : --remove-albums-assets is a modifier of argument. It need to be used together with one of the following arguments:"
-                     f"\n--synology-remove-all-albums"
-                     f"\n--immich-remove-all-albums"
-                     f"\n--synology-remove-albums"
-                     f"\n--immich-remove-albums"
+                     f"\n--remove-all-albums"
+                     f"\n--remove-albums"
                      f"\n")
         exit(1)
 
