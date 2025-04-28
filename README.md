@@ -47,10 +47,10 @@ Currently, the Supported Photo Cloud Services and included Features are:
   - Remove Orphans Assets [(doc)](./help/5-immich-photos.md#remove-orphans-assets-from-immich-photos)
 
 - **Apple Photos Management**  
-  (not available yet but is on the [Roadmap](../docs/ROADMAP.md) for next release)
+  (not available yet but is on the [Roadmap](./docs/ROADMAP.md) for next release)
 
 - **Google Photos Management**  
-  (not available yet but is on the [Roadmap](../docs/ROADMAP.md) for next release)
+  (not available yet but is on the [Roadmap](./docs/ROADMAP.md) for next release)
 
 - [**Other Useful Features**](./help/6-other-features.md)  
 Apart from Manage the different Photo Cloud Services, the Tool also contains Other Useful Features such as:
@@ -73,7 +73,7 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 - [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)  
 
-Or check the [Historical Releases Notes](../docs/RELEASES-NOTES.md) to choose any specific release. 
+Or check the [Historical Releases Notes](./docs/RELEASES-NOTES.md) to choose any specific release. 
 
 > [!NOTE]  
 > The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), so feel free to download the version according to your system. 
@@ -206,7 +206,7 @@ The below tables show the pros and cons of each method together with a comparati
 
 ## RELEASES-NOTES:
 The Historical Releases Notes can be checked in the following link:
-[RELEASES-NOTES.md](../docs/RELEASES-NOTES.md)
+[RELEASES-NOTES.md](./docs/RELEASES-NOTES.md)
 
 ---
 
