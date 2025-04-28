@@ -221,7 +221,11 @@ Planed Roadmap for the following releases
   - Alpha version    : 2025-04-15
   - Beta version     : 2025-04-30
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   - Release Candidate: 2025-05-11
+=======
+  - Release Candidate: 2025-05-15
+>>>>>>> Stashed changes
 =======
   - Release Candidate: 2025-05-15
 >>>>>>> Stashed changes
