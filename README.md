@@ -7,10 +7,10 @@
 [![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.3.0-beta/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 
 # **CloudPhotoMigrator**
-This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automatic Migration**](/help/2-automatic-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
+This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automatic Migration**](./help/2-automatic-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
 
 Currently, the Supported Photo Cloud Services and included Features are:
-- [**Google Photos Takeout Management**](/help/3-google-takeout.md)
+- [**Google Photos Takeout Management**](./help/3-google-takeout.md)
   - Unpack your Takeout Zip files.
   - Process .json files to fix metadata (including creation date and time) of all your assets.
   - Merge Live picture with separate files (.HEIC and .MP4).
@@ -19,40 +19,40 @@ Currently, the Supported Photo Cloud Services and included Features are:
   - Create Symbolic Links for assets within any Album (to save disk space).
   - Detect and remove duplicates.
 
-- [**Synology Photos Management**](/help/4-synology-photos.md) - Features included:
-  - Upload Album(s) (from folder) [(doc)](/help/4-synology-photos.md#upload-albums-from-local-folder-into-synology-photos)
-  - Download Album(s) (into folder) [(doc)](/help/4-synology-photos.md#download-albums-from-synology-photos)
-  - Upload ALL (from folder) [(doc)](/help/4-synology-photos.md#upload-all-from-local-folder-into-synology-photos)
-  - Download ALL (into folder) [(doc)](/help/4-synology-photos.md#download-all-from-synology-photos)
-  - Remove ALL Assets [(doc)](/help/4-synology-photos.md#remove-all-assets-from-synology-photos)
-  - Remove ALL Albums [(doc)](/help/4-synology-photos.md#remove-all-albums-from-synology-photos)
-  - Remove Albums by Name Pattern [(doc)](/help/4-synology-photos.md#remove-albums-by-name-pattern-from-synology-photos)
-  - Rename Albums by Name Pattern [(doc)](/help/4-synology-photos.md#rename-albums-by-name-pattern-from-synology-photos)
-  - Remove Empty Albums [(doc)](/help/4-synology-photos.md#remove-empty-albums-from-synology-photos)
-  - Remove Duplicates Albums [(doc)](/help/4-synology-photos.md#remove-duplicates-albums-from-synology-photos)
-  - Merge Duplicates Albums [(doc)](/help/4-synology-photos.md#merge-duplicates-albums-from-synology-photos)
+- [**Synology Photos Management**](./help/4-synology-photos.md) - Features included:
+  - Upload Album(s) (from folder) [(doc)](./help/4-synology-photos.md#upload-albums-from-local-folder-into-synology-photos)
+  - Download Album(s) (into folder) [(doc)](./help/4-synology-photos.md#download-albums-from-synology-photos)
+  - Upload ALL (from folder) [(doc)](./help/4-synology-photos.md#upload-all-from-local-folder-into-synology-photos)
+  - Download ALL (into folder) [(doc)](./help/4-synology-photos.md#download-all-from-synology-photos)
+  - Remove ALL Assets [(doc)](./help/4-synology-photos.md#remove-all-assets-from-synology-photos)
+  - Remove ALL Albums [(doc)](./help/4-synology-photos.md#remove-all-albums-from-synology-photos)
+  - Remove Albums by Name Pattern [(doc)](./help/4-synology-photos.md#remove-albums-by-name-pattern-from-synology-photos)
+  - Rename Albums by Name Pattern [(doc)](./help/4-synology-photos.md#rename-albums-by-name-pattern-from-synology-photos)
+  - Remove Empty Albums [(doc)](./help/4-synology-photos.md#remove-empty-albums-from-synology-photos)
+  - Remove Duplicates Albums [(doc)](./help/4-synology-photos.md#remove-duplicates-albums-from-synology-photos)
+  - Merge Duplicates Albums [(doc)](./help/4-synology-photos.md#merge-duplicates-albums-from-synology-photos)
 
-- [**Immich Photos Management**](/help/5-immich-photos.md) - Features included:
-  - Upload Album(s) (from folder) [(doc)](/help/5-immich-photos.md#upload-albums-from-local-folder-into-immich-photos)
-  - Download Album(s) (into folder) [(doc)](/help/5-immich-photos.md#download-albums-from-immich-photos)
-  - Upload ALL (from folder) [(doc)](/help/5-immich-photos.md#upload-all-from-local-folder-into-immich-photos)
-  - Download ALL (into folder) [(doc)](/help/5-immich-photos.md#download-all-from-immich-photos)
-  - Remove ALL Assets [(doc)](/help/5-immich-photos.md#remove-all-assets-from-immich-photos)
-  - Remove ALL Albums [(doc)](/help/5-immich-photos.md#remove-all-albums-from-immich-photos)
-  - Remove Albums by Name Pattern [(doc)](/help/5-immich-photos.md#remove-albums-by-name-pattern-from-immich-photos)
-  - Rename Albums by Name Pattern [(doc)](/help/5-immich-photos.md#rename-albums-by-name-pattern-from-immich-photos)
-  - Remove Empty Albums [(doc)](/help/5-immich-photos.md#remove-empty-albums-from-immich-photos)
-  - Remove Duplicates Albums [(doc)](/help/5-immich-photos.md#remove-duplicates-albums-from-immich-photos)
-  - Merge Duplicates Albums [(doc)](/help/5-immich-photos.md#merge-duplicates-albums-from-immich-photos)
-  - Remove Orphans Assets [(doc)](/help/5-immich-photos.md#remove-orphans-assets-from-immich-photos)
+- [**Immich Photos Management**](./help/5-immich-photos.md) - Features included:
+  - Upload Album(s) (from folder) [(doc)](./help/5-immich-photos.md#upload-albums-from-local-folder-into-immich-photos)
+  - Download Album(s) (into folder) [(doc)](./help/5-immich-photos.md#download-albums-from-immich-photos)
+  - Upload ALL (from folder) [(doc)](./help/5-immich-photos.md#upload-all-from-local-folder-into-immich-photos)
+  - Download ALL (into folder) [(doc)](./help/5-immich-photos.md#download-all-from-immich-photos)
+  - Remove ALL Assets [(doc)](./help/5-immich-photos.md#remove-all-assets-from-immich-photos)
+  - Remove ALL Albums [(doc)](./help/5-immich-photos.md#remove-all-albums-from-immich-photos)
+  - Remove Albums by Name Pattern [(doc)](./help/5-immich-photos.md#remove-albums-by-name-pattern-from-immich-photos)
+  - Rename Albums by Name Pattern [(doc)](./help/5-immich-photos.md#rename-albums-by-name-pattern-from-immich-photos)
+  - Remove Empty Albums [(doc)](./help/5-immich-photos.md#remove-empty-albums-from-immich-photos)
+  - Remove Duplicates Albums [(doc)](./help/5-immich-photos.md#remove-duplicates-albums-from-immich-photos)
+  - Merge Duplicates Albums [(doc)](./help/5-immich-photos.md#merge-duplicates-albums-from-immich-photos)
+  - Remove Orphans Assets [(doc)](./help/5-immich-photos.md#remove-orphans-assets-from-immich-photos)
 
 - **Apple Photos Management**  
-  (not available yet but is on the [Roadmap](/docs/ROADMAP.md) for next release)
+  (not available yet but is on the [Roadmap](../docs/ROADMAP.md) for next release)
 
 - **Google Photos Management**  
-  (not available yet but is on the [Roadmap](/docs/ROADMAP.md) for next release)
+  (not available yet but is on the [Roadmap](../docs/ROADMAP.md) for next release)
 
-- [**Other Useful Features**](/help/6-other-features.md)  
+- [**Other Useful Features**](./help/6-other-features.md)  
 Apart from Manage the different Photo Cloud Services, the Tool also contains Other Useful Features such as:
   - **Metadata fixing** of any Photo Library in your local drive (not necesarely needs to be a Google Takeout folder)
   - **Library Organization** features:
@@ -73,7 +73,7 @@ Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm6
 - [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 - [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)  
 
-Or check the [Historical Releases Notes](/docs/RELEASES-NOTES.md) to choose any specific release. 
+Or check the [Historical Releases Notes](../docs/RELEASES-NOTES.md) to choose any specific release. 
 
 > [!NOTE]  
 > The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), so feel free to download the version according to your system. 
@@ -85,24 +85,24 @@ Or check the [Historical Releases Notes](/docs/RELEASES-NOTES.md) to choose any 
 In order to connect to the different Photo Cloud Services, you must configure the conection settings using the Configuration file (Config.ini) provided with the Tool.  
 
 Youn can see how to configure the Configuration File in this help section:
-[Configuration File](/help/0-configuration-file.md) 
+[Configuration File](./help/0-configuration-file.md) 
 
 
 ## Command Line Interface (CLI):
 This Tool is based in commands given through the Command Line Interface (CLI), so it is important to know the syntax of that interface.  
 
 You can check the whole list of all features and arguments with the right syntax here:
-[Command Line Interface (CLI)](/help/1-command-line-interface.md)
+[Command Line Interface (CLI)](./help/1-command-line-interface.md)
 
 
 ## All Documentation Links:
-- [Configuration File](/help/0-configuration-file.md)  
-- [Command Line Interface (CLI)](/help/1-command-line-interface.md)  
-- [Automatic Migration Feature](/help/2-automatic-migration.md)  
-- [Google Takeout Management](/help/3-google-takeout.md)  
-- [Synology Photos Management](/help/4-synology-photos.md)  
-- [Immich Photos Management](/help/5-immich-photos.md)  
-- [Other Features](/help/6-other-features.md)  
+- [Configuration File](./help/0-configuration-file.md)  
+- [Command Line Interface (CLI)](./help/1-command-line-interface.md)  
+- [Automatic Migration Feature](./help/2-automatic-migration.md)  
+- [Google Takeout Management](./help/3-google-takeout.md)  
+- [Synology Photos Management](./help/4-synology-photos.md)  
+- [Immich Photos Management](./help/5-immich-photos.md)  
+- [Other Features](./help/6-other-features.md)  
 
 
 ## Execution Methods:
@@ -116,12 +116,12 @@ The below tables show the pros and cons of each method together with a comparati
 - ### Execution Methods Comparison
   | Execution Method                                                        | Instructions Link                                               | Difficulty          | Pros                                                                                                                                                                                 | Cons                                                                                                                                                                                                              |
   |-------------------------------------------------------------------------|-----------------------------------------------------------------|---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | **[Compiled <br>Binaries](/help/execution/execution-from-binaries.md)** | **[Instructions](/help/execution/execution-from-binaries.md)**  | 🟢 *Easiest way*    | ✅ Only basic knowledge on command line commands needed.                                                                                                                             | ❌ Platform and architecture dependent.<br>❌ Need basic knowledge of running command line instructions.<br>❌ Some anti-virus may detect the tool as suspicious in Windows systems.                             |
-  | **[Docker <br>Container](/help/execution/execution-from-docker.md)**    | **[Instructions](/help/execution/execution-from-docker.md)**    | ⭐ *Recommended*    | ✅ Platform and architecture independent.<br>✅ Easy configuration via `docker.config` file (RELEASE_TAG, TIMEZONE).<br>✅ Automatically pulls latest image if `RELEASE_TAG=latest`. | ❌ Need intermediate knowledge of running command line instructions.<br>❌ Need to install Docker (if not already installed).<br>❌ All paths given as arguments must be relative to the execution folder.       |
-  | **[Source <br>Repository](/help/execution/execution-from-source.md)**   | **[Instructions](/help/execution/execution-from-source.md)**    | 🔴 *More difficult* | ✅ Platform and architecture independent.                                                                                                                                            | ❌ Need advance knowledge of running command line instructions.<br>❌ Need to install Git and Python 3.8+ (if not already installed). <br>❌ Need to pull the source repository again to update to a new release.|
+  | **[Compiled <br>Binaries](./help/execution/execution-from-binaries.md)** | **[Instructions](./help/execution/execution-from-binaries.md)**  | 🟢 *Easiest way*    | ✅ Only basic knowledge on command line commands needed.                                                                                                                             | ❌ Platform and architecture dependent.<br>❌ Need basic knowledge of running command line instructions.<br>❌ Some anti-virus may detect the tool as suspicious in Windows systems.                             |
+  | **[Docker <br>Container](./help/execution/execution-from-docker.md)**    | **[Instructions](./help/execution/execution-from-docker.md)**    | ⭐ *Recommended*    | ✅ Platform and architecture independent.<br>✅ Easy configuration via `docker.config` file (RELEASE_TAG, TIMEZONE).<br>✅ Automatically pulls latest image if `RELEASE_TAG=latest`. | ❌ Need intermediate knowledge of running command line instructions.<br>❌ Need to install Docker (if not already installed).<br>❌ All paths given as arguments must be relative to the execution folder.       |
+  | **[Source <br>Repository](./help/execution/execution-from-source.md)**   | **[Instructions](./help/execution/execution-from-source.md)**    | 🔴 *More difficult* | ✅ Platform and architecture independent.                                                                                                                                            | ❌ Need advance knowledge of running command line instructions.<br>❌ Need to install Git and Python 3.8+ (if not already installed). <br>❌ Need to pull the source repository again to update to a new release.|
 
 - ### Execution Methods Comparison Rating
-  | Feature                                               | [Compiled <br>Binaries](/help/execution/execution-from-binaries.md)<br>*easiest way* | [Docker <br>Container](/help/execution/execution-from-docker.md)<br>*recommended* | [Source <br>Repository](/help/execution/execution-from-source.md)<br>*more difficult* |
+  | Feature                                               | [Compiled <br>Binaries](./help/execution/execution-from-binaries.md)<br>*easiest way* | [Docker <br>Container](./help/execution/execution-from-docker.md)<br>*recommended* | [Source <br>Repository](./help/execution/execution-from-source.md)<br>*more difficult* |
   |-------------------------------------------------------|--------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
   | Platform and architecture independence                | ⭐☆☆☆☆                                                                              | ⭐⭐⭐⭐⭐                                                                       | ⭐⭐⭐⭐⭐                                                                           |
   | Ease of updating to new release                       | ⭐⭐⭐☆☆                                                                            | ⭐⭐⭐⭐⭐                                                                       | ⭐☆☆☆☆                                                                               |
@@ -206,7 +206,7 @@ The below tables show the pros and cons of each method together with a comparati
 
 ## RELEASES-NOTES:
 The Historical Releases Notes can be checked in the following link:
-[RELEASES-NOTES.md](/docs/RELEASES-NOTES.md)
+[RELEASES-NOTES.md](../docs/RELEASES-NOTES.md)
 
 ---
 
