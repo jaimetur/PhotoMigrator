@@ -385,7 +385,7 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=logging
         # login
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
-        LOGGER.info(f"INFO    : Uploading Assets in Folder    : {ARGS['immich-upload-all']}")
+        LOGGER.info(f"INFO    : Uploading Assets in Folder    : {input_folder}")
         # Call the Function
         total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, duplicates_assets_removed, total_dupplicated_assets_skipped = cloud_client_obj.push_ALL(input_folder=input_folder, albums_folders=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
         # After Upload Assets/Albums from Immich Photos, we will perform a clean-up of the database removing, Empty Albums, Duplicates Albums and Duplicates Assets
@@ -858,7 +858,7 @@ def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=logg
         LOGGER.info("INFO    : Reading Configuration file and Login into Immich Photos...")
         cloud_client_obj.login(log_level=logging.WARNING)
         # Call the Function
-        albums_renamed = cloud_client_obj.rename_albums(pattern=ARGS['immich-rename-albums'][0], pattern_to_replace=ARGS['immich-rename-albums'][1], log_level=logging.WARNING)
+        albums_renamed = cloud_client_obj.rename_albums(pattern=albums_name_pattern, pattern_to_replace=albums_name_replacement_pattern, log_level=logging.WARNING)
         # logout
         LOGGER.info("")
         LOGGER.info(f"INFO    : Logged out from {client} Photos.")

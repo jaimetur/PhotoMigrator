@@ -259,7 +259,7 @@ def validate_client_arg(ARGS, PARSER):
         'remove-albums',
         'remove-duplicates-albums',
         'merge-duplicates-albums',
-        'immich-remove-all-assets',
+        'remove-all-assets',
         'remove-all-albums',
         'remove-orphan-assets'
     ]
