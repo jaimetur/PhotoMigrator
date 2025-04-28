@@ -4,7 +4,7 @@
 [![Open Github issues](https://img.shields.io/github/issues/jaimetur/CloudPhotoMigrator?label=Open%20Issues)](https://github.com/jaimetur/CloudPhotoMigrator/issues)
 [![Total Github Releases downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/total?label=Total%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases)
 [![Latest version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/latest/total?label=Latest%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases/latest)
-[![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.3.0-alpha/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
+[![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.3.0-beta/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 
 # **CloudPhotoMigrator**
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automatic Migration**](/help/2-automatic-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
@@ -218,9 +218,13 @@ Planed Roadmap for the following releases
 ## **Release**: v3.3.0  
 
 - ### **Release Date**: 2025-05-30
-  - Alpha version    : 2025-05-16
-  - Beta version     : 2025-05-23
-  - Release Candidate: 2025-05-30
+  - Alpha version    : 2025-04-15
+  - Beta version     : 2025-04-30
+<<<<<<< Updated upstream
+  - Release Candidate: 2025-05-11
+=======
+  - Release Candidate: 2025-05-15
+>>>>>>> Stashed changes
   - Official Release : 2025-05-30
 
 - ### DONE:
@@ -246,6 +250,9 @@ Planed Roadmap for the following releases
       - [x] remove-duplicates-albums
       - [x] rename-albums
       - [x] merge-albums
+    - [x] Automatic filters flags detection in Dowload features for Synology/Immich Photos.
+      - [x] download-all
+      - [x] download-albums
     - [x] Request user confirmation before Rename/Remove/Merge massive Albums (show the affected Albums).
     - [x] Run Google Takeout Photos Processor Feature by default when running the tool with a valid folder as unique argument.
     - [x] Run Google Takeout Photos Processor Feature by default when running the tool without arguments, requesting the user to introduce Google Takeout folder. 
@@ -272,12 +279,6 @@ Planed Roadmap for the following releases
     - [x] Minor bugs fixing
 
 - ### TODO:
-
-  - [ ] Automatic filters flags detection for Upload/Dowload features for Synology/Immich Photos.
-    - [x] upload-all
-    - [x] upload-albums
-    - [ ] download-all
-    - [ ] download-albums
   - [ ] Deep Tests for new Features.
   - [ ] Deep Test for upload-albums/upload-all features.
   - [ ] Bug Fixing.

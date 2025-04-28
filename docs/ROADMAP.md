@@ -6,9 +6,9 @@ Planed Roadmap for the following releases
 ## **Release**: v3.3.0  
 
 - ### **Release Date**: 2025-05-30
-  - Alpha version    : 2025-05-16
-  - Beta version     : 2025-05-23
-  - Release Candidate: 2025-05-30
+  - Alpha version    : 2025-04-15
+  - Beta version     : 2025-04-30
+  - Release Candidate: 2025-05-15
   - Official Release : 2025-05-30
 
 - ### DONE:
@@ -34,6 +34,9 @@ Planed Roadmap for the following releases
       - [x] remove-duplicates-albums
       - [x] rename-albums
       - [x] merge-albums
+    - [x] Automatic filters flags detection in Dowload features for Synology/Immich Photos.
+      - [x] download-all
+      - [x] download-albums
     - [x] Request user confirmation before Rename/Remove/Merge massive Albums (show the affected Albums).
     - [x] Run Google Takeout Photos Processor Feature by default when running the tool with a valid folder as unique argument.
     - [x] Run Google Takeout Photos Processor Feature by default when running the tool without arguments, requesting the user to introduce Google Takeout folder. 
@@ -60,12 +63,6 @@ Planed Roadmap for the following releases
     - [x] Minor bugs fixing
 
 - ### TODO:
-
-  - [ ] Automatic filters flags detection for Upload/Dowload features for Synology/Immich Photos.
-    - [x] upload-all
-    - [x] upload-albums
-    - [ ] download-all
-    - [ ] download-albums
   - [ ] Deep Tests for new Features.
   - [ ] Deep Test for upload-albums/upload-all features.
   - [ ] Bug Fixing.
