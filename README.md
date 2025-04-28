@@ -270,9 +270,10 @@ Planed Roadmap for the following releases
     
   - #### Bug Fixing:
     - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218).
-    - [x] Fixed a bug with feature **Remove All Albums** from Synology Photos and Immich Photos when the flag _**'--remove-albums-assets'**_ was selected (the assetes were not removed properly)
-    - [x] Fixed a bug with feature **Synology Upload Album(s)** when the folder to upload is not named "Albums"
-    - [x] Minor bugs fixing
+    - [x] Fixed a bug with feature **Remove All Albums** from Synology Photos and Immich Photos when the flag _**'--remove-albums-assets'**_ was selected (the assetes were not removed properly).
+    - [x] Fixed a bug with feature **Synology Upload Album(s)** when the folder to upload is not named "Albums".
+    - [x] Fixed a bug when any input folder ends with '\' or '/' but is enclosed between double quotes (").
+    - [x] Minor bugs fixing.
 
 - ### TODO:
   - [ ] Deep Tests for new Features.
