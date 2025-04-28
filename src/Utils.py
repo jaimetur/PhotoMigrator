@@ -820,7 +820,11 @@ def rename_album_folders(input_folder: str, log_level=logging.INFO):
         duplicates_album_folders = 0
         duplicates_albums_fully_merged = 0
         duplicates_albums_not_fully_merged = 0
-        total_folders = os.listdir(input_folder)
+        # total_folders = os.listdir(input_folder)
+        total_folders = []
+        for dirpath, dirnames, filenames in os.walk(input_folder):
+            for dirname in dirnames:
+                total_folders.append(os.path.join(dirpath, dirname))
         info_actions = []
         warning_actions = []
         for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"INFO    : Renaming Albums folders in '{input_folder}'", unit=" folders"):
