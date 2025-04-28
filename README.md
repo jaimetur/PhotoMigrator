@@ -218,9 +218,13 @@ Planed Roadmap for the following releases
 ## **Release**: v3.3.0  
 
 - ### **Release Date**: 2025-05-30
-  - Alpha version    : 2025-04-20
+  - Alpha version    : 2025-04-15
   - Beta version     : 2025-04-30
+<<<<<<< Updated upstream
   - Release Candidate: 2025-05-11
+=======
+  - Release Candidate: 2025-05-15
+>>>>>>> Stashed changes
   - Official Release : 2025-05-30
 
 - ### DONE:
