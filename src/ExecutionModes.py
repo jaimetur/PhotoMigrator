@@ -157,9 +157,9 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         ARGS['google-input-zip-folder'] = input_folder
         LOGGER.info("")
         LOGGER.info(f"INFO    : ZIP files have been detected in {input_folder}'. Files will be unziped first...")
-        LOGGER.info("")
 
     # Mensajes informativos
+    LOGGER.info("")
     LOGGER.info(f"Folders for Google Takeout Photos Feature:")
     LOGGER.info(f"-------------------------------------------")
     if ARGS['google-input-zip-folder']:
