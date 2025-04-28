@@ -71,11 +71,11 @@
 
 ## Config.ini
 Youn can see how to configure the Config.ini file in this help section:
-[Configuration File](/help/0-configuration-file.md) 
+[Configuration File](../help/0-configuration-file.md) 
 
 
 ## Live Dashboard Preview:
-![Live Dashboard](/assets/screenshots/live_dashboard.jpg)
+![Live Dashboard](../assets/screenshots/live_dashboard.jpg)
 
 
 ## **Examples of use:**
