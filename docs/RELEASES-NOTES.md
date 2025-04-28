@@ -31,6 +31,9 @@
       - [x] remove-duplicates-albums
       - [x] rename-albums
       - [x] merge-albums
+    - [x] Automatic filters flags detection in Dowload features for Synology/Immich Photos.
+      - [x] download-all
+      - [x] download-albums
     - [x] Request user confirmation before Rename/Remove/Merge massive Albums (show the affected Albums).
     - [x] Run Google Takeout Photos Processor Feature by default when running the tool with a valid folder as unique argument.
     - [x] Run Google Takeout Photos Processor Feature by default when running the tool without arguments, requesting the user to introduce Google Takeout folder. 

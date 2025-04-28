@@ -72,6 +72,22 @@ def detect_and_run_execution_mode():
 
 
     # Synology/Immich Photos Modes:
+    elif ARGS['upload-albums'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to upload (default albums_to_upload='all')
+        EXECUTION_MODE = 'upload-albums'
+        mode_cloud_upload_albums(client=ARGS['client'])
+    elif ARGS['upload-all'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time
+        EXECUTION_MODE = 'upload-all'
+        mode_cloud_upload_ALL(client=ARGS['client'])
+    elif ARGS['download-albums'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to download (default albums_to_download='all')
+        EXECUTION_MODE = 'download-albums'
+        mode_cloud_download_albums(client=ARGS['client'])
+    elif ARGS['download-all'] != "":
+        # TODO: Launch this with -AUTO MODE and compare execution time
+        EXECUTION_MODE = 'download-all'
+        mode_cloud_download_ALL(client=ARGS['client'])
     elif ARGS['remove-albums']:
         EXECUTION_MODE = 'remove-albums'
         mode_cloud_remove_albums_by_name_pattern(client=ARGS['client'])
@@ -94,22 +110,6 @@ def detect_and_run_execution_mode():
     elif ARGS['remove-all-assets'] != "":
         EXECUTION_MODE = 'remove-all-assets'
         mode_cloud_remove_ALL(client=ARGS['client'])
-    elif ARGS['upload-albums'] != "":
-        # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to upload (default albums_to_upload='all')
-        EXECUTION_MODE = 'upload-albums'
-        mode_cloud_upload_albums(client=ARGS['client'])
-    elif ARGS['upload-all'] != "":
-        # TODO: Launch this with -AUTO MODE and compare execution time
-        EXECUTION_MODE = 'upload-all'
-        mode_cloud_upload_ALL(client=ARGS['client'])
-    elif ARGS['download-albums'] != "":
-        # TODO: Launch this with -AUTO MODE and compare execution time. Need to add an argument to specify wich albums to download (default albums_to_download='all')
-        EXECUTION_MODE = 'download-albums'
-        mode_cloud_download_albums(client=ARGS['client'])
-    elif ARGS['download-all'] != "":
-        # TODO: Launch this with -AUTO MODE and compare execution time
-        EXECUTION_MODE = 'download-all'
-        mode_cloud_download_ALL(client=ARGS['client'])
     elif ARGS['remove-orphan-assets'] != "":
         EXECUTION_MODE = 'remove-orphan-assets'
         mode_cloud_remove_orphan_assets(client=ARGS['client'])
