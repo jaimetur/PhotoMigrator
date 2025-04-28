@@ -65,8 +65,8 @@ def detect_and_run_execution_mode():
         # profile_and_print(function_to_analyze=mode_AUTOMATIC_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.
 
     # Google Photos Mode:
-    # elif "-gTakeout" in sys.argv or "--google-takeout-to-process" in sys.argv:
-    elif ARGS['google-takeout-to-process']:
+    # elif "-gTakeout" in sys.argv or "--google-takeout" in sys.argv:
+    elif ARGS['google-takeout']:
         EXECUTION_MODE = 'google-takeout'
         mode_google_takeout()
 
@@ -147,8 +147,8 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
     if ARGS['output-folder']:
         OUTPUT_TAKEOUT_FOLDER = ARGS['output-folder']
     else:
-        OUTPUT_TAKEOUT_FOLDER = f"{ARGS['google-takeout-to-process']}_{ARGS['google-output-folder-suffix']}_{TIMESTAMP}"
-    input_folder = ARGS['google-takeout-to-process']
+        OUTPUT_TAKEOUT_FOLDER = f"{ARGS['google-takeout']}_{ARGS['google-output-folder-suffix']}_{TIMESTAMP}"
+    input_folder = ARGS['google-takeout']
     if not Utils.dir_exists(input_folder):
         LOGGER.error(f"ERROR   : The Input Folder {input_folder} does not exists. Exiting...")
         sys.exit(-1)
@@ -166,7 +166,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"INFO    : Input Takeout folder (zipped detected)   : '{ARGS['google-input-zip-folder']}'")
         LOGGER.info(f"INFO    : Input Takeout will be unzipped to folder : '{input_folder}_unzipped_{TIMESTAMP}'")
     else:
-        LOGGER.info(f"INFO    : Input Takeout folder                     : '{ARGS['google-takeout-to-process']}'")
+        LOGGER.info(f"INFO    : Input Takeout folder                     : '{ARGS['google-takeout']}'")
     LOGGER.info(f"INFO    : Output Takeout folder                    : '{OUTPUT_TAKEOUT_FOLDER}'")
     LOGGER.info(f"")
 
@@ -188,7 +188,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
 
     if user_confirmation:
         LOGGER.warning('\n' + '-' * terminal_width)
-        LOGGER.warning(HELP_TEXTS["google-photos-takeout"].replace('<TAKEOUT_FOLDER>',f"'{ARGS['google-takeout-to-process']}'"))
+        LOGGER.warning(HELP_TEXTS["google-photos-takeout"].replace('<TAKEOUT_FOLDER>',f"'{ARGS['google-takeout']}'"))
         LOGGER.warning('-' * terminal_width)
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
@@ -218,7 +218,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         if ARGS['no-log-file']:
             LOGGER.warning(f"WARNING : Flag detected '-nolog, --no-log-file'. Skipping saving output into log file...")
         # Create the Object
-        takeout = ClassTakeoutFolder(ARGS['google-takeout-to-process'])
+        takeout = ClassTakeoutFolder(ARGS['google-takeout'])
         # Call the Function
         albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-progress'], capture_errors=ARGS['show-gpth-errors'], log_level=log_level)
 

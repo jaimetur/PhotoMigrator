@@ -37,7 +37,7 @@ usage: CloudPhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>
                                   [-rAlbAss]
                                   [-gpthProg [= [true,false]]] [-gpthErr [= [true,false]]]
                                   [-nolog] [-loglevel ['debug', 'info', 'warning', 'error']]
-                                  [-gtProc <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
+                                  [-gTakeout <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gnas ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gcsa] [-gics] [-gmtf] [-grdf] [-gsef] [-gsma] [-gsgt]
@@ -144,13 +144,11 @@ Following general arguments have different purposses depending on the Execution 
              Specify the Asset Type to filter assets in the different Photo Clients.
              (default: all)
 -AlbFld,   --albums-folders <ALBUMS_FOLDER>
-             If used together with '-uAll, --upload-all' --immich-
-             upload-all', it will create an Album per each subfolder found in
-             <ALBUMS_FOLDER>.
+             If used together with '-uAll, --upload-all', it will create an Album per each
+             subfolder found in <ALBUMS_FOLDER>.
 -rAlbAss,  --remove-albums-assets
-             If used together with '-srAllAlb, --synology-remove-all-albums' or
-             '-irAllAlb, --immich-remove-all-albums', it will also delete the assets
-             (photos/videos) inside each album.
+             If used together with '-rAllAlb, --remove-all-albums', it will also delete
+             the assets (photos/videos) inside each album.
 -gpthProg, --show-gpth-progress = [true,false]
              Enable or disable Progress messages during GPTH Processing. (default: False).
 -gpthErr,  --show-gpth-errors = [true,false]
@@ -165,11 +163,10 @@ GOOGLE PHOTOS TAKEOUT MANAGEMENT:
 ---------------------------------
 Following arguments allow you to interact with Google Photos Takeout Folder.
 In this mode, you can use more than one optional arguments from the below list.
-If only the argument -gtProc, --google-takeout-to-process <TAKEOUT_FOLDER> is detected,
-then the Tool will use the default values for the rest of the arguments for this extra
-mode.
+If only the argument -gTakeout, --google-takeout <TAKEOUT_FOLDER> is detected, then the
+Tool will use the default values for the rest of the arguments for this extra mode.
 
--gtProc,   --google-takeout-to-process <TAKEOUT_FOLDER>
+-gTakeout, --google-takeout <TAKEOUT_FOLDER>
              Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize
              assets inside it. If any Zip file is found inside it, the Zip will be
              extracted to the folder '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>', and will use

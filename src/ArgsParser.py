@@ -139,7 +139,7 @@ def parse_arguments():
 
     # FEATURES FOR GOOGLE PHOTOS:
     # ---------------------------
-    PARSER.add_argument("-gTakeout", "--google-takeout-to-process", metavar="<TAKEOUT_FOLDER>", default="",
+    PARSER.add_argument("-gTakeout", "--google-takeout", metavar="<TAKEOUT_FOLDER>", default="",
                         help="Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it. If any Zip file is found inside it, the Zip will be extracted to the folder '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>', and will use the that folder as input <TAKEOUT_FOLDER>."
                           "\nThe processed Takeout will be saved into the folder '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'"
                           "\nThis argument is mandatory to run the Google Takeout Processor Feature."
@@ -276,7 +276,7 @@ def checkArgs(ARGS, PARSER):
     global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
 
     # Check all provided arguments in the list of arguments to check to resolve the paths correctly for both, docker instance and normal instance.
-    keys_to_check = ['source', 'target', 'input-folder', 'output-folder', 'albums-folder', 'google-takeout-to-process',
+    keys_to_check = ['source', 'target', 'input-folder', 'output-folder', 'albums-folder', 'google-takeout',
                      'upload-albums', 'upload-all', 'download-all',
                      'find-duplicates', 'fix-symlinks-broken', 'rename-folders-content-based',
                      ]
@@ -289,7 +289,7 @@ def checkArgs(ARGS, PARSER):
     # Remove last / for all folders expected as arguments:
     ARGS['input-folder']                    = ARGS['input-folder'].rstrip('/\\')
     ARGS['output-folder']                   = ARGS['output-folder'].rstrip('/\\')
-    ARGS['google-takeout-to-process']       = ARGS['google-takeout-to-process'].rstrip('/\\')
+    ARGS['google-takeout']                  = ARGS['google-takeout'].rstrip('/\\')
     ARGS['upload-albums']                   = ARGS['upload-albums'].rstrip('/\\')
     ARGS['upload-all']                      = ARGS['upload-all'].rstrip('/\\')
     ARGS['download-all']                    = ARGS['download-all'].rstrip('/\\')
