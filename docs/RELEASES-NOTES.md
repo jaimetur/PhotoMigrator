@@ -45,6 +45,7 @@
     - [x] Merged Synology/Immich features using a parameter and replacing Comments and Classes based on it. 
     - [x] Merged Synology/Immich HELP texts showed when running the different features.
     - [x] Renamed All flags starting with 's' (for synology) or 'i' (for immich) to remove the prefix, since now you can specify the client using the new flag _**'-client, --client'**_
+    - [x] Renamed flag _**'-gtProc, --google-takeout-to-process'**_ to _**'-gTakeout, --google-takeout'**_ to activate the Feature 'Google Takeout Processing'.
     - [x] Renamed short name flag _**'-RemAlb'**_ to _**'-rAlb'**_ to activate the Feature 'Remove Albums'.
     - [x] Renamed short name flag _**'-RenAlb'**_ to _**'-renAlb'**_ to activate the Feature 'Rename Albums'.
     - [x] Renamed short name flag _**'-MergAlb'**_ to _**'-mDupAlb'**_ to activate the Feature 'Merge Duplicates Albums'.

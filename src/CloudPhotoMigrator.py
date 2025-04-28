@@ -20,7 +20,7 @@ if len(sys.argv) == 2 and os.path.isdir(sys.argv[1]):
     print(f"INFO    : Valid folder detected as input: '{sys.argv[1]}'")
     print(f"INFO    : Executing Google Takeout Photos Processor Feature with the provided input folder...")
     input_folder = sys.argv[1]
-    sys.argv[1] = "--google-takeout-to-process"
+    sys.argv[1] = "--google-takeout"
     sys.argv.append(input_folder)
 
 # Verificar si el script se ejecutó sin argumentos, en ese caso se pedira al usuario queue introduzca la ruta de la caroeta que contiene el Takeout a procesar
@@ -42,7 +42,7 @@ elif len(sys.argv) == 1:
 
     if selected_folder and os.path.isdir(selected_folder):
         print(f"INFO    : Folder selected: '{selected_folder}'")
-        sys.argv.append("--google-takeout-to-process")
+        sys.argv.append("--google-takeout")
         sys.argv.append(selected_folder)
     else:
         print("ERROR   : No valid folder selected. Exiting.")

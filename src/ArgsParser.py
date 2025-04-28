@@ -115,8 +115,9 @@ def parse_arguments():
     #                     help="Specify if you want to filter only Archived assets in the different Photo Clients."
     # )
 
-    PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-suAll, --synology-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
-    PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False, help="If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums', it will also delete the assets (photos/videos) inside each album.")
+    PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-uAll, --upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
+    PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False,
+                        help="If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-albums', it will also remove the assets (photos/videos) inside each album.")
     PARSER.add_argument("-gpthProg", "--show-gpth-progress",
                         metavar="= [true,false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
@@ -139,7 +140,7 @@ def parse_arguments():
 
     # FEATURES FOR GOOGLE PHOTOS:
     # ---------------------------
-    PARSER.add_argument("-gtProc", "--google-takeout-to-process", metavar="<TAKEOUT_FOLDER>", default="",
+    PARSER.add_argument("-gTakeout", "--google-takeout", metavar="<TAKEOUT_FOLDER>", default="",
                         help="Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it. If any Zip file is found inside it, the Zip will be extracted to the folder '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>', and will use the that folder as input <TAKEOUT_FOLDER>."
                           "\nThe processed Takeout will be saved into the folder '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'"
                           "\nThis argument is mandatory to run the Google Takeout Processor Feature."
@@ -259,7 +260,7 @@ def validate_client_arg(ARGS, PARSER):
         'remove-albums',
         'remove-duplicates-albums',
         'merge-duplicates-albums',
-        'immich-remove-all-assets',
+        'remove-all-assets',
         'remove-all-albums',
         'remove-orphan-assets'
     ]
@@ -276,9 +277,8 @@ def checkArgs(ARGS, PARSER):
     global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
 
     # Check all provided arguments in the list of arguments to check to resolve the paths correctly for both, docker instance and normal instance.
-    keys_to_check = ['source', 'target', 'input-folder', 'output-folder', 'albums-folder', 'google-takeout-to-process',
-                     'synology-upload-albums', 'synology-upload-all', 'synology-download-all',
-                     'immich-upload-albums', 'immich-upload-all', 'immich-download-all',
+    keys_to_check = ['source', 'target', 'input-folder', 'output-folder', 'albums-folder', 'google-takeout',
+                     'upload-albums', 'upload-all', 'download-all',
                      'find-duplicates', 'fix-symlinks-broken', 'rename-folders-content-based',
                      ]
 
@@ -290,7 +290,7 @@ def checkArgs(ARGS, PARSER):
     # Remove last / for all folders expected as arguments:
     ARGS['input-folder']                    = ARGS['input-folder'].rstrip('/\\')
     ARGS['output-folder']                   = ARGS['output-folder'].rstrip('/\\')
-    ARGS['google-takeout-to-process']       = ARGS['google-takeout-to-process'].rstrip('/\\')
+    ARGS['google-takeout']                  = ARGS['google-takeout'].rstrip('/\\')
     ARGS['upload-albums']                   = ARGS['upload-albums'].rstrip('/\\')
     ARGS['upload-all']                      = ARGS['upload-all'].rstrip('/\\')
     ARGS['download-all']                    = ARGS['download-all'].rstrip('/\\')
@@ -386,7 +386,7 @@ def checkArgs(ARGS, PARSER):
                 exit(1)
 
 
-    # Parse 'remove-all-albums in combination with 'including-albums-assets'
+    # Parse 'remove-albums-assets' to check if 'remove-all-albums' or 'remove-albums' have been detected
     if ARGS['remove-albums-assets'] and not (ARGS['remove-all-albums'] or ARGS['remove-albums']):
         PARSER.error(f"\n\n❌ ERROR   : --remove-albums-assets is a modifier of argument. It need to be used together with one of the following arguments:"
                      f"\n--remove-all-albums"
