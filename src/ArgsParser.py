@@ -288,14 +288,14 @@ def checkArgs(ARGS, PARSER):
     ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
 
     # Remove last / for all folders expected as arguments:
-    ARGS['input-folder']                    = ARGS['input-folder'].rstrip('/\\')
-    ARGS['output-folder']                   = ARGS['output-folder'].rstrip('/\\')
-    ARGS['google-takeout']                  = ARGS['google-takeout'].rstrip('/\\')
-    ARGS['upload-albums']                   = ARGS['upload-albums'].rstrip('/\\')
-    ARGS['upload-all']                      = ARGS['upload-all'].rstrip('/\\')
-    ARGS['download-all']                    = ARGS['download-all'].rstrip('/\\')
-    ARGS['fix-symlinks-broken']             = ARGS['fix-symlinks-broken'].rstrip('/\\')
-    ARGS['rename-folders-content-based']    = ARGS['rename-folders-content-based'].rstrip('/\\')
+    ARGS['input-folder']                    = clean_path(ARGS['input-folder'])
+    ARGS['output-folder']                   = clean_path(ARGS['output-folder'])
+    ARGS['google-takeout']                  = clean_path(ARGS['google-takeout'])
+    ARGS['upload-albums']                   = clean_path(ARGS['upload-albums'])
+    ARGS['upload-all']                      = clean_path(ARGS['upload-all'])
+    ARGS['download-all']                    = clean_path(ARGS['download-all'])
+    ARGS['fix-symlinks-broken']             = clean_path(ARGS['fix-symlinks-broken'])
+    ARGS['rename-folders-content-based']    = clean_path(ARGS['rename-folders-content-based'])
 
     # Set None for google-input-zip-folder argument, and only if unzip is needed will change this to the proper folder.
     ARGS['google-input-zip-folder'] = None
@@ -440,6 +440,15 @@ def create_global_variable_from_args(args):
 
 def getParser():
     return PARSER
+
+def clean_path(path: str) -> str:
+    """Quita barras finales de una ruta, respetando las comillas exteriores si las tiene."""
+    if path.startswith('"') and path.endswith('"'):
+        inner_path = path[1:-1]  # Quitamos las comillas
+        inner_path = inner_path.rstrip('/\\')  # Quitamos las barras finales
+        return f'"{inner_path}"'  # Volvemos a poner las comillas
+    else:
+        return path.rstrip('/\\')
 
 def resolve_all_possible_paths(args_dict, keys_to_check=None):
     """
