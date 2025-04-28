@@ -14,7 +14,7 @@
 
 ### <span style="color:blue">Google Takeout Feature: Process Explained:</span>
 
-- To execute the Google Takeout Processing, you need to call the tool with the argument _**'-gtProc, --google-takeout-to-process <INPUT_TAKEOUT_FOLDER>'**_.   
+- To execute the Google Takeout Processing, you need to call the tool with the argument _**'-gTakeout, --google-takeout-to-process <INPUT_TAKEOUT_FOLDER>'**_.   
 
 - Where, <INPUT_TAKEOUT_FOLDER> is the folder that content the Google Takeout to process (if the Takeout is in Zip files, it will be extracted first into folder '<INPUT_TAKEOUT_FOLDER>_extracted'.  
 

@@ -115,8 +115,8 @@ def parse_arguments():
     #                     help="Specify if you want to filter only Archived assets in the different Photo Clients."
     # )
 
-    PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-suAll, --synology-upload-all' or '-iuAll, --immich-upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
-    PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False, help="If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums', it will also delete the assets (photos/videos) inside each album.")
+    PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-uAll, --upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
+    PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False, help="If used together with '-rAllAlb, --remove-all-albums', it will also delete the assets (photos/videos) inside each album.")
     PARSER.add_argument("-gpthProg", "--show-gpth-progress",
                         metavar="= [true,false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
@@ -139,7 +139,7 @@ def parse_arguments():
 
     # FEATURES FOR GOOGLE PHOTOS:
     # ---------------------------
-    PARSER.add_argument("-gtProc", "--google-takeout-to-process", metavar="<TAKEOUT_FOLDER>", default="",
+    PARSER.add_argument("-gTakeout", "--google-takeout-to-process", metavar="<TAKEOUT_FOLDER>", default="",
                         help="Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it. If any Zip file is found inside it, the Zip will be extracted to the folder '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>', and will use the that folder as input <TAKEOUT_FOLDER>."
                           "\nThe processed Takeout will be saved into the folder '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'"
                           "\nThis argument is mandatory to run the Google Takeout Processor Feature."
@@ -277,8 +277,7 @@ def checkArgs(ARGS, PARSER):
 
     # Check all provided arguments in the list of arguments to check to resolve the paths correctly for both, docker instance and normal instance.
     keys_to_check = ['source', 'target', 'input-folder', 'output-folder', 'albums-folder', 'google-takeout-to-process',
-                     'synology-upload-albums', 'synology-upload-all', 'synology-download-all',
-                     'immich-upload-albums', 'immich-upload-all', 'immich-download-all',
+                     'upload-albums', 'upload-all', 'download-all',
                      'find-duplicates', 'fix-symlinks-broken', 'rename-folders-content-based',
                      ]
 

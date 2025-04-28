@@ -65,7 +65,7 @@ def detect_and_run_execution_mode():
         # profile_and_print(function_to_analyze=mode_AUTOMATIC_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.
 
     # Google Photos Mode:
-    # elif "-gtProc" in sys.argv or "--google-takeout-to-process" in sys.argv:
+    # elif "-gTakeout" in sys.argv or "--google-takeout-to-process" in sys.argv:
     elif ARGS['google-takeout-to-process']:
         EXECUTION_MODE = 'google-takeout'
         mode_google_takeout()
@@ -75,7 +75,7 @@ def detect_and_run_execution_mode():
     elif ARGS['remove-albums']:
         EXECUTION_MODE = 'remove-albums'
         mode_cloud_remove_albums_by_name_pattern(client=ARGS['client'])
-    elif ARGS['rename-albums'][0]:
+    elif ARGS['rename-albums']:
         EXECUTION_MODE = 'rename-albums'
         mode_cloud_rename_albums(client=ARGS['client'])
     elif ARGS['remove-empty-albums']:
@@ -111,7 +111,7 @@ def detect_and_run_execution_mode():
         EXECUTION_MODE = 'download-all'
         mode_cloud_download_ALL(client=ARGS['client'])
     elif ARGS['remove-orphan-assets'] != "":
-        EXECUTION_MODE = 'immich-remove-orphan-assets'
+        EXECUTION_MODE = 'remove-orphan-assets'
         mode_cloud_remove_orphan_assets(client=ARGS['client'])
 
 
@@ -288,7 +288,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
 def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=logging.INFO):
     client = Utils.capitalize_first_letter(client)
     input_folder = ARGS['upload-albums']
-    LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
+    LOGGER.info(f"INFO    : Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"INFO    : Flag detected  : '-uAlb, --upload-albums'.")
     LOGGER.warning('\n' + '-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["upload-albums"].replace('<ALBUMS_FOLDER>', f"'{ARGS['upload-albums']}'"))
@@ -359,7 +359,7 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=logging
     client = Utils.capitalize_first_letter(client)
     input_folder = ARGS['upload-all']
     albums_folders = ARGS['albums-folders']
-    LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
+    LOGGER.info(f"INFO    : Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"INFO    : Flag detected  : '-uAll, --upload-all'.")
     if albums_folders:
         LOGGER.info(f"INFO    : Flag detected  : '-AlbFld, --albums-folders'.")
@@ -434,7 +434,7 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=lo
     albums_name = ARGS['download-albums']
     output_folder = ARGS['output-folder']
     LOGGER.info(f"INFO    : Client detected  : '{client} Photos'.")
-    LOGGER.info(f"INFO    : Flag detected    : '-idAlb, --immich-download-albums <ALBUMS_NAME>'.".replace("'<ALBUMS_NAME>'", albums_name))
+    LOGGER.info(f"INFO    : Flag detected    : '-dAlb, --download-albums <ALBUMS_NAME>'.".replace("'<ALBUMS_NAME>'", albums_name))
     LOGGER.info(f"INFO    : Albums to extract: {albums_name}")
     LOGGER.warning('\n' + '-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["download-albums"].replace("'<ALBUMS_NAME>'", albums_name).replace("<OUTPUT_FOLDER>", output_folder))
@@ -502,7 +502,7 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=lo
 def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=logging.INFO):
     client = Utils.capitalize_first_letter(client)
     output_folder = ARGS['download-all']
-    LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
+    LOGGER.info(f"INFO    : Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"INFO    : Flag detected  : 'idAll, --download-all'.")
     LOGGER.warning('\n' + '-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["download-all"].replace('<OUTPUT_FOLDER>', output_folder))
@@ -562,7 +562,7 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=loggi
 
 def mode_cloud_remove_empty_albums(client=None, user_confirmation=True, log_level=logging.INFO):
     client = Utils.capitalize_first_letter(client)
-    LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
+    LOGGER.info(f"INFO    : Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"INFO    : Flag detected  : '-rEmpAlb, --remove-empty-albums'.")
     LOGGER.info(f"INFO    : The Tool will look for any empty album in your {client} Photos account and will remove them (if any empty album is found).")
     LOGGER.warning('\n' + '-' * terminal_width)
@@ -614,7 +614,7 @@ def mode_cloud_remove_empty_albums(client=None, user_confirmation=True, log_leve
 
 def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log_level=logging.INFO):
     client = Utils.capitalize_first_letter(client)
-    LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
+    LOGGER.info(f"INFO    : Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"INFO    : Flag detected  : '-rDupAlb, --remove-duplicates-albums'.")
     LOGGER.info(f"INFO    : The Tool will look for any duplicated album (based on assets counts and assets size) in your {client} Photos account and will remove them (if any duplicated album is found).")
     LOGGER.warning('\n' + '-' * terminal_width)
@@ -666,7 +666,7 @@ def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log
 
 def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_level=logging.INFO):
     client = Utils.capitalize_first_letter(client)
-    LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
+    LOGGER.info(f"INFO    : Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"INFO    : Flag detected  : '-mDupAlb, --merge-duplicates-albums'.")
     LOGGER.info(f"INFO    : The Tool will look for any duplicated album in your {client} Photos account, merge their content into the most relevant one, and remove the duplicates.")
     LOGGER.warning('\n' + '-' * terminal_width)
@@ -722,7 +722,7 @@ def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_
 
 def mode_cloud_remove_orphan_assets(client=None, user_confirmation=True, log_level=logging.INFO):
     client = Utils.capitalize_first_letter(client)
-    LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
+    LOGGER.info(f"INFO    : Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"INFO    : Flag detected  : '-rOrphan, --remove-orphan-assets'.")
 
     if client.lower() == 'synology':
@@ -778,7 +778,7 @@ def mode_cloud_remove_orphan_assets(client=None, user_confirmation=True, log_lev
 
 def mode_cloud_remove_ALL(client=None, user_confirmation=True, log_level=logging.INFO):
     client = Utils.capitalize_first_letter(client)
-    LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
+    LOGGER.info(f"INFO    : Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"INFO    : Flag detected  : '-rAll, --remove-all-assets'.")
     LOGGER.warning('\n' + '-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["remove-all-assets"])
@@ -832,7 +832,7 @@ def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=logg
     client = Utils.capitalize_first_letter(client)
     albums_name_pattern = ARGS['rename-albums'][0]
     albums_name_replacement_pattern = ARGS['rename-albums'][1]
-    LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
+    LOGGER.info(f"INFO    : Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"INFO    : Flag detected  : '-renAlb, --rename-albums'.")
     LOGGER.warning('\n' + '-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["rename-albums"].replace('<ALBUMS_NAME_PATTERN>', albums_name_pattern).replace('<ALBUMS_NAME_REPLACEMENT_PATTERN>',albums_name_replacement_pattern))
@@ -889,8 +889,8 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
         albums_name_pattern = ARGS['remove-albums']
 
     remove_albums_assets = ARGS['remove-albums-assets']
-    LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
-    LOGGER.info(f"INFO    : Flag detected  : '-irAlb, --immich-remove-albums'.")
+    LOGGER.info(f"INFO    : Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
+    LOGGER.info(f"INFO    : Flag detected  : '-rAlb, --remove-albums'.")
     LOGGER.warning('\n' + '-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["remove-albums"].replace('<ALBUMS_NAME_PATTERN>', albums_name_pattern))
     LOGGER.warning('-' * terminal_width)
@@ -946,7 +946,7 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
 def mode_cloud_remove_all_albums(client=None, user_confirmation=True, log_level=logging.INFO):
     client = Utils.capitalize_first_letter(client)
     remove_albums_assets = ARGS['remove-albums-assets']
-    LOGGER.info(f"INFO    : Client detected: '{client} Photos'.")
+    LOGGER.info(f"INFO    : Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"INFO    : Flag detected  : '-rAllAlb, --remove-all-albums'.")
     LOGGER.warning('\n' + '-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["remove-all-albums"])

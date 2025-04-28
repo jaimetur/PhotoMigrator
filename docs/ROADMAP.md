@@ -47,6 +47,11 @@ Planed Roadmap for the following releases
     - [x] Merged Features 'Remove All Albums' & 'Remove Albums by name' (You can remove ALL Albums using '.*' as pattern).
     - [x] Merged Synology/Immich features using a parameter and replacing Comments and Classes based on it. 
     - [x] Merged Synology/Immich HELP texts showed when running the different features.
+    - [x] Renamed All flags starting with 's' (for synology) or 'i' (for immich) to remove the prefix, since now you can specify the client using the new flag _**'-client, --client'**_
+    - [x] Renamed short name flag _**'-gtProc'**_ to _**'-gTakeout'**_ to activate the Feature 'Google Takeout Processing'.
+    - [x] Renamed short name flag _**'-RemAlb'**_ to _**'-rAlb'**_ to activate the Feature 'Remove Albums'.
+    - [x] Renamed short name flag _**'-RenAlb'**_ to _**'-renAlb'**_ to activate the Feature 'Rename Albums'.
+    - [x] Renamed short name flag _**'-MergAlb'**_ to _**'-mDupAlb'**_ to activate the Feature 'Merge Duplicates Albums'.
     
   - #### Bug Fixing:
     - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218).

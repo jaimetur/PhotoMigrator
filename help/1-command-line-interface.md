@@ -144,7 +144,7 @@ Following general arguments have different purposses depending on the Execution 
              Specify the Asset Type to filter assets in the different Photo Clients.
              (default: all)
 -AlbFld,   --albums-folders <ALBUMS_FOLDER>
-             If used together with '-suAll, --synology-upload-all' or '-iuAll, --immich-
+             If used together with '-uAll, --upload-all' --immich-
              upload-all', it will create an Album per each subfolder found in
              <ALBUMS_FOLDER>.
 -rAlbAss,  --remove-albums-assets
