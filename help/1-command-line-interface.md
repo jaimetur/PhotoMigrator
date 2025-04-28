@@ -147,8 +147,8 @@ Following general arguments have different purposses depending on the Execution 
              If used together with '-uAll, --upload-all', it will create an Album per each
              subfolder found in <ALBUMS_FOLDER>.
 -rAlbAss,  --remove-albums-assets
-             If used together with '-rAllAlb, --remove-all-albums', it will also delete
-             the assets (photos/videos) inside each album.
+             If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-
+             albums', it will also remove the assets (photos/videos) inside each album.
 -gpthProg, --show-gpth-progress = [true,false]
              Enable or disable Progress messages during GPTH Processing. (default: False).
 -gpthErr,  --show-gpth-errors = [true,false]

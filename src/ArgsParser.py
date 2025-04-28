@@ -116,7 +116,8 @@ def parse_arguments():
     # )
 
     PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-uAll, --upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
-    PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False, help="If used together with '-rAllAlb, --remove-all-albums', it will also delete the assets (photos/videos) inside each album.")
+    PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False,
+                        help="If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-albums', it will also remove the assets (photos/videos) inside each album.")
     PARSER.add_argument("-gpthProg", "--show-gpth-progress",
                         metavar="= [true,false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
@@ -385,7 +386,7 @@ def checkArgs(ARGS, PARSER):
                 exit(1)
 
 
-    # Parse 'remove-all-albums in combination with 'including-albums-assets'
+    # Parse 'remove-albums-assets' to check if 'remove-all-albums' or 'remove-albums' have been detected
     if ARGS['remove-albums-assets'] and not (ARGS['remove-all-albums'] or ARGS['remove-albums']):
         PARSER.error(f"\n\n❌ ERROR   : --remove-albums-assets is a modifier of argument. It need to be used together with one of the following arguments:"
                      f"\n--remove-all-albums"
