@@ -10,7 +10,7 @@
 
 - ### Main Changes:
 
-  - 🚀 New Features:
+  - ### 🚀 New Features:
     - [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automatic Mode Feature as before).
     - [x] Added Support for 3 accounts of each Cloud Photo Service (before it was only 2).
     - [x] Merged Synology/Immich arguments (now you can specify the client using a new flag _**'-client, --cient \<CLIENT_NAME>'**_)
