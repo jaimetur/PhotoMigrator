@@ -90,14 +90,14 @@ Or check the [Historical Releases Notes](./docs/RELEASES-NOTES.md) to choose any
 ## ⚙️ Configuration File:
 In order to connect to the different Photo Cloud Services, you must configure the conection settings using the Configuration file (Config.ini) provided with the Tool.  
 
-Youn can see how to configure the Configuration File in this help section:
+You can see how to configure the Configuration File in this help section:
 [Configuration File](./help/0-configuration-file.md) 
 
 
 ## ⌨️ Command Line Interface:
-This Tool is based in commands given through the Command Line Interface (CLI), so it is important to know the syntax of that interface.  
+This Tool is based on commands given through the Command Line Interface (CLI), so it is important to know the syntax of that interface.  
 
-You can check the whole list of all features and arguments with the right syntax here:
+You can check the whole list of features and arguments with the right syntax here:
 [Command Line Interface (CLI)](./help/1-command-line-interface.md)
 
 
