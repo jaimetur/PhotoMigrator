@@ -12,6 +12,10 @@
 
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automatic Migration**](./help/2-automatic-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
 
+## Live Dashboard Preview:
+![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
+
+## Main Features:
 Currently, the Supported Photo Cloud Services and included Features are:
 - [**Google Photos Takeout Management**](./help/3-google-takeout.md)
   - Unpack your Takeout Zip files.
@@ -65,9 +69,6 @@ Apart from Manage the different Photo Cloud Services, the Tool also contains Oth
   - **Symbolic Links Support** for Albums folders
     - Fix Symbolic Links Broken
   - **Homogenize Albums folders name based on content**
-
-## Live Dashboard Preview:
-![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
 
 ## Tool Download:
