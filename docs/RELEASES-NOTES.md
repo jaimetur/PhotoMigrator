@@ -107,9 +107,6 @@
     - [x] Support for 'Uploads Queue' to limit the max number of assets that the Puller worker will store in the temporary folder to 100 (this save disk space). In this way the Puller worker will never put more than 100 assets pending to Upload in the temporary folder.
     - [x] Support to use Local Folders as SOURCE/TARGET during Automatic Migration Process. Now the selected local folder works equal to other supported cloud services.
     - [x] Support Migration between 2 different accounts on the same Cloud Photo Service. 
-> [!IMPORTANT]  
-> **Breaking Change!**  
-> Config.ini file has changed to support multi-accounts over the same Cloud Photo Service
 
   - #### 🚀 Enhancements:
     - [x] Completely refactored Automatic Migration Process to allow parallel threads for Downloads and Uploads jobs avoiding downloading all assets before to upload them (this will save disk space and improve performance). Also objects support has been added to this mode for an easier implementation and future enhancements.
@@ -125,8 +122,11 @@
   - #### 🐛 Bug fixes:
     - [x] Bug Fixing.
 
-  - #### Live Dashboard Preview:
+  - #### 🖥️ Live Dashboard Preview:
     ![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
+
+  - #### 💥 Breaking Changes:
+    - Config.ini file has changed to support multi-accounts over the same Cloud Photo Service
 
 ---
 
