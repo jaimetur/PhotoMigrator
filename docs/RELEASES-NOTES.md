@@ -96,6 +96,9 @@
 - ### **Release Date**: 2025-03-31
 
 - ### Main Changes:
+  - #### 🚨 Breaking Changes:
+    - Config.ini file has changed to support multi-accounts over the same Cloud Photo Service. 
+
   - #### 🌟 New Features:
     - [x] Support for running the Tool from Docker container.
     - [x] Included Live Progress Dashboard in Automatic Migration process for a better visualization of the job progress.
@@ -124,9 +127,6 @@
 
   - #### 🖥️ Live Dashboard Preview:
     ![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
-
-  - #### 💥 Breaking Changes:
-    - Config.ini file has changed to support multi-accounts over the same Cloud Photo Service
 
 ---
 
