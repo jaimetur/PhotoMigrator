@@ -96,6 +96,9 @@
 - ### **Release Date**: 2025-03-31
 
 - ### Main Changes:
+  - #### 🚨 Breaking Changes:
+    - Config.ini file has changed to support multi-accounts over the same Cloud Photo Service. 
+
   - #### 🌟 New Features:
     - [x] Support for running the Tool from Docker container.
     - [x] Included Live Progress Dashboard in Automatic Migration process for a better visualization of the job progress.
@@ -125,9 +128,6 @@
   - #### 🖥️ Live Dashboard Preview:
     ![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
-  - #### 💥 Breaking Changes:
-    - Config.ini file has changed to support multi-accounts over the same Cloud Photo Service
-
 ---
 
 ## **Release**: v3.0.0  
@@ -138,16 +138,15 @@
   - #### 🌟 New Features:
     - [x] Added **_Immich Photos Support_**.
     - [x] Added **_New Automatic Migration Feature_** to perform Fully Automatic Migration Process between different Photo Cloud Services
-      - #### AUTOMATIC MIGRATION FEATURE:
-        - **-AUTO,   --AUTOMATIC-MIGRATION \<SOURCE> \<TARGET>**  
-          This process will do an AUTOMATIC-MIGRATION process to Download all your Assets
-                 (including Albums) from the \<SOURCE> Cloud Service and Upload them to the
-                 \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE>
-                 Cloud Service.
+      - **-AUTO,   --AUTOMATIC-MIGRATION \<SOURCE> \<TARGET>**  
+        This process will do an AUTOMATIC-MIGRATION process to Download all your Assets
+        (including Albums) from the \<SOURCE> Cloud Service and Upload them to the
+        \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE>
+        Cloud Service.
       
-                 possible values for:
-                     <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos'] or <INPUT_FOLDER>
-                     <TARGET> : ['synology-photos', 'immich-photos']  
+            possible values for:
+              <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos'] or <INPUT_FOLDER>
+              <TARGET> : ['synology-photos', 'immich-photos']  
 
     - [x] Wildcards support on <ALBUMS_NAME> argument on --synology-download-albums and --immich-download-albums options.
     - [x] Support to upload assets from/to any folder into Synology Photos (no need to be indexed within the Synology Photos root Folder)

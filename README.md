@@ -607,4 +607,3 @@ Planed Roadmap for the following releases
       (See: https://max-coding.medium.com/loading-photos-and-metadata-using-google-photos-api-with-python-7fb5bd8886ef)
         - [ ] Create Class ClassGooglePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
     - [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATIC-MODE
-
