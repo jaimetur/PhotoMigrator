@@ -109,8 +109,7 @@ In this example, the tool will do the Takeout Processing with the following step
 > On this way you can just Download all the big Zip files directly on your Synology NAS by using the Tool Cloud Sync (included on Synology App Store) and creating a new synchronization task from your Google Drive account (/Takeout folder) to any local folder of your Synology NAS.
 
 ---
-## Credits
-I hope this can be useful for any of you.  
-Enjoy it!
+## 🎖️ Credits:
+I hope this can be useful for any of you. Enjoy it!
 
 <span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>  
