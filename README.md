@@ -12,7 +12,7 @@
 
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automatic Migration**](./help/2-automatic-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
 
-## Live Dashboard Preview:
+## 🖥️ Live Dashboard Preview:
 ![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
 ## 🌟 Main Features:
@@ -71,7 +71,7 @@ Apart from Manage the different Photo Cloud Services, the Tool also contains Oth
   - **Homogenize Albums folders name based on content**
 
 
-## 💾 Tool Download:
+## 💾 Download:
 Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
 - [Latest Stable Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/latest)
 - [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
@@ -92,7 +92,7 @@ Youn can see how to configure the Configuration File in this help section:
 [Configuration File](./help/0-configuration-file.md) 
 
 
-## ⌨️ Command Line Interface (CLI):
+## ⌨️ Command Line Interface:
 This Tool is based in commands given through the Command Line Interface (CLI), so it is important to know the syntax of that interface.  
 
 You can check the whole list of all features and arguments with the right syntax here:
@@ -117,14 +117,14 @@ There are three different methods to execute this Tool:
 
 The below tables show the pros and cons of each method together with a comparative rating of each one of them for you to decide wich one fits best with your needed: 
 
-- 🆚 ### Execution Methods Comparison
+- ### 🆚 Execution Methods Comparison
   | Execution Method                                                        | Instructions Link                                               | Difficulty          | Pros                                                                                                                                                                                 | Cons                                                                                                                                                                                                              |
   |-------------------------------------------------------------------------|-----------------------------------------------------------------|---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
   | **[Compiled <br>Binaries](./help/execution/execution-from-binaries.md)** | **[Instructions](./help/execution/execution-from-binaries.md)**  | 🟢 *Easiest way*    | ✅ Only basic knowledge on command line commands needed.                                                                                                                             | ❌ Platform and architecture dependent.<br>❌ Need basic knowledge of running command line instructions.<br>❌ Some anti-virus may detect the tool as suspicious in Windows systems.                             |
   | **[Docker <br>Container](./help/execution/execution-from-docker.md)**    | **[Instructions](./help/execution/execution-from-docker.md)**    | ⭐ *Recommended*    | ✅ Platform and architecture independent.<br>✅ Easy configuration via `docker.config` file (RELEASE_TAG, TIMEZONE).<br>✅ Automatically pulls latest image if `RELEASE_TAG=latest`. | ❌ Need intermediate knowledge of running command line instructions.<br>❌ Need to install Docker (if not already installed).<br>❌ All paths given as arguments must be relative to the execution folder.       |
   | **[Source <br>Repository](./help/execution/execution-from-source.md)**   | **[Instructions](./help/execution/execution-from-source.md)**    | 🔴 *More difficult* | ✅ Platform and architecture independent.                                                                                                                                            | ❌ Need advance knowledge of running command line instructions.<br>❌ Need to install Git and Python 3.8+ (if not already installed). <br>❌ Need to pull the source repository again to update to a new release.|
 
-- 🆚 ### Execution Methods Comparison Rating
+- ### 🆚 Execution Methods Comparison Rating
   | Feature                                               | [Compiled <br>Binaries](./help/execution/execution-from-binaries.md)<br>*easiest way* | [Docker <br>Container](./help/execution/execution-from-docker.md)<br>*recommended* | [Source <br>Repository](./help/execution/execution-from-source.md)<br>*more difficult* |
   |-------------------------------------------------------|--------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
   | Platform and architecture independence                | ⭐☆☆☆☆                                                                              | ⭐⭐⭐⭐⭐                                                                       | ⭐⭐⭐⭐⭐                                                                           |
@@ -136,7 +136,7 @@ The below tables show the pros and cons of each method together with a comparati
   | **Average Rating**                                    | ⭐⭐⭐⭐☆ (3.5)                                                                     | ⭐⭐⭐⭐☆ (3.7)                                                                  | ⭐⭐⭐☆☆ (3.0)                                                                       |
 
 
-## 🚀 Main Use Case: Automatic Migration Feature
+## 🚀 Automatic Migration Feature (Main Use Case):
 
 > [!NOTE]  
 >## <span style="color:green">Automatic Migration Feature</span>
