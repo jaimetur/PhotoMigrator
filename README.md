@@ -7,7 +7,6 @@
 [![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.3.0-beta/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 
 # **CloudPhotoMigrator**
-
 <p align="center">
   <img src="./assets/logos/logo_03.jpg" alt="CloudPhotoMigrator Logo" width="600" height="400" />
 </p>
