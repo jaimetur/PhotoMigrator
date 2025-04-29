@@ -285,8 +285,7 @@ Youn can see how to configure the Config.ini file in this help section:
 [Configuration File](../help/0-configuration-file.md) 
 
 ---
-## Credits
-I hope this can be useful for any of you.  
-Enjoy it!
+## 🎖️ Credits:
+I hope this can be useful for any of you. Enjoy it!
 
 <span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>  

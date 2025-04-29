@@ -309,8 +309,7 @@ Planed Roadmap for the following releases
     - [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATIC-MODE
 
 ## 🎖️ Credits:
-I hope this can be useful for any of you.  
-Enjoy it!
+I hope this can be useful for any of you. Enjoy it!
 
 <span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>  
 Part of this Tool is based on [GPTH Tool](https://github.com/TheLastGimbus/GooglePhotosTakeoutHelper) by [TheLastGimbus](https://github.com/TheLastGimbus)
