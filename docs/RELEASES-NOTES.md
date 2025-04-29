@@ -138,16 +138,15 @@
   - #### 🌟 New Features:
     - [x] Added **_Immich Photos Support_**.
     - [x] Added **_New Automatic Migration Feature_** to perform Fully Automatic Migration Process between different Photo Cloud Services
-      - #### AUTOMATIC MIGRATION FEATURE:
-        - **-AUTO,   --AUTOMATIC-MIGRATION \<SOURCE> \<TARGET>**  
-          This process will do an AUTOMATIC-MIGRATION process to Download all your Assets
-                 (including Albums) from the \<SOURCE> Cloud Service and Upload them to the
-                 \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE>
-                 Cloud Service.
+      - **-AUTO,   --AUTOMATIC-MIGRATION \<SOURCE> \<TARGET>**  
+        This process will do an AUTOMATIC-MIGRATION process to Download all your Assets
+        (including Albums) from the \<SOURCE> Cloud Service and Upload them to the
+        \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE>
+        Cloud Service.
       
-                 possible values for:
-                     <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos'] or <INPUT_FOLDER>
-                     <TARGET> : ['synology-photos', 'immich-photos']  
+            possible values for:
+              <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos'] or <INPUT_FOLDER>
+              <TARGET> : ['synology-photos', 'immich-photos']  
 
     - [x] Wildcards support on <ALBUMS_NAME> argument on --synology-download-albums and --immich-download-albums options.
     - [x] Support to upload assets from/to any folder into Synology Photos (no need to be indexed within the Synology Photos root Folder)
