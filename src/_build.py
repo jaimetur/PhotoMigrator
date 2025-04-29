@@ -164,7 +164,7 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
     for i, line in enumerate(readme_lines):
         if line.strip() == "## 📅 ROADMAP:":
             start_index = i
-        if start_index is not None and line.strip() == "## 🎖️ Credits":
+        if start_index is not None and line.strip() == "## 🎖️ Credits:":
             end_index = i
             break
     if start_index is not None and end_index is not None:
@@ -173,7 +173,7 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
         updated_readme = readme_lines[:start_index] + [roadmap_content] + readme_lines[end_index:]
     else:
         # Buscar la línea donde comienza "## 🎖️ Credits" para insertar el bloque ROADMAP antes
-        credits_index = next((i for i, line in enumerate(readme_lines) if line.strip() == "## 🎖️ Credits"), None)
+        credits_index = next((i for i, line in enumerate(readme_lines) if line.strip() == "## 🎖️ Credits:"), None)
         if credits_index is not None:
             print ("encuentro credits pero no roadmap")
             updated_readme = readme_lines[:credits_index] + [roadmap_content] + readme_lines[credits_index:]
