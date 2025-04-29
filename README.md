@@ -208,13 +208,13 @@ The below tables show the pros and cons of each method together with a comparati
 
 ---
 
-## RELEASES-NOTES:
+## 📝 RELEASES-NOTES:
 The Historical Releases Notes can be checked in the following link:
 [RELEASES-NOTES.md](./docs/RELEASES-NOTES.md)
 
 ---
 
-## ROADMAP:
+## 📅 ROADMAP:
 Planed Roadmap for the following releases
 
 ---
@@ -307,7 +307,7 @@ Planed Roadmap for the following releases
         - [ ] Create Class ClassGooglePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
     - [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATIC-MODE
 
-## Credits
+## 🎖️ Credits
 I hope this can be useful for any of you.  
 Enjoy it!
 
@@ -315,7 +315,7 @@ Enjoy it!
 Part of this Tool is based on [GPTH Tool](https://github.com/TheLastGimbus/GooglePhotosTakeoutHelper) by [TheLastGimbus](https://github.com/TheLastGimbus)
 
 
-## Donation / Sponsor: 
+## 🙏 Donation / Sponsor: 
 If you consideer that this Tool has helped you, you can also consider donating me with a ☕  
 I spent a lot of time developping this Tool for free, so donations will contribute to motivate me to continue working on this project 💖  
 
