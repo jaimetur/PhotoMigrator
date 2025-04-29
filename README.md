@@ -15,7 +15,7 @@ This tool has been designed to Interact and Manage different Photos Cloud servic
 ## Live Dashboard Preview:
 ![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
-## Main Features:
+## 🌟 Main Features:
 Currently, the Features Included per each Supported Photo Cloud Service are:
 - [**Google Photos Takeout**](./help/3-google-takeout.md)
   - Unpack your Takeout Zip files.
