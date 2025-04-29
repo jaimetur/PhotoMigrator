@@ -16,8 +16,8 @@ This tool has been designed to Interact and Manage different Photos Cloud servic
 ![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
 ## Main Features:
-Currently, the Supported Photo Cloud Services and included Features are:
-- [**Google Photos Takeout Management**](./help/3-google-takeout.md)
+Currently, the Features Included per each Supported Photo Cloud Service are:
+- [**Google Photos Takeout**](./help/3-google-takeout.md)
   - Unpack your Takeout Zip files.
   - Process .json files to fix metadata (including creation date and time) of all your assets.
   - Merge Live picture with separate files (.HEIC and .MP4).
@@ -26,7 +26,7 @@ Currently, the Supported Photo Cloud Services and included Features are:
   - Create Symbolic Links for assets within any Album (to save disk space).
   - Detect and remove duplicates.
 
-- [**Synology Photos Management**](./help/4-synology-photos.md) - Features included:
+- [**Synology Photos**](./help/4-synology-photos.md) - Features included:
   - Upload Album(s) (from folder) [(doc)](./help/4-synology-photos.md#upload-albums-from-local-folder-into-synology-photos)
   - Download Album(s) (into folder) [(doc)](./help/4-synology-photos.md#download-albums-from-synology-photos)
   - Upload ALL (from folder) [(doc)](./help/4-synology-photos.md#upload-all-from-local-folder-into-synology-photos)
@@ -39,7 +39,7 @@ Currently, the Supported Photo Cloud Services and included Features are:
   - Remove Duplicates Albums [(doc)](./help/4-synology-photos.md#remove-duplicates-albums-from-synology-photos)
   - Merge Duplicates Albums [(doc)](./help/4-synology-photos.md#merge-duplicates-albums-from-synology-photos)
 
-- [**Immich Photos Management**](./help/5-immich-photos.md) - Features included:
+- [**Immich Photos**](./help/5-immich-photos.md) - Features included:
   - Upload Album(s) (from folder) [(doc)](./help/5-immich-photos.md#upload-albums-from-local-folder-into-immich-photos)
   - Download Album(s) (into folder) [(doc)](./help/5-immich-photos.md#download-albums-from-immich-photos)
   - Upload ALL (from folder) [(doc)](./help/5-immich-photos.md#upload-all-from-local-folder-into-immich-photos)
@@ -53,10 +53,10 @@ Currently, the Supported Photo Cloud Services and included Features are:
   - Merge Duplicates Albums [(doc)](./help/5-immich-photos.md#merge-duplicates-albums-from-immich-photos)
   - Remove Orphans Assets [(doc)](./help/5-immich-photos.md#remove-orphans-assets-from-immich-photos)
 
-- **Apple Photos Management**  
+- **Apple Photos**  
   (not available yet but is on the [Roadmap](./docs/ROADMAP.md) for next release)
 
-- **Google Photos Management**  
+- **Google Photos**  
   (not available yet but is on the [Roadmap](./docs/ROADMAP.md) for next release)
 
 - [**Other Useful Features**](./help/6-other-features.md)  
