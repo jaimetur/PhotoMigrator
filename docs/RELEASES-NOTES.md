@@ -9,8 +9,7 @@
   - Official Release : 2025-05-30
 
 - ### Main Changes:
-
-  - ### 🚀 New Features:
+  - #### 🌟 New Features:
     - [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automatic Mode Feature as before).
     - [x] Added Support for 3 accounts of each Cloud Photo Service (before it was only 2).
     - [x] Merged Synology/Immich arguments (now you can specify the client using a new flag _**'-client, --cient \<CLIENT_NAME>'**_)
@@ -39,7 +38,7 @@
     - [x] Run Google Takeout Photos Processor Feature by default when running the tool with a valid folder as unique argument.
     - [x] Run Google Takeout Photos Processor Feature by default when running the tool without arguments, requesting the user to introduce Google Takeout folder. 
 
-  - #### 🌟 Enhancements:
+  - #### 🚀 Enhancements:
     - [x] Improved Performance on Pull functions when no filtering options have been given.
     - [x] Improved performance when searching Google Takeout structure on huge local folder with many subfolders.
     - [x] Renamed 'Automated Mode' to 'Automatic Mode'.
@@ -62,6 +61,7 @@
     - [x] Minor bugs fixing.
 
   - #### 📚 Documentation:
+    - [x] Updated documentation with all changes.
 
 ---
 
@@ -70,7 +70,7 @@
 - ### **Release Date**: 2025-04-30
 
 - ### Main Changes:
-  - #### New Features:
+  - #### 🌟 New Features:
     - [x] Added options to filter assets in all Immich/Synology/LocalFolder Actions:
         - [x] by Type
         - [x] by Dates
@@ -86,7 +86,7 @@
     - [x] Added new flag _**-parallel, --parallel-migration=[true, false]**_ to select the Migration Mode (Parallel or Sequential). Default: true (parallel)
     - [x] Included Live Dashboard in sequential Automatic Migration
   
-  - #### Bug Fixing:
+  - #### 🐛 Bug fixes:
     - [x] Minor bugs fixing
 
 ---
@@ -96,7 +96,7 @@
 - ### **Release Date**: 2025-03-31
 
 - ### Main Changes:
-  - #### New Features:
+  - #### 🌟 New Features:
     - [x] Support for running the Tool from Docker container.
     - [x] Included Live Progress Dashboard in Automatic Migration process for a better visualization of the job progress.
     - [x] Added a new argument **'--source'** to specify the \<SOURCE> client for the Automatic Migration process.
@@ -111,7 +111,7 @@
 > **Breaking Change!**  
 > Config.ini file has changed to support multi-accounts over the same Cloud Photo Service
 
-  - #### Enhancements:
+  - #### 🚀 Enhancements:
     - [x] Completely refactored Automatic Migration Process to allow parallel threads for Downloads and Uploads jobs avoiding downloading all assets before to upload them (this will save disk space and improve performance). Also objects support has been added to this mode for an easier implementation and future enhancements.
     - [x] Removed argument **'-AUTO, --AUTOMATIC-MIGRATION \<SOURCE> \<TARGET>'** because have been replaced with two above arguments for a better visualization.
     - [x] Renamed flag '**-gitf, --google-input-takeout-folder**' to '**-gtProc, --google-takeout-to-process**' for a better understanding.
@@ -122,7 +122,7 @@
     - [x] Documentation completelly re-written and structured in different filels
     - [x] Documentation is now included as part of the distribution packages.
 
-  - #### Bug Fixing:
+  - #### 🐛 Bug fixes:
     - [x] Bug Fixing.
 
   - #### Live Dashboard Preview:
@@ -135,7 +135,7 @@
 - ### **Release Date**: 2025-03-07
 
 - ### Main Changes:
-  - #### New Features:
+  - #### 🌟 New Features:
     - [x] Added **_Immich Photos Support_**.
     - [x] Added **_New Automatic Migration Feature_** to perform Fully Automatic Migration Process between different Photo Cloud Services
       - #### AUTOMATIC MIGRATION FEATURE:
@@ -219,7 +219,7 @@
         - The Tool will look for all Orphan Assets in Immich Database and will delete them.  
         - **IMPORTANT!**: This feature requires a valid ADMIN_API_KEY configured in Config.ini.
   
-  - #### Enhancements:
+  - #### 🚀 Enhancements:
     - [x] New Script name '**CloudPhotoMigrator**' (former 'GoogleTakeoutPhotos')
     - [x] The Tool is now Open Source (all contributors that want to collaborate on this project are more than welcome)
     - [x] Replaced 'ALL_PHOTOS' by 'No-Albums' as output subfolder for assets without any album associated (be careful if you already run the Tool with previous version because before, the folder for assets without albums was named 'ALL_PHOTOS')
@@ -243,7 +243,7 @@
       - -fdup, --find-duplicates <ACTION> <DUPLICATES_FOLDER> is now **-findDup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>**.
       - -pdup, --process-duplicates <DUPLICATES_REVISED> is now **-procdDup, --process-duplicates <DUPLICATES_REVISED>**.
   
-  - #### Bug Fixing:
+  - #### 🐛 Bug fixes:
     - [x] Fixed limit of 250 when search for Immich assets.
     - [x] Fixed Remove Albums API call on Immich Photos to adapt to the new API changes.
     - [x] Minor Bug Fixing.  
