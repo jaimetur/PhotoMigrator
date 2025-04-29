@@ -12,7 +12,7 @@ Planed Roadmap for the following releases
   - Official Release : 2025-05-30
 
 - ### DONE:
-  - #### New Features:
+  - #### 🌟 New Features:
     - [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automatic Mode Feature as before).
     - [x] Added Support for 3 accounts of each Cloud Photo Service (before it was only 2).
     - [x] Merged Synology/Immich arguments (now you can specify the client using a new flag _**'-client, --cient \<CLIENT_NAME>'**_)
@@ -41,7 +41,7 @@ Planed Roadmap for the following releases
     - [x] Run Google Takeout Photos Processor Feature by default when running the tool with a valid folder as unique argument.
     - [x] Run Google Takeout Photos Processor Feature by default when running the tool without arguments, requesting the user to introduce Google Takeout folder. 
 
-  - #### Enhancements:
+  - #### 🚀 Enhancements:
     - [x] Improved Performance on Pull functions when no filtering options have been given.
     - [x] Improved performance when searching Google Takeout structure on huge local folder with many subfolders.
     - [x] Renamed 'Automated Mode' to 'Automatic Mode'.
@@ -56,12 +56,16 @@ Planed Roadmap for the following releases
     - [x] Renamed short name flag _**'-RenAlb'**_ to _**'-renAlb'**_ to activate the Feature 'Rename Albums'.
     - [x] Renamed short name flag _**'-MergAlb'**_ to _**'-mDupAlb'**_ to activate the Feature 'Merge Duplicates Albums'.
     
-  - #### Bug Fixing:
+  - #### 🐛 Bug fixes:
     - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218).
     - [x] Fixed a bug with feature **Remove All Albums** from Synology Photos and Immich Photos when the flag _**'--remove-albums-assets'**_ was selected (the assetes were not removed properly).
     - [x] Fixed a bug with feature **Synology Upload Album(s)** when the folder to upload is not named "Albums".
     - [x] Fixed a bug when any input folder ends with '\' or '/' but is enclosed between double quotes (").
     - [x] Minor bugs fixing.
+
+  - #### 📚 Documentation:
+    - [x] Updated documentation with all changes.
+
 
 - ### TODO:
   - [ ] Deep Tests for new Features.
@@ -79,20 +83,11 @@ Planed Roadmap for the following releases
   - Official Release : (No estimated date)
 
 - ### TODO:
-  - [ ] Include Apple Support (initially just for downloading)
-      - [ ] Create Class ClassApplePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
-      - [ ] -adAlb, --apple-download-albums
-      - [ ] -adAll, --apple-download-all
-      - [ ] -auAlb, --apple-upload-albums
-      - [ ] -auAll, --apple-upload-all
-  - [ ] Include native support for Google Photos through API  
-    (See: https://max-coding.medium.com/loading-photos-and-metadata-using-google-photos-api-with-python-7fb5bd8886ef)
-      - [ ] Create Class ClassGooglePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
-      - [ ] -gdAlb, --google-download-albums
-      - [ ] -gdAll, --google-download-all
-      - [ ] -guAlb, --google-upload-albums
-      - [ ] -guAll, --google-upload-all
-  - [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATIC-MODE
-  - [ ] Update Documentation
-  - [ ] Update README.md
-  - [ ] Update RELEASES-NOTES.md
+  - #### 🌟 New Features:
+    - [ ] Include Apple Support (initially just for downloading)
+        - [ ] Create Class ClassApplePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
+    - [ ] Include native support for Google Photos through API  
+      (See: https://max-coding.medium.com/loading-photos-and-metadata-using-google-photos-api-with-python-7fb5bd8886ef)
+        - [ ] Create Class ClassGooglePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
+    - [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATIC-MODE
+

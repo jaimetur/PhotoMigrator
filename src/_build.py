@@ -41,6 +41,10 @@ def include_extrafiles_and_zip(input_file, output_file):
             'files': ["../README.md", "../Config.ini"]
         },
         {
+            'subdir': 'assets/logos',# Estos ficheros van al subdirectorio 'assets'
+            'files': ["../assets/logos/logo_03.jpg"]
+        },
+        {
             'subdir': 'docs',# Estos ficheros van al subdirectorio 'docs'
             'files': ["../docs/RELEASES-NOTES.md", "../docs/ROADMAP.md"]
         },

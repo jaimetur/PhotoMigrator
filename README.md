@@ -7,10 +7,17 @@
 [![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.3.0-beta/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 
 # **CloudPhotoMigrator**
+
+![Logo](./assets/logos/logo_03.jpg)
+
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automatic Migration**](./help/2-automatic-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
 
-Currently, the Supported Photo Cloud Services and included Features are:
-- [**Google Photos Takeout Management**](./help/3-google-takeout.md)
+## 🖥️ Live Dashboard Preview:
+![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
+
+## 🌟 Main Features:
+Currently, the Features Included per each Supported Photo Cloud Service are:
+- [**Google Photos Takeout**](./help/3-google-takeout.md)
   - Unpack your Takeout Zip files.
   - Process .json files to fix metadata (including creation date and time) of all your assets.
   - Merge Live picture with separate files (.HEIC and .MP4).
@@ -19,7 +26,7 @@ Currently, the Supported Photo Cloud Services and included Features are:
   - Create Symbolic Links for assets within any Album (to save disk space).
   - Detect and remove duplicates.
 
-- [**Synology Photos Management**](./help/4-synology-photos.md) - Features included:
+- [**Synology Photos**](./help/4-synology-photos.md) - Features included:
   - Upload Album(s) (from folder) [(doc)](./help/4-synology-photos.md#upload-albums-from-local-folder-into-synology-photos)
   - Download Album(s) (into folder) [(doc)](./help/4-synology-photos.md#download-albums-from-synology-photos)
   - Upload ALL (from folder) [(doc)](./help/4-synology-photos.md#upload-all-from-local-folder-into-synology-photos)
@@ -32,7 +39,7 @@ Currently, the Supported Photo Cloud Services and included Features are:
   - Remove Duplicates Albums [(doc)](./help/4-synology-photos.md#remove-duplicates-albums-from-synology-photos)
   - Merge Duplicates Albums [(doc)](./help/4-synology-photos.md#merge-duplicates-albums-from-synology-photos)
 
-- [**Immich Photos Management**](./help/5-immich-photos.md) - Features included:
+- [**Immich Photos**](./help/5-immich-photos.md) - Features included:
   - Upload Album(s) (from folder) [(doc)](./help/5-immich-photos.md#upload-albums-from-local-folder-into-immich-photos)
   - Download Album(s) (into folder) [(doc)](./help/5-immich-photos.md#download-albums-from-immich-photos)
   - Upload ALL (from folder) [(doc)](./help/5-immich-photos.md#upload-all-from-local-folder-into-immich-photos)
@@ -46,10 +53,10 @@ Currently, the Supported Photo Cloud Services and included Features are:
   - Merge Duplicates Albums [(doc)](./help/5-immich-photos.md#merge-duplicates-albums-from-immich-photos)
   - Remove Orphans Assets [(doc)](./help/5-immich-photos.md#remove-orphans-assets-from-immich-photos)
 
-- **Apple Photos Management**  
+- **Apple Photos**  
   (not available yet but is on the [Roadmap](./docs/ROADMAP.md) for next release)
 
-- **Google Photos Management**  
+- **Google Photos**  
   (not available yet but is on the [Roadmap](./docs/ROADMAP.md) for next release)
 
 - [**Other Useful Features**](./help/6-other-features.md)  
@@ -63,11 +70,8 @@ Apart from Manage the different Photo Cloud Services, the Tool also contains Oth
     - Fix Symbolic Links Broken
   - **Homogenize Albums folders name based on content**
 
-## Live Dashboard Preview:
-![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
-
-## Tool Download:
+## 💾 Download:
 Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
 - [Latest Stable Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/latest)
 - [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
@@ -81,21 +85,21 @@ Or check the [Historical Releases Notes](./docs/RELEASES-NOTES.md) to choose any
 > You can also execute the Tool from a Docker container or from sources files for a better compatibility. In below sections you can find the execution instructions to run the Tool from the different methods.
 
 
-## Configuration File:
+## ⚙️ Configuration File:
 In order to connect to the different Photo Cloud Services, you must configure the conection settings using the Configuration file (Config.ini) provided with the Tool.  
 
 Youn can see how to configure the Configuration File in this help section:
 [Configuration File](./help/0-configuration-file.md) 
 
 
-## Command Line Interface (CLI):
+## ⌨️ Command Line Interface:
 This Tool is based in commands given through the Command Line Interface (CLI), so it is important to know the syntax of that interface.  
 
 You can check the whole list of all features and arguments with the right syntax here:
 [Command Line Interface (CLI)](./help/1-command-line-interface.md)
 
 
-## All Documentation Links:
+## 📚 All Documentation Links:
 - [Configuration File](./help/0-configuration-file.md)  
 - [Command Line Interface (CLI)](./help/1-command-line-interface.md)  
 - [Automatic Migration Feature](./help/2-automatic-migration.md)  
@@ -105,7 +109,7 @@ You can check the whole list of all features and arguments with the right syntax
 - [Other Features](./help/6-other-features.md)  
 
 
-## Execution Methods:
+## 🚀 Execution Methods:
 There are three different methods to execute this Tool:
 - From **Compiled Binaries**
 - From **Docker Container**
@@ -113,14 +117,14 @@ There are three different methods to execute this Tool:
 
 The below tables show the pros and cons of each method together with a comparative rating of each one of them for you to decide wich one fits best with your needed: 
 
-- ### Execution Methods Comparison
+- ### 🆚 Execution Methods Comparison
   | Execution Method                                                        | Instructions Link                                               | Difficulty          | Pros                                                                                                                                                                                 | Cons                                                                                                                                                                                                              |
   |-------------------------------------------------------------------------|-----------------------------------------------------------------|---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
   | **[Compiled <br>Binaries](./help/execution/execution-from-binaries.md)** | **[Instructions](./help/execution/execution-from-binaries.md)**  | 🟢 *Easiest way*    | ✅ Only basic knowledge on command line commands needed.                                                                                                                             | ❌ Platform and architecture dependent.<br>❌ Need basic knowledge of running command line instructions.<br>❌ Some anti-virus may detect the tool as suspicious in Windows systems.                             |
   | **[Docker <br>Container](./help/execution/execution-from-docker.md)**    | **[Instructions](./help/execution/execution-from-docker.md)**    | ⭐ *Recommended*    | ✅ Platform and architecture independent.<br>✅ Easy configuration via `docker.config` file (RELEASE_TAG, TIMEZONE).<br>✅ Automatically pulls latest image if `RELEASE_TAG=latest`. | ❌ Need intermediate knowledge of running command line instructions.<br>❌ Need to install Docker (if not already installed).<br>❌ All paths given as arguments must be relative to the execution folder.       |
   | **[Source <br>Repository](./help/execution/execution-from-source.md)**   | **[Instructions](./help/execution/execution-from-source.md)**    | 🔴 *More difficult* | ✅ Platform and architecture independent.                                                                                                                                            | ❌ Need advance knowledge of running command line instructions.<br>❌ Need to install Git and Python 3.8+ (if not already installed). <br>❌ Need to pull the source repository again to update to a new release.|
 
-- ### Execution Methods Comparison Rating
+- ### 🆚 Execution Methods Comparison Rating
   | Feature                                               | [Compiled <br>Binaries](./help/execution/execution-from-binaries.md)<br>*easiest way* | [Docker <br>Container](./help/execution/execution-from-docker.md)<br>*recommended* | [Source <br>Repository](./help/execution/execution-from-source.md)<br>*more difficult* |
   |-------------------------------------------------------|--------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
   | Platform and architecture independence                | ⭐☆☆☆☆                                                                              | ⭐⭐⭐⭐⭐                                                                       | ⭐⭐⭐⭐⭐                                                                           |
@@ -132,7 +136,7 @@ The below tables show the pros and cons of each method together with a comparati
   | **Average Rating**                                    | ⭐⭐⭐⭐☆ (3.5)                                                                     | ⭐⭐⭐⭐☆ (3.7)                                                                  | ⭐⭐⭐☆☆ (3.0)                                                                       |
 
 
-## Main Use Case: Automatic Migration Feature
+## 🚀 Automatic Migration Feature (Main Use Case):
 
 > [!NOTE]  
 >## <span style="color:green">Automatic Migration Feature</span>
@@ -224,7 +228,7 @@ Planed Roadmap for the following releases
   - Official Release : 2025-05-30
 
 - ### DONE:
-  - #### New Features:
+  - #### 🌟 New Features:
     - [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automatic Mode Feature as before).
     - [x] Added Support for 3 accounts of each Cloud Photo Service (before it was only 2).
     - [x] Merged Synology/Immich arguments (now you can specify the client using a new flag _**'-client, --cient \<CLIENT_NAME>'**_)
@@ -253,7 +257,7 @@ Planed Roadmap for the following releases
     - [x] Run Google Takeout Photos Processor Feature by default when running the tool with a valid folder as unique argument.
     - [x] Run Google Takeout Photos Processor Feature by default when running the tool without arguments, requesting the user to introduce Google Takeout folder. 
 
-  - #### Enhancements:
+  - #### 🚀 Enhancements:
     - [x] Improved Performance on Pull functions when no filtering options have been given.
     - [x] Improved performance when searching Google Takeout structure on huge local folder with many subfolders.
     - [x] Renamed 'Automated Mode' to 'Automatic Mode'.
@@ -268,12 +272,16 @@ Planed Roadmap for the following releases
     - [x] Renamed short name flag _**'-RenAlb'**_ to _**'-renAlb'**_ to activate the Feature 'Rename Albums'.
     - [x] Renamed short name flag _**'-MergAlb'**_ to _**'-mDupAlb'**_ to activate the Feature 'Merge Duplicates Albums'.
     
-  - #### Bug Fixing:
+  - #### 🐛 Bug fixes:
     - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218).
     - [x] Fixed a bug with feature **Remove All Albums** from Synology Photos and Immich Photos when the flag _**'--remove-albums-assets'**_ was selected (the assetes were not removed properly).
     - [x] Fixed a bug with feature **Synology Upload Album(s)** when the folder to upload is not named "Albums".
     - [x] Fixed a bug when any input folder ends with '\' or '/' but is enclosed between double quotes (").
     - [x] Minor bugs fixing.
+
+  - #### 📚 Documentation:
+    - [x] Updated documentation with all changes.
+
 
 - ### TODO:
   - [ ] Deep Tests for new Features.
@@ -291,23 +299,13 @@ Planed Roadmap for the following releases
   - Official Release : (No estimated date)
 
 - ### TODO:
-  - [ ] Include Apple Support (initially just for downloading)
-      - [ ] Create Class ClassApplePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
-      - [ ] -adAlb, --apple-download-albums
-      - [ ] -adAll, --apple-download-all
-      - [ ] -auAlb, --apple-upload-albums
-      - [ ] -auAll, --apple-upload-all
-  - [ ] Include native support for Google Photos through API  
-    (See: https://max-coding.medium.com/loading-photos-and-metadata-using-google-photos-api-with-python-7fb5bd8886ef)
-      - [ ] Create Class ClassGooglePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
-      - [ ] -gdAlb, --google-download-albums
-      - [ ] -gdAll, --google-download-all
-      - [ ] -guAlb, --google-upload-albums
-      - [ ] -guAll, --google-upload-all
-  - [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATIC-MODE
-  - [ ] Update Documentation
-  - [ ] Update README.md
-  - [ ] Update RELEASES-NOTES.md
+  - #### 🌟 New Features:
+    - [ ] Include Apple Support (initially just for downloading)
+        - [ ] Create Class ClassApplePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
+    - [ ] Include native support for Google Photos through API  
+      (See: https://max-coding.medium.com/loading-photos-and-metadata-using-google-photos-api-with-python-7fb5bd8886ef)
+        - [ ] Create Class ClassGooglePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
+    - [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATIC-MODE
 
 ## Credits
 I hope this can be useful for any of you.  
