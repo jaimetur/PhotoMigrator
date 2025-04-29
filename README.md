@@ -8,9 +8,12 @@
 
 # **CloudPhotoMigrator**
 
-![Logo](./assets/logos/logo_512x512.jpg)
+<p align="center">
+  <img src="./assets/logos/logo_03.jpg" alt="CloudPhotoMigrator Logo" width="1024" height="600" />
+</p>
 
-This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automatic Migration**](./help/2-automatic-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
+This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automatic Migration**](./help/2-automatic-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service. 
+
 
 ## 🖥️ Live Dashboard Preview:
 ![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
