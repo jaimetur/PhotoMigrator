@@ -119,11 +119,13 @@
     - [x] Added new Class ClassLocalFolder with the same methods as other supported Cloud Services Classes to manage Local Folders in the same way as a Photo Cloud Service.
     - [x] ClassTakeoutFolder inherits all methods from ClassLocalFolder and includes specific methods to process Google Takeouts since at the end Google Takeout is a local folder structure.
     - [x] Updated GPTH version to cop latest changes in Google Takeouts. 
-    - [x] Documentation completelly re-written and structured in different filels
-    - [x] Documentation is now included as part of the distribution packages.
 
   - #### 🐛 Bug fixes:
     - [x] Bug Fixing.
+
+  - #### 📚 Documentation:
+    - [x] Documentation completelly re-written and structured in different filels
+    - [x] Documentation is now included as part of the distribution packages.
 
   - #### 🖥️ Live Dashboard Preview:
     ![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
@@ -135,18 +137,21 @@
 - ### **Release Date**: 2025-03-07
 
 - ### Main Changes:
+  - #### 🚨 Breaking Changes:
+    - [x] Unificate a single Config.ini file and included tags for the different configuration sections.
+
   - #### 🌟 New Features:
     - [x] Added **_Immich Photos Support_**.
     - [x] Added **_New Automatic Migration Feature_** to perform Fully Automatic Migration Process between different Photo Cloud Services
       - **-AUTO,   --AUTOMATIC-MIGRATION \<SOURCE> \<TARGET>**  
-        This process will do an AUTOMATIC-MIGRATION process to Download all your Assets
-        (including Albums) from the \<SOURCE> Cloud Service and Upload them to the
-        \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE>
-        Cloud Service.
-      
-            possible values for:
-              <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos'] or <INPUT_FOLDER>
-              <TARGET> : ['synology-photos', 'immich-photos']  
+      This process will do an AUTOMATIC-MIGRATION process to Download all your Assets
+      (including Albums) from the \<SOURCE> Cloud Service and Upload them to the
+      \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE>
+      Cloud Service.
+
+      possible values for:
+      <SOURCE> : ['google-photos', 'synology-photos', 'immich-photos'] or <INPUT_FOLDER>
+      <TARGET> : ['synology-photos', 'immich-photos']  
 
     - [x] Wildcards support on <ALBUMS_NAME> argument on --synology-download-albums and --immich-download-albums options.
     - [x] Support to upload assets from/to any folder into Synology Photos (no need to be indexed within the Synology Photos root Folder)
@@ -160,11 +165,11 @@
       - **-o,        --output-folder <OUTPUT_FOLDER>** Specify the output folder to save the result of the processing action.
       - **-loglevel, --log-level ['debug', 'info', 'warning', 'error', 'critical']** Specify the log level for logging and screen messages.  
       - **-rAlbAss,  --remove-albums-assets** 
-        If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums',  
-        it will also delete the assets (photos/videos) inside each album.
+      If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums',  
+      it will also delete the assets (photos/videos) inside each album.
       - **-AlbFld,   --albums-folders <ALBUMS_FOLDER>**
-        If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich- upload-all', 
-        it will create an Album per each subfolder found in <ALBUMS_FOLDER>. 
+      If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich- upload-all', 
+      it will create an Album per each subfolder found in <ALBUMS_FOLDER>. 
 
     - [x] Added new options to Synology Photos Support:
       - **-suAll,    --synology-upload-all <INPUT_FOLDER>**.  
@@ -217,7 +222,7 @@
       - **-irOrphan, --immich-remove-orphan-assets**  
         - The Tool will look for all Orphan Assets in Immich Database and will delete them.  
         - **IMPORTANT!**: This feature requires a valid ADMIN_API_KEY configured in Config.ini.
-  
+
   - #### 🚀 Enhancements:
     - [x] New Script name '**CloudPhotoMigrator**' (former 'GoogleTakeoutPhotos')
     - [x] The Tool is now Open Source (all contributors that want to collaborate on this project are more than welcome)
@@ -227,13 +232,8 @@
     - [X] Refactor normal_mode to google_takeout_mode.
     - [x] Changed the logic to detect google_takeout_mode (former normal_mode)
     - [x] Merged -z and -t options in just one option ('-gtProc, -google-takeout-to-process') and detect if contains Takeout Zip files, in that case Zip files will be Unzipped to <TAKEOUT_FOLDER>_<TIMESTAMP> folder.
-    - [x] Unificate a single Config.ini file and included tags for the different configuration sections.
     - [x] Removed SYNOLOGY_ROOT_PHOTOS_PATH from Config.ini, since it is not needed anymore.
     - [x] Removed Indexing Functions on ServiceSynology file (not needed anymore)
-    - [x] Included _RELEASES-NOTES.md_ and _ROADMAP.md_ files to the distribution package.
-    - [x] Added Help texts for Google Photos Mode.
-    - [x] Moved at the end of the help the standard option (those that are not related to any Support mode).
-    - [x] Updated -h, --help to reflect the new changes.
     - [x] Code refactored.
     - [x] Renamed options:
       - -sca,  --synology-create-albums is now **-suAlb,  --synology-upload-albums <ALBUMS_FOLDER>**.
@@ -241,12 +241,18 @@
       - -fsym, --fix-symlinks-broken <FOLDER_TO_FIX> is now **-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>**.
       - -fdup, --find-duplicates <ACTION> <DUPLICATES_FOLDER> is now **-findDup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>**.
       - -pdup, --process-duplicates <DUPLICATES_REVISED> is now **-procdDup, --process-duplicates <DUPLICATES_REVISED>**.
-  
+
   - #### 🐛 Bug fixes:
     - [x] Fixed limit of 250 when search for Immich assets.
     - [x] Fixed Remove Albums API call on Immich Photos to adapt to the new API changes.
     - [x] Minor Bug Fixing.  
-    
+
+  - #### 📚 Documentation:
+    - [x] Added Help texts for Google Photos Mode.
+    - [x] Updated -h, --help to reflect the new changes.
+    - [x] Moved at the end of the help the standard option (those that are not related to any Support mode).
+    - [x] Included _RELEASES-NOTES.md_ and _ROADMAP.md_ files to the distribution package.
+
 ---
 
 ## **Release**: v2.3.0  
