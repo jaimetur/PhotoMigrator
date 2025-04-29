@@ -9,7 +9,7 @@
 # **CloudPhotoMigrator**
 
 <p align="center">
-  <img src="./assets/logos/logo_03.jpg" alt="CloudPhotoMigrator Logo" width="1024" height="400" />
+  <img src="./assets/logos/logo_512x512.jpg" alt="CloudPhotoMigrator Logo" width="1024" height="400" />
 </p>
 
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automatic Migration**](./help/2-automatic-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service. 
