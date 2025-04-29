@@ -7,6 +7,9 @@
 [![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.3.0-beta/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 
 # **CloudPhotoMigrator**
+
+(./assets/logos/logo_03.jpg)
+
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automatic Migration**](./help/2-automatic-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service.  
 
 Currently, the Supported Photo Cloud Services and included Features are:
