@@ -1184,7 +1184,7 @@ class ClassImmichPhotos:
 
             data = {
                 'deviceAssetId': f'{date_time_for_filename}_{os.path.basename(file_path)}',
-                'deviceId': 'CloudPhotoMigrator',
+                'deviceId': 'PhotoMigrator',
                 'fileCreatedAt': date_time_for_attributes,
                 'fileModifiedAt': date_time_for_attributes,
                 'fileSize': str(stats.st_size),
@@ -2366,14 +2366,14 @@ if __name__ == "__main__":
     duplicates = immich.remove_duplicates_albums(log_level=logging.DEBUG)
     print(f"[RESULT] Duplicate albums removed: {duplicates}")
 
-    # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums'
+    # 3) Example: Upload files WITHOUT assigning them to an album, from 'r:\jaimetur\PhotoMigrator\Upload_folder_for_testing\No-Albums'
     print("\n=== EXAMPLE: push_no_albums() ===")
-    big_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\No-Albums"
+    big_folder = r"r:\jaimetur\PhotoMigrator\Upload_folder_for_testing\No-Albums"
     immich.push_no_albums(big_folder, log_level=logging.DEBUG)
 
-    # 4) Example: Create albums from subfolders in 'r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums'
+    # 4) Example: Create albums from subfolders in 'r:\jaimetur\PhotoMigrator\Upload_folder_for_testing\Albums'
     print("\n=== EXAMPLE: push_albums() ===")
-    input_albums_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums"
+    input_albums_folder = r"r:\jaimetur\PhotoMigrator\Upload_folder_for_testing\Albums"
     immich.push_albums(input_albums_folder, log_level=logging.DEBUG)
 
     # 5) Example: Download all photos from ALL albums

@@ -22,6 +22,7 @@ from ClassImmichPhotos import ClassImmichPhotos
 
 terminal_width = shutil.get_terminal_size().columns
 
+
 class SharedData:
     def __init__(self, info, counters, logs_queue):
         self.info = info
@@ -33,7 +34,6 @@ class SharedData:
 # FEATURE: AUTOMATIC-MIGRATION: #
 ####################################
 def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show_gpth_progress=None, show_gpth_errors=None, parallel=None, log_level=logging.INFO):
-    
     with set_log_level(LOGGER, log_level):
 
         # ───────────────────────────────────────────────────────────────
@@ -134,11 +134,11 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
 
             # Return ClassTakeoutFolder
             elif Path(client_type).is_dir() and (Utils.contains_zip_files(client_type) or Utils.contains_takeout_structure(client_type)):
-                return ClassTakeoutFolder(client_type)              # In this clase, client_type is the path to the Takeout Folder
+                return ClassTakeoutFolder(client_type)  # In this clase, client_type is the path to the Takeout Folder
 
             # Return ClassLocalFolder
             elif Path(client_type).is_dir():
-                return ClassLocalFolder(base_folder=client_type)    # In this clase, client_type is the path to the base Local Folder
+                return ClassLocalFolder(base_folder=client_type)  # In this clase, client_type is the path to the base Local Folder
             else:
                 raise ValueError(f"ERROR   : Tipo de cliente no válido: {client_type}")
 
@@ -205,7 +205,6 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
             # Call the parallel_automatic_migration module to do the whole migration process
@@ -227,7 +226,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                     kwargs={
                         "migration_finished": migration_finished,  # Pasamos un evento para indicar cuando ha terminado el proceso de migración
                         "SHARED_DATA": SHARED_DATA,  # Pasamos la instancia de la clase
-                        "parallel": parallel, # Pasamos el modo de migración (parallel=True/False)
+                        "parallel": parallel,  # Pasamos el modo de migración (parallel=True/False)
                         "log_level": logging.INFO
                     },
                     daemon=True  # El show_dashboard se cierra si el proceso principal termina
@@ -596,7 +595,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     album_shared_role = permissions[0].get('role')  # Obtiene el valor si existe, si no, devuelve None
                 else:
                     album_shared_role = ""
-                is_shared = album_passphrase is not None and album_passphrase != "" # Si tiene passphrase, es compartido
+                is_shared = album_passphrase is not None and album_passphrase != ""  # Si tiene passphrase, es compartido
 
                 # Descargar todos los assets de este álbum
                 try:
@@ -902,7 +901,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
             LOGGER.info(f"INFO    : Pusher {worker_id} - Task Finished!")
 
-
     # ----------------------------
     # 4) LLAMADA AL HILO PRINCIPAL
     # ----------------------------
@@ -923,10 +921,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     temp_folder = Utils.normalize_path(temp_folder)
 
     # Listas de posibles etiquetas para los distintos tipos de archivos en los diferentes clientes
-    image_labels    = ['photo', 'image']
-    video_labels    = ['video', 'live']
+    image_labels = ['photo', 'image']
+    video_labels = ['video', 'live']
     metadata_labels = ['metadata']
-    sidecar_labels  = ['sidecar']
+    sidecar_labels = ['sidecar']
 
     # Check if parallel=None, and in that case, get it from ARGS
     if parallel is None: parallel = ARGS['parallel-migration']
@@ -957,7 +955,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
 
     # Min Terminal Height and Width to display the Live Dashboard
     MIN_TERMINAL_HEIGHT = 30
-    MIN_TERMINAL_WIDTH  = 100
+    MIN_TERMINAL_WIDTH = 100
 
     # Calculate terminal_height and terminal_width
     console = Console()
@@ -969,7 +967,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
 
     if terminal_height < MIN_TERMINAL_HEIGHT:
         LOGGER.info(f"INFO    : Cannot display Live Dashboard because the detected terminal height = {terminal_height} and the minumum needed height = {MIN_TERMINAL_HEIGHT}. Continuing without Live Dashboard...")
-        ARGS['dashboard'] = False # Set this argument to False to avoid use TQDM outputs as if a Interactive Terminal (isatty() = True)
+        ARGS['dashboard'] = False  # Set this argument to False to avoid use TQDM outputs as if a Interactive Terminal (isatty() = True)
         return
 
     if terminal_width < MIN_TERMINAL_WIDTH:
@@ -1051,14 +1049,16 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
     # ─────────────────────────────────────────────────────────────────────────
     # 0) Header Panel
     # ─────────────────────────────────────────────────────────────────────────
-    header =  textwrap.dedent(rf"""
-      ____ _                 _ ____  _           _        __  __ _                 _
-     / ___| | ___  _   _  __| |  _ \| |__   ___ | |_ ___ |  \/  (_) __ _ _ __ __ _| |_ ___  _ __
-    | |   | |/ _ \| | | |/ _` | |_) | '_ \ / _ \| __/ _ \| |\/| | |/ _` | '__/ _` | __/ _ \| '__|
-    | |___| | (_) | |_| | (_| |  __/| | | | (_) | || (_) | |  | | | (_| | | | (_| | || (_) | |
-     \____|_|\___/ \__,_|\__,_|_|   |_| |_|\___/ \__\___/|_|  |_|_|\__, |_|  \__,_|\__\___/|_|
-                                                                   |___/ {SCRIPT_VERSION}
+    header = textwrap.dedent(rf"""
+     ____  _           _        __  __ _                 _
+    |  _ \| |__   ___ | |_ ___ |  \/  (_) __ _ _ __ __ _| |_ ___  _ __
+    | |_) | '_ \ / _ \| __/ _ \| |\/| | |/ _` | '__/ _` | __/ _ \| '__|
+    |  __/| | | | (_) | || (_) | |  | | | (_| | | | (_| | || (_) | |
+    |_|   |_| |_|\___/ \__\___/|_|  |_|_|\__, |_|  \__,_|\__\___/|_|
+                                         |___/ {SCRIPT_VERSION}
     """).lstrip("\n")  # Elimina solo la primera línea en blanco
+    # header =  textwrap.dedent(rf"""
+
     layout["header_panel"].update(Panel(f"[gold1]{header}[/gold1]", border_style="gold1", expand=True))
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -1079,267 +1079,271 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
     def build_info_panel(clean_queue_history=False):
         """Construye el panel de información con historial de la cola."""
         # 🔹 Calcular el ancho real de "info_panel"
-        total_ratio = 3 + 4 + 4  # Suma de los ratios en split_row()
-        info_panel_ratio = 3  # Ratio de "info_panel"
 
-        # Estimación del ancho de info_panel antes de que Rich lo calcule
-        info_panel_width = (terminal_width * info_panel_ratio) // total_ratio
+    total_ratio = 3 + 4 + 4  # Suma de los ratios en split_row()
+    info_panel_ratio = 3  # Ratio de "info_panel"
 
-        # # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-        # # Histograma temporal de la cola con barras como estas "  ▁▂▃▄▅▆▇█"  o estas "▁▂▄▆█"
-        # # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-        # # 🔹 Unicode para representar la barra de progreso vertical (10 niveles)
-        # BARS = "  ▁▂▃▄▅▆▇█"     # Se agregan 10 barras
-        # BARS = "▁▂▄▆█"          # # Se agregan 5 barras
-        #
-        # # 🔹 Inicializar el historial de la cola dentro de la función
-        # if not hasattr(build_info_panel, "queue_history"):
-        #     build_info_panel.queue_history = collections.deque(maxlen=info_panel_width-31)
-        # queue_history = build_info_panel.queue_history
-        #
-        # # 🔹 Obtener el tamaño actual de la cola
-        # current_queue_size = SHARED_DATA.info.get('assets_in_queue', 0)
-        #
-        # # 🔹 Actualizar historial de la cola
-        # queue_history.append(current_queue_size)
-        #
-        # # 🔹 Definir los rangos de normalización (10 bloques de tamaño 10 cada uno)
-        # num_blocks = len(BARS)
-        # block_size = 100 / num_blocks  # Cada bloque cubre 10 unidades
-        #
-        # # 🔹 Asignar la barra correspondiente a cada valor de la cola
-        # progress_bars = [BARS[min(int(val // block_size), num_blocks - 1)] for val in queue_history]
-        #
-        # # 🔹 Unimos todas las barras
-        # queue_display = "".join(progress_bars)
+    # Estimación del ancho de info_panel antes de que Rich lo calcule
+    info_panel_width = (terminal_width * info_panel_ratio) // total_ratio
 
-        # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-        # Barra de cola actual. Muestre una barra horizontal rellenable "███████████████████", cuando esté llena "██████████" cuando esté a la mitad, "██" cuando esté casi vacía
-        # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-        # 🔹 Definir el ancho de la barra de progreso dinámicamente
-        BAR_WIDTH = max(1, info_panel_width - 34)  # Asegurar que al menos sea 1
-        # 🔹 Obtener el tamaño actual de la cola
-        current_queue_size = SHARED_DATA.info.get('assets_in_queue', 0)
-        # 🔹 Normalizar el tamaño de la cola dentro del rango de la barra
-        filled_blocks = min(int((current_queue_size / 100) * BAR_WIDTH), BAR_WIDTH)
-        empty_blocks = BAR_WIDTH - filled_blocks
-        # 🔹 Crear la barra de progreso con "█" y espacios
-        queue_bar = "█" * filled_blocks + " " * empty_blocks
-        if parallel:
-            # 🔹 Mostrar la barra con la cantidad actual de elementos en la cola y el máximo de 100 al final
-            queue_bar = f"[{queue_bar}] {current_queue_size:>3}/100"
-        else:
-            # 🔹 Mostrar la barra con la cantidad actual de elementos en la cola aquí sin máximo, y dando espacio para 7 dígitos
-            queue_bar = f"[{queue_bar}] {current_queue_size:>7}"
-        # 🔹 borra la barra al final
-        if clean_queue_history:
-            queue_bar = 0
+    # # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    # # Histograma temporal de la cola con barras como estas "  ▁▂▃▄▅▆▇█"  o estas "▁▂▄▆█"
+    # # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    # # 🔹 Unicode para representar la barra de progreso vertical (10 niveles)
+    # BARS = "  ▁▂▃▄▅▆▇█"     # Se agregan 10 barras
+    # BARS = "▁▂▄▆█"          # # Se agregan 5 barras
+    #
+    # # 🔹 Inicializar el historial de la cola dentro de la función
+    # if not hasattr(build_info_panel, "queue_history"):
+    #     build_info_panel.queue_history = collections.deque(maxlen=info_panel_width-31)
+    # queue_history = build_info_panel.queue_history
+    #
+    # # 🔹 Obtener el tamaño actual de la cola
+    # current_queue_size = SHARED_DATA.info.get('assets_in_queue', 0)
+    #
+    # # 🔹 Actualizar historial de la cola
+    # queue_history.append(current_queue_size)
+    #
+    # # 🔹 Definir los rangos de normalización (10 bloques de tamaño 10 cada uno)
+    # num_blocks = len(BARS)
+    # block_size = 100 / num_blocks  # Cada bloque cubre 10 unidades
+    #
+    # # 🔹 Asignar la barra correspondiente a cada valor de la cola
+    # progress_bars = [BARS[min(int(val // block_size), num_blocks - 1)] for val in queue_history]
+    #
+    # # 🔹 Unimos todas las barras
+    # queue_display = "".join(progress_bars)
 
-        # 🔹 Datos a mostrar
-        info_data = [
-            ("🎯 Total Assets", SHARED_DATA.info.get('total_assets', 0)),
-            ("📷 Total Photos", SHARED_DATA.info.get('total_photos', 0)),
-            ("🎬 Total Videos", SHARED_DATA.info.get('total_videos', 0)),
-            ("📂 Total Albums", SHARED_DATA.info.get('total_albums', 0)),
-            ("🔒 Blocked Albums", SHARED_DATA.info.get('total_albums_blocked', 0)),
-            ("📜 Total Metadata", SHARED_DATA.info.get('total_metadata', 0)),
-            ("🔗 Total Sidecar", SHARED_DATA.info.get('total_sidecar', 0)),
-            ("🔍 Invalid Files", SHARED_DATA.info.get('total_invalid', 0)),
-            ("📊 Assets in Queue", f"{queue_bar}"),
-            ("🕒 Elapsed Time", SHARED_DATA.info.get('elapsed_time', 0)),
-        ]
+    # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    # Barra de cola actual. Muestre una barra horizontal rellenable "███████████████████", cuando esté llena "██████████" cuando esté a la mitad, "██" cuando esté casi vacía
+    # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    # 🔹 Definir el ancho de la barra de progreso dinámicamente
+    BAR_WIDTH = max(1, info_panel_width - 34)  # Asegurar que al menos sea 1
+    # 🔹 Obtener el tamaño actual de la cola
+    current_queue_size = SHARED_DATA.info.get('assets_in_queue', 0)
+    # 🔹 Normalizar el tamaño de la cola dentro del rango de la barra
+    filled_blocks = min(int((current_queue_size / 100) * BAR_WIDTH), BAR_WIDTH)
+    empty_blocks = BAR_WIDTH - filled_blocks
+    # 🔹 Crear la barra de progreso con "█" y espacios
+    queue_bar = "█" * filled_blocks + " " * empty_blocks
+    if parallel:
+        # 🔹 Mostrar la barra con la cantidad actual de elementos en la cola y el máximo de 100 al final
+        queue_bar = f"[{queue_bar}] {current_queue_size:>3}/100"
+    else:
+        # 🔹 Mostrar la barra con la cantidad actual de elementos en la cola aquí sin máximo, y dando espacio para 7 dígitos
+        queue_bar = f"[{queue_bar}] {current_queue_size:>7}"
+    # 🔹 borra la barra al final
+    if clean_queue_history:
+        queue_bar = 0
 
-        # 🔹 Crear la tabla
-        table = Table.grid(expand=True)
-        table.add_column(justify="left", width=20, no_wrap=True)
-        table.add_column(justify="right", ratio=1)
-        for label, value in info_data:
-            table.add_row(f"[bright_magenta]{label:<17}: [/bright_magenta]", f"[bright_magenta]{value}[/bright_magenta]")
+    # 🔹 Datos a mostrar
+    info_data = [
+        ("🎯 Total Assets", SHARED_DATA.info.get('total_assets', 0)),
+        ("📷 Total Photos", SHARED_DATA.info.get('total_photos', 0)),
+        ("🎬 Total Videos", SHARED_DATA.info.get('total_videos', 0)),
+        ("📂 Total Albums", SHARED_DATA.info.get('total_albums', 0)),
+        ("🔒 Blocked Albums", SHARED_DATA.info.get('total_albums_blocked', 0)),
+        ("📜 Total Metadata", SHARED_DATA.info.get('total_metadata', 0)),
+        ("🔗 Total Sidecar", SHARED_DATA.info.get('total_sidecar', 0)),
+        ("🔍 Invalid Files", SHARED_DATA.info.get('total_invalid', 0)),
+        ("📊 Assets in Queue", f"{queue_bar}"),
+        ("🕒 Elapsed Time", SHARED_DATA.info.get('elapsed_time', 0)),
+    ]
 
-        # 🔹 Devolver el panel
-        return Panel(table, title="📊 Info Panel", border_style="bright_magenta", expand=True, padding=(0, 1))
+    # 🔹 Crear la tabla
+    table = Table.grid(expand=True)
+    table.add_column(justify="left", width=20, no_wrap=True)
+    table.add_column(justify="right", ratio=1)
+    for label, value in info_data:
+        table.add_row(f"[bright_magenta]{label:<17}: [/bright_magenta]", f"[bright_magenta]{value}[/bright_magenta]")
 
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3) Progress Bars for pulls / pushs
-    #    Show "X / total" with a bar, no custom chars
-    # ─────────────────────────────────────────────────────────────────────────
-    def create_progress_bar(color: str) -> Progress:
-        """
-        Creates a bar with a longer width and displays 'X / total items' in color.
-        """
-        counter = f"{{task.completed}}/{{task.total}}"
-        return Progress(
-            BarColumn(
-                bar_width=100,           # longer bar for better visuals
-                style=f"{color} dim",
-                complete_style=f"{color} bold",
-                finished_style=f"{color} bold",
-                pulse_style="bar.pulse"
-                # pulse_style=f"{color} bold"
-            ),
-            TextColumn(f"[{color}]{counter:>15}[/{color}]"),
-            console=console,
-            expand=True
-        )
-
-    # PULLS (Cyan)
-    pull_bars = { # Dicccionario de Tuplas (bar, etiqueta_contador_completados, etiqueta_contador_totales)
-        "🎯 Pulled Assets": (create_progress_bar("cyan"), 'total_pulled_assets', "total_assets"),
-        "📷 Pulled Photos": (create_progress_bar("cyan"), 'total_pulled_photos', "total_photos"),
-        "🎬 Pulled Videos": (create_progress_bar("cyan"), 'total_pulled_videos', "total_videos"),
-        "📂 Pulled Albums": (create_progress_bar("cyan"), 'total_pulled_albums', "total_albums"),
-    }
-    failed_pulls = {
-        "🔒 Blocked Albums": 'total_albums_blocked',
-        "🔒 Blocked Assets": 'total_assets_blocked',
-        "🚩 Failed Assets": 'total_pull_failed_assets',
-        "🚩 Failed Photos": 'total_pull_failed_photos',
-        "🚩 Failed Videos": 'total_pull_failed_videos',
-        "🚩 Failed Albums": 'total_pull_failed_albums',
-    }
-    pull_tasks = {}
-    for label, (bar, completed_label, total_label) in pull_bars.items():
-        # bar.add_task retturns the task_id and we create a dictionary {task_label: task_id}
-        pull_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=SHARED_DATA.info.get(total_label, 0))
-
-    # PUSHS (Green)
-    push_bars = {  # Dicccionario de Tuplas (bar, etiqueta_contador_completados, etiqueta_contador_totales)
-        "🎯 Pushed Assets": (create_progress_bar("green"), 'total_pushed_assets', "total_assets"),
-        "📷 Pushed Photos": (create_progress_bar("green"), 'total_pushed_photos', "total_photos"),
-        "🎬 Pushed Videos": (create_progress_bar("green"), 'total_pushed_videos', "total_videos"),
-        "📂 Pushed Albums": (create_progress_bar("green"), 'total_pushed_albums', "total_albums"),
-    }
-    failed_pushs = {
-        "🧩 Duplicates": 'total_push_duplicates_assets',
-        "🚩 Failed Assets": 'total_push_failed_assets',
-        "🚩 Failed Photos": 'total_push_failed_photos',
-        "🚩 Failed Videos": 'total_push_failed_videos',
-        "🚩 Failed Albums": 'total_push_failed_albums',
-    }
-    push_tasks = {}
-    for label, (bar, completed_label, total_label) in push_bars.items():
-        # bar.add_task retturns the task_id and we create a dictionary {task_label: task_id}
-        push_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=SHARED_DATA.info.get(total_label, 0))
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 4) Build the Pull/Push Panels
-    # ─────────────────────────────────────────────────────────────────────────
-    def build_pull_panel():
-        table = Table.grid(expand=True)
-        table.add_column(justify="left", width=20)
-        table.add_column(justify="right")
-        for label, (bar, completed_labeld, total_label) in pull_bars.items():
-            table.add_row(f"[cyan]{label:<17}:[/cyan]", bar)
-            bar.update(pull_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
-        for label, counter_label in failed_pulls.items():
-            value = SHARED_DATA.counters[counter_label]
-            table.add_row(f"[cyan]{label:<17}:[/cyan]", f"[cyan]{value}[/cyan]")
-        return Panel(table, title=f'📥 From: {SHARED_DATA.info.get("source_client_name", "Source Client")}', border_style="cyan", expand=True)
-
-    def build_push_panel():
-        table = Table.grid(expand=True)
-        table.add_column(justify="left", width=19)
-        table.add_column(justify="right")
-        for label, (bar, completed_labeld, total_label) in push_bars.items():
-            table.add_row(f"[green]{label:<16}:[/green]", bar)
-            bar.update(push_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
-        for label, counter_label in failed_pushs.items():
-            value = SHARED_DATA.counters[counter_label]
-            table.add_row(f"[green]{label:<16}:[/green]", f"[green]{value}[/green]")
-        return Panel(table, title=f'📤 To: {SHARED_DATA.info.get("target_client_name", "Source Client")}', border_style="green", expand=True)
+    # 🔹 Devolver el panel
+    return Panel(table, title="📊 Info Panel", border_style="bright_magenta", expand=True, padding=(0, 1))
 
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 5) Logging Panel from Memmory Handler
-    # ─────────────────────────────────────────────────────────────────────────
-    # Lista (o deque) para mantener todo el historial de logs ya mostrados
-    logs_panel_height = terminal_height - fixed_heights - 2  # Espacio restante. Restamos 2 para quitar las líneas del borde superior e inferior del panel de Logs
-    ACCU_LOGS = deque(maxlen=logs_panel_height)
+# ─────────────────────────────────────────────────────────────────────────
+# 3) Progress Bars for pulls / pushs
+#    Show "X / total" with a bar, no custom chars
+# ─────────────────────────────────────────────────────────────────────────
+def create_progress_bar(color: str) -> Progress:
+    """
+    Creates a bar with a longer width and displays 'X / total items' in color.
+    """
+    counter = f"{{task.completed}}/{{task.total}}"
+    return Progress(
+        BarColumn(
+            bar_width=100,  # longer bar for better visuals
+            style=f"{color} dim",
+            complete_style=f"{color} bold",
+            finished_style=f"{color} bold",
+            pulse_style="bar.pulse"
+            # pulse_style=f"{color} bold"
+        ),
+        TextColumn(f"[{color}]{counter:>15}[/{color}]"),
+        console=console,
+        expand=True
+    )
 
-    def build_log_panel():
-        """
-        Lee todos los mensajes pendientes en shared_data.logs_queue y los añade
-        a ACCU_LOGS, que conserva el historial completo.
-        Devuelve un Panel con todo el historial (de modo que se pueda hacer
-        scroll en la terminal si usas vertical_overflow='visible').
-        """
-        title_logs_panel = f"📜 Logs Panel (Only last {logs_panel_height} rows shown. Complete log file at: 'Logs/{os.path.basename(log_file)}')"
-        try:
-            while True:
-                # 1) Vaciamos la cola de logs, construyendo el historial completo
-                try:
-                    line = SHARED_DATA.logs_queue.get_nowait()  # lee un mensaje de la cola
-                except queue.Empty:
-                    break
 
-                # Opcional: aplica color según la palabra “pull”/”push”
-                line_lower = line.lower()
-                if "warning :" in line_lower:
-                    line_colored = f"[yellow]{line}[/yellow]"
-                elif "error   :" in line_lower:
-                    line_colored = f"[red]{line}[/red]"
-                elif "debug   :" in line_lower:
-                    line_colored = f"[#EEEEEE]{line}[/#EEEEEE]"
-                elif "pull" in line_lower and not "push" in line_lower:
-                    line_colored = f"[cyan]{line}[/cyan]"
-                elif any(word in line_lower for word in ("push", "created", "duplicated")) and not "pull" in line_lower:
-                    line_colored = f"[green]{line}[/green]"
-                else:
-                    line_colored = f"[bright_white]{line}[/bright_white]"
+# PULLS (Cyan)
+pull_bars = {  # Dicccionario de Tuplas (bar, etiqueta_contador_completados, etiqueta_contador_totales)
+    "🎯 Pulled Assets": (create_progress_bar("cyan"), 'total_pulled_assets', "total_assets"),
+    "📷 Pulled Photos": (create_progress_bar("cyan"), 'total_pulled_photos', "total_photos"),
+    "🎬 Pulled Videos": (create_progress_bar("cyan"), 'total_pulled_videos', "total_videos"),
+    "📂 Pulled Albums": (create_progress_bar("cyan"), 'total_pulled_albums', "total_albums"),
+}
+failed_pulls = {
+    "🔒 Blocked Albums": 'total_albums_blocked',
+    "🔒 Blocked Assets": 'total_assets_blocked',
+    "🚩 Failed Assets": 'total_pull_failed_assets',
+    "🚩 Failed Photos": 'total_pull_failed_photos',
+    "🚩 Failed Videos": 'total_pull_failed_videos',
+    "🚩 Failed Albums": 'total_pull_failed_albums',
+}
+pull_tasks = {}
+for label, (bar, completed_label, total_label) in pull_bars.items():
+    # bar.add_task retturns the task_id and we create a dictionary {task_label: task_id}
+    pull_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=SHARED_DATA.info.get(total_label, 0))
 
-                # Añadimos la versión coloreada al historial
-                ACCU_LOGS.append(line_colored)
+# PUSHS (Green)
+push_bars = {  # Dicccionario de Tuplas (bar, etiqueta_contador_completados, etiqueta_contador_totales)
+    "🎯 Pushed Assets": (create_progress_bar("green"), 'total_pushed_assets', "total_assets"),
+    "📷 Pushed Photos": (create_progress_bar("green"), 'total_pushed_photos', "total_photos"),
+    "🎬 Pushed Videos": (create_progress_bar("green"), 'total_pushed_videos', "total_videos"),
+    "📂 Pushed Albums": (create_progress_bar("green"), 'total_pushed_albums', "total_albums"),
+}
+failed_pushs = {
+    "🧩 Duplicates": 'total_push_duplicates_assets',
+    "🚩 Failed Assets": 'total_push_failed_assets',
+    "🚩 Failed Photos": 'total_push_failed_photos',
+    "🚩 Failed Videos": 'total_push_failed_videos',
+    "🚩 Failed Albums": 'total_push_failed_albums',
+}
+push_tasks = {}
+for label, (bar, completed_label, total_label) in push_bars.items():
+    # bar.add_task retturns the task_id and we create a dictionary {task_label: task_id}
+    push_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=SHARED_DATA.info.get(total_label, 0))
 
-            # 2) Unimos todo el historial en un solo string
-            if ACCU_LOGS:
-                logs_text = "\n".join(ACCU_LOGS)
+
+# ─────────────────────────────────────────────────────────────────────────
+# 4) Build the Pull/Push Panels
+# ─────────────────────────────────────────────────────────────────────────
+def build_pull_panel():
+    table = Table.grid(expand=True)
+    table.add_column(justify="left", width=20)
+    table.add_column(justify="right")
+    for label, (bar, completed_labeld, total_label) in pull_bars.items():
+        table.add_row(f"[cyan]{label:<17}:[/cyan]", bar)
+        bar.update(pull_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
+    for label, counter_label in failed_pulls.items():
+        value = SHARED_DATA.counters[counter_label]
+        table.add_row(f"[cyan]{label:<17}:[/cyan]", f"[cyan]{value}[/cyan]")
+    return Panel(table, title=f'📥 From: {SHARED_DATA.info.get("source_client_name", "Source Client")}', border_style="cyan", expand=True)
+
+
+def build_push_panel():
+    table = Table.grid(expand=True)
+    table.add_column(justify="left", width=19)
+    table.add_column(justify="right")
+    for label, (bar, completed_labeld, total_label) in push_bars.items():
+        table.add_row(f"[green]{label:<16}:[/green]", bar)
+        bar.update(push_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
+    for label, counter_label in failed_pushs.items():
+        value = SHARED_DATA.counters[counter_label]
+        table.add_row(f"[green]{label:<16}:[/green]", f"[green]{value}[/green]")
+    return Panel(table, title=f'📤 To: {SHARED_DATA.info.get("target_client_name", "Source Client")}', border_style="green", expand=True)
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# 5) Logging Panel from Memmory Handler
+# ─────────────────────────────────────────────────────────────────────────
+# Lista (o deque) para mantener todo el historial de logs ya mostrados
+logs_panel_height = terminal_height - fixed_heights - 2  # Espacio restante. Restamos 2 para quitar las líneas del borde superior e inferior del panel de Logs
+ACCU_LOGS = deque(maxlen=logs_panel_height)
+
+
+def build_log_panel():
+    """
+    Lee todos los mensajes pendientes en shared_data.logs_queue y los añade
+    a ACCU_LOGS, que conserva el historial completo.
+    Devuelve un Panel con todo el historial (de modo que se pueda hacer
+    scroll en la terminal si usas vertical_overflow='visible').
+    """
+    title_logs_panel = f"📜 Logs Panel (Only last {logs_panel_height} rows shown. Complete log file at: 'Logs/{os.path.basename(log_file)}')"
+    try:
+        while True:
+            # 1) Vaciamos la cola de logs, construyendo el historial completo
+            try:
+                line = SHARED_DATA.logs_queue.get_nowait()  # lee un mensaje de la cola
+            except queue.Empty:
+                break
+
+            # Opcional: aplica color según la palabra “pull”/”push”
+            line_lower = line.lower()
+            if "warning :" in line_lower:
+                line_colored = f"[yellow]{line}[/yellow]"
+            elif "error   :" in line_lower:
+                line_colored = f"[red]{line}[/red]"
+            elif "debug   :" in line_lower:
+                line_colored = f"[#EEEEEE]{line}[/#EEEEEE]"
+            elif "pull" in line_lower and not "push" in line_lower:
+                line_colored = f"[cyan]{line}[/cyan]"
+            elif any(word in line_lower for word in ("push", "created", "duplicated")) and not "pull" in line_lower:
+                line_colored = f"[green]{line}[/green]"
             else:
-                logs_text = "Initializing..."
+                line_colored = f"[bright_white]{line}[/bright_white]"
 
-            # 3) Construimos el panel y lo devolvemos
-            log_panel = Panel(logs_text, title=title_logs_panel, border_style="bright_red", expand=True, title_align="left")
-            return log_panel
+            # Añadimos la versión coloreada al historial
+            ACCU_LOGS.append(line_colored)
 
-        except Exception as e:
-            LOGGER.error(f"ERROR   : Building Log Panel: {e}")
+        # 2) Unimos todo el historial en un solo string
+        if ACCU_LOGS:
+            logs_text = "\n".join(ACCU_LOGS)
+        else:
+            logs_text = "Initializing..."
+
+        # 3) Construimos el panel y lo devolvemos
+        log_panel = Panel(logs_text, title=title_logs_panel, border_style="bright_red", expand=True, title_align="left")
+        return log_panel
+
+    except Exception as e:
+        LOGGER.error(f"ERROR   : Building Log Panel: {e}")
 
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 6) Main Live Loop
-    # ─────────────────────────────────────────────────────────────────────────
-    with Live(layout, refresh_per_second=1, console=console, vertical_overflow="crop"):
-        try:
-            update_title_panel()
+# ─────────────────────────────────────────────────────────────────────────
+# 6) Main Live Loop
+# ─────────────────────────────────────────────────────────────────────────
+with Live(layout, refresh_per_second=1, console=console, vertical_overflow="crop"):
+    try:
+        update_title_panel()
+        layout["info_panel"].update(build_info_panel())
+        layout["pulls_panel"].update(build_pull_panel())
+        layout["pushs_panel"].update(build_push_panel())
+        layout["logs_panel"].update(build_log_panel())
+        # layout["logs_panel"].update(log_panel)  # inicializamos el panel solo una vez aquí
+
+        # Continue the loop until migration_finished.is_set()
+        while not migration_finished.is_set():
+            SHARED_DATA.info['elapsed_time'] = str(timedelta(seconds=(datetime.now() - step_start_time).seconds))
             layout["info_panel"].update(build_info_panel())
             layout["pulls_panel"].update(build_pull_panel())
             layout["pushs_panel"].update(build_push_panel())
             layout["logs_panel"].update(build_log_panel())
-            # layout["logs_panel"].update(log_panel)  # inicializamos el panel solo una vez aquí
+            time.sleep(0.5)  # Evita un bucle demasiado agresivo
 
-            # Continue the loop until migration_finished.is_set()
-            while not migration_finished.is_set():
-                SHARED_DATA.info['elapsed_time'] = str(timedelta(seconds=(datetime.now() - step_start_time).seconds))
-                layout["info_panel"].update(build_info_panel())
-                layout["pulls_panel"].update(build_pull_panel())
-                layout["pushs_panel"].update(build_push_panel())
-                layout["logs_panel"].update(build_log_panel())
-                time.sleep(0.5)  # Evita un bucle demasiado agresivo
+        # Pequeña pausa adicional para asegurar el dibujado final
+        time.sleep(1)
 
-            # Pequeña pausa adicional para asegurar el dibujado final
-            time.sleep(1)
+        # Al terminar, asegurarse que todos los paneles finales se muestren
+        layout["info_panel"].update(build_info_panel(clean_queue_history=True))  # Limpiamos el histórico de la cola
+        layout["pulls_panel"].update(build_pull_panel())
+        layout["pushs_panel"].update(build_push_panel())
+        layout["logs_panel"].update(build_log_panel())
 
-            # Al terminar, asegurarse que todos los paneles finales se muestren
-            layout["info_panel"].update(build_info_panel(clean_queue_history=True))     # Limpiamos el histórico de la cola
-            layout["pulls_panel"].update(build_pull_panel())
-            layout["pushs_panel"].update(build_push_panel())
-            layout["logs_panel"].update(build_log_panel())
-
-        finally:
-            # Restaurar stdout y stderr
-            sys.stdout = original_stdout
-            sys.stderr = original_stderr
-
+    finally:
+        # Restaurar stdout y stderr
+        sys.stdout = original_stdout
+        sys.stderr = original_stderr
 
 ######################
 # CALL FROM __MAIN__ #
@@ -1347,17 +1351,18 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
     import ChangeWorkingDir
+
     ChangeWorkingDir.change_working_dir(change_dir=False)
 
     # # Paths para Windows
-    local_folder = r'r:\jaimetur\CloudPhotoMigrator\LocalFolderClient'
-    takeout_folder = r'r:\jaimetur\CloudPhotoMigrator\Takeout'
-    takeout_folder_zipped = r'r:\jaimetur\CloudPhotoMigrator\Zip_files_prueba_rapida'
-    
+    local_folder = r'r:\jaimetur\PhotoMigrator\LocalFolderClient'
+    takeout_folder = r'r:\jaimetur\PhotoMigrator\Takeout'
+    takeout_folder_zipped = r'r:\jaimetur\PhotoMigrator\Zip_files_prueba_rapida'
+
     # Paths para Linux
-    # local_folder = r'/mnt/homes/jaimetur/CloudPhotoMigrator/LocalFolderClient'
-    # takeout_folder = r'/mnt/homes/jaimetur/CloudPhotoMigrator/Takeout'
-    # takeout_folder_zipped = r'/mnt/homes/jaimetur/CloudPhotoMigrator/Zip_files_prueba_rapida'
+    # local_folder = r'/mnt/homes/jaimetur/PhotoMigrator/LocalFolderClient'
+    # takeout_folder = r'/mnt/homes/jaimetur/PhotoMigrator/Takeout'
+    # takeout_folder_zipped = r'/mnt/homes/jaimetur/PhotoMigrator/Zip_files_prueba_rapida'
 
     # Define source and target
     source = takeout_folder_zipped

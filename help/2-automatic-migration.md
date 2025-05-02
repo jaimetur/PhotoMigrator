@@ -82,7 +82,7 @@ Youn can see how to configure the Config.ini file in this help section:
 
 - **Example 1:**
 ```
-./CloudPhotoMigrator.run --source=/homes/MyTakeout --target=synology-1
+./PhotoMigrator.run --source=/homes/MyTakeout --target=synology-1
 ```
 
 In this example, the Tool will do an Automatic Migration Process which has two steps:  
@@ -98,7 +98,7 @@ In this example, the Tool will do an Automatic Migration Process which has two s
 
 - **Example 2**:
 ```
-./CloudPhotoMigrator.run --source=synology-2 --target=immich-1
+./PhotoMigrator.run --source=synology-2 --target=immich-1
 ```
 
 In this example, the Tool will do an Automatic Migration Process which has two steps:  
@@ -113,7 +113,7 @@ In this example, the Tool will do an Automatic Migration Process which has two s
 
 - **Example 3**:
 ```
-./CloudPhotoMigrator.run --source=immich-2 --target=/homes/local_folder --filter-by-person=Peter --filter-from-date=2024
+./PhotoMigrator.run --source=immich-2 --target=/homes/local_folder --filter-by-person=Peter --filter-from-date=2024
 ```
 
 In this example, the Tool will do an Automatic Migration Process which has two steps:  
@@ -128,7 +128,7 @@ In this example, the Tool will do an Automatic Migration Process which has two s
 
 - **Example 4**:
 ```
-./CloudPhotoMigrator.run --source=immich-1 --target=immich-2 --filter-by-city=Rome --filter-by-person=Mery
+./PhotoMigrator.run --source=immich-1 --target=immich-2 --filter-by-city=Rome --filter-by-person=Mery
 ```
 
 In this example, the Tool will do an Automatic Migration Process which has two steps:  

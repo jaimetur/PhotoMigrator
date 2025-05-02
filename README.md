@@ -1,21 +1,21 @@
 # Repo Statistics
-[![Commit activity](https://img.shields.io/github/commit-activity/y/jaimetur/CloudPhotoMigrator?label=Commit%20activity)](https://github.com/jaimetur/CloudPhotoMigrator/graphs/contributors)
-[![Resolved Github issues](https://img.shields.io/github/issues-closed/jaimetur/CloudPhotoMigrator?label=Resolved%20issues)](https://github.com/jaimetur/CloudPhotoMigrator/issues?q=is%3Aissue%20state%3Aclosed)
-[![Open Github issues](https://img.shields.io/github/issues/jaimetur/CloudPhotoMigrator?label=Open%20Issues)](https://github.com/jaimetur/CloudPhotoMigrator/issues)
-[![Total Github Releases downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/total?label=Total%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases)
-[![Latest version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/latest/total?label=Latest%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases/latest)
-[![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/CloudPhotoMigrator/v3.3.0-beta/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
+[![Commit activity](https://img.shields.io/github/commit-activity/y/jaimetur/PhotoMigrator?label=Commit%20activity)](https://github.com/jaimetur/PhotoMigrator/graphs/contributors)
+[![Resolved Github issues](https://img.shields.io/github/issues-closed/jaimetur/PhotoMigrator?label=Resolved%20issues)](https://github.com/jaimetur/PhotoMigrator/issues?q=is%3Aissue%20state%3Aclosed)
+[![Open Github issues](https://img.shields.io/github/issues/jaimetur/PhotoMigrator?label=Open%20Issues)](https://github.com/jaimetur/PhotoMigrator/issues)
+[![Total Github Releases downloads](https://img.shields.io/github/downloads/jaimetur/PhotoMigrator/total?label=Total%20downloads)](https://github.com/jaimetur/PhotoMigrator/releases)
+[![Latest version downloads](https://img.shields.io/github/downloads/jaimetur/PhotoMigrator/latest/total?label=Latest%20version%20downloads)](https://github.com/jaimetur/PhotoMigrator/releases/latest)
+[![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/PhotoMigrator/v3.3.0-beta/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/PhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 
-# **CloudPhotoMigrator**
+# **PhotoMigrator**
 <p align="center">
-  <img src="./assets/logos/logo_03.jpg" alt="CloudPhotoMigrator Logo" width="600" height="400" />
+  <img src="./assets/logos/logo_03.jpg" alt="PhotoMigrator Logo" width="600" height="400" />
 </p>
 
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automatic Migration**](./help/2-automatic-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service. 
 
 
 ## 🖥️ Live Dashboard Preview:
-![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
+![Live Dashboard](https://github.com/jaimetur/PhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
 ## 🌟 Main Features:
 Currently, the Features Included per each Supported Photo Cloud Service are:
@@ -75,9 +75,9 @@ Apart from Manage the different Photo Cloud Services, the Tool also contains Oth
 
 ## 💾 Download:
 Download the tool either for Linux, MacOS or Windows (for both x64/amd64 or arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
-- [Latest Stable Release](https://github.com/jaimetur/CloudPhotoMigrator/releases/latest)
-- [Pre-Release](https://github.com/jaimetur/CloudPhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
-- [All Releases](https://github.com/jaimetur/CloudPhotoMigrator/releases)  
+- [Latest Stable Release](https://github.com/jaimetur/PhotoMigrator/releases/latest)
+- [Pre-Release](https://github.com/jaimetur/PhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
+- [All Releases](https://github.com/jaimetur/PhotoMigrator/releases)  
 
 Or check the [Historical Releases Notes](./docs/RELEASES-NOTES.md) to choose any specific release. 
 
@@ -236,7 +236,7 @@ Planed Roadmap for the following releases
     - [x] Merged Synology/Immich arguments (now you can specify the client using a new flag _**'-client, --cient \<CLIENT_NAME>'**_)
     - [x] Added new flag _**'-client, --cient \<CLIENT_NAME>'**_ to set the Cloud Photo client to use.
     - [x] Added new flag _**'-id, --account-id \<ID>'**_ to specify which account to use for Synology Photos and Immich Photos from Config.ini.
-    - [x] Added support for 2FA in Synology Photos requesting the OTP Token if flag _**'-OTP, --one-time-password'**_ is detected. [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218).
+    - [x] Added support for 2FA in Synology Photos requesting the OTP Token if flag _**'-OTP, --one-time-password'**_ is detected. [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
       - New flag _**'-OTP, --one-time-password'**_ to allow login into Synology Photos accounts with 2FA activated.
     - [x] Added new Feature to **Remove Albums by Name Pattern** from Synology Photos and Immich Photos to remove those albums whose name matches with a provided pattern (using regular expresions). Added following new flags to execute this new features:
       - _**'-rAlb, --remove-albums \<ALBUM_NAME_PATTERN>'**_
@@ -275,7 +275,7 @@ Planed Roadmap for the following releases
     - [x] Renamed short name flag _**'-MergAlb'**_ to _**'-mDupAlb'**_ to activate the Feature 'Merge Duplicates Albums'.
     
   - #### 🐛 Bug fixes:
-    - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218).
+    - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
     - [x] Fixed a bug with feature **Remove All Albums** from Synology Photos and Immich Photos when the flag _**'--remove-albums-assets'**_ was selected (the assetes were not removed properly).
     - [x] Fixed a bug with feature **Synology Upload Album(s)** when the folder to upload is not named "Albums".
     - [x] Fixed a bug when any input folder ends with '\' or '/' but is enclosed between double quotes (").

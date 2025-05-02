@@ -204,7 +204,7 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, time
     os.makedirs(log_folder, exist_ok=True)
 
     # Clear existing handlers to avoid duplicate logs
-    LOGGER = logging.getLogger('CloudPhotoMigrator')
+    LOGGER = logging.getLogger('PhotoMigrator')
 
     if LOGGER.hasHandlers():
         LOGGER.handlers.clear()

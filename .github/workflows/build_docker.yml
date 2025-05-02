@@ -109,15 +109,15 @@ jobs:
       - name: 5. Prepare unified ZIP docker package
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
-          mkdir -p CloudPhotoMigrator/docker
-          cp docker/CloudPhotoMigrator.sh CloudPhotoMigrator/docker/
-          cp docker/CloudPhotoMigrator.bat CloudPhotoMigrator/docker/
-          cp docker/docker.conf CloudPhotoMigrator/docker/
-          cp Config.ini CloudPhotoMigrator/docker/
-          cp -r docs CloudPhotoMigrator/docker/
-          cp -r help CloudPhotoMigrator/docker/
-          cp README.md CloudPhotoMigrator/docker/docs/README.md
-          zip -r CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip CloudPhotoMigrator
+          mkdir -p PhotoMigrator/docker
+          cp docker/PhotoMigrator.sh PhotoMigrator/docker/
+          cp docker/PhotoMigrator.bat PhotoMigrator/docker/
+          cp docker/docker.conf PhotoMigrator/docker/
+          cp Config.ini PhotoMigrator/docker/
+          cp -r docs PhotoMigrator/docker/
+          cp -r help PhotoMigrator/docker/
+          cp README.md PhotoMigrator/docker/docs/README.md
+          zip -r PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip PhotoMigrator
       # ================================
       # End of Docker version Generation
       # ================================
@@ -133,7 +133,7 @@ jobs:
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
           files: |
-            CloudPhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
+            PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 

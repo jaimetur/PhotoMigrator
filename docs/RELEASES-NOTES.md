@@ -15,7 +15,7 @@
     - [x] Merged Synology/Immich arguments (now you can specify the client using a new flag _**'-client, --cient \<CLIENT_NAME>'**_)
     - [x] Added new flag _**'-client, --cient \<CLIENT_NAME>'**_ to set the Cloud Photo client to use.
     - [x] Added new flag _**'-id, --account-id \<ID>'**_ to specify which account to use for Synology Photos and Immich Photos from Config.ini.
-    - [x] Added support for 2FA in Synology Photos requesting the OTP Token if flag _**'-OTP, --one-time-password'**_ is detected. [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218).
+    - [x] Added support for 2FA in Synology Photos requesting the OTP Token if flag _**'-OTP, --one-time-password'**_ is detected. [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
       - New flag _**'-OTP, --one-time-password'**_ to allow login into Synology Photos accounts with 2FA activated.
     - [x] Added new Feature to **Remove Albums by Name Pattern** from Synology Photos and Immich Photos to remove those albums whose name matches with a provided pattern (using regular expresions). Added following new flags to execute this new features:
       - _**'-rAlb, --remove-albums \<ALBUM_NAME_PATTERN>'**_
@@ -54,7 +54,7 @@
     - [x] Renamed short name flag _**'-MergAlb'**_ to _**'-mDupAlb'**_ to activate the Feature 'Merge Duplicates Albums'.
     
   - #### 🐛 Bug fixes:
-    - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/CloudPhotoMigrator/issues/218).
+    - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
     - [x] Fixed a bug with feature **Remove All Albums** from Synology Photos and Immich Photos when the flag _**'--remove-albums-assets'**_ was selected (the assetes were not removed properly).
     - [x] Fixed a bug with feature **Synology Upload Album(s)** when the folder to upload is not named "Albums".
     - [x] Fixed a bug when any input folder ends with '\' or '/' but is enclosed between double quotes (").
@@ -128,7 +128,7 @@
     - [x] Documentation is now included as part of the distribution packages.
 
   - #### 🖥️ Live Dashboard Preview:
-    ![Live Dashboard](https://github.com/jaimetur/CloudPhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
+    ![Live Dashboard](https://github.com/jaimetur/PhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
 ---
 
@@ -224,7 +224,7 @@
         - **IMPORTANT!**: This feature requires a valid ADMIN_API_KEY configured in Config.ini.
 
   - #### 🚀 Enhancements:
-    - [x] New Script name '**CloudPhotoMigrator**' (former 'GoogleTakeoutPhotos')
+    - [x] New Script name '**PhotoMigrator**' (former 'GoogleTakeoutPhotos')
     - [x] The Tool is now Open Source (all contributors that want to collaborate on this project are more than welcome)
     - [x] Replaced 'ALL_PHOTOS' by 'No-Albums' as output subfolder for assets without any album associated (be careful if you already run the Tool with previous version because before, the folder for assets without albums was named 'ALL_PHOTOS')
     - [x] Ignored `@eaDir` folders when upload assets to Synology/Immich Photos.

@@ -78,7 +78,7 @@ The final OUTPUT_FOLDER will include:
 
 - **Example 1:**
 ```
-./CloudPhotoMigrator.run --google-takeout ./MyTakeout --google-remove-duplicates-files
+./PhotoMigrator.run --google-takeout ./MyTakeout --google-remove-duplicates-files
 ```
  
 In this example, the tool will do the Takeout Processing with the following steps:
@@ -91,7 +91,7 @@ In this example, the tool will do the Takeout Processing with the following step
 
 - **Example 2:**
 ```
-./CloudPhotoMigrator.run --google-takeout ./MyTakeout --google-remove-duplicates-files google-create-symbolic-albums
+./PhotoMigrator.run --google-takeout ./MyTakeout --google-remove-duplicates-files google-create-symbolic-albums
 ```
  
 In this example, the tool will do the Takeout Processing with the following steps:
