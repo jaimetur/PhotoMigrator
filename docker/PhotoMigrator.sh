@@ -34,11 +34,11 @@ fi
 # Get current directory
 CURRENT_DIR="$(pwd)"
 
-echo "🐳 Pulling Docker image: jaimetur/cloudphotomigrator:${RELEASE_TAG}"
-docker pull "jaimetur/cloudphotomigrator:${RELEASE_TAG}"
+echo "🐳 Pulling Docker image: jaimetur/photomigrator:${RELEASE_TAG}"
+docker pull "jaimetur/photomigrator:${RELEASE_TAG}"
 
 echo "🚀 Launching container with TAG='${RELEASE_TAG}' and TZ='${TZ}'..."
 docker run -it --rm \
   -v "$CURRENT_DIR":/docker \
   -e TZ="${TZ}" \
-  "jaimetur/cloudphotomigrator:${RELEASE_TAG}" "$@"
+  "jaimetur/photomigrator:${RELEASE_TAG}" "$@"

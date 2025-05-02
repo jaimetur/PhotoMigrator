@@ -65,7 +65,7 @@ TZ=Europe/Madrid        # Set the Time Zone for the Docker container (Important 
 
 You can obtain the different RELEASE_TAG using below command:
 ```bash
-curl -s "https://registry.hub.docker.com/v2/repositories/jaimetur/cloudphotomigrator/tags?page_size=100" | jq '.results[].name'
+curl -s "https://registry.hub.docker.com/v2/repositories/jaimetur/photomigrator/tags?page_size=100" | jq '.results[].name'
 ```
 The result should be something like this:  
   "latest"  
@@ -125,7 +125,7 @@ Make sure Docker is running, then:
 
 ### 2.1. First Pull the image for the desired release:
   ```bash
-  docker pull jaimetur/cloudphotomigrator:[RELEASE_TAG]
+  docker pull jaimetur/photomigrator:[RELEASE_TAG]
   ```
 
 #### Where,
@@ -133,7 +133,7 @@ Make sure Docker is running, then:
     
     You can obtain the different RELEASE_TAG using below command:
     ```bash
-    curl -s "https://registry.hub.docker.com/v2/repositories/jaimetur/cloudphotomigrator/tags?page_size=100" | jq '.results[].name'
+    curl -s "https://registry.hub.docker.com/v2/repositories/jaimetur/photomigrator/tags?page_size=100" | jq '.results[].name'
     ```
     The result should be something like this:  
       "latest"  
@@ -144,11 +144,11 @@ Make sure Docker is running, then:
 #### Example:
   - For latest release:
     ```bash
-    docker pull jaimetur/cloudphotomigrator:latest
+    docker pull jaimetur/photomigrator:latest
     ```
   - For specific release.
     ```
-    docker pull jaimetur/cloudphotomigrator:3.2.0
+    docker pull jaimetur/photomigrator:3.2.0
     ```
 
 ### 2.2. Edit Tool Configuration file:
@@ -161,15 +161,15 @@ Open `Config.ini` in any text editor and update it with your credentials and set
 ### 2.3. Execute the pulled image with docker:
 - For Linux / MacOS: 
   ```bash
-  docker run -it --rm -v "$(pwd)":/docker -e TZ=[TIMEZONE] jaimetur/cloudphotomigrator:[RELEASE_TAG] [OPTIONS]
+  docker run -it --rm -v "$(pwd)":/docker -e TZ=[TIMEZONE] jaimetur/photomigrator:[RELEASE_TAG] [OPTIONS]
   ```
 - For Windows (PowerShell): 
   ```bash
-  docker run -it --rm -v "${PWD}:/docker" -e TZ=[TIMEZONE] jaimetur/cloudphotomigrator:[RELEASE_TAG] [OPTIONS]
+  docker run -it --rm -v "${PWD}:/docker" -e TZ=[TIMEZONE] jaimetur/photomigrator:[RELEASE_TAG] [OPTIONS]
   ```
 - For Windows (Command Prompt): 
   ```bash
-  docker run -it --rm -v "%cd%":/docker -e TZ=[TIMEZONE] jaimetur/cloudphotomigrator:[RELEASE_TAG] [OPTIONS]
+  docker run -it --rm -v "%cd%":/docker -e TZ=[TIMEZONE] jaimetur/photomigrator:[RELEASE_TAG] [OPTIONS]
   ```
 
 #### Where,
@@ -180,18 +180,18 @@ Open `Config.ini` in any text editor and update it with your credentials and set
 #### Example for Linux / MacOS:
   - Execute the Tool to show the command line help:
     ```bash
-    docker run -it --rm -v "$(pwd)":/docker -e TZ=Europe/Madrid jaimetur/cloudphotomigrator:latest -h
+    docker run -it --rm -v "$(pwd)":/docker -e TZ=Europe/Madrid jaimetur/photomigrator:latest -h
     ```
   - Execute the Tool to do an Automated Migration:
     ```bash
-    docker run -it --rm -v "$(pwd)":/docker -e TZ=Europe/Madrid jaimetur/cloudphotomigrator:latest --source=./MyTakeout --target=immich-photos
+    docker run -it --rm -v "$(pwd)":/docker -e TZ=Europe/Madrid jaimetur/photomigrator:latest --source=./MyTakeout --target=immich-photos
     ```
 
 > [!IMPORTANT]
 > - If your system requires elevation to run docker commands, you have to call it using 'sudo' and enter admin password.
 > - Example:
 >   ```bash
->   sudo docker run -it --rm -v "$(pwd)":/docker -e TZ=Europe/Madrid jaimetur/cloudphotomigrator:latest -h
+>   sudo docker run -it --rm -v "$(pwd)":/docker -e TZ=Europe/Madrid jaimetur/photomigrator:latest -h
 >   ```
 
 
