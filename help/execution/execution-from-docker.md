@@ -23,16 +23,16 @@ If you chose this option, just need to follow the next steps:
 
 ### 1.1. Download the ZIP package:
 
-Download the latest version of the Docker package from the [Releases page](https://github.com/jaimetur/CloudPhotoMigrator/releases), or use the following command:
+Download the latest version of the Docker package from the [Releases page](https://github.com/jaimetur/PhotoMigrator/releases), or use the following command:
 
 - **Linux/macOS:**
     ```bash
-    curl -L -o CloudPhotoMigrator_v3.3.0-alpha_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.3.0-alpha/CloudPhotoMigrator_v3.3.0-alpha_docker.zip
+    curl -L -o PhotoMigrator_v3.3.0-alpha_docker.zip https://github.com/jaimetur/PhotoMigrator/releases/download/v3.3.0-alpha/PhotoMigrator_v3.3.0-alpha_docker.zip
     ```
   
 - **Windows (PoowerShell):**
     ```bash
-    curl.exe -L -o CloudPhotoMigrator_v3.3.0-alpha_docker.zip https://github.com/jaimetur/CloudPhotoMigrator/releases/download/v3.3.0-alpha/CloudPhotoMigrator_v3.3.0-alpha_docker.zip
+    curl.exe -L -o PhotoMigrator_v3.3.0-alpha_docker.zip https://github.com/jaimetur/PhotoMigrator/releases/download/v3.3.0-alpha/PhotoMigrator_v3.3.0-alpha_docker.zip
     ```
 
 
@@ -41,14 +41,14 @@ Download the latest version of the Docker package from the [Releases page](https
 - **Linux/macOS:**
     ```bash
     sudo apt install 7zip
-    7z x CloudPhotoMigrator_v3.3.0-alpha_docker.zip
-    cd CloudPhotoMigrator/docker
+    7z x PhotoMigrator_v3.3.0-alpha_docker.zip
+    cd PhotoMigrator/docker
     ```
 
 - **Windows (PoowerShell):**
     ```bash
-    powershell -Command "Expand-Archive -Path CloudPhotoMigrator_v3.3.0-alpha_docker.zip -DestinationPath ./"
-    cd CloudPhotoMigrator\docker
+    powershell -Command "Expand-Archive -Path PhotoMigrator_v3.3.0-alpha_docker.zip -DestinationPath ./"
+    cd PhotoMigrator\docker
     ```
 
 
@@ -87,12 +87,12 @@ Make sure Docker is running, then:
 
 - **Linux / MacOS:**
     ```bash
-    chmod +x ./CloudPhotoMigrator.sh
-    ./CloudPhotoMigrator.sh [OPTIONS]
+    chmod +x ./PhotoMigrator.sh
+    ./PhotoMigrator.sh [OPTIONS]
     ``` 
 - **Windows (Command Prompt):**
     ```bash
-    CloudPhotoMigrator.bat [OPTIONS]
+    PhotoMigrator.bat [OPTIONS]
     ```
 
 #### Where,
@@ -101,11 +101,11 @@ Make sure Docker is running, then:
 #### Exampe for Linux / MacOS:
   - Execute the Tool to show the command line help:
     ```bash
-    ./CloudPhotoMigrator.sh -h
+    ./PhotoMigrator.sh -h
     ```
   - Execute the Tool to do an Automated Migration:
     ```bash
-    ./CloudPhotoMigrator.sh --source=./MyTakeout --target=immich-photos
+    ./PhotoMigrator.sh --source=./MyTakeout --target=immich-photos
     ```
     
 > [!NOTE]
@@ -116,7 +116,7 @@ Make sure Docker is running, then:
 > - If your system requires elevation to run docker commands, you have to call it using 'sudo' and enter admin password.
 > - Example:
 >   ```bash
->   sudo ./CloudPhotoMigrator.sh -h
+>   sudo ./PhotoMigrator.sh -h
 >   ```
 
 

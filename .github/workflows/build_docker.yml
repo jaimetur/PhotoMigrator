@@ -89,21 +89,21 @@ jobs:
           #  1) descargar la base actualizada ( --pull )
           #  2) ignorar todas las capas cacheadas ( --no-cache )
           docker build --pull --no-cache \
-            -t jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }} \
+            -t jaimetur/photomigrator:${{ env.SCRIPT_VERSION }} \
             -f docker/Dockerfile .
 
           # Etiquetar como latest
-          docker tag jaimetur/cloudphotomigrator:${{ env.SCRIPT_VERSION }} jaimetur/cloudphotomigrator:latest
+          docker tag jaimetur/photomigrator:${{ env.SCRIPT_VERSION }} jaimetur/photomigrator:latest
 
           # Si es versión estable (no alpha, beta ni RC), etiquetar también como latest-stable
           if [[ "${SCRIPT_VERSION}" != *alpha* && "${SCRIPT_VERSION}" != *beta* && "${SCRIPT_VERSION}" != *RC* ]]; then
-            docker tag jaimetur/cloudphotomigrator:${SCRIPT_VERSION} jaimetur/cloudphotomigrator:latest-stable
-            docker push jaimetur/cloudphotomigrator:latest-stable
+            docker tag jaimetur/photomigrator:${SCRIPT_VERSION} jaimetur/photomigrator:latest-stable
+            docker push jaimetur/photomigrator:latest-stable
           fi
 
           # Subir etiquetas latest y con versión específica
-          docker push jaimetur/cloudphotomigrator:${SCRIPT_VERSION}
-          docker push jaimetur/cloudphotomigrator:latest
+          docker push jaimetur/photomigrator:${SCRIPT_VERSION}
+          docker push jaimetur/photomigrator:latest
       
       # 5. Prepare unified ZIP docker package
       - name: 5. Prepare unified ZIP docker package

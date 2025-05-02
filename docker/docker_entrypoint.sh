@@ -19,7 +19,7 @@ if [ ! -f "$DOCKER_CONF_FILE" ]; then
     cp "$DEFAULT_DOCKER_CONF_FILE" "$DOCKER_CONF_FILE"
 fi
 
-echo "🚀 Initializing container and launching CloudPhotoMigrator..."
+echo "🚀 Initializing container and launching PhotoMigrator..."
 echo "Looking for: Config.ini"
 if [ ! -f "$CONFIG_FILE" ]; then
     echo "❌ Config.ini not found in the current folder."
@@ -29,4 +29,4 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 1
 fi
 
-exec python3 /app/src/CloudPhotoMigrator.py "$@"
+exec python3 /app/src/PhotoMigrator.py "$@"

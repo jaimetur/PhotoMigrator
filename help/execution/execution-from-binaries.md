@@ -9,9 +9,9 @@ Open `Config.ini` in any text editor and update it with your credentials and set
 > For more information, refer to [Configuration File](/help/0-configuration-file.md) .
 
 ### 3 Execute the Tool depending on your environment:
-  - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**CloudPhotoMigrator.exe**'  
+  - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**PhotoMigrator.exe**'  
 
-  - If you run it from Synology NAS (using SSH terminal) or from Linux/Mac, you have to call the master script '**CloudPhotoMigrator.run**'.  
+  - If you run it from Synology NAS (using SSH terminal) or from Linux/Mac, you have to call the master script '**PhotoMigrator.run**'.  
     Minimum version required to run the Tool directly from your Synology NAS (using SSH terminal) is **DSM 7.0**.
 
 ---
