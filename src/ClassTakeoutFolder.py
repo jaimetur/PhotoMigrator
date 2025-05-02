@@ -450,7 +450,7 @@ if __name__ == "__main__":
     from ChangeWrkingDir import change_workingdir
     change_workingdir()
 
-    input_folder = Path(r"r:\jaimetur\CloudPhotoMigrator\Takeout")
+    input_folder = Path(r"r:\jaimetur\PhotoMigrator\Takeout")
     # timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     # base_folder = input_folder.parent / f"Takeout_processed_{timestamp}"
 

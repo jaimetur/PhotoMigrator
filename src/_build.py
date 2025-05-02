@@ -209,7 +209,7 @@ def main(compile=True):
     # Detect the operating system and architecture
     OPERATING_SYSTEM = platform.system().lower().replace('darwin','macos')
     ARCHITECTURE = platform.machine().lower().replace('x86_64','amd64').replace('aarch64', 'arm64')
-    SCRIPT_NAME = "CloudPhotoMigrator"
+    SCRIPT_NAME = "PhotoMigrator"
     SCRIPT_SOURCE_NAME = f"{SCRIPT_NAME}.py"
     SCRIPT_VERSION = get_script_version('GlobalVariables.py')
     SCRIPT_VERSION_INT = get_clean_version(SCRIPT_VERSION)

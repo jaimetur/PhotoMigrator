@@ -22,6 +22,7 @@ from ClassImmichPhotos import ClassImmichPhotos
 
 terminal_width = shutil.get_terminal_size().columns
 
+
 class SharedData:
     def __init__(self, info, counters, logs_queue):
         self.info = info
@@ -33,7 +34,6 @@ class SharedData:
 # FEATURE: AUTOMATIC-MIGRATION: #
 ####################################
 def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show_gpth_progress=None, show_gpth_errors=None, parallel=None, log_level=logging.INFO):
-    
     with set_log_level(LOGGER, log_level):
 
         # ───────────────────────────────────────────────────────────────
@@ -134,11 +134,11 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
 
             # Return ClassTakeoutFolder
             elif Path(client_type).is_dir() and (Utils.contains_zip_files(client_type) or Utils.contains_takeout_structure(client_type)):
-                return ClassTakeoutFolder(client_type)              # In this clase, client_type is the path to the Takeout Folder
+                return ClassTakeoutFolder(client_type)  # In this clase, client_type is the path to the Takeout Folder
 
             # Return ClassLocalFolder
             elif Path(client_type).is_dir():
-                return ClassLocalFolder(base_folder=client_type)    # In this clase, client_type is the path to the base Local Folder
+                return ClassLocalFolder(base_folder=client_type)  # In this clase, client_type is the path to the base Local Folder
             else:
                 raise ValueError(f"ERROR   : Tipo de cliente no válido: {client_type}")
 
@@ -205,7 +205,6 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
 
-
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
             # Call the parallel_automatic_migration module to do the whole migration process
@@ -227,7 +226,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                     kwargs={
                         "migration_finished": migration_finished,  # Pasamos un evento para indicar cuando ha terminado el proceso de migración
                         "SHARED_DATA": SHARED_DATA,  # Pasamos la instancia de la clase
-                        "parallel": parallel, # Pasamos el modo de migración (parallel=True/False)
+                        "parallel": parallel,  # Pasamos el modo de migración (parallel=True/False)
                         "log_level": logging.INFO
                     },
                     daemon=True  # El show_dashboard se cierra si el proceso principal termina
@@ -596,7 +595,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     album_shared_role = permissions[0].get('role')  # Obtiene el valor si existe, si no, devuelve None
                 else:
                     album_shared_role = ""
-                is_shared = album_passphrase is not None and album_passphrase != "" # Si tiene passphrase, es compartido
+                is_shared = album_passphrase is not None and album_passphrase != ""  # Si tiene passphrase, es compartido
 
                 # Descargar todos los assets de este álbum
                 try:
@@ -902,7 +901,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
             LOGGER.info(f"INFO    : Pusher {worker_id} - Task Finished!")
 
-
     # ----------------------------
     # 4) LLAMADA AL HILO PRINCIPAL
     # ----------------------------
@@ -923,10 +921,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     temp_folder = Utils.normalize_path(temp_folder)
 
     # Listas de posibles etiquetas para los distintos tipos de archivos en los diferentes clientes
-    image_labels    = ['photo', 'image']
-    video_labels    = ['video', 'live']
+    image_labels = ['photo', 'image']
+    video_labels = ['video', 'live']
     metadata_labels = ['metadata']
-    sidecar_labels  = ['sidecar']
+    sidecar_labels = ['sidecar']
 
     # Check if parallel=None, and in that case, get it from ARGS
     if parallel is None: parallel = ARGS['parallel-migration']
@@ -957,7 +955,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
 
     # Min Terminal Height and Width to display the Live Dashboard
     MIN_TERMINAL_HEIGHT = 30
-    MIN_TERMINAL_WIDTH  = 100
+    MIN_TERMINAL_WIDTH = 100
 
     # Calculate terminal_height and terminal_width
     console = Console()
@@ -969,7 +967,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
 
     if terminal_height < MIN_TERMINAL_HEIGHT:
         LOGGER.info(f"INFO    : Cannot display Live Dashboard because the detected terminal height = {terminal_height} and the minumum needed height = {MIN_TERMINAL_HEIGHT}. Continuing without Live Dashboard...")
-        ARGS['dashboard'] = False # Set this argument to False to avoid use TQDM outputs as if a Interactive Terminal (isatty() = True)
+        ARGS['dashboard'] = False  # Set this argument to False to avoid use TQDM outputs as if a Interactive Terminal (isatty() = True)
         return
 
     if terminal_width < MIN_TERMINAL_WIDTH:
@@ -1051,14 +1049,16 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
     # ─────────────────────────────────────────────────────────────────────────
     # 0) Header Panel
     # ─────────────────────────────────────────────────────────────────────────
-    header =  textwrap.dedent(rf"""
-      ____ _                 _ ____  _           _        __  __ _                 _
-     / ___| | ___  _   _  __| |  _ \| |__   ___ | |_ ___ |  \/  (_) __ _ _ __ __ _| |_ ___  _ __
-    | |   | |/ _ \| | | |/ _` | |_) | '_ \ / _ \| __/ _ \| |\/| | |/ _` | '__/ _` | __/ _ \| '__|
-    | |___| | (_) | |_| | (_| |  __/| | | | (_) | || (_) | |  | | | (_| | | | (_| | || (_) | |
-     \____|_|\___/ \__,_|\__,_|_|   |_| |_|\___/ \__\___/|_|  |_|_|\__, |_|  \__,_|\__\___/|_|
-                                                                   |___/ {SCRIPT_VERSION}
+    header = textwrap.dedent(rf"""
+     ____  _           _        __  __ _                 _
+    |  _ \| |__   ___ | |_ ___ |  \/  (_) __ _ _ __ __ _| |_ ___  _ __
+    | |_) | '_ \ / _ \| __/ _ \| |\/| | |/ _` | '__/ _` | __/ _ \| '__|
+    |  __/| | | | (_) | || (_) | |  | | | (_| | | | (_| | || (_) | |
+    |_|   |_| |_|\___/ \__\___/|_|  |_|_|\__, |_|  \__,_|\__\___/|_|
+                                         |___/ {SCRIPT_VERSION}
     """).lstrip("\n")  # Elimina solo la primera línea en blanco
+    # header =  textwrap.dedent(rf"""
+
     layout["header_panel"].update(Panel(f"[gold1]{header}[/gold1]", border_style="gold1", expand=True))
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -1079,6 +1079,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
     def build_info_panel(clean_queue_history=False):
         """Construye el panel de información con historial de la cola."""
         # 🔹 Calcular el ancho real de "info_panel"
+
         total_ratio = 3 + 4 + 4  # Suma de los ratios en split_row()
         info_panel_ratio = 3  # Ratio de "info_panel"
 
@@ -1171,7 +1172,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
         counter = f"{{task.completed}}/{{task.total}}"
         return Progress(
             BarColumn(
-                bar_width=100,           # longer bar for better visuals
+                bar_width=100,  # longer bar for better visuals
                 style=f"{color} dim",
                 complete_style=f"{color} bold",
                 finished_style=f"{color} bold",
@@ -1183,8 +1184,9 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
             expand=True
         )
 
+
     # PULLS (Cyan)
-    pull_bars = { # Dicccionario de Tuplas (bar, etiqueta_contador_completados, etiqueta_contador_totales)
+    pull_bars = {  # Dicccionario de Tuplas (bar, etiqueta_contador_completados, etiqueta_contador_totales)
         "🎯 Pulled Assets": (create_progress_bar("cyan"), 'total_pulled_assets', "total_assets"),
         "📷 Pulled Photos": (create_progress_bar("cyan"), 'total_pulled_photos', "total_photos"),
         "🎬 Pulled Videos": (create_progress_bar("cyan"), 'total_pulled_videos', "total_videos"),
@@ -1222,6 +1224,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
         # bar.add_task retturns the task_id and we create a dictionary {task_label: task_id}
         push_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=SHARED_DATA.info.get(total_label, 0))
 
+
     # ─────────────────────────────────────────────────────────────────────────
     # 4) Build the Pull/Push Panels
     # ─────────────────────────────────────────────────────────────────────────
@@ -1236,6 +1239,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
             value = SHARED_DATA.counters[counter_label]
             table.add_row(f"[cyan]{label:<17}:[/cyan]", f"[cyan]{value}[/cyan]")
         return Panel(table, title=f'📥 From: {SHARED_DATA.info.get("source_client_name", "Source Client")}', border_style="cyan", expand=True)
+
 
     def build_push_panel():
         table = Table.grid(expand=True)
@@ -1256,6 +1260,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
     # Lista (o deque) para mantener todo el historial de logs ya mostrados
     logs_panel_height = terminal_height - fixed_heights - 2  # Espacio restante. Restamos 2 para quitar las líneas del borde superior e inferior del panel de Logs
     ACCU_LOGS = deque(maxlen=logs_panel_height)
+
 
     def build_log_panel():
         """
@@ -1330,7 +1335,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
             time.sleep(1)
 
             # Al terminar, asegurarse que todos los paneles finales se muestren
-            layout["info_panel"].update(build_info_panel(clean_queue_history=True))     # Limpiamos el histórico de la cola
+            layout["info_panel"].update(build_info_panel(clean_queue_history=True))  # Limpiamos el histórico de la cola
             layout["pulls_panel"].update(build_pull_panel())
             layout["pushs_panel"].update(build_push_panel())
             layout["logs_panel"].update(build_log_panel())
@@ -1340,24 +1345,24 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
             sys.stdout = original_stdout
             sys.stderr = original_stderr
 
-
 ######################
 # CALL FROM __MAIN__ #
 ######################
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
     import ChangeWorkingDir
+
     ChangeWorkingDir.change_working_dir(change_dir=False)
 
     # # Paths para Windows
-    local_folder = r'r:\jaimetur\CloudPhotoMigrator\LocalFolderClient'
-    takeout_folder = r'r:\jaimetur\CloudPhotoMigrator\Takeout'
-    takeout_folder_zipped = r'r:\jaimetur\CloudPhotoMigrator\Zip_files_prueba_rapida'
-    
+    local_folder = r'r:\jaimetur\PhotoMigrator\LocalFolderClient'
+    takeout_folder = r'r:\jaimetur\PhotoMigrator\Takeout'
+    takeout_folder_zipped = r'r:\jaimetur\PhotoMigrator\Zip_files_prueba_rapida'
+
     # Paths para Linux
-    # local_folder = r'/mnt/homes/jaimetur/CloudPhotoMigrator/LocalFolderClient'
-    # takeout_folder = r'/mnt/homes/jaimetur/CloudPhotoMigrator/Takeout'
-    # takeout_folder_zipped = r'/mnt/homes/jaimetur/CloudPhotoMigrator/Zip_files_prueba_rapida'
+    # local_folder = r'/mnt/homes/jaimetur/PhotoMigrator/LocalFolderClient'
+    # takeout_folder = r'/mnt/homes/jaimetur/PhotoMigrator/Takeout'
+    # takeout_folder_zipped = r'/mnt/homes/jaimetur/PhotoMigrator/Zip_files_prueba_rapida'
 
     # Define source and target
     source = takeout_folder_zipped

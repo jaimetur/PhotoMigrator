@@ -81,7 +81,7 @@
   - The Tool will connect automatically to your Synology Photos account and will create one Album per each Subfolder found in \<ALBUMS_FOLDER> that contains at least one file supported by Synology Photos and with the same Album name as Album folder.
 - **Example of use:**
   ```
-  ./CloudPhotoMigrator.run --client=synoogy --upload-albums ./My_Albums_Folder
+  ./PhotoMigrator.run --client=synoogy --upload-albums ./My_Albums_Folder
   ```
   With this example, the Tool will connect to your Synology Photos account and process the folder ./My_Albums_Folder and per each subfolder found on it that contains at least one file supported by Synology Photos, will create a new Album in Synology Photos with the same name of the Album Folder
   
@@ -103,7 +103,7 @@
   - To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --download-albums 'album1', 'album2', 'album3'.
 - **Example of use:**
   ```
-  ./CloudPhotoMigrator.run --client=synology --download-albums "Album 1", "Album 2", "Album 3"
+  ./PhotoMigrator.run --client=synology --download-albums "Album 1", "Album 2", "Album 3"
   ```
   With this example, the Tool will connect to your Synology Photos account and extract the Albums "Album 1", "Album 2", "Album 3" with all the photos and videos included on them into a subfolder of 'Synology_Photos_Albums' folder
 
@@ -126,7 +126,7 @@
     2. Use the complementary argument _**'-AlbFld, --albums-folders \<ALBUMS_FOLDER>'**_, in this way the Tool will create Albums also for each subfolder found in '<ALBUMS_FOLDER>' (apart from those found inside '<INPUT_FOLDER>/Albums')
 - **Example of use:**
   ```
-  ./CloudPhotoMigrator.run --client=synology --upload-all ./MyLibrary
+  ./PhotoMigrator.run --client=synology --upload-all ./MyLibrary
   ```
   With this example, the Tool will connect to your Synology Photos account and process the folder ./MyLibrary and will upload all supported assets found on it, creating a new Album per each subfolder found within './MyLibrary/Albums' folder.
 
@@ -145,7 +145,7 @@
   - Assets with no Albums associated will be downloaded within a subfolder called \<OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside.
 - **Example of use:**
   ```
-  ./CloudPhotoMigrator.run --client=synology --download-all ./MyLibrary
+  ./PhotoMigrator.run --client=synology --download-all ./MyLibrary
   ```
   With this example, the Tool will connect to your Synology Photos account and download ALL your library into the local folder ./MyLibrary.
   
@@ -161,7 +161,7 @@
   - The Tool will connect automatically to your Synology Photos account and will remove ALL the assets and Albums found.
 - **Example of use:**
   ```
-  ./CloudPhotoMigrator.run --client=synology --remove-all-assets
+  ./PhotoMigrator.run --client=synology --remove-all-assets
   ```
   With this example, the Tool will connect to Synology Photos account and will remove all assets found (including Albums).
 
@@ -182,7 +182,7 @@
   - Optionally ALL the Assets associated to each Album can be removed If you also include the complementary argument _**'-rAlbAss, --remove-albums-assets'**_
 - **Example of use:**
   ```
-  ./CloudPhotoMigrator.run --client=synology --remove-all-albums --remove-albums-assets
+  ./PhotoMigrator.run --client=synology --remove-all-albums --remove-albums-assets
   ```
   With this example, the Tool will connect to your Synology Photos account and will remove all Albums found (including all the assets contained on them, because we are using the complementary flag).
 
@@ -203,7 +203,7 @@
   - Optionally ALL the Assets associated to each removed Album can be removed If you also include the complementary argument _**'-rAlbAss, --remove-albums-assets'**_
 - **Example of use:**
   ```
-  ./CloudPhotoMigrator.run --client=synology --rename-albums "\d{4}-\d{2}-\d{2}" --remove-albums-assets
+  ./PhotoMigrator.run --client=synology --rename-albums "\d{4}-\d{2}-\d{2}" --remove-albums-assets
   ```
   With this example, the Tool will connect to your Synology Photos account and will remove all Albums whose name contains a date like this ("2023-08-15 - Vacation photos"), including all the assets contained on them, because we are using the complementary flag.
 
@@ -223,7 +223,7 @@
   - If you specify any date filter with flags _**'-from, --filter-from-date'**_ or _**'-to, --filter-to-date'**_ then, only those albums whose creation date matches with the filters will be renamed.
 - **Example of use:**
   ```
-  ./CloudPhotoMigrator.run --client=synoogy --rename-albums "\d{4}-\d{2}-\d{2}", "DATE"
+  ./PhotoMigrator.run --client=synoogy --rename-albums "\d{4}-\d{2}-\d{2}", "DATE"
   ```
   With this example, the Tool will connect to your Synology Photos account and will rename all Albums whose name contains a date like this ("2023-08-15 - Vacation photos") replacing the date with the string "DATE", as a result the new album name would be: "DATE - Vacation photos".
    
@@ -240,7 +240,7 @@
   - If you specify any date filter with flags _**'-from, --filter-from-date'**_ or _**'-to, --filter-to-date'**_ then, only those albums whose creation date matches with the filters will be removed.
 - **Example of use:**
   ```
-  ./CloudPhotoMigrator.run --client=synology --remove-empty-albums
+  ./PhotoMigrator.run --client=synology --remove-empty-albums
   ```
   With this example, the Tool will connect to your Synology Photos account and will remove all Empty Albums found.
 
@@ -257,7 +257,7 @@
   - If you specify any date filter with flags _**'-from, --filter-from-date'**_ or _**'-to, --filter-to-date'**_ then, only those albums whose creation date matches with the filters will be removed.
 - **Example of use:**
   ```
-  ./CloudPhotoMigrator.run --client=synology --remove-duplicates-albums
+  ./PhotoMigrator.run --client=synology --remove-duplicates-albums
   ```
   With this example, the Tool will connect to your Synology Photos account and will remove all Duplicates Albums found except the first one.
 
@@ -274,7 +274,7 @@
   - If you specify any date filter with flags _**'-from, --filter-from-date'**_ or _**'-to, --filter-to-date'**_ then, only those albums whose creation date matches with the filters will be merged.
 - **Example of use:**
   ```
-  ./CloudPhotoMigrator.run --client=synology --merge-duplicates-albums
+  ./PhotoMigrator.run --client=synology --merge-duplicates-albums
   ```
   With this example, the Tool will connect to your Synology Photos account and will remove all Duplicates Albums found except the first one trasferring all the assets from the removed albums into the main one.
 
