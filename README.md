@@ -232,7 +232,7 @@ Planed Roadmap for the following releases
 - ### DONE:
   - #### 🚨 Breaking Changes:
     - [x] New Script name '**PhotoMigrator**' (former 'CloudPhotoMigrator').  
-        - This change implies that docker distribution package needs to be downloaded again because the launching scripts have been renamed.
+        - This change implies that docker distribution package needs to be downloaded again because the launching scripts and the dockerhub images repository have been renamed.
 
   - #### 🌟 New Features:
     - [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automatic Mode Feature as before).
