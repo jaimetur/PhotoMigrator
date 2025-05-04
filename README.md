@@ -111,7 +111,7 @@ You can check the whole list of features and arguments with the right syntax her
 - [Other Features](./help/6-other-features.md)  
 
 
-## 🚀 Execution Methods:
+## ▶️ Execution Methods:
 There are three different methods to execute this Tool:
 - From **Compiled Binaries**
 - From **Docker Container**
