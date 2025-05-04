@@ -292,7 +292,7 @@ Planed Roadmap for the following releases
 
 - ### TODO:
   - [x] Deep Tests for new Features.
-  - [ ] Deep Test for upload-albums/upload-all features.
+  - [ ] Deep Tests for upload-albums/upload-all features.
   - [x] Bug Fixing.
 
 ---
