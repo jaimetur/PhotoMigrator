@@ -66,7 +66,7 @@
 
   - #### 📚 Documentation:
     - [x] Updated documentation with all changes.
-    - [x] Added Tool Logo and emojis to documentation files.
+    - [x] Added tool logo and emojis to documentation files.
 
 ---
 
