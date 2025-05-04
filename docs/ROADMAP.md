@@ -12,8 +12,11 @@ Planed Roadmap for the following releases
   - Official Release : 2025-05-30
 
 - ### DONE:
+  - #### 🚨 Breaking Changes:
+    - [x] New Script name '**PhotoMigrator**' (former 'CloudPhotoMigrator').  
+        - This change implies that docker distribution package needs to be downloaded again because the launching scripts have been renamed.
+
   - #### 🌟 New Features:
-    - [x] New Script name '**PhotoMigrator**' (former 'CloudPhotoMigrator')
     - [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automatic Mode Feature as before).
     - [x] Added Support for 3 accounts of each Cloud Photo Service (before it was only 2).
     - [x] Merged Synology/Immich arguments (now you can specify the client using a new flag _**'-client, --cient \<CLIENT_NAME>'**_)
