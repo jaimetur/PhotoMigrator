@@ -287,12 +287,13 @@ Planed Roadmap for the following releases
 
   - #### 📚 Documentation:
     - [x] Updated documentation with all changes.
+    - [x] Added Tool Logo and emojis to documentation files.
 
 
 - ### TODO:
-  - [ ] Deep Tests for new Features.
+  - [x] Deep Tests for new Features.
   - [ ] Deep Test for upload-albums/upload-all features.
-  - [ ] Bug Fixing.
+  - [x] Bug Fixing.
 
 ---
 
