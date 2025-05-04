@@ -12,12 +12,12 @@ Find below the needed steps:
 
 ### 1. Clone the repository
    ```bash
-   git clone https://github.com/jaimetur/CloudPhotoMigrator.git
+   git clone https://github.com/jaimetur/PhotoMigrator.git
    ```
 
 ### 2. Change directory to the cloned repository
    ```bash
-   cd CloudPhotoMigrator
+   cd PhotoMigrator
    ```
 
 ### 3. Create a Python virtual environment:  
@@ -54,7 +54,7 @@ Open `Config.ini` in any text editor and update it with your credentials and set
 
 ### 7. Run the Tool to show the command line help:
    ```bash
-   python3 ./src/CloudPhotoMigrator.py -h
+   python3 ./src/PhotoMigrator.py -h
    ```
 
 ---

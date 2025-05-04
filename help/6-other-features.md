@@ -29,7 +29,7 @@
     - If \<ACTION> is 'remove' the Tool will maintain the main file and remove the others and also will generate a CSV file with all the duplicates found and store it within the folder 'Duplicates'.
 - **Example of use:**
   ```
-  ./CloudPhotoMigrator --find-duplicatess move ./Albums ./ALL_PHOTOS move
+  ./PhotoMigrator --find-duplicatess move ./Albums ./ALL_PHOTOS move
   ```
   With this example, the Tool will find duplicates files within folders ./Albums and ./ALL_PHOTOS,
   If finds any duplicates, will keep the file within ./Albums folder (because it has been passed first on the list)
@@ -54,7 +54,7 @@
           - and Original Principal file detected by the Script will be removed permanently
 - **Example of use:**
   ```
-  ./CloudPhotoMigrator --process-duplicates ./Duplicates/Duplicates_revised.csv
+  ./PhotoMigrator --process-duplicates ./Duplicates/Duplicates_revised.csv
   ```
   With this example, the Tool will process the file ./Duplicates/Duplicates_revised.csv
   and for each duplicate, will do the given action according to Action column
@@ -71,7 +71,7 @@
   - With this feature the Tool will try to look for all symbolic links within <FOLDER_TO_FIX> and will try to find the target file within the same folder.
 - **Example of use:**
   ```
-  ./CloudPhotoMigrator --fix-symlinks-broken ./OUTPUT_FOLDER 
+  ./PhotoMigrator --fix-symlinks-broken ./OUTPUT_FOLDER 
   ```
   With this example, the Tool will look for all symbolic links within OUTPUT_FOLDER and if any is broken,
   the Tool will try to fix it finding the target of the symlink within the same OUTPUT_FOLDER structure.
@@ -95,7 +95,7 @@
   - where 'yyyy' is the year of the files contained in each Album folder (if more than one year is found, then 'yyyy-yyyy' will indicate the range of years for the files contained in the Album folder.
 - **Example of use:**
   ```
-  ./CloudPhotoMigrator.run ---rename-folders-content-based ./MyLocalPhotoLibrary
+  ./PhotoMigrator.run ---rename-folders-content-based ./MyLocalPhotoLibrary
   ```
   In this example, the Tool will Process your Library of photos in folder './MyLocalPhotoLibrary' (need to be unzipped), and will rename all the subfolders found on to homogenize all the folder's name with the following template:  
   '**yyyy - Cleaned Subfolder Name**' or '**yyyy-yyyy - Cleaned Subfolder Name**'  

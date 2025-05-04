@@ -7,7 +7,7 @@ CONFIG_FILE="/docker/Config.ini"
 DEFAULT_CONFIG="/app/default_config.ini"
 
 # To enter in interective shell moode we can call this from Shell:
-# docker run -it --rm -v "${PWD}:/docker" -e TZ=Europe/Madrid jaimetur/cloudphotomigrator:latest bash
+# docker run -it --rm -v "${PWD}:/docker" -e TZ=Europe/Madrid jaimetur/photomigrator:latest bash
 if [[ "$1" == "bash" ]]; then
     echo "🔧 Entering interactive shell..."
     exec /bin/bash
@@ -19,7 +19,7 @@ if [ ! -f "$DOCKER_CONF_FILE" ]; then
     cp "$DEFAULT_DOCKER_CONF_FILE" "$DOCKER_CONF_FILE"
 fi
 
-echo "🚀 Initializing container and launching CloudPhotoMigrator..."
+echo "🚀 Initializing container and launching PhotoMigrator..."
 echo "Looking for: Config.ini"
 if [ ! -f "$CONFIG_FILE" ]; then
     echo "❌ Config.ini not found in the current folder."
@@ -29,4 +29,4 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 1
 fi
 
-exec python3 /app/src/CloudPhotoMigrator.py "$@"
+exec python3 /app/src/PhotoMigrator.py "$@"

@@ -227,7 +227,7 @@ class ClassSynologyPhotos:
                     OTP = input("INFO    : Enter SYNOLOGY OTP Token: ")
                     params.update({"otp_code": {OTP}})
                     params.update({"enable_device_token": "yes"})
-                    params.update({"device_name": "CloudPhotoMigrator"})
+                    params.update({"device_name": "PhotoMigrator"})
 
                 response = self.SESSION.get(url, params=params, verify=False)
                 response.raise_for_status()
@@ -2913,7 +2913,7 @@ if __name__ == "__main__":
 
     # Example: push_asset()
     print("\n=== EXAMPLE: push_asset() ===")
-    file_path = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing\Albums\1994 - Recuerdos\169859_10150125237566327_578986326_8330690_6545.jpg"                # For Windows
+    file_path = r"r:\jaimetur\PhotoMigrator\Upload_folder_for_testing\Albums\1994 - Recuerdos\169859_10150125237566327_578986326_8330690_6545.jpg"                # For Windows
     asset_id = syno.push_asset(file_path)
     if not asset_id:
         print(f"Error uploading asset '{file_path}'.")
@@ -2922,31 +2922,31 @@ if __name__ == "__main__":
 
     # Example: push_no_albums()
     print("\n=== EXAMPLE: push_no_albums() ===")
-    # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
-    input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    # input_folder = "/volume1/homes/jaimetur/PhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    input_folder = r"r:\jaimetur\PhotoMigrator\Upload_folder_for_testing"                # For Windows
     syno.push_no_albums(input_folder)
 
     # Example: push_albums()
     print("\n=== EXAMPLE: push_albums() ===")
-    # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
-    input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    # input_folder = "/volume1/homes/jaimetur/PhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    input_folder = r"r:\jaimetur\PhotoMigrator\Upload_folder_for_testing"                # For Windows
     syno.push_albums(input_folder)
 
     # Example: push_ALL()
     print("\n=== EXAMPLE: push_ALL() ===")
-    # input_folder = "/volume1/homes/jaimetur/CloudPhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
-    input_folder = r"r:\jaimetur\CloudPhotoMigrator\Upload_folder_for_testing"                # For Windows
+    # input_folder = "/volume1/homes/jaimetur/PhotoMigrator/Upload_folder_for_testing"     # For Linux (NAS)
+    input_folder = r"r:\jaimetur\PhotoMigrator\Upload_folder_for_testing"                # For Windows
     syno.push_ALL(input_folder)
 
     # Example: pull_albums()
     print("\n=== EXAMPLE: pull_albums() ===")
-    download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
+    download_folder = r"r:\jaimetur\PhotoMigrator\Download_folder_for_testing"
     total_albums, total_assets = syno.pull_albums(albums_name='ALL', output_folder=download_folder)
     print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums}.\n")
 
     # Example: pull_no_albums()
     print("\n=== EXAMPLE: pull_no_albums() ===")
-    download_folder = r"r:\jaimetur\CloudPhotoMigrator\Download_folder_for_testing"
+    download_folder = r"r:\jaimetur\PhotoMigrator\Download_folder_for_testing"
     total = syno.pull_no_albums(no_albums_folder=download_folder)
     print(f"[RESULT] A total of {total} assets have been downloaded.\n")
 
