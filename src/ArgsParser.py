@@ -62,6 +62,14 @@ def parse_arguments():
                          "\n ​--target=synology-2 -> Select Synology Photos account 2 as Target."
                          "\n ​--target=/home/local_folder -> Select this local folder as Target."
                          )
+    PARSER.add_argument("-move", "--move-assets",
+                        metavar="= [true,false]",
+                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
+                        default=False,  # Si no se pasa el argumento, el valor por defecto es False
+                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        help="If this argument is present, the assets will be moved from <SOURCE> to <TARGET> instead of copy them. (default: False)."
+    )
     PARSER.add_argument("-dashb", "--dashboard",
                         metavar="= [true,false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor

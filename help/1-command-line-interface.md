@@ -26,7 +26,8 @@ Below you can find the list of all commands that the Tool can receive to execute
 ```
 ---------------------------------------------------------------------------------------------------------
 usage: PhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
-                                  [-dashb [= [true,false]]] [-parallel [= [true,false]]]
+                                  [-move [= [true,false]]] [-dashb [= [true,false]]]
+                                  [-parallel [= [true,false]]]
                                   [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
                                   [-client = ['google-takeout', 'synology', 'immich']]
                                   [-id [= [1,2,3]]] [-OTP]
@@ -102,6 +103,9 @@ same Photo Cloud service.
               ​--target=immich-1 -> Select Immich Photos account 1 as Target.
               ​--target=synology-2 -> Select Synology Photos account 2 as Target.
               ​--target=/home/local_folder -> Select this local folder as Target.
+-move,     --move-assets = [true,false]
+             If this argument is present, the assets will be moved from <SOURCE> to
+             <TARGET> instead of copy them. (default: False).
 -dashb,    --dashboard = [true,false]
              Enable or disable Live Dashboard feature during Autometed Migration Job. This
              argument only applies if both '--source' and '--target' argument are given
@@ -301,7 +305,7 @@ If more than one Feature is detected, only the first one will be executed.
              folder (Useful if you have move any folder from the OUTPUT_TAKEOUT_FOLDER and
              some Albums seems to be empty.
 -renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>
-             Usefull to rename and homogenize all Albums folders found in <ALBUMS_FOLDER>
+             Useful to rename and homogenize all Albums folders found in <ALBUMS_FOLDER>
              based on the date content found.
 ---------------------------------------------------------------------------------------------------------
 ```

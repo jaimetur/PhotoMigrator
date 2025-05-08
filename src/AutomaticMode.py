@@ -827,14 +827,19 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 LOGGER.info(f"INFO    : Asset Pushed    : '{os.path.basename(asset_file_path)}'")
                         else:
                             if album_name:
-                                LOGGER.warning(f"WARNING : Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
+                                LOGGER.error(f"ERROR   : Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
                             else:
-                                LOGGER.warning(f"WARNING : Asset Push Fail : '{os.path.basename(asset_file_path)}'")
+                                LOGGER.error(f"ERROR   : Asset Push Fail : '{os.path.basename(asset_file_path)}'")
                             SHARED_DATA.counters['total_push_failed_assets'] += 1
                             if asset_type.lower() in video_labels:
                                 SHARED_DATA.counters['total_push_failed_videos'] += 1
                             else:
                                 SHARED_DATA.counters['total_push_failed_photos'] += 1
+
+                        # Borrar asset de 'source' client si hemos pasado el argumento '-move, --move-assets'
+                        move_assets = ARGS.get('move-assets', None)
+                        if move_assets:
+                            source_client.remove_assets(asset_ids=asset['asset_id'], log_level=log_level)
 
                         # Borrar asset de la carpeta temp_folder tras subir
                         if os.path.exists(asset_file_path):
@@ -898,6 +903,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     else:
                         LOGGER.error(f"ERROR   : Asset Push Fail : '{os.path.basename(asset_file_path)}'")
                     LOGGER.error(f"ERROR   : Caught Exception: {str(e)} \n{traceback.format_exc()}")
+                    SHARED_DATA.counters['total_push_failed_assets'] += 1
+                    if asset_type.lower() in video_labels:
+                        SHARED_DATA.counters['total_push_failed_videos'] += 1
+                    else:
+                        SHARED_DATA.counters['total_push_failed_photos'] += 1
 
             LOGGER.info(f"INFO    : Pusher {worker_id} - Task Finished!")
 
