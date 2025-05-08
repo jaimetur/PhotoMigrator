@@ -948,7 +948,6 @@ class ClassLocalFolder:
             LOGGER.info(f"INFO    : Found {len(duplicates)} group(s) of duplicates.")
             return duplicates
 
-
     def remove_assets(self, asset_ids, log_level=logging.INFO):
         """
         Removes the given asset(s) from local storage.
@@ -961,15 +960,21 @@ class ClassLocalFolder:
             int: Number of assets removed.
         """
         with set_log_level(LOGGER, log_level):
+            if isinstance(asset_ids, str):
+                asset_ids = [asset_ids]
             count = 0
             for asset in asset_ids:
                 asset_path = Path(asset)
                 if asset_path.exists():
-                    asset_path.unlink()
-                    count += 1
+                    if asset_path.is_file():
+                        asset_path.unlink()
+                        count += 1
+                    else:
+                        LOGGER.warning(f"WARNING : Skipped removing '{asset_path}' because it is not a file.")
+                else:
+                    LOGGER.warning(f"WARNING : Asset path does not exist: {asset_path}")
             LOGGER.info(f"INFO    : Removed {count} asset(s) from local storage.")
             return count
-
 
     def remove_duplicates_assets(self, log_level=logging.INFO):
         """

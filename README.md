@@ -240,13 +240,14 @@ Planed Roadmap for the following releases
     - [x] Merged Synology/Immich arguments (now you can specify the client using a new flag _**'-client, --cient \<CLIENT_NAME>'**_)
     - [x] Added new flag _**'-client, --cient \<CLIENT_NAME>'**_ to set the Cloud Photo client to use.
     - [x] Added new flag _**'-id, --account-id \<ID>'**_ to specify which account to use for Synology Photos and Immich Photos from Config.ini.
+    - [x] Added new flag _**'-move, --move-assets'**_ to move assets (instead of copy) from \<SOURCE> client to \<TARGET> client during Automatic Migration process.
     - [x] Added support for 2FA in Synology Photos requesting the OTP Token if flag _**'-OTP, --one-time-password'**_ is detected. [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
       - New flag _**'-OTP, --one-time-password'**_ to allow login into Synology Photos accounts with 2FA activated.
-    - [x] Added new Feature to **Remove Albums by Name Pattern** from Synology Photos and Immich Photos to remove those albums whose name matches with a provided pattern (using regular expresions). Added following new flags to execute this new features:
+    - [x] Added new Feature to **Remove Albums by Name Pattern** from Synology Photos and Immich Photos to remove those albums whose name matches with a provided pattern (using regular expresions). Added following new flag to execute this new features:
       - _**'-rAlb, --remove-albums \<ALBUM_NAME_PATTERN>'**_
-    - [x] Added new Feature to **Rename Albums by Name Pattern** from Synology Photos and Immich Photos to rename those albums whose name matches with a provided pattern (using regular expresions). Added following new flags to execute this new features:
+    - [x] Added new Feature to **Rename Albums by Name Pattern** from Synology Photos and Immich Photos to rename those albums whose name matches with a provided pattern (using regular expresions). Added following new flag to execute this new features:
       - _**'-renAlb, --rename-albums \<ALBUM_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>'**_
-    - [x] Added new Feature to **Merge Albums** with the same name and different assets. Added following new flags to execute this new feature:
+    - [x] Added new Feature to **Merge Albums** with the same name and different assets. Added following new flag to execute this new feature:
       - _**'-mDupAlb, --merge-duplicates-albums'**_ 
     - [x] Automatic filters flags detection for all Remove/Rename/Merge Albums features for Synology/Immich Photos
       - [x] remove-all-assets

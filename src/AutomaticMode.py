@@ -156,6 +156,9 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
         if isinstance(source_client, ClassTakeoutFolder) or isinstance(source_client, ClassLocalFolder):
             unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
+        # Check if '-move, --move-assets' have been passed as argument
+        move_assets = ARGS.get('move-assets', False)
+
         # Get the values from the arguments (if exists)
         type = ARGS.get('filter-by-type', None)
         from_date = ARGS.get('filter-from-date', None)
@@ -180,6 +183,8 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(f"INFO    : Migration Mode : Parallel")
         else:
             LOGGER.info(f"INFO    : Migration Mode : Secuential")
+
+        LOGGER.info(f"INFO    : Move Assets    : {move_assets}")
 
         if from_date or to_date or type or country or city or person:
             LOGGER.info(f"INFO    : Assets Filters :")
@@ -362,6 +367,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             if isinstance(source_client, ClassTakeoutFolder) or isinstance(source_client, ClassLocalFolder):
                 unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
+            # Check if '-move, --move-assets' have been passed as argument
+            move_assets = ARGS.get('move-assets', False)
+
             # Check if there is some filter applied
             with_filters = False
             if ARGS.get('filter-by-type', None) or ARGS.get('filter-from-date', None) or ARGS.get('filter-to-date', None) or ARGS.get('filter-by-country', None) or ARGS.get('filter-by-city', None) or ARGS.get('filter-by-person', None):
@@ -385,6 +393,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 LOGGER.info(f"INFO    : Migration Mode : Parallel")
             else:
                 LOGGER.info(f"INFO    : Migration Mode : Sequential")
+
+            LOGGER.info(f"INFO    : Move Assets    : {move_assets}")
 
             LOGGER.info("")
             if from_date or to_date or type or country or city or person:
@@ -827,14 +837,19 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 LOGGER.info(f"INFO    : Asset Pushed    : '{os.path.basename(asset_file_path)}'")
                         else:
                             if album_name:
-                                LOGGER.warning(f"WARNING : Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
+                                LOGGER.error(f"ERROR   : Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
                             else:
-                                LOGGER.warning(f"WARNING : Asset Push Fail : '{os.path.basename(asset_file_path)}'")
+                                LOGGER.error(f"ERROR   : Asset Push Fail : '{os.path.basename(asset_file_path)}'")
                             SHARED_DATA.counters['total_push_failed_assets'] += 1
                             if asset_type.lower() in video_labels:
                                 SHARED_DATA.counters['total_push_failed_videos'] += 1
                             else:
                                 SHARED_DATA.counters['total_push_failed_photos'] += 1
+
+                        # Borrar asset de 'source' client si hemos pasado el argumento '-move, --move-assets'
+                        move_assets = ARGS.get('move-assets', None)
+                        if move_assets:
+                            source_client.remove_assets(asset_ids=asset['asset_id'], log_level=log_level)
 
                         # Borrar asset de la carpeta temp_folder tras subir
                         if os.path.exists(asset_file_path):
@@ -898,6 +913,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     else:
                         LOGGER.error(f"ERROR   : Asset Push Fail : '{os.path.basename(asset_file_path)}'")
                     LOGGER.error(f"ERROR   : Caught Exception: {str(e)} \n{traceback.format_exc()}")
+                    SHARED_DATA.counters['total_push_failed_assets'] += 1
+                    if asset_type.lower() in video_labels:
+                        SHARED_DATA.counters['total_push_failed_videos'] += 1
+                    else:
+                        SHARED_DATA.counters['total_push_failed_photos'] += 1
 
             LOGGER.info(f"INFO    : Pusher {worker_id} - Task Finished!")
 
