@@ -156,6 +156,9 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
         if isinstance(source_client, ClassTakeoutFolder) or isinstance(source_client, ClassLocalFolder):
             unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
+        # Check if '-move, --move-assets' have been passed as argument
+        move_assets = ARGS.get('move-assets', False)
+
         # Get the values from the arguments (if exists)
         type = ARGS.get('filter-by-type', None)
         from_date = ARGS.get('filter-from-date', None)
@@ -180,6 +183,8 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(f"INFO    : Migration Mode : Parallel")
         else:
             LOGGER.info(f"INFO    : Migration Mode : Secuential")
+
+        LOGGER.info(f"INFO    : Move Assets    : {move_assets}")
 
         if from_date or to_date or type or country or city or person:
             LOGGER.info(f"INFO    : Assets Filters :")
@@ -362,6 +367,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             if isinstance(source_client, ClassTakeoutFolder) or isinstance(source_client, ClassLocalFolder):
                 unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
+            # Check if '-move, --move-assets' have been passed as argument
+            move_assets = ARGS.get('move-assets', False)
+
             # Check if there is some filter applied
             with_filters = False
             if ARGS.get('filter-by-type', None) or ARGS.get('filter-from-date', None) or ARGS.get('filter-to-date', None) or ARGS.get('filter-by-country', None) or ARGS.get('filter-by-city', None) or ARGS.get('filter-by-person', None):
@@ -385,6 +393,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 LOGGER.info(f"INFO    : Migration Mode : Parallel")
             else:
                 LOGGER.info(f"INFO    : Migration Mode : Sequential")
+
+            LOGGER.info(f"INFO    : Move Assets    : {move_assets}")
 
             LOGGER.info("")
             if from_date or to_date or type or country or city or person:
