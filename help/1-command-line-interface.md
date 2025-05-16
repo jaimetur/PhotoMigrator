@@ -36,12 +36,12 @@ usage: PhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
                                   [-person <PERSON_NAME>] [-type = [image,video,all]]
                                   [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
                                   [-rAlbAss]
-                                  [-gpthProg [= [true,false]]] [-gpthErr [= [true,false]]]
                                   [-nolog] [-loglevel ['debug', 'info', 'warning', 'error']]
                                   [-gTakeout <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gnas ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gcsa] [-gics] [-gmtf] [-grdf] [-gsef] [-gsma] [-gsgt]
+                                  [-gpthProg [= [true,false]]] [-gpthErr [= [true,false]]]
                                   [-uAlb <ALBUMS_FOLDER>]
                                   [-dAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
                                   [-uAll <INPUT_FOLDER>] [-dAll <OUTPUT_FOLDER>] [-rOrphan]
@@ -153,10 +153,6 @@ Following general arguments have different purposses depending on the Execution 
 -rAlbAss,  --remove-albums-assets
              If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-
              albums', it will also remove the assets (photos/videos) inside each album.
--gpthProg, --show-gpth-progress = [true,false]
-             Enable or disable Progress messages during GPTH Processing. (default: False).
--gpthErr,  --show-gpth-errors = [true,false]
-             Enable or disable Error messages during GPTH Processing. (default: True).
 -nolog,    --no-log-file
              Skip saving output messages to execution log file.
 -loglevel, --log-level ['debug', 'info', 'warning', 'error']
@@ -209,10 +205,20 @@ Tool will use the default values for the rest of the arguments for this extra mo
              Skip processing files with GPTH Tool.
              CAUTION: This option is NOT RECOMMENDED because this is the Core of the
              Google Photos Takeout Process. Use this flag only for testing purposses.
+-gpthProg, --show-gpth-progress = [true,false]
+             Enable or disable Progress messages during GPTH Processing. (default: False).
+-gpthErr,  --show-gpth-errors = [true,false]
+             Enable or disable Error messages during GPTH Processing. (default: True).
 
 
 SYNOLOGY/IMMICH PHOTOS MANAGEMENT:
 ----------------------------------
+To use following features, it is mandatory to use the argument '--client=[synology,immich]' 
+to specify which Photo Service do you want to use.
+
+You can optionally use the argument '--id=[1-3]' to specify the account id for aparticular 
+account defined in Config.ini.
+
 Following arguments allow you to interact with Synology/Immich Photos.
 If more than one optional arguments are detected, only the first one will be executed.
 
