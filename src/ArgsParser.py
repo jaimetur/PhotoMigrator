@@ -126,22 +126,6 @@ def parse_arguments():
     PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-uAll, --upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
     PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False,
                         help="If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-albums', it will also remove the assets (photos/videos) inside each album.")
-    PARSER.add_argument("-gpthProg", "--show-gpth-progress",
-                        metavar="= [true,false]",
-                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
-                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
-                        default=False,  # Si no se pasa el argumento, el valor por defecto es True
-                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="Enable or disable Progress messages during GPTH Processing. (default: False)."
-    )
-    PARSER.add_argument("-gpthErr", "--show-gpth-errors",
-                        metavar="= [true,false]",
-                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
-                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
-                        default=True,  # Si no se pasa el argumento, el valor por defecto es True
-                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="Enable or disable Error messages during GPTH Processing. (default: True)."
-    )
     PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
     PARSER.add_argument("-loglevel", "--log-level", metavar=f"{choices_for_message_levels}", choices=choices_for_message_levels, default="info", help="Specify the log level for logging and screen messages.")
 
@@ -169,7 +153,22 @@ def parse_arguments():
     PARSER.add_argument("-gsef", "--google-skip-extras-files", action="store_true", help="Skip processing extra photos such as  -edited, -effects photos.")
     PARSER.add_argument("-gsma", "--google-skip-move-albums", action="store_true", help="Skip moving albums to 'Albums' folder.")
     PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skip processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposses.")
-
+    PARSER.add_argument("-gpthProg", "--show-gpth-progress",
+                        metavar="= [true,false]",
+                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
+                        default=False,  # Si no se pasa el argumento, el valor por defecto es True
+                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        help="Enable or disable Progress messages during GPTH Processing. (default: False)."
+    )
+    PARSER.add_argument("-gpthErr", "--show-gpth-errors",
+                        metavar="= [true,false]",
+                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
+                        default=True,  # Si no se pasa el argumento, el valor por defecto es True
+                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        help="Enable or disable Error messages during GPTH Processing. (default: True)."
+    )
 
     # FEATURES FOR SYNOLOGY/IMMICH PHOTOS:
     # -------------------------------
