@@ -62,8 +62,10 @@
 >>SYNOLOGY_PASSWORD_3         = password_3                                    # Account 3: Your password for Synology Photos
 >>```
 
-> [!NOTE]  
-> If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the flag _**-id, -account-id**_ to specify the account 2 or 3 as needed. 
+> [!NOTE]
+> To use following features, it is mandatory to use the flag _**'--client=synology'**_ to specify Synology Photos as the servive that you want to connect.  
+> 
+> If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the flag _**'-id, -account-id=[1-3]'**_ to specify the account 2 or 3 as needed. 
 
 > [!IMPORTANT]  
 > If your Synology Photo Account requires 2FA Authentification, you must use the flag _**'-OTP, --one-time-password'**_ in order to enable the OTP Token request during authentification process. 
