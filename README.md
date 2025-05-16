@@ -237,7 +237,7 @@ Planed Roadmap for the following releases
   - #### 🌟 New Features:
     - [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automatic Mode Feature as before).
     - [x] Added Support for 3 accounts of each Cloud Photo Service (before it was only 2).
-    - [x] Merged Synology/Immich arguments (now you can specify the client using a new flag _**'-client, --cient \<CLIENT_NAME>'**_)
+    - [x] Merged Synology/Immich arguments (now you can specify the client using a new flag _**'-client, --client \<CLIENT_NAME>'**_)
     - [x] Added new flag _**'-client, --cient \<CLIENT_NAME>'**_ to set the Cloud Photo client to use.
     - [x] Added new flag _**'-id, --account-id \<ID>'**_ to specify which account to use for Synology Photos and Immich Photos from Config.ini.
     - [x] Added new flag _**'-move, --move-assets'**_ to move assets (instead of copy) from \<SOURCE> client to \<TARGET> client during Automatic Migration process.
