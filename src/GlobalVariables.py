@@ -9,8 +9,8 @@ import posixpath
 # GLOBAL VARIABLES FOR THE WHOLE PROJECT
 #---------------------------------------
 SCRIPT_NAME                     = "PhotoMigrator"
-SCRIPT_VERSION                  = "v3.3.0-beta"
-SCRIPT_DATE                     = "2025-05-30"
+SCRIPT_VERSION                  = "v3.3.0-RC"
+SCRIPT_DATE                     = "2025-05-15"
 SCRIPT_NAME_VERSION             = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
 LOG_FOLDER_FILENAME             = ""
 START_TIME                      = datetime.now()
