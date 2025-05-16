@@ -13,7 +13,7 @@ Planed Roadmap for the following releases
 
 - ### DONE:
   - #### 🚨 Breaking Changes:
-    - [x] New Script name '**PhotoMigrator**' (former 'CloudPhotoMigrator').  
+    - [x] New Tool name '**PhotoMigrator**' (former 'CloudPhotoMigrator').  
         - This change implies that docker distribution package needs to be downloaded again because the launching scripts and the dockerhub images repository have been renamed.
 
   - #### 🌟 New Features:
