@@ -16,7 +16,7 @@
 > 10. Remove Duplicates Albums
 > 11. Merge Duplicates Albums
 >
-> You can apply different filters on all above features to filter assets from Synology Photos using any Download feature included.  
+> You can apply different filters on all above features to filter assets from Synology Photos.  
 > 
 > The available filters are: 
 >    - **by Type:**
