@@ -16,7 +16,7 @@
 > 10. Remove Duplicates Albums
 > 11. Merge Duplicates Albums
 >
-> You can apply filters to filter assets to download from Synology Photos using any Download feature included.  
+> You can apply different filters on all above features to filter assets from Synology Photos using any Download feature included.  
 > 
 > The available filters are: 
 >    - **by Type:**
@@ -63,7 +63,7 @@
 >>```
 
 > [!NOTE]
-> To use following features, it is mandatory to use the flag _**'--client=synology'**_ to specify Synology Photos as the service that you want to connect.  
+> To use all these features, it is mandatory to use the flag _**'--client=synology'**_ to specify Synology Photos as the service that you want to connect.  
 > 
 > If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the flag _**'-id, -account-id=[1-3]'**_ to specify the account 2 or 3 as needed. 
 
