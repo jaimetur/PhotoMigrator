@@ -63,10 +63,12 @@
     - [x] Fixed a bug with feature **Remove All Albums** from Synology Photos and Immich Photos when the flag _**'--remove-albums-assets'**_ was selected (the assetes were not removed properly).
     - [x] Fixed a bug with feature **Synology Upload Album(s)** when the folder to upload is not named "Albums".
     - [x] Fixed a bug when any input folder ends with '\' or '/' but is enclosed between double quotes (").
+    - [x] Fixed a bug replacing argument provided with flag _**'-dAlb, --download-albums \<ALBUMS_NAME>'**_ in the HELP text screen.
     - [x] Minor bugs fixing.
 
   - #### 📚 Documentation:
     - [x] Updated documentation with all changes.
+    - [x] Renamed 'argument' by 'flag' in all help text descriptions.
     - [x] Added tool logo and emojis to documentation files.
 
 ---
