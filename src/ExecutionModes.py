@@ -433,11 +433,13 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=lo
     client = Utils.capitalize_first_letter(client)
     albums_name = ARGS['download-albums']
     output_folder = ARGS['output-folder']
+    albums_str = ", ".join(albums_name)
+
     LOGGER.info(f"INFO    : Client detected  : '{client} Photos'.")
-    LOGGER.info(f"INFO    : Flag detected    : '-dAlb, --download-albums <ALBUMS_NAME>'.".replace("'<ALBUMS_NAME>'", albums_name))
+    LOGGER.info(f"INFO    : Flag detected    : '-dAlb, --download-albums {albums_str}'.")
     LOGGER.info(f"INFO    : Albums to extract: {albums_name}")
     LOGGER.warning('\n' + '-' * terminal_width)
-    LOGGER.warning(HELP_TEXTS["download-albums"].replace("'<ALBUMS_NAME>'", albums_name).replace("<OUTPUT_FOLDER>", output_folder))
+    LOGGER.warning(HELP_TEXTS["download-albums"].replace("<ALBUMS_NAME>", albums_str).replace("<OUTPUT_FOLDER>", output_folder))
     LOGGER.warning('-' * terminal_width)
 
     if user_confirmation and not Utils.confirm_continue():
@@ -503,7 +505,7 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=loggi
     client = Utils.capitalize_first_letter(client)
     output_folder = ARGS['download-all']
     LOGGER.info(f"INFO    : Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
-    LOGGER.info(f"INFO    : Flag detected  : 'idAll, --download-all'.")
+    LOGGER.info(f"INFO    : Flag detected  : 'dAll, --download-all'.")
     LOGGER.warning('\n' + '-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["download-all"].replace('<OUTPUT_FOLDER>', output_folder))
     LOGGER.warning('-' * terminal_width)
