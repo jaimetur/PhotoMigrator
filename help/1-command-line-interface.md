@@ -69,9 +69,9 @@ optional arguments:
 
 AUTOMATIC MIGRATION PROCESS:
 ----------------------------
-Following arguments allow you execute the Automatic Migration Process to migrate your
-assets from one Photo Cloud Service to other, or from two different accounts within the
-same Photo Cloud service.
+Following flags allow you execute the Automatic Migration Process to migrate your assets
+from one Photo Cloud Service to other, or from two different accounts within the same
+Photo Cloud service.
 
 -source,   --source <SOURCE>
              Select the <SOURCE> for the AUTOMATIC-MIGRATION Process to Pull all your
@@ -104,21 +104,21 @@ same Photo Cloud service.
               ​--target=synology-2 -> Select Synology Photos account 2 as Target.
               ​--target=/home/local_folder -> Select this local folder as Target.
 -move,     --move-assets = [true,false]
-             If this argument is present, the assets will be moved from <SOURCE> to
-             <TARGET> instead of copy them. (default: False).
+             If this flag is present, the assets will be moved from <SOURCE> to <TARGET>
+             instead of copy them. (default: False).
 -dashb,    --dashboard = [true,false]
              Enable or disable Live Dashboard feature during Autometed Migration Job. This
-             argument only applies if both '--source' and '--target' argument are given
+             flag only applies if both '--source' and '--target' flags are given
              (AUTOMATIC-MIGRATION FEATURE). (default: True).
 -parallel, --parallel-migration = [true,false]
              Select Parallel/Secuencial Migration during Automatic Migration Job. This
-             argument only applies if both '--source' and '--target' argument are given
+             flag only applies if both '--source' and '--target' flags are given
              (AUTOMATIC-MIGRATION FEATURE). (default: True).
 
 
 GENERAL ARGUMENTS:
 ------------------
-Following general arguments have different purposses depending on the Execution Mode.
+Following general flags have different purposses depending on the Execution Mode.
 
 -i,        --input-folder <INPUT_FOLDER>
              Specify the input folder that you want to process.
@@ -161,10 +161,10 @@ Following general arguments have different purposses depending on the Execution 
 
 GOOGLE PHOTOS TAKEOUT MANAGEMENT:
 ---------------------------------
-Following arguments allow you to interact with Google Photos Takeout Folder.
-In this mode, you can use more than one optional arguments from the below list.
-If only the argument -gTakeout, --google-takeout <TAKEOUT_FOLDER> is detected, then the
-Tool will use the default values for the rest of the arguments for this extra mode.
+Following flags allow you to interact with Google Photos Takeout Folder.
+In this mode, you can use more than one optional flags from the below list.
+If only the flag -gTakeout, --google-takeout <TAKEOUT_FOLDER> is detected, then the Tool
+will use the default values for the rest of the flags for this extra mode.
 
 -gTakeout, --google-takeout <TAKEOUT_FOLDER>
              Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize
@@ -173,7 +173,7 @@ Tool will use the default values for the rest of the arguments for this extra mo
              the that folder as input <TAKEOUT_FOLDER>.
              The processed Takeout will be saved into the folder
              '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'
-             This argument is mandatory to run the Google Takeout Processor Feature.
+             This flag is mandatory to run the Google Takeout Processor Feature.
 -gofs,     --google-output-folder-suffix <SUFFIX>
              Specify the suffix for the output folder. Default: 'processed'
 -gafs,     --google-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
@@ -213,14 +213,14 @@ Tool will use the default values for the rest of the arguments for this extra mo
 
 SYNOLOGY/IMMICH PHOTOS MANAGEMENT:
 ----------------------------------
-To use following features, it is mandatory to use the argument '--client=[synology,
-immich]' to specify which Photo Service do you want to use.
+To use following features, it is mandatory to use the flag '--client=[synology, immich]'
+to specify which Photo Service do you want to use.
 
-You can optionally use the argument '--id=[1-3]' to specify the account id for a
-particular account defined in Config.ini.
+You can optionally use the flag '--id=[1-3]' to specify the account id for a particular
+account defined in Config.ini.
 
-Following arguments allow you to interact with Synology/Immich Photos.
-If more than one optional arguments are detected, only the first one will be executed.
+Following flags allow you to interact with Synology/Immich Photos.
+If more than one optional flags are detected, only the first one will be executed.
 
 -uAlb,     --upload-albums <ALBUMS_FOLDER>
              The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and
@@ -229,8 +229,8 @@ If more than one optional arguments are detected, only the first one will be exe
 -dAlb,     --download-albums <ALBUMS_NAME>
              The Tool will connect to the selected Photo client and will download those
              Albums whose name is in '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given
-             by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for
-             this feature).
+             by the flag '-o, --output-folder <OUTPUT_FOLDER>' (mandatory flag for this
+             feature).
              You must provide the Photo client using the mandatory flag '--client'.
              - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
              - To download all albums mathing any pattern you can use patterns in
@@ -246,7 +246,7 @@ If more than one optional arguments are detected, only the first one will be exe
              - The Tool will create a new Album per each Subfolder found in 'Albums'
              subfolder and all assets inside each subfolder will be associated to a new
              Album in the selected Photo client with the same name as the subfolder.
-             - If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also passed,
+             - If the flag '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also passed,
              then this function will create Albums also for each subfolder found in
              <ALBUMS_FOLDER>.
 -dAll,     --download-all <OUTPUT_FOLDER>
@@ -273,13 +273,13 @@ If more than one optional arguments are detected, only the first one will be exe
              client.
              You must provide the Photo client using the mandatory flag '--client'.
              Optionally ALL the Assets associated to each Album can be removed If you also
-             include the argument '-rAlbAss, --remove-albums-assets' argument.
+             include the flag '-rAlbAss, --remove-albums-assets'.
 -rAlb,     --remove-albums <ALBUMS_NAME_PATTERN>
              CAUTION!!! The Tool will look for all Albums in the selected Photo client
              whose names matches with the pattern and will remove them.
              You must provide the Photo client using the mandatory flag '--client'.
              Optionally ALL the Assets associated to each Album can be removed If you also
-             include the argument '-rAlbAss, --remove-albums-assets' argument.
+             include the flag '-rAlbAss, --remove-albums-assets' flag.
 -rEmpAlb,  --remove-empty-albums
              The Tool will look for all Albums in the selected Photo client account and if
              any Album is empty, will remove it from the selected Photo client account.
@@ -303,8 +303,8 @@ If more than one optional arguments are detected, only the first one will be exe
 
 OTHER STANDALONE FEATURES:
 --------------------------
-Following arguments can be used to execute the Tool in any of the usefull additionals
-Extra Standalone Features included.
+Following flags can be used to execute the Tool in any of the usefull additionals Extra
+Standalone Features included.
 If more than one Feature is detected, only the first one will be executed.
 
 -findDup,  --find-duplicates <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]
