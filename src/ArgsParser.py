@@ -99,7 +99,7 @@ def parse_arguments():
                         help="Set the client to use for the selected feature."
                         )
     PARSER.add_argument("-id", "--account-id",
-                        metavar="= [1,2,3]",
+                        metavar="= [1-3]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=1,  # Si el usuario pasa --account-id sin valor, se asigna 1
                         default=1,  # Si no se pasa el argumento, también se asigna 1
