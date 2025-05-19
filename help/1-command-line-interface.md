@@ -35,13 +35,13 @@ usage: PhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
                                   [-country <COUNTRY_NAME>] [-city <CITY_NAME>]
                                   [-person <PERSON_NAME>] [-type = [image,video,all]]
                                   [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
-                                  [-rAlbAss]
-                                  [-gpthProg [= [true,false]]] [-gpthErr [= [true,false]]]
-                                  [-nolog] [-loglevel ['debug', 'info', 'warning', 'error']]
+                                  [-rAlbAss] [-nolog]
+                                  [-loglevel ['debug', 'info', 'warning', 'error']]
                                   [-gTakeout <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gnas ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gcsa] [-gics] [-gmtf] [-grdf] [-gsef] [-gsma] [-gsgt]
+                                  [-gpthProg [= [true,false]]] [-gpthErr [= [true,false]]]
                                   [-uAlb <ALBUMS_FOLDER>]
                                   [-dAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
                                   [-uAll <INPUT_FOLDER>] [-dAll <OUTPUT_FOLDER>] [-rOrphan]
@@ -153,10 +153,6 @@ Following general arguments have different purposses depending on the Execution 
 -rAlbAss,  --remove-albums-assets
              If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-
              albums', it will also remove the assets (photos/videos) inside each album.
--gpthProg, --show-gpth-progress = [true,false]
-             Enable or disable Progress messages during GPTH Processing. (default: False).
--gpthErr,  --show-gpth-errors = [true,false]
-             Enable or disable Error messages during GPTH Processing. (default: True).
 -nolog,    --no-log-file
              Skip saving output messages to execution log file.
 -loglevel, --log-level ['debug', 'info', 'warning', 'error']
@@ -209,21 +205,33 @@ Tool will use the default values for the rest of the arguments for this extra mo
              Skip processing files with GPTH Tool.
              CAUTION: This option is NOT RECOMMENDED because this is the Core of the
              Google Photos Takeout Process. Use this flag only for testing purposses.
+-gpthProg, --show-gpth-progress = [true,false]
+             Enable or disable Progress messages during GPTH Processing. (default: False).
+-gpthErr,  --show-gpth-errors = [true,false]
+             Enable or disable Error messages during GPTH Processing. (default: True).
 
 
 SYNOLOGY/IMMICH PHOTOS MANAGEMENT:
 ----------------------------------
+To use following features, it is mandatory to use the argument '--client=[synology,
+immich]' to specify which Photo Service do you want to use.
+
+You can optionally use the argument '--id=[1-3]' to specify the account id for a
+particular account defined in Config.ini.
+
 Following arguments allow you to interact with Synology/Immich Photos.
 If more than one optional arguments are detected, only the first one will be executed.
 
 -uAlb,     --upload-albums <ALBUMS_FOLDER>
              The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and
              will create one Album per subfolder into the selected Photo client.
+             You must provide the Photo client using the mandatory flag '--client'.
 -dAlb,     --download-albums <ALBUMS_NAME>
              The Tool will connect to the selected Photo client and will download those
              Albums whose name is in '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given
              by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for
              this feature).
+             You must provide the Photo client using the mandatory flag '--client'.
              - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
              - To download all albums mathing any pattern you can use patterns in
              ALBUMS_NAME, i.e: --download-albums 'dron*' to download all albums starting
@@ -234,6 +242,7 @@ If more than one optional arguments are detected, only the first one will be exe
 -uAll,     --upload-all <INPUT_FOLDER>
              The Tool will look for all Assets within <INPUT_FOLDER> and will upload them
              into the selected Photo client.
+             You must provide the Photo client using the mandatory flag '--client'.
              - The Tool will create a new Album per each Subfolder found in 'Albums'
              subfolder and all assets inside each subfolder will be associated to a new
              Album in the selected Photo client with the same name as the subfolder.
@@ -243,6 +252,7 @@ If more than one optional arguments are detected, only the first one will be exe
 -dAll,     --download-all <OUTPUT_FOLDER>
              The Tool will connect to the selected Photo client and will download all the
              Album and Assets without Albums into the folder <OUTPUT_FOLDER>.
+             You must provide the Photo client using the mandatory flag '--client'.
              - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/
              with the same name of the Album and all files will be flattened into it.
              - Assets with no Albums associated will be downloaded within a subfolder
@@ -250,36 +260,45 @@ If more than one optional arguments are detected, only the first one will be exe
              inside.
 -rOrphan,  --remove-orphan-assets
              The Tool will look for all Orphan Assets in the selected Photo client and
-             will remove them. IMPORTANT: This feature requires a valid ADMIN_API_KEY
-             configured in Config.ini.
+             will remove them.
+             You must provide the Photo client using the mandatory flag '--client'.
+             IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in
+             Config.ini.
 -rAll,     --remove-all-assets
              CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also
              ALL your Albums from the selected Photo client.
+             You must provide the Photo client using the mandatory flag '--client'.
 -rAllAlb,  --remove-all-albums
              CAUTION!!! The Tool will remove ALL your Albums from the selected Photo
              client.
+             You must provide the Photo client using the mandatory flag '--client'.
              Optionally ALL the Assets associated to each Album can be removed If you also
              include the argument '-rAlbAss, --remove-albums-assets' argument.
 -rAlb,     --remove-albums <ALBUMS_NAME_PATTERN>
              CAUTION!!! The Tool will look for all Albums in the selected Photo client
              whose names matches with the pattern and will remove them.
+             You must provide the Photo client using the mandatory flag '--client'.
              Optionally ALL the Assets associated to each Album can be removed If you also
              include the argument '-rAlbAss, --remove-albums-assets' argument.
 -rEmpAlb,  --remove-empty-albums
              The Tool will look for all Albums in the selected Photo client account and if
              any Album is empty, will remove it from the selected Photo client account.
+             You must provide the Photo client using the mandatory flag '--client'.
 -rDupAlb,  --remove-duplicates-albums
              The Tool will look for all Albums in the selected Photo client account and if
              any Album is duplicated (with the same name and size), will remove it from
              the selected Photo client account.
+             You must provide the Photo client using the mandatory flag '--client'.
 -mDupAlb,  --merge-duplicates-albums
              The Tool will look for all Albums in the selected Photo client account and if
              any Album is duplicated (with the same name), will transfer all its assets to
              the most relevant album and remove it from the selected Photo client account.
+             You must provide the Photo client using the mandatory flag '--client'.
 -renAlb,   --rename-albums <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>
              CAUTION!!! The Tool will look for all Albums in the selected Photo client
              whose names matches with the pattern and will rename them from with the
              replacement pattern.
+             You must provide the Photo client using the mandatory flag '--client'.
 
 
 OTHER STANDALONE FEATURES:

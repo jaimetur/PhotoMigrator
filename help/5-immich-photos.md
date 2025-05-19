@@ -17,7 +17,7 @@
 > 11. Merge Duplicates Albums
 > 12. Remove Orphans Assets
 > 
-> You can apply filters to filter assets to download from Synology Photos using any Download feature included.  
+> You can apply different filters on all above features to filter assets from Immich Photos.  
 > 
 > The available filters are: 
 >    - **by Type:**
@@ -71,6 +71,8 @@
 >>```
 
 > [!NOTE]  
+> To use all those features, it is mandatory to use the flag _**'--client=immich'**_ to specify Immich Photos as the service that you want to connect.  
+> 
 > If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the flag _**-id, -account-id**_ to specify the account 2 or 3 as needed. 
 
 

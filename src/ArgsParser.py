@@ -126,22 +126,6 @@ def parse_arguments():
     PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-uAll, --upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
     PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False,
                         help="If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-albums', it will also remove the assets (photos/videos) inside each album.")
-    PARSER.add_argument("-gpthProg", "--show-gpth-progress",
-                        metavar="= [true,false]",
-                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
-                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
-                        default=False,  # Si no se pasa el argumento, el valor por defecto es True
-                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="Enable or disable Progress messages during GPTH Processing. (default: False)."
-    )
-    PARSER.add_argument("-gpthErr", "--show-gpth-errors",
-                        metavar="= [true,false]",
-                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
-                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
-                        default=True,  # Si no se pasa el argumento, el valor por defecto es True
-                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="Enable or disable Error messages during GPTH Processing. (default: True)."
-    )
     PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
     PARSER.add_argument("-loglevel", "--log-level", metavar=f"{choices_for_message_levels}", choices=choices_for_message_levels, default="info", help="Specify the log level for logging and screen messages.")
 
@@ -169,52 +153,67 @@ def parse_arguments():
     PARSER.add_argument("-gsef", "--google-skip-extras-files", action="store_true", help="Skip processing extra photos such as  -edited, -effects photos.")
     PARSER.add_argument("-gsma", "--google-skip-move-albums", action="store_true", help="Skip moving albums to 'Albums' folder.")
     PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skip processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposses.")
-
+    PARSER.add_argument("-gpthProg", "--show-gpth-progress",
+                        metavar="= [true,false]",
+                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
+                        default=False,  # Si no se pasa el argumento, el valor por defecto es True
+                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        help="Enable or disable Progress messages during GPTH Processing. (default: False)."
+    )
+    PARSER.add_argument("-gpthErr", "--show-gpth-errors",
+                        metavar="= [true,false]",
+                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
+                        default=True,  # Si no se pasa el argumento, el valor por defecto es True
+                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        help="Enable or disable Error messages during GPTH Processing. (default: True)."
+    )
 
     # FEATURES FOR SYNOLOGY/IMMICH PHOTOS:
     # -------------------------------
     PARSER.add_argument("-uAlb", "--upload-albums", metavar="<ALBUMS_FOLDER>", default="",
-                        help="The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into the selected Photo client.")
+                        help="The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into the selected Photo client.\nYou must provide the Photo client using the mandatory flag '--client'.")
     PARSER.add_argument("-dAlb", "--download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
-                        help="The Tool will connect to the selected Photo client and will download those Albums whose name is in '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this feature)."
+                        help="The Tool will connect to the selected Photo client and will download those Albums whose name is in '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this feature).\nYou must provide the Photo client using the mandatory flag '--client'."
                              "\n- To download ALL Albums use 'ALL' as <ALBUMS_NAME>."
                              "\n- To download all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: --download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
                              "\n- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --download-albums 'album1', 'album2', 'album3'."
                         )
     PARSER.add_argument("-uAll", "--upload-all", metavar="<INPUT_FOLDER>", default="",
-                        help="The Tool will look for all Assets within <INPUT_FOLDER> and will upload them into the selected Photo client."
+                        help="The Tool will look for all Assets within <INPUT_FOLDER> and will upload them into the selected Photo client.\nYou must provide the Photo client using the mandatory flag '--client'."
                              "\n- The Tool will create a new Album per each Subfolder found in 'Albums' subfolder and all assets inside each subfolder will be associated to a new Album in the selected Photo client with the same name as the subfolder."
                              "\n- If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also passed, then this function will create Albums also for each subfolder found in <ALBUMS_FOLDER>."
                         )
     PARSER.add_argument("-dAll", "--download-all", metavar="<OUTPUT_FOLDER>", default="",
-                        help="The Tool will connect to the selected Photo client and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>."
+                        help="The Tool will connect to the selected Photo client and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.\nYou must provide the Photo client using the mandatory flag '--client'."
                              "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
                              "\n- Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
                         )
 
     PARSER.add_argument("-rOrphan", "--remove-orphan-assets", action="store_true", default="",
-                        help="The Tool will look for all Orphan Assets in the selected Photo client and will remove them. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in Config.ini.")
+                        help="The Tool will look for all Orphan Assets in the selected Photo client and will remove them.\nYou must provide the Photo client using the mandatory flag '--client'. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in Config.ini.")
 
     PARSER.add_argument("-rAll", "--remove-all-assets", action="store_true", default="",
-                        help="CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also ALL your Albums from the selected Photo client.")
+                        help="CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also ALL your Albums from the selected Photo client.\nYou must provide the Photo client using the mandatory flag '--client'.")
     PARSER.add_argument("-rAllAlb", "--remove-all-albums", action="store_true", default="",
-                        help="CAUTION!!! The Tool will remove ALL your Albums from the selected Photo client."
+                        help="CAUTION!!! The Tool will remove ALL your Albums from the selected Photo client.\nYou must provide the Photo client using the mandatory flag '--client'."
                              "\nOptionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
                         )
     PARSER.add_argument("-rAlb", "--remove-albums", metavar="<ALBUMS_NAME_PATTERN>", default="",
-                        help="CAUTION!!! The Tool will look for all Albums in the selected Photo client whose names matches with the pattern and will remove them."
+                        help="CAUTION!!! The Tool will look for all Albums in the selected Photo client whose names matches with the pattern and will remove them.\nYou must provide the Photo client using the mandatory flag '--client'."
                              "\nOptionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAss, --remove-albums-assets' argument."
                         )
     PARSER.add_argument("-rEmpAlb", "--remove-empty-albums", action="store_true", default="",
-                        help="The Tool will look for all Albums in the selected Photo client account and if any Album is empty, will remove it from the selected Photo client account.")
+                        help="The Tool will look for all Albums in the selected Photo client account and if any Album is empty, will remove it from the selected Photo client account.\nYou must provide the Photo client using the mandatory flag '--client'.")
     PARSER.add_argument("-rDupAlb", "--remove-duplicates-albums", action="store_true", default="",
-                        help="The Tool will look for all Albums in the selected Photo client account and if any Album is duplicated (with the same name and size), will remove it from the selected Photo client account.")
+                        help="The Tool will look for all Albums in the selected Photo client account and if any Album is duplicated (with the same name and size), will remove it from the selected Photo client account.\nYou must provide the Photo client using the mandatory flag '--client'.")
 
     PARSER.add_argument("-mDupAlb", "--merge-duplicates-albums", action="store_true", default="",
-                        help="The Tool will look for all Albums in the selected Photo client account and if any Album is duplicated (with the same name), will transfer all its assets to the most relevant album and remove it from the selected Photo client account.")
+                        help="The Tool will look for all Albums in the selected Photo client account and if any Album is duplicated (with the same name), will transfer all its assets to the most relevant album and remove it from the selected Photo client account.\nYou must provide the Photo client using the mandatory flag '--client'.")
 
     PARSER.add_argument("-renAlb", "--rename-albums", metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>", nargs="+", default="",
-                        help="CAUTION!!! The Tool will look for all Albums in the selected Photo client whose names matches with the pattern and will rename them from with the replacement pattern."
+                        help="CAUTION!!! The Tool will look for all Albums in the selected Photo client whose names matches with the pattern and will rename them from with the replacement pattern.\nYou must provide the Photo client using the mandatory flag '--client'."
                         )
 
 
