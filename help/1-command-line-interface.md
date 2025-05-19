@@ -126,7 +126,7 @@ Following general flags have different purposses depending on the Execution Mode
              Specify the output folder to save the result of the processing action.
 -client,   --client = ['google-takeout', 'synology', 'immich']
              Set the client to use for the selected feature.
--id,       --account-id = [1,2,3]
+-id,       --account-id = [1-3]
              Set the account ID for Synology Photos or Immich Photos. (default: 1). This
              value must exist in the Configuration file as suffix of USERNAME/PASSORD or
              API_KEY_USER. (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2
