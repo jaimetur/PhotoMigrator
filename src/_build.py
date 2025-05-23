@@ -6,10 +6,7 @@ import subprocess
 import glob
 import platform
 from pathlib import Path
-
-# GPTH_VERSION                    = "4.0.0"
-GPTH_VERSION                    = "3.6.2"
-EXIF_VERSION                    = "3.0.0"
+from GlobalVariables import GPTH_VERSION, EXIF_VERSION
 
 def clear_screen():
     os.system('clear' if os.name == 'posix' else 'cls')
