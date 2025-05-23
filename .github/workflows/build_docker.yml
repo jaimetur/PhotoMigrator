@@ -48,7 +48,7 @@ jobs:
         run: |
           echo "::group::Execute for ${{ matrix.os }}"
                     
-          # Execute for macOS
+          # Execute for ubuntu
           if [[ "${{ matrix.os }}" == *"ubuntu"* ]]; then
             cd src
             python3 _build.py false
