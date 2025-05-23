@@ -18,7 +18,7 @@ from pathlib import Path
 
 # Keep your existing imports for external modules:
 import Utils
-import ExifFixers
+import MetadataFixers
 from Duplicates import find_duplicates
 from CustomLogger import set_log_level
 
@@ -249,7 +249,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                         LOGGER.warning(f"WARNING : No Takeout structure detected in input folder. The tool will process the folder ignoring Takeout structure.")
                         self.ARGS['google-ignore-check-structure'] = True
 
-                ok = ExifFixers.fix_metadata_with_gpth_tool(
+                ok = MetadataFixers.fix_metadata_with_gpth_tool(
                     input_folder=input_folder,
                     output_folder=output_takeout_folder,
                     capture_output=capture_output,
