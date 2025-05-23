@@ -6,7 +6,10 @@ import subprocess
 import glob
 import platform
 from pathlib import Path
-from GlobalVariables import GPTH_VERSION, EXIF_VERSION
+# from GlobalVariables import GPTH_VERSION, EXIF_VERSION
+# GPTH_VERSION                    = "4.0.0"
+GPTH_VERSION                    = "3.6.2"
+EXIF_VERSION                    = "3.0.0"
 
 def clear_screen():
     os.system('clear' if os.name == 'posix' else 'cls')
@@ -187,7 +190,7 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
         f.writelines(updated_readme)
 
 
-def run(compile=True):
+def build(compile=True):
     global SCRIPT_NAME
     global SCRIPT_NAME_VERSION
     global OS
@@ -388,7 +391,7 @@ if __name__ == "__main__":
     else:
         compile_flag = True  # valor por defecto
 
-    ok = run(compile=compile_flag)
+    ok = build(compile=compile_flag)
     if ok:
         print('COMPILATION FINISHED SUCCESSFULLY!')
     sys.exit(0)
