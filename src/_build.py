@@ -6,6 +6,7 @@ import subprocess
 import glob
 import platform
 from pathlib import Path
+from GlobalVariables import GPTH_VERSION, EXIF_VERSION
 
 def clear_screen():
     os.system('clear' if os.name == 'posix' else 'cls')
@@ -186,7 +187,7 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
         f.writelines(updated_readme)
 
 
-def main(compile=True):
+def build(compile=True):
     global SCRIPT_NAME
     global SCRIPT_NAME_VERSION
     global OS
@@ -252,14 +253,18 @@ def main(compile=True):
         # Inicializamos variables
         script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
         script_zip_file = Path(f"../_built_versions/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
+        gpth_tool = f"../gpth_tool/gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext:gpth_tool"
+        # exif_tool = f"../exif_tool/exif-{EXIF_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext:exif_tool"
         if OPERATING_SYSTEM=='windows':
             script_compiled = f'{SCRIPT_NAME}.exe'
             script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
-            add_gpth_command = f"../gpth_tool/gpth_{OPERATING_SYSTEM}.exe:gpth_tool"
+            gpth_tool = gpth_tool.replace(".ext", ".exe")
+            # exif_tool = exif_tool.replace(".ext", ".exe")
         else:
             script_compiled = f'{SCRIPT_NAME}'
             script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
-            add_gpth_command = f"../gpth_tool/gpth_{OPERATING_SYSTEM}.bin:gpth_tool"
+            gpth_tool = gpth_tool.replace(".ext", ".bin")
+            # exif_tool = exif_tool.replace(".ext", ".bin")
 
         if compile:
             print("Añadiendo paquetes necesarios al entorno Python antes de compilar...")
@@ -272,8 +277,8 @@ def main(compile=True):
                 'pyinstaller',
                 '--runtime-tmpdir', '/var/tmp',
                 '--onefile',
-                '--add-data', add_gpth_command,
-                # '--add-data', f"../exif_tool_{OPERATING_SYSTEM}:exif_tool",
+                '--add-data', gpth_tool,
+                # '--add-data', exif_tool,
                 f'{SCRIPT_SOURCE_NAME}'
             ])
 
@@ -293,17 +298,17 @@ def main(compile=True):
 
     elif COMPILER=='nuitka':
         ARCHITECTURES = ["amd64", "arm64"]
-        ARCHITECTURES = ["amd64"]
         for ARCHITECTURE in ARCHITECTURES:
             script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
+            gpth_tool = f"../gpth_tool/gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext=gpth_tool/gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext"
             if OPERATING_SYSTEM=='windows':
                 script_compiled = f'{SCRIPT_NAME}.exe'
                 script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
-                add_gpth_command = f'../gpth_tool/gpth_{OPERATING_SYSTEM}.exe=gpth_tool/gpth_{OPERATING_SYSTEM}.exe'
+                gpth_tool = gpth_tool.replace(".ext", ".exe")
             else:
                 script_compiled = f'{SCRIPT_NAME}.bin'
                 script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
-                add_gpth_command = f'../gpth_tool/gpth_{OPERATING_SYSTEM}.bin=gpth_tool/gpth_{OPERATING_SYSTEM}.bin'
+                gpth_tool = gpth_tool.replace(".ext", ".bin")
                                 
             script_zip_file = Path(f"../_built_versions/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
 
@@ -331,7 +336,7 @@ def main(compile=True):
                     '--output-dir=./dist',
                     f'--file-version={SCRIPT_VERSION_INT}',
                     f'--copyright={COPYRIGHT_TEXT}',
-                    f'--include-data-file={add_gpth_command}',
+                    f'--include-data-file={gpth_tool}',
                     #f'--include-raw-dir=../gpth_tool=gpth_tool',
                     # '--include-raw-dir=../exif_tool=exif_tool',
                     # '--include-data-dir=../gpth_tool=gpth_tool',
@@ -383,7 +388,7 @@ if __name__ == "__main__":
     else:
         compile_flag = True  # valor por defecto
 
-    ok = main(compile=compile_flag)
+    ok = build(compile=compile_flag)
     if ok:
         print('COMPILATION FINISHED SUCCESSFULLY!')
     sys.exit(0)

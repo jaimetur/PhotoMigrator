@@ -44,6 +44,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+
       # 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (amd64, arm64)
       - name: 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (amd64, arm64)
         run: |

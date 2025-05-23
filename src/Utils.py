@@ -52,12 +52,24 @@ def normalize_path(path, log_level=logging.INFO):
         # return os.path.normpath(path).strip(os.sep)
         return os.path.normpath(path)
 
+
 def check_OS_and_Terminal(log_level=logging.INFO):
-    """ Check OS and Terminal Type """
+    """ Check OS, Terminal Type, and System Architecture """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Detect the operating system
         current_os = platform.system()
-        # Determine the Tool name based on the OS
+        # Detect the machine architecture
+        architecture = platform.machine()
+
+        # Normalize architecture name
+        if architecture in ["x86_64", "amd64", "AMD64"]:
+            arch_label = "amd64"
+        elif architecture in ["aarch64", "arm64"]:
+            arch_label = "arm64"
+        else:
+            arch_label = architecture
+
+        # Logging OS
         if current_os == "Linux":
             if run_from_synology():
                 LOGGER.info(f"INFO    : Script running on Linux System in a Synology NAS")
@@ -69,7 +81,11 @@ def check_OS_and_Terminal(log_level=logging.INFO):
             LOGGER.info(f"INFO    : Script running on Windows System")
         else:
             LOGGER.error(f"ERROR   : Unsupported Operating System: {current_os}")
-    
+
+        # Logging Architecture
+        LOGGER.info(f"INFO    : Detected architecture: {arch_label}")
+
+        # Terminal type detection
         if sys.stdout.isatty():
             LOGGER.info("INFO    : Interactive (TTY) terminal detected for stdout")
         else:
@@ -79,6 +95,38 @@ def check_OS_and_Terminal(log_level=logging.INFO):
         else:
             LOGGER.info("INFO    : Non-Interactive (Non-TTY) terminal detected for stdin")
         LOGGER.info("")
+
+
+def get_os(log_level=logging.INFO):
+    """Return normalized operating system name (linux, macos, windows)"""
+    with set_log_level(LOGGER, log_level):
+        current_os = platform.system()
+        if current_os == "Linux":
+            os_label = "linux"
+        elif current_os == "Darwin":
+            os_label = "macos"
+        elif current_os == "Windows":
+            os_label = "windows"
+        else:
+            LOGGER.error(f"ERROR   : Unsupported Operating System: {current_os}")
+            os_label = "unknown"
+        LOGGER.info(f"INFO    : Detected OS: {os_label}")
+        return os_label
+
+
+def get_arch(log_level=logging.INFO):
+    """Return normalized system architecture (e.g., amd64, arm64)"""
+    with set_log_level(LOGGER, log_level):
+        architecture = platform.machine()
+        if architecture in ["x86_64", "amd64", "AMD64"]:
+            arch_label = "amd64"
+        elif architecture in ["aarch64", "arm64"]:
+            arch_label = "arm64"
+        else:
+            arch_label = architecture
+        LOGGER.info(f"INFO    : Detected architecture: {arch_label}")
+        return arch_label
+
 
 def count_files_in_folder(folder_path, log_level=logging.INFO):
     """ Counts the number of files in a folder """
