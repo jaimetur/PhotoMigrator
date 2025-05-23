@@ -86,14 +86,12 @@ def resolve_path(user_path):
 
 def set_LOGGER():
     from CustomLogger import log_setup
-    print(GV.TIMESTAMP, GV.LOG_LEVEL_MIN)
     script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     current_directory = os.getcwd()
     log_folder = resolve_path("Logs")
     log_filename=f"{script_name}_{GV.TIMESTAMP}"
     GV.LOG_FOLDER_FILENAME = os.path.join(current_directory, log_folder, log_filename)
     GV.LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=GV.LOG_LEVEL_MIN, plain_log=False)
-    print("Logger creado:", GV.LOGGER)
     GV.LOGGER.setLevel(GV.LOG_LEVEL)
 
 def set_ARGS_PARSER():
