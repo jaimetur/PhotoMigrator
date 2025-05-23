@@ -1,11 +1,8 @@
 # Module to define Globals Variables accesible to all other modules
-from datetime import datetime
-import textwrap
 import os,sys
-import logging
 import posixpath
+import GlobalVariables as GV
 
-from GlobalVariables import ARGS, LOGGER, LOG_FOLDER_FILENAME, HELP_TEXTS
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # FUNCTIONS TO INITIALIZE GLOBAL VARIABLES THAT DEPENDS OF OTHER MODULES
@@ -89,34 +86,26 @@ def resolve_path(user_path):
 
 def set_LOGGER():
     from CustomLogger import log_setup
-    from GlobalVariables import LOGGER, LOG_FOLDER_FILENAME
-    global LOGGER, LOG_FOLDER_FILENAME
+    print(GV.TIMESTAMP, GV.LOG_LEVEL_MIN)
     script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     current_directory = os.getcwd()
     log_folder = resolve_path("Logs")
-    log_filename=f"{script_name}_{TIMESTAMP}"
-    LOG_FOLDER_FILENAME = os.path.join(current_directory, log_folder, log_filename)
-    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=LOG_LEVEL_MIN, plain_log=False)
-    LOGGER.setLevel(LOG_LEVEL)
+    log_filename=f"{script_name}_{GV.TIMESTAMP}"
+    GV.LOG_FOLDER_FILENAME = os.path.join(current_directory, log_folder, log_filename)
+    GV.LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=GV.LOG_LEVEL_MIN, plain_log=False)
+    print("Logger creado:", GV.LOGGER)
+    GV.LOGGER.setLevel(GV.LOG_LEVEL)
 
 def set_ARGS_PARSER():
     from ArgsParser import parse_arguments, checkArgs, getParser
-    from GlobalVariables import ARGS, PARSER
-    global ARGS, PARSER
-    ARGS, PARSER = parse_arguments()
-    ARGS = checkArgs(ARGS, PARSER)
-    # PARSER = getParser()def set_ARGS_PARSER():
-    #     from ArgsParser import parse_arguments, checkArgs, getParser
-    #     global ARGS, PARSER
-    #     ARGS, PARSER = parse_arguments()
-    #     ARGS = checkArgs(ARGS, PARSER)
-    #     # PARSER = getParser()
+    args, parser = parse_arguments()
+    args = checkArgs(args, parser)
+    GV.ARGS = args
+    GV.PARSER = parser
 
 def set_HELP_TEXT():
     from HelpTexts import set_help_texts
-    from GlobalVariables import HELP_TEXTS
-    global HELP_TEXTS
-    HELP_TEXTS  = set_help_texts()
+    GV.HELP_TEXTS  = set_help_texts()
 
 set_LOGGER()
 set_ARGS_PARSER()

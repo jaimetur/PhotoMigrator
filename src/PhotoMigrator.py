@@ -48,9 +48,9 @@ elif len(sys.argv) == 1:
         print("ERROR   : No valid folder selected. Exiting.")
         sys.exit(1)
 
+import GlobalFunctions
 from Utils import check_OS_and_Terminal
 from GlobalVariables import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME
-import GlobalFunctions
 from ExecutionModes import detect_and_run_execution_mode
 
 # -------------------------------------------------------------

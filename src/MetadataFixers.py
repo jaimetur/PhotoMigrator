@@ -72,6 +72,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             LOGGER.error(f"ERROR   : Invalid OS: {current_os}. Exiting...")
             sys.exit(-1)
 
+        LOGGER.info(f"INFO    : Using GPTH Tool file: '{tool_name}'...")
         # Usar resource_path para acceder a archivos o directorios:
         gpth_tool_path = resource_path(os.path.join("gpth_tool", tool_name))
 
@@ -117,7 +118,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
 
         try:
             command = ' '.join(gpth_command)
-            LOGGER.info(f"DEBUG   : Command: {command}")
+            LOGGER.debug(f"DEBUG   : Command: {command}")
             ok = run_command(gpth_command, LOGGER, capture_output=capture_output, capture_errors=capture_errors)      # Shows the output in real time and capture it to the LOGGER.
             # ok = subprocess.run(gpth_command, check=True, capture_output=capture_output, text=True)
 
