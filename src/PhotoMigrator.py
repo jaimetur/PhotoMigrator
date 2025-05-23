@@ -50,6 +50,7 @@ elif len(sys.argv) == 1:
 
 from Utils import check_OS_and_Terminal
 from GlobalVariables import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME
+import GlobalFunctions
 from ExecutionModes import detect_and_run_execution_mode
 
 # -------------------------------------------------------------

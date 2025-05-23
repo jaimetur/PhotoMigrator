@@ -190,7 +190,7 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, time
     Configures logger to a log file and console simultaneously.
     The console messages do not include timestamps.
     """
-    from GlobalVariables import resolve_path
+    from GlobalFunctions import resolve_path
     if not log_filename:
         script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
         if timestamp:

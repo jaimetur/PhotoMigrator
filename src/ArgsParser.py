@@ -1,6 +1,7 @@
 import logging
 
-from GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE, resolve_path
+from GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
+from GlobalFunctions import resolve_path
 from CustomHelpFormatter import CustomHelpFormatter
 from CustomPager import PagedParser
 import argparse
