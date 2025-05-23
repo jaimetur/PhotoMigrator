@@ -187,7 +187,7 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
         f.writelines(updated_readme)
 
 
-def main(compile=True):
+def build(compile=True):
     global SCRIPT_NAME
     global SCRIPT_NAME_VERSION
     global OS
@@ -388,7 +388,7 @@ if __name__ == "__main__":
     else:
         compile_flag = True  # valor por defecto
 
-    ok = main(compile=compile_flag)
+    ok = build(compile=compile_flag)
     if ok:
         print('COMPILATION FINISHED SUCCESSFULLY!')
     sys.exit(0)
