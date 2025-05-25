@@ -197,6 +197,8 @@ def build(compile=True):
     global SCRIPT_SOURCE_NAME
     global COMPILER
 
+    INCLUDE_EXIFTOOL = False
+
     clear_screen()
     print("")
     print("======================================================")
@@ -260,17 +262,12 @@ def build(compile=True):
             script_compiled = f'{SCRIPT_NAME}.exe'
             script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
             gpth_tool = gpth_tool.replace(".ext", ".exe")
-            # exif_folder = Path("../exif_tool/windows").resolve()
             exif_folder = "../exif_tool/windows"
-            # exif_tool = exif_tool.replace(".ext", ".exe")
         else:
             script_compiled = f'{SCRIPT_NAME}'
             script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
             gpth_tool = gpth_tool.replace(".ext", ".bin")
-            # exif_folder = Path("../exif_tool/image").resolve()
             exif_folder = "../exif_tool/image"
-
-            # exif_tool = exif_tool.replace(".ext", ".bin")
 
         if compile:
             # Borramos los ficheros y directorios temporales de compilaciones previas
@@ -299,25 +296,26 @@ def build(compile=True):
             # Prepare PyInstaller for Compilation
             pyi_args = [SCRIPT_SOURCE_NAME]
             pyi_args.extend(("--runtime-tmpdir", '/var/tmp'))
-            pyi_args.extend(("--onefile"))
+            pyi_args.extend(["--onefile"])
             pyi_args.extend(("--add-data", gpth_tool))
 
-            # Now add exif_folder recursively into gpth_tool/exif_tool
-            exif_folder_dest = "gpth_tool/exif_tool"
-            # Añadir los archivos directamente en la carpeta raíz
-            pyi_args.extend(("--add-data", f"{exif_folder}/*.*:{exif_folder_dest}"))
-            # Recorrer todas las carpetas recursivamente
-            for path in Path(exif_folder).rglob('*'):
-                if path.is_dir():
-                    # Verificar si contiene al menos un archivo
-                    has_files = any(f.is_file() for f in path.iterdir())
-                    if not has_files:
-                        continue  # Saltar carpetas sin archivos
-                    relative_path = path.relative_to(exif_folder).as_posix()
-                    dest_path = f"{exif_folder_dest}/{relative_path}"
-                    src_path = path.as_posix()
-                    # Añadir todos los archivos directamente dentro de esa carpeta
-                    pyi_args.extend(("--add-data", f"{src_path}/*.*:{dest_path}"))
+            if INCLUDE_EXIFTOOL:
+                # Now add exif_folder recursively into gpth_tool/exif_tool
+                exif_folder_dest = "gpth_tool/exif_tool"
+                # Añadir los archivos directamente en la carpeta raíz
+                pyi_args.extend(("--add-data", f"{exif_folder}/*.*:{exif_folder_dest}"))
+                # Recorrer todas las carpetas recursivamente
+                for path in Path(exif_folder).rglob('*'):
+                    if path.is_dir():
+                        # Verificar si contiene al menos un archivo
+                        has_files = any(f.is_file() for f in path.iterdir())
+                        if not has_files:
+                            continue  # Saltar carpetas sin archivos
+                        relative_path = path.relative_to(exif_folder).as_posix()
+                        dest_path = f"{exif_folder_dest}/{relative_path}"
+                        src_path = path.as_posix()
+                        # Añadir todos los archivos directamente dentro de esa carpeta
+                        pyi_args.extend(("--add-data", f"{src_path}/*.*:{dest_path}"))
 
             # Now Run PyInstaller with previous settings
             PyInstaller.__main__.run(pyi_args)
