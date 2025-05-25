@@ -142,6 +142,9 @@ def extract_release_body(download_file, input_file, output_file):
     with open(download_file, 'r', encoding='utf-8') as df:
         download_content = df.readlines()
     # Append both the download file content and the release section to the output file
+    # Si el archivo ya existe, lo eliminamos
+    if os.path.exists(output_file):
+        os.remove(output_file)
     with open(output_file, 'a', encoding='utf-8') as outfile:
         outfile.writelines(release_section)
         outfile.writelines(download_content)
@@ -385,20 +388,20 @@ def compile(compiler='pyinstaller'):
         print("")
 
         subprocess.run([
-            'nuitka',
+            sys.executable, '-m', 'nuitka',
             f"{'./src/' + SCRIPT_SOURCE_NAME}",
             # '--standalone',
             '--onefile',
             '--onefile-no-compression',
             f'--onefile-tempdir-spec=/var/tmp/{script_name_with_version_os_arch}',
             '--jobs=4',
-            '--static-libpython=yes',
+            # '--static-libpython=yes',
             '--lto=yes',
             '--remove-output',
             '--output-dir=./dist',
             f"--file-version={SCRIPT_VERSION_INT.split('-')[0]}",
             f'--copyright={COPYRIGHT_TEXT}',
-            f"--include-data-file={gpth_tool}={gpth_tool.replace('./', '')}",
+            f"--include-data-file={gpth_tool}={gpth_tool.replace('./', '')}"
             #f'--include-raw-dir=../gpth_tool=gpth_tool',
             # '--include-raw-dir=../exif_tool=exif_tool',
             # '--include-data-dir=../gpth_tool=gpth_tool',
