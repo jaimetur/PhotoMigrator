@@ -225,9 +225,9 @@ def main(compiler='pyinstaller'):
 
     clear_screen()
     print("")
-    print("======================================================")
-    print(f"INFO:    Ejecutando módulo main(compile={compiler})...")
-    print("======================================================")
+    print("============================================================")
+    print(f"INFO:    Ejecutando módulo main(compiler={compiler})...")
+    print("============================================================")
     print("")
 
     if SCRIPT_VERSION:
@@ -339,7 +339,7 @@ def compile(compiler='pyinstaller'):
 
     if compiler=='pyinstaller':
         print("")
-        print("Compiling with Pyinstaller...")
+        print("COMPILING WITH Pyinstaller...")
         # subprocess.run([
         #     'pyinstaller',
         #     '--runtime-tmpdir', '/var/tmp',
@@ -380,7 +380,7 @@ def compile(compiler='pyinstaller'):
 
     elif compiler=='nuitka':
         print("")
-        print("Compiling with Nuitka...")
+        print("COMPILING WITH Nuitka...")
         if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
             os.environ['CC'] = 'gcc'
         elif ARCHITECTURE in ["arm64", "aarch64"]:
