@@ -57,11 +57,11 @@ jobs:
       - name: Install GCC winlibs for Nuitka
         if: runner.os == 'Windows'
         run: |
-          curl -L -o winlibs.zip https://github.com/Nuitka/Nuitka-Winlibs/releases/download/2023.12.04/winlibs64.zip
+          curl -L -o winlibs.zip https://github.com/Nuitka/Nuitka-Winlibs/releases/download/2023.12.04/winlibs64-c11.zip
           mkdir winlibs
           Expand-Archive -Path winlibs.zip -DestinationPath winlibs
           echo "winlibs\\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
+            
 
       # 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (amd64, arm64)
       - name: 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (amd64, arm64)
