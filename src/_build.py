@@ -406,13 +406,10 @@ def compile(compiler='pyinstaller'):
             '--output-dir=./dist',
             f"--file-version={SCRIPT_VERSION_INT.split('-')[0]}",
             f'--copyright={COPYRIGHT_TEXT}',
-            f"--include-data-file={gpth_tool}={gpth_tool.replace('./', '')}"
-            f'--include-data-dir={exif_folder}=./gpth_tool/exif_tool',
-            # '--include-raw-dir=../exif_tool=exif_tool',
-            # '--include-data-dir=../gpth_tool=gpth_tool',
+            f'--include-data-file={gpth_tool}={gpth_tool.replace('./', '')}',
+            f'--include-data-dir={exif_folder}=gpth_tool/exif_tool',
             # '--include-data-dir=../exif_tool=exif_tool',
-            # '--include-data-file=Config.inig=Config.ini',
-            # '--include-data-file=README.md=README.md'
+
         ])
 
     else:
