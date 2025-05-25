@@ -16,12 +16,10 @@ def select_folder_gui():
     return filedialog.askdirectory(title="Select the Google Takeout folder to process")
 
 # Verificar si el script se ejecutó con un solo argumento que sea una ruta de una carpeta existente
-if len(sys.argv) == 2 and os.path.isdir(sys.argv[1]):
+if len(sys.argv) >= 2 and os.path.isdir(sys.argv[1]):
     print(f"INFO    : Valid folder detected as input: '{sys.argv[1]}'")
     print(f"INFO    : Executing Google Takeout Photos Processor Feature with the provided input folder...")
-    input_folder = sys.argv[1]
-    sys.argv[1] = "--google-takeout"
-    sys.argv.append(input_folder)
+    sys.argv.insert(1, "--google-takeout")
 
 # Verificar si el script se ejecutó sin argumentos, en ese caso se pedira al usuario queue introduzca la ruta de la caroeta que contiene el Takeout a procesar
 elif len(sys.argv) == 1:
