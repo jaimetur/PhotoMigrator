@@ -391,28 +391,33 @@ def compile(compiler='pyinstaller'):
 
         print("")
 
-        subprocess.run([
-            sys.executable, '-m', 'nuitka',
-            f"{'./src/' + SCRIPT_SOURCE_NAME}",
-            # '--standalone',
-            '--onefile',
-            '--onefile-no-compression',
-            # f'--onefile-tempdir-spec=/var/tmp/{script_name_with_version_os_arch}',
-            f'--onefile-tempdir-spec={TEMP}/{script_name_with_version_os_arch}',
-            '--jobs=4',
-            '--mingw64',
-            # '--msvc=latest', # Sorry, non-MSVC is not currently supported with Python 3.13. Newer Nuitka will work to solve this. Use Python 3.12 or option "--msvc=latest" as a workaround for now and wait
-            # '--static-libpython=yes',
-            '--lto=yes',
-            '--remove-output',
-            '--output-dir=./dist',
-            f"--file-version={SCRIPT_VERSION_INT.split('-')[0]}",
-            f'--copyright={COPYRIGHT_TEXT}',
-            f'--include-data-file={gpth_tool}={gpth_tool}',
-            # f'--include-data-dir={exif_folder}=./gpth_tool/exif_tool',
-            # '--include-data-dir=../exif_tool=exif_tool',
+        command = [
+                sys.executable, '-m', 'nuitka',
+                f"{'./src/' + SCRIPT_SOURCE_NAME}",
+                # '--standalone',
+                '--onefile',
+                '--onefile-no-compression',
+                # f'--onefile-tempdir-spec=/var/tmp/{script_name_with_version_os_arch}',
+                f'--onefile-tempdir-spec={TEMP}/{script_name_with_version_os_arch}',
+                '--jobs=4',
+                '--mingw64',
+                # '--msvc=latest', # Sorry, non-MSVC is not currently supported with Python 3.13. Newer Nuitka will work to solve this. Use Python 3.12 or option "--msvc=latest" as a workaround for now and wait
+                # '--static-libpython=yes',
+                '--lto=yes',
+                '--remove-output',
+                '--output-dir=./dist',
+                f"--file-version={SCRIPT_VERSION_INT.split('-')[0]}",
+                f'--copyright={COPYRIGHT_TEXT}',
+                f'--include-data-file={gpth_tool}={gpth_tool}',
+                # '--include-data-dir=../exif_tool=exif_tool',
+            ]
 
-        ])
+        if INCLUDE_EXIFTOOL:
+            command.append(f'--include-data-dir={exif_folder}=./gpth_tool/exif_tool')
+
+        # Execute Nuitka Commans
+        subprocess.run(command)
+
 
     else:
         print(f"Compiler '{compiler}' not supported. Valid options are 'pyinstaller' or 'nuitka'. Compilation skipped.")
