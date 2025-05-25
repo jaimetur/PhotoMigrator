@@ -338,6 +338,8 @@ def compile(compiler='pyinstaller'):
     print(f"Compilando para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}'...")
 
     if compiler=='pyinstaller':
+        print("")
+        print("Compiling with Pyinstaller...")
         # subprocess.run([
         #     'pyinstaller',
         #     '--runtime-tmpdir', '/var/tmp',
@@ -377,6 +379,8 @@ def compile(compiler='pyinstaller'):
 
 
     elif compiler=='nuitka':
+        print("")
+        print("Compiling with Nuitka...")
         if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
             os.environ['CC'] = 'gcc'
         elif ARCHITECTURE in ["arm64", "aarch64"]:
