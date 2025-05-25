@@ -1,0 +1,7 @@
+ROOT_PATH=/mnt/dev/Python_Scripts_jaimetur/PycharmProjects/PhotoMigrator
+SCRIPT_VERSION=3.3.0-RC
+ARCHIVE_PATH=../PhotoMigrator-builts/3.3.0-RC/PhotoMigrator_v3.3.0-RC_linux_amd64.zip
+COMPILER=nuitka
+SCRIPT_COMPILED=PhotoMigrator.bin
+GPTH_TOOL=./gpth_tool/gpth-4.0.0-linux-amd64.bin
+EXIF_FOLDER=./exif_tool/image

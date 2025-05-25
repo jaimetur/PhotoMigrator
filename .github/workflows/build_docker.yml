@@ -45,8 +45,7 @@ jobs:
                     
           # Execute for ubuntu
           if [[ "${{ matrix.os }}" == *"ubuntu"* ]]; then
-            cd src
-            python3 _build.py false
+            python3 ./src/_build.py false
           fi
           
           echo "::endgroup::"
@@ -57,10 +56,10 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           # Read SCRIPT_VERSION from the first line
-          SCRIPT_VERSION=$(sed -n '1p' script_info.txt)
+          SCRIPT_VERSION=$(grep '^SCRIPT_VERSION=' script_info.txt | cut -d'=' -f2-)
 
           # Read ARCHIVE_PATH from the second line
-          ARCHIVE_PATH=$(sed -n '2p' script_info.txt)
+          ARCHIVE_PATH=$(grep '^ARCHIVE_PATH=' script_info.txt | cut -d'=' -f2-)
 
           # Save both variables on GitHub Actions environment
           echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> $GITHUB_ENV

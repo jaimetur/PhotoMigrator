@@ -58,13 +58,11 @@ jobs:
                     
           # Build for macOS (any architecture)
           if [[ "${{ matrix.os }}" == *"macos"* ]]; then
-            cd src
-            arch -${{ matrix.arch }} python3 _build.py
+            arch -${{ matrix.arch }} python3 ./src/_build.py
           
           # Build for Windows (amd64)
           elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
-            cd src
-            python _build.py
+            python ./src/_build.py
                
           # Build for Linux (arm64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
@@ -75,16 +73,16 @@ jobs:
             sudo add-apt-repository restricted
             sudo apt-get update
             sudo apt-get install -y qemu-user-static binfmt-support
-            docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace/src ubuntu:20.04 bash -c "
-                apt update && apt install -y gcc-aarch64-linux-gnu python3 python3-pip &&
-                python3 _build.py
+            docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace ubuntu:20.04 bash -c "
+                apt update && \
+                apt install -y gcc-aarch64-linux-gnu python3 python3-pip patchelf && \
+                python3 ./src/_build.py
                 "
           
           # Build for Linux (amd64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
-            docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src jaimetur/centos-amd64:7 bash -c "
-                cd src
-                python3 _build.py
+            docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace jaimetur/centos-amd64:7 bash -c "
+                python3 ./src/_build.py
                 "
           fi
 
@@ -96,11 +94,11 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           # Read SCRIPT_VERSION from the first line
-          SCRIPT_VERSION=$(sed -n '1p' script_info.txt)
+          SCRIPT_VERSION=$(grep '^SCRIPT_VERSION=' script_info.txt | cut -d'=' -f2-)
 
           # Read ARCHIVE_PATH from the second line
-          ARCHIVE_PATH=$(sed -n '2p' script_info.txt)
-
+          ARCHIVE_PATH=$(grep '^ARCHIVE_PATH=' script_info.txt | cut -d'=' -f2-)
+          
           # Save both variables on GitHub Actions environment
           echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> $GITHUB_ENV
           echo "ARCHIVE_PATH=${ARCHIVE_PATH}" >> $GITHUB_ENV
