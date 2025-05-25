@@ -6,6 +6,7 @@ import subprocess
 import glob
 import platform
 from pathlib import Path
+import PyInstaller.__main__
 from GlobalVariables import GPTH_VERSION, EXIF_VERSION
 
 def clear_screen():
@@ -259,28 +260,67 @@ def build(compile=True):
             script_compiled = f'{SCRIPT_NAME}.exe'
             script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
             gpth_tool = gpth_tool.replace(".ext", ".exe")
+            # exif_folder = Path("../exif_tool/windows").resolve()
+            exif_folder = "../exif_tool/windows"
             # exif_tool = exif_tool.replace(".ext", ".exe")
         else:
             script_compiled = f'{SCRIPT_NAME}'
             script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
             gpth_tool = gpth_tool.replace(".ext", ".bin")
+            # exif_folder = Path("../exif_tool/image").resolve()
+            exif_folder = "../exif_tool/image"
+
             # exif_tool = exif_tool.replace(".ext", ".bin")
 
         if compile:
+            # Borramos los ficheros y directorios temporales de compilaciones previas
+            print("Borrando archivos temporales de compilaciones previas...")
+            Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
+            shutil.rmtree('build', ignore_errors=True)
+            shutil.rmtree('dist', ignore_errors=True)
+            print("")
+
             print("Añadiendo paquetes necesarios al entorno Python antes de compilar...")
             subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', '../requirements.txt'])
             if OPERATING_SYSTEM=='windows':
                 subprocess.run([sys.executable, '-m', 'pip', 'install', 'windows-curses'])
             print("")
+
             print(f"Compilando para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}'...")
-            subprocess.run([
-                'pyinstaller',
-                '--runtime-tmpdir', '/var/tmp',
-                '--onefile',
-                '--add-data', gpth_tool,
-                # '--add-data', exif_tool,
-                f'{SCRIPT_SOURCE_NAME}'
-            ])
+            # subprocess.run([
+            #     'pyinstaller',
+            #     '--runtime-tmpdir', '/var/tmp',
+            #     '--onefile',
+            #     '--add-data', gpth_tool,
+            #     # '--add-data', exif_tool,
+            #     f'{SCRIPT_SOURCE_NAME}'
+            # ])
+
+            # Prepare PyInstaller for Compilation
+            pyi_args = [SCRIPT_SOURCE_NAME]
+            pyi_args.extend(("--runtime-tmpdir", '/var/tmp'))
+            pyi_args.extend(("--onefile"))
+            pyi_args.extend(("--add-data", gpth_tool))
+
+            # Now add exif_folder recursively into gpth_tool/exif_tool
+            exif_folder_dest = "gpth_tool/exif_tool"
+            # Añadir los archivos directamente en la carpeta raíz
+            pyi_args.extend(("--add-data", f"{exif_folder}/*.*:{exif_folder_dest}"))
+            # Recorrer todas las carpetas recursivamente
+            for path in Path(exif_folder).rglob('*'):
+                if path.is_dir():
+                    # Verificar si contiene al menos un archivo
+                    has_files = any(f.is_file() for f in path.iterdir())
+                    if not has_files:
+                        continue  # Saltar carpetas sin archivos
+                    relative_path = path.relative_to(exif_folder).as_posix()
+                    dest_path = f"{exif_folder_dest}/{relative_path}"
+                    src_path = path.as_posix()
+                    # Añadir todos los archivos directamente dentro de esa carpeta
+                    pyi_args.extend(("--add-data", f"{src_path}/*.*:{dest_path}"))
+
+            # Now Run PyInstaller with previous settings
+            PyInstaller.__main__.run(pyi_args)
 
             # Movemos el fichero compilado a la carpeta padre
             print(f"\nMoviendo script compilado '{script_compiled_with_version_os_arch_extension}'...")
