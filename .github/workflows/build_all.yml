@@ -62,7 +62,7 @@ jobs:
           
           # Build for Windows (amd64)
           elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
-            python ./src/_build.py
+            python ./src/_build.py nuitka
                
           # Build for Linux (arm64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
