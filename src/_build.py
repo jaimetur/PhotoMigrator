@@ -397,8 +397,8 @@ def compile(compiler='pyinstaller'):
                 # '--standalone',
                 '--onefile',
                 '--onefile-no-compression',
-                # f'--onefile-tempdir-spec=/var/tmp/{script_name_with_version_os_arch}',
-                f'--onefile-tempdir-spec={TEMP}/{script_name_with_version_os_arch}',
+                f'--onefile-tempdir-spec=/var/tmp/{script_name_with_version_os_arch}',
+                # f'--onefile-tempdir-spec={TEMP}/{script_name_with_version_os_arch}',
                 '--jobs=4',
                 '--mingw64',
                 # '--msvc=latest', # Sorry, non-MSVC is not currently supported with Python 3.13. Newer Nuitka will work to solve this. Use Python 3.12 or option "--msvc=latest" as a workaround for now and wait
