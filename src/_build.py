@@ -259,7 +259,7 @@ def main(compiler='pyinstaller'):
 
     # Calcular el path relativo
     script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-    script_zip_file = Path(f"../PhotoMigrator-builts/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
+    script_zip_file = Path(f"./PhotoMigrator-builts/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
     relative_path = os.path.relpath(script_zip_file, root_dir)
 
     # Guardar script_info.txt en un fichero de texto
@@ -297,7 +297,7 @@ def compile(compiler='pyinstaller'):
 
     # Inicializamos variables
     script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-    script_zip_file = Path(f"../PhotoMigrator-builts//{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
+    script_zip_file = Path(f"./PhotoMigrator-builts//{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
     gpth_tool = f"./gpth_tool/gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext"
     # exif_tool = f"../exif_tool/exif-{EXIF_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext:exif_tool"
     if OPERATING_SYSTEM == 'windows':
@@ -387,14 +387,14 @@ def compile(compiler='pyinstaller'):
         subprocess.run([
             'nuitka',
             f"{'./src/' + SCRIPT_SOURCE_NAME}",
-            '--standalone',
-            # '--onefile',
+            # '--standalone',
+            '--onefile',
             '--onefile-no-compression',
             f'--onefile-tempdir-spec=/var/tmp/{script_name_with_version_os_arch}',
             '--jobs=4',
             '--static-libpython=yes',
             '--lto=yes',
-            # '--remove-output',
+            '--remove-output',
             '--output-dir=./dist',
             f"--file-version={SCRIPT_VERSION_INT.split('-')[0]}",
             f'--copyright={COPYRIGHT_TEXT}',
