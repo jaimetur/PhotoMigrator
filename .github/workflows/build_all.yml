@@ -45,14 +45,23 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       # Install dependencies
-      #- name: Install dependencies
-        #run: |
-          #python -m pip install --upgrade pip
-          #pip install -r requirements.txt
+#      - name: Install dependencies
+#        run: |
+#          python -m pip install --upgrade pip
+#          pip install -r requirements.txt
 
-      - name: Install Visual Studio Build Tools (MSVC)
+#      - name: Install Visual Studio Build Tools (MSVC)
+#        if: runner.os == 'Windows'
+#        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install GCC winlibs for Nuitka
         if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
+        run: |
+          curl -L -o winlibs.zip https://github.com/Nuitka/Nuitka-Winlibs/releases/download/2023.12.04/winlibs64.zip
+          mkdir winlibs
+          tar -xf winlibs.zip -C winlibs
+          echo "winlibs\\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
 
       # 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (amd64, arm64)
       - name: 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (amd64, arm64)
