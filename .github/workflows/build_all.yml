@@ -111,12 +111,17 @@ jobs:
       - name: 2b. Read SCRIPT_VERSION and ARCHIVE_PATH from script_info.txt (Windows)
         if: runner.os == 'Windows'
         run: |
-          # Read SCRIPT_VERSION from the first line
-          $SCRIPT_VERSION = Get-Content script_info.txt | Select-Object -First 1
-
-          # Read ARCHIVE_PATH from the second line and replace '\' by '/'
-          $ARCHIVE_PATH = (Get-Content script_info.txt | Select-Object -Skip 1 -First 1) -replace '\\', '/'
-          # $ARCHIVE_PATH = Get-Content script_info.txt | Select-String -Pattern "."
+          # Cargar todas las líneas del archivo como un diccionario clave=valor
+          $info = @{}
+          Get-Content script_info.txt | ForEach-Object {
+              if ($_ -match '^([^=]+)=(.*)$') {
+                  $info[$matches[1]] = $matches[2]
+              }
+          }
+          
+          # Acceder a los valores
+          $SCRIPT_VERSION = $info['SCRIPT_VERSION']
+          $ARCHIVE_PATH = $info['ARCHIVE_PATH'] -replace '\\', '/'
 
           # Save both variables on GitHub Actions environment
           echo "SCRIPT_VERSION=$SCRIPT_VERSION" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
