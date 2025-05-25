@@ -6,7 +6,6 @@ import subprocess
 import glob
 import platform
 from pathlib import Path
-import PyInstaller.__main__
 from GlobalVariables import GPTH_VERSION, EXIF_VERSION
 
 def clear_screen():
@@ -225,6 +224,7 @@ def build(compile=True):
     else:
         print("No se pudo obtener SCRIPT_VERSION.")
 
+    # Borramos los ficheros y directorios temporales de compilaciones previas
     print("Borrando archivos temporales de compilaciones previas...")
     Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
     shutil.rmtree('build', ignore_errors=True)
@@ -270,13 +270,6 @@ def build(compile=True):
             exif_folder = "../exif_tool/image"
 
         if compile:
-            # Borramos los ficheros y directorios temporales de compilaciones previas
-            print("Borrando archivos temporales de compilaciones previas...")
-            Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
-            shutil.rmtree('build', ignore_errors=True)
-            shutil.rmtree('dist', ignore_errors=True)
-            print("")
-
             print("Añadiendo paquetes necesarios al entorno Python antes de compilar...")
             subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', '../requirements.txt'])
             if OPERATING_SYSTEM=='windows':
@@ -294,6 +287,7 @@ def build(compile=True):
             # ])
 
             # Prepare PyInstaller for Compilation
+            import PyInstaller.__main__
             pyi_args = [SCRIPT_SOURCE_NAME]
             pyi_args.extend(("--runtime-tmpdir", '/var/tmp'))
             pyi_args.extend(["--onefile"])
