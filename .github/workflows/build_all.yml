@@ -27,7 +27,7 @@ jobs:
         exclude:
           - os: windows-latest
             arch: arm64  # Windows is only compiled for x86 (32/64-bit)
-        python-version: ["3.12.3"]
+        python-version: ["3.12.10"]
 
     runs-on: ${{ matrix.os }}
 
