@@ -328,18 +328,18 @@ def compile(compiler='pyinstaller'):
         print(f'EXIF_FOLDER: {exif_folder}')
 
     print('')
-    print("Añadiendo paquetes necesarios al entorno Python antes de compilar...")
+    print("Adding neccesary packets to Python environment before to compile...")
     subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'])
     subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', './requirements.txt'])
     if OPERATING_SYSTEM == 'windows':
         subprocess.run([sys.executable, '-m', 'pip', 'install', 'windows-curses'])
     print("")
 
-    print(f"Compilando para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}'...")
+    print(f"Compiling for OS: '{OPERATING_SYSTEM}' and architecture: '{ARCHITECTURE}'...")
 
     if compiler=='pyinstaller':
         print("")
-        print("COMPILING WITH Pyinstaller...")
+        print("Compiling with Pyinstaller...")
         # subprocess.run([
         #     'pyinstaller',
         #     '--runtime-tmpdir', '/var/tmp',
@@ -380,7 +380,7 @@ def compile(compiler='pyinstaller'):
 
     elif compiler=='nuitka':
         print("")
-        print("COMPILING WITH Nuitka...")
+        print("Compiling with Nuitka...")
         if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
             os.environ['CC'] = 'gcc'
         elif ARCHITECTURE in ["arm64", "aarch64"]:
