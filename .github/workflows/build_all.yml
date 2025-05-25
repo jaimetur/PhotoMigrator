@@ -50,18 +50,9 @@ jobs:
 #          python -m pip install --upgrade pip
 #          pip install -r requirements.txt
 
-#      - name: Install Visual Studio Build Tools (MSVC)
-#        if: runner.os == 'Windows'
-#        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Install GCC winlibs for Nuitka
+      - name: Install Visual Studio Build Tools (MSVC)
         if: runner.os == 'Windows'
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/Nuitka/Nuitka-Winlibs/releases/download/2023.12.04/winlibs64-c11.zip" -OutFile "winlibs.zip"
-          mkdir winlibs
-          Expand-Archive -Path winlibs.zip -DestinationPath winlibs
-          echo "winlibs\\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-            
+        uses: ilammy/msvc-dev-cmd@v1
 
       # 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (amd64, arm64)
       - name: 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (amd64, arm64)
