@@ -62,6 +62,7 @@ jobs:
           
           # Build for Windows (amd64)
           elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
+            python -m nuitka --install-nuitka-winlibs
             python ./src/_build.py nuitka
                
           # Build for Linux (arm64)
