@@ -397,7 +397,8 @@ def compile(compiler='pyinstaller'):
             # '--standalone',
             '--onefile',
             '--onefile-no-compression',
-            f'--onefile-tempdir-spec=/var/tmp/{script_name_with_version_os_arch}',
+            # f'--onefile-tempdir-spec=/var/tmp/{script_name_with_version_os_arch}',
+            f'--onefile-tempdir-spec={TEMP}/{script_name_with_version_os_arch}',
             '--jobs=4',
             '--mingw64',
             # '--msvc=latest', # Sorry, non-MSVC is not currently supported with Python 3.13. Newer Nuitka will work to solve this. Use Python 3.12 or option "--msvc=latest" as a workaround for now and wait
@@ -408,7 +409,7 @@ def compile(compiler='pyinstaller'):
             f"--file-version={SCRIPT_VERSION_INT.split('-')[0]}",
             f'--copyright={COPYRIGHT_TEXT}',
             f'--include-data-file={gpth_tool}={gpth_tool}',
-            f'--include-data-dir={exif_folder}=./gpth_tool/exif_tool',
+            # f'--include-data-dir={exif_folder}=./gpth_tool/exif_tool',
             # '--include-data-dir=../exif_tool=exif_tool',
 
         ])
