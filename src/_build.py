@@ -450,7 +450,7 @@ if __name__ == "__main__":
         else:
             compiler = arg
     else:
-        compiler = 'pyinstaller'  # valor por defecto
+        compiler = False  # valor por defecto
 
     ok = main(compiler=compiler)
     if ok:
