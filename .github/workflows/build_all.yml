@@ -83,7 +83,8 @@ jobs:
             docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace ubuntu:20.04 bash -c "
                 apt update && \
                 apt install -y gcc-aarch64-linux-gnu python3 python3-pip patchelf && \
-                python3 ./src/_build.py pyinstaller
+                python -m pip install piexif
+                python ./src/_build.py pyinstaller
                 "
           
           # Build for Linux (amd64)

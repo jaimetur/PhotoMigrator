@@ -198,8 +198,8 @@ def main(compiler='pyinstaller'):
 
     print('')
     print("Adding neccesary packets to Python environment before to compile...")
-    subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'])
-    subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', './requirements.txt'])
+    # subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'])
+    # subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', './requirements.txt'])
     if OPERATING_SYSTEM == 'windows':
         subprocess.run([sys.executable, '-m', 'pip', 'install', 'windows-curses'])
     print("")
