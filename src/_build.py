@@ -6,34 +6,8 @@ import subprocess
 import glob
 import platform
 from pathlib import Path
-from GlobalVariables import GPTH_VERSION, EXIF_VERSION
-
-def clear_screen():
-    os.system('clear' if os.name == 'posix' else 'cls')
-
-def comprimir_directorio(temp_dir, output_file):
-    print(f"Creando el archivo comprimido: {output_file}...")
-
-    # Convertir output_file a un objeto Path
-    output_path = Path(output_file)
-
-    # Crear los directorios padres si no existen
-    if not output_path.parent.exists():
-        print(f"Creando directorios necesarios para: {output_path.parent}")
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        for root, dirs, files in os.walk(temp_dir):
-            for file in files:
-                file_path = Path(root) / file
-                # Añade al zip respetando la estructura de carpetas
-                zipf.write(file_path, file_path.relative_to(temp_dir))
-            for dir in dirs:
-                dir_path = Path(root) / dir
-                # Añade directorios vacíos al zip
-                if not os.listdir(dir_path):
-                    zipf.write(dir_path, dir_path.relative_to(temp_dir))
-    print(f"Archivo comprimido correctamente: {output_file}")
+from GlobalVariables import GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
+from Utils import zip_folder, unzip, unzip_flatten, clear_screen, print_arguments_pretty
 
 def include_extrafiles_and_zip(input_file, output_file):
     extra_files_to_subdir = [
@@ -59,17 +33,13 @@ def include_extrafiles_and_zip(input_file, output_file):
         print("Uso: include_extrafiles_and_zip(input_file, output_file)")
         sys.exit(1)
     if not Path(input_file).is_file():
-        print(f"ERROR   : El archivo de entrada '{input_file}' no existe.")
+        print(f"ERROR   : The input file '{input_file}' does not exists.")
         sys.exit(1)
     temp_dir = Path(tempfile.mkdtemp())
     script_version_dir = os.path.join(temp_dir, SCRIPT_NAME_VERSION)
     print(script_version_dir)
     os.makedirs(script_version_dir, exist_ok=True)
     shutil.copy(input_file, script_version_dir)
-    # # Creamos una carpeta vacía llamada 'MyTakeout'
-    # takeout_dir = os.path.join(script_version_dir, "MyTakeout")
-    # print(takeout_dir)
-    # os.makedirs(takeout_dir, exist_ok=True)
 
     # Ahora copiamos los extra files
     for subdirs_dic in extra_files_to_subdir:
@@ -89,25 +59,24 @@ def include_extrafiles_and_zip(input_file, output_file):
             for file in matched_files:
                 shutil.copy(file, subdir_path)
     # Comprimimos el directorio temporal y después lo borramos
-    comprimir_directorio(temp_dir, output_file)
+    zip_folder(temp_dir, output_file)
     shutil.rmtree(temp_dir)
 
 def get_script_version(file):
     if not Path(file).is_file():
-        print(f"ERROR   : El archivo {file} no existe.")
+        print(f"ERROR   : The file {file} does not exists.")
         return None
     with open(file, 'r') as f:
         for line in f:
             if line.startswith("SCRIPT_VERSION"):
                 return line.split('"')[1]
-    print("ERROR   : No se encontró un valor entre comillas después de SCRIPT_VERSION.")
+    print("ERROR   : Not found any value between colons after SCRIPT_VERSION.")
     return None
 
 def get_clean_version(version: str):
     # Elimina la 'v' si existe al principio
     clean_version = version.lstrip('v')
     return clean_version
-
 
 def extract_release_body(download_file, input_file, output_file):
     """Extracts two specific sections from the release notes file, modifies a header, and appends them along with additional content from another file."""
@@ -141,6 +110,9 @@ def extract_release_body(download_file, input_file, output_file):
     with open(download_file, 'r', encoding='utf-8') as df:
         download_content = df.readlines()
     # Append both the download file content and the release section to the output file
+    # Si el archivo ya existe, lo eliminamos
+    if os.path.exists(output_file):
+        os.remove(output_file)
     with open(output_file, 'a', encoding='utf-8') as outfile:
         outfile.writelines(release_section)
         outfile.writelines(download_content)
@@ -170,69 +142,69 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
             break
     if start_index is not None and end_index is not None:
         # Sustituir el bloque ROADMAP existente
-        print("encuentro bloque roadmap")
+        print("'ROADMAP' block found")
         updated_readme = readme_lines[:start_index] + [roadmap_content] + readme_lines[end_index:]
     else:
         # Buscar la línea donde comienza "## 🎖️ Credits" para insertar el bloque ROADMAP antes
         credits_index = next((i for i, line in enumerate(readme_lines) if line.strip() == "## 🎖️ Credits:"), None)
         if credits_index is not None:
-            print ("encuentro credits pero no roadmap")
+            print ("'CREDITS' block found but 'ROADMAP' block not found")
             updated_readme = readme_lines[:credits_index] + [roadmap_content] + readme_lines[credits_index:]
         else:
             # Si no se encuentra "## 🎖️ Credits", simplemente añadir al final del archivo
-            print ("no encuentro credits")
+            print ("'CREDITS' block not found")
             updated_readme = readme_lines + [roadmap_content]
     # Escribir el contenido actualizado en el archivo README
     with open(readme_file, "w", encoding="utf-8") as f:
         f.writelines(updated_readme)
 
 
-def build(compile=True):
-    global SCRIPT_NAME
-    global SCRIPT_NAME_VERSION
-    global OS
+def main(compiler='pyinstaller'):
+    global OPERATING_SYSTEM
     global ARCHITECTURE
-    global ARCHITECTURES
+    global SCRIPT_NAME
     global SCRIPT_SOURCE_NAME
-    global COMPILER
+    global SCRIPT_VERSION
+    global SCRIPT_VERSION_WITHOUT_V
+    global SCRIPT_NAME_VERSION
+    global root_dir
+
+    # Detect the operating system and architecture
+    OPERATING_SYSTEM = platform.system().lower().replace('darwin', 'macos')
+    ARCHITECTURE = platform.machine().lower().replace('x86_64', 'amd64').replace('aarch64', 'arm64')
+    SCRIPT_NAME = "PhotoMigrator"
+    SCRIPT_SOURCE_NAME = f"{SCRIPT_NAME}.py"
+    SCRIPT_VERSION = get_script_version('./src/GlobalVariables.py')
+    SCRIPT_VERSION_WITHOUT_V = get_clean_version(SCRIPT_VERSION)
+    SCRIPT_NAME_VERSION = f"{SCRIPT_NAME}_{SCRIPT_VERSION}"
+
+    # Obtener el directorio raíz un nivel arriba del directorio de trabajo
+    # root_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+    
+    # Obtener el directorio de trabajo
+    root_dir = os.getcwd()
 
     clear_screen()
     print("")
-    print("======================================================")
-    print(f"INFO:    Ejecutando módulo main(compile={compile})...")
-    print("======================================================")
+    print("============================================================")
+    print(f"INFO:    Running Main Module - main(compiler={compiler})...")
+    print("============================================================")
     print("")
 
-    # Select Compiler
-    COMPILER = 'nuitka'
-    COMPILER = 'pyinstaller'
-
-    # Detect the operating system and architecture
-    OPERATING_SYSTEM = platform.system().lower().replace('darwin','macos')
-    ARCHITECTURE = platform.machine().lower().replace('x86_64','amd64').replace('aarch64', 'arm64')
-    SCRIPT_NAME = "PhotoMigrator"
-    SCRIPT_SOURCE_NAME = f"{SCRIPT_NAME}.py"
-    SCRIPT_VERSION = get_script_version('GlobalVariables.py')
-    SCRIPT_VERSION_INT = get_clean_version(SCRIPT_VERSION)
-    SCRIPT_NAME_VERSION = f"{SCRIPT_NAME}_{SCRIPT_VERSION}"
-    COPYRIGHT_TEXT = "(c) 2024-2025 - Jaime Tur (@jaimetur)"
+    print("Adding neccesary packets to Python environment before to compile...")
+    # subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'])
+    # subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', './requirements.txt'])
+    if OPERATING_SYSTEM == 'windows':
+        subprocess.run([sys.executable, '-m', 'pip', 'install', 'windows-curses'])
+    print("")
 
     if SCRIPT_VERSION:
-        print(f"SCRIPT_VERSION encontrado: {SCRIPT_VERSION}")
+        print(f"SCRIPT_VERSION found: {SCRIPT_VERSION_WITHOUT_V}")
     else:
-        print("No se pudo obtener SCRIPT_VERSION.")
+        print("Caanot find SCRIPT_VERSION.")
 
-    print("Borrando archivos temporales de compilaciones previas...")
-    Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
-    shutil.rmtree('build', ignore_errors=True)
-    shutil.rmtree('dist', ignore_errors=True)
-    print("")
-    
     # Extraer el cuerpo de la CURRENT-RELEASE-NOTES y añadir ROADMAP al fichero README.md
-    print("Extrayendo el cuerpo de la CURRENT-RELEASE-NOTES y añadiendo ROADMAP al fichero README.md...")
-    
-    # Obtener el directorio raíz un nivel arriba del directorio de trabajo
-    root_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+    print("Extracting body of CURRENT-RELEASE-NOTES and adding ROADMAP to file README.md...")
 
     # Ruta de los archivos RELEASES-NOTES.md, CURRENT-RELEASE.md, README.md y ROADMAP.md
     download_filepath = os.path.join(root_dir, 'docs', 'DOWNLOAD.md')
@@ -243,133 +215,250 @@ def build(compile=True):
 
     # Extraer el cuerpo de la Release actual de RELEASES-NOTES.md
     extract_release_body(download_filepath, releases_filepath, current_release_filepath)
-    print(f"Archivo {current_release_filepath} creado correctamente.")
-    
+    print(f"File '{current_release_filepath}' created successfully!.")
+
     # Añadimos el ROADMAP en el fichero README
     add_roadmap_to_readme(readme_filepath, roadmap_filepath)
-    print(f"Archivo README.md actualizado correctamente con el ROADMAP.md")
+    print(f"File 'README.md' updated successfully with ROADMAP.md")
 
-    if COMPILER=='pyinstaller':
-        # Inicializamos variables
-        script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-        script_zip_file = Path(f"../_built_versions/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
-        gpth_tool = f"../gpth_tool/gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext:gpth_tool"
-        # exif_tool = f"../exif_tool/exif-{EXIF_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext:exif_tool"
-        if OPERATING_SYSTEM=='windows':
-            script_compiled = f'{SCRIPT_NAME}.exe'
-            script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
-            gpth_tool = gpth_tool.replace(".ext", ".exe")
-            # exif_tool = exif_tool.replace(".ext", ".exe")
-        else:
-            script_compiled = f'{SCRIPT_NAME}'
-            script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
-            gpth_tool = gpth_tool.replace(".ext", ".bin")
-            # exif_tool = exif_tool.replace(".ext", ".bin")
-
-        if compile:
-            print("Añadiendo paquetes necesarios al entorno Python antes de compilar...")
-            subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', '../requirements.txt'])
-            if OPERATING_SYSTEM=='windows':
-                subprocess.run([sys.executable, '-m', 'pip', 'install', 'windows-curses'])
-            print("")
-            print(f"Compilando para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}'...")
-            subprocess.run([
-                'pyinstaller',
-                '--runtime-tmpdir', '/var/tmp',
-                '--onefile',
-                '--add-data', gpth_tool,
-                # '--add-data', exif_tool,
-                f'{SCRIPT_SOURCE_NAME}'
-            ])
-
-            # Movemos el fichero compilado a la carpeta padre
-            print(f"\nMoviendo script compilado '{script_compiled_with_version_os_arch_extension}'...")
-            shutil.move(f'./dist/{script_compiled}', f'../{script_compiled_with_version_os_arch_extension}')
-            # Comprimimos la carpeta con el script compilado y los ficheros y directorios a incluir
-            include_extrafiles_and_zip(f'../{script_compiled_with_version_os_arch_extension}', script_zip_file)
-            # Borramos los ficheros y directorios temporales de la compilación
-            print("Borrando archivos temporales de la compilación...")
-            Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
-            shutil.rmtree('build', ignore_errors=True)
-            shutil.rmtree('dist', ignore_errors=True)
-            print(f"Compilación para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}' concluida con éxito.")
-            print(f"Script compilado: {script_compiled_with_version_os_arch_extension}")
-            print(f"Script comprimido: {script_zip_file}")
-
-    elif COMPILER=='nuitka':
-        ARCHITECTURES = ["amd64", "arm64"]
-        for ARCHITECTURE in ARCHITECTURES:
-            script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-            gpth_tool = f"../gpth_tool/gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext=gpth_tool/gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext"
-            if OPERATING_SYSTEM=='windows':
-                script_compiled = f'{SCRIPT_NAME}.exe'
-                script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
-                gpth_tool = gpth_tool.replace(".ext", ".exe")
-            else:
-                script_compiled = f'{SCRIPT_NAME}.bin'
-                script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
-                gpth_tool = gpth_tool.replace(".ext", ".bin")
-                                
-            script_zip_file = Path(f"../_built_versions/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
-
-            if compile:
-                print("")
-                print(f"Compilando para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}'...")
-                if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
-                    os.environ['CC'] = 'gcc'
-                elif ARCHITECTURE in ["arm64", "aarch64"]:
-                    os.environ['CC'] = 'aarch64-linux-gnu-gcc'
-                else:
-                    print(f"Arquitectura desconocida: {ARCHITECTURE}")
-                    sys.exit(1)
-                subprocess.run([
-                    'nuitka',
-                    f'{SCRIPT_SOURCE_NAME}',
-                    # '--standalone',
-                    '--onefile',
-                    '--onefile-no-compression',
-                    f'--onefile-tempdir-spec=/var/tmp/{script_name_with_version_os_arch}',
-                    '--jobs=4',
-                    '--static-libpython=yes',
-                    '--lto=yes',
-                    '--remove-output',
-                    '--output-dir=./dist',
-                    f'--file-version={SCRIPT_VERSION_INT}',
-                    f'--copyright={COPYRIGHT_TEXT}',
-                    f'--include-data-file={gpth_tool}',
-                    #f'--include-raw-dir=../gpth_tool=gpth_tool',
-                    # '--include-raw-dir=../exif_tool=exif_tool',
-                    # '--include-data-dir=../gpth_tool=gpth_tool',
-                    # '--include-data-dir=../exif_tool=exif_tool',
-                    '--include-data-file=Synology.config=Synology.config',
-                    '--include-data-file=../README.md=README.md'
-                ])
-
-                # Movemos el fichero compilado a la carpeta padre
-                print(f"\nMoviendo script compilado '{script_compiled_with_version_os_arch_extension}'...")
-                shutil.move(f'./dist/{script_compiled}', f'../{script_compiled_with_version_os_arch_extension}')
-                # Comprimimos la carpeta con el script compilado y los ficheros y directorios a incluir
-                include_extrafiles_and_zip(f'../{script_compiled_with_version_os_arch_extension}', script_zip_file)
-                # Borramos los ficheros y directorios temporales de la compilación
-                print("Borrando archivos temporales de la compilación...")
-                Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
-                shutil.rmtree('build', ignore_errors=True)
-                shutil.rmtree('dist', ignore_errors=True)
-                print(f"Compilación para OS: '{OPERATING_SYSTEM}' y arquitectura: '{ARCHITECTURE}' concluida con éxito.")
-                print(f"Script compilado: {script_compiled}")
-                print(f"Script comprimido: {script_zip_file}")
-
-    print("Todas las compilaciones han finalizado correctamente.")
-    
     # Calcular el path relativo
+    script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
+    script_zip_file = Path(f"./PhotoMigrator-builts/{SCRIPT_VERSION_WITHOUT_V}/{script_name_with_version_os_arch}.zip").resolve()
     relative_path = os.path.relpath(script_zip_file, root_dir)
-    
+
     # Guardar script_info.txt en un fichero de texto
-    with open(os.path.join(root_dir,'script_info.txt'), 'w') as file:
-        file.write(SCRIPT_VERSION_INT + '\n')
-        file.write(relative_path + '\n')
-    print(f'El path relativo es: {relative_path}')
+    with open(os.path.join(root_dir, 'script_info.txt'), 'w') as file:
+        file.write('OPERATING_SYSTEM=' + OPERATING_SYSTEM + '\n')
+        file.write('ARCHITECTURE=' + ARCHITECTURE + '\n')
+        file.write('COMPILER=' + str(compiler) + '\n')
+        file.write('SCRIPT_NAME=' + SCRIPT_NAME + '\n')
+        file.write('SCRIPT_VERSION=' + SCRIPT_VERSION_WITHOUT_V + '\n')
+        file.write('ROOT_PATH=' + root_dir + '\n')
+        file.write('ARCHIVE_PATH=' + relative_path + '\n')
+        print('')
+        print(f'OPERATING_SYSTEM: {OPERATING_SYSTEM}')
+        print(f'ARCHITECTURE: {ARCHITECTURE}')
+        print(f'COMPILER: {compiler}')
+        print(f'SCRIPT_NAME: {SCRIPT_NAME}')
+        print(f'SCRIPT_VERSION: {SCRIPT_VERSION_WITHOUT_V}')
+        print(f'ROOT_PATH: {root_dir}')
+        print(f'ARCHIVE_PATH: {relative_path}')
+
+    ok = True
+    # Run Compile
+    if compiler:
+        ok = compile(compiler=compiler)
+    return ok
+
+def compile(compiler='pyinstaller'):
+    global OPERATING_SYSTEM
+    global ARCHITECTURE
+    global SCRIPT_NAME
+    global SCRIPT_SOURCE_NAME
+    global SCRIPT_VERSION
+    global SCRIPT_VERSION_WITHOUT_V
+    global SCRIPT_NAME_VERSION
+    global root_dir
+
+    # Inicializamos variables
+    SCRIPT_NAME_WITH_VERSION_OS_ARCH = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
+    script_zip_file = Path(f"PhotoMigrator-builts//{SCRIPT_VERSION_WITHOUT_V}/{SCRIPT_NAME_WITH_VERSION_OS_ARCH}.zip").resolve()
+    splash_image = "assets/logos/logo_03.jpg" # Splash image for windows
+    gpth_tool = f"gpth_tool/gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext"
+    exif_folder_tmp = "tmp/exif_tool"
+    exif_folder_dest = "gpth_tool"
+    # exif_tool = f"../exif_tool/exif-{EXIF_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext:exif_tool"
+    if OPERATING_SYSTEM == 'windows':
+        script_compiled = f'{SCRIPT_NAME}.exe'
+        script_compiled_with_version_os_arch_extension = f"{SCRIPT_NAME_WITH_VERSION_OS_ARCH}.exe"
+        gpth_tool = gpth_tool.replace(".ext", ".exe")
+        exif_tool_zipped = "exif_tool/windows.zip"
+    else:
+        if compiler=='pyinstaller':
+            script_compiled = f'{SCRIPT_NAME}'
+        else:
+            script_compiled = f'{SCRIPT_NAME}.bin'
+        script_compiled_with_version_os_arch_extension = f"{SCRIPT_NAME_WITH_VERSION_OS_ARCH}.run"
+        gpth_tool = gpth_tool.replace(".ext", ".bin")
+        exif_tool_zipped = "exif_tool/others.zip"
+
+    # Guardar script_info.txt en un fichero de texto
+    with open(os.path.join(root_dir, 'script_info.txt'), 'a') as file:
+        file.write('SCRIPT_COMPILED=' + os.path.abspath(script_compiled_with_version_os_arch_extension) + '\n')
+        file.write('GPTH_TOOL=' + gpth_tool + '\n')
+        file.write('EXIF_TOOL=' + exif_tool_zipped + '\n')
+        print('')
+        print(f'SCRIPT_COMPILED: {script_compiled}')
+        print(f'GPTH_TOOL: {gpth_tool}')
+        print(f'EXIF_TOOL: {exif_tool_zipped}')
+
+    print("")
+    print("=================================================================================================")
+    print(f"INFO:    Compiling with '{compiler}' for OS: '{OPERATING_SYSTEM}' and architecture: '{ARCHITECTURE}'...")
+    print("=================================================================================================")
+    print("")
+
+    if compiler=='pyinstaller':
+        print("Compiling with Pyinstaller...")
+        import PyInstaller.__main__
+
+        # Build and Dist Folders for Pyinstaller
+        build_path = "./build_pyinstaller/"
+        dist_path = "./dist_pyinstaller/"
+
+        # Add _pyinstaller suffix to exif_folder_tmp to avoid conflict if both commpiler are running in parallel
+        exif_folder_tmp = exif_folder_tmp.replace('tmp', 'tmp_pyinstaller')
+
+        # Borramos los ficheros y directorios temporales de compilaciones previas
+        print("Removing temporary files from previous compilations...")
+        Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
+        shutil.rmtree(build_path, ignore_errors=True)
+        shutil.rmtree(dist_path, ignore_errors=True)
+        print("")
+
+        # Prepare pyinstaller_command
+        pyinstaller_command = ['./src/' + SCRIPT_SOURCE_NAME]
+        if COMPILE_IN_ONE_FILE:
+            pyinstaller_command.extend(["--onefile"])
+        else:
+            pyinstaller_command.extend(['--onedir'])
+        pyinstaller_command.extend(["--noconfirm"])
+        pyinstaller_command.extend(("--splash", splash_image))
+        pyinstaller_command.extend(("--distpath", dist_path))
+        pyinstaller_command.extend(("--workpath", build_path))
+        pyinstaller_command.extend(("--add-data", gpth_tool + ':gpth_tool'))
+        if INCLUDE_EXIF_TOOL:
+            # First delete exif_folder_tmp if exists
+            shutil.rmtree(exif_folder_tmp, ignore_errors=True)
+            # Unzip Exif_tool and include it to compiled binary with Pyinstaller
+            print("\nUnzipping EXIF Tool to include it in binary compiled file...")
+            unzip(exif_tool_zipped, exif_folder_tmp)
+            # Añadir los archivos directamente en la carpeta raíz
+            pyinstaller_command.extend(("--add-data", f"{exif_folder_tmp}:{exif_folder_dest}"))
+            # Recorrer todas las carpetas recursivamente
+            for path in Path(exif_folder_tmp).rglob('*'):
+                if path.is_dir():
+                    # Verificar si contiene al menos un archivo
+                    has_files = any(f.is_file() for f in path.iterdir())
+                    if not has_files:
+                        continue  # Saltar carpetas sin archivos
+                    relative_path = path.relative_to(exif_folder_tmp).as_posix()
+                    dest_path = f"{exif_folder_dest}/{relative_path}"
+                    src_path = path.as_posix()
+                    # Añadir todos los archivos directamente dentro de esa carpeta
+                    pyinstaller_command.extend(("--add-data", f"{src_path}:{dest_path}"))
+        if OPERATING_SYSTEM == 'linux':
+            pyinstaller_command.extend(("--runtime-tmpdir", '/var/tmp'))
+
+        # Now Run PyInstaller with previous settings
+        print_arguments_pretty(pyinstaller_command, title="Pyinstaller Arguments")
+        PyInstaller.__main__.run(pyinstaller_command)
+
+    elif compiler=='nuitka':
+        print("Compiling with Nuitka...")
+        if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
+            os.environ['CC'] = 'gcc'
+        elif ARCHITECTURE in ["arm64", "aarch64"]:
+            os.environ['CC'] = 'aarch64-linux-gnu-gcc'
+        else:
+            print(f"Unknown architecture: {ARCHITECTURE}")
+            return False
+        print("")
+
+        # Build and Dist Folders for Nuitka
+        build_path = "./build_nuitka/"
+        dist_path = "./dist_nuitka/"
+
+        # Add _nuitka suffix to exif_folder_tmp to avoid conflict if both commpiler are running in parallel
+        exif_folder_tmp = exif_folder_tmp.replace('tmp', 'tmp_nuitka')
+
+        # Borramos los ficheros y directorios temporales de compilaciones previas
+        print("Removing temporary files from previous compilations...")
+        Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
+        shutil.rmtree(build_path, ignore_errors=True)
+        shutil.rmtree(dist_path, ignore_errors=True)
+        print("")
+
+        # Prepare nuitka_command
+        nuitka_command = [
+            sys.executable, '-m', 'nuitka',
+            f"{'./src/' + SCRIPT_SOURCE_NAME}",
+        ]
+        if COMPILE_IN_ONE_FILE:
+            nuitka_command.extend(['--onefile'])
+            nuitka_command.extend([f'--onefile-windows-splash-screen-image={splash_image}'])
+            # nuitka_command.append('--onefile-no-compression)
+        else:
+            nuitka_command.extend(['--standalone'])
+        nuitka_command.extend([
+            # '--jobs=4',
+            '--assume-yes-for-downloads',
+            '--enable-plugin=tk-inter',
+            '--lto=yes',
+            '--remove-output',
+            f'--output-dir={dist_path}',
+            f"--file-version={SCRIPT_VERSION_WITHOUT_V.split('-')[0]}",
+            f'--copyright={COPYRIGHT_TEXT}',
+            f'--include-data-file={gpth_tool}={gpth_tool}',
+        ])
+        if INCLUDE_EXIF_TOOL:
+            # First delete exif_folder_tmp if exists
+            shutil.rmtree(exif_folder_tmp, ignore_errors=True)
+            # Unzip Exif_tool and include it to compiled binary with Nuitka
+            print("\nUnzipping EXIF Tool to include it in binary compiled file...")
+            unzip(exif_tool_zipped, exif_folder_tmp)
+            nuitka_command.extend([f'--include-data-files={exif_folder_tmp}={exif_folder_dest}/=**/*.*'])
+            nuitka_command.extend([f'--include-data-dir={exif_folder_tmp}={exif_folder_dest}'])
+            # nuitka_command.extend(['--include-data-dir=../exif_tool=exif_tool'])
+        if OPERATING_SYSTEM == 'linux':
+            nuitka_command.extend([f'--onefile-tempdir-spec=/var/tmp/{SCRIPT_NAME_WITH_VERSION_OS_ARCH}'])
+        # Now Run Nuitka with previous settings
+        print_arguments_pretty(nuitka_command, title="Nuitka Arguments")
+        subprocess.run(nuitka_command)
+    else:
+        print(f"Compiler '{compiler}' not supported. Valid options are 'pyinstaller' or 'nuitka'. Compilation skipped.")
+        return False
+
+    # Script Compiled Absolute Path
+    script_compiled_abs_path = ''
+    if compiler == 'pyinstaller':
+        script_compiled_abs_path = os.path.abspath(f"{dist_path}/{script_compiled}")
+    elif compiler == 'nuitka':
+        script_compiled_abs_path = os.path.abspath(f"{dist_path}/{SCRIPT_NAME}.dist/{script_compiled}")
+
+    # Move the compiled script to the parent folder
+    if COMPILE_IN_ONE_FILE:
+        print('')
+        print(f"Moving compiled script '{script_compiled_with_version_os_arch_extension}'...")
+        shutil.move(f'{dist_path}/{script_compiled}', f'./{script_compiled_with_version_os_arch_extension}')
+        # Compress the folder with the compiled script and the files/directories to include
+        include_extrafiles_and_zip(f'./{script_compiled_with_version_os_arch_extension}', script_zip_file)
+        script_compiled_abs_path = os.path.abspath(script_compiled_with_version_os_arch_extension)
+
+    # Delete temporary files and folders created during compilation
+    print('')
+    print("Deleting temporary compilation files...")
+    shutil.rmtree(exif_folder_tmp, ignore_errors=True)
+    shutil.rmtree("tmp_pyinstaller", ignore_errors=True)
+    shutil.rmtree("tmp_nuitka", ignore_errors=True)
+    Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
+    Path(f"nuitka-crash-report.xml").unlink(missing_ok=True)
+    shutil.rmtree(build_path, ignore_errors=True)
+    if COMPILE_IN_ONE_FILE:
+        shutil.rmtree(dist_path, ignore_errors=True)
+    print("Temporary compilation files successfully deleted!")
+
+    print('')
+    print("=================================================================================================")
+    print(f"Compilation for OS: '{OPERATING_SYSTEM}' and architecture: '{ARCHITECTURE}' completed successfully.")
+    print(f"SCRIPT_COMPILED: {script_compiled_abs_path}")
+    print(f"SCRIPT_ZIPPED  : {script_zip_file}")
+    print('')
+    print("All compilations have finished successfully.")
+    print("=================================================================================================")
+    print('')
     return True
+
 
 if __name__ == "__main__":
     # Obtener argumento si existe
@@ -377,18 +466,18 @@ if __name__ == "__main__":
 
     # Convertir a booleano
     if arg is not None:
-        arg_lower = arg.lower()
-        if arg_lower in ['true', '1', 'yes', 'y']:
-            compile_flag = True
-        elif arg_lower in ['false', '0', 'no', 'n']:
-            compile_flag = False
+        arg_lower = arg.lower() 
+        if arg_lower in ['false', '0', 'no', 'n', 'None']:
+            compiler = None
         else:
-            print(f"Valor inválido para compile: {arg}")
-            sys.exit(1)
+            compiler = arg
     else:
-        compile_flag = True  # valor por defecto
+        compiler = None  # valor por defecto
 
-    ok = build(compile=compile_flag)
+    ok = main(compiler=compiler)
     if ok:
-        print('COMPILATION FINISHED SUCCESSFULLY!')
-    sys.exit(0)
+        print('INFO    : COMPILATION FINISHED SUCCESSFULLY!')
+        sys.exit(0)
+    else:
+        print('ERROR   : BUILD FINISHED WITH ERRORS!')
+        sys.exit(-1)

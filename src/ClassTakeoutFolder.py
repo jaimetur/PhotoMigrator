@@ -197,7 +197,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"==========================================")
             processing_start_time = datetime.now()
 
-            if capture_output is None: capture_output=self.ARGS['show-gpth-progress']
+            if capture_output is None: capture_output=self.ARGS['show-gpth-info']
             if capture_errors is None: capture_errors=self.ARGS['show-gpth-errors']
 
             # step 1: Pre-Process Takeout folder

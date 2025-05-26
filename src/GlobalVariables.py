@@ -13,6 +13,8 @@ SCRIPT_NAME_VERSION             = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
 # GPTH_VERSION                    = "3.6.2"
 GPTH_VERSION                    = "4.0.0"
 EXIF_VERSION                    = "3.0.0"
+INCLUDE_EXIF_TOOL               = True
+COMPILE_IN_ONE_FILE             = False
 LOG_FOLDER_FILENAME             = ""
 START_TIME                      = datetime.now()
 TIMESTAMP                       = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -22,6 +24,7 @@ PARSER                          = None
 LOGGER                          = None
 LOG_LEVEL_MIN                   = logging.DEBUG
 LOG_LEVEL                       = logging.INFO
+COPYRIGHT_TEXT                  = "(c) 2024-2025 - Jaime Tur (@jaimetur)"
 
 # List of Folder to Deprioritize when looking for duplicates.
 DEPRIORITIZE_FOLDERS_PATTERNS   = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS', '*No-Albums', '*Others', '*Variad[oa]*', '*Vari[oa]*', '*Miscellaneous*', '*M[oó]vil*', r'\bfotos\b\s+(\w+)\s*$', r'fotos de \w y \w\s*$', r'fotos de \w\s*$', '*Fotos_de*', '*Fotos_con', '*Fotos de*', '*Fotos con*']

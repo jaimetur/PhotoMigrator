@@ -7,6 +7,7 @@ import threading
 import queue
 import re
 import time
+from packaging.version import Version
 
 from CustomLogger import set_log_level
 from GlobalVariables import LOGGER, GPTH_VERSION
@@ -54,7 +55,8 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         input_folder = os.path.abspath(input_folder)
         output_folder = os.path.abspath(output_folder)
         LOGGER.info(f"INFO    : Running GPTH Tool...")
-        LOGGER.info(f"INFO    : Input Folder: '{input_folder}'")
+        LOGGER.info(f"INFO    : GPTH Version : '{GPTH_VERSION}'")
+        LOGGER.info(f"INFO    : Input Folder : '{input_folder}'")
         LOGGER.info(f"INFO    : Output Folder: '{output_folder}'")
 
         # Detect the operating system
@@ -76,7 +78,10 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         # Usar resource_path para acceder a archivos o directorios:
         gpth_tool_path = resource_path(os.path.join("gpth_tool", tool_name))
 
-        gpth_command = [gpth_tool_path, "--input", input_folder, "--output", output_folder, "--no-interactive"]
+        if Version(GPTH_VERSION) >= Version("4.0.0"):
+            gpth_command = [gpth_tool_path, "--input", input_folder, "--output", output_folder, "--no-interactive", "--write-exif"]
+        else:
+            gpth_command = [gpth_tool_path, "--input", input_folder, "--output", output_folder, "--no-interactive"]
 
         # If ignore_takeout_structure is True, we append --fix input_folder to the gpth tool call
         if ignore_takeout_structure:

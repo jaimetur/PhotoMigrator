@@ -41,7 +41,7 @@ usage: PhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
                                   [-gafs ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gnas ['flatten', 'year', 'year/month', 'year-month']]
                                   [-gcsa] [-gics] [-gmtf] [-grdf] [-gsef] [-gsma] [-gsgt]
-                                  [-gpthProg [= [true,false]]] [-gpthErr [= [true,false]]]
+                                  [-gpthInfo [= [true,false]]] [-gpthErr [= [true,false]]]
                                   [-uAlb <ALBUMS_FOLDER>]
                                   [-dAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
                                   [-uAll <INPUT_FOLDER>] [-dAll <OUTPUT_FOLDER>] [-rOrphan]
@@ -205,7 +205,7 @@ will use the default values for the rest of the flags for this extra mode.
              Skip processing files with GPTH Tool.
              CAUTION: This option is NOT RECOMMENDED because this is the Core of the
              Google Photos Takeout Process. Use this flag only for testing purposses.
--gpthProg, --show-gpth-progress = [true,false]
+-gpthInfo, --show-gpth-info = [true,false]
              Enable or disable Progress messages during GPTH Processing. (default: False).
 -gpthErr,  --show-gpth-errors = [true,false]
              Enable or disable Error messages during GPTH Processing. (default: True).

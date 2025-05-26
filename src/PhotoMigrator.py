@@ -3,6 +3,7 @@ import ChangeWorkingDir
 ChangeWorkingDir.change_working_dir(change_dir=True)
 
 import os,sys
+import importlib
 try:
     import tkinter as tk
     from tkinter import filedialog
@@ -16,12 +17,10 @@ def select_folder_gui():
     return filedialog.askdirectory(title="Select the Google Takeout folder to process")
 
 # Verificar si el script se ejecutó con un solo argumento que sea una ruta de una carpeta existente
-if len(sys.argv) == 2 and os.path.isdir(sys.argv[1]):
+if len(sys.argv) >= 2 and os.path.isdir(sys.argv[1]):
     print(f"INFO    : Valid folder detected as input: '{sys.argv[1]}'")
     print(f"INFO    : Executing Google Takeout Photos Processor Feature with the provided input folder...")
-    input_folder = sys.argv[1]
-    sys.argv[1] = "--google-takeout"
-    sys.argv.append(input_folder)
+    sys.argv.insert(1, "--google-takeout")
 
 # Verificar si el script se ejecutó sin argumentos, en ese caso se pedira al usuario queue introduzca la ruta de la caroeta que contiene el Takeout a procesar
 elif len(sys.argv) == 1:
@@ -59,6 +58,21 @@ from ExecutionModes import detect_and_run_execution_mode
 def main():
     # Limpiar la pantalla y parseamos argumentos de entrada
     os.system('cls' if os.name == 'nt' else 'clear')
+
+    # Remove Splash image from Pyinstaller
+    if '_PYI_SPLASH_IPC' in os.environ and importlib.util.find_spec("pyi_splash"):
+        import pyi_splash
+        pyi_splash.update_text('UI Loaded ...')
+        pyi_splash.close()
+
+    # Remove Splash image from Nuitka
+    if "NUITKA_ONEFILE_PARENT" in os.environ:
+        splash_filename = os.path.join(
+            tempfile.gettempdir(),
+            "onefile_%d_splash_feedback.tmp" % int(os.environ["NUITKA_ONEFILE_PARENT"]),
+        )
+        if os.path.exists(splash_filename):
+            os.unlink(splash_filename)
 
     # Print the Header (common for all modules)
     LOGGER.info(SCRIPT_DESCRIPTION)

@@ -1,4 +1,4 @@
-name: Build Docker Image and Binaries for Multiple Platforms
+name: Build Binaries for Multiple Platforms and Docker Image
 
 on:
   workflow_dispatch:      # Allows manual execution of the workflow
@@ -22,12 +22,13 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]  # os list
+#        os: [ubuntu-latest, macos-latest, windows-latest]  # os list
+        os: [ubuntu-latest, windows-latest]  # os list
         arch: [x86_64, arm64]  # arch list
         exclude:
           - os: windows-latest
             arch: arm64  # Windows is only compiled for x86 (32/64-bit)
-        python-version: ["3.12.3"]
+        python-version: ["3.12.10"]
 
     runs-on: ${{ matrix.os }}
 
@@ -44,6 +45,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+#      - name: Install Visual Studio Build Tools (MSVC)
+#        if: runner.os == 'Windows'
+#        uses: ilammy/msvc-dev-cmd@v1
 
       # 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (amd64, arm64)
       - name: 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (amd64, arm64)
@@ -52,13 +62,14 @@ jobs:
                     
           # Build for macOS (any architecture)
           if [[ "${{ matrix.os }}" == *"macos"* ]]; then
-            cd src
-            arch -${{ matrix.arch }} python3 _build.py
+            #arch -${{ matrix.arch }} python -m pip install piexif
+            arch -${{ matrix.arch }} python ./src/_build.py pyinstaller
           
           # Build for Windows (amd64)
           elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
-            cd src
-            python _build.py
+            python -m pip install nuitka
+            python -m nuitka --version
+            python ./src/_build.py nuitka
                
           # Build for Linux (arm64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
@@ -69,16 +80,18 @@ jobs:
             sudo add-apt-repository restricted
             sudo apt-get update
             sudo apt-get install -y qemu-user-static binfmt-support
-            docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace/src ubuntu:20.04 bash -c "
-                apt update && apt install -y gcc-aarch64-linux-gnu python3 python3-pip &&
-                python3 _build.py
+            sudo apt-get install python3-tk
+            docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace ubuntu:20.04 bash -c "
+                apt update && \
+                apt install -y gcc-aarch64-linux-gnu python3 python3-pip patchelf && \
+                python -m pip install piexif
+                python ./src/_build.py pyinstaller
                 "
           
           # Build for Linux (amd64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
-            docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src jaimetur/centos-amd64:7 bash -c "
-                cd src
-                python3 _build.py
+            docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace jaimetur/centos-amd64:7 bash -c "
+                python ./src/_build.py pyinstaller
                 "
           fi
 
@@ -90,11 +103,11 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           # Read SCRIPT_VERSION from the first line
-          SCRIPT_VERSION=$(sed -n '1p' script_info.txt)
+          SCRIPT_VERSION=$(grep '^SCRIPT_VERSION=' script_info.txt | cut -d'=' -f2-)
 
           # Read ARCHIVE_PATH from the second line
-          ARCHIVE_PATH=$(sed -n '2p' script_info.txt)
-
+          ARCHIVE_PATH=$(grep '^ARCHIVE_PATH=' script_info.txt | cut -d'=' -f2-)
+          
           # Save both variables on GitHub Actions environment
           echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> $GITHUB_ENV
           echo "ARCHIVE_PATH=${ARCHIVE_PATH}" >> $GITHUB_ENV
@@ -107,12 +120,17 @@ jobs:
       - name: 2b. Read SCRIPT_VERSION and ARCHIVE_PATH from script_info.txt (Windows)
         if: runner.os == 'Windows'
         run: |
-          # Read SCRIPT_VERSION from the first line
-          $SCRIPT_VERSION = Get-Content script_info.txt | Select-Object -First 1
-
-          # Read ARCHIVE_PATH from the second line and replace '\' by '/'
-          $ARCHIVE_PATH = (Get-Content script_info.txt | Select-Object -Skip 1 -First 1) -replace '\\', '/'
-          # $ARCHIVE_PATH = Get-Content script_info.txt | Select-String -Pattern "."
+          # Cargar todas las líneas del archivo como un diccionario clave=valor
+          $info = @{}
+          Get-Content script_info.txt | ForEach-Object {
+              if ($_ -match '^([^=]+)=(.*)$') {
+                  $info[$matches[1]] = $matches[2]
+              }
+          }
+          
+          # Acceder a los valores
+          $SCRIPT_VERSION = $info['SCRIPT_VERSION']
+          $ARCHIVE_PATH = $info['ARCHIVE_PATH'] -replace '\\', '/'
 
           # Save both variables on GitHub Actions environment
           echo "SCRIPT_VERSION=$SCRIPT_VERSION" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
