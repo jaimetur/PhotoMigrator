@@ -134,7 +134,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         force_new_line_for_tokens = {
             "[-from <FROM_DATE>]": False,   # Salto de línea antes, pero sigue reagrupando
             "[-country <COUNTRY_NAME>]": False,   # Salto de línea antes, pero sigue reagrupando
-            "[-gpthProg [= [true,false]]]": False,   # Salto de línea antes, pero sigue reagrupando
+            "[-gpthInfo [= [true,false]]]": False,   # Salto de línea antes, pero sigue reagrupando
             "[-i <INPUT_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
             "[-gTakeout <TAKEOUT_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
             "[-iuAlb <ALBUMS_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando

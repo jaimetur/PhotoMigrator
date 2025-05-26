@@ -61,7 +61,7 @@ def detect_and_run_execution_mode():
     # AUTOMATIC-MIGRATION MODE:
     if ARGS['source'] and ARGS['target']:
         EXECUTION_MODE = 'AUTOMATIC-MIGRATION'
-        mode_AUTOMATIC_MIGRATION(show_gpth_progress=ARGS['show-gpth-progress'])
+        mode_AUTOMATIC_MIGRATION(show_gpth_info=ARGS['show-gpth-info'])
         # profile_and_print(function_to_analyze=mode_AUTOMATIC_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.
 
     # Google Photos Mode:
@@ -182,7 +182,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
     LOGGER.info(f"INFO    : Skip Extra Assets (-edited,-effects...)  : '{ARGS['google-skip-extras-files']}'")
     LOGGER.info(f"INFO    : Skip Moving Albums to 'Albums' folder    : '{ARGS['google-skip-move-albums']}'")
     LOGGER.info(f"INFO    : Skip GPTH Tool                           : '{ARGS['google-skip-gpth-tool']}'")
-    LOGGER.info(f"INFO    : Show GPTH Progress                       : '{ARGS['show-gpth-progress']}'")
+    LOGGER.info(f"INFO    : Show GPTH Progress                       : '{ARGS['show-gpth-info']}'")
     LOGGER.info(f"INFO    : Show GPTH Errors                         : '{ARGS['show-gpth-errors']}'")
     LOGGER.info("")
 
@@ -220,7 +220,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         # Create the Object
         takeout = ClassTakeoutFolder(ARGS['google-takeout'])
         # Call the Function
-        albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-progress'], capture_errors=ARGS['show-gpth-errors'], log_level=log_level)
+        albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], log_level=log_level)
 
         # Count files in Takeout Folder
         if need_unzip:
