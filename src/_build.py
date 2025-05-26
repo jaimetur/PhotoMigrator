@@ -205,7 +205,7 @@ def main(compiler='pyinstaller'):
     print("")
 
     if SCRIPT_VERSION:
-        print(f"SCRIPT_VERSION found: {SCRIPT_VERSION}")
+        print(f"SCRIPT_VERSION found: {SCRIPT_VERSION_WITHOUT_V}")
     else:
         print("Caanot find SCRIPT_VERSION.")
 
@@ -334,7 +334,7 @@ def compile(compiler='pyinstaller'):
             # Unzip Exif_tool and include it to compiled binary with Pyinstaller
             unzip(exif_tool_zipped, exif_folder_tmp)
             # Añadir los archivos directamente en la carpeta raíz
-            pyinstaller_command.extend(("--add-data", f"{exif_folder_tmp}/*:{exif_folder_dest}"))
+            pyinstaller_command.extend(("--add-data", f"{exif_folder_tmp}:{exif_folder_dest}"))
             # Recorrer todas las carpetas recursivamente
             for path in Path(exif_folder_tmp).rglob('*'):
                 if path.is_dir():
@@ -343,10 +343,10 @@ def compile(compiler='pyinstaller'):
                     if not has_files:
                         continue  # Saltar carpetas sin archivos
                     relative_path = path.relative_to(exif_folder_tmp).as_posix()
-                    dest_path = f"{exif_folder_tmp}/{relative_path}"
+                    dest_path = f"{exif_folder_dest}/{relative_path}"
                     src_path = path.as_posix()
                     # Añadir todos los archivos directamente dentro de esa carpeta
-                    pyinstaller_command.extend(("--add-data", f"{src_path}/*:{dest_path}"))
+                    pyinstaller_command.extend(("--add-data", f"{src_path}:{dest_path}"))
         if OPERATING_SYSTEM == 'linux':
             pyinstaller_command.extend(("--runtime-tmpdir", '/var/tmp'))
 
