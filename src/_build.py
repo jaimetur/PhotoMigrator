@@ -280,7 +280,7 @@ def compile(compiler='pyinstaller'):
     splash_image = "assets/logos/logo_03.jpg" # Splash image for windows
     gpth_tool = f"gpth_tool/gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext"
     exif_folder_tmp = "tmp/exif_tool"
-    exif_folder_dest = "gpth_tool/exif_tool"
+    exif_folder_dest = "gpth_tool"
     # exif_tool = f"../exif_tool/exif-{EXIF_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext:exif_tool"
     if OPERATING_SYSTEM == 'windows':
         script_compiled = f'{SCRIPT_NAME}.exe'
@@ -332,7 +332,7 @@ def compile(compiler='pyinstaller'):
             # First delete exif_folder_tmp if exists
             delete_folder(exif_folder_tmp)
             # Unzip Exif_tool and include it to compiled binary with Pyinstaller
-            unzip_flatten(exif_tool_zipped, exif_folder_tmp)
+            unzip(exif_tool_zipped, exif_folder_tmp)
             # Añadir los archivos directamente en la carpeta raíz
             pyinstaller_command.extend(("--add-data", f"{exif_folder_tmp}/*:{exif_folder_dest}"))
             # Recorrer todas las carpetas recursivamente
@@ -394,7 +394,7 @@ def compile(compiler='pyinstaller'):
             # First delete exif_folder_tmp if exists
             delete_folder(exif_folder_tmp)
             # Unzip Exif_tool and include it to compiled binary with Nuitka
-            unzip_flatten(exif_tool_zipped, exif_folder_tmp)
+            unzip(exif_tool_zipped, exif_folder_tmp)
             nuitka_command.extend([f'--include-data-files={exif_folder_tmp}={exif_folder_dest}/=**/*.*'])
             nuitka_command.extend([f'--include-data-dir={exif_folder_tmp}={exif_folder_dest}'])
             # nuitka_command.extend(['--include-data-dir=../exif_tool=exif_tool'])
