@@ -367,6 +367,15 @@ def compile(compiler='pyinstaller'):
         nuitka_command = [
             sys.executable, '-m', 'nuitka',
             f"{'./src/' + SCRIPT_SOURCE_NAME}",
+        ]
+
+        if COMPILE_IN_ONE_FILE:
+            nuitka_command.extend(['--onefile'])
+            # nuitka_command.append('--onefile-no-compression)
+        else:
+            nuitka_command.extend(['--standalone'])
+
+        nuitka_command.extend([
             # '--jobs=4',
             '--assume-yes-for-downloads',
             '--enable-plugin=tk-inter',
@@ -376,12 +385,8 @@ def compile(compiler='pyinstaller'):
             f"--file-version={SCRIPT_VERSION_INT.split('-')[0]}",
             f'--copyright={COPYRIGHT_TEXT}',
             f'--include-data-file={gpth_tool}={gpth_tool}',
-        ]
-        if COMPILE_IN_ONE_FILE:
-            nuitka_command.extend(['--onefile'])
-            # nuitka_command.append('--onefile-no-compression)
-        else:
-            nuitka_command.extend(['--standalone'])
+        ])
+
         if INCLUDE_EXIF_TOOL:
             # First delete exif_folder_dest if exists
             delete_folder(exif_folder_dest)
