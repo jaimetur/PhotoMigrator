@@ -167,11 +167,10 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
 def main(compiler='pyinstaller'):
     global OPERATING_SYSTEM
     global ARCHITECTURE
-    global ARCHITECTURES
     global SCRIPT_NAME
     global SCRIPT_SOURCE_NAME
     global SCRIPT_VERSION
-    global SCRIPT_VERSION_INT
+    global SCRIPT_VERSION_WITHOUT_V
     global SCRIPT_NAME_VERSION
     global root_dir
 
@@ -181,7 +180,7 @@ def main(compiler='pyinstaller'):
     SCRIPT_NAME = "PhotoMigrator"
     SCRIPT_SOURCE_NAME = f"{SCRIPT_NAME}.py"
     SCRIPT_VERSION = get_script_version('./src/GlobalVariables.py')
-    SCRIPT_VERSION_INT = get_clean_version(SCRIPT_VERSION)
+    SCRIPT_VERSION_WITHOUT_V = get_clean_version(SCRIPT_VERSION)
     SCRIPT_NAME_VERSION = f"{SCRIPT_NAME}_{SCRIPT_VERSION}"
 
     # Obtener el directorio raíz un nivel arriba del directorio de trabajo
@@ -237,20 +236,26 @@ def main(compiler='pyinstaller'):
 
     # Calcular el path relativo
     script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-    script_zip_file = Path(f"./PhotoMigrator-builts/{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
+    script_zip_file = Path(f"./PhotoMigrator-builts/{SCRIPT_VERSION_WITHOUT_V}/{script_name_with_version_os_arch}.zip").resolve()
     relative_path = os.path.relpath(script_zip_file, root_dir)
 
     # Guardar script_info.txt en un fichero de texto
     with open(os.path.join(root_dir, 'script_info.txt'), 'w') as file:
+        file.write('OPERATING_SYSTEM=' + OPERATING_SYSTEM + '\n')
+        file.write('ARCHITECTURE=' + ARCHITECTURE + '\n')
+        file.write('COMPILER=' + str(compiler) + '\n')
+        file.write('SCRIPT_NAME=' + SCRIPT_NAME + '\n')
+        file.write('SCRIPT_VERSION=' + SCRIPT_VERSION_WITHOUT_V + '\n')
         file.write('ROOT_PATH=' + root_dir + '\n')
         file.write('ARCHIVE_PATH=' + relative_path + '\n')
-        file.write('SCRIPT_VERSION=' + SCRIPT_VERSION_INT + '\n')
-        file.write('COMPILER=' + str(compiler) + '\n')
         print('')
+        print(f'OPERATING_SYSTEM: {OPERATING_SYSTEM}')
+        print(f'ARCHITECTURE: {ARCHITECTURE}')
+        print(f'COMPILER: {compiler}')
+        print(f'SCRIPT_NAME: {SCRIPT_NAME}')
+        print(f'SCRIPT_VERSION: {SCRIPT_VERSION_WITHOUT_V}')
         print(f'ROOT_PATH: {root_dir}')
         print(f'ARCHIVE_PATH: {relative_path}')
-        print(f'SCRIPT_VERSION: {SCRIPT_VERSION_INT}')
-        print(f'COMPILER: {compiler}')
 
     # Run Compile
     if compiler:
@@ -262,24 +267,24 @@ def main(compiler='pyinstaller'):
 def compile(compiler='pyinstaller'):
     global OPERATING_SYSTEM
     global ARCHITECTURE
-    global ARCHITECTURES
     global SCRIPT_NAME
     global SCRIPT_SOURCE_NAME
     global SCRIPT_VERSION
-    global SCRIPT_VERSION_INT
+    global SCRIPT_VERSION_WITHOUT_V
     global SCRIPT_NAME_VERSION
     global root_dir
 
     # Inicializamos variables
-    script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-    script_zip_file = Path(f"PhotoMigrator-builts//{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
+    SCRIPT_NAME_WITH_VERSION_OS_ARCH = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
+    script_zip_file = Path(f"PhotoMigrator-builts//{SCRIPT_VERSION_WITHOUT_V}/{SCRIPT_NAME_WITH_VERSION_OS_ARCH}.zip").resolve()
+    splash_image = "assets/logos/logo_03.jpg" # Splash image for windows
     gpth_tool = f"gpth_tool/gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext"
     exif_folder_tmp = "tmp/exif_tool"
     exif_folder_dest = "gpth_tool/exif_tool"
     # exif_tool = f"../exif_tool/exif-{EXIF_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext:exif_tool"
     if OPERATING_SYSTEM == 'windows':
         script_compiled = f'{SCRIPT_NAME}.exe'
-        script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
+        script_compiled_with_version_os_arch_extension = f"{SCRIPT_NAME_WITH_VERSION_OS_ARCH}.exe"
         gpth_tool = gpth_tool.replace(".ext", ".exe")
         exif_tool_zipped = "exif_tool/windows.zip"
     else:
@@ -287,13 +292,13 @@ def compile(compiler='pyinstaller'):
             script_compiled = f'{SCRIPT_NAME}'
         else:
             script_compiled = f'{SCRIPT_NAME}.bin'
-        script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
+        script_compiled_with_version_os_arch_extension = f"{SCRIPT_NAME_WITH_VERSION_OS_ARCH}.run"
         gpth_tool = gpth_tool.replace(".ext", ".bin")
         exif_tool_zipped = "exif_tool/others.zip"
 
     # Guardar script_info.txt en un fichero de texto
     with open(os.path.join(root_dir, 'script_info.txt'), 'a') as file:
-        file.write('SCRIPT_COMPILED=' + script_compiled + '\n')
+        file.write('SCRIPT_COMPILED=' + os.path.abspath(script_compiled_with_version_os_arch_extension) + '\n')
         file.write('GPTH_TOOL=' + gpth_tool + '\n')
         file.write('EXIF_TOOL=' + exif_tool_zipped + '\n')
         print('')
@@ -319,6 +324,8 @@ def compile(compiler='pyinstaller'):
         else:
             pyinstaller_command.extend(['--onedir'])
 
+        pyinstaller_command.extend(["--noconfirm"])
+        pyinstaller_command.extend(("--splash", splash_image))
         pyinstaller_command.extend(("--add-data", gpth_tool + ':gpth_tool'))
 
         if INCLUDE_EXIF_TOOL:
@@ -372,12 +379,13 @@ def compile(compiler='pyinstaller'):
 
         nuitka_command.extend([
             # '--jobs=4',
+            f'--onefile-windows-splash-screen-image={splash_image}'
             '--assume-yes-for-downloads',
             '--enable-plugin=tk-inter',
             '--lto=yes',
             '--remove-output',
             '--output-dir=./dist',
-            f"--file-version={SCRIPT_VERSION_INT.split('-')[0]}",
+            f"--file-version={SCRIPT_VERSION_WITHOUT_V.split('-')[0]}",
             f'--copyright={COPYRIGHT_TEXT}',
             f'--include-data-file={gpth_tool}={gpth_tool}',
         ])
@@ -391,7 +399,7 @@ def compile(compiler='pyinstaller'):
             nuitka_command.extend([f'--include-data-dir={exif_folder_tmp}={exif_folder_dest}'])
             # nuitka_command.extend(['--include-data-dir=../exif_tool=exif_tool'])
         if OPERATING_SYSTEM == 'linux':
-            nuitka_command.extend([f'--onefile-tempdir-spec=/var/tmp/{script_name_with_version_os_arch}'])
+            nuitka_command.extend([f'--onefile-tempdir-spec=/var/tmp/{SCRIPT_NAME_WITH_VERSION_OS_ARCH}'])
         # Now Run Nuitka with previous settings
         print_arguments_pretty(nuitka_command, title="Nuitka Arguments")
         subprocess.run(nuitka_command)
@@ -408,19 +416,25 @@ def compile(compiler='pyinstaller'):
     # Compress the folder with the compiled script and the files/directories to include
     include_extrafiles_and_zip(f'./{script_compiled_with_version_os_arch_extension}', script_zip_file)
 
+    # Script Compiled Absolute Path
+    script_compiled_abs_path = os.path.abspath(f"./dist/{script_compiled}")
+
     # Delete temporary files and folders created during compilation
     print('')
     print("Deleting temporary compilation files...")
     delete_folder(exif_folder_tmp)
+    delete_folder("tmp")
     Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
+    Path(f"nuitka-crash-report.xml").unlink(missing_ok=True)
     shutil.rmtree('build', ignore_errors=True)
     if COMPILE_IN_ONE_FILE:
         shutil.rmtree('dist', ignore_errors=True)
+        script_compiled_abs_path = os.path.abspath(script_compiled_with_version_os_arch_extension)
 
     print('')
     print("=================================================================================================")
     print(f"Compilation for OS: '{OPERATING_SYSTEM}' and architecture: '{ARCHITECTURE}' completed successfully.")
-    print(f"SCRIPT_COMPILED: {script_compiled_with_version_os_arch_extension}")
+    print(f"SCRIPT_COMPILED: {script_compiled_abs_path}")
     print(f"SCRIPT_ZIPPED  : {script_zip_file}")
     print('')
     print("All compilations have finished successfully.")
