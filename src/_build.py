@@ -395,6 +395,7 @@ def compile(compiler='pyinstaller'):
             # '--onefile-no-compression',
             # '--jobs=4',
             '--assume-yes-for-downloads',
+            '--enable-plugin=tk-inter',
             '--lto=yes',
             '--remove-output',
             '--output-dir=./dist',
