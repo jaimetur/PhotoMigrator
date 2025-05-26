@@ -222,11 +222,11 @@ def main(compiler='pyinstaller'):
 
     # Extraer el cuerpo de la Release actual de RELEASES-NOTES.md
     extract_release_body(download_filepath, releases_filepath, current_release_filepath)
-    print(f"File {current_release_filepath} created successfully!.")
+    print(f"File '{current_release_filepath}' created successfully!.")
 
     # Añadimos el ROADMAP en el fichero README
     add_roadmap_to_readme(readme_filepath, roadmap_filepath)
-    print(f"File README.md updated successfully with ROADMAP.md")
+    print(f"File 'README.md' updated successfully with ROADMAP.md")
 
     # Calcular el path relativo
     script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
@@ -302,7 +302,7 @@ def compile(compiler='pyinstaller'):
 
     print("")
     print("=================================================================================================")
-    print(f"INFO:    Compiling with '{compiler}`for OS: '{OPERATING_SYSTEM}' and architecture: '{ARCHITECTURE}'...")
+    print(f"INFO:    Compiling with '{compiler}' for OS: '{OPERATING_SYSTEM}' and architecture: '{ARCHITECTURE}'...")
     print("=================================================================================================")
     print("")
 
@@ -313,6 +313,9 @@ def compile(compiler='pyinstaller'):
         # Build and Dist Folders for Pyinstaller
         build_path = "./build_pyinstaller/"
         dist_path = "./dist_pyinstaller/"
+
+        # Add _pyinstaller suffix to exif_folder_tmp to avoid conflict if both commpiler are running in parallel
+        exif_folder_tmp = exif_folder_tmp.replace('tmp', 'tmp_pyinstaller')
 
         # Borramos los ficheros y directorios temporales de compilaciones previas
         print("Removing temporary files from previous compilations...")
@@ -339,6 +342,7 @@ def compile(compiler='pyinstaller'):
             # First delete exif_folder_tmp if exists
             delete_folder(exif_folder_tmp)
             # Unzip Exif_tool and include it to compiled binary with Pyinstaller
+            print("\nUnzipping EXIF Tool to include it in binary compiled file...")
             unzip(exif_tool_zipped, exif_folder_tmp)
             # Añadir los archivos directamente en la carpeta raíz
             pyinstaller_command.extend(("--add-data", f"{exif_folder_tmp}:{exif_folder_dest}"))
@@ -376,6 +380,9 @@ def compile(compiler='pyinstaller'):
         build_path = "./build_nuitka/"
         dist_path = "./dist_nuitka/"
 
+        # Add _nuitka suffix to exif_folder_tmp to avoid conflict if both commpiler are running in parallel
+        exif_folder_tmp = exif_folder_tmp.replace('tmp', 'tmp_nuitka')
+
         # Borramos los ficheros y directorios temporales de compilaciones previas
         print("Removing temporary files from previous compilations...")
         Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
@@ -412,6 +419,7 @@ def compile(compiler='pyinstaller'):
             # First delete exif_folder_tmp if exists
             delete_folder(exif_folder_tmp)
             # Unzip Exif_tool and include it to compiled binary with Nuitka
+            print("\nUnzipping EXIF Tool to include it in binary compiled file...")
             unzip(exif_tool_zipped, exif_folder_tmp)
             nuitka_command.extend([f'--include-data-files={exif_folder_tmp}={exif_folder_dest}/=**/*.*'])
             nuitka_command.extend([f'--include-data-dir={exif_folder_tmp}={exif_folder_dest}'])
@@ -425,6 +433,13 @@ def compile(compiler='pyinstaller'):
         print(f"Compiler '{compiler}' not supported. Valid options are 'pyinstaller' or 'nuitka'. Compilation skipped.")
         return False
 
+    # Script Compiled Absolute Path
+    script_compiled_abs_path = ''
+    if compiler == 'pyinstaller':
+        script_compiled_abs_path = os.path.abspath(f"{dist_path}/{script_compiled}")
+    elif compiler == 'nuitka':
+        script_compiled_abs_path = os.path.abspath(f"{dist_path}/{SCRIPT_NAME}.dist/{script_compiled}")
+
     # Move the compiled script to the parent folder
     if COMPILE_IN_ONE_FILE:
         print('')
@@ -432,22 +447,20 @@ def compile(compiler='pyinstaller'):
         shutil.move(f'{dist_path}/{script_compiled}', f'./{script_compiled_with_version_os_arch_extension}')
         # Compress the folder with the compiled script and the files/directories to include
         include_extrafiles_and_zip(f'./{script_compiled_with_version_os_arch_extension}', script_zip_file)
-
-    # Script Compiled Absolute Path
-    script_compiled_abs_path = os.path.abspath(f"{dist_path}/{script_compiled}")
+        script_compiled_abs_path = os.path.abspath(script_compiled_with_version_os_arch_extension)
 
     # Delete temporary files and folders created during compilation
     print('')
     print("Deleting temporary compilation files...")
-    delete_folder(exif_folder_tmp)
-    delete_folder("tmp")
+    shutil.rmtree(exif_folder_tmp, ignore_errors=True)
+    shutil.rmtree("tmp_pyinstaller", ignore_errors=True)
+    shutil.rmtree("tmp_nuitka", ignore_errors=True)
     Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
     Path(f"nuitka-crash-report.xml").unlink(missing_ok=True)
-    shutil.rmtree('build', ignore_errors=True)
+    shutil.rmtree(build_path, ignore_errors=True)
     if COMPILE_IN_ONE_FILE:
-        shutil.rmtree(build_path, ignore_errors=True)
         shutil.rmtree(dist_path, ignore_errors=True)
-        script_compiled_abs_path = os.path.abspath(script_compiled_with_version_os_arch_extension)
+    print("Temporary compilation files successfully deleted!")
 
     print('')
     print("=================================================================================================")

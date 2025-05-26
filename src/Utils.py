@@ -1604,6 +1604,7 @@ def print_arguments_pretty(arguments, title="Arguments"):
         arguments (list): List of arguments (e.g., for PyInstaller).
         title (str): Optional title to display above the arguments.
     """
+    print("")
     print(f"{title}:")
     indent = "    "
     i = 0
