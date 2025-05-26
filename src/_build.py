@@ -159,7 +159,7 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
         f.writelines(updated_readme)
 
 
-def main(compiler='pyinstaller'):
+def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     global OPERATING_SYSTEM
     global ARCHITECTURE
     global SCRIPT_NAME
@@ -186,9 +186,9 @@ def main(compiler='pyinstaller'):
 
     clear_screen()
     print("")
-    print("============================================================")
-    print(f"INFO:    Running Main Module - main(compiler={compiler})...")
-    print("============================================================")
+    print("=================================================================================================")
+    print(f"INFO:    Running Main Module - main(compiler={compiler}, compile_in_one_file={compile_in_one_file})...")
+    print("=================================================================================================")
     print("")
 
     print("Adding neccesary packets to Python environment before to compile...")
@@ -230,7 +230,6 @@ def main(compiler='pyinstaller'):
     with open(os.path.join(root_dir, 'script_info.txt'), 'w') as file:
         file.write('OPERATING_SYSTEM=' + OPERATING_SYSTEM + '\n')
         file.write('ARCHITECTURE=' + ARCHITECTURE + '\n')
-        file.write('COMPILER=' + str(compiler) + '\n')
         file.write('SCRIPT_NAME=' + SCRIPT_NAME + '\n')
         file.write('SCRIPT_VERSION=' + SCRIPT_VERSION_WITHOUT_V + '\n')
         file.write('ROOT_PATH=' + root_dir + '\n')
@@ -238,7 +237,6 @@ def main(compiler='pyinstaller'):
         print('')
         print(f'OPERATING_SYSTEM: {OPERATING_SYSTEM}')
         print(f'ARCHITECTURE: {ARCHITECTURE}')
-        print(f'COMPILER: {compiler}')
         print(f'SCRIPT_NAME: {SCRIPT_NAME}')
         print(f'SCRIPT_VERSION: {SCRIPT_VERSION_WITHOUT_V}')
         print(f'ROOT_PATH: {root_dir}')
@@ -247,10 +245,10 @@ def main(compiler='pyinstaller'):
     ok = True
     # Run Compile
     if compiler:
-        ok = compile(compiler=compiler)
+        ok = compile(compiler=compiler, compile_in_one_file=compile_in_one_file)
     return ok
 
-def compile(compiler='pyinstaller'):
+def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     global OPERATING_SYSTEM
     global ARCHITECTURE
     global SCRIPT_NAME
@@ -284,10 +282,13 @@ def compile(compiler='pyinstaller'):
 
     # Guardar script_info.txt en un fichero de texto
     with open(os.path.join(root_dir, 'script_info.txt'), 'a') as file:
+        file.write('COMPILER=' + str(compiler) + '\n')
         file.write('SCRIPT_COMPILED=' + os.path.abspath(script_compiled_with_version_os_arch_extension) + '\n')
         file.write('GPTH_TOOL=' + gpth_tool + '\n')
         file.write('EXIF_TOOL=' + exif_tool_zipped + '\n')
         print('')
+        print(f'COMPILER: {compiler}')
+        print(f'COMPILE_IN_ONE_FILE: {compile_in_one_file}')
         print(f'SCRIPT_COMPILED: {script_compiled}')
         print(f'GPTH_TOOL: {gpth_tool}')
         print(f'EXIF_TOOL: {exif_tool_zipped}')
@@ -318,7 +319,7 @@ def compile(compiler='pyinstaller'):
 
         # Prepare pyinstaller_command
         pyinstaller_command = ['./src/' + SCRIPT_SOURCE_NAME]
-        if COMPILE_IN_ONE_FILE:
+        if compile_in_one_file:
             pyinstaller_command.extend(["--onefile"])
         else:
             pyinstaller_command.extend(['--onedir'])
@@ -366,8 +367,8 @@ def compile(compiler='pyinstaller'):
         print("")
 
         # Build and Dist Folders for Nuitka
-        build_path = "./build_nuitka/"
         dist_path = "./dist_nuitka/"
+        build_path = f"{dist_path}/{SCRIPT_NAME}.build"
 
         # Add _nuitka suffix to exif_folder_tmp to avoid conflict if both commpiler are running in parallel
         exif_folder_tmp = exif_folder_tmp.replace('tmp', 'tmp_nuitka')
@@ -384,7 +385,7 @@ def compile(compiler='pyinstaller'):
             sys.executable, '-m', 'nuitka',
             f"{'./src/' + SCRIPT_SOURCE_NAME}",
         ]
-        if COMPILE_IN_ONE_FILE:
+        if compile_in_one_file:
             nuitka_command.extend(['--onefile'])
             nuitka_command.extend([f'--onefile-windows-splash-screen-image={splash_image}'])
             # nuitka_command.append('--onefile-no-compression)
@@ -395,7 +396,7 @@ def compile(compiler='pyinstaller'):
             '--assume-yes-for-downloads',
             '--enable-plugin=tk-inter',
             '--lto=yes',
-            '--remove-output',
+            # '--remove-output',
             f'--output-dir={dist_path}',
             f"--file-version={SCRIPT_VERSION_WITHOUT_V.split('-')[0]}",
             f'--copyright={COPYRIGHT_TEXT}',
@@ -427,7 +428,7 @@ def compile(compiler='pyinstaller'):
         script_compiled_abs_path = os.path.abspath(f"{dist_path}/{SCRIPT_NAME}.dist/{script_compiled}")
 
     # Move the compiled script to the parent folder
-    if COMPILE_IN_ONE_FILE:
+    if compile_in_one_file:
         print('')
         print(f"Moving compiled script '{script_compiled_with_version_os_arch_extension}'...")
         shutil.move(f'{dist_path}/{script_compiled}', f'./{script_compiled_with_version_os_arch_extension}')
@@ -444,7 +445,7 @@ def compile(compiler='pyinstaller'):
     Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
     Path(f"nuitka-crash-report.xml").unlink(missing_ok=True)
     shutil.rmtree(build_path, ignore_errors=True)
-    if COMPILE_IN_ONE_FILE:
+    if compile_in_one_file:
         shutil.rmtree(dist_path, ignore_errors=True)
     print("Temporary compilation files successfully deleted!")
 
@@ -461,20 +462,31 @@ def compile(compiler='pyinstaller'):
 
 
 if __name__ == "__main__":
-    # Obtener argumento si existe
-    arg = sys.argv[1] if len(sys.argv) > 1 else None
+    # Obtener argumentos si existen
+    arg1 = sys.argv[1] if len(sys.argv) > 1 else None
+    arg2 = sys.argv[2] if len(sys.argv) > 2 else None
 
     # Convertir a booleano
-    if arg is not None:
-        arg_lower = arg.lower() 
+    if arg1 is not None:
+        arg_lower = arg1.lower()
         if arg_lower in ['false', '0', 'no', 'n', 'None']:
             compiler = None
         else:
-            compiler = arg
+            compiler = arg1
     else:
         compiler = None  # valor por defecto
 
-    ok = main(compiler=compiler)
+    # Convertir a booleano
+    if arg2 is not None:
+        arg_lower = arg2.lower()
+        if arg_lower in ['false', '0', 'no', 'n', 'None', 'onedir', 'standalone', 'no-onefile']:
+            onefile = False
+        else:
+            onefile = True
+    else:
+        onefile = True  # valor por defecto
+
+    ok = main(compiler=compiler, compile_in_one_file=onefile)
     if ok:
         print('INFO    : COMPILATION FINISHED SUCCESSFULLY!')
         sys.exit(0)
