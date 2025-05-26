@@ -225,25 +225,33 @@ def main(compiler='pyinstaller'):
 
     clear_screen()
     print("")
-    print("==================================================================")
-    print(f"INFO:    Ejecutando módulo main(compiler={compiler or 'None'})...")
-    print("==================================================================")
+    print("======================================================================")
+    print(f"INFO:    Running Main Module - main(compiler={compiler or 'None'})...")
+    print("======================================================================")
+    print("")
+
+    print('')
+    print("Adding neccesary packets to Python environment before to compile...")
+    subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'])
+    subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', './requirements.txt'])
+    if OPERATING_SYSTEM == 'windows':
+        subprocess.run([sys.executable, '-m', 'pip', 'install', 'windows-curses'])
     print("")
 
     if SCRIPT_VERSION:
-        print(f"SCRIPT_VERSION encontrado: {SCRIPT_VERSION}")
+        print(f"SCRIPT_VERSION found: {SCRIPT_VERSION}")
     else:
-        print("No se pudo obtener SCRIPT_VERSION.")
+        print("Caanot find SCRIPT_VERSION.")
 
     # Borramos los ficheros y directorios temporales de compilaciones previas
-    print("Borrando archivos temporales de compilaciones previas...")
+    print("Removing temporary files from previous compilations...")
     Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
     shutil.rmtree('build', ignore_errors=True)
     shutil.rmtree('dist', ignore_errors=True)
     print("")
     
     # Extraer el cuerpo de la CURRENT-RELEASE-NOTES y añadir ROADMAP al fichero README.md
-    print("Extrayendo el cuerpo de la CURRENT-RELEASE-NOTES y añadiendo ROADMAP al fichero README.md...")
+    print("Extracting body of CURRENT-RELEASE-NOTES and adding ROADMAP to file README.md...")
 
     # Ruta de los archivos RELEASES-NOTES.md, CURRENT-RELEASE.md, README.md y ROADMAP.md
     download_filepath = os.path.join(root_dir, 'docs', 'DOWNLOAD.md')
@@ -254,11 +262,11 @@ def main(compiler='pyinstaller'):
 
     # Extraer el cuerpo de la Release actual de RELEASES-NOTES.md
     extract_release_body(download_filepath, releases_filepath, current_release_filepath)
-    print(f"Archivo {current_release_filepath} creado correctamente.")
-    
+    print(f"File {current_release_filepath} created successfully!.")
+
     # Añadimos el ROADMAP en el fichero README
     add_roadmap_to_readme(readme_filepath, roadmap_filepath)
-    print(f"Archivo README.md actualizado correctamente con el ROADMAP.md")
+    print(f"File README.md updated successfully with ROADMAP.md")
 
     # Calcular el path relativo
     script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
@@ -268,13 +276,13 @@ def main(compiler='pyinstaller'):
     # Guardar script_info.txt en un fichero de texto
     with open(os.path.join(root_dir, 'script_info.txt'), 'w') as file:
         file.write('ROOT_PATH=' + root_dir + '\n')
-        file.write('SCRIPT_VERSION=' + SCRIPT_VERSION_INT + '\n')
         file.write('ARCHIVE_PATH=' + relative_path + '\n')
+        file.write('SCRIPT_VERSION=' + SCRIPT_VERSION_INT + '\n')
         file.write('COMPILER=' + str(compiler) + '\n')
         print('')
         print(f'ROOT_PATH: {root_dir}')
-        print(f'SCRIPT_VERSION: {SCRIPT_VERSION_INT}')
         print(f'ARCHIVE_PATH: {relative_path}')
+        print(f'SCRIPT_VERSION: {SCRIPT_VERSION_INT}')
         print(f'COMPILER: {compiler}')
 
     # Run Compile
@@ -325,15 +333,11 @@ def compile(compiler='pyinstaller'):
         print(f'GPTH_TOOL: {gpth_tool}')
         print(f'EXIF_FOLDER: {exif_folder}')
 
-    print('')
-    print("Adding neccesary packets to Python environment before to compile...")
-    subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'])
-    subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', './requirements.txt'])
-    if OPERATING_SYSTEM == 'windows':
-        subprocess.run([sys.executable, '-m', 'pip', 'install', 'windows-curses'])
     print("")
-
-    print(f"Compiling for OS: '{OPERATING_SYSTEM}' and architecture: '{ARCHITECTURE}'...")
+    print("=======================================================================================================")
+    print(f"INFO:    Compiling with '{compiler}`for OS: '{OPERATING_SYSTEM}' and architecture: '{ARCHITECTURE}'...")
+    print("=======================================================================================================")
+    print("")
 
     if compiler=='pyinstaller':
         print("")
@@ -374,7 +378,6 @@ def compile(compiler='pyinstaller'):
 
         # Now Run PyInstaller with previous settings
         PyInstaller.__main__.run(pyi_args)
-
 
     elif compiler=='nuitka':
         print("")
@@ -434,10 +437,13 @@ def compile(compiler='pyinstaller'):
     shutil.rmtree('dist', ignore_errors=True)
 
     print('')
+    print("====================================================================================================")
     print(f"Compilation for OS: '{OPERATING_SYSTEM}' and architecture: '{ARCHITECTURE}' completed successfully.")
     print(f"SCRIPT_COMPILED: {script_compiled_with_version_os_arch_extension}")
     print(f"SCRIPT_ZIPPED  : {script_zip_file}")
+    print('')
     print("All compilations have finished successfully.")
+    print("====================================================================================================")
     print('')
     return True
 
