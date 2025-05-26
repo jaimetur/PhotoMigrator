@@ -3,6 +3,7 @@ import ChangeWorkingDir
 ChangeWorkingDir.change_working_dir(change_dir=True)
 
 import os,sys
+import importlib
 try:
     import tkinter as tk
     from tkinter import filedialog

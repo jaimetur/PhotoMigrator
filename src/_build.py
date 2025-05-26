@@ -412,9 +412,8 @@ def compile(compiler='pyinstaller'):
         print('')
         print(f"Moving compiled script '{script_compiled_with_version_os_arch_extension}'...")
         shutil.move(f'./dist/{script_compiled}', f'./{script_compiled_with_version_os_arch_extension}')
-
-    # Compress the folder with the compiled script and the files/directories to include
-    include_extrafiles_and_zip(f'./{script_compiled_with_version_os_arch_extension}', script_zip_file)
+        # Compress the folder with the compiled script and the files/directories to include
+        include_extrafiles_and_zip(f'./{script_compiled_with_version_os_arch_extension}', script_zip_file)
 
     # Script Compiled Absolute Path
     script_compiled_abs_path = os.path.abspath(f"./dist/{script_compiled}")
