@@ -6,7 +6,7 @@ import subprocess
 import glob
 import platform
 from pathlib import Path
-from GlobalVariables import GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL
+from GlobalVariables import GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT
 
 
 def clear_screen():
@@ -200,7 +200,6 @@ def main(compiler='pyinstaller'):
     global SCRIPT_VERSION
     global SCRIPT_VERSION_INT
     global SCRIPT_NAME_VERSION
-    global COPYRIGHT_TEXT
     global root_dir
 
     # Detect the operating system and architecture
@@ -211,7 +210,6 @@ def main(compiler='pyinstaller'):
     SCRIPT_VERSION = get_script_version('./src/GlobalVariables.py')
     SCRIPT_VERSION_INT = get_clean_version(SCRIPT_VERSION)
     SCRIPT_NAME_VERSION = f"{SCRIPT_NAME}_{SCRIPT_VERSION}"
-    COPYRIGHT_TEXT = "(c) 2024-2025 - Jaime Tur (@jaimetur)"
 
     # Obtener el directorio raíz un nivel arriba del directorio de trabajo
     # root_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
@@ -219,15 +217,11 @@ def main(compiler='pyinstaller'):
     # Obtener el directorio de trabajo
     root_dir = os.getcwd()
 
-    # Select Compiler
-    # compiler = 'nuitka'
-    # compiler = 'pyinstaller'
-
     clear_screen()
     print("")
-    print("======================================================================")
-    print(f"INFO:    Running Main Module - main(compiler={compiler or 'None'})...")
-    print("======================================================================")
+    print("============================================================")
+    print(f"INFO:    Running Main Module - main(compiler={compiler})...")
+    print("============================================================")
     print("")
 
     print('')
@@ -301,7 +295,6 @@ def compile(compiler='pyinstaller'):
     global SCRIPT_VERSION
     global SCRIPT_VERSION_INT
     global SCRIPT_NAME_VERSION
-    global COPYRIGHT_TEXT
     global root_dir
 
     # Inicializamos variables
@@ -334,9 +327,9 @@ def compile(compiler='pyinstaller'):
         print(f'EXIF_FOLDER: {exif_folder}')
 
     print("")
-    print("=======================================================================================================")
+    print("=================================================================================================")
     print(f"INFO:    Compiling with '{compiler}`for OS: '{OPERATING_SYSTEM}' and architecture: '{ARCHITECTURE}'...")
-    print("=======================================================================================================")
+    print("=================================================================================================")
     print("")
 
     if compiler=='pyinstaller':
@@ -437,13 +430,13 @@ def compile(compiler='pyinstaller'):
     shutil.rmtree('dist', ignore_errors=True)
 
     print('')
-    print("====================================================================================================")
+    print("=================================================================================================")
     print(f"Compilation for OS: '{OPERATING_SYSTEM}' and architecture: '{ARCHITECTURE}' completed successfully.")
     print(f"SCRIPT_COMPILED: {script_compiled_with_version_os_arch_extension}")
     print(f"SCRIPT_ZIPPED  : {script_zip_file}")
     print('')
     print("All compilations have finished successfully.")
-    print("====================================================================================================")
+    print("=================================================================================================")
     print('')
     return True
 
