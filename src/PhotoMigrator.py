@@ -64,7 +64,6 @@ def main():
         import pyi_splash
         pyi_splash.update_text('UI Loaded ...')
         pyi_splash.close()
-        log.info('Splash screen closed.')
 
     # Remove Splash image from Nuitka
     if "NUITKA_ONEFILE_PARENT" in os.environ:
