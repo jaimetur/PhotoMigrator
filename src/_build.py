@@ -196,7 +196,6 @@ def main(compiler='pyinstaller'):
     print("============================================================")
     print("")
 
-    print('')
     print("Adding neccesary packets to Python environment before to compile...")
     # subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'])
     # subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', './requirements.txt'])
