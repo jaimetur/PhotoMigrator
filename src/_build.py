@@ -6,7 +6,7 @@ import subprocess
 import glob
 import platform
 from pathlib import Path
-from GlobalVariables import GPTH_VERSION, EXIF_VERSION
+from GlobalVariables import GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL
 
 
 def clear_screen():
@@ -296,18 +296,16 @@ def compile(compiler='pyinstaller'):
     global COPYRIGHT_TEXT
     global root_dir
 
-    INCLUDE_EXIFTOOL = True
-
     # Inicializamos variables
     script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-    script_zip_file = Path(f"./PhotoMigrator-builts//{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
-    gpth_tool = f"./gpth_tool/gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext"
+    script_zip_file = Path(f"PhotoMigrator-builts//{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
+    gpth_tool = f"gpth_tool/gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext"
     # exif_tool = f"../exif_tool/exif-{EXIF_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext:exif_tool"
     if OPERATING_SYSTEM == 'windows':
         script_compiled = f'{SCRIPT_NAME}.exe'
         script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
         gpth_tool = gpth_tool.replace(".ext", ".exe")
-        exif_folder = "./exif_tool/windows"
+        exif_folder = "exif_tool/windows"
     else:
         if compiler=='pyinstaller':
             script_compiled = f'{SCRIPT_NAME}'
@@ -315,7 +313,7 @@ def compile(compiler='pyinstaller'):
             script_compiled = f'{SCRIPT_NAME}.bin'
         script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
         gpth_tool = gpth_tool.replace(".ext", ".bin")
-        exif_folder = "./exif_tool/image"
+        exif_folder = "exif_tool/image"
 
     # Guardar script_info.txt en un fichero de texto
     with open(os.path.join(root_dir, 'script_info.txt'), 'a') as file:
@@ -356,7 +354,7 @@ def compile(compiler='pyinstaller'):
         pyi_args.extend(["--onefile"])
         pyi_args.extend(("--add-data", gpth_tool+':gpth_tool'))
 
-        if INCLUDE_EXIFTOOL:
+        if INCLUDE_EXIF_TOOL:
             # Now add exif_folder recursively into gpth_tool/exif_tool
             exif_folder_dest = "gpth_tool/exif_tool"
             # Añadir los archivos directamente en la carpeta raíz
@@ -388,9 +386,7 @@ def compile(compiler='pyinstaller'):
         else:
             print(f"Arquitectura desconocida: {ARCHITECTURE}")
             return False
-
         print("")
-
         command = [
             sys.executable, '-m', 'nuitka',
             f"{'./src/' + SCRIPT_SOURCE_NAME}",
@@ -409,18 +405,13 @@ def compile(compiler='pyinstaller'):
             f'--copyright={COPYRIGHT_TEXT}',
             f'--include-data-file={gpth_tool}={gpth_tool}',
         ]
-
+        if INCLUDE_EXIF_TOOL:
+            command.append(f'--include-data-dir={exif_folder}=gpth_tool/exif_tool')
+            # command.append('--include-data-dir=../exif_tool=exif_tool')
         if OPERATING_SYSTEM == 'linux':
             command.append(f'--onefile-tempdir-spec=/var/tmp/{script_name_with_version_os_arch}')
-
-        if INCLUDE_EXIFTOOL:
-            command.append(f'--include-data-dir={exif_folder}=./gpth_tool/exif_tool')
-            # command.append('--include-data-dir=../exif_tool=exif_tool')
-
         # Execute Nuitka Commans
         subprocess.run(command)
-
-
     else:
         print(f"Compiler '{compiler}' not supported. Valid options are 'pyinstaller' or 'nuitka'. Compilation skipped.")
         return False
