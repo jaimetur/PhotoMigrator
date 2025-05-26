@@ -610,6 +610,25 @@ def change_file_extension(input_folder, current_extension, new_extension, log_le
                         LOGGER.debug(f"DEBUG   : Renamed: {original_file} -> {new_file}")
 
 
+def delete_folder(folder_path):
+    """
+    Deletes a folder and all its contents.
+
+    Args:
+        folder_path (str): Path to the folder to delete.
+    """
+    if not os.path.exists(folder_path):
+        print(f"Folder does not exist: {folder_path}")
+        return
+
+    if not os.path.isdir(folder_path):
+        # return
+        raise ValueError(f"Specified path is not a folder: {folder_path}")
+
+    shutil.rmtree(folder_path)
+    print(f"Deleted folder and contents: {folder_path}")
+
+
 def delete_subfolders(input_folder, folder_name_to_delete, log_level=logging.INFO):
     """
     Deletes all subdirectories (and their contents) inside the given base directory and all its subdirectories,
@@ -634,7 +653,6 @@ def delete_subfolders(input_folder, folder_name_to_delete, log_level=logging.INF
                             # LOGGER.info(f"INFO    : Deleted directory: {dir_path}")
                         except Exception as e:
                             LOGGER.error(f"ERROR   : Error deleting {dir_path}: {e}")
-                        
 
 
 def remove_empty_dirs(input_folder, log_level=logging.INFO):
@@ -709,6 +727,88 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
                 dir_path = os.path.join(path, dir)
                 if not os.listdir(dir_path):  # Si la carpeta está vacía
                     os.rmdir(dir_path)
+
+
+def unzip(zipfile_path, dest_folder):
+    """
+    Unzips a ZIP file into the specified destination folder.
+
+    Args:
+        zipfile_path (str): Path to the ZIP file.
+        dest_folder (str): Destination folder where the contents will be extracted.
+    """
+    # Check if the ZIP file exists
+    if not os.path.exists(zipfile_path):
+        raise FileNotFoundError(f"The ZIP file does not exist: {zipfile_path}")
+    # Check if the file is a valid ZIP file
+    if not zipfile.is_zipfile(zipfile_path):
+        raise zipfile.BadZipFile(f"The file is not a valid ZIP archive: {zipfile_path}")
+    # Create the destination folder if it doesn't exist
+    os.makedirs(dest_folder, exist_ok=True)
+    # Extract all contents of the ZIP file into the destination folder
+    with zipfile.ZipFile(zipfile_path, 'r') as zip_ref:
+        zip_ref.extractall(dest_folder)
+        print(f"ZIP file extracted to: {dest_folder}")
+
+def unzip_flatten(zipfile_path, dest_folder):
+    """
+    Unzips a ZIP file into the specified destination folder,
+    stripping the top-level directory if all files are inside it.
+
+    Args:
+        zipfile_path (str): Path to the ZIP file.
+        dest_folder (str): Destination folder where the contents will be extracted.
+    """
+    if not os.path.exists(zipfile_path):
+        raise FileNotFoundError(f"The ZIP file does not exist: {zipfile_path}")
+    if not zipfile.is_zipfile(zipfile_path):
+        raise zipfile.BadZipFile(f"The file is not a valid ZIP archive: {zipfile_path}")
+    with zipfile.ZipFile(zipfile_path, 'r') as zip_ref:
+        # Get the list of all file paths in the ZIP
+        members = zip_ref.namelist()
+        # Check if all files are under a common top-level folder
+        top_level_dirs = set(p.split('/')[0] for p in members if '/' in p)
+        if len(top_level_dirs) == 1:
+            prefix_to_strip = next(iter(top_level_dirs)) + '/'
+        else:
+            prefix_to_strip = None
+        for member in members:
+            target_path = member
+            if prefix_to_strip and member.startswith(prefix_to_strip):
+                target_path = member[len(prefix_to_strip):]
+            if target_path:
+                final_path = os.path.join(dest_folder, target_path)
+                if member.endswith('/'):
+                    os.makedirs(final_path, exist_ok=True)
+                else:
+                    os.makedirs(os.path.dirname(final_path), exist_ok=True)
+                    with zip_ref.open(member) as source, open(final_path, 'wb') as target:
+                        target.write(source.read())
+        print(f"ZIP file extracted to: {dest_folder}")
+
+def zip_folder(temp_dir, output_file):
+    print(f"Creating packed file: {output_file}...")
+
+    # Convertir output_file a un objeto Path
+    output_path = Path(output_file)
+
+    # Crear los directorios padres si no existen
+    if not output_path.parent.exists():
+        print(f"Creating needed folder for: {output_path.parent}")
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, dirs, files in os.walk(temp_dir):
+            for file in files:
+                file_path = Path(root) / file
+                # Añade al zip respetando la estructura de carpetas
+                zipf.write(file_path, file_path.relative_to(temp_dir))
+            for dir in dirs:
+                dir_path = Path(root) / dir
+                # Añade directorios vacíos al zip
+                if not os.listdir(dir_path):
+                    zipf.write(dir_path, dir_path.relative_to(temp_dir))
+    print(f"File successfully packed: {output_file}")
 
 
 def fix_symlinks_broken(input_folder, log_level=logging.INFO):
@@ -1492,3 +1592,27 @@ def capitalize_first_letter(text):
     if not text:
         return text
     return text[0].upper() + text[1:]
+
+def clear_screen():
+    os.system('clear' if os.name == 'posix' else 'cls')
+
+def print_arguments_pretty(arguments, title="Arguments"):
+    """
+    Prints a list of command-line arguments in a structured and readable one-line-per-arg format.
+
+    Args:
+        arguments (list): List of arguments (e.g., for PyInstaller).
+        title (str): Optional title to display above the arguments.
+    """
+    print(f"{title}:")
+    indent = "    "
+    i = 0
+    while i < len(arguments):
+        arg = arguments[i]
+        if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
+            print(f"{indent}{arg}: {arguments[i + 1]}")
+            i += 2
+        else:
+            print(f"{indent}{arg}")
+            i += 1
+    print("")

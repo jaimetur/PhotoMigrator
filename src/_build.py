@@ -6,35 +6,8 @@ import subprocess
 import glob
 import platform
 from pathlib import Path
-from GlobalVariables import GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT
-
-
-def clear_screen():
-    os.system('clear' if os.name == 'posix' else 'cls')
-
-def comprimir_directorio(temp_dir, output_file):
-    print(f"Creating packed file: {output_file}...")
-
-    # Convertir output_file a un objeto Path
-    output_path = Path(output_file)
-
-    # Crear los directorios padres si no existen
-    if not output_path.parent.exists():
-        print(f"Creating needed folder for: {output_path.parent}")
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        for root, dirs, files in os.walk(temp_dir):
-            for file in files:
-                file_path = Path(root) / file
-                # Añade al zip respetando la estructura de carpetas
-                zipf.write(file_path, file_path.relative_to(temp_dir))
-            for dir in dirs:
-                dir_path = Path(root) / dir
-                # Añade directorios vacíos al zip
-                if not os.listdir(dir_path):
-                    zipf.write(dir_path, dir_path.relative_to(temp_dir))
-    print(f"File successfully packed: {output_file}")
+from GlobalVariables import GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
+from Utils import delete_folder, zip_folder, unzip, unzip_flatten, clear_screen, print_arguments_pretty
 
 def include_extrafiles_and_zip(input_file, output_file):
     extra_files_to_subdir = [
@@ -90,7 +63,7 @@ def include_extrafiles_and_zip(input_file, output_file):
             for file in matched_files:
                 shutil.copy(file, subdir_path)
     # Comprimimos el directorio temporal y después lo borramos
-    comprimir_directorio(temp_dir, output_file)
+    zip_folder(temp_dir, output_file)
     shutil.rmtree(temp_dir)
 
 def get_script_version(file):
@@ -301,12 +274,13 @@ def compile(compiler='pyinstaller'):
     script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
     script_zip_file = Path(f"PhotoMigrator-builts//{SCRIPT_VERSION_INT}/{script_name_with_version_os_arch}.zip").resolve()
     gpth_tool = f"gpth_tool/gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext"
+    exif_folder_dest = "gpth_tool/exif_tool"
     # exif_tool = f"../exif_tool/exif-{EXIF_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext:exif_tool"
     if OPERATING_SYSTEM == 'windows':
         script_compiled = f'{SCRIPT_NAME}.exe'
         script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.exe"
         gpth_tool = gpth_tool.replace(".ext", ".exe")
-        exif_folder = "exif_tool/windows"
+        exif_tool_zipped = "exif_tool/windows.zip"
     else:
         if compiler=='pyinstaller':
             script_compiled = f'{SCRIPT_NAME}'
@@ -314,17 +288,17 @@ def compile(compiler='pyinstaller'):
             script_compiled = f'{SCRIPT_NAME}.bin'
         script_compiled_with_version_os_arch_extension = f"{script_name_with_version_os_arch}.run"
         gpth_tool = gpth_tool.replace(".ext", ".bin")
-        exif_folder = "exif_tool/image"
+        exif_tool_zipped = "exif_tool/others.zip"
 
     # Guardar script_info.txt en un fichero de texto
     with open(os.path.join(root_dir, 'script_info.txt'), 'a') as file:
         file.write('SCRIPT_COMPILED=' + script_compiled + '\n')
         file.write('GPTH_TOOL=' + gpth_tool + '\n')
-        file.write('EXIF_FOLDER=' + exif_folder + '\n')
+        file.write('EXIF_TOOL=' + exif_tool_zipped + '\n')
         print('')
         print(f'SCRIPT_COMPILED: {script_compiled}')
         print(f'GPTH_TOOL: {gpth_tool}')
-        print(f'EXIF_FOLDER: {exif_folder}')
+        print(f'EXIF_TOOL: {exif_tool_zipped}')
 
     print("")
     print("=================================================================================================")
@@ -333,7 +307,6 @@ def compile(compiler='pyinstaller'):
     print("")
 
     if compiler=='pyinstaller':
-        print("")
         print("Compiling with Pyinstaller...")
         # subprocess.run([
         #     'pyinstaller',
@@ -346,34 +319,42 @@ def compile(compiler='pyinstaller'):
 
         # Prepare PyInstaller for Compilation
         import PyInstaller.__main__
-        pyi_args = ['./src/' + SCRIPT_SOURCE_NAME]
-        pyi_args.extend(("--runtime-tmpdir", '/var/tmp'))
-        pyi_args.extend(["--onefile"])
-        pyi_args.extend(("--add-data", gpth_tool+':gpth_tool'))
+        pyinstaller_command = ['./src/' + SCRIPT_SOURCE_NAME]
+
+        if COMPILE_IN_ONE_FILE:
+            pyinstaller_command.extend(["--onefile"])
+        else:
+            pyinstaller_command.extend(['--onedir'])
+
+        pyinstaller_command.extend(("--add-data", gpth_tool + ':gpth_tool'))
 
         if INCLUDE_EXIF_TOOL:
-            # Now add exif_folder recursively into gpth_tool/exif_tool
-            exif_folder_dest = "gpth_tool/exif_tool"
+            # First delete exif_folder_dest if exists
+            delete_folder(exif_folder_dest)
+            # Unzip Exif_tool and include it to compiled binary with Pyinstaller
+            unzip_flatten(exif_tool_zipped, exif_folder_dest)
             # Añadir los archivos directamente en la carpeta raíz
-            pyi_args.extend(("--add-data", f"{exif_folder}/*:{exif_folder_dest}"))
+            pyinstaller_command.extend(("--add-data", f"{exif_folder_dest}/*:{exif_folder_dest}"))
             # Recorrer todas las carpetas recursivamente
-            for path in Path(exif_folder).rglob('*'):
+            for path in Path(exif_folder_dest).rglob('*'):
                 if path.is_dir():
                     # Verificar si contiene al menos un archivo
                     has_files = any(f.is_file() for f in path.iterdir())
                     if not has_files:
                         continue  # Saltar carpetas sin archivos
-                    relative_path = path.relative_to(exif_folder).as_posix()
+                    relative_path = path.relative_to(exif_folder_dest).as_posix()
                     dest_path = f"{exif_folder_dest}/{relative_path}"
                     src_path = path.as_posix()
                     # Añadir todos los archivos directamente dentro de esa carpeta
-                    pyi_args.extend(("--add-data", f"{src_path}/*:{dest_path}"))
+                    pyinstaller_command.extend(("--add-data", f"{src_path}/*:{dest_path}"))
+        if OPERATING_SYSTEM == 'linux':
+            pyinstaller_command.extend(("--runtime-tmpdir", '/var/tmp'))
 
         # Now Run PyInstaller with previous settings
-        PyInstaller.__main__.run(pyi_args)
+        print_arguments_pretty(pyinstaller_command, title="Pyinstaller Arguments")
+        PyInstaller.__main__.run(pyinstaller_command)
 
     elif compiler=='nuitka':
-        print("")
         print("Compiling with Nuitka...")
         if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
             os.environ['CC'] = 'gcc'
@@ -383,12 +364,9 @@ def compile(compiler='pyinstaller'):
             print(f"Unknown architecture: {ARCHITECTURE}")
             return False
         print("")
-        command = [
+        nuitka_command = [
             sys.executable, '-m', 'nuitka',
             f"{'./src/' + SCRIPT_SOURCE_NAME}",
-            # '--standalone',
-            '--onefile',
-            # '--onefile-no-compression',
             # '--jobs=4',
             '--assume-yes-for-downloads',
             '--enable-plugin=tk-inter',
@@ -399,22 +377,33 @@ def compile(compiler='pyinstaller'):
             f'--copyright={COPYRIGHT_TEXT}',
             f'--include-data-file={gpth_tool}={gpth_tool}',
         ]
+        if COMPILE_IN_ONE_FILE:
+            nuitka_command.extend(['--onefile'])
+            # nuitka_command.append('--onefile-no-compression)
+        else:
+            nuitka_command.extend(['--standalone'])
         if INCLUDE_EXIF_TOOL:
-            command.append(f'--include-data-files={exif_folder}=gpth_tool/exif_tool/=**/*.*')
-            command.append(f'--include-data-dir={exif_folder}=gpth_tool/exif_tool')
-            # command.append('--include-data-dir=../exif_tool=exif_tool')
+            # First delete exif_folder_dest if exists
+            delete_folder(exif_folder_dest)
+            # Unzip Exif_tool and include it to compiled binary with Nuitka
+            unzip_flatten(exif_tool_zipped, exif_folder_dest)
+            nuitka_command.extend([f'--include-data-files={exif_folder_dest}=gpth_tool/exif_tool/=**/*.*'])
+            nuitka_command.extend([f'--include-data-dir={exif_folder_dest}=gpth_tool/exif_tool'])
+            # nuitka_command.extend(['--include-data-dir=../exif_tool=exif_tool'])
         if OPERATING_SYSTEM == 'linux':
-            command.append(f'--onefile-tempdir-spec=/var/tmp/{script_name_with_version_os_arch}')
-        # Execute Nuitka Commans
-        subprocess.run(command)
+            nuitka_command.extend([f'--onefile-tempdir-spec=/var/tmp/{script_name_with_version_os_arch}'])
+        # Now Run Nuitka with previous settings
+        print_arguments_pretty(nuitka_command, title="Nuitka Arguments")
+        subprocess.run(nuitka_command)
     else:
         print(f"Compiler '{compiler}' not supported. Valid options are 'pyinstaller' or 'nuitka'. Compilation skipped.")
         return False
 
     # Move the compiled script to the parent folder
-    print('')
-    print(f"Moving compiled script '{script_compiled_with_version_os_arch_extension}'...")
-    shutil.move(f'./dist/{script_compiled}', f'./{script_compiled_with_version_os_arch_extension}')
+    if COMPILE_IN_ONE_FILE:
+        print('')
+        print(f"Moving compiled script '{script_compiled_with_version_os_arch_extension}'...")
+        shutil.move(f'./dist/{script_compiled}', f'./{script_compiled_with_version_os_arch_extension}')
 
     # Compress the folder with the compiled script and the files/directories to include
     include_extrafiles_and_zip(f'./{script_compiled_with_version_os_arch_extension}', script_zip_file)
@@ -422,9 +411,11 @@ def compile(compiler='pyinstaller'):
     # Delete temporary files and folders created during compilation
     print('')
     print("Deleting temporary compilation files...")
+    delete_folder(exif_folder_dest)
     Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
     shutil.rmtree('build', ignore_errors=True)
-    shutil.rmtree('dist', ignore_errors=True)
+    if COMPILE_IN_ONE_FILE:
+        shutil.rmtree('dist', ignore_errors=True)
 
     print('')
     print("=================================================================================================")

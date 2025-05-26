@@ -14,6 +14,7 @@ SCRIPT_NAME_VERSION             = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
 GPTH_VERSION                    = "4.0.0"
 EXIF_VERSION                    = "3.0.0"
 INCLUDE_EXIF_TOOL               = True
+COMPILE_IN_ONE_FILE             = False
 LOG_FOLDER_FILENAME             = ""
 START_TIME                      = datetime.now()
 TIMESTAMP                       = datetime.now().strftime("%Y%m%d-%H%M%S")
