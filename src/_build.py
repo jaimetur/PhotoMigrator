@@ -270,7 +270,7 @@ def main(compiler='pyinstaller'):
         file.write('ROOT_PATH=' + root_dir + '\n')
         file.write('SCRIPT_VERSION=' + SCRIPT_VERSION_INT + '\n')
         file.write('ARCHIVE_PATH=' + relative_path + '\n')
-        file.write('COMPILER=' + compiler + '\n')
+        file.write('COMPILER=' + str(compiler) + '\n')
         print('')
         print(f'ROOT_PATH: {root_dir}')
         print(f'SCRIPT_VERSION: {SCRIPT_VERSION_INT}')
