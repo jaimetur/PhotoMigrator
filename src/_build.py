@@ -225,9 +225,9 @@ def main(compiler='pyinstaller'):
 
     clear_screen()
     print("")
-    print("============================================================")
-    print(f"INFO:    Ejecutando módulo main(compiler={compiler})...")
-    print("============================================================")
+    print("==================================================================")
+    print(f"INFO:    Ejecutando módulo main(compiler={compiler or 'None'})...")
+    print("==================================================================")
     print("")
 
     if SCRIPT_VERSION:
@@ -449,11 +449,11 @@ if __name__ == "__main__":
     if arg is not None:
         arg_lower = arg.lower() 
         if arg_lower in ['false', '0', 'no', 'n', 'None']:
-            compiler = False
+            compiler = None
         else:
             compiler = arg
     else:
-        compiler = False  # valor por defecto
+        compiler = None  # valor por defecto
 
     ok = main(compiler=compiler)
     if ok:
