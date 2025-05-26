@@ -395,7 +395,7 @@ def compile(compiler='pyinstaller'):
             '--assume-yes-for-downloads',
             '--enable-plugin=tk-inter',
             '--lto=yes',
-            '--remove-output',
+            # '--remove-output',
             f'--output-dir={dist_path}',
             f"--file-version={SCRIPT_VERSION_WITHOUT_V.split('-')[0]}",
             f'--copyright={COPYRIGHT_TEXT}',
