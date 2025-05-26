@@ -366,8 +366,8 @@ def compile(compiler='pyinstaller'):
         print("")
 
         # Build and Dist Folders for Nuitka
-        build_path = "./build_nuitka/"
         dist_path = "./dist_nuitka/"
+        build_path = {dist_path}/{SCRIPT_NAME}.build
 
         # Add _nuitka suffix to exif_folder_tmp to avoid conflict if both commpiler are running in parallel
         exif_folder_tmp = exif_folder_tmp.replace('tmp', 'tmp_nuitka')
