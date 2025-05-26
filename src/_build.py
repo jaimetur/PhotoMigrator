@@ -392,12 +392,9 @@ def compile(compiler='pyinstaller'):
             f"{'./src/' + SCRIPT_SOURCE_NAME}",
             # '--standalone',
             '--onefile',
-            '--onefile-no-compression',
+            # '--onefile-no-compression',
             '--assume-yes-for-downloads',
             '--jobs=4',
-            # '--mingw64',
-            # '--msvc=latest', # Sorry, non-MSVC is not currently supported with Python 3.13. Newer Nuitka will work to solve this. Use Python 3.12 or option "--msvc=latest" as a workaround for now and wait
-            # '--static-libpython=yes',
             '--lto=yes',
             '--remove-output',
             '--output-dir=./dist',
@@ -406,6 +403,10 @@ def compile(compiler='pyinstaller'):
             f'--include-data-file={gpth_tool}={gpth_tool}',
         ]
         if INCLUDE_EXIF_TOOL:
+            # command.append(f'--include-data-files={exif_folder}=gpth_tool/exif_tool/=**/*.dll')
+            # command.append(f'--include-data-files={exif_folder}=gpth_tool/exif_tool/=**/*.exe')
+            # command.append(f'--include-data-files={exif_folder}=gpth_tool/exif_tool/=**/*.bin')
+            command.append(f'--include-data-files={exif_folder}=gpth_tool/exif_tool/=**/*.*')
             command.append(f'--include-data-dir={exif_folder}=gpth_tool/exif_tool')
             # command.append('--include-data-dir=../exif_tool=exif_tool')
         if OPERATING_SYSTEM == 'linux':
