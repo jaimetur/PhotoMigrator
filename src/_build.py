@@ -7,7 +7,7 @@ import glob
 import platform
 from pathlib import Path
 from GlobalVariables import GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
-from Utils import delete_folder, zip_folder, unzip, unzip_flatten, clear_screen, print_arguments_pretty
+from Utils import zip_folder, unzip, unzip_flatten, clear_screen, print_arguments_pretty
 
 def include_extrafiles_and_zip(input_file, output_file):
     extra_files_to_subdir = [
@@ -339,7 +339,7 @@ def compile(compiler='pyinstaller'):
 
         if INCLUDE_EXIF_TOOL:
             # First delete exif_folder_tmp if exists
-            delete_folder(exif_folder_tmp)
+            shutil.rmtree(exif_folder_tmp, ignore_errors=True)
             # Unzip Exif_tool and include it to compiled binary with Pyinstaller
             print("\nUnzipping EXIF Tool to include it in binary compiled file...")
             unzip(exif_tool_zipped, exif_folder_tmp)
@@ -416,7 +416,7 @@ def compile(compiler='pyinstaller'):
 
         if INCLUDE_EXIF_TOOL:
             # First delete exif_folder_tmp if exists
-            delete_folder(exif_folder_tmp)
+            shutil.rmtree(exif_folder_tmp, ignore_errors=True)
             # Unzip Exif_tool and include it to compiled binary with Nuitka
             print("\nUnzipping EXIF Tool to include it in binary compiled file...")
             unzip(exif_tool_zipped, exif_folder_tmp)
