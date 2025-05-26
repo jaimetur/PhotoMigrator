@@ -400,9 +400,6 @@ def compile(compiler='pyinstaller'):
             f'--include-data-file={gpth_tool}={gpth_tool}',
         ]
         if INCLUDE_EXIF_TOOL:
-            # command.append(f'--include-data-files={exif_folder}=gpth_tool/exif_tool/=**/*.dll')
-            # command.append(f'--include-data-files={exif_folder}=gpth_tool/exif_tool/=**/*.exe')
-            # command.append(f'--include-data-files={exif_folder}=gpth_tool/exif_tool/=**/*.bin')
             command.append(f'--include-data-files={exif_folder}=gpth_tool/exif_tool/=**/*.*')
             command.append(f'--include-data-dir={exif_folder}=gpth_tool/exif_tool')
             # command.append('--include-data-dir=../exif_tool=exif_tool')
