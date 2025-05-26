@@ -40,10 +40,6 @@ def include_extrafiles_and_zip(input_file, output_file):
     print(script_version_dir)
     os.makedirs(script_version_dir, exist_ok=True)
     shutil.copy(input_file, script_version_dir)
-    # # Creamos una carpeta vacía llamada 'MyTakeout'
-    # takeout_dir = os.path.join(script_version_dir, "MyTakeout")
-    # print(takeout_dir)
-    # os.makedirs(takeout_dir, exist_ok=True)
 
     # Ahora copiamos los extra files
     for subdirs_dic in extra_files_to_subdir:
@@ -81,7 +77,6 @@ def get_clean_version(version: str):
     # Elimina la 'v' si existe al principio
     clean_version = version.lstrip('v')
     return clean_version
-
 
 def extract_release_body(download_file, input_file, output_file):
     """Extracts two specific sections from the release notes file, modifies a header, and appends them along with additional content from another file."""
@@ -147,17 +142,17 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
             break
     if start_index is not None and end_index is not None:
         # Sustituir el bloque ROADMAP existente
-        print("ROADMAP block found")
+        print("'ROADMAP' block found")
         updated_readme = readme_lines[:start_index] + [roadmap_content] + readme_lines[end_index:]
     else:
         # Buscar la línea donde comienza "## 🎖️ Credits" para insertar el bloque ROADMAP antes
         credits_index = next((i for i, line in enumerate(readme_lines) if line.strip() == "## 🎖️ Credits:"), None)
         if credits_index is not None:
-            print ("CREDITS block found but ROADMAP block not found")
+            print ("'CREDITS' block found but 'ROADMAP' block not found")
             updated_readme = readme_lines[:credits_index] + [roadmap_content] + readme_lines[credits_index:]
         else:
             # Si no se encuentra "## 🎖️ Credits", simplemente añadir al final del archivo
-            print ("CREDITS block not found")
+            print ("'CREDITS' block not found")
             updated_readme = readme_lines + [roadmap_content]
     # Escribir el contenido actualizado en el archivo README
     with open(readme_file, "w", encoding="utf-8") as f:
@@ -208,7 +203,6 @@ def main(compiler='pyinstaller'):
     else:
         print("Caanot find SCRIPT_VERSION.")
 
-
     # Extraer el cuerpo de la CURRENT-RELEASE-NOTES y añadir ROADMAP al fichero README.md
     print("Extracting body of CURRENT-RELEASE-NOTES and adding ROADMAP to file README.md...")
 
@@ -250,12 +244,11 @@ def main(compiler='pyinstaller'):
         print(f'ROOT_PATH: {root_dir}')
         print(f'ARCHIVE_PATH: {relative_path}')
 
+    ok = True
     # Run Compile
     if compiler:
         ok = compile(compiler=compiler)
-
-    return True
-
+    return ok
 
 def compile(compiler='pyinstaller'):
     global OPERATING_SYSTEM
@@ -325,18 +318,15 @@ def compile(compiler='pyinstaller'):
 
         # Prepare pyinstaller_command
         pyinstaller_command = ['./src/' + SCRIPT_SOURCE_NAME]
-
         if COMPILE_IN_ONE_FILE:
             pyinstaller_command.extend(["--onefile"])
         else:
             pyinstaller_command.extend(['--onedir'])
-
         pyinstaller_command.extend(["--noconfirm"])
         pyinstaller_command.extend(("--splash", splash_image))
         pyinstaller_command.extend(("--distpath", dist_path))
         pyinstaller_command.extend(("--workpath", build_path))
         pyinstaller_command.extend(("--add-data", gpth_tool + ':gpth_tool'))
-
         if INCLUDE_EXIF_TOOL:
             # First delete exif_folder_tmp if exists
             shutil.rmtree(exif_folder_tmp, ignore_errors=True)
@@ -394,14 +384,12 @@ def compile(compiler='pyinstaller'):
             sys.executable, '-m', 'nuitka',
             f"{'./src/' + SCRIPT_SOURCE_NAME}",
         ]
-
         if COMPILE_IN_ONE_FILE:
             nuitka_command.extend(['--onefile'])
             nuitka_command.extend([f'--onefile-windows-splash-screen-image={splash_image}'])
             # nuitka_command.append('--onefile-no-compression)
         else:
             nuitka_command.extend(['--standalone'])
-
         nuitka_command.extend([
             # '--jobs=4',
             '--assume-yes-for-downloads',
@@ -413,7 +401,6 @@ def compile(compiler='pyinstaller'):
             f'--copyright={COPYRIGHT_TEXT}',
             f'--include-data-file={gpth_tool}={gpth_tool}',
         ])
-
         if INCLUDE_EXIF_TOOL:
             # First delete exif_folder_tmp if exists
             shutil.rmtree(exif_folder_tmp, ignore_errors=True)
@@ -489,5 +476,8 @@ if __name__ == "__main__":
 
     ok = main(compiler=compiler)
     if ok:
-        print('COMPILATION FINISHED SUCCESSFULLY!')
-    sys.exit(0)
+        print('INFO    : COMPILATION FINISHED SUCCESSFULLY!')
+        sys.exit(0)
+    else:
+        print('ERROR   : BUILD FINISHED WITH ERRORS!')
+        sys.exit(-1)
