@@ -308,17 +308,9 @@ def compile(compiler='pyinstaller'):
 
     if compiler=='pyinstaller':
         print("Compiling with Pyinstaller...")
-        # subprocess.run([
-        #     'pyinstaller',
-        #     '--runtime-tmpdir', '/var/tmp',
-        #     '--onefile',
-        #     '--add-data', gpth_tool,
-        #     # '--add-data', exif_tool,
-        #     f'{SCRIPT_SOURCE_NAME}'
-        # ])
-
-        # Prepare PyInstaller for Compilation
         import PyInstaller.__main__
+
+        # Prepare pyinstaller_command
         pyinstaller_command = ['./src/' + SCRIPT_SOURCE_NAME]
 
         if COMPILE_IN_ONE_FILE:
@@ -364,6 +356,8 @@ def compile(compiler='pyinstaller'):
             print(f"Unknown architecture: {ARCHITECTURE}")
             return False
         print("")
+
+        # Prepare nuitka_command
         nuitka_command = [
             sys.executable, '-m', 'nuitka',
             f"{'./src/' + SCRIPT_SOURCE_NAME}",
