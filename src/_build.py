@@ -13,14 +13,14 @@ def clear_screen():
     os.system('clear' if os.name == 'posix' else 'cls')
 
 def comprimir_directorio(temp_dir, output_file):
-    print(f"Creando el archivo comprimido: {output_file}...")
+    print(f"Creating packed file: {output_file}...")
 
     # Convertir output_file a un objeto Path
     output_path = Path(output_file)
 
     # Crear los directorios padres si no existen
     if not output_path.parent.exists():
-        print(f"Creando directorios necesarios para: {output_path.parent}")
+        print(f"Creating needed folder for: {output_path.parent}")
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
     with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -34,7 +34,7 @@ def comprimir_directorio(temp_dir, output_file):
                 # Añade directorios vacíos al zip
                 if not os.listdir(dir_path):
                     zipf.write(dir_path, dir_path.relative_to(temp_dir))
-    print(f"Archivo comprimido correctamente: {output_file}")
+    print(f"File successfully packed: {output_file}")
 
 def include_extrafiles_and_zip(input_file, output_file):
     extra_files_to_subdir = [
@@ -60,7 +60,7 @@ def include_extrafiles_and_zip(input_file, output_file):
         print("Uso: include_extrafiles_and_zip(input_file, output_file)")
         sys.exit(1)
     if not Path(input_file).is_file():
-        print(f"ERROR   : El archivo de entrada '{input_file}' no existe.")
+        print(f"ERROR   : The input file '{input_file}' does not exists.")
         sys.exit(1)
     temp_dir = Path(tempfile.mkdtemp())
     script_version_dir = os.path.join(temp_dir, SCRIPT_NAME_VERSION)
@@ -95,13 +95,13 @@ def include_extrafiles_and_zip(input_file, output_file):
 
 def get_script_version(file):
     if not Path(file).is_file():
-        print(f"ERROR   : El archivo {file} no existe.")
+        print(f"ERROR   : The file {file} does not exists.")
         return None
     with open(file, 'r') as f:
         for line in f:
             if line.startswith("SCRIPT_VERSION"):
                 return line.split('"')[1]
-    print("ERROR   : No se encontró un valor entre comillas después de SCRIPT_VERSION.")
+    print("ERROR   : Not found any value between colons after SCRIPT_VERSION.")
     return None
 
 def get_clean_version(version: str):
@@ -174,17 +174,17 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
             break
     if start_index is not None and end_index is not None:
         # Sustituir el bloque ROADMAP existente
-        print("encuentro bloque roadmap")
+        print("ROADMAP block found")
         updated_readme = readme_lines[:start_index] + [roadmap_content] + readme_lines[end_index:]
     else:
         # Buscar la línea donde comienza "## 🎖️ Credits" para insertar el bloque ROADMAP antes
         credits_index = next((i for i, line in enumerate(readme_lines) if line.strip() == "## 🎖️ Credits:"), None)
         if credits_index is not None:
-            print ("encuentro credits pero no roadmap")
+            print ("CREDITS block found but ROADMAP block not found")
             updated_readme = readme_lines[:credits_index] + [roadmap_content] + readme_lines[credits_index:]
         else:
             # Si no se encuentra "## 🎖️ Credits", simplemente añadir al final del archivo
-            print ("no encuentro credits")
+            print ("CREDITS block not found")
             updated_readme = readme_lines + [roadmap_content]
     # Escribir el contenido actualizado en el archivo README
     with open(readme_file, "w", encoding="utf-8") as f:
@@ -380,7 +380,7 @@ def compile(compiler='pyinstaller'):
         elif ARCHITECTURE in ["arm64", "aarch64"]:
             os.environ['CC'] = 'aarch64-linux-gnu-gcc'
         else:
-            print(f"Arquitectura desconocida: {ARCHITECTURE}")
+            print(f"Unknown architecture: {ARCHITECTURE}")
             return False
         print("")
         command = [
