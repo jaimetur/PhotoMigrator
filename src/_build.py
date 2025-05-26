@@ -186,9 +186,9 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
 
     clear_screen()
     print("")
-    print("============================================================")
-    print(f"INFO:    Running Main Module - main(compiler={compiler})...")
-    print("============================================================")
+    print("=================================================================================================")
+    print(f"INFO:    Running Main Module - main(compiler={compiler}, compile_in_one_file={compile_in_one_file})...")
+    print("=================================================================================================")
     print("")
 
     print("Adding neccesary packets to Python environment before to compile...")
@@ -462,7 +462,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
 
 
 if __name__ == "__main__":
-    # Obtener argumento si existe
+    # Obtener argumentos si existen
     arg1 = sys.argv[1] if len(sys.argv) > 1 else None
     arg2 = sys.argv[2] if len(sys.argv) > 2 else None
 
@@ -479,7 +479,7 @@ if __name__ == "__main__":
     # Convertir a booleano
     if arg2 is not None:
         arg_lower = arg2.lower()
-        if arg_lower in ['false', '0', 'no', 'n', 'None', 'onedir', 'standalone']:
+        if arg_lower in ['false', '0', 'no', 'n', 'None', 'onedir', 'standalone', 'no-onefile']:
             onefile = False
         else:
             onefile = True
