@@ -61,7 +61,8 @@ jobs:
                     
           # Build for macOS (any architecture)
           if [[ "${{ matrix.os }}" == *"macos"* ]]; then
-            arch -${{ matrix.arch }} python3 ./src/_build.py pyinstaller
+            #arch -${{ matrix.arch }} python -m pip install piexif
+            arch -${{ matrix.arch }} python ./src/_build.py pyinstaller
           
           # Build for Windows (amd64)
           elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
@@ -77,8 +78,8 @@ jobs:
             sudo add-apt-repository multiverse
             sudo add-apt-repository restricted
             sudo apt-get update
-            sudo apt-get install python3-tk
             sudo apt-get install -y qemu-user-static binfmt-support
+            sudo apt-get install python3-tk
             docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace ubuntu:20.04 bash -c "
                 apt update && \
                 apt install -y gcc-aarch64-linux-gnu python3 python3-pip patchelf && \
@@ -88,7 +89,7 @@ jobs:
           # Build for Linux (amd64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
             docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace jaimetur/centos-amd64:7 bash -c "
-                python3 ./src/_build.py pyinstaller
+                python ./src/_build.py pyinstaller
                 "
           fi
 
