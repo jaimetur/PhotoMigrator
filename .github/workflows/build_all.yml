@@ -62,14 +62,17 @@ jobs:
                     
           # Build for macOS (any architecture)
           if [[ "${{ matrix.os }}" == *"macos"* ]]; then
-            #arch -${{ matrix.arch }} python -m pip install piexif
-            arch -${{ matrix.arch }} python ./src/_build.py pyinstaller
+            arch -${{ matrix.arch }} python3 -m pip install --upgrade pip
+            arch -${{ matrix.arch }} python3 -m pip install -r requirements.txt
+            arch -${{ matrix.arch }} python3 -m nuitka --version
+            arch -${{ matrix.arch }} python3 ./src/_build.py pyinstaller
           
           # Build for Windows (amd64)
           elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
-            python -m pip install nuitka
-            python -m nuitka --version
-            python ./src/_build.py nuitka
+            python3 -m pip install --upgrade pip
+            python3 -m pip install -r requirements.txt
+            python3 -m nuitka --version
+            python3 ./src/_build.py nuitka
                
           # Build for Linux (arm64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
@@ -84,14 +87,19 @@ jobs:
             docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace ubuntu:20.04 bash -c "
                 apt update && \
                 apt install -y gcc-aarch64-linux-gnu python3 python3-pip patchelf && \
-                python -m pip install piexif
-                python ./src/_build.py pyinstaller
+                python3 -m pip install --upgrade pip
+                python3 -m pip install -r requirements.txt
+                python3 -m nuitka --version
+                python3 ./src/_build.py pyinstaller
                 "
           
           # Build for Linux (amd64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
             docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace jaimetur/centos-amd64:7 bash -c "
-                python ./src/_build.py pyinstaller
+                python3 -m pip install --upgrade pip
+                python3 -m pip install -r requirements.txt
+                python3 -m nuitka --version
+                python3 ./src/_build.py pyinstaller
                 "
           fi
 
