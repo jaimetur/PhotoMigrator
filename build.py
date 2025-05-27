@@ -372,14 +372,14 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
 
         try:
             PyInstaller.__main__.run(pyinstaller_command)
-            print("✅ PyInstaller finished successfully.")
+            print("[OK] PyInstaller finished successfully.")
             success = True
         except SystemExit as e:
             if e.code == 0:
-                print("✅ PyInstaller finished successfully.")
+                print("[OK] PyInstaller finished successfully.")
                 success = True
             else:
-                print(f"❌ PyInstaller failed with error code: {e.code}")
+                print(f"[ERROR] PyInstaller failed with error code: {e.code}")
 
     elif compiler=='nuitka':
         print("Compiling with Nuitka...")
@@ -451,10 +451,10 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         print_arguments_pretty(nuitka_command, title="Nuitka Arguments")
         result = subprocess.run(nuitka_command, stdout=sys.stdout, stderr=sys.stderr, text=True)
         if result.returncode == 0:
-            print("✅ Nuitka finished successfully.")
+            print("[OK] Nuitka finished successfully.")
             success = True
         else:
-            print("❌ Nuitka failed:")
+            print("[ERROR] Nuitka failed:")
             print("STDOUT:\n", result.stdout)
             print("STDERR:\n", result.stderr)
 
@@ -464,9 +464,9 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
 
     # Now checks if compilations finished successfully, if not, exit.
     if success:
-        print("🎉 Compilation process finished successfully.")
+        print("[OK] Compilation process finished successfully.")
     else:
-        print("⚠️ There was some error during compilation process.")
+        print("[ERROR] There was some error during compilation process.")
         sys.exit(-1)
 
     # Script Compiled Absolute Path
