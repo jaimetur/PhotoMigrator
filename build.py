@@ -307,6 +307,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     print("=================================================================================================")
     print("")
 
+    success = False
     if compiler=='pyinstaller':
         print("Compiling with Pyinstaller...")
         import PyInstaller.__main__
@@ -367,7 +368,17 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
 
         # Now Run PyInstaller with previous settings
         print_arguments_pretty(pyinstaller_command, title="Pyinstaller Arguments")
-        PyInstaller.__main__.run(pyinstaller_command)
+
+        try:
+            PyInstaller.__main__.run(pyinstaller_command)
+            print("✅ PyInstaller finished successfully.")
+            success = True
+        except SystemExit as e:
+            if e.code == 0:
+                print("✅ PyInstaller finished successfully.")
+                success = True
+            else:
+                print(f"❌ PyInstaller failed with error code: {e.code}")
 
     elif compiler=='nuitka':
         print("Compiling with Nuitka...")
@@ -436,10 +447,25 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             nuitka_command.extend([f'--onefile-tempdir-spec=/var/tmp/{SCRIPT_NAME_WITH_VERSION_OS_ARCH}'])
         # Now Run Nuitka with previous settings
         print_arguments_pretty(nuitka_command, title="Nuitka Arguments")
-        subprocess.run(nuitka_command)
+        result = subprocess.run(nuitka_command, capture_output=True, text=True)
+        if result.returncode == 0:
+            print("✅ Nuitka finished successfully.")
+            success = True
+        else:
+            print("❌ Nuitka failed:")
+            print("STDOUT:\n", result.stdout)
+            print("STDERR:\n", result.stderr)
+
     else:
         print(f"Compiler '{compiler}' not supported. Valid options are 'pyinstaller' or 'nuitka'. Compilation skipped.")
         return False
+
+    # Now checks if compilations finished successfully, if not, exit.
+    if success:
+        print("🎉 Compilation process finished successfully.")
+    else:
+        print("⚠️ There was some error during compilation process.")
+        sys.exit(-1)
 
     # Script Compiled Absolute Path
     script_compiled_abs_path = ''
