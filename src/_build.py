@@ -324,8 +324,9 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             pyinstaller_command.extend(["--onefile"])
         else:
             pyinstaller_command.extend(['--onedir'])
+        if OPERATING_SYSTEM != 'macos':
+            pyinstaller_command.extend(("--splash", splash_image))
         pyinstaller_command.extend(["--noconfirm"])
-        pyinstaller_command.extend(("--splash", splash_image))
         pyinstaller_command.extend(("--distpath", dist_path))
         pyinstaller_command.extend(("--workpath", build_path))
         pyinstaller_command.extend(("--add-data", gpth_tool + ':gpth_tool'))
@@ -388,10 +389,12 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         ]
         if compile_in_one_file:
             nuitka_command.extend(['--onefile'])
-            nuitka_command.extend([f'--onefile-windows-splash-screen-image={splash_image}'])
             # nuitka_command.append('--onefile-no-compression)
+            if OPERATING_SYSTEM != 'macos':
+                nuitka_command.extend([f'--onefile-windows-splash-screen-image={splash_image}'])
         else:
             nuitka_command.extend(['--standalone'])
+
         nuitka_command.extend([
             # '--jobs=4',
             '--assume-yes-for-downloads',
