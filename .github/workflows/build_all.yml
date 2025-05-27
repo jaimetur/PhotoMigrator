@@ -132,9 +132,9 @@ jobs:
                 pyinstaller --version
                 echo "Nuitka version:"
                 python3 -m nuitka --version
-                echo "=============
-                ECHO " COMPILING...
-                echo "=============
+                echo "============="
+                echo " COMPILING..."
+                echo "============="
                 python3 ./src/_build.py pyinstaller
                 "
           
