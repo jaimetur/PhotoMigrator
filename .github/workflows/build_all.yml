@@ -171,8 +171,8 @@ jobs:
             echo "INFO    : COMPILING..."
             echo "================================================================================================="
             python3 build.py --$COMPILER --onefile
-               
-               
+
+           
           # Build for Linux (x86_64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
             docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace jaimetur/centos-amd64:7 bash -c '
@@ -198,7 +198,7 @@ jobs:
                 echo "================================================================================================="
                 echo "INFO    : COMPILING..."
                 echo "================================================================================================="
-                python3 build.py --$COMPILER --onefile
+                python3 build.py --nuitka--onefile
             '
 
           fi
