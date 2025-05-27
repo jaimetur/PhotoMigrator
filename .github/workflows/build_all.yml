@@ -22,13 +22,13 @@ jobs:
   build:
     strategy:
       matrix:
-#        os: [ubuntu-latest, macos-latest, windows-latest]  # os list
-        os: [windows-latest]  # os list
+        os: [ubuntu-latest, macos-latest, windows-latest]  # os list
+#        os: [windows-latest]  # os list
 #        os: [ubuntu-latest, windows-latest]  # os list
         arch: [x86_64, arm64]  # arch list
-#        exclude:
-#          - os: windows-latest
-#            arch: arm64  # Windows is only compiled for x86 (32/64-bit)
+        exclude:
+          - os: windows-latest
+            arch: arm64  # Windows is only compiled for x86 (32/64-bit)
         python-version: ["3.12.10"]
 
     runs-on: ${{ matrix.os }}
@@ -56,8 +56,8 @@ jobs:
 #        if: runner.os == 'Windows'
 #        uses: ilammy/msvc-dev-cmd@v1
 
-      # 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (amd64, arm64)
-      - name: 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (amd64, arm64)
+      # 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
+      - name: 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
         run: |
           echo "::group::Build for ${{ matrix.os }} - ${{ matrix.arch }}"
                     
@@ -82,26 +82,26 @@ jobs:
             arch -${{ matrix.arch }} echo "================================================================================================="
             arch -${{ matrix.arch }} python3 ./src/_build.py pyinstaller
           
-          # Build for Windows (x86_64 & arm64)
+          # Build for Windows (x86_64)
           elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
-            arch -${{ matrix.arch }} echo "================================================================================================="
-            arch -${{ matrix.arch }} echo "INFO    : INSTALLING REQUIREMENTS..."
-            arch -${{ matrix.arch }} echo "================================================================================================="
-            arch -${{ matrix.arch }} python3 -m pip install --upgrade pip
-            arch -${{ matrix.arch }} python3 -m pip install -r requirements.txt
-            arch -${{ matrix.arch }} echo "================================================================================================="
-            arch -${{ matrix.arch }} echo "INFO    : INSTALLED VERSIONS..."
-            arch -${{ matrix.arch }} echo "================================================================================================="
-            arch -${{ matrix.arch }} echo "Python version:"
-            arch -${{ matrix.arch }} python3 --version
-            arch -${{ matrix.arch }} echo "PyInstaller version:"
-            arch -${{ matrix.arch }} pyinstaller --version
-            arch -${{ matrix.arch }} echo "Nuitka version:"
-            arch -${{ matrix.arch }} python3 -m nuitka --version
-            arch -${{ matrix.arch }} echo "================================================================================================="
-            arch -${{ matrix.arch }} echo "INFO    : COMPILING..."
-            arch -${{ matrix.arch }} echo "================================================================================================="
-            arch -${{ matrix.arch }} python3 ./src/_build.py pyinstaller
+            echo "================================================================================================="
+            echo "INFO    : INSTALLING REQUIREMENTS..."
+            echo "================================================================================================="
+            python3 -m pip install --upgrade pip
+            python3 -m pip install -r requirements.txt
+            echo "================================================================================================="
+            echo "INFO    : INSTALLED VERSIONS..."
+            echo "================================================================================================="
+            echo "Python version:"
+            python3 --version
+            echo "PyInstaller version:"
+            pyinstaller --version
+            echo "Nuitka version:"
+            python3 -m nuitka --version
+            echo "================================================================================================="
+            echo "INFO    : COMPILING..."
+            echo "================================================================================================="
+            python3 ./src/_build.py pyinstaller
                
           # Build for Linux (arm64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
