@@ -62,14 +62,14 @@ def check_OS_and_Terminal(log_level=logging.INFO):
         arch_label = get_arch()
 
         # Logging OS
-        if current_os == "Linux":
+        if current_os == "linux":
             if run_from_synology():
                 LOGGER.info(f"INFO    : Script running on Linux System in a Synology NAS")
             else:
                 LOGGER.info(f"INFO    : Script running on Linux System")
-        elif current_os == "Darwin":
+        elif current_os == "macos":
             LOGGER.info(f"INFO    : Script running on MacOS System")
-        elif current_os == "Windows":
+        elif current_os == "windows":
             LOGGER.info(f"INFO    : Script running on Windows System")
         else:
             LOGGER.error(f"ERROR   : Unsupported Operating System: {current_os}")

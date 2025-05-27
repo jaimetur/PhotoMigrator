@@ -22,15 +22,16 @@ jobs:
   build:
     strategy:
       matrix:
+        python-version: ["3.12.10"]
         include:
           # macOS
           #- os: macos-13
-            #arch: x86_64
-            #runs-on: macos-13
+          #  arch: x86_64
+          #  runs-on: macos-13
 
           #- os: macos-latest
-            #arch: arm64
-            #runs-on: macos-latest
+          #  arch: arm64
+          #  runs-on: macos-latest
 
           # Linux
           - os: ubuntu-24.04
@@ -59,11 +60,11 @@ jobs:
         with:
           token: ${{ secrets.TOKEN_GITHUB }}
 
-      # Set up Python
-      #- name: Set up Python
-        #uses: actions/setup-python@v3
-        #with:
-          #python-version: ${{ matrix.python-version }}
+#      # Set up Python
+#      - name: Set up Python
+#        uses: actions/setup-python@v3
+#        with:
+#          python-version: ${{ matrix.python-version }}
 
 #      # Install dependencies
 #      - name: Install dependencies
@@ -103,6 +104,11 @@ jobs:
           
           # Build for Windows (x86_64)
           elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
+            echo "================================================================================================="
+            echo "INFO    : ARCHITECTURE..."
+            echo "================================================================================================="
+            python -c "import platform; print('platform.machine():', platform.machine())"
+            python -c "import platform; print('platform.architecture():', platform.architecture())"
             echo "================================================================================================="
             echo "INFO    : INSTALLING REQUIREMENTS..."
             echo "================================================================================================="
