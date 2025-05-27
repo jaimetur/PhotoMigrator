@@ -60,7 +60,7 @@
     - [x] Updated GPTH to version 4.0.0 (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts.     
     - [x] GPTH is now enhanced with EXIF Tool support for a better metadata fixing (supporting geolocations update, almost all media formats, multiple camera brands, etc...).     
     - [x] Improved _build.py to support both compilers (Pyinstaller and Nuitka).     
-    - [x] Added Splash logo at the loading screen when execute from binaries.     
+    - [x] Added Splash logo at the loading screen when execute from binaries on Windows.  
     - [x] Renamed binaries files for architecture 'amd64' from 'amd64' to 'x86_64'.     
 
   - #### 🐛 Bug fixes:
