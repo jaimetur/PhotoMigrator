@@ -72,6 +72,7 @@ Planed Roadmap for the following releases
     - [x] Fixed a bug with feature **Synology Upload Album(s)** when the folder to upload is not named "Albums".
     - [x] Fixed a bug when any input folder ends with '\' or '/' but is enclosed between double quotes (").
     - [x] Fixed a bug replacing argument provided with flag _**'-dAlb, --download-albums \<ALBUMS_NAME>'**_ in the HELP text screen.
+    - [x] Fixed a bug when using interactive pager for _**'-h, --help'**_ if terminal does not support it.
     - [x] Minor bugs fixing.
 
   - #### 📚 Documentation:

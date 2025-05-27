@@ -186,18 +186,22 @@ class PagedParser(argparse.ArgumentParser):
             return os.get_terminal_size().lines - 2  # Resta 2 para dejar espacio al mensaje custom
         except OSError:
             return default_height  # Si no se puede obtener, usa el valor predeterminado
-    
+
     def is_interactive(self):
         """
-        Detecta si el script se está ejecutando en un entorno interactivo.
+        Detecta si el script se está ejecutando en un entorno interactivo y con terminal válido.
         """
-        return sys.stdout.isatty()
-        
+        return sys.stdout.isatty() and os.environ.get('TERM') is not None
+
     def print_help(self, file=None):
         # Genera el texto de ayuda usando el formatter_class (CustomHelpFormatter).
         help_text = self.format_help()
-        if self.is_interactive():
-            self.custom_pager(help_text)
-        else:
-            # Muestra el texto directamente si no es interactivo
+        try:
+            if self.is_interactive():
+                self.custom_pager(help_text)
+            else:
+                # Muestra el texto directamente si no es interactivo
+                print(help_text)
+        except Exception as e:
             print(help_text)
+            print(f"\nDEBUG   : Error trying to use interactive pager: {e}")
