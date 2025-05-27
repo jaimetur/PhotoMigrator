@@ -324,7 +324,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             pyinstaller_command.extend(["--onefile"])
         else:
             pyinstaller_command.extend(['--onedir'])
-        if OPERATING_SYSTEM != 'macos':
+        if OPERATING_SYSTEM == 'windows':
             pyinstaller_command.extend(("--splash", splash_image))
         pyinstaller_command.extend(["--noconfirm"])
         pyinstaller_command.extend(("--distpath", dist_path))
@@ -390,7 +390,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         if compile_in_one_file:
             nuitka_command.extend(['--onefile'])
             # nuitka_command.append('--onefile-no-compression)
-            if OPERATING_SYSTEM != 'macos':
+            if OPERATING_SYSTEM == 'windows':
                 nuitka_command.extend([f'--onefile-windows-splash-screen-image={splash_image}'])
         else:
             nuitka_command.extend(['--standalone'])
