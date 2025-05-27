@@ -67,6 +67,7 @@ def main():
 
     # Remove Splash image from Nuitka
     if "NUITKA_ONEFILE_PARENT" in os.environ:
+        import tempfile
         splash_filename = os.path.join(
             tempfile.gettempdir(),
             "onefile_%d_splash_feedback.tmp" % int(os.environ["NUITKA_ONEFILE_PARENT"]),
