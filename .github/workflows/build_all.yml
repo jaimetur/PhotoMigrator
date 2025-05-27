@@ -87,14 +87,18 @@ jobs:
       - name: 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
         run: |
           echo "::group::Build for ${{ matrix.os }} - ${{ matrix.arch }}"
+          
+          # Define the COMPILER to use
+          COMPILER=pyinstaller
+
 
           # Build for macOS (x86_64 & arm64)
           if [[ "${{ matrix.os }}" == *"macos"* ]]; then
             echo "================================================================================================="
             echo "INFO    : ARCHITECTURE..."
             echo "================================================================================================="
-            python3 -c "import platform; print('platform.machine():', platform.machine())"
-            python3 -c "import platform; print('platform.architecture():', platform.architecture())"
+            python3 -c '"'"'import platform; print("platform.machine():", platform.machine())'"'"'
+            python3 -c '"'"'import platform; print("platform.architecture():", platform.architecture())'"'"'
             echo "================================================================================================="
             echo "INFO    : INSTALLING REQUIREMENTS..."
             echo "================================================================================================="
@@ -112,15 +116,16 @@ jobs:
             echo "================================================================================================="
             echo "INFO    : COMPILING..."
             echo "================================================================================================="
-            python3 build.py --pyinstaller --onefile
+            python3 build.py --$COMPILER --onefile
+          
           
           # Build for Windows (x86_64 & arm64)
           elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
             echo "================================================================================================="
             echo "INFO    : ARCHITECTURE..."
             echo "================================================================================================="
-            python3 -c "import platform; print('platform.machine():', platform.machine())"
-            python3 -c "import platform; print('platform.architecture():', platform.architecture())"
+            python3 -c '"'"'import platform; print("platform.machine():", platform.machine())'"'"'
+            python3 -c '"'"'import platform; print("platform.architecture():", platform.architecture())'"'"'
             echo "================================================================================================="
             echo "INFO    : INSTALLING REQUIREMENTS..."
             echo "================================================================================================="
@@ -138,7 +143,7 @@ jobs:
             echo "================================================================================================="
             echo "INFO    : COMPILING..."
             echo "================================================================================================="
-            python3 build.py --pyinstaller --onefile
+            python3 build.py --$COMPILER --onefile
                
           
           # Build for Linux (x86_64)
@@ -166,7 +171,7 @@ jobs:
                 echo "================================================================================================="
                 echo "INFO    : COMPILING..."
                 echo "================================================================================================="
-                python3 build.py --pyinstaller --onefile
+                python3 build.py --$COMPILER --onefile
             '
 
           # Build for Linux (arm64)
@@ -209,7 +214,7 @@ jobs:
                 echo "================================================================================================="
                 echo "INFO    : COMPILING..."
                 echo "================================================================================================="
-                python3 build.py --pyinstaller --onefile
+                python3 build.py --$COMPILER --onefile
             '
           fi
 
