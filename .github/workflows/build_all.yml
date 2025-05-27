@@ -24,26 +24,26 @@ jobs:
       matrix:
         include:
           # macOS
-          - os: macos-13
-            arch: x86_64
-            python-version: "3.12.10"
-            runs-on: macos-13
+          #- os: macos-13
+            #arch: x86_64
+            #python-version: "3.12.10"
+            #runs-on: macos-13
 
-          - os: macos-latest
-            arch: arm64
-            python-version: "3.12.10"
-            runs-on: macos-latest
+          #- os: macos-latest
+            #arch: arm64
+            #python-version: "3.12.10"
+            #runs-on: macos-latest
 
           # Linux
-          - os: ubuntu-24.04
-            arch: x86_64
-            python-version: "3.12.10"
-            runs-on: ubuntu-24.04
+          #- os: ubuntu-24.04
+            #arch: x86_64
+            #python-version: "3.12.10"
+            #runs-on: ubuntu-24.04
 
-          - os: ubuntu-24.04-arm
-            arch: arm64
-            python-version: "3.12.10"
-            runs-on: ubuntu-24.04-arm
+          #- os: ubuntu-24.04-arm
+            #arch: arm64
+            #python-version: "3.12.10"
+            #runs-on: ubuntu-24.04-arm
 
           # Windows
           - os: windows-latest
@@ -51,10 +51,10 @@ jobs:
             python-version: "3.12.10"
             runs-on: windows-latest
 
-          - os: windows-11-arm
-            arch: arm64
-            python-version: "3.12.10"
-            runs-on: windows-11-arm
+          #- os: windows-11-arm
+            #arch: arm64
+            #python-version: "3.12.10"
+            #runs-on: windows-11-arm
 
     runs-on: ${{ matrix.runs-on }}
 
