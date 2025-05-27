@@ -283,7 +283,11 @@ Planed Roadmap for the following releases
     - [x] Improved _build.py to support both compilers (Pyinstaller and Nuitka).     
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     - [x] Added Splash logo at the loading screen when execute from binaries.  
+=======
+    - [x] Added Splash logo at the loading screen when execute from binaries on Windows.  
+>>>>>>> Stashed changes
 =======
     - [x] Added Splash logo at the loading screen when execute from binaries on Windows.  
 >>>>>>> Stashed changes
