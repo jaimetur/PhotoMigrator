@@ -11,6 +11,22 @@ try:
 except ImportError:
     TKINTER_AVAILABLE = False
 
+# Remove Splash image from Pyinstaller
+if '_PYI_SPLASH_IPC' in os.environ and importlib.util.find_spec("pyi_splash"):
+    import pyi_splash
+    pyi_splash.update_text('UI Loaded ...')
+    pyi_splash.close()
+
+# Remove Splash image from Nuitka
+if "NUITKA_ONEFILE_PARENT" in os.environ:
+    import tempfile
+    splash_filename = os.path.join(
+        tempfile.gettempdir(),
+        "onefile_%d_splash_feedback.tmp" % int(os.environ["NUITKA_ONEFILE_PARENT"]),
+    )
+    if os.path.exists(splash_filename):
+        os.unlink(splash_filename)
+
 def select_folder_gui():
     root = tk.Tk()
     root.withdraw()
@@ -58,22 +74,6 @@ from ExecutionModes import detect_and_run_execution_mode
 def main():
     # Limpiar la pantalla y parseamos argumentos de entrada
     os.system('cls' if os.name == 'nt' else 'clear')
-
-    # Remove Splash image from Pyinstaller
-    if '_PYI_SPLASH_IPC' in os.environ and importlib.util.find_spec("pyi_splash"):
-        import pyi_splash
-        pyi_splash.update_text('UI Loaded ...')
-        pyi_splash.close()
-
-    # Remove Splash image from Nuitka
-    if "NUITKA_ONEFILE_PARENT" in os.environ:
-        import tempfile
-        splash_filename = os.path.join(
-            tempfile.gettempdir(),
-            "onefile_%d_splash_feedback.tmp" % int(os.environ["NUITKA_ONEFILE_PARENT"]),
-        )
-        if os.path.exists(splash_filename):
-            os.unlink(splash_filename)
 
     # Print the Header (common for all modules)
     LOGGER.info(SCRIPT_DESCRIPTION)

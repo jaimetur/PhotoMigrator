@@ -22,43 +22,21 @@ jobs:
   build:
     strategy:
       matrix:
-        include:
-          # macOS
-          #- os: macos-13
-            #arch: x86_64
-            #python-version: "3.12.10"
-            #runs-on: macos-13
+        # Different VM images to compile in all SO and all Archs according with:
+        # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
+        os: [macos-13, macos-latest, ubuntu-24.04, ubuntu-24.04-arm, windows-latest, windows-11-arm]  # os list
+#        arch: [x86_64, arm64]  # arch list
+        python-version: "3.12.10"
+        compiler: "pyinstaller"
 
-          #- os: macos-latest
-            #arch: arm64
-            #python-version: "3.12.10"
-            #runs-on: macos-latest
-
-          # Linux
-          #- os: ubuntu-24.04
-            #arch: x86_64
-            #python-version: "3.12.10"
-            #runs-on: ubuntu-24.04
-
-          #- os: ubuntu-24.04-arm
-            #arch: arm64
-            #python-version: "3.12.10"
-            #runs-on: ubuntu-24.04-arm
-
-          # Windows
-          - os: windows-latest
-            arch: x86_64
-            python-version: "3.12.10"
-            runs-on: windows-latest
-
-          #- os: windows-11-arm
-            #arch: arm64
-            #python-version: "3.12.10"
-            #runs-on: windows-11-arm
-
-    runs-on: ${{ matrix.runs-on }}
+    runs-on: ${{ matrix.os }}
 
     steps:
+      - name: Show runner OS & Arch
+        run: |
+          echo "OS: ${{ runner.os }}"
+          echo "Arch: ${{ runner.arch }}"
+
       # Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -86,7 +64,8 @@ jobs:
       # 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
       - name: 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
         run: |
-          echo "::group::Build for ${{ matrix.os }} - ${{ matrix.arch }}"
+#          echo "::group::Build for ${{ matrix.os }} - ${{ matrix.arch }}"
+          echo "::group::Build for ${{ matrix.os }} - ${{ matrix.python-version }}"
           
           # Define the COMPILER to use
           COMPILER=nuitka
@@ -147,7 +126,9 @@ jobs:
                
           
           # Build for Linux (arm64)
-          elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
+#          elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
+#          elif [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]] ; then
+          elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ runner.arch }}" == "ARM64" ]; then
             echo "================================================================================================="
             echo "INFO    : ARCHITECTURE..."
             echo "================================================================================================="
@@ -174,7 +155,9 @@ jobs:
 
            
           # Build for Linux (x86_64)
-          elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
+#          elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
+#          elif [[ "${{ matrix.os }}" == "ubuntu-24.04" ]] ; then
+          elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ runner.arch }}" == "X64" ]; then
             docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace jaimetur/centos-amd64:7 bash -c '
                 echo "================================================================================================="
                 echo "INFO    : ARCHITECTURE..."
@@ -254,7 +237,8 @@ jobs:
       # ===========================
       # 3. Log in to Docker Hub
       - name: 3. Log in to Docker Hub
-        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+#        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+        if: [[ "${{ matrix.os }}" == "ubuntu-24.04" ]]
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -262,7 +246,8 @@ jobs:
           
       # 4. Build & Push Docker image
       - name: 4. Build & Push Docker image
-        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+#        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+        if: [[ "${{ matrix.os }}" == "ubuntu-24.04" ]]
         run: |
           # Fuerza a Docker a:
           #  1) descargar la base actualizada ( --pull )
@@ -286,7 +271,8 @@ jobs:
 
       # 5. Prepare unified ZIP docker package
       - name: 5. Prepare unified ZIP docker package
-        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+#        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+        if: [[ "${{ matrix.os }}" == "ubuntu-24.04" ]]
         run: |
           mkdir -p PhotoMigrator/docker
           cp docker/PhotoMigrator.sh PhotoMigrator/docker/
@@ -319,7 +305,8 @@ jobs:
 
       # 7. Commit y push README.md (Solo si OS = Ubuntu* y arch = x86_64)
       - name: 7. Commit y push README.md
-        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+#        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+        if: [[ "${{ matrix.os }}" == "ubuntu-24.04" ]]
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"

@@ -1,3 +1,43 @@
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+           macOS
+          - os: macos-13
+            arch: x86_64
+            python-version: "3.12.10"
+            runs-on: macos-13
+
+          - os: macos-latest
+            arch: arm64
+            python-version: "3.12.10"
+            runs-on: macos-latest
+
+           Linux
+          - os: ubuntu-24.04
+            arch: x86_64
+            python-version: "3.12.10"
+            runs-on: ubuntu-24.04
+
+          - os: ubuntu-24.04-arm
+            arch: arm64
+            python-version: "3.12.10"
+            runs-on: ubuntu-24.04-arm
+
+          # Windows
+          - os: windows-latest
+            arch: x86_64
+            python-version: "3.12.10"
+            runs-on: windows-latest
+
+          - os: windows-11-arm
+            arch: arm64
+            python-version: "3.12.10"
+            runs-on: windows-11-arm
+
+    runs-on: ${{ matrix.runs-on }}
+
            # Compile for Linux (amd64)
            elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
              docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src ubuntu:17.04 bash -c "
