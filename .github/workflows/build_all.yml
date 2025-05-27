@@ -89,7 +89,7 @@ jobs:
           echo "::group::Build for ${{ matrix.os }} - ${{ matrix.arch }}"
           
           # Define the COMPILER to use
-          COMPILER=pyinstaller
+          # COMPILER=pyinstaller
 
 
           # Build for macOS (x86_64 & arm64)
