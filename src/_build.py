@@ -171,7 +171,8 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
 
     # Detect the operating system and architecture
     OPERATING_SYSTEM = platform.system().lower().replace('darwin', 'macos')
-    ARCHITECTURE = platform.machine().lower().replace('x86_64', 'amd64').replace('aarch64', 'arm64')
+    # ARCHITECTURE = platform.machine().lower().replace('x86_64', 'amd64').replace('aarch64', 'arm64')
+    ARCHITECTURE = platform.machine().lower().replace('aarch64', 'x86_64')
     SCRIPT_NAME = "PhotoMigrator"
     SCRIPT_SOURCE_NAME = f"{SCRIPT_NAME}.py"
     SCRIPT_VERSION = get_script_version('./src/GlobalVariables.py')
@@ -224,23 +225,23 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     # Calcular el path relativo
     script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
     script_zip_file = Path(f"./PhotoMigrator-builts/{SCRIPT_VERSION_WITHOUT_V}/{script_name_with_version_os_arch}.zip").resolve()
-    relative_path = os.path.relpath(script_zip_file, root_dir)
+    archive_path_relative = os.path.relpath(script_zip_file, root_dir)
 
-    # Guardar script_info.txt en un fichero de texto
-    with open(os.path.join(root_dir, 'script_info.txt'), 'w') as file:
+    # Guardar build_info.txt en un fichero de texto
+    with open(os.path.join(root_dir, 'build_info.txt'), 'w') as file:
         file.write('OPERATING_SYSTEM=' + OPERATING_SYSTEM + '\n')
         file.write('ARCHITECTURE=' + ARCHITECTURE + '\n')
         file.write('SCRIPT_NAME=' + SCRIPT_NAME + '\n')
         file.write('SCRIPT_VERSION=' + SCRIPT_VERSION_WITHOUT_V + '\n')
         file.write('ROOT_PATH=' + root_dir + '\n')
-        file.write('ARCHIVE_PATH=' + relative_path + '\n')
+        file.write('ARCHIVE_PATH=' + archive_path_relative + '\n')
         print('')
         print(f'OPERATING_SYSTEM: {OPERATING_SYSTEM}')
         print(f'ARCHITECTURE: {ARCHITECTURE}')
         print(f'SCRIPT_NAME: {SCRIPT_NAME}')
         print(f'SCRIPT_VERSION: {SCRIPT_VERSION_WITHOUT_V}')
         print(f'ROOT_PATH: {root_dir}')
-        print(f'ARCHIVE_PATH: {relative_path}')
+        print(f'ARCHIVE_PATH: {archive_path_relative}')
 
     ok = True
     # Run Compile
@@ -280,8 +281,8 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         gpth_tool = gpth_tool.replace(".ext", ".bin")
         exif_tool_zipped = "exif_tool/others.zip"
 
-    # Guardar script_info.txt en un fichero de texto
-    with open(os.path.join(root_dir, 'script_info.txt'), 'a') as file:
+    # Guardar build_info.txt en un fichero de texto
+    with open(os.path.join(root_dir, 'build_info.txt'), 'a') as file:
         file.write('COMPILER=' + str(compiler) + '\n')
         file.write('SCRIPT_COMPILED=' + os.path.abspath(script_compiled_with_version_os_arch_extension) + '\n')
         file.write('GPTH_TOOL=' + gpth_tool + '\n')
