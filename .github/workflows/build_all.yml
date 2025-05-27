@@ -55,21 +55,18 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
 
-
 #      - name: Install Visual Studio Build Tools (MSVC)
 #        if: runner.os == 'Windows'
 #        uses: ilammy/msvc-dev-cmd@v1
 
-
       # 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
       - name: 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
         run: |
-#          echo "::group::Build for ${{ matrix.os }} - ${{ matrix.arch }}"
+          # echo "::group::Build for ${{ matrix.os }} - ${{ matrix.arch }}"
           echo "::group::Build for ${{ matrix.os }} - ${{ matrix.python-version }}"
           
           # Define the COMPILER to use
           COMPILER=nuitka
-
 
           # Build for macOS (x86_64 & arm64)
           if [[ "${{ matrix.os }}" == *"macos"* ]]; then
@@ -126,8 +123,8 @@ jobs:
                
           
           # Build for Linux (arm64)
-#          elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
-#          elif [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]] ; then
+          # elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
+          # elif [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]] ; then
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ runner.arch }}" == "ARM64" ]; then
             echo "================================================================================================="
             echo "INFO    : ARCHITECTURE..."
@@ -155,8 +152,8 @@ jobs:
 
            
           # Build for Linux (x86_64)
-#          elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
-#          elif [[ "${{ matrix.os }}" == "ubuntu-24.04" ]] ; then
+          # elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
+          # elif [[ "${{ matrix.os }}" == "ubuntu-24.04" ]] ; then
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ runner.arch }}" == "X64" ]; then
             docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace jaimetur/centos-amd64:7 bash -c '
                 echo "================================================================================================="
@@ -238,7 +235,7 @@ jobs:
       # 3. Log in to Docker Hub
       - name: 3. Log in to Docker Hub
 #        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
-        if: [[ "${{ matrix.os }}" == "ubuntu-24.04" ]]
+        if: matrix.os == 'ubuntu-24.04'
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -247,7 +244,7 @@ jobs:
       # 4. Build & Push Docker image
       - name: 4. Build & Push Docker image
 #        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
-        if: [[ "${{ matrix.os }}" == "ubuntu-24.04" ]]
+        if: matrix.os == 'ubuntu-24.04'
         run: |
           # Fuerza a Docker a:
           #  1) descargar la base actualizada ( --pull )
@@ -272,7 +269,7 @@ jobs:
       # 5. Prepare unified ZIP docker package
       - name: 5. Prepare unified ZIP docker package
 #        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
-        if: [[ "${{ matrix.os }}" == "ubuntu-24.04" ]]
+        if: matrix.os == 'ubuntu-24.04'
         run: |
           mkdir -p PhotoMigrator/docker
           cp docker/PhotoMigrator.sh PhotoMigrator/docker/
@@ -306,7 +303,7 @@ jobs:
       # 7. Commit y push README.md (Solo si OS = Ubuntu* y arch = x86_64)
       - name: 7. Commit y push README.md
 #        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
-        if: [[ "${{ matrix.os }}" == "ubuntu-24.04" ]]
+        if: matrix.os == 'ubuntu-24.04'
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
