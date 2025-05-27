@@ -192,6 +192,7 @@ jobs:
                 apt install -y gcc-aarch64-linux-gnu python3 python3-pip patchelf && \
                 apt-get update && \
                 apt-get install -y python3-tk
+                python3 -m pip install piexif --no-binary :all:
                 echo "================================================================================================="
                 echo "INFO: ARCHITECTURE..."
                 echo "================================================================================================="
