@@ -25,6 +25,7 @@ jobs:
         # Different VM images to compile in all SO and all Archs according with:
         # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
         os: [macos-13, macos-latest, ubuntu-24.04, ubuntu-24.04-arm, windows-latest, windows-11-arm]  # os list
+        arch: [runner.arch]  # arch list
         python: ["3.12.10"]
         compiler: ["pyinstaller"]
 
