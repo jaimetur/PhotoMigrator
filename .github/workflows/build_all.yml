@@ -24,13 +24,13 @@ jobs:
       matrix:
         include:
           # macOS
-          - os: macos-13
-            arch: x86_64
-            runs-on: macos-13
+          #- os: macos-13
+            #arch: x86_64
+            #runs-on: macos-13
 
-          - os: macos-latest
-            arch: arm64
-            runs-on: macos-latest
+          #- os: macos-latest
+            #arch: arm64
+            #runs-on: macos-latest
 
           # Linux
           - os: ubuntu-24.04
