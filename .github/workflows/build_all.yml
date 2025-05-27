@@ -25,17 +25,18 @@ jobs:
         # Different VM images to compile in all SO and all Archs according with:
         # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
         os: [macos-13, macos-latest, ubuntu-24.04, ubuntu-24.04-arm, windows-latest, windows-11-arm]  # os list
-#        arch: [x86_64, arm64]  # arch list
-        python-version: ["3.12.10"]
-#        compiler: "pyinstaller"
+        python: ["3.12.10"]
+        compiler: ["pyinstaller"]
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Show runner OS & Arch
+      - name: Show runner OS, Arch, Python, Compiler
         run: |
           echo "OS: ${{ runner.os }}"
           echo "Arch: ${{ runner.arch }}"
+          echo "Python: ${{ matrix.python }}"
+          echo "Compiler: ${{ matrix.compiler }}"
 
       # Checkout Repository
       - name: Checkout Repository
@@ -47,7 +48,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python }}
 
       # Install dependencies
       - name: Install dependencies
@@ -63,7 +64,7 @@ jobs:
       - name: 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
         run: |
           # echo "::group::Build for ${{ matrix.os }} - ${{ matrix.arch }}"
-          echo "::group::Build for ${{ matrix.os }} - ${{ matrix.python-version }}"
+          echo "::group::Build for ${{ runner.os }}-${{ runner.arch }}. Python Version: ${{ matrix.python }}. Compiler: ${{ matrix.compiler }}"
           
           # Define the COMPILER to use
           COMPILER=nuitka
@@ -92,7 +93,7 @@ jobs:
             echo "================================================================================================="
             echo "INFO    : COMPILING..."
             echo "================================================================================================="
-            python3 build.py --$COMPILER --onefile
+            python3 build.py --${{ matrix.compiler }} --onefile
           
           
           # Build for Windows (x86_64 & arm64)
@@ -119,7 +120,7 @@ jobs:
             echo "================================================================================================="
             echo "INFO    : COMPILING..."
             echo "================================================================================================="
-            python3 build.py --$COMPILER --onefile
+            python3 build.py --${{ matrix.compiler }} --onefile
                
           
           # Build for Linux (arm64)
@@ -148,7 +149,7 @@ jobs:
             echo "================================================================================================="
             echo "INFO    : COMPILING..."
             echo "================================================================================================="
-            python3 build.py --$COMPILER --onefile
+            python3 build.py --${{ matrix.compiler }} --onefile
 
            
           # Build for Linux (x86_64)
@@ -178,7 +179,7 @@ jobs:
                 echo "================================================================================================="
                 echo "INFO    : COMPILING..."
                 echo "================================================================================================="
-                python3 build.py --pyinstaller  --onefile
+                python3 build.py --${{ matrix.compiler }} --onefile
             '
 
           fi
@@ -234,8 +235,7 @@ jobs:
       # ===========================
       # 3. Log in to Docker Hub
       - name: 3. Log in to Docker Hub
-#        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
-        if: matrix.os == 'ubuntu-24.04'
+        if: ${{ startsWith(matrix.os, 'ubuntu') && runner.arch == 'X64' }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -243,8 +243,7 @@ jobs:
           
       # 4. Build & Push Docker image
       - name: 4. Build & Push Docker image
-#        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
-        if: matrix.os == 'ubuntu-24.04'
+        if: ${{ startsWith(matrix.os, 'ubuntu') && runner.arch == 'X64' }}
         run: |
           # Fuerza a Docker a:
           #  1) descargar la base actualizada ( --pull )
@@ -268,8 +267,7 @@ jobs:
 
       # 5. Prepare unified ZIP docker package
       - name: 5. Prepare unified ZIP docker package
-#        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
-        if: matrix.os == 'ubuntu-24.04'
+        if: ${{ startsWith(matrix.os, 'ubuntu') && runner.arch == 'X64' }}
         run: |
           mkdir -p PhotoMigrator/docker
           cp docker/PhotoMigrator.sh PhotoMigrator/docker/
@@ -302,8 +300,7 @@ jobs:
 
       # 7. Commit y push README.md (Solo si OS = Ubuntu* y arch = x86_64)
       - name: 7. Commit y push README.md
-#        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
-        if: matrix.os == 'ubuntu-24.04'
+        if: ${{ startsWith(matrix.os, 'ubuntu') && runner.arch == 'X64' }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
