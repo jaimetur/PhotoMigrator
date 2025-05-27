@@ -308,6 +308,9 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     print("")
 
     success = False
+    # ===============================================================================================================================================
+    # COMPILE WITH PYINSTALLER...
+    # ===============================================================================================================================================
     if compiler=='pyinstaller':
         print("Compiling with Pyinstaller...")
         import PyInstaller.__main__
@@ -381,6 +384,9 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             else:
                 print(f"[ERROR] PyInstaller failed with error code: {e.code}")
 
+    # ===============================================================================================================================================
+    # COMPILE WITH NUITKA...
+    # ===============================================================================================================================================
     elif compiler=='nuitka':
         print("Compiling with Nuitka...")
         if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
@@ -458,6 +464,9 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         print(f"Compiler '{compiler}' not supported. Valid options are 'pyinstaller' or 'nuitka'. Compilation skipped.")
         return False
 
+    # ===============================================================================================================================================
+    # PACKAGING AND CLEANING ACTIONS...
+    # ===============================================================================================================================================
     # Now checks if compilations finished successfully, if not, exit.
     if success:
         print("[OK] Compilation process finished successfully.")
