@@ -13,20 +13,20 @@ def include_extrafiles_and_zip(input_file, output_file):
     extra_files_to_subdir = [
         {
             'subdir': '', # Para indicar que estos ficheros van al directorio raiz del script
-            'files': ["../README.md", "../Config.ini"]
+            'files': ["./README.md", "./Config.ini"]
         },
         {
             'subdir': 'assets/logos',# Estos ficheros van al subdirectorio 'assets'
-            'files': ["../assets/logos/logo_03.jpg"]
+            'files': ["./assets/logos/logo_03.jpg"]
         },
         {
             'subdir': 'docs',# Estos ficheros van al subdirectorio 'docs'
-            'files': ["../docs/RELEASES-NOTES.md", "../docs/ROADMAP.md"]
+            'files': ["./docs/RELEASES-NOTES.md", "./docs/ROADMAP.md"]
         },
         {
             'subdir': 'help',  # Estos ficheros van al subdirectorio 'help'
-            'files': ["../help/*.md"]
-            # 'files': ["../help/1-command-line-interface.md", "../help/2-automatic-migration.md", "../help/3-google-takeout.md", "../help/4-synology-photos.md", "../help/5-immich-photos.md", "../help/6-other-features.md"]
+            'files': ["./help/*.md"]
+            # 'files': ["./help/1-command-line-interface.md", "./help/2-automatic-migration.md", "./help/3-google-takeout.md", "./help/4-synology-photos.md", "./help/5-immich-photos.md", "./help/6-other-features.md"]
         }
     ]
     if not input_file or not output_file:
