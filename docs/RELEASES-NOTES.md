@@ -42,7 +42,6 @@
     - [x] Request user confirmation before Rename/Remove/Merge massive Albums (show the affected Albums).
     - [x] Run Google Takeout Photos Processor Feature by default when running the tool with a valid folder as unique argument.
     - [x] Run Google Takeout Photos Processor Feature by default when running the tool without arguments, requesting the user to introduce Google Takeout folder. 
-    - [x] Included binary file for Windows-arm64 architecture.  
 
   - #### 🚀 Enhancements:
     - [x] Improved Performance on Pull functions when no filtering options have been given.
@@ -62,7 +61,7 @@
     - [x] GPTH is now enhanced with EXIF Tool support for a better metadata fixing (supporting geolocations update, almost all media formats, multiple camera brands, etc...).     
     - [x] Improved _build.py to support both compilers (Pyinstaller and Nuitka).     
     - [x] Added Splash logo at the loading screen when execute from binaries.     
-    - [x] Renamed binaries files for architecture aarch64 from amd64 to x86_64.     
+    - [x] Renamed binaries files for architecture aarch64 from 'amd64' to 'x86_64'.     
 
   - #### 🐛 Bug fixes:
     - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
