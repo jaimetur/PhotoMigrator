@@ -60,10 +60,10 @@ jobs:
           token: ${{ secrets.TOKEN_GITHUB }}
 
       # Set up Python
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: ${{ matrix.python-version }}
+      #- name: Set up Python
+        #uses: actions/setup-python@v3
+        #with:
+          #python-version: ${{ matrix.python-version }}
 
 #      # Install dependencies
 #      - name: Install dependencies
