@@ -22,15 +22,16 @@ jobs:
   build:
     strategy:
       matrix:
+        python-version: ["3.12.10"]
         include:
           # macOS
-          - os: macos-13
-            arch: x86_64
-            runs-on: macos-13
+          #- os: macos-13
+          #  arch: x86_64
+          #  runs-on: macos-13
 
-          - os: macos-latest
-            arch: arm64
-            runs-on: macos-latest
+          #- os: macos-latest
+          #  arch: arm64
+          #  runs-on: macos-latest
 
           # Linux
           - os: ubuntu-24.04
@@ -59,50 +60,45 @@ jobs:
         with:
           token: ${{ secrets.TOKEN_GITHUB }}
 
-      # Set up Python
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: ${{ matrix.python-version }}
-
-#      # Install dependencies
-#      - name: Install dependencies
-#        run: |
-#          python -m pip install --upgrade pip
-#          pip install -r requirements.txt
-
-#      - name: Install Visual Studio Build Tools (MSVC)
-#        if: runner.os == 'Windows'
-#        uses: ilammy/msvc-dev-cmd@v1
 
       # 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
       - name: 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
         run: |
           echo "::group::Build for ${{ matrix.os }} - ${{ matrix.arch }}"
-                    
+
           # Build for macOS (x86_64 & arm64)
           if [[ "${{ matrix.os }}" == *"macos"* ]]; then
-            arch -${{ matrix.arch }} echo "================================================================================================="
-            arch -${{ matrix.arch }} echo "INFO    : INSTALLING REQUIREMENTS..."
-            arch -${{ matrix.arch }} echo "================================================================================================="
-            arch -${{ matrix.arch }} python3 -m pip install --upgrade pip
-            arch -${{ matrix.arch }} python3 -m pip install -r requirements.txt
-            arch -${{ matrix.arch }} echo "================================================================================================="
-            arch -${{ matrix.arch }} echo "INFO    : INSTALLED VERSIONS..."
-            arch -${{ matrix.arch }} echo "================================================================================================="
-            arch -${{ matrix.arch }} echo "Python version:"
-            arch -${{ matrix.arch }} python3 --version
-            arch -${{ matrix.arch }} echo "PyInstaller version:"
-            arch -${{ matrix.arch }} pyinstaller --version
-            arch -${{ matrix.arch }} echo "Nuitka version:"
-            arch -${{ matrix.arch }} python3 -m nuitka --version
-            arch -${{ matrix.arch }} echo "================================================================================================="
-            arch -${{ matrix.arch }} echo "INFO    : COMPILING..."
-            arch -${{ matrix.arch }} echo "================================================================================================="
-            arch -${{ matrix.arch }} python3 build.py --pyinstaller --onefile
+            echo "================================================================================================="
+            echo "INFO    : ARCHITECTURE..."
+            echo "================================================================================================="
+            python3 -c "import platform; print('platform.machine():', platform.machine())"
+            python3 -c "import platform; print('platform.architecture():', platform.architecture())"
+            echo "================================================================================================="
+            echo "INFO    : INSTALLING REQUIREMENTS..."
+            echo "================================================================================================="
+            python3 -m pip install --upgrade pip
+            python3 -m pip install -r requirements.txt
+            echo "================================================================================================="
+            echo "INFO    : INSTALLED VERSIONS..."
+            echo "================================================================================================="
+            echo "Python version:"
+            python3 --version
+            echo "PyInstaller version:"
+            pyinstaller --version
+            echo "Nuitka version:"
+            python3 -m nuitka --version
+            echo "================================================================================================="
+            echo "INFO    : COMPILING..."
+            echo "================================================================================================="
+            python3 build.py --pyinstaller --onefile
           
-          # Build for Windows (x86_64)
+          # Build for Windows (x86_64 & arm64)
           elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
+            echo "================================================================================================="
+            echo "INFO    : ARCHITECTURE..."
+            echo "================================================================================================="
+            python3 -c "import platform; print('platform.machine():', platform.machine())"
+            python3 -c "import platform; print('platform.architecture():', platform.architecture())"
             echo "================================================================================================="
             echo "INFO    : INSTALLING REQUIREMENTS..."
             echo "================================================================================================="
@@ -122,24 +118,15 @@ jobs:
             echo "================================================================================================="
             python3 build.py --pyinstaller --onefile
                
-          # Build for Linux (arm64)
-          elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
-            echo "================================================================================================="
-            echo "INFO    : INSTALLING LINUX PACKAGES..."
-            echo "================================================================================================="
-            sudo apt-get update
-            sudo apt-get install -y software-properties-common
-            sudo add-apt-repository universe
-            sudo add-apt-repository multiverse
-            sudo add-apt-repository restricted
-            sudo apt-get update
-            sudo apt-get install -y qemu-user-static binfmt-support
-            docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace ubuntu:20.04 bash -c '
-                export DEBIAN_FRONTEND=noninteractive && \
-                apt update && \
-                apt install -y gcc-aarch64-linux-gnu python3 python3-pip patchelf && \
-                apt-get update && \
-                apt-get install -y python3-tk
+          
+          # Build for Linux (x86_64)
+          elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
+            docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace jaimetur/centos-amd64:7 bash -c '
+                echo "================================================================================================="
+                echo "INFO    : ARCHITECTURE..."
+                echo "================================================================================================="
+                python3 -c "import platform; print('platform.machine():', platform.machine())"
+                python3 -c "import platform; print('platform.architecture():', platform.architecture())"
                 echo "================================================================================================="
                 echo "INFO    : INSTALLING REQUIREMENTS..."
                 echo "================================================================================================="
@@ -159,10 +146,30 @@ jobs:
                 echo "================================================================================================="
                 python3 build.py --pyinstaller --onefile
                 '
-          
-          # Build for Linux (x86_64)
-          elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
-            docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace jaimetur/centos-amd64:7 bash -c '
+
+          # Build for Linux (arm64)
+          elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
+            echo "================================================================================================="
+            echo "INFO    : INSTALLING LINUX PACKAGES..."
+            echo "================================================================================================="
+            sudo apt-get update
+            sudo apt-get install -y software-properties-common
+            sudo add-apt-repository universe
+            sudo add-apt-repository multiverse
+            sudo add-apt-repository restricted
+            sudo apt-get update
+            sudo apt-get install -y qemu-user-static binfmt-support
+            docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace ubuntu:20.04 bash -c '
+                export DEBIAN_FRONTEND=noninteractive && \
+                apt update && \
+                apt install -y gcc-aarch64-linux-gnu python3 python3-pip patchelf && \
+                apt-get update && \
+                apt-get install -y python3-tk
+                echo "================================================================================================="
+                echo "INFO: ARCHITECTURE..."
+                echo "================================================================================================="
+                python3 -c "import platform; print('platform.machine():', platform.machine())"
+                python3 -c "import platform; print('platform.architecture():', platform.architecture())"
                 echo "================================================================================================="
                 echo "INFO    : INSTALLING REQUIREMENTS..."
                 echo "================================================================================================="

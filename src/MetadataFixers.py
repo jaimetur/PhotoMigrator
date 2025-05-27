@@ -122,7 +122,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
 
         try:
             command = ' '.join(gpth_command)
-            LOGGER.debug(f"DEBUG   : Command: {command}")
+            LOGGER.info(f"INFO    : Running GPTH with following command: {command}")
             ok = run_command(gpth_command, LOGGER, capture_output=capture_output, capture_errors=capture_errors)      # Shows the output in real time and capture it to the LOGGER.
             # ok = subprocess.run(gpth_command, check=True, capture_output=capture_output, text=True)
 
