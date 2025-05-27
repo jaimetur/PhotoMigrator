@@ -29,10 +29,10 @@ jobs:
             python-version: "3.12.10"
             runs-on: macos-13
 
-          - os: macos-latest
-            arch: arm64
-            python-version: "3.12.10"
-            runs-on: macos-latest
+#          - os: macos-latest
+#            arch: arm64
+#            python-version: "3.12.10"
+#            runs-on: macos-latest
 
           # Linux
           - os: ubuntu-24.04
