@@ -80,27 +80,6 @@ jobs:
       - name: 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
         run: |
           echo "::group::Build for ${{ matrix.os }} - ${{ matrix.arch }}"
-                    
-#          # Build for macOS (x86_64 & arm64)
-#          if [[ "${{ matrix.os }}" == *"macos"* ]]; then
-#            arch -${{ matrix.arch }} echo "================================================================================================="
-#            arch -${{ matrix.arch }} echo "INFO    : INSTALLING REQUIREMENTS..."
-#            arch -${{ matrix.arch }} echo "================================================================================================="
-#            arch -${{ matrix.arch }} python3 -m pip install --upgrade pip
-#            arch -${{ matrix.arch }} python3 -m pip install -r requirements.txt
-#            arch -${{ matrix.arch }} echo "================================================================================================="
-#            arch -${{ matrix.arch }} echo "INFO    : INSTALLED VERSIONS..."
-#            arch -${{ matrix.arch }} echo "================================================================================================="
-#            arch -${{ matrix.arch }} echo "Python version:"
-#            arch -${{ matrix.arch }} python3 --version
-#            arch -${{ matrix.arch }} echo "PyInstaller version:"
-#            arch -${{ matrix.arch }} pyinstaller --version
-#            arch -${{ matrix.arch }} echo "Nuitka version:"
-#            arch -${{ matrix.arch }} python3 -m nuitka --version
-#            arch -${{ matrix.arch }} echo "================================================================================================="
-#            arch -${{ matrix.arch }} echo "INFO    : COMPILING..."
-#            arch -${{ matrix.arch }} echo "================================================================================================="
-#            arch -${{ matrix.arch }} python3 build.py --pyinstaller --onefile
 
           # Build for macOS (x86_64 & arm64)
           if [[ "${{ matrix.os }}" == *"macos"* ]]; then
@@ -181,7 +160,7 @@ jobs:
                 echo "INFO    : COMPILING..."
                 echo "================================================================================================="
                 python3 build.py --pyinstaller --onefile
-                  '
+                '
 
           # Build for Linux (arm64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
@@ -224,7 +203,7 @@ jobs:
                 echo "INFO    : COMPILING..."
                 echo "================================================================================================="
                 python3 build.py --pyinstaller --onefile
-                  '
+                '
           fi
 
           echo "::endgroup::"
