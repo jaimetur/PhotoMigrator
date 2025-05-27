@@ -1,6 +1,7 @@
 import os, sys
 import shutil
 import zipfile
+import tempfile
 import fnmatch
 import re
 import stat
@@ -719,6 +720,25 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
                 dir_path = os.path.join(path, dir)
                 if not os.listdir(dir_path):  # Si la carpeta está vacía
                     os.rmdir(dir_path)
+
+
+def unzip_to_temp(zipfile_path):
+    """
+    Unzips the contents of `zip_path` into a temporary directory.
+    The directory is created using tempfile and is valid on all platforms.
+
+    Returns:
+        str: Path to the temporary extraction directory.
+    """
+    if not zipfile.is_zipfile(zipfile_path):
+        raise ValueError(f"{zipfile_path} is not a valid zip file.")
+
+    temp_dir = tempfile.mkdtemp()  # Creates a unique temp dir, persists until deleted manually
+    with zipfile.ZipFile(zipfile_path, 'r') as zip_ref:
+        zip_ref.extractall(temp_dir)
+        print(f"ZIP file extracted to: {temp_dir}")
+
+    return temp_dir
 
 
 def unzip(zipfile_path, dest_folder):

@@ -14,7 +14,7 @@ if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
 from GlobalVariables import GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
-from Utils import zip_folder, unzip, unzip_flatten, clear_screen, print_arguments_pretty
+from Utils import zip_folder, unzip_to_temp, unzip, unzip_flatten, clear_screen, print_arguments_pretty
 
 def include_extrafiles_and_zip(input_file, output_file):
     extra_files_to_subdir = [
@@ -343,7 +343,8 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             shutil.rmtree(exif_folder_tmp, ignore_errors=True)
             # Unzip Exif_tool and include it to compiled binary with Pyinstaller
             print("\nUnzipping EXIF Tool to include it in binary compiled file...")
-            unzip(exif_tool_zipped, exif_folder_tmp)
+            # unzip(exif_tool_zipped, exif_folder_tmp)
+            exif_folder_tmp = unzip_to_temp(exif_tool_zipped)
             # Asegura permisos de ejecución para exiftool (y opcionalmente otros binarios)
             import stat
             exiftool_bin = Path(exif_folder_tmp) / "exiftool"
@@ -434,7 +435,8 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             shutil.rmtree(exif_folder_tmp, ignore_errors=True)
             # Unzip Exif_tool and include it to compiled binary with Nuitka
             print("\nUnzipping EXIF Tool to include it in binary compiled file...")
-            unzip(exif_tool_zipped, exif_folder_tmp)
+            # unzip(exif_tool_zipped, exif_folder_tmp)
+            exif_folder_tmp = unzip_to_temp(exif_tool_zipped)
             # Dar permiso de ejecución a exiftool
             import stat
             for path in Path(exif_folder_tmp).rglob('*'):
@@ -447,7 +449,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             nuitka_command.extend([f'--onefile-tempdir-spec=/var/tmp/{SCRIPT_NAME_WITH_VERSION_OS_ARCH}'])
         # Now Run Nuitka with previous settings
         print_arguments_pretty(nuitka_command, title="Nuitka Arguments")
-        result = subprocess.run(nuitka_command, capture_output=True, text=True)
+        result = subprocess.run(nuitka_command, stdout=sys.stdout, stderr=sys.stderr, text=True)
         if result.returncode == 0:
             print("✅ Nuitka finished successfully.")
             success = True
