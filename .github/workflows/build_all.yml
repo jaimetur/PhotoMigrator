@@ -62,24 +62,51 @@ jobs:
                     
           # Build for macOS (any architecture)
           if [[ "${{ matrix.os }}" == *"macos"* ]]; then
+            arch -${{ matrix.arch }} echo "==========================="
+            arch -${{ matrix.arch }} echo " INSTALLING REQUIREMENTS..."
+            arch -${{ matrix.arch }} echo "==========================="
             arch -${{ matrix.arch }} python3 -m pip install --upgrade pip
             arch -${{ matrix.arch }} python3 -m pip install -r requirements.txt
+            arch -${{ matrix.arch }} echo "======================"
+            arch -${{ matrix.arch }} echo " INSTALLED VERSIONS..."
+            arch -${{ matrix.arch }} echo "======================"
+            arch -${{ matrix.arch }} echo "Python version:"
             arch -${{ matrix.arch }} python3 --version
+            arch -${{ matrix.arch }} echo "PyInstaller version:"
             arch -${{ matrix.arch }} pyinstaller --version
+            arch -${{ matrix.arch }} echo "Nuitka version:"
             arch -${{ matrix.arch }} python3 -m nuitka --version
+            arch -${{ matrix.arch }} echo "============="
+            arch -${{ matrix.arch }} echo " COMPILING..."
+            arch -${{ matrix.arch }} echo "============="
             arch -${{ matrix.arch }} python3 ./src/_build.py pyinstaller
           
           # Build for Windows (amd64)
           elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
+            echo "==========================="
+            echo " INSTALLING REQUIREMENTS..."
+            echo "==========================="
             python3 -m pip install --upgrade pip
             python3 -m pip install -r requirements.txt
+            echo "======================"
+            echo " INSTALLED VERSIONS..."
+            echo "======================"
+            echo "Python version:"
             python3 --version
+            echo "PyInstaller version:"
             pyinstaller --version
+            echo "Nuitka version:"
             python3 -m nuitka --version
+            echo "============="
+            echo " COMPILING..."
+            echo "============="
             python3 ./src/_build.py nuitka
                
           # Build for Linux (arm64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
+            echo "=============================="
+            echo " INSTALLING LINUX PACKAGES..."
+            echo "=============================="
             sudo apt-get update
             sudo apt-get install -y software-properties-common
             sudo add-apt-repository universe
@@ -87,26 +114,50 @@ jobs:
             sudo add-apt-repository restricted
             sudo apt-get update
             sudo apt-get install -y qemu-user-static binfmt-support
-            sudo apt-get install python3-tk
             docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace ubuntu:20.04 bash -c "
                 apt update && \
                 apt install -y gcc-aarch64-linux-gnu python3 python3-pip patchelf && \
+                sudo apt install -y python3-tk
+                echo "==========================="
+                echo " INSTALLING REQUIREMENTS..."
+                echo "==========================="
                 python3 -m pip install --upgrade pip
                 python3 -m pip install -r requirements.txt
+                echo "======================"
+                echo " INSTALLED VERSIONS..."
+                echo "======================"
+                echo "Python version:"
                 python3 --version
+                echo "PyInstaller version:"
                 pyinstaller --version
+                echo "Nuitka version:"
                 python3 -m nuitka --version
+                echo "============="
+                echo " COMPILING..."
+                echo "============="
                 python3 ./src/_build.py pyinstaller
                 "
           
           # Build for Linux (amd64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
             docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace jaimetur/centos-amd64:7 bash -c "
+                echo "==========================="
+                echo " INSTALLING REQUIREMENTS..."
+                echo "==========================="
                 python3 -m pip install --upgrade pip
                 python3 -m pip install -r requirements.txt
+                echo "======================"
+                echo " INSTALLED VERSIONS..."
+                echo "======================"
+                echo "Python version:"
                 python3 --version
+                echo "PyInstaller version:"
                 pyinstaller --version
+                echo "Nuitka version:"
                 python3 -m nuitka --version
+                echo "============="
+                echo " COMPILING..."
+                echo "============="
                 python3 ./src/_build.py pyinstaller
                 "
           fi

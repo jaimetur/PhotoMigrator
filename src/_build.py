@@ -451,7 +451,8 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
 
     print('')
     print("=================================================================================================")
-    print(f"Compilation for OS: '{OPERATING_SYSTEM}' and architecture: '{ARCHITECTURE}' completed successfully.")
+    print(f"Compilation for OS: '{OPERATING_SYSTEM}' and architecture: '{ARCHITECTURE}' completed successfully!!!")
+    print('')
     print(f"SCRIPT_COMPILED: {script_compiled_abs_path}")
     print(f"SCRIPT_ZIPPED  : {script_zip_file}")
     print('')
