@@ -165,15 +165,15 @@ jobs:
           echo "::endgroup::"
         shell: bash
 
-      # 2a. Read SCRIPT_VERSION and ARCHIVE_PATH from script_info.txt (Linux/macOS)
-      - name: 2a. Read SCRIPT_VERSION and ARCHIVE_PATH from script_info.txt (Linux/macOS)
+      # 2a. Read SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt (Linux/macOS)
+      - name: 2a. Read SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
           # Read SCRIPT_VERSION from the first line
-          SCRIPT_VERSION=$(grep '^SCRIPT_VERSION=' script_info.txt | cut -d'=' -f2-)
+          SCRIPT_VERSION=$(grep '^SCRIPT_VERSION=' build_info.txt | cut -d'=' -f2-)
 
           # Read ARCHIVE_PATH from the second line
-          ARCHIVE_PATH=$(grep '^ARCHIVE_PATH=' script_info.txt | cut -d'=' -f2-)
+          ARCHIVE_PATH=$(grep '^ARCHIVE_PATH=' build_info.txt | cut -d'=' -f2-)
           
           # Save both variables on GitHub Actions environment
           echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> $GITHUB_ENV
@@ -183,13 +183,13 @@ jobs:
           echo "SCRIPT_VERSION (Linux/macOS): ${SCRIPT_VERSION}"
           echo "ARCHIVE_PATH (Linux/macOS)  : ${ARCHIVE_PATH}"
 
-      # 2b. Read SCRIPT_VERSION and ARCHIVE_PATH from script_info.txt (Windows)
-      - name: 2b. Read SCRIPT_VERSION and ARCHIVE_PATH from script_info.txt (Windows)
+      # 2b. Read SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt (Windows)
+      - name: 2b. Read SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt (Windows)
         if: runner.os == 'Windows'
         run: |
           # Cargar todas las líneas del archivo como un diccionario clave=valor
           $info = @{}
-          Get-Content script_info.txt | ForEach-Object {
+          Get-Content build_info.txt | ForEach-Object {
               if ($_ -match '^([^=]+)=(.*)$') {
                   $info[$matches[1]] = $matches[2]
               }

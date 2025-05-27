@@ -227,8 +227,8 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     script_zip_file = Path(f"./PhotoMigrator-builts/{SCRIPT_VERSION_WITHOUT_V}/{script_name_with_version_os_arch}.zip").resolve()
     archive_path_relative = os.path.relpath(script_zip_file, root_dir)
 
-    # Guardar script_info.txt en un fichero de texto
-    with open(os.path.join(root_dir, 'script_info.txt'), 'w') as file:
+    # Guardar build_info.txt en un fichero de texto
+    with open(os.path.join(root_dir, 'build_info.txt'), 'w') as file:
         file.write('OPERATING_SYSTEM=' + OPERATING_SYSTEM + '\n')
         file.write('ARCHITECTURE=' + ARCHITECTURE + '\n')
         file.write('SCRIPT_NAME=' + SCRIPT_NAME + '\n')
@@ -281,8 +281,8 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         gpth_tool = gpth_tool.replace(".ext", ".bin")
         exif_tool_zipped = "exif_tool/others.zip"
 
-    # Guardar script_info.txt en un fichero de texto
-    with open(os.path.join(root_dir, 'script_info.txt'), 'a') as file:
+    # Guardar build_info.txt en un fichero de texto
+    with open(os.path.join(root_dir, 'build_info.txt'), 'a') as file:
         file.write('COMPILER=' + str(compiler) + '\n')
         file.write('SCRIPT_COMPILED=' + os.path.abspath(script_compiled_with_version_os_arch_extension) + '\n')
         file.write('GPTH_TOOL=' + gpth_tool + '\n')
