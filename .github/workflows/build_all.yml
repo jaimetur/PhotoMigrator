@@ -20,16 +20,14 @@ on:
 
 jobs:
   build:
-    # Different VM images to compile in all SO and all Archs according with:
+    # Different VM images to compile in all SO and all Archs according to:
     # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
     strategy:
       matrix:
         os: [ ubuntu-x64, ubuntu-arm64, macos-x64, macos-arm64, windows-x64, windows-arm64 ]
-        python: [ "3.12.10" ]
-        compiler: [ pyinstaller ]
-#        compiler: [ nuitka ]
-        mode: [ global ]
-#        mode: [ custom ]
+        python: [ "3.12.10" ] # select Python version
+        compiler: [ pyinstaller ] # possible values: [pyinstaller, nuitka]
+        mode: [ global ] # possible values: [global, custom]
 
     # runs-on: ${{ matrix.os }}
     runs-on: ${{ fromJson('{
