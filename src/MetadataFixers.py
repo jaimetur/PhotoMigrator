@@ -60,7 +60,6 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         LOGGER.info(f"INFO    : Output Folder: '{output_folder}'")
 
         # Detect the operating system
-        current_os = platform.system()
         current_os = Utils.get_os()
         current_arch = Utils.get_arch()
 

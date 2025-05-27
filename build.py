@@ -6,6 +6,13 @@ import subprocess
 import glob
 import platform
 from pathlib import Path
+
+# Add 'src/' folder to path to import any module from 'src/'.
+current_dir = os.path.dirname(__file__)
+src_path = os.path.abspath(os.path.join(current_dir, "src"))
+if src_path not in sys.path:
+    sys.path.insert(0, src_path)
+
 from GlobalVariables import GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
 from Utils import zip_folder, unzip, unzip_flatten, clear_screen, print_arguments_pretty
 
@@ -336,6 +343,11 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             # Unzip Exif_tool and include it to compiled binary with Pyinstaller
             print("\nUnzipping EXIF Tool to include it in binary compiled file...")
             unzip(exif_tool_zipped, exif_folder_tmp)
+            # Asegura permisos de ejecución para exiftool (y opcionalmente otros binarios)
+            import stat
+            exiftool_bin = Path(exif_folder_tmp) / "exiftool"
+            if exiftool_bin.exists():
+                exiftool_bin.chmod(exiftool_bin.stat().st_mode | stat.S_IEXEC)
             # Añadir los archivos directamente en la carpeta raíz
             pyinstaller_command.extend(("--add-data", f"{exif_folder_tmp}:{exif_folder_dest}"))
             # Recorrer todas las carpetas recursivamente
@@ -412,6 +424,11 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             # Unzip Exif_tool and include it to compiled binary with Nuitka
             print("\nUnzipping EXIF Tool to include it in binary compiled file...")
             unzip(exif_tool_zipped, exif_folder_tmp)
+            # Dar permiso de ejecución a exiftool
+            import stat
+            for path in Path(exif_folder_tmp).rglob('*'):
+                if path.is_file() and path.name == "exiftool":
+                    path.chmod(path.stat().st_mode | stat.S_IEXEC)
             nuitka_command.extend([f'--include-data-files={exif_folder_tmp}={exif_folder_dest}/=**/*.*'])
             nuitka_command.extend([f'--include-data-dir={exif_folder_tmp}={exif_folder_dest}'])
             # nuitka_command.extend(['--include-data-dir=../exif_tool=exif_tool'])
@@ -474,17 +491,22 @@ if __name__ == "__main__":
     # Convertir a booleano
     if arg1 is not None:
         arg_lower = arg1.lower()
-        if arg_lower in ['false', '0', 'no', 'n', 'None']:
+        if arg_lower in ['false', '-false', '--false', '0', 'no', 'n', 'none', '-none', '--none', 'no-compile', '-no-compile', '--no-compile', 'no-compiler', '-no-compiler', '--no-compiler']:
             compiler = None
+        elif arg_lower in ['pyinstaller', '-pyinstaller', '--pyinstaller']:
+            compiler = 'pyinstaller'
+        elif arg_lower in ['nuitka', '-nuitka', '--nuitka']:
+            compiler = 'nuitka'
         else:
-            compiler = arg1
+            print (f"Unrecognized compiler: '{arg1}'. Using 'PyInstaller' by default...")
+            compiler = 'pyinstaller'
     else:
-        compiler = None  # valor por defecto
+        compiler = False  # valor por defecto
 
     # Convertir a booleano
     if arg2 is not None:
         arg_lower = arg2.lower()
-        if arg_lower in ['false', '0', 'no', 'n', 'None', 'onedir', 'standalone', 'no-onefile']:
+        if arg_lower in ['false', '-false', '--false', '0', 'no', 'n', 'none', '-none', '--none', 'onedir', '-onedir', '--onedir', 'standalone', '-standalone', '--standalone', 'no-onefile', '-no-onefile', '--no-onefile']:
             onefile = False
         else:
             onefile = True

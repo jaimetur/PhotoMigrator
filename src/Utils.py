@@ -57,17 +57,9 @@ def check_OS_and_Terminal(log_level=logging.INFO):
     """ Check OS, Terminal Type, and System Architecture """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Detect the operating system
-        current_os = platform.system()
+        current_os = get_os()
         # Detect the machine architecture
-        architecture = platform.machine()
-
-        # Normalize architecture name
-        if architecture in ["x86_64", "amd64", "AMD64"]:
-            arch_label = "amd64"
-        elif architecture in ["aarch64", "arm64"]:
-            arch_label = "arm64"
-        else:
-            arch_label = architecture
+        arch_label = get_arch()
 
         # Logging OS
         if current_os == "Linux":
