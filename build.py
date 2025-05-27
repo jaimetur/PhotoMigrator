@@ -199,12 +199,12 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     print("=================================================================================================")
     print("")
 
-    print("Adding neccesary packets to Python environment before to compile...")
+    # print("Adding neccesary packets to Python environment before to compile...")
     # subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'])
     # subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', './requirements.txt'])
-    if OPERATING_SYSTEM == 'windows':
-        subprocess.run([sys.executable, '-m', 'pip', 'install', 'windows-curses'])
-    print("")
+    # if OPERATING_SYSTEM == 'windows' and ARCHITECTURE == 'x86_64)':
+    #     subprocess.run([sys.executable, '-m', 'pip', 'install', 'windows-curses'])
+    # print("")
 
     if SCRIPT_VERSION:
         print(f"SCRIPT_VERSION found: {SCRIPT_VERSION_WITHOUT_V}")
@@ -408,11 +408,11 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             nuitka_command.extend(['--standalone'])
 
         nuitka_command.extend([
-            # '--jobs=4',
+            '--jobs=4',
             '--assume-yes-for-downloads',
             '--enable-plugin=tk-inter',
             '--lto=yes',
-            # '--remove-output',
+            '--remove-output',
             f'--output-dir={dist_path}',
             f"--file-version={SCRIPT_VERSION_WITHOUT_V.split('-')[0]}",
             f'--copyright={COPYRIGHT_TEXT}',
