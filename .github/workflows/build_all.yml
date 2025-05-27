@@ -22,7 +22,8 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]  # os list
+#        os: [ubuntu-latest, macos-latest, windows-latest]  # os list
+        os: [windows-latest]  # os list
 #        os: [ubuntu-latest, windows-latest]  # os list
         arch: [x86_64, arm64]  # arch list
 #        exclude:
@@ -100,7 +101,7 @@ jobs:
             echo "================================================================================================="
             echo "INFO    : COMPILING..."
             echo "================================================================================================="
-            python3 ./src/_build.py nuitka
+            python3 ./src/_build.py pyinstaller
                
           # Build for Linux (arm64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
