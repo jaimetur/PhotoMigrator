@@ -57,11 +57,11 @@
     - [x] Renamed short name flag _**'-RemAlb'**_ to _**'-rAlb'**_ to activate the Feature 'Remove Albums'.
     - [x] Renamed short name flag _**'-RenAlb'**_ to _**'-renAlb'**_ to activate the Feature 'Rename Albums'.
     - [x] Renamed short name flag _**'-MergAlb'**_ to _**'-mDupAlb'**_ to activate the Feature 'Merge Duplicates Albums'.
-    - [x] Updated GPTH to version 4.0.0 (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts.     
+    - [x] Updated GPTH to version 4.0.1 (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts.     
     - [x] GPTH is now enhanced with EXIF Tool support for a better metadata fixing (supporting geolocations update, almost all media formats, multiple camera brands, etc...).     
     - [x] Improved _build.py to support both compilers (Pyinstaller and Nuitka).     
-    - [x] Added Splash logo at the loading screen when execute from binaries.     
-    - [x] Renamed binaries files for architecture aarch64 from 'amd64' to 'x86_64'.     
+    - [x] Added Splash logo at the loading screen when execute from binaries on Windows.  
+    - [x] Renamed binaries files for architecture 'amd64' from 'amd64' to 'x86_64'.     
 
   - #### 🐛 Bug fixes:
     - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
