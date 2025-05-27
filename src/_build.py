@@ -172,7 +172,7 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     # Detect the operating system and architecture
     OPERATING_SYSTEM = platform.system().lower().replace('darwin', 'macos')
     # ARCHITECTURE = platform.machine().lower().replace('x86_64', 'amd64').replace('aarch64', 'arm64')
-    ARCHITECTURE = platform.machine().lower().replace('aarch64', 'x86_64')
+    ARCHITECTURE = platform.machine().lower().replace('amd64', 'x86_64').replace('aarch64', 'x86_64')
     SCRIPT_NAME = "PhotoMigrator"
     SCRIPT_SOURCE_NAME = f"{SCRIPT_NAME}.py"
     SCRIPT_VERSION = get_script_version('./src/GlobalVariables.py')
@@ -305,8 +305,8 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         import PyInstaller.__main__
 
         # Build and Dist Folders for Pyinstaller
-        build_path = "./build_pyinstaller/"
-        dist_path = "./dist_pyinstaller/"
+        build_path = "./build_pyinstaller"
+        dist_path = "./dist_pyinstaller"
 
         # Add _pyinstaller suffix to exif_folder_tmp to avoid conflict if both commpiler are running in parallel
         exif_folder_tmp = exif_folder_tmp.replace('tmp', 'tmp_pyinstaller')
@@ -369,7 +369,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         print("")
 
         # Build and Dist Folders for Nuitka
-        dist_path = "./dist_nuitka/"
+        dist_path = "./dist_nuitka"
         build_path = f"{dist_path}/{SCRIPT_NAME}.build"
 
         # Add _nuitka suffix to exif_folder_tmp to avoid conflict if both commpiler are running in parallel
