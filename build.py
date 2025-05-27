@@ -6,6 +6,13 @@ import subprocess
 import glob
 import platform
 from pathlib import Path
+
+# Add 'src/' folder to path to import any module from 'src/'.
+current_dir = os.path.dirname(__file__)
+src_path = os.path.abspath(os.path.join(current_dir, "src"))
+if src_path not in sys.path:
+    sys.path.insert(0, src_path)
+
 from GlobalVariables import GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
 from Utils import zip_folder, unzip, unzip_flatten, clear_screen, print_arguments_pretty
 
@@ -484,17 +491,22 @@ if __name__ == "__main__":
     # Convertir a booleano
     if arg1 is not None:
         arg_lower = arg1.lower()
-        if arg_lower in ['false', '0', 'no', 'n', 'None']:
+        if arg_lower in ['false', '-false', '--false', '0', 'no', 'n', 'none', '-none', '--none', 'no-compile', '-no-compile', '--no-compile', 'no-compiler', '-no-compiler', '--no-compiler']:
             compiler = None
+        elif arg_lower in ['pyinstaller', '-pyinstaller', '--pyinstaller']:
+            compiler = 'pyinstaller'
+        elif arg_lower in ['nuitka', '-nuitka', '--nuitka']:
+            compiler = 'nuitka'
         else:
-            compiler = arg1
+            print (f"Unrecognized compiler: '{arg1}'. Using 'PyInstaller' by default...")
+            compiler = 'pyinstaller'
     else:
-        compiler = None  # valor por defecto
+        compiler = False  # valor por defecto
 
     # Convertir a booleano
     if arg2 is not None:
         arg_lower = arg2.lower()
-        if arg_lower in ['false', '0', 'no', 'n', 'None', 'onedir', 'standalone', 'no-onefile']:
+        if arg_lower in ['false', '-false', '--false', '0', 'no', 'n', 'none', '-none', '--none', 'onedir', '-onedir', '--onedir', 'standalone', '-standalone', '--standalone', 'no-onefile', '-no-onefile', '--no-onefile']:
             onefile = False
         else:
             onefile = True

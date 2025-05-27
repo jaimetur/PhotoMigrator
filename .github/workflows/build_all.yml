@@ -80,7 +80,7 @@ jobs:
             arch -${{ matrix.arch }} echo "================================================================================================="
             arch -${{ matrix.arch }} echo "INFO    : COMPILING..."
             arch -${{ matrix.arch }} echo "================================================================================================="
-            arch -${{ matrix.arch }} python3 ./src/_build.py pyinstaller
+            arch -${{ matrix.arch }} python3 build.py --pyinstaller --onefile
           
           # Build for Windows (x86_64)
           elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
@@ -101,7 +101,7 @@ jobs:
             echo "================================================================================================="
             echo "INFO    : COMPILING..."
             echo "================================================================================================="
-            python3 ./src/_build.py pyinstaller
+            python3 build.py --pyinstaller --onefile
                
           # Build for Linux (arm64)
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
@@ -138,7 +138,7 @@ jobs:
                 echo "================================================================================================="
                 echo "INFO    : COMPILING..."
                 echo "================================================================================================="
-                python3 ./src/_build.py pyinstaller
+                python3 build.py --pyinstaller --onefile
                 '
           
           # Build for Linux (x86_64)
@@ -161,7 +161,7 @@ jobs:
                 echo "================================================================================================="
                 echo "INFO    : COMPILING..."
                 echo "================================================================================================="
-                python3 ./src/_build.py pyinstaller
+                python3 build.py --pyinstaller --onefile
                 '
           fi
 
