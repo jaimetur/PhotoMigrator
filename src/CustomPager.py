@@ -189,9 +189,13 @@ class PagedParser(argparse.ArgumentParser):
 
     def is_interactive(self):
         """
-        Detecta si el script se está ejecutando en un entorno interactivo y con terminal válido.
+        Detecta si el script se ejecuta en un terminal interactivo y válido.
+        En Windows no depende de TERM, en Unix sí.
         """
-        return sys.stdout.isatty() and os.environ.get('TERM') is not None
+        if platform.system() == 'Windows':
+            return sys.stdout.isatty()
+        else:
+            return sys.stdout.isatty() and os.environ.get('TERM') is not None
 
     def print_help(self, file=None):
         # Genera el texto de ayuda usando el formatter_class (CustomHelpFormatter).
@@ -204,3 +208,4 @@ class PagedParser(argparse.ArgumentParser):
                 print(help_text)
         except Exception as e:
             print(help_text)
+            print('Pagination is not possible on this terminal.')
