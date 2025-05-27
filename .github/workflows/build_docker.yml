@@ -40,19 +40,18 @@ jobs:
       # Install dependencies
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r requirements.txt
           
 
-      # 1. - Execute for ubuntu without compile any build
-      - name: 1. - Execute for ubuntu without compile any build
+      # 1. - Execute for ubuntu --no-compile to avoid compile any binary
+      - name: 1. - Execute for ubuntu --no-compile to avoid compile any binary
         run: |
           echo "::group::Execute for ${{ matrix.os }}"
                     
           # Execute for ubuntu
           if [[ "${{ matrix.os }}" == *"ubuntu"* ]]; then
-            python -m pip install piexif
-            python build.py --no-compile
+            python3 build.py --no-compile
           fi
           
           echo "::endgroup::"

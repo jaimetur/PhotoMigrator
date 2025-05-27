@@ -14,7 +14,7 @@ if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
 from GlobalVariables import GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
-from Utils import zip_folder, unzip, unzip_flatten, clear_screen, print_arguments_pretty
+from Utils import zip_folder, unzip_to_temp, unzip, unzip_flatten, clear_screen, print_arguments_pretty
 
 def include_extrafiles_and_zip(input_file, output_file):
     extra_files_to_subdir = [
@@ -199,12 +199,12 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     print("=================================================================================================")
     print("")
 
-    print("Adding neccesary packets to Python environment before to compile...")
+    # print("Adding neccesary packets to Python environment before to compile...")
     # subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'])
     # subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', './requirements.txt'])
-    if OPERATING_SYSTEM == 'windows':
-        subprocess.run([sys.executable, '-m', 'pip', 'install', 'windows-curses'])
-    print("")
+    # if OPERATING_SYSTEM == 'windows' and ARCHITECTURE == 'x86_64)':
+    #     subprocess.run([sys.executable, '-m', 'pip', 'install', 'windows-curses'])
+    # print("")
 
     if SCRIPT_VERSION:
         print(f"SCRIPT_VERSION found: {SCRIPT_VERSION_WITHOUT_V}")
@@ -307,6 +307,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     print("=================================================================================================")
     print("")
 
+    success = False
     if compiler=='pyinstaller':
         print("Compiling with Pyinstaller...")
         import PyInstaller.__main__
@@ -342,7 +343,8 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             shutil.rmtree(exif_folder_tmp, ignore_errors=True)
             # Unzip Exif_tool and include it to compiled binary with Pyinstaller
             print("\nUnzipping EXIF Tool to include it in binary compiled file...")
-            unzip(exif_tool_zipped, exif_folder_tmp)
+            # unzip(exif_tool_zipped, exif_folder_tmp)
+            exif_folder_tmp = unzip_to_temp(exif_tool_zipped)
             # Asegura permisos de ejecución para exiftool (y opcionalmente otros binarios)
             import stat
             exiftool_bin = Path(exif_folder_tmp) / "exiftool"
@@ -367,7 +369,17 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
 
         # Now Run PyInstaller with previous settings
         print_arguments_pretty(pyinstaller_command, title="Pyinstaller Arguments")
-        PyInstaller.__main__.run(pyinstaller_command)
+
+        try:
+            PyInstaller.__main__.run(pyinstaller_command)
+            print("[OK] PyInstaller finished successfully.")
+            success = True
+        except SystemExit as e:
+            if e.code == 0:
+                print("[OK] PyInstaller finished successfully.")
+                success = True
+            else:
+                print(f"[ERROR] PyInstaller failed with error code: {e.code}")
 
     elif compiler=='nuitka':
         print("Compiling with Nuitka...")
@@ -408,11 +420,11 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             nuitka_command.extend(['--standalone'])
 
         nuitka_command.extend([
-            # '--jobs=4',
+            '--jobs=4',
             '--assume-yes-for-downloads',
             '--enable-plugin=tk-inter',
             '--lto=yes',
-            # '--remove-output',
+            '--remove-output',
             f'--output-dir={dist_path}',
             f"--file-version={SCRIPT_VERSION_WITHOUT_V.split('-')[0]}",
             f'--copyright={COPYRIGHT_TEXT}',
@@ -423,7 +435,8 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             shutil.rmtree(exif_folder_tmp, ignore_errors=True)
             # Unzip Exif_tool and include it to compiled binary with Nuitka
             print("\nUnzipping EXIF Tool to include it in binary compiled file...")
-            unzip(exif_tool_zipped, exif_folder_tmp)
+            # unzip(exif_tool_zipped, exif_folder_tmp)
+            exif_folder_tmp = unzip_to_temp(exif_tool_zipped)
             # Dar permiso de ejecución a exiftool
             import stat
             for path in Path(exif_folder_tmp).rglob('*'):
@@ -436,10 +449,25 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             nuitka_command.extend([f'--onefile-tempdir-spec=/var/tmp/{SCRIPT_NAME_WITH_VERSION_OS_ARCH}'])
         # Now Run Nuitka with previous settings
         print_arguments_pretty(nuitka_command, title="Nuitka Arguments")
-        subprocess.run(nuitka_command)
+        result = subprocess.run(nuitka_command, stdout=sys.stdout, stderr=sys.stderr, text=True)
+        if result.returncode == 0:
+            print("[OK] Nuitka finished successfully.")
+            success = True
+        else:
+            print("[ERROR] Nuitka failed:")
+            print("STDOUT:\n", result.stdout)
+            print("STDERR:\n", result.stderr)
+
     else:
         print(f"Compiler '{compiler}' not supported. Valid options are 'pyinstaller' or 'nuitka'. Compilation skipped.")
         return False
+
+    # Now checks if compilations finished successfully, if not, exit.
+    if success:
+        print("[OK] Compilation process finished successfully.")
+    else:
+        print("[ERROR] There was some error during compilation process.")
+        sys.exit(-1)
 
     # Script Compiled Absolute Path
     script_compiled_abs_path = ''
