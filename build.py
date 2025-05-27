@@ -449,14 +449,10 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             nuitka_command.extend([f'--onefile-tempdir-spec=/var/tmp/{SCRIPT_NAME_WITH_VERSION_OS_ARCH}'])
         # Now Run Nuitka with previous settings
         print_arguments_pretty(nuitka_command, title="Nuitka Arguments")
-        result = subprocess.run(nuitka_command, stdout=sys.stdout, stderr=sys.stderr, text=True)
-        if result.returncode == 0:
-            print("[OK] Nuitka finished successfully.")
-            success = True
-        else:
-            print("[ERROR] Nuitka failed:")
-            print("STDOUT:\n", result.stdout)
-            print("STDERR:\n", result.stderr)
+        result = subprocess.run(nuitka_command)
+        success = (result.returncode == 0)
+        if not success:
+            print(f"[ERROR] Nuitka failed with code: {result.returncode}")
 
     else:
         print(f"Compiler '{compiler}' not supported. Valid options are 'pyinstaller' or 'nuitka'. Compilation skipped.")
