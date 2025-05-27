@@ -116,9 +116,11 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y qemu-user-static binfmt-support
             docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace ubuntu:20.04 bash -c '
+                export DEBIAN_FRONTEND=noninteractive && \
                 apt update && \
                 apt install -y gcc-aarch64-linux-gnu python3 python3-pip patchelf && \
-                apt install -y python3-tk
+                apt-get update && \
+                apt-get install -y python3-tk
                 echo "================================================================================================="
                 echo "INFO    : INSTALLING REQUIREMENTS..."
                 echo "================================================================================================="
