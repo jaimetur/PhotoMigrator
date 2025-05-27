@@ -47,3 +47,48 @@
              docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace/src python:3.8-alpine bash -c "
                  apk add py3-pip musl-dev gcc && pip install pyinstaller &&
                  python3 _compile.py"
+
+
+#          # Build for Linux (arm64)
+#          elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
+#            echo "================================================================================================="
+#            echo "INFO    : INSTALLING LINUX PACKAGES..."
+#            echo "================================================================================================="
+#            sudo apt-get update
+#            sudo apt-get install -y software-properties-common
+#            sudo add-apt-repository universe
+#            sudo add-apt-repository multiverse
+#            sudo add-apt-repository restricted
+#            sudo apt-get update
+#            sudo apt-get install -y qemu-user-static binfmt-support
+#            docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/workspace -w /workspace ubuntu:20.04 bash -c '
+#                export DEBIAN_FRONTEND=noninteractive && \
+#                apt update && \
+#                apt install -y gcc-aarch64-linux-gnu python3 python3-pip patchelf && \
+#                apt-get update && \
+#                apt-get install -y python3-tk
+#                python3 -m pip install piexif --no-binary :all:
+#                echo "================================================================================================="
+#                echo "INFO: ARCHITECTURE..."
+#                echo "================================================================================================="
+#                python3 -c '"'"'import platform; print("platform.machine():", platform.machine())'"'"'
+#                python3 -c '"'"'import platform; print("platform.architecture():", platform.architecture())'"'"'
+#                echo "================================================================================================="
+#                echo "INFO    : INSTALLING REQUIREMENTS..."
+#                echo "================================================================================================="
+#                python3 -m pip install --upgrade pip
+#                python3 -m pip install -r requirements.txt
+#                echo "================================================================================================="
+#                echo "INFO    : INSTALLED VERSIONS..."
+#                echo "================================================================================================="
+#                echo "Python version:"
+#                python3 --version
+#                echo "PyInstaller version:"
+#                pyinstaller --version
+#                echo "Nuitka version:"
+#                python3 -m nuitka --version
+#                echo "================================================================================================="
+#                echo "INFO    : COMPILING..."
+#                echo "================================================================================================="
+#                python3 build.py --$COMPILER --onefile
+#            '
