@@ -204,4 +204,3 @@ class PagedParser(argparse.ArgumentParser):
                 print(help_text)
         except Exception as e:
             print(help_text)
-            print(f"\nDEBUG   : Error trying to use interactive pager: {e}")
