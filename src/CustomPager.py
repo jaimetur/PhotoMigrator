@@ -204,3 +204,4 @@ class PagedParser(argparse.ArgumentParser):
                 print(help_text)
         except Exception as e:
             print(help_text)
+            print('Pagination is not possible on this terminal.')
