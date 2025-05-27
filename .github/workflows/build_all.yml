@@ -25,9 +25,9 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]  # os list
 #        os: [ubuntu-latest, windows-latest]  # os list
         arch: [x86_64, arm64]  # arch list
-        exclude:
-          - os: windows-latest
-            arch: arm64  # Windows is only compiled for x86 (32/64-bit)
+#        exclude:
+#          - os: windows-latest
+#            arch: arm64  # Windows is only compiled for x86 (32/64-bit)
         python-version: ["3.12.10"]
 
     runs-on: ${{ matrix.os }}
@@ -81,7 +81,7 @@ jobs:
             arch -${{ matrix.arch }} echo "================================================================================================="
             arch -${{ matrix.arch }} python3 ./src/_build.py pyinstaller
           
-          # Build for Windows (x86_64)
+          # Build for Windows (x86_64 & arm64)
           elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
             echo "================================================================================================="
             echo "INFO    : INSTALLING REQUIREMENTS..."

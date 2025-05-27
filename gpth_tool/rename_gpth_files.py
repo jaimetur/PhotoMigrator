@@ -9,7 +9,8 @@ pattern = re.compile(r"^gpth-v(?P<version>[\d\.]+)-nightly-(?P<os>\w+)-(?P<arch>
 
 # Normalización de arquitectura
 ARCH_MAP = {
-    "x86_64": "amd64"
+#    "x86_64": "amd64"
+    "x86_64": "x86_64"
 }
 
 # Extensión por sistema operativo
