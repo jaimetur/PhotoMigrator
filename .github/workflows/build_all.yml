@@ -82,16 +82,11 @@ jobs:
 
           # Build for macOS (x86_64 & arm64)
           if [[ "${{ matrix.os }}" == *"macos"* ]]; then
-            echo "================================================================================================="
-            echo "INFO    : ARCHITECTURE..."
-            echo "================================================================================================="
-            python3 -c "import platform; print('platform.machine():', platform.machine())"
-            python3 -c "import platform; print('platform.architecture():', platform.architecture())"
-            echo "================================================================================================="
-            echo "INFO    : INSTALLING REQUIREMENTS..."
-            echo "================================================================================================="
-            python3 -m pip install --upgrade pip
-            python3 -m pip install -r requirements.txt
+#            echo "================================================================================================="
+#            echo "INFO    : INSTALLING REQUIREMENTS..."
+#            echo "================================================================================================="
+#            python3 -m pip install --upgrade pip
+#            python3 -m pip install -r requirements.txt
             echo "================================================================================================="
             echo "INFO    : INSTALLED VERSIONS..."
             echo "================================================================================================="
@@ -109,16 +104,11 @@ jobs:
           
           # Build for Windows (x86_64 & arm64)
           elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
-            echo "================================================================================================="
-            echo "INFO    : ARCHITECTURE..."
-            echo "================================================================================================="
-            python3 -c "import platform; print('platform.machine():', platform.machine())"
-            python3 -c "import platform; print('platform.architecture():', platform.architecture())"
-            echo "================================================================================================="
-            echo "INFO    : INSTALLING REQUIREMENTS..."
-            echo "================================================================================================="
-            python3 -m pip install --upgrade pip
-            python3 -m pip install -r requirements.txt
+#            echo "================================================================================================="
+#            echo "INFO    : INSTALLING REQUIREMENTS..."
+#            echo "================================================================================================="
+#            python3 -m pip install --upgrade pip
+#            python3 -m pip install -r requirements.txt
             echo "================================================================================================="
             echo "INFO    : INSTALLED VERSIONS..."
             echo "================================================================================================="
@@ -135,19 +125,12 @@ jobs:
                
           
           # Build for Linux (arm64)
-          # elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
-          # elif [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]] ; then
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ runner.arch }}" == "ARM64" ]; then
-            echo "================================================================================================="
-            echo "INFO    : ARCHITECTURE..."
-            echo "================================================================================================="
-            python3 -c "import platform; print('platform.machine():', platform.machine())"
-            python3 -c "import platform; print('platform.architecture():', platform.architecture())"
-            echo "================================================================================================="
-            echo "INFO    : INSTALLING REQUIREMENTS..."
-            echo "================================================================================================="
-            python3 -m pip install --upgrade pip
-            python3 -m pip install -r requirements.txt
+#            echo "================================================================================================="
+#            echo "INFO    : INSTALLING REQUIREMENTS..."
+#            echo "================================================================================================="
+#            python3 -m pip install --upgrade pip
+#            python3 -m pip install -r requirements.txt
             echo "================================================================================================="
             echo "INFO    : INSTALLED VERSIONS..."
             echo "================================================================================================="
@@ -164,15 +147,8 @@ jobs:
 
            
           # Build for Linux (x86_64)
-          # elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
-          # elif [[ "${{ matrix.os }}" == "ubuntu-24.04" ]] ; then
           elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ runner.arch }}" == "X64" ]; then
             docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace jaimetur/centos-amd64:7 bash -c '
-                echo "================================================================================================="
-                echo "INFO    : ARCHITECTURE..."
-                echo "================================================================================================="
-                python3 -c '"'"'import platform; print("platform.machine():", platform.machine())'"'"'
-                python3 -c '"'"'import platform; print("platform.architecture():", platform.architecture())'"'"'
                 echo "================================================================================================="
                 echo "INFO    : INSTALLING REQUIREMENTS..."
                 echo "================================================================================================="
