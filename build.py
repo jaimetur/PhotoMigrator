@@ -13,7 +13,6 @@ src_path = os.path.abspath(os.path.join(current_dir, "src"))
 if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
-import GlobalFunctions
 from GlobalVariables import GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
 from Utils import zip_folder, unzip_to_temp, unzip, unzip_flatten, clear_screen, print_arguments_pretty, get_os, get_arch
 
@@ -181,8 +180,8 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     # OPERATING_SYSTEM = platform.system().lower().replace('darwin', 'macos')
     # ARCHITECTURE = platform.machine().lower().replace('x86_64', 'amd64').replace('aarch64', 'arm64')
     # ARCHITECTURE = platform.machine().lower().replace('amd64', 'x64').replace('aarch64', 'arm64')
-    OPERATING_SYSTEM = get_os()
-    ARCHITECTURE = get_arch()
+    OPERATING_SYSTEM = get_os(use_logger=False)
+    ARCHITECTURE = get_arch(use_logger=False)
     SCRIPT_NAME = "PhotoMigrator"
     SCRIPT_SOURCE_NAME = f"{SCRIPT_NAME}.py"
     SCRIPT_VERSION = get_script_version('./src/GlobalVariables.py')
@@ -374,7 +373,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             pyinstaller_command.extend(("--runtime-tmpdir", '/var/tmp'))
 
         # Now Run PyInstaller with previous settings
-        print_arguments_pretty(pyinstaller_command, title="Pyinstaller Arguments")
+        print_arguments_pretty(pyinstaller_command, title="Pyinstaller Arguments", use_logger=False)
 
         try:
             PyInstaller.__main__.run(pyinstaller_command)
@@ -461,7 +460,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         if OPERATING_SYSTEM == 'linux':
             nuitka_command.extend([f'--onefile-tempdir-spec=/var/tmp/{SCRIPT_NAME_WITH_VERSION_OS_ARCH}'])
         # Now Run Nuitka with previous settings
-        print_arguments_pretty(nuitka_command, title="Nuitka Arguments")
+        print_arguments_pretty(nuitka_command, title="Nuitka Arguments", use_logger=False)
         result = subprocess.run(nuitka_command)
         success = (result.returncode == 0)
         if not success:
