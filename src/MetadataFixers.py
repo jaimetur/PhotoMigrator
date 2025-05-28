@@ -21,45 +21,48 @@ def resource_path(relative_path, log_level=logging.INFO):
     - Ejecución directa con Python (desde el directorio actual, o desde el directorio padre del script)
     """
     print("---DEBUG INFO")
-    print(f"__file__           : {globals().get('__file__', 'NO __file__')}")
-    print(f"sys.argv[0]        : {sys.argv[0]}")
-    print(f"os.getcwd()        : {os.getcwd()}")
-    print(f"sys.executable     : {sys.executable}")
-    print(f"sys.frozen         : {getattr(sys, 'frozen', False)}")
-    print(f"NUITKA_ONEFILE_PARENT: {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
+    print(f"  DEBUG: __file__             : {globals().get('__file__', 'NO __file__')}")
+    print(f"  DEBUG: sys.argv[0]          : {sys.argv[0]}")
+    print(f"  DEBUG: os.getcwd()          : {os.getcwd()}")
+    print(f"  DEBUG: sys.executable       : {sys.executable}")
+    print(f"  DEBUG: sys.frozen           : {getattr(sys, 'frozen', False)}")
+    print(f"  DEBUG: NUITKA_ONEFILE_PARENT: {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
     try:
         print("__compiled__.containing_dir:", __compiled__.containing_dir)
     except NameError:
         print("__compiled__ not defined")
-    print("--- END DEBUG INFO")
+
     with set_log_level(LOGGER, log_level):
         try:
             # Compilado con Nuitka standalone
             base_path = __compiled__.containing_dir
-            print("Entra en __compiled__.containing_dir")
+            print("  DEBUG: Entra en __compiled__.containing_dir")
         except NameError:
             if hasattr(sys, '_MEIPASS'):
                 # Compilado con PyInstaller
                 base_path = sys._MEIPASS
-                print ("Entra en sys._MEIPASS")
+                print ("  DEBUG: Entra en sys._MEIPASS")
             elif "NUITKA_ONEFILE_PARENT" in os.environ:
                 # Compilado con Nuitka onefile sin __compiled__
                 base_path = os.path.dirname(os.path.abspath(__file__))
-                print ("Entra en NUITKA_ONEFILE_PARENT")
+                print ("  DEBUG: Entra en NUITKA_ONEFILE_PARENT")
             elif "__file__" in globals():
                 # Ejecución directa con Python (2 opciones):
                 if RESOURCES_IN_CURRENT_FOLDER:
                     # Buscar en la carpeta actual de ejecución
                     base_path = os.getcwd()
-                    print ("Entra en __file__ con RESOURCES_IN_CURRENT_FOLDER=True")
+                    print ("  DEBUG: Entra en __file__ con RESOURCES_IN_CURRENT_FOLDER=True")
                 else:
                     # Buscar un nivel por encima desde __file__ (que apuntará al .py correspondiente)
                     base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                    print("Entra en __file__ con RESOURCES_IN_CURRENT_FOLDER=False")
+                    print("  DEBUG: Entra en __file__ con RESOURCES_IN_CURRENT_FOLDER=False")
             else:
                 # Caso muy raro sin __file__
                 base_path = os.getcwd()
-                print("Entra en el último else")
+                print("  DEBUG: Entra en el último else")
+            print(f"  DEBUG: return path     : {os.path.join(base_path, relative_path)}")
+            print("--- END DEBUG INFO")
+
         return os.path.join(base_path, relative_path)
 
 def run_command(command, logger, capture_output=False, capture_errors=True):
