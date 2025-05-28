@@ -31,10 +31,8 @@ jobs:
 
     # runs-on: ${{ matrix.os }}
     runs-on: ${{ fromJson('{
-      #"ubuntu-x64":"ubuntu-latest",
-      "ubuntu-x64":"ubuntu-22.04",
-      #"ubuntu-arm64":"ubuntu-24.04-arm",
-      "ubuntu-arm64":"ubuntu-22.04-arm",
+      "ubuntu-x64":"ubuntu-22.04", # latest: ubuntu-latest
+      "ubuntu-arm64":"ubuntu-22.04-arm", # latest: ubuntu-24.04-arm
       "macos-x64":"macos-13",
       "macos-arm64":"macos-latest",
       "windows-x64":"windows-latest",
