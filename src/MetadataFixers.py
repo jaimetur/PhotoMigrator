@@ -10,7 +10,7 @@ import time
 from packaging.version import Version
 
 from CustomLogger import set_log_level
-from GlobalVariables import LOGGER, GPTH_VERSION, RESOURCES_PATH_CURRENT_FOLDER
+from GlobalVariables import LOGGER, GPTH_VERSION, RESOURCES_IN_CURRENT_FOLDER
 import Utils
 
 def resource_path(relative_path, log_level=logging.INFO):
@@ -26,6 +26,7 @@ def resource_path(relative_path, log_level=logging.INFO):
     print(f"sys.executable     : {sys.executable}")
     print(f"sys.frozen         : {getattr(sys, 'frozen', False)}")
     print(f"os.getcwd()        : {os.getcwd()}")
+    print(f"NUITKA_ONEFILE_PARENT: {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
     print("--- END DEBUG INFO")
     with set_log_level(LOGGER, log_level):
         try:
@@ -40,7 +41,7 @@ def resource_path(relative_path, log_level=logging.INFO):
                 base_path = os.path.dirname(os.path.abspath(__file__))
             elif "__file__" in globals():
                 # Ejecución directa con Python (2 opciones):
-                if RESOURCES_PATH_CURRENT_FOLDER:
+                if RESOURCES_IN_CURRENT_FOLDER:
                     # Buscar en la carpeta actual de ejecución
                     base_path = os.getcwd()
                 else:
