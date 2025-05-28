@@ -90,35 +90,60 @@ def check_OS_and_Terminal(log_level=logging.INFO):
         LOGGER.info("")
 
 
-def get_os(log_level=logging.INFO):
+def get_os(log_level=logging.INFO, use_logger=True):
     """Return normalized operating system name (linux, macos, windows)"""
-    with set_log_level(LOGGER, log_level):
+    if use_logger:
+        with set_log_level(LOGGER, log_level):
+            current_os = platform.system()
+            if current_os in ["Linux", "linux"]:
+                os_label = "linux"
+            elif current_os in ["Darwin", "macOS", "macos"]:
+                os_label = "macos"
+            elif current_os in ["Windows", "windows", "Win"]:
+                os_label = "windows"
+            else:
+                LOGGER.error(f"ERROR   : Unsupported Operating System: {current_os}")
+                os_label = "unknown"
+            LOGGER.info(f"INFO    : Detected OS: {os_label}")
+    else:
         current_os = platform.system()
-        if current_os == "Linux":
+        if current_os in ["Linux", "linux"]:
             os_label = "linux"
-        elif current_os == "Darwin":
+        elif current_os in ["Darwin", "macOS", "macos"]:
             os_label = "macos"
-        elif current_os == "Windows":
+        elif current_os in ["Windows", "windows", "Win"]:
             os_label = "windows"
         else:
-            LOGGER.error(f"ERROR   : Unsupported Operating System: {current_os}")
+            print(f"ERROR   : Unsupported Operating System: {current_os}")
             os_label = "unknown"
-        LOGGER.info(f"INFO    : Detected OS: {os_label}")
-        return os_label
+        print(f"INFO    : Detected OS: {os_label}")
+    return os_label
 
 
-def get_arch(log_level=logging.INFO):
-    """Return normalized system architecture (e.g., amd64, arm64)"""
-    with set_log_level(LOGGER, log_level):
-        architecture = platform.machine()
-        if architecture in ["x86_64", "amd64", "AMD64"]:
+def get_arch(log_level=logging.INFO, use_logger=True):
+    """Return normalized system architecture (e.g., x64, arm64)"""
+    if use_logger:
+        with set_log_level(LOGGER, log_level):
+            current_arch = platform.machine()
+            if current_arch in ["x86_64", "amd64", "AMD64", "X64", "x64"]:
+                arch_label = "x64"
+            elif current_arch in ["aarch64", "arm64", 'ARM64']:
+                arch_label = "arm64"
+            else:
+                LOGGER.error(f"ERROR   : Unsupported Architecture: {current_arch}")
+                arch_label = "unknown"
+            LOGGER.info(f"INFO    : Detected architecture: {arch_label}")
+    else:
+        current_arch = platform.machine()
+        if current_arch in ["x86_64", "amd64", "AMD64", "X64", "x64"]:
             arch_label = "x64"
-        elif architecture in ["aarch64", "arm64"]:
+        elif current_arch in ["aarch64", "arm64", "ARM64"]:
             arch_label = "arm64"
         else:
-            arch_label = architecture
-        LOGGER.info(f"INFO    : Detected architecture: {arch_label}")
-        return arch_label
+            print(f"ERROR   : Unsupported Architecture: {current_arch}")
+            arch_label = "unknown"
+        print(f"INFO    : Detected architecture: {arch_label}")
+    return arch_label
 
 
 def count_files_in_folder(folder_path, log_level=logging.INFO):
@@ -1608,27 +1633,40 @@ def capitalize_first_letter(text):
 def clear_screen():
     os.system('clear' if os.name == 'posix' else 'cls')
 
-def print_arguments_pretty(arguments, title="Arguments"):
+def print_arguments_pretty(arguments, title="Arguments", use_logger=True):
     """
     Prints a list of command-line arguments in a structured and readable one-line-per-arg format.
 
     Args:
-        arguments (list): List of arguments (e.g., for PyInstaller).
-        title (str): Optional title to display above the arguments.
+        :param arguments (list): List of arguments (e.g., for PyInstaller).
+        :param title (str): Optional title to display above the arguments.
+        :param use_logger:
     """
-    LOGGER.info("")
-    LOGGER.info(f"{title}:")
+    print("")
     indent = "    "
     i = 0
-    while i < len(arguments):
-        arg = arguments[i]
-        if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-            LOGGER.info(f"{indent}{arg}: {arguments[i + 1]}")
-            i += 2
-        else:
-            LOGGER.info(f"{indent}{arg}")
-            i += 1
-    LOGGER.info("")
+    if use_logger:
+        LOGGER.info(f"{title}:")
+        while i < len(arguments):
+            arg = arguments[i]
+            if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
+                LOGGER.info(f"{indent}{arg}: {arguments[i + 1]}")
+                i += 2
+            else:
+                LOGGER.info(f"{indent}{arg}")
+                i += 1
+    else:
+        print(f"{title}:")
+        while i < len(arguments):
+            arg = arguments[i]
+            if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
+                print(f"{indent}{arg}: {arguments[i + 1]}")
+                i += 2
+            else:
+                print(f"{indent}{arg}")
+                i += 1
+    print("")
+
 
 
 

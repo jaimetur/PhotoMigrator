@@ -13,7 +13,7 @@ src_path = os.path.abspath(os.path.join(current_dir, "src"))
 if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
-from GlobalVariables import GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
+from GlobalVariables import SCRIPT_NAME, SCRIPT_VERSION, GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
 from Utils import zip_folder, unzip_to_temp, unzip, unzip_flatten, clear_screen, print_arguments_pretty, get_os, get_arch
 
 def include_extrafiles_and_zip(input_file, output_file):
@@ -33,7 +33,6 @@ def include_extrafiles_and_zip(input_file, output_file):
         {
             'subdir': 'help',  # Estos ficheros van al subdirectorio 'help'
             'files': ["./help/*.md"]
-            # 'files': ["./help/1-command-line-interface.md", "./help/2-automatic-migration.md", "./help/3-google-takeout.md", "./help/4-synology-photos.md", "./help/5-immich-photos.md", "./help/6-other-features.md"]
         }
     ]
     if not input_file or not output_file:
@@ -167,32 +166,41 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
 
 
 def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
+    # =======================
+    # Create global variables
+    # =======================
     global OPERATING_SYSTEM
     global ARCHITECTURE
-    global SCRIPT_NAME
     global SCRIPT_SOURCE_NAME
-    global SCRIPT_VERSION
     global SCRIPT_VERSION_WITHOUT_V
     global SCRIPT_NAME_VERSION
     global root_dir
+    global script_name_with_version_os_arch
+    global script_zip_file
+    global archive_path_relative
 
     # Detect the operating system and architecture
-    # OPERATING_SYSTEM = platform.system().lower().replace('darwin', 'macos')
-    # ARCHITECTURE = platform.machine().lower().replace('x86_64', 'amd64').replace('aarch64', 'arm64')
-    # ARCHITECTURE = platform.machine().lower().replace('amd64', 'x64').replace('aarch64', 'arm64')
-    OPERATING_SYSTEM = get_os()
-    ARCHITECTURE = get_arch()
-    SCRIPT_NAME = "PhotoMigrator"
+    OPERATING_SYSTEM = get_os(use_logger=False)
+    ARCHITECTURE = get_arch(use_logger=False)
+
+    # Script Names
     SCRIPT_SOURCE_NAME = f"{SCRIPT_NAME}.py"
-    SCRIPT_VERSION = get_script_version('./src/GlobalVariables.py')
     SCRIPT_VERSION_WITHOUT_V = get_clean_version(SCRIPT_VERSION)
     SCRIPT_NAME_VERSION = f"{SCRIPT_NAME}_{SCRIPT_VERSION}"
 
-    # Obtener el directorio raíz un nivel arriba del directorio de trabajo
-    # root_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
-    
     # Obtener el directorio de trabajo
     root_dir = os.getcwd()
+    # Obtener el directorio raíz un nivel arriba del directorio de trabajo
+    # root_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+
+    # Calcular el path relativo
+    script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
+    script_zip_file = Path(f"./PhotoMigrator-builds/{SCRIPT_VERSION_WITHOUT_V}/{script_name_with_version_os_arch}.zip").resolve()
+    archive_path_relative = os.path.relpath(script_zip_file, root_dir)
+    # ========================
+    # End of global variables
+    # ========================
+
 
     clear_screen()
     print("")
@@ -231,11 +239,6 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     add_roadmap_to_readme(readme_filepath, roadmap_filepath)
     print(f"File 'README.md' updated successfully with ROADMAP.md")
 
-    # Calcular el path relativo
-    script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-    script_zip_file = Path(f"./PhotoMigrator-builds/{SCRIPT_VERSION_WITHOUT_V}/{script_name_with_version_os_arch}.zip").resolve()
-    archive_path_relative = os.path.relpath(script_zip_file, root_dir)
-
     # Guardar build_info.txt en un fichero de texto
     with open(os.path.join(root_dir, 'build_info.txt'), 'w') as file:
         file.write('OPERATING_SYSTEM=' + OPERATING_SYSTEM + '\n')
@@ -261,18 +264,18 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
 def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     global OPERATING_SYSTEM
     global ARCHITECTURE
-    global SCRIPT_NAME
     global SCRIPT_SOURCE_NAME
-    global SCRIPT_VERSION
     global SCRIPT_VERSION_WITHOUT_V
     global SCRIPT_NAME_VERSION
     global root_dir
+    global script_name_with_version_os_arch
+    global script_zip_file
+    global archive_path_relative
 
     # Inicializamos variables
     SCRIPT_NAME_WITH_VERSION_OS_ARCH = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-    script_zip_file = Path(f"PhotoMigrator-builts//{SCRIPT_VERSION_WITHOUT_V}/{SCRIPT_NAME_WITH_VERSION_OS_ARCH}.zip").resolve()
     splash_image = "assets/logos/logo.png" # Splash image for windows
-    gpth_tool = f"gpth_tool/gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext"
+    gpth_tool = f"gpth_tool/gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE.replace('x64', 'x86_64')}.ext"
     exif_folder_tmp = "tmp/exif_tool"
     exif_folder_dest = "gpth_tool"
     # exif_tool = f"../exif_tool/exif-{EXIF_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext:exif_tool"
@@ -373,7 +376,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             pyinstaller_command.extend(("--runtime-tmpdir", '/var/tmp'))
 
         # Now Run PyInstaller with previous settings
-        print_arguments_pretty(pyinstaller_command, title="Pyinstaller Arguments")
+        print_arguments_pretty(pyinstaller_command, title="Pyinstaller Arguments", use_logger=False)
 
         try:
             PyInstaller.__main__.run(pyinstaller_command)
@@ -460,7 +463,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         if OPERATING_SYSTEM == 'linux':
             nuitka_command.extend([f'--onefile-tempdir-spec=/var/tmp/{SCRIPT_NAME_WITH_VERSION_OS_ARCH}'])
         # Now Run Nuitka with previous settings
-        print_arguments_pretty(nuitka_command, title="Nuitka Arguments")
+        print_arguments_pretty(nuitka_command, title="Nuitka Arguments", use_logger=False)
         result = subprocess.run(nuitka_command)
         success = (result.returncode == 0)
         if not success:
