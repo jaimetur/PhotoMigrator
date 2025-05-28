@@ -5,7 +5,9 @@ import re
 SIMULATE = False
 
 # Expresión regular para capturar la estructura del nombre
-pattern = re.compile(r"^gpth-v(?P<version>[\d\.]+)-nightly-(?P<os>\w+)-(?P<arch>[\w_]+)(?P<ext>\.\w+)?$")
+#pattern = re.compile(r"^gpth-v(?P<version>[\d\.]+)-nightly-(?P<os>\w+)-(?P<arch>[\w_]+)(?P<ext>\.\w
+pattern = re.compile(r"^gpth-v(?P<version>[\d\.]+)-(?P<tag>\w+)-(?P<os>\w+)-(?P<arch>[\w_]+)(?P<ext>\.\w+)?$")
+
 
 # Normalización de arquitectura
 ARCH_MAP = {
