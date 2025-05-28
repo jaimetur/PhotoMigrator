@@ -11,65 +11,7 @@ from packaging.version import Version
 
 from CustomLogger import set_log_level
 from GlobalVariables import LOGGER, GPTH_VERSION, RESOURCES_IN_CURRENT_FOLDER
-import Utils
-
-def resource_path(relative_path, log_level=logging.INFO):
-    """
-    Devuelve la ruta absoluta al recurso 'relative_path', funcionando en:
-    - PyInstaller (onefile o standalone)
-    - Nuitka (onefile o standalone)
-    - Python directo (desde cwd o desde dirname(__file__))
-    """
-
-    DEBUG_MODE = True  # Cambia a False para silenciar
-
-    if DEBUG_MODE:
-        print("---DEBUG INFO")
-        print(f"  DEBUG: __file__             : {globals().get('__file__', 'NO __file__')}")
-        print(f"  DEBUG: sys.argv[0]          : {sys.argv[0]}")
-        print(f"  DEBUG: os.getcwd()          : {os.getcwd()}")
-        print(f"  DEBUG: sys.executable       : {sys.executable}")
-        print(f"  DEBUG: sys.frozen           : {getattr(sys, 'frozen', False)}")
-        print(f"  DEBUG: NUITKA_ONEFILE_PARENT: {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
-        try:
-            print(f"  DEBUG: __compiled__.containing_dir: {__compiled__.containing_dir}")
-        except NameError:
-            print("  DEBUG: __compiled__ not defined")
-
-    with set_log_level(LOGGER, log_level):
-        # Compilado con PyInstaller
-        if hasattr(sys, '_MEIPASS'):
-            base_path = sys._MEIPASS
-            if DEBUG_MODE: print("  DEBUG: Entra en sys._MEIPASS")
-
-        # Compilado con Nuitka onefile (detectado por ruta temporal en __file__)
-        elif "__file__" in globals() and "/var/tmp/" in __file__:
-            base_path = os.path.dirname(os.path.abspath(__file__))
-            if DEBUG_MODE: print("  DEBUG: Entra en __file__ → modo Nuitka onefile")
-
-        # Compilado con Nuitka standalone (cuando __compiled__ es válido)
-        elif "__compiled__" in globals():
-            base_path = __compiled__.containing_dir
-            if DEBUG_MODE: print("  DEBUG: Entra en __compiled__.containing_dir")
-
-        # Python normal
-        elif "__file__" in globals():
-            if RESOURCES_IN_CURRENT_FOLDER:
-                base_path = os.getcwd()
-                if DEBUG_MODE: print("  DEBUG: Entra en Python .py → cwd")
-            else:
-                base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                if DEBUG_MODE: print("  DEBUG: Entra en Python .py → dirname(dirname(__file__))")
-
-        else:
-            base_path = os.getcwd()
-            if DEBUG_MODE: print("  DEBUG: Entra en fallback final → os.getcwd()")
-
-        if DEBUG_MODE:
-            print(f"  DEBUG: return path: {os.path.join(base_path, relative_path)}")
-            print("--- END DEBUG INFO")
-
-        return os.path.join(base_path, relative_path)
+from Utils import get_os, get_arch, resource_path, ensure_executable, print_arguments_pretty
 
 def run_command(command, logger, capture_output=False, capture_errors=True):
     """
@@ -109,8 +51,8 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         LOGGER.info(f"INFO    : Output Folder: '{output_folder}'")
 
         # Detect the operating system
-        current_os = Utils.get_os()
-        current_arch = Utils.get_arch()
+        current_os = get_os()
+        current_arch = get_arch()
 
         # Determine the Tool name based on the OS
         tool_name = f"gpth-{GPTH_VERSION}-{current_os}-{current_arch.replace('x64', 'x86_64')}"
@@ -123,8 +65,11 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             sys.exit(-1)
 
         LOGGER.info(f"INFO    : Using GPTH Tool file: '{tool_name}'...")
-        # Usar resource_path para acceder a archivos o directorios:
+        # Usar resource_path para acceder a archivos o directorios que se empaquetarán en el modo de ejecutable binario:
         gpth_tool_path = resource_path(os.path.join("gpth_tool", tool_name))
+
+        # Ensure exec permissions for the binary file
+        ensure_executable(gpth_tool_path)
 
         if Version(GPTH_VERSION) >= Version("4.0.0"):
             gpth_command = [gpth_tool_path, "--input", input_folder, "--output", output_folder, "--no-interactive", "--write-exif"]
@@ -136,7 +81,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             gpth_command.append("--fix")
             gpth_command.append(input_folder)
 
-        # By default force --no-divide-to-dates and the Tool will create date structure if needed
+        # By default, force --no-divide-to-dates and the Tool will create date structure if needed
         # gpth_command.append("--no-divide-to-dates") # For previous versions of the original GPTH tool
 
         # The new version of GPTH have changed this argument:
@@ -172,7 +117,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         try:
             command = ' '.join(gpth_command)
             LOGGER.debug(f"DEBUG   : Running GPTH with following command: {command}")
-            Utils.print_arguments_pretty(gpth_command, title='GPTH Command:')
+            print_arguments_pretty(gpth_command, title='GPTH Command:')
             ok = run_command(gpth_command, LOGGER, capture_output=capture_output, capture_errors=capture_errors)      # Shows the output in real time and capture it to the LOGGER.
             # ok = subprocess.run(gpth_command, check=True, capture_output=capture_output, text=True)
 
@@ -211,6 +156,10 @@ def fix_metadata_with_exif_tool(output_folder, log_level=logging.INFO):
             script_name = "exiftool.exe"
         # Usar resource_path para acceder a archivos o directorios:
         exif_tool_path = resource_path(os.path.join("exif_tool",script_name))
+
+        # Ensure exec permissions for the binary file
+        ensure_executable(exif_tool_path)
+
         exif_command = [
             exif_tool_path,
             "-overwrite_original",

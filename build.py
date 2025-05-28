@@ -14,7 +14,7 @@ if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
 from GlobalVariables import SCRIPT_NAME, SCRIPT_VERSION, GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
-from Utils import zip_folder, unzip_to_temp, unzip, unzip_flatten, clear_screen, print_arguments_pretty, get_os, get_arch
+from Utils import zip_folder, unzip_to_temp, unzip, unzip_flatten, clear_screen, print_arguments_pretty, get_os, get_arch, resource_path, ensure_executable
 
 def include_extrafiles_and_zip(input_file, output_file):
     extra_files_to_subdir = [
@@ -293,6 +293,12 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         gpth_tool = gpth_tool.replace(".ext", ".bin")
         exif_tool_zipped = "exif_tool/others.zip"
 
+    # Usar resource_path para acceder a archivos o directorios que se empaquetarán en el modo de ejecutable binario:
+    gpth_tool_path = resource_path(os.path.join("gpth_tool", gpth_tool))
+
+    # Ensure exec permissions for gpth binary file
+    ensure_executable(gpth_tool_path)
+
     # Guardar build_info.txt en un fichero de texto
     with open(os.path.join(root_dir, 'build_info.txt'), 'a') as file:
         file.write('COMPILER=' + str(compiler) + '\n')
@@ -334,33 +340,44 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         shutil.rmtree(dist_path, ignore_errors=True)
         print("")
 
-        # Prepare pyinstaller_command
+        # Prepare Pyinstaller command
         pyinstaller_command = ['./src/' + SCRIPT_SOURCE_NAME]
+
+        # Mode onefile or standalone
         if compile_in_one_file:
             pyinstaller_command.extend(["--onefile"])
         else:
             pyinstaller_command.extend(['--onedir'])
+
+        # Add splash image to .exe file (only supported in windows)
         if OPERATING_SYSTEM == 'windows':
             pyinstaller_command.extend(("--splash", splash_image))
+
+        # Add following generic arguments to Pyinstaller:
         pyinstaller_command.extend(["--noconfirm"])
         pyinstaller_command.extend(("--distpath", dist_path))
         pyinstaller_command.extend(("--workpath", build_path))
         pyinstaller_command.extend(("--add-data", gpth_tool + ':gpth_tool'))
+
+        # If INCLUDE_EXIF_TOOL flag is True, then Unzip, Change Permissions and Add Exif Tool files to the binary file
         if INCLUDE_EXIF_TOOL:
             # First delete exif_folder_tmp if exists
             shutil.rmtree(exif_folder_tmp, ignore_errors=True)
+
             # Unzip Exif_tool and include it to compiled binary with Pyinstaller
             print("\nUnzipping EXIF Tool to include it in binary compiled file...")
             # unzip(exif_tool_zipped, exif_folder_tmp)
             exif_folder_tmp = unzip_to_temp(exif_tool_zipped)
-            # Asegura permisos de ejecución para exiftool (y opcionalmente otros binarios)
-            import stat
+
+            # Dar permiso de ejecución a exiftool
             exiftool_bin = Path(exif_folder_tmp) / "exiftool"
             if exiftool_bin.exists():
-                exiftool_bin.chmod(exiftool_bin.stat().st_mode | stat.S_IEXEC)
-            # Añadir los archivos directamente en la carpeta raíz
+                ensure_executable(exiftool_bin)
+
+            # Add Exif Tool files to the binary
             pyinstaller_command.extend(("--add-data", f"{exif_folder_tmp}:{exif_folder_dest}"))
-            # Recorrer todas las carpetas recursivamente
+
+            # walk exif_folder_tmp to add all the files and subfolder to the binary file (I didn't find other way to do this with Pyinstaller)
             for path in Path(exif_folder_tmp).rglob('*'):
                 if path.is_dir():
                     # Verificar si contiene al menos un archivo
@@ -372,6 +389,8 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
                     src_path = path.as_posix()
                     # Añadir todos los archivos directamente dentro de esa carpeta
                     pyinstaller_command.extend(("--add-data", f"{src_path}:{dest_path}"))
+
+        # In linux set runtime tmp dir to /var/tmp for Synology compatibility (/tmp does not have access rights in Synology NAS)
         if OPERATING_SYSTEM == 'linux':
             pyinstaller_command.extend(("--runtime-tmpdir", '/var/tmp'))
 
@@ -394,6 +413,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     # ===============================================================================================================================================
     elif compiler=='nuitka':
         print("Compiling with Nuitka...")
+        # # Force C Compiler based on the Platform used (is better left Nuita find the best C Compilar installed on the system)
         # if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
         #     os.environ['CC'] = 'gcc'
         # elif ARCHITECTURE in ["arm64", "aarch64"]:
@@ -420,11 +440,10 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         shutil.rmtree(dist_path, ignore_errors=True)
         print("")
 
-        # Prepare nuitka_command
-        nuitka_command = [
-            sys.executable, '-m', 'nuitka',
-            f"{'./src/' + SCRIPT_SOURCE_NAME}",
-        ]
+        # Prepare Nuitka command
+        nuitka_command = [sys.executable, '-m', 'nuitka', './src/' + SCRIPT_SOURCE_NAME]
+
+        # Mode onefile or standalone
         if compile_in_one_file:
             nuitka_command.extend(['--onefile'])
             # nuitka_command.append('--onefile-no-compression)
@@ -433,6 +452,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         else:
             nuitka_command.extend(['--standalone'])
 
+        # Add following generic arguments to Nuitka
         nuitka_command.extend([
             '--jobs=4',
             '--assume-yes-for-downloads',
@@ -445,23 +465,31 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             f'--copyright={COPYRIGHT_TEXT}',
             f'--include-data-file={gpth_tool}={gpth_tool}',
         ])
+
+        # If INCLUDE_EXIF_TOOL flag is True, then Unzip, Change Permissions and Add Exif Tool files to the binary file
         if INCLUDE_EXIF_TOOL:
             # First delete exif_folder_tmp if exists
             shutil.rmtree(exif_folder_tmp, ignore_errors=True)
+
             # Unzip Exif_tool and include it to compiled binary with Nuitka
             print("\nUnzipping EXIF Tool to include it in binary compiled file...")
             # unzip(exif_tool_zipped, exif_folder_tmp)
             exif_folder_tmp = unzip_to_temp(exif_tool_zipped)
+
             # Dar permiso de ejecución a exiftool
-            import stat
-            for path in Path(exif_folder_tmp).rglob('*'):
-                if path.is_file() and path.name == "exiftool":
-                    path.chmod(path.stat().st_mode | stat.S_IEXEC)
+            exiftool_bin = Path(exif_folder_tmp) / "exiftool"
+            if exiftool_bin.exists():
+                ensure_executable(exiftool_bin)
+
+            # Add Exif Tool files to the binary
             nuitka_command.extend([f'--include-data-files={exif_folder_tmp}={exif_folder_dest}/=**/*.*'])
             nuitka_command.extend([f'--include-data-dir={exif_folder_tmp}={exif_folder_dest}'])
             # nuitka_command.extend(['--include-data-dir=../exif_tool=exif_tool'])
+
+        # In linux set runtime tmp dir to /var/tmp for Synology compatibility (/tmp does not have access rights in Synology NAS)
         if OPERATING_SYSTEM == 'linux':
             nuitka_command.extend([f'--onefile-tempdir-spec=/var/tmp/{SCRIPT_NAME_WITH_VERSION_OS_ARCH}'])
+
         # Now Run Nuitka with previous settings
         print_arguments_pretty(nuitka_command, title="Nuitka Arguments", use_logger=False)
         result = subprocess.run(nuitka_command)

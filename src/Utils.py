@@ -1668,5 +1668,71 @@ def print_arguments_pretty(arguments, title="Arguments", use_logger=True):
     print("")
 
 
+def resource_path(relative_path, log_level=logging.INFO):
+    """
+    Devuelve la ruta absoluta al recurso 'relative_path', funcionando en:
+    - PyInstaller (onefile o standalone)
+    - Nuitka (onefile o standalone)
+    - Python directo (desde cwd o desde dirname(__file__))
+    """
+
+    DEBUG_MODE = True  # Cambia a False para silenciar
+
+    if DEBUG_MODE:
+        print("---DEBUG INFO")
+        print(f"  DEBUG: __file__                   : {globals().get('__file__', 'NO __file__')}")
+        print(f"  DEBUG: sys.argv[0]                : {sys.argv[0]}")
+        print(f"  DEBUG: os.getcwd()                : {os.getcwd()}")
+        print(f"  DEBUG: sys.executable             : {sys.executable}")
+        print(f"  DEBUG: sys.frozen                 : {getattr(sys, 'frozen', False)}")
+        print(f"  DEBUG: NUITKA_ONEFILE_PARENT      : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
+        try:
+            print(f"  DEBUG: __compiled__.containing_dir: {__compiled__.containing_dir}")
+        except NameError:
+            print("  DEBUG: __compiled__ not defined")
+        print("")
+
+    with set_log_level(LOGGER, log_level):
+        # PyInstaller
+        if hasattr(sys, '_MEIPASS'):
+            base_path = sys._MEIPASS
+            if DEBUG_MODE: print("  DEBUG: Entra en modo PyInstaller → (sys._MEIPASS)")
+
+        # Nuitka onefile
+        elif "NUITKA_ONEFILE_PARENT" in os.environ:
+            base_path = os.path.dirname(os.path.abspath(__file__))
+            if DEBUG_MODE: print("  DEBUG: Entra en modo Nuitka --onefile → (__file__)")
+
+        # Nuitka standalone
+        elif "__compiled__" in globals():
+            base_path = __compiled__.containing_dir
+            if DEBUG_MODE: print("  DEBUG: Entra en modo Nuitka --standalone → (__compiled__.containing_dir)")
+
+        # Python normal
+        elif "__file__" in globals():
+            if RESOURCES_IN_CURRENT_FOLDER:
+                base_path = os.getcwd()
+                if DEBUG_MODE: print("  DEBUG: Entra en Python .py → (cwd)")
+            else:
+                base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                if DEBUG_MODE: print("  DEBUG: Entra en Python .py → (dirname(dirname(__file__)))")
+
+        else:
+            base_path = os.getcwd()
+            if DEBUG_MODE: print("  DEBUG: Entra en fallback final → os.getcwd()")
+
+        if DEBUG_MODE:
+            print(f"  DEBUG: return path                : {os.path.join(base_path, relative_path)}")
+            print("--- END DEBUG INFO")
+
+        return os.path.join(base_path, relative_path)
+
+def ensure_executable(path):
+    if platform.system() != "Windows":
+        # Añade permisos de ejecución al usuario, grupo y otros sin quitar los existentes
+        current_permissions = os.stat(path).st_mode
+        os.chmod(path, current_permissions | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+
 
 
