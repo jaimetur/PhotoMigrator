@@ -13,13 +13,18 @@ from CustomLogger import set_log_level
 from GlobalVariables import LOGGER, GPTH_VERSION
 import Utils
 
+
 def resource_path(relative_path, log_level=logging.INFO):
-    """Obtener la ruta absoluta al recurso, manejando el entorno de PyInstaller."""
-    
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    """Obtener la ruta absoluta al recurso, compatible con PyInstaller y Nuitka."""
+    with set_log_level(LOGGER, log_level):
         if hasattr(sys, '_MEIPASS'):
-            return os.path.join(sys._MEIPASS, relative_path)
-        return os.path.join(os.path.abspath("."), relative_path)
+            # PyInstaller
+            base_path = sys._MEIPASS
+        else:
+            # Nuitka y ejecución normal
+            base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
+
+        return os.path.join(base_path, relative_path)
 
 
 def run_command(command, logger, capture_output=False, capture_errors=True):
