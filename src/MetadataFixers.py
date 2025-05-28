@@ -10,7 +10,7 @@ import time
 from packaging.version import Version
 
 from CustomLogger import set_log_level
-from GlobalVariables import LOGGER, GPTH_VERSION
+from GlobalVariables import LOGGER, GPTH_VERSION, RESOURCES_PATH_CURRENT_FOLDER
 import Utils
 
 def resource_path(relative_path, log_level=logging.INFO):
@@ -35,12 +35,20 @@ def resource_path(relative_path, log_level=logging.INFO):
             if hasattr(sys, '_MEIPASS'):
                 # PyInstaller
                 base_path = sys._MEIPASS
-            elif getattr(sys, 'frozen', False):
-                # Nuitka standalone o compilado sin __compiled__
+            elif "NUITKA_ONEFILE_PARENT" in os.environ:
+                # Nuitka compilado con onefile sin __compiled__
                 base_path = os.path.dirname(os.path.abspath(__file__))
+            elif "__file__" in globals():
+                # Ejecución directa con Python o compilado con nuitka standalone (2 opciones):
+                if RESOURCES_PATH_CURRENT_FOLDER:
+                    # Buscar en la carpeta actual de ejecución
+                    base_path = os.getcwd()
+                else:
+                    # Buscar un nivel por encima desde __file__ (que apuntará al .py correspondiente)
+                    base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             else:
-                # Ejecución directa con Python → subir un nivel desde __file__
-                base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                # Caso muy raro sin __file__
+                base_path = os.getcwd()
         return os.path.join(base_path, relative_path)
 
 def run_command(command, logger, capture_output=False, capture_errors=True):
