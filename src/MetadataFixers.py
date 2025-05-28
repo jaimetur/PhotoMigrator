@@ -39,8 +39,7 @@ def resource_path(relative_path, log_level=logging.INFO):
                 # Nuitka standalone o compilado sin __compiled__
                 base_path = os.path.dirname(os.path.abspath(__file__))
             else:
-                # Ejecución normal del script .py → usar cwd
-                # base_path = os.getcwd()
+                # Ejecución directa con Python → subir un nivel desde __file__
                 base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         return os.path.join(base_path, relative_path)
 
