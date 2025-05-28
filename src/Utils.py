@@ -58,9 +58,9 @@ def check_OS_and_Terminal(log_level=logging.INFO):
     """ Check OS, Terminal Type, and System Architecture """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Detect the operating system
-        current_os = get_os()
+        current_os = get_os(log_level=logging.WARNING)
         # Detect the machine architecture
-        arch_label = get_arch()
+        arch_label = get_arch(log_level=logging.WARNING)
 
         # Logging OS
         if current_os == "linux":
@@ -112,7 +112,7 @@ def get_arch(log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):
         architecture = platform.machine()
         if architecture in ["x86_64", "amd64", "AMD64"]:
-            arch_label = "x86_64"
+            arch_label = "x64"
         elif architecture in ["aarch64", "arm64"]:
             arch_label = "arm64"
         else:
@@ -1616,16 +1616,19 @@ def print_arguments_pretty(arguments, title="Arguments"):
         arguments (list): List of arguments (e.g., for PyInstaller).
         title (str): Optional title to display above the arguments.
     """
-    print("")
-    print(f"{title}:")
+    LOGGER.info("")
+    LOGGER.info(f"{title}:")
     indent = "    "
     i = 0
     while i < len(arguments):
         arg = arguments[i]
         if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-            print(f"{indent}{arg}: {arguments[i + 1]}")
+            LOGGER.info(f"{indent}{arg}: {arguments[i + 1]}")
             i += 2
         else:
-            print(f"{indent}{arg}")
+            LOGGER.info(f"{indent}{arg}")
             i += 1
-    print("")
+    LOGGER.info("")
+
+
+

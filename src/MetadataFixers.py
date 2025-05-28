@@ -14,13 +14,25 @@ from GlobalVariables import LOGGER, GPTH_VERSION
 import Utils
 
 def resource_path(relative_path, log_level=logging.INFO):
-    """Obtener la ruta absoluta al recurso, manejando el entorno de PyInstaller."""
-    
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        if hasattr(sys, '_MEIPASS'):
-            return os.path.join(sys._MEIPASS, relative_path)
-        return os.path.join(os.path.abspath("."), relative_path)
+    """
+    Devuelve la ruta absoluta al recurso 'relative_path', funcionando en:
+    - PyInstaller (onefile, standalone)
+    - Nuitka (onefile, standalone)
+    - Ejecución directa con Python
+    """
+    with set_log_level(LOGGER, log_level):
+        try:
+            # Nuitka (recomendado por documentación oficial)
+            base_path = __compiled__.containing_dir
+        except NameError:
+            if hasattr(sys, '_MEIPASS'):
+                # PyInstaller
+                base_path = sys._MEIPASS
+            else:
+                # Nuitka onefile fallback o ejecución directa
+                base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
 
+        return os.path.join(base_path, relative_path)
 
 def run_command(command, logger, capture_output=False, capture_errors=True):
     """
@@ -122,7 +134,8 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
 
         try:
             command = ' '.join(gpth_command)
-            LOGGER.info(f"INFO    : Running GPTH with following command: {command}")
+            LOGGER.debug(f"DEBUG   : Running GPTH with following command: {command}")
+            Utils.print_arguments_pretty(gpth_command, title='GPTH Command:')
             ok = run_command(gpth_command, LOGGER, capture_output=capture_output, capture_errors=capture_errors)      # Shows the output in real time and capture it to the LOGGER.
             # ok = subprocess.run(gpth_command, check=True, capture_output=capture_output, text=True)
 

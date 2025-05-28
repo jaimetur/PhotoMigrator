@@ -4,6 +4,29 @@ ChangeWorkingDir.change_working_dir(change_dir=True)
 
 import os,sys
 import importlib
+print("")
+print ("Loading Tool...")
+# Remove Splash image from Pyinstaller
+if '_PYI_SPLASH_IPC' in os.environ and importlib.util.find_spec("pyi_splash"):
+    import pyi_splash
+    pyi_splash.update_text('UI Loaded ...')
+    pyi_splash.close()
+
+# Remove Splash image from Nuitka
+if "NUITKA_ONEFILE_PARENT" in os.environ:
+    import tempfile
+    splash_filename = os.path.join(
+        tempfile.gettempdir(),
+        "onefile_%d_splash_feedback.tmp" % int(os.environ["NUITKA_ONEFILE_PARENT"]),
+    )
+    with open(splash_filename, "wb") as f:
+        f.write(b"READY")
+
+    if os.path.exists(splash_filename):
+        os.unlink(splash_filename)
+print("Tool loaded!")
+print("")
+
 try:
     import tkinter as tk
     from tkinter import filedialog
@@ -58,22 +81,6 @@ from ExecutionModes import detect_and_run_execution_mode
 def main():
     # Limpiar la pantalla y parseamos argumentos de entrada
     os.system('cls' if os.name == 'nt' else 'clear')
-
-    # Remove Splash image from Pyinstaller
-    if '_PYI_SPLASH_IPC' in os.environ and importlib.util.find_spec("pyi_splash"):
-        import pyi_splash
-        pyi_splash.update_text('UI Loaded ...')
-        pyi_splash.close()
-
-    # Remove Splash image from Nuitka
-    if "NUITKA_ONEFILE_PARENT" in os.environ:
-        import tempfile
-        splash_filename = os.path.join(
-            tempfile.gettempdir(),
-            "onefile_%d_splash_feedback.tmp" % int(os.environ["NUITKA_ONEFILE_PARENT"]),
-        )
-        if os.path.exists(splash_filename):
-            os.unlink(splash_filename)
 
     # Print the Header (common for all modules)
     LOGGER.info(SCRIPT_DESCRIPTION)

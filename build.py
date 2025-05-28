@@ -14,7 +14,7 @@ if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
 from GlobalVariables import GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
-from Utils import zip_folder, unzip_to_temp, unzip, unzip_flatten, clear_screen, print_arguments_pretty
+from Utils import zip_folder, unzip_to_temp, unzip, unzip_flatten, clear_screen, print_arguments_pretty, get_os, get_arch
 
 def include_extrafiles_and_zip(input_file, output_file):
     extra_files_to_subdir = [
@@ -177,9 +177,11 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     global root_dir
 
     # Detect the operating system and architecture
-    OPERATING_SYSTEM = platform.system().lower().replace('darwin', 'macos')
+    # OPERATING_SYSTEM = platform.system().lower().replace('darwin', 'macos')
     # ARCHITECTURE = platform.machine().lower().replace('x86_64', 'amd64').replace('aarch64', 'arm64')
-    ARCHITECTURE = platform.machine().lower().replace('amd64', 'x86_64').replace('aarch64', 'arm64')
+    # ARCHITECTURE = platform.machine().lower().replace('amd64', 'x64').replace('aarch64', 'arm64')
+    OPERATING_SYSTEM = get_os()
+    ARCHITECTURE = get_arch()
     SCRIPT_NAME = "PhotoMigrator"
     SCRIPT_SOURCE_NAME = f"{SCRIPT_NAME}.py"
     SCRIPT_VERSION = get_script_version('./src/GlobalVariables.py')
@@ -202,7 +204,7 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     # print("Adding neccesary packets to Python environment before to compile...")
     # subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'])
     # subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', './requirements.txt'])
-    # if OPERATING_SYSTEM == 'windows' and ARCHITECTURE == 'x86_64)':
+    # if OPERATING_SYSTEM == 'windows' and ARCHITECTURE == 'x64)':
     #     subprocess.run([sys.executable, '-m', 'pip', 'install', 'windows-curses'])
     # print("")
 
@@ -231,7 +233,7 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
 
     # Calcular el path relativo
     script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-    script_zip_file = Path(f"./PhotoMigrator-builts/{SCRIPT_VERSION_WITHOUT_V}/{script_name_with_version_os_arch}.zip").resolve()
+    script_zip_file = Path(f"./PhotoMigrator-builds/{SCRIPT_VERSION_WITHOUT_V}/{script_name_with_version_os_arch}.zip").resolve()
     archive_path_relative = os.path.relpath(script_zip_file, root_dir)
 
     # Guardar build_info.txt en un fichero de texto
@@ -308,16 +310,19 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     print("")
 
     success = False
+    # ===============================================================================================================================================
+    # COMPILE WITH PYINSTALLER...
+    # ===============================================================================================================================================
     if compiler=='pyinstaller':
         print("Compiling with Pyinstaller...")
         import PyInstaller.__main__
 
         # Build and Dist Folders for Pyinstaller
-        build_path = "./build_pyinstaller"
-        dist_path = "./dist_pyinstaller"
+        build_path = "./pyinstaller_build"
+        dist_path = "./pyinstaller_dist"
 
         # Add _pyinstaller suffix to exif_folder_tmp to avoid conflict if both commpiler are running in parallel
-        exif_folder_tmp = exif_folder_tmp.replace('tmp', 'tmp_pyinstaller')
+        exif_folder_tmp = exif_folder_tmp.replace('tmp', 'pyinstaller_tmp')
 
         # Borramos los ficheros y directorios temporales de compilaciones previas
         print("Removing temporary files from previous compilations...")
@@ -381,23 +386,29 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             else:
                 print(f"[ERROR] PyInstaller failed with error code: {e.code}")
 
+    # ===============================================================================================================================================
+    # COMPILE WITH NUITKA...
+    # ===============================================================================================================================================
     elif compiler=='nuitka':
         print("Compiling with Nuitka...")
-        if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
-            os.environ['CC'] = 'gcc'
-        elif ARCHITECTURE in ["arm64", "aarch64"]:
-            os.environ['CC'] = 'aarch64-linux-gnu-gcc'
-        else:
-            print(f"Unknown architecture: {ARCHITECTURE}")
-            return False
-        print("")
+        # if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
+        #     os.environ['CC'] = 'gcc'
+        # elif ARCHITECTURE in ["arm64", "aarch64"]:
+        #     if sys.platform == "linux":
+        #         os.environ['CC'] = 'aarch64-linux-gnu-gcc'
+        #     elif sys.platform == "darwin":
+        #         os.environ['CC'] = 'clang'  # explícito para macOS
+        # else:
+        #     print(f"Unknown architecture: {ARCHITECTURE}")
+        #     return False
+        # print("")
 
         # Build and Dist Folders for Nuitka
-        dist_path = "./dist_nuitka"
+        dist_path = "./nuitka_dist"
         build_path = f"{dist_path}/{SCRIPT_NAME}.build"
 
         # Add _nuitka suffix to exif_folder_tmp to avoid conflict if both commpiler are running in parallel
-        exif_folder_tmp = exif_folder_tmp.replace('tmp', 'tmp_nuitka')
+        exif_folder_tmp = exif_folder_tmp.replace('tmp', 'nuitka_tmp')
 
         # Borramos los ficheros y directorios temporales de compilaciones previas
         print("Removing temporary files from previous compilations...")
@@ -414,8 +425,8 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         if compile_in_one_file:
             nuitka_command.extend(['--onefile'])
             # nuitka_command.append('--onefile-no-compression)
-            if OPERATING_SYSTEM == 'windows':
-                nuitka_command.extend([f'--onefile-windows-splash-screen-image={splash_image}'])
+            # if OPERATING_SYSTEM == 'windows':
+            #     nuitka_command.extend([f'--onefile-windows-splash-screen-image={splash_image}'])
         else:
             nuitka_command.extend(['--standalone'])
 
@@ -423,8 +434,9 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             '--jobs=4',
             '--assume-yes-for-downloads',
             '--enable-plugin=tk-inter',
+            '--disable-cache=ccache',
             '--lto=yes',
-            '--remove-output',
+            # '--remove-output',
             f'--output-dir={dist_path}',
             f"--file-version={SCRIPT_VERSION_WITHOUT_V.split('-')[0]}",
             f'--copyright={COPYRIGHT_TEXT}',
@@ -449,19 +461,18 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             nuitka_command.extend([f'--onefile-tempdir-spec=/var/tmp/{SCRIPT_NAME_WITH_VERSION_OS_ARCH}'])
         # Now Run Nuitka with previous settings
         print_arguments_pretty(nuitka_command, title="Nuitka Arguments")
-        result = subprocess.run(nuitka_command, stdout=sys.stdout, stderr=sys.stderr, text=True)
-        if result.returncode == 0:
-            print("[OK] Nuitka finished successfully.")
-            success = True
-        else:
-            print("[ERROR] Nuitka failed:")
-            print("STDOUT:\n", result.stdout)
-            print("STDERR:\n", result.stderr)
+        result = subprocess.run(nuitka_command)
+        success = (result.returncode == 0)
+        if not success:
+            print(f"[ERROR] Nuitka failed with code: {result.returncode}")
 
     else:
         print(f"Compiler '{compiler}' not supported. Valid options are 'pyinstaller' or 'nuitka'. Compilation skipped.")
         return False
 
+    # ===============================================================================================================================================
+    # PACKAGING AND CLEANING ACTIONS...
+    # ===============================================================================================================================================
     # Now checks if compilations finished successfully, if not, exit.
     if success:
         print("[OK] Compilation process finished successfully.")

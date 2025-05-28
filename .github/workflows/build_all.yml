@@ -20,45 +20,35 @@ on:
 
 jobs:
   build:
+    # Different VM images to compile in all SO and all Archs according to:
+    # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
     strategy:
       matrix:
-        include:
-          # macOS
-          - os: macos-13
-            arch: x86_64
-            python-version: "3.12.10"
-            runs-on: macos-13
+        os: [ ubuntu-x64, ubuntu-arm64, macos-x64, macos-arm64, windows-x64, windows-arm64 ]
+#        os: [ ubuntu-x64, ubuntu-arm64, macos-x64, windows-x64, windows-arm64 ]
+        python: [ "3.12.10" ] # select Python version
+        compiler: [ nuitka ] # possible values: [pyinstaller, nuitka]
+        mode: [ global ] # possible values: [global, custom]
 
-          - os: macos-latest
-            arch: arm64
-            python-version: "3.12.10"
-            runs-on: macos-latest
-
-          # Linux
-          - os: ubuntu-24.04
-            arch: x86_64
-            python-version: "3.12.10"
-            runs-on: ubuntu-24.04
-
-          - os: ubuntu-24.04-arm
-            arch: arm64
-            python-version: "3.12.10"
-            runs-on: ubuntu-24.04-arm
-
-          # Windows
-          - os: windows-latest
-            arch: x86_64
-            python-version: "3.12.10"
-            runs-on: windows-latest
-
-          - os: windows-11-arm
-            arch: arm64
-            python-version: "3.12.10"
-            runs-on: windows-11-arm
-
-    runs-on: ${{ matrix.runs-on }}
+    # runs-on: ${{ matrix.os }}
+    runs-on: ${{ fromJson('{
+      "ubuntu-x64":"ubuntu-24.04",
+      "ubuntu-arm64":"ubuntu-24.04-arm",
+      "macos-x64":"macos-13",
+      "macos-arm64":"macos-latest",
+      "windows-x64":"windows-latest",
+      "windows-arm64":"windows-11-arm"}')
+      [matrix.os] }}
 
     steps:
+      - name: Show runner OS, Arch, Python, Compiler, Mode
+        run: |
+          echo "OS: ${{ runner.os }}"
+          echo "Arch: ${{ runner.arch }}"
+          echo "Python: ${{ matrix.python }}"
+          echo "Compiler: ${{ matrix.compiler }}"
+          echo "Build Mode: ${{ matrix.mode }}"
+
       # Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -69,7 +59,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python }}
 
       # Install dependencies
       - name: Install dependencies
@@ -77,115 +67,46 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
 
-
 #      - name: Install Visual Studio Build Tools (MSVC)
 #        if: runner.os == 'Windows'
 #        uses: ilammy/msvc-dev-cmd@v1
 
-
-      # 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
-      - name: 1. - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
+      # 1a. - GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
+      - name: 1a. - GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
+        if: matrix.mode == 'global'
         run: |
-          echo "::group::Build for ${{ matrix.os }} - ${{ matrix.arch }}"
-          
-          # Define the COMPILER to use
-          COMPILER=pyinstaller
+          echo "::group::Build for ${{ runner.os }}-${{ runner.arch }}. Python Version: ${{ matrix.python }}. Compiler: ${{ matrix.compiler }}"
+          echo "================================================================================================="
+          echo "INFO    : INSTALLED VERSIONS..."
+          echo "================================================================================================="
+          echo "Python version:"
+          python3 --version
+          echo "PyInstaller version:"
+          pyinstaller --version
+          echo "Nuitka version:"
+          python3 -m nuitka --version
+          echo "================================================================================================="
+          echo "INFO    : COMPILING..."
+          echo "================================================================================================="
+          python3 build.py --${{ matrix.compiler }} --onefile
 
+          echo "::endgroup::"
+        shell: bash
 
-          # Build for macOS (x86_64 & arm64)
-          if [[ "${{ matrix.os }}" == *"macos"* ]]; then
-            echo "================================================================================================="
-            echo "INFO    : ARCHITECTURE..."
-            echo "================================================================================================="
-            python3 -c "import platform; print('platform.machine():', platform.machine())"
-            python3 -c "import platform; print('platform.architecture():', platform.architecture())"
-            echo "================================================================================================="
-            echo "INFO    : INSTALLING REQUIREMENTS..."
-            echo "================================================================================================="
-            python3 -m pip install --upgrade pip
-            python3 -m pip install -r requirements.txt
-            echo "================================================================================================="
-            echo "INFO    : INSTALLED VERSIONS..."
-            echo "================================================================================================="
-            echo "Python version:"
-            python3 --version
-            echo "PyInstaller version:"
-            pyinstaller --version
-            echo "Nuitka version:"
-            python3 -m nuitka --version
-            echo "================================================================================================="
-            echo "INFO    : COMPILING..."
-            echo "================================================================================================="
-            python3 build.py --$COMPILER --onefile
-          
-          
-          # Build for Windows (x86_64 & arm64)
-          elif [[ "${{ matrix.os }}" == *"windows"* ]]; then
-            echo "================================================================================================="
-            echo "INFO    : ARCHITECTURE..."
-            echo "================================================================================================="
-            python3 -c "import platform; print('platform.machine():', platform.machine())"
-            python3 -c "import platform; print('platform.architecture():', platform.architecture())"
-            echo "================================================================================================="
-            echo "INFO    : INSTALLING REQUIREMENTS..."
-            echo "================================================================================================="
-            python3 -m pip install --upgrade pip
-            python3 -m pip install -r requirements.txt
-            echo "================================================================================================="
-            echo "INFO    : INSTALLED VERSIONS..."
-            echo "================================================================================================="
-            echo "Python version:"
-            python3 --version
-            echo "PyInstaller version:"
-            pyinstaller --version
-            echo "Nuitka version:"
-            python3 -m nuitka --version
-            echo "================================================================================================="
-            echo "INFO    : COMPILING..."
-            echo "================================================================================================="
-            python3 build.py --$COMPILER --onefile
-               
-          
-          # Build for Linux (arm64)
-          elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" == "arm64" ]; then
-            echo "================================================================================================="
-            echo "INFO    : ARCHITECTURE..."
-            echo "================================================================================================="
-            python3 -c "import platform; print('platform.machine():', platform.machine())"
-            python3 -c "import platform; print('platform.architecture():', platform.architecture())"
-            echo "================================================================================================="
-            echo "INFO    : INSTALLING REQUIREMENTS..."
-            echo "================================================================================================="
-            python3 -m pip install --upgrade pip
-            python3 -m pip install -r requirements.txt
-            echo "================================================================================================="
-            echo "INFO    : INSTALLED VERSIONS..."
-            echo "================================================================================================="
-            echo "Python version:"
-            python3 --version
-            echo "PyInstaller version:"
-            pyinstaller --version
-            echo "Nuitka version:"
-            python3 -m nuitka --version
-            echo "================================================================================================="
-            echo "INFO    : COMPILING..."
-            echo "================================================================================================="
-            python3 build.py --$COMPILER --onefile
-               
-               
-          # Build for Linux (x86_64)
-          elif [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ matrix.arch }}" != "arm64" ]; then
+      # 1b. - CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
+      - name: 1b. - CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
+        if: matrix.mode == 'custom'
+        run: |
+          echo "::group::Build for ${{ runner.os }}-${{ runner.arch }}. Python Version: ${{ matrix.python }}. Compiler: ${{ matrix.compiler }}"
+           
+          # Build for Linux (x64)
+          if [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ runner.arch }}" == "X64" ]; then
             docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace jaimetur/centos-amd64:7 bash -c '
-                echo "================================================================================================="
-                echo "INFO    : ARCHITECTURE..."
-                echo "================================================================================================="
-                python3 -c '"'"'import platform; print("platform.machine():", platform.machine())'"'"'
-                python3 -c '"'"'import platform; print("platform.architecture():", platform.architecture())'"'"'
-                echo "================================================================================================="
-                echo "INFO    : INSTALLING REQUIREMENTS..."
-                echo "================================================================================================="
-                python3 -m pip install --upgrade pip
-                python3 -m pip install -r requirements.txt
+                # echo "================================================================================================="
+                # echo "INFO    : INSTALLING REQUIREMENTS..."
+                # echo "================================================================================================="
+                # python3 -m pip install --upgrade pip
+                # python3 -m pip install -r requirements.txt
                 echo "================================================================================================="
                 echo "INFO    : INSTALLED VERSIONS..."
                 echo "================================================================================================="
@@ -198,9 +119,29 @@ jobs:
                 echo "================================================================================================="
                 echo "INFO    : COMPILING..."
                 echo "================================================================================================="
-                python3 build.py --$COMPILER --onefile
+                python3 build.py --${{ matrix.compiler }} --onefile
             '
-
+          # Build for Linux (arm64), macOS (x64 & arm64), Windows (x64 & arm64)
+          else; then
+            # echo "================================================================================================="
+            # echo "INFO    : INSTALLING REQUIREMENTS..."
+            # echo "================================================================================================="
+            # python3 -m pip install --upgrade pip
+            # python3 -m pip install -r requirements.txt
+            echo "================================================================================================="
+            echo "INFO    : INSTALLED VERSIONS..."
+            echo "================================================================================================="
+            echo "Python version:"
+            python3 --version
+            echo "PyInstaller version:"
+            pyinstaller --version
+            echo "Nuitka version:"
+            python3 -m nuitka --version
+            echo "================================================================================================="
+            echo "INFO    : COMPILING..."
+            echo "================================================================================================="
+            python3 build.py --${{ matrix.compiler }} --onefile
+          
           fi
 
           echo "::endgroup::"
@@ -254,7 +195,7 @@ jobs:
       # ===========================
       # 3. Log in to Docker Hub
       - name: 3. Log in to Docker Hub
-        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+        if: ${{ startsWith(matrix.os, 'ubuntu') && runner.arch == 'X64' }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -262,7 +203,7 @@ jobs:
           
       # 4. Build & Push Docker image
       - name: 4. Build & Push Docker image
-        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+        if: ${{ startsWith(matrix.os, 'ubuntu') && runner.arch == 'X64' }}
         run: |
           # Fuerza a Docker a:
           #  1) descargar la base actualizada ( --pull )
@@ -286,7 +227,7 @@ jobs:
 
       # 5. Prepare unified ZIP docker package
       - name: 5. Prepare unified ZIP docker package
-        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+        if: ${{ startsWith(matrix.os, 'ubuntu') && runner.arch == 'X64' }}
         run: |
           mkdir -p PhotoMigrator/docker
           cp docker/PhotoMigrator.sh PhotoMigrator/docker/
@@ -317,9 +258,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
-      # 7. Commit y push README.md (Solo si OS = Ubuntu* y arch = x86_64)
+      # 7. Commit y push README.md (Solo si OS = Ubuntu* y arch = x64)
       - name: 7. Commit y push README.md
-        if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.arch == 'x86_64' }}
+        if: ${{ startsWith(matrix.os, 'ubuntu') && runner.arch == 'X64' }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"

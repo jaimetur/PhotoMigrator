@@ -9,8 +9,8 @@ nuitka
 pyinstaller-hooks-contrib
 requests~=2.32.3
 tqdm~=4.67.1
-#urllib3~=2.4.0
-urllib3~=2.2.3
+#urllib3~=2.2.3
+urllib3~=2.4.0
 zipp
 pathvalidate
 halo==0.0.30
