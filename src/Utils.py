@@ -1650,7 +1650,7 @@ def print_arguments_pretty(arguments, title="Arguments", use_logger=True):
         while i < len(arguments):
             arg = arguments[i]
             if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                LOGGER.info(f"{indent}{arg}: {arguments[i + 1]}")
+                LOGGER.info(f"{indent}{arg}={arguments[i + 1]}")
                 i += 2
             else:
                 LOGGER.info(f"{indent}{arg}")
@@ -1660,7 +1660,7 @@ def print_arguments_pretty(arguments, title="Arguments", use_logger=True):
         while i < len(arguments):
             arg = arguments[i]
             if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                print(f"{indent}{arg}: {arguments[i + 1]}")
+                print(f"{indent}{arg}={arguments[i + 1]}")
                 i += 2
             else:
                 print(f"{indent}{arg}")
