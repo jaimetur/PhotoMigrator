@@ -13,6 +13,7 @@ src_path = os.path.abspath(os.path.join(current_dir, "src"))
 if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
+import GlobalFunctions
 from GlobalVariables import GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
 from Utils import zip_folder, unzip_to_temp, unzip, unzip_flatten, clear_screen, print_arguments_pretty, get_os, get_arch
 
