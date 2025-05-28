@@ -233,7 +233,7 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
 
     # Calcular el path relativo
     script_name_with_version_os_arch = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-    script_zip_file = Path(f"./PhotoMigrator-builts/{SCRIPT_VERSION_WITHOUT_V}/{script_name_with_version_os_arch}.zip").resolve()
+    script_zip_file = Path(f"./PhotoMigrator-builds/{SCRIPT_VERSION_WITHOUT_V}/{script_name_with_version_os_arch}.zip").resolve()
     archive_path_relative = os.path.relpath(script_zip_file, root_dir)
 
     # Guardar build_info.txt en un fichero de texto
