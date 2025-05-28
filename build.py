@@ -275,7 +275,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     # Inicializamos variables
     SCRIPT_NAME_WITH_VERSION_OS_ARCH = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
     splash_image = "assets/logos/logo.png" # Splash image for windows
-    gpth_tool = f"gpth_tool/gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE.replace('x64', 'x86_64')}.ext"
+    gpth_tool = f"gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE.replace('x64', 'x86_64')}.ext"
     exif_folder_tmp = "tmp/exif_tool"
     exif_folder_dest = "gpth_tool"
     # exif_tool = f"../exif_tool/exif-{EXIF_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext:exif_tool"
