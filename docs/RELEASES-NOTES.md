@@ -63,6 +63,7 @@
     - [x] Added Splash logo at the loading screen when execute from binaries on Windows.  
     - [x] Renamed binaries files for architecture 'amd64' from 'amd64' to 'x64'.     
     - [x] Included binary for 'Windows arm64' architecture.     
+    - [x] Changed Compiler from Pyinstaller to Nuitka to generate compiled binaries for all supported platforms.     
 
   - #### 🐛 Bug fixes:
     - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
