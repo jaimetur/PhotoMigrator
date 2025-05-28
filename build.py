@@ -172,6 +172,7 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     global SCRIPT_VERSION_WITHOUT_V
     global SCRIPT_NAME_VERSION
     global root_dir
+    global script_zip_file
 
     # Detect the operating system and architecture
     # OPERATING_SYSTEM = platform.system().lower().replace('darwin', 'macos')
@@ -260,10 +261,10 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     global SCRIPT_VERSION_WITHOUT_V
     global SCRIPT_NAME_VERSION
     global root_dir
+    global script_zip_file
 
     # Inicializamos variables
     SCRIPT_NAME_WITH_VERSION_OS_ARCH = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-    script_zip_file = Path(f"PhotoMigrator-builts//{SCRIPT_VERSION_WITHOUT_V}/{SCRIPT_NAME_WITH_VERSION_OS_ARCH}.zip").resolve()
     splash_image = "assets/logos/logo.png" # Splash image for windows
     gpth_tool = f"gpth_tool/gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE.replace('x64','x86_64')}.ext"
     exif_folder_tmp = "tmp/exif_tool"
