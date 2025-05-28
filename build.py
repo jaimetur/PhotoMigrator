@@ -429,7 +429,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             '--enable-plugin=tk-inter',
             '--disable-cache=ccache',
             '--lto=yes',
-            # '--remove-output',
+            '--remove-output',
             f'--output-dir={dist_path}',
             f"--file-version={SCRIPT_VERSION_WITHOUT_V.split('-')[0]}",
             f'--copyright={COPYRIGHT_TEXT}',
