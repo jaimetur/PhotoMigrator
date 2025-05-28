@@ -24,7 +24,8 @@ jobs:
     # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
     strategy:
       matrix:
-        os: [ ubuntu-x64, ubuntu-arm64, macos-x64, macos-arm64, windows-x64, windows-arm64 ]
+#        os: [ ubuntu-x64, ubuntu-arm64, macos-x64, macos-arm64, windows-x64, windows-arm64 ]
+        os: [ ubuntu-x64, ubuntu-arm64, macos-x64, windows-x64, windows-arm64 ]
         python: [ "3.12.10" ] # select Python version
         compiler: [ nuitka ] # possible values: [pyinstaller, nuitka]
         mode: [ global ] # possible values: [global, custom]
@@ -66,6 +67,13 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
 
+      # Install C Compiler
+      - name: Install Xcode command line tools
+        if: runner.os == 'macOS'
+        run: |
+          xcode-select --install || echo "Already installed"
+
+
 #      - name: Install Visual Studio Build Tools (MSVC)
 #        if: runner.os == 'Windows'
 #        uses: ilammy/msvc-dev-cmd@v1
@@ -87,7 +95,6 @@ jobs:
           echo "================================================================================================="
           echo "INFO    : COMPILING..."
           echo "================================================================================================="
-          set -x
           python3 build.py --${{ matrix.compiler }} --onefile
 
           echo "::endgroup::"
@@ -119,7 +126,6 @@ jobs:
                 echo "================================================================================================="
                 echo "INFO    : COMPILING..."
                 echo "================================================================================================="
-                set -x
                 python3 build.py --${{ matrix.compiler }} --onefile
             '
           # Build for Linux (arm64), macOS (x64 & arm64), Windows (x64 & arm64)
@@ -141,7 +147,6 @@ jobs:
             echo "================================================================================================="
             echo "INFO    : COMPILING..."
             echo "================================================================================================="
-            set -x
             python3 build.py --${{ matrix.compiler }} --onefile
           
           fi
