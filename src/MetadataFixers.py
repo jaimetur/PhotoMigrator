@@ -16,9 +16,9 @@ import Utils
 def resource_path(relative_path, log_level=logging.INFO):
     """
     Devuelve la ruta absoluta al recurso 'relative_path', funcionando en:
-    - PyInstaller
+    - PyInstaller (onefile o standalone)
     - Nuitka (onefile o standalone)
-    - Ejecución directa con Python (desde el directorio actual, no el del script)
+    - Ejecución directa con Python (desde el directorio actual, o desde el directorio padre del script)
     """
     print("---DEBUG INFO")
     print(f"__file__           : {globals().get('__file__', 'NO __file__')}")
