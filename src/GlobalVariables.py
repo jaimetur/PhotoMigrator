@@ -6,6 +6,7 @@ import logging
 # GLOBAL VARIABLES FOR THE WHOLE PROJECT
 #---------------------------------------
 
+COPYRIGHT_TEXT                  = "(c) 2024-2025 - Jaime Tur (@jaimetur)"
 SCRIPT_NAME                     = "PhotoMigrator"
 SCRIPT_VERSION                  = "v3.3.0"
 SCRIPT_DATE                     = "2025-05-30"
@@ -23,7 +24,6 @@ PARSER                          = None
 LOGGER                          = None
 LOG_LEVEL_MIN                   = logging.DEBUG
 LOG_LEVEL                       = logging.INFO
-COPYRIGHT_TEXT                  = "(c) 2024-2025 - Jaime Tur (@jaimetur)"
 
 # List of Folder to Deprioritize when looking for duplicates.
 DEPRIORITIZE_FOLDERS_PATTERNS   = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS', '*No-Albums', '*Others', '*Variad[oa]*', '*Vari[oa]*', '*Miscellaneous*', '*M[oó]vil*', r'\bfotos\b\s+(\w+)\s*$', r'fotos de \w y \w\s*$', r'fotos de \w\s*$', '*Fotos_de*', '*Fotos_con', '*Fotos de*', '*Fotos con*']
