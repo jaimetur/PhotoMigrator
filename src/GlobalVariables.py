@@ -10,7 +10,6 @@ SCRIPT_NAME                     = "PhotoMigrator"
 SCRIPT_VERSION                  = "v3.3.0"
 SCRIPT_DATE                     = "2025-05-30"
 SCRIPT_NAME_VERSION             = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
-# GPTH_VERSION                    = "3.6.2"
 GPTH_VERSION                    = "4.0.2"
 EXIF_VERSION                    = "3.0.0"
 INCLUDE_EXIF_TOOL               = True
