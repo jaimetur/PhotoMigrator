@@ -16,22 +16,24 @@ import Utils
 def resource_path(relative_path, log_level=logging.INFO):
     """
     Devuelve la ruta absoluta al recurso 'relative_path', funcionando en:
-    - PyInstaller (onefile, standalone)
-    - Nuitka (onefile, standalone)
-    - Ejecución directa con Python
+    - PyInstaller
+    - Nuitka (onefile o standalone)
+    - Ejecución directa con Python (desde el directorio actual, no el del script)
     """
     with set_log_level(LOGGER, log_level):
         try:
-            # Nuitka (recomendado por documentación oficial)
+            # Nuitka moderno
             base_path = __compiled__.containing_dir
         except NameError:
             if hasattr(sys, '_MEIPASS'):
                 # PyInstaller
                 base_path = sys._MEIPASS
+            elif getattr(sys, 'frozen', False):
+                # Nuitka standalone o compilado sin __compiled__
+                base_path = os.path.dirname(os.path.abspath(__file__))
             else:
-                # Nuitka onefile fallback o ejecución directa
-                base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
-
+                # Ejecución normal del script .py → usar cwd
+                base_path = os.getcwd()
         return os.path.join(base_path, relative_path)
 
 def run_command(command, logger, capture_output=False, capture_errors=True):
