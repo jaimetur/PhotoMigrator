@@ -423,8 +423,8 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         if compile_in_one_file:
             nuitka_command.extend(['--onefile'])
             # nuitka_command.append('--onefile-no-compression)
-            if OPERATING_SYSTEM == 'windows':
-                nuitka_command.extend([f'--onefile-windows-splash-screen-image={splash_image}'])
+            # if OPERATING_SYSTEM == 'windows':
+            #     nuitka_command.extend([f'--onefile-windows-splash-screen-image={splash_image}'])
         else:
             nuitka_command.extend(['--standalone'])
 
