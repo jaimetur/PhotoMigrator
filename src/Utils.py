@@ -1675,6 +1675,7 @@ def resource_path(relative_path):
     - Nuitka (onefile o standalone)
     - Python directo (desde cwd o desde dirname(__file__))
     """
+    # IMPORTANT: Don't use LOGGER in this function because is also used by build.py which has not any LOGGER created.
 
     DEBUG_MODE = True  # Cambia a False para silenciar
 
