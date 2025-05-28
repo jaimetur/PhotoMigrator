@@ -13,7 +13,7 @@ src_path = os.path.abspath(os.path.join(current_dir, "src"))
 if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
-from GlobalVariables import GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
+from GlobalVariables import SCRIPT_NAME, SCRIPT_VERSION, GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
 from Utils import zip_folder, unzip_to_temp, unzip, unzip_flatten, clear_screen, print_arguments_pretty, get_os, get_arch
 
 def include_extrafiles_and_zip(input_file, output_file):
@@ -168,9 +168,7 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
 def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     global OPERATING_SYSTEM
     global ARCHITECTURE
-    global SCRIPT_NAME
     global SCRIPT_SOURCE_NAME
-    global SCRIPT_VERSION
     global SCRIPT_VERSION_WITHOUT_V
     global SCRIPT_NAME_VERSION
     global root_dir
@@ -181,9 +179,7 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     # ARCHITECTURE = platform.machine().lower().replace('amd64', 'x64').replace('aarch64', 'arm64')
     OPERATING_SYSTEM = get_os(use_logger=False)
     ARCHITECTURE = get_arch(use_logger=False)
-    SCRIPT_NAME = "PhotoMigrator"
     SCRIPT_SOURCE_NAME = f"{SCRIPT_NAME}.py"
-    SCRIPT_VERSION = get_script_version('./src/GlobalVariables.py')
     SCRIPT_VERSION_WITHOUT_V = get_clean_version(SCRIPT_VERSION)
     SCRIPT_NAME_VERSION = f"{SCRIPT_NAME}_{SCRIPT_VERSION}"
 
@@ -260,9 +256,7 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
 def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     global OPERATING_SYSTEM
     global ARCHITECTURE
-    global SCRIPT_NAME
     global SCRIPT_SOURCE_NAME
-    global SCRIPT_VERSION
     global SCRIPT_VERSION_WITHOUT_V
     global SCRIPT_NAME_VERSION
     global root_dir
