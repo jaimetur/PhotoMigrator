@@ -389,14 +389,17 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     # ===============================================================================================================================================
     elif compiler=='nuitka':
         print("Compiling with Nuitka...")
-        if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
-            os.environ['CC'] = 'gcc'
-        elif ARCHITECTURE in ["arm64", "aarch64"]:
-            os.environ['CC'] = 'aarch64-linux-gnu-gcc'
-        else:
-            print(f"Unknown architecture: {ARCHITECTURE}")
-            return False
-        print("")
+        # if ARCHITECTURE in ["amd64", "x86_64", "x64"]:
+        #     os.environ['CC'] = 'gcc'
+        # elif ARCHITECTURE in ["arm64", "aarch64"]:
+        #     if sys.platform == "linux":
+        #         os.environ['CC'] = 'aarch64-linux-gnu-gcc'
+        #     elif sys.platform == "darwin":
+        #         os.environ['CC'] = 'clang'  # explícito para macOS
+        # else:
+        #     print(f"Unknown architecture: {ARCHITECTURE}")
+        #     return False
+        # print("")
 
         # Build and Dist Folders for Nuitka
         dist_path = "./dist_nuitka"

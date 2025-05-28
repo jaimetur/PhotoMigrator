@@ -20,7 +20,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]  # os list
-        python-version: ["3.12.10"]
+        python-version: [ "3.12.10" ]
 
     runs-on: ${{ matrix.os }}
 

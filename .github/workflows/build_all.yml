@@ -24,8 +24,8 @@ jobs:
     # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
     strategy:
       matrix:
-#        os: [ ubuntu-x64, ubuntu-arm64, macos-x64, macos-arm64, windows-x64, windows-arm64 ]
-        os: [ ubuntu-x64, ubuntu-arm64, macos-x64, windows-x64, windows-arm64 ]
+        os: [ ubuntu-x64, ubuntu-arm64, macos-x64, macos-arm64, windows-x64, windows-arm64 ]
+#        os: [ ubuntu-x64, ubuntu-arm64, macos-x64, windows-x64, windows-arm64 ]
         python: [ "3.12.10" ] # select Python version
         compiler: [ nuitka ] # possible values: [pyinstaller, nuitka]
         mode: [ global ] # possible values: [global, custom]

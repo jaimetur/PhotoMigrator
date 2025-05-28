@@ -109,21 +109,6 @@ set_LOGGER()
 set_ARGS_PARSER()
 set_HELP_TEXT()
 
-# Remove Splash image from Pyinstaller
-if '_PYI_SPLASH_IPC' in os.environ and importlib.util.find_spec("pyi_splash"):
-    import pyi_splash
-    pyi_splash.update_text('UI Loaded ...')
-    pyi_splash.close()
-
-# Remove Splash image from Nuitka
-if "NUITKA_ONEFILE_PARENT" in os.environ:
-    import tempfile
-    splash_filename = os.path.join(
-        tempfile.gettempdir(),
-        "onefile_%d_splash_feedback.tmp" % int(os.environ["NUITKA_ONEFILE_PARENT"]),
-    )
-    if os.path.exists(splash_filename):
-        os.unlink(splash_filename)
 
 
 

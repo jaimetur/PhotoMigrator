@@ -4,13 +4,8 @@ ChangeWorkingDir.change_working_dir(change_dir=True)
 
 import os,sys
 import importlib
-try:
-    import tkinter as tk
-    from tkinter import filedialog
-    TKINTER_AVAILABLE = True
-except ImportError:
-    TKINTER_AVAILABLE = False
-
+print("")
+print ("Loading Tool...")
 # Remove Splash image from Pyinstaller
 if '_PYI_SPLASH_IPC' in os.environ and importlib.util.find_spec("pyi_splash"):
     import pyi_splash
@@ -24,8 +19,20 @@ if "NUITKA_ONEFILE_PARENT" in os.environ:
         tempfile.gettempdir(),
         "onefile_%d_splash_feedback.tmp" % int(os.environ["NUITKA_ONEFILE_PARENT"]),
     )
+    with open(splash_filename, "wb") as f:
+        f.write(b"READY")
+
     if os.path.exists(splash_filename):
         os.unlink(splash_filename)
+print("Tool loaded!")
+print("")
+
+try:
+    import tkinter as tk
+    from tkinter import filedialog
+    TKINTER_AVAILABLE = True
+except ImportError:
+    TKINTER_AVAILABLE = False
 
 def select_folder_gui():
     root = tk.Tk()
