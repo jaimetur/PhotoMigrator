@@ -318,11 +318,11 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         import PyInstaller.__main__
 
         # Build and Dist Folders for Pyinstaller
-        build_path = "./build_pyinstaller"
-        dist_path = "./dist_pyinstaller"
+        build_path = "./pyinstaller_build"
+        dist_path = "./pyinstaller_dist"
 
         # Add _pyinstaller suffix to exif_folder_tmp to avoid conflict if both commpiler are running in parallel
-        exif_folder_tmp = exif_folder_tmp.replace('tmp', 'tmp_pyinstaller')
+        exif_folder_tmp = exif_folder_tmp.replace('tmp', 'pyinstaller_tmp')
 
         # Borramos los ficheros y directorios temporales de compilaciones previas
         print("Removing temporary files from previous compilations...")
@@ -404,11 +404,11 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         # print("")
 
         # Build and Dist Folders for Nuitka
-        dist_path = "./dist_nuitka"
+        dist_path = "./nuitka_dist"
         build_path = f"{dist_path}/{SCRIPT_NAME}.build"
 
         # Add _nuitka suffix to exif_folder_tmp to avoid conflict if both commpiler are running in parallel
-        exif_folder_tmp = exif_folder_tmp.replace('tmp', 'tmp_nuitka')
+        exif_folder_tmp = exif_folder_tmp.replace('tmp', 'nuitka_tmp')
 
         # Borramos los ficheros y directorios temporales de compilaciones previas
         print("Removing temporary files from previous compilations...")
