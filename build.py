@@ -273,17 +273,19 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     global archive_path_relative
 
     # Inicializamos variables
-    SCRIPT_NAME_WITH_VERSION_OS_ARCH = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
-    splash_image = "assets/logos/logo.png" # Splash image for windows
-    gpth_tool = f"gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE.replace('x64', 'x86_64')}.ext"
-    exif_folder_tmp = "tmp/exif_tool"
-    exif_folder_dest = "gpth_tool"
-    # exif_tool = f"../exif_tool/exif-{EXIF_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext:exif_tool"
+    SCRIPT_NAME_WITH_VERSION_OS_ARCH    = f"{SCRIPT_NAME_VERSION}_{OPERATING_SYSTEM}_{ARCHITECTURE}"
+    splash_image                        = "assets/logos/logo.png" # Splash image for windows
+    gpth_folder                         = "gpth_tool"
+    exif_folder                         = "exif_tool"
+    gpth_tool                           = os.path.join(gpth_folder, f"gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE.replace('x64', 'x86_64')}.ext")
+    exif_tool                           = os.path.join(exif_folder, "<ZIP_NAME>.zip")
+    exif_folder_dest                    = gpth_folder
+    # exif_tool                         = f"{exif_folder}/exif-{EXIF_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext:exif_tool"
     if OPERATING_SYSTEM == 'windows':
         script_compiled = f'{SCRIPT_NAME}.exe'
         script_compiled_with_version_os_arch_extension = f"{SCRIPT_NAME_WITH_VERSION_OS_ARCH}.exe"
         gpth_tool = gpth_tool.replace(".ext", ".exe")
-        exif_tool_zipped = "exif_tool/windows.zip"
+        exif_tool = exif_tool.replace('<ZIP_NAME>', 'windows')
     else:
         if compiler=='pyinstaller':
             script_compiled = f'{SCRIPT_NAME}'
@@ -291,10 +293,10 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             script_compiled = f'{SCRIPT_NAME}.bin'
         script_compiled_with_version_os_arch_extension = f"{SCRIPT_NAME_WITH_VERSION_OS_ARCH}.run"
         gpth_tool = gpth_tool.replace(".ext", ".bin")
-        exif_tool_zipped = "exif_tool/others.zip"
+        exif_tool = exif_tool.replace('<ZIP_NAME>', 'others')
 
     # Usar resource_path para acceder a archivos o directorios que se empaquetarán en el modo de ejecutable binario:
-    gpth_tool_path = resource_path(os.path.join("gpth_tool", gpth_tool))
+    gpth_tool_path = resource_path(gpth_tool)
 
     # Ensure exec permissions for gpth binary file
     ensure_executable(gpth_tool_path)
@@ -304,13 +306,13 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         file.write('COMPILER=' + str(compiler) + '\n')
         file.write('SCRIPT_COMPILED=' + os.path.abspath(script_compiled_with_version_os_arch_extension) + '\n')
         file.write('GPTH_TOOL=' + gpth_tool + '\n')
-        file.write('EXIF_TOOL=' + exif_tool_zipped + '\n')
+        file.write('EXIF_TOOL=' + exif_tool + '\n')
         print('')
         print(f'COMPILER: {compiler}')
         print(f'COMPILE_IN_ONE_FILE: {compile_in_one_file}')
         print(f'SCRIPT_COMPILED: {script_compiled}')
         print(f'GPTH_TOOL: {gpth_tool}')
-        print(f'EXIF_TOOL: {exif_tool_zipped}')
+        print(f'EXIF_TOOL: {exif_tool}')
 
     print("")
     print("=================================================================================================")
@@ -329,9 +331,6 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         # Build and Dist Folders for Pyinstaller
         build_path = "./pyinstaller_build"
         dist_path = "./pyinstaller_dist"
-
-        # Add _pyinstaller suffix to exif_folder_tmp to avoid conflict if both commpiler are running in parallel
-        exif_folder_tmp = exif_folder_tmp.replace('tmp', 'pyinstaller_tmp')
 
         # Borramos los ficheros y directorios temporales de compilaciones previas
         print("Removing temporary files from previous compilations...")
@@ -361,13 +360,9 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
 
         # If INCLUDE_EXIF_TOOL flag is True, then Unzip, Change Permissions and Add Exif Tool files to the binary file
         if INCLUDE_EXIF_TOOL:
-            # First delete exif_folder_tmp if exists
-            shutil.rmtree(exif_folder_tmp, ignore_errors=True)
-
             # Unzip Exif_tool and include it to compiled binary with Pyinstaller
             print("\nUnzipping EXIF Tool to include it in binary compiled file...")
-            # unzip(exif_tool_zipped, exif_folder_tmp)
-            exif_folder_tmp = unzip_to_temp(exif_tool_zipped)
+            exif_folder_tmp = unzip_to_temp(exif_tool)
 
             # Dar permiso de ejecución a exiftool
             exiftool_bin = Path(exif_folder_tmp) / "exiftool"
@@ -430,9 +425,6 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         dist_path = "./nuitka_dist"
         build_path = f"{dist_path}/{SCRIPT_NAME}.build"
 
-        # Add _nuitka suffix to exif_folder_tmp to avoid conflict if both commpiler are running in parallel
-        exif_folder_tmp = exif_folder_tmp.replace('tmp', 'nuitka_tmp')
-
         # Borramos los ficheros y directorios temporales de compilaciones previas
         print("Removing temporary files from previous compilations...")
         Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
@@ -468,13 +460,9 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
 
         # If INCLUDE_EXIF_TOOL flag is True, then Unzip, Change Permissions and Add Exif Tool files to the binary file
         if INCLUDE_EXIF_TOOL:
-            # First delete exif_folder_tmp if exists
-            shutil.rmtree(exif_folder_tmp, ignore_errors=True)
-
             # Unzip Exif_tool and include it to compiled binary with Nuitka
             print("\nUnzipping EXIF Tool to include it in binary compiled file...")
-            # unzip(exif_tool_zipped, exif_folder_tmp)
-            exif_folder_tmp = unzip_to_temp(exif_tool_zipped)
+            exif_folder_tmp = unzip_to_temp(exif_tool)
 
             # Dar permiso de ejecución a exiftool
             exiftool_bin = Path(exif_folder_tmp) / "exiftool"
@@ -530,12 +518,13 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     # Delete temporary files and folders created during compilation
     print('')
     print("Deleting temporary compilation files...")
-    shutil.rmtree(exif_folder_tmp, ignore_errors=True)
-    shutil.rmtree("tmp_pyinstaller", ignore_errors=True)
-    shutil.rmtree("tmp_nuitka", ignore_errors=True)
     Path(f"{SCRIPT_NAME}.spec").unlink(missing_ok=True)
     Path(f"nuitka-crash-report.xml").unlink(missing_ok=True)
     shutil.rmtree(build_path, ignore_errors=True)
+    try:
+        shutil.rmtree(exif_folder_tmp, ignore_errors=True)
+    except NameError:
+        pass
     if compile_in_one_file:
         shutil.rmtree(dist_path, ignore_errors=True)
     print("Temporary compilation files successfully deleted!")

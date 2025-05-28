@@ -294,7 +294,7 @@ jobs:
           fi
 
           # Realizar commit y push
-          git commit -m "Update README.md after compilation"
+          git commit -m "README.md updated by Github Actions (build_all.yml)"
           git push origin ${{ github.ref_name }}
         
       # 8a. - Cleanup (Linux/macOS)
