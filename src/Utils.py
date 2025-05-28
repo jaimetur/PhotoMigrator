@@ -116,7 +116,7 @@ def get_os(log_level=logging.INFO, use_logger=True):
         else:
             print.error(f"ERROR   : Unsupported Operating System: {current_os}")
             os_label = "unknown"
-        print.info(f"INFO    : Detected OS: {os_label}")
+        print(f"INFO    : Detected OS: {os_label}")
     return os_label
 
 
@@ -140,7 +140,7 @@ def get_arch(log_level=logging.INFO, use_logger=True):
             arch_label = "arm64"
         else:
             arch_label = architecture
-        print.info(f"INFO    : Detected architecture: {arch_label}")
+        print(f"INFO    : Detected architecture: {arch_label}")
     return arch_label
 
 
@@ -1639,32 +1639,31 @@ def print_arguments_pretty(arguments, title="Arguments", use_logger=True):
         arguments (list): List of arguments (e.g., for PyInstaller).
         title (str): Optional title to display above the arguments.
     """
-    if use_logger:
-        LOGGER.info("")
-        LOGGER.info(f"{title}:")
-    else:
-        print.info("")
-        print.info(f"{title}:")
+    print("")
     indent = "    "
     i = 0
-    while i < len(arguments):
-        arg = arguments[i]
-        if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-            if use_logger:
-                LOGGER.info(f"{indent}{arg}: {arguments[i + 1]}")
-            else:
-                print.info(f"{indent}{arg}: {arguments[i + 1]}")
-            i += 2
-        else:
-            if use_logger:
-                LOGGER.info(f"{indent}{arg}")
-            else:
-                print.info(f"{indent}{arg}")
-            i += 1
     if use_logger:
-        LOGGER.info("")
+        LOGGER.info(f"{title}:")
+        while i < len(arguments):
+            arg = arguments[i]
+            if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
+                LOGGER.info(f"{indent}{arg}: {arguments[i + 1]}")
+                i += 2
+            else:
+                LOGGER.info(f"{indent}{arg}")
+                i += 1
     else:
-        print("")
+        print(f"{title}:")
+        while i < len(arguments):
+            arg = arguments[i]
+            if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
+                print(f"{indent}{arg}: {arguments[i + 1]}")
+                i += 2
+            else:
+                print(f"{indent}{arg}")
+                i += 1
+    print("")
+
 
 
 
