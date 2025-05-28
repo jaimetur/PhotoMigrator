@@ -5,7 +5,7 @@
 - ### **Release Date**: 2025-05-30
   - ~~Alpha version    : 2025-04-15~~
   - ~~Beta version     : 2025-04-30~~
-  - Release Candidate: 2025-05-15
+  - ~~Release Candidate: 2025-05-15~~
   - Official Release : 2025-05-30
 
 - ### Main Changes:
