@@ -29,17 +29,17 @@ def resource_path(relative_path, log_level=logging.INFO):
     print("--- END DEBUG INFO")
     with set_log_level(LOGGER, log_level):
         try:
-            # Nuitka moderno
+            # Compilado con Nuitka standalone
             base_path = __compiled__.containing_dir
         except NameError:
             if hasattr(sys, '_MEIPASS'):
-                # PyInstaller
+                # Compilado con PyInstaller
                 base_path = sys._MEIPASS
             elif "NUITKA_ONEFILE_PARENT" in os.environ:
-                # Nuitka compilado con onefile sin __compiled__
+                # Compilado con Nuitka onefile sin __compiled__
                 base_path = os.path.dirname(os.path.abspath(__file__))
             elif "__file__" in globals():
-                # Ejecución directa con Python o compilado con nuitka standalone (2 opciones):
+                # Ejecución directa con Python (2 opciones):
                 if RESOURCES_PATH_CURRENT_FOLDER:
                     # Buscar en la carpeta actual de ejecución
                     base_path = os.getcwd()
