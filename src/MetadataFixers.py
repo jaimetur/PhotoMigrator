@@ -28,9 +28,9 @@ def resource_path(relative_path, log_level=logging.INFO):
     print(f"  DEBUG: sys.frozen           : {getattr(sys, 'frozen', False)}")
     print(f"  DEBUG: NUITKA_ONEFILE_PARENT: {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
     try:
-        print("__compiled__.containing_dir:", __compiled__.containing_dir)
+        print("  DEBUG: __compiled__.containing_dir:", __compiled__.containing_dir)
     except NameError:
-        print("__compiled__ not defined")
+        print("  DEBUG: __compiled__ not defined")
 
     with set_log_level(LOGGER, log_level):
         try:
