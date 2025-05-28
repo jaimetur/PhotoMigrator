@@ -40,12 +40,13 @@ jobs:
       [matrix.os] }}
 
     steps:
-      - name: Show runner OS, Arch, Python, Compiler
+      - name: Show runner OS, Arch, Python, Compiler, Mode
         run: |
           echo "OS: ${{ runner.os }}"
           echo "Arch: ${{ runner.arch }}"
           echo "Python: ${{ matrix.python }}"
           echo "Compiler: ${{ matrix.compiler }}"
+          echo "Build Mode: ${{ matrix.mode }}"
 
       # Checkout Repository
       - name: Checkout Repository
@@ -86,6 +87,7 @@ jobs:
           echo "================================================================================================="
           echo "INFO    : COMPILING..."
           echo "================================================================================================="
+          set -x
           python3 build.py --${{ matrix.compiler }} --onefile
 
       # 1b. - CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
@@ -114,6 +116,7 @@ jobs:
                 echo "================================================================================================="
                 echo "INFO    : COMPILING..."
                 echo "================================================================================================="
+                set -x
                 python3 build.py --${{ matrix.compiler }} --onefile
             '
           # Build for Linux (arm64), macOS (x64 & arm64), Windows (x64 & arm64)
@@ -135,6 +138,7 @@ jobs:
             echo "================================================================================================="
             echo "INFO    : COMPILING..."
             echo "================================================================================================="
+            set -x
             python3 build.py --${{ matrix.compiler }} --onefile
           
           fi
