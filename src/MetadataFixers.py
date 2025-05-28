@@ -20,6 +20,13 @@ def resource_path(relative_path, log_level=logging.INFO):
     - Nuitka (onefile o standalone)
     - Ejecución directa con Python (desde el directorio actual, no el del script)
     """
+    print("---DEBUG INFO")
+    print(f"__file__           : {globals().get('__file__', 'NO __file__')}")
+    print(f"sys.argv[0]        : {sys.argv[0]}")
+    print(f"sys.executable     : {sys.executable}")
+    print(f"sys.frozen         : {getattr(sys, 'frozen', False)}")
+    print(f"os.getcwd()        : {os.getcwd()}")
+    print("--- END DEBUG INFO")
     with set_log_level(LOGGER, log_level):
         try:
             # Nuitka moderno
@@ -33,7 +40,8 @@ def resource_path(relative_path, log_level=logging.INFO):
                 base_path = os.path.dirname(os.path.abspath(__file__))
             else:
                 # Ejecución normal del script .py → usar cwd
-                base_path = os.getcwd()
+                # base_path = os.getcwd()
+                base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         return os.path.join(base_path, relative_path)
 
 def run_command(command, logger, capture_output=False, capture_errors=True):
