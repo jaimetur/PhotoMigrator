@@ -64,7 +64,7 @@ Planed Roadmap for the following releases
     - [x] GPTH is now enhanced with EXIF Tool support for a better metadata fixing (supporting geolocations update, almost all media formats, multiple camera brands, etc...).     
     - [x] Improved _build.py to support both compilers (Pyinstaller and Nuitka).     
     - [x] Added Splash logo at the loading screen when execute from binaries on Windows.  
-    - [x] Renamed binaries files for architecture 'amd64' from 'amd64' to 'x86_64'.     
+    - [x] Renamed binaries files for architecture 'amd64' from 'amd64' to 'x64'.     
     - [x] Included binary for 'Windows arm64' architecture.     
 
   - #### 🐛 Bug fixes:

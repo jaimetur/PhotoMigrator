@@ -5,7 +5,7 @@ jobs:
         include:
            macOS
           - os: macos-13
-            arch: x86_64
+            arch: x64
             python-version: "3.12.10"
             runs-on: macos-13
 
@@ -16,7 +16,7 @@ jobs:
 
            Linux
           - os: ubuntu-24.04
-            arch: x86_64
+            arch: x64
             python-version: "3.12.10"
             runs-on: ubuntu-24.04
 
@@ -27,7 +27,7 @@ jobs:
 
           # Windows
           - os: windows-latest
-            arch: x86_64
+            arch: x64
             python-version: "3.12.10"
             runs-on: windows-latest
 

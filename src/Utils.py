@@ -112,7 +112,7 @@ def get_arch(log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):
         architecture = platform.machine()
         if architecture in ["x86_64", "amd64", "AMD64"]:
-            arch_label = "x86_64"
+            arch_label = "x64"
         elif architecture in ["aarch64", "arm64"]:
             arch_label = "arm64"
         else:

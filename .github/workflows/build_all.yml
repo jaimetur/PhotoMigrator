@@ -71,8 +71,8 @@ jobs:
 #        if: runner.os == 'Windows'
 #        uses: ilammy/msvc-dev-cmd@v1
 
-      # 1a. - GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
-      - name: 1a. - GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
+      # 1a. - GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
+      - name: 1a. - GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
         if: matrix.mode == 'global'
         run: |
           echo "::group::Build for ${{ runner.os }}-${{ runner.arch }}. Python Version: ${{ matrix.python }}. Compiler: ${{ matrix.compiler }}"
@@ -93,13 +93,13 @@ jobs:
           echo "::endgroup::"
         shell: bash
 
-      # 1b. - CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
-      - name: 1b. - CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
+      # 1b. - CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
+      - name: 1b. - CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
         if: matrix.mode == 'custom'
         run: |
           echo "::group::Build for ${{ runner.os }}-${{ runner.arch }}. Python Version: ${{ matrix.python }}. Compiler: ${{ matrix.compiler }}"
            
-          # Build for Linux (x86_64)
+          # Build for Linux (x64)
           if [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ runner.arch }}" == "X64" ]; then
             docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace jaimetur/centos-amd64:7 bash -c '
                 # echo "================================================================================================="
@@ -258,7 +258,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
-      # 7. Commit y push README.md (Solo si OS = Ubuntu* y arch = x86_64)
+      # 7. Commit y push README.md (Solo si OS = Ubuntu* y arch = x64)
       - name: 7. Commit y push README.md
         if: ${{ startsWith(matrix.os, 'ubuntu') && runner.arch == 'X64' }}
         run: |

@@ -74,7 +74,7 @@ Apart from Manage the different Photo Cloud Services, the Tool also contains Oth
 
 
 ## 💾 Download:
-Download the tool either for Linux, MacOS or Windows (for both x86_64 and arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
+Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
 - [Latest Stable Release](https://github.com/jaimetur/PhotoMigrator/releases/latest)
 - [Pre-Release](https://github.com/jaimetur/PhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 - [All Releases](https://github.com/jaimetur/PhotoMigrator/releases)  
@@ -282,7 +282,7 @@ Planed Roadmap for the following releases
     - [x] GPTH is now enhanced with EXIF Tool support for a better metadata fixing (supporting geolocations update, almost all media formats, multiple camera brands, etc...).     
     - [x] Improved _build.py to support both compilers (Pyinstaller and Nuitka).     
     - [x] Added Splash logo at the loading screen when execute from binaries on Windows.  
-    - [x] Renamed binaries files for architecture 'amd64' from 'amd64' to 'x86_64'.     
+    - [x] Renamed binaries files for architecture 'amd64' from 'amd64' to 'x64'.     
     - [x] Included binary for 'Windows arm64' architecture.     
 
   - #### 🐛 Bug fixes:

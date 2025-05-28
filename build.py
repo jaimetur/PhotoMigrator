@@ -14,7 +14,7 @@ if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
 from GlobalVariables import GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
-from Utils import zip_folder, unzip_to_temp, unzip, unzip_flatten, clear_screen, print_arguments_pretty
+from Utils import zip_folder, unzip_to_temp, unzip, unzip_flatten, clear_screen, print_arguments_pretty, get_os, get_arch
 
 def include_extrafiles_and_zip(input_file, output_file):
     extra_files_to_subdir = [
@@ -177,9 +177,11 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     global root_dir
 
     # Detect the operating system and architecture
-    OPERATING_SYSTEM = platform.system().lower().replace('darwin', 'macos')
+    # OPERATING_SYSTEM = platform.system().lower().replace('darwin', 'macos')
     # ARCHITECTURE = platform.machine().lower().replace('x86_64', 'amd64').replace('aarch64', 'arm64')
-    ARCHITECTURE = platform.machine().lower().replace('amd64', 'x86_64').replace('aarch64', 'arm64')
+    # ARCHITECTURE = platform.machine().lower().replace('amd64', 'x64').replace('aarch64', 'arm64')
+    OPERATING_SYSTEM = get_os()
+    ARCHITECTURE = get_arch()
     SCRIPT_NAME = "PhotoMigrator"
     SCRIPT_SOURCE_NAME = f"{SCRIPT_NAME}.py"
     SCRIPT_VERSION = get_script_version('./src/GlobalVariables.py')
@@ -202,7 +204,7 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     # print("Adding neccesary packets to Python environment before to compile...")
     # subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'])
     # subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', './requirements.txt'])
-    # if OPERATING_SYSTEM == 'windows' and ARCHITECTURE == 'x86_64)':
+    # if OPERATING_SYSTEM == 'windows' and ARCHITECTURE == 'x64)':
     #     subprocess.run([sys.executable, '-m', 'pip', 'install', 'windows-curses'])
     # print("")
 
