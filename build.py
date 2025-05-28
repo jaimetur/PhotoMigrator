@@ -429,6 +429,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
             '--jobs=4',
             '--assume-yes-for-downloads',
             '--enable-plugin=tk-inter',
+            '--disable-cache=ccache',
             '--lto=yes',
             '--remove-output',
             f'--output-dir={dist_path}',

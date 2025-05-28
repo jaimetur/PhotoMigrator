@@ -90,6 +90,9 @@ jobs:
           set -x
           python3 build.py --${{ matrix.compiler }} --onefile
 
+          echo "::endgroup::"
+        shell: bash
+
       # 1b. - CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
       - name: 1b. - CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x86_64, arm64)
         if: matrix.mode == 'custom'
