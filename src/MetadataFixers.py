@@ -18,49 +18,55 @@ def resource_path(relative_path, log_level=logging.INFO):
     Devuelve la ruta absoluta al recurso 'relative_path', funcionando en:
     - PyInstaller (onefile o standalone)
     - Nuitka (onefile o standalone)
-    - Ejecución directa con Python (desde el directorio actual, o desde el directorio padre del script)
+    - Python directo (desde cwd o desde dirname(__file__))
     """
-    print("---DEBUG INFO")
-    print(f"  DEBUG: __file__             : {globals().get('__file__', 'NO __file__')}")
-    print(f"  DEBUG: sys.argv[0]          : {sys.argv[0]}")
-    print(f"  DEBUG: os.getcwd()          : {os.getcwd()}")
-    print(f"  DEBUG: sys.executable       : {sys.executable}")
-    print(f"  DEBUG: sys.frozen           : {getattr(sys, 'frozen', False)}")
-    print(f"  DEBUG: NUITKA_ONEFILE_PARENT: {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
-    try:
-        print("  DEBUG: __compiled__.containing_dir:", __compiled__.containing_dir)
-    except NameError:
-        print("  DEBUG: __compiled__ not defined")
+
+    DEBUG_MODE = True  # Cambia a False para silenciar
+
+    if DEBUG_MODE:
+        print("---DEBUG INFO")
+        print(f"  DEBUG: __file__             : {globals().get('__file__', 'NO __file__')}")
+        print(f"  DEBUG: sys.argv[0]          : {sys.argv[0]}")
+        print(f"  DEBUG: os.getcwd()          : {os.getcwd()}")
+        print(f"  DEBUG: sys.executable       : {sys.executable}")
+        print(f"  DEBUG: sys.frozen           : {getattr(sys, 'frozen', False)}")
+        print(f"  DEBUG: NUITKA_ONEFILE_PARENT: {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
+        try:
+            print(f"  DEBUG: __compiled__.containing_dir: {__compiled__.containing_dir}")
+        except NameError:
+            print("  DEBUG: __compiled__ not defined")
 
     with set_log_level(LOGGER, log_level):
-        try:
-            # Compilado con Nuitka standalone
+        # Compilado con PyInstaller
+        if hasattr(sys, '_MEIPASS'):
+            base_path = sys._MEIPASS
+            if DEBUG_MODE: print("  DEBUG: Entra en sys._MEIPASS")
+
+        # Compilado con Nuitka onefile (detectado por ruta temporal en __file__)
+        elif "__file__" in globals() and "/var/tmp/" in __file__:
+            base_path = os.path.dirname(os.path.abspath(__file__))
+            if DEBUG_MODE: print("  DEBUG: Entra en __file__ → modo Nuitka onefile")
+
+        # Compilado con Nuitka standalone (cuando __compiled__ es válido)
+        elif "__compiled__" in globals():
             base_path = __compiled__.containing_dir
-            print("  DEBUG: Entra en __compiled__.containing_dir")
-        except NameError:
-            if hasattr(sys, '_MEIPASS'):
-                # Compilado con PyInstaller
-                base_path = sys._MEIPASS
-                print ("  DEBUG: Entra en sys._MEIPASS")
-            elif "NUITKA_ONEFILE_PARENT" in os.environ:
-                # Compilado con Nuitka onefile sin __compiled__
-                base_path = os.path.dirname(os.path.abspath(__file__))
-                print ("  DEBUG: Entra en NUITKA_ONEFILE_PARENT")
-            elif "__file__" in globals():
-                # Ejecución directa con Python (2 opciones):
-                if RESOURCES_IN_CURRENT_FOLDER:
-                    # Buscar en la carpeta actual de ejecución
-                    base_path = os.getcwd()
-                    print ("  DEBUG: Entra en __file__ con RESOURCES_IN_CURRENT_FOLDER=True")
-                else:
-                    # Buscar un nivel por encima desde __file__ (que apuntará al .py correspondiente)
-                    base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                    print("  DEBUG: Entra en __file__ con RESOURCES_IN_CURRENT_FOLDER=False")
-            else:
-                # Caso muy raro sin __file__
+            if DEBUG_MODE: print("  DEBUG: Entra en __compiled__.containing_dir")
+
+        # Python normal
+        elif "__file__" in globals():
+            if RESOURCES_IN_CURRENT_FOLDER:
                 base_path = os.getcwd()
-                print("  DEBUG: Entra en el último else")
-            print(f"  DEBUG: return path     : {os.path.join(base_path, relative_path)}")
+                if DEBUG_MODE: print("  DEBUG: Entra en Python .py → cwd")
+            else:
+                base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                if DEBUG_MODE: print("  DEBUG: Entra en Python .py → dirname(dirname(__file__))")
+
+        else:
+            base_path = os.getcwd()
+            if DEBUG_MODE: print("  DEBUG: Entra en fallback final → os.getcwd()")
+
+        if DEBUG_MODE:
+            print(f"  DEBUG: return path: {os.path.join(base_path, relative_path)}")
             print("--- END DEBUG INFO")
 
         return os.path.join(base_path, relative_path)
