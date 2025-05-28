@@ -1636,8 +1636,9 @@ def print_arguments_pretty(arguments, title="Arguments", use_logger=True):
     Prints a list of command-line arguments in a structured and readable one-line-per-arg format.
 
     Args:
-        arguments (list): List of arguments (e.g., for PyInstaller).
-        title (str): Optional title to display above the arguments.
+        :param arguments (list): List of arguments (e.g., for PyInstaller).
+        :param title (str): Optional title to display above the arguments.
+        :param use_logger:
     """
     print("")
     indent = "    "
