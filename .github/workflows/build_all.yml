@@ -6,11 +6,11 @@ on:
       prerelease:
         description: "Is this a Pre-release ?"
         required: true
-        default: true
+        default: "true"
         type: choice
         options:
-          - true
-          - false
+          - "true"
+          - "false"
       compiler:
         description: "Select Compiler:"
         required: true
@@ -491,6 +491,10 @@ jobs:
     steps:
       - name: 🧾 Checkout source code
         uses: actions/checkout@v4
+
+      - name: ✅ Check Pre-Release
+        run: |
+          echo "Pre-Release: ${{ github.event.inputs.prerelease }}
 
       - name: 🏷️ Extract SCRIPT_VERSION from GlobalVariables.py
         run: |
