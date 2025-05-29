@@ -387,6 +387,7 @@ jobs:
         with:
           name: CURRENT-RELEASE.md
           path: CURRENT-RELEASE.md
+          overwrite: true
 
       - name: 🧹 Cleanup
         shell: bash
