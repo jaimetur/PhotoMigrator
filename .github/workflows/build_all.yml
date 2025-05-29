@@ -33,40 +33,36 @@ on:
           - "3.13"
           - "3.14"
       linux_x64:
-        description: "Include linux-x64?"
-        type: boolean
-        required: false
-        default: 'true'
-      linux_arm64:
-        description: "Include linux-arm64?"
+        description: "Include linux-x64 ?"
         type: boolean
         required: false
         default: true
       macos_x64:
-        description: "Include macos-x64?"
-        type: boolean
-        required: false
-        default: true
-      macos_arm64:
-        description: "Include macos-arm64?"
+        description: "Include macos-x64 ?"
         type: boolean
         required: false
         default: true
       windows_x64:
-        description: "Include windows-x64?"
+        description: "Include windows-x64 ?"
+        type: boolean
+        required: false
+        default: true
+
+      linux_arm64:
+        description: "Include linux-arm64 ?"
+        type: boolean
+        required: false
+        default: true
+      macos_arm64:
+        description: "Include macos-arm64 ?"
         type: boolean
         required: false
         default: true
       windows_arm64:
-        description: "Include windows-arm64?"
+        description: "Include windows-arm64 ?"
         type: boolean
         required: false
         default: true
-#      os:
-#        description: "Comma-separated list of OS (e.g., ubuntu-x64,macos-x64,...)"
-#        required: true
-#        default: "linux-x64,linux-arm64,macos-x64,macos-arm64,windows-x64,windows-arm64"
-
   #push:                   # Ejecución tras push en main, excepto en los path-ignore
     #branches:
       #- main
@@ -76,8 +72,6 @@ on:
       #- gpth*/**
       #- exif*/**
       #- .idea/**
-      #- _src_versions/**
-      #- _buildt_versions/**
       #- .github/**
 #  schedule:
 # Ejecución diaria a las 2 AM UTC
