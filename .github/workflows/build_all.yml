@@ -557,6 +557,8 @@ jobs:
           tag_name: v${{ env.SCRIPT_VERSION }}
           name: v${{ env.SCRIPT_VERSION }}
           discussion_category_name: Announcements
+          draft: false
+          prerelease: false
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
           files: |
