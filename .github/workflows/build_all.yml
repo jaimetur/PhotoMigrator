@@ -4,7 +4,7 @@ on:
   workflow_dispatch:      # Allows manual execution of the workflow
     inputs:
       service:
-        description: "Select Compiler (pyinstaller, nuitka)"
+        description: "Select Compiler (nuitka, pyinstaller)"
         required: true
         default: "nuitka"
   #push:                   # Ejecución tras push en main, excepto en los path-ignore
