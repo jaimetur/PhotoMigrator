@@ -237,7 +237,6 @@ jobs:
 #        if: runner.os == 'Windows'
 #        uses: ilammy/msvc-dev-cmd@v1
 
-      # GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
       - name: 🌐 GLOBAL MODE - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
         if: matrix.build_mode == 'global'
         shell: bash
@@ -259,7 +258,6 @@ jobs:
 
           echo "::endgroup::"
 
-      # CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
       - name: 🧩 CUSTOM MODE - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
         if: matrix.build_mode == 'custom'
         shell: bash
@@ -312,8 +310,7 @@ jobs:
 
           echo "::endgroup::"
 
-      # Extract SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt (Linux/macOS/Windows)
-      - name: 🏷️ Extract SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt (Linux/macOS)
+      - name: 🏷️ Extract SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt
         shell: bash
         run: |
           # Read SCRIPT_VERSION from the first line
@@ -327,18 +324,18 @@ jobs:
           echo "ARCHIVE_PATH=${ARCHIVE_PATH}" >> $GITHUB_ENV
 
           # Print both variables on screen
-          echo "SCRIPT_VERSION (Linux/macOS): ${SCRIPT_VERSION}"
-          echo "ARCHIVE_PATH (Linux/macOS)  : ${ARCHIVE_PATH}"
+          echo "SCRIPT_VERSION : ${SCRIPT_VERSION}"
+          echo "ARCHIVE_PATH   : ${ARCHIVE_PATH}"
 
-      - name: 📛 Extract filename from ARCHIVE_PATH (only onefile mode)
+      - name: 📛 Extract ARCHIVE_NAME from ARCHIVE_PATH (onefile mode only)
         if: matrix.compilation_mode == 'onefile'
         shell: bash
         run: |
-          FILENAME=$(basename "${ARCHIVE_PATH}")
-          echo "ARCHIVE_NAME=$FILENAME" >> $GITHUB_ENV
+          ARCHIVE_NAME=$(basename "${ARCHIVE_PATH}")
+          echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> $GITHUB_ENV
           echo "ARCHIVE_NAME: ${ARCHIVE_NAME}"
 
-      - name: 🧰 Install zip (only satandalone mode on Windows)
+      - name: 🧰 Install zip (satandalone mode on Windows only)
         if: ${{ matrix.compilation_mode == 'standalone' && runner.os == 'Windows' }}
         shell: bash
         run: choco install zip -y
@@ -352,13 +349,14 @@ jobs:
           
           if [[ "${{ matrix.compilation_mode }}" == "standalone" ]]; then
             folder="${{ matrix.compiler }}_dist"
-            zip_file="PhotoMigrator_v${{ env.SCRIPT_VERSION }}_standalone_${{ matrix.os }}_${{ matrix.compiler }}.zip"
+            ZIP_FILE="PhotoMigrator_v${{ env.SCRIPT_VERSION }}_standalone_${{ matrix.os }}_${{ matrix.compiler }}.zip"
             echo "📁 Checking for folder: $folder"
           
             if [ -d "$folder" ]; then
-              echo "✅ Folder '$folder' found. Creating $zip_file..."
-              zip -r "$zip_file" "$folder"
-              echo "ZIP_PATH=$zip_file" >> $GITHUB_ENV
+              echo "✅ Folder '$folder' found. Creating ${ZIP_FILE}..."
+              zip -r "${ZIP_FILE}" "$folder"
+              echo "ZIP_FILE=${ZIP_FILE}" >> $GITHUB_ENV
+              echo "ZIP_FILE: ${ZIP_FILE}"
             else
               echo "⚠️ Folder '$folder' not found. Skipping compression."
             fi
@@ -366,7 +364,7 @@ jobs:
             echo "ℹ️ Compilation mode is not 'standalone'. Skipping compression."
           fi
 
-      - name: ⬆️ Upload compressed dist folder as artifact (only standalone)
+      - name: ⬆️ Upload compressed dist folder as artifact (standalone mode only)
         if: ${{ matrix.compilation_mode == 'standalone' && env.ZIP_PATH != '' && env.ZIP_PATH != null }}
         continue-on-error: true
         uses: actions/upload-artifact@v4
@@ -374,7 +372,7 @@ jobs:
           name: ${{ env.ZIP_PATH }}
           path: ${{ env.ZIP_PATH }}
 
-      - name: ⬆️ Upload build binary as artifact (only onefile mode)
+      - name: ⬆️ Upload build binary as artifact (onefile mode only)
         if: matrix.compilation_mode == 'onefile'
         uses: actions/upload-artifact@v4
         continue-on-error: true
@@ -387,10 +385,11 @@ jobs:
         if: always()
         continue-on-error: true
         with:
+          overwrite: true
           name: CURRENT-RELEASE.md
           path: .
 
-      - name: 🧹 Cleanup (Linux/macOS/Windows)
+      - name: 🧹 Cleanup
         shell: bash
         run: |
           if [ -f artifact_base64.txt ]; then
@@ -410,7 +409,7 @@ jobs:
 
 
   # ==========================================================================================================================
-  # JOB docker-packaging
+  # JOB Docker packaging (single run)
   # ==========================================================================================================================
   docker-packaging:
     name: 🐳 Docker packaging (single run)
@@ -426,8 +425,8 @@ jobs:
           VERSION_LINE=$(grep '^SCRIPT_VERSION' ./src/GlobalVariables.py)
           RAW_VERSION=$(echo "$VERSION_LINE" | cut -d'"' -f2)
           SCRIPT_VERSION=${RAW_VERSION#v}
-          echo "SCRIPT_VERSION=$SCRIPT_VERSION" >> $GITHUB_ENV
-          echo "✅ SCRIPT_VERSION = $SCRIPT_VERSION"
+          echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> $GITHUB_ENV
+          echo "✅ SCRIPT_VERSION = ${SCRIPT_VERSION}""
 
       - name: 🐳 Log in to Docker Hub
         uses: docker/login-action@v2
@@ -451,7 +450,7 @@ jobs:
           docker push jaimetur/photomigrator:${SCRIPT_VERSION}
           docker push jaimetur/photomigrator:latest
 
-      - name: 🧩 Prepare unified ZIP docker package
+      - name: 🧩 Prepare ZIP docker package
         run: |
           mkdir -p PhotoMigrator/docker
           cp docker/PhotoMigrator.sh PhotoMigrator/docker/
@@ -462,6 +461,7 @@ jobs:
           cp -r help PhotoMigrator/docker/
           cp README.md PhotoMigrator/docker/docs/README.md
           zip -r PhotoMigrator_v${SCRIPT_VERSION}_docker.zip PhotoMigrator
+          echo "PhotoMigrator_v${SCRIPT_VERSION}_docker.zip"
 
       - name: 📤 Upload Docker ZIP as artifact
         uses: actions/upload-artifact@v4
@@ -483,27 +483,30 @@ jobs:
       - name: 🧾 Checkout source code
         uses: actions/checkout@v4
 
-      - name: 📥 Download binary
-        uses: actions/download-artifact@v4
-        with:
-#          name: binary
-          path: ./release_files
+      - name: 🏷️ Extract SCRIPT_VERSION from GlobalVariables.py
+        run: |
+          VERSION_LINE=$(grep '^SCRIPT_VERSION' ./src/GlobalVariables.py)
+          RAW_VERSION=$(echo "$VERSION_LINE" | cut -d'"' -f2)
+          SCRIPT_VERSION=${RAW_VERSION#v}
+          echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> $GITHUB_ENV
+          echo "✅ SCRIPT_VERSION = ${SCRIPT_VERSION}""
 
-      - name: 📥 Download Docker ZIP
+      - name: 📥 Download Artifacts (CURRENT-RELEASE.md, Binaries and Docker Zips)
         uses: actions/download-artifact@v4
         with:
-#          name: docker-zip
           path: ./release_files
+          merge-multiple: true
 
       - name: 📝 Download CURRENT-RELEASE.md
         uses: actions/download-artifact@v4
         with:
           name: CURRENT-RELEASE.md
           path: .
+          merge-multiple: true
 
       # Confirmar contenido descargado
       - name: 📂 List downloaded files
-        run: ls -la
+        run: ls -la ./release_files
 
       # Create GitHub Release and upload artifacts
       - name: 🚀 Create GitHub Release and upload artifacts
