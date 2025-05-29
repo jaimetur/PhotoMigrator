@@ -495,7 +495,7 @@ jobs:
 
       - name: ✅ Check Pre-Release
         run: |
-          echo "Pre-Release: ${{ github.event.inputs.prerelease }}
+          echo "Pre-Release: ${{ github.event.inputs.prerelease }}"
 
       - name: 🏷️ Extract SCRIPT_VERSION from GlobalVariables.py
         run: |
