@@ -32,6 +32,36 @@ on:
           - "3.12"
           - "3.13"
           - "3.14"
+      linux_x64:
+        description: "Include linux-x64?"
+        type: boolean
+        required: false
+        default: true
+      linux_arm64:
+        description: "Include linux-arm64?"
+        type: boolean
+        required: false
+        default: true
+      macos_x64:
+        description: "Include macos-x64?"
+        type: boolean
+        required: false
+        default: true
+      macos_arm64:
+        description: "Include macos-arm64?"
+        type: boolean
+        required: false
+        default: true
+      windows_x64:
+        description: "Include windows-x64?"
+        type: boolean
+        required: false
+        default: true
+      windows_arm64:
+        description: "Include windows-arm64?"
+        type: boolean
+        required: false
+        default: true
       os:
         description: "Comma-separated list of OS (e.g., ubuntu-x64,macos-x64,...)"
         required: true
@@ -53,16 +83,38 @@ on:
 # Ejecución diaria a las 2 AM UTC
 #    - cron: '0 2 * * *'
 
+
 jobs:
+  set-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - id: set
+        run: |
+          OS_LIST=()
+          [[ "${{ github.event.inputs.linux_x64 }}" == 'true' ]] && OS_LIST+=("\"linux-x64\"")
+          [[ "${{ github.event.inputs.linux_arm64 }}" == 'true' ]] && OS_LIST+=("\"linux-arm64\"")
+          [[ "${{ github.event.inputs.macos_x64 }}" == 'true' ]] && OS_LIST+=("\"macos-x64\"")
+          [[ "${{ github.event.inputs.macos_arm64 }}" == 'true' ]] && OS_LIST+=("\"macos-arm64\"")
+          [[ "${{ github.event.inputs.windows_x64 }}" == 'true' ]] && OS_LIST+=("\"windows-x64\"")
+          [[ "${{ github.event.inputs.windows_arm64 }}" == 'true' ]] && OS_LIST+=("\"windows-arm64\"")
+          
+          JSON=$(jq -n --argjson os "[${OS_LIST[*]}]" --arg compiler "${{ github.event.inputs.compiler }}" --arg mode "${{ github.event.inputs.mode }}" --arg python "${{ github.event.inputs.python }}" \
+            '{os: $os, compiler: [$compiler], mode: [$mode], python: [$python]}')
+          
+          echo "matrix=$JSON" >> $GITHUB_OUTPUT
+          
+
   build:
     # Different VM images to compile in all SO and all Archs according to:
     # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
     strategy:
-      matrix:
-        os: [ linux-x64, linux-arm64, macos-x64, macos-arm64, windows-x64, windows-arm64 ]
-        compiler: [ "${{ github.event.inputs.compiler }}" ] # possible values: [pyinstaller, nuitka]
-        mode: [ "${{ github.event.inputs.mode }}" ] # possible values: [global, custom]
-        python: [ "${{ github.event.inputs.python }}"] # select Python version
+      matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
+        # os: [ linux-x64, linux-arm64, macos-x64, macos-arm64, windows-x64, windows-arm64 ]
+        # compiler: [ "${{ github.event.inputs.compiler }}" ] # possible values: [pyinstaller, nuitka]
+        # mode: [ "${{ github.event.inputs.mode }}" ] # possible values: [global, custom]
+        # python: [ "${{ github.event.inputs.python }}"] # select Python version
 
     # runs-on: ${{ matrix.os }}
     # latest linux-x64: ubuntu-latest
