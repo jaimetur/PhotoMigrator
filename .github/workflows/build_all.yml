@@ -549,13 +549,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
       # Create GitHub Release and upload artifacts
-      - name: 🚀 Create GitHub Release and upload artifacts
+      # Paso para releases normales (NO prerelease)
+      - name: 🚀 Create GitHub Release (stable)
+        if: ${{ github.event.inputs.prerelease == 'false' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
           name: v${{ env.SCRIPT_VERSION }}
           draft: false
-          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+          prerelease: false
+          discussion_category_name: Announcement
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
           files: |
@@ -563,6 +566,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
+      # Paso para prereleases
+      - name: 🧪 Create GitHub Prerelease
+        if: ${{ github.event.inputs.prerelease == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.SCRIPT_VERSION }}
+          name: v${{ env.SCRIPT_VERSION }}
+          draft: false
+          prerelease: true
+          generate_release_notes: true
+          body_path: CURRENT-RELEASE.md
+          files: |
+            release_files/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+      
       # Commit y push README.md (Solo si OS = Ubuntu* y arch = x64)
       - name: ✅ Commit & push README.md if changed
         run: |
