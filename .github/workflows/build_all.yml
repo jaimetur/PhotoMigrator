@@ -92,15 +92,17 @@ jobs:
     steps:
       - id: set
         run: |
-          # Convertir los inputs booleanos a strings seguros usando toJSON
+          echo "⚙️ Preparando matriz dinámica..."
+
+          # Convertir inputs booleanos a strings seguros
           linux_x64=${{ toJSON(github.event.inputs.linux_x64) }}
           linux_arm64=${{ toJSON(github.event.inputs.linux_arm64) }}
           macos_x64=${{ toJSON(github.event.inputs.macos_x64) }}
           macos_arm64=${{ toJSON(github.event.inputs.macos_arm64) }}
           windows_x64=${{ toJSON(github.event.inputs.windows_x64) }}
           windows_arm64=${{ toJSON(github.event.inputs.windows_arm64) }}
-      
-          # Inicializar la lista
+
+          # Construir lista OS
           OS_LIST=()
           [ "$linux_x64" = "true" ] && OS_LIST+=("linux-x64")
           [ "$linux_arm64" = "true" ] && OS_LIST+=("linux-arm64")
@@ -108,29 +110,29 @@ jobs:
           [ "$macos_arm64" = "true" ] && OS_LIST+=("macos-arm64")
           [ "$windows_x64" = "true" ] && OS_LIST+=("windows-x64")
           [ "$windows_arm64" = "true" ] && OS_LIST+=("windows-arm64")
-      
-          # Verificar que se ha seleccionado al menos un OS
+
+          # Validar selección
           if [ ${#OS_LIST[@]} -eq 0 ]; then
-            echo "❌ No OS selected"
+            echo "❌ No OS selected. Aborting."
             exit 1
           fi
-      
-          # Convertir el array bash en un array JSON real
+
+          # Convertir array bash a array JSON
           OS_JSON_ARRAY=$(printf '%s\n' "${OS_LIST[@]}" | jq -R . | jq -s .)
-      
-          # Construir JSON final con los demás inputs
-          JSON=$(jq -n \
+
+          # Crear JSON compacto (una sola línea)
+          JSON=$(jq -nc \
             --argjson os "$OS_JSON_ARRAY" \
             --arg compiler "${{ github.event.inputs.compiler }}" \
             --arg mode "${{ github.event.inputs.mode }}" \
             --arg python "${{ github.event.inputs.python }}" \
             '{os: $os, compiler: [$compiler], mode: [$mode], python: [$python]}')
-      
-          # Imprimir para depuración
-          echo "Generated matrix: $JSON"
-      
-          # Exportar como output
-          printf "matrix=%s\n" "$JSON" >> "$GITHUB_OUTPUT"
+
+          echo "✅ Matriz generada:"
+          echo "$JSON"
+
+          # Exportar como output (formato válido)
+          echo "matrix=$JSON" >> "$GITHUB_OUTPUT"
           
 
   build:
