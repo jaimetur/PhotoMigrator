@@ -237,8 +237,8 @@ jobs:
 #        if: runner.os == 'Windows'
 #        uses: ilammy/msvc-dev-cmd@v1
 
-      # 1a. - GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
-      - name: 1a. - 🌐 GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
+      # GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
+      - name: 🌐 GLOBAL MODE - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
         if: matrix.build_mode == 'global'
         shell: bash
         run: |
@@ -259,8 +259,8 @@ jobs:
 
           echo "::endgroup::"
 
-      # 1b. - CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
-      - name: 1b. - 🧩 CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
+      # CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
+      - name: 🧩 CUSTOM MODE - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
         if: matrix.build_mode == 'custom'
         shell: bash
         run: |
@@ -333,7 +333,7 @@ jobs:
       - name: 📛 Extract filename from ARCHIVE_PATH
         shell: bash
         run: |
-          FILENAME=$(basename "$ARCHIVE_PATH")
+          FILENAME=$(basename "env.ARCHIVE_PATH")
           echo "ARCHIVE_NAME=$FILENAME" >> $GITHUB_ENV
           echo "ARCHIVE_NAME: ${ARCHIVE_NAME}"
 
