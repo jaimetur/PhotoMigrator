@@ -115,7 +115,7 @@ jobs:
             compiler="${{ github.event.inputs.compiler }}"
             compilation_mode="${{ github.event.inputs.compilation_mode }}"
             # build_mode="${{ github.event.inputs.build_mode }}"
-            build_mode="default"
+            build_mode="custom"
             python="${{ github.event.inputs.python }}"
 
           else
