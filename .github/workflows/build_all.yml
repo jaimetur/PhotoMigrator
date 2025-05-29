@@ -385,9 +385,8 @@ jobs:
         if: always()
         continue-on-error: true
         with:
-          overwrite: true
           name: CURRENT-RELEASE.md
-          path: .
+          path: CURRENT-RELEASE.md
 
       - name: 🧹 Cleanup
         shell: bash
@@ -494,6 +493,7 @@ jobs:
       - name: 📥 Download Artifacts (CURRENT-RELEASE.md, Binaries and Docker Zips)
         uses: actions/download-artifact@v4
         with:
+          pattern: PhotoMigrator*.zip
           path: ./release_files
           merge-multiple: true
 
@@ -502,7 +502,6 @@ jobs:
         with:
           name: CURRENT-RELEASE.md
           path: .
-          merge-multiple: true
 
       # Confirmar contenido descargado
       - name: 📂 List downloaded files
