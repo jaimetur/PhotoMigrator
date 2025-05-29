@@ -62,10 +62,10 @@ on:
         type: boolean
         required: false
         default: true
-      os:
-        description: "Comma-separated list of OS (e.g., ubuntu-x64,macos-x64,...)"
-        required: true
-        default: "linux-x64,linux-arm64,macos-x64,macos-arm64,windows-x64,windows-arm64"
+#      os:
+#        description: "Comma-separated list of OS (e.g., ubuntu-x64,macos-x64,...)"
+#        required: true
+#        default: "linux-x64,linux-arm64,macos-x64,macos-arm64,windows-x64,windows-arm64"
 
   #push:                   # Ejecución tras push en main, excepto en los path-ignore
     #branches:
@@ -93,16 +93,27 @@ jobs:
       - id: set
         run: |
           OS_LIST=()
-          [[ "${{ github.event.inputs.linux_x64 }}" == 'true' ]] && OS_LIST+=("\"linux-x64\"")
-          [[ "${{ github.event.inputs.linux_arm64 }}" == 'true' ]] && OS_LIST+=("\"linux-arm64\"")
-          [[ "${{ github.event.inputs.macos_x64 }}" == 'true' ]] && OS_LIST+=("\"macos-x64\"")
-          [[ "${{ github.event.inputs.macos_arm64 }}" == 'true' ]] && OS_LIST+=("\"macos-arm64\"")
-          [[ "${{ github.event.inputs.windows_x64 }}" == 'true' ]] && OS_LIST+=("\"windows-x64\"")
-          [[ "${{ github.event.inputs.windows_arm64 }}" == 'true' ]] && OS_LIST+=("\"windows-arm64\"")
-          
-          JSON=$(jq -n --argjson os "[${OS_LIST[*]}]" --arg compiler "${{ github.event.inputs.compiler }}" --arg mode "${{ github.event.inputs.mode }}" --arg python "${{ github.event.inputs.python }}" \
+          [[ "${{ github.event.inputs.linux_x64 }}" == 'true' ]] && OS_LIST+=("linux-x64")
+          [[ "${{ github.event.inputs.linux_arm64 }}" == 'true' ]] && OS_LIST+=("linux-arm64")
+          [[ "${{ github.event.inputs.macos_x64 }}" == 'true' ]] && OS_LIST+=("macos-x64")
+          [[ "${{ github.event.inputs.macos_arm64 }}" == 'true' ]] && OS_LIST+=("macos-arm64")
+          [[ "${{ github.event.inputs.windows_x64 }}" == 'true' ]] && OS_LIST+=("windows-x64")
+          [[ "${{ github.event.inputs.windows_arm64 }}" == 'true' ]] && OS_LIST+=("windows-arm64")
+
+          # Crea string separado por comas con comillas
+          OS_JSON_STRING=$(printf '"%s",' "${OS_LIST[@]}")
+          # Elimina la última coma
+          OS_JSON_STRING="[${OS_JSON_STRING%,}]"
+
+          echo "Final OS list: $OS_JSON_STRING"
+
+          JSON=$(jq -n \
+            --argjson os "$OS_JSON_STRING" \
+            --arg compiler "${{ github.event.inputs.compiler }}" \
+            --arg mode "${{ github.event.inputs.mode }}" \
+            --arg python "${{ github.event.inputs.python }}" \
             '{os: $os, compiler: [$compiler], mode: [$mode], python: [$python]}')
-          
+
           echo "matrix=$JSON" >> $GITHUB_OUTPUT
           
 
