@@ -19,6 +19,19 @@ on:
         options:
           - global
           - custom
+      python:
+        description: "Select Python Version:"
+        required: true
+        default: "3.12"
+        type: choice
+        options:
+          - "3.8"
+          - "3.9"
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.14"
       os:
         description: "Comma-separated list of OS (e.g., ubuntu-x64,macos-x64,...)"
         required: true
@@ -48,8 +61,8 @@ jobs:
       matrix:
         os: [ linux-x64, linux-arm64, macos-x64, macos-arm64, windows-x64, windows-arm64 ]
         compiler: [ "${{ github.event.inputs.compiler }}" ] # possible values: [pyinstaller, nuitka]
-        python: [ "3.12.10" ] # select Python version
-        mode: [ global ] # possible values: [global, custom]
+        mode: [ "${{ github.event.inputs.mode }}" ] # possible values: [global, custom]
+        python: [ "${{ github.event.inputs.python }}"] # select Python version
 
     # runs-on: ${{ matrix.os }}
     # latest linux-x64: ubuntu-latest
