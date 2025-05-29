@@ -212,11 +212,11 @@ jobs:
           # Build for Linux (x64)
           if [[ "${{ matrix.os }}" == *"linux"* ]] && [ "${{ runner.arch }}" == "X64" ]; then
             docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace jaimetur/centos-amd64:7 bash -c '
-                # echo "================================================================================================="
-                # echo "INFO    : INSTALLING REQUIREMENTS..."
-                # echo "================================================================================================="
-                # python3 -m pip install --upgrade pip
-                # python3 -m pip install -r requirements.txt
+                echo "================================================================================================="
+                echo "INFO    : INSTALLING REQUIREMENTS..."
+                echo "================================================================================================="
+                python3 -m pip install --upgrade pip
+                python3 -m pip install -r requirements.txt
                 echo "================================================================================================="
                 echo "INFO    : INSTALLED VERSIONS..."
                 echo "================================================================================================="
@@ -232,7 +232,7 @@ jobs:
                 python3 build.py --${{ matrix.compiler }} --onefile
             '
           # Build for Linux (arm64), macOS (x64 & arm64), Windows (x64 & arm64)
-          else; then
+          else
             # echo "================================================================================================="
             # echo "INFO    : INSTALLING REQUIREMENTS..."
             # echo "================================================================================================="
