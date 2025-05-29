@@ -150,7 +150,7 @@ jobs:
             --arg compilation_mode "${{ github.event.inputs.compilation_mode }}" \
             --arg running_mode "${{ github.event.inputs.running_mode }}" \
             --arg python "${{ github.event.inputs.python }}" \
-            '{os: $os, compiler: [$compiler], compilation_mode: [$compilation_mode], running_mode: [running_mode], python: [$python]}')
+            '{os: $os, compiler: [$compiler], compilation_mode: [$compilation_mode], running_mode: [$running_mode], python: [$python]}')
 
           echo "✅ Matriz generada:"
           echo "$MATRIX"
