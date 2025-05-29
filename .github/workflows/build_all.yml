@@ -36,7 +36,7 @@ on:
         description: "Include linux-x64?"
         type: boolean
         required: false
-        default: true
+        default: 'true'
       linux_arm64:
         description: "Include linux-arm64?"
         type: boolean
@@ -85,43 +85,60 @@ on:
 
 
 jobs:
-  set-matrix:
+  set-input-matrix:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set.outputs.matrix }}
+      matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
-      - id: set
+      - id: matrix
         run: |
+          echo "⚙️ Preparando matriz dinámica..."
+
+          # Inputs convertidos a strings válidos
+          linux_x64=${{ toJSON(github.event.inputs.linux_x64) }}
+          linux_arm64=${{ toJSON(github.event.inputs.linux_arm64) }}
+          macos_x64=${{ toJSON(github.event.inputs.macos_x64) }}
+          macos_arm64=${{ toJSON(github.event.inputs.macos_arm64) }}
+          windows_x64=${{ toJSON(github.event.inputs.windows_x64) }}
+          windows_arm64=${{ toJSON(github.event.inputs.windows_arm64) }}
+
+          # Crear lista
           OS_LIST=()
-          [[ "${{ github.event.inputs.linux_x64 }}" == 'true' ]] && OS_LIST+=("linux-x64")
-          [[ "${{ github.event.inputs.linux_arm64 }}" == 'true' ]] && OS_LIST+=("linux-arm64")
-          [[ "${{ github.event.inputs.macos_x64 }}" == 'true' ]] && OS_LIST+=("macos-x64")
-          [[ "${{ github.event.inputs.macos_arm64 }}" == 'true' ]] && OS_LIST+=("macos-arm64")
-          [[ "${{ github.event.inputs.windows_x64 }}" == 'true' ]] && OS_LIST+=("windows-x64")
-          [[ "${{ github.event.inputs.windows_arm64 }}" == 'true' ]] && OS_LIST+=("windows-arm64")
+          [ "$linux_x64" = "true" ] && OS_LIST+=("linux-x64")
+          [ "$linux_arm64" = "true" ] && OS_LIST+=("linux-arm64")
+          [ "$macos_x64" = "true" ] && OS_LIST+=("macos-x64")
+          [ "$macos_arm64" = "true" ] && OS_LIST+=("macos-arm64")
+          [ "$windows_x64" = "true" ] && OS_LIST+=("windows-x64")
+          [ "$windows_arm64" = "true" ] && OS_LIST+=("windows-arm64")
 
-          # Crea string separado por comas con comillas
-          OS_JSON_STRING=$(printf '"%s",' "${OS_LIST[@]}")
-          # Elimina la última coma
-          OS_JSON_STRING="[${OS_JSON_STRING%,}]"
+          if [ ${#OS_LIST[@]} -eq 0 ]; then
+            echo "❌ No OS selected"
+            exit 1
+          fi
 
-          echo "Final OS list: $OS_JSON_STRING"
+          # Convertir a array JSON real y limpio
+          OS_JSON=$(printf '%s\n' "${OS_LIST[@]}" | jq -R . | jq -s .)
 
-          JSON=$(jq -n \
-            --argjson os "$OS_JSON_STRING" \
+          # Construir JSON compacto final
+          MATRIX=$(jq -nc \
+            --argjson os "$OS_JSON" \
             --arg compiler "${{ github.event.inputs.compiler }}" \
             --arg mode "${{ github.event.inputs.mode }}" \
             --arg python "${{ github.event.inputs.python }}" \
             '{os: $os, compiler: [$compiler], mode: [$mode], python: [$python]}')
 
-          echo "matrix=$JSON" >> $GITHUB_OUTPUT
-          
+          echo "✅ Matriz generada:"
+          echo "$MATRIX"
+
+          # Exportar en una sola línea (obligatorio)
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
   build:
     # Different VM images to compile in all SO and all Archs according to:
     # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
+    needs: set-input-matrix
     strategy:
-      matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.set-input-matrix.outputs.matrix) }}
         # os: [ linux-x64, linux-arm64, macos-x64, macos-arm64, windows-x64, windows-arm64 ]
         # compiler: [ "${{ github.event.inputs.compiler }}" ] # possible values: [pyinstaller, nuitka]
         # mode: [ "${{ github.event.inputs.mode }}" ] # possible values: [global, custom]
@@ -172,7 +189,7 @@ jobs:
 
       # 1a. - GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
       - name: 1a. - GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
-        if: matrix.mode == 'global' && contains(github.event.inputs.os, matrix.os)
+        if: matrix.mode == 'global'
         run: |
           echo "::group::Build for ${{ runner.os }}-${{ runner.arch }}. Python Version: ${{ matrix.python }}. Compiler: ${{ matrix.compiler }}"
           echo "================================================================================================="
@@ -194,7 +211,7 @@ jobs:
 
       # 1b. - CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
       - name: 1b. - CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
-        if: matrix.mode == 'custom' && contains(github.event.inputs.os, matrix.os)
+        if: matrix.mode == 'custom'
         run: |
           echo "::group::Build for ${{ runner.os }}-${{ runner.arch }}. Python Version: ${{ matrix.python }}. Compiler: ${{ matrix.compiler }}"
            
