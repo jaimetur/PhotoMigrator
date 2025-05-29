@@ -5,7 +5,7 @@ on:
     inputs:
       service:
         description: "Specify the Compiler to use (pyinstaller, nuitka)"
-        required: false
+        required: true
         default: "nuitka"
   #push:                   # Ejecución tras push en main, excepto en los path-ignore
     #branches:
@@ -30,8 +30,8 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-x64, ubuntu-arm64, macos-x64, macos-arm64, windows-x64, windows-arm64 ]
-        python: [ "3.12.10" ] # select Python version
         compiler: [ "${{ github.event.inputs.service }}" ] # possible values: [pyinstaller, nuitka]
+        python: [ "3.12.10" ] # select Python version
         mode: [ global ] # possible values: [global, custom]
 
     # runs-on: ${{ matrix.os }}
