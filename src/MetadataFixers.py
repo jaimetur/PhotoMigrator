@@ -11,54 +11,7 @@ from packaging.version import Version
 
 from CustomLogger import set_log_level
 from GlobalVariables import LOGGER, GPTH_VERSION
-import Utils
-
-def resource_path(relative_path, log_level=logging.INFO):
-    """
-    Devuelve la ruta absoluta al recurso 'relative_path', funcionando en:
-    - PyInstaller (onefile, standalone)
-    - Nuitka (onefile, standalone)
-    - Ejecución directa con Python
-    """
-    with set_log_level(LOGGER, log_level):
-        try:
-            # Nuitka (recomendado por documentación oficial)
-            base_path = __compiled__.containing_dir
-        except NameError:
-            if hasattr(sys, '_MEIPASS'):
-                # PyInstaller
-                base_path = sys._MEIPASS
-            else:
-                # Nuitka onefile fallback o ejecución directa
-                base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
-
-        return os.path.join(base_path, relative_path)
-
-def run_command(command, logger, capture_output=False, capture_errors=True):
-    """
-    Ejecuta un comando en un subproceso y maneja la salida en tiempo real si capture_output=True.
-    Evita registrar múltiples líneas de barras de progreso en el log.
-    """
-    if capture_output or capture_errors:
-        process = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE if capture_output else subprocess.DEVNULL,
-            stderr=subprocess.PIPE if capture_errors else subprocess.DEVNULL,
-            text=True, encoding="utf-8", errors="replace"
-        )
-        if capture_output:
-            for line in process.stdout:
-                logger.info(f"INFO    : {line.strip()}")
-        if capture_errors:
-            for line in process.stderr:
-                logger.error(f"ERROR   : {line.strip()}")
-        process.wait()  # Esperar a que el proceso termine
-        return process.returncode
-    else:
-        # Ejecutar sin capturar la salida (dejar que se muestre en consola)
-        result = subprocess.run(command, check=False, text=True, encoding="utf-8", errors="replace")
-        return result.returncode
-
+from Utils import get_os, get_arch, resource_path, ensure_executable, run_command, print_arguments_pretty
 
 def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=False, capture_errors=True, skip_extras=False, symbolic_albums=False, move_takeout_folder=False, ignore_takeout_structure=False, log_level=logging.INFO):
     
@@ -72,8 +25,8 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         LOGGER.info(f"INFO    : Output Folder: '{output_folder}'")
 
         # Detect the operating system
-        current_os = Utils.get_os()
-        current_arch = Utils.get_arch()
+        current_os = get_os()
+        current_arch = get_arch()
 
         # Determine the Tool name based on the OS
         tool_name = f"gpth-{GPTH_VERSION}-{current_os}-{current_arch.replace('x64', 'x86_64')}"
@@ -86,8 +39,11 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             sys.exit(-1)
 
         LOGGER.info(f"INFO    : Using GPTH Tool file: '{tool_name}'...")
-        # Usar resource_path para acceder a archivos o directorios:
+        # Usar resource_path para acceder a archivos o directorios que se empaquetarán en el modo de ejecutable binario:
         gpth_tool_path = resource_path(os.path.join("gpth_tool", tool_name))
+
+        # Ensure exec permissions for the binary file
+        ensure_executable(gpth_tool_path)
 
         if Version(GPTH_VERSION) >= Version("4.0.0"):
             gpth_command = [gpth_tool_path, "--input", input_folder, "--output", output_folder, "--no-interactive", "--write-exif"]
@@ -99,7 +55,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             gpth_command.append("--fix")
             gpth_command.append(input_folder)
 
-        # By default force --no-divide-to-dates and the Tool will create date structure if needed
+        # By default, force --no-divide-to-dates and the Tool will create date structure if needed
         # gpth_command.append("--no-divide-to-dates") # For previous versions of the original GPTH tool
 
         # The new version of GPTH have changed this argument:
@@ -135,7 +91,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         try:
             command = ' '.join(gpth_command)
             LOGGER.debug(f"DEBUG   : Running GPTH with following command: {command}")
-            Utils.print_arguments_pretty(gpth_command, title='GPTH Command:')
+            print_arguments_pretty(gpth_command, title='GPTH Command:')
             ok = run_command(gpth_command, LOGGER, capture_output=capture_output, capture_errors=capture_errors)      # Shows the output in real time and capture it to the LOGGER.
             # ok = subprocess.run(gpth_command, check=True, capture_output=capture_output, text=True)
 
@@ -174,6 +130,10 @@ def fix_metadata_with_exif_tool(output_folder, log_level=logging.INFO):
             script_name = "exiftool.exe"
         # Usar resource_path para acceder a archivos o directorios:
         exif_tool_path = resource_path(os.path.join("exif_tool",script_name))
+
+        # Ensure exec permissions for the binary file
+        ensure_executable(exif_tool_path)
+
         exif_command = [
             exif_tool_path,
             "-overwrite_original",

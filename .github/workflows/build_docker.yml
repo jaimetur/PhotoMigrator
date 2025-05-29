@@ -192,5 +192,5 @@ jobs:
           fi
 
           # Realizar commit y push
-          git commit -m "Actualizar README.md tras compilación"
+          git commit -m "README.md updated by Github Actions (build_docker.yml)"
           git push origin ${{ github.ref_name }}

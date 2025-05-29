@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 from dateutil import parser as date_parser
 from tqdm import tqdm as original_tqdm
 from CustomLogger import LoggerConsoleTqdm
-from GlobalVariables import LOGGER, ARGS, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT
+from GlobalVariables import LOGGER, ARGS, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT, RESOURCES_IN_CURRENT_FOLDER
 
 # Crear instancia global del wrapper
 TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
@@ -1650,7 +1650,7 @@ def print_arguments_pretty(arguments, title="Arguments", use_logger=True):
         while i < len(arguments):
             arg = arguments[i]
             if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                LOGGER.info(f"{indent}{arg}: {arguments[i + 1]}")
+                LOGGER.info(f"{indent}{arg}={arguments[i + 1]}")
                 i += 2
             else:
                 LOGGER.info(f"{indent}{arg}")
@@ -1660,7 +1660,7 @@ def print_arguments_pretty(arguments, title="Arguments", use_logger=True):
         while i < len(arguments):
             arg = arguments[i]
             if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                print(f"{indent}{arg}: {arguments[i + 1]}")
+                print(f"{indent}{arg}={arguments[i + 1]}")
                 i += 2
             else:
                 print(f"{indent}{arg}")
@@ -1668,5 +1668,98 @@ def print_arguments_pretty(arguments, title="Arguments", use_logger=True):
     print("")
 
 
+def resource_path(relative_path):
+    """
+    Devuelve la ruta absoluta al recurso 'relative_path', funcionando en:
+    - PyInstaller (onefile o standalone)
+    - Nuitka (onefile o standalone)
+    - Python directo (desde cwd o desde dirname(__file__))
+    """
+    # IMPORTANT: Don't use LOGGER in this function because is also used by build.py which has not any LOGGER created.
+
+    DEBUG_MODE = True  # Cambia a False para silenciar
+
+    if DEBUG_MODE:
+        print("---DEBUG INFO")
+        print(f"DEBUG   : sys.frozen                  : {getattr(sys, 'frozen', False)}")
+        print(f"DEBUG   : NUITKA_ONEFILE_PARENT       : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
+        print(f"DEBUG   : sys.argv[0]                 : {sys.argv[0]}")
+        print(f"DEBUG   : sys.executable              : {sys.executable}")
+        print(f"DEBUG   : os.getcwd()                 : {os.getcwd()}")
+        print(f"DEBUG   : __file__                    : {globals().get('__file__', 'NO __file__')}")
+        try:
+            print(f"DEBUG   : __compiled__.containing_dir : {__compiled__.containing_dir}")
+        except NameError:
+            print(f"DEBUG   : __compiled__ not defined")
+        print("")
+        try:
+            print(f"DEBUG   : _MEIPASS                    : {sys._MEIPASS}")
+        except NameError:
+            print(f"DEBUG   : _MEIPASS not defined")
+
+    # PyInstaller
+    if hasattr(sys, '_MEIPASS'):
+        base_path = sys._MEIPASS
+        if DEBUG_MODE: print("DEBUG   : Entra en modo PyInstaller -> (sys._MEIPASS)")
+
+    # Nuitka onefile
+    elif "NUITKA_ONEFILE_PARENT" in os.environ:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        if DEBUG_MODE: print("DEBUG   : Entra en modo Nuitka --onefile -> (__file__)")
+
+    # Nuitka standalone
+    elif "__compiled__" in globals():
+        base_path = __compiled__.containing_dir
+        if DEBUG_MODE: print("DEBUG   : Entra en modo Nuitka --standalone -> (__compiled__.containing_dir)")
+
+    # Python normal
+    elif "__file__" in globals():
+        if RESOURCES_IN_CURRENT_FOLDER:
+            base_path = os.getcwd()
+            if DEBUG_MODE: print("DEBUG   : Entra en Python .py -> (cwd)")
+        else:
+            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            if DEBUG_MODE: print("DEBUG   : Entra en Python .py -> (dirname(dirname(__file__)))")
+
+    else:
+        base_path = os.getcwd()
+        if DEBUG_MODE: print("DEBUG   : Entra en fallback final -> os.getcwd()")
+
+    if DEBUG_MODE:
+        print(f"DEBUG   : return path                 : {os.path.join(base_path, relative_path)}")
+        print("--- END DEBUG INFO")
+
+    return os.path.join(base_path, relative_path)
+
+def ensure_executable(path):
+    if platform.system() != "Windows":
+        # Añade permisos de ejecución al usuario, grupo y otros sin quitar los existentes
+        current_permissions = os.stat(path).st_mode
+        os.chmod(path, current_permissions | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+def run_command(command, logger, capture_output=False, capture_errors=True):
+    """
+    Ejecuta un comando en un subproceso y maneja la salida en tiempo real si capture_output=True.
+    Evita registrar múltiples líneas de barras de progreso en el log.
+    """
+    if capture_output or capture_errors:
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE if capture_output else subprocess.DEVNULL,
+            stderr=subprocess.PIPE if capture_errors else subprocess.DEVNULL,
+            text=True, encoding="utf-8", errors="replace"
+        )
+        if capture_output:
+            for line in process.stdout:
+                logger.info(f"INFO    : {line.strip()}")
+        if capture_errors:
+            for line in process.stderr:
+                logger.error(f"ERROR   : {line.strip()}")
+        process.wait()  # Esperar a que el proceso termine
+        return process.returncode
+    else:
+        # Ejecutar sin capturar la salida (dejar que se muestre en consola)
+        result = subprocess.run(command, check=False, text=True, encoding="utf-8", errors="replace")
+        return result.returncode
 
 
