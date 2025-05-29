@@ -32,19 +32,19 @@ on:
         options:
           - default
           - custom
-      python:
-        description: "Select Python Version:"
-        required: true
-        default: "3.12"
-        type: choice
-        options:
-          - "3.8"
-          - "3.9"
-          - "3.10"
-          - "3.11"
-          - "3.12"
-          - "3.13"
-          - "3.14"
+#      python:
+#        description: "Select Python Version:"
+#        required: true
+#        default: "3.12"
+#        type: choice
+#        options:
+#          - "3.8"
+#          - "3.9"
+#          - "3.10"
+#          - "3.11"
+#          - "3.12"
+#          - "3.13"
+#          - "3.14"
 
       linux_x64:
         description: "Include linux-x64 ?"
@@ -116,6 +116,7 @@ jobs:
             compilation_mode="${{ github.event.inputs.compilation_mode }}"
             build_mode="${{ github.event.inputs.build_mode }}"
             python="${{ github.event.inputs.python }}"
+            python="3.12"
 
           else
             echo "⏰ Disparo programado (cron) o 📦 Disparo por commit"
@@ -554,7 +555,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
-      # 7. Commit y push README.md (Solo si OS = Ubuntu* y arch = x64)
+      # Commit y push README.md (Solo si OS = Ubuntu* y arch = x64)
       - name: ✅ Commit & push README.md if changed
         run: |
           git config --global user.name "github-actions[bot]"
