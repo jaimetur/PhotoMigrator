@@ -3,6 +3,11 @@ name: Build Binaries for Multiple Platforms and Docker Image
 on:
   workflow_dispatch:
     inputs:
+      prerelease:
+        description: "Is this a Pre-release ?"
+        type: boolean
+        required: true
+        default: true
       compiler:
         description: "Select Compiler:"
         required: true
@@ -44,33 +49,33 @@ on:
       linux_x64:
         description: "Include linux-x64 ?"
         type: boolean
-        required: false
+        required: true
         default: true
       macos_x64:
         description: "Include macos-x64 ?"
         type: boolean
-        required: false
+        required: true
         default: true
       windows_x64:
         description: "Include windows-x64 ?"
         type: boolean
-        required: false
+        required: true
         default: true
 
       linux_arm64:
         description: "Include linux-arm64 ?"
         type: boolean
-        required: false
+        required: true
         default: true
       macos_arm64:
         description: "Include macos-arm64 ?"
         type: boolean
-        required: false
+        required: true
         default: true
       windows_arm64:
         description: "Include windows-arm64 ?"
         type: boolean
-        required: false
+        required: true
         default: true
   #push:                   # Ejecución tras push en main, excepto en los path-ignore
     #branches:
@@ -340,7 +345,7 @@ jobs:
         shell: bash
         run: choco install zip -y
 
-      - name: 📦 Compress dist folder (only standalone mode)
+      - name: 📦 Compress dist folder (standalone mode only)
         if: matrix.compilation_mode == 'standalone'
         shell: bash
         run: |
@@ -508,6 +513,32 @@ jobs:
       - name: 📂 List downloaded files
         run: ls -la ./release_files
 
+      # Delete Current Release (if exists) when inputs.prerelease=false
+      - name: 🧹 Delete existing release and tag (if not prerelease)
+        if: ${{ github.event.inputs.prerelease == 'false' }}
+        run: |
+          TAG="v${{ env.SCRIPT_VERSION }}"
+
+          echo "Deleting GitHub release with tag $TAG if it exists..."
+
+          # Check if release exists and delete it
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" &> /dev/null; then
+            echo "Release $TAG exists. Deleting it..."
+            gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes
+          else
+            echo "Release $TAG does not exist."
+          fi
+
+          # Check if tag exists and delete it
+          if git ls-remote --tags origin | grep "refs/tags/$TAG" &> /dev/null; then
+            echo "Tag $TAG exists. Deleting it..."
+            git push --delete origin "$TAG"
+          else
+            echo "Tag $TAG does not exist."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+
       # Create GitHub Release and upload artifacts
       - name: 🚀 Create GitHub Release and upload artifacts
         uses: softprops/action-gh-release@v2
@@ -515,7 +546,7 @@ jobs:
           tag_name: v${{ env.SCRIPT_VERSION }}
           name: v${{ env.SCRIPT_VERSION }}
           draft: false
-          prerelease: true
+          prerelease: ${{ github.event.inputs.prerelease }}
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
           files: |
