@@ -426,7 +426,7 @@ jobs:
           RAW_VERSION=$(echo "$VERSION_LINE" | cut -d'"' -f2)
           SCRIPT_VERSION=${RAW_VERSION#v}
           echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> $GITHUB_ENV
-          echo "✅ SCRIPT_VERSION = ${SCRIPT_VERSION}""
+          echo "✅ SCRIPT_VERSION = ${SCRIPT_VERSION}"
 
       - name: 🐳 Log in to Docker Hub
         uses: docker/login-action@v2
@@ -489,7 +489,7 @@ jobs:
           RAW_VERSION=$(echo "$VERSION_LINE" | cut -d'"' -f2)
           SCRIPT_VERSION=${RAW_VERSION#v}
           echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> $GITHUB_ENV
-          echo "✅ SCRIPT_VERSION = ${SCRIPT_VERSION}""
+          echo "✅ SCRIPT_VERSION = ${SCRIPT_VERSION}"
 
       - name: 📥 Download Artifacts (CURRENT-RELEASE.md, Binaries and Docker Zips)
         uses: actions/download-artifact@v4
