@@ -190,6 +190,7 @@ jobs:
 
     steps:
       - name: 🔍 Show environment configuration
+        shell: bash
         run: |
           echo "🎯 Event that triggered this workflow: ${{ github.event_name }}"
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
@@ -197,7 +198,6 @@ jobs:
           else
             echo "🤖 Automatically triggered (by push or cron)"
           fi
-    
           echo "📦 Target operating system: ${{ matrix.os }}"
           echo "🛠️  Selected compiler: ${{ matrix.compiler }}"
           echo "🧪  Compilation mode: ${{ matrix.mode }}"
@@ -209,20 +209,14 @@ jobs:
           echo "Compiler: ${{ matrix.compiler }}"
           echo "Build Mode: ${{ matrix.mode }}"
 
-      # Checkout Repository
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.TOKEN_GITHUB }}
-
       # Set up Python
-      - name: Set up Python
+      - name: 🐍 Set up Python
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python }}
 
       # Install dependencies
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
@@ -231,9 +225,16 @@ jobs:
 #        if: runner.os == 'Windows'
 #        uses: ilammy/msvc-dev-cmd@v1
 
+      # Checkout Repository
+      - name: 🧾 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.TOKEN_GITHUB }}
+
       # 1a. - GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
-      - name: 1a. - GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
+      - name: 1a. - 🌐 GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
         if: matrix.mode == 'global'
+        shell: bash
         run: |
           echo "::group::Build for ${{ runner.os }}-${{ runner.arch }}. Python Version: ${{ matrix.python }}. Compiler: ${{ matrix.compiler }}"
           echo "================================================================================================="
@@ -251,11 +252,11 @@ jobs:
           python3 build.py --${{ matrix.compiler }} --${{ matrix.compilation_mode }}
 
           echo "::endgroup::"
-        shell: bash
 
       # 1b. - CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
-      - name: 1b. - CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
+      - name: 1b. - 🧩 CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
         if: matrix.mode == 'custom'
+        shell: bash
         run: |
           echo "::group::Build for ${{ runner.os }}-${{ runner.arch }}. Python Version: ${{ matrix.python }}. Compiler: ${{ matrix.compiler }}"
            
@@ -301,15 +302,14 @@ jobs:
             echo "INFO    : COMPILING..."
             echo "================================================================================================="
             python3 build.py --${{ matrix.compiler }} --${{ matrix.compilation_mode }}
-          
           fi
 
           echo "::endgroup::"
-        shell: bash
 
-      # 2a. Read SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt (Linux/macOS)
-      - name: 2a. Read SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt (Linux/macOS)
-        if: runner.os != 'Windows'
+      # Extract SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt (Linux/macOS/Windows)
+      - name: 🏷️ Extract SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt (Linux/macOS)
+        # if: runner.os != 'Windows'
+        shell: bash
         run: |
           # Read SCRIPT_VERSION from the first line
           SCRIPT_VERSION=$(grep '^SCRIPT_VERSION=' build_info.txt | cut -d'=' -f2-)
@@ -325,69 +325,135 @@ jobs:
           echo "SCRIPT_VERSION (Linux/macOS): ${SCRIPT_VERSION}"
           echo "ARCHIVE_PATH (Linux/macOS)  : ${ARCHIVE_PATH}"
 
-      # 2b. Read SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt (Windows)
-      - name: 2b. Read SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt (Windows)
-        if: runner.os == 'Windows'
+      - name: 📛 Extract filename from ARCHIVE_PATH
+        shell: bash
         run: |
-          # Cargar todas las líneas del archivo como un diccionario clave=valor
-          $info = @{}
-          Get-Content build_info.txt | ForEach-Object {
-              if ($_ -match '^([^=]+)=(.*)$') {
-                  $info[$matches[1]] = $matches[2]
-              }
-          }
+          FILENAME=$(basename "$ARCHIVE_PATH")
+          echo "ARCHIVE_NAME=$FILENAME" >> $GITHUB_ENV
+
+      - name: 📦 Compress dist folder if standalone
+        shell: bash
+        run: |
+          echo "🔍 Compilation mode: ${{ matrix.compilation_mode }}"
+          echo "🛠️ Compiler: ${{ matrix.compiler }}"
           
-          # Acceder a los valores
-          $SCRIPT_VERSION = $info['SCRIPT_VERSION']
-          $ARCHIVE_PATH = $info['ARCHIVE_PATH'] -replace '\\', '/'
+          if [[ "${{ matrix.compilation_mode }}" == "standalone" ]]; then
+            folder="${{ matrix.compiler }}_dist"
+            zip_file="PhotoMigrator_v${{ env.SCRIPT_VERSION }}_standalone_${{ matrix.os }}_${{ matrix.compiler }}.zip"
+            echo "📁 Checking for folder: $folder"
+          
+            if [ -d "$folder" ]; then
+              echo "✅ Folder '$folder' found. Creating $zip_file..."
+              zip -r "$zip_file" "$folder"
+              echo "ZIP_PATH=$zip_file" >> $GITHUB_ENV
+            else
+              echo "⚠️ Folder '$folder' not found. Skipping compression."
+            fi
+          else
+            echo "ℹ️ Compilation mode is not 'standalone'. Skipping compression."
+          fi
 
-          # Save both variables on GitHub Actions environment
-          echo "SCRIPT_VERSION=$SCRIPT_VERSION" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "ARCHIVE_PATH=$ARCHIVE_PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: ⬆️ Upload compressed dist folder as artifact (if exists)
+        if: ${{ env.ZIP_PATH != '' && env.ZIP_PATH != null }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ZIP_PATH }}
+          path: ${{ env.ZIP_PATH }}
 
-          # Print both variables on screen
-          Write-Output "SCRIPT_VERSION (Windows): $SCRIPT_VERSION"
-          Write-Output "ARCHIVE_PATH (Windows)  : $ARCHIVE_PATH"
+      - name: ⬆️ Upload build binary as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: ${{ env.ARCHIVE_NAME }}
+          path: ${{ env.ARCHIVE_PATH }}
+
+      - name: 🧹 Cleanup (Linux/macOS/Windows)
+#        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          if [ -f artifact_base64.txt ]; then
+            rm artifact_base64.txt
+            echo "Archivo artifact_base64.txt eliminado de carpeta raiz."
+          elif [ -f src/artifact_base64.txt ]; then
+            rm artifact_base64.txt
+            echo "Archivo artifact_base64.txt eliminado de src."
+          fi
+          # if [ -f ${{ env.ARCHIVE_PATH }} ]; then
+            # rm ${{ env.ARCHIVE_PATH }}
+            # echo "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta raiz."
+          # elif [ -f src/${{ env.ARCHIVE_PATH }} ]; then
+            # rm ${{ env.ARCHIVE_PATH }}
+            # echo "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta src."
+          # fi
 
 
-      # ===========================
-      # Generate the Docker version
-      # ===========================
-      # 3. Log in to Docker Hub
-      - name: 3. Log in to Docker Hub
-        if: ${{ startsWith(matrix.os, 'linux') && runner.arch == 'X64' }}
+#      # 8b. - Cleanup (Windows)
+#      - name: 8b. - Cleanup (Windows)
+#        if: runner.os == 'Windows'
+#        run: |
+#          if (Test-Path "artifact_base64.txt") {
+#            Remove-Item -Path "artifact_base64.txt"
+#            Write-Host "Archivo artifact_base64.txt eliminado de carpeta raiz."
+#          }
+#          elseif (Test-Path "src\artifact_base64.txt") {
+#            Remove-Item -Path "src\artifact_base64.txt"
+#            Write-Host "Archivo artifact_base64.txt eliminado de carpeta src\."
+#          }
+#          if (Test-Path "${{ env.ARCHIVE_PATH }}") {
+#            Remove-Item -Path "${{ env.ARCHIVE_PATH }}"
+#            Write-Host "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta raiz."
+#          }
+#          elseif (Test-Path "src\${{ env.ARCHIVE_PATH }}") {
+#            Remove-Item -Path "src\${{ env.ARCHIVE_PATH }}"
+#            Write-Host "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta src\."
+#          }
+#        shell: pwsh
+
+  # ==========================================================================================================================
+  # JOB docker-packaging
+  # ==========================================================================================================================
+  docker-packaging:
+    name: 🐳 Docker release (single run)
+    needs: set-input-matrix
+    if: ${{ always() }}
+    runs-on: ubuntu-22.04
+    steps:
+      - name: 🧾 Checkout source code
+        uses: actions/checkout@v4
+
+      - name: 🏷️ Extract SCRIPT_VERSION from GlobalVariables.py
+        run: |
+          VERSION_LINE=$(grep '^SCRIPT_VERSION' ./src/GlobalVariables.py)
+          RAW_VERSION=$(echo "$VERSION_LINE" | cut -d'"' -f2)
+          SCRIPT_VERSION=${RAW_VERSION#v}
+          echo "SCRIPT_VERSION=$SCRIPT_VERSION" >> $GITHUB_ENV
+          echo "✅ SCRIPT_VERSION = $SCRIPT_VERSION"
+
+      - name: 🐳 Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-          
-      # 4. Build & Push Docker image
-      - name: 4. Build & Push Docker image
-        if: ${{ startsWith(matrix.os, 'linux') && runner.arch == 'X64' }}
+
+      - name: 🐳 Build & Push Docker image
         run: |
-          # Fuerza a Docker a:
-          #  1) descargar la base actualizada ( --pull )
-          #  2) ignorar todas las capas cacheadas ( --no-cache )
           docker build --pull --no-cache \
-            -t jaimetur/photomigrator:${{ env.SCRIPT_VERSION }} \
+            -t jaimetur/photomigrator:${SCRIPT_VERSION} \
             -f docker/Dockerfile .
 
-          # Etiquetar como latest
-          docker tag jaimetur/photomigrator:${{ env.SCRIPT_VERSION }} jaimetur/photomigrator:latest
+          docker tag jaimetur/photomigrator:${SCRIPT_VERSION} jaimetur/photomigrator:latest
 
-          # Si es versión estable (no alpha, beta ni RC), etiquetar también como latest-stable
-          if [[ "${SCRIPT_VERSION}" != *alpha* && "${SCRIPT_VERSION}" != *beta* && "${SCRIPT_VERSION}" != *RC* ]]; then
+          if [[ "$SCRIPT_VERSION" != *alpha* && "$SCRIPT_VERSION" != *beta* && "$SCRIPT_VERSION" != *RC* ]]; then
             docker tag jaimetur/photomigrator:${SCRIPT_VERSION} jaimetur/photomigrator:latest-stable
             docker push jaimetur/photomigrator:latest-stable
           fi
 
-          # Subir etiquetas latest y con versión específica
           docker push jaimetur/photomigrator:${SCRIPT_VERSION}
           docker push jaimetur/photomigrator:latest
 
-      # 5. Prepare unified ZIP docker package
-      - name: 5. Prepare unified ZIP docker package
-        if: ${{ startsWith(matrix.os, 'linux') && runner.arch == 'X64' }}
+      - name: 🧩 Prepare unified ZIP docker package
         run: |
           mkdir -p PhotoMigrator/docker
           cp docker/PhotoMigrator.sh PhotoMigrator/docker/
@@ -397,13 +463,49 @@ jobs:
           cp -r docs PhotoMigrator/docker/
           cp -r help PhotoMigrator/docker/
           cp README.md PhotoMigrator/docker/docs/README.md
-          zip -r PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip PhotoMigrator
-      # ================================
-      # End of Docker version Generation
-      # ================================
+          zip -r PhotoMigrator_v${SCRIPT_VERSION}_docker.zip PhotoMigrator
 
-      # 6. Create Release and Upload Artifact to it
-      - name: 6. Create Release and Upload Artifacts to it
+      - name: 📤 Upload Docker ZIP as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-zip
+          path: PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
+
+  # ==========================================================================================================================
+  # JOB create-release
+  # ==========================================================================================================================
+  create-release:
+    name: Create Release & Update README.md
+    needs:
+      - build
+      - docker-packaging
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: 📥 Download binary
+        uses: actions/download-artifact@v4
+        with:
+          name: binary
+          path: ./release_files
+
+      - name: 📥 Download Docker ZIP
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-zip
+          path: ./release_files
+
+      - name: 📝 Download CURRENT-RELEASE.md
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes
+          path: .
+
+      # Confirmar contenido descargado
+      - name: 📂 List downloaded files
+        run: ls -la
+
+      # Create GitHub Release and upload artifacts
+      - name: 🚀 Create GitHub Release and upload artifacts
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
@@ -413,14 +515,12 @@ jobs:
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
           files: |
-            PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
-            ${{ env.ARCHIVE_PATH }}
+            release_files/*
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
       # 7. Commit y push README.md (Solo si OS = Ubuntu* y arch = x64)
-      - name: 7. Commit y push README.md
-        if: ${{ startsWith(matrix.os, 'linux') && runner.arch == 'X64' }}
+      - name: ✅ Commit & push README.md if changed
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -455,45 +555,4 @@ jobs:
           # Realizar commit y push
           git commit -m "README.md updated by Github Actions (build_all.yml)"
           git push origin ${{ github.ref_name }}
-        
-      # 8a. - Cleanup (Linux/macOS)
-      - name: 8a. - Cleanup (Linux/macOS)
-        if: runner.os != 'Windows'
-        run: |
-          if [ -f artifact_base64.txt ]; then
-            rm artifact_base64.txt
-            echo "Archivo artifact_base64.txt eliminado de carpeta raiz."
-          elif [ -f src/artifact_base64.txt ]; then
-            rm artifact_base64.txt
-            echo "Archivo artifact_base64.txt eliminado de src."
-          fi
-          # if [ -f ${{ env.ARCHIVE_PATH }} ]; then
-            # rm ${{ env.ARCHIVE_PATH }}
-            # echo "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta raiz."
-          # elif [ -f src/${{ env.ARCHIVE_PATH }} ]; then
-            # rm ${{ env.ARCHIVE_PATH }}
-            # echo "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta src."
-          # fi
-        shell: bash
 
-      # 8b. - Cleanup (Windows)
-      - name: 8b. - Cleanup (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          if (Test-Path "artifact_base64.txt") {
-            Remove-Item -Path "artifact_base64.txt"
-            Write-Host "Archivo artifact_base64.txt eliminado de carpeta raiz."
-          } 
-          elseif (Test-Path "src\artifact_base64.txt") {
-            Remove-Item -Path "src\artifact_base64.txt"
-            Write-Host "Archivo artifact_base64.txt eliminado de carpeta src\."
-          }
-          if (Test-Path "${{ env.ARCHIVE_PATH }}") {
-            Remove-Item -Path "${{ env.ARCHIVE_PATH }}"
-            Write-Host "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta raiz."
-          } 
-          elseif (Test-Path "src\${{ env.ARCHIVE_PATH }}") {
-            Remove-Item -Path "src\${{ env.ARCHIVE_PATH }}"
-            Write-Host "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta src\."
-          }
-        shell: pwsh
