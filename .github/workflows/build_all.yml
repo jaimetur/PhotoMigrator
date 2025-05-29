@@ -232,7 +232,7 @@ jobs:
                 python3 build.py --${{ matrix.compiler }} --onefile
             '
           # Build for Linux (arm64), macOS (x64 & arm64), Windows (x64 & arm64)
-          else; then
+          else
             # echo "================================================================================================="
             # echo "INFO    : INSTALLING REQUIREMENTS..."
             # echo "================================================================================================="
