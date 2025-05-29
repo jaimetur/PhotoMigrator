@@ -1677,7 +1677,7 @@ def resource_path(relative_path):
     """
     # IMPORTANT: Don't use LOGGER in this function because is also used by build.py which has not any LOGGER created.
 
-    DEBUG_MODE = False  # Cambia a False para silenciar
+    DEBUG_MODE = True  # Cambia a False para silenciar
 
     if DEBUG_MODE:
         print("---DEBUG INFO")
