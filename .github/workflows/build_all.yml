@@ -92,34 +92,45 @@ jobs:
     steps:
       - id: set
         run: |
+          linux_x64=${{ toJSON(github.event.inputs.linux_x64) }}
+          linux_arm64=${{ toJSON(github.event.inputs.linux_arm64) }}
+          macos_x64=${{ toJSON(github.event.inputs.macos_x64) }}
+          macos_arm64=${{ toJSON(github.event.inputs.macos_arm64) }}
+          windows_x64=${{ toJSON(github.event.inputs.windows_x64) }}
+          windows_arm64=${{ toJSON(github.event.inputs.windows_arm64) }}
+
           OS_LIST=()
-          [[ "true" == "true" ]] && OS_LIST+=("linux-x64")
-          [[ "false" == "true" ]] && OS_LIST+=("linux-arm64")
-          [[ "false" == "true" ]] && OS_LIST+=("macos-x64")
-          [[ "false" == "true" ]] && OS_LIST+=("macos-arm64")
-          [[ "true" == "true" ]] && OS_LIST+=("windows-x64")
-          [[ "false" == "true" ]] && OS_LIST+=("windows-arm64")
-          
-          # Convertir a array JSON real
+          [ "$linux_x64" = "true" ] && OS_LIST+=("linux-x64")
+          [ "$linux_arm64" = "true" ] && OS_LIST+=("linux-arm64")
+          [ "$macos_x64" = "true" ] && OS_LIST+=("macos-x64")
+          [ "$macos_arm64" = "true" ] && OS_LIST+=("macos-arm64")
+          [ "$windows_x64" = "true" ] && OS_LIST+=("windows-x64")
+          [ "$windows_arm64" = "true" ] && OS_LIST+=("windows-arm64")
+
+          if [ ${#OS_LIST[@]} -eq 0 ]; then
+            echo "❌ No OS selected"
+            exit 1
+          fi
+
           OS_JSON_ARRAY=$(printf '%s\n' "${OS_LIST[@]}" | jq -R . | jq -s .)
-          
-          # Crear JSON final como una sola línea
+
           JSON=$(jq -nc \
             --argjson os "$OS_JSON_ARRAY" \
-            --arg compiler "pyinstaller" \
-            --arg mode "global" \
-            --arg python "3.12" \
+            --arg compiler "${{ github.event.inputs.compiler }}" \
+            --arg mode "${{ github.event.inputs.mode }}" \
+            --arg python "${{ github.event.inputs.python }}" \
             '{os: $os, compiler: [$compiler], mode: [$mode], python: [$python]}')
-          
-          # Imprimir (debug)
-          echo "Final JSON: $JSON"
-          
-          # Output válido
-          echo "matrix=$JSON" >> "$GITHUB_OUTPUT"
 
-      - name: Show output for debug
+          echo "✅ Matriz generada:"
+          echo "$JSON"
+
+          echo "matrix=$JSON" >> $GITHUB_OUTPUT
+
+      - name: Debug output
         run: |
-          echo "Matriz generada: ${{ steps.set.outputs.matrix }}"
+          echo "::notice::Matrix en steps.set.outputs.matrix: ${{ steps.set.outputs.matrix }}"
+          echo "Matriz real (evaluada):"
+          echo '${{ steps.set.outputs.matrix }}'
         
           
 
