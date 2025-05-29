@@ -92,28 +92,45 @@ jobs:
     steps:
       - id: set
         run: |
+          # Convertir los inputs booleanos a strings seguros usando toJSON
           linux_x64=${{ toJSON(github.event.inputs.linux_x64) }}
           linux_arm64=${{ toJSON(github.event.inputs.linux_arm64) }}
           macos_x64=${{ toJSON(github.event.inputs.macos_x64) }}
           macos_arm64=${{ toJSON(github.event.inputs.macos_arm64) }}
+          windows_x64=${{ toJSON(github.event.inputs.windows_x64) }}
+          windows_arm64=${{ toJSON(github.event.inputs.windows_arm64) }}
       
-          echo "linux_x64 = $linux_x64"
-          echo "macos_x64 = $macos_x64"
-      
+          # Inicializar la lista
           OS_LIST=()
-          [ "$linux_x64" = "true" ] && OS_LIST+=("\"linux-x64\"")
-          [ "$linux_arm64" = "true" ] && OS_LIST+=("\"linux-arm64\"")
-          [ "$macos_x64" = "true" ] && OS_LIST+=("\"macos-x64\"")
-          [ "$macos_arm64" = "true" ] && OS_LIST+=("\"macos-arm64\"")
+          [ "$linux_x64" = "true" ] && OS_LIST+=("linux-x64")
+          [ "$linux_arm64" = "true" ] && OS_LIST+=("linux-arm64")
+          [ "$macos_x64" = "true" ] && OS_LIST+=("macos-x64")
+          [ "$macos_arm64" = "true" ] && OS_LIST+=("macos-arm64")
+          [ "$windows_x64" = "true" ] && OS_LIST+=("windows-x64")
+          [ "$windows_arm64" = "true" ] && OS_LIST+=("windows-arm64")
       
-          if [ "${#OS_LIST[@]}" -eq 0 ]; then
+          # Verificar que se ha seleccionado al menos un OS
+          if [ ${#OS_LIST[@]} -eq 0 ]; then
             echo "❌ No OS selected"
             exit 1
           fi
       
-          OS_JSON_ARRAY="[${OS_LIST[*]}]"
-          MATRIX="{\"os\": $OS_JSON_ARRAY, \"compiler\": [\"${{ github.event.inputs.compiler }}\"]}"
-          printf "matrix=%s\n" "$MATRIX" >> "$GITHUB_OUTPUT"
+          # Convertir el array bash en un array JSON real
+          OS_JSON_ARRAY=$(printf '%s\n' "${OS_LIST[@]}" | jq -R . | jq -s .)
+      
+          # Construir JSON final con los demás inputs
+          JSON=$(jq -n \
+            --argjson os "$OS_JSON_ARRAY" \
+            --arg compiler "${{ github.event.inputs.compiler }}" \
+            --arg mode "${{ github.event.inputs.mode }}" \
+            --arg python "${{ github.event.inputs.python }}" \
+            '{os: $os, compiler: [$compiler], mode: [$mode], python: [$python]}')
+      
+          # Imprimir para depuración
+          echo "Generated matrix: $JSON"
+      
+          # Exportar como output
+          printf "matrix=%s\n" "$JSON" >> "$GITHUB_OUTPUT"
           
 
   build:
