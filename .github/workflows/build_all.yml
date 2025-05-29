@@ -116,11 +116,17 @@ jobs:
           
           # Output válido
           echo "matrix=$JSON" >> "$GITHUB_OUTPUT"
+
+      - name: Show output for debug
+        run: |
+          echo "Matriz generada: ${{ steps.set.outputs.matrix }}"
+        
           
 
   build:
     # Different VM images to compile in all SO and all Archs according to:
     # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
+    needs: set-matrix
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
         # os: [ linux-x64, linux-arm64, macos-x64, macos-arm64, windows-x64, windows-arm64 ]
