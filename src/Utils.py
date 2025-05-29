@@ -1681,6 +1681,7 @@ def resource_path(relative_path):
 
     if DEBUG_MODE:
         print("---DEBUG INFO")
+        print(f"DEBUG   : RESOURCES_IN_CURRENT_FOLDER : {RESOURCES_IN_CURRENT_FOLDER}")
         print(f"DEBUG   : sys.frozen                  : {getattr(sys, 'frozen', False)}")
         print(f"DEBUG   : NUITKA_ONEFILE_PARENT       : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
         print(f"DEBUG   : sys.argv[0]                 : {sys.argv[0]}")
