@@ -12,7 +12,7 @@ on:
           - nuitka
           - pyinstaller
       compilation-mode:
-        description: "Select Mode:"
+        description: "Select Compilation Mode:"
         required: true
         default: "onefile"
         type: choice
@@ -20,7 +20,7 @@ on:
           - onefile
           - standalone
       running-mode:
-        description: "Select Mode:"
+        description: "Select Running Mode:"
         required: true
         default: "global"
         type: choice
