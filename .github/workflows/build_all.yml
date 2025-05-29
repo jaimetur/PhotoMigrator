@@ -165,6 +165,9 @@ jobs:
           # Exportar en una sola línea (obligatorio)
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
+  # ==========================================================================================================================
+  # JOB build
+  # ==========================================================================================================================
   build:
     # Different VM images to compile in all SO and all Archs according to:
     # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
@@ -209,6 +212,12 @@ jobs:
           echo "Compiler: ${{ matrix.compiler }}"
           echo "Build Mode: ${{ matrix.mode }}"
 
+      # Checkout Repository
+      - name: 🧾 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.TOKEN_GITHUB }}
+
       # Set up Python
       - name: 🐍 Set up Python
         uses: actions/setup-python@v3
@@ -224,12 +233,6 @@ jobs:
 #      - name: Install Visual Studio Build Tools (MSVC)
 #        if: runner.os == 'Windows'
 #        uses: ilammy/msvc-dev-cmd@v1
-
-      # Checkout Repository
-      - name: 🧾 Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.TOKEN_GITHUB }}
 
       # 1a. - GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
       - name: 1a. - 🌐 GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
@@ -308,7 +311,6 @@ jobs:
 
       # Extract SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt (Linux/macOS/Windows)
       - name: 🏷️ Extract SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt (Linux/macOS)
-        # if: runner.os != 'Windows'
         shell: bash
         run: |
           # Read SCRIPT_VERSION from the first line
@@ -370,7 +372,6 @@ jobs:
           path: ${{ env.ARCHIVE_PATH }}
 
       - name: 🧹 Cleanup (Linux/macOS/Windows)
-#        if: runner.os != 'Windows'
         shell: bash
         run: |
           if [ -f artifact_base64.txt ]; then
@@ -389,33 +390,11 @@ jobs:
           # fi
 
 
-#      # 8b. - Cleanup (Windows)
-#      - name: 8b. - Cleanup (Windows)
-#        if: runner.os == 'Windows'
-#        run: |
-#          if (Test-Path "artifact_base64.txt") {
-#            Remove-Item -Path "artifact_base64.txt"
-#            Write-Host "Archivo artifact_base64.txt eliminado de carpeta raiz."
-#          }
-#          elseif (Test-Path "src\artifact_base64.txt") {
-#            Remove-Item -Path "src\artifact_base64.txt"
-#            Write-Host "Archivo artifact_base64.txt eliminado de carpeta src\."
-#          }
-#          if (Test-Path "${{ env.ARCHIVE_PATH }}") {
-#            Remove-Item -Path "${{ env.ARCHIVE_PATH }}"
-#            Write-Host "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta raiz."
-#          }
-#          elseif (Test-Path "src\${{ env.ARCHIVE_PATH }}") {
-#            Remove-Item -Path "src\${{ env.ARCHIVE_PATH }}"
-#            Write-Host "Archivo '${{ env.ARCHIVE_PATH }}' eliminado de carpeta src\."
-#          }
-#        shell: pwsh
-
   # ==========================================================================================================================
   # JOB docker-packaging
   # ==========================================================================================================================
   docker-packaging:
-    name: 🐳 Docker release (single run)
+    name: 🐳 Docker packaging (single run)
     needs: set-input-matrix
     if: ${{ always() }}
     runs-on: ubuntu-22.04
@@ -472,10 +451,10 @@ jobs:
           path: PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
 
   # ==========================================================================================================================
-  # JOB create-release
+  # JOB Create Release & Update README.md (single run)
   # ==========================================================================================================================
   create-release:
-    name: Create Release & Update README.md
+    name: 🏷️ Create Release & Update README.md (single run)
     needs:
       - build
       - docker-packaging
