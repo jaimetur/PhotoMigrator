@@ -330,19 +330,21 @@ jobs:
           echo "SCRIPT_VERSION (Linux/macOS): ${SCRIPT_VERSION}"
           echo "ARCHIVE_PATH (Linux/macOS)  : ${ARCHIVE_PATH}"
 
-      - name: 📛 Extract filename from ARCHIVE_PATH
+      - name: 📛 Extract filename from ARCHIVE_PATH (only onefile mode)
+        if: matrix.compilation_mode == 'onefile'
         shell: bash
         run: |
-          FILENAME=$(basename "env.ARCHIVE_PATH")
+          FILENAME=$(basename "${ARCHIVE_PATH}")
           echo "ARCHIVE_NAME=$FILENAME" >> $GITHUB_ENV
           echo "ARCHIVE_NAME: ${ARCHIVE_NAME}"
 
-      - name: 🧰 Install zip (Windows)
-        if: runner.os == 'Windows'
+      - name: 🧰 Install zip (only satandalone mode on Windows)
+        if: ${{ matrix.compilation_mode == 'standalone' && runner.os == 'Windows' }}
         shell: bash
         run: choco install zip -y
 
-      - name: 📦 Compress dist folder if standalone
+      - name: 📦 Compress dist folder (only standalone mode)
+        if: matrix.compilation_mode == 'standalone'
         shell: bash
         run: |
           echo "🔍 Compilation mode: ${{ matrix.compilation_mode }}"
@@ -364,17 +366,17 @@ jobs:
             echo "ℹ️ Compilation mode is not 'standalone'. Skipping compression."
           fi
 
-      - name: ⬆️ Upload compressed dist folder as artifact (if exists)
-        if: ${{ env.ZIP_PATH != '' && env.ZIP_PATH != null }}
+      - name: ⬆️ Upload compressed dist folder as artifact (only standalone)
+        if: ${{ matrix.compilation_mode == 'standalone' && env.ZIP_PATH != '' && env.ZIP_PATH != null }}
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ZIP_PATH }}
           path: ${{ env.ZIP_PATH }}
 
-      - name: ⬆️ Upload build binary as artifact
+      - name: ⬆️ Upload build binary as artifact (only onefile mode)
+        if: matrix.compilation_mode == 'onefile'
         uses: actions/upload-artifact@v4
-        if: always()
         continue-on-error: true
         with:
           name: ${{ env.ARCHIVE_NAME }}
