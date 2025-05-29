@@ -1681,12 +1681,12 @@ def resource_path(relative_path):
 
     if DEBUG_MODE:
         print("---DEBUG INFO")
-        print(f"DEBUG   : __file__                    : {globals().get('__file__', 'NO __file__')}")
-        print(f"DEBUG   : sys.argv[0]                 : {sys.argv[0]}")
-        print(f"DEBUG   : os.getcwd()                 : {os.getcwd()}")
-        print(f"DEBUG   : sys.executable              : {sys.executable}")
         print(f"DEBUG   : sys.frozen                  : {getattr(sys, 'frozen', False)}")
         print(f"DEBUG   : NUITKA_ONEFILE_PARENT       : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
+        print(f"DEBUG   : sys.argv[0]                 : {sys.argv[0]}")
+        print(f"DEBUG   : sys.executable              : {sys.executable}")
+        print(f"DEBUG   : os.getcwd()                 : {os.getcwd()}")
+        print(f"DEBUG   : __file__                    : {globals().get('__file__', 'NO __file__')}")
         try:
             print(f"DEBUG   : __compiled__.containing_dir : {__compiled__.containing_dir}")
         except NameError:
