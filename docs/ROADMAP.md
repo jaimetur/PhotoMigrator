@@ -21,4 +21,5 @@ Planed Roadmap for the following releases
         - [ ] Create Class ClassGooglePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
     - [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATIC-MODE
     - [ ] Include Test Cases to check all features
+    - [ ] Add Github Action to execute all Test Cases
 
