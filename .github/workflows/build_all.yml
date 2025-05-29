@@ -92,9 +92,7 @@ jobs:
     steps:
       - id: set
         run: |
-          echo "⚙️ Preparando matriz dinámica..."
-
-          # Convertir inputs booleanos a strings seguros
+          # Inputs convertidos a strings válidos
           linux_x64=${{ toJSON(github.event.inputs.linux_x64) }}
           linux_arm64=${{ toJSON(github.event.inputs.linux_arm64) }}
           macos_x64=${{ toJSON(github.event.inputs.macos_x64) }}
@@ -102,7 +100,7 @@ jobs:
           windows_x64=${{ toJSON(github.event.inputs.windows_x64) }}
           windows_arm64=${{ toJSON(github.event.inputs.windows_arm64) }}
 
-          # Construir lista OS
+          # Crear lista
           OS_LIST=()
           [ "$linux_x64" = "true" ] && OS_LIST+=("linux-x64")
           [ "$linux_arm64" = "true" ] && OS_LIST+=("linux-arm64")
@@ -111,28 +109,27 @@ jobs:
           [ "$windows_x64" = "true" ] && OS_LIST+=("windows-x64")
           [ "$windows_arm64" = "true" ] && OS_LIST+=("windows-arm64")
 
-          # Validar selección
           if [ ${#OS_LIST[@]} -eq 0 ]; then
-            echo "❌ No OS selected. Aborting."
+            echo "❌ No OS selected"
             exit 1
           fi
 
-          # Convertir array bash a array JSON
-          OS_JSON_ARRAY=$(printf '%s\n' "${OS_LIST[@]}" | jq -R . | jq -s .)
+          # Convertir a array JSON real y limpio
+          OS_JSON=$(printf '%s\n' "${OS_LIST[@]}" | jq -R . | jq -s .)
 
-          # Crear JSON compacto (una sola línea)
-          JSON=$(jq -nc \
-            --argjson os "$OS_JSON_ARRAY" \
+          # Construir JSON compacto final
+          MATRIX=$(jq -nc \
+            --argjson os "$OS_JSON" \
             --arg compiler "${{ github.event.inputs.compiler }}" \
             --arg mode "${{ github.event.inputs.mode }}" \
             --arg python "${{ github.event.inputs.python }}" \
             '{os: $os, compiler: [$compiler], mode: [$mode], python: [$python]}')
 
           echo "✅ Matriz generada:"
-          echo "$JSON"
+          echo "$MATRIX"
 
-          # Exportar como output (formato válido)
-          echo "matrix=$JSON" >> "$GITHUB_OUTPUT"
+          # Exportar en una sola línea (obligatorio)
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
           
 
   build:
