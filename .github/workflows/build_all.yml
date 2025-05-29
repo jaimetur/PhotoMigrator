@@ -380,6 +380,14 @@ jobs:
           name: ${{ env.ARCHIVE_NAME }}
           path: ${{ env.ARCHIVE_PATH }}
 
+      - name: ⬆️ Upload CURRENT-RELEASE.md as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: CURRENT-RELEASE.md
+          path: .
+
       - name: 🧹 Cleanup (Linux/macOS/Windows)
         shell: bash
         run: |
@@ -473,19 +481,19 @@ jobs:
       - name: 📥 Download binary
         uses: actions/download-artifact@v4
         with:
-          name: binary
+#          name: binary
           path: ./release_files
 
       - name: 📥 Download Docker ZIP
         uses: actions/download-artifact@v4
         with:
-          name: docker-zip
+#          name: docker-zip
           path: ./release_files
 
       - name: 📝 Download CURRENT-RELEASE.md
         uses: actions/download-artifact@v4
         with:
-          name: release-notes
+          name: CURRENT-RELEASE.md
           path: .
 
       # Confirmar contenido descargado
