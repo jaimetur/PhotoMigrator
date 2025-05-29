@@ -112,25 +112,18 @@ jobs:
             exit 1
           fi
 
-          OS_JSON_ARRAY=$(printf '%s\n' "${OS_LIST[@]}" | jq -R . | jq -s .)
-
-          JSON=$(jq -nc \
-            --argjson os "$OS_JSON_ARRAY" \
+          # Generar matriz como string JSON válido y compacto (una sola línea)
+          MATRIX_JSON=$(jq -nc \
+            --argjson os "$(printf '%s\n' "${OS_LIST[@]}" | jq -R . | jq -s .)" \
             --arg compiler "${{ github.event.inputs.compiler }}" \
             --arg mode "${{ github.event.inputs.mode }}" \
             --arg python "${{ github.event.inputs.python }}" \
             '{os: $os, compiler: [$compiler], mode: [$mode], python: [$python]}')
 
-          echo "✅ Matriz generada:"
-          echo "$JSON"
+          echo "✅ Matriz generada: $MATRIX_JSON"
 
-          echo "matrix=$JSON" >> $GITHUB_OUTPUT
-
-      - name: Debug output
-        run: |
-          echo "::notice::Matrix en steps.set.outputs.matrix: ${{ steps.set.outputs.matrix }}"
-          echo "Matriz real (evaluada):"
-          echo '${{ steps.set.outputs.matrix }}'
+          # Escribir salida correctamente en GITHUB_OUTPUT (sin espacios, sin salto de línea)
+          echo "matrix=$MATRIX_JSON" >> "$GITHUB_OUTPUT"
         
           
 
