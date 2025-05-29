@@ -19,8 +19,8 @@ on:
         options:
           - onefile
           - standalone
-      running_mode:
-        description: "Select Running Mode:"
+      build_mode:
+        description: "Select Build Mode:"
         required: true
         default: "global"
         type: choice
@@ -109,7 +109,7 @@ jobs:
             windows_arm64=${{ toJSON(github.event.inputs.windows_arm64) }}
             compiler="${{ github.event.inputs.compiler }}"
             compilation_mode="${{ github.event.inputs.compilation_mode }}"
-            running_mode="${{ github.event.inputs.running_mode }}"
+            build_mode="${{ github.event.inputs.build_mode }}"
             python="${{ github.event.inputs.python }}"
 
           else
@@ -122,7 +122,7 @@ jobs:
             windows_arm64="true"
             compiler="nuitka"
             compilation_mode="onefile"
-            running_mode="global"
+            build_mode="global"
             python="3.12"
           fi
 
@@ -148,19 +148,19 @@ jobs:
             --argjson os "$OS_JSON" \
             --arg compiler "${{ github.event.inputs.compiler }}" \
             --arg compilation_mode "${{ github.event.inputs.compilation_mode }}" \
-            --arg running_mode "${{ github.event.inputs.running_mode }}" \
+            --arg build_mode "${{ github.event.inputs.build_mode }}" \
             --arg python "${{ github.event.inputs.python }}" \
-            '{os: $os, compiler: [$compiler], compilation_mode: [$compilation_mode], running_mode: [$running_mode], python: [$python]}')
+            '{os: $os, compiler: [$compiler], compilation_mode: [$compilation_mode], build_mode: [$build_mode], python: [$python]}')
 
           echo "✅ Matriz generada:"
           echo "$MATRIX"
           echo ""
           echo "📋 Desglose de la matriz:"
-          echo "  📦 OS:              $(echo "$MATRIX" | jq -r '.os | join(", ")')"
-          echo "  🛠️ Compiler:        $(echo "$MATRIX" | jq -r '.compiler | join(", ")')"
-          echo "  🧪 Compilation mode: $(echo "$MATRIX" | jq -r '.compilation_mode | join(", ")')"
-          echo "  🚀 Running mode:     $(echo "$MATRIX" | jq -r '.running_mode | join(", ")')"
-          echo "  🐍 Python version:   $(echo "$MATRIX" | jq -r '.python | join(", ")')"
+          echo "  📦 OS               : $(echo "$MATRIX" | jq -r '.os | join(", ")')"
+          echo "  🛠️ Compiler         : $(echo "$MATRIX" | jq -r '.compiler | join(", ")')"
+          echo "  🧪 Compilation mode : $(echo "$MATRIX" | jq -r '.compilation_mode | join(", ")')"
+          echo "  🚀 Build mode       : $(echo "$MATRIX" | jq -r '.build_mode | join(", ")')"
+          echo "  🐍 Python version   : $(echo "$MATRIX" | jq -r '.python | join(", ")')"
 
           # Exportar en una sola línea (obligatorio)
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
@@ -195,22 +195,25 @@ jobs:
       - name: 🔍 Show environment configuration
         shell: bash
         run: |
+          echo ""
           echo "🎯 Event that triggered this workflow: ${{ github.event_name }}"
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "✅ Manually triggered by a user from the interface"
           else
             echo "🤖 Automatically triggered (by push or cron)"
           fi
-          echo "📦 Target operating system: ${{ matrix.os }}"
-          echo "🛠️  Selected compiler: ${{ matrix.compiler }}"
-          echo "🧪  Compilation mode: ${{ matrix.mode }}"
-          echo "🐍 Python version: ${{ matrix.python }}"
-          echo """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-          echo "OS: ${{ runner.os }}"
-          echo "Arch: ${{ runner.arch }}"
-          echo "Python: ${{ matrix.python }}"
-          echo "Compiler: ${{ matrix.compiler }}"
-          echo "Build Mode: ${{ matrix.mode }}"
+          echo ""
+          echo "📦 Target OS         : ${{ matrix.os }}"
+          echo "🛠️ Selected compiler : ${{ matrix.compiler }}"
+          echo "🧪 Compilation mode  : ${{ matrix.compilation_mode }}"
+          echo "🚀 Build mode        : ${{ matrix.build_mode }}"
+          echo "🐍 Python version    : ${{ matrix.python }}"
+          echo ""
+          echo "OS        : ${{ runner.os }}"
+          echo "Arch      : ${{ runner.arch }}"
+          echo "Python    : ${{ matrix.python }}"
+          echo "Compiler  : ${{ matrix.compiler }}"
+          echo "Build Mode: ${{ matrix.build_mode }}"
 
       # Checkout Repository
       - name: 🧾 Checkout Repository
@@ -236,7 +239,7 @@ jobs:
 
       # 1a. - GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
       - name: 1a. - 🌐 GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
-        if: matrix.mode == 'global'
+        if: matrix.build_mode == 'global'
         shell: bash
         run: |
           echo "::group::Build for ${{ runner.os }}-${{ runner.arch }}. Python Version: ${{ matrix.python }}. Compiler: ${{ matrix.compiler }}"
@@ -258,7 +261,7 @@ jobs:
 
       # 1b. - CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
       - name: 1b. - 🧩 CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
-        if: matrix.mode == 'custom'
+        if: matrix.build_mode == 'custom'
         shell: bash
         run: |
           echo "::group::Build for ${{ runner.os }}-${{ runner.arch }}. Python Version: ${{ matrix.python }}. Compiler: ${{ matrix.compiler }}"
