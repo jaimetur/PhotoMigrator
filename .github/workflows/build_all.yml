@@ -24,27 +24,27 @@ on:
         options:
           - onefile
           - standalone
-      build_mode:
-        description: "Select Build Mode:"
-        required: true
-        default: "default"
-        type: choice
-        options:
-          - default
-          - custom
-#      python:
-#        description: "Select Python Version:"
+#      build_mode:
+#        description: "Select Build Mode:"
 #        required: true
-#        default: "3.12"
+#        default: "default"
 #        type: choice
 #        options:
-#          - "3.8"
-#          - "3.9"
-#          - "3.10"
-#          - "3.11"
-#          - "3.12"
-#          - "3.13"
-#          - "3.14"
+#          - default
+#          - custom
+      python:
+        description: "Select Python Version:"
+        required: true
+        default: "3.12"
+        type: choice
+        options:
+          - "3.8"
+          - "3.9"
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.14"
 
       linux_x64:
         description: "Include linux-x64 ?"
@@ -114,9 +114,9 @@ jobs:
             windows_arm64=${{ toJSON(github.event.inputs.windows_arm64) }}
             compiler="${{ github.event.inputs.compiler }}"
             compilation_mode="${{ github.event.inputs.compilation_mode }}"
-            build_mode="${{ github.event.inputs.build_mode }}"
+            # build_mode="${{ github.event.inputs.build_mode }}"
+            build_mode="default"
             python="${{ github.event.inputs.python }}"
-            python="3.12"
 
           else
             echo "⏰ Disparo programado (cron) o 📦 Disparo por commit"
