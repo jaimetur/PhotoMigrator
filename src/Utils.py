@@ -1690,8 +1690,12 @@ def resource_path(relative_path):
         try:
             print(f"DEBUG   : __compiled__.containing_dir : {__compiled__.containing_dir}")
         except NameError:
-            print("DEBUG   : __compiled__ not defined")
+            print(f"DEBUG   : __compiled__ not defined")
         print("")
+        try:
+            print(f"DEBUG   : _MEIPASS                    : {sys._MEIPASS}")
+        except NameError:
+            print(f"DEBUG   : _MEIPASS not defined")
 
     # PyInstaller
     if hasattr(sys, '_MEIPASS'):
