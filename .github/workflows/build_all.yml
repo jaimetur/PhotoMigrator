@@ -335,6 +335,12 @@ jobs:
         run: |
           FILENAME=$(basename "$ARCHIVE_PATH")
           echo "ARCHIVE_NAME=$FILENAME" >> $GITHUB_ENV
+          echo "ARCHIVE_NAME: ${ARCHIVE_NAME}"
+
+      - name: 🧰 Install zip (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: choco install zip -y
 
       - name: 📦 Compress dist folder if standalone
         shell: bash
