@@ -164,8 +164,8 @@ jobs:
           echo "✅ Matriz generada:"
           echo "$MATRIX"
           echo ""
-          echo "  🚧 Pre-Release      : ${{ github.event.inputs.prerelease }}
           echo "📋 Desglose de la matriz:"
+          echo "  🚧 Pre-Release      : ${{ github.event.inputs.prerelease }}
           echo "  📦 OS               : $(echo "$MATRIX" | jq -r '.os | join(", ")')"
           echo "  🛠️ Compiler         : $(echo "$MATRIX" | jq -r '.compiler | join(", ")')"
           echo "  🧪 Compilation mode : $(echo "$MATRIX" | jq -r '.compilation_mode | join(", ")')"
