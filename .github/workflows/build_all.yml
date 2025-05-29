@@ -243,7 +243,7 @@ jobs:
 #        if: runner.os == 'Windows'
 #        uses: ilammy/msvc-dev-cmd@v1
 
-      - name: 🌐 DEFAULT MODE - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64) using default images for each plattform
+      - name: 🌐 DEFAULT IMAGES MODE - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64) using default images for each plattform
         if: matrix.build_mode == 'default'
         shell: bash
         run: |
@@ -264,7 +264,7 @@ jobs:
 
           echo "::endgroup::"
 
-      - name: 🧩 CUSTOM MODE - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64) but customizing image per plattform.
+      - name: 🧩 CUSTOM IMAGES MODE - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64) but customizing image per plattform.
         if: matrix.build_mode == 'custom'
         shell: bash
         run: |
