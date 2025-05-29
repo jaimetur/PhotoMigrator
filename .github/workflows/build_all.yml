@@ -1,12 +1,21 @@
 name: Build Binaries for Multiple Platforms and Docker Image
 
 on:
-  workflow_dispatch:      # Allows manual execution of the workflow
+  workflow_dispatch:
     inputs:
-      service:
+      compiler:
         description: "Select Compiler (nuitka, pyinstaller)"
         required: true
         default: "nuitka"
+        type: choice
+        options:
+          - nuitka
+          - pyinstaller
+
+      os:
+        description: "Comma-separated list of OS (e.g., ubuntu-x64,macos-x64,...)"
+        required: true
+        default: "linux-x64, linux-arm64, macos-x64, macos-arm64 ,windows-x64, windows-arm64"
   #push:                   # Ejecución tras push en main, excepto en los path-ignore
     #branches:
       #- main
@@ -29,17 +38,17 @@ jobs:
     # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
     strategy:
       matrix:
-        os: [ ubuntu-x64, ubuntu-arm64, macos-x64, macos-arm64, windows-x64, windows-arm64 ]
-        compiler: [ "${{ github.event.inputs.service }}" ] # possible values: [pyinstaller, nuitka]
+        os: [ linux-x64, linux-arm64, macos-x64, macos-arm64, windows-x64, windows-arm64 ]
+        compiler: [ "${{ github.event.inputs.compiler }}" ] # possible values: [pyinstaller, nuitka]
         python: [ "3.12.10" ] # select Python version
         mode: [ global ] # possible values: [global, custom]
 
     # runs-on: ${{ matrix.os }}
-    # latest ubuntu-x64: ubuntu-latest
-    # latest ubuntu-arm64: ubuntu-24.04-arm
+    # latest linux-x64: ubuntu-latest
+    # latest linux-arm64: ubuntu-24.04-arm
     runs-on: ${{ fromJson('{
-      "ubuntu-x64":"ubuntu-22.04", 
-      "ubuntu-arm64":"ubuntu-22.04-arm",
+      "linux-x64":"ubuntu-22.04", 
+      "linux-arm64":"ubuntu-22.04-arm",
       "macos-x64":"macos-13",
       "macos-arm64":"macos-latest",
       "windows-x64":"windows-latest",
@@ -79,7 +88,7 @@ jobs:
 
       # 1a. - GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
       - name: 1a. - GLOBAL - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
-        if: matrix.mode == 'global'
+        if: matrix.mode == 'global' && contains(github.event.inputs.os, matrix.os)
         run: |
           echo "::group::Build for ${{ runner.os }}-${{ runner.arch }}. Python Version: ${{ matrix.python }}. Compiler: ${{ matrix.compiler }}"
           echo "================================================================================================="
@@ -101,12 +110,12 @@ jobs:
 
       # 1b. - CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
       - name: 1b. - CUSTOM - Build for All Operating System (Linux, MacOS, Windows) and All Architectures (x64, arm64)
-        if: matrix.mode == 'custom'
+        if: matrix.mode == 'custom' && contains(github.event.inputs.os, matrix.os)
         run: |
           echo "::group::Build for ${{ runner.os }}-${{ runner.arch }}. Python Version: ${{ matrix.python }}. Compiler: ${{ matrix.compiler }}"
            
           # Build for Linux (x64)
-          if [[ "${{ matrix.os }}" == *"ubuntu"* ]] && [ "${{ runner.arch }}" == "X64" ]; then
+          if [[ "${{ matrix.os }}" == *"linux"* ]] && [ "${{ runner.arch }}" == "X64" ]; then
             docker run --rm --platform linux/amd64 -v ${{ github.workspace }}:/workspace -w /workspace jaimetur/centos-amd64:7 bash -c '
                 # echo "================================================================================================="
                 # echo "INFO    : INSTALLING REQUIREMENTS..."
@@ -201,7 +210,7 @@ jobs:
       # ===========================
       # 3. Log in to Docker Hub
       - name: 3. Log in to Docker Hub
-        if: ${{ startsWith(matrix.os, 'ubuntu') && runner.arch == 'X64' }}
+        if: ${{ startsWith(matrix.os, 'linux') && runner.arch == 'X64' }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -209,7 +218,7 @@ jobs:
           
       # 4. Build & Push Docker image
       - name: 4. Build & Push Docker image
-        if: ${{ startsWith(matrix.os, 'ubuntu') && runner.arch == 'X64' }}
+        if: ${{ startsWith(matrix.os, 'linux') && runner.arch == 'X64' }}
         run: |
           # Fuerza a Docker a:
           #  1) descargar la base actualizada ( --pull )
@@ -233,7 +242,7 @@ jobs:
 
       # 5. Prepare unified ZIP docker package
       - name: 5. Prepare unified ZIP docker package
-        if: ${{ startsWith(matrix.os, 'ubuntu') && runner.arch == 'X64' }}
+        if: ${{ startsWith(matrix.os, 'linux') && runner.arch == 'X64' }}
         run: |
           mkdir -p PhotoMigrator/docker
           cp docker/PhotoMigrator.sh PhotoMigrator/docker/
@@ -266,7 +275,7 @@ jobs:
 
       # 7. Commit y push README.md (Solo si OS = Ubuntu* y arch = x64)
       - name: 7. Commit y push README.md
-        if: ${{ startsWith(matrix.os, 'ubuntu') && runner.arch == 'X64' }}
+        if: ${{ startsWith(matrix.os, 'linux') && runner.arch == 'X64' }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
