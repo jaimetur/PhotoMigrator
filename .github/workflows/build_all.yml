@@ -151,11 +151,11 @@ jobs:
 
           # Construir JSON compacto final
           MATRIX=$(jq -nc \
-            --argjson os "$OS_JSON" \
-            --arg compiler "${{ github.event.inputs.compiler }}" \
-            --arg compilation_mode "${{ github.event.inputs.compilation_mode }}" \
-            --arg build_mode "${{ github.event.inputs.build_mode }}" \
-            --arg python "${{ github.event.inputs.python }}" \
+            --argjson os "${OS_JSON}" \
+            --arg compiler ${compiler} \
+            --arg compilation_mode ${compilation_mode} \
+            --arg build_mode ${build_mode} \
+            --arg python ${python} \
             '{os: $os, compiler: [$compiler], compilation_mode: [$compilation_mode], build_mode: [$build_mode], python: [$python]}')
 
           echo "✅ Matriz generada:"
