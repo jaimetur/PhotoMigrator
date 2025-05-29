@@ -42,6 +42,13 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         # Usar resource_path para acceder a archivos o directorios que se empaquetarán en el modo de ejecutable binario:
         gpth_tool_path = resource_path(os.path.join("gpth_tool", tool_name))
 
+        # Check if the file exists
+        if not os.path.exists(gpth_tool_path):
+            LOGGER.error(f"ERROR   : ❌ GPTH was not found at: {gpth_tool_path}")
+            return False
+        else:
+            LOGGER.info(f"INFO    : ✅ GPTH found at: {gpth_tool_path}")
+
         # Ensure exec permissions for the binary file
         ensure_executable(gpth_tool_path)
 
