@@ -36,7 +36,7 @@ on:
         description: "Include linux-x64?"
         type: boolean
         required: false
-        default: true
+        default: 'true'
       linux_arm64:
         description: "Include linux-arm64?"
         type: boolean
@@ -92,29 +92,28 @@ jobs:
     steps:
       - id: set
         run: |
+          linux_x64=${{ toJSON(github.event.inputs.linux_x64) }}
+          linux_arm64=${{ toJSON(github.event.inputs.linux_arm64) }}
+          macos_x64=${{ toJSON(github.event.inputs.macos_x64) }}
+          macos_arm64=${{ toJSON(github.event.inputs.macos_arm64) }}
+      
+          echo "linux_x64 = $linux_x64"
+          echo "macos_x64 = $macos_x64"
+      
           OS_LIST=()
-          [[ "${{ github.event.inputs.linux_x64 }}" == 'true' ]] && OS_LIST+=("linux-x64")
-          [[ "${{ github.event.inputs.linux_arm64 }}" == 'true' ]] && OS_LIST+=("linux-arm64")
-          [[ "${{ github.event.inputs.macos_x64 }}" == 'true' ]] && OS_LIST+=("macos-x64")
-          [[ "${{ github.event.inputs.macos_arm64 }}" == 'true' ]] && OS_LIST+=("macos-arm64")
-          [[ "${{ github.event.inputs.windows_x64 }}" == 'true' ]] && OS_LIST+=("windows-x64")
-          [[ "${{ github.event.inputs.windows_arm64 }}" == 'true' ]] && OS_LIST+=("windows-arm64")
-
-          # Crea string separado por comas con comillas
-          OS_JSON_STRING=$(printf '"%s",' "${OS_LIST[@]}")
-          # Elimina la última coma
-          OS_JSON_STRING="[${OS_JSON_STRING%,}]"
-
-          echo "Final OS list: $OS_JSON_STRING"
-
-          JSON=$(jq -n \
-            --argjson os "$OS_JSON_STRING" \
-            --arg compiler "${{ github.event.inputs.compiler }}" \
-            --arg mode "${{ github.event.inputs.mode }}" \
-            --arg python "${{ github.event.inputs.python }}" \
-            '{os: $os, compiler: [$compiler], mode: [$mode], python: [$python]}')
-
-          echo "matrix=$JSON" >> $GITHUB_OUTPUT
+          [ "$linux_x64" = "true" ] && OS_LIST+=("\"linux-x64\"")
+          [ "$linux_arm64" = "true" ] && OS_LIST+=("\"linux-arm64\"")
+          [ "$macos_x64" = "true" ] && OS_LIST+=("\"macos-x64\"")
+          [ "$macos_arm64" = "true" ] && OS_LIST+=("\"macos-arm64\"")
+      
+          if [ "${#OS_LIST[@]}" -eq 0 ]; then
+            echo "❌ No OS selected"
+            exit 1
+          fi
+      
+          OS_JSON_ARRAY="[${OS_LIST[*]}]"
+          MATRIX="{\"os\": $OS_JSON_ARRAY, \"compiler\": [\"${{ github.event.inputs.compiler }}\"]}"
+          printf "matrix=%s\n" "$MATRIX" >> "$GITHUB_OUTPUT"
           
 
   build:
