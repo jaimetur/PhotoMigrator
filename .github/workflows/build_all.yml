@@ -4,13 +4,21 @@ on:
   workflow_dispatch:
     inputs:
       compiler:
-        description: "Select Compiler (nuitka, pyinstaller)"
+        description: "Select Compiler:"
         required: true
         default: "nuitka"
         type: choice
         options:
           - nuitka
           - pyinstaller
+      mode:
+        description: "Select Mode:"
+        required: true
+        default: "global"
+        type: choice
+        options:
+          - global
+          - custom
       os:
         description: "Comma-separated list of OS (e.g., ubuntu-x64,macos-x64,...)"
         required: true
