@@ -7,6 +7,8 @@ import glob
 import platform
 from pathlib import Path
 
+from nuitka.Options import shallAskForWindowsUIAccessRights
+
 # Add 'src/' folder to path to import any module from 'src/'.
 current_dir = os.path.dirname(__file__)
 src_path = os.path.abspath(os.path.join(current_dir, "src"))
@@ -487,7 +489,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
 
     else:
         print(f"Compiler '{compiler}' not supported. Valid options are 'pyinstaller' or 'nuitka'. Compilation skipped.")
-        return False
+        return success
 
     # ===============================================================================================================================================
     # PACKAGING AND CLEANING ACTIONS...
@@ -497,7 +499,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         print("[OK] Compilation process finished successfully.")
     else:
         print("[ERROR] There was some error during compilation process.")
-        sys.exit(-1)
+        return success
 
     # Script Compiled Absolute Path
     script_compiled_abs_path = ''
@@ -539,7 +541,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     print("All compilations have finished successfully.")
     print("=================================================================================================")
     print('')
-    return True
+    return success
 
 
 if __name__ == "__main__":
