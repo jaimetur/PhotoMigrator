@@ -5,9 +5,12 @@ on:
     inputs:
       prerelease:
         description: "Is this a Pre-release ?"
-        type: boolean
         required: true
         default: true
+        type: choice
+        options:
+          - true
+          - false
       compiler:
         description: "Select Compiler:"
         required: true
@@ -547,7 +550,7 @@ jobs:
           tag_name: v${{ env.SCRIPT_VERSION }}
           name: v${{ env.SCRIPT_VERSION }}
           draft: false
-          prerelease: ${{ github.event.inputs.prerelease }}
+          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
           files: |
