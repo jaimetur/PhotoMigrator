@@ -2,6 +2,11 @@ name: Build Binaries for Multiple Platforms and Docker Image
 
 on:
   workflow_dispatch:      # Allows manual execution of the workflow
+    inputs:
+      service:
+        description: "Specify the Compiler to use (pyinstaller, nuitka)"
+        required: false
+        default: "nuitka"
   #push:                   # Ejecución tras push en main, excepto en los path-ignore
     #branches:
       #- main
@@ -26,7 +31,7 @@ jobs:
       matrix:
         os: [ ubuntu-x64, ubuntu-arm64, macos-x64, macos-arm64, windows-x64, windows-arm64 ]
         python: [ "3.12.10" ] # select Python version
-        compiler: [ pyinstaller ] # possible values: [pyinstaller, nuitka]
+        compiler: [ ${{ github.event.inputs.service }} ] # possible values: [pyinstaller, nuitka]
         mode: [ global ] # possible values: [global, custom]
 
     # runs-on: ${{ matrix.os }}
