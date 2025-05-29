@@ -11,7 +11,7 @@ on:
         options:
           - nuitka
           - pyinstaller
-      compilation-mode:
+      compilation_mode:
         description: "Select Compilation Mode:"
         required: true
         default: "onefile"
@@ -19,7 +19,7 @@ on:
         options:
           - onefile
           - standalone
-      running-mode:
+      running_mode:
         description: "Select Running Mode:"
         required: true
         default: "global"
@@ -108,8 +108,8 @@ jobs:
             windows_x64=${{ toJSON(github.event.inputs.windows_x64) }}
             windows_arm64=${{ toJSON(github.event.inputs.windows_arm64) }}
             compiler="${{ github.event.inputs.compiler }}"
-            compilation-mode="${{ github.event.inputs.compilation-mode }}"
-            running-mode="${{ github.event.inputs.running-mode }}"
+            compilation_mode="${{ github.event.inputs.compilation_mode }}"
+            running_mode="${{ github.event.inputs.running_mode }}"
             python="${{ github.event.inputs.python }}"
 
           else
@@ -121,8 +121,8 @@ jobs:
             windows_x64="true"
             windows_arm64="true"
             compiler="nuitka"
-            compilation-mode="onefile"
-            running-mode="global"
+            compilation_mode="onefile"
+            running_mode="global"
             python="3.12"
           fi
 
@@ -147,13 +147,20 @@ jobs:
           MATRIX=$(jq -nc \
             --argjson os "$OS_JSON" \
             --arg compiler "${{ github.event.inputs.compiler }}" \
-            --arg compilation-mode "${{ github.event.inputs.compilation-mode }}" \
-            --arg running-mode "${{ github.event.inputs.running-mode }}" \
+            --arg compilation_mode "${{ github.event.inputs.compilation_mode }}" \
+            --arg running_mode "${{ github.event.inputs.running_mode }}" \
             --arg python "${{ github.event.inputs.python }}" \
-            '{os: $os, compiler: [$compiler], compilation-mode: [$compilation-mode], running-mode: [running-mode], python: [$python]}')
+            '{os: $os, compiler: [$compiler], compilation_mode: [$compilation_mode], running_mode: [running_mode], python: [$python]}')
 
           echo "✅ Matriz generada:"
           echo "$MATRIX"
+          echo ""
+          echo "📋 Desglose de la matriz:"
+          echo "  📦 OS:              $(echo "$MATRIX" | jq -r '.os | join(", ")')"
+          echo "  🛠️ Compiler:        $(echo "$MATRIX" | jq -r '.compiler | join(", ")')"
+          echo "  🧪 Compilation mode: $(echo "$MATRIX" | jq -r '.compilation_mode | join(", ")')"
+          echo "  🚀 Running mode:     $(echo "$MATRIX" | jq -r '.running_mode | join(", ")')"
+          echo "  🐍 Python version:   $(echo "$MATRIX" | jq -r '.python | join(", ")')"
 
           # Exportar en una sola línea (obligatorio)
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
@@ -241,7 +248,7 @@ jobs:
           echo "================================================================================================="
           echo "INFO    : COMPILING..."
           echo "================================================================================================="
-          python3 build.py --${{ matrix.compiler }} --${{ matrix.compilation-mode }}
+          python3 build.py --${{ matrix.compiler }} --${{ matrix.compilation_mode }}
 
           echo "::endgroup::"
         shell: bash
@@ -272,7 +279,7 @@ jobs:
                 echo "================================================================================================="
                 echo "INFO    : COMPILING..."
                 echo "================================================================================================="
-                python3 build.py --${{ matrix.compiler }} --${{ matrix.compilation-mode }}
+                python3 build.py --${{ matrix.compiler }} --${{ matrix.compilation_mode }}
             '
           # Build for Linux (arm64), macOS (x64 & arm64), Windows (x64 & arm64)
           else
@@ -293,7 +300,7 @@ jobs:
             echo "================================================================================================="
             echo "INFO    : COMPILING..."
             echo "================================================================================================="
-            python3 build.py --${{ matrix.compiler }} --${{ matrix.compilation-mode }}
+            python3 build.py --${{ matrix.compiler }} --${{ matrix.compilation_mode }}
           
           fi
 
