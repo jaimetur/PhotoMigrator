@@ -11,7 +11,15 @@ on:
         options:
           - nuitka
           - pyinstaller
-      mode:
+      compilation-mode:
+        description: "Select Mode:"
+        required: true
+        default: "onefile"
+        type: choice
+        options:
+          - onefile
+          - standalone
+      running-mode:
         description: "Select Mode:"
         required: true
         default: "global"
@@ -32,6 +40,7 @@ on:
           - "3.12"
           - "3.13"
           - "3.14"
+
       linux_x64:
         description: "Include linux-x64 ?"
         type: boolean
@@ -88,13 +97,34 @@ jobs:
         run: |
           echo "⚙️ Preparando matriz dinámica..."
 
-          # Inputs convertidos a strings válidos
-          linux_x64=${{ toJSON(github.event.inputs.linux_x64) }}
-          linux_arm64=${{ toJSON(github.event.inputs.linux_arm64) }}
-          macos_x64=${{ toJSON(github.event.inputs.macos_x64) }}
-          macos_arm64=${{ toJSON(github.event.inputs.macos_arm64) }}
-          windows_x64=${{ toJSON(github.event.inputs.windows_x64) }}
-          windows_arm64=${{ toJSON(github.event.inputs.windows_arm64) }}
+          EVENT_NAME="${{ github.event_name }}"
+
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "🔘 Disparo manual con inputs"
+            linux_x64=${{ toJSON(github.event.inputs.linux_x64) }}
+            linux_arm64=${{ toJSON(github.event.inputs.linux_arm64) }}
+            macos_x64=${{ toJSON(github.event.inputs.macos_x64) }}
+            macos_arm64=${{ toJSON(github.event.inputs.macos_arm64) }}
+            windows_x64=${{ toJSON(github.event.inputs.windows_x64) }}
+            windows_arm64=${{ toJSON(github.event.inputs.windows_arm64) }}
+            compiler="${{ github.event.inputs.compiler }}"
+            compilation-mode="${{ github.event.inputs.compilation-mode }}"
+            running-mode="${{ github.event.inputs.running-mode }}"
+            python="${{ github.event.inputs.python }}"
+
+          else
+            echo "⏰ Disparo programado (cron) o 📦 Disparo por commit"
+            linux_x64="true"
+            linux_arm64="true"
+            macos_x64="true"
+            macos_arm64="true"
+            windows_x64="true"
+            windows_arm64="true"
+            compiler="nuitka"
+            compilation-mode="onefile"
+            running-mode="global"
+            python="3.12"
+          fi
 
           # Crear lista
           OS_LIST=()
@@ -117,9 +147,10 @@ jobs:
           MATRIX=$(jq -nc \
             --argjson os "$OS_JSON" \
             --arg compiler "${{ github.event.inputs.compiler }}" \
-            --arg mode "${{ github.event.inputs.mode }}" \
+            --arg compilation-mode "${{ github.event.inputs.compilation-mode }}" \
+            --arg running-mode "${{ github.event.inputs.running-mode }}" \
             --arg python "${{ github.event.inputs.python }}" \
-            '{os: $os, compiler: [$compiler], mode: [$mode], python: [$python]}')
+            '{os: $os, compiler: [$compiler], compilation-mode: [$compilation-mode], running-mode: [running-mode], python: [$python]}')
 
           echo "✅ Matriz generada:"
           echo "$MATRIX"
@@ -151,8 +182,20 @@ jobs:
       [matrix.os] }}
 
     steps:
-      - name: Show runner OS, Arch, Python, Compiler, Mode
+      - name: 🔍 Show environment configuration
         run: |
+          echo "🎯 Event that triggered this workflow: ${{ github.event_name }}"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "✅ Manually triggered by a user from the interface"
+          else
+            echo "🤖 Automatically triggered (by push or cron)"
+          fi
+    
+          echo "📦 Target operating system: ${{ matrix.os }}"
+          echo "🛠️  Selected compiler: ${{ matrix.compiler }}"
+          echo "🧪  Compilation mode: ${{ matrix.mode }}"
+          echo "🐍 Python version: ${{ matrix.python }}"
+          echo """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
           echo "OS: ${{ runner.os }}"
           echo "Arch: ${{ runner.arch }}"
           echo "Python: ${{ matrix.python }}"
@@ -198,7 +241,7 @@ jobs:
           echo "================================================================================================="
           echo "INFO    : COMPILING..."
           echo "================================================================================================="
-          python3 build.py --${{ matrix.compiler }} --onefile
+          python3 build.py --${{ matrix.compiler }} --${{ matrix.compilation-mode }}
 
           echo "::endgroup::"
         shell: bash
@@ -229,7 +272,7 @@ jobs:
                 echo "================================================================================================="
                 echo "INFO    : COMPILING..."
                 echo "================================================================================================="
-                python3 build.py --${{ matrix.compiler }} --onefile
+                python3 build.py --${{ matrix.compiler }} --${{ matrix.compilation-mode }}
             '
           # Build for Linux (arm64), macOS (x64 & arm64), Windows (x64 & arm64)
           else
@@ -250,7 +293,7 @@ jobs:
             echo "================================================================================================="
             echo "INFO    : COMPILING..."
             echo "================================================================================================="
-            python3 build.py --${{ matrix.compiler }} --onefile
+            python3 build.py --${{ matrix.compiler }} --${{ matrix.compilation-mode }}
           
           fi
 
