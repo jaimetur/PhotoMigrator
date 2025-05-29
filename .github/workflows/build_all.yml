@@ -365,12 +365,12 @@ jobs:
           fi
 
       - name: ⬆️ Upload compressed dist folder as artifact (standalone mode only)
-        if: ${{ matrix.compilation_mode == 'standalone' && env.ZIP_PATH != '' && env.ZIP_PATH != null }}
+        if: ${{ matrix.compilation_mode == 'standalone' && env.ZIP_FILE != '' && env.ZIP_FILE != null }}
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.ZIP_PATH }}
-          path: ${{ env.ZIP_PATH }}
+          name: ${{ env.ZIP_FILE }}
+          path: ${{ env.ZIP_FILE }}
 
       - name: ⬆️ Upload build binary as artifact (onefile mode only)
         if: matrix.compilation_mode == 'onefile'
