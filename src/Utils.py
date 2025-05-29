@@ -1696,30 +1696,30 @@ def resource_path(relative_path):
     # PyInstaller
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
-        if DEBUG_MODE: print("  DEBUG: Entra en modo PyInstaller → (sys._MEIPASS)")
+        if DEBUG_MODE: print("  DEBUG: Entra en modo PyInstaller -> (sys._MEIPASS)")
 
     # Nuitka onefile
     elif "NUITKA_ONEFILE_PARENT" in os.environ:
         base_path = os.path.dirname(os.path.abspath(__file__))
-        if DEBUG_MODE: print("  DEBUG: Entra en modo Nuitka --onefile → (__file__)")
+        if DEBUG_MODE: print("  DEBUG: Entra en modo Nuitka --onefile -> (__file__)")
 
     # Nuitka standalone
     elif "__compiled__" in globals():
         base_path = __compiled__.containing_dir
-        if DEBUG_MODE: print("  DEBUG: Entra en modo Nuitka --standalone → (__compiled__.containing_dir)")
+        if DEBUG_MODE: print("  DEBUG: Entra en modo Nuitka --standalone -> (__compiled__.containing_dir)")
 
     # Python normal
     elif "__file__" in globals():
         if RESOURCES_IN_CURRENT_FOLDER:
             base_path = os.getcwd()
-            if DEBUG_MODE: print("  DEBUG: Entra en Python .py → (cwd)")
+            if DEBUG_MODE: print("  DEBUG: Entra en Python .py -> (cwd)")
         else:
             base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            if DEBUG_MODE: print("  DEBUG: Entra en Python .py → (dirname(dirname(__file__)))")
+            if DEBUG_MODE: print("  DEBUG: Entra en Python .py -> (dirname(dirname(__file__)))")
 
     else:
         base_path = os.getcwd()
-        if DEBUG_MODE: print("  DEBUG: Entra en fallback final → os.getcwd()")
+        if DEBUG_MODE: print("  DEBUG: Entra en fallback final -> os.getcwd()")
 
     if DEBUG_MODE:
         print(f"  DEBUG: return path                : {os.path.join(base_path, relative_path)}")
