@@ -466,7 +466,7 @@ jobs:
       - name: 📤 Upload Docker ZIP as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: docker-zip
+          name: PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
           path: PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
 
   # ==========================================================================================================================
