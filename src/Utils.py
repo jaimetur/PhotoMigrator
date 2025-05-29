@@ -1677,7 +1677,7 @@ def resource_path(relative_path):
     """
     # IMPORTANT: Don't use LOGGER in this function because is also used by build.py which has not any LOGGER created.
 
-    DEBUG_MODE = True  # Cambia a False para silenciar
+    DEBUG_MODE = False  # Cambia a False para silenciar
 
     if DEBUG_MODE:
         print("---DEBUG INFO")
@@ -1711,6 +1711,7 @@ def resource_path(relative_path):
     # Nuitka standalone
     elif "__compiled__" in globals():
         base_path = os.path.join(__compiled__.containing_dir, SCRIPT_NAME+'.dist')
+        # base_path = __compiled__
         if DEBUG_MODE: print("DEBUG   : Entra en modo Nuitka --standalone -> (__compiled__.containing_dir)")
 
     # Python normal
