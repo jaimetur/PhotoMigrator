@@ -566,7 +566,8 @@ jobs:
           else
             echo "✅ Local tag $TAG does not exist"
           fi
-      
+
+          # VERIFICATIONS...
           echo ""
           echo "✅ Verifying cleanup..."
       
