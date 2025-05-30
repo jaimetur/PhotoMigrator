@@ -643,7 +643,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}      
       
-      - name: 🔧 Force release to be non-prerelease after creation
+      - name: 🔧 Patch release after creation
         if: ${{ github.event.inputs.prerelease == 'false' }}
         run: |
           TAG="v${{ env.SCRIPT_VERSION }}"
