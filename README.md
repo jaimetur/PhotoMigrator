@@ -102,7 +102,7 @@ You can check the whole list of features and arguments with the right syntax her
 
 
 ## ⌨️ Arguments Description & Usage examples:
-Check comolete arguments descriptions and usage examples here:  
+Check all arguments descriptions and usage examples here:  
 [Arguments Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/8-arguments-description.md)  
 
 
