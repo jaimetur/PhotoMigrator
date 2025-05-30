@@ -617,6 +617,7 @@ jobs:
           discussion_category_name: Announcements
           draft: false
           prerelease: false
+          make_latest: "true""
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
           files: |
