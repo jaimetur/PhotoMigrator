@@ -524,7 +524,7 @@ jobs:
 
       - name: 🧼 Delete GitHub release, tag and associated discussion (only for stable releases)
         if: ${{ github.event.inputs.prerelease == 'false' }}
-        run: |
+        rrun: |
           set -e
           TAG="v${{ env.SCRIPT_VERSION }}"
           REPO="${{ github.repository }}"
@@ -537,14 +537,21 @@ jobs:
           RELEASE_ID=$(echo "$RELEASE_INFO" | jq -r '.id // empty')
       
           if [[ -n "$RELEASE_ID" ]]; then
-            echo "Release $TAG exists associated with release ID $RELEASE_ID. Deleting it..."
+            echo "Release ID $RELEASE_ID exists associated with tag $TAG . Deleting it..."
             echo "🗑 Deleting release ID $RELEASE_ID (discussion will also be removed)..."
             gh api -X DELETE "repos/$REPO/releases/$RELEASE_ID"
-            echo "🗑 Deleting Release tag $TAG..."
-            gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes
-            echo "✅ Release ID $RELEASE_ID and release tag $TAG successfully deleted."
+            echo "✅ Release ID $RELEASE_ID successfully deleted."
           else
-            echo "✅ No existing release found for tag $TAG"
+            echo "✅ No existing ID was found for tag $TAG"
+          fi
+          
+          # Check if release exists and delete it
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" &> /dev/null; then
+            echo "🗑 Release $TAG exists. Deleting it..."
+            gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes
+            echo "✅ Release $TAG successfully deleted."
+          else
+            echo "✅ Release $TAG does not exist."
           fi
       
           # Check if remote tag exists and delete it
