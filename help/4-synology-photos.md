@@ -1,4 +1,4 @@
-# <span style="color:green">🖼️ Synology Photos Management Documentation:</span>
+# <span style="color:green">🖼️ Synology Photos Management:</span>
 
 >[!NOTE]
 >## <span style="color:green">Synology Photos Support</span>
