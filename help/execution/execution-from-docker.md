@@ -153,14 +153,24 @@ Make sure Docker is running, then:
     docker pull jaimetur/photomigrator:3.2.0
     ```
 
-### 📝 2.2. Edit Tool Configuration file:
+### 📥 2.2. Download Config.ini:
+- **Linux/macOS:**
+    ```bash
+    curl -L -o Config.ini https://raw.githubusercontent.com/jaimetur/PhotoMigrator/main/Config.ini
+    ```
+- **Windows (PoowerShell):**
+  ```bash
+  curl.exe -L -o Config.ini https://raw.githubusercontent.com/jaimetur/PhotoMigrator/main/Config.ini
+  ```
+
+### 📝 2.3. Edit Tool Configuration file:
 
 Open `Config.ini` in any text editor and update it with your credentials and settings.
 
 > For more information, refer to [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md).
 
 
-### 🐳 2.3. Execute the pulled image with docker:
+### 🐳 2.4. Execute the pulled image with docker:
 - For Linux / MacOS: 
   ```bash
   docker run -it --rm -v "$(pwd)":/docker -e TZ=[TIMEZONE] jaimetur/photomigrator:[RELEASE_TAG] [OPTIONS]
@@ -187,6 +197,15 @@ Open `Config.ini` in any text editor and update it with your credentials and set
   - Execute the Tool to do an Automated Migration:
     ```bash
     docker run -it --rm -v "$(pwd)":/docker -e TZ=Europe/Madrid jaimetur/photomigrator:latest --source=./MyTakeout --target=immich-photos
+    ```
+#### Example for Windows:
+  - Execute the Tool to show the command line help:
+    ```bash
+    docker run -it --rm -v "${PWD}:/docker" -e TZ=Europe/Madrid jaimetur/photomigrator:latest -h
+    ```
+  - Execute the Tool to do an Automated Migration:
+    ```bash
+    docker run -it --rm -v "${PWD}:/docker" -e TZ=Europe/Madrid jaimetur/photomigrator:latest --source=./MyTakeout --target=immich-photos
     ```
 
 > [!IMPORTANT]
