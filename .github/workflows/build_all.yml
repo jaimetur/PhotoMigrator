@@ -522,7 +522,6 @@ jobs:
       - name: 📂 List downloaded files
         run: ls -la ./release_files
 
-      # 🧼 Borrar release, tag y discusión (solo si prerelease == false)
       - name: 🧼 Delete GitHub release, tag and associated discussion (only for stable releases)
         if: ${{ github.event.inputs.prerelease == 'false' }}
         run: |
@@ -559,13 +558,21 @@ jobs:
           echo ""
           echo "✅ Verifying cleanup..."
       
+          # Retry-based verification of release deletion
           if gh api --silent "repos/$REPO/releases/tags/$TAG" 2>/dev/null; then
-            echo "❌ Release still exists after deletion."
-            EXIT_CODE=1
+            echo "⚠️ Release still exists after deletion. Retrying in 5s..."
+            sleep 5
+            if gh api --silent "repos/$REPO/releases/tags/$TAG" 2>/dev/null; then
+              echo "❌ Release still exists after retry."
+              EXIT_CODE=1
+            else
+              echo "✅ Release deleted after retry."
+            fi
           else
             echo "✅ Release deleted."
           fi
       
+          # Final verification of tag deletion
           if git ls-remote --tags origin | grep "refs/tags/$TAG" &> /dev/null; then
             echo "❌ Remote tag still exists after deletion."
             EXIT_CODE=1
