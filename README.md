@@ -101,9 +101,15 @@ You can check the whole list of features and arguments with the right syntax her
 [Command Line Interface (CLI)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/1-command-line-interface.md)
 
 
+## ⌨️ Arguments Description & Usage examples:
+Check all arguments descriptions and usage examples here:  
+[Arguments Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/8-arguments-description.md)  
+
+
 ## 📚 All Documentation Links:
 - [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md)  
 - [Command Line Interface (CLI)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/1-command-line-interface.md)  
+- [Arguments Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/8-arguments-description.md)  
 - [Automatic Migration Feature](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-automatic-migration.md)  
 - [Google Takeout Management](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-google-takeout.md)  
 - [Synology Photos Management](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-synology-photos.md)  
