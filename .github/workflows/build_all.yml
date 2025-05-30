@@ -550,9 +550,34 @@ jobs:
           if git tag | grep "$TAG" &> /dev/null; then
             git tag -d "$TAG"
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB 
+
+          echo ""
+          echo "✅ Verifying that release and tag were deleted..."
   
+          # Check release again
+          if gh release view "$TAG" &> /dev/null; then
+            echo "❌ Release $TAG still exists after deletion attempt."
+            EXIT_CODE=1
+          else
+            echo "✅ Release $TAG successfully deleted."
+          fi
+  
+          # Check remote tag again
+          if git ls-remote --tags origin | grep "refs/tags/$TAG" &> /dev/null; then
+            echo "❌ Remote tag $TAG still exists after deletion attempt."
+            EXIT_CODE=1
+          else
+            echo "✅ Remote tag $TAG successfully deleted."
+          fi
+  
+          # Fail step if something wasn't deleted
+          if [[ "$EXIT_CODE" -ne 0 ]]; then
+            echo "❌ Cleanup incomplete. Aborting workflow."
+            exit 1
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+
       # Create GitHub Release and upload artifacts
       # Paso para releases normales (NO prerelease)
       - name: 🚀 Create GitHub Release (stable)
