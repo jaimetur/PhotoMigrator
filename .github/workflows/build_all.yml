@@ -623,6 +623,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}      
       
+      - name: 🔧 Force release to be non-prerelease after creation
+        if: ${{ github.event.inputs.prerelease == 'false' }}
+        run: |
+          TAG="v${{ env.SCRIPT_VERSION }}"
+          REPO="${{ github.repository }}"
+      
+          echo "Fetching release ID for tag $TAG..."
+          RELEASE_ID=$(gh api --silent "repos/$REPO/releases/tags/$TAG" --jq .id)
+      
+          echo "Patching release $RELEASE_ID to force prerelease=false..."
+          gh api --method PATCH "repos/$REPO/releases/$RELEASE_ID" \
+            -H "Accept: application/vnd.github+json" \
+            -f prerelease=false
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+
       # Commit y push README.md (Solo si OS = Ubuntu* y arch = x64)
       - name: ✅ Commit & push README.md if changed
         run: |
