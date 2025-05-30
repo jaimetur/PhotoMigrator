@@ -541,7 +541,7 @@ jobs:
             gh api -X DELETE "repos/$REPO/releases/$RELEASE_ID"
             echo "✅ Release ID $RELEASE_ID successfully deleted."
           else
-            echo "✅ No existing discussion was found for tag $TAG"
+            echo "✅ No discussion was found for tag $TAG"
           fi
           
           # Check if release exists and delete it
