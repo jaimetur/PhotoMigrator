@@ -655,7 +655,8 @@ jobs:
           echo "Patching release $RELEASE_ID to force prerelease=false..."
           gh api --method PATCH "repos/$REPO/releases/$RELEASE_ID" \
             -H "Accept: application/vnd.github+json" \
-            -f prerelease=false
+            -f prerelease=false \
+            -f make_latest=true
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
