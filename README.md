@@ -14,7 +14,7 @@
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automatic Migration**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-automatic-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service. 
 
 
-## 🖥️ Live Dashboard Preview:
+## 🖥️ Live Dashboard Preview: 
 ![Live Dashboard](https://github.com/jaimetur/PhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
 ## 🌟 Main Features:
