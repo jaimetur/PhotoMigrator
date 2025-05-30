@@ -523,7 +523,6 @@ jobs:
         run: ls -la ./release_files
 
       - name: 🧼 Delete GitHub release, tag and associated discussion (only for stable releases)
-        if: ${{ github.event.inputs.prerelease == 'false' }}
         run: |
           set -e
           TAG="v${{ env.SCRIPT_VERSION }}"
