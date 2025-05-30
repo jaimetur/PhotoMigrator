@@ -3,29 +3,29 @@
 > [!IMPORTANT]  
 > ### ✅ Prerequisites:
 > - You have to make sure that you have the following tools instaled on your system:
->   - Python 3.8 or higher - [Install Instructions](/help/install-python/install-python.md)
->   - Git - [Install Instructions](/help/install-git/install-git)
+>   - Python 3.8 or higher - [Install Instructions](https://github.com/jaimetur/PhotoMigrator/blob/main/help/install-python/install-python.md)
+>   - Git - [Install Instructions](https://github.com/jaimetur/PhotoMigrator/blob/main/help/install-git/install-git)
 
 Here are simple instructions to clone the GitHub repository, create a Python virtual environment, install dependencies, and run the main script.  
 
 Find below the needed steps:
 
-### 1. Clone the repository
+### 🔗 1. Clone the repository
    ```bash
    git clone https://github.com/jaimetur/PhotoMigrator.git
    ```
 
-### 2. Change directory to the cloned repository
+### 📂 2. Change directory to the cloned repository
    ```bash
    cd PhotoMigrator
    ```
 
-### 3. Create a Python virtual environment:  
+### 🐍 3. Create a Python virtual environment:  
    ```bash
    python3 -m venv venv
    ```
 
-### 4. Activate the virtual environment:  
+### 🐍 4. Activate the virtual environment:  
    - On Linux / MacOS:  
      ```bash
      source venv/bin/activate
@@ -39,20 +39,21 @@ Find below the needed steps:
      venv\Scripts\Activate.ps1
      ```
 
-### 5. Install dependencies:  
+
+### 📦 5. Install dependencies:  
    ```bash
    pip3 install -r requirements.txt
    ```
 
 
-### 6. Edit the configuration file:
+### 📝 6. Edit the configuration file:
 
 Open `Config.ini` in any text editor and update it with your credentials and settings.
 
-> For more information, refer to [Configuration File](/help/0-configuration-file.md).
+> For more information, refer to [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md).
 
 
-### 7. Run the Tool to show the command line help:
+### 🚀 7. Run the Tool to show the command line help:
    ```bash
    python3 ./src/PhotoMigrator.py -h
    ```

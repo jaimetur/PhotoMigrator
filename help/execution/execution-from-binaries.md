@@ -1,14 +1,14 @@
 # Execution from Compiled Binaries: \(easiest way)
 
-### 1. You can copy and unzip the downloaded compiled tool into any local folder or to any Shared folder of your server or Synology NAS.
+### 📥 1. Copy and unzip the downloaded compiled tool into any local folder or to any Shared folder of your server or Synology NAS.
 
-### 2. Edit the configuration file:
+### 📝 2. Edit the configuration file:
 
 Open `Config.ini` in any text editor and update it with your credentials and settings.
 
-> For more information, refer to [Configuration File](/help/0-configuration-file.md) .
+> For more information, refer to [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md) .
 
-### 3 Execute the Tool depending on your environment:
+### 🚀 3. Execute the Tool depending on your environment:
   - If you run it from Windows (using Shell or PowerShell terminal) you have to call the master script '**PhotoMigrator.exe**'  
 
   - If you run it from Synology NAS (using SSH terminal) or from Linux/Mac, you have to call the master script '**PhotoMigrator.run**'.  

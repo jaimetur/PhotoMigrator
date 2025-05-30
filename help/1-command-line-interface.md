@@ -1,4 +1,4 @@
-# Command Line Interface (CLI):
+# 💻 Command Line Interface (CLI):
 This section shows how to use the Command Line Interface (CLI) for this Tool.
 
 Most of the argument can be given with two formats:

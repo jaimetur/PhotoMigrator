@@ -1,4 +1,4 @@
-# Releases Notes:
+# 🗓️ Releases Notes:
 
 ## **Release**: v3.3.0  
 

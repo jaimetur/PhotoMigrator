@@ -4,13 +4,13 @@
 > ### ✅ Prerequisites:
 > - Docker need to be installed & running in your system.
 > - To install and run Docker (if it is not installed yet), you can follow the next instructions:  
->     - [Install Docker on Windows](/help/install-docker/install-docker-windows.md)  
->     - [Install Docker on Linux](/help/install-docker/install-docker-linux.md)  
->     - [Install Docker on MacOS](/help/install-docker/install-docker-macos.md)  
+>     - [Install Docker on Windows](https://github.com/jaimetur/PhotoMigrator/blob/main/help/install-docker/install-docker-windows.md)  
+>     - [Install Docker on Linux](https://github.com/jaimetur/PhotoMigrator/blob/main/help/install-docker/install-docker-linux.md)  
+>     - [Install Docker on MacOS](https://github.com/jaimetur/PhotoMigrator/blob/main/help/install-docker/install-docker-macos.md)  
 
 
 Once you have Docker installed and running on your system, you have two options to run the Tool from a Docker Container Image:
-## 1. Run Docker from a Pre-built Shell Script (recommended):
+## 🚀 1. Run Docker from a Pre-built Shell Script (recommended):
 
 This is the recommended option, since it will download a small package that contains:
 - A shell script to run the docker container in an easier way.
@@ -21,7 +21,7 @@ This is the recommended option, since it will download a small package that cont
 
 If you chose this option, just need to follow the next steps:
 
-### 1.1. Download the ZIP package:
+### 📥 1.1. Download the ZIP package:
 
 Download the latest version of the Docker package from the [Releases page](https://github.com/jaimetur/PhotoMigrator/releases), or use the following command:
 
@@ -36,7 +36,7 @@ Download the latest version of the Docker package from the [Releases page](https
     ```
 
 
-### 1.2. Unzip the downloaded package:
+### 📦 1.2. Unzip the downloaded package:
 
 - **Linux/macOS:**
     ```bash
@@ -52,7 +52,7 @@ Download the latest version of the Docker package from the [Releases page](https
     ```
 
 
-### 1.3. Edit Docker Configuration file:   
+### 📝 1.3. Edit Docker Configuration file:   
 
 If you want to pull a different release image (default: latest) you can change the file 'docker.conf'.  
 
@@ -70,18 +70,19 @@ curl -s "https://registry.hub.docker.com/v2/repositories/jaimetur/photomigrator/
 The result should be something like this:  
   "latest"  
   "latest-stable"  
+  "3.3.0"  
   "3.2.0"  
   "3.1.0"  
 
 
-### 1.4. Edit Tool Configuration file:
+### 📝 1.4. Edit Tool Configuration file:
 
 Open `Config.ini` in any text editor and update it with your credentials and settings.
 
-> For more information, refer to [Configuration File](/help/0-configuration-file.md).
+> For more information, refer to [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md).
 
 
-### 1.5. Run the Tool:
+### 🚀 1.5. Run the Tool:
 
 Make sure Docker is running, then:
 
@@ -121,9 +122,9 @@ Make sure Docker is running, then:
 
 
 ---
-## 2. Run Docker Container directly:
+## 🐳 2. Run Docker Container directly:
 
-### 2.1. First Pull the image for the desired release:
+### 📥 2.1. First Pull the image for the desired release:
   ```bash
   docker pull jaimetur/photomigrator:[RELEASE_TAG]
   ```
@@ -138,6 +139,7 @@ Make sure Docker is running, then:
     The result should be something like this:  
       "latest"  
       "latest-stable"  
+      "3.3.0"  
       "3.2.0"  
       "3.1.0"  
 
@@ -151,14 +153,14 @@ Make sure Docker is running, then:
     docker pull jaimetur/photomigrator:3.2.0
     ```
 
-### 2.2. Edit Tool Configuration file:
+### 📝 2.2. Edit Tool Configuration file:
 
 Open `Config.ini` in any text editor and update it with your credentials and settings.
 
-> For more information, refer to [Configuration File](/help/0-configuration-file.md).
+> For more information, refer to [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md).
 
 
-### 2.3. Execute the pulled image with docker:
+### 🐳 2.3. Execute the pulled image with docker:
 - For Linux / MacOS: 
   ```bash
   docker run -it --rm -v "$(pwd)":/docker -e TZ=[TIMEZONE] jaimetur/photomigrator:[RELEASE_TAG] [OPTIONS]
