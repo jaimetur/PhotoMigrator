@@ -524,7 +524,7 @@ jobs:
 
       - name: 🧼 Delete GitHub release, tag and associated discussion (only for stable releases)
         if: ${{ github.event.inputs.prerelease == 'false' }}
-        rrun: |
+        run: |
           set -e
           TAG="v${{ env.SCRIPT_VERSION }}"
           REPO="${{ github.repository }}"
