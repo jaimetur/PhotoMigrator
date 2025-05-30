@@ -1,4 +1,4 @@
-# <span style="color:green">Other Standalone Extra Features:</span>
+# <span style="color:green">🧩 Other Standalone Extra Features:</span>
 
 > [!NOTE]
 > ## <span style="color:green">Other Standalone Extra Features</span>
