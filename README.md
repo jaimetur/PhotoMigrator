@@ -237,10 +237,11 @@ Planed Roadmap for the following releases
     - [ ] Include native support for Google Photos through API  
       (See: https://max-coding.medium.com/loading-photos-and-metadata-using-google-photos-api-with-python-7fb5bd8886ef)
         - [ ] Create Class ClassGooglePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
+    - [ ] Include Nextcloud Support (initially just for downloading)
+        - [ ] Create Class ClassNextCloud with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
     - [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATIC-MODE
     - [ ] Include Test Cases to check all features
     - [ ] Add Github Action to execute all Test Cases
-
 
 ## 🎖️ Credits:
 I hope this can be useful for any of you. Enjoy it!
