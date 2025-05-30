@@ -523,31 +523,36 @@ jobs:
         run: ls -la ./release_files
 
       # Delete Current Release (if exists) when inputs.prerelease=false
-      - name: 🧹 Delete existing release and tag (if not prerelease)
+      - name: 🧼 Delete existing release and tag (if prerelease == false)
         if: ${{ github.event.inputs.prerelease == 'false' }}
         run: |
           TAG="v${{ env.SCRIPT_VERSION }}"
-
-          echo "Deleting GitHub release with tag $TAG if it exists..."
-
-          # Check if release exists and delete it
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" &> /dev/null; then
-            echo "Release $TAG exists. Deleting it..."
-            gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes
+          
+          echo "Checking and deleting existing release with tag $TAG..."
+          
+          # Delete release if exists
+          if gh release view "$TAG" &> /dev/null; then
+            echo "Release $TAG exists. Deleting..."
+            gh release delete "$TAG" --yes
           else
-            echo "Release $TAG does not exist."
+            echo "No release found for $TAG"
           fi
-
-          # Check if tag exists and delete it
+  
+          # Delete tag if exists remotely
           if git ls-remote --tags origin | grep "refs/tags/$TAG" &> /dev/null; then
-            echo "Tag $TAG exists. Deleting it..."
-            git push --delete origin "$TAG"
+            echo "Remote tag $TAG exists. Deleting..."
+            git push origin --delete "$TAG"
           else
-            echo "Tag $TAG does not exist."
+            echo "No remote tag found for $TAG"
+          fi
+  
+          # Delete local tag if exists
+          if git tag | grep "$TAG" &> /dev/null; then
+            git tag -d "$TAG"
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB 
+  
       # Create GitHub Release and upload artifacts
       # Paso para releases normales (NO prerelease)
       - name: 🚀 Create GitHub Release (stable)
@@ -556,6 +561,7 @@ jobs:
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
           name: v${{ env.SCRIPT_VERSION }}
+          target_commitish: ${{ github.sha }}
           discussion_category_name: Announcements
           draft: false
           prerelease: false
@@ -565,7 +571,7 @@ jobs:
             release_files/*
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-
+  
       # Paso para prereleases
       - name: 🧪 Create GitHub Prerelease
         if: ${{ github.event.inputs.prerelease == 'true' }}
