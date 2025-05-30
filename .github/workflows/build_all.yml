@@ -649,10 +649,10 @@ jobs:
           TAG="v${{ env.SCRIPT_VERSION }}"
           REPO="${{ github.repository }}"
       
-          echo "Fetching release ID for tag $TAG..."
+          echo "🔍 Fetching release ID for tag $TAG..."
           RELEASE_ID=$(gh api "repos/$REPO/releases/tags/$TAG" --jq .id 2>/dev/null || echo "")
       
-          echo "Patching release $RELEASE_ID to force prerelease=false..."
+          echo "🛠️ Patching release $RELEASE_ID to force prerelease=false and make_latest=true..."
           gh api --method PATCH "repos/$REPO/releases/$RELEASE_ID" \
             -H "Accept: application/vnd.github+json" \
             -f prerelease=false \
