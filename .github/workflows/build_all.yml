@@ -522,46 +522,99 @@ jobs:
       - name: 📂 List downloaded files
         run: ls -la ./release_files
 
-      # Delete Current Release (if exists) when inputs.prerelease=false
-      - name: 🧹 Delete existing release and tag (if not prerelease)
+      # 🧼 Borrar release, tag y discusión (solo si prerelease == false)
+      - name: 🧼 Delete GitHub release, tag and associated discussion (only for stable releases)
         if: ${{ github.event.inputs.prerelease == 'false' }}
         run: |
+          set -e
           TAG="v${{ env.SCRIPT_VERSION }}"
-
-          echo "Deleting GitHub release with tag $TAG if it exists..."
-
-          # Check if release exists and delete it
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" &> /dev/null; then
-            echo "Release $TAG exists. Deleting it..."
-            gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes
+          REPO="${{ github.repository }}"
+          EXIT_CODE=0
+      
+          echo "🔍 Checking for existing release with tag $TAG..."
+      
+          # Get release info safely
+          RELEASE_INFO=$(gh api --silent "repos/$REPO/releases/tags/$TAG" 2>/dev/null || echo "")
+          RELEASE_ID=$(echo "$RELEASE_INFO" | jq -r '.id // empty')
+      
+          if [[ -n "$RELEASE_ID" ]]; then
+            echo "🗑 Deleting release ID $RELEASE_ID (discussion will also be removed)..."
+            gh api -X DELETE "repos/$REPO/releases/$RELEASE_ID"
           else
-            echo "Release $TAG does not exist."
+            echo "✅ No existing release found for tag $TAG"
           fi
-
-          # Check if tag exists and delete it
+      
+          echo "🔗 Deleting remote tag $TAG..."
           if git ls-remote --tags origin | grep "refs/tags/$TAG" &> /dev/null; then
-            echo "Tag $TAG exists. Deleting it..."
-            git push --delete origin "$TAG"
+            git push origin --delete "$TAG" || EXIT_CODE=1
           else
-            echo "Tag $TAG does not exist."
+            echo "✅ Remote tag $TAG does not exist"
+          fi
+      
+          echo "🗑 Deleting local tag $TAG (if exists)..."
+          if git tag | grep -q "$TAG"; then
+            git tag -d "$TAG"
+          fi
+      
+          echo ""
+          echo "✅ Verifying cleanup..."
+      
+          if gh api --silent "repos/$REPO/releases/tags/$TAG" 2>/dev/null; then
+            echo "❌ Release still exists after deletion."
+            EXIT_CODE=1
+          else
+            echo "✅ Release deleted."
+          fi
+      
+          if git ls-remote --tags origin | grep "refs/tags/$TAG" &> /dev/null; then
+            echo "❌ Remote tag still exists after deletion."
+            EXIT_CODE=1
+          else
+            echo "✅ Remote tag deleted."
+          fi
+      
+          if [[ "$EXIT_CODE" -ne 0 ]]; then
+            echo "❌ Cleanup failed. Aborting workflow."
+            exit 1
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-
-      # Create GitHub Release and upload artifacts
-      - name: 🚀 Create GitHub Release
+      
+      # 🚀 Crear release estable (prerelease == false)
+      - name: 🚀 Create GitHub Release (stable)
+        if: ${{ github.event.inputs.prerelease == 'false' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
           name: v${{ env.SCRIPT_VERSION }}
+          target_commitish: ${{ github.sha }}
+          discussion_category_name: Announcements
           draft: false
-          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+          prerelease: false
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
           files: |
             release_files/*
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+      
+      # 🚀 Crear prerelease (prerelease == true)
+      - name: 🚀 Create GitHub Release (prerelease)
+        if: ${{ github.event.inputs.prerelease == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.SCRIPT_VERSION }}
+          name: v${{ env.SCRIPT_VERSION }}
+          target_commitish: ${{ github.sha }}
+          # discussion_category_name: Announcements  # Descomenta si también quieres discusión en prerelease
+          draft: false
+          prerelease: true
+          generate_release_notes: true
+          body_path: CURRENT-RELEASE.md
+          files: |
+            release_files/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}      
       
       # Commit y push README.md (Solo si OS = Ubuntu* y arch = x64)
       - name: ✅ Commit & push README.md if changed
