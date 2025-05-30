@@ -630,7 +630,7 @@ jobs:
           REPO="${{ github.repository }}"
       
           echo "Fetching release ID for tag $TAG..."
-          RELEASE_ID=$(gh api --silent "repos/$REPO/releases/tags/$TAG" --jq .id)
+          RELEASE_ID=$(gh api "repos/$REPO/releases/tags/$TAG" --jq .id 2>/dev/null || echo "")
       
           echo "Patching release $RELEASE_ID to force prerelease=false..."
           gh api --method PATCH "repos/$REPO/releases/$RELEASE_ID" \
