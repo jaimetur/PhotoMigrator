@@ -523,60 +523,64 @@ jobs:
         run: ls -la ./release_files
 
       # Delete Current Release (if exists) when inputs.prerelease=false
-      - name: 🧼 Delete existing release and tag (if prerelease == false)
+      - name: 🧼 Delete GitHub Release and Tag (and Discussion) if prerelease == false
         if: ${{ github.event.inputs.prerelease == 'false' }}
         run: |
+          set -e
           TAG="v${{ env.SCRIPT_VERSION }}"
-          
-          echo "Checking and deleting existing release with tag $TAG..."
-          
-          # Delete release if exists
-          if gh release view "$TAG" &> /dev/null; then
-            echo "Release $TAG exists. Deleting..."
-            gh release delete "$TAG" --yes
+          REPO="${{ github.repository }}"
+          EXIT_CODE=0
+      
+          echo "🔍 Checking for release ID associated with tag $TAG..."
+      
+          # Get release ID if exists
+          RELEASE_ID=$(gh api "repos/$REPO/releases/tags/$TAG" --jq '.id' 2>/dev/null || echo "")
+      
+          if [[ -n "$RELEASE_ID" ]]; then
+            echo "🗑 Deleting release ID $RELEASE_ID (discussion will also be removed)..."
+            gh api -X DELETE "repos/$REPO/releases/$RELEASE_ID"
           else
-            echo "No release found for $TAG"
+            echo "✅ No existing release found for tag $TAG"
           fi
-  
-          # Delete tag if exists remotely
+      
+          echo "🔗 Deleting tag $TAG from remote..."
           if git ls-remote --tags origin | grep "refs/tags/$TAG" &> /dev/null; then
-            echo "Remote tag $TAG exists. Deleting..."
-            git push origin --delete "$TAG"
+            git push origin --delete "$TAG" || EXIT_CODE=1
           else
-            echo "No remote tag found for $TAG"
+            echo "✅ Remote tag $TAG does not exist"
           fi
-  
-          # Delete local tag if exists
-          if git tag | grep "$TAG" &> /dev/null; then
+      
+          echo "🗑 Deleting local tag $TAG if exists..."
+          if git tag | grep -q "$TAG"; then
             git tag -d "$TAG"
           fi
-
+      
           echo ""
-          echo "✅ Verifying that release and tag were deleted..."
-  
-          # Check release again
-          if gh release view "$TAG" &> /dev/null; then
-            echo "❌ Release $TAG still exists after deletion attempt."
+          echo "✅ Verifying cleanup..."
+      
+          # Confirm release no longer exists
+          if gh api "repos/$REPO/releases/tags/$TAG" &> /dev/null; then
+            echo "❌ Release still exists after deletion attempt."
             EXIT_CODE=1
           else
-            echo "✅ Release $TAG successfully deleted."
+            echo "✅ Release deleted successfully."
           fi
-  
-          # Check remote tag again
+      
+          # Confirm remote tag no longer exists
           if git ls-remote --tags origin | grep "refs/tags/$TAG" &> /dev/null; then
-            echo "❌ Remote tag $TAG still exists after deletion attempt."
+            echo "❌ Remote tag still exists after deletion attempt."
             EXIT_CODE=1
           else
-            echo "✅ Remote tag $TAG successfully deleted."
+            echo "✅ Remote tag deleted successfully."
           fi
-  
-          # Fail step if something wasn't deleted
+      
           if [[ "$EXIT_CODE" -ne 0 ]]; then
-            echo "❌ Cleanup incomplete. Aborting workflow."
+            echo "❌ Cleanup failed. Aborting workflow."
             exit 1
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+
 
       # Create GitHub Release and upload artifacts
       # Paso para releases normales (NO prerelease)
