@@ -1,3 +1,10 @@
+### 🔧 Core Arguments
+
+| Argument | Parameter | Type | Valid Values | Description |
+|----------|-----------|------|--------------|-------------|
+| `--help` | — | flag | — | Displays the help message and exits.
+| `--version` | — | flag | — | Shows the tool version and exits.
+
 ### 🔄 Automatic Migration
 
 | Argument | Parameter | Type | Valid Values | Description |
