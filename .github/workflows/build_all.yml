@@ -537,22 +537,34 @@ jobs:
           RELEASE_ID=$(echo "$RELEASE_INFO" | jq -r '.id // empty')
       
           if [[ -n "$RELEASE_ID" ]]; then
+            echo "Release $TAG exists associated with release ID $RELEASE_ID. Deleting it..."
             echo "🗑 Deleting release ID $RELEASE_ID (discussion will also be removed)..."
             gh api -X DELETE "repos/$REPO/releases/$RELEASE_ID"
+            echo "🗑 Deleting Release tag $TAG..."
+            gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes
+            echo "✅ Release ID $RELEASE_ID and release tag $TAG successfully deleted."
           else
             echo "✅ No existing release found for tag $TAG"
           fi
       
+          # Check if remote tag exists and delete it
           echo "🔗 Deleting remote tag $TAG..."
           if git ls-remote --tags origin | grep "refs/tags/$TAG" &> /dev/null; then
-            git push origin --delete "$TAG" || EXIT_CODE=1
+            echo "Remote tag $TAG exists. Deleting it..."
+            git push --delete origin "$TAG" || EXIT_CODE=1
+            echo "✅ Remote tag $TAG successfully deleted."
           else
             echo "✅ Remote tag $TAG does not exist"
           fi
-      
+          
+          # Check if local tag exists and delete it
           echo "🗑 Deleting local tag $TAG (if exists)..."
           if git tag | grep -q "$TAG"; then
+            echo "Local tag $TAG exists. Deleting it..."
             git tag -d "$TAG"
+            echo "✅ Local tag $TAG successfully deleted."
+          else
+            echo "✅ Local tag $TAG does not exist"
           fi
       
           echo ""
