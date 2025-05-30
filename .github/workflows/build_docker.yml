@@ -3,8 +3,8 @@ name: Build Docker Image Only
 on:
   workflow_dispatch:      # Allows manual execution of the workflow
   push:                   # Ejecución tras push en cualquier rama, excepto en los path-ignore
-    #branches:
-      #- main             # Ejecución tras push en main, excepto en los path-ignore
+    branches:
+      - main             # Ejecución tras push en main, excepto en los path-ignore
     paths-ignore:
       - .gitignore
       - .idea/**
