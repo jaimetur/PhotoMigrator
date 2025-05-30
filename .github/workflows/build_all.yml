@@ -530,15 +530,13 @@ jobs:
           REPO="${{ github.repository }}"
           EXIT_CODE=0
       
-          echo "🔍 Checking for existing release with tag $TAG..."
-      
           # Get release info safely
           RELEASE_INFO=$(gh api --silent "repos/$REPO/releases/tags/$TAG" 2>/dev/null || echo "")
           RELEASE_ID=$(echo "$RELEASE_INFO" | jq -r '.id // empty')
-      
+          
+          echo "🔍 Checking for existing release with tag $TAG..."
           if [[ -n "$RELEASE_ID" ]]; then
-            echo "Release ID $RELEASE_ID exists associated with tag $TAG . Deleting it..."
-            echo "🗑 Deleting release ID $RELEASE_ID (discussion will also be removed)..."
+            echo "🗑 Release ID $RELEASE_ID exists associated with tag $TAG . Deleting it (discussion will also be removed)..."
             gh api -X DELETE "repos/$REPO/releases/$RELEASE_ID"
             echo "✅ Release ID $RELEASE_ID successfully deleted."
           else
@@ -555,9 +553,9 @@ jobs:
           fi
       
           # Check if remote tag exists and delete it
-          echo "🔗 Deleting remote tag $TAG..."
+          echo "🔍 Checking for remote tag $TAG..."
           if git ls-remote --tags origin | grep "refs/tags/$TAG" &> /dev/null; then
-            echo "Remote tag $TAG exists. Deleting it..."
+            echo "🗑 Remote tag $TAG exists. Deleting it..."
             git push --delete origin "$TAG" || EXIT_CODE=1
             echo "✅ Remote tag $TAG successfully deleted."
           else
@@ -565,9 +563,9 @@ jobs:
           fi
           
           # Check if local tag exists and delete it
-          echo "🗑 Deleting local tag $TAG (if exists)..."
+          echo "🔍 Checking for local tag $TAG..."
           if git tag | grep -q "$TAG"; then
-            echo "Local tag $TAG exists. Deleting it..."
+            echo "🗑 Local tag $TAG exists. Deleting it..."
             git tag -d "$TAG"
             echo "✅ Local tag $TAG successfully deleted."
           else
