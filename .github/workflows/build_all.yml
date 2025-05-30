@@ -534,7 +534,7 @@ jobs:
           RELEASE_INFO=$(gh api --silent "repos/$REPO/releases/tags/$TAG" 2>/dev/null || echo "")
           RELEASE_ID=$(echo "$RELEASE_INFO" | jq -r '.id // empty')
           
-          echo "🔍 Checking for existing release with tag $TAG..."
+          echo "🔍 Checking for existing releasess/discussions with tag $TAG..."
           if [[ -n "$RELEASE_ID" ]]; then
             echo "🗑 Release ID $RELEASE_ID exists associated with tag $TAG . Deleting it (discussion will also be removed)..."
             gh api -X DELETE "repos/$REPO/releases/$RELEASE_ID"
