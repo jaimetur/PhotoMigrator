@@ -533,11 +533,11 @@ jobs:
           # Get release info safely
           RELEASE_INFO=$(gh api --silent "repos/$REPO/releases/tags/$TAG" 2>/dev/null || echo "")
           RELEASE_ID=$(echo "$RELEASE_INFO" | jq -r '.id // empty')
-
+          
           # Check for existing releasess/discussions with RELEASE_ID associated to TAG
-          echo "🔍 Checking for existing releasess/discussions with tag $TAG..."
+          echo "🔍 Checking for existing discussion ID with tag $TAG..."
           if [[ -n "$RELEASE_ID" ]]; then
-            echo "🗑 Release ID $RELEASE_ID exists associated with tag $TAG . Deleting it (discussion will also be removed)..."
+            echo "🗑 Discussion ID $RELEASE_ID exists associated with tag $TAG . Deleting it (discussion will also be removed)..."
             gh api -X DELETE "repos/$REPO/releases/$RELEASE_ID"
             echo "✅ Release ID $RELEASE_ID successfully deleted."
           else
@@ -545,6 +545,7 @@ jobs:
           fi
           
           # Check if release exists and delete it
+          echo "🔍 Checking for existing release with tag $TAG..."
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" &> /dev/null; then
             echo "🗑 Release $TAG exists. Deleting it..."
             gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes
