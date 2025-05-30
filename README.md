@@ -1,4 +1,4 @@
-# Repo Statistics
+# 📈 Repo Statistics
 [![Commit activity](https://img.shields.io/github/commit-activity/y/jaimetur/PhotoMigrator?label=Commit%20activity)](https://github.com/jaimetur/PhotoMigrator/graphs/contributors)
 [![Resolved Github issues](https://img.shields.io/github/issues-closed/jaimetur/PhotoMigrator?label=Resolved%20issues)](https://github.com/jaimetur/PhotoMigrator/issues?q=is%3Aissue%20state%3Aclosed)
 [![Open Github issues](https://img.shields.io/github/issues/jaimetur/PhotoMigrator?label=Open%20Issues)](https://github.com/jaimetur/PhotoMigrator/issues)
@@ -6,7 +6,7 @@
 [![Latest version downloads](https://img.shields.io/github/downloads/jaimetur/PhotoMigrator/latest/total?label=Latest%20version%20downloads)](https://github.com/jaimetur/PhotoMigrator/releases/latest)
 [![Pre-release version downloads](https://img.shields.io/github/downloads/jaimetur/PhotoMigrator/v3.3.0/total?label=Pre%20version%20downloads)](https://github.com/jaimetur/PhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 
-# **PhotoMigrator**
+# 📸 **PhotoMigrator**
 <p align="center">
   <img src="https://github.com/jaimetur/PhotoMigrator/blob/main/assets/logos/logo.jpg" alt="PhotoMigrator Logo" width="600" height="400" />
 </p>
