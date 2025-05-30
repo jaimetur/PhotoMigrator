@@ -613,7 +613,7 @@ jobs:
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
           name: v${{ env.SCRIPT_VERSION }}
-          target_commitish: ${{ github.sha }}
+          target_commitish: main
           discussion_category_name: Announcements
           draft: false
           prerelease: false
@@ -632,7 +632,7 @@ jobs:
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
           name: v${{ env.SCRIPT_VERSION }}
-          target_commitish: ${{ github.sha }}
+          target_commitish: main
           # discussion_category_name: Announcements  # Descomenta si también quieres discusión en prerelease
           draft: false
           prerelease: true
@@ -655,8 +655,10 @@ jobs:
           echo "🛠️ Patching release $RELEASE_ID to force prerelease=false and make_latest=true..."
           gh api --method PATCH "repos/$REPO/releases/$RELEASE_ID" \
             -H "Accept: application/vnd.github+json" \
-            -f prerelease=false \
-            -f make_latest=true
+            -f "target_commitish=main" \
+            -F "draft=false" \
+            -F "prerelease=false" \
+            -f "make_latest=true"
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
