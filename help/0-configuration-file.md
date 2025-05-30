@@ -1,4 +1,4 @@
-## ⚙️ Configuration File 'Config.ini'
+# ⚙️ Configuration File 'Config.ini'
 
 You can see the default Config.ini file here:
 
