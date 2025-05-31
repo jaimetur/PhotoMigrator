@@ -55,7 +55,7 @@ Following general flags have different purposses depending on the Execution Mode
 
 #### 🧪 Examples:
 ```bash
-PhotoMigrator.run --client=synology --account-id=2 --input-folder=/mnt/import --output-folder=/mnt/export
+PhotoMigrator.run --input-folder=/mnt/import --output-folder=/mnt/export
 PhotoMigrator.run --filter-from-date=2022-01-01 --filter-to-date=2022-12-31
 PhotoMigrator.run --filter-by-type=video --log-level=debug
 ```
@@ -84,9 +84,9 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 
 #### 🧪 Examples:
 ```bash
-PhotoMigrator.run --google-takeout=/home/user/Takeout
-PhotoMigrator.run --google-takeout=/home/user/Takeout --google-remove-duplicates-files --google-skip-extras-files
-PhotoMigrator.run --google-takeout=/home/user/Takeout --google-albums-folders-structure=year/month
+PhotoMigrator.run --google-takeout="/home/user/Takeout"
+PhotoMigrator.run --google-takeout="/home/user/Takeout" --google-remove-duplicates-files --google-skip-extras-files
+PhotoMigrator.run --google-takeout="/home/user/Takeout" --google-albums-folders-structure=year/month
 ```
 
 ## 🖼️ Synology / Immich Management
@@ -131,70 +131,79 @@ Following arguments can be used to execute the Tool in any of the usefull additi
 
 #### 🧪 Examples:
 ```bash
-PhotoMigrator.run --find-duplicates list /mnt/folder1 /mnt/folder2
+PhotoMigrator.run --find-duplicates list "/mnt/folder1" "/mnt/folder2"
 PhotoMigrator.run --process-duplicates revised_duplicates.csv
-PhotoMigrator.run --fix-symlinks-broken=/mnt/albums
-PhotoMigrator.run --rename-folders-content-based=/mnt/albums
+PhotoMigrator.run --fix-symlinks-broken="/mnt/albums"
+PhotoMigrator.run --rename-folders-content-based="/mnt/albums"
 ```
 
 ---
 ## 🧪 Examples description:
-
+Below you can find a short description of  above examples 
 
 ### 🚀 Automatic Migration
 
 ```bash
 PhotoMigrator.run --source=immich-1 --target=synology-2
+
+Migrates all content from Immich account 1 to Synology account 2.
 ```
-_Migrates all content from Immich account 1 to Synology account 2._
 
 ```bash
 PhotoMigrator.run --source=/mnt/photos --target=/mnt/synology --move-assets=true
+
+Migrates local folder to target and removes files from the source.
 ```
-_Migrates local folder to target and removes files from the source._
 
 ```bash
 PhotoMigrator.run --source=synology-1 --target=immich-1 --parallel-migration=false
+
+Uses sequential migration instead of parallel.
 ```
-_Uses sequential migration instead of parallel._
 
 ---
 
 ### ⚙️ General Options
 
 ```bash
-PhotoMigrator.run --client=synology --account-id=2 --input-folder=/mnt/import --output-folder=/mnt/export
+PhotoMigrator.run --input-folder=/mnt/import --output-folder=/mnt/export
+    
+Process input folder to fix metadatas and save the result in output folder.
 ```
-_Specifies Synology client with ID 2 and sets input/output folders._
 
 ```bash
 PhotoMigrator.run --filter-from-date=2022-01-01 --filter-to-date=2022-12-31
+
+Filters assets from 2022 only.
 ```
-_Filters assets from 2022 only._
 
 ```bash
 PhotoMigrator.run --filter-by-type=video --log-level=debug
+
+Processes only video files and shows debug logs.
 ```
-_Processes only video files and shows debug logs._
 
 ---
 
 ### 🗃️ Google Takeout Management
 
 ```bash
-PhotoMigrator.run --google-takeout=/home/user/Takeout
+PhotoMigrator.run --google-takeout="/home/user/Takeout"
+
+Processes Google Takeout folder using default options.
 ```
-_Processes Google Takeout folder using default options._
 
 ```bash
 PhotoMigrator.run --google-takeout=/home/user/Takeout --google-remove-duplicates-files --google-skip-extras-files
+
+Removes duplicates and skips extra photos like effects.
 ```
-_Removes duplicates and skips extra photos like effects._
 
 ```bash
 PhotoMigrator.run --google-takeout=/home/user/Takeout --google-albums-folders-structure=year/month
+
+Organizes albums by year and month structure.
 ```
-_Organizes albums by year and month structure._
 
 ---
 
@@ -202,34 +211,46 @@ _Organizes albums by year and month structure._
 
 ```bash
 PhotoMigrator.run --client=immich --upload-all=/mnt/pictures
+
+Uploads all photos to Immich, organizing by subfolder albums.
 ```
-_Uploads all photos to Immich, organizing by subfolder albums._
 
 ```bash
 PhotoMigrator.run --client=synology --download-albums "album1 album2 album3" --output-folder=/mnt/backup
+
+Downloads selected albums from Synology.
 ```
-_Downloads selected albums from Synology._
 
 ```bash
 PhotoMigrator.run --client=synology --remove-empty-albums
+
+Removes all empty albums from Synology.
 ```
-_Removes all empty albums from Synology._
 
 ---
 
 ### 🛠️ Other Standalone Features
 
 ```bash
-PhotoMigrator.run --find-duplicates list /mnt/folder1 /mnt/folder2
+PhotoMigrator.run --find-duplicates list "/mnt/folder1" "/mnt/folder2"
+
+Lists duplicate files across multiple folders.
 ```
-_Lists duplicate files across multiple folders._
 
 ```bash
 PhotoMigrator.run --process-duplicates revised_duplicates.csv
+
+Processes duplicates based on a CSV file with actions.
 ```
-_Processes duplicates based on a CSV file with actions._
 
 ```bash
-PhotoMigrator.run --rename-folders-content-based=/mnt/albums
+PhotoMigrator.run --fix-symlinks-broken="/mnt/albums"
+
+Fix symbolic links found in the given folder
 ```
-_Renames album folders based on content creation dates._
+
+```bash
+PhotoMigrator.run --rename-folders-content-based="/mnt/albums"
+
+Renames album folders based on content creation dates.
+```
