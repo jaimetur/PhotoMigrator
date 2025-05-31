@@ -1,6 +1,6 @@
 # 📸 PhotoMigrator Command Line Arguments
 
-## 🧱 Core Arguments
+## 🧩 Core Arguments
 
 | Argument          | Description                |
 |-------------------|----------------------------|
@@ -15,7 +15,7 @@ PhotoMigrator.run --version
 
 ---
 
-## 🔄 Automatic Migration Process
+## 🚀 Automatic Migration Process
 
 | Argument               | Description                                                       |
 |------------------------|-------------------------------------------------------------------|
@@ -63,7 +63,7 @@ PhotoMigrator.run --type video --country Spain --person "Ana"
 
 ---
 
-## 📦 Google Photos Takeout Management
+## 🗃️ Google Photos Takeout Management
 
 | Argument                                        | Description                                                           |
 |-------------------------------------------------|-----------------------------------------------------------------------|
@@ -116,7 +116,7 @@ PhotoMigrator.run --client=synology --rAlb "tmp_*" --rAlbAss
 
 ---
 
-## 🧩 Other Standalone Features
+## 🛠️ Other Standalone Features
 
 | Argument                                       | Description                                                    |
 |------------------------------------------------|----------------------------------------------------------------|

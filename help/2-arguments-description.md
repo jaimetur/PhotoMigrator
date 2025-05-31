@@ -2,7 +2,7 @@
 
 ---
 
-## 🔧 Core Arguments
+## 🧩 Core Arguments
 
 | Argument    | Parameter | Type | Valid Values | Description                          |
 |-------------|-----------|------|--------------|--------------------------------------|
@@ -113,7 +113,7 @@ PhotoMigrator.run --client=synology --download-albums "album1 album2 album3" --o
 PhotoMigrator.run --client=synology --remove-empty-albums
 ```
 
-## 🧩 Standalone Features
+## 🛠️ Standalone Features
 If more than one Feature is detected, only the first one will be executed.  
 Following arguments can be used to execute the Tool in any of the usefull additionals Extra Standalone Features included.  
 
@@ -136,7 +136,7 @@ PhotoMigrator.run --rename-folders-content-based=/mnt/albums
 ## 🧪 Examples description:
 
 
-### 🔄 Automatic Migration
+### 🚀 Automatic Migration
 
 ```bash
 PhotoMigrator.run --source=immich-1 --target=synology-2
@@ -174,7 +174,7 @@ _Processes only video files and shows debug logs._
 
 ---
 
-### 📦 Google Takeout Management
+### 🗃️ Google Takeout Management
 
 ```bash
 PhotoMigrator.run --google-takeout=/home/user/Takeout
@@ -212,7 +212,7 @@ _Removes all empty albums from Synology._
 
 ---
 
-### 🧩 Standalone Features
+### 🛠️ Other Standalone Features
 
 ```bash
 PhotoMigrator.run --find-duplicates list /mnt/folder1 /mnt/folder2
