@@ -14,7 +14,7 @@ There is also a [shorter version](https://github.com/jaimetur/PhotoMigrator/blob
 | `--help`    |           | flag |              | Displays the help message and exits. |
 | `--version` |           | flag |              | Shows the tool version and exits.    |
 
-## 🔄 Automatic Migration
+## 🚀 Automatic Migration
 Following arguments allow you execute the Automatic Migration Process to migrate your assets from one Photo Cloud Service to other, or from two different accounts within the same Photo Cloud service.
 
 | Argument               | Parameter  | Type              |                 Valid Values                  | Description                                             |
