@@ -59,7 +59,7 @@
     - [x] Added Splash logo at the loading screen when execute from binaries on Windows.  
     - [x] Renamed binaries files for architecture 'amd64' from 'amd64' to 'x64'.     
     - [x] Included binary for 'Windows arm64' architecture.     
-    - [x] Changed Compiler from **Pyinstaller** to **Nuitka* (better performance) to generate compiled binaries for all supported platforms.     
+    - [x] Changed Compiler from **Pyinstaller** to **Nuitka** (better performance) to generate compiled binaries for all supported platforms.     
     - [x] Many improvements and automations in GitHub Actions to generate new builds and releases.     
 
   - #### 🐛 Bug fixes:
