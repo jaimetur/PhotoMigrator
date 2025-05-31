@@ -136,7 +136,7 @@ The below tables show the pros and cons of each method together with a comparati
 
 
 - ### 🆚 Execution Methods Comparison Rating
-  | Feature                                               | Binaries<br>*easiest way* | Docker<br>*recommended* | Source<br>*more difficult* |
+  | Feature                                               | Binaries<br>(*easiest way*) | Docker<br>(*recommended*) | Source<br>(*more difficult*) |
   |-------------------------------------------------------|---------------------------|-------------------------|----------------------------|
   | Platform and architecture independence                | ⭐☆☆☆☆                     | ⭐⭐⭐⭐⭐                   | ⭐⭐⭐⭐⭐                      |
   | Ease of updating to new release                       | ⭐⭐⭐☆☆                     | ⭐⭐⭐⭐⭐                   | ⭐☆☆☆☆                      |
