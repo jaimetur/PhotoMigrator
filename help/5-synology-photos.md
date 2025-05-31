@@ -20,10 +20,10 @@
 > 
 > The available filters are: 
 >    - **by Type:**
->      - flag: -type, --filter-by-type
+>      - argument: -type, --filter-by-type
 >        - Valid values are [image, video, all]
 >    - **by Dates:**
->      - flags:
+>      - arguments:
 >        - -from, --filter-from-date
 >        - -to, --filter-to-date
 >      - Valid values are in one of those formats: 
@@ -37,13 +37,13 @@
 >        - yyyy-mm
 >        - yyyy 
 >    - **by Country:**
->      - flag: -country, --filter-by-country
+>      - argument: -country, --filter-by-country
 >        - Valid values are any existing country in the \<SOURCE> client.
 >    - **by City:**
->      - flag: -city, --filter-by-city
+>      - argument: -city, --filter-by-city
 >        - Valid values are any existing city in the \<SOURCE> client.
 >    - **by Person:**
->      - flag: -person, --filter-by-person
+>      - argument: -person, --filter-by-person
 >        - Valid values are any existing person in the \<SOURCE> client.
 >        
 >The credentials need to be loaded from 'Config.ini' file and will have this format:
@@ -63,9 +63,9 @@
 >>```
 
 > [!NOTE]
-> To use all these features, it is mandatory to use the flag _**'--client=synology'**_ to specify Synology Photos as the service that you want to connect.  
+> To use all these features, it is mandatory to use the argument _**'--client=synology'**_ to specify Synology Photos as the service that you want to connect.  
 > 
-> If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the flag _**'-id, -account-id=[1-3]'**_ to specify the account 2 or 3 as needed. 
+> If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the argument _**'-id, -account-id=[1-3]'**_ to specify the account 2 or 3 as needed. 
 
 > [!IMPORTANT]  
 > If your Synology Photo Account requires 2FA Authentification, you must use the flag _**'-OTP, --one-time-password'**_ in order to enable the OTP Token request during authentification process. 
@@ -74,8 +74,8 @@
 ## <span style="color:blue">Upload Albums (from Local Folder) into Synology Photos:</span>
 - **From:** v2.0.0 
 - **Usage:**
-  - To run this feature, first, is mandatory that you set 'synology' as client using the flag _**'-client=synology'**_ or _**'--client=synology'**_
-  - Also, you have to use the flag _**'-uAlb, --upload-albums \<ALBUMS_FOLDER>'**_
+  - To run this feature, first, is mandatory that you set 'synology' as client using the argument _**'-client=synology'**_ or _**'--client=synology'**_
+  - Also, you have to use the argument _**'-uAlb, --upload-albums \<ALBUMS_FOLDER>'**_
   - Where \<ALBUMS_FOLDER> is the folder that contains all the Albums that you want to upload,
 - **Pre-Requisites:**
   - Configure properly the file 'Config.ini' to include your Synology account credentials and url. 
@@ -91,8 +91,8 @@
 ## <span style="color:blue">Download Albums from Synology Photos:</span>
 - **From:** v2.3.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set 'synology' as client using the flag _**'-client=synology'**_ or _**'--client=synology'**_
-  - Also, you have to use the flag _**'-dAlb, --download-albums \<ALBUMS_NAME>'**_ in combination with the flag _**'-o, --output-folder \<OUTPUT_FOLDER>'**_ (mandatory argument for this feature)
+  - To run this feature, first, is mandatory that you set 'synology' as client using the argument _**'-client=synology'**_ or _**'--client=synology'**_
+  - Also, you have to use the argument _**'-dAlb, --download-albums \<ALBUMS_NAME>'**_ in combination with the argument _**'-o, --output-folder \<OUTPUT_FOLDER>'**_ (mandatory argument for this feature)
   - Where,
   - \<ALBUMS_NAME> is a list of Albubs names that you want to download.
   - \<OUTPUT_FOLDER> is the folder where you want to download the Albums.

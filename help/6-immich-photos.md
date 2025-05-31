@@ -21,7 +21,7 @@
 > 
 > The available filters are: 
 >    - **by Type:**
->      - flag: -type, --filter-by-type
+>      - argument: -type, --filter-by-type
 >        - Valid values are [image, video, all]
 >    - **by Dates:**
 >      - flags:

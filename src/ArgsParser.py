@@ -69,7 +69,7 @@ def parse_arguments():
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=False,  # Si no se pasa el argumento, el valor por defecto es False
                         type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="If this flag is present, the assets will be moved from <SOURCE> to <TARGET> instead of copy them. (default: False)."
+                        help="If this argument is present, the assets will be moved from <SOURCE> to <TARGET> instead of copy them. (default: False)."
     )
     PARSER.add_argument("-dashb", "--dashboard",
                         metavar="= [true,false]",
@@ -77,7 +77,7 @@ def parse_arguments():
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=True,  # Si no se pasa el argumento, el valor por defecto es True
                         type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="Enable or disable Live Dashboard feature during Autometed Migration Job. This flag only applies if both '--source' and '--target' flags are given (AUTOMATIC-MIGRATION FEATURE). (default: True)."
+                        help="Enable or disable Live Dashboard feature during Autometed Migration Job. This argument only applies if both '--source' and '--target' arguments are given (AUTOMATIC-MIGRATION FEATURE). (default: True)."
     )
     PARSER.add_argument("-parallel", "--parallel-migration",
                         metavar="= [true,false]",
@@ -85,7 +85,7 @@ def parse_arguments():
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=True,  # Si no se pasa el argumento, el valor por defecto es True
                         type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="Select Parallel/Secuencial Migration during Automatic Migration Job. This flag only applies if both '--source' and '--target' flags are given (AUTOMATIC-MIGRATION FEATURE). (default: True)."
+                        help="Select Parallel/Secuencial Migration during Automatic Migration Job. This argument only applies if both '--source' and '--target' arguments are given (AUTOMATIC-MIGRATION FEATURE). (default: True)."
     )
 
 
@@ -136,7 +136,7 @@ def parse_arguments():
     PARSER.add_argument("-gTakeout", "--google-takeout", metavar="<TAKEOUT_FOLDER>", default="",
                         help="Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize assets inside it. If any Zip file is found inside it, the Zip will be extracted to the folder '<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>', and will use the that folder as input <TAKEOUT_FOLDER>."
                           "\nThe processed Takeout will be saved into the folder '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'"
-                          "\nThis flag is mandatory to run the Google Takeout Processor Feature."
+                          "\nThis argument is mandatory to run the Google Takeout Processor Feature."
                         )
     PARSER.add_argument("-gofs", "--google-output-folder-suffix", metavar="<SUFFIX>", default="processed", help="Specify the suffix for the output folder. Default: 'processed'")
     PARSER.add_argument("-gafs", "--google-albums-folders-structure", metavar=f"{choices_for_folder_structure}", default="flatten", help="Specify the type of folder structure for each Album folder (Default: 'flatten')."
@@ -174,26 +174,26 @@ def parse_arguments():
     # FEATURES FOR SYNOLOGY/IMMICH PHOTOS:
     # -------------------------------
     PARSER.add_argument("-uAlb", "--upload-albums", metavar="<ALBUMS_FOLDER>", default="",
-                        help="The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into the selected Photo client.\nYou must provide the Photo client using the mandatory flag '--client'.")
+                        help="The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and will create one Album per subfolder into the selected Photo client.\nYou must provide the Photo client using the mandatory argument '--client'.")
     PARSER.add_argument("-dAlb", "--download-albums", metavar="<ALBUMS_NAME>", nargs="+", default="",
-                        help="The Tool will connect to the selected Photo client and will download those Albums whose name is in '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the flag '-o, --output-folder <OUTPUT_FOLDER>' (mandatory flag for this feature).\nYou must provide the Photo client using the mandatory flag '--client'."
+                        help="The Tool will connect to the selected Photo client and will download those Albums whose name is in '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for this feature).\nYou must provide the Photo client using the mandatory argument '--client'."
                              "\n- To download ALL Albums use 'ALL' as <ALBUMS_NAME>."
                              "\n- To download all albums mathing any pattern you can use patterns in ALBUMS_NAME, i.e: --download-albums 'dron*' to download all albums starting with the word 'dron' followed by other(s) words."
                              "\n- To download several albums you can separate their names by comma or space and put the name between double quotes. i.e: --download-albums 'album1', 'album2', 'album3'."
                         )
     PARSER.add_argument("-uAll", "--upload-all", metavar="<INPUT_FOLDER>", default="",
-                        help="The Tool will look for all Assets within <INPUT_FOLDER> and will upload them into the selected Photo client.\nYou must provide the Photo client using the mandatory flag '--client'."
+                        help="The Tool will look for all Assets within <INPUT_FOLDER> and will upload them into the selected Photo client.\nYou must provide the Photo client using the mandatory argument '--client'."
                              "\n- The Tool will create a new Album per each Subfolder found in 'Albums' subfolder and all assets inside each subfolder will be associated to a new Album in the selected Photo client with the same name as the subfolder."
-                             "\n- If the flag '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also passed, then this function will create Albums also for each subfolder found in <ALBUMS_FOLDER>."
+                             "\n- If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also passed, then this function will create Albums also for each subfolder found in <ALBUMS_FOLDER>."
                         )
     PARSER.add_argument("-dAll", "--download-all", metavar="<OUTPUT_FOLDER>", default="",
-                        help="The Tool will connect to the selected Photo client and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.\nYou must provide the Photo client using the mandatory flag '--client'."
+                        help="The Tool will connect to the selected Photo client and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.\nYou must provide the Photo client using the mandatory argument '--client'."
                              "\n- All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the same name of the Album and all files will be flattened into it."
                              "\n- Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside."
                         )
 
     PARSER.add_argument("-rOrphan", "--remove-orphan-assets", action="store_true", default="",
-                        help="The Tool will look for all Orphan Assets in the selected Photo client and will remove them.\nYou must provide the Photo client using the mandatory flag '--client'. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in Config.ini.")
+                        help="The Tool will look for all Orphan Assets in the selected Photo client and will remove them.\nYou must provide the Photo client using the mandatory argument '--client'. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in Config.ini.")
 
     PARSER.add_argument("-rAll", "--remove-all-assets", action="store_true", default="",
                         help="CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also ALL your Albums from the selected Photo client.\nYou must provide the Photo client using the mandatory flag '--client'.")
@@ -283,6 +283,8 @@ def validate_client_arg(ARGS, PARSER):
 
 def checkArgs(ARGS, PARSER):
     global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
+    # Assigns --input-folder value  to google-takeout instead
+    ARGS['input-folder'] = ARGS['input-folder']
 
     # Check all provided arguments in the list of arguments to check to resolve the paths correctly for both, docker instance and normal instance.
     keys_to_check = ['source', 'target', 'input-folder', 'output-folder', 'albums-folder', 'google-takeout',

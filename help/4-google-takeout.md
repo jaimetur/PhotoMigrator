@@ -20,9 +20,9 @@
 
 - If you execute the tool without arguments or with your Takeout folder as unique argument by default the tool will execute the Feature **Google Takeout Process** (requesting the user to select the Takeout folder if not detected). 
 
-- The Takeout Processing can be configured with different settings, depoending on the flags used during the call to the Tool.
+- The Takeout Processing can be configured with different settings, depoending on the arguments used during the call to the Tool.
 
-- The whole process will do the next actions if all flags are false (by default):  
+- The whole process will do the next actions if all flags are disabled (by default):  
 
 0. Unzip all the Takeout Zips from the <TAKEOUT_FOLDER> into a subfolder named './<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>' (by default). This step will be skipped if you already have your Takeout folder unzipped.
    

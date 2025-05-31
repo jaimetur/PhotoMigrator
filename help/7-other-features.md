@@ -15,7 +15,7 @@
 # <span style="color:blue"> Find Duplicates (Extra Feature)</span>
 - **From:** v1.4.0
 - **Usage:**
-  - To run this feature you have to use the flag '-findDup, --find-duplicates \<ACTION> \<DUPLICATES_FOLDER>'
+  - To run this feature you have to use the argument '-findDup, --find-duplicates \<ACTION> \<DUPLICATES_FOLDER>'
   - where, 
       - \<DUPLICATES_FOLDER> is the folder (or list of folders) where the Tool will look for duplicates files. If you provide more than one folder, when a duplicated file is found, the Tool will maintain the file found within the folder given first in the list of folders provided. If the duplicated files are within the same folder, then the Tool will maintain the file whose name is shorter.
       - \<ACTION> is an action to specify what to do with duplicates files found. You can include any of the valid actions. 
@@ -39,7 +39,7 @@
 # <span style="color:blue"> Process Duplicates (Extra Feature)</span>
 - **From:** v1.6.0
 - **Usage:**
-  - To run this feature you have to use the flag '-procDup, --process-duplicates <DUPLICATES_REVISED_CSV>'
+  - To run this feature you have to use the argument '-procDup, --process-duplicates <DUPLICATES_REVISED_CSV>'
   - where <DUPLICATES_REVISED_CSV> is the output file generated after execution of the 'Find Duplicates' feature.
 - **Pre-Requisites:**
   - None
@@ -63,7 +63,7 @@
 # <span style="color:blue"> Fix Symbolic Links Broken (Extra Feature)</span>
 - **From:** v1.5.0
 - **Usage:**
-  - To run this feature you have to use the flag '-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>'.
+  - To run this feature you have to use the argument '-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>'.
   - where <FOLDER_TO_FIX> is the folder that contains the Symbolic Links to fix.
 - **Pre-Requisites:**
   - None
@@ -85,7 +85,7 @@
 # <span style="color:blue"> Folder Rename Content Based (Extra Feature)</span>
 - **From:** v2.0.0
 - **Usage:**
-  - To run this feature you have to use the flag '-renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>'.
+  - To run this feature you have to use the argument '-renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>'.
   - where <ALBUMS_FOLDER> is the folder that contains all the Albums subfolders to rename.
 - **Pre-Requisites:**
   - None
