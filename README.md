@@ -136,7 +136,7 @@ The below tables show the pros and cons of each method together with a comparati
 
 
 - ### 🆚 Execution Methods Comparison Rating
-  | Feature                                               | Binaries<br>*easiest way* | Docker<br>*recommended* | Source<br>*more difficult* |
+  | Feature                                               | Binaries<br>(*easiest way*) | Docker<br>(*recommended*) | Source<br>(*more difficult*) |
   |-------------------------------------------------------|---------------------------|-------------------------|----------------------------|
   | Platform and architecture independence                | ⭐☆☆☆☆                     | ⭐⭐⭐⭐⭐                   | ⭐⭐⭐⭐⭐                      |
   | Ease of updating to new release                       | ⭐⭐⭐☆☆                     | ⭐⭐⭐⭐⭐                   | ⭐☆☆☆☆                      |
@@ -227,7 +227,7 @@ The Historical Releases Notes can be checked in the following link:
 ---
 
 ## 📅 ROADMAP:
-Planed [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/ROADMAP.md)  for the following releases.
+Planed Roadmap for the following releases
 
 
 ---
@@ -247,10 +247,11 @@ Planed [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/ROADMA
     - [ ] Include native support for Google Photos through API  
       (See: https://max-coding.medium.com/loading-photos-and-metadata-using-google-photos-api-with-python-7fb5bd8886ef)
         - [ ] Create Class ClassGooglePhotos with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
+    - [ ] Include Nextcloud Support (initially just for downloading)
+        - [ ] Create Class ClassNextCloud with the same methods and behaviour as ClassSynologyPhotos or ClassImmichPhotos. (volunteers are welcomed)
     - [ ] Allow Google Photos and Apple Photos as TARGET in AUTOMATIC-MODE
     - [ ] Include Test Cases to check all features
     - [ ] Add Github Action to execute all Test Cases
-
 
 ## 🎖️ Credits:
 I hope this can be useful for any of you. Enjoy it!
