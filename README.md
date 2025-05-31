@@ -102,7 +102,7 @@ You can check the whole list of features and arguments with the right syntax her
 
 
 ## 📚 Arguments Description & Usage examples:
-Check all arguments descriptions and usage examples in the [Arguments Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description.md)  
+Check all arguments descriptions and usage examples in the [Arguments Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description.md)  or in the [shorter version](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description-short.md).
 
 
 ## 📘 All Documentation Links:

@@ -1,4 +1,9 @@
-# 📸 PhotoMigrator Command Line Arguments
+# 📚 Arguments Description
+This section describe the different arguments and flags used by the tool.  
+- An **argument** is a modifier that is followed by any parameter.
+- On the other hand, a **flag** is a modifier that don't requires any parameter, hence, if the flag is present the feature is enabled, otherwise, the feature is disabled.
+
+There is also a [extended version](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description.md) of this doccument available.
 
 ## 🧩 Core Arguments
 
@@ -17,13 +22,13 @@ PhotoMigrator.run --version
 
 ## 🚀 Automatic Migration Process
 
-| Argument               | Description                                                       |
-|------------------------|-------------------------------------------------------------------|
-| `--source <SOURCE>`    | Source service or folder: `immich-1`, `synology-2`, or local path |
-| `--target <TARGET>`    | Target service or folder: same format as `--source`               |
-| `--move-assets`        | Move instead of copy files (`true` or `false`)                    |
-| `--dashboard`          | Show live dashboard during migration (`true` or `false`)          |
-| `--parallel-migration` | Run migration in parallel or sequential (`true` or `false`)       |
+| Argument               | Description                                                     |
+|------------------------|-----------------------------------------------------------------|
+| `--source <SOURCE>`    | Source service or folder: `immich`, `synology`, or `local path` |
+| `--target <TARGET>`    | Target service or folder: `immich`, `synology`, or `local path` |
+| `--move-assets`        | Move instead of copy files (`true` or `false`)                  |
+| `--dashboard`          | Show live dashboard during migration (`true` or `false`)        |
+| `--parallel-migration` | Run migration in parallel or sequential (`true` or `false`)     |
 
 ### 🧪 Examples
 ```bash

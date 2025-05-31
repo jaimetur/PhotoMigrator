@@ -1,6 +1,11 @@
-# Arguments Description
+# 📚 Arguments Description
 
 ---
+This section describe the different arguments and flags used by the tool.  
+- An **argument** is a modifier that is followed by any parameter.
+- On the other hand, a **flag** is a modifier that don't requires any parameter, hence, if the flag is present the feature is enabled, otherwise, the feature is disabled.
+
+There is also a [shorter version](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description-short.md) of this doccument available.
 
 ## 🧩 Core Arguments
 
@@ -12,13 +17,13 @@
 ## 🔄 Automatic Migration
 Following arguments allow you execute the Automatic Migration Process to migrate your assets from one Photo Cloud Service to other, or from two different accounts within the same Photo Cloud service.
 
-| Argument               | Parameter  | Type              |              Valid Values               | Description                                             |
-|------------------------|------------|-------------------|:---------------------------------------:|---------------------------------------------------------|
-| `--source`             | `<SOURCE>` | path / <br>string | existing path, <br>synology, <br>immich | Defines the source for the automatic migration process. |
-| `--target`             | `<TARGET>` | path / <br>string | existing path, <br>synology, <br>immich | Defines the target for the automatic migration process. |
-| `--move-assets`        | `<bool>`   | bool              |    true, false <br>(default: false)     | Enable / Disables move assets instead of copying them.  |
-| `--dashboard`          | `<bool>`   | bool              |     true, false <br>(default: true)     | Enables / Disables the live dashboard during migration. |
-| `--parallel-migration` | `<bool>`   | bool              |     true, false <br>(default: true)     | Enables / Disables parallel asset migration.            |
+| Argument               | Parameter  | Type              |                 Valid Values                  | Description                                             |
+|------------------------|------------|-------------------|:---------------------------------------------:|---------------------------------------------------------|
+| `--source`             | `<SOURCE>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich` | Defines the source for the automatic migration process. |
+| `--target`             | `<TARGET>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich` | Defines the target for the automatic migration process. |
+| `--move-assets`        | `<bool>`   | bool              |    `true`, `false` <br>`(default: false)`     | Enable / Disables move assets instead of copying them.  |
+| `--dashboard`          | `<bool>`   | bool              |    `true`, `false` <br>`(default: false)`     | Enables / Disables the live dashboard during migration. |
+| `--parallel-migration` | `<bool>`   | bool              |    `true`, `false` <br>`(default: false)`     | Enables / Disables parallel asset migration.            |
 
 #### 🧪 Examples:
 ```bash
@@ -30,23 +35,23 @@ PhotoMigrator.run --source=synology-1 --target=immich-1 --parallel-migration=fal
 ## ⚙️ General Options
 Following general flags have different purposses depending on the Execution Mode.
 
-| Argument                 | Parameter         | Type   |               Valid Values               | Description                                             |
-|--------------------------|-------------------|--------|:----------------------------------------:|---------------------------------------------------------|
-| `--input-folder`         | `<INPUT_FOLDER>`  | path   |                                          | Folder containing assets to be processed.               |
-| `--output-folder`        | `<OUTPUT_FOLDER>` | path   |                                          | Folder where processed assets or results will be saved. |
-| `--client`               | `<CLIENT>`        | string | google-takeout, <br>synology, <br>immich | Specifies the service to interact with.                 |
-| `--account-id`           | `<ID>`            | int    |         1, 2, 3 <br>(default: 1)         | ID of the configured account in Config.ini.             |
-| `--one-time-password`    |                   | flag   |                                          | Enables / Disables OTP login for Synology (2FA).        |
-| `--filter-from-date`     | `<FROM_DATE>`     | date   |                                          | Filters assets from this date onward.                   |
-| `--filter-to-date`       | `<TO_DATE>`       | date   |                                          | Filters assets up to this date.                         |
-| `--filter-by-country`    | `<COUNTRY>`       | string |                                          | Filters assets by country.                              |
-| `--filter-by-city`       | `<CITY>`          | string |                                          | Filters assets by city.                                 |
-| `--filter-by-person`     | `<PERSON>`        | string |                                          | Filters assets by person name.                          |
-| `--filter-by-type`       | `<TYPE>`          | string |   image, video, all <br>(default: all)   | Filters assets by type.                                 |
-| `--albums-folders`       | `<ALBUMS_FOLDER>` | path   |                                          | Creates albums for subfolders inside.                   |
-| `--remove-albums-assets` |                   | flag   |                                          | Removes assets inside albums when albums are removed.   |
-| `--no-log-file`          |                   | flag   |                                          | Disables writing to log file.                           |
-| `--log-level`            | `<LEVEL>`         | string | debug, <br>info, <br>warning, <br>error  | Sets logging verbosity.                                 |
+| Argument                 | Parameter         | Type   |                  Valid Values                   | Description                                             |
+|--------------------------|-------------------|--------|:-----------------------------------------------:|---------------------------------------------------------|
+| `--input-folder`         | `<INPUT_FOLDER>`  | path   |                 `existing path`                 | Folder containing assets to be processed.               |
+| `--output-folder`        | `<OUTPUT_FOLDER>` | path   |                  `valid path`                   | Folder where processed assets or results will be saved. |
+| `--client`               | `<CLIENT>`        | string | `google-takeout`, <br>`synology`, <br>`immich`  | Specifies the service to interact with.                 |
+| `--account-id`           | `<ID>`            | int    |        `1`, `2`, `3` <br>`(default: 1)`         | ID of the configured account in Config.ini.             |
+| `--one-time-password`    |                   | flag   |                                                 | Enables / Disables OTP login for Synology (2FA).        |
+| `--filter-from-date`     | `<FROM_DATE>`     | date   |     `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets from this date onward.                   |
+| `--filter-to-date`       | `<TO_DATE>`       | date   |     `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets up to this date.                         |
+| `--filter-by-country`    | `<COUNTRY>`       | string |                 `country-name`                  | Filters assets by country.                              |
+| `--filter-by-city`       | `<CITY>`          | string |                   `city-name`                   | Filters assets by city.                                 |
+| `--filter-by-person`     | `<PERSON>`        | string |                  `person-name`                  | Filters assets by person name.                          |
+| `--filter-by-type`       | `<TYPE>`          | string |  `image`, `video`, `all` <br>`(default: all)`   | Filters assets by type.                                 |
+| `--albums-folders`       | `<ALBUMS_FOLDER>` | path   |                 `existing path`                 | Creates albums for subfolders inside.                   |
+| `--remove-albums-assets` |                   | flag   |                                                 | Removes assets inside albums when albums are removed.   |
+| `--no-log-file`          |                   | flag   |                                                 | Disables writing to log file.                           |
+| `--log-level`            | `<LEVEL>`         | string | `debug`, <br>`info`, <br>`warning`, <br>`error` | Sets logging verbosity.                                 |
 
 #### 🧪 Examples:
 ```bash
@@ -61,10 +66,10 @@ If only the flag -gTakeout, --google-takeout <TAKEOUT_FOLDER> is detected, then 
 
 Following arguments allow you to interact with Google Photos Takeout Folder.   
 
-| Argument                              | Parameter          | Type   | Valid Values                                                                       | Description                                                        |
-|---------------------------------------|--------------------|--------|------------------------------------------------------------------------------------|--------------------------------------------------------------------|
+| Argument                              | Parameter          | Type   |                                    Valid Values                                    | Description                                                        |
+|---------------------------------------|--------------------|--------|:----------------------------------------------------------------------------------:|--------------------------------------------------------------------|
 | `--google-takeout`                    | `<TAKEOUT_FOLDER>` | path   |                                                                                    | Path to the Takeout folder (either zipped or unzipped) to process. |
-| `--google-output-folder-suffix`       | `<SUFFIX>`         | string | `(default: processed)`                                                             | Suffix to add to the output folder.                                |
+| `--google-output-folder-suffix`       | `<SUFFIX>`         | string |                              `(default: 'processed')`                              | Suffix to add to the output folder.                                |
 | `--google-albums-folders-structure`   | `<STRUCTURE>`      | string | `flatten`, <br>`year`, <br>`year/month`, <br>`year-month` <br>`(default: flatten)` | Folder structure for Albums.                                       |
 | `--google-no-albums-folder-structure` | `<STRUCTURE>`      | string | `flatten`, <br>`year`, <br>`year/month`, <br>`year-month` <br>`(default: flatten)` | Folder structure for No-Albums.                                    |
 | `--google-create-symbolic-albums`     |                    | flag   |                                                                                    | Creates symlinks for albums instead of duplicating files.          |
@@ -74,8 +79,8 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 | `--google-skip-extras-files`          |                    | flag   |                                                                                    | Skips extra Google photos like edited/effects.                     |
 | `--google-skip-move-albums`           |                    | flag   |                                                                                    | Skips moving albums to 'Albums' folder.                            |
 | `--google-skip-gpth-tool`             |                    | flag   |                                                                                    | Skips GPTH tool processing (not recommended).                      |
-| `--show-gpth-info`                    | `<bool>`           | bool   | `true`, `false` <br>`(default: false)`                                             | Show GPTH progress messages.                                       |
-| `--show-gpth-errors`                  | `<bool>`           | bool   | `true`, `false` <br>`(default: true)`                                              | Show GPTH error messages.                                          |
+| `--show-gpth-info`                    | `<bool>`           | bool   |                       `true`, `false` <br>`(default: false)`                       | Show GPTH progress messages.                                       |
+| `--show-gpth-errors`                  | `<bool>`           | bool   |                       `true`, `false` <br>`(default: true)`                        | Show GPTH error messages.                                          |
 
 #### 🧪 Examples:
 ```bash
@@ -91,20 +96,20 @@ If more than one optional flags are detected, only the first one will be execute
 
 Following arguments allow you to interact with Synology/Immich Photos.
 
-| Argument                     | Parameter                                       | Type              | Valid Values | Description                                               |
-|------------------------------|-------------------------------------------------|-------------------|--------------|-----------------------------------------------------------|
-| `--upload-albums`            | `<ALBUMS_FOLDER>`                               | path              |              | Uploads albums from folders to the selected photo client. |
-| `--download-albums`          | `<ALBUM_NAMES>`                                 | list              |              | Downloads albums by name to the output folder.            |
-| `--upload-all`               | `<INPUT_FOLDER>`                                | path              |              | Uploads all assets and creates albums by subfolder.       |
-| `--download-all`             | `<OUTPUT_FOLDER>`                               | path              |              | Downloads all albums and assets to this folder.           |
-| `--remove-orphan-assets`     |                                                 | flag              |              | Removes orphan assets (admin API key required).           |
-| `--remove-all-assets`        |                                                 | flag              |              | Removes all albums and assets from the client.            |
-| `--remove-all-albums`        |                                                 | flag              |              | Removes all albums from the photo client.                 |
-| `--remove-albums`            | `<PATTERN>`                                     | string            |              | Removes albums matching name pattern.                     |
-| `--remove-empty-albums`      |                                                 | flag              |              | Removes empty albums.                                     |
-| `--remove-duplicates-albums` |                                                 | flag              |              | Removes duplicate albums with same name/size.             |
-| `--merge-duplicates-albums`  |                                                 | flag              |              | Merges duplicate albums (moves all assets).               |
-| `--rename-albums`            | `<ALBUMS_NAME_PATTERN>` `<PATTERN,REPLACEMENT>` | `string` `string` |              | Renames albums using a name pattern.                      |
+| Argument                     | Parameter                                       |       Type        |   Valid Values   | Description                                               |
+|------------------------------|-------------------------------------------------|:-----------------:|:----------------:|-----------------------------------------------------------|
+| `--upload-albums`            | `<ALBUMS_FOLDER>`                               |       path        | `existing path`  | Uploads albums from folders to the selected photo client. |
+| `--download-albums`          | `<ALBUM_NAMES>`                                 |       list        | `existing album` | Downloads albums by name to the output folder.            |
+| `--upload-all`               | `<INPUT_FOLDER>`                                |       path        | `existing path`  | Uploads all assets and creates albums by subfolder.       |
+| `--download-all`             | `<OUTPUT_FOLDER>`                               |       path        | `existing path`  | Downloads all albums and assets to this folder.           |
+| `--rename-albums`            | `<ALBUMS_NAME_PATTERN>` `<PATTERN_REPLACEMENT>` | `string` `string` | `regex pattern`  | Renames albums using a name pattern.                      |
+| `--remove-albums`            | `<PATTERN>`                                     |      string       | `regex pattern`  | Removes albums matching name pattern.                     |
+| `--remove-empty-albums`      |                                                 |       flag        |                  | Removes empty albums.                                     |
+| `--remove-duplicates-albums` |                                                 |       flag        |                  | Removes duplicate albums with same name/size.             |
+| `--merge-duplicates-albums`  |                                                 |       flag        |                  | Merges duplicate albums (moves all assets).               |
+| `--remove-all-assets`        |                                                 |       flag        |                  | Removes all albums and assets from the client.            |
+| `--remove-all-albums`        |                                                 |       flag        |                  | Removes all albums from the photo client.                 |
+| `--remove-orphan-assets`     |                                                 |       flag        |                  | Removes orphan assets (admin API key required).           |
 
 #### 🧪 Examples:
 ```bash
@@ -120,9 +125,9 @@ Following arguments can be used to execute the Tool in any of the usefull additi
 | Argument                         | Parameter              | Type          |                  Valid Values                  | Description                                                                                                                                                               |
 |----------------------------------|------------------------|---------------|:----------------------------------------------:|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `--find-duplicates`              | `<ACTION> <FOLDER(S)>` | string + list | `move`, `delete`, `list` <br>+<br> `[folders]` | Finds duplicate files in the given folders and applies the specified action. <br><br>if action is 'list', only output csv will be generated and any file will be touched. |
-| `--process-duplicates`           | `<CSV_FILE>`           | path          |                                                | Processes duplicate file actions from CSV and applies what the action set in Action column for each file.                                                                 |
-| `--fix-symlinks-broken`          | `<FOLDER>`             | path          |                                                | Fixes broken album symbolic links.                                                                                                                                        |
-| `--rename-folders-content-based` | `<ALBUMS_FOLDER>`      | path          |                                                | Renames folders based on internal dates.                                                                                                                                  |
+| `--process-duplicates`           | `<CSV_FILE>`           | path          |                  `path to .csv`                  | Processes duplicate file actions from CSV and applies what the action set in Action column for each file.                                                                 |
+| `--fix-symlinks-broken`          | `<FOLDER>`             | path          |                 `existing path`                  | Fixes broken album symbolic links.                                                                                                                                        |
+| `--rename-folders-content-based` | `<ALBUMS_FOLDER>`      | path          |                 `existing path`                  | Renames folders based on internal dates.                                                                                                                                  |
 
 #### 🧪 Examples:
 ```bash
