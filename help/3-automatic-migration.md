@@ -1,7 +1,7 @@
 # <span style="color:green">🚀 Automatic Migration Feature:</span>
 
 > [!NOTE]  
->## <span style="color:green">Automatic Migration Feature</span>
+>## <span style="color:green">🚀 Automatic Migration Feature</span>
 >From version 3.0.0 onwards, the Tool supports a new Feature called '**Automatic Migration**'. 
 >
 > Use the argument **'--source'** to select the \<SOURCE> client and the argument **'--target'** to select \<TARGET> client for the Automatic Migration Process to Pull all your Assets (including Albums) from the \<SOURCE> Cloud Service and Push them to the \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
@@ -19,23 +19,23 @@
 >
 > Also, you can ommit the suffix -photos in both \<SOURCE> and \<TARGET> clients, so, you can just use --source=synology --target=immich to set Synology Photos account 1 as \<SOURCE> client and Immich Photos account 1 as \<TARGET> client.  
 > 
-> It is also possible to specify the account-id using the flag _**'-id, --account-id \<ID>'**_ (ie: --source=synology --account-id=2 means that Synology Photos account 2 will be used as \<SOURCE> client.)  
+> It is also possible to specify the account-id using the argument _**'-id, --account-id \<ID>'**_ (ie: --source=synology --account-id=2 means that Synology Photos account 2 will be used as \<SOURCE> client.)  
 > 
 >> ⚠️ **IMPORTANT**:  
->> Take into account that the flag _**'-id, --account-id \<ID>'**_ applies for all the Photo Cloud Services (Synology Photos and Immich Photos, so if you specify the client ID using this flag and you have more than one Photo Cloud Service, all of them will use the same client ID.)
+>> Take into account that the argument _**'-id, --account-id \<ID>'**_ applies for all the Photo Cloud Services (Synology Photos and Immich Photos, so if you specify the client ID using this argument, and you have more than one Photo Cloud Service, all of them will use the same client ID.)
 > 
 > By default, the whole Migration process is executed in parallel using multi-threads (it will detect automatically the number of threads of the CPU to set properly the number of Push workers). The Pull worker and the different Push workes will be executed in parallel using an assets queue to guarantee that no more than 100 assets will be temporarily stored on your local drive, so you don't need to care about the hard disk space needed during this migration process.  
 > 
-> By default, (if your terminal size has enough width and heigh) a Live Dashboard will show you all the details about the migration process, including most relevant log messages, and counter status. You can disable this Live Dashboard using the flag **'-dashboard=false or --dashboard=false'**.   
+> By default, (if your terminal size has enough width and heigh) a Live Dashboard will show you all the details about the migration process, including most relevant log messages, and counter status. You can disable this Live Dashboard using the argument **'-dashboard=false or --dashboard=false'**.   
 > 
-> Additionally, this Automatic Migration process can also be executed sequentially instead of in parallel, using flag **--parallel=false**, so first, all the assets will be pulled from <SOURCE> and when finish, they will be pushed into <TARGET>, but take into account that in this case, you will need enough disk space to store all your assets pulled from <SOURCE> service.
+> Additionally, this Automatic Migration process can also be executed sequentially instead of in parallel, using argument **--parallel=false**, so first, all the assets will be pulled from <SOURCE> and when finish, they will be pushed into <TARGET>, but take into account that in this case, you will need enough disk space to store all your assets pulled from <SOURCE> service.
 >
 > Finally, you can apply filters to filter assets to pull from \<SOURCE> client. The available filters are: 
 >    - **by Type:**
->      - flag: -type, --filter-by-type
+>      - argument: -type, --filter-by-type
 >        - Valid values are [image, video, all]
 >    - **by Dates:**
->      - flags:
+>      - arguments:
 >        - -from, --filter-from-date
 >        - -to, --filter-to-date
 >      - Valid values are in one of those formats: 
@@ -49,13 +49,13 @@
 >        - yyyy-mm
 >        - yyyy 
 >    - **by Country:**
->      - flag: -country, --filter-by-country
+>      - argument: -country, --filter-by-country
 >        - Valid values are any existing country in the \<SOURCE> client.
 >    - **by City:**
->      - flag: -city, --filter-by-city
+>      - argument: -city, --filter-by-city
 >        - Valid values are any existing city in the \<SOURCE> client.
 >    - **by Person:**
->      - flag: -person, --filter-by-person
+>      - argument: -person, --filter-by-person
 >        - Valid values are any existing person in the \<SOURCE> client.
 
 > [!WARNING]  

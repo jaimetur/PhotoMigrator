@@ -187,7 +187,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 {Fore.YELLOW}
                 AUTOMATIC MIGRATION PROCESS:
                 ----------------------------{Style.RESET_ALL}
-                Following flags allow you execute the Automatic Migration Process to migrate your assets from one Photo Cloud Service to other, or from two different accounts within the same Photo Cloud service. 
+                Following arguments allow you execute the Automatic Migration Process to migrate your assets from one Photo Cloud Service to other, or from two different accounts within the same Photo Cloud service. 
 
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
@@ -200,7 +200,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 {Fore.YELLOW}
                 GENERAL ARGUMENTS:
                 ------------------{Style.RESET_ALL}
-                Following general flags have different purposses depending on the Execution Mode. 
+                Following general arguments have different purposses depending on the Execution Mode. 
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
@@ -212,9 +212,9 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 {Fore.YELLOW}
                 GOOGLE PHOTOS TAKEOUT MANAGEMENT:
                 ---------------------------------{Style.RESET_ALL}
-                Following flags allow you to interact with Google Photos Takeout Folder. 
-                In this mode, you can use more than one optional flags from the below list.
-                If only the flag -gTakeout, --google-takeout <TAKEOUT_FOLDER> is detected, then the Tool will use the default values for the rest of the flags for this extra mode.
+                Following arguments allow you to interact with Google Photos Takeout Folder. 
+                In this mode, you can use more than one optional arguments from the below list.
+                If only the argument -gTakeout, --google-takeout <TAKEOUT_FOLDER> is detected, then the Tool will use the default values for the rest of the arguments for this extra mode.
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
@@ -225,8 +225,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 {Fore.YELLOW}
                 SYNOLOGY PHOTOS MANAGEMENT:
                 ---------------------------{Style.RESET_ALL}
-                Following flags allow you to interact with Synology Photos. 
-                If more than one optional flags are detected, only the first one will be executed.
+                Following arguments allow you to interact with Synology Photos. 
+                If more than one optional arguments are detected, only the first one will be executed.
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
@@ -237,8 +237,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 {Fore.YELLOW}
                 IMMICH PHOTOS MANAGEMENT:
                 -------------------------{Style.RESET_ALL}
-                Following flags allow you to interact with Immich Photos. 
-                If more than one optional flags are detected, only the first one will be executed.
+                Following arguments allow you to interact with Immich Photos. 
+                If more than one optional arguments are detected, only the first one will be executed.
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
@@ -249,12 +249,12 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 {Fore.YELLOW}
                 SYNOLOGY/IMMICH PHOTOS MANAGEMENT:
                 ----------------------------------{Style.RESET_ALL}
-                To use following features, it is mandatory to use the flag '--client=[synology, immich]' to specify which Photo Service do you want to use.   
+                To use following features, it is mandatory to use the argument '--client=[synology, immich]' to specify which Photo Service do you want to use.   
                 
-                You can optionally use the flag '--id=[1-3]' to specify the account id for a particular account defined in Config.ini.                  
+                You can optionally use the argument '--id=[1-3]' to specify the account id for a particular account defined in Config.ini.                  
                 
-                Following flags allow you to interact with Synology/Immich Photos. 
-                If more than one optional flags are detected, only the first one will be executed.
+                Following arguments allow you to interact with Synology/Immich Photos. 
+                If more than one optional arguments are detected, only the first one will be executed.
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
@@ -265,7 +265,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 {Fore.YELLOW}
                 OTHER STANDALONE FEATURES:
                 --------------------------{Style.RESET_ALL}
-                Following flags can be used to execute the Tool in any of the usefull additionals Extra Standalone Features included. 
+                Following arguments can be used to execute the Tool in any of the usefull additionals Extra Standalone Features included. 
                 If more than one Feature is detected, only the first one will be executed.
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'

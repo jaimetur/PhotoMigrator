@@ -11,7 +11,7 @@
   <img src="https://github.com/jaimetur/PhotoMigrator/blob/main/assets/logos/logo.jpg?raw=true" alt="PhotoMigrator Logo" width="600" height="400" />
 </p>
 
-This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automatic Migration**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-automatic-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service. 
+This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">[**Automatic Migration**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md) </span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service. 
 
 
 ## 🖥️ Live Dashboard Preview:
@@ -19,7 +19,7 @@ This tool has been designed to Interact and Manage different Photos Cloud servic
 
 ## 🌟 Main Features:
 Currently, the Features Included per each Supported Photo Cloud Service are:
-- [**Google Photos Takeout**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-google-takeout.md)
+- [**Google Photos Takeout**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
   - Unpack your Takeout Zip files.
   - Process .json files to fix metadata (including creation date and time) of all your assets.
   - Merge Live picture with separate files (.HEIC and .MP4).
@@ -28,32 +28,32 @@ Currently, the Features Included per each Supported Photo Cloud Service are:
   - Create Symbolic Links for assets within any Album (to save disk space).
   - Detect and remove duplicates.
 
-- [**Synology Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-synology-photos.md) - Features included:
-  - Upload Album(s) (from folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-synology-photos.md#upload-albums-from-local-folder-into-synology-photos)
-  - Download Album(s) (into folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-synology-photos.md#download-albums-from-synology-photos)
-  - Upload ALL (from folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-synology-photos.md#upload-all-from-local-folder-into-synology-photos)
-  - Download ALL (into folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-synology-photos.md#download-all-from-synology-photos)
-  - Remove ALL Assets [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-synology-photos.md#remove-all-assets-from-synology-photos)
-  - Remove ALL Albums [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-synology-photos.md#remove-all-albums-from-synology-photos)
-  - Remove Albums by Name Pattern [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-synology-photos.md#remove-albums-by-name-pattern-from-synology-photos)
-  - Rename Albums by Name Pattern [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-synology-photos.md#rename-albums-by-name-pattern-from-synology-photos)
-  - Remove Empty Albums [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-synology-photos.md#remove-empty-albums-from-synology-photos)
-  - Remove Duplicates Albums [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-synology-photos.md#remove-duplicates-albums-from-synology-photos)
-  - Merge Duplicates Albums [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-synology-photos.md#merge-duplicates-albums-from-synology-photos)
+- [**Synology Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md) - Features included:
+  - Upload Album(s) (from folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#upload-albums-from-local-folder-into-synology-photos)
+  - Download Album(s) (into folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#download-albums-from-synology-photos)
+  - Upload ALL (from folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#upload-all-from-local-folder-into-synology-photos)
+  - Download ALL (into folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#download-all-from-synology-photos)
+  - Remove ALL Assets [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#remove-all-assets-from-synology-photos)
+  - Remove ALL Albums [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#remove-all-albums-from-synology-photos)
+  - Remove Albums by Name Pattern [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#remove-albums-by-name-pattern-from-synology-photos)
+  - Rename Albums by Name Pattern [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#rename-albums-by-name-pattern-from-synology-photos)
+  - Remove Empty Albums [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#remove-empty-albums-from-synology-photos)
+  - Remove Duplicates Albums [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#remove-duplicates-albums-from-synology-photos)
+  - Merge Duplicates Albums [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#merge-duplicates-albums-from-synology-photos)
 
-- [**Immich Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-immich-photos.md) - Features included:
-  - Upload Album(s) (from folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-immich-photos.md#upload-albums-from-local-folder-into-immich-photos)
-  - Download Album(s) (into folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-immich-photos.md#download-albums-from-immich-photos)
-  - Upload ALL (from folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-immich-photos.md#upload-all-from-local-folder-into-immich-photos)
-  - Download ALL (into folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-immich-photos.md#download-all-from-immich-photos)
-  - Remove ALL Assets [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-immich-photos.md#remove-all-assets-from-immich-photos)
-  - Remove ALL Albums [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-immich-photos.md#remove-all-albums-from-immich-photos)
-  - Remove Albums by Name Pattern [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-immich-photos.md#remove-albums-by-name-pattern-from-immich-photos)
-  - Rename Albums by Name Pattern [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-immich-photos.md#rename-albums-by-name-pattern-from-immich-photos)
-  - Remove Empty Albums [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-immich-photos.md#remove-empty-albums-from-immich-photos)
-  - Remove Duplicates Albums [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-immich-photos.md#remove-duplicates-albums-from-immich-photos)
-  - Merge Duplicates Albums [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-immich-photos.md#merge-duplicates-albums-from-immich-photos)
-  - Remove Orphans Assets [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-immich-photos.md#remove-orphans-assets-from-immich-photos)
+- [**Immich Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md) - Features included:
+  - Upload Album(s) (from folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#upload-albums-from-local-folder-into-immich-photos)
+  - Download Album(s) (into folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#download-albums-from-immich-photos)
+  - Upload ALL (from folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#upload-all-from-local-folder-into-immich-photos)
+  - Download ALL (into folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#download-all-from-immich-photos)
+  - Remove ALL Assets [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-all-assets-from-immich-photos)
+  - Remove ALL Albums [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-all-albums-from-immich-photos)
+  - Remove Albums by Name Pattern [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-albums-by-name-pattern-from-immich-photos)
+  - Rename Albums by Name Pattern [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#rename-albums-by-name-pattern-from-immich-photos)
+  - Remove Empty Albums [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-empty-albums-from-immich-photos)
+  - Remove Duplicates Albums [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-duplicates-albums-from-immich-photos)
+  - Merge Duplicates Albums [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#merge-duplicates-albums-from-immich-photos)
+  - Remove Orphans Assets [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-orphans-assets-from-immich-photos)
 
 - **Apple Photos**  
   (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/ROADMAP.md) for next release)
@@ -61,7 +61,7 @@ Currently, the Features Included per each Supported Photo Cloud Service are:
 - **Google Photos**  
   (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/ROADMAP.md) for next release)
 
-- [**Other Useful Features**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-other-features.md)  
+- [**Other Useful Features**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)  
 Apart from Manage the different Photo Cloud Services, the Tool also contains Other Useful Features such as:
   - **Metadata fixing** of any Photo Library in your local drive (not necesarely needs to be a Google Takeout folder)
   - **Library Organization** features:
@@ -101,53 +101,57 @@ You can check the whole list of features and arguments with the right syntax her
 [Command Line Interface (CLI)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/1-command-line-interface.md)
 
 
-## ⌨️ Arguments Description & Usage examples:
-Check all arguments descriptions and usage examples here:  
-[Arguments Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/8-arguments-description.md)  
+## 📚 Arguments Description & Usage examples:
+Check all arguments descriptions and usage examples in the [Arguments Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description.md)  or in the [shorter version](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description-short.md).
 
 
-## 📚 All Documentation Links:
+## 📘 All Documentation Links:
 - [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md)  
 - [Command Line Interface (CLI)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/1-command-line-interface.md)  
-- [Arguments Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/8-arguments-description.md)  
-- [Automatic Migration Feature](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-automatic-migration.md)  
-- [Google Takeout Management](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-google-takeout.md)  
-- [Synology Photos Management](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-synology-photos.md)  
-- [Immich Photos Management](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-immich-photos.md)  
-- [Other Features](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-other-features.md)  
+- [Arguments Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description.md)  
+- [Automatic Migration Feature](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)  
+- [Google Takeout Management](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)  
+- [Synology Photos Management](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md)  
+- [Immich Photos Management](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md)  
+- [Other Features](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)  
 
 
 ## ▶️ Execution Methods:
 There are three different methods to execute this Tool:
-- From **Compiled Binaries**
-- From **Docker Container**
-- From **Source Repository**
+- From [Compiled Binaries](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-binaries.md)
+- From [Docker Container](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-docker.md)
+- From [Source Repository](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-source.md)
 
 The below tables show the pros and cons of each method together with a comparative rating of each one of them for you to decide wich one fits best with your needed: 
 
 - ### 🆚 Execution Methods Comparison
-  | Execution Method                                                        | Instructions Link                                               | Difficulty          | Pros                                                                                                                                                                                 | Cons                                                                                                                                                                                                              |
-  |-------------------------------------------------------------------------|-----------------------------------------------------------------|---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | **[Compiled <br>Binaries](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-binaries.md)** | **[Instructions](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-binaries.md)**  | 🟢 *Easiest way*    | ✅ Only basic knowledge on command line commands needed.                                                                                                                             | ❌ Platform and architecture dependent.<br>❌ Need basic knowledge of running command line instructions.<br>❌ Some anti-virus may detect the tool as suspicious in Windows systems.                             |
-  | **[Docker <br>Container](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-docker.md)**    | **[Instructions](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-docker.md)**    | ⭐ *Recommended*    | ✅ Platform and architecture independent.<br>✅ Easy configuration via `docker.config` file (RELEASE_TAG, TIMEZONE).<br>✅ Automatically pulls latest image if `RELEASE_TAG=latest`. | ❌ Need intermediate knowledge of running command line instructions.<br>❌ Need to install Docker (if not already installed).<br>❌ All paths given as arguments must be relative to the execution folder.       |
-  | **[Source <br>Repository](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-source.md)**   | **[Instructions](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-source.md)**    | 🔴 *More difficult* | ✅ Platform and architecture independent.                                                                                                                                            | ❌ Need advance knowledge of running command line instructions.<br>❌ Need to install Git and Python 3.8+ (if not already installed). <br>❌ Need to pull the source repository again to update to a new release.|
+
+    | Execution Method | Difficulty | Pros                                                                                                                                                                              | Cons                                                                                                                                                                                                           |
+    |------------------|:----------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+    | **Binaries**     |     🟢     | ✅ Only basic knowledge on command line commands needed.                                                                                                                           | ❌ Platform and architecture dependent.<br>❌ Need basic knowledge of running command line instructions.<br>❌ Some anti-virus may detect the tool as suspicious in Windows systems.                              |
+    | **Docker**       |     ⭐      | ✅ Platform and architecture independent.<br>✅ Easy configuration via `docker.config` file (RELEASE_TAG, TIMEZONE).<br>✅ Automatically pulls latest image if `RELEASE_TAG=latest`. | ❌ Need intermediate knowledge of running command line instructions.<br>❌ Need to install Docker (if not already installed).<br>❌ All paths given as arguments must be relative to the execution folder.        |
+    | **Source**       |     🔴     | ✅ Platform and architecture independent.                                                                                                                                          | ❌ Need advance knowledge of running command line instructions.<br>❌ Need to install Git and Python 3.8+ (if not already installed). <br>❌ Need to pull the source repository again to update to a new release. |
+
+  🟢 *Easiest way*    ⭐ *Recommended*    🔴 *More difficult*
+
 
 - ### 🆚 Execution Methods Comparison Rating
-  | Feature                                               | [Compiled <br>Binaries](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-binaries.md)<br>*easiest way* | [Docker <br>Container](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-docker.md)<br>*recommended* | [Source <br>Repository](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-source.md)<br>*more difficult* |
-  |-------------------------------------------------------|--------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
-  | Platform and architecture independence                | ⭐☆☆☆☆                                                                              | ⭐⭐⭐⭐⭐                                                                       | ⭐⭐⭐⭐⭐                                                                           |
-  | Ease of updating to new release                       | ⭐⭐⭐☆☆                                                                            | ⭐⭐⭐⭐⭐                                                                       | ⭐☆☆☆☆                                                                               |
-  | Allow paths arguments point outside execution folder  | ⭐⭐⭐⭐⭐                                                                          | ⭐☆☆☆☆                                                                           | ⭐⭐⭐⭐⭐                                                                           |
-  | No Requires Technical knowledge (Command line syntax) | ⭐⭐⭐⭐⭐                                                                          | ⭐⭐⭐☆☆                                                                         | ⭐☆☆☆☆                                                                               |
-  | No Requires additional tools/software                 | ⭐⭐⭐⭐⭐                                                                          | ⭐⭐⭐☆☆                                                                         | ⭐☆☆☆☆                                                                               |
-  | No Risk of Antivirus alert (especially on Windows)    | ⭐⭐☆☆                                                                              | ⭐⭐⭐⭐⭐                                                                       | ⭐⭐⭐⭐⭐                                                                            |
-  | **Average Rating**                                    | ⭐⭐⭐⭐☆ (3.5)                                                                     | ⭐⭐⭐⭐☆ (3.7)                                                                  | ⭐⭐⭐☆☆ (3.0)                                                                       |
+  | Feature                                               | Binaries<br>*easiest way* | Docker<br>*recommended* | Source<br>*more difficult* |
+  |-------------------------------------------------------|---------------------------|-------------------------|----------------------------|
+  | Platform and architecture independence                | ⭐☆☆☆☆                     | ⭐⭐⭐⭐⭐                   | ⭐⭐⭐⭐⭐                      |
+  | Ease of updating to new release                       | ⭐⭐⭐☆☆                     | ⭐⭐⭐⭐⭐                   | ⭐☆☆☆☆                      |
+  | Allow paths arguments point outside execution folder  | ⭐⭐⭐⭐⭐                     | ⭐☆☆☆☆                   | ⭐⭐⭐⭐⭐                      |
+  | No Requires Technical knowledge (Command line syntax) | ⭐⭐⭐⭐⭐                     | ⭐⭐⭐☆☆                   | ⭐☆☆☆☆                      |
+  | No Requires additional tools/software                 | ⭐⭐⭐⭐⭐                     | ⭐⭐⭐☆☆                   | ⭐☆☆☆☆                      |
+  | No Risk of Antivirus alert (especially on Windows)    | ⭐⭐☆☆                      | ⭐⭐⭐⭐⭐                   | ⭐⭐⭐⭐⭐                      |
+  | **Average Rating**                                    | ⭐⭐⭐⭐☆                     | ⭐⭐⭐⭐☆                   | ⭐⭐⭐☆☆                      |
+  | **Average Score**                                     | 3.5                       | 3.7                     | 3.0                        |
 
 
 ## 🚀 Automatic Migration Feature (Main Use Case):
 
 > [!NOTE]  
->## <span style="color:green">Automatic Migration Feature</span>
+>## <span style="color:green">🚀 Automatic Migration Feature</span>
 >From version 3.0.0 onwards, the Tool supports a new Feature called '**Automatic Migration**'. 
 >
 > Use the argument **'--source'** to select the \<SOURCE> client and the argument **'--target'** to select \<TARGET> client for the Automatic Migration Process to Pull all your Assets (including Albums) from the \<SOURCE> Cloud Service and Push them to the \<TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service).
@@ -165,23 +169,23 @@ The below tables show the pros and cons of each method together with a comparati
 >
 > Also, you can ommit the suffix -photos in both \<SOURCE> and \<TARGET> clients, so, you can just use --source=synology --target=immich to set Synology Photos account 1 as \<SOURCE> client and Immich Photos account 1 as \<TARGET> client.  
 > 
-> It is also possible to specify the account-id using the flag _**'-id, --account-id \<ID>'**_ (ie: --source=synology --account-id=2 means that Synology Photos account 2 will be used as \<SOURCE> client.)  
+> It is also possible to specify the account-id using the argument _**'-id, --account-id \<ID>'**_ (ie: --source=synology --account-id=2 means that Synology Photos account 2 will be used as \<SOURCE> client.)  
 > 
 >> ⚠️ **IMPORTANT**:  
->> Take into account that the flag _**'-id, --account-id \<ID>'**_ applies for all the Photo Cloud Services (Synology Photos and Immich Photos, so if you specify the client ID using this flag and you have more than one Photo Cloud Service, all of them will use the same client ID.)
+>> Take into account that the argument _**'-id, --account-id \<ID>'**_ applies for all the Photo Cloud Services (Synology Photos and Immich Photos, so if you specify the client ID using this argument, and you have more than one Photo Cloud Service, all of them will use the same client ID.)
 > 
 > By default, the whole Migration process is executed in parallel using multi-threads (it will detect automatically the number of threads of the CPU to set properly the number of Push workers). The Pull worker and the different Push workes will be executed in parallel using an assets queue to guarantee that no more than 100 assets will be temporarily stored on your local drive, so you don't need to care about the hard disk space needed during this migration process.  
 > 
-> By default, (if your terminal size has enough width and heigh) a Live Dashboard will show you all the details about the migration process, including most relevant log messages, and counter status. You can disable this Live Dashboard using the flag **'-dashboard=false or --dashboard=false'**.   
+> By default, (if your terminal size has enough width and heigh) a Live Dashboard will show you all the details about the migration process, including most relevant log messages, and counter status. You can disable this Live Dashboard using the argument **'-dashboard=false or --dashboard=false'**.   
 > 
-> Additionally, this Automatic Migration process can also be executed sequentially instead of in parallel, using flag **--parallel=false**, so first, all the assets will be pulled from <SOURCE> and when finish, they will be pushed into <TARGET>, but take into account that in this case, you will need enough disk space to store all your assets pulled from <SOURCE> service.
+> Additionally, this Automatic Migration process can also be executed sequentially instead of in parallel, using argument **--parallel=false**, so first, all the assets will be pulled from <SOURCE> and when finish, they will be pushed into <TARGET>, but take into account that in this case, you will need enough disk space to store all your assets pulled from <SOURCE> service.
 >
 > Finally, you can apply filters to filter assets to pull from \<SOURCE> client. The available filters are: 
 >    - **by Type:**
->      - flag: -type, --filter-by-type
+>      - argument: -type, --filter-by-type
 >        - Valid values are [image, video, all]
 >    - **by Dates:**
->      - flags:
+>      - arguments:
 >        - -from, --filter-from-date
 >        - -to, --filter-to-date
 >      - Valid values are in one of those formats: 
@@ -195,13 +199,13 @@ The below tables show the pros and cons of each method together with a comparati
 >        - yyyy-mm
 >        - yyyy 
 >    - **by Country:**
->      - flag: -country, --filter-by-country
+>      - argument: -country, --filter-by-country
 >        - Valid values are any existing country in the \<SOURCE> client.
 >    - **by City:**
->      - flag: -city, --filter-by-city
+>      - argument: -city, --filter-by-city
 >        - Valid values are any existing city in the \<SOURCE> client.
 >    - **by Person:**
->      - flag: -person, --filter-by-person
+>      - argument: -person, --filter-by-person
 >        - Valid values are any existing person in the \<SOURCE> client.
 
 > [!WARNING]  
@@ -218,12 +222,12 @@ The below tables show the pros and cons of each method together with a comparati
 
 ## 📝 RELEASES-NOTES:
 The Historical Releases Notes can be checked in the following link:
-[RELEASES-NOTES.md](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/RELEASES-NOTES.md)
+[Releases Notes](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/RELEASES-NOTES.md)
 
 ---
 
 ## 📅 ROADMAP:
-Planed Roadmap for the following releases
+Planed [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/ROADMAP.md)  for the following releases.
 
 
 ---

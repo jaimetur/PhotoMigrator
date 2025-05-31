@@ -289,7 +289,7 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=logg
     client = Utils.capitalize_first_letter(client)
     input_folder = ARGS['upload-albums']
     LOGGER.info(f"INFO    : Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
-    LOGGER.info(f"INFO    : Flag detected  : '-uAlb, --upload-albums'.")
+    LOGGER.info(f"INFO    : Argument detected  : '-uAlb, --upload-albums'.")
     LOGGER.warning('\n' + '-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["upload-albums"].replace('<ALBUMS_FOLDER>', f"'{ARGS['upload-albums']}'"))
     LOGGER.warning('-' * terminal_width)
@@ -360,9 +360,9 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=logging
     input_folder = ARGS['upload-all']
     albums_folders = ARGS['albums-folders']
     LOGGER.info(f"INFO    : Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
-    LOGGER.info(f"INFO    : Flag detected  : '-uAll, --upload-all'.")
+    LOGGER.info(f"INFO    : Argument detected  : '-uAll, --upload-all'.")
     if albums_folders:
-        LOGGER.info(f"INFO    : Flag detected  : '-AlbFld, --albums-folders'.")
+        LOGGER.info(f"INFO    : Argument detected  : '-AlbFld, --albums-folders'.")
     LOGGER.warning('\n' + '-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["upload-all"].replace('<INPUT_FOLDER>', f"{input_folder}"))
     LOGGER.warning('-' * terminal_width)
@@ -436,7 +436,7 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=lo
     albums_str = ", ".join(albums_name)
 
     LOGGER.info(f"INFO    : Client detected  : '{client} Photos'.")
-    LOGGER.info(f"INFO    : Flag detected    : '-dAlb, --download-albums {albums_str}'.")
+    LOGGER.info(f"INFO    : Argument detected    : '-dAlb, --download-albums {albums_str}'.")
     LOGGER.info(f"INFO    : Albums to extract: {albums_name}")
     LOGGER.warning('\n' + '-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["download-albums"].replace("<ALBUMS_NAME>", albums_str).replace("<OUTPUT_FOLDER>", output_folder))
@@ -505,7 +505,7 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=loggi
     client = Utils.capitalize_first_letter(client)
     output_folder = ARGS['download-all']
     LOGGER.info(f"INFO    : Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
-    LOGGER.info(f"INFO    : Flag detected  : 'dAll, --download-all'.")
+    LOGGER.info(f"INFO    : Argument detected  : 'dAll, --download-all'.")
     LOGGER.warning('\n' + '-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["download-all"].replace('<OUTPUT_FOLDER>', output_folder))
     LOGGER.warning('-' * terminal_width)
@@ -835,7 +835,7 @@ def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=logg
     albums_name_pattern = ARGS['rename-albums'][0]
     albums_name_replacement_pattern = ARGS['rename-albums'][1]
     LOGGER.info(f"INFO    : Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
-    LOGGER.info(f"INFO    : Flag detected  : '-renAlb, --rename-albums'.")
+    LOGGER.info(f"INFO    : Argument detected  : '-renAlb, --rename-albums'.")
     LOGGER.warning('\n' + '-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["rename-albums"].replace('<ALBUMS_NAME_PATTERN>', albums_name_pattern).replace('<ALBUMS_NAME_REPLACEMENT_PATTERN>',albums_name_replacement_pattern))
     LOGGER.warning('-' * terminal_width)
@@ -892,7 +892,7 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
 
     remove_albums_assets = ARGS['remove-albums-assets']
     LOGGER.info(f"INFO    : Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
-    LOGGER.info(f"INFO    : Flag detected  : '-rAlb, --remove-albums'.")
+    LOGGER.info(f"INFO    : Argument detected  : '-rAlb, --remove-albums'.")
     LOGGER.warning('\n' + '-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["remove-albums"].replace('<ALBUMS_NAME_PATTERN>', albums_name_pattern))
     LOGGER.warning('-' * terminal_width)
@@ -1052,7 +1052,7 @@ def mode_find_duplicates(user_confirmation=True, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Find Duplicates Mode detected. Only this module will be run!!!")
         if DEFAULT_DUPLICATES_ACTION:
-            LOGGER.warning(f"WARNING : Detected Flag '-fd, --find-duplicates' but no valid <DUPLICATED_ACTION> have been detected. Using 'list' as default <DUPLICATED_ACTION>")
+            LOGGER.warning(f"WARNING : Detected Argument '-fd, --find-duplicates' but no valid <DUPLICATED_ACTION> have been detected. Using 'list' as default <DUPLICATED_ACTION>")
             LOGGER.warning("")
         duplicates_files_found, removed_empty_folders = find_duplicates(duplicates_action=ARGS['duplicates-action'], duplicates_folders=ARGS['duplicates-folders'], deprioritize_folders_patterns=DEPRIORITIZE_FOLDERS_PATTERNS)
         if duplicates_files_found == -1:
@@ -1087,7 +1087,7 @@ def mode_process_duplicates(user_confirmation=True, log_level=logging.INFO):
             sys.exit(0)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Flag detected '-procDup, --process-duplicates'. The Tool will process the '{ARGS['process-duplicates']}' file and do the specified action given on Action Column. ")
+        LOGGER.info(f"INFO    : Argument detected '-procDup, --process-duplicates'. The Tool will process the '{ARGS['process-duplicates']}' file and do the specified action given on Action Column. ")
         LOGGER.info(f"INFO    : Processing Duplicates Files based on Actions given in {os.path.basename(ARGS['process-duplicates'])} file...")
         removed_duplicates, restored_duplicates, replaced_duplicates = process_duplicates_actions(ARGS['process-duplicates'])
         # FINAL SUMMARY
@@ -1127,7 +1127,7 @@ def mode_folders_rename_content_based(user_confirmation=True, log_level=logging.
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Rename Albums Mode detected. Only this module will be run!!!")
-        LOGGER.info(f"INFO    : Flag detected '-ra, --rename-folders-content-based'. The Tool will look for any Subfolder in '{ARGS['rename-folders-content-based']}' and will rename the folder name in order to unificate all the Albums names.")
+        LOGGER.info(f"INFO    : Argument detected '-ra, --rename-folders-content-based'. The Tool will look for any Subfolder in '{ARGS['rename-folders-content-based']}' and will rename the folder name in order to unificate all the Albums names.")
         renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = Utils.rename_album_folders(ARGS['rename-folders-content-based'])
         # FINAL SUMMARY
         end_time = datetime.now()

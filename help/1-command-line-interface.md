@@ -25,32 +25,31 @@ Below you can find the list of all commands that the Tool can receive to execute
 
 ```
 ---------------------------------------------------------------------------------------------------------
-usage: PhotoMigrator.run/exe [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
-                                  [-move [= [true,false]]] [-dashb [= [true,false]]]
-                                  [-parallel [= [true,false]]]
-                                  [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
-                                  [-client = ['google-takeout', 'synology', 'immich']]
-                                  [-id [= [1,2,3]]] [-OTP]
-                                  [-from <FROM_DATE>] [-to <TO_DATE>]
-                                  [-country <COUNTRY_NAME>] [-city <CITY_NAME>]
-                                  [-person <PERSON_NAME>] [-type = [image,video,all]]
-                                  [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
-                                  [-rAlbAss] [-nolog]
-                                  [-loglevel ['debug', 'info', 'warning', 'error']]
-                                  [-gTakeout <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
-                                  [-gafs ['flatten', 'year', 'year/month', 'year-month']]
-                                  [-gnas ['flatten', 'year', 'year/month', 'year-month']]
-                                  [-gcsa] [-gics] [-gmtf] [-grdf] [-gsef] [-gsma] [-gsgt]
-                                  [-gpthInfo [= [true,false]]] [-gpthErr [= [true,false]]]
-                                  [-uAlb <ALBUMS_FOLDER>]
-                                  [-dAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
-                                  [-uAll <INPUT_FOLDER>] [-dAll <OUTPUT_FOLDER>] [-rOrphan]
-                                  [-rAll] [-rAllAlb] [-rAlb <ALBUMS_NAME_PATTERN>]
-                                  [-rEmpAlb] [-rDupAlb] [-mDupAlb]
-                                  [-renAlb <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>]
-                                  [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
-                                  [-procDup <DUPLICATES_REVISED_CSV>]
-                                  [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
+usage: PhotoMigrator [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
+                     [-move [= [true,false]]] [-dashb [= [true,false]]]
+                     [-parallel [= [true,false]]]
+                     [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
+                     [-client = ['google-takeout', 'synology', 'immich']]
+                     [-id [= [1-3]]] [-OTP]
+                     [-from <FROM_DATE>] [-to <TO_DATE>]
+                     [-country <COUNTRY_NAME>] [-city <CITY_NAME>]
+                     [-person <PERSON_NAME>] [-type = [image,video,all]]
+                     [-AlbFld [<ALBUMS_FOLDER> ...]] [-rAlbAss] [-nolog]
+                     [-loglevel ['debug', 'info', 'warning', 'error']]
+                     [-gTakeout <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
+                     [-gafs ['flatten', 'year', 'year/month', 'year-month']]
+                     [-gnas ['flatten', 'year', 'year/month', 'year-month']]
+                     [-gcsa] [-gics] [-gmtf] [-grdf] [-gsef] [-gsma] [-gsgt]
+                     [-gpthInfo [= [true,false]]] [-gpthErr [= [true,false]]]
+                     [-uAlb <ALBUMS_FOLDER>]
+                     [-dAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
+                     [-uAll <INPUT_FOLDER>] [-dAll <OUTPUT_FOLDER>] [-rOrphan]
+                     [-rAll] [-rAllAlb] [-rAlb <ALBUMS_NAME_PATTERN>]
+                     [-rEmpAlb] [-rDupAlb] [-mDupAlb]
+                     [-renAlb <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>]
+                     [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
+                     [-procDup <DUPLICATES_REVISED_CSV>]
+                     [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
 
 PhotoMigrator v3.3.0 - 2025-05-30
 
@@ -69,9 +68,9 @@ optional arguments:
 
 AUTOMATIC MIGRATION PROCESS:
 ----------------------------
-Following flags allow you execute the Automatic Migration Process to migrate your assets
-from one Photo Cloud Service to other, or from two different accounts within the same
-Photo Cloud service.
+Following arguments allow you execute the Automatic Migration Process to migrate your
+assets from one Photo Cloud Service to other, or from two different accounts within the
+same Photo Cloud service.
 
 -source,   --source <SOURCE>
              Select the <SOURCE> for the AUTOMATIC-MIGRATION Process to Pull all your
@@ -104,21 +103,21 @@ Photo Cloud service.
               ​--target=synology-2 -> Select Synology Photos account 2 as Target.
               ​--target=/home/local_folder -> Select this local folder as Target.
 -move,     --move-assets = [true,false]
-             If this flag is present, the assets will be moved from <SOURCE> to <TARGET>
-             instead of copy them. (default: False).
+             If this argument is present, the assets will be moved from <SOURCE> to
+             <TARGET> instead of copy them. (default: False).
 -dashb,    --dashboard = [true,false]
              Enable or disable Live Dashboard feature during Autometed Migration Job. This
-             flag only applies if both '--source' and '--target' flags are given
+             argument only applies if both '--source' and '--target' arguments are given
              (AUTOMATIC-MIGRATION FEATURE). (default: True).
 -parallel, --parallel-migration = [true,false]
              Select Parallel/Secuencial Migration during Automatic Migration Job. This
-             flag only applies if both '--source' and '--target' flags are given
+             argument only applies if both '--source' and '--target' arguments are given
              (AUTOMATIC-MIGRATION FEATURE). (default: True).
 
 
 GENERAL ARGUMENTS:
 ------------------
-Following general flags have different purposses depending on the Execution Mode.
+Following general arguments have different purposses depending on the Execution Mode.
 
 -i,        --input-folder <INPUT_FOLDER>
              Specify the input folder that you want to process.
@@ -161,10 +160,10 @@ Following general flags have different purposses depending on the Execution Mode
 
 GOOGLE PHOTOS TAKEOUT MANAGEMENT:
 ---------------------------------
-Following flags allow you to interact with Google Photos Takeout Folder.
-In this mode, you can use more than one optional flags from the below list.
-If only the flag -gTakeout, --google-takeout <TAKEOUT_FOLDER> is detected, then the Tool
-will use the default values for the rest of the flags for this extra mode.
+Following arguments allow you to interact with Google Photos Takeout Folder.
+In this mode, you can use more than one optional arguments from the below list.
+If only the argument -gTakeout, --google-takeout <TAKEOUT_FOLDER> is detected, then the
+Tool will use the default values for the rest of the arguments for this extra mode.
 
 -gTakeout, --google-takeout <TAKEOUT_FOLDER>
              Process the Takeout folder <TAKEOUT_FOLDER> to fix all metadata and organize
@@ -173,7 +172,7 @@ will use the default values for the rest of the flags for this extra mode.
              the that folder as input <TAKEOUT_FOLDER>.
              The processed Takeout will be saved into the folder
              '<TAKEOUT_FOLDER>_processed_<TIMESTAMP>'
-             This flag is mandatory to run the Google Takeout Processor Feature.
+             This argument is mandatory to run the Google Takeout Processor Feature.
 -gofs,     --google-output-folder-suffix <SUFFIX>
              Specify the suffix for the output folder. Default: 'processed'
 -gafs,     --google-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
@@ -206,32 +205,32 @@ will use the default values for the rest of the flags for this extra mode.
              CAUTION: This option is NOT RECOMMENDED because this is the Core of the
              Google Photos Takeout Process. Use this flag only for testing purposses.
 -gpthInfo, --show-gpth-info = [true,false]
-             Enable or disable Progress messages during GPTH Processing. (default: False).
+             Enable or disable Info messages during GPTH Processing. (default: False).
 -gpthErr,  --show-gpth-errors = [true,false]
              Enable or disable Error messages during GPTH Processing. (default: True).
 
 
 SYNOLOGY/IMMICH PHOTOS MANAGEMENT:
 ----------------------------------
-To use following features, it is mandatory to use the flag '--client=[synology, immich]'
-to specify which Photo Service do you want to use.
+To use following features, it is mandatory to use the argument '--client=[synology,
+immich]' to specify which Photo Service do you want to use.
 
-You can optionally use the flag '--id=[1-3]' to specify the account id for a particular
-account defined in Config.ini.
+You can optionally use the argument '--id=[1-3]' to specify the account id for a
+particular account defined in Config.ini.
 
-Following flags allow you to interact with Synology/Immich Photos.
-If more than one optional flags are detected, only the first one will be executed.
+Following arguments allow you to interact with Synology/Immich Photos.
+If more than one optional arguments are detected, only the first one will be executed.
 
 -uAlb,     --upload-albums <ALBUMS_FOLDER>
              The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER> and
              will create one Album per subfolder into the selected Photo client.
-             You must provide the Photo client using the mandatory flag '--client'.
+             You must provide the Photo client using the mandatory argument '--client'.
 -dAlb,     --download-albums <ALBUMS_NAME>
              The Tool will connect to the selected Photo client and will download those
              Albums whose name is in '<ALBUMS_NAME>' to the folder <OUTPUT_FOLDER> given
-             by the flag '-o, --output-folder <OUTPUT_FOLDER>' (mandatory flag for this
-             feature).
-             You must provide the Photo client using the mandatory flag '--client'.
+             by the argument '-o, --output-folder <OUTPUT_FOLDER>' (mandatory argument for
+             this feature).
+             You must provide the Photo client using the mandatory argument '--client'.
              - To download ALL Albums use 'ALL' as <ALBUMS_NAME>.
              - To download all albums mathing any pattern you can use patterns in
              ALBUMS_NAME, i.e: --download-albums 'dron*' to download all albums starting
@@ -242,17 +241,17 @@ If more than one optional flags are detected, only the first one will be execute
 -uAll,     --upload-all <INPUT_FOLDER>
              The Tool will look for all Assets within <INPUT_FOLDER> and will upload them
              into the selected Photo client.
-             You must provide the Photo client using the mandatory flag '--client'.
+             You must provide the Photo client using the mandatory argument '--client'.
              - The Tool will create a new Album per each Subfolder found in 'Albums'
              subfolder and all assets inside each subfolder will be associated to a new
              Album in the selected Photo client with the same name as the subfolder.
-             - If the flag '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also passed,
+             - If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also passed,
              then this function will create Albums also for each subfolder found in
              <ALBUMS_FOLDER>.
 -dAll,     --download-all <OUTPUT_FOLDER>
              The Tool will connect to the selected Photo client and will download all the
              Album and Assets without Albums into the folder <OUTPUT_FOLDER>.
-             You must provide the Photo client using the mandatory flag '--client'.
+             You must provide the Photo client using the mandatory argument '--client'.
              - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/
              with the same name of the Album and all files will be flattened into it.
              - Assets with no Albums associated will be downloaded within a subfolder
@@ -261,7 +260,7 @@ If more than one optional flags are detected, only the first one will be execute
 -rOrphan,  --remove-orphan-assets
              The Tool will look for all Orphan Assets in the selected Photo client and
              will remove them.
-             You must provide the Photo client using the mandatory flag '--client'.
+             You must provide the Photo client using the mandatory argument '--client'.
              IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in
              Config.ini.
 -rAll,     --remove-all-assets
@@ -303,8 +302,8 @@ If more than one optional flags are detected, only the first one will be execute
 
 OTHER STANDALONE FEATURES:
 --------------------------
-Following flags can be used to execute the Tool in any of the usefull additionals Extra
-Standalone Features included.
+Following arguments can be used to execute the Tool in any of the usefull additionals
+Extra Standalone Features included.
 If more than one Feature is detected, only the first one will be executed.
 
 -findDup,  --find-duplicates <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]
@@ -326,6 +325,7 @@ If more than one Feature is detected, only the first one will be executed.
 -renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>
              Useful to rename and homogenize all Albums folders found in <ALBUMS_FOLDER>
              based on the date content found.
+
 ---------------------------------------------------------------------------------------------------------
 ```
 
