@@ -283,8 +283,10 @@ def validate_client_arg(ARGS, PARSER):
 
 def checkArgs(ARGS, PARSER):
     global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
-    # Assigns --input-folder value  to google-takeout instead
-    ARGS['input-folder'] = ARGS['input-folder']
+
+    # Assigns ARGS['google-takeout'] = ARGS['input-folder'] if --input-folder is detected and --google-takeout is not detected
+    if ARGS['input-folder'] != '' and ARGS['google-takeout'] == '':
+        ARGS['google-takeout'] = ARGS['input-folder']
 
     # Check all provided arguments in the list of arguments to check to resolve the paths correctly for both, docker instance and normal instance.
     keys_to_check = ['source', 'target', 'input-folder', 'output-folder', 'albums-folder', 'google-takeout',
