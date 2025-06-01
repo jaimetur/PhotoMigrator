@@ -217,7 +217,7 @@ Open `Config.ini` in any text editor and update it with your credentials and set
 
 
 ---
-## Credits
+## 🎖️ Credits:
 I hope this can be useful for any of you.  
 Enjoy it!
 
