@@ -65,6 +65,7 @@ def main():
         version = match.group("version")
         os_name = match.group("os")
         arch = match.group("arch")
+        arch = arch.replace('x86_64', 'x64')
         ext = match.group("ext") or ""
 
         # Normalizar arquitectura
