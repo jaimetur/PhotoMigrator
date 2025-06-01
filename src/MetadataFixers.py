@@ -29,7 +29,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         current_arch = get_arch()
 
         # Determine the Tool name based on the OS
-        tool_name = f"gpth-{GPTH_VERSION}-{current_os}-{current_arch.replace('x64', 'x86_64')}"
+        tool_name = f"gpth-{GPTH_VERSION}-{current_os}-{current_arch}"
         if current_os in ("linux", "macos"):
             tool_name  +=".bin"
         elif current_os == "windows":
