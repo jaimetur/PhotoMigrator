@@ -279,7 +279,7 @@ def compile(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     splash_image                        = "assets/logos/logo.png" # Splash image for windows
     gpth_folder                         = "gpth_tool"
     exif_folder                         = "exif_tool"
-    gpth_tool                           = os.path.join(gpth_folder, f"gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE.replace('x64', 'x86_64')}.ext")
+    gpth_tool                           = os.path.join(gpth_folder, f"gpth-{GPTH_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext")
     exif_tool                           = os.path.join(exif_folder, "<ZIP_NAME>.zip")
     exif_folder_dest                    = gpth_folder
     # exif_tool                         = f"{exif_folder}/exif-{EXIF_VERSION}-{OPERATING_SYSTEM}-{ARCHITECTURE}.ext:exif_tool"
