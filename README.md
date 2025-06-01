@@ -229,7 +229,6 @@ The Historical Releases Notes can be checked in the following link:
 ## 📅 ROADMAP:
 [Planed Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/ROADMAP.md) for the following releases
 
-
 ---
 
 ## **Release**: v4.0.0 

@@ -1,6 +1,5 @@
 ## 📅 ROADMAP:
-Planed Roadmap for the following releases
-
+[Planed Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/ROADMAP.md) for the following releases
 
 ---
 
