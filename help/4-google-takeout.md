@@ -22,13 +22,13 @@
 
 - The Takeout Processing can be configured with different settings, depoending on the arguments used during the call to the Tool.
 
-- The whole process will do the next actions if all flags are disabled (by default):  
+- The whole process will do the next actions if all flag-arguments are disabled (by default):  
 
 0. Unzip all the Takeout Zips from the `<TAKEOUT_FOLDER>` into a subfolder named `./<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>` (by default). This step will be skipped if you already have your Takeout folder unzipped.
    
 1. Pre-Process `<TAKEOUT_FOLDER>` unzipped to delete `@eaDir` subfolders (Synology metadata subfolders with miniatures) and to Fix .MP4 files extracted from Live pictures and with no .json file associated.
 
-2. Use GPTH Tool to process all .json files and fix date of all photos/videos found on Takeout folder and organize them into the output folder (This step can be skipped using flag _`gsgt, --google-skip-gpth-tool`_).
+2. Use GPTH Tool to process all .json files and fix date of all photos/videos found on Takeout folder and organize them into the output folder (This step can be skipped using argument _`gsgt, --google-skip-gpth-tool`_).
 
 3. Copy/Move files to output folder manually if GPTH processing was skipped in previous step
   
@@ -38,7 +38,7 @@
    - _`-gafs, --google-albums-folders-structure`_ <`flatten`, `year`, `year/month`, `year-month`>. Applies to each Album folder. Default is ‘flatten’ for Albums
    - _`gnas, --google-no-albums-folder-structure`_ <`flatten`, `year`, `year/month`, `year-month`> Applies to ALL_PHOTOS folder (Photos without any Albums). Default is ‘year/month’ for No-Albums. 
 
-6. Move all the Albums into `<OUTPUT_FOLDER>/Albums` subfolder and the Photos that does not belong to any album to `<OUTPUT_FOLDER>/No-Albums` folder. This step can be skipped using flag _`-gsma, --google-skip-move-albums`_
+6. Move all the Albums into `<OUTPUT_FOLDER>/Albums` subfolder and the Photos that does not belong to any album to `<OUTPUT_FOLDER>/No-Albums` folder. This step can be skipped using argument _`-gsma, --google-skip-move-albums`_
 
 7. Finally, the Tool will look in the `<OUTPUT_FOLDER>` for any symbolic link broken and will try to fix it by looking for the original file where the symlink is pointing to.
 
@@ -107,6 +107,11 @@ In this example, the tool will do the Takeout Processing with the following step
 > When prepare Google Takeout to export all your Photos and Albums, select 50GB for the zip file size and select Google Drive as output for those Zip files.  
 >
 > On this way you can just Download all the big Zip files directly on your Synology NAS by using the Tool Cloud Sync (included on Synology App Store) and creating a new synchronization task from your Google Drive account (/Takeout folder) to any local folder of your Synology NAS.
+
+---
+
+## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)
+
 
 ---
 ## 🎖️ Credits:

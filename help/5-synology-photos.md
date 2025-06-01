@@ -45,10 +45,10 @@
 >    - **by Person:**
 >      - argument: `-person, --filter-by-person`
 >        - Valid values are any existing person in the `<SOURCE>` client.
->        
->The credentials need to be loaded from `Config.ini` file and will have this format:
-> 
->>#### <span style="color:green">Example 'Config.ini' for Synology Photos:</span>
+>
+>The credentials/API Key need to be loaded from the `Config.ini` file that  have this format:
+>
+>>#### <span style="color:green">Example 'Config.ini' for Immich Photos:</span>
 >>
 >>```
 >># Configuration for Synology Photos
@@ -68,7 +68,7 @@
 > If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the argument _**`-id, -account-id=[1-3]`**_ to specify the account 2 or 3 as needed. 
 
 > [!IMPORTANT]  
-> If your Synology Photo Account requires 2FA Authentification, you must use the flag _**`-OTP, --one-time-password`**_ in order to enable the OTP Token request during authentification process. 
+> If your Synology Photo Account requires 2FA Authentification, you must use the argument _**`-OTP, --one-time-password`**_ in order to enable the OTP Token request during authentification process. 
 
 
 ## <span style="color:blue">Upload Albums (from Local Folder) into Synology Photos:</span>
@@ -116,8 +116,8 @@
 ## <span style="color:blue">Upload All (from Local Folder) into Synology Photos:</span>
 - **From:** v3.0.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `synology` as client using the flag _**`-client=synology`**_ or _**`--client=synology`**_
-  - Also, you have to use the flag _**`-uAll, --upload-all \<INPUT_FOLDER>`**_
+  - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
+  - Also, you have to use the argument _**`-uAll, --upload-all \<INPUT_FOLDER>`**_
   - Where `<INPUT_FOLDER>` is the folder that contains all the assets that you want to upload.
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Synology account credentials and url. 
@@ -136,8 +136,8 @@
 ## <span style="color:blue">Download All from Synology Photos:</span>
 - **From:** v3.0.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `synology` as client using the flag _**`-client=synology`**_ or _**`--client=synology`**_
-  - Also, you have to use the flag _**`-dAll, --download-all \<OUTPUT_FOLDER>`**_
+  - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
+  - Also, you have to use the argument _**`-dAll, --download-all \<OUTPUT_FOLDER>`**_
   - Where `<OUTPUT_FOLDER>` is the folder where you want to download all your assets.
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Synology account credentials and url. 
@@ -155,8 +155,8 @@
 ## <span style="color:blue">Remove All Assets from Synology Photos:</span>
 - **From:** v3.0.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `synology` as client using the flag _**`-client=synology`**_ or _**`--client=synology`**_
-  - Also, you have to use the flag _**`-rAll, --remove-all-assets`**_
+  - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
+  - Also, you have to use the argument _**`-rAll, --remove-all-assets`**_
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Synology account credentials and url.
 - **Explanation:**
@@ -174,19 +174,19 @@
 ## <span style="color:blue">Remove All Albums from Synology Photos:</span>
 - **From:** v3.0.0 
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `synology` as client using the flag _**`-client=synology`**_ or _**`--client=synology`**_
-  - Also, you have to use the flag _**`-rAllAlb, --remove-all-albums`**_
+  - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
+  - Also, you have to use the argument _**`-rAllAlb, --remove-all-albums`**_
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Synology account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Synology Photos account and will remove all the Albums found.
-  - If you specify any date filter with flags _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.
+  - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.
   - Optionally ALL the Assets associated to each Album can be removed If you also include the complementary argument _**`-rAlbAss, --remove-albums-assets`**_
 - **Example of use:**
   ```
   ./PhotoMigrator.run --client=synology --remove-all-albums --remove-albums-assets
   ```
-  With this example, the Tool will connect to your Synology Photos account and will remove all Albums found (including all the assets contained on them, because we are using the complementary flag).
+  With this example, the Tool will connect to your Synology Photos account and will remove all Albums found (including all the assets contained on them, because we are using the complementary argument).
 
 > [!CAUTION]  
 > This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Synology Photos account. Use it if you are completelly sure of what you are doing.
@@ -195,19 +195,19 @@
 ## <span style="color:blue">Remove Albums by Name Pattern from Synology Photos:</span>
 - **From:** v3.3.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `synology` as client using the flag _**`-client=synology`**_ or _**`--client=synology`**_
-  - Also, you have to use the flag _**`--remove-albums \<ALBUMS_NAME_PATTERN>`**_
+  - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
+  - Also, you have to use the argument _**`--remove-albums \<ALBUMS_NAME_PATTERN>`**_
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Synology account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Synology Photos account and will rename all Albums whose name matches with the provided pattern.  
-  - If you specify any date filter with flags _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.
+  - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.
   - Optionally ALL the Assets associated to each removed Album can be removed If you also include the complementary argument _**`-rAlbAss, --remove-albums-assets`**_
 - **Example of use:**
   ```
   ./PhotoMigrator.run --client=synology --rename-albums "\d{4}-\d{2}-\d{2}" --remove-albums-assets
   ```
-  With this example, the Tool will connect to your Synology Photos account and will remove all Albums whose name contains a date like this ("2023-08-15 - Vacation photos"), including all the assets contained on them, because we are using the complementary flag.
+  With this example, the Tool will connect to your Synology Photos account and will remove all Albums whose name contains a date like this ("2023-08-15 - Vacation photos"), including all the assets contained on them, because we are using the complementary argument.
 
 > [!CAUTION]  
 > This process is irreversible and will remove all the Albums (and optionally also all the assets included) whose name matches with the provided pattern from your Synology Photos account. Use it if you are completelly sure of what you are doing.
@@ -216,13 +216,13 @@
 ## <span style="color:blue">Rename Albums by Name Pattern from Synology Photos:</span>
 - **From:** v3.3.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `synology` as client using the flag _**`-client=synology`**_ or _**`--client=synology`**_
-  - Also, you have to use the flag _**`--rename-albums \<ALBUMS_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>`**_
+  - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
+  - Also, you have to use the argument _**`--rename-albums \<ALBUMS_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>`**_
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Synology account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Synology Photos account and will rename all Albums whose name matches with the provided pattern.  
-  - If you specify any date filter with flags _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be renamed.
+  - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be renamed.
 - **Example of use:**
   ```
   ./PhotoMigrator.run --client=synoogy --rename-albums "\d{4}-\d{2}-\d{2}", "DATE"
@@ -233,13 +233,13 @@
 ## <span style="color:blue">Remove Empty Albums from Synology Photos:</span>
 - **From:** v2.0.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `synology` as client using the flag _**`-client=synology`**_ or _**`--client=synology`**_
-  - Also, you have to use the flag _**`--remove-empty-albums`**_
+  - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
+  - Also, you have to use the argument _**`--remove-empty-albums`**_
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Synology account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Synology Photos account and will remove all Empty Albums found.  
-  - If you specify any date filter with flags _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.
+  - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.
 - **Example of use:**
   ```
   ./PhotoMigrator.run --client=synology --remove-empty-albums
@@ -250,13 +250,13 @@
 ## <span style="color:blue">Remove Duplicates Albums from Synology Photos:</span>
 - **From:** v2.0.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `synology` as client using the flag _**`-client=synology`**_ or _**`--client=synology`**_
-  - Also, you have to use the flag _**`--remove-duplicates-albums`**_
+  - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
+  - Also, you have to use the argument _**`--remove-duplicates-albums`**_
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Synology account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Synology Photos account and will remove all Duplicates Albums found except the first one (but will not remove the assets associated to them, because they will still be associated with the first Album).  
-  - If you specify any date filter with flags _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.
+  - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.
 - **Example of use:**
   ```
   ./PhotoMigrator.run --client=synology --remove-duplicates-albums
@@ -267,24 +267,27 @@
 ## <span style="color:blue">Merge Duplicates Albums from Synology Photos:</span>
 - **From:** v3.3.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `synology` as client using the flag _**`-client=synology`**_ or _**`--client=synology`**_
-  - Also, you have to use the flag _`--merge-duplicates-albums`**_
+  - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
+  - Also, you have to use the argument _`--merge-duplicates-albums`**_
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Synology account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Synology Photos account and will remove all Duplicates Albums found except the most relevant one (with highest number of assets) and will transfer all the assets associated to the other albums into the main one.  
-  - If you specify any date filter with flags _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be merged.
+  - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be merged.
 - **Example of use:**
   ```
   ./PhotoMigrator.run --client=synology --merge-duplicates-albums
   ```
   With this example, the Tool will connect to your Synology Photos account and will remove all Duplicates Albums found except the first one trasferring all the assets from the removed albums into the main one.
 
-
-
 ## Config.ini
 Youn can see how to configure the Config.ini file in this help section:
 [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md) 
+
+---
+
+## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)
+
 
 ---
 ## 🎖️ Credits:

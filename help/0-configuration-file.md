@@ -72,6 +72,10 @@ In this section you have to provide:
 >
 > If you choose API_KEY authentification method, then, you don't need to provide any username/password for htat account.  
 
+---
+
+## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)
+
 
 ---
 ## 🎖️ Credits:

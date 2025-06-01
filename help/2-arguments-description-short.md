@@ -256,3 +256,8 @@ hotoMigrator.run --rename-folders-content-based="/mnt/albums"
 
 Renames album folders based on content creation dates.
 ```
+
+---
+
+## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)
+
