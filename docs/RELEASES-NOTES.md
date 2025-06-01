@@ -1,17 +1,5 @@
 # 🗓️ Releases Notes:
 
-## **Release**: v3.3.1  
-
-- ### **Release Date**: 2025-06-01
-
-- ### Main Changes:
-
-  - #### 🚀 Enhancements:
-    - [x] Updated to GPTH 4.0.5 which contains many new improvements and bug fixing.  
-
-  - #### 📚 Documentation:
-    - [x] Updated arguments format in documentation.
-
 
 ## **Release**: v3.3.0  
 
@@ -66,7 +54,7 @@
     - [x] Renamed short argument _**'-RemAlb'**_ to _**'-rAlb'**_ to activate the Feature 'Remove Albums'.
     - [x] Renamed short argument _**'-RenAlb'**_ to _**'-renAlb'**_ to activate the Feature 'Rename Albums'.
     - [x] Renamed short argument _**'-MergAlb'**_ to _**'-mDupAlb'**_ to activate the Feature 'Merge Duplicates Albums'.
-    - [x] Updated GPTH to version 4.0.4 (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts.     
+    - [x] Updated GPTH to version 4.0.5 (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts.     
     - [x] GPTH is now enhanced with EXIF Tool support for a better metadata fixing (supporting geolocations update, almost all media formats, multiple camera brands, etc...).     
     - [x] Improved _build.py to support both compilers (Pyinstaller and Nuitka).     
     - [x] Added Splash logo at the loading screen when execute from binaries on Windows.  
@@ -87,6 +75,7 @@
   - #### 📚 Documentation:
     - [x] Distinction between **arguments** and **flags** in documentation.
     - [x] Included Arguments Description section with all **arguments** and **flags** description.
+    - [x] Updated arguments format in documentation.
     - [x] Updated documentation with all changes.
     - [x] Added tool logo and emojis to documentation files.
 
