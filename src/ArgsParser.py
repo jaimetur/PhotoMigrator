@@ -115,14 +115,6 @@ def parse_arguments():
     PARSER.add_argument("-city", "--filter-by-city", metavar="<CITY_NAME>", default=None, help="Specify the City Name to filter assets in the different Photo Clients.")
     PARSER.add_argument("-person", "--filter-by-person", metavar="<PERSON_NAME>", default=None, help="Specify the Person Name to filter assets in the different Photo Clients.")
     PARSER.add_argument("-type", "--filter-by-type", metavar="= [image,video,all]", default=None, help="Specify the Asset Type to filter assets in the different Photo Clients. (default: all)")
-    # PARSER.add_argument("-archive", "--archive",
-    #                     metavar="= [true,false]",
-    #                     nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
-    #                     const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
-    #                     default=False,  # Si no se pasa el argumento, el valor por defecto es True
-    #                     type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-    #                     help="Specify if you want to filter only Archived assets in the different Photo Clients."
-    # )
 
     PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-uAll, --upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
     PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False,
