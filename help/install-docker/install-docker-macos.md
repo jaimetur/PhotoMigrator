@@ -70,6 +70,11 @@ In Docker Desktop settings, enable **"Start Docker Desktop when you log in"**.
 Official Docker Desktop for Mac documentation:  
 👉 [https://docs.docker.com/desktop/install/mac-install/](https://docs.docker.com/desktop/install/mac-install/)
 
+---
+
+## [[🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)](https://github.com/jaimetur/PhotoMigrator/tree/main)
+
+
 
 ---
 ## 🎖️ Credits:

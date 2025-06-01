@@ -69,7 +69,7 @@
 > It is important that you configure properly the file `Config.ini` (included with the tool), to set properly the accounts for your Photo Cloud Service.  
 
 
-## Config.ini
+## ⚙️ Config.ini
 Youn can see how to configure the Config.ini file in this help section:
 [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md) 
 
@@ -142,7 +142,7 @@ In this example, the Tool will do an Automatic Migration Process which has two s
 
 ---
 
-## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main?raw=true)
+## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)
 
     
 ---

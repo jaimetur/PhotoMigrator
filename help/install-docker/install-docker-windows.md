@@ -69,6 +69,11 @@ Or follow the manual instructions in the official guide:
 - Docker Desktop requires either **WSL 2** or **Hyper-V** to run.
 - You may need to log in with a Docker Hub account after installation.
 
+---
+
+## [[🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)](https://github.com/jaimetur/PhotoMigrator/tree/main)
+
+
 
 ---
 ## 🎖️ Credits:

@@ -15,6 +15,11 @@ Open `Config.ini` in any text editor and update it with your credentials and set
     Minimum version required to run the Tool directly from your Synology NAS (using SSH terminal) is **DSM 7.0**.
 
 ---
+
+## [[🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)](https://github.com/jaimetur/PhotoMigrator/tree/main)
+
+
+---
 ## 🎖️ Credits:
 I hope this can be useful for any of you.  
 Enjoy it!
