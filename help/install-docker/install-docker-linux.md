@@ -95,6 +95,11 @@ sudo systemctl enable docker
 Official docs:  
 👉 [https://docs.docker.com/engine/install/ubuntu/](https://docs.docker.com/engine/install/ubuntu/)
 
+---
+
+## [[🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main?raw=true)](https://github.com/jaimetur/PhotoMigrator/tree/main)
+
+
 
 ---
 ## 🎖️ Credits:

@@ -73,6 +73,11 @@ python -m ensurepip --upgrade
 You're all set! 🚀
 
 ---
+
+## [[🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main?raw=true)](https://github.com/jaimetur/PhotoMigrator/tree/main)
+
+
+---
 ## 🎖️ Credits:
 I hope this can be useful for any of you.  
 Enjoy it!

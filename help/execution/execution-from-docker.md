@@ -215,6 +215,11 @@ Open `Config.ini` in any text editor and update it with your credentials and set
 >   sudo docker run -it --rm -v "$(pwd)":/docker -e TZ=Europe/Madrid jaimetur/photomigrator:latest -h
 >   ```
 
+---
+
+## [[🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main?raw=true)](https://github.com/jaimetur/PhotoMigrator/tree/main)
+
+
 
 ---
 ## 🎖️ Credits:
