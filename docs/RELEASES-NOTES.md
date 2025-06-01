@@ -1,5 +1,18 @@
 # 🗓️ Releases Notes:
 
+## **Release**: v3.3.1  
+
+- ### **Release Date**: 2025-06-01
+
+- ### Main Changes:
+
+  - #### 🚀 Enhancements:
+    - [x] Updated to GPTH 4.0.5 which contains many new improvements and bug fixing.  
+
+  - #### 📚 Documentation:
+    - [x] Updated arguments format in documentation.
+
+
 ## **Release**: v3.3.0  
 
 - ### **Release Date**: 2025-05-30
