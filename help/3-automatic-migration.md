@@ -32,30 +32,30 @@
 >
 > Finally, you can apply filters to filter assets to pull from `<SOURCE>` client. The available filters are: 
 >    - **by Type:**
->      - argument: -type, --filter-by-type
->        - Valid values are [image, video, all]
+>      - argument: `-type, --filter-by-type`
+>        - Valid values are [`image`, `video`, `all`]
 >    - **by Dates:**
 >      - arguments:
->        - -from, --filter-from-date
->        - -to, --filter-to-date
+>        - `-from, --filter-from-date`
+>        - `-to, --filter-to-date`
 >      - Valid values are in one of those formats: 
->        - dd/mm/yyyy
->        - dd-mm-yyyy
->        - yyyy/mm/dd
->        - yyyy-mm-dd
->        - mm/yyyy
->        - mm-yyyy
->        - yyyy/mm
->        - yyyy-mm
->        - yyyy 
+>        - `dd/mm/yyyy`
+>        - `dd-mm-yyyy`
+>        - `yyyy/mm/dd`
+>        - `yyyy-mm-dd`
+>        - `mm/yyyy`
+>        - `mm-yyyy`
+>        - `yyyy/mm`
+>        - `yyyy-mm`
+>        - `yyyy `
 >    - **by Country:**
->      - argument: -country, --filter-by-country
+>      - argument: `-country, --filter-by-country`
 >        - Valid values are any existing country in the `<SOURCE>` client.
 >    - **by City:**
->      - argument: -city, --filter-by-city
+>      - argument: `-city, --filter-by-city`
 >        - Valid values are any existing city in the `<SOURCE>` client.
 >    - **by Person:**
->      - argument: -person, --filter-by-person
+>      - argument: `-person, --filter-by-person`
 >        - Valid values are any existing person in the `<SOURCE>` client.
 
 > [!WARNING]  
