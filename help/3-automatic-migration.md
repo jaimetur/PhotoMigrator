@@ -59,11 +59,11 @@
 >        - Valid values are any existing person in the `<SOURCE>` client.
 
 > [!WARNING]  
-> If you use a local folder <INPUT_FOLDER> as source client, all your Albums should be placed into a subfolder called *'Albums'* within <INPUT_FOLDER>, creating one Album subfolder per Album, otherwise the tool will no create any Album in the target client.  
+> If you use a local folder `<INPUT_FOLDER>` as source client, all your Albums should be placed into a subfolder called *'Albums'* within `<INPUT_FOLDER>`, creating one Album subfolder per Album, otherwise the tool will no create any Album in the target client.  
 >
 > Example:  
-> <INPUT_FOLDER>/Album1  
-> <INPUT_FOLDER>/Album2  
+> `<INPUT_FOLDER>/Album1`  
+> `<INPUT_FOLDER>/Album2`  
 
 > [!IMPORTANT]  
 > It is important that you configure properly the file `Config.ini` (included with the tool), to set properly the accounts for your Photo Cloud Service.  
