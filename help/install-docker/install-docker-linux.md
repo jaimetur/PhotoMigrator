@@ -97,7 +97,7 @@ Official docs:
 
 
 ---
-## Credits
+## 🎖️ Credits:
 I hope this can be useful for any of you.  
 Enjoy it!
 
