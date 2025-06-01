@@ -116,7 +116,7 @@
 
 ---
 
-## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)
+## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main?raw=true)
 
 
 ---
