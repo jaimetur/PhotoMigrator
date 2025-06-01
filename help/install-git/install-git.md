@@ -61,6 +61,10 @@ git config --global user.email "you@example.com"
 
 You’re all set! 🚀
 
+---
+
+## [[🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)](https://github.com/jaimetur/PhotoMigrator/tree/main)
+
 
 ---
 ## 🎖️ Credits:

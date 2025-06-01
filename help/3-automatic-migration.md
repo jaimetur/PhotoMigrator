@@ -140,6 +140,10 @@ In this example, the Tool will do an Automatic Migration Process which has two s
     push all the assets pulled from previous step, creating a new Album per each Album found in your Synology Photos and associating
     all the assets included in each Album in the same way that you had on your Synology Photos account.
 
+---
+
+## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)
+
     
 ---
 ## 🎖️ Credits:

@@ -21,30 +21,30 @@
 > 
 > The available filters are: 
 >    - **by Type:**
->      - argument: -type, --filter-by-type
->        - Valid values are [image, video, all]
+>      - argument: `-type, --filter-by-type`
+>        - Valid values are [`image`, `video`, `all`]
 >    - **by Dates:**
->      - flags:
->        - -from, --filter-from-date
->        - -to, --filter-to-date
+>      - arguments:
+>        - `-from, --filter-from-date`
+>        - `-to, --filter-to-date`
 >      - Valid values are in one of those formats: 
->        - dd/mm/yyyy
->        - dd-mm-yyyy
->        - yyyy/mm/dd
->        - yyyy-mm-dd
->        - mm/yyyy
->        - mm-yyyy
->        - yyyy/mm
->        - yyyy-mm
->        - yyyy 
+>        - `dd/mm/yyyy`
+>        - `dd-mm-yyyy`
+>        - `yyyy/mm/dd`
+>        - `yyyy-mm-dd`
+>        - `mm/yyyy`
+>        - `mm-yyyy`
+>        - `yyyy/mm`
+>        - `yyyy-mm`
+>        - `yyyy`
 >    - **by Country:**
->      - flag: -country, --filter-by-country
+>      - argument: `-country, --filter-by-country`
 >        - Valid values are any existing country in the `<SOURCE>` client.
 >    - **by City:**
->      - flag: -city, --filter-by-city
+>      - argument: `-city, --filter-by-city`
 >        - Valid values are any existing city in the `<SOURCE>` client.
 >    - **by Person:**
->      - flag: -person, --filter-by-person
+>      - argument: `-person, --filter-by-person`
 >        - Valid values are any existing person in the `<SOURCE>` client.
 >
 >The credentials/API Key need to be loaded from the `Config.ini` file that  have this format:
@@ -71,16 +71,16 @@
 >>```
 
 > [!NOTE]  
-> To use all those features, it is mandatory to use the flag _**`--client=immich`**_ to specify Immich Photos as the service that you want to connect.  
+> To use all those features, it is mandatory to use the argument _**`--client=immich`**_ to specify Immich Photos as the service that you want to connect.  
 > 
-> If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the flag _**-id, -account-id**_ to specify the account 2 or 3 as needed. 
+> If you want to connect to an account ID different that 1 (suffixed with _2 or _3) you can use the argument _**`-id, -account-id`**_ to specify the account 2 or 3 as needed. 
 
 
 ## <span style="color:blue">Upload Albums (from Local Folder) into Immich Photos:</span>
 - **From:** v3.0.0 
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `immich` as client using the flag _**`-client=immich`**_ or _**`--client=immich`**_
-  - Also, you have to use the flag _**`-uAlb, --upload-albums <ALBUMS_FOLDER>`**_
+  - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
+  - Also, you have to use the argument _**`-uAlb, --upload-albums <ALBUMS_FOLDER>`**_
   - Where `<ALBUMS_FOLDER>` is the folder that contains all the Albums that you want to upload,
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Immich account credentials and url. 
@@ -96,8 +96,8 @@
 ## <span style="color:blue">Download Albums from Immich Photos:</span>
 - **From:** v3.0.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `immich` as client using the flag _**`-client=immich`**_ or _**`--client=immich`**_
-  - Also, you have to use the flag _**`-dAlb, --download-albums <ALBUMS_NAME>`**_ in combination with the flag _**`-o, --output-folder <OUTPUT_FOLDER>`**_ (mandatory argument for this feature)
+  - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
+  - Also, you have to use the argument _**`-dAlb, --download-albums <ALBUMS_NAME>`**_ in combination with the argument _**`-o, --output-folder <OUTPUT_FOLDER>`**_ (mandatory argument for this feature)
   - Where,
   - `<ALBUMS_NAME>` is a list of Albubs names that you want to download.
   - `<OUTPUT_FOLDER>` is the folder where you want to download the Albums.
@@ -121,8 +121,8 @@
 ## <span style="color:blue">Upload All (from Local Folder) into Immich Photos:</span>
 - **From:** v3.0.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `immich` as client using the flag _**`-client=immich`**_ or _**`--client=immich`**_
-  - Also, you have to use the flag _**`-uAll, --upload-all <INPUT_FOLDER>`**_
+  - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
+  - Also, you have to use the argument _**`-uAll, --upload-all <INPUT_FOLDER>`**_
   - Where `<INPUT_FOLDER>` is the folder that contains all the assets that you want to upload.
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Immich account credentials and url. 
@@ -141,8 +141,8 @@
 ## <span style="color:blue">Download All from Immich Photos:</span>
 - **From:** v3.0.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `immich` as client using the flag _**`-client=immich`**_ or _**`--client=immich`**_
-  - Also, you have to use the flag _**`-dAll, --download-all <OUTPUT_FOLDER>`**_
+  - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
+  - Also, you have to use the argument _**`-dAll, --download-all <OUTPUT_FOLDER>`**_
   - Where `<OUTPUT_FOLDER>` is the folder where you want to download all your assets.
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Immich account credentials and url. 
@@ -160,8 +160,8 @@
 ## <span style="color:blue">Remove All Assets from Immich Photos:</span>
 - **From:** v3.0.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `immich` as client using the flag _**`-client=immich`**_ or _**`--client=immich`**_
-  - Also, you have to use the flag _**`-rAll, --remove-all-assets`**_
+  - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
+  - Also, you have to use the argument _**`-rAll, --remove-all-assets`**_
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Immich account credentials and url. 
 - **Explanation:**
@@ -179,19 +179,19 @@
 ## <span style="color:blue">Remove All Albums from Immich Photos:</span>
 - **From:** v3.0.0 
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `immich` as client using the flag _**`-client=immich`**_ or _**`--client=immich`**_
-  - Also, you have to use the flag _**`-rAllAlb, --remove-all-albums`**_
+  - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
+  - Also, you have to use the argument _**`-rAllAlb, --remove-all-albums`**_
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Immich account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Immich Photos account and will remove all the Albums found.
-  - If you specify any date filter with flags _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.  
+  - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.  
   - Optionally ALL the Assets associated to each Album can be removed If you also include the complementary argument _**`-rAlbAss, --remove-albums-assets`**_
 - **Example of use:**
   ```
   ./PhotoMigrator.run --client=immich --remove-all-albums --remove-albums-assets
   ```
-  With this example, the Tool will connect to your Immich Photos account and will remove all Albums found (including all the assets contained on them, because we are using the complementary flag).
+  With this example, the Tool will connect to your Immich Photos account and will remove all Albums found (including all the assets contained on them, because we are using the complementary argument).
 
 > [!CAUTION]  
 > This process is irreversible and will clean all the Albums (and optionally also all the assets included) from your Immich Photos account. Use it if you are completelly sure of what you are doing.
@@ -200,19 +200,19 @@
 ## <span style="color:blue">Remove Albums by Name Pattern from Immich Photos:</span>
 - **From:** v3.3.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `immich` as client using the flag _**`-client=immich`**_ or _**`--client=immich`**_
-  - Also, you have to use the flag _**`--remove-albums <ALBUMS_NAME_PATTERN>`**_
+  - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
+  - Also, you have to use the argument _**`--remove-albums <ALBUMS_NAME_PATTERN>`**_
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Immich account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Immich Photos account and will rename all Albums whose name matches with the provided pattern.  
-  - If you specify any date filter with flags _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.  
+  - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.  
   - Optionally ALL the Assets associated to each removed Album can be removed If you also include the complementary argument _**`-rAlbAss, --remove-albums-assets`**_
 - **Example of use:**
   ```
   ./PhotoMigrator.run --client=immich --rename-albums "\d{4}-\d{2}-\d{2}" --remove-albums-assets
   ```
-  With this example, the Tool will connect to your Immich Photos account and will remove all Albums whose name contains a date like this ("2023-08-15 - Vacation photos"), including all the assets contained on them, because we are using the complementary flag.
+  With this example, the Tool will connect to your Immich Photos account and will remove all Albums whose name contains a date like this ("2023-08-15 - Vacation photos"), including all the assets contained on them, because we are using the complementary argument.
 
 > [!CAUTION]  
 > This process is irreversible and will remove all the Albums (and optionally also all the assets included) whose name matches with the provided pattern from your Immich Photos account. Use it if you are completelly sure of what you are doing.
@@ -221,13 +221,13 @@
 ## <span style="color:blue">Rename Albums by Name Pattern from Immich Photos:</span>
 - **From:** v3.3.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `immich` as client using the flag _**`-client=immich`**_ or _**`--client=immich`**_
-  - Also, you have to use the flag _**`--rename-albums <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>`**_
+  - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
+  - Also, you have to use the argument _**`--rename-albums <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>`**_
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Immich account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Immich Photos account and will rename all Albums whose name matches with the provided pattern.  
-  - If you specify any date filter with flags _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be renamed.  
+  - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be renamed.  
 - **Example of use:**
   ```
   ./PhotoMigrator.run --client=immich --rename-albums "\d{4}-\d{2}-\d{2}", "DATE"
@@ -238,13 +238,13 @@
 ## <span style="color:blue">Remove Empty Albums from Immich Photos:</span>
 - **From:** v3.0.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `immich` as client using the flag _**`-client=immich`**_ or _**`--client=immich`**_
-  - Also, you have to use the flag _**`--remove-empty-albums`**_
+  - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
+  - Also, you have to use the argument _**`--remove-empty-albums`**_
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Immich account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Immich Photos account and will remove all Empty Albums found.  
-  - If you specify any date filter with flags _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.  
+  - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.  
 - **Example of use:**
   ```
   ./PhotoMigrator.run --client=immich --remove-empty-albums
@@ -255,13 +255,13 @@
 ## <span style="color:blue">Remove Duplicates Albums from Immich Photos:</span>
 - **From:** v3.0.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `immich` as client using the flag _**`-client=immich`**_ or _**`--client=immich`**_
-  - Also, you have to use the flag _**`--remove-duplicates-albums`**_
+  - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
+  - Also, you have to use the argument _**`--remove-duplicates-albums`**_
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Immich account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Immich Photos account and will remove all Duplicates Albums found except the first one (but will not remove the assets associated to them, because they will still be associated with the first Album).  
-  - If you specify any date filter with flags _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.
+  - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.
 - **Example of use:**
   ```
   ./PhotoMigrator.run --client=immich --remove-duplicates-albums
@@ -272,13 +272,13 @@
 ## <span style="color:blue">Merge Duplicates Albums from Immich Photos:</span>
 - **From:** v3.3.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `immich` as client using the flag _**`-client=immich`**_ or _**`--client=immich`**_
-  - Also, you have to use the flag _**`--merge-duplicates-albums`**_
+  - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
+  - Also, you have to use the argument _**`--merge-duplicates-albums`**_
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Immich account credentials and url. 
 - **Explanation:**
   - The Tool will connect automatically to your Immich Photos account and will remove all Duplicates Albums found except the most relevant one (with highest number of assets) and will transfer all the assets associated to the other albums into the main one.  
-  - If you specify any date filter with flags _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be merged.
+  - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be merged.
 - **Example of use:**
   ```
   ./PhotoMigrator.run --client=immich --merge-duplicates-albums
@@ -289,8 +289,8 @@
 ## <span style="color:blue">Remove Orphans Assets from Immich Photos:</span>
 - **From:** v3.0.0
 - **Usage:**
-  - To run this feature, first, is mandatory that you set `immich` as client using the flag _**`-client=immich`**_ or _**`--client=immich`**_
-  - Also, you have to use the flag _**`--remove-orphan-assets`**_
+  - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
+  - Also, you have to use the argument _**`--remove-orphan-assets`**_
 - **Pre-Requisites:**
   - Configure properly the file `Config.ini` to include your Immich account credentials and the administrator credential (mandatory for this feature)
 - **Explanation:**
@@ -298,17 +298,19 @@
   - The Tool will connect automatically to your Immich Photos account and will remove all Orphan assets found.
 - **Example of use:**
   ```
-  ./PhotoMigrator.run --client=immich --remove-orphan-assets
-  ```
-  With this example, the Tool will connect to your Immich Photos account and will remove all Orphan Assets found.
-  
+  With this example, the Tool will connect to your Synology Photos account and will remove all Duplicates Albums found except the first one trasferring all the assets from the removed albums into the main one.
 
 ## Config.ini
 Youn can see how to configure the Config.ini file in this help section:
 [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md) 
 
 ---
+
+## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)
+
+
+---
 ## 🎖️ Credits:
 I hope this can be useful for any of you. Enjoy it!
 
-<span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>   
+<span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>  
