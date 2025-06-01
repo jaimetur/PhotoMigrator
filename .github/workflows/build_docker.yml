@@ -128,19 +128,19 @@ jobs:
       # End of Docker version Generation
       # ================================
 
-      # 6. Create Release and Upload Artifact to it
-      - name: 6. Create Release and Upload Artifact to it
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ env.SCRIPT_VERSION }}
-          name: v${{ env.SCRIPT_VERSION }}
-          draft: false
-          generate_release_notes: true
-          body_path: CURRENT-RELEASE.md
-          files: |
-            PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+#      # 6. Create Release and Upload Artifact to it
+#      - name: 6. Create Release and Upload Artifact to it
+#        uses: softprops/action-gh-release@v2
+#        with:
+#          tag_name: v${{ env.SCRIPT_VERSION }}
+#          name: v${{ env.SCRIPT_VERSION }}
+#          draft: false
+#          generate_release_notes: true
+#          body_path: CURRENT-RELEASE.md
+#          files: |
+#            PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
       # 7. - Cleanup (Linux/macOS)
       - name: 7. - Cleanup (Linux/macOS)
