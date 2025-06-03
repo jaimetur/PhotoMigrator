@@ -135,7 +135,7 @@ jobs:
       # ================================
 
       # 6. Create Release and Upload Artifact to it (only if this action have been launched manually with create_release=true)
-      - name: 6. Create Release and Upload Artifact to it
+      - name: 6. Create Release and Upload Artifact to it (only if this action have been launched manually with create_release=true)
         if: ${{ github.event.inputs.create_release == 'true' }}
         uses: softprops/action-gh-release@v2
         with:
