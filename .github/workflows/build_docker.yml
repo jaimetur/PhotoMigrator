@@ -2,6 +2,12 @@ name: Build Docker Image Only
 
 on:
   workflow_dispatch:      # Allows manual execution of the workflow
+    inputs:
+      create_release:
+        description: "Create Release ?"
+        type: boolean
+        required: true
+        default: false
   push:                   # Ejecución tras push en cualquier rama, excepto en los path-ignore
     branches:
       - main             # Ejecución tras push en main, excepto en los path-ignore
@@ -128,9 +134,9 @@ jobs:
       # End of Docker version Generation
       # ================================
 
-      # 6. Create Release and Upload Artifact to it (only if this action have been launched manually)
+      # 6. Create Release and Upload Artifact to it (only if this action have been launched manually with create_release=true)
       - name: 6. Create Release and Upload Artifact to it
-        if: github.event_name == 'workflow_dispatch'
+        if: ${{ github.event.inputs.create_release == 'true' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
