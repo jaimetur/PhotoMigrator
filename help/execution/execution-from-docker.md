@@ -52,14 +52,14 @@ Download the latest version of the Docker package from the [Releases page](https
     ```
 
 
-### 📝 1.3. Edit Docker Configuration file:   
+### 📝 1.3. Edit Docker Configuration file: `docker.conf`
 
-If you want to pull a different release image (default: latest) you can change the file 'docker.conf'.  
+If you want to pull a different release image (default: latest-stable) you can change the file `docker.conf` included in the package.  
 
 ```
 # Configuration file for the Docker container
 
-RELEASE_TAG=latest      # Set the RELEASE_TAG for the image that you want to pull and launch in Docker container
+RELEASE_TAG=latest      # Set the RELEASE_TAG for the image that you want to pull and launch in Docker container (latest-stable: for the latest-stable version, latest: for the latest betas, or any other version)
 TZ=Europe/Madrid        # Set the Time Zone for the Docker container (Important to see correct Timestamps in Logs and files/folder suffix)
 ```
 
@@ -75,9 +75,9 @@ The result should be something like this:
   "3.1.0"  
 
 
-### 📝 1.4. Edit Tool Configuration file:
+### 📝 1.4. Edit Tool Configuration file: `Config.ini`
 
-Open `Config.ini` in any text editor and update it with your credentials and settings.
+Open the file `Config.ini` included in the package with any text editor and update it with your credentials and settings.
 
 > For more information, refer to [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md).
 
@@ -153,7 +153,7 @@ Make sure Docker is running, then:
     docker pull jaimetur/photomigrator:3.2.0
     ```
 
-### 📥 2.2. Download Config.ini:
+### 📥 2.2. Download Configuration File: `Config.ini`
 - **Linux/macOS:**
     ```bash
     curl -L -o Config.ini https://raw.githubusercontent.com/jaimetur/PhotoMigrator/main/Config.ini
@@ -163,9 +163,9 @@ Make sure Docker is running, then:
   curl.exe -L -o Config.ini https://raw.githubusercontent.com/jaimetur/PhotoMigrator/main/Config.ini
   ```
 
-### 📝 2.3. Edit Tool Configuration file:
+### 📝 2.3. Edit Tool Configuration file: `Config.ini`
 
-Open `Config.ini` in any text editor and update it with your credentials and settings.
+Open the file `Config.ini` downloaded in the step before with any text editor and update it with your credentials and settings.
 
 > For more information, refer to [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md).
 
