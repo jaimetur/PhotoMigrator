@@ -4,7 +4,7 @@
 
 ### 📝 2. Edit the configuration file:
 
-Open `Config.ini` in any text editor and update it with your credentials and settings.
+Open the file `Config.ini` included in the package with any text editor and update it with your credentials and settings.
 
 > For more information, refer to [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md) .
 
