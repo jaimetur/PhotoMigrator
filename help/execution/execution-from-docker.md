@@ -186,7 +186,7 @@ Open the file `Config.ini` downloaded in the step before with any text editor an
 
 #### Where,
   - **[TIMEZONE]** is the Time Zone that you want to use. (i.e: Europe/Madrid)
-  - **[RELEASE_TAG]** is the Tag of the release that you want to execute.
+  - **[RELEASE_TAG]** is the Tag of the release that you want to execute. (recommended: `latest-stable`or `latest`)
   - **[OPTIONS]** are the arguments that you want to pass to the Tool. (i.e: -h)
 
 #### Example for Linux / MacOS:
