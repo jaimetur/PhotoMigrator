@@ -1,7 +1,8 @@
 # <span style="color:green">🖼️ Immich Photos Management</span>
 
 From version 3.0.0 onwards, the Tool can connect to your Immich Photos account with your credentials or using a pre-created API Key.  
->### Features included:
+
+### Features included:
 1. Upload Album(s) (from folder)
 2. Download Album(s) (into folder)
 3. Upload ALL (from folder)
