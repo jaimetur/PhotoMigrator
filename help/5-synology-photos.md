@@ -1,4 +1,4 @@
-# <span style="color:green">🖼️ Synology Photos Management:</span>
+# <span style="color:green">🖼️ Synology Photos Management</span>
 
 >[!NOTE]
 >## <span style="color:green">Synology Photos Support</span>
@@ -286,7 +286,7 @@ Youn can see how to configure the Config.ini file in this help section:
 
 ---
 
-## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main)
+## 🏠 [Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main/README.md)
 
 
 ---
