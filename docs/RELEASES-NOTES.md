@@ -16,7 +16,8 @@
     - [ ] Updated GPTH to version `4.0.6` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
 
   - #### 🐛 Bug fixes:
-    - [x] Changed name of Takeout folder in info message while looking for Takeout folder structure. Before it showed the name of the first subfolder inside it insted of the name of the Takeout folder.
+    - [x] Fixed name of Takeout folder in info message while looking for Takeout folder structure. Before it showed the name of the first subfolder inside it instead of the name of the Takeout folder.
+    - [x] Fixed info while showing elapsed time on unpacking step. Before it said step 1 instead of unpacking step.
   
   - #### 📚 Documentation:
     - [x] Removed **Automatic Migration** instructions from the main README.md (replaced by a link to the documentation file)
