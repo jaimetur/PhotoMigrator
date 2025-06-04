@@ -79,7 +79,8 @@ PhotoMigrator.run --type video --country Spain --person "Ana"
 | `--google-create-symbolic-albums`, `--gcsa`     | Use symbolic links for albums                                         |
 | `--google-ignore-check-structure`, `--gics`     | Ignore Takeout structure validations                                  |
 | `--google-move-takeout-folder`, `--gmtf`        | Move instead of copy assets (destructive)                             |
-| `--google-remove-duplicates-files`, `--grdf`    | Remove duplicates                                                     |
+| `--google-remove-duplicates-files`, `--grdf`    | Removes duplicate files in the output folder.                         |
+| `--google-rename-albums-folders`, `--graf`      | Renames albums folders based on content dates.                        |
 | `--google-skip-extras-files`, `--gsef`          | Skip `-edited`, `-effects` images                                     |
 | `--google-skip-move-albums`, `--gsma`           | Skip moving albums to "Albums" folder                                 |
 | `--google-skip-gpth-tool`, `--gsgt`             | Skip processing with GPTH Tool (not recommended)                      |

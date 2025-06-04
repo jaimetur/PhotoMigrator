@@ -27,12 +27,12 @@ Download the latest version of the Docker package from the [Releases page](https
 
 - **Linux/macOS:**
     ```bash
-    curl -L -o PhotoMigrator_v3.3.0-alpha_docker.zip https://github.com/jaimetur/PhotoMigrator/releases/download/v3.3.0-alpha/PhotoMigrator_v3.3.0-alpha_docker.zip
+    curl -L -o PhotoMigrator_v3.3.1-alpha_docker.zip https://github.com/jaimetur/PhotoMigrator/releases/download/v3.3.1-alpha/PhotoMigrator_v3.3.1-alpha_docker.zip
     ```
   
 - **Windows (PoowerShell):**
     ```bash
-    curl.exe -L -o PhotoMigrator_v3.3.0-alpha_docker.zip https://github.com/jaimetur/PhotoMigrator/releases/download/v3.3.0-alpha/PhotoMigrator_v3.3.0-alpha_docker.zip
+    curl.exe -L -o PhotoMigrator_v3.3.1-alpha_docker.zip https://github.com/jaimetur/PhotoMigrator/releases/download/v3.3.1-alpha/PhotoMigrator_v3.3.1-alpha_docker.zip
     ```
 
 
@@ -41,13 +41,13 @@ Download the latest version of the Docker package from the [Releases page](https
 - **Linux/macOS:**
     ```bash
     sudo apt install 7zip
-    7z x PhotoMigrator_v3.3.0-alpha_docker.zip
+    7z x PhotoMigrator_v3.3.1-alpha_docker.zip
     cd PhotoMigrator/docker
     ```
 
 - **Windows (PoowerShell):**
     ```bash
-    powershell -Command "Expand-Archive -Path PhotoMigrator_v3.3.0-alpha_docker.zip -DestinationPath ./"
+    powershell -Command "Expand-Archive -Path PhotoMigrator_v3.3.1-alpha_docker.zip -DestinationPath ./"
     cd PhotoMigrator\docker
     ```
 
@@ -70,7 +70,7 @@ curl -s "https://registry.hub.docker.com/v2/repositories/jaimetur/photomigrator/
 The result should be something like this:  
   "latest"  
   "latest-stable"  
-  "3.3.0"  
+  "3.3.1"  
   "3.2.0"  
   "3.1.0"  
 
@@ -139,7 +139,7 @@ Make sure Docker is running, then:
     The result should be something like this:  
       "latest"  
       "latest-stable"  
-      "3.3.0"  
+      "3.3.1"  
       "3.2.0"  
       "3.1.0"  
 

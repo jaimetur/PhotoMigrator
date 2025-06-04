@@ -15,6 +15,7 @@ import logging
 import inspect
 import shutil
 from pathlib import Path
+from dataclasses import dataclass
 
 # Keep your existing imports for external modules:
 import Utils
@@ -27,6 +28,8 @@ from GlobalVariables import LOGGER
 
 # Import ClassLocalFolder (Parent Class of this)
 from ClassLocalFolder import ClassLocalFolder
+from Utils import rename_album_folders
+
 
 ##############################################################################
 #                              START OF CLASS                                #
@@ -190,6 +193,31 @@ class ClassTakeoutFolder(ClassLocalFolder):
         Main method to process Google Takeout data. Follows the same steps as the original
         process() function, but uses LOGGER and self.ARGS instead of global.
         """
+        @dataclass
+        class ProcessingResult:
+            initial_takeout_numfiles: int
+            valid_albums_found: int
+            symlink_fixed: int
+            symlink_not_fixed: int
+            duplicates_found: int
+            removed_empty_folders: int
+            renamed_album_folders: int
+            duplicates_album_folders: int
+            duplicates_albums_fully_merged: int
+            duplicates_albums_not_fully_merged: int
+
+        # Initialize all fields to return
+        initial_takeout_numfiles = 0
+        valid_albums_found = 0
+        symlink_fixed = 0
+        symlink_not_fixed = 0
+        duplicates_found = 0
+        removed_empty_folders = 0
+        renamed_album_folders = 0
+        duplicates_album_folders = 0
+        duplicates_albums_fully_merged = 0
+        duplicates_albums_not_fully_merged = 0
+
         with set_log_level(LOGGER, log_level):  # Temporarily adjust log level
             LOGGER.info("")
             LOGGER.info(f"==========================================")
@@ -263,7 +291,19 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 if not ok:
                     LOGGER.warning(f"WARNING : Metadata fixing didn't finish properly due to GPTH error.")
                     LOGGER.warning(f"WARNING : If your Takeout does not contains Year/Month folder structure, you can use '-gics, --google-ignore-check-structure' flag.")
-                    return (0, 0, 0, 0, initial_takeout_numfiles, 0)
+                    # return (0, 0, 0, 0, initial_takeout_numfiles, 0, 0, 0, 0, 0)
+                    return ProcessingResult(
+                        valid_albums_found=valid_albums_found,
+                        symlink_fixed=symlink_fixed,
+                        symlink_not_fixed=symlink_not_fixed,
+                        duplicates_found=duplicates_found,
+                        initial_takeout_numfiles=initial_takeout_numfiles,
+                        removed_empty_folders=removed_empty_folders,
+                        renamed_album_folders=renamed_album_folders,
+                        duplicates_album_folders=duplicates_album_folders,
+                        duplicates_albums_fully_merged=duplicates_albums_fully_merged,
+                        duplicates_albums_not_fully_merged=duplicates_albums_not_fully_merged,
+                    )
 
                 if self.ARGS['google-move-takeout-folder']:
                     Utils.force_remove_directory(input_folder)
@@ -368,18 +408,16 @@ class ClassTakeoutFolder(ClassLocalFolder):
             else:
                 LOGGER.warning("WARNING : Moving albums to 'Albums' folder skipped ('-sm, --google-skip-move-albums' flag detected).")
 
-            valid_albums_found = 0
             if not self.ARGS['google-skip-move-albums']:
                 album_folder = os.path.join(output_takeout_folder, 'Albums')
                 if os.path.isdir(album_folder):
                     valid_albums_found = Utils.count_valid_albums(album_folder)
             else:
+                album_folder = output_takeout_folder
                 if os.path.isdir(output_takeout_folder):
-                    valid_albums_found = Utils.count_valid_albums(output_takeout_folder)
+                    valid_albums_found = Utils.count_valid_albums(output_takeout_folder) - 1
 
             # step 7: Fix Broken Symbolic Links
-            symlink_fixed = 0
-            symlink_not_fixed = 0
             if self.ARGS['google-create-symbolic-albums']:
                 self.step += 1
                 LOGGER.info("")
@@ -398,8 +436,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.warning("WARNING : Fixing broken symbolic links skipped ('-sa, --google-create-symbolic-albums' flag not detected).")
 
             # step 8: Remove Duplicates
-            duplicates_found = 0
-            removed_empty_folders = 0
             if self.ARGS['google-remove-duplicates-files']:
                 self.step += 1
                 LOGGER.info("")
@@ -421,6 +457,22 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
 
+            # step 9: Rename Albums Folders based on content date
+            if self.ARGS['google-rename-albums-folders']:
+                self.step += 1
+                LOGGER.info("")
+                LOGGER.info("====================================================")
+                LOGGER.info(f"INFO    : {self.step}. RENAMING ALBUMS FOLDERS BASED ON THEIR DATES...")
+                LOGGER.info("====================================================")
+                LOGGER.info("")
+                LOGGER.info("INFO    : Renaming albums folders from OUTPUT_TAKEOUT_FOLDER based on their dates...")
+                step_start_time = datetime.now()
+                renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = rename_album_folders(input_folder=album_folder, exclude_subfolder=['No-Albums', '@eaDir'], log_level=logging.INFO)
+                step_end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
+                LOGGER.info("")
+                LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
+
             processing_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(processing_end_time - processing_start_time).seconds))
             LOGGER.info("")
@@ -434,8 +486,19 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # At the end of the process, we call the super() to make this objet an sub-instance of the class ClassLocalFolder to create the same folder structure
             super().__init__(output_takeout_folder)
 
-            return (valid_albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders)
-
+            # return (valid_albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders, renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged)
+            return ProcessingResult(
+                valid_albums_found=valid_albums_found,
+                symlink_fixed=symlink_fixed,
+                symlink_not_fixed=symlink_not_fixed,
+                duplicates_found=duplicates_found,
+                initial_takeout_numfiles=initial_takeout_numfiles,
+                removed_empty_folders=removed_empty_folders,
+                renamed_album_folders=renamed_album_folders,
+                duplicates_album_folders=duplicates_album_folders,
+                duplicates_albums_fully_merged=duplicates_albums_fully_merged,
+                duplicates_albums_not_fully_merged=duplicates_albums_not_fully_merged,
+            )
 
 ##############################################################################
 #                                END OF CLASS                                #

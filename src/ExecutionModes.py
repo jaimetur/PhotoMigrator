@@ -8,6 +8,7 @@ import pstats
 import threading
 import time
 import shutil
+from dataclasses import asdict
 from CustomLogger import set_log_level
 from Duplicates import find_duplicates, process_duplicates_actions
 from ClassTakeoutFolder import ClassTakeoutFolder
@@ -141,6 +142,10 @@ def detect_and_run_execution_mode():
 # FEATURE: GOOGLE PHOTOS TAKEOUT: #
 ###################################
 def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
+    def print_result_pretty(result):
+        for key, value in result.items():
+            print(f"{key:35}: {value}")
+
     # Configure default arguments for mode_google_takeout() execution
     LOGGER.info(f"Starting Google Takeout Photos Processor Feature...")
     LOGGER.info("")
@@ -179,6 +184,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
     LOGGER.info(f"INFO    : Ignore Check Google Takeout Structure    : '{ARGS['google-ignore-check-structure']}'")
     LOGGER.info(f"INFO    : Move Original Assets to Output Folder    : '{ARGS['google-move-takeout-folder']}'")
     LOGGER.info(f"INFO    : Remove Duplicates files in Output folder : '{ARGS['google-remove-duplicates-files']}'")
+    LOGGER.info(f"INFO    : Rename Albums folders in Output folder   : '{ARGS['google-rename-albums-folders']}'")
     LOGGER.info(f"INFO    : Skip Extra Assets (-edited,-effects...)  : '{ARGS['google-skip-extras-files']}'")
     LOGGER.info(f"INFO    : Skip Moving Albums to 'Albums' folder    : '{ARGS['google-skip-move-albums']}'")
     LOGGER.info(f"INFO    : Skip GPTH Tool                           : '{ARGS['google-skip-gpth-tool']}'")
@@ -215,12 +221,18 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
             LOGGER.warning(f"WARNING : Flag detected '-gmtf, --google-move-takeout-folder'. Photos/Videos in <TAKEOUT_FOLDER> will be moved (instead of copied) to <OUTPUT_TAKEOUT_FOLDER>...")
         if ARGS['google-remove-duplicates-files']:
             LOGGER.warning(f"WARNING : Flag detected '-grdf, --google-remove-duplicates-files'. All duplicates files within OUTPUT_TAKEOUT_FOLDER will be removed after fixing them...")
+        if ARGS['google-rename-albums-folders']:
+            LOGGER.warning(f"WARNING : Flag detected '-graf, --google-rename-albums-folders'. All albums subfolders within OUTPUT_TAKEOUT_FOLDER will be renamed after fixing them based on their content data...")
         if ARGS['no-log-file']:
             LOGGER.warning(f"WARNING : Flag detected '-nolog, --no-log-file'. Skipping saving output into log file...")
         # Create the Object
         takeout = ClassTakeoutFolder(ARGS['google-takeout'])
         # Call the Function
-        albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], log_level=log_level)
+        # albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders, renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], log_level=log_level)
+        result = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], log_level=log_level)
+
+        # print result for debugging
+        # print_result_pretty(asdict(result))
 
         # Count files in Takeout Folder
         if need_unzip:
@@ -240,6 +252,9 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         total_metadata = Utils.count_metadatas_in_folder(OUTPUT_TAKEOUT_FOLDER)
         total_supported_files = total_images + total_videos + total_sidecars + total_metadata
 
+        # Calculate not_supported_files
+        not_supported_files = result.initial_takeout_numfiles - initial_takeout_total_supported_files
+
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -253,13 +268,13 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info("=====================================================")
         LOGGER.info("                    FINAL SUMMARY:                   ")
         LOGGER.info("=====================================================")
-        LOGGER.info(f"Total Files files in Takeout folder         : {initial_takeout_numfiles}")
+        LOGGER.info(f"Total Files files in Takeout folder         : {result.initial_takeout_numfiles}")
         LOGGER.info(f"Total Supported files in Takeout folder     : {initial_takeout_total_supported_files}")
         LOGGER.info(f"   - Total Images in Takeout folder         : {initial_takeout_total_images}")
         LOGGER.info(f"   - Total Videos in Takeout folder         : {initial_takeout_total_videos}")
         LOGGER.info(f"   - Total Sidecars in Takeout folder       : {initial_takeout_total_sidecars}")
         LOGGER.info(f"   - Total Metadata in Takeout folder       : {initial_takeout_total_metadata}")
-        LOGGER.info(f"Total Non-Supported files in Takeout folder : {initial_takeout_numfiles-initial_takeout_total_supported_files}")
+        LOGGER.info(f"Total Non-Supported files in Takeout folder : {not_supported_files}")
         LOGGER.info("")
         LOGGER.info(f"Total Files in Output folder                : {total_files}")
         LOGGER.info(f"Total Supported files in Output folder      : {total_supported_files}")
@@ -268,14 +283,19 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         LOGGER.info(f"   - Total Sidecars in Output folder        : {total_sidecars}")
         LOGGER.info(f"   - Total Metadata in Output folder        : {total_metadata}")
         LOGGER.info(f"Total Non-Supported files in Output folder  : {total_files-total_supported_files}")
-        LOGGER.info(f"Total Albums folders found in Output folder : {albums_found}")
+        LOGGER.info(f"Total Albums folders found in Output folder : {result.valid_albums_found}")
         LOGGER.info("")
         if ARGS['google-create-symbolic-albums']:
-            LOGGER.info(f"Total Symlinks Fixed                        : {symlink_fixed}")
-            LOGGER.info(f"Total Symlinks Not Fixed                    : {symlink_not_fixed}")
+            LOGGER.info(f"Total Symlinks Fixed                        : {result.symlink_fixed}")
+            LOGGER.info(f"Total Symlinks Not Fixed                    : {result.symlink_not_fixed}")
         if ARGS['google-remove-duplicates-files']:
-            LOGGER.info(f"Total Duplicates Removed                    : {duplicates_found}")
-            LOGGER.info(f"Total Empty Folders Removed                 : {removed_empty_folders}")
+            LOGGER.info(f"Total Duplicates Removed                    : {result.duplicates_found}")
+            LOGGER.info(f"Total Empty Folders Removed                 : {result.removed_empty_folders}")
+        if ARGS['google-rename-albums-folders']:
+            LOGGER.info(f"Total Albums Renamed                        : {result.renamed_album_folders}")
+            LOGGER.info(f"Total Albums Duplicated                     : {result.duplicates_album_folders}")
+            LOGGER.info(f"   - Total Albums Fully Merged              : {result.duplicates_albums_fully_merged}")
+            LOGGER.info(f"   - Total Albums Not Fully Merged          : {result.duplicates_albums_not_fully_merged}")
         LOGGER.info("")
         LOGGER.info(f"Total time elapsed                          : {formatted_duration}")
         LOGGER.info("=====================================================")

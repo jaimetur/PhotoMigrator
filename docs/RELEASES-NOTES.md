@@ -1,6 +1,16 @@
 # 🗓️ Releases Notes:
 
 
+## **Release**: v3.3.1  
+
+- ### **Release Date**: 2025-06-04
+
+- ### Main Changes:
+  - #### 🌟 New Features:
+    - [x] Added new argument _**`-grfa, --google-rename-albums-folders`**_ to rename all albums folders based on content dates when finish Google Takeout Processing.
+    - [x] Updated GPTH to version 4.0.6 (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
+
+
 ## **Release**: v3.3.0  
 
 - ### **Release Date**: 2025-05-30
@@ -13,18 +23,18 @@
   - #### 🌟 New Features:
     - [x] Added Multi-Account support for all Synology Photos and Immich Photos Features (not only Automatic Mode Feature as before).
     - [x] Added Support for 3 accounts of each Cloud Photo Service (before it was only 2).
-    - [x] Merged Synology/Immich arguments (now you can specify the client using a new argument _**'-client, --client \<CLIENT_NAME>'**_)
-    - [x] Added new argument _**'-client, --cient \<CLIENT_NAME>'**_ to set the Cloud Photo client to use.
-    - [x] Added new argument _**'-id, --account-id \<ID>'**_ to specify which account to use for Synology Photos and Immich Photos from Config.ini.
-    - [x] Added new argument _**'-move, --move-assets'**_ to move assets (instead of copy) from \<SOURCE> client to \<TARGET> client during Automatic Migration process.
-    - [x] Added support for 2FA in Synology Photos requesting the OTP Token if flag _**'-OTP, --one-time-password'**_ is detected. [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
-      - New flag _**'-OTP, --one-time-password'**_ to allow login into Synology Photos accounts with 2FA activated.
+    - [x] Merged Synology/Immich arguments (now you can specify the client using a new argument _**`-client, --client \<CLIENT_NAME>`**_)
+    - [x] Added new argument _**`-client, --cient \<CLIENT_NAME>`**_ to set the Cloud Photo client to use.
+    - [x] Added new argument _**`-id, --account-id \<ID>`**_ to specify which account to use for Synology Photos and Immich Photos from Config.ini.
+    - [x] Added new argument _**`-move, --move-assets`**_ to move assets (instead of copy) from \<SOURCE> client to \<TARGET> client during Automatic Migration process.
+    - [x] Added support for 2FA in Synology Photos requesting the OTP Token if flag _**`-OTP, --one-time-password`**_ is detected. [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
+      - New flag _**`-OTP, --one-time-password`**_ to allow login into Synology Photos accounts with 2FA activated.
     - [x] Added new Feature to **Remove Albums by Name Pattern** from Synology Photos and Immich Photos to remove those albums whose name matches with a provided pattern (using regular expresions). Added following new flag to execute this new features:
-      - _**'-rAlb, --remove-albums \<ALBUM_NAME_PATTERN>'**_
+      - _**`-rAlb, --remove-albums \<ALBUM_NAME_PATTERN>`**_
     - [x] Added new Feature to **Rename Albums by Name Pattern** from Synology Photos and Immich Photos to rename those albums whose name matches with a provided pattern (using regular expresions). Added following new flag to execute this new features:
-      - _**'-renAlb, --rename-albums \<ALBUM_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>'**_
+      - _**`-renAlb, --rename-albums \<ALBUM_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>`**_
     - [x] Added new Feature to **Merge Albums** with the same name and different assets. Added following new flag to execute this new feature:
-      - _**'-mDupAlb, --merge-duplicates-albums'**_ 
+      - _**`-mDupAlb, --merge-duplicates-albums`**_ 
     - [x] Automatic filters flags detection for all Remove/Rename/Merge Albums features for Synology/Immich Photos
       - [x] remove-all-assets
       - [x] remove-all-albums
@@ -43,33 +53,33 @@
   - #### 🚀 Enhancements:
     - [x] Improved Performance on Pull functions when no filtering options have been given.
     - [x] Improved performance when searching Google Takeout structure on huge local folder with many subfolders.
-    - [x] Renamed 'Automated Mode' to 'Automatic Mode'.
+    - [x] Renamed `Automated Mode` to `Automatic Mode`.
     - [x] Improved performance retrieving assets when filters are detected. Use smart filtering detection to avoid person filterimg if not apply (this filter is very slow in Synology Photos)
     - [x] Avoid logout from Synology Photos when some mode uses more than one call to Synology Photos API (to avoid OTP token expiration)  
     - [x] Merged Features 'Remove All Albums' & 'Remove Albums by name' (You can remove ALL Albums using '.*' as pattern).
     - [x] Merged Synology/Immich features using a parameter and replacing Comments and Classes based on it. 
     - [x] Merged Synology/Immich HELP texts showed when running the different features.
-    - [x] Renamed All arguments starting with 's' (for synology) or 'i' (for immich) to remove the prefix, since now you can specify the client using the new flag _**'-client, --client'**_
-    - [x] Renamed flag _**'-gtProc, --google-takeout-to-process'**_ to _**'-gTakeout, --google-takeout'**_ to activate the Feature 'Google Takeout Processing'.
-    - [x] Renamed short argument _**'-RemAlb'**_ to _**'-rAlb'**_ to activate the Feature 'Remove Albums'.
-    - [x] Renamed short argument _**'-RenAlb'**_ to _**'-renAlb'**_ to activate the Feature 'Rename Albums'.
-    - [x] Renamed short argument _**'-MergAlb'**_ to _**'-mDupAlb'**_ to activate the Feature 'Merge Duplicates Albums'.
+    - [x] Renamed All arguments starting with 's' (for synology) or 'i' (for immich) to remove the prefix, since now you can specify the client using the new flag _**`-client, --client`**_
+    - [x] Renamed flag _**`-gtProc, --google-takeout-to-process`**_ to _**`-gTakeout, --google-takeout`**_ to activate the Feature 'Google Takeout Processing'.
+    - [x] Renamed short argument _**`-RemAlb`**_ to _**`-rAlb`**_ to activate the Feature 'Remove Albums'.
+    - [x] Renamed short argument _**`-RenAlb`**_ to _**`-renAlb`**_ to activate the Feature 'Rename Albums'.
+    - [x] Renamed short argument _**`-MergAlb`**_ to _**`-mDupAlb`**_ to activate the Feature 'Merge Duplicates Albums'.
     - [x] Updated GPTH to version 4.0.5 (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts.     
     - [x] GPTH is now enhanced with EXIF Tool support for a better metadata fixing (supporting geolocations update, almost all media formats, multiple camera brands, etc...).     
     - [x] Improved _build.py to support both compilers (Pyinstaller and Nuitka).     
     - [x] Added Splash logo at the loading screen when execute from binaries on Windows.  
-    - [x] Renamed binaries files for architecture 'amd64' from 'amd64' to 'x64'.     
+    - [x] Renamed binaries files for architecture `amd64` from `amd64` to `x64`.     
     - [x] Included binary for 'Windows arm64' architecture.     
     - [x] Changed Compiler from **Pyinstaller** to **Nuitka** (better performance) to generate compiled binaries for all supported platforms.     
     - [x] Many improvements and automations in GitHub Actions to generate new builds and releases.     
 
   - #### 🐛 Bug fixes:
     - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
-    - [x] Fixed a bug with feature **Remove All Albums** from Synology Photos and Immich Photos when the flag _**'--remove-albums-assets'**_ was selected (the assetes were not removed properly).
+    - [x] Fixed a bug with feature **Remove All Albums** from Synology Photos and Immich Photos when the flag _**`--remove-albums-assets`**_ was selected (the assetes were not removed properly).
     - [x] Fixed a bug with feature **Synology Upload Album(s)** when the folder to upload is not named "Albums".
     - [x] Fixed a bug when any input folder ends with '\' or '/' but is enclosed between double quotes (").
-    - [x] Fixed a bug replacing argument provided with flag _**'-dAlb, --download-albums \<ALBUMS_NAME>'**_ in the HELP text screen.
-    - [x] Fixed a bug when using interactive pager for _**'-h, --help'**_ if terminal does not support it.
+    - [x] Fixed a bug replacing argument provided with flag _**`-dAlb, --download-albums \<ALBUMS_NAME>`**_ in the HELP text screen.
+    - [x] Fixed a bug when using interactive pager for _**`-h, --help`**_ if terminal does not support it.
     - [x] Minor bugs fixing.
 
   - #### 📚 Documentation:
@@ -93,13 +103,13 @@
         - [x] by Country
         - [x] by City
         - [x] by Person
-    - [x] Added new flag _**-type, --filter-by-type=[image, video, all]**_ to select the Asset Type to download (default: all)
-    - [x] Added new flag _**-from, --filter-from-date <FROM_DATE>**_ to select the Initial Date of the Assets to download
-    - [x] Added new flag _**-to, --filter-to-date <TO_DATE>**_ to select the Final Date of the Assets to download
-    - [x] Added new flag _**-country, --filter-by-country <COUNTRY_NAME>**_ to select the Country Name of the Assets to download
-    - [x] Added new flag _**-city, --filter-by-city <CITY_NAME>**_ to select the City Name of the Assets to download
-    - [x] Added new flag _**-person, --filter-by-person <PERSON_NAME>**_ to select the Person Name of the Assets to download
-    - [x] Added new flag _**-parallel, --parallel-migration=[true, false]**_ to select the Migration Mode (Parallel or Sequential). Default: true (parallel)
+    - [x] Added new flag _**`-type, --filter-by-type=[image, video, all]`**_ to select the Asset Type to download (default: all)
+    - [x] Added new flag _**`-from, --filter-from-date <FROM_DATE>`**_ to select the Initial Date of the Assets to download
+    - [x] Added new flag _**`-to, --filter-to-date <TO_DATE>`**_ to select the Final Date of the Assets to download
+    - [x] Added new flag _**`-country, --filter-by-country <COUNTRY_NAME>`**_ to select the Country Name of the Assets to download
+    - [x] Added new flag _**`-city, --filter-by-city <CITY_NAME>`**_ to select the City Name of the Assets to download
+    - [x] Added new flag _**`-person, --filter-by-person <PERSON_NAME>`**_ to select the Person Name of the Assets to download
+    - [x] Added new flag _**`-parallel, --parallel-migration=[true, false]`**_ to select the Migration Mode (Parallel or Sequential). Default: true (parallel)
     - [x] Included Live Dashboard in sequential Automatic Migration
   
   - #### 🐛 Bug fixes:

@@ -941,7 +941,7 @@ def fix_symlinks_broken(input_folder, log_level=logging.INFO):
         return corrected_count, failed_count
 
 
-def rename_album_folders(input_folder: str, log_level=logging.INFO):
+def rename_album_folders(input_folder: str, exclude_subfolder=None, log_level=logging.INFO):
     # ===========================
     # AUXILIARY FUNCTIONS
     # ===========================
@@ -1007,7 +1007,13 @@ def rename_album_folders(input_folder: str, log_level=logging.INFO):
         duplicates_albums_not_fully_merged = 0
         info_actions = []
         warning_actions = []
-        total_folders = os.listdir(input_folder)
+
+        if isinstance(exclude_subfolder, str):
+            exclude_subfolder = [exclude_subfolder]
+
+        # total_folders = os.listdir(input_folder)
+        total_folders = get_subfolders_with_exclusions(input_folder, exclude_subfolder)
+
         for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"INFO    : Renaming Albums folders in '{input_folder}'", unit=" folders"):
             item_path = os.path.join(input_folder, original_folder_name)
             if os.path.isdir(item_path):
@@ -1764,4 +1770,11 @@ def run_command(command, logger, capture_output=False, capture_errors=True):
         result = subprocess.run(command, check=False, text=True, encoding="utf-8", errors="replace")
         return result.returncode
 
-
+def get_subfolders_with_exclusions(input_folder, exclude_subfolder=None):
+    all_entries = os.listdir(input_folder)
+    subfolders = [
+        entry for entry in all_entries
+        if os.path.isdir(os.path.join(input_folder, entry)) and
+           (exclude_subfolder is None or entry not in exclude_subfolder)
+    ]
+    return subfolders
