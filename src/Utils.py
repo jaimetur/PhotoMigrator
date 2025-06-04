@@ -1106,7 +1106,8 @@ def contains_takeout_structure(input_folder, log_level=logging.INFO):
                         if entry.is_dir():
                             name = entry.name
                             if name.startswith("Photos from ") and name[12:16].isdigit():
-                                LOGGER.info(f"INFO    : Found Takeout structure in: {entry.path}")
+                                # LOGGER.info(f"INFO    : Found Takeout structure in folder: {entry.path}")
+                                LOGGER.info(f"INFO    : Found Takeout structure in folder: {current}")
                                 return True
                             stack.append(entry.path)
             except PermissionError:
