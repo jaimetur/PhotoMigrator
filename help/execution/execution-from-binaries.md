@@ -18,7 +18,6 @@ Open the file `Config.ini` included in the package with any text editor and upda
 
 ## 🏠 [Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main/README.md)
 
-
 ---
 ## 🎖️ Credits:
 I hope this can be useful for any of you.  
