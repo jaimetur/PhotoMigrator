@@ -151,9 +151,9 @@ def parse_arguments():
                         metavar="= [true,false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
-                        default=False,  # Si no se pasa el argumento, el valor por defecto es True
+                        default=True,  # Si no se pasa el argumento, el valor por defecto es True
                         type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="Enable or disable Info messages during GPTH Processing. (default: False)."
+                        help="Enable or disable Info messages during GPTH Processing. (default: True)."
     )
     PARSER.add_argument("-gpthErr", "--show-gpth-errors",
                         metavar="= [true,false]",
