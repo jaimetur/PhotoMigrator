@@ -217,7 +217,7 @@ Open the file `Config.ini` downloaded in the step before with any text editor an
 
 ---
 
-## [[🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)](https://github.com/jaimetur/PhotoMigrator/tree/main)
+## [[🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main)](https://github.com/jaimetur/PhotoMigrator/tree/main)
 
 
 
