@@ -163,40 +163,40 @@ jobs:
         shell: bash
 
 
-      # 8. Commit y push README.md (Solo si OS = ubuntu*)
-      - name: 8. Commit y push README.md
-        if: ${{ startsWith(matrix.os, 'ubuntu') }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Añadir solo README.md, evitando archivos no deseados
-          git add README.md
-
-          # Si NO hay cambios en README.md, salir sin error
-          if git diff --cached --quiet; then
-            echo "No hay cambios en README.md"
-            exit 0
-          fi
-
-          # Guardar cambios en stash antes de pull --rebase
-          git stash push -m "Pre-rebase stash"
-
-          # Actualizar la rama
-          git pull --rebase origin ${{ github.ref_name }}
-
-          # Restaurar cambios del stash si existen
-          git stash pop || echo "No hay stash para aplicar"
-
-          # Asegurar que README.md está agregado después del pop
-          git add README.md
-
-          # Verificar nuevamente si hay cambios antes de hacer commit
-          if git diff --cached --quiet; then
-            echo "No hay cambios después del stash pop"
-            exit 0
-          fi
-
-          # Realizar commit y push
-          git commit -m "README.md updated by Github Actions (build_docker.yml)"
-          git push origin ${{ github.ref_name }}
+#      # 8. Commit y push README.md (Solo si OS = ubuntu*)
+#      - name: 8. Commit y push README.md
+#        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+#        run: |
+#          git config --global user.name "github-actions[bot]"
+#          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+#
+#          # Añadir solo README.md, evitando archivos no deseados
+#          git add README.md
+#
+#          # Si NO hay cambios en README.md, salir sin error
+#          if git diff --cached --quiet; then
+#            echo "No hay cambios en README.md"
+#            exit 0
+#          fi
+#
+#          # Guardar cambios en stash antes de pull --rebase
+#          git stash push -m "Pre-rebase stash"
+#
+#          # Actualizar la rama
+#          git pull --rebase origin ${{ github.ref_name }}
+#
+#          # Restaurar cambios del stash si existen
+#          git stash pop || echo "No hay stash para aplicar"
+#
+#          # Asegurar que README.md está agregado después del pop
+#          git add README.md
+#
+#          # Verificar nuevamente si hay cambios antes de hacer commit
+#          if git diff --cached --quiet; then
+#            echo "No hay cambios después del stash pop"
+#            exit 0
+#          fi
+#
+#          # Realizar commit y push
+#          git commit -m "README.md updated by Github Actions (build_docker.yml)"
+#          git push origin ${{ github.ref_name }}
