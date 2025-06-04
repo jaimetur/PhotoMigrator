@@ -26,12 +26,13 @@ Apart from the 'Automatic Migration Mode', you can use the tool also to manage d
 Currently, the Features Included per each Supported Photo Cloud Service are:
 - [**Google Photos Takeout**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
   - Unpack your Takeout Zip files.
-  - Process .json files to fix metadata (including creation date and time) of all your assets.
   - Merge Live picture with separate files (.HEIC and .MP4).
+  - Process .json files to fix metadata (including creation date and time, GPS data, etc...) of all your assets.
   - Separate your assets per Albums (if belong to any album).
   - Organize your assets in a year/month structure for a better organization.
   - Create Symbolic Links for assets within any Album (to save disk space).
   - Detect and remove duplicates.
+  - Auto rename Albums folders to homogenize all names based on content dates. 
 
 - [**Synology Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md) - Features included:
   - Upload Album(s) (from folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#upload-albums-from-local-folder-into-synology-photos)
