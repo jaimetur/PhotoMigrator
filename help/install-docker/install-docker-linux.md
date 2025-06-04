@@ -1,4 +1,4 @@
-# 🐧 Install Docker Engine on Linux (Debian/Ubuntu) Using Terminal
+# 🐧 Install Docker Engine on Linux (Debian/Ubuntu)
 
 This guide explains how to install Docker Engine on a Debian-based Linux system such as Ubuntu using the terminal.
 
@@ -97,9 +97,7 @@ Official docs:
 
 ---
 
-## [[🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main)](https://github.com/jaimetur/PhotoMigrator/tree/main)
-
-
+## 🏠 [Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main/README.md)
 
 ---
 ## 🎖️ Credits:
