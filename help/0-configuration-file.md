@@ -76,7 +76,6 @@ In this section you have to provide:
 
 ## 🏠 [Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main/README.md)
 
-
 ---
 ## 🎖️ Credits:
 I hope this can be useful for any of you. Enjoy it!
