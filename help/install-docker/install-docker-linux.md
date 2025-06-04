@@ -2,6 +2,7 @@
 
 This guide explains how to install Docker Engine on a Debian-based Linux system such as Ubuntu using the terminal.
 
+> [!WARNING]
 > ⚠️ **Run all commands as root** or prepend `sudo` to each one.
 
 ## ✅ Step 1: Update the Package Index
