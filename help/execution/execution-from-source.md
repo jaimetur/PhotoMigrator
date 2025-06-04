@@ -1,4 +1,4 @@
-# Execution from Source Repository:
+# Execution from Source Repository
 
 > [!IMPORTANT]  
 > ### ✅ Prerequisites:
@@ -60,8 +60,7 @@ Open the file `Config.ini` included in the package with any text editor and upda
 
 ---
 
-## [[🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main)](https://github.com/jaimetur/PhotoMigrator/tree/main)
-
+## 🏠 [Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main/README.md)
 
 ---
 ## 🎖️ Credits:
