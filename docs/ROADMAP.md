@@ -1,4 +1,4 @@
-## 📅 ROADMAP:
+## 📅 ROADMAP
 [Planed Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/ROADMAP.md) for the following releases
 
 ---
