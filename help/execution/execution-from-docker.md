@@ -219,7 +219,6 @@ Open the file `Config.ini` downloaded in the step before with any text editor an
 
 ## 🏠 [Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main/README.md)
 
-
 ---
 ## 🎖️ Credits:
 I hope this can be useful for any of you.  
