@@ -72,7 +72,7 @@ Official Docker Desktop for Mac documentation:
 
 ---
 
-## [[🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main/README.md)](https://github.com/jaimetur/PhotoMigrator/tree/main)
+## [[🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)](https://github.com/jaimetur/PhotoMigrator/tree/main)
 
 
 
