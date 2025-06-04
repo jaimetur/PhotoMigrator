@@ -1,4 +1,4 @@
-# 💻 Command Line Interface (CLI):
+# 💻 Command Line Interface (CLI)
 This section shows how to use the Command Line Interface (CLI) for this Tool.
 
 Most of the argument can be given with two formats:
@@ -331,7 +331,7 @@ If more than one Feature is detected, only the first one will be executed.
 
 ---
 
-## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main)
+## 🏠 [Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main/README.md)
 
 
 ---

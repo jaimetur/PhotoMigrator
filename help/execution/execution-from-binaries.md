@@ -1,4 +1,4 @@
-# Execution from Compiled Binaries: \(easiest way)
+# Execution from Compiled Binaries \(easiest way)
 
 ### 📥 1. Copy and unzip the downloaded compiled tool into any local folder or to any Shared folder of your server or Synology NAS.
 
@@ -16,8 +16,7 @@ Open the file `Config.ini` included in the package with any text editor and upda
 
 ---
 
-## [[🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main)](https://github.com/jaimetur/PhotoMigrator/tree/main)
-
+## 🏠 [Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main/README.md)
 
 ---
 ## 🎖️ Credits:

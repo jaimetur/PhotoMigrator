@@ -1,66 +1,65 @@
-# <span style="color:green">🖼️ Synology Photos Management:</span>
+# <span style="color:green">🖼️ Synology Photos Management</span>
 
->[!NOTE]
->## <span style="color:green">Synology Photos Support</span>
->From version 2.0.0 onwards, the Tool can connect to your Synology NAS and login into Synology Photos App with your credentials. 
->### Features included:
-> 1. Upload Album(s) (from folder)
-> 2. Download Album(s) (into folder)
-> 3. Upload ALL (from folder)
-> 4. Download ALL (into folder)
-> 5. Remove ALL Assets
-> 6. Remove ALL Albums
-> 7. Remove Albums by Name Pattern
-> 8. Rename Albums by Name Pattern
-> 9. Remove Empty Albums
-> 10. Remove Duplicates Albums
-> 11. Merge Duplicates Albums
->
-> You can apply different filters on all above features to filter assets from Synology Photos.  
-> 
-> The available filters are: 
->    - **by Type:**
->      - argument: `-type, --filter-by-type`
->        - Valid values are [`image`, `video`, `all`]
->    - **by Dates:**
->      - arguments:
->        - `-from, --filter-from-date`
->        - `-to, --filter-to-date`
->      - Valid values are in one of those formats: 
->        - `dd/mm/yyyy`
->        - `dd-mm-yyyy`
->        - `yyyy/mm/dd`
->        - `yyyy-mm-dd`
->        - `mm/yyyy`
->        - `mm-yyyy`
->        - `yyyy/mm`
->        - `yyyy-mm`
->        - `yyyy`
->    - **by Country:**
->      - argument: `-country, --filter-by-country`
->        - Valid values are any existing country in the `<SOURCE>` client.
->    - **by City:**
->      - argument: `-city, --filter-by-city`
->        - Valid values are any existing city in the `<SOURCE>` client.
->    - **by Person:**
->      - argument: `-person, --filter-by-person`
->        - Valid values are any existing person in the `<SOURCE>` client.
->
->The credentials/API Key need to be loaded from the `Config.ini` file that  have this format:
->
->>#### <span style="color:green">Example 'Config.ini' for Immich Photos:</span>
->>
->>```
->># Configuration for Synology Photos
->>[Synology Photos]
->>SYNOLOGY_URL                = http://192.168.1.11:5000                      # Change this IP by the IP that contains the Synology server or by your valid Synology URL
->>SYNOLOGY_USERNAME_1         = username_1                                    # Account 1: Your username for Synology Photos
->>SYNOLOGY_PASSWORD_1         = password_1                                    # Account 1: Your password for Synology Photos
->>SYNOLOGY_USERNAME_2         = username_2                                    # Account 2: Your username for Synology Photos
->>SYNOLOGY_PASSWORD_2         = password_2                                    # Account 2: Your password for Synology Photos
->>SYNOLOGY_USERNAME_3         = username_3                                    # Account 3: Your username for Synology Photos
->>SYNOLOGY_PASSWORD_3         = password_3                                    # Account 3: Your password for Synology Photos
->>```
+From version 2.0.0 onwards, the Tool can connect to your Synology NAS and login into Synology Photos App with your credentials. 
+
+### Features included:
+1. Upload Album(s) (from folder)
+2. Download Album(s) (into folder)
+3. Upload ALL (from folder)
+4. Download ALL (into folder)
+5. Remove ALL Assets
+6. Remove ALL Albums
+7. Remove Albums by Name Pattern
+8. Rename Albums by Name Pattern
+9. Remove Empty Albums
+10. Remove Duplicates Albums
+11. Merge Duplicates Albums
+
+You can apply different filters on all above features to filter assets from Synology Photos.  
+
+The available filters are: 
+   - **by Type:**
+     - argument: `-type, --filter-by-type`
+       - Valid values are [`image`, `video`, `all`]
+   - **by Dates:**
+     - arguments:
+       - `-from, --filter-from-date`
+       - `-to, --filter-to-date`
+     - Valid values are in one of those formats: 
+       - `dd/mm/yyyy`
+       - `dd-mm-yyyy`
+       - `yyyy/mm/dd`
+       - `yyyy-mm-dd`
+       - `mm/yyyy`
+       - `mm-yyyy`
+       - `yyyy/mm`
+       - `yyyy-mm`
+       - `yyyy`
+   - **by Country:**
+     - argument: `-country, --filter-by-country`
+       - Valid values are any existing country in the `<SOURCE>` client.
+   - **by City:**
+     - argument: `-city, --filter-by-city`
+       - Valid values are any existing city in the `<SOURCE>` client.
+   - **by Person:**
+     - argument: `-person, --filter-by-person`
+       - Valid values are any existing person in the `<SOURCE>` client.
+
+The credentials/API Key need to be loaded from the `Config.ini` file that  have this format:
+
+#### <span style="color:green">Example 'Config.ini' for Immich Photos:</span>
+
+```
+# Configuration for Synology Photos
+[Synology Photos]
+SYNOLOGY_URL                = http://192.168.1.11:5000                      # Change this IP by the IP that contains the Synology server or by your valid Synology URL
+SYNOLOGY_USERNAME_1         = username_1                                    # Account 1: Your username for Synology Photos
+SYNOLOGY_PASSWORD_1         = password_1                                    # Account 1: Your password for Synology Photos
+SYNOLOGY_USERNAME_2         = username_2                                    # Account 2: Your username for Synology Photos
+SYNOLOGY_PASSWORD_2         = password_2                                    # Account 2: Your password for Synology Photos
+SYNOLOGY_USERNAME_3         = username_3                                    # Account 3: Your username for Synology Photos
+SYNOLOGY_PASSWORD_3         = password_3                                    # Account 3: Your password for Synology Photos
+```
 
 > [!NOTE]
 > To use all these features, it is mandatory to use the argument _**`--client=synology`**_ to specify Synology Photos as the service that you want to connect.  
@@ -286,7 +285,7 @@ Youn can see how to configure the Config.ini file in this help section:
 
 ---
 
-## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main)
+## 🏠 [Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main/README.md)
 
 
 ---

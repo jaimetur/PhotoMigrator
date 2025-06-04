@@ -1,74 +1,73 @@
-# <span style="color:green">🖼️ Immich Photos Management:</span>
+# <span style="color:green">🖼️ Immich Photos Management</span>
 
->[!NOTE]
->## <span style="color:green">Immich Photos Support</span>
->From version 3.0.0 onwards, the Tool can connect to your Immich Photos account with your credentials or using a pre-created API Key.  
->### Features included:
-> 1. Upload Album(s) (from folder)
-> 2. Download Album(s) (into folder)
-> 3. Upload ALL (from folder)
-> 4. Download ALL (into folder)
-> 5. Remove ALL Assets
-> 6. Remove ALL Albums
-> 7. Remove Albums by Name Pattern
-> 8. Rename Albums by Name Pattern
-> 9. Remove Empty Albums
-> 10. Remove Duplicates Albums
-> 11. Merge Duplicates Albums
-> 12. Remove Orphans Assets
-> 
-> You can apply different filters on all above features to filter assets from Immich Photos.  
-> 
-> The available filters are: 
->    - **by Type:**
->      - argument: `-type, --filter-by-type`
->        - Valid values are [`image`, `video`, `all`]
->    - **by Dates:**
->      - arguments:
->        - `-from, --filter-from-date`
->        - `-to, --filter-to-date`
->      - Valid values are in one of those formats: 
->        - `dd/mm/yyyy`
->        - `dd-mm-yyyy`
->        - `yyyy/mm/dd`
->        - `yyyy-mm-dd`
->        - `mm/yyyy`
->        - `mm-yyyy`
->        - `yyyy/mm`
->        - `yyyy-mm`
->        - `yyyy`
->    - **by Country:**
->      - argument: `-country, --filter-by-country`
->        - Valid values are any existing country in the `<SOURCE>` client.
->    - **by City:**
->      - argument: `-city, --filter-by-city`
->        - Valid values are any existing city in the `<SOURCE>` client.
->    - **by Person:**
->      - argument: `-person, --filter-by-person`
->        - Valid values are any existing person in the `<SOURCE>` client.
->
->The credentials/API Key need to be loaded from the `Config.ini` file that  have this format:
->
->>#### <span style="color:green">Example 'Config.ini' for Immich Photos:</span>
->>
->>```
->># Configuration for Immich Photos
->>[Immich Photos]
->>IMMICH_URL                  = http://192.168.1.11:2283                      # Change this IP by the IP that contains the Immich server or by your valid Immich URL
->>IMMICH_API_KEY_ADMIN        = YOUR_ADMIN_API_KEY                            # Your ADMIN_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
->>
->>IMMICH_API_KEY_USER_1       = API_KEY_USER_1                                # Account 1: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
->>IMMICH_USERNAME_1           = username_1                                    # Account 1: Your username for Immich Photos (mandatory if not API_KEY is providen)
->>IMMICH_PASSWORD_1           = password_1                                    # Account 1: Your password for Immich Photos (mandatory if not API_KEY is providen)
->>
->>IMMICH_API_KEY_USER_2       = API_KEY_USER_2                                # Account 2: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
->>IMMICH_USERNAME_2           = username_2                                    # Account 2: Your username for Immich Photos (mandatory if not API_KEY is providen)
->>IMMICH_PASSWORD_2           = password_2                                    # Account 2: Your password for Immich Photos (mandatory if not API_KEY is providen)
->>
->>IMMICH_API_KEY_USER_3       = API_KEY_USER_3                                # Account 3: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
->>IMMICH_USERNAME_3           = username_3                                    # Account 3: Your username for Immich Photos (mandatory if not API_KEY is providen)
->>IMMICH_PASSWORD_3           = password_3                                    # Account 3: Your password for Immich Photos (mandatory if not API_KEY is providen)
->>```
+From version 3.0.0 onwards, the Tool can connect to your Immich Photos account with your credentials or using a pre-created API Key.  
+
+### Features included:
+1. Upload Album(s) (from folder)
+2. Download Album(s) (into folder)
+3. Upload ALL (from folder)
+4. Download ALL (into folder)
+5. Remove ALL Assets
+6. Remove ALL Albums
+7. Remove Albums by Name Pattern
+8. Rename Albums by Name Pattern
+9. Remove Empty Albums
+10. Remove Duplicates Albums
+11. Merge Duplicates Albums
+12. Remove Orphans Assets
+
+You can apply different filters on all above features to filter assets from Immich Photos.  
+
+The available filters are: 
+   - **by Type:**
+     - argument: `-type, --filter-by-type`
+       - Valid values are [`image`, `video`, `all`]
+   - **by Dates:**
+     - arguments:
+       - `-from, --filter-from-date`
+       - `-to, --filter-to-date`
+     - Valid values are in one of those formats: 
+       - `dd/mm/yyyy`
+       - `dd-mm-yyyy`
+       - `yyyy/mm/dd`
+       - `yyyy-mm-dd`
+       - `mm/yyyy`
+       - `mm-yyyy`
+       - `yyyy/mm`
+       - `yyyy-mm`
+       - `yyyy`
+   - **by Country:**
+     - argument: `-country, --filter-by-country`
+       - Valid values are any existing country in the `<SOURCE>` client.
+   - **by City:**
+     - argument: `-city, --filter-by-city`
+       - Valid values are any existing city in the `<SOURCE>` client.
+   - **by Person:**
+     - argument: `-person, --filter-by-person`
+       - Valid values are any existing person in the `<SOURCE>` client.
+
+The credentials/API Key need to be loaded from the `Config.ini` file that  have this format:
+
+#### <span style="color:green">Example 'Config.ini' for Immich Photos:</span>
+
+```
+# Configuration for Immich Photos
+[Immich Photos]
+IMMICH_URL                  = http://192.168.1.11:2283                      # Change this IP by the IP that contains the Immich server or by your valid Immich URL
+IMMICH_API_KEY_ADMIN        = YOUR_ADMIN_API_KEY                            # Your ADMIN_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
+
+IMMICH_API_KEY_USER_1       = API_KEY_USER_1                                # Account 1: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
+IMMICH_USERNAME_1           = username_1                                    # Account 1: Your username for Immich Photos (mandatory if not API_KEY is providen)
+IMMICH_PASSWORD_1           = password_1                                    # Account 1: Your password for Immich Photos (mandatory if not API_KEY is providen)
+
+IMMICH_API_KEY_USER_2       = API_KEY_USER_2                                # Account 2: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
+IMMICH_USERNAME_2           = username_2                                    # Account 2: Your username for Immich Photos (mandatory if not API_KEY is providen)
+IMMICH_PASSWORD_2           = password_2                                    # Account 2: Your password for Immich Photos (mandatory if not API_KEY is providen)
+
+IMMICH_API_KEY_USER_3       = API_KEY_USER_3                                # Account 3: Your USER_API_KEY for Immich Photos (Your can create can API_KEY in your Account Settings-->API_KEY Keys)
+IMMICH_USERNAME_3           = username_3                                    # Account 3: Your username for Immich Photos (mandatory if not API_KEY is providen)
+IMMICH_PASSWORD_3           = password_3                                    # Account 3: Your password for Immich Photos (mandatory if not API_KEY is providen)
+```
 
 > [!NOTE]  
 > To use all those features, it is mandatory to use the argument _**`--client=immich`**_ to specify Immich Photos as the service that you want to connect.  
@@ -306,7 +305,7 @@ Youn can see how to configure the Config.ini file in this help section:
 
 ---
 
-## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main)
+## 🏠 [Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main/README.md)
 
 
 ---

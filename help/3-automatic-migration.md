@@ -1,4 +1,4 @@
-# <span style="color:green">🚀 Automatic Migration Feature:</span>
+# <span style="color:green">🚀 Automatic Migration Feature</span>
 
 From version 3.0.0 onwards, the Tool supports a new Feature called '**Automatic Migration**'. 
 
@@ -141,7 +141,7 @@ In this example, the Tool will do an Automatic Migration Process which has two s
 
 ---
 
-## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main)
+## 🏠 [Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main/README.md)
 
     
 ---

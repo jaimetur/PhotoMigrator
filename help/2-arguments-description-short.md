@@ -260,5 +260,11 @@ Renames album folders based on content creation dates.
 
 ---
 
-## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main)
+## 🏠 [Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main/README.md)
+
+---
+## 🎖️ Credits:
+I hope this can be useful for any of you. Enjoy it!
+
+<span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>  
 

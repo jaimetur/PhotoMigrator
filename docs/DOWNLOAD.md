@@ -1,4 +1,4 @@
-## 💾 Download:
+## 💾 Download
 Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
 
 **Linux:**:  

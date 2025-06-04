@@ -163,20 +163,20 @@ The Historical Releases Notes can be checked in the following link:
 
 ---
 
-## 📅 ROADMAP:
+## 📅 ROADMAP
 The Planned Roadmap for futures releases can be checked in the following link:
 [Planed Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/ROADMAP.md)
 
 ---
 
-## 🎖️ Credits:
+## 🎖️ Credits
 I hope this can be useful for any of you. Enjoy it!
 
 <span style="color:grey">(c) 2024-2025 by Jaime Tur (@jaimetur).</span>  
 Part of this Tool is based on [GPTH Tool](https://github.com/Xentraxx/GooglePhotosTakeoutHelper) by [TheLastGimbus](https://github.com/TheLastGimbus)/[Wacheee](https://github.com/Wacheee) and v4.x.x by [Xentraxx](https://github.com/Xentraxx)
 
 
-## 🙏 Donation / Sponsor: 
+## 🙏 Donation / Sponsor
 If you consideer that this Tool has helped you, you can also consider donating me with a ☕  
 I spent a lot of time developping this Tool for free, so donations will contribute to motivate me to continue working on this project 💖  
 

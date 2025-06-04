@@ -1,4 +1,4 @@
-# <span style="color:green">🛠️ Other Standalone Extra Features:</span>
+# <span style="color:green">🛠️ Other Standalone Extra Features</span>
 
 > [!NOTE]
 > ## <span style="color:green">Other Standalone Extra Features</span>
@@ -116,7 +116,7 @@
 
 ---
 
-## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main)
+## 🏠 [Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main/README.md)
 
 
 ---
