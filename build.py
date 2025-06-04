@@ -97,9 +97,9 @@ def extract_release_body(download_file, input_file, output_file):
     release_count = 0
     # Loop through lines to find the start of the "Release Notes" section and locate the second occurrence of "**Release**"
     for i, line in enumerate(lines):
-        if line.strip() == "# 🗓️ Releases Notes:":
+        if line.strip() == "# 🗓️ Releases Notes":
             release_notes_index = i
-            # lines[i] = lines[i].replace("# 🗓️ Releases Notes:", "# Release Notes:")
+            # lines[i] = lines[i].replace("# 🗓️ Releases Notes", "# Release Notes")
         if "## **Release**:" in line:
             release_count += 1
             if release_count == 2:
@@ -143,9 +143,9 @@ def add_roadmap_to_readme(readme_file, roadmap_file):
     # Buscar el bloque ROADMAP existente
     start_index, end_index = None, None
     for i, line in enumerate(readme_lines):
-        if line.strip() == "## 📅 ROADMAP:":
+        if line.strip() == "## 📅 ROADMAP":
             start_index = i
-        if start_index is not None and line.strip() == "## 🎖️ Credits:":
+        if start_index is not None and line.strip() == "## 🎖️ Credits":
             end_index = i
             break
     if start_index is not None and end_index is not None:
