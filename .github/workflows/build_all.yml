@@ -480,10 +480,10 @@ jobs:
           path: PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
 
   # ==========================================================================================================================
-  # JOB Create Release & Update README.md (single run)
+  # JOB Create Release (single run)
   # ==========================================================================================================================
   create-release:
-    name: 🏷️ Create Release & Update README.md (single run)
+    name: 🏷️ Create Release (single run)
     needs:
       - build
       - docker-packaging
