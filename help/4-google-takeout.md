@@ -36,18 +36,21 @@
 
 5. Create Date Folder structure (`flatten`, `year`, `year/month`, `year-month`) to Albums and No Albums folders according to the options given by arguments:
    - _`-gafs, --google-albums-folders-structure`_ <`flatten`, `year`, `year/month`, `year-month`>. Applies to each Album folder. Default is ‘flatten’ for Albums
-   - _`gnas, --google-no-albums-folder-structure`_ <`flatten`, `year`, `year/month`, `year-month`> Applies to ALL_PHOTOS folder (Photos without any Albums). Default is ‘year/month’ for No-Albums. 
+   - _`-gnas, --google-no-albums-folder-structure`_ <`flatten`, `year`, `year/month`, `year-month`> Applies to ALL_PHOTOS folder (Photos without any Albums). Default is ‘year/month’ for No-Albums. 
 
 6. Move all the Albums into `<OUTPUT_FOLDER>/Albums` subfolder and the Photos that does not belong to any album to `<OUTPUT_FOLDER>/No-Albums` folder. This step can be skipped using argument _`-gsma, --google-skip-move-albums`_
 
-7. Finally, the Tool will look in the `<OUTPUT_FOLDER>` for any symbolic link broken and will try to fix it by looking for the original file where the symlink is pointing to.
+7. After that, the Tool will look in the `<OUTPUT_FOLDER>` for any symbolic link broken and will try to fix it by looking for the original file where the symlink is pointing to.
 
-8. (Optional) In this step, the Tool will look for any duplicate file on OUTPUT_FOLDER (ignoring symbolic links), and will remove all duplicates keeping only the principal file (giving more priority to duplicates files found into any album folder than those found on `ALL_PHOTOS` folder. 
+8. (Optional) If flag `--grdf, --google-remove-duplicates-files` is detected, the Tool will look for any duplicate file on `<OUTPUT_FOLDER>` (ignoring symbolic links), and will remove all duplicates keeping only the principal file (giving more priority to duplicates files found into any album folder than those found on `ALL_PHOTOS` folder. 
 
-Step 8 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).
+9. (Optional) If flag `--graf, --google-rename-albums-folders` is detected, the Tool rename all albums folders within `<OUTPUT_FOLDER>` based on content dates.
+
+Step 8 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).  
+Step 9 is disabled by default, but it would be very usefull if you want to homogenize all your albums folders names (see Folder Rename Content Based Extra Feature).  
 
 The result will be a folder named `<TAKEOUT_FOLDER>_<SUFFIX>_<TIMESTAMP>` by default, but you can or change the default suffix _`processed`_ by any other using the option _`-gofs, --google-output-folder-suffix <SUFFIX>`_) 
-The final `OUTPUT_FOLDER` will include:
+The final `<OUTPUT_FOLDER>` will include:
 - `Albums` subfolder with all the Albums without year/month structure (by default).
 - `No-Albums` subfolder with all the photos with year/month structure (by default).
 
@@ -70,6 +73,7 @@ The final `OUTPUT_FOLDER` will include:
 > 6. Moving Album Folder --> 1s
 > 7. Fix Broken Symlinks --> 10m
 > 8. <span style="color:grey">(Optional) Remove Duplicates after fixing --> 3h</span>
+> 9. <span style="color:grey">(Optional) Rename Albums Folders after fixing --> 1m</span>
 >
 > NOTE: Above times are approximates and were measured running the tool on Linux using a Synology NAS DS920+.
 
@@ -110,7 +114,7 @@ In this example, the tool will do the Takeout Processing with the following step
 
 ---
 
-## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)
+## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main/README.md)
 
 
 ---

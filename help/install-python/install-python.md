@@ -74,7 +74,7 @@ You're all set! 🚀
 
 ---
 
-## [[🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)](https://github.com/jaimetur/PhotoMigrator/tree/main)
+## [[🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main/README.md)](https://github.com/jaimetur/PhotoMigrator/tree/main)
 
 
 ---

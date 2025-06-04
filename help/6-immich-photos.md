@@ -198,7 +198,7 @@
 
 
 ## <span style="color:blue">Remove Albums by Name Pattern from Immich Photos:</span>
-- **From:** v3.3.0
+- **From:** v3.3.1
 - **Usage:**
   - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
   - Also, you have to use the argument _**`--remove-albums <ALBUMS_NAME_PATTERN>`**_
@@ -219,7 +219,7 @@
      
 
 ## <span style="color:blue">Rename Albums by Name Pattern from Immich Photos:</span>
-- **From:** v3.3.0
+- **From:** v3.3.1
 - **Usage:**
   - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
   - Also, you have to use the argument _**`--rename-albums <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>`**_
@@ -270,7 +270,7 @@
 
 
 ## <span style="color:blue">Merge Duplicates Albums from Immich Photos:</span>
-- **From:** v3.3.0
+- **From:** v3.3.1
 - **Usage:**
   - To run this feature, first, is mandatory that you set `immich` as client using the argument _**`-client=immich`**_ or _**`--client=immich`**_
   - Also, you have to use the argument _**`--merge-duplicates-albums`**_
@@ -306,7 +306,7 @@ Youn can see how to configure the Config.ini file in this help section:
 
 ---
 
-## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)
+## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main/README.md)
 
 
 ---

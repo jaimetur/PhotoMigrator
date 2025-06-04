@@ -51,7 +51,7 @@ usage: PhotoMigrator [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
                      [-procDup <DUPLICATES_REVISED_CSV>]
                      [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
 
-PhotoMigrator v3.3.0 - 2025-05-30
+PhotoMigrator v3.3.1 - 2025-05-30
 
 Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
 such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
@@ -331,7 +331,7 @@ If more than one Feature is detected, only the first one will be executed.
 
 ---
 
-## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)
+## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main/README.md)
 
 
 ---

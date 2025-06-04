@@ -76,6 +76,7 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 | `--google-ignore-check-structure`     |                    | flag   |                                                                                    | Ignores structure check of Takeout folders.                        |
 | `--google-move-takeout-folder`        |                    | flag   |                                                                                    | Moves original assets to output (risk of loss).                    |
 | `--google-remove-duplicates-files`    |                    | flag   |                                                                                    | Removes duplicate files in the output folder.                      |
+| `--google-rename-albums-folders`      |                    | flag   |                                                                                    | Renames albums folders based on content dates.                     |
 | `--google-skip-extras-files`          |                    | flag   |                                                                                    | Skips extra Google photos like edited/effects.                     |
 | `--google-skip-move-albums`           |                    | flag   |                                                                                    | Skips moving albums to 'Albums' folder.                            |
 | `--google-skip-gpth-tool`             |                    | flag   |                                                                                    | Skips GPTH tool processing (not recommended).                      |
@@ -257,4 +258,4 @@ Renames album folders based on content creation dates.
 
 ---
 
-## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)
+## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main/README.md)
