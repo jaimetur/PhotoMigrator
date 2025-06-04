@@ -141,7 +141,7 @@ In this example, the Tool will do an Automatic Migration Process which has two s
 
 ---
 
-## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main)
+## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/blob/main/README.md)
 
     
 ---
