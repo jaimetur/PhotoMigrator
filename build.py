@@ -224,7 +224,8 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
         print("Caanot find SCRIPT_VERSION.")
 
     # Extraer el cuerpo de la CURRENT-RELEASE-NOTES y añadir ROADMAP al fichero README.md
-    print("Extracting body of CURRENT-RELEASE-NOTES and adding ROADMAP to file README.md...")
+    # print("Extracting body of CURRENT-RELEASE-NOTES and adding ROADMAP to file README.md...")
+    print("Extracting body of CURRENT-RELEASE-NOTES...")
 
     # Ruta de los archivos RELEASES-NOTES.md, CURRENT-RELEASE.md, README.md y ROADMAP.md
     download_filepath = os.path.join(root_dir, 'docs', 'DOWNLOAD.md')
@@ -238,8 +239,8 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     print(f"File '{current_release_filepath}' created successfully!.")
 
     # Añadimos el ROADMAP en el fichero README
-    add_roadmap_to_readme(readme_filepath, roadmap_filepath)
-    print(f"File 'README.md' updated successfully with ROADMAP.md")
+    # add_roadmap_to_readme(readme_filepath, roadmap_filepath)
+    # print(f"File 'README.md' updated successfully with ROADMAP.md")
 
     # Guardar build_info.txt en un fichero de texto
     with open(os.path.join(root_dir, 'build_info.txt'), 'w') as file:

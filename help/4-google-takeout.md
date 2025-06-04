@@ -114,7 +114,7 @@ In this example, the tool will do the Takeout Processing with the following step
 
 ---
 
-## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)
+## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main/README.md)
 
 
 ---
