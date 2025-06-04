@@ -14,10 +14,11 @@
 This tool has been designed to Interact and Manage different Photos Cloud services, and allow users to do an <span style="color:green">**Automatic Migration**</span> from one Photo Cloud service to other or from one account to a new account of the same Photo Cloud service. 
 
 
-## 🖥️ Live Dashboard Preview:
+## 🖥️ Live Dashboard Preview
 ![Live Dashboard](https://github.com/jaimetur/PhotoMigrator/blob/main/assets/screenshots/live_dashboard.jpg?raw=true)  
 
-## 🌟 Main Features:
+## 🌟 Main Features
+### 🚀 Automatic Migration Feature
 The main use case is the **Automatic Migration Feature** to migrate all your photos and videos from one Photo cloud service to other, or between different accounts of the same service.
 - [**Automatic Migration Mode**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)  
 
@@ -25,12 +26,13 @@ Apart from the 'Automatic Migration Mode', you can use the tool also to manage d
 Currently, the Features Included per each Supported Photo Cloud Service are:
 - [**Google Photos Takeout**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/4-google-takeout.md)
   - Unpack your Takeout Zip files.
-  - Process .json files to fix metadata (including creation date and time) of all your assets.
   - Merge Live picture with separate files (.HEIC and .MP4).
+  - Process .json files to fix metadata (including creation date and time, GPS data, etc...) of all your assets.
   - Separate your assets per Albums (if belong to any album).
   - Organize your assets in a year/month structure for a better organization.
   - Create Symbolic Links for assets within any Album (to save disk space).
   - Detect and remove duplicates.
+  - Auto rename Albums folders to homogenize all names based on content dates. 
 
 - [**Synology Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md) - Features included:
   - Upload Album(s) (from folder) [(doc)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md#upload-albums-from-local-folder-into-synology-photos)
@@ -78,7 +80,7 @@ Apart from Manage the different Photo Cloud Services and the 'Automatic Migratio
   - **Homogenize Albums folders name based on content**
 
 
-## 💾 Download:
+## 💾 Download
 Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
 - [Latest Stable Release](https://github.com/jaimetur/PhotoMigrator/releases/latest)
 - [Pre-Release](https://github.com/jaimetur/PhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
@@ -92,25 +94,25 @@ Or check the [Historical Releases Notes](https://github.com/jaimetur/PhotoMigrat
 > You can also execute the Tool from a Docker container or from sources files for a better compatibility. In below sections you can find the execution instructions to run the Tool from the different methods.
 
 
-## ⚙️ Configuration File:
+## ⚙️ Configuration File
 In order to connect to the different Photo Cloud Services, you must configure the conection settings using the Configuration file (Config.ini) provided with the Tool.  
 
 You can see how to configure the Configuration File in this help section:
 [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md) 
 
 
-## ⌨️ Command Line Interface:
+## ⌨️ Command Line Interface
 This Tool is based on commands given through the Command Line Interface (CLI), so it is important to know the syntax of that interface.  
 
 You can check the whole list of features and arguments with the right syntax here:
 [Command Line Interface (CLI)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/1-command-line-interface.md)
 
 
-## 📚 Arguments Description & Usage examples:
+## 📚 Arguments Description
 Check all arguments descriptions and usage examples in the [Arguments Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description.md)  or in the [shorter version](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description-short.md).
 
 
-## 📘 All Documentation Links:
+## 📘 All Documentation Links
 - [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md)  
 - [Command Line Interface (CLI)](https://github.com/jaimetur/PhotoMigrator/blob/main/help/1-command-line-interface.md)  
 - [Arguments Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description.md)  
@@ -121,7 +123,7 @@ Check all arguments descriptions and usage examples in the [Arguments Descriptio
 - [Other Features](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)  
 
 
-## ▶️ Execution Methods:
+## ▶️ Execution Methods
 There are three different methods to execute this Tool:
 - From [Compiled Binaries](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-binaries.md)
 - From [Docker Container](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-docker.md)
@@ -153,12 +155,9 @@ The below tables show the pros and cons of each method together with a comparati
   | **Average Score**                                     | 3.5                       | 3.7                     | 3.0                        |
 
 
-## 🚀 Automatic Migration Feature:
-The main use case is the **Automatic Migration Feature** to migrate all your photos and videos from one Photo cloud service to other, or between different accounts of the same service.
-- [**Automatic Migration Mode**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/3-automatic-migration.md)  
 ---
 
-## 📝 RELEASES-NOTES:
+## 📝 RELEASES-NOTES
 The Historical Releases Notes can be checked in the following link:
 [Releases Notes](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/RELEASES-NOTES.md)
 
