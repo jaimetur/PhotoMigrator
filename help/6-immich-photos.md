@@ -306,7 +306,7 @@ Youn can see how to configure the Config.ini file in this help section:
 
 ---
 
-## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main/README.md)
+## [🏠 Back to Main Page](https://github.com/jaimetur/PhotoMigrator/tree/main)
 
 
 ---
