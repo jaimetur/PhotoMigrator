@@ -80,7 +80,7 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 | `--google-skip-extras-files`          |                    | flag   |                                                                                    | Skips extra Google photos like edited/effects.                     |
 | `--google-skip-move-albums`           |                    | flag   |                                                                                    | Skips moving albums to 'Albums' folder.                            |
 | `--google-skip-gpth-tool`             |                    | flag   |                                                                                    | Skips GPTH tool processing (not recommended).                      |
-| `--show-gpth-info`                    | `<bool>`           | bool   |                       `true`, `false` <br>`(default: false)`                       | Show GPTH progress messages.                                       |
+| `--show-gpth-info`                    | `<bool>`           | bool   |                       `true`, `false` <br>`(default: true)`                        | Show GPTH progress messages.                                       |
 | `--show-gpth-errors`                  | `<bool>`           | bool   |                       `true`, `false` <br>`(default: true)`                        | Show GPTH error messages.                                          |
 
 #### 🧪 Examples:

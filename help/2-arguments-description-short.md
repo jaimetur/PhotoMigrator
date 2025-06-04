@@ -84,8 +84,8 @@ PhotoMigrator.run --type video --country Spain --person "Ana"
 | `--google-skip-extras-files`, `--gsef`          | Skip `-edited`, `-effects` images                                     |
 | `--google-skip-move-albums`, `--gsma`           | Skip moving albums to "Albums" folder                                 |
 | `--google-skip-gpth-tool`, `--gsgt`             | Skip processing with GPTH Tool (not recommended)                      |
-| `--show-gpth-info`, `--gpthInfo`                | Show GPTH progress messages                                           |
-| `--show-gpth-errors`, `--gpthErr`               | Show GPTH error messages                                              |
+| `--show-gpth-info`, `--gpthInfo`                | Show GPTH progress messages (default: true)                           |
+| `--show-gpth-errors`, `--gpthErr`               | Show GPTH error messages (default: true)                              |
 
 ### 🧪 Examples
 ```bash
