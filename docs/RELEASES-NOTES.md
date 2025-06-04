@@ -1,5 +1,6 @@
 # 🗓️ Releases Notes:
 
+---
 
 ## **Release**: v3.3.1  
 
@@ -7,15 +8,23 @@
 
 - ### Main Changes:
   - #### 🌟 New Features:
-    - [x] Added new argument _**`-grfa, --google-rename-albums-folders`**_ to rename all albums folders based on content dates when finish Google Takeout Processing.
-    - [x] Replace return arguments by `ClassTakeoutFolder.process()`method by a new object with all the arguments.
-    - [x] Updated GPTH to version `4.0.6` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
+    - [x] Added new argument _**`-graf, --google-rename-albums-folders`**_ to rename all albums folders based on content dates when finish Google Takeout Processing.
+   
+  - #### 🚀 Enhancements:
+    - [x] Replace return arguments by `ClassTakeoutFolder.process()` method by a new object with all the arguments.
+    - [x] Added more info while running Google Takeout Processing feature. 
+    - [ ] Updated GPTH to version `4.0.6` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
 
+  - #### 🐛 Bug fixes:
+    - [x] Fixed name of Takeout folder in info message while looking for Takeout folder structure. Before it showed the name of the first subfolder inside it instead of the name of the Takeout folder.
+    - [x] Fixed info while showing elapsed time on unpacking step. Before it said step 1 instead of unpacking step.
+  
   - #### 📚 Documentation:
     - [x] Removed **Automatic Migration** instructions from the main README.md (replaced by a link to the documentation file)
     - [x] Removed **Planned Roadmap** from the main README.md (replaced by a link to Planned Roadmap file)
     - [x] Updated documentation with all changes.
 
+---
 
 ## **Release**: v3.3.0  
 

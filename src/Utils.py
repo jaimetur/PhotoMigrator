@@ -1106,7 +1106,8 @@ def contains_takeout_structure(input_folder, log_level=logging.INFO):
                         if entry.is_dir():
                             name = entry.name
                             if name.startswith("Photos from ") and name[12:16].isdigit():
-                                LOGGER.info(f"INFO    : Found Takeout structure in: {entry.path}")
+                                # LOGGER.info(f"INFO    : Found Takeout structure in folder: {entry.path}")
+                                LOGGER.info(f"INFO    : Found Takeout structure in folder: {current}")
                                 return True
                             stack.append(entry.path)
             except PermissionError:
@@ -1652,24 +1653,24 @@ def print_arguments_pretty(arguments, title="Arguments", use_logger=True):
     indent = "    "
     i = 0
     if use_logger:
-        LOGGER.info(f"{title}:")
+        LOGGER.info(f"INFO    : {title}:")
         while i < len(arguments):
             arg = arguments[i]
             if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                LOGGER.info(f"{indent}{arg}={arguments[i + 1]}")
+                LOGGER.info(f"INFO    : {indent}{arg}={arguments[i + 1]}")
                 i += 2
             else:
-                LOGGER.info(f"{indent}{arg}")
+                LOGGER.info(f"INFO    : {indent}{arg}")
                 i += 1
     else:
-        print(f"{title}:")
+        print(f"INFO    : {title}:")
         while i < len(arguments):
             arg = arguments[i]
             if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                print(f"{indent}{arg}={arguments[i + 1]}")
+                print(f"INFO    : {indent}{arg}={arguments[i + 1]}")
                 i += 2
             else:
-                print(f"{indent}{arg}")
+                print(f"INFO    : {indent}{arg}")
                 i += 1
     print("")
 

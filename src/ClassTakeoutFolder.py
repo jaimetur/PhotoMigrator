@@ -185,7 +185,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             LOGGER.info("")
-            LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
+            LOGGER.info(f"INFO    : unpacking completed in {formatted_duration}.")
+            LOGGER.info("")
 
 
     def process(self, output_takeout_folder, capture_output=True, capture_errors=True, log_level=logging.INFO):
