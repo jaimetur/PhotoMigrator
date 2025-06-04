@@ -4,7 +4,7 @@
 > ### ✅ Prerequisites:
 > - You have to make sure that you have the following tools instaled on your system:
 >   - Python 3.8 or higher - [Install Instructions](https://github.com/jaimetur/PhotoMigrator/blob/main/help/install-python/install-python.md)
->   - Git - [Install Instructions](https://github.com/jaimetur/PhotoMigrator/blob/main/help/install-git/install-git)
+>   - Git - [Install Instructions](https://github.com/jaimetur/PhotoMigrator/blob/main/help/install-git/install-git.md)
 
 Here are simple instructions to clone the GitHub repository, create a Python virtual environment, install dependencies, and run the main script.  
 
