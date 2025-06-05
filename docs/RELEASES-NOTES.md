@@ -83,7 +83,7 @@
     - [x] Renamed short argument _**`-RenAlb`**_ to _**`-renAlb`**_ to activate the Feature 'Rename Albums'.
     - [x] Renamed short argument _**`-MergAlb`**_ to _**`-mDupAlb`**_ to activate the Feature 'Merge Duplicates Albums'.
     - [x] Updated GPTH to version `4.0.5` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts.     
-      - [x] Re-written most of the code to clean screen logs and make it more easy to read (divided by steps)
+      - [x] Re-written most of the code to clean screen logs and make it more easy to read (divided by steps). 
       - [x] GPTH is now enhanced with EXIF Tool support for a better metadata fixing (supporting geolocations update, almost all media formats, multiple camera brands, etc...).     
       - [x] EXIF Tool habe been integrated into the binary file for GPTH to make use of it. 
     - [x] Improved _build.py to support both compilers (Pyinstaller and Nuitka).     
