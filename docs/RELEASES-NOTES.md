@@ -11,15 +11,18 @@
     - [x] Added new argument _**`-graf, --google-rename-albums-folders`**_ to rename all albums folders based on content dates when finish Google Takeout Processing.
    
   - #### 🚀 Enhancements:
-    - [x] Replace return arguments by `ClassTakeoutFolder.process()` method by a new object with all the arguments.
+    - [x] Replace return arguments of `ClassTakeoutFolder.process()` method by a new object with all the arguments.
     - [x] Added more info while running Google Takeout Processing feature. 
     - [ ] Updated GPTH to version `4.0.6` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
+      - [ ] Support for Special Folders (trash, archive, screenshots, etc...). 
+      - [ ] Fix skipping files whose content does not match with their extension. 
 
   - #### 🐛 Bug fixes:
     - [x] Fixed name of Takeout folder in info message while looking for Takeout folder structure. Before it showed the name of the first subfolder inside it instead of the name of the Takeout folder.
     - [x] Fixed info while showing elapsed time on unpacking step. Before it said step 1 instead of unpacking step.
   
   - #### 📚 Documentation:
+    - [x] Removed NOTE blocks im main documentation description for all features. 
     - [x] Removed **Automatic Migration** instructions from the main README.md (replaced by a link to the documentation file)
     - [x] Removed **Planned Roadmap** from the main README.md (replaced by a link to Planned Roadmap file)
     - [x] Updated documentation with all changes.
@@ -80,7 +83,9 @@
     - [x] Renamed short argument _**`-RenAlb`**_ to _**`-renAlb`**_ to activate the Feature 'Rename Albums'.
     - [x] Renamed short argument _**`-MergAlb`**_ to _**`-mDupAlb`**_ to activate the Feature 'Merge Duplicates Albums'.
     - [x] Updated GPTH to version `4.0.5` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts.     
-    - [x] GPTH is now enhanced with EXIF Tool support for a better metadata fixing (supporting geolocations update, almost all media formats, multiple camera brands, etc...).     
+      - [x] Re-written most of the code to clean screen logs and make it more easy to read (divided by steps). 
+      - [x] GPTH is now enhanced with EXIF Tool support for a better metadata fixing (supporting geolocations update, almost all media formats, multiple camera brands, etc...).     
+      - [x] EXIF Tool habe been integrated into the binary file for GPTH to make use of it. 
     - [x] Improved _build.py to support both compilers (Pyinstaller and Nuitka).     
     - [x] Added Splash logo at the loading screen when execute from binaries on Windows.  
     - [x] Renamed binaries files for architecture `amd64` from `amd64` to `x64`.     
