@@ -99,7 +99,7 @@ def extract_release_body(download_file, input_file, output_file):
     for i, line in enumerate(lines):
         if line.strip() == "# 🗓️ Releases Notes":
             release_notes_index = i
-            # lines[i] = lines[i].replace("# 🗓️ Releases Notes", "# Release Notes")
+            lines[i] = lines[i].replace("# 🗓️ Releases Notes", "# 🗓️ Release Notes")
         if "## **Release**:" in line:
             release_count += 1
             if release_count == 2:
