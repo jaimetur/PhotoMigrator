@@ -384,7 +384,7 @@ def sync_mp4_timestamps_with_images(input_folder, log_level=logging.INFO):
 
 def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log_level=logging.INFO):
     """
-    Organizes files into subfolders based on their modification date.
+    Organizes files into subfolders based on their EXIF or modification date.
 
     Args:
         input_folder (str): The base directory containing the files.
@@ -392,22 +392,37 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log
         exclude_subfolders (list): A list of subfolder names to exclude from processing.
 
     Raises:
-        ValueERROR   : If the value of `type` is invalid.
+        ValueError: If the value of `type` is invalid.
     """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    import os
+    import shutil
+    from datetime import datetime
+    import piexif
+    from PIL import Image
+
+    def get_exif_date(image_path):
+        try:
+            exif_dict = piexif.load(image_path)
+            for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
+                tag_id = piexif.ExifIFD.__dict__.get(tag)
+                value = exif_dict["Exif"].get(tag_id)
+                if value:
+                    return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
+        except Exception:
+            pass
+        return None
+
+    with set_log_level(LOGGER, log_level):
         if type not in ['year', 'year/month', 'year-month']:
-            raise ValueError("The 'type' parameter must be 'year' or 'year/month'.")
-        
-        # Contar el total de carpetas
+            raise ValueError("The 'type' parameter must be 'year', 'year/month' or 'year-month'.")
+
         total_files = 0
         for _, dirs, files in os.walk(input_folder):
             dirs[:] = [d for d in dirs if d not in exclude_subfolders]
-            total_files += sum([len(files)])
-        # Mostrar la barra de progreso basada en carpetas
-        # with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : Organizing files with {type} structure in '{input_folder}'", unit=" files") as pbar:
+            total_files += len(files)
+
         with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : Organizing files with {type} structure in '{input_folder}'", unit=" files") as pbar:
             for path, dirs, files in os.walk(input_folder, topdown=True):
-                # Exclude specified subfolders
                 dirs[:] = [d for d in dirs if d not in exclude_subfolders]
                 for file in files:
                     pbar.update(1)
@@ -415,32 +430,40 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log
                     if not os.path.isfile(file_path):
                         continue
 
-                    # Get the file's modification date
-                    try:
-                        mtime = os.path.getmtime(file_path)
-                        mod_time = datetime.fromtimestamp(mtime if mtime > 0 else 0)  # Epoch as fallback
-                    except Exception:
-                        LOGGER.warning(f"WARNING : Error converting time for {file_path}: {e}")
-                        mod_time = datetime(1970, 1, 1)  # Otra fecha por defecto si todo falla
-                    LOGGER.debug(f"DEBUG   : Modified time: {mod_time}")
-                    mod_time = datetime.fromtimestamp(mtime if mtime > 0 else 0)  # Epoch as fallback
-                    year_folder = mod_time.strftime('%Y')
+                    mod_time = None
+                    ext = os.path.splitext(file)[1].lower()
+
+                    # Intentar obtener fecha EXIF si es imagen
+                    if ext in PHOTO_EXT:
+                        try:
+                            mod_time = get_exif_date(file_path)
+                        except Exception as e:
+                            LOGGER.warning(f"WARNING : Error reading EXIF from {file_path}: {e}")
+
+                    # Si no hay EXIF o no es imagen, usar fecha de sistema
+                    if not mod_time:
+                        try:
+                            mtime = os.path.getmtime(file_path)
+                            mod_time = datetime.fromtimestamp(mtime if mtime > 0 else 0)
+                        except Exception as e:
+                            LOGGER.warning(f"WARNING : Error reading mtime for {file_path}: {e}")
+                            mod_time = datetime(1970, 1, 1)
+
+                    LOGGER.debug(f"DEBUG   : Using date {mod_time} for file {file_path}")
+
+                    # Determinar carpeta destino
                     if type == 'year':
-                        # Organize by year only
-                        target_dir = os.path.join(path, year_folder)
+                        target_dir = os.path.join(path, mod_time.strftime('%Y'))
                     elif type == 'year/month':
-                        # Organize by year/month
-                        month_folder = mod_time.strftime('%m')
-                        target_dir = os.path.join(path, year_folder, month_folder)
+                        target_dir = os.path.join(path, mod_time.strftime('%Y'), mod_time.strftime('%m'))
                     elif type == 'year-month':
-                        year_month_folder = mod_time.strftime('%Y-%m')
-                        target_dir = os.path.join(path, year_month_folder)
-                    # Create the target directory (and subdirectories) if they don't exist
+                        target_dir = os.path.join(path, mod_time.strftime('%Y-%m'))
+
                     os.makedirs(target_dir, exist_ok=True)
-                    # Move the file to the target directory
                     shutil.move(file_path, os.path.join(target_dir, file))
 
-        LOGGER.info(f"INFO    : Organization completed. Folder structure per {type} have been created in '{input_folder}'.")
+        LOGGER.info(f"INFO    : Organization completed. Folder structure per '{type}' created in '{input_folder}'.")
+
 
 
 def copy_move_folder(src, dst, ignore_patterns=None, move=False, log_level=logging.INFO):
@@ -1002,7 +1025,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, log_level=lo
                     ext = os.path.splitext(f)[1].lower()
                     dt = None
                     # Primero intenta con EXIF si es imagen
-                    if ext in ['.jpg', '.jpeg', '.tiff']:
+                    if ext in PHOTO_EXT:
                         try:
                             dt = get_exif_date(f)
                         except Exception as e:
