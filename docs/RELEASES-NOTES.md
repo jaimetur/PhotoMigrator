@@ -14,12 +14,13 @@
     - [x] Replace return arguments of `ClassTakeoutFolder.process()` method by a new object with all the arguments.
     - [x] Added more info while running Google Takeout Processing feature. 
     - [ ] Updated GPTH to version `4.0.6` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
+      - [ ] Fix skipping files whose content does not match with their extension.
       - [ ] Support for Special Folders (trash, archive, screenshots, etc...). 
-      - [ ] Fix skipping files whose content does not match with their extension. 
 
   - #### 🐛 Bug fixes:
     - [x] Fixed name of Takeout folder in info message while looking for Takeout folder structure. Before it showed the name of the first subfolder inside it instead of the name of the Takeout folder.
     - [x] Fixed info while showing elapsed time on unpacking step. Before it said step 1 instead of unpacking step.
+    - [x] Fixed a bug in Automatic Migration Feature when `<SOURCE>` is a Zipped Takeout (before no assets to push were found during filtering process).
   
   - #### 📚 Documentation:
     - [x] Removed NOTE blocks im main documentation description for all features. 

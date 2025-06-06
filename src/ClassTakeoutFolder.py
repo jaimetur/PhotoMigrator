@@ -67,83 +67,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
         self.CLIENT_NAME = f'Google Takeout Folder ({self.takeout_folder.name})'
 
-    # sobreescribimos el método get_all_assets() para que obtenga los assets de takeout_folder directamente en lugar de base_folder, para poder hacer el recuento de metadatos, sidecar, y archivos no soportados.
-    def get_assets_by_filters(self, type='all', log_level=logging.INFO):
-        """
-        Retrieves assets stored in the base folder, filtering by type.
-
-        Args:
-            log_level (int): Logging level.
-            type (str): Type of assets to retrieve. Options are 'all', 'photo', 'image', 'video', 'media', 'metadata', 'sidecar', 'unsupported'.
-
-        Returns:
-            list[dict]: A list of asset dictionaries, each containing:
-                        - 'id': Absolute path to the file.
-                        - 'time': Creation timestamp of the file.
-                        - 'filename': File name (no path).
-                        - 'filepath': Absolute path to the file.
-                        - 'type': Type of the file (image, video, metadata, sidecar, unknown).
-        """
-        with set_log_level(LOGGER, log_level):
-            if self.unzipped_folder:
-                base_folder = self.unzipped_folder
-            else:
-                base_folder = self.takeout_folder
-
-            LOGGER.info(f"INFO    : Retrieving {type} assets from the base folder: '{base_folder}'.")
-
-            # Determine allowed extensions based on the type
-            if type in ['photo', 'image']:
-                selected_type_extensions = self.ALLOWED_PHOTO_EXTENSIONS
-            elif type == 'video':
-                selected_type_extensions = self.ALLOWED_VIDEO_EXTENSIONS
-            elif type == 'media':
-                selected_type_extensions = self.ALLOWED_MEDIA_EXTENSIONS
-            elif type == 'metadata':
-                selected_type_extensions = self.ALLOWED_METADATA_EXTENSIONS
-            elif type == 'sidecar':
-                selected_type_extensions = self.ALLOWED_SIDECAR_EXTENSIONS
-            elif type == 'unsupported':
-                selected_type_extensions = None  # Special case to filter unsupported files
-            else:  # 'all' or unrecognized type defaults to all supported extensions
-                selected_type_extensions = self.ALLOWED_EXTENSIONS
-
-            assets = [
-                {
-                    "id": str(file.resolve()),
-                    "time": file.stat().st_ctime,
-                    "filename": file.name,
-                    "filepath": str(file.resolve()),
-                    "type": self._determine_file_type(file),
-                }
-                for file in base_folder.rglob("*")
-                if file.is_file() and (
-                    (selected_type_extensions is None and file.suffix.lower() not in self.ALLOWED_EXTENSIONS) or
-                    (selected_type_extensions is not None and file.suffix.lower() in selected_type_extensions)
-                )
-            ]
-
-            LOGGER.info(f"INFO    : Found {len(assets)} {type} assets in the base folder.")
-            return assets
-
-    def pre_process(self, capture_output=False, capture_errors=True, skip_process=False):
-        if self.needs_unzip:
-            LOGGER.info("INFO    : 🗳️ Input Folder contains ZIP files and needs to be unzipped first. Unzipping it...")
-            unzip_folder = Path(f"{self.takeout_folder}_unzipped_{self.TIMESTAMP}")
-            # Unzip the files into unzip_folder
-            self.unzip(input_folder=self.takeout_folder, unzip_folder=unzip_folder, log_level=self.log_level)
-            self.needs_process = Utils.contains_takeout_structure(self.unzipped_folder)
-
-        if not skip_process:
-            if self.needs_process:
-                LOGGER.info("INFO    : 🔢 Input Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
-                base_folder = Path(f"{self.takeout_folder}_{self.ARGS['google-output-folder-suffix']}_{self.TIMESTAMP}")
-                # Process Takeout_folder and put output into base_folder
-                self.process(output_takeout_folder=base_folder, capture_output=capture_output, capture_errors=capture_errors, log_level=logging.INFO)
-                super().__init__(base_folder)  # Inicializar con la carpeta procesada
-            else:
-                super().__init__(self.takeout_folder)  # Inicializar con la carpeta original si no se necesita procesamiento
-
+#---------------------------------------------- CLASS METHODS ----------------------------------------------
     # @staticmethod # if use this flag, the method is static and no need to include self in the arguments
     def check_if_needs_process(self, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -169,24 +93,42 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"INFO    : UNPACKING TAKEOUT FOLDER...")
             LOGGER.info(f"=====================================")
             LOGGER.info("")
-
             LOGGER.info(f"INFO    : ⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂")
             LOGGER.info("")
-
             step_start_time = datetime.now()
             Utils.unpack_zips(input_folder, unzip_folder)
-            
             # Make the 'Unzipped' folder as the new takeout_folder for the object
             self.unzipped_folder = Path(unzip_folder)
-
             # Change flag self.check_if_needs_unzip to False
             self.needs_unzip = False
-            
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             LOGGER.info("")
-            LOGGER.info(f"INFO    : unpacking completed in {formatted_duration}.")
+            LOGGER.info(f"INFO    : Unzipping completed in {formatted_duration}.")
             LOGGER.info("")
+
+
+    def pre_process_and_process(self, capture_output=False, capture_errors=True, skip_process=False):
+        if self.needs_unzip:
+            LOGGER.info("INFO    : 🗳️ Input Folder contains ZIP files and needs to be unzipped first. Unzipping it...")
+            unzip_folder = Path(f"{self.takeout_folder}_unzipped_{self.TIMESTAMP}")
+            # Unzip the files into unzip_folder
+            self.unzip(input_folder=self.takeout_folder, unzip_folder=unzip_folder, log_level=self.log_level)
+            self.needs_process = Utils.contains_takeout_structure(self.unzipped_folder)
+
+        if not skip_process:
+            if self.needs_process:
+                LOGGER.info("INFO    : 🔢 Input Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
+                # if self.unzipped_folder:
+                #     base_folder = Path(f"{self.unzipped_folder}_{self.ARGS['google-output-folder-suffix']}_{self.TIMESTAMP}")
+                # else:
+                base_folder = Path(f"{self.takeout_folder}_{self.ARGS['google-output-folder-suffix']}_{self.TIMESTAMP}")
+                # Process Takeout_folder and put output into base_folder
+                self.process(output_takeout_folder=base_folder, capture_output=capture_output, capture_errors=capture_errors, log_level=logging.INFO)
+                super().__init__(base_folder)  # Inicializar con la carpeta procesada
+            else:
+                base_folder = self.takeout_folder
+                super().__init__(base_folder)  # Inicializar con la carpeta original si no se necesita procesamiento
 
 
     def process(self, output_takeout_folder, capture_output=True, capture_errors=True, log_level=logging.INFO):
@@ -238,7 +180,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info("")
             step_start_time = datetime.now()
             # Pre-process the object with skip_process=True to just unzip files in case they are zipped.
-            self.pre_process(skip_process=True)
+            self.pre_process_and_process(skip_process=True)
             # Select the input_folder deppending if the Takeout have been unzipped or not
             if self.unzipped_folder:
                 input_folder = self.unzipped_folder
@@ -501,6 +443,65 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 duplicates_albums_not_fully_merged=duplicates_albums_not_fully_merged,
             )
 
+
+    # sobreescribimos el método get_takeout_assets_by_filters() para que obtenga los assets de takeout_folder directamente en lugar de base_folder, para poder hacer el recuento de metadatos, sidecar, y archivos no soportados.
+    def get_takeout_assets_by_filters(self, type='all', log_level=logging.INFO):
+        """
+        Retrieves assets stored in the base folder, filtering by type.
+
+        Args:
+            log_level (int): Logging level.
+            type (str): Type of assets to retrieve. Options are 'all', 'photo', 'image', 'video', 'media', 'metadata', 'sidecar', 'unsupported'.
+
+        Returns:
+            list[dict]: A list of asset dictionaries, each containing:
+                        - 'id': Absolute path to the file.
+                        - 'time': Creation timestamp of the file.
+                        - 'filename': File name (no path).
+                        - 'filepath': Absolute path to the file.
+                        - 'type': Type of the file (image, video, metadata, sidecar, unknown).
+        """
+        with set_log_level(LOGGER, log_level):
+            if self.unzipped_folder:
+                base_folder = self.unzipped_folder
+            else:
+                base_folder = self.takeout_folder
+
+            LOGGER.info(f"INFO    : Retrieving {type} assets from the base folder: '{base_folder}'.")
+
+            # Determine allowed extensions based on the type
+            if type in ['photo', 'image']:
+                selected_type_extensions = self.ALLOWED_PHOTO_EXTENSIONS
+            elif type == 'video':
+                selected_type_extensions = self.ALLOWED_VIDEO_EXTENSIONS
+            elif type == 'media':
+                selected_type_extensions = self.ALLOWED_MEDIA_EXTENSIONS
+            elif type == 'metadata':
+                selected_type_extensions = self.ALLOWED_METADATA_EXTENSIONS
+            elif type == 'sidecar':
+                selected_type_extensions = self.ALLOWED_SIDECAR_EXTENSIONS
+            elif type == 'unsupported':
+                selected_type_extensions = None  # Special case to filter unsupported files
+            else:  # 'all' or unrecognized type defaults to all supported extensions
+                selected_type_extensions = self.ALLOWED_EXTENSIONS
+
+            assets = [
+                {
+                    "id": str(file.resolve()),
+                    "time": file.stat().st_ctime,
+                    "filename": file.name,
+                    "filepath": str(file.resolve()),
+                    "type": self._determine_file_type(file),
+                }
+                for file in base_folder.rglob("*")
+                if file.is_file() and (
+                    (selected_type_extensions is None and file.suffix.lower() not in self.ALLOWED_EXTENSIONS) or
+                    (selected_type_extensions is not None and file.suffix.lower() in selected_type_extensions)
+                )
+            ]
+
+            LOGGER.info(f"INFO    : Found {len(assets)} {type} assets in the base folder.")
+            return assets
 ##############################################################################
 #                                END OF CLASS                                #
 ##############################################################################

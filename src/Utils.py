@@ -414,8 +414,17 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log
                     file_path = os.path.join(path, file)
                     if not os.path.isfile(file_path):
                         continue
+
                     # Get the file's modification date
-                    mod_time = datetime.fromtimestamp(os.path.getmtime(file_path))
+                    try:
+                        mtime = os.path.getmtime(file_path)
+                        mod_time = datetime.fromtimestamp(mtime if mtime > 0 else 0)  # Epoch as fallback
+                    except Exception:
+                        LOGGER.warning(f"WARNING : Error converting time for {file_path}: {e}")
+                        mod_time = datetime(1970, 1, 1)  # Otra fecha por defecto si todo falla
+                    LOGGER.debug(f"DEBUG   : Modified time: {mod_time}")
+                    mod_time = datetime.fromtimestamp(mtime)
+                    mod_time = datetime.fromtimestamp(mtime if mtime > 0 else 0)  # Epoch as fallback
                     year_folder = mod_time.strftime('%Y')
                     if type == 'year':
                         # Organize by year only
@@ -425,12 +434,13 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log
                         month_folder = mod_time.strftime('%m')
                         target_dir = os.path.join(path, year_folder, month_folder)
                     elif type == 'year-month':
-                         year_month_folder = mod_time.strftime('%Y-%m')
-                         target_dir = os.path.join(path, year_month_folder)
+                        year_month_folder = mod_time.strftime('%Y-%m')
+                        target_dir = os.path.join(path, year_month_folder)
                     # Create the target directory (and subdirectories) if they don't exist
                     os.makedirs(target_dir, exist_ok=True)
                     # Move the file to the target directory
                     shutil.move(file_path, os.path.join(target_dir, file))
+
         LOGGER.info(f"INFO    : Organization completed. Folder structure per {type} have been created in '{input_folder}'.")
 
 
@@ -1675,6 +1685,93 @@ def print_arguments_pretty(arguments, title="Arguments", use_logger=True):
     print("")
 
 
+# def run_command(command, logger, capture_output=False, capture_errors=True, print_progress_bars=False):
+#     """
+#     Ejecuta un comando en un subproceso y maneja la salida en tiempo real si capture_output=True.
+#     Evita registrar múltiples líneas de barras de progreso en el log.
+#     """
+#     print (print_progress_bars)
+#     if capture_output or capture_errors:
+#         process = subprocess.Popen(
+#             command,
+#             stdout=subprocess.PIPE if capture_output else subprocess.DEVNULL,
+#             stderr=subprocess.PIPE if capture_errors else subprocess.DEVNULL,
+#             text=True, encoding="utf-8", errors="replace"
+#         )
+#         if capture_output:
+#             for line in process.stdout:
+#                 # logger.info(f"INFO    : {line.strip()}")
+#                 if '\r' in line:
+#                     if print_progress_bars:
+#                         print(line, end='', flush=True)  # Muestra en pantalla como barra de progreso
+#                 else:
+#                     logger.info(f"INFO    : {line.strip()}")
+#         if capture_errors:
+#             for line in process.stderr:
+#                 # logger.error(f"ERROR   : {line.strip()}")
+#                 if '\r' in line:
+#                     if print_progress_bars:
+#                         print(line, end='', flush=True)  # Muestra en pantalla como barra de progreso
+#                 else:
+#                     logger.info(f"ERROR   : {line.strip()}")
+#         process.wait()  # Esperar a que el proceso termine
+#         return process.returncode
+#     else:
+#         # Ejecutar sin capturar la salida (dejar que se muestre en consola)
+#         result = subprocess.run(command, check=False, text=True, encoding="utf-8", errors="replace")
+#         return result.returncode
+
+
+def run_command(command, logger, capture_output=False, capture_errors=True):
+    """
+    Ejecuta un comando. Muestra en consola actualizaciones de progreso sin loguearlas.
+    Loguea solo líneas distintas a las de progreso. Corrige pegado de líneas en consola.
+    """
+    # ------------------------------------------------------------------------------------------------------------------------------------------------------------
+    def handle_stream(stream, is_error=False):
+        previous_prefix = None
+        just_printed_progress = False
+        while True:
+            line = stream.readline()
+            if not line:
+                break
+            line = line.rstrip()
+            if not line.strip():
+                continue
+            # Detect if the line to log is a update bar, and if it is, then don't log, use print instead, and print only the first and last status of the progress bar
+            common_part = line.split(':')[0] if ':' in line else line[:40]
+            is_progress = previous_prefix and line.startswith(previous_prefix)
+            previous_prefix = common_part
+            if is_progress:
+                print(f"\rINFO    : {line}", end='', flush=True)
+                just_printed_progress = True
+            else:
+                if just_printed_progress:
+                    print()  # Nueva línea limpia tras progreso
+                    just_printed_progress = False
+                if is_error:
+                    logger.error(f"ERROR   : {line}")
+                else:
+                    logger.info(f"INFO    : {line}")
+    # ------------------------------------------------------------------------------------------------------------------------------------------------------------
+    if not capture_output and not capture_errors:
+        return subprocess.run(command, check=False, text=True, encoding="utf-8", errors="replace").returncode
+    else:
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE if capture_output else subprocess.DEVNULL,
+            stderr=subprocess.PIPE if capture_errors else subprocess.DEVNULL,
+            text=True, encoding = "utf-8", errors = "replace"
+        )
+        if capture_output:
+            handle_stream(process.stdout, is_error=False)
+        if capture_errors:
+            handle_stream(process.stderr, is_error=True)
+
+        process.wait()  # Esperar a que el proceso termine
+        return process.returncode
+
+
 def resource_path(relative_path):
     """
     Devuelve la ruta absoluta al recurso 'relative_path', funcionando en:
@@ -1683,9 +1780,7 @@ def resource_path(relative_path):
     - Python directo (desde cwd o desde dirname(__file__))
     """
     # IMPORTANT: Don't use LOGGER in this function because is also used by build.py which has not any LOGGER created.
-
     DEBUG_MODE = False  # Cambia a False para silenciar
-
     if DEBUG_MODE:
         print("---DEBUG INFO")
         print(f"DEBUG   : RESOURCES_IN_CURRENT_FOLDER : {RESOURCES_IN_CURRENT_FOLDER}")
@@ -1704,23 +1799,19 @@ def resource_path(relative_path):
         else:
             print(f"DEBUG   : _MEIPASS not defined")
         print("")
-
     # PyInstaller
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
         if DEBUG_MODE: print("DEBUG   : Entra en modo PyInstaller -> (sys._MEIPASS)")
-
     # Nuitka onefile
     elif "NUITKA_ONEFILE_PARENT" in os.environ:
         base_path = os.path.dirname(os.path.abspath(__file__))
         if DEBUG_MODE: print("DEBUG   : Entra en modo Nuitka --onefile -> (__file__)")
-
     # Nuitka standalone
     elif "__compiled__" in globals():
         base_path = os.path.join(__compiled__.containing_dir, SCRIPT_NAME+'.dist')
         # base_path = __compiled__
         if DEBUG_MODE: print("DEBUG   : Entra en modo Nuitka --standalone -> (__compiled__.containing_dir)")
-
     # Python normal
     elif "__file__" in globals():
         if RESOURCES_IN_CURRENT_FOLDER:
@@ -1729,16 +1820,14 @@ def resource_path(relative_path):
         else:
             base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             if DEBUG_MODE: print("DEBUG   : Entra en Python .py -> (dirname(dirname(__file__)))")
-
     else:
         base_path = os.getcwd()
         if DEBUG_MODE: print("DEBUG   : Entra en fallback final -> os.getcwd()")
-
     if DEBUG_MODE:
         print(f"DEBUG   : return path                 : {os.path.join(base_path, relative_path)}")
         print("--- END DEBUG INFO")
-
     return os.path.join(base_path, relative_path)
+
 
 def ensure_executable(path):
     if platform.system() != "Windows":
@@ -1746,30 +1835,6 @@ def ensure_executable(path):
         current_permissions = os.stat(path).st_mode
         os.chmod(path, current_permissions | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
-def run_command(command, logger, capture_output=False, capture_errors=True):
-    """
-    Ejecuta un comando en un subproceso y maneja la salida en tiempo real si capture_output=True.
-    Evita registrar múltiples líneas de barras de progreso en el log.
-    """
-    if capture_output or capture_errors:
-        process = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE if capture_output else subprocess.DEVNULL,
-            stderr=subprocess.PIPE if capture_errors else subprocess.DEVNULL,
-            text=True, encoding="utf-8", errors="replace"
-        )
-        if capture_output:
-            for line in process.stdout:
-                logger.info(f"INFO    : {line.strip()}")
-        if capture_errors:
-            for line in process.stderr:
-                logger.error(f"ERROR   : {line.strip()}")
-        process.wait()  # Esperar a que el proceso termine
-        return process.returncode
-    else:
-        # Ejecutar sin capturar la salida (dejar que se muestre en consola)
-        result = subprocess.run(command, check=False, text=True, encoding="utf-8", errors="replace")
-        return result.returncode
 
 def get_subfolders_with_exclusions(input_folder, exclude_subfolder=None):
     all_entries = os.listdir(input_folder)
