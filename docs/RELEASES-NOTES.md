@@ -15,7 +15,6 @@
     - [x] Added more info while running Google Takeout Processing feature. 
     - [ ] Updated GPTH to version `4.0.6` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
       - [ ] Fix skipping files whose content does not match with their extension.
-      - [ ] Support for Special Folders (trash, archive, screenshots, etc...). 
 
   - #### 🐛 Bug fixes:
     - [x] Fixed name of Takeout folder in info message while looking for Takeout folder structure. Before it showed the name of the first subfolder inside it instead of the name of the Takeout folder.
