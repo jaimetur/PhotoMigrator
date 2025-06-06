@@ -36,7 +36,7 @@
 
 5. Create Date Folder structure (`flatten`, `year`, `year/month`, `year-month`) to Albums and No Albums folders according to the options given by arguments:
    - _`-gafs, --google-albums-folders-structure`_ <`flatten`, `year`, `year/month`, `year-month`>. Applies to each Album folder. Default is ‘flatten’ for Albums
-   - _`-gnas, --google-no-albums-folder-structure`_ <`flatten`, `year`, `year/month`, `year-month`> Applies to ALL_PHOTOS folder (Photos without any Albums). Default is ‘year/month’ for No-Albums. 
+   - _`-gnas, --google-no-albums-folders-structure`_ <`flatten`, `year`, `year/month`, `year-month`> Applies to ALL_PHOTOS folder (Photos without any Albums). Default is ‘year/month’ for No-Albums. 
 
 6. Move all the Albums into `<OUTPUT_FOLDER>/Albums` subfolder and the Photos that does not belong to any album to `<OUTPUT_FOLDER>/No-Albums` folder. This step can be skipped using argument _`-gsma, --google-skip-move-albums`_
 

@@ -179,7 +179,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
     LOGGER.info(f"-------------------------------------------")
     LOGGER.info(f"INFO    : Using Suffix                             : '{ARGS['google-output-folder-suffix']}'")
     LOGGER.info(f"INFO    : Albums Folder Structure                  : '{ARGS['google-albums-folders-structure']}'")
-    LOGGER.info(f"INFO    : No Albums Folder Structure               : '{ARGS['google-no-albums-folder-structure']}'")
+    LOGGER.info(f"INFO    : No Albums Folder Structure               : '{ARGS['google-no-albums-folders-structure']}'")
     LOGGER.info(f"INFO    : Creates symbolic links for Albums        : '{ARGS['google-create-symbolic-albums']}'")
     LOGGER.info(f"INFO    : Ignore Check Google Takeout Structure    : '{ARGS['google-ignore-check-structure']}'")
     LOGGER.info(f"INFO    : Move Original Assets to Output Folder    : '{ARGS['google-move-takeout-folder']}'")
@@ -205,8 +205,8 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
             LOGGER.warning(f"WARNING : No argument '-gizf or --google-input-zip-folder <ZIP_FOLDER>' detected. Skipping Unzipping files...")
         if ARGS['google-albums-folders-structure'].lower()!='flatten':
             LOGGER.warning(f"WARNING : Flag detected '-gafs, --google-albums-folders-structure'. Folder structure '{ARGS['google-albums-folders-structure']}' will be applied on each Album folder...")
-        if ARGS['google-no-albums-folder-structure'].lower()!='year/month':
-            LOGGER.warning(f"WARNING : Flag detected '-gnaf, --google-no-albums-folder-structure'. Folder structure '{ARGS['google-no-albums-folder-structure']}' will be applied on 'No-Albums' folder (Photos without Albums)...")
+        if ARGS['google-no-albums-folders-structure'].lower()!='year/month':
+            LOGGER.warning(f"WARNING : Flag detected '-gnaf, --google-no-albums-folders-structure'. Folder structure '{ARGS['google-no-albums-folders-structure']}' will be applied on 'No-Albums' folder (Photos without Albums)...")
         if ARGS['google-skip-gpth-tool']:
             LOGGER.warning(f"WARNING : Flag detected '-gsgt, --google-skip-gpth-tool'. Skipping Processing photos with GPTH Tool...")
         if ARGS['google-skip-extras-files']:

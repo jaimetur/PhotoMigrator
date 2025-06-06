@@ -34,12 +34,14 @@ usage: PhotoMigrator [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
                      [-from <FROM_DATE>] [-to <TO_DATE>]
                      [-country <COUNTRY_NAME>] [-city <CITY_NAME>]
                      [-person <PERSON_NAME>] [-type = [image,video,all]]
-                     [-AlbFld [<ALBUMS_FOLDER> ...]] [-rAlbAss] [-nolog]
+                     [-AlbFld [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]]
+                     [-rAlbAss] [-nolog]
                      [-loglevel ['debug', 'info', 'warning', 'error']]
                      [-gTakeout <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                      [-gafs ['flatten', 'year', 'year/month', 'year-month']]
                      [-gnas ['flatten', 'year', 'year/month', 'year-month']]
-                     [-gcsa] [-gics] [-gmtf] [-grdf] [-gsef] [-gsma] [-gsgt]
+                     [-gcsa] [-gics] [-gmtf] [-grdf] [-graf] [-gsef] [-gsma]
+                     [-gsgt]
                      [-gpthInfo [= [true,false]]] [-gpthErr [= [true,false]]]
                      [-uAlb <ALBUMS_FOLDER>]
                      [-dAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
@@ -178,8 +180,8 @@ Tool will use the default values for the rest of the arguments for this extra mo
 -gafs,     --google-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
              Specify the type of folder structure for each Album folder (Default:
              'flatten').
--gnas,     --google-no-albums-folder-structure ['flatten', 'year', 'year/month', 'year-month']
-             Specify the type of folder structure for 'No-Albums' folder (Default:
+-gnas,     --google-no-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
+             Specify the type of folder structure for 'No-Albums' folders (Default:
              'year/month').
 -gcsa,     --google-create-symbolic-albums
              Creates symbolic links for Albums instead of duplicate the files of each
@@ -196,6 +198,9 @@ Tool will use the default values for the rest of the arguments for this extra mo
              limitations and you don't mind to lost your original unzipped files.
 -grdf,     --google-remove-duplicates-files
              Remove Duplicates files in <OUTPUT_TAKEOUT_FOLDER> after fixing them.
+-graf,     --google-rename-albums-folders
+             Rename Albums Folders in <OUTPUT_TAKEOUT_FOLDER> based on content date of
+             each album after fixing them.
 -gsef,     --google-skip-extras-files
              Skip processing extra photos such as  -edited, -effects photos.
 -gsma,     --google-skip-move-albums
@@ -205,7 +210,7 @@ Tool will use the default values for the rest of the arguments for this extra mo
              CAUTION: This option is NOT RECOMMENDED because this is the Core of the
              Google Photos Takeout Process. Use this flag only for testing purposses.
 -gpthInfo, --show-gpth-info = [true,false]
-             Enable or disable Info messages during GPTH Processing. (default: False).
+             Enable or disable Info messages during GPTH Processing. (default: True).
 -gpthErr,  --show-gpth-errors = [true,false]
              Enable or disable Error messages during GPTH Processing. (default: True).
 
@@ -325,7 +330,6 @@ If more than one Feature is detected, only the first one will be executed.
 -renFldcb, --rename-folders-content-based <ALBUMS_FOLDER>
              Useful to rename and homogenize all Albums folders found in <ALBUMS_FOLDER>
              based on the date content found.
-
 ---------------------------------------------------------------------------------------------------------
 ```
 

@@ -423,7 +423,6 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log
                         LOGGER.warning(f"WARNING : Error converting time for {file_path}: {e}")
                         mod_time = datetime(1970, 1, 1)  # Otra fecha por defecto si todo falla
                     LOGGER.debug(f"DEBUG   : Modified time: {mod_time}")
-                    mod_time = datetime.fromtimestamp(mtime)
                     mod_time = datetime.fromtimestamp(mtime if mtime > 0 else 0)  # Epoch as fallback
                     year_folder = mod_time.strftime('%Y')
                     if type == 'year':
