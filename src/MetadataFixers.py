@@ -101,8 +101,9 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             print_arguments_pretty(gpth_command, title='GPTH Command', use_logger=True)
             LOGGER.info(f"INFO    : 🛠️ Fixing and 🧩 oganizing all your Takeout photos and videos.")
             LOGGER.info(f"INFO    : ⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂.")
+
+            # Run GPTH Tool
             ok = run_command(gpth_command, LOGGER, capture_output=capture_output, capture_errors=capture_errors)      # Shows the output in real time and capture it to the LOGGER.
-            # ok = subprocess.run(gpth_command, check=True, capture_output=capture_output, text=True)
 
             # Rename folder 'ALL_PHOTOS' by 'No-Albums'
             all_photos_path = os.path.join(output_folder, 'ALL_PHOTOS')

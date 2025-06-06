@@ -171,6 +171,9 @@ class ClassLocalFolder:
                 return True
         return False
 
+    def get_takeout_assets_by_filters(self, type='all', log_level=logging.INFO):
+        return []  # Clase base no tiene takeout, devuelve lista vacía
+
     ###########################################################################
     #                           CLASS PROPERTIES GETS                         #
     ###########################################################################
@@ -499,7 +502,8 @@ class ClassLocalFolder:
                 asset_id = asset.get('id')
                 # if assets exists in all_assets_filtered is because match all filters criteria, so will include in the filtered list to return
                 if self.all_assets_filtered is None:
-                    self.all_assets_filtered = self.get_assets_by_filters(log_level=log_level)
+                    assets_filtered = self.get_assets_by_filters(log_level=log_level) or []
+                    self.all_assets_filtered = assets_filtered
                 if any(asset.get('id') == asset_id for asset in self.all_assets_filtered):
                     filtered.append(asset)
             return filtered
@@ -846,9 +850,13 @@ class ClassLocalFolder:
                     })
 
             assets_without_albums = self.filter_assets(assets=assets, log_level=log_level)
+            takeout_metadata = self.get_takeout_assets_by_filters(type='metadata', log_level=log_level)
+            takeout_sidecar = self.get_takeout_assets_by_filters(type='sidecar', log_level=log_level)
+            takeout_unsupported = self.get_takeout_assets_by_filters(type='unsupported', log_level=log_level)
             LOGGER.info(f"INFO    : Found {len(assets_without_albums)} assets of type '{type}' in No-Album folders.")
-            self.assets_without_albums_filtered = assets_without_albums  # Cache assets_without_albums for future use
-            return assets_without_albums
+            all_assets = assets_without_albums + takeout_metadata + takeout_sidecar + takeout_unsupported
+            self.assets_without_albums_filtered = all_assets  # Cache assets_without_albums for future use
+            return all_assets
 
     def get_all_assets_from_all_albums(self, log_level=logging.WARNING):
         """

@@ -252,10 +252,10 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             # 3) Verifica y procesa source_client y target_client si es una instancia de ClassTakeoutFolder
             if isinstance(source_client, ClassTakeoutFolder):
                 if source_client.needs_unzip or source_client.needs_process:
-                    source_client.pre_process(capture_output=show_gpth_info, capture_errors=show_gpth_errors)
+                    source_client.pre_process_and_process(capture_output=show_gpth_info, capture_errors=show_gpth_errors)
             if isinstance(target_client, ClassTakeoutFolder):
                 if target_client.needs_unzip or target_client.needs_process:
-                    target_client.pre_process(capture_output=show_gpth_info, capture_errors=show_gpth_errors)
+                    target_client.pre_process_and_process(capture_output=show_gpth_info, capture_errors=show_gpth_errors)
 
             # ---------------------------------------------------------------------------------------------------------
             # 4) Ejecutamos la migración en el hilo principal (ya sea con descargas y subidas en paralelo o secuencial)
@@ -456,6 +456,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 all_albums_assets = source_client.get_all_assets_from_all_albums(log_level=logging.WARNING)
             except Exception as e:
                 LOGGER.error(f"ERROR   : Error Retrieving Albums's Assets from '{source_client_name}' - {e}")
+
             all_supported_assets = all_no_albums_assets + all_albums_assets
             blocked_assets_ids = {asset["id"] for asset in blocked_assets}
             filtered_all_supported_assets = [asset for asset in all_supported_assets if asset["id"] not in blocked_assets_ids]
