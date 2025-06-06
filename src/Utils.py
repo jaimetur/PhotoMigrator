@@ -981,30 +981,55 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, log_level=lo
             return input_string
 
     def get_year_range(folder: str, log_level=logging.INFO) -> str:
-        import os
-        from datetime import datetime
-        
-        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        def get_exif_date(image_path):
+            try:
+                exif_dict = piexif.load(image_path)
+                for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
+                    value = exif_dict["Exif"].get(piexif.ExifIFD.__dict__.get(tag))
+                    if value:
+                        # piexif devuelve bytes, hay que decodificar
+                        return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
+            except Exception:
+                pass
+            return None
+
+        with set_log_level(LOGGER, log_level):
             try:
                 files = [os.path.join(folder, f) for f in os.listdir(folder)]
                 files = [f for f in files if os.path.isfile(f)]
-                if files:
-                    oldest_file = min(files, key=os.path.getmtime)
-                    latest_file = max(files, key=os.path.getmtime)
-                    oldest_year = datetime.fromtimestamp(os.path.getmtime(oldest_file)).year
-                    latest_year = datetime.fromtimestamp(os.path.getmtime(latest_file)).year
-                    # Return a single year if oldest and latest match
+                years = []
+                for f in files:
+                    ext = os.path.splitext(f)[1].lower()
+                    dt = None
+                    # Primero intenta con EXIF si es imagen
+                    if ext in ['.jpg', '.jpeg', '.tiff']:
+                        try:
+                            dt = get_exif_date(f)
+                        except Exception as e:
+                            LOGGER.warning(f"WARNING : Error reading EXIF from {f}: {e}")
+                    # Si no hay EXIF o no es imagen compatible, usa mtime
+                    if not dt:
+                        try:
+                            ts = os.path.getmtime(f)
+                            if ts > 0:
+                                dt = datetime.fromtimestamp(ts)
+                        except Exception as e:
+                            LOGGER.warning(f"WARNING : Cannot read timestamp from {f}: {e}")
+                    if dt:
+                        years.append(dt.year)
+                if years:
+                    oldest_year = min(years)
+                    latest_year = max(years)
                     if oldest_year == latest_year:
-                        # LOGGER.info(f"INFO    : Single year {oldest_year} obtained from {folder}")
                         return str(oldest_year)
                     else:
-                        # LOGGER.info(f"INFO    : Year range {oldest_year}-{latest_year} obtained from {folder}")
                         return f"{oldest_year}-{latest_year}"
+                else:
+                    LOGGER.warning(f"WARNING : No valid timestamps found in {folder}")
             except Exception as e:
                 LOGGER.error(f"ERROR   : Error obtaining year range: {e}")
-            
-            return None
 
+            return None
     # ===========================
     # END AUX FUNCTIONS
     # ===========================
