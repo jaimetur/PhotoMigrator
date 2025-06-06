@@ -443,6 +443,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             )
 
 
+
     # sobreescribimos el método get_takeout_assets_by_filters() para que obtenga los assets de takeout_folder directamente en lugar de base_folder, para poder hacer el recuento de metadatos, sidecar, y archivos no soportados.
     def get_takeout_assets_by_filters(self, type='all', log_level=logging.INFO):
         """
