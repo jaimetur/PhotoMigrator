@@ -298,7 +298,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
 
             # step 5: Create Folders Year/Month or Year only structure
-            if self.ARGS['google-albums-folders-structure'].lower() != 'flatten' or self.ARGS['google-no-albums-folder-structure'].lower() != 'flatten' or (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folder-structure'].lower() == 'flatten'):
+            if self.ARGS['google-albums-folders-structure'].lower() != 'flatten' or self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten' or (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folders-structure'].lower() == 'flatten'):
                 self.step += 1
                 LOGGER.info("")
                 LOGGER.info("====================================================")
@@ -315,19 +315,18 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     Utils.organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders)
 
                 # For No-Albums
-                if self.ARGS['google-no-albums-folder-structure'].lower() != 'flatten':
+                if self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten':
                     LOGGER.info("")
-                    LOGGER.info(f"INFO    : Creating Folder structure '{self.ARGS['google-no-albums-folder-structure'].lower()}' for 'No-Albums' folder...")
+                    LOGGER.info(f"INFO    : Creating Folder structure '{self.ARGS['google-no-albums-folders-structure'].lower()}' for 'No-Albums' folders...")
                     basedir = os.path.join(output_takeout_folder, 'No-Albums')
-                    type_structure = self.ARGS['google-no-albums-folder-structure']
+                    type_structure = self.ARGS['google-no-albums-folders-structure']
                     exclude_subfolders = []
                     Utils.organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders)
 
                 # If flatten
-                if (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folder-structure'].lower() == 'flatten'):
+                if (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folders-structure'].lower() == 'flatten'):
                     LOGGER.info("")
-                    LOGGER.warning(
-                        "WARNING : No argument '-as, --google-albums-folders-structure' and '-ns, --google-no-albums-folder-structure' detected. All photos and videos will be flattened in their folders.")
+                    LOGGER.warning("WARNING : No argument '-gafs, --google-albums-folders-structure' and '-gnas, --google-no-albums-folders-structure' detected. All photos and videos will be flattened in their folders.")
 
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))

@@ -7,30 +7,29 @@ There is also a [extended version](https://github.com/jaimetur/PhotoMigrator/blo
 
 ## 🧩 Core Arguments
 
-| Argument          | Description                |
-|-------------------|----------------------------|
-| `--help`, `-h`    | Show help and exit         |
-| `--version`, `-v` | Show tool version and exit |
+| Argument             | Description                |
+|----------------------|----------------------------|
+| `-h`,<br>`--help`    | Show help and exit         |
+| `-v`,<br>`--version` | Show tool version and exit |
 
-### 🧪 Examples
+#### 🧪 Examples:
 ```bash
 PhotoMigrator.run --help
 PhotoMigrator.run --version
 ```
 
 ---
-
 ## 🚀 Automatic Migration Process
 
-| Argument               | Description                                                     |
-|------------------------|-----------------------------------------------------------------|
-| `--source <SOURCE>`    | Source service or folder: `immich`, `synology`, or `local path` |
-| `--target <TARGET>`    | Target service or folder: `immich`, `synology`, or `local path` |
-| `--move-assets`        | Move instead of copy files (`true` or `false`)                  |
-| `--dashboard`          | Show live dashboard during migration (`true` or `false`)        |
-| `--parallel-migration` | Run migration in parallel or sequential (`true` or `false`)     |
+| Argument                               | Description                                                     |
+|----------------------------------------|-----------------------------------------------------------------|
+| `-source`,<br>`--source` `<SOURCE>`    | Source service or folder: `immich`, `synology`, or `local path` |
+| `-target`,<br>`--target` `<TARGET>`    | Target service or folder: `immich`, `synology`, or `local path` |
+| `-move`,<br>`--move-assets`            | Move instead of copy files (`true` or `false`)                  |
+| `-dashb`,<br>`--dashboard`             | Show live dashboard during migration (`true` or `false`)        |
+| `-parallel`,<br>`--parallel-migration` | Run migration in parallel or sequential (`true` or `false`)     |
 
-### 🧪 Examples
+#### 🧪 Examples:
 ```bash
 PhotoMigrator.run --source=immich-1 --target=synology-2
 PhotoMigrator.run --source="/home/user/Takeout" --target="/mnt/photos" --move-assets true
@@ -38,100 +37,120 @@ PhotoMigrator.run --source=immich-1 --target=synology-2 --dashboard false --para
 ```
 
 ---
-
 ## ⚙️ General Options
+Following general flags have different purposses depending on the Execution Mode.
 
-| Argument                              | Description                                            |
-|---------------------------------------|--------------------------------------------------------|
-| `--input-folder`, `-i`                | Input folder to process                                |
-| `--output-folder`, `-o`               | Output folder to store results                         |
-| `--client`                            | Service client: `google-takeout`, `synology`, `immich` |
-| `--account-id`, `-id`                 | Account ID (1–3) from `Config.ini`                     |
-| `--one-time-password`, `--OTP`        | Use 2FA login with OTP token                           |
-| `--filter-from-date`, `--from`        | Filter assets from this date                           |
-| `--filter-to-date`, `--to`            | Filter assets up to this date                          |
-| `--filter-by-country`, `--country`    | Filter assets by country                               |
-| `--filter-by-city`, `--city`          | Filter assets by city                                  |
-| `--filter-by-person`, `--person`      | Filter assets by person                                |
-| `--filter-by-type`, `--type`          | Filter assets by type: `image`, `video`, `all`         |
-| `--albums-folders`, `--AlbFld`        | Use subfolders in folder as albums                     |
-| `--remove-albums-assets`, `--rAlbAss` | Remove assets inside deleted albums                    |
-| `--no-log-file`, `--nolog`            | Disable log file creation                              |
-| `--log-level`, `--loglevel`           | Log level: `debug`, `info`, `warning`, `error`         |
+| Argument                                | Description                                            |
+|-----------------------------------------|--------------------------------------------------------|
+| `-i`,<br>`--input-folder`               | Input folder to process                                |
+| `-o`,<br>`--output-folder`              | Output folder to store results                         |
+| `-client`,<br>`--client`                | Service client: `google-takeout`, `synology`, `immich` |
+| `-id`,<br>`--account-id`                | Account ID (1–3) from `Config.ini`                     |
+| `-OTP`,<br>`--one-time-password`        | Use 2FA login with OTP token                           |
+| `-from`,<br>`--filter-from-date`        | Filter assets from this date                           |
+| `-to`,<br>`--filter-to-date`            | Filter assets up to this date                          |
+| `-country`,<br>`--filter-by-country`    | Filter assets by country                               |
+| `-city`,<br>`--filter-by-city`          | Filter assets by city                                  |
+| `-person`,<br>`--filter-by-person`      | Filter assets by person                                |
+| `-type`,<br>`--filter-by-type`          | Filter assets by type: `image`, `video`, `all`         |
+| `-AlbFld`,<br>`--albums-folders`        | Use subfolders in folder as albums                     |
+| `-rAlbAss`,<br>`--remove-albums-assets` | Remove assets inside deleted albums                    |
+| `-nolog`,<br>`--no-log-file`            | Disable log file creation                              |
+| `-loglevel`,<br>`--log-level`           | Log level: `debug`, `info`, `warning`, `error`         |
 
-### 🧪 Examples
+#### 🧪 Examples:
 ```bash
-PhotoMigrator.run --client=immich --input-folder "Photos" --output-folder "Exported"
-PhotoMigrator.run --client=google-takeout --from 2020-01-01 --to 2021-01-01
-PhotoMigrator.run --type video --country Spain --person "Ana"
+PhotoMigrator.run --input-folder=/mnt/import --output-folder=/mnt/export
+PhotoMigrator.run --filter-from-date=2022-01-01 --filter-to-date=2022-12-31
+PhotoMigrator.run --filter-by-type=video --log-level=debug
 ```
 
 ---
-
 ## 🗃️ Google Photos Takeout Management
+In this mode, you can use more than one optional flags from the below list.  
+If only the flag -gTakeout, --google-takeout <TAKEOUT_FOLDER> is detected, then the Tool will use the default values for the rest of the flags for this extra mode.
 
-| Argument                                        | Description                                                           |
-|-------------------------------------------------|-----------------------------------------------------------------------|
-| `--google-takeout`, `--gTakeout`                | Path to Takeout folder (mandatory for this mode)                      |
-| `--google-output-folder-suffix`, `--gofs`       | Suffix for output folder (default: `processed`)                       |
-| `--google-albums-folders-structure`, `--gafs`   | Album folder structure: `flatten`, `year`, `year/month`, `year-month` |
-| `--google-no-albums-folder-structure`, `--gnas` | No-Album folder structure (same values as above)                      |
-| `--google-create-symbolic-albums`, `--gcsa`     | Use symbolic links for albums                                         |
-| `--google-ignore-check-structure`, `--gics`     | Ignore Takeout structure validations                                  |
-| `--google-move-takeout-folder`, `--gmtf`        | Move instead of copy assets (destructive)                             |
-| `--google-remove-duplicates-files`, `--grdf`    | Removes duplicate files in the output folder.                         |
-| `--google-rename-albums-folders`, `--graf`      | Renames albums folders based on content dates.                        |
-| `--google-skip-extras-files`, `--gsef`          | Skip `-edited`, `-effects` images                                     |
-| `--google-skip-move-albums`, `--gsma`           | Skip moving albums to "Albums" folder                                 |
-| `--google-skip-gpth-tool`, `--gsgt`             | Skip processing with GPTH Tool (not recommended)                      |
-| `--show-gpth-info`, `--gpthInfo`                | Show GPTH progress messages (default: true)                           |
-| `--show-gpth-errors`, `--gpthErr`               | Show GPTH error messages (default: true)                              |
+Following arguments allow you to interact with Google Photos Takeout Folder.   
 
-### 🧪 Examples
+| Argument                                           | Description                                                           |
+|----------------------------------------------------|-----------------------------------------------------------------------|
+| `-gTakeout`,<br>`--google-takeout`                 | Path to Takeout folder (mandatory for this mode)                      |
+| `-gofs`,<br>`--google-output-folder-suffix`        | Suffix for output folder (default: `processed`)                       |
+| `-gafs`,<br>`--google-albums-folders-structure`    | Album folder structure: `flatten`, `year`, `year/month`, `year-month` |
+| `-gnas`,<br>`--google-no-albums-folders-structure` | No-Album folder structure (same values as above)                      |
+| `-gcsa`,<br>`--google-create-symbolic-albums`      | Use symbolic links for albums                                         |
+| `-gics`,<br>`--google-ignore-check-structure`      | Ignore Takeout structure validations                                  |
+| `-gmtf`,<br>`--google-move-takeout-folder`         | Move instead of copy assets (destructive)                             |
+| `-grdf`,<br>`--google-remove-duplicates-files`     | Removes duplicate files in the output folder.                         |
+| `-graf`,<br>`--google-rename-albums-folders`       | Renames albums folders based on content dates.                        |
+| `-gsef`,<br>`--google-skip-extras-files`           | Skip `-edited`, `-effects` images                                     |
+| `-gsma`,<br>`--google-skip-move-albums`            | Skip moving albums to "Albums" folder                                 |
+| `-gsgt`,<br>`--google-skip-gpth-tool`              | Skip processing with GPTH Tool (not recommended)                      |
+| `-gpthInfo`,<br>`--show-gpth-info`                 | Show GPTH progress messages (default: true)                           |
+| `-gpthErr`,<br>`--show-gpth-errors`                | Show GPTH error messages (default: true)                              |
+
+#### 🧪 Examples:
 ```bash
-PhotoMigrator.run --gTakeout "~/Takeout" --gafs "year/month" --grdf --gsef
-PhotoMigrator.run --gTakeout "~/Takeout" --gcsa --gofs "cleaned"
-PhotoMigrator.run --gTakeout "Takeout" --gics --gmtf true
+PhotoMigrator.run --google-takeout="/home/user/Takeout"
+PhotoMigrator.run --google-takeout="/home/user/Takeout" --google-remove-duplicates-files --google-skip-extras-files
+PhotoMigrator.run --google-takeout="/home/user/Takeout" --google-albums-folders-structure=year/month
+
+or using short arguments, 
+PhotoMigrator.run -gTakeout="/home/user/Takeout" -gafs="year/month" -grdf -gsef
+PhotoMigrator.run -gTakeout="/home/user/Takeout" -gcsa -gofs="cleaned"
+PhotoMigrator.run -gTakeout="/home/user/Takeout" -gics -gmtf=true
 ```
 
 ---
-
 ## 🖼️ Synology / Immich Photo Management
+To use following features, it is mandatory to use the flag '--client=[synology, immich]' to specify which Photo Service do you want to use.  
+You can optionally use the flag '--id=[1-3]' to specify the account id for a particular account defined in Config.ini.  
+If more than one optional flags are detected, only the first one will be executed.  
 
-| Argument                                  | Description                                    |
-|-------------------------------------------|------------------------------------------------|
-| `--upload-albums`, `--uAlb`               | Upload all subfolders as albums                |
-| `--download-albums`, `--dAlb`             | Download specific albums                       |
-| `--upload-all`, `--uAll`                  | Upload all assets and albums from input folder |
-| `--download-all`, `--dAll`                | Download all assets and albums                 |
-| `--remove-orphan-assets`, `--rOrphan`     | Delete orphan assets                           |
-| `--remove-all-assets`, `--rAll`           | Delete all assets and albums (DANGER!)         |
-| `--remove-all-albums`, `--rAllAlb`        | Delete all albums (assets optional)            |
-| `--remove-albums`, `--rAlb`               | Delete albums matching pattern                 |
-| `--remove-empty-albums`, `--rEmpAlb`      | Delete empty albums                            |
-| `--remove-duplicates-albums`, `--rDupAlb` | Delete duplicate albums                        |
-| `--merge-duplicates-albums`, `--mDupAlb`  | Merge duplicate albums                         |
-| `--rename-albums`, `--renAlb`             | Rename albums matching pattern                 |
+Following arguments allow you to interact with Synology/Immich Photos.
 
-### 🧪 Examples
+| Argument                                    | Description                                    |
+|---------------------------------------------|------------------------------------------------|
+| `-uAlb`,<br>`--upload-albums`               | Upload all subfolders as albums                |
+| `-dAlb`,<br>`--download-albums`             | Download specific albums                       |
+| `-uAll`,<br>`--upload-all`                  | Upload all assets and albums from input folder |
+| `-dAll`,<br>`--download-all`                | Download all assets and albums                 |
+| `-renAlb`,<br>`--rename-albums`             | Rename albums matching pattern                 |
+| `-rAlb`,<br>`--remove-albums`               | Delete albums matching pattern                 |
+| `-rEmpAlb`,<br>`--remove-empty-albums`      | Delete empty albums                            |
+| `-rDupAlb`,<br>`--remove-duplicates-albums` | Delete duplicate albums                        |
+| `-mDupAlb`,<br>`--merge-duplicates-albums`  | Merge duplicate albums                         |
+| `-rAll`,<br>`--remove-all-assets`           | Delete all assets and albums (DANGER!)         |
+| `-rAllAlb`,<br>`--remove-all-albums`        | Delete all albums (assets optional)            |
+| `-rOrphan`,<br>`--remove-orphan-assets`     | Delete orphan assets                           |
+
+
+#### 🧪 Examples:
 ```bash
-PhotoMigrator.run --client=synology --uAlb "Albums" --id 1
-PhotoMigrator.run --client=immich --dAlb "Vacaciones,Navidad" --o "Backups"
-PhotoMigrator.run --client=synology --rAlb "tmp_*" --rAlbAss
+PhotoMigrator.run --client=immich --upload-all=/mnt/pictures
+PhotoMigrator.run --client=synology --download-albums "album1 album2 album3" --output-folder=/mnt/backup
+PhotoMigrator.run --client=synology --remove-empty-albums
+
+or using short arguments,
+PhotoMigrator.run -client=synology -uAlb="Albums" -id=1
+PhotoMigrator.run -client=immich -dAlb="Vacaciones,Navidad" -o="Backups"
+PhotoMigrator.run -client=synology -rAlb="tmp_*" -rAlbAss
 ```
 
 ---
+## 🛠️ Standalone Features
+If more than one Feature is detected, only the first one will be executed.  
+Following arguments can be used to execute the Tool in any of the usefull additionals Extra Standalone Features included.  
 
-## 🛠️ Other Standalone Features
+| Argument                                         | Description                                                    |
+|--------------------------------------------------|----------------------------------------------------------------|
+| `-findDup`,<br>`--find-duplicates`               | Find duplicates in folder(s). Action: `list`, `move`, `delete` |
+| `-procDup`,<br>`--process-duplicates`            | Execute actions from a reviewed duplicates CSV file            |
+| `-fixSym`,<br>`--fix-symlinks-broken`            | Fix broken symlinks in folder                                  |
+| `-renFldcb`,<br>`--rename-folders-content-based` | Rename folders based on media content date                     |
 
-| Argument                                       | Description                                                    |
-|------------------------------------------------|----------------------------------------------------------------|
-| `--find-duplicates`, `--findDup`               | Find duplicates in folder(s). Action: `list`, `move`, `delete` |
-| `--process-duplicates`, `--procDup`            | Execute actions from a reviewed duplicates CSV file            |
-| `--fix-symlinks-broken`, `--fixSym`            | Fix broken symlinks in folder                                  |
-| `--rename-folders-content-based`, `--renFldcb` | Rename folders based on media content date                     |
 
-### 🧪 Examples
+#### 🧪 Examples:
 ```bash
 PhotoMigrator.run --find-duplicates list "/mnt/folder1" "/mnt/folder2"
 PhotoMigrator.run --process-duplicates revised_duplicates.csv

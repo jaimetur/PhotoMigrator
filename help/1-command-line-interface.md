@@ -178,7 +178,7 @@ Tool will use the default values for the rest of the arguments for this extra mo
 -gafs,     --google-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
              Specify the type of folder structure for each Album folder (Default:
              'flatten').
--gnas,     --google-no-albums-folder-structure ['flatten', 'year', 'year/month', 'year-month']
+-gnas,     --google-no-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
              Specify the type of folder structure for 'No-Albums' folder (Default:
              'year/month').
 -gcsa,     --google-create-symbolic-albums

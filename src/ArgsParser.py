@@ -135,7 +135,7 @@ def parse_arguments():
                         , type=lambda s: s.lower()  # Convert input to lowercase
                         , choices=choices_for_folder_structure  # Valid choices
                         )
-    PARSER.add_argument("-gnas", "--google-no-albums-folder-structure", metavar=f"{choices_for_folder_structure}", default="year/month", help="Specify the type of folder structure for 'No-Albums' folder (Default: 'year/month')."
+    PARSER.add_argument("-gnas", "--google-no-albums-folders-structure", metavar=f"{choices_for_folder_structure}", default="year/month", help="Specify the type of folder structure for 'No-Albums' folders (Default: 'year/month')."
                         , type=lambda s: s.lower()  # Convert input to lowercase
                         , choices=choices_for_folder_structure  # Valid choices
                         )
