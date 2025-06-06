@@ -4,7 +4,7 @@
 
 ## **Release**: v3.3.1  
 
-- ### **Release Date**: 2025-06-04
+- ### **Release Date**: 2025-06-06
 
 - ### Main Changes:
   - #### 🌟 New Features:
@@ -13,16 +13,20 @@
   - #### 🚀 Enhancements:
     - [x] Replace return arguments of `ClassTakeoutFolder.process()` method by a new object with all the arguments.
     - [x] Added more info while running Google Takeout Processing feature. 
-    - [ ] Updated GPTH to version `4.0.6` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
+    - [ ] Updated GPTH to version `4.0.7` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
       - [ ] Fix skipping files whose content does not match with their extension.
+      - [ ] Fix a bug in the albums folders creation when the album name start with a number.
 
   - #### 🐛 Bug fixes:
     - [x] Fixed name of Takeout folder in info message while looking for Takeout folder structure. Before it showed the name of the first subfolder inside it instead of the name of the Takeout folder.
     - [x] Fixed info while showing elapsed time on unpacking step. Before it said step 1 instead of unpacking step.
     - [x] Fixed a bug in Automatic Migration Feature when `<SOURCE>` is a Zipped Takeout (before no assets to push were found during filtering process).
+    - [x] Fixed bug while moving assets to no-flatten folder structure if the….
+    - [x] Fixed bug while rename albums folders based on its content dates if some assets inside the folder has no system date.
   
   - #### 📚 Documentation:
     - [x] Removed NOTE blocks im main documentation description for all features. 
+    - [x] Updated Arguments Description documentation.
     - [x] Removed **Automatic Migration** instructions from the main README.md (replaced by a link to the documentation file)
     - [x] Removed **Planned Roadmap** from the main README.md (replaced by a link to Planned Roadmap file)
     - [x] Updated documentation with all changes.

@@ -403,9 +403,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
             if self.ARGS['google-rename-albums-folders']:
                 self.step += 1
                 LOGGER.info("")
-                LOGGER.info("====================================================")
+                LOGGER.info("============================================================")
                 LOGGER.info(f"INFO    : {self.step}. RENAMING ALBUMS FOLDERS BASED ON THEIR DATES...")
-                LOGGER.info("====================================================")
+                LOGGER.info("============================================================")
                 LOGGER.info("")
                 LOGGER.info("INFO    : Renaming albums folders from OUTPUT_TAKEOUT_FOLDER based on their dates...")
                 step_start_time = datetime.now()
