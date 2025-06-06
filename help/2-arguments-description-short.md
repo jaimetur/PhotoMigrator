@@ -1,7 +1,7 @@
 # 📚 Arguments Description
 This section describe the different arguments and flags used by the tool.  
 - An **argument** is a modifier that is followed by any parameter.
-- On the other hand, a **flag** is a modifier that don't requires any parameter, hence, if the flag is present the feature is enabled, otherwise, the feature is disabled.
+- On the other hand, a **flag** is a modifier that don't require any parameter, hence, if the flag is present the feature is enabled, otherwise, the feature is disabled.
 
 There is also a [extended version](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description.md) of this doccument available.
 
@@ -20,6 +20,7 @@ PhotoMigrator.run --version
 
 ---
 ## 🚀 Automatic Migration Process
+Following arguments allow you to execute the Automatic Migration Process to migrate your assets from one Photo Cloud Service to other, or from two different accounts within the same Photo Cloud service.
 
 | Argument                               | Description                                                     |
 |----------------------------------------|-----------------------------------------------------------------|
@@ -38,7 +39,7 @@ PhotoMigrator.run --source=immich-1 --target=synology-2 --dashboard false --para
 
 ---
 ## ⚙️ General Options
-Following general flags have different purposses depending on the Execution Mode.
+Following general arguments have different purposses depending on the Execution Mode.
 
 | Argument                                | Description                                            |
 |-----------------------------------------|--------------------------------------------------------|
@@ -67,10 +68,10 @@ PhotoMigrator.run --filter-by-type=video --log-level=debug
 
 ---
 ## 🗃️ Google Photos Takeout Management
-In this mode, you can use more than one optional flags from the below list.  
-If only the flag -gTakeout, --google-takeout <TAKEOUT_FOLDER> is detected, then the Tool will use the default values for the rest of the flags for this extra mode.
+In this mode, you can use more than one optional arguments and flags from the below list.  
+If only the argument `-gTakeout, --google-takeout <TAKEOUT_FOLDER>` is detected, then the Tool will use the default values for the rest of the flags for this extra mode.
 
-Following arguments allow you to interact with Google Photos Takeout Folder.   
+Following arguments allow you to interact with Google Photos Takeout Folder.  
 
 | Argument                                           | Description                                                           |
 |----------------------------------------------------|-----------------------------------------------------------------------|
@@ -103,9 +104,9 @@ PhotoMigrator.run -gTakeout="/home/user/Takeout" -gics -gmtf=true
 
 ---
 ## 🖼️ Synology / Immich Photo Management
-To use following features, it is mandatory to use the flag '--client=[synology, immich]' to specify which Photo Service do you want to use.  
-You can optionally use the flag '--id=[1-3]' to specify the account id for a particular account defined in Config.ini.  
-If more than one optional flags are detected, only the first one will be executed.  
+To use following features, it is mandatory to use the argument `--client=[synology, immich]` to specify which Photo Service do you want to use.  
+You can optionally use the argument `--id=[1-3]` to specify the account id for a particular account defined in Config.ini.  
+If more than one optional arguments are detected, only the first one will be executed.  
 
 Following arguments allow you to interact with Synology/Immich Photos.
 
