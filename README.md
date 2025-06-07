@@ -34,7 +34,7 @@ Currently, the Features Included per each Supported Photo Cloud Service are:
   - Detect and remove duplicates.
   - Auto rename Albums folders to homogenize all names based on content dates. 
 
-- [**Synology Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md) & [Immich Photos](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md) - Features included:
+- [**Synology Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md) & [**Immich Photos**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md) - Features included:
 
   | Feature                         | Synology Doc                                                                                                                                     | Immich Doc                                                                                                                                       |
   |---------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
