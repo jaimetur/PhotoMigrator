@@ -3,18 +3,18 @@
 From version 3.0.0 onwards, the Tool can connect to your Immich Photos account with your credentials or using a pre-created API Key.  
 
 ### Features included:
-1. Upload Album(s) (from folder)
-2. Download Album(s) (into folder)
-3. Upload ALL (from folder)
-4. Download ALL (into folder)
-5. Remove ALL Assets
-6. Remove ALL Albums
-7. Remove Albums by Name Pattern
-8. Rename Albums by Name Pattern
-9. Remove Empty Albums
-10. Remove Duplicates Albums
-11. Merge Duplicates Albums
-12. Remove Orphans Assets
+- 1. Upload Album(s) (from folder)
+- 2. Download Album(s) (into folder)
+- 3. Upload ALL (from folder)
+- 4. Download ALL (into folder)
+- 5. Remove ALL Assets
+- 6. Remove ALL Albums
+- 7. Remove Albums by Name Pattern
+- 8. Rename Albums by Name Pattern
+- 9. Remove Empty Albums
+- 10. Remove Duplicates Albums
+- 11. Merge Duplicates Albums
+- 12. Remove Orphans Assets
 
 You can apply different filters on all above features to filter assets from Immich Photos.  
 

@@ -3,17 +3,17 @@
 From version 2.0.0 onwards, the Tool can connect to your Synology NAS and login into Synology Photos App with your credentials. 
 
 ### Features included:
-1. Upload Album(s) (from folder)
-2. Download Album(s) (into folder)
-3. Upload ALL (from folder)
-4. Download ALL (into folder)
-5. Remove ALL Assets
-6. Remove ALL Albums
-7. Remove Albums by Name Pattern
-8. Rename Albums by Name Pattern
-9. Remove Empty Albums
-10. Remove Duplicates Albums
-11. Merge Duplicates Albums
+- 1. Upload Album(s) (from folder)
+- 2. Download Album(s) (into folder)
+- 3. Upload ALL (from folder)
+- 4. Download ALL (into folder)
+- 5. Remove ALL Assets
+- 6. Remove ALL Albums
+- 7. Remove Albums by Name Pattern
+- 8. Rename Albums by Name Pattern
+- 9. Remove Empty Albums
+- 10. Remove Duplicates Albums
+- 11. Merge Duplicates Albums
 
 You can apply different filters on all above features to filter assets from Synology Photos.  
 
