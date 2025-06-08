@@ -255,7 +255,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
 
             # step 3: Copy/Move files to output folder manually
-            if self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']:
+            if self.ARGS['google-skip-gpth-tool']:
+            # if self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']:
                 self.step += 1
                 LOGGER.info("")
                 LOGGER.info("======================================================")
