@@ -264,9 +264,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("======================================================")
                 LOGGER.info("")
                 step_start_time = datetime.now()
-                if self.ARGS['google-skip-gpth-tool']:
-                    LOGGER.warning(f"WARNING : Metadata fixing with GPTH tool skipped ('-gsgt, --google-skip-gpth-tool' flag). step {self.step}b is needed to copy files manually to output folder.")
-                elif self.ARGS['google-ignore-check-structure']:
+                # if self.ARGS['google-skip-gpth-tool']:
+                    # LOGGER.warning(f"WARNING : Metadata fixing with GPTH tool skipped ('-gsgt, --google-skip-gpth-tool' flag). step {self.step}b is needed to copy files manually to output folder.")
+                if self.ARGS['google-ignore-check-structure']:
                     LOGGER.warning(f"WARNING : Flag to Ignore Google Takeout Structure detected. step {self.step}b is needed to copy/move files manually to output folder.")
                 if self.ARGS['google-move-takeout-folder']:
                     LOGGER.info("INFO    : Moving files from Takeout folder to Output folder...")
