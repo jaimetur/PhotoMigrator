@@ -463,11 +463,17 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # return (valid_albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders, renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged)
             return ProcessingResult(
+                initial_takeout_numfiles=initial_takeout_numfiles,
+                initial_takeout_total_images=initial_takeout_total_images,
+                initial_takeout_total_videos=initial_takeout_total_videos,
+                initial_takeout_total_sidecars=initial_takeout_total_sidecars,
+                initial_takeout_total_metadata=initial_takeout_total_metadata,
+                initial_takeout_total_supported_files=initial_takeout_total_supported_files,
+                initial_takeout_total_not_supported_files=initial_takeout_total_not_supported_files,
                 valid_albums_found=valid_albums_found,
                 symlink_fixed=symlink_fixed,
                 symlink_not_fixed=symlink_not_fixed,
                 duplicates_found=duplicates_found,
-                initial_takeout_numfiles=initial_takeout_numfiles,
                 removed_empty_folders=removed_empty_folders,
                 renamed_album_folders=renamed_album_folders,
                 duplicates_album_folders=duplicates_album_folders,
