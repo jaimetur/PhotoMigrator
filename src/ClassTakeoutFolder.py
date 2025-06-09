@@ -208,10 +208,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info("")
             LOGGER.info("INFO    : Looking for .MP4 files from live pictures and asociate date and time with live picture file...")
             Utils.fix_mp4_files(input_folder)
-            step_end_time = datetime.now()
-            formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
-            LOGGER.info("")
-            LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
 
             # Count initial files in Takeout Folder before to process with GPTH, since once process input_folder may be deleted if --google-move-takeout-folder has been given
             LOGGER.info(f"INFO    : Counting files in Input Folder: {input_folder}...")
@@ -223,6 +219,12 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Calculate initial_takeout_total_supported_files and initial_takeout_total_not_supported_files
             initial_takeout_total_supported_files = initial_takeout_total_images + initial_takeout_total_videos + initial_takeout_total_sidecars + initial_takeout_total_metadata
             initial_takeout_total_not_supported_files = initial_takeout_numfiles - initial_takeout_total_supported_files
+
+            step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
+            LOGGER.info("")
+            LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
+
 
             # step 2: Process photos with GPTH tool
             if not self.ARGS['google-skip-gpth-tool']:
