@@ -171,6 +171,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
             if capture_output is None: capture_output=self.ARGS['show-gpth-info']
             if capture_errors is None: capture_errors=self.ARGS['show-gpth-errors']
 
+            # Determine if manual copy/move is needed (for step 3)
+            manual_copy_move_needed = self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']
+
             # step 1: Pre-Process Takeout folder
             self.step += 1
             LOGGER.info("")
@@ -248,15 +251,15 @@ class ClassTakeoutFolder(ClassLocalFolder):
                         duplicates_albums_not_fully_merged=duplicates_albums_not_fully_merged,
                     )
 
-                if self.ARGS['google-move-takeout-folder']:
+                # if manual copy is detected, don't delete the input folder yet, will do it in next step
+                if self.ARGS['google-move-takeout-folder'] and not manual_copy_move_needed:
                     Utils.force_remove_directory(input_folder)
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
 
             # step 3: Copy/Move files to output folder manually
-            if self.ARGS['google-skip-gpth-tool']:
-            # if self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']:
+            if manual_copy_move_needed:
                 self.step += 1
                 LOGGER.info("")
                 LOGGER.info("======================================================")
@@ -264,8 +267,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("======================================================")
                 LOGGER.info("")
                 step_start_time = datetime.now()
-                # if self.ARGS['google-skip-gpth-tool']:
-                    # LOGGER.warning(f"WARNING : Metadata fixing with GPTH tool skipped ('-gsgt, --google-skip-gpth-tool' flag). step {self.step}b is needed to copy files manually to output folder.")
+                if self.ARGS['google-skip-gpth-tool']:
+                    LOGGER.warning(f"WARNING : Metadata fixing with GPTH tool skipped ('-gsgt, --google-skip-gpth-tool' flag). step {self.step}b is needed to copy files manually to output folder.")
                 if self.ARGS['google-ignore-check-structure']:
                     LOGGER.warning(f"WARNING : Flag to Ignore Google Takeout Structure detected. step {self.step}b is needed to copy/move files manually to output folder.")
                 if self.ARGS['google-move-takeout-folder']:
@@ -277,7 +280,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                                        ignore_patterns=['*.json', '*.j'],
                                        move=self.ARGS['google-move-takeout-folder'])
                 if self.ARGS['google-move-takeout-folder']:
-                    Utils.force_remove_directory(self.ARGS['takeout-folder'])
+                    Utils.force_remove_directory(input_folder)
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info("")
