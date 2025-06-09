@@ -4,7 +4,7 @@
 
 ## **Release**: v3.3.1  
 
-- ### **Release Date**: 2025-06-06
+- ### **Release Date**: 2025-06-09
 
 - ### Main Changes:
   - #### 🌟 New Features:
@@ -13,9 +13,9 @@
   - #### 🚀 Enhancements:
     - [x] Replace return arguments of `ClassTakeoutFolder.process()` method by a new object with all the arguments.
     - [x] Added more info while running Google Takeout Processing feature. 
-    - [ ] Updated GPTH to version `4.0.7` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
+    - [x] Updated GPTH to version `4.0.7` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
+      - [x] Fix a bug in the albums folders creation when the album name start with a number.
       - [ ] Fix skipping files whose content does not match with their extension.
-      - [ ] Fix a bug in the albums folders creation when the album name start with a number.
 
   - #### 🐛 Bug fixes:
     - [x] Fixed name of Takeout folder in info message while looking for Takeout folder structure. Before it showed the name of the first subfolder inside it instead of the name of the Takeout folder.

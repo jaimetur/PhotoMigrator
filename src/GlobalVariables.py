@@ -9,9 +9,9 @@ import logging
 COPYRIGHT_TEXT                  = "(c) 2024-2025 - Jaime Tur (@jaimetur)"
 SCRIPT_NAME                     = "PhotoMigrator"
 SCRIPT_VERSION                  = "v3.3.1"
-SCRIPT_DATE                     = "2025-06-06"
+SCRIPT_DATE                     = "2025-06-09"
 SCRIPT_NAME_VERSION             = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
-GPTH_VERSION                    = "4.0.5"
+GPTH_VERSION                    = "4.0.7"
 EXIF_VERSION                    = "3.0.0"
 INCLUDE_EXIF_TOOL               = True
 COMPILE_IN_ONE_FILE             = True
