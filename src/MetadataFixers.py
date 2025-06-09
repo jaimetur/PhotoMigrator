@@ -63,10 +63,12 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             gpth_command.append(input_folder)
 
         # By default, force --no-divide-to-dates and the Tool will create date structure if needed
-        # gpth_command.append("--no-divide-to-dates") # For previous versions of the original GPTH tool
-
-        # The new version of GPTH have changed this argument:
-        gpth_command.append("--divide-to-dates=0")  # 0: No divide, 1: year, 2: year/month, 3: year/month/day
+        if Version(GPTH_VERSION) >= Version("3.6.0"):
+            # The new version of GPTH have changed this argument:
+            gpth_command.append("--divide-to-dates=0")  # 0: No divide, 1: year, 2: year/month, 3: year/month/day
+        else:
+            # For previous versions of the original GPTH tool
+            gpth_command.append("--no-divide-to-dates") 
 
         # Append --albums shortcut / duplicate-copy based on value of flag -sa, --symbolic-albums
         gpth_command.append("--albums")
@@ -86,14 +88,16 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         else:
             gpth_command.append("--copy")
 
-        # Use the new feature to Delete the "supplemental-metadata" suffix from .json files to ensure that script works correctly
-        gpth_command.append("--modify-json")
+        if Version(GPTH_VERSION) >= Version("3.6.0"):
+            pass
+            # Use the new feature to Delete the "supplemental-metadata" suffix from .json files to ensure that script works correctly
+            # gpth_command.append("--modify-json")
 
-        # Use the new feature to Transform Pixel .MP or .MV extensions to ".mp4"
-        gpth_command.append("--transform-pixel-mp")
+            # Use the new feature to Transform Pixel .MP or .MV extensions to ".mp4"
+            # gpth_command.append("--transform-pixel-mp")
 
-        # Use the new feature to Set creation time equal to the last modification date at the end of the program. (Only Windows supported)
-        gpth_command.append("--update-creation-time")
+            # Use the new feature to Set creation time equal to the last modification date at the end of the program. (Only Windows supported)
+            # gpth_command.append("--update-creation-time")
 
         try:
             command = ' '.join(gpth_command)
