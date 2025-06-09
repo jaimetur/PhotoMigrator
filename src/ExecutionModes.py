@@ -264,7 +264,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
             LOGGER.error("            PROCESS COMPLETED WITH ERRORS!           ")
             LOGGER.error("=====================================================")
             LOGGER.info("")
-            LOGGER.error(f"ERROR   : No files found in Output Folder: '{OUTPUT_TAKEOUT_FOLDER}'")
+            LOGGER.error(f"ERROR   : No files found in Output Folder  : '{OUTPUT_TAKEOUT_FOLDER}'")
             LOGGER.info("")
             LOGGER.info(f"Total time elapsed                          : {formatted_duration}")
             LOGGER.info("=====================================================")
