@@ -91,13 +91,14 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         if Version(GPTH_VERSION) >= Version("3.6.0"):
             pass
             # Use the new feature to Delete the "supplemental-metadata" suffix from .json files to ensure that script works correctly
+            # Flag removed on 4.0.7 (incorporated in the native logic)
             # gpth_command.append("--modify-json")
 
             # Use the new feature to Transform Pixel .MP or .MV extensions to ".mp4"
-            # gpth_command.append("--transform-pixel-mp")
+            gpth_command.append("--transform-pixel-mp")
 
             # Use the new feature to Set creation time equal to the last modification date at the end of the program. (Only Windows supported)
-            # gpth_command.append("--update-creation-time")
+            gpth_command.append("--update-creation-time")
 
         try:
             command = ' '.join(gpth_command)
