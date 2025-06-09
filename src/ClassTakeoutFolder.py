@@ -139,6 +139,12 @@ class ClassTakeoutFolder(ClassLocalFolder):
         @dataclass
         class ProcessingResult:
             initial_takeout_numfiles: int
+            initial_takeout_total_images: int
+            initial_takeout_total_videos: int
+            initial_takeout_total_sidecars: int
+            initial_takeout_total_metadata: int
+            initial_takeout_total_supported_files: int
+            initial_takeout_total_not_supported_files: int
             valid_albums_found: int
             symlink_fixed: int
             symlink_not_fixed: int
@@ -151,6 +157,12 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
         # Initialize all fields to return
         initial_takeout_numfiles = 0
+        initial_takeout_total_images = 0
+        initial_takeout_total_videos = 0
+        initial_takeout_total_sidecars = 0
+        initial_takeout_total_metadata = 0
+        initial_takeout_total_supported_files = 0
+        initial_takeout_total_not_supported_files = 0
         valid_albums_found = 0
         symlink_fixed = 0
         symlink_not_fixed = 0
@@ -201,6 +213,17 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info("")
             LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
 
+            # Count initial files in Takeout Folder before to process with GPTH, since once process input_folder may be deleted if --google-move-takeout-folder has been given
+            LOGGER.info(f"INFO    : Counting files in Input Folder: {input_folder}...")
+            initial_takeout_numfiles = Utils.count_files_in_folder(input_folder)
+            initial_takeout_total_images = Utils.count_images_in_folder(input_folder)
+            initial_takeout_total_videos = Utils.count_videos_in_folder(input_folder)
+            initial_takeout_total_sidecars = Utils.count_sidecars_in_folder(input_folder)
+            initial_takeout_total_metadata = Utils.count_metadatas_in_folder(input_folder)
+            # Calculate initial_takeout_total_supported_files and initial_takeout_total_not_supported_files
+            initial_takeout_total_supported_files = initial_takeout_total_images + initial_takeout_total_videos + initial_takeout_total_sidecars + initial_takeout_total_metadata
+            initial_takeout_total_not_supported_files = initial_takeout_numfiles - initial_takeout_total_supported_files
+
             # step 2: Process photos with GPTH tool
             if not self.ARGS['google-skip-gpth-tool']:
                 self.step += 1
@@ -211,8 +234,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("")
                 step_start_time = datetime.now()
                 LOGGER.info(f"INFO    : ⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂")
-                # Count initial files
-                initial_takeout_numfiles = Utils.count_files_in_folder(input_folder)
 
                 if self.ARGS['google-ignore-check-structure']:
                     LOGGER.warning("WARNING : Ignore Google Takeout Structure detected ('-gics, --google-ignore-check-structure' flag detected).")
@@ -239,11 +260,17 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     LOGGER.warning(f"WARNING : If your Takeout does not contains Year/Month folder structure, you can use '-gics, --google-ignore-check-structure' flag.")
                     # return (0, 0, 0, 0, initial_takeout_numfiles, 0, 0, 0, 0, 0)
                     return ProcessingResult(
+                        initial_takeout_numfiles=initial_takeout_numfiles,
+                        initial_takeout_total_images=initial_takeout_total_images,
+                        initial_takeout_total_videos=initial_takeout_total_videos,
+                        initial_takeout_total_sidecars=initial_takeout_total_sidecars,
+                        initial_takeout_total_metadata=initial_takeout_total_metadata,
+                        initial_takeout_total_supported_files=initial_takeout_total_supported_files,
+                        initial_takeout_total_not_supported_files=initial_takeout_total_not_supported_files,
                         valid_albums_found=valid_albums_found,
                         symlink_fixed=symlink_fixed,
                         symlink_not_fixed=symlink_not_fixed,
                         duplicates_found=duplicates_found,
-                        initial_takeout_numfiles=initial_takeout_numfiles,
                         removed_empty_folders=removed_empty_folders,
                         renamed_album_folders=renamed_album_folders,
                         duplicates_album_folders=duplicates_album_folders,

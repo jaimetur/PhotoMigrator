@@ -226,39 +226,25 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         if ARGS['no-log-file']:
             LOGGER.warning(f"WARNING : Flag detected '-nolog, --no-log-file'. Skipping saving output into log file...")
 
-        # Count files in Takeout Folder before to process with GPTH, since once process input_folder may be deleted if --google-move-takeout-folder has been given
-        if need_unzip:
-            input_folder = f"{input_folder}_unzipped_{TIMESTAMP}"
-        # initial_takeout_total_files = Utils.count_files_in_folder(input_folder)
-        initial_takeout_total_images = Utils.count_images_in_folder(input_folder)
-        initial_takeout_total_videos = Utils.count_videos_in_folder(input_folder)
-        initial_takeout_total_sidecars = Utils.count_sidecars_in_folder(input_folder)
-        initial_takeout_total_metadata = Utils.count_metadatas_in_folder(input_folder)
-        initial_takeout_total_supported_files = initial_takeout_total_images + initial_takeout_total_videos + initial_takeout_total_sidecars + initial_takeout_total_metadata
-
         # Create the Object
         takeout = ClassTakeoutFolder(ARGS['google-takeout'])
         # Call the Function
-        # albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders, renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], log_level=log_level)
         result = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], log_level=log_level)
 
         # print result for debugging
         # print_result_pretty(asdict(result))
 
         # Count Files in Output Folder
-        total_files = Utils.count_files_in_folder(OUTPUT_TAKEOUT_FOLDER)
-        total_images = Utils.count_images_in_folder(OUTPUT_TAKEOUT_FOLDER)
-        total_videos = Utils.count_videos_in_folder(OUTPUT_TAKEOUT_FOLDER)
-        total_sidecars = Utils.count_sidecars_in_folder(OUTPUT_TAKEOUT_FOLDER)
-        total_metadata = Utils.count_metadatas_in_folder(OUTPUT_TAKEOUT_FOLDER)
-        total_supported_files = total_images + total_videos + total_sidecars + total_metadata
-
-        # Calculate not_supported_files
-        not_supported_files = result.initial_takeout_numfiles - initial_takeout_total_supported_files
+        output_total_files = Utils.count_files_in_folder(OUTPUT_TAKEOUT_FOLDER)
+        output_total_images = Utils.count_images_in_folder(OUTPUT_TAKEOUT_FOLDER)
+        output_total_videos = Utils.count_videos_in_folder(OUTPUT_TAKEOUT_FOLDER)
+        output_total_sidecars = Utils.count_sidecars_in_folder(OUTPUT_TAKEOUT_FOLDER)
+        output_total_metadata = Utils.count_metadatas_in_folder(OUTPUT_TAKEOUT_FOLDER)
+        output_total_supported_files = output_total_images + output_total_videos + output_total_sidecars + output_total_metadata
 
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        if total_files == 0:
+        if output_total_files == 0:
             # FINAL SUMMARY
             LOGGER.info("")
             LOGGER.error("=====================================================")
@@ -283,20 +269,20 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info("                    FINAL SUMMARY:                   ")
             LOGGER.info("=====================================================")
             LOGGER.info(f"Total Files files in Takeout folder         : {result.initial_takeout_numfiles}")
-            LOGGER.info(f"Total Supported files in Takeout folder     : {initial_takeout_total_supported_files}")
-            LOGGER.info(f"   - Total Images in Takeout folder         : {initial_takeout_total_images}")
-            LOGGER.info(f"   - Total Videos in Takeout folder         : {initial_takeout_total_videos}")
-            LOGGER.info(f"   - Total Sidecars in Takeout folder       : {initial_takeout_total_sidecars}")
-            LOGGER.info(f"   - Total Metadata in Takeout folder       : {initial_takeout_total_metadata}")
-            LOGGER.info(f"Total Non-Supported files in Takeout folder : {not_supported_files}")
+            LOGGER.info(f"Total Supported files in Takeout folder     : {result.initial_takeout_total_supported_files}")
+            LOGGER.info(f"   - Total Images in Takeout folder         : {result.initial_takeout_total_images}")
+            LOGGER.info(f"   - Total Videos in Takeout folder         : {result.initial_takeout_total_videos}")
+            LOGGER.info(f"   - Total Sidecars in Takeout folder       : {result.initial_takeout_total_sidecars}")
+            LOGGER.info(f"   - Total Metadata in Takeout folder       : {result.initial_takeout_total_metadata}")
+            LOGGER.info(f"Total Non-Supported files in Takeout folder : {result.initial_takeout_total_not_supported_files}")
             LOGGER.info("")
-            LOGGER.info(f"Total Files in Output folder                : {total_files}")
-            LOGGER.info(f"Total Supported files in Output folder      : {total_supported_files}")
-            LOGGER.info(f"   - Total Images in Output folder          : {total_images}")
-            LOGGER.info(f"   - Total Videos in Output folder          : {total_videos}")
-            LOGGER.info(f"   - Total Sidecars in Output folder        : {total_sidecars}")
-            LOGGER.info(f"   - Total Metadata in Output folder        : {total_metadata}")
-            LOGGER.info(f"Total Non-Supported files in Output folder  : {total_files-total_supported_files}")
+            LOGGER.info(f"Total Files in Output folder                : {output_total_files}")
+            LOGGER.info(f"Total Supported files in Output folder      : {output_total_supported_files}")
+            LOGGER.info(f"   - Total Images in Output folder          : {output_total_images}")
+            LOGGER.info(f"   - Total Videos in Output folder          : {output_total_videos}")
+            LOGGER.info(f"   - Total Sidecars in Output folder        : {output_total_sidecars}")
+            LOGGER.info(f"   - Total Metadata in Output folder        : {output_total_metadata}")
+            LOGGER.info(f"Total Non-Supported files in Output folder  : {output_total_files-output_total_supported_files}")
             LOGGER.info(f"Total Albums folders found in Output folder : {result.valid_albums_found}")
             LOGGER.info("")
             if ARGS['google-create-symbolic-albums']:
