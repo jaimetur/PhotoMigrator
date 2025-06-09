@@ -225,16 +225,8 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
             LOGGER.warning(f"WARNING : Flag detected '-graf, --google-rename-albums-folders'. All albums subfolders within OUTPUT_TAKEOUT_FOLDER will be renamed after fixing them based on their content data...")
         if ARGS['no-log-file']:
             LOGGER.warning(f"WARNING : Flag detected '-nolog, --no-log-file'. Skipping saving output into log file...")
-        # Create the Object
-        takeout = ClassTakeoutFolder(ARGS['google-takeout'])
-        # Call the Function
-        # albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders, renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], log_level=log_level)
-        result = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], log_level=log_level)
 
-        # print result for debugging
-        # print_result_pretty(asdict(result))
-
-        # Count files in Takeout Folder
+        # Count files in Takeout Folder before to process with GPTH, since once process input_folder may be deleted if --google-move-takeout-folder has been given
         if need_unzip:
             input_folder = f"{input_folder}_unzipped_{TIMESTAMP}"
         # initial_takeout_total_files = Utils.count_files_in_folder(input_folder)
@@ -243,6 +235,15 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         initial_takeout_total_sidecars = Utils.count_sidecars_in_folder(input_folder)
         initial_takeout_total_metadata = Utils.count_metadatas_in_folder(input_folder)
         initial_takeout_total_supported_files = initial_takeout_total_images + initial_takeout_total_videos + initial_takeout_total_sidecars + initial_takeout_total_metadata
+
+        # Create the Object
+        takeout = ClassTakeoutFolder(ARGS['google-takeout'])
+        # Call the Function
+        # albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders, renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], log_level=log_level)
+        result = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], log_level=log_level)
+
+        # print result for debugging
+        # print_result_pretty(asdict(result))
 
         # Count Files in Output Folder
         total_files = Utils.count_files_in_folder(OUTPUT_TAKEOUT_FOLDER)
