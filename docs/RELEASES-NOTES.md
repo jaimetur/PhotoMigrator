@@ -4,7 +4,7 @@
 
 ## **Release**: v3.3.1  
 
-- ### **Release Date**: 2025-06-06
+- ### **Release Date**: 2025-06-09
 
 - ### Main Changes:
   - #### 🌟 New Features:
@@ -13,16 +13,18 @@
   - #### 🚀 Enhancements:
     - [x] Replace return arguments of `ClassTakeoutFolder.process()` method by a new object with all the arguments.
     - [x] Added more info while running Google Takeout Processing feature. 
-    - [ ] Updated GPTH to version `4.0.7` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
-      - [ ] Fix skipping files whose content does not match with their extension.
-      - [ ] Fix a bug in the albums folders creation when the album name start with a number.
+    - [x] Updated GPTH to version `4.0.7` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
+      - [x] Fix a bug in the albums folders creation when the album name start with a number.
+      - [ ] ~~Fix skipping files whose content does not match with their extension. (not implemented yet)~~
 
   - #### 🐛 Bug fixes:
     - [x] Fixed name of Takeout folder in info message while looking for Takeout folder structure. Before it showed the name of the first subfolder inside it instead of the name of the Takeout folder.
     - [x] Fixed info while showing elapsed time on unpacking step. Before it said step 1 instead of unpacking step.
     - [x] Fixed a bug in Automatic Migration Feature when `<SOURCE>` is a Zipped Takeout (before no assets to push were found during filtering process).
-    - [x] Fixed bug while moving assets to no-flatten folder structure if the asset has no system date. Now try to extract date from EXIF first, and if not found, get system date, if any date is found in any method, then assign a generic value
-    - [x] Fixed bug while rename albums folders based on its content dates if some assets inside the folder has no system date. Now try to extract date from EXIF first, and if not found, get system date, if any date is found in any method, then assign a generic value
+    - [x] Fixed bug while moving assets to no-flatten folder structure if the asset has no system date. Now try to extract date from EXIF first, and if not found, get system date, if any date is found in any method, then assign a generic value.
+    - [x] Fixed bug while rename albums folders based on its content dates if some assets inside the folder has no system date. Now try to extract date from EXIF first, and if not found, get system date, if any date is found in any method, then assign a generic value.
+    - [x] Fixed a bug when using flag `--google-ignore-takeout-structure` in combination with `--google-move-takeout-folder` since when ignoring Takeout Structure, GPTH does not copy/move the assets to the output folder, so a manual copy/move is needed but input folder was deleted after step 2.
+    - [x] Fixed a bug showing stats when using flag `--google-move-takeout-folder` since original Takeout folder stats was calculated after GPTH delete it.
   
   - #### 📚 Documentation:
     - [x] Removed NOTE blocks im main documentation description for all features. 
