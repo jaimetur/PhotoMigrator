@@ -19,6 +19,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         """Runs the GPTH Tool command to process photos."""
         input_folder = os.path.abspath(input_folder)
         output_folder = os.path.abspath(output_folder)
+        LOGGER.info("")
         LOGGER.info(f"INFO    : Running GPTH Tool...")
         LOGGER.info(f"INFO    : GPTH Version : '{GPTH_VERSION}'")
         LOGGER.info(f"INFO    : Input Folder : '{input_folder}'")
