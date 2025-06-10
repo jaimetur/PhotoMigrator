@@ -505,23 +505,6 @@ jobs:
           echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> $GITHUB_ENV
           echo "✅ SCRIPT_VERSION = ${SCRIPT_VERSION}"
 
-      - name: 📥 Download Artifacts (CURRENT-RELEASE.md, Binaries and Docker Zips)
-        uses: actions/download-artifact@v4
-        with:
-          pattern: PhotoMigrator*.zip
-          path: ./release_files
-          merge-multiple: true
-
-      - name: 📝 Download CURRENT-RELEASE.md
-        uses: actions/download-artifact@v4
-        with:
-          name: CURRENT-RELEASE.md
-          path: .
-
-      # Confirmar contenido descargado
-      - name: 📂 List downloaded files
-        run: ls -la ./release_files
-
       - name: 🧼 Delete GitHub release, tag and associated discussion (only for stable releases)
         run: |
           set -e
@@ -605,7 +588,24 @@ jobs:
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-      
+
+      - name: 📥 Download Artifacts (CURRENT-RELEASE.md, Binaries and Docker Zips)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: PhotoMigrator*.zip
+          path: ./release_files
+          merge-multiple: true
+
+      - name: 📝 Download CURRENT-RELEASE.md
+        uses: actions/download-artifact@v4
+        with:
+          name: CURRENT-RELEASE.md
+          path: .
+
+      # Confirmar contenido descargado
+      - name: 📂 List downloaded files
+        run: ls -la ./release_files
+
       # 🚀 Crear release estable (prerelease == false)
       - name: 🚀 Create GitHub Release (stable)
         if: ${{ github.event.inputs.prerelease == 'false' }}
@@ -617,7 +617,7 @@ jobs:
           discussion_category_name: Announcements
           draft: false
           prerelease: false
-          make_latest: 'true'
+          make_latest: "true"
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
           files: |
