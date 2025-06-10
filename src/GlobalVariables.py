@@ -26,6 +26,22 @@ LOGGER                          = None
 LOG_LEVEL_MIN                   = logging.DEBUG
 LOG_LEVEL                       = logging.INFO
 
+# List of special suffixes from Google Photos:
+SPECIAL_SUFFIXES = [
+    '-effects',
+    '-smile',
+    '-mix',
+    '-edited',      # EN
+    '-edytowane',   # PL
+    '-bearbeitet',  # DE
+    '-bewerkt',     # NL
+    '-編集済み',      # JA
+    '-modificato',  # IT
+    '-modifié',     # FR
+    '-ha editado',  # ES
+    '-editat',      # CA
+]
+
 # List of Folder to Deprioritize when looking for duplicates.
 DEPRIORITIZE_FOLDERS_PATTERNS   = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS', '*No-Albums', '*Others', '*Variad[oa]*', '*Vari[oa]*', '*Miscellaneous*', '*M[oó]vil*', r'\bfotos\b\s+(\w+)\s*$', r'fotos de \w y \w\s*$', r'fotos de \w\s*$', '*Fotos_de*', '*Fotos_con', '*Fotos de*', '*Fotos con*']
 

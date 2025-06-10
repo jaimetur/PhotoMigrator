@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 from dateutil import parser as date_parser
 from tqdm import tqdm as original_tqdm
 from CustomLogger import LoggerConsoleTqdm
-from GlobalVariables import LOGGER, ARGS, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME
+from GlobalVariables import LOGGER, ARGS, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, SPECIAL_SUFFIXES
 
 # Crear instancia global del wrapper
 TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
@@ -305,7 +305,7 @@ def fix_mp4_files(input_folder, log_level=logging.INFO):
                     mp4_files.append(file)
         total_files = len(mp4_files)
         # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : Fixing .MP4 files in '{input_folder}'", unit=" files") as pbar:
+        with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : [MP4 Fixer] : Fixing .MP4 files in '{input_folder}'", unit=" files") as pbar:
             for path, _, files in os.walk(input_folder):
                 # Filter files with .mp4 extension (case-insensitive)
                 mp4_files = [f for f in files if f.lower().endswith('.mp4')]
@@ -331,10 +331,10 @@ def fix_mp4_files(input_folder, log_level=logging.INFO):
                             if not os.path.exists(new_json_path):
                                 # Copy the original JSON file to the new file
                                 shutil.copy(json_path, new_json_path)
-                                LOGGER.debug(f"DEBUG   : Fixed: {json_path} -> {new_json_path}")
+                                LOGGER.debug(f"DEBUG   : [MP4 Fixer] : Fixed: {json_path} -> {new_json_path}")
                             else:
                                 pass
-                                LOGGER.debug(f"DEBUG   : Skipped: {new_json_path} already exists")
+                                LOGGER.debug(f"DEBUG   : [MP4 Fixer] : Skipped: {new_json_path} already exists")
 
 
 def sync_mp4_timestamps_with_images(input_folder, log_level=logging.INFO):
@@ -346,7 +346,7 @@ def sync_mp4_timestamps_with_images(input_folder, log_level=logging.INFO):
         # Contar el total de carpetas
         total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
         # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : Synchronizing .MP4 files with Live Pictures in '{input_folder}'", unit=" files") as pbar:
+        with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : [MP4 Fixer] : Synchronizing .MP4 files with Live Pictures in '{input_folder}'", unit=" files") as pbar:
             for path, _, files in os.walk(input_folder):
                 # Crear un diccionario que mapea nombres base a extensiones y nombres de archivos
                 file_dict = {}
@@ -375,7 +375,7 @@ def sync_mp4_timestamps_with_images(input_folder, log_level=logging.INFO):
                                 mtime = image_stats.st_mtime  # Tiempo de última modificación
                                 # Aplicar los tiempos al archivo .MP4
                                 os.utime(mp4_file_path, (atime, mtime))
-                                LOGGER.debug(f"DEBUG   : Date and time attributes synched for: {os.path.relpath(mp4_file_path,input_folder)} using:  {os.path.relpath(image_file_path,input_folder)}")
+                                LOGGER.debug(f"DEBUG   : [MP4 Fixer] : Date and time attributes synched for: {os.path.relpath(mp4_file_path,input_folder)} using:  {os.path.relpath(image_file_path,input_folder)}")
                                 image_file_found = True
                                 break  # Salir después de encontrar el primer archivo de imagen disponible
                         if not image_file_found:
@@ -692,7 +692,7 @@ def delete_subfolders(input_folder, folder_name_to_delete, log_level=logging.INF
         # Contar el total de carpetas
         total_dirs = sum([len(dirs) for _, dirs, _ in os.walk(input_folder)])
         # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_dirs, smoothing=0.1, desc=f"INFO    : Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
+        with tqdm(total=total_dirs, smoothing=0.1, desc=f"INFO    : [Subfolders Deletion: {folder_name_to_delete}] : Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
             for path, dirs, files in os.walk(input_folder, topdown=False):
                 for folder in dirs:
                     pbar.update(1)
@@ -702,7 +702,7 @@ def delete_subfolders(input_folder, folder_name_to_delete, log_level=logging.INF
                             shutil.rmtree(dir_path)
                             # LOGGER.info(f"INFO    : Deleted directory: {dir_path}")
                         except Exception as e:
-                            LOGGER.error(f"ERROR   : Error deleting {dir_path}: {e}")
+                            LOGGER.error(f"ERROR   : [Subfolders Deletion: {folder_name_to_delete}] : Error deleting {dir_path}: {e}")
 
 
 def remove_empty_dirs(input_folder, log_level=logging.INFO):
@@ -1305,6 +1305,7 @@ def contains_takeout_structure(input_folder, log_level=logging.INFO):
     This can reduce overhead in large, nested folder structures.
     """
     with set_log_level(LOGGER, log_level):
+        LOGGER.info("")
         LOGGER.info("INFO    : Searching Google Takeout structure in input folder...")
         stack = [input_folder]
         while stack:
@@ -1325,23 +1326,6 @@ def contains_takeout_structure(input_folder, log_level=logging.INFO):
                 LOGGER.warning(f"WARNING : Error scanning {current}: {e}")
         LOGGER.info(f"INFO    : No Takeout structure found in input folder.")
         return False
-
-
-# def contains_takeout_structure(input_folder, log_level=logging.INFO):
-#     """
-#     Quickly checks if any immediate subdirectories or deeper directories match
-#     the pattern 'Photos from YYYY'.
-#     """
-#     with set_log_level(LOGGER, log_level):
-#         LOGGER.info("INFO    : Searching Google Takeout structure in input folder...")
-#         pattern = os.path.join(input_folder, '**', 'Photos from [1-2][0-9][0-9][0-9]*')
-#         matches = glob.glob(pattern, recursive=True)
-#         if matches:
-#             LOGGER.info(f"INFO    : Found Takeout structure in: {matches[0]}")
-#             return True
-#         LOGGER.info(f"INFO    : No Takeout structure found in input folder.")
-#         return False
-
 
 def remove_server_name(path, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -2058,3 +2042,56 @@ def get_subfolders_with_exclusions(input_folder, exclude_subfolder=None):
            (exclude_subfolder is None or entry not in exclude_subfolder)
     ]
     return subfolders
+
+
+def complete_special_suffixes(input_folder, log_level=logging.INFO):
+    """
+    Recursively traverses a folder and its subdirectories, renaming files whose names
+    end with a partial match of any suffix in SPECIAL_SUFFIXES (before the extension or a numbered copy).
+    Ignores any file with a .json extension. Progress is tracked using a progress bar based on total non-JSON files.
+
+    Args:
+        input_folder (str): Path to the folder to be scanned and processed.
+        log_level (str): Logging level to use within this function's context.
+
+    Returns:
+        None
+    """
+    with set_log_level(LOGGER, log_level):  # Temporarily set the desired log level
+        # Count all non-JSON files to initialize the progress bar
+        special_files = []
+        for _, _, files in os.walk(input_folder, topdown=True):
+            for file in files:
+                special_files.append(file)
+        total_files = len(special_files)
+        # Start progress bar
+        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : [Special Suffix Fixer] : Fixing Truncated Special Suffixes in '{input_folder}'", unit=" files") as pbar:
+            for path, _, files in os.walk(input_folder):
+                for file in files:
+                    old_path = os.path.join(path, file)
+                    name, ext = os.path.splitext(file)
+                    changed = False
+                    # Check if filename ends with a partial suffix match
+                    for sufijo in SPECIAL_SUFFIXES:
+                        for i in range(2, len(sufijo) + 1):  # Start from 2 to include hyphen and at least one letter
+                            sub = sufijo[:i]
+                            optional_counter = r'(?:\(\d+\))?'
+                            if re.search(re.escape(sub) + optional_counter + re.escape(ext) + r'$', file, flags=re.IGNORECASE):
+                                replacement_pattern = re.compile(
+                                    re.escape(sub) + optional_counter + re.escape(ext) + r'$',
+                                    flags=re.IGNORECASE
+                                )
+                                new_filename = replacement_pattern.sub(
+                                    lambda m: sufijo + (m.group(0)[len(sub):-len(ext)] if m.group(0)[len(sub):-len(ext)] else '') + ext,
+                                    file
+                                )
+                                new_path = os.path.join(path, new_filename)
+                                if old_path != new_path:
+                                    os.rename(old_path, new_path)
+                                    LOGGER.info(f"INFO    : [Special Suffix Fixer] : Renamed: {file} → {new_filename}")
+                                    changed = True
+                                break
+                        if changed:
+                            break
+                    pbar.update(1)
+

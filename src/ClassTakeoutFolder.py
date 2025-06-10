@@ -88,11 +88,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         """
         with set_log_level(LOGGER, log_level):  # Temporarily adjust log level
             # Unzip files
-            LOGGER.info("")
-            LOGGER.info(f"=====================================")
-            LOGGER.info(f"INFO    : UNPACKING TAKEOUT FOLDER...")
-            LOGGER.info(f"=====================================")
-            LOGGER.info("")
+            LOGGER.info(f"INFO    : Unpacking Takeout Folder...")
             LOGGER.info(f"INFO    : ⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂")
             LOGGER.info("")
             step_start_time = datetime.now()
@@ -201,16 +197,24 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 input_folder = self.unzipped_folder
             else:
                 input_folder = self.takeout_folder
+
             # Delete hidden subfolders '@eaDir'
+            LOGGER.info("")
             LOGGER.info("INFO    : Deleting hidden subfolders '@eaDir' (Synology metadata folders) from Takeout Folder if exists...")
             Utils.delete_subfolders(input_folder, "@eaDir")
             # Fix .MP4 timestamps
             LOGGER.info("")
             LOGGER.info("INFO    : Looking for .MP4 files from live pictures and asociate date and time with live picture file...")
+
             Utils.fix_mp4_files(input_folder)
+            # Fix truncated special suffixes
+            LOGGER.info("")
+            LOGGER.info("INFO    : Looking for truncated special suffixes from Google Photos and rename files to include complete special suffix...")
+            Utils.complete_special_suffixes(input_folder)
 
             # Count initial files in Takeout Folder before to process with GPTH, since once process input_folder may be deleted if --google-move-takeout-folder has been given
-            LOGGER.info(f"INFO    : Counting files in Input Folder: {input_folder}...")
+            LOGGER.info("")
+            LOGGER.info(f"INFO    : Counting files in Takeout Folder: {input_folder}...")
             initial_takeout_numfiles = Utils.count_files_in_folder(input_folder)
             initial_takeout_total_images = Utils.count_images_in_folder(input_folder)
             initial_takeout_total_videos = Utils.count_videos_in_folder(input_folder)
@@ -219,6 +223,13 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Calculate initial_takeout_total_supported_files and initial_takeout_total_not_supported_files
             initial_takeout_total_supported_files = initial_takeout_total_images + initial_takeout_total_videos + initial_takeout_total_sidecars + initial_takeout_total_metadatas
             initial_takeout_total_not_supported_files = initial_takeout_numfiles - initial_takeout_total_supported_files
+            LOGGER.info(f"INFO    : Total Files files in Takeout folder         : {initial_takeout_numfiles}")
+            LOGGER.info(f"INFO    : Total Supported files in Takeout folder     : {initial_takeout_total_supported_files}")
+            LOGGER.info(f"INFO    :    - Total Images in Takeout folder         : {initial_takeout_total_images}")
+            LOGGER.info(f"INFO    :    - Total Videos in Takeout folder         : {initial_takeout_total_videos}")
+            LOGGER.info(f"INFO    :    - Total Sidecars in Takeout folder       : {initial_takeout_total_sidecars}")
+            LOGGER.info(f"INFO    :    - Total Metadata in Takeout folder       : {initial_takeout_total_metadatas}")
+            LOGGER.info(f"INFO    : Total Non-Supported files in Takeout folder : {initial_takeout_total_not_supported_files}")
 
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
