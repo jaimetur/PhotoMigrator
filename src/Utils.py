@@ -1951,7 +1951,12 @@ def run_command(command, logger, capture_output=False, capture_errors=True):
                 if is_error:
                     logger.error(f"ERROR   : {line}")
                 else:
-                    logger.info(f"INFO    : {line}")
+                    if "[WARNING]" in line:
+                        logger.warning(f"WARNING : {line}")
+                    elif "[ERROR]" in line:
+                        logger.error(f"ERROR   : {line}")
+                    else:
+                        logger.info(f"INFO    : {line}")
     # ------------------------------------------------------------------------------------------------------------------------------------------------------------
     if not capture_output and not capture_errors:
         return subprocess.run(command, check=False, text=True, encoding="utf-8", errors="replace").returncode
