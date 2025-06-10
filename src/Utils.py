@@ -1015,7 +1015,6 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, log_level=lo
             except Exception:
                 pass
             return None
-
         with set_log_level(LOGGER, log_level):
             try:
                 files = [os.path.join(folder, f) for f in os.listdir(folder)]
@@ -1051,8 +1050,69 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, log_level=lo
                     LOGGER.warning(f"WARNING : No valid timestamps found in {folder}")
             except Exception as e:
                 LOGGER.error(f"ERROR   : Error obtaining year range: {e}")
-
             return None
+
+
+
+    def get_date_range(folder: str, log_level=logging.INFO) -> str:
+        def get_exif_date(image_path):
+            try:
+                exif_dict = piexif.load(image_path)
+                for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
+                    tag_id = piexif.ExifIFD.__dict__.get(tag)
+                    value = exif_dict["Exif"].get(tag_id)
+                    if value:
+                        return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
+            except Exception:
+                pass
+            return None
+        with set_log_level(LOGGER, log_level):
+            try:
+                files = [os.path.join(folder, f) for f in os.listdir(folder)]
+                files = [f for f in files if os.path.isfile(f)]
+                dates = []
+                for f in files:
+                    ext = os.path.splitext(f)[1].lower()
+                    dt = None
+                    if ext in PHOTO_EXT:
+                        try:
+                            dt = get_exif_date(f)
+                        except Exception as e:
+                            LOGGER.warning(f"WARNING : Error reading EXIF from {f}: {e}")
+                    if not dt:
+                        try:
+                            ts = os.path.getmtime(f)
+                            if ts > 0:
+                                dt = datetime.fromtimestamp(ts)
+                        except Exception as e:
+                            LOGGER.warning(f"WARNING : Cannot read timestamp from {f}: {e}")
+                    if dt:
+                        dates.append(dt)
+                if not dates:
+                    LOGGER.warning(f"WARNING : No valid timestamps found in {folder}")
+                    return None
+
+                # Extraer componentes
+                years = {dt.year for dt in dates}
+                months = {(dt.year, dt.month) for dt in dates}
+                days = {(dt.year, dt.month, dt.day) for dt in dates}
+                if len(days) == 1:
+                    dt = dates[0]
+                    return f"{dt.year:04}.{dt.month:02}.{dt.day:02}"
+                elif len(months) == 1:
+                    y, m = next(iter(months))
+                    return f"{y:04}.{m:02}"
+                elif len(years) == 1:
+                    sorted_months = sorted(months)
+                    start = f"{sorted_months[0][0]:04}.{sorted_months[0][1]:02}"
+                    end = f"{sorted_months[-1][0]:04}.{sorted_months[-1][1]:02}"
+                    return f"{start}-{end}"
+                else:
+                    return f"{min(years):04}-{max(years):04}"
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Error obtaining date range: {e}")
+                return None
+
     # ===========================
     # END AUX FUNCTIONS
     # ===========================
@@ -1077,7 +1137,8 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, log_level=lo
                 cleaned_folder_name = clean_name(original_folder_name)
                 # If folder name does not start with a year (19xx or 20xx)
                 if not re.match(r'^(19|20)\d{2}', cleaned_folder_name):
-                    year_range = get_year_range(item_path)
+                    # year_range = get_year_range(item_path)
+                    year_range = get_date_range(item_path)
                     if year_range:
                         cleaned_folder_name = f"{year_range} - {cleaned_folder_name}"
                         info_actions.append(f"INFO    : Added year prefix '{year_range}' to folder: '{os.path.basename(cleaned_folder_name)}'")
