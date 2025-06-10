@@ -602,14 +602,21 @@ jobs:
           name: CURRENT-RELEASE.md
           path: .
 
+#      # Confirmar contenido descargado
+#      - name: 📂 List downloaded files
+#        run: ls -la ./release_files
+
       # Confirmar contenido descargado
-      - name: 📂 List downloaded files
-        run: ls -la ./release_files
+      - name: 🔍 Check files before release
+        run: |
+          ls -lh ./release_files/
+          file ./release_files/*
+          sha256sum ./release_files/*
 
       # 🚀 Crear release estable (prerelease == false)
       - name: 🚀 Create GitHub Release (stable)
         if: ${{ github.event.inputs.prerelease == 'false' }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.2.2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
           name: v${{ env.SCRIPT_VERSION }}
@@ -617,7 +624,7 @@ jobs:
           discussion_category_name: Announcements
           draft: false
           prerelease: false
-          make_latest: "true"
+          make_latest: true
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
           files: |
@@ -628,7 +635,7 @@ jobs:
       # 🚀 Crear prerelease (prerelease == true)
       - name: 🚀 Create GitHub Release (prerelease)
         if: ${{ github.event.inputs.prerelease == 'true' }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.2.2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
           name: v${{ env.SCRIPT_VERSION }}
@@ -652,24 +659,24 @@ jobs:
 #        env:
 #          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
       
-      - name: 🔧 Patch release after creation
-        if: ${{ github.event.inputs.prerelease == 'false' }}
-        run: |
-          TAG="v${{ env.SCRIPT_VERSION }}"
-          REPO="${{ github.repository }}"
-      
-          echo "🔍 Fetching release ID for tag $TAG..."
-          RELEASE_ID=$(gh api "repos/$REPO/releases/tags/$TAG" --jq .id 2>/dev/null || echo "")
-      
-          echo "🛠️ Patching release $RELEASE_ID to force draft=false, prerelease=false and make_latest=true..."
-          gh api --method PATCH "repos/$REPO/releases/$RELEASE_ID" \
-            -H "Accept: application/vnd.github+json" \
-            -f "target_commitish=main" \
-            -F "draft=false" \
-            -F "prerelease=false" \
-            -f "make_latest=true"
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+#      - name: 🔧 Patch release after creation
+#        if: ${{ github.event.inputs.prerelease == 'false' }}
+#        run: |
+#          TAG="v${{ env.SCRIPT_VERSION }}"
+#          REPO="${{ github.repository }}"
+#
+#          echo "🔍 Fetching release ID for tag $TAG..."
+#          RELEASE_ID=$(gh api "repos/$REPO/releases/tags/$TAG" --jq .id 2>/dev/null || echo "")
+#
+#          echo "🛠️ Patching release $RELEASE_ID to force draft=false, prerelease=false and make_latest=true..."
+#          gh api --method PATCH "repos/$REPO/releases/$RELEASE_ID" \
+#            -H "Accept: application/vnd.github+json" \
+#            -f "target_commitish=main" \
+#            -F "draft=false" \
+#            -F "prerelease=false" \
+#            -f "make_latest=true"
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
 #      # Commit y push README.md (Solo si OS = Ubuntu* y arch = x64)
 #      - name: ✅ Commit & push README.md if changed
