@@ -602,15 +602,10 @@ jobs:
           name: CURRENT-RELEASE.md
           path: .
 
-#      # Confirmar contenido descargado
-#      - name: 📂 List downloaded files
-#        run: ls -la ./release_files
-
       # Confirmar contenido descargado
-      - name: 🔍 Check files before release
+      - name: 📂 List downloaded files
         run: |
           ls -lh ./release_files/
-          file ./release_files/*
           sha256sum ./release_files/*
 
       # 🚀 Crear release estable (prerelease == false)
@@ -650,15 +645,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
-#      - name: ⬆️ Upload assets (overwrite if exist)
-#        run: |
-#          for file in ./release_files/*; do
-#            echo "📦 Uploading: $file"
-#            gh release upload v${{ env.SCRIPT_VERSION }} "$file" --clobber || echo "⚠️ Failed to upload $file"
-#          done
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-      
+
 #      - name: 🔧 Patch release after creation
 #        if: ${{ github.event.inputs.prerelease == 'false' }}
 #        run: |
@@ -677,6 +664,7 @@ jobs:
 #            -f "make_latest=true"
 #        env:
 #          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+
 
 #      # Commit y push README.md (Solo si OS = Ubuntu* y arch = x64)
 #      - name: ✅ Commit & push README.md if changed
