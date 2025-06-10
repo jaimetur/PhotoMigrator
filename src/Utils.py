@@ -1928,6 +1928,9 @@ def run_command(command, logger, capture_output=False, capture_errors=True):
     """
     # ------------------------------------------------------------------------------------------------------------------------------------------------------------
     def handle_stream(stream, is_error=False):
+        from colorama import init, Fore, Style
+        init(autoreset=True)
+
         previous_prefix = None
         just_printed_progress = False
         while True:
@@ -1942,7 +1945,12 @@ def run_command(command, logger, capture_output=False, capture_errors=True):
             is_progress = previous_prefix and line.startswith(previous_prefix)
             previous_prefix = common_part
             if is_progress:
-                print(f"\rINFO    : {line}", end='', flush=True)
+                if "WARNING" in line:
+                    print(f"\r{Fore.YELLOW}WARNING : {line}", end='', flush=True)
+                elif "ERROR" in line:
+                    print(f"\r{Fore.RED}ERROR   : {line}", end='', flush=True)
+                else:
+                    print(f"\rINFO    : {line}", end='', flush=True)
                 just_printed_progress = True
             else:
                 if just_printed_progress:
@@ -1951,9 +1959,9 @@ def run_command(command, logger, capture_output=False, capture_errors=True):
                 if is_error:
                     logger.error(f"ERROR   : {line}")
                 else:
-                    if "[WARNING]" in line:
+                    if "WARNING" in line:
                         logger.warning(f"WARNING : {line}")
-                    elif "[ERROR]" in line:
+                    elif "ERROR" in line:
                         logger.error(f"ERROR   : {line}")
                     else:
                         logger.info(f"INFO    : {line}")
