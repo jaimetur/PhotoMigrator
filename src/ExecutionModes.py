@@ -147,8 +147,10 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
             print(f"{key:35}: {value}")
 
     # Configure default arguments for mode_google_takeout() execution
-    LOGGER.info(f"Starting Google Takeout Photos Processor Feature...")
-    LOGGER.info("")
+    LOGGER.info(f"=============================================================")
+    LOGGER.info(f"INFO    : Starting Google Takeout Photos Processor Feature...")
+    LOGGER.info(f"=============================================================")
+    LOGGER.info(f"")
     if ARGS['output-folder']:
         OUTPUT_TAKEOUT_FOLDER = ARGS['output-folder']
     else:

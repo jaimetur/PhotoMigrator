@@ -72,7 +72,7 @@ elif len(sys.argv) == 1:
 
 import GlobalFunctions
 from Utils import check_OS_and_Terminal
-from GlobalVariables import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME
+from GlobalVariables import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME, SCRIPT_NAME
 from ExecutionModes import detect_and_run_execution_mode
 
 # -------------------------------------------------------------
@@ -83,12 +83,11 @@ def main():
     os.system('cls' if os.name == 'nt' else 'clear')
 
     # Print the Header (common for all modules)
+    LOGGER.info("")
+    LOGGER.info(f"==========================================")
+    LOGGER.info(f"INFO    : Sarting {SCRIPT_NAME} Process...")
+    LOGGER.info(f"==========================================")
     LOGGER.info(SCRIPT_DESCRIPTION)
-    LOGGER.info("")
-    LOGGER.info("===================")
-    LOGGER.info("STARTING PROCESS...")
-    LOGGER.info("===================")
-    LOGGER.info("")
 
     # Check OS and Terminal
     check_OS_and_Terminal()
