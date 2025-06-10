@@ -421,7 +421,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log
             dirs[:] = [d for d in dirs if d not in exclude_subfolders]
             total_files += len(files)
 
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : Organizing files with {type} structure in '{input_folder}'", unit=" files") as pbar:
+        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : Organizing files with {type} structure in '{os.path.basename(os.path.normpath(input_folder))}'", unit=" files") as pbar:
             for path, dirs, files in os.walk(input_folder, topdown=True):
                 dirs[:] = [d for d in dirs if d not in exclude_subfolders]
                 for file in files:
