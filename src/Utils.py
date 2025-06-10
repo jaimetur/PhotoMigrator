@@ -1941,7 +1941,9 @@ def run_command(command, logger, capture_output=False, capture_errors=True):
             if not line.strip():
                 continue
             # Detect if the line to log is a update bar, and if it is, then don't log, use print instead, and print only the first and last status of the progress bar
-            common_part = line.split(':')[0] if ':' in line else line[:40]
+            # TODO: Review this because is missing lines for instance in GPTH step 1
+            # common_part = line.split(':')[0] if ':' in line else line[:40]
+            common_part = line.split(':')[0] if ':' in line else line
             is_progress = previous_prefix and line.startswith(previous_prefix)
             previous_prefix = common_part
             if is_progress:
