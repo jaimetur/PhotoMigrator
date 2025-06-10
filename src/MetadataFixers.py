@@ -52,10 +52,8 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         # Ensure exec permissions for the binary file
         ensure_executable(gpth_tool_path)
 
-        if Version(GPTH_VERSION) >= Version("4.0.0"):
-            gpth_command = [gpth_tool_path, "--input", input_folder, "--output", output_folder, "--no-interactive", "--write-exif"]
-        else:
-            gpth_command = [gpth_tool_path, "--input", input_folder, "--output", output_folder, "--no-interactive"]
+        # Basic GPTH Command
+        gpth_command = [gpth_tool_path, "--input", input_folder, "--output", output_folder, "--no-interactive"]
 
         # If ignore_takeout_structure is True, we append --fix input_folder to the gpth tool call
         if ignore_takeout_structure:
@@ -89,7 +87,6 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             gpth_command.append("--copy")
 
         if Version(GPTH_VERSION) >= Version("3.6.0"):
-            pass
             # Use the new feature to Delete the "supplemental-metadata" suffix from .json files to ensure that script works correctly
             # Flag removed on 4.0.7 (incorporated in the native logic)
             # gpth_command.append("--modify-json")
@@ -100,12 +97,16 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             # Use the new feature to Set creation time equal to the last modification date at the end of the program. (Only Windows supported)
             gpth_command.append("--update-creation-time")
 
+
+        if Version(GPTH_VERSION) >= Version("4.0.0"):
+            gpth_command.append("--write-exif")
+
         try:
             command = ' '.join(gpth_command)
-            LOGGER.debug(f"DEBUG   : Running GPTH with following command: {command}")
-            print_arguments_pretty(gpth_command, title='GPTH Command', use_logger=True)
             LOGGER.info(f"INFO    : 🛠️ Fixing and 🧩 organizing all your Takeout photos and videos.")
             LOGGER.info(f"INFO    : ⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂.")
+            LOGGER.debug(f"DEBUG   : Running GPTH with following command: {command}")
+            print_arguments_pretty(gpth_command, title='GPTH Command', use_logger=True)
 
             # Run GPTH Tool
             ok = run_command(gpth_command, LOGGER, capture_output=capture_output, capture_errors=capture_errors)      # Shows the output in real time and capture it to the LOGGER.

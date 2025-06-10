@@ -239,8 +239,14 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         output_total_images = Utils.count_images_in_folder(OUTPUT_TAKEOUT_FOLDER)
         output_total_videos = Utils.count_videos_in_folder(OUTPUT_TAKEOUT_FOLDER)
         output_total_sidecars = Utils.count_sidecars_in_folder(OUTPUT_TAKEOUT_FOLDER)
-        output_total_metadata = Utils.count_metadatas_in_folder(OUTPUT_TAKEOUT_FOLDER)
-        output_total_supported_files = output_total_images + output_total_videos + output_total_sidecars + output_total_metadata
+        output_total_metadatas = Utils.count_metadatas_in_folder(OUTPUT_TAKEOUT_FOLDER)
+        output_total_supported_files = output_total_images + output_total_videos + output_total_sidecars + output_total_metadatas
+
+        # Calculate differences from output vs input
+        difference_total_images = abs(output_total_images - result.initial_takeout_total_images)
+        difference_total_videos = abs(output_total_videos - result.initial_takeout_total_videos)
+        difference_total_sidecars = abs(output_total_sidecars - result.initial_takeout_total_sidecars)
+        difference_total_metadata = abs(output_total_metadatas - result.initial_takeout_total_metadatas)
 
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
@@ -273,15 +279,15 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info(f"   - Total Images in Takeout folder         : {result.initial_takeout_total_images}")
             LOGGER.info(f"   - Total Videos in Takeout folder         : {result.initial_takeout_total_videos}")
             LOGGER.info(f"   - Total Sidecars in Takeout folder       : {result.initial_takeout_total_sidecars}")
-            LOGGER.info(f"   - Total Metadata in Takeout folder       : {result.initial_takeout_total_metadata}")
+            LOGGER.info(f"   - Total Metadata in Takeout folder       : {result.initial_takeout_total_metadatas}")
             LOGGER.info(f"Total Non-Supported files in Takeout folder : {result.initial_takeout_total_not_supported_files}")
             LOGGER.info("")
             LOGGER.info(f"Total Files in Output folder                : {output_total_files}")
             LOGGER.info(f"Total Supported files in Output folder      : {output_total_supported_files}")
-            LOGGER.info(f"   - Total Images in Output folder          : {output_total_images}")
-            LOGGER.info(f"   - Total Videos in Output folder          : {output_total_videos}")
-            LOGGER.info(f"   - Total Sidecars in Output folder        : {output_total_sidecars}")
-            LOGGER.info(f"   - Total Metadata in Output folder        : {output_total_metadata}")
+            LOGGER.info(f"   - Total Images in Output folder          : {output_total_images} (diff: {difference_total_images})")
+            LOGGER.info(f"   - Total Videos in Output folder          : {output_total_videos} (diff: {difference_total_videos})")
+            LOGGER.info(f"   - Total Sidecars in Output folder        : {output_total_sidecars} (diff: {difference_total_sidecars})")
+            LOGGER.info(f"   - Total Metadata in Output folder        : {output_total_metadatas} (diff: {difference_total_metadata})")
             LOGGER.info(f"Total Non-Supported files in Output folder  : {output_total_files-output_total_supported_files}")
             LOGGER.info(f"Total Albums folders found in Output folder : {result.valid_albums_found}")
             LOGGER.info("")

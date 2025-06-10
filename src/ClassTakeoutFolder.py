@@ -142,7 +142,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             initial_takeout_total_images: int
             initial_takeout_total_videos: int
             initial_takeout_total_sidecars: int
-            initial_takeout_total_metadata: int
+            initial_takeout_total_metadatas: int
             initial_takeout_total_supported_files: int
             initial_takeout_total_not_supported_files: int
             valid_albums_found: int
@@ -160,7 +160,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         initial_takeout_total_images = 0
         initial_takeout_total_videos = 0
         initial_takeout_total_sidecars = 0
-        initial_takeout_total_metadata = 0
+        initial_takeout_total_metadatas = 0
         initial_takeout_total_supported_files = 0
         initial_takeout_total_not_supported_files = 0
         valid_albums_found = 0
@@ -215,9 +215,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
             initial_takeout_total_images = Utils.count_images_in_folder(input_folder)
             initial_takeout_total_videos = Utils.count_videos_in_folder(input_folder)
             initial_takeout_total_sidecars = Utils.count_sidecars_in_folder(input_folder)
-            initial_takeout_total_metadata = Utils.count_metadatas_in_folder(input_folder)
+            initial_takeout_total_metadatas = Utils.count_metadatas_in_folder(input_folder)
             # Calculate initial_takeout_total_supported_files and initial_takeout_total_not_supported_files
-            initial_takeout_total_supported_files = initial_takeout_total_images + initial_takeout_total_videos + initial_takeout_total_sidecars + initial_takeout_total_metadata
+            initial_takeout_total_supported_files = initial_takeout_total_images + initial_takeout_total_videos + initial_takeout_total_sidecars + initial_takeout_total_metadatas
             initial_takeout_total_not_supported_files = initial_takeout_numfiles - initial_takeout_total_supported_files
 
             step_end_time = datetime.now()
@@ -266,7 +266,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                         initial_takeout_total_images=initial_takeout_total_images,
                         initial_takeout_total_videos=initial_takeout_total_videos,
                         initial_takeout_total_sidecars=initial_takeout_total_sidecars,
-                        initial_takeout_total_metadata=initial_takeout_total_metadata,
+                        initial_takeout_total_metadatas=initial_takeout_total_metadatas,
                         initial_takeout_total_supported_files=initial_takeout_total_supported_files,
                         initial_takeout_total_not_supported_files=initial_takeout_total_not_supported_files,
                         valid_albums_found=valid_albums_found,
@@ -440,7 +440,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"INFO    : {self.step}. RENAMING ALBUMS FOLDERS BASED ON THEIR DATES...")
                 LOGGER.info("============================================================")
                 LOGGER.info("")
-                LOGGER.info("INFO    : Renaming albums folders from OUTPUT_TAKEOUT_FOLDER based on their dates...")
+                LOGGER.info("INFO    : Renaming albums folders in <OUTPUT_TAKEOUT_FOLDER> based on their dates...")
                 step_start_time = datetime.now()
                 renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = rename_album_folders(input_folder=album_folder, exclude_subfolder=['No-Albums', '@eaDir'], log_level=logging.INFO)
                 step_end_time = datetime.now()
@@ -467,7 +467,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 initial_takeout_total_images=initial_takeout_total_images,
                 initial_takeout_total_videos=initial_takeout_total_videos,
                 initial_takeout_total_sidecars=initial_takeout_total_sidecars,
-                initial_takeout_total_metadata=initial_takeout_total_metadata,
+                initial_takeout_total_metadatas=initial_takeout_total_metadatas,
                 initial_takeout_total_supported_files=initial_takeout_total_supported_files,
                 initial_takeout_total_not_supported_files=initial_takeout_total_not_supported_files,
                 valid_albums_found=valid_albums_found,

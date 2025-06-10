@@ -1131,7 +1131,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, log_level=lo
         # total_folders = os.listdir(input_folder)
         total_folders = get_subfolders_with_exclusions(input_folder, exclude_subfolder)
 
-        for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"INFO    : Renaming Albums folders in '{input_folder}'", unit=" folders"):
+        for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"INFO    : Renaming Albums folders in '<OUTPUT_TAKEOUT_FOLDER>'", unit=" folders"):
             item_path = os.path.join(input_folder, original_folder_name)
             if os.path.isdir(item_path):
                 cleaned_folder_name = clean_name(original_folder_name)
@@ -1141,7 +1141,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, log_level=lo
                     date_range = get_date_range(item_path)
                     if date_range:
                         cleaned_folder_name = f"{date_range} - {cleaned_folder_name}"
-                        info_actions.append(f"INFO    : Added year prefix '{date_range}' to folder: '{os.path.basename(cleaned_folder_name)}'")
+                        # info_actions.append(f"INFO    : Added year prefix '{date_range}' to folder: '{os.path.basename(cleaned_folder_name)}'")
                 # Skip renaming if the clean name is the same as the original
                 if cleaned_folder_name != original_folder_name:
                     new_folder_path = os.path.join(input_folder, cleaned_folder_name)
