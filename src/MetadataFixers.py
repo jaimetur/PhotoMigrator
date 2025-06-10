@@ -97,9 +97,11 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             # Use the new feature to Set creation time equal to the last modification date at the end of the program. (Only Windows supported)
             gpth_command.append("--update-creation-time")
 
-
         if Version(GPTH_VERSION) >= Version("4.0.0"):
             gpth_command.append("--write-exif")
+
+        if Version(GPTH_VERSION) >= Version("4.0.8"):
+            gpth_command.append("--fix-extensions")
 
         try:
             command = ' '.join(gpth_command)
