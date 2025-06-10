@@ -621,7 +621,7 @@ jobs:
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
           files: |
-            release_files/*
+            ./release_files/*
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
       
@@ -639,9 +639,18 @@ jobs:
           generate_release_notes: true
           body_path: CURRENT-RELEASE.md
           files: |
-            release_files/*
+            ./release_files/*
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}      
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+
+#      - name: ⬆️ Upload assets (overwrite if exist)
+#        run: |
+#          for file in ./release_files/*; do
+#            echo "📦 Uploading: $file"
+#            gh release upload v${{ env.SCRIPT_VERSION }} "$file" --clobber || echo "⚠️ Failed to upload $file"
+#          done
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
       
       - name: 🔧 Patch release after creation
         if: ${{ github.event.inputs.prerelease == 'false' }}
