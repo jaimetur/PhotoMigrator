@@ -289,19 +289,21 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
             LOGGER.info(f"   - Total Sidecars in Output folder        : {output_total_sidecars:<7} (diff: {difference_total_sidecars})")
             LOGGER.info(f"   - Total Metadata in Output folder        : {output_total_metadatas:<7} (diff: {difference_total_metadata})")
             LOGGER.info(f"Total Non-Supported files in Output folder  : {output_total_files-output_total_supported_files}")
-            LOGGER.info(f"Total Albums folders found in Output folder : {result.valid_albums_found}")
             LOGGER.info("")
-            if ARGS['google-create-symbolic-albums']:
-                LOGGER.info(f"Total Symlinks Fixed                        : {result.symlink_fixed}")
-                LOGGER.info(f"Total Symlinks Not Fixed                    : {result.symlink_not_fixed}")
-            if ARGS['google-remove-duplicates-files']:
-                LOGGER.info(f"Total Duplicates Removed                    : {result.duplicates_found}")
-                LOGGER.info(f"Total Empty Folders Removed                 : {result.removed_empty_folders}")
+            LOGGER.info(f"Total Albums folders found in Output folder : {result.valid_albums_found}")
             if ARGS['google-rename-albums-folders']:
                 LOGGER.info(f"Total Albums Renamed                        : {result.renamed_album_folders}")
                 LOGGER.info(f"Total Albums Duplicated                     : {result.duplicates_album_folders}")
                 LOGGER.info(f"   - Total Albums Fully Merged              : {result.duplicates_albums_fully_merged}")
                 LOGGER.info(f"   - Total Albums Not Fully Merged          : {result.duplicates_albums_not_fully_merged}")
+            if ARGS['google-create-symbolic-albums']:
+                LOGGER.info("")
+                LOGGER.info(f"Total Symlinks Fixed                        : {result.symlink_fixed}")
+                LOGGER.info(f"Total Symlinks Not Fixed                    : {result.symlink_not_fixed}")
+            if ARGS['google-remove-duplicates-files']:
+                LOGGER.info("")
+                LOGGER.info(f"Total Duplicates Removed                    : {result.duplicates_found}")
+                LOGGER.info(f"Total Empty Folders Removed                 : {result.removed_empty_folders}")
             LOGGER.info("")
             LOGGER.info(f"Total time elapsed                          : {formatted_duration}")
             LOGGER.info("=================================================================")
