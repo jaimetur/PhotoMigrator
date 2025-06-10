@@ -613,7 +613,7 @@ jobs:
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
           name: v${{ env.SCRIPT_VERSION }}
-          target_commitish: main
+          # target_commitish: main
           discussion_category_name: Announcements
           draft: false
           prerelease: false
@@ -632,7 +632,7 @@ jobs:
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
           name: v${{ env.SCRIPT_VERSION }}
-          target_commitish: main
+          # target_commitish: main
           # discussion_category_name: Announcements  # Descomenta si también quieres discusión en prerelease
           draft: false
           prerelease: true
