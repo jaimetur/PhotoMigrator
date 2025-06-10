@@ -1137,11 +1137,11 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, log_level=lo
                 cleaned_folder_name = clean_name(original_folder_name)
                 # If folder name does not start with a year (19xx or 20xx)
                 if not re.match(r'^(19|20)\d{2}', cleaned_folder_name):
-                    # year_range = get_year_range(item_path)
-                    year_range = get_date_range(item_path)
-                    if year_range:
-                        cleaned_folder_name = f"{year_range} - {cleaned_folder_name}"
-                        info_actions.append(f"INFO    : Added year prefix '{year_range}' to folder: '{os.path.basename(cleaned_folder_name)}'")
+                    # date_range = get_year_range(item_path)
+                    date_range = get_date_range(item_path)
+                    if date_range:
+                        cleaned_folder_name = f"{date_range} - {cleaned_folder_name}"
+                        info_actions.append(f"INFO    : Added year prefix '{date_range}' to folder: '{os.path.basename(cleaned_folder_name)}'")
                 # Skip renaming if the clean name is the same as the original
                 if cleaned_folder_name != original_folder_name:
                     new_folder_path = os.path.join(input_folder, cleaned_folder_name)
