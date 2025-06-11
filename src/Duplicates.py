@@ -15,7 +15,7 @@ from Utils import delete_subfolders, remove_empty_dirs, tqdm
 # ========================
 # Find Duolicates Function
 # ========================
-def find_duplicates(duplicates_action='list', duplicates_folders='./', deprioritize_folders_patterns=None, timestamp=None, log_level=logging.INFO):
+def find_duplicates(duplicates_action='list', duplicates_folders='./', deprioritize_folders_patterns=None, timestamp=None, step_name="", log_level=logging.INFO):
     """
     This function searches for duplicate files based on their size and content (hash),
     ignoring file names or modification dates.
@@ -136,7 +136,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                     try:
                         os.rmdir(dirpath)
                         removed_folders += 1
-                        LOGGER.debug(f"DEBUG   : Removed empty directory in path {dirpath}")
+                        LOGGER.debug(f"DEBUG   : {step_name}Removed empty directory in path {dirpath}")
                     except OSError:
                         pass
                     
@@ -156,13 +156,13 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
             input_folders_list = duplicates_folders
         if not input_folders_list:
             input_folders_list = [resolve_path('./')]
-        LOGGER.debug("DEBUG   : Checking folder existence")
+        LOGGER.debug(f"DEBUG   : {step_name}Checking folder existence")
         for folder in input_folders_list:
             if not os.path.isdir(folder):
-                LOGGER.error(f"ERROR   : The folder '{folder}' does not exist.")
+                LOGGER.error(f"ERROR   : {step_name}The folder '{folder}' does not exist.")
                 return -1, -1
         input_folders_list = [os.path.abspath(f) for f in input_folders_list]
-        LOGGER.debug(f"DEBUG   : Absolute folder paths: {input_folders_list}")
+        LOGGER.debug(f"DEBUG   : {step_name}Absolute folder paths: {input_folders_list}")
         if timestamp is None:
             timestamp = time.strftime('%Y%m%d-%H%M%S', time.localtime())
         cache_folders_priority = {}
@@ -170,19 +170,19 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
         # ===========================
         # PROCESSING FILES BY SIZE
         # ===========================
-        LOGGER.debug("DEBUG   : Grouping files by size")
+        LOGGER.debug(f"DEBUG   : {step_name}Grouping files by size")
         size_dict = {}
         total_folders = 0
         total_files = 0
         total_symlinks = 0
         for folder in input_folders_list:
-            LOGGER.debug(f"DEBUG   : Walking folder {folder}")
+            LOGGER.debug(f"DEBUG   : {step_name}Walking folder {folder}")
             # Contar el total de carpetas
             for _, dirs, files in os.walk(folder):
                 dirs[:] = [d for d in dirs if d != '@eaDir']
                 total_files += sum([len(files)])
             # Show progress bar per fies
-            with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : Processing files'", unit=" files") as pbar:
+            with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : {step_name}Processing files'", unit=" files") as pbar:
                 # Recursively traverse the folder and excluding '@eaDir' folders
                 for path, dirs, files in os.walk(folder):
                     dirs[:] = [d for d in dirs if d != '@eaDir']
@@ -197,21 +197,21 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                         try:
                             file_size = os.path.getsize(full_path)
                         except (PermissionError, OSError):
-                            LOGGER.warning(f"WARNING : Skipping inaccessible file {full_path}")
+                            LOGGER.warning(f"WARNING : {step_name}Skipping inaccessible file {full_path}")
                             continue
                         
                         size_dict.setdefault(file_size, []).append(full_path)
 
         # Optimización: Filtrar directamente los tamaños con más de un archivo
-        LOGGER.debug(f"DEBUG   : Symbolic Links files will be excluded from Find Duplicates Algorithm (they don't use disk space)")
-        LOGGER.debug(f"DEBUG   : Total subfolders found: {total_folders+len(input_folders_list)}")
-        LOGGER.debug(f"DEBUG   : Total files found: {total_files}")
-        LOGGER.debug(f"DEBUG   : Total Symbolic Links files found: {total_symlinks}")
-        LOGGER.debug(f"DEBUG   : Total files (not Symbolic Links) found: {total_files-total_symlinks}")
-        LOGGER.debug(f"DEBUG   : Total Groups of different files size found: {len(size_dict)}")
-        LOGGER.debug(f"DEBUG   : Filtering out groups with only one file with the same size")
+        LOGGER.debug(f"DEBUG   : {step_name}Symbolic Links files will be excluded from Find Duplicates Algorithm (they don't use disk space)")
+        LOGGER.debug(f"DEBUG   : {step_name}Total subfolders found: {total_folders+len(input_folders_list)}")
+        LOGGER.debug(f"DEBUG   : {step_name}Total files found: {total_files}")
+        LOGGER.debug(f"DEBUG   : {step_name}Total Symbolic Links files found: {total_symlinks}")
+        LOGGER.debug(f"DEBUG   : {step_name}Total files (not Symbolic Links) found: {total_files-total_symlinks}")
+        LOGGER.debug(f"DEBUG   : {step_name}Total Groups of different files size found: {len(size_dict)}")
+        LOGGER.debug(f"DEBUG   : {step_name}Filtering out groups with only one file with the same size")
         sizes_with_duplicates_dict = {size: paths for size, paths in size_dict.items() if len(paths) > 1}
-        LOGGER.debug(f"DEBUG   : Groups with more than one file with the same size found: {len(sizes_with_duplicates_dict)}")
+        LOGGER.debug(f"DEBUG   : {step_name}Groups with more than one file with the same size found: {len(sizes_with_duplicates_dict)}")
         del size_dict  # Liberar memoria anticipadamente
 
         # ===============================================================================
@@ -238,40 +238,40 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                     CHUNK_SIZE = 4 * 1024 * 1024  # 4 MB
                 CHUNK_SIZE = max(4 * 1024, average_size // 100)  # 10% del tamaño medio, mínimo 4 KB
 
-                LOGGER.debug("fDEBUG   : Hashing files with same size ")
-                LOGGER.debug(f"DEBUG   : Applying partial/full hashing technique")
-                LOGGER.debug(f"DEBUG   : Using dynamic chunk_size of {round(CHUNK_SIZE / 1024, 0)} KB based on average file size of {round(average_size / 1024, 2)} KB for sizes with more than one file")
+                LOGGER.debug(f"DEBUG   : {step_name}Hashing files with same size ")
+                LOGGER.debug(f"DEBUG   : {step_name}Applying partial/full hashing technique")
+                LOGGER.debug(f"DEBUG   : {step_name}Using dynamic chunk_size of {round(CHUNK_SIZE / 1024, 0)} KB based on average file size of {round(average_size / 1024, 2)} KB for sizes with more than one file")
                 partial_hash_dict = {}
                 hash_dict = {}
 
-                LOGGER.debug(f"DEBUG   : Calculating Partial Hashes (chunk_size={round(CHUNK_SIZE / 1024, 0)} KB) for {len(sizes_with_duplicates_dict)} groups of sizes with more than one file")
+                LOGGER.debug(f"DEBUG   : {step_name}Calculating Partial Hashes (chunk_size={round(CHUNK_SIZE / 1024, 0)} KB) for {len(sizes_with_duplicates_dict)} groups of sizes with more than one file")
                 for file_size, paths in tqdm(sizes_with_duplicates_dict.items(), smoothing=0, desc="INFO    : Partial Hashing Progress", unit=" groups"):
                     for path in paths:
                         try:
                             partial_hash = calculate_file_hash_optimized(path, full_hash=False, chunk_size=CHUNK_SIZE)
                             partial_hash_dict.setdefault(partial_hash, []).append(path)
                         except (PermissionError, OSError):
-                            LOGGER.warning(f"WARNING : Skipping file due to error {path}")
+                            LOGGER.warning(f"WARNING : {step_name}Skipping file due to error {path}")
                             continue
                         
                 del sizes_with_duplicates_dict
                 partial_hash_with_duplicates_dict = {partial_hash: partial_hash_paths for partial_hash, partial_hash_paths in partial_hash_dict.items() if len(partial_hash_paths) > 1}
                 del partial_hash_dict
-                LOGGER.debug(f"DEBUG   : Groups with same Partial Hash found: {len(partial_hash_with_duplicates_dict)}")
+                LOGGER.debug(f"DEBUG   : {step_name}Groups with same Partial Hash found: {len(partial_hash_with_duplicates_dict)}")
                 if len(partial_hash_with_duplicates_dict)>0:
-                    LOGGER.debug(f"DEBUG   : Calculating Full Hashes for {len(partial_hash_with_duplicates_dict)} groups of partial hashes with more than one file")
+                    LOGGER.debug(f"DEBUG   : {step_name}Calculating Full Hashes for {len(partial_hash_with_duplicates_dict)} groups of partial hashes with more than one file")
                     for partial_hash, paths in tqdm(partial_hash_with_duplicates_dict.items(), smoothing=0, desc="INFO    : Full Hashing Progress", unit=" groups"):
                         for path in paths:
                             try:
                                 full_hash = calculate_file_hash_optimized(path, full_hash=True)
                                 hash_dict.setdefault(full_hash, []).append(path)
                             except (PermissionError, OSError):
-                                LOGGER.warning(f"WARNING : Skipping file due to error {path}")
+                                LOGGER.warning(f"WARNING : {step_name}Skipping file due to error {path}")
                                 continue
                             
                 del partial_hash_with_duplicates_dict
             else:
-                LOGGER.debug("DEBUG   : Hashing files with same size")
+                LOGGER.debug(f"DEBUG   : {step_name}Hashing files with same size")
                 hash_dict = {}
                 for file_size, paths in tqdm(sizes_with_duplicates_dict.items(), smoothing=0, desc="INFO    : Full Hashing Progress", unit=" groups"):
                     for path in paths:
@@ -279,36 +279,36 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                             full_hash = calculate_file_hash_optimized(path, full_hash=True)
                             hash_dict.setdefault(full_hash, []).append(path)
                         except (PermissionError, OSError):
-                            LOGGER.warning(f"WARNING : Skipping file due to error {path}")
+                            LOGGER.warning(f"WARNING : {step_name}Skipping file due to error {path}")
                             continue
                         
                 del sizes_with_duplicates_dict
 
             duplicates = {hash: paths for hash, paths in hash_dict.items() if len(paths) > 1}
-            LOGGER.debug(f"DEBUG   : Groups with same Full Hash found: {len(duplicates)}")
+            LOGGER.debug(f"DEBUG   : {step_name}Groups with same Full Hash found: {len(duplicates)}")
             del hash_dict
 
             # ===========================
             # IDENTIFYING DUPLICATES
             # ===========================
-            LOGGER.debug(f"DEBUG   : Identifying duplicates by hash.")
-            LOGGER.debug(f"DEBUG   : {len(duplicates)} duplicate sets found")
+            LOGGER.debug(f"DEBUG   : {step_name}Identifying duplicates by hash.")
+            LOGGER.debug(f"DEBUG   : {step_name}{len(duplicates)} duplicate sets found")
 
             if len(duplicates)>0:
                 # ===========================
                 # CSV WRITING
                 # ===========================
-                LOGGER.info("INFO    : Creating duplicates directories")
+                LOGGER.info(f"INFO    : {step_name}Creating duplicates directories")
                 duplicates_root = resolve_path('Duplicates')
                 timestamp_dir = os.path.join(duplicates_root, 'Duplicates_' + timestamp)
                 os.makedirs(timestamp_dir, exist_ok=True)
-                LOGGER.info(f"INFO    : Results in {timestamp_dir}")
+                LOGGER.info(f"INFO    : {step_name}Results in {timestamp_dir}")
                 duplicates_csv_path = os.path.join(timestamp_dir, f'Duplicates_{timestamp}.csv')
                 header = ['Num_Duplicates', 'Principal', 'Duplicate', 'Principal_Path', 'Duplicate_Path', 'Action', 'Reason for Principal']
                 if duplicates_action == 'move':
                     header.append('Destination')
 
-                LOGGER.debug("DEBUG   : Writing CSV header.")
+                LOGGER.debug(f"DEBUG   : {step_name}Writing CSV header.")
                 with open(duplicates_csv_path, 'w', encoding='utf-8-sig', newline='') as duplicates_file:
                     writer = csv.writer(duplicates_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                     writer.writerow(header)
@@ -316,7 +316,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                     # ===================================================================
                     # START OF DUPLICATES LOGIC TO DETERMINE ThE PRINCIPAL DUPLICATE FILE
                     # ===================================================================
-                    LOGGER.debug("DEBUG   : Processing each duplicates set to determine the principal file and move/remove the duplicates ones (if duplicates_action = move/remove).")
+                    LOGGER.debug(f"DEBUG   : {step_name}Processing each duplicates set to determine the principal file and move/remove the duplicates ones (if duplicates_action = move/remove).")
 
                     # Memory to keep consistent principal folder selection in tie scenarios
                     cache_principal_folders = {}
@@ -455,18 +455,19 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                                 try:
                                     os.remove(duplicated)
                                 except OSError:
-                                    LOGGER.warning(f"WARNING : Could not remove file {duplicated}")
+                                    LOGGER.warning(f"WARNING : {step_name}Could not remove file {duplicated}")
 
                             writer.writerow(row)
                             duplicates_counter += 1
 
                 if duplicates_action in ('move', 'remove'):
-                    LOGGER.info("INFO    : Removing empty directories in original folders...")
+                    LOGGER.info(f"INFO    : {step_name}Removing empty directories in original folders...")
                     for folder in input_folders_list:
                         removed_empty_folders += remove_empty_dirs(folder, log_level=log_level)
 
-        LOGGER.info(f"INFO    : Finished processing. Total duplicates (excluding principals): {duplicates_counter}")
+        LOGGER.info(f"INFO    : {step_name}Finished processing. Total duplicates (excluding principals): {duplicates_counter}")
         return duplicates_counter, removed_empty_folders
+
 
 def process_duplicates_actions(csv_revised: str, log_level=logging.INFO):
     import unicodedata
