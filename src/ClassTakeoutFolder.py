@@ -130,7 +130,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 super().__init__(base_folder)  # Inicializar con la carpeta original si no se necesita procesamiento
 
 
-    def process(self, output_takeout_folder, capture_output=True, capture_errors=True, log_level=logging.INFO):
+    def process(self, output_takeout_folder, capture_output=True, capture_errors=True, create_localfolder_object=True, log_level=logging.INFO):
         """
         Main method to process Google Takeout data. Follows the same steps as the original
         process() function, but uses LOGGER and self.ARGS instead of global.
@@ -521,7 +521,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info("=========================================================================================================")
 
             # At the end of the process, we call the super() to make this objet an sub-instance of the class ClassLocalFolder to create the same folder structure
-            super().__init__(output_takeout_folder)
+            if create_localfolder_object:
+                super().__init__(output_takeout_folder)
 
             # return (valid_albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders, renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged)
             return ProcessingResult(
