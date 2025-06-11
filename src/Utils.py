@@ -2112,7 +2112,7 @@ def fix_truncated_extensions(input_folder, log_level=logging.INFO):
             all_files.extend(files)
         total_files = len(all_files)
         # Start progress bar
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : [Extensions Fixer] : Fixing Truncated extensions in .json files within '{input_folder}'", unit=" files") as pbar:
+        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : [Extensions Fixer] : Fixing Truncated extensions in JSON files within '{input_folder}'", unit=" files") as pbar:
             for root, _, files in os.walk(input_folder):
                 json_files = [f for f in files if re.match(r'^.+\.[^.]+\.(json)$', f, flags=re.IGNORECASE)]
                 non_json_files = [f for f in files if not f.lower().endswith('.json')]
