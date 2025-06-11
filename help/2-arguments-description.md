@@ -44,7 +44,7 @@ Following general arguments have different purposses depending on the Execution 
 | `-o`,<br>`--output-folder`                 | `<OUTPUT_FOLDER>` |  path  |                  `valid path`                   | Folder where processed assets or results will be saved. |
 | `-client`,<br>`--client`                   | `<CLIENT>`        | string | `google-takeout`, <br>`synology`, <br>`immich`  | Specifies the service to interact with.                 |
 | `-id`,<br>`--account-id`                   | `<ID>`            |  int   |        `1`, `2`, `3` <br>`(default: 1)`         | ID of the configured account in Config.ini.             |
-| `-skipConf`,<br>`--skip-user-confirmation` |                   |  flag  |                                                 | Skip User Confirmation before to execute any Feature.   |
+| `-confirm`,<br>`--request-user-confirmation` | `<bool>`                  |  bool  | `true`, `false` <br>`(default: true)`                                                | Request User Confirmation before to execute any Feature.   |
 | `-OTP`,<br>`--one-time-password`           |                   |  flag  |                                                 | Enables / Disables OTP login for Synology (2FA).        |
 | `-from`,<br>`--filter-from-date`           | `<FROM_DATE>`     |  date  |     `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets from this date onward.                   |
 | `-to`,<br>`--filter-to-date`               | `<TO_DATE>`       |  date  |     `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets up to this date.                         |
