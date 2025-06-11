@@ -1009,7 +1009,7 @@ def capitalize_first_letter(text):
 def clear_screen():
     os.system('clear' if os.name == 'posix' else 'cls')
 
-def print_arguments_pretty(arguments, title="Arguments", use_logger=True):
+def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logger=True):
     """
     Prints a list of command-line arguments in a structured and readable one-line-per-arg format.
 
@@ -1026,20 +1026,20 @@ def print_arguments_pretty(arguments, title="Arguments", use_logger=True):
         while i < len(arguments):
             arg = arguments[i]
             if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                LOGGER.info(f"INFO    : {indent}{arg}={arguments[i + 1]}")
+                LOGGER.info(f"INFO    : {step_name}{indent}{arg}={arguments[i + 1]}")
                 i += 2
             else:
-                LOGGER.info(f"INFO    : {indent}{arg}")
+                LOGGER.info(f"INFO    : {step_name}{indent}{arg}")
                 i += 1
     else:
         print(f"INFO    : {title}:")
         while i < len(arguments):
             arg = arguments[i]
             if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                print(f"INFO    : {indent}{arg}={arguments[i + 1]}")
+                print(f"INFO    : {step_name}{indent}{arg}={arguments[i + 1]}")
                 i += 2
             else:
-                print(f"INFO    : {indent}{arg}")
+                print(f"INFO    : {step_name}{indent}{arg}")
                 i += 1
     print("")
 
