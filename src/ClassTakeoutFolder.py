@@ -104,7 +104,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info("")
 
 
-    def pre_process_and_process(self, capture_output=False, capture_errors=True, skip_process=False):
+    def check_takeout_and_process(self, capture_output=False, capture_errors=True, skip_process=False):
         if self.needs_unzip:
             LOGGER.info("INFO    : 🗳️ Input Folder contains ZIP files and needs to be unzipped first. Unzipping it...")
             unzip_folder = Path(f"{self.takeout_folder}_unzipped_{self.TIMESTAMP}")
@@ -191,7 +191,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info("")
             step_start_time = datetime.now()
             # Pre-process the object with skip_process=True to just unzip files in case they are zipped.
-            self.pre_process_and_process(skip_process=True)
+            self.check_takeout_and_process(skip_process=True)
             # Select the input_folder deppending if the Takeout have been unzipped or not
             if self.unzipped_folder:
                 input_folder = self.unzipped_folder
