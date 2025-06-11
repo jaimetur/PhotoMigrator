@@ -107,6 +107,14 @@ def parse_arguments():
                         type=validate_account_id,  # Ahora espera un entero como tipo de argumento
                         help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the Configuration file as suffix of USERNAME/PASSORD or API_KEY_USER. (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini file)."
                         )
+    PARSER.add_argument("-confirm", "--request-user-confirmarion",
+                        metavar="= [true,false]",
+                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
+                        default=True,  # Si no se pasa el argumento, el valor por defecto es True
+                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        help="Request User Confrimarion before execute any Feature. (default: True)."
+    )
     PARSER.add_argument("-skipConf", "--skip-user-confirmation", action="store_true", default="", help="This Flag allow you to Skip User Confirmation before to execute any Feature.")
     PARSER.add_argument("-OTP", "--one-time-password", action="store_true", default="", help="This Flag allow you to login into Synology Photos using 2FA with an OTP Token.")
 
