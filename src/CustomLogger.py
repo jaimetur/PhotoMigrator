@@ -86,26 +86,6 @@ class CustomInMemoryLogHandler(logging.Handler):
         # Guardarlo en la lista
         # self.log_queue.append(msg)
 
-
-# class LoggerStream:
-#     """Redirige stdout y stderr al LOGGER global."""
-#
-#     def __init__(self, logger, level):
-#         self.logger = logger  # Ahora usamos un logger pasado como argumento
-#         self.level = level  # Nivel de logging (INFO para stdout, ERROR para stderr)
-#
-#     def write(self, message):
-#         if message.strip():  # Evita líneas vacías
-#             self.logger.log(self.level, message.strip())
-#
-#     def flush(self):
-#         pass  # Necesario para compatibilidad con sys.stdout/sys.stderr
-#
-#     def isatty(self):
-#         """Evita errores cuando se llama a sys.stdout.isatty()."""
-#         return False  # Devuelve False porque no es un terminal real
-
-
 class LoggerStream:
     """Intercepta stdout y stderr para redirigirlos al LOGGER."""
 
@@ -214,6 +194,7 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, time
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(log_level)
         console_handler.setFormatter(CustomConsoleFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
+        console_handler.is_console_output = True
         LOGGER.addHandler(console_handler)
 
     if not skip_logfile:
