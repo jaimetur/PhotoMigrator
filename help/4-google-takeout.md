@@ -50,11 +50,16 @@ From version 1.0.0 onwards, the Tool can process your Google Photos Takeout file
 >
 
 ### Output of Takeout Processing:
-The result will be a folder named `<TAKEOUT_FOLDER>_<SUFFIX>_<TIMESTAMP>` by default, but you can or change the default suffix _`processed`_ by any other using the option _`-gofs, --google-output-folder-suffix <SUFFIX>`_).  
+The result will be a folder named `<TAKEOUT_FOLDER>_<SUFFIX>_<TIMESTAMP>` by default. 
+  - It is possible to change the default suffix _`processed`_ by any other using the option _`-gofs, --google-output-folder-suffix <SUFFIX>`_).  
 
 The final `<OUTPUT_FOLDER>` will include:
 - `Albums` subfolder with all the Albums without year/month structure (by default).
 - `No-Albums` subfolder with all the photos with year/month structure (by default).
+
+### Complete list of Flags/Arguments admited:
+- [Arguments](https://)
+- [Arguments short version](https://)
 
 > [!TIP]
 > If you want to use your processed assets within Synology Photos, you just need to move `OUTPUT_FOLDER` into your /home/Photos folder and let Synology index all files (it will take long time). 
