@@ -62,11 +62,11 @@ The final `<OUTPUT_FOLDER>` will include:
 > [!NOTE]
 > It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (408559 files zipped, 168168 photos/video files, 740 albums) and moved it into Synology Photos.  
 > 
-> The whole process took around **~4 hours** (or ~7 hours if includes last optional step) and this is the time split per steps:  
+> The whole process took around **~8 hours** (or ~11 hours if includes last optional step) and this is the time split per steps:  
 > 
 > 0. Extraction process --> 1h 30m
-> 1. Pre-processing Takeout_folder --> 3m 50s
-> 2. GPTH Tool fixing --> 2h 12m
+> 1. Pre-processing Takeout_folder --> 7m
+> 2. GPTH Tool fixing --> 6h
 > 3. <span style="color:grey">(Optional) Copy/Move files to output folder manually if GPTH processing was skipped --> 0h</span>
 > 4. Sync .MP4 timestamps --> 10s
 > 5. Create Date Folder Structure --> 50s
