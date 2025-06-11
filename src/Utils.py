@@ -1044,70 +1044,6 @@ def print_arguments_pretty(arguments, title="Arguments", use_logger=True):
     print("")
 
 
-def run_command(command, logger, capture_output=False, capture_errors=True):
-    """
-    Ejecuta un comando. Muestra en consola actualizaciones de progreso sin loguearlas.
-    Loguea solo líneas distintas a las de progreso. Corrige pegado de líneas en consola.
-    """
-    # ------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def handle_stream(stream, is_error=False):
-        from colorama import init, Fore, Style
-        init(autoreset=True)
-
-        previous_prefix = None
-        just_printed_progress = False
-        while True:
-            line = stream.readline()
-            if not line:
-                break
-            line = line.rstrip()
-            if not line.strip():
-                continue
-            # Detect if the line to log is a update bar, and if it is, then don't log, use print instead, and print only the first and last status of the progress bar
-            # common_part = line.split(':')[0] if ':' in line else line[:40]
-            common_part = line.split(' : ')[0] if ' : ' in line else line
-            is_progress = previous_prefix and line.startswith(previous_prefix)
-            previous_prefix = common_part
-            if is_progress:
-                if "WARNING" in line:
-                    print(f"\r{Fore.YELLOW}WARNING : {line}", end='', flush=True)
-                elif "ERROR" in line:
-                    print(f"\r{Fore.RED}ERROR   : {line}", end='', flush=True)
-                else:
-                    print(f"\rINFO    : {line}", end='', flush=True)
-                just_printed_progress = True
-            else:
-                if just_printed_progress:
-                    print()  # Nueva línea limpia tras progreso
-                    just_printed_progress = False
-                if is_error:
-                    logger.error(f"ERROR   : {line}")
-                else:
-                    if "WARNING" in line:
-                        logger.warning(f"WARNING : {line}")
-                    elif "ERROR" in line:
-                        logger.error(f"ERROR   : {line}")
-                    else:
-                        logger.info(f"INFO    : {line}")
-    # ------------------------------------------------------------------------------------------------------------------------------------------------------------
-    if not capture_output and not capture_errors:
-        return subprocess.run(command, check=False, text=True, encoding="utf-8", errors="replace").returncode
-    else:
-        process = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE if capture_output else subprocess.DEVNULL,
-            stderr=subprocess.PIPE if capture_errors else subprocess.DEVNULL,
-            text=True, encoding = "utf-8", errors = "replace"
-        )
-        if capture_output:
-            handle_stream(process.stdout, is_error=False)
-        if capture_errors:
-            handle_stream(process.stderr, is_error=True)
-
-        process.wait()  # Esperar a que el proceso termine
-        return process.returncode
-
-
 def resource_path(relative_path):
     """
     Devuelve la ruta absoluta al recurso 'relative_path', funcionando en:
@@ -1185,12 +1121,11 @@ def get_subfolders_with_exclusions(input_folder, exclude_subfolder=None):
 # ---------------------------------------------------------------------------------------------------------------------------
 # GOOGLE TAKEOUT PRE-CHECKS FUNCTIONS:
 # ---------------------------------------------------------------------------------------------------------------------------
-def unpack_zips(zip_folder, takeout_folder, log_level=logging.INFO):
+def unpack_zips(zip_folder, takeout_folder, step_name="", log_level=logging.INFO):
     """ Unzips all ZIP files from a folder into another """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        PRECHECK_STEP_NAME = '[CHECKS]-[Check Takeout Structure]'
         if not os.path.exists(zip_folder):
-            LOGGER.error(f"ERROR   : {PRECHECK_STEP_NAME} : ZIP folder '{zip_folder}' does not exist.")
+            LOGGER.error(f"ERROR   : {step_name}ZIP folder '{zip_folder}' does not exist.")
             return
         os.makedirs(takeout_folder, exist_ok=True)
         for zip_file in os.listdir(zip_folder):
@@ -1198,21 +1133,20 @@ def unpack_zips(zip_folder, takeout_folder, log_level=logging.INFO):
                 zip_path = os.path.join(zip_folder, zip_file)
                 try:
                     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                        LOGGER.info(f"INFO    : {PRECHECK_STEP_NAME} : Unzipping: {zip_file}")
+                        LOGGER.info(f"INFO    : {step_name}Unzipping: {zip_file}")
                         zip_ref.extractall(takeout_folder)
                 except zipfile.BadZipFile:
-                    LOGGER.error(f"ERROR   : {PRECHECK_STEP_NAME} : Could not unzip file: {zip_file}")
+                    LOGGER.error(f"ERROR   : {step_name}Could not unzip file: {zip_file}")
 
 
-def contains_takeout_structure(input_folder, log_level=logging.INFO):
+def contains_takeout_structure(input_folder, step_name="", log_level=logging.INFO):
     """
     Iteratively scans directories using a manual stack instead of recursion or os.walk.
     This can reduce overhead in large, nested folder structures.
     """
     with set_log_level(LOGGER, log_level):
-        PRECHECK_STEP_NAME = '[CHECKS]-[Check Takeout Structure]'
         LOGGER.info("")
-        LOGGER.info(f"INFO    : {PRECHECK_STEP_NAME} : Looking for Google Takeout structure in input folder...")
+        LOGGER.info(f"INFO    : {step_name}Looking for Google Takeout structure in input folder...")
         stack = [input_folder]
         while stack:
             current = stack.pop()
@@ -1223,20 +1157,20 @@ def contains_takeout_structure(input_folder, log_level=logging.INFO):
                             name = entry.name
                             if name.startswith("Photos from ") and name[12:16].isdigit():
                                 # LOGGER.info(f"INFO    : Found Takeout structure in folder: {entry.path}")
-                                LOGGER.info(f"INFO    : {PRECHECK_STEP_NAME} : Found Takeout structure in folder: {current}")
+                                LOGGER.info(f"INFO    : {step_name}Found Takeout structure in folder: {current}")
                                 return True
                             stack.append(entry.path)
             except PermissionError:
-                LOGGER.warning(f"WARNING : {PRECHECK_STEP_NAME} : Permission denied accessing: {current}")
+                LOGGER.warning(f"WARNING : {step_name}Permission denied accessing: {current}")
             except Exception as e:
-                LOGGER.warning(f"WARNING : {PRECHECK_STEP_NAME} : Error scanning {current}: {e}")
-        LOGGER.info(f"INFO    : {PRECHECK_STEP_NAME} : No Takeout structure found in input folder.")
+                LOGGER.warning(f"WARNING : {step_name}Error scanning {current}: {e}")
+        LOGGER.info(f"INFO    : {step_name}No Takeout structure found in input folder.")
         return False
 
 # ---------------------------------------------------------------------------------------------------------------------------
 # GOOGLE TAKEOUT PRE-PROCESSING FUNCTIONS:
 # ---------------------------------------------------------------------------------------------------------------------------
-def delete_subfolders(input_folder, folder_name_to_delete, log_level=logging.INFO):
+def delete_subfolders(input_folder, folder_name_to_delete, step_name="", log_level=logging.INFO):
     """
     Deletes all subdirectories (and their contents) inside the given base directory and all its subdirectories,
     whose names match dir_name_to_delete, including hidden directories.
@@ -1246,11 +1180,10 @@ def delete_subfolders(input_folder, folder_name_to_delete, log_level=logging.INF
         folder_name_to_delete (str): The name of the subdirectories to delete.
     """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        PREPROCESS_STEP_NAME = '[PRE]-[Clean Takeout Folder]'
         # Contar el total de carpetas
         total_dirs = sum([len(dirs) for _, dirs, _ in os.walk(input_folder)])
         # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_dirs, smoothing=0.1, desc=f"INFO    : {PREPROCESS_STEP_NAME} : Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
+        with tqdm(total=total_dirs, smoothing=0.1, desc=f"INFO    : {step_name}Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
             for path, dirs, files in os.walk(input_folder, topdown=False):
                 for folder in dirs:
                     pbar.update(1)
@@ -1260,10 +1193,10 @@ def delete_subfolders(input_folder, folder_name_to_delete, log_level=logging.INF
                             shutil.rmtree(dir_path)
                             # LOGGER.info(f"INFO    : Deleted directory: {dir_path}")
                         except Exception as e:
-                            LOGGER.error(f"ERROR   : {PREPROCESS_STEP_NAME} : Error deleting {dir_path}: {e}")
+                            LOGGER.error(f"ERROR   : {step_name}Error deleting {dir_path}: {e}")
 
 
-def fix_mp4_files(input_folder, log_level=logging.INFO):
+def fix_mp4_files(input_folder, step_name="", log_level=logging.INFO):
     """
     Look for all .MP4 files that have the same base name as any Live Picture in the same folder.
     If found, copy the associated .json file (including those with a truncated '.supplemental-metadata')
@@ -1274,7 +1207,6 @@ def fix_mp4_files(input_folder, log_level=logging.INFO):
         log_level (int): Logging level (e.g., logging.INFO, logging.DEBUG).
     """
     with set_log_level(LOGGER, log_level):  # Set desired log level
-        PREPROCESS_STEP_NAME = '[PRE]-[MP4 Fixer]'
         # Count total .mp4 files for progress bar
         all_mp4_files = []
         for _, _, files in os.walk(input_folder, topdown=True):
@@ -1283,7 +1215,7 @@ def fix_mp4_files(input_folder, log_level=logging.INFO):
                     all_mp4_files.append(file)
         total_files = len(all_mp4_files)
         # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {PREPROCESS_STEP_NAME} : Fixing .MP4 files in '{input_folder}'", unit=" files") as pbar:
+        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing .MP4 files in '{input_folder}'", unit=" files") as pbar:
             for path, _, files in os.walk(input_folder):
                 # Filter files with .mp4 extension (case-insensitive)
                 mp4_files = [f for f in files if f.lower().endswith('.mp4')]
@@ -1316,12 +1248,12 @@ def fix_mp4_files(input_folder, log_level=logging.INFO):
                             if not os.path.exists(new_json_path):
                                 # Copy the original JSON file to the new file
                                 shutil.copy(candidate_path, new_json_path)
-                                LOGGER.info(f"INFO    : {PREPROCESS_STEP_NAME} : Created: {candidate} -> {new_json_name}")
+                                LOGGER.info(f"INFO    : {step_name}Created: {candidate} -> {new_json_name}")
                             else:
-                                LOGGER.info(f"INFO    : {PREPROCESS_STEP_NAME} : Skipped: {new_json_name} already exists")
+                                LOGGER.info(f"INFO    : {step_name}Skipped: {new_json_name} already exists")
 
 
-def fix_special_suffixes(input_folder, log_level=logging.INFO):
+def fix_special_suffixes(input_folder, step_name="", log_level=logging.INFO):
     """
     Recursively traverses a folder and its subdirectories, renaming files whose names
     end with a partial match of any suffix in SPECIAL_SUFFIXES (before the extension or a numbered copy).
@@ -1333,14 +1265,13 @@ def fix_special_suffixes(input_folder, log_level=logging.INFO):
         log_level (str): Logging level to use within this function's context.
     """
     with set_log_level(LOGGER, log_level):  # Temporarily set the desired log level
-        PREPROCESS_STEP_NAME = '[PRE]-[Special Suffix Fixer]'
         # Count all files to initialize the progress bar
         special_files = []
         for _, _, files in os.walk(input_folder, topdown=True):
             special_files.extend(files)
         total_files = len(special_files)
         # Start progress bar
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {PREPROCESS_STEP_NAME} : Fixing Truncated Special Suffixes in '{input_folder}'", unit=" files") as pbar:
+        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing Truncated Special Suffixes in '{input_folder}'", unit=" files") as pbar:
             for path, _, files in os.walk(input_folder):
                 for file in files:
                     old_path = os.path.join(path, file)
@@ -1356,7 +1287,7 @@ def fix_special_suffixes(input_folder, log_level=logging.INFO):
                                 new_path = os.path.join(path, new_filename)
                                 if old_path != new_path:
                                     os.rename(old_path, new_path)
-                                    LOGGER.info(f"INFO    : {PREPROCESS_STEP_NAME} : Fixed: {file} → {new_filename}")
+                                    LOGGER.info(f"INFO    : {step_name}Fixed: {file} → {new_filename}")
                                 changed = True
                                 break
                         if changed:
@@ -1382,7 +1313,7 @@ def fix_special_suffixes(input_folder, log_level=logging.INFO):
                                 new_path = os.path.join(path, new_filename)
                                 if old_path != new_path:
                                     os.rename(old_path, new_path)
-                                    LOGGER.info(f"INFO    : {PREPROCESS_STEP_NAME} : Fixed: {file} → {new_filename}")
+                                    LOGGER.info(f"INFO    : {step_name}Fixed: {file} → {new_filename}")
                                     changed = True
                                 break
                         if changed:
@@ -1390,7 +1321,7 @@ def fix_special_suffixes(input_folder, log_level=logging.INFO):
                     pbar.update(1)
 
 
-def fix_truncated_extensions(input_folder, log_level=logging.INFO):
+def fix_truncated_extensions(input_folder, step_name="", log_level=logging.INFO):
     """
     Recursively traverses a directory and fixes .ext.json files that were created with truncated extensions.
     It matches each .ext.json file with a real asset file in the same folder. If the extension is truncated,
@@ -1402,10 +1333,9 @@ def fix_truncated_extensions(input_folder, log_level=logging.INFO):
         log_level (int): Logging level (e.g., logging.INFO, logging.DEBUG).
     """
     with set_log_level(LOGGER, log_level):
-        PREPROCESS_STEP_NAME = '[PRE]-[Extensions Fixer]'
         # Count total files for progress bar
         total_files = sum(len(files) for _, _, files in os.walk(input_folder))
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {PREPROCESS_STEP_NAME} : Fixing Truncated extensions in JSON files within '{input_folder}'", unit=" files") as pbar:
+        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing Truncated extensions in JSON files within '{input_folder}'", unit=" files") as pbar:
             for root, _, files in os.walk(input_folder):
                 files_set = set(files)
                 json_files = [f for f in files if re.match(r'^.+\.[^.]+\.(json)$', f, flags=re.IGNORECASE)]
@@ -1458,27 +1388,90 @@ def fix_truncated_extensions(input_folder, log_level=logging.INFO):
                     new_json_name = f"{base_name}{correct_ext}.json"
                     new_json_path = Path(root) / new_json_name
                     if new_json_path.exists():
-                        LOGGER.warning(f"WARNING : {PREPROCESS_STEP_NAME} : Destination already exists: {new_json_path}")
+                        LOGGER.warning(f"WARNING : {step_name}Destination already exists: {new_json_path}")
                     else:
                         os.rename(json_path, new_json_path)
-                        LOGGER.info(f"INFO    : {PREPROCESS_STEP_NAME} : Fixed {json_file} → {new_json_name}")
+                        LOGGER.info(f"INFO    : {step_name}Fixed {json_file} → {new_json_name}")
                     pbar.update(1)
 
 
 # ---------------------------------------------------------------------------------------------------------------------------
+# GOOGLE TAKEOUT PROCESSING FUNCTIONS:
+# ---------------------------------------------------------------------------------------------------------------------------
+def run_command(command, logger, capture_output=False, capture_errors=True, step_name=""):
+    """
+    Ejecuta un comando. Muestra en consola actualizaciones de progreso sin loguearlas.
+    Loguea solo líneas distintas a las de progreso. Corrige pegado de líneas en consola.
+    """
+    # ------------------------------------------------------------------------------------------------------------------------------------------------------------
+    def handle_stream(stream, is_error=False):
+        from colorama import init, Fore, Style
+        init(autoreset=True)
+        previous_prefix = None
+        just_printed_progress = False
+        while True:
+            line = stream.readline()
+            if not line:
+                break
+            line = line.rstrip()
+            if not line.strip():
+                continue
+            # Detect if the line to log is a update bar, and if it is, then don't log, use print instead, and print only the first and last status of the progress bar
+            # common_part = line.split(':')[0] if ':' in line else line[:40]
+            common_part = line.split(' : ')[0] if ' : ' in line else line
+            is_progress = previous_prefix and line.startswith(previous_prefix)
+            previous_prefix = common_part
+            if is_progress:
+                if "WARNING" in line:
+                    print(f"\r{Fore.YELLOW}WARNING : {step_name}{line}", end='', flush=True)
+                elif "ERROR" in line:
+                    print(f"\r{Fore.RED}ERROR   : {step_name}{line}", end='', flush=True)
+                else:
+                    print(f"\rINFO    : {step_name}{line}", end='', flush=True)
+                just_printed_progress = True
+            else:
+                if just_printed_progress:
+                    print()  # Nueva línea limpia tras progreso
+                    just_printed_progress = False
+                if is_error:
+                    logger.error(f"ERROR   : {step_name}{line}")
+                else:
+                    if "WARNING" in line:
+                        logger.warning(f"WARNING : {step_name}{line}")
+                    elif "ERROR" in line:
+                        logger.error(f"ERROR   : {step_name}{line}")
+                    else:
+                        logger.info(f"INFO    : {step_name}{line}")
+    # ------------------------------------------------------------------------------------------------------------------------------------------------------------
+    if not capture_output and not capture_errors:
+        return subprocess.run(command, check=False, text=True, encoding="utf-8", errors="replace").returncode
+    else:
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE if capture_output else subprocess.DEVNULL,
+            stderr=subprocess.PIPE if capture_errors else subprocess.DEVNULL,
+            text=True, encoding = "utf-8", errors = "replace"
+        )
+        if capture_output:
+            handle_stream(process.stdout, is_error=False)
+        if capture_errors:
+            handle_stream(process.stderr, is_error=True)
+
+        process.wait()  # Esperar a que el proceso termine
+        return process.returncode
+# ---------------------------------------------------------------------------------------------------------------------------
 # GOOGLE TAKEOUT POST-PROCESSING FUNCTIONS:
 # ---------------------------------------------------------------------------------------------------------------------------
-def sync_mp4_timestamps_with_images(input_folder, log_level=logging.INFO):
+def sync_mp4_timestamps_with_images(input_folder, step_name="", log_level=logging.INFO):
     """
     Look for .MP4 files with the same name of any Live Picture file (.HEIC, .JPG, .JPEG) in the same folder.
     If found, then set the date and time of the .MP4 file to the same date and time of the original Live Picture.
     """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        POSTPROCESS_STEP_NAME = '[POST]-[MP4 Timestamp Synch]'
         # Contar el total de carpetas
         total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
         # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : {POSTPROCESS_STEP_NAME}: Synchronizing .MP4 files with Live Pictures in '{input_folder}'", unit=" files") as pbar:
+        with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : {step_name}Synchronizing .MP4 files with Live Pictures in '{input_folder}'", unit=" files") as pbar:
             for path, _, files in os.walk(input_folder):
                 # Crear un diccionario que mapea nombres base a extensiones y nombres de archivos
                 file_dict = {}
@@ -1507,7 +1500,7 @@ def sync_mp4_timestamps_with_images(input_folder, log_level=logging.INFO):
                                 mtime = image_stats.st_mtime  # Tiempo de última modificación
                                 # Aplicar los tiempos al archivo .MP4
                                 os.utime(mp4_file_path, (atime, mtime))
-                                LOGGER.debug(f"DEBUG   : {POSTPROCESS_STEP_NAME} : Date and time attributes synched for: {os.path.relpath(mp4_file_path,input_folder)} using:  {os.path.relpath(image_file_path,input_folder)}")
+                                LOGGER.debug(f"DEBUG   : {step_name}Date and time attributes synched for: {os.path.relpath(mp4_file_path,input_folder)} using:  {os.path.relpath(image_file_path,input_folder)}")
                                 image_file_found = True
                                 break  # Salir después de encontrar el primer archivo de imagen disponible
                         if not image_file_found:
@@ -1529,7 +1522,7 @@ def force_remove_directory(path, log_level=logging.INFO):
             LOGGER.warning(f"WARNING : Cannot delete the folder '{path}'.")
 
 
-def copy_move_folder(src, dst, ignore_patterns=None, move=False, log_level=logging.INFO):
+def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", log_level=logging.INFO):
     """
     Copies or moves an entire folder, including subfolders and files, to another location,
     while ignoring files that match one or more specific patterns.
@@ -1541,15 +1534,14 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, log_level=loggi
     :return: None
     """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        POSTPROCESS_STEP_NAME = '[POST]-[Copy/Move]'
         # Ignore function
         action = 'Moving' if move else 'Copying'
         try:
             if not is_valid_path(src):
-                LOGGER.error(f"ERROR   : {POSTPROCESS_STEP_NAME} : The path '{src}' is not valid for the execution plattform. Cannot copy/move folders from it.")
+                LOGGER.error(f"ERROR   : {step_name}The path '{src}' is not valid for the execution plattform. Cannot copy/move folders from it.")
                 return False
             if not is_valid_path(dst):
-                LOGGER.error(f"ERROR   : {POSTPROCESS_STEP_NAME} : The path '{dst}' is not valid for the execution plattform. Cannot copy/move folders to it.")
+                LOGGER.error(f"ERROR   : {step_name}The path '{dst}' is not valid for the execution plattform. Cannot copy/move folders to it.")
                 return False
 
             def ignore_function(files, ignore_patterns):
@@ -1564,7 +1556,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, log_level=loggi
 
             # Ensure the source folder exists
             if not os.path.exists(src):
-                raise FileNotFoundError(f"{POSTPROCESS_STEP_NAME} : Source folder does not exist: '{src}'")
+                raise FileNotFoundError(f"{step_name}Source folder does not exist: '{src}'")
             # Create the destination folder if it doesn't exist
             os.makedirs(dst, exist_ok=True)
 
@@ -1572,7 +1564,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, log_level=loggi
                 # Contar el total de carpetas
                 total_files = sum([len(files) for _, _, files in os.walk(src)])
                 # Mostrar la barra de progreso basada en carpetas
-                with tqdm(total=total_files, ncols=120, smoothing=0.1, desc=f"INFO    : {POSTPROCESS_STEP_NAME} : {action} Folders in '{src}' to Folder '{dst}'", unit=" files") as pbar:
+                with tqdm(total=total_files, ncols=120, smoothing=0.1, desc=f"INFO    : {step_name}{action} Folders in '{src}' to Folder '{dst}'", unit=" files") as pbar:
                     for path, dirs, files in os.walk(src, topdown=True):
                         pbar.update(1)
                         # Compute relative path
@@ -1591,18 +1583,18 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, log_level=loggi
                                 src_file = os.path.join(path, file)
                                 dst_file = os.path.join(dest_path, file)
                                 shutil.move(src_file, dst_file)
-                    LOGGER.info(f"INFO    : {POSTPROCESS_STEP_NAME} : Folder moved successfully from {src} to {dst}")
+                    LOGGER.info(f"INFO    : {step_name}Folder moved successfully from {src} to {dst}")
             else:
                 # Copy the folder contents
                 shutil.copytree(src, dst, dirs_exist_ok=True, ignore=ignore_function)
-                LOGGER.info(f"INFO    : {POSTPROCESS_STEP_NAME} : Folder copied successfully from {src} to {dst}")
+                LOGGER.info(f"INFO    : {step_name}Folder copied successfully from {src} to {dst}")
                 return True
         except Exception as e:
-            LOGGER.error(f"ERROR   : {POSTPROCESS_STEP_NAME} : Error {action} folder: {e}")
+            LOGGER.error(f"ERROR   : {step_name}Error {action} folder: {e}")
             return False
 
 
-def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log_level=logging.INFO):
+def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], step_name="", log_level=logging.INFO):
     """
     Organizes files into subfolders based on their EXIF or modification date.
 
@@ -1631,14 +1623,13 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log
             pass
         return None
     with set_log_level(LOGGER, log_level):
-        POSTPROCESS_STEP_NAME = '[POST]-[Create year/month struct]'
         if type not in ['year', 'year/month', 'year-month']:
-            raise ValueError(f"{POSTPROCESS_STEP_NAME} : The 'type' parameter must be 'year', 'year/month' or 'year-month'.")
+            raise ValueError(f"{step_name}The 'type' parameter must be 'year', 'year/month' or 'year-month'.")
         total_files = 0
         for _, dirs, files in os.walk(input_folder):
             dirs[:] = [d for d in dirs if d not in exclude_subfolders]
             total_files += len(files)
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {POSTPROCESS_STEP_NAME} : Organizing files with {type} structure in '{os.path.basename(os.path.normpath(input_folder))}'", unit=" files") as pbar:
+        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Organizing files with {type} structure in '{os.path.basename(os.path.normpath(input_folder))}'", unit=" files") as pbar:
             for path, dirs, files in os.walk(input_folder, topdown=True):
                 dirs[:] = [d for d in dirs if d not in exclude_subfolders]
                 for file in files:
@@ -1653,16 +1644,16 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log
                         try:
                             mod_time = get_exif_date(file_path)
                         except Exception as e:
-                            LOGGER.warning(f"WARNING : {POSTPROCESS_STEP_NAME} : Error reading EXIF from {file_path}: {e}")
+                            LOGGER.warning(f"WARNING : {step_name}Error reading EXIF from {file_path}: {e}")
                     # Si no hay EXIF o no es imagen, usar fecha de sistema
                     if not mod_time:
                         try:
                             mtime = os.path.getmtime(file_path)
                             mod_time = datetime.fromtimestamp(mtime if mtime > 0 else 0)
                         except Exception as e:
-                            LOGGER.warning(f"WARNING : {POSTPROCESS_STEP_NAME} : Error reading mtime for {file_path}: {e}")
+                            LOGGER.warning(f"WARNING : {step_name}Error reading mtime for {file_path}: {e}")
                             mod_time = datetime(1970, 1, 1)
-                    LOGGER.debug(f"DEBUG   : {POSTPROCESS_STEP_NAME} : Using date {mod_time} for file {file_path}")
+                    LOGGER.debug(f"DEBUG   : {step_name}Using date {mod_time} for file {file_path}")
                     # Determinar carpeta destino
                     if type == 'year':
                         target_dir = os.path.join(path, mod_time.strftime('%Y'))
@@ -1672,10 +1663,10 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log
                         target_dir = os.path.join(path, mod_time.strftime('%Y-%m'))
                     os.makedirs(target_dir, exist_ok=True)
                     shutil.move(file_path, os.path.join(target_dir, file))
-        LOGGER.info(f"INFO    : {POSTPROCESS_STEP_NAME} : Organization completed. Folder structure per '{type}' created in '{input_folder}'.")
+        LOGGER.info(f"INFO    : {step_name}Organization completed. Folder structure per '{type}' created in '{input_folder}'.")
 
 
-def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None, log_level=logging.INFO):
+def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None, step_name="", log_level=logging.INFO):
     """
     Moves album folders to a specific subfolder, excluding the specified subfolder(s).
 
@@ -1686,7 +1677,6 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None,
     """
     # Ensure exclude_subfolder is a list, even if a single string is passed
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        POSTPROCESS_STEP_NAME = '[POST]-[Move Albums]'
         def safe_move(folder_path, albums_path):
             destination = os.path.join(albums_path, os.path.basename(folder_path))
             if os.path.exists(destination):
@@ -1702,28 +1692,27 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None,
         exclude_subfolder_paths = [os.path.abspath(os.path.join(input_folder, sub)) for sub in (exclude_subfolder or [])]
         subfolders = os.listdir(input_folder)
         subfolders = [subfolder for subfolder in subfolders if not subfolder == '@eaDir' and not subfolder == 'No-Albums']
-        for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"INFO    : {POSTPROCESS_STEP_NAME} : Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
+        for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"INFO    : {step_name}Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
             folder_path = os.path.join(input_folder, subfolder)
             if os.path.isdir(folder_path) and subfolder != albums_subfolder and os.path.abspath(folder_path) not in exclude_subfolder_paths:
-                LOGGER.debug(f"DEBUG   : {POSTPROCESS_STEP_NAME} : Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")
+                LOGGER.debug(f"DEBUG   : {step_name}Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")
                 os.makedirs(albums_path, exist_ok=True)
                 safe_move(folder_path, albums_path)
         # Finally Move Albums to Albums root folder (removing 'Takeout' and 'Google Fotos' / 'Google Photos' folders if exists
-        move_albums_to_root(albums_path, log_level=logging.INFO)
+        move_albums_to_root(albums_path, step_name=step_name, log_level=logging.INFO)
 
 
-def move_albums_to_root(albums_root, log_level=logging.INFO):
+def move_albums_to_root(albums_root, step_name="", log_level=logging.INFO):
     """
     Moves all albums from nested subdirectories ('Takeout/Google Fotos' or 'Takeout/Google Photos')
     directly into the 'Albums' folder, removing unnecessary intermediate folders.
     """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        POSTPROCESS_STEP_NAME = '[POST]-[Move Albums]'
         possible_google_folders = ["Google Fotos", "Google Photos"]
         takeout_path = os.path.join(albums_root, "Takeout")
         # Check if 'Takeout' exists
         if not os.path.exists(takeout_path):
-            LOGGER.debug(f"DEBUG   : {POSTPROCESS_STEP_NAME} : 'Takeout' folder not found at {takeout_path}. Exiting.")
+            LOGGER.debug(f"DEBUG   : {step_name}'Takeout' folder not found at {takeout_path}. Exiting.")
             return
         # Find the actual Google Photos folder name
         google_photos_path = None
@@ -1733,10 +1722,10 @@ def move_albums_to_root(albums_root, log_level=logging.INFO):
                 google_photos_path = path
                 break
         if not google_photos_path:
-            LOGGER.debug(f"DEBUG   : {POSTPROCESS_STEP_NAME} : No valid 'Google Fotos' or 'Google Photos' folder found inside 'Takeout'. Exiting.")
+            LOGGER.debug(f"DEBUG   : {step_name}No valid 'Google Fotos' or 'Google Photos' folder found inside 'Takeout'. Exiting.")
             return
-        LOGGER.debug(f"DEBUG   : {POSTPROCESS_STEP_NAME} : Found Google Photos folder: {google_photos_path}")
-        LOGGER.info(f"INFO    :{POSTPROCESS_STEP_NAME} : Moving Albums to Albums root folder...")
+        LOGGER.debug(f"DEBUG   : {step_name}Found Google Photos folder: {google_photos_path}")
+        LOGGER.info(f"INFO    : {step_name}Moving Albums to Albums root folder...")
         # Move albums to the root 'Albums' directory
         for album in os.listdir(google_photos_path):
             album_path = os.path.join(google_photos_path, album)
@@ -1750,13 +1739,13 @@ def move_albums_to_root(albums_root, log_level=logging.INFO):
                     count += 1
                 # Move the album
                 shutil.move(album_path, new_target_path)
-                LOGGER.debug(f"DEBUG   : {POSTPROCESS_STEP_NAME} : Moved: {album_path} → {new_target_path}")
+                LOGGER.debug(f"DEBUG   : {step_name}Moved: {album_path} → {new_target_path}")
         # Attempt to remove empty folders
         try:
             shutil.rmtree(takeout_path)
-            LOGGER.debug(f"DEBUG   : {POSTPROCESS_STEP_NAME} : 'Takeout' folder successfully removed.")
+            LOGGER.debug(f"DEBUG   : {step_name}'Takeout' folder successfully removed.")
         except Exception as e:
-            LOGGER.error(f"ERROR   : {POSTPROCESS_STEP_NAME} : Failed to remove 'Takeout': {e}")
+            LOGGER.error(f"ERROR   : {step_name}Failed to remove 'Takeout': {e}")
 
 
 def count_valid_albums(folder_path, log_level=logging.INFO):
@@ -1778,7 +1767,7 @@ def count_valid_albums(folder_path, log_level=logging.INFO):
         return valid_albums
 
 
-def fix_symlinks_broken(input_folder, log_level=logging.INFO):
+def fix_symlinks_broken(input_folder, step_name="", log_level=logging.INFO):
     """
     Searches and fixes broken symbolic links in a directory and its subdirectories.
     Optimized to handle very large numbers of files by indexing files beforehand.
@@ -1786,7 +1775,6 @@ def fix_symlinks_broken(input_folder, log_level=logging.INFO):
     :param input_folder: Path (relative or absolute) to the main directory where the links should be searched and fixed.
     :return: A tuple containing the number of corrected symlinks and the number of symlinks that could not be corrected.
     """
-    POSTPROCESS_STEP_NAME = '[POST]-[Fix Symlinks]'
     # ===========================
     # AUX FUNCTIONS
     # ===========================
@@ -1801,7 +1789,7 @@ def fix_symlinks_broken(input_folder, log_level=logging.INFO):
             # Contar el total de carpetas
             total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
             # Mostrar la barra de progreso basada en carpetas
-            with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {POSTPROCESS_STEP_NAME} : Building Index files in '{input_folder}'", unit=" files") as pbar:
+            with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Building Index files in '{input_folder}'", unit=" files") as pbar:
                 for path, _, files in os.walk(input_folder):
                     for fname in files:
                         pbar.update(1)
@@ -1835,7 +1823,7 @@ def fix_symlinks_broken(input_folder, log_level=logging.INFO):
         failed_count = 0
         # Validate the directory existence
         if not os.path.isdir(input_folder):
-            LOGGER.error(f"ERROR   : {POSTPROCESS_STEP_NAME} : The directory '{input_folder}' does not exist or is not valid.")
+            LOGGER.error(f"ERROR   : {step_name}The directory '{input_folder}' does not exist or is not valid.")
             return 0, 0
 
         # Step 1: Index all real non-symbolic files
@@ -1844,7 +1832,7 @@ def fix_symlinks_broken(input_folder, log_level=logging.INFO):
         # Step 2: Search for broken symbolic links and fix them using the index
         already_warned = False
         total_files = sum([len(files) for _, _, files in os.walk(input_folder)]) # Contar el total de carpetas
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {POSTPROCESS_STEP_NAME} : Fixing Symbolic Links in '{input_folder}'", unit=" files") as pbar: # Mostrar la barra de progreso basada en carpetas
+        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing Symbolic Links in '{input_folder}'", unit=" files") as pbar: # Mostrar la barra de progreso basada en carpetas
             for path, _, files in os.walk(input_folder):
                 for file in files:
                     pbar.update(1)
@@ -1867,13 +1855,12 @@ def fix_symlinks_broken(input_folder, log_level=logging.INFO):
                             if not already_warned:
                                 LOGGER.warning("")
                                 already_warned=True
-                            LOGGER.warning(f"WARNING : {POSTPROCESS_STEP_NAME} : Could not find the file for {file_path} within {input_folder}")
+                            LOGGER.warning(f"WARNING : {step_name}Could not find the file for {file_path} within {input_folder}")
                             failed_count += 1
         return corrected_count, failed_count
 
 
-def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_range='complete', log_level=logging.INFO):
-    POSTPROCESS_STEP_NAME = '[POST]-[Album Renaming]'
+def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_range='complete', step_name="", log_level=logging.INFO):
     # ===========================
     # AUXILIARY FUNCTIONS
     # ===========================
@@ -1952,7 +1939,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                         try:
                             dt = get_exif_date(f)
                         except Exception as e:
-                            LOGGER.warning(f"WARNING : {POSTPROCESS_STEP_NAME} : Error reading EXIF from {f}: {e}")
+                            LOGGER.warning(f"WARNING : {step_name}Error reading EXIF from {f}: {e}")
                     # Si no hay EXIF o no es imagen compatible, usa mtime
                     if not dt:
                         try:
@@ -1960,7 +1947,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                             if ts > 0:
                                 dt = datetime.fromtimestamp(ts)
                         except Exception as e:
-                            LOGGER.warning(f"WARNING : {POSTPROCESS_STEP_NAME} : Cannot read timestamp from {f}: {e}")
+                            LOGGER.warning(f"WARNING : {step_name}Cannot read timestamp from {f}: {e}")
                     if dt:
                         years.append(dt.year)
                 if years:
@@ -1971,9 +1958,9 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     else:
                         return f"{oldest_year}-{latest_year}"
                 else:
-                    LOGGER.warning(f"WARNING : {POSTPROCESS_STEP_NAME} : No valid timestamps found in {folder}")
+                    LOGGER.warning(f"WARNING : {step_name}No valid timestamps found in {folder}")
             except Exception as e:
-                LOGGER.error(f"ERROR   : {POSTPROCESS_STEP_NAME} : Error obtaining year range: {e}")
+                LOGGER.error(f"ERROR   : {step_name}Error obtaining year range: {e}")
             return None
 
     def get_year_range(folder: str, log_level=logging.INFO) -> str:
@@ -2003,14 +1990,14 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                         try:
                             exif_date = get_exif_date(f)
                         except Exception as e:
-                            LOGGER.warning(f"WARNING : {POSTPROCESS_STEP_NAME} : Error reading EXIF from {f}: {e}")
+                            LOGGER.warning(f"WARNING : {step_name}Error reading EXIF from {f}: {e}")
                         # Intenta obtener mtime
                         try:
                             ts = os.path.getmtime(f)
                             if ts > 0:
                                 fs_date = datetime.fromtimestamp(ts)
                         except Exception as e:
-                            LOGGER.warning(f"WARNING : {POSTPROCESS_STEP_NAME} : Cannot read timestamp from {f}: {e}")
+                            LOGGER.warning(f"WARNING : {step_name}Cannot read timestamp from {f}: {e}")
                     # Elige la fecha más antigua entre EXIF y mtime
                     chosen_date = None
                     if exif_date and fs_date:
@@ -2020,7 +2007,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     if chosen_date:
                         years.append(chosen_date.year)
                 if not years:
-                    LOGGER.warning(f"WARNING : {POSTPROCESS_STEP_NAME} : No valid timestamps found in {folder}")
+                    LOGGER.warning(f"WARNING : {step_name}No valid timestamps found in {folder}")
                     return None
                 # Extraer componentes
                 oldest_year = min(years)
@@ -2030,7 +2017,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                 else:
                     return f"{oldest_year}-{latest_year}"
             except Exception as e:
-                LOGGER.error(f"ERROR   : {POSTPROCESS_STEP_NAME} : Error obtaining year range: {e}")
+                LOGGER.error(f"ERROR   : {step_name}Error obtaining year range: {e}")
             return None
 
     def get_date_range(folder: str, log_level=logging.INFO) -> str:
@@ -2059,13 +2046,13 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                         try:
                             exif_date = get_exif_date(f)
                         except Exception as e:
-                            LOGGER.warning(f"WARNING : {POSTPROCESS_STEP_NAME} : Error reading EXIF from {f}: {e}")
+                            LOGGER.warning(f"WARNING : {step_name}Error reading EXIF from {f}: {e}")
                         try:
                             ts = os.path.getmtime(f)
                             if ts > 0:
                                 fs_date = datetime.fromtimestamp(ts)
                         except Exception as e:
-                            LOGGER.warning(f"WARNING : {POSTPROCESS_STEP_NAME} : Cannot read timestamp from {f}: {e}")
+                            LOGGER.warning(f"WARNING : {step_name}Cannot read timestamp from {f}: {e}")
                         # Escoger la fecha más antigua disponible
                         chosen_date = None
                         if exif_date and fs_date:
@@ -2075,7 +2062,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                         if chosen_date:
                             dates.append(chosen_date)
                 if not dates:
-                    LOGGER.warning(f"WARNING : {POSTPROCESS_STEP_NAME} : No valid timestamps found in {folder}")
+                    LOGGER.warning(f"WARNING : {step_name}No valid timestamps found in {folder}")
                     return None
                 # Extraer componentes
                 years = {dt.year for dt in dates}
@@ -2095,7 +2082,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                 else:
                     return f"{min(years):04}-{max(years):04}"
             except Exception as e:
-                LOGGER.error(f"ERROR   : {POSTPROCESS_STEP_NAME} : Error obtaining date range: {e}")
+                LOGGER.error(f"ERROR   : {step_name}Error obtaining date range: {e}")
                 return None
 
     # ===========================
@@ -2116,7 +2103,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
         # total_folders = os.listdir(input_folder)
         total_folders = get_subfolders_with_exclusions(input_folder, exclude_subfolder)
 
-        for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"INFO    : {POSTPROCESS_STEP_NAME} : Renaming Albums folders in '<OUTPUT_TAKEOUT_FOLDER>'", unit=" folders"):
+        for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"INFO    : {step_name}Renaming Albums folders in '<OUTPUT_TAKEOUT_FOLDER>'", unit=" folders"):
             item_path = os.path.join(input_folder, original_folder_name)
             if os.path.isdir(item_path):
                 cleaned_folder_name = clean_name(original_folder_name)
@@ -2128,7 +2115,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     elif type_date_range.lower() == 'year':
                         date_range = get_year_range(item_path)
                     else:
-                        warning_actions.append(f"WARNING : {POSTPROCESS_STEP_NAME} : No valid type_date_range: '{type_date_range}'")
+                        warning_actions.append(f"WARNING : {step_name}No valid type_date_range: '{type_date_range}'")
 
                     if date_range:
                         cleaned_folder_name = f"{date_range} - {cleaned_folder_name}"
@@ -2138,7 +2125,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     new_folder_path = os.path.join(input_folder, cleaned_folder_name)
                     if os.path.exists(new_folder_path):
                         duplicates_album_folders += 1
-                        warning_actions.append(f"WARNING : {POSTPROCESS_STEP_NAME} : Folder '{new_folder_path}' already exists. Merging contents...")
+                        warning_actions.append(f"WARNING : {step_name}Folder '{new_folder_path}' already exists. Merging contents...")
                         for item in os.listdir(item_path):
                             src = os.path.join(item_path, item)
                             dst = os.path.join(new_folder_path, item)
@@ -2146,14 +2133,14 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                                 # Compare file sizes to decide if the original should be deleted
                                 if os.path.isfile(dst) and os.path.getsize(src) == os.path.getsize(dst):
                                     os.remove(src)
-                                    info_actions.append(f"INFO    : {POSTPROCESS_STEP_NAME} : Deleted duplicate file: '{src}'")
+                                    info_actions.append(f"INFO    : {step_name}Deleted duplicate file: '{src}'")
                             else:
                                 shutil.move(src, dst)
-                                info_actions.append(f"INFO    : {POSTPROCESS_STEP_NAME} : Moved '{src}' → '{dst}'")
+                                info_actions.append(f"INFO    : {step_name}Moved '{src}' → '{dst}'")
                         # Check if the folder is empty before removing it
                         if not os.listdir(item_path):
                             os.rmdir(item_path)
-                            info_actions.append(f"INFO    : {POSTPROCESS_STEP_NAME} : Removed empty folder: '{item_path}'")
+                            info_actions.append(f"INFO    : {step_name}Removed empty folder: '{item_path}'")
                             duplicates_albums_fully_merged += 1
                         else:
                             # LOGGER.warning(f"WARNING : Folder not empty, skipping removal: {item_path}")
@@ -2161,7 +2148,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     else:
                         if item_path != new_folder_path:
                             os.rename(item_path, new_folder_path)
-                            info_actions.append(f"INFO    : {POSTPROCESS_STEP_NAME} : Renamed folder: '{os.path.basename(item_path)}' → '{os.path.basename(new_folder_path)}'")
+                            info_actions.append(f"INFO    : {step_name}Renamed folder: '{os.path.basename(item_path)}' → '{os.path.basename(new_folder_path)}'")
                             renamed_album_folders += 1
         for info_action in info_actions:
             LOGGER.info(info_action)
