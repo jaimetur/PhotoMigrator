@@ -216,13 +216,13 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Fix truncated special suffixes (such as '-ha edit.jpg' or '-ha e.jpg')
             step_name = '[PRE]-[Special Suffix Fixer] : '
             LOGGER.info("")
-            LOGGER.info(f"INFO    : {step_name}Fixing truncated special suffixes from Google Photos and rename files to include complete special suffix...")
+            LOGGER.info(f"INFO    : {step_name}Fixing Truncated Special Suffixes from Google Photos and rename files to include complete special suffix...")
             Utils.fix_special_suffixes(input_folder=input_folder, step_name=step_name, log_level=logging.INFO)
 
             # Fix truncated extensions in .json files (such as '...._003.jp.json')
             step_name = '[PRE]-[Extensions Fixer] : '
             LOGGER.info("")
-            LOGGER.info(f"INFO    : {step_name}Fixing truncated extensions in JSON files from Google Photos and rename files to include the right extension based on the original asset...")
+            LOGGER.info(f"INFO    : {step_name}Fixing Truncated Extensions in JSON files from Google Photos and rename files to include the right extension based on the original asset...")
             Utils.fix_truncated_extensions(input_folder=input_folder, step_name=step_name, log_level=logging.INFO)
 
             # Count initial files in Takeout Folder before to process with GPTH, since once process input_folder may be deleted if --google-move-takeout-folder has been given
@@ -413,17 +413,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
-            else:
-                LOGGER.warning(f"WARNING : {step_name}Moving albums to 'Albums' folder skipped ('-gsma, --google-skip-move-albums' flag detected).")
-
-            if not self.ARGS['google-skip-move-albums']:
-                album_folder = os.path.join(output_takeout_folder, 'Albums')
-                if os.path.isdir(album_folder):
-                    valid_albums_found = Utils.count_valid_albums(album_folder)
-            else:
-                album_folder = output_takeout_folder
-                if os.path.isdir(output_takeout_folder):
-                    valid_albums_found = Utils.count_valid_albums(output_takeout_folder) - 1
 
             # step 7: Fix Broken Symbolic Links
             if self.ARGS['google-create-symbolic-albums']:
@@ -441,8 +430,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
-            else:
-                LOGGER.warning(f"WARNING : {step_name}Fixing broken symbolic links skipped ('-gcsa, --google-create-symbolic-albums' flag not detected).")
 
             # step 8: Remove Duplicates
             if self.ARGS['google-remove-duplicates-files']:
@@ -468,7 +455,28 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
 
-            # step 9: Rename Albums Folders based on content date
+            # step 9: Count Albums
+            step_name = '[POST]-[Counting Albums] : '
+            self.step += 1
+            LOGGER.info("")
+            LOGGER.info("===============================")
+            LOGGER.info(f"INFO    : {self.step}. COUNTING ALBUMS...")
+            LOGGER.info("===============================")
+            LOGGER.info("")
+            if not self.ARGS['google-skip-move-albums']:
+                album_folder = os.path.join(output_takeout_folder, 'Albums')
+            else:
+                album_folder = output_takeout_folder
+
+            if os.path.isdir(output_takeout_folder):
+                valid_albums_found = Utils.count_valid_albums(album_folder, step_name=step_name)
+            LOGGER.info(f"INFO    : {step_name}Valid Albums Found {valid_albums_found}.")
+            step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
+            LOGGER.info("")
+            LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
+
+            # step 10: Rename Albums Folders based on content date
             if self.ARGS['google-rename-albums-folders']:
                 step_name = '[POST]-[Album Renaming] : '
                 self.step += 1
@@ -484,6 +492,23 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
+
+            # step 11: Renamove Empty Folders
+            step_name = '[POST]-[Remove Empty Folders] : '
+            self.step += 1
+            LOGGER.info("")
+            LOGGER.info("===========================================")
+            LOGGER.info(f"INFO    : {self.step}. REMOVING EMPTY FOLDERS...")
+            LOGGER.info("===========================================")
+            LOGGER.info("")
+            LOGGER.info(f"INFO    : {step_name}Removing empty folders in <OUTPUT_TAKEOUT_FOLDER>...")
+            step_start_time = datetime.now()
+            Utils.remove_empty_dirs(input_folder=output_takeout_folder, log_level=logging.INFO)
+            step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
+            LOGGER.info("")
+            LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
+
 
             processing_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(processing_end_time - processing_start_time).seconds))

@@ -1042,7 +1042,6 @@ def mode_fix_symlinkgs(user_confirmation=True, log_level=logging.INFO):
         if not Utils.confirm_continue():
             LOGGER.info(f"INFO    : Exiting program.")
             sys.exit(0)
-
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"INFO    : Fixing broken symbolic links Mode detected. Only this module will be run!!!")
         LOGGER.info(f"INFO    : Fixing broken symbolic links in folder '{ARGS['fix-symlinks-broken']}'...")

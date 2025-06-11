@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Union
 import glob
 import time
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from dateutil import parser as date_parser
 from tqdm import tqdm as original_tqdm
@@ -791,7 +792,25 @@ def get_logger_filename(logger):
             return handler.baseFilename  # Devuelve el path del archivo de logs
     return ""  # Si no hay un FileHandler, retorna ""
 
-# ===============================================================================
+# ==============================================================================
+#                               LOGGING FUNCTIONS
+# ==============================================================================
+@contextmanager
+def suppress_console_output_temporarily(logger):
+    """
+    Temporarily removes handlers marked with `.is_console_output = True` from the logger.
+    """
+    original_handlers = logger.handlers[:]
+    original_propagate = logger.propagate
+    logger.handlers = [h for h in original_handlers if not getattr(h, 'is_console_output', False)]
+    logger.propagate = False
+    try:
+        yield
+    finally:
+        logger.handlers = original_handlers
+        logger.propagate = original_propagate
+
+# ==============================================================================
 #                               DATE PARSERS
 # ==============================================================================
 def parse_text_to_iso8601(date_str):
@@ -1214,6 +1233,8 @@ def fix_mp4_files(input_folder, step_name="", log_level=logging.INFO):
                 if file.lower().endswith('.mp4'):
                     all_mp4_files.append(file)
         total_files = len(all_mp4_files)
+        if total_files == 0:
+            return
         # Mostrar la barra de progreso basada en carpetas
         with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing .MP4 files in '{input_folder}'", unit=" files") as pbar:
             for path, _, files in os.walk(input_folder):
@@ -1270,6 +1291,8 @@ def fix_special_suffixes(input_folder, step_name="", log_level=logging.INFO):
         for _, _, files in os.walk(input_folder, topdown=True):
             special_files.extend(files)
         total_files = len(special_files)
+        if total_files == 0:
+            return
         # Start progress bar
         with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing Truncated Special Suffixes in '{input_folder}'", unit=" files") as pbar:
             for path, _, files in os.walk(input_folder):
@@ -1334,16 +1357,22 @@ def fix_truncated_extensions(input_folder, step_name="", log_level=logging.INFO)
     """
     with set_log_level(LOGGER, log_level):
         # Count total files for progress bar
-        total_files = sum(len(files) for _, _, files in os.walk(input_folder))
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing Truncated extensions in JSON files within '{input_folder}'", unit=" files") as pbar:
+        json_file_list = []
+        for root, _, files in os.walk(input_folder):
+            json_file_list.extend([
+                (root, f) for f in files
+                if re.match(r'^.+\.[^.]+\.(json)$', f, flags=re.IGNORECASE)
+            ])
+        total_files = len(json_file_list)
+        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing Truncated Extensions in JSON files within '{input_folder}'", unit=" files") as pbar:
             for root, _, files in os.walk(input_folder):
                 files_set = set(files)
                 json_files = [f for f in files if re.match(r'^.+\.[^.]+\.(json)$', f, flags=re.IGNORECASE)]
                 for json_file in json_files:
+                    pbar.update(1)
                     json_path = Path(root) / json_file
                     parts = json_file.rsplit('.', 2)  # [filename, ext, json]
                     if len(parts) != 3:
-                        pbar.update(1)
                         continue
                     base_with_suffix, ext, _ = parts
                     base_name = base_with_suffix
@@ -1360,7 +1389,6 @@ def fix_truncated_extensions(input_folder, step_name="", log_level=logging.INFO)
                         if f.lower().startswith(base_name.lower() + ".") and not f.lower().endswith(".json")
                     ]
                     if not possible_matches:
-                        pbar.update(1)
                         continue
                     matched_file = None
                     for candidate in possible_matches:
@@ -1369,7 +1397,6 @@ def fix_truncated_extensions(input_folder, step_name="", log_level=logging.INFO)
                             matched_file = candidate
                             break
                     if not matched_file:
-                        pbar.update(1)
                         continue
                     # Step 3: get correct extension from matched file
                     correct_ext = Path(matched_file).suffix
@@ -1392,7 +1419,7 @@ def fix_truncated_extensions(input_folder, step_name="", log_level=logging.INFO)
                     else:
                         os.rename(json_path, new_json_path)
                         LOGGER.info(f"INFO    : {step_name}Fixed {json_file} → {new_json_name}")
-                    pbar.update(1)
+
 
 
 # ---------------------------------------------------------------------------------------------------------------------------
@@ -1405,14 +1432,18 @@ def run_command(command, logger, capture_output=False, capture_errors=True, step
     """
     # ------------------------------------------------------------------------------------------------------------------------------------------------------------
     def handle_stream(stream, is_error=False):
+        import re
         from colorama import init, Fore, Style
         init(autoreset=True)
         previous_prefix = None
-        just_printed_progress = False
+        previous_progress = False
         while True:
             line = stream.readline()
             if not line:
                 break
+            # Remove ANSI colors from line
+            ansi_escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
+            line = ansi_escape.sub('', line)
             line = line.rstrip()
             if not line.strip():
                 continue
@@ -1421,18 +1452,17 @@ def run_command(command, logger, capture_output=False, capture_errors=True, step
             common_part = line.split(' : ')[0] if ' : ' in line else line
             is_progress = previous_prefix and line.startswith(previous_prefix)
             previous_prefix = common_part
-            if is_progress:
-                if "WARNING" in line:
-                    print(f"\r{Fore.YELLOW}WARNING : {step_name}{line}", end='', flush=True)
-                elif "ERROR" in line:
-                    print(f"\r{Fore.RED}ERROR   : {step_name}{line}", end='', flush=True)
-                else:
-                    print(f"\rINFO    : {step_name}{line}", end='', flush=True)
-                just_printed_progress = True
+            if "WARNING" in line:
+                print()
+                print(f"{Fore.YELLOW}WARNING : {step_name}{line}", end='', flush=True)
+            elif "ERROR" in line:
+                print()
+                print(f"{Fore.RED}ERROR   : {step_name}{line}", end='', flush=True)
             else:
-                if just_printed_progress:
-                    print()  # Nueva línea limpia tras progreso
-                    just_printed_progress = False
+                print(f"\rINFO    : {step_name}{line}", end='', flush=True)
+            if not is_progress:
+                if not previous_progress:
+                    print()
                 if is_error:
                     logger.error(f"ERROR   : {step_name}{line}")
                 else:
@@ -1442,23 +1472,28 @@ def run_command(command, logger, capture_output=False, capture_errors=True, step
                         logger.error(f"ERROR   : {step_name}{line}")
                     else:
                         logger.info(f"INFO    : {step_name}{line}")
-    # ------------------------------------------------------------------------------------------------------------------------------------------------------------
-    if not capture_output and not capture_errors:
-        return subprocess.run(command, check=False, text=True, encoding="utf-8", errors="replace").returncode
-    else:
-        process = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE if capture_output else subprocess.DEVNULL,
-            stderr=subprocess.PIPE if capture_errors else subprocess.DEVNULL,
-            text=True, encoding = "utf-8", errors = "replace"
-        )
-        if capture_output:
-            handle_stream(process.stdout, is_error=False)
-        if capture_errors:
-            handle_stream(process.stderr, is_error=True)
+                previous_progress = True
+            else:
+                previous_progress = False
 
-        process.wait()  # Esperar a que el proceso termine
-        return process.returncode
+    # ------------------------------------------------------------------------------------------------------------------------------------------------------------
+    with suppress_console_output_temporarily(logger):
+        if not capture_output and not capture_errors:
+            return subprocess.run(command, check=False, text=True, encoding="utf-8", errors="replace").returncode
+        else:
+            process = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE if capture_output else subprocess.DEVNULL,
+                stderr=subprocess.PIPE if capture_errors else subprocess.DEVNULL,
+                text=True, encoding = "utf-8", errors = "replace"
+            )
+            if capture_output:
+                handle_stream(process.stdout, is_error=False)
+            if capture_errors:
+                handle_stream(process.stderr, is_error=True)
+
+            process.wait()  # Esperar a que el proceso termine
+            return process.returncode
 # ---------------------------------------------------------------------------------------------------------------------------
 # GOOGLE TAKEOUT POST-PROCESSING FUNCTIONS:
 # ---------------------------------------------------------------------------------------------------------------------------
@@ -1748,23 +1783,57 @@ def move_albums_to_root(albums_root, step_name="", log_level=logging.INFO):
             LOGGER.error(f"ERROR   : {step_name}Failed to remove 'Takeout': {e}")
 
 
-def count_valid_albums(folder_path, log_level=logging.INFO):
+# def count_valid_albums(folder_path, step_name="", log_level=logging.INFO):
+#     """
+#     Counts the number of subfolders within folder_path and its sublevels
+#     that contain at least one valid image or video file.
+#
+#     A folder is considered valid if it contains at least one file with an extension
+#     defined in IMAGE_EXT or VIDEO_EXT.
+#     """
+#     import os
+#     from GlobalVariables import PHOTO_EXT, VIDEO_EXT
+#     with set_log_level(LOGGER, log_level):  # Change log level temporarily
+#         valid_albums = 0
+#         for root, dirs, files in os.walk(folder_path):
+#             # Check if there's at least one valid image or video file
+#             if any(os.path.splitext(file)[1].lower() in PHOTO_EXT or os.path.splitext(file)[1].lower() in VIDEO_EXT for file in files):
+#                 valid_albums += 1
+#         return valid_albums
+
+
+def count_valid_albums(folder_path, step_name="", log_level=logging.INFO):
     """
     Counts the number of subfolders within folder_path and its sublevels
     that contain at least one valid image or video file.
 
     A folder is considered valid if it contains at least one file with an extension
-    defined in IMAGE_EXT or VIDEO_EXT.
+    defined in PHOTO_EXT or VIDEO_EXT.
+
+    The following folders (and all their subfolders) are excluded from the count:
+    - Any folder named 'Photos from YYYY' where YYYY starts with 1 or 2.
+    - Folders named exactly 'Albums', 'Albums-shared', or 'No-Albums'.
     """
-    import os
-    from GlobalVariables import PHOTO_EXT, VIDEO_EXT
+    EXCLUDED_NAMES = {"Albums", "Albums-shared", "No-Albums"}
+    YEAR_PATTERN = re.compile(r'^Photos from [12]\d{3}$')
     with set_log_level(LOGGER, log_level):  # Change log level temporarily
         valid_albums = 0
         for root, dirs, files in os.walk(folder_path):
-            # Check if there's at least one valid image or video file
+            folder_name = os.path.basename(root)
+            # Skip current folder if it matches any exclusion rule
+            if folder_name in EXCLUDED_NAMES or YEAR_PATTERN.fullmatch(folder_name):
+                dirs.clear()  # Prevent descending into subdirectories
+                continue
+            # Also remove excluded subfolders from being walked into
+            dirs[:] = [
+                d for d in dirs
+                if d not in EXCLUDED_NAMES and not YEAR_PATTERN.fullmatch(d)
+            ]
+            # Check for at least one valid image or video file
             if any(os.path.splitext(file)[1].lower() in PHOTO_EXT or os.path.splitext(file)[1].lower() in VIDEO_EXT for file in files):
                 valid_albums += 1
         return valid_albums
+
 
 
 def fix_symlinks_broken(input_folder, step_name="", log_level=logging.INFO):
@@ -1788,6 +1857,8 @@ def fix_symlinks_broken(input_folder, step_name="", log_level=logging.INFO):
             file_index = {}
             # Contar el total de carpetas
             total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
+            if total_files == 0:
+                return file_index
             # Mostrar la barra de progreso basada en carpetas
             with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Building Index files in '{input_folder}'", unit=" files") as pbar:
                 for path, _, files in os.walk(input_folder):
@@ -1832,6 +1903,8 @@ def fix_symlinks_broken(input_folder, step_name="", log_level=logging.INFO):
         # Step 2: Search for broken symbolic links and fix them using the index
         already_warned = False
         total_files = sum([len(files) for _, _, files in os.walk(input_folder)]) # Contar el total de carpetas
+        if total_files ==0:
+            corrected_count, failed_count
         with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing Symbolic Links in '{input_folder}'", unit=" files") as pbar: # Mostrar la barra de progreso basada en carpetas
             for path, _, files in os.walk(input_folder):
                 for file in files:
