@@ -38,23 +38,24 @@ PhotoMigrator.run --source=synology-1 --target=immich-1 --parallel-migration=fal
 ## ⚙️ General Options
 Following general arguments have different purposses depending on the Execution Mode.
 
-| Argument                                | Parameter         |  Type  |                  Valid Values                   | Description                                             |
-|-----------------------------------------|-------------------|:------:|:-----------------------------------------------:|---------------------------------------------------------|
-| `-i`,<br>`--input-folder`               | `<INPUT_FOLDER>`  |  path  |                 `existing path`                 | Folder containing assets to be processed.               |
-| `-o`,<br>`--output-folder`              | `<OUTPUT_FOLDER>` |  path  |                  `valid path`                   | Folder where processed assets or results will be saved. |
-| `-client`,<br>`--client`                | `<CLIENT>`        | string | `google-takeout`, <br>`synology`, <br>`immich`  | Specifies the service to interact with.                 |
-| `-id`,<br>`--account-id`                | `<ID>`            |  int   |        `1`, `2`, `3` <br>`(default: 1)`         | ID of the configured account in Config.ini.             |
-| `-OTP`,<br>`--one-time-password`        |                   |  flag  |                                                 | Enables / Disables OTP login for Synology (2FA).        |
-| `-from`,<br>`--filter-from-date`        | `<FROM_DATE>`     |  date  |     `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets from this date onward.                   |
-| `-to`,<br>`--filter-to-date`            | `<TO_DATE>`       |  date  |     `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets up to this date.                         |
-| `-country`,<br>`--filter-by-country`    | `<COUNTRY>`       | string |                 `country-name`                  | Filters assets by country.                              |
-| `-city`,<br>`--filter-by-city`          | `<CITY>`          | string |                   `city-name`                   | Filters assets by city.                                 |
-| `-person`,<br>`--filter-by-person`      | `<PERSON>`        | string |                  `person-name`                  | Filters assets by person name.                          |
-| `-type`,<br>`--filter-by-type`          | `<TYPE>`          | string |  `image`, `video`, `all` <br>`(default: all)`   | Filters assets by type.                                 |
-| `-AlbFld`,<br>`--albums-folders`        | `<ALBUMS_FOLDER>` |  path  |                 `existing path`                 | Creates albums for subfolders inside.                   |
-| `-rAlbAss`,<br>`--remove-albums-assets` |                   |  flag  |                                                 | Removes assets inside albums when albums are removed.   |
-| `-nolog`,<br>`--no-log-file`            |                   |  flag  |                                                 | Disables writing to log file.                           |
-| `-loglevel`,<br>`--log-level`           | `<LEVEL>`         | string | `debug`, <br>`info`, <br>`warning`, <br>`error` | Sets logging verbosity.                                 |
+| Argument                                   | Parameter         |  Type  |                  Valid Values                   | Description                                             |
+|--------------------------------------------|-------------------|:------:|:-----------------------------------------------:|---------------------------------------------------------|
+| `-i`,<br>`--input-folder`                  | `<INPUT_FOLDER>`  |  path  |                 `existing path`                 | Folder containing assets to be processed.               |
+| `-o`,<br>`--output-folder`                 | `<OUTPUT_FOLDER>` |  path  |                  `valid path`                   | Folder where processed assets or results will be saved. |
+| `-client`,<br>`--client`                   | `<CLIENT>`        | string | `google-takeout`, <br>`synology`, <br>`immich`  | Specifies the service to interact with.                 |
+| `-id`,<br>`--account-id`                   | `<ID>`            |  int   |        `1`, `2`, `3` <br>`(default: 1)`         | ID of the configured account in Config.ini.             |
+| `-skipConf`,<br>`--skip-user-confirmation` |                   |  flag  |                                                 | Skip User Confirmation before to execute any Feature.   |
+| `-OTP`,<br>`--one-time-password`           |                   |  flag  |                                                 | Enables / Disables OTP login for Synology (2FA).        |
+| `-from`,<br>`--filter-from-date`           | `<FROM_DATE>`     |  date  |     `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets from this date onward.                   |
+| `-to`,<br>`--filter-to-date`               | `<TO_DATE>`       |  date  |     `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets up to this date.                         |
+| `-country`,<br>`--filter-by-country`       | `<COUNTRY>`       | string |                 `country-name`                  | Filters assets by country.                              |
+| `-city`,<br>`--filter-by-city`             | `<CITY>`          | string |                   `city-name`                   | Filters assets by city.                                 |
+| `-person`,<br>`--filter-by-person`         | `<PERSON>`        | string |                  `person-name`                  | Filters assets by person name.                          |
+| `-type`,<br>`--filter-by-type`             | `<TYPE>`          | string |  `image`, `video`, `all` <br>`(default: all)`   | Filters assets by type.                                 |
+| `-AlbFld`,<br>`--albums-folders`           | `<ALBUMS_FOLDER>` |  path  |                 `existing path`                 | Creates albums for subfolders inside.                   |
+| `-rAlbAss`,<br>`--remove-albums-assets`    |                   |  flag  |                                                 | Removes assets inside albums when albums are removed.   |
+| `-nolog`,<br>`--no-log-file`               |                   |  flag  |                                                 | Disables writing to log file.                           |
+| `-loglevel`,<br>`--log-level`              | `<LEVEL>`         | string | `debug`, <br>`info`, <br>`warning`, <br>`error` | Sets logging verbosity.                                 |
 
 #### 🧪 Examples:
 ```bash
