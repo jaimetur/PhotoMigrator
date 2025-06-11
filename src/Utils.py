@@ -305,32 +305,6 @@ def delete_folder(folder_path):
     print(f"Deleted folder and contents: {folder_path}")
 
 
-def delete_subfolders(input_folder, folder_name_to_delete, log_level=logging.INFO):
-    """
-    Deletes all subdirectories (and their contents) inside the given base directory and all its subdirectories,
-    whose names match dir_name_to_delete, including hidden directories.
-
-    Args:
-        input_folder (str, Path): The path to the base directory to start the search from.
-        folder_name_to_delete (str): The name of the subdirectories to delete.
-    """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Contar el total de carpetas
-        total_dirs = sum([len(dirs) for _, dirs, _ in os.walk(input_folder)])
-        # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_dirs, smoothing=0.1, desc=f"INFO    : [Subfolders Deletion: {folder_name_to_delete}] : Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
-            for path, dirs, files in os.walk(input_folder, topdown=False):
-                for folder in dirs:
-                    pbar.update(1)
-                    if folder == folder_name_to_delete:
-                        dir_path = os.path.join(path, folder)
-                        try:
-                            shutil.rmtree(dir_path)
-                            # LOGGER.info(f"INFO    : Deleted directory: {dir_path}")
-                        except Exception as e:
-                            LOGGER.error(f"ERROR   : [Subfolders Deletion: {folder_name_to_delete}] : Error deleting {dir_path}: {e}")
-
-
 def remove_empty_dirs(input_folder, log_level=logging.INFO):
     """
     Remove empty directories recursively.
@@ -1208,17 +1182,15 @@ def get_subfolders_with_exclusions(input_folder, exclude_subfolder=None):
     return subfolders
 
 
-
-
-
 # ---------------------------------------------------------------------------------------------------------------------------
-# GOOGLE TAKEOUT PRE-PROCESSING FUNCTIONS:
+# GOOGLE TAKEOUT PRE-CHECKS FUNCTIONS:
 # ---------------------------------------------------------------------------------------------------------------------------
 def unpack_zips(zip_folder, takeout_folder, log_level=logging.INFO):
     """ Unzips all ZIP files from a folder into another """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        PRECHECK_STEP_NAME = '[CHECKS]-[Check Takeout Structure]'
         if not os.path.exists(zip_folder):
-            LOGGER.error(f"ERROR   : ZIP folder '{zip_folder}' does not exist.")
+            LOGGER.error(f"ERROR   : {PRECHECK_STEP_NAME} : ZIP folder '{zip_folder}' does not exist.")
             return
         os.makedirs(takeout_folder, exist_ok=True)
         for zip_file in os.listdir(zip_folder):
@@ -1226,10 +1198,10 @@ def unpack_zips(zip_folder, takeout_folder, log_level=logging.INFO):
                 zip_path = os.path.join(zip_folder, zip_file)
                 try:
                     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                        LOGGER.info(f"INFO    : Unzipping: {zip_file}")
+                        LOGGER.info(f"INFO    : {PRECHECK_STEP_NAME} : Unzipping: {zip_file}")
                         zip_ref.extractall(takeout_folder)
                 except zipfile.BadZipFile:
-                    LOGGER.error(f"ERROR   : Could not unzip file: {zip_file}")
+                    LOGGER.error(f"ERROR   : {PRECHECK_STEP_NAME} : Could not unzip file: {zip_file}")
 
 
 def contains_takeout_structure(input_folder, log_level=logging.INFO):
@@ -1238,8 +1210,9 @@ def contains_takeout_structure(input_folder, log_level=logging.INFO):
     This can reduce overhead in large, nested folder structures.
     """
     with set_log_level(LOGGER, log_level):
+        PRECHECK_STEP_NAME = '[CHECKS]-[Check Takeout Structure]'
         LOGGER.info("")
-        LOGGER.info("INFO    : Searching Google Takeout structure in input folder...")
+        LOGGER.info(f"INFO    : {PRECHECK_STEP_NAME} : Looking for Google Takeout structure in input folder...")
         stack = [input_folder]
         while stack:
             current = stack.pop()
@@ -1250,15 +1223,44 @@ def contains_takeout_structure(input_folder, log_level=logging.INFO):
                             name = entry.name
                             if name.startswith("Photos from ") and name[12:16].isdigit():
                                 # LOGGER.info(f"INFO    : Found Takeout structure in folder: {entry.path}")
-                                LOGGER.info(f"INFO    : Found Takeout structure in folder: {current}")
+                                LOGGER.info(f"INFO    : {PRECHECK_STEP_NAME} : Found Takeout structure in folder: {current}")
                                 return True
                             stack.append(entry.path)
             except PermissionError:
-                LOGGER.warning(f"WARNING : Permission denied accessing: {current}")
+                LOGGER.warning(f"WARNING : {PRECHECK_STEP_NAME} : Permission denied accessing: {current}")
             except Exception as e:
-                LOGGER.warning(f"WARNING : Error scanning {current}: {e}")
-        LOGGER.info(f"INFO    : No Takeout structure found in input folder.")
+                LOGGER.warning(f"WARNING : {PRECHECK_STEP_NAME} : Error scanning {current}: {e}")
+        LOGGER.info(f"INFO    : {PRECHECK_STEP_NAME} : No Takeout structure found in input folder.")
         return False
+
+# ---------------------------------------------------------------------------------------------------------------------------
+# GOOGLE TAKEOUT PRE-PROCESSING FUNCTIONS:
+# ---------------------------------------------------------------------------------------------------------------------------
+def delete_subfolders(input_folder, folder_name_to_delete, log_level=logging.INFO):
+    """
+    Deletes all subdirectories (and their contents) inside the given base directory and all its subdirectories,
+    whose names match dir_name_to_delete, including hidden directories.
+
+    Args:
+        input_folder (str, Path): The path to the base directory to start the search from.
+        folder_name_to_delete (str): The name of the subdirectories to delete.
+    """
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        PREPROCESS_STEP_NAME = '[PRE]-[Clean Takeout Folder]'
+        # Contar el total de carpetas
+        total_dirs = sum([len(dirs) for _, dirs, _ in os.walk(input_folder)])
+        # Mostrar la barra de progreso basada en carpetas
+        with tqdm(total=total_dirs, smoothing=0.1, desc=f"INFO    : {PREPROCESS_STEP_NAME} : Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
+            for path, dirs, files in os.walk(input_folder, topdown=False):
+                for folder in dirs:
+                    pbar.update(1)
+                    if folder == folder_name_to_delete:
+                        dir_path = os.path.join(path, folder)
+                        try:
+                            shutil.rmtree(dir_path)
+                            # LOGGER.info(f"INFO    : Deleted directory: {dir_path}")
+                        except Exception as e:
+                            LOGGER.error(f"ERROR   : {PREPROCESS_STEP_NAME} : Error deleting {dir_path}: {e}")
 
 
 def fix_mp4_files(input_folder, log_level=logging.INFO):
@@ -1272,7 +1274,7 @@ def fix_mp4_files(input_folder, log_level=logging.INFO):
         log_level (int): Logging level (e.g., logging.INFO, logging.DEBUG).
     """
     with set_log_level(LOGGER, log_level):  # Set desired log level
-        PREPROCESS_STEP_NAME = '[PRE: MP4 Fixer]'
+        PREPROCESS_STEP_NAME = '[PRE]-[MP4 Fixer]'
         # Count total .mp4 files for progress bar
         all_mp4_files = []
         for _, _, files in os.walk(input_folder, topdown=True):
@@ -1331,7 +1333,7 @@ def fix_special_suffixes(input_folder, log_level=logging.INFO):
         log_level (str): Logging level to use within this function's context.
     """
     with set_log_level(LOGGER, log_level):  # Temporarily set the desired log level
-        PREPROCESS_STEP_NAME = '[PRE: Special Suffix Fixer]'
+        PREPROCESS_STEP_NAME = '[PRE]-[Special Suffix Fixer]'
         # Count all files to initialize the progress bar
         special_files = []
         for _, _, files in os.walk(input_folder, topdown=True):
@@ -1380,7 +1382,7 @@ def fix_special_suffixes(input_folder, log_level=logging.INFO):
                                 new_path = os.path.join(path, new_filename)
                                 if old_path != new_path:
                                     os.rename(old_path, new_path)
-                                    LOGGER.info(f"INFO    : {PREPROCESS_STEP_NAME} : Renamed: {file} → {new_filename}")
+                                    LOGGER.info(f"INFO    : {PREPROCESS_STEP_NAME} : Fixed: {file} → {new_filename}")
                                     changed = True
                                 break
                         if changed:
@@ -1400,7 +1402,7 @@ def fix_truncated_extensions(input_folder, log_level=logging.INFO):
         log_level (int): Logging level (e.g., logging.INFO, logging.DEBUG).
     """
     with set_log_level(LOGGER, log_level):
-        PREPROCESS_STEP_NAME = '[PRE: Extensions Fixer]'
+        PREPROCESS_STEP_NAME = '[PRE]-[Extensions Fixer]'
         # Count total files for progress bar
         total_files = sum(len(files) for _, _, files in os.walk(input_folder))
         with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {PREPROCESS_STEP_NAME} : Fixing Truncated extensions in JSON files within '{input_folder}'", unit=" files") as pbar:
@@ -1459,7 +1461,7 @@ def fix_truncated_extensions(input_folder, log_level=logging.INFO):
                         LOGGER.warning(f"WARNING : {PREPROCESS_STEP_NAME} : Destination already exists: {new_json_path}")
                     else:
                         os.rename(json_path, new_json_path)
-                        LOGGER.info(f"INFO    : {PREPROCESS_STEP_NAME} : Renamed {json_file} → {new_json_name}")
+                        LOGGER.info(f"INFO    : {PREPROCESS_STEP_NAME} : Fixed {json_file} → {new_json_name}")
                     pbar.update(1)
 
 
@@ -1472,7 +1474,7 @@ def sync_mp4_timestamps_with_images(input_folder, log_level=logging.INFO):
     If found, then set the date and time of the .MP4 file to the same date and time of the original Live Picture.
     """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        POSTPROCESS_STEP_NAME = '[POST: MP4 Timestamp Synch]'
+        POSTPROCESS_STEP_NAME = '[POST]-[MP4 Timestamp Synch]'
         # Contar el total de carpetas
         total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
         # Mostrar la barra de progreso basada en carpetas
@@ -1539,7 +1541,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, log_level=loggi
     :return: None
     """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        POSTPROCESS_STEP_NAME = '[POST: Copy/Move]'
+        POSTPROCESS_STEP_NAME = '[POST]-[Copy/Move]'
         # Ignore function
         action = 'Moving' if move else 'Copying'
         try:
@@ -1629,7 +1631,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log
             pass
         return None
     with set_log_level(LOGGER, log_level):
-        POSTPROCESS_STEP_NAME = '[POST: Create year/month struct]'
+        POSTPROCESS_STEP_NAME = '[POST]-[Create year/month struct]'
         if type not in ['year', 'year/month', 'year-month']:
             raise ValueError(f"{POSTPROCESS_STEP_NAME} : The 'type' parameter must be 'year', 'year/month' or 'year-month'.")
         total_files = 0
@@ -1684,7 +1686,7 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None,
     """
     # Ensure exclude_subfolder is a list, even if a single string is passed
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        POSTPROCESS_STEP_NAME = '[POST: Move Albums]'
+        POSTPROCESS_STEP_NAME = '[POST]-[Move Albums]'
         def safe_move(folder_path, albums_path):
             destination = os.path.join(albums_path, os.path.basename(folder_path))
             if os.path.exists(destination):
@@ -1716,7 +1718,7 @@ def move_albums_to_root(albums_root, log_level=logging.INFO):
     directly into the 'Albums' folder, removing unnecessary intermediate folders.
     """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        POSTPROCESS_STEP_NAME = '[POST: Move Albums]'
+        POSTPROCESS_STEP_NAME = '[POST]-[Move Albums]'
         possible_google_folders = ["Google Fotos", "Google Photos"]
         takeout_path = os.path.join(albums_root, "Takeout")
         # Check if 'Takeout' exists
@@ -1784,7 +1786,7 @@ def fix_symlinks_broken(input_folder, log_level=logging.INFO):
     :param input_folder: Path (relative or absolute) to the main directory where the links should be searched and fixed.
     :return: A tuple containing the number of corrected symlinks and the number of symlinks that could not be corrected.
     """
-    POSTPROCESS_STEP_NAME = '[POST: Fix Symlinks]'
+    POSTPROCESS_STEP_NAME = '[POST]-[Fix Symlinks]'
     # ===========================
     # AUX FUNCTIONS
     # ===========================
@@ -1871,7 +1873,7 @@ def fix_symlinks_broken(input_folder, log_level=logging.INFO):
 
 
 def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_range='complete', log_level=logging.INFO):
-    POSTPROCESS_STEP_NAME = '[POST: Album Renaming]'
+    POSTPROCESS_STEP_NAME = '[POST]-[Album Renaming]'
     # ===========================
     # AUXILIARY FUNCTIONS
     # ===========================
