@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 from dateutil import parser as date_parser
 from tqdm import tqdm as original_tqdm
 from CustomLogger import LoggerConsoleTqdm
-from GlobalVariables import LOGGER, ARGS, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, SPECIAL_SUFFIXES
+from GlobalVariables import LOGGER, ARGS, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES
 
 # Crear instancia global del wrapper
 TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
@@ -289,98 +289,6 @@ def unpack_zips(zip_folder, takeout_folder, log_level=logging.INFO):
                 except zipfile.BadZipFile:
                     LOGGER.error(f"ERROR   : Could not unzip file: {zip_file}")
                 
-
-def fix_mp4_files(input_folder, log_level=logging.INFO):
-    """
-    Look for all .MP4 files that have the same name of any Live picture and is in the same folder.
-    If found any, then copy the .json file of the original Live picture and change its name to the name of the .MP4 file
-    """
-    # Traverse all subdirectories in the input folder
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Contar el total de carpetas
-        mp4_files = []
-        for _, _, files in os.walk(input_folder, topdown=True):
-            for file in files:
-                if file.lower().endswith('.mp4'):
-                    mp4_files.append(file)
-        total_files = len(mp4_files)
-        # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : [MP4 Fixer] : Fixing .MP4 files in '{input_folder}'", unit=" files") as pbar:
-            for path, _, files in os.walk(input_folder):
-                # Filter files with .mp4 extension (case-insensitive)
-                mp4_files = [f for f in files if f.lower().endswith('.mp4')]
-                for mp4_file in mp4_files:
-                    pbar.update(1)
-                    # Get the base name of the MP4 file (without extension)
-                    mp4_base_name = os.path.splitext(mp4_file)[0]
-    
-                    # Define possible JSON extensions (case-insensitive)
-                    json_extensions = ['.heic.json', '.jpg.json', '.jpeg.json']
-                    # Search for JSON files with the same base name but ignoring case for the extension
-                    for ext in json_extensions:
-                        json_file_candidates = [
-                            f for f in files
-                            if f.startswith(mp4_base_name) and f.lower().endswith(ext.lower())
-                        ]
-                        for json_file in json_file_candidates:
-                            json_path = os.path.join(path, json_file)
-                            # Generate the new name for the duplicated file
-                            new_json_name = f"{mp4_file}.json"
-                            new_json_path = os.path.join(path, new_json_name)
-                            # Check if the target file already exists to avoid overwriting
-                            if not os.path.exists(new_json_path):
-                                # Copy the original JSON file to the new file
-                                shutil.copy(json_path, new_json_path)
-                                LOGGER.debug(f"DEBUG   : [MP4 Fixer] : Fixed: {json_path} -> {new_json_path}")
-                            else:
-                                pass
-                                LOGGER.debug(f"DEBUG   : [MP4 Fixer] : Skipped: {new_json_path} already exists")
-
-
-def sync_mp4_timestamps_with_images(input_folder, log_level=logging.INFO):
-    """
-    Look for .MP4 files with the same name of any Live Picture file (.HEIC, .JPG, .JPEG) in the same folder.
-    If found, then set the date and time of the .MP4 file to the same date and time of the original Live Picture.
-    """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Contar el total de carpetas
-        total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
-        # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : [MP4 Fixer] : Synchronizing .MP4 files with Live Pictures in '{input_folder}'", unit=" files") as pbar:
-            for path, _, files in os.walk(input_folder):
-                # Crear un diccionario que mapea nombres base a extensiones y nombres de archivos
-                file_dict = {}
-                for filename in files:
-                    pbar.update(1)
-                    name, ext = os.path.splitext(filename)
-                    base_name = name.lower()
-                    ext = ext.lower()
-                    if base_name not in file_dict:
-                        file_dict[base_name] = {}
-                    file_dict[base_name][ext] = filename  # Guardar el nombre original del archivo
-                for base_name, ext_file_map in file_dict.items():
-                    if '.mp4' in ext_file_map:
-                        mp4_filename = ext_file_map['.mp4']
-                        mp4_file_path = os.path.join(path, mp4_filename)
-                        # Buscar si existe un archivo .heic, .jpg o .jpeg con el mismo nombre
-                        image_exts = ['.heic', '.jpg', '.jpeg']
-                        image_file_found = False
-                        for image_ext in image_exts:
-                            if image_ext in ext_file_map:
-                                image_filename = ext_file_map[image_ext]
-                                image_file_path = os.path.join(path, image_filename)
-                                # Obtener los tiempos de acceso y modificación del archivo de imagen
-                                image_stats = os.stat(image_file_path)
-                                atime = image_stats.st_atime  # Tiempo de último acceso
-                                mtime = image_stats.st_mtime  # Tiempo de última modificación
-                                # Aplicar los tiempos al archivo .MP4
-                                os.utime(mp4_file_path, (atime, mtime))
-                                LOGGER.debug(f"DEBUG   : [MP4 Fixer] : Date and time attributes synched for: {os.path.relpath(mp4_file_path,input_folder)} using:  {os.path.relpath(image_file_path,input_folder)}")
-                                image_file_found = True
-                                break  # Salir después de encontrar el primer archivo de imagen disponible
-                        if not image_file_found:
-                            #LOGGER.warning(f"WARNING : Cannot find Live picture file to sync with: {os.path.relpath(mp4_file_path,input_folder)}")
-                            pass
 
 def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log_level=logging.INFO):
     """
@@ -2044,26 +1952,229 @@ def get_subfolders_with_exclusions(input_folder, exclude_subfolder=None):
     return subfolders
 
 
-def complete_special_suffixes(input_folder, log_level=logging.INFO):
+# def fix_mp4_files(input_folder, log_level=logging.INFO):
+#     """
+#     Look for all .MP4 files that have the same name of any Live picture and is in the same folder.
+#     If found any, then copy the .json file of the original Live picture and change its name to the name of the .MP4 file
+#     """
+#     # Traverse all subdirectories in the input folder
+#     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+#         # Contar el total de carpetas
+#         mp4_files = []
+#         for _, _, files in os.walk(input_folder, topdown=True):
+#             for file in files:
+#                 if file.lower().endswith('.mp4'):
+#                     mp4_files.append(file)
+#         total_files = len(mp4_files)
+#         # Mostrar la barra de progreso basada en carpetas
+#         with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : [MP4 Fixer] : Fixing .MP4 files in '{input_folder}'", unit=" files") as pbar:
+#             for path, _, files in os.walk(input_folder):
+#                 # Filter files with .mp4 extension (case-insensitive)
+#                 mp4_files = [f for f in files if f.lower().endswith('.mp4')]
+#                 for mp4_file in mp4_files:
+#                     pbar.update(1)
+#                     # Get the base name of the MP4 file (without extension)
+#                     mp4_base_name = os.path.splitext(mp4_file)[0]
+#
+#                     # Define possible JSON extensions (case-insensitive)
+#                     json_extensions = ['.heic.json', '.jpg.json', '.jpeg.json']
+#                     # json_extensions = ['.heic.json', '.jpg.json', '.jpeg.json', '.heic.supplemental-metadata.json', '.jpg.supplemental-metadata.json', '.jpeg.supplemental-metadata.json']
+#                     # Search for JSON files with the same base name but ignoring case for the extension
+#                     for ext in json_extensions:
+#                         json_file_candidates = [
+#                             f for f in files
+#                             if f.startswith(mp4_base_name) and f.lower().endswith(ext.lower())
+#                         ]
+#                         for json_file in json_file_candidates:
+#                             json_path = os.path.join(path, json_file)
+#                             # Generate the new name for the duplicated file
+#                             new_json_name = f"{mp4_file}.json"
+#                             new_json_path = os.path.join(path, new_json_name)
+#                             # Check if the target file already exists to avoid overwriting
+#                             if not os.path.exists(new_json_path):
+#                                 # Copy the original JSON file to the new file
+#                                 shutil.copy(json_path, new_json_path)
+#                                 LOGGER.debug(f"DEBUG   : [MP4 Fixer] : Fixed: {json_path} -> {new_json_path}")
+#                             else:
+#                                 pass
+#                                 LOGGER.debug(f"DEBUG   : [MP4 Fixer] : Skipped: {new_json_path} already exists")
+
+
+# def fix_mp4_files(input_folder, log_level=logging.INFO):
+#     """
+#     Look for all .MP4 files that have the same base name as any Live Picture in the same folder.
+#     If found, copy the associated .json file (including those with '.supplemental-metadata' or a truncated version)
+#     and rename it to match the MP4 file.
+#
+#     Args:
+#         input_folder (str): The root folder to scan.
+#         log_level (int): Logging level (e.g., logging.INFO, logging.DEBUG).
+#     """
+#     with set_log_level(LOGGER, log_level):  # Set desired log level
+#         # Count total .mp4 files for progress bar
+#         mp4_files = []
+#         for _, _, files in os.walk(input_folder, topdown=True):
+#             for file in files:
+#                 if file.lower().endswith('.mp4'):
+#                     mp4_files.append(file)
+#         total_files = len(mp4_files)
+#         # Mostrar la barra de progreso basada en carpetas
+#         with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : [MP4 Fixer] : Fixing .MP4 files in '{input_folder}'", unit=" files") as pbar:
+#             for path, _, files in os.walk(input_folder):
+#                 # Filter files with .mp4 extension (case-insensitive)
+#                 mp4_files = [f for f in files if f.lower().endswith('.mp4')]
+#                 for mp4_file in mp4_files:
+#                     pbar.update(1)
+#                     # Get the base name of the MP4 file (without extension)
+#                     mp4_base = os.path.splitext(mp4_file)[0]
+#
+#                     # Build a regex pattern to match:
+#                     # IMG_1094.HEIC(.supplemental-metadata)?.json
+#                     # Define possible JSON extensions (case-insensitive)
+#                     json_pattern = re.compile(
+#                         re.escape(mp4_base) + r'\.(heic|jpg|jpeg)(\.supplemental-metadata[^\s]*)?\.json',
+#                         flags=re.IGNORECASE
+#                     )
+#                     # Search for JSON files with the same base name but ignoring case for the extension
+#                     for f in files:
+#                         if json_pattern.fullmatch(f):
+#                             json_path = os.path.join(path, f)
+#                             # Generate the new name for the duplicated file
+#                             new_json_name = f"{mp4_file}.json"
+#                             new_json_path = os.path.join(path, new_json_name)
+#                             # Check if the target file already exists to avoid overwriting
+#                             if not os.path.exists(new_json_path):
+#                                 # Copy the original JSON file to the new file
+#                                 shutil.copy(json_path, new_json_path)
+#                                 LOGGER.info(f"DEBUG   : [MP4 Fixer] : Fixed: {json_path} -> {new_json_path}")
+#                             else:
+#                                 LOGGER.info(f"DEBUG   : [MP4 Fixer] : Skipped: {new_json_path} already exists")
+
+
+def fix_mp4_files(input_folder, log_level=logging.INFO):
+    """
+    Look for all .MP4 files that have the same base name as any Live Picture in the same folder.
+    If found, copy the associated .json file (including those with a truncated '.supplemental-metadata')
+    and rename it to match the .MP4 file, completing the truncated suffix if necessary.
+
+    Args:
+        input_folder (str): The root folder to scan.
+        log_level (int): Logging level (e.g., logging.INFO, logging.DEBUG).
+    """
+    with set_log_level(LOGGER, log_level):  # Set desired log level
+        # Count total .mp4 files for progress bar
+        all_mp4_files = []
+        for _, _, files in os.walk(input_folder, topdown=True):
+            for file in files:
+                if file.lower().endswith('.mp4'):
+                    all_mp4_files.append(file)
+        total_files = len(all_mp4_files)
+        # Mostrar la barra de progreso basada en carpetas
+        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : [MP4 Fixer] : Fixing .MP4 files in '{input_folder}'", unit=" files") as pbar:
+            for path, _, files in os.walk(input_folder):
+                # Filter files with .mp4 extension (case-insensitive)
+                mp4_files = [f for f in files if f.lower().endswith('.mp4')]
+
+                for mp4_file in mp4_files:
+                    pbar.update(1)
+                    # Get the base name of the MP4 file (without extension)
+                    mp4_base = os.path.splitext(mp4_file)[0]
+
+                    # Search for JSON files with the same base name but ignoring case for the extension
+                    for candidate in files:
+                        if not candidate.lower().endswith('.json'):
+                            continue
+                        candidate_path = os.path.join(path, candidate)
+                        candidate_no_ext = candidate[:-5]  # Remove .json
+                        # Build a regex pattern to match: (i.e: IMG_1094.HEIC(.supplemental-metadata)?.json)
+                        match = re.match(rf'({re.escape(mp4_base)}\.(heic|jpg|jpeg))(\.supplemental-metadata.*)?$', candidate_no_ext, re.IGNORECASE)
+                        if match:
+                            base_part = match.group(1)
+                            suffix = match.group(3) or ''
+                            # Check if it's a truncated version of '.supplemental-metadata'
+                            if suffix and not suffix.lower().startswith('.supplemental-metadata'):
+                                # Try to match a valid truncation
+                                for i in range(2, len('.supplemental-metadata') + 1):
+                                    if suffix.lower() == '.supplemental-metadata'[:i]:
+                                        suffix = '.supplemental-metadata'
+                                        break
+                            # Generate the new name for the duplicated file
+                            new_json_name = f"{mp4_file}{suffix}.json"
+                            new_json_path = os.path.join(path, new_json_name)
+                            # Check if the target file already exists to avoid overwriting
+                            if not os.path.exists(new_json_path):
+                                # Copy the original JSON file to the new file
+                                shutil.copy(candidate_path, new_json_path)
+                                LOGGER.info(f"INFO    : [MP4 Fixer] : Fixed: {candidate} -> {new_json_name}")
+                            else:
+                                LOGGER.info(f"INFO    : [MP4 Fixer] : Skipped: {new_json_name} already exists")
+
+
+def sync_mp4_timestamps_with_images(input_folder, log_level=logging.INFO):
+    """
+    Look for .MP4 files with the same name of any Live Picture file (.HEIC, .JPG, .JPEG) in the same folder.
+    If found, then set the date and time of the .MP4 file to the same date and time of the original Live Picture.
+    """
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        # Contar el total de carpetas
+        total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
+        # Mostrar la barra de progreso basada en carpetas
+        with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : [MP4 Fixer] : Synchronizing .MP4 files with Live Pictures in '{input_folder}'", unit=" files") as pbar:
+            for path, _, files in os.walk(input_folder):
+                # Crear un diccionario que mapea nombres base a extensiones y nombres de archivos
+                file_dict = {}
+                for filename in files:
+                    pbar.update(1)
+                    name, ext = os.path.splitext(filename)
+                    base_name = name.lower()
+                    ext = ext.lower()
+                    if base_name not in file_dict:
+                        file_dict[base_name] = {}
+                    file_dict[base_name][ext] = filename  # Guardar el nombre original del archivo
+                for base_name, ext_file_map in file_dict.items():
+                    if '.mp4' in ext_file_map:
+                        mp4_filename = ext_file_map['.mp4']
+                        mp4_file_path = os.path.join(path, mp4_filename)
+                        # Buscar si existe un archivo .heic, .jpg o .jpeg con el mismo nombre
+                        image_exts = ['.heic', '.jpg', '.jpeg']
+                        image_file_found = False
+                        for image_ext in image_exts:
+                            if image_ext in ext_file_map:
+                                image_filename = ext_file_map[image_ext]
+                                image_file_path = os.path.join(path, image_filename)
+                                # Obtener los tiempos de acceso y modificación del archivo de imagen
+                                image_stats = os.stat(image_file_path)
+                                atime = image_stats.st_atime  # Tiempo de último acceso
+                                mtime = image_stats.st_mtime  # Tiempo de última modificación
+                                # Aplicar los tiempos al archivo .MP4
+                                os.utime(mp4_file_path, (atime, mtime))
+                                LOGGER.debug(f"DEBUG   : [MP4 Fixer] : Date and time attributes synched for: {os.path.relpath(mp4_file_path,input_folder)} using:  {os.path.relpath(image_file_path,input_folder)}")
+                                image_file_found = True
+                                break  # Salir después de encontrar el primer archivo de imagen disponible
+                        if not image_file_found:
+                            #LOGGER.warning(f"WARNING : Cannot find Live picture file to sync with: {os.path.relpath(mp4_file_path,input_folder)}")
+                            pass
+
+
+def fix_special_suffixes(input_folder, log_level=logging.INFO):
     """
     Recursively traverses a folder and its subdirectories, renaming files whose names
     end with a partial match of any suffix in SPECIAL_SUFFIXES (before the extension or a numbered copy).
-    Ignores any file with a .json extension. Progress is tracked using a progress bar based on total non-JSON files.
+    If a filename includes a truncated '.supplemental-metadata' suffix, it completes it instead.
+    Ignores any file with a .json extension.
 
     Args:
         input_folder (str): Path to the folder to be scanned and processed.
         log_level (str): Logging level to use within this function's context.
-
-    Returns:
-        None
     """
+
     with set_log_level(LOGGER, log_level):  # Temporarily set the desired log level
-        # Count all non-JSON files to initialize the progress bar
+        # Count all files to initialize the progress bar
         special_files = []
         for _, _, files in os.walk(input_folder, topdown=True):
-            for file in files:
-                special_files.append(file)
+            special_files.extend(files)
         total_files = len(special_files)
+
         # Start progress bar
         with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : [Special Suffix Fixer] : Fixing Truncated Special Suffixes in '{input_folder}'", unit=" files") as pbar:
             for path, _, files in os.walk(input_folder):
@@ -2071,9 +2182,31 @@ def complete_special_suffixes(input_folder, log_level=logging.INFO):
                     old_path = os.path.join(path, file)
                     name, ext = os.path.splitext(file)
                     changed = False
-                    # Check if filename ends with a partial suffix match
+
+                    # 1. Detect and complete truncated .supplemental-metadata (before .json or other extensions)
+                    if ext.lower() == '.json':
+                        for i in range(len(SUPPLEMENTAL_METADATA), 1, -1):
+                            trunc = SUPPLEMENTAL_METADATA[:i]
+                            if name.lower().endswith(trunc.lower()):
+                                corrected_name = name[:-len(trunc)] + SUPPLEMENTAL_METADATA
+                                new_filename = corrected_name + ext
+                                new_path = os.path.join(path, new_filename)
+                                if old_path != new_path:
+                                    os.rename(old_path, new_path)
+                                    LOGGER.info(f"INFO    : [Special Suffix Fixer] : Completed: {file} → {new_filename}")
+                                changed = True
+                                break
+                        if changed:
+                            pbar.update(1)
+                            continue  # Do not apply other renaming logic if this case matched
+
+                    # 2. Apply SPECIAL_SUFFIXES completion logic (skip .json files)
+                    if ext.lower() == '.json':
+                        pbar.update(1)
+                        continue
+
                     for sufijo in SPECIAL_SUFFIXES:
-                        for i in range(2, len(sufijo) + 1):  # Start from 2 to include hyphen and at least one letter
+                        for i in range(2, len(sufijo) + 1):
                             sub = sufijo[:i]
                             optional_counter = r'(?:\(\d+\))?'
                             if re.search(re.escape(sub) + optional_counter + re.escape(ext) + r'$', file, flags=re.IGNORECASE):
@@ -2094,4 +2227,147 @@ def complete_special_suffixes(input_folder, log_level=logging.INFO):
                         if changed:
                             break
                     pbar.update(1)
+
+
+# def fix_truncated_extensions(input_folder, log_level=logging.INFO):
+#     """
+#     Recursively traverses a directory and fixes .ext.json files that were created with truncated extensions.
+#     It does this by matching the base name (excluding known suffixes) with exact matches in the same folder,
+#     and only renames if the .ext portion of the .json does not correspond to any existing real file extension.
+#
+#     Args:
+#         input_folder (str): Path to the root directory to be scanned.
+#         log_level (int): Logging level (e.g., logging.INFO, logging.DEBUG).
+#     """
+#     with set_log_level(LOGGER, log_level):  # Temporarily set the desired log level
+#         # Count all files to initialize the progress bar
+#         all_files = []
+#         for _, _, files in os.walk(input_folder, topdown=True):
+#             all_files.extend(files)
+#         total_files = len(all_files)
+#         # Start progress bar
+#         with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : [Extensions Fixer] : Fixing Truncated extensions in JSON files within '{input_folder}'", unit=" files") as pbar:
+#             for root, _, files in os.walk(input_folder):
+#                 json_files = [f for f in files if re.match(r'^.+\.[^.]+\.(json)$', f, flags=re.IGNORECASE)]
+#                 non_json_files = [f for f in files if not f.lower().endswith('.json')]
+#                 for json_file in json_files:
+#                     json_path = Path(root) / json_file
+#                     parts = json_file.split('.')
+#                     if len(parts) < 3:
+#                         pbar.update(1)
+#                         continue  # Skip malformed .json files
+#                     *base_parts, ext, _ = parts
+#                     truncated_name = '.'.join(base_parts)
+#                     matched = False
+#                     for candidate in non_json_files:
+#                         name, candidate_ext = os.path.splitext(candidate)
+#                         original_name = name
+#                         # Remove known or partial special suffixes from the filename
+#                         for suf in SPECIAL_SUFFIXES:
+#                             if name.lower().endswith(suf.lower()):
+#                                 name = name[:-len(suf)]
+#                                 break
+#                             for i in range(2, len(suf)):
+#                                 sub = suf[:i]
+#                                 if name.lower().endswith(sub.lower()):
+#                                     name = name[:-len(sub)]
+#                                     break
+#                         # Ensure base name matches AND extension differs (truncated)
+#                         if name == truncated_name and candidate_ext.lower() != f".{ext}".lower():
+#                             new_json_name = f"{original_name}{candidate_ext}.json"
+#                             new_json_path = Path(root) / new_json_name
+#
+#                             if new_json_path.exists():
+#                                 LOGGER.warning(f"WARNING : [Extensions Fixer] : Destination file already exists: {new_json_path}")
+#                                 matched = True
+#                                 break
+#                             os.rename(json_path, new_json_path)
+#                             LOGGER.info(f"INFO    : [Extensions Fixer] : Renamed {json_file} → {new_json_name}")
+#                             matched = True
+#                             break
+#                     if not matched:
+#                         LOGGER.debug(f"DEBUG   : [Extensions Fixer] : No match for {json_file}")
+#                     pbar.update(1)
+
+
+def fix_truncated_extensions(input_folder, log_level=logging.INFO):
+    """
+    Recursively traverses a directory and fixes .ext.json files that were created with truncated extensions.
+    It matches each .ext.json file with a real asset file in the same folder. If the extension is truncated,
+    it completes it. If the name ends with a truncated special suffix or a truncated '.supplemental-metadata',
+    it is also completed.
+
+    Args:
+        input_folder (str): Path to the root directory to be scanned.
+        log_level (int): Logging level (e.g., logging.INFO, logging.DEBUG).
+    """
+    with set_log_level(LOGGER, log_level):
+        # Count total files for progress bar
+        total_files = sum(len(files) for _, _, files in os.walk(input_folder))
+        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : [Extensions Fixer] : Fixing Truncated extensions in JSON files within '{input_folder}'", unit=" files") as pbar:
+            for root, _, files in os.walk(input_folder):
+                files_set = set(files)
+                json_files = [f for f in files if re.match(r'^.+\.[^.]+\.(json)$', f, flags=re.IGNORECASE)]
+                for json_file in json_files:
+                    json_path = Path(root) / json_file
+                    parts = json_file.rsplit('.', 2)  # [filename, ext, json]
+                    if len(parts) != 3:
+                        pbar.update(1)
+                        continue
+                    base_with_suffix, ext, _ = parts
+                    base_name = base_with_suffix
+
+                    # Step 1: complete supplemental-metadata if truncated
+                    for i in range(len(SUPPLEMENTAL_METADATA), 1, -1):
+                        trunc = SUPPLEMENTAL_METADATA[:i]
+                        if base_name.lower().endswith(trunc.lower()):
+                            if trunc.lower() != SUPPLEMENTAL_METADATA.lower():
+                                base_name = base_name[:-i] + SUPPLEMENTAL_METADATA
+                            break
+
+                    # Step 2: look for matching real file with base_name + real extension
+                    possible_matches = [
+                        f for f in files_set
+                        if f.lower().startswith(base_name.lower() + ".") and not f.lower().endswith(".json")
+                    ]
+                    if not possible_matches:
+                        pbar.update(1)
+                        continue
+                    matched_file = None
+                    for candidate in possible_matches:
+                        candidate_ext = Path(candidate).suffix.lstrip('.')
+                        if candidate_ext.lower().startswith(ext.lower()) and candidate_ext.lower() != ext.lower():
+                            matched_file = candidate
+                            break
+
+                    if not matched_file:
+                        pbar.update(1)
+                        continue
+
+                    # Step 3: get correct extension from matched file
+                    correct_ext = Path(matched_file).suffix
+
+                    # Step 4: optionally complete a truncated SPECIAL_SUFFIX
+                    suffix_completed = False
+                    for suf in SPECIAL_SUFFIXES:
+                        for i in range(len(suf), 1, -1):
+                            if base_name.lower().endswith(suf[:i].lower()):
+                                if suf[:i].lower() != suf.lower():
+                                    base_name = base_name[:-i] + suf
+                                    suffix_completed = True
+                                break
+                        if suffix_completed:
+                            break
+
+                    # Step 5: construct new filename
+                    new_json_name = f"{base_name}{correct_ext}.json"
+                    new_json_path = Path(root) / new_json_name
+                    if new_json_path.exists():
+                        LOGGER.warning(f"WARNING : [Extensions Fixer] : Destination already exists: {new_json_path}")
+                    else:
+                        os.rename(json_path, new_json_path)
+                        LOGGER.info(f"INFO    : [Extensions Fixer] : Renamed {json_file} → {new_json_name}")
+
+                    pbar.update(1)
+
 

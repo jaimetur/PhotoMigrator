@@ -26,11 +26,15 @@ LOGGER                          = None
 LOG_LEVEL_MIN                   = logging.DEBUG
 LOG_LEVEL                       = logging.INFO
 
+# Supplemental Metadata Suffix
+SUPPLEMENTAL_METADATA           = ".supplemental-metadata"
+
 # List of special suffixes from Google Photos:
 SPECIAL_SUFFIXES = [
     '-effects',
     '-smile',
     '-mix',
+    '-collage',
     '-edited',      # EN
     '-edytowane',   # PL
     '-bearbeitet',  # DE
