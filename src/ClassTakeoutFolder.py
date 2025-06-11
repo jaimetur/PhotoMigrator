@@ -247,6 +247,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
+            step_name = '[PRE] : '
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
 
