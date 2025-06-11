@@ -11,9 +11,9 @@ From version 1.0.0 onwards, the Tool can process your Google Photos Takeout file
 
 - If you execute the tool without arguments or with your Takeout folder as unique argument by default the tool will execute the Feature **Google Takeout Process** (requesting the user to select the Takeout folder if not detected). 
 
-- The Takeout Processing can be configured with different settings, depoending on the arguments used during the call to the Tool.
+- The Takeout Processing can be configured with different settings, depending on the arguments used during the call to the Tool.
 
-- The whole process will do the next posible Steps (depending on which flag-arguments are enabled):  
+- The whole process will do the following posible Steps (depending on which flag-arguments are enabled):  
 
 ### Steps during Takeout Processing:
 
