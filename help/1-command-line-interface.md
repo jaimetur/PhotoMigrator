@@ -30,7 +30,7 @@ usage: PhotoMigrator [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
                      [-parallel [= [true,false]]]
                      [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
                      [-client = ['google-takeout', 'synology', 'immich']]
-                     [-id [= [1-3]]] [-OTP]
+                     [-id [= [1-3]]] [-skipConf] [-OTP]
                      [-from <FROM_DATE>] [-to <TO_DATE>]
                      [-country <COUNTRY_NAME>] [-city <CITY_NAME>]
                      [-person <PERSON_NAME>] [-type = [image,video,all]]
@@ -53,7 +53,7 @@ usage: PhotoMigrator [-h] [-v] [-source <SOURCE>] [-target <TARGET>]
                      [-procDup <DUPLICATES_REVISED_CSV>]
                      [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
 
-PhotoMigrator v3.3.1 - 2025-06-10
+PhotoMigrator v3.3.1 - 2025-06-11
 
 Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
 such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
@@ -132,6 +132,8 @@ Following general arguments have different purposses depending on the Execution 
              value must exist in the Configuration file as suffix of USERNAME/PASSORD or
              API_KEY_USER. (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2
              or IMMICH_API_KEY_USER_2 entries must exist in Config.ini file).
+-skipConf, --skip-user-confirmation
+             This Flag allow you to Skip User Confirmation before to execute any Feature.
 -OTP,      --one-time-password
              This Flag allow you to login into Synology Photos using 2FA with an OTP
              Token.

@@ -252,10 +252,10 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             # 3) Verifica y procesa source_client y target_client si es una instancia de ClassTakeoutFolder
             if isinstance(source_client, ClassTakeoutFolder):
                 if source_client.needs_unzip or source_client.needs_process:
-                    source_client.pre_process_and_process(capture_output=show_gpth_info, capture_errors=show_gpth_errors)
+                    source_client.check_takeout_and_process(capture_output=show_gpth_info, capture_errors=show_gpth_errors)
             if isinstance(target_client, ClassTakeoutFolder):
                 if target_client.needs_unzip or target_client.needs_process:
-                    target_client.pre_process_and_process(capture_output=show_gpth_info, capture_errors=show_gpth_errors)
+                    target_client.check_takeout_and_process(capture_output=show_gpth_info, capture_errors=show_gpth_errors)
 
             # ---------------------------------------------------------------------------------------------------------
             # 4) Ejecutamos la migración en el hilo principal (ya sea con descargas y subidas en paralelo o secuencial)
