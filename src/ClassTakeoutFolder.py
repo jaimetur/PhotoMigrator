@@ -206,17 +206,17 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Fix .MP4 JSON
             LOGGER.info("")
             LOGGER.info("INFO    : Looking for .MP4 files from live pictures and asociate date and time with live picture file...")
-            Utils.fix_mp4_files(input_folder)
+            Utils.fix_mp4_files(input_folder, log_level=logging.INFO)
 
             # Fix truncated special suffixes (such as '-ha edit.jpg' or '-ha e.jpg')
             LOGGER.info("")
             LOGGER.info("INFO    : Fixing truncated special suffixes from Google Photos and rename files to include complete special suffix...")
-            Utils.fix_special_suffixes(input_folder)
+            Utils.fix_special_suffixes(input_folder, log_level=logging.INFO)
 
             # Fix truncated extensions in .json files (such as '...._003.jp.json')
             LOGGER.info("")
             LOGGER.info("INFO    : Fixing truncated extensions in JSON files from Google Photos and rename files to include the right extension based on the original asset...")
-            Utils.fix_truncated_extensions(input_folder)
+            Utils.fix_truncated_extensions(input_folder, log_level=logging.INFO)
 
             # Count initial files in Takeout Folder before to process with GPTH, since once process input_folder may be deleted if --google-move-takeout-folder has been given
             LOGGER.info("")
