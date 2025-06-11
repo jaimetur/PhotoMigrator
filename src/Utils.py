@@ -2044,7 +2044,7 @@ def get_subfolders_with_exclusions(input_folder, exclude_subfolder=None):
     return subfolders
 
 
-def complete_special_suffixes(input_folder, log_level=logging.INFO):
+def fix_special_suffixes(input_folder, log_level=logging.INFO):
     """
     Recursively traverses a folder and its subdirectories, renaming files whose names
     end with a partial match of any suffix in SPECIAL_SUFFIXES (before the extension or a numbered copy).
@@ -2058,7 +2058,7 @@ def complete_special_suffixes(input_folder, log_level=logging.INFO):
         None
     """
     with set_log_level(LOGGER, log_level):  # Temporarily set the desired log level
-        # Count all non-JSON files to initialize the progress bar
+        # Count all files to initialize the progress bar
         special_files = []
         for _, _, files in os.walk(input_folder, topdown=True):
             for file in files:
@@ -2095,3 +2095,57 @@ def complete_special_suffixes(input_folder, log_level=logging.INFO):
                             break
                     pbar.update(1)
 
+
+def fix_truncated_extensions(input_folder, log_level=logging.INFO):
+    """
+    Recursively traverses a directory and fixes .ext.json files that were created with truncated extensions.
+    It does this by matching the base name (excluding known suffixes) with exact matches in the same folder.
+
+    Args:
+        input_folder (str): Path to the root directory to be scanned.
+        log_level (int): Logging level (e.g., logging.INFO, logging.DEBUG).
+    """
+    with set_log_level(LOGGER, log_level):  # Temporarily set the desired log level
+        # Count all files to initialize the progress bar
+        all_files = []
+        for _, _, files in os.walk(input_folder, topdown=True):
+            all_files.extend(files)
+        total_files = len(all_files)
+        # Start progress bar
+        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : [Extensions Fixer] : Fixing Truncated extensions in .json files within '{input_folder}'", unit=" files") as pbar:
+            for root, _, files in os.walk(input_folder):
+                json_files = [f for f in files if re.match(r'^.+\.[^.]+\.(json)$', f, flags=re.IGNORECASE)]
+                non_json_files = [f for f in files if not f.lower().endswith('.json')]
+                for json_file in json_files:
+                    json_path = Path(root) / json_file
+                    parts = json_file.split('.')
+                    if len(parts) < 3:
+                        pbar.update(1)
+                        continue  # Skip malformed .json files
+                    *base_parts, ext, _ = parts
+                    truncated_name = '.'.join(base_parts)
+                    # Look for exact matches ignoring special suffixes
+                    for candidate in non_json_files:
+                        name, candidate_ext = os.path.splitext(candidate)
+                        original_name = name
+                        # Remove known or partial special suffixes from the filename
+                        for suf in SPECIAL_SUFFIXES:
+                            if name.lower().endswith(suf.lower()):
+                                name = name[:-len(suf)]
+                                break
+                            for i in range(2, len(suf)):
+                                sub = suf[:i]
+                                if name.lower().endswith(sub.lower()):
+                                    name = name[:-len(sub)]
+                                    break
+                        # Check for exact match with the truncated name
+                        if name == truncated_name:
+                            new_json_name = f"{original_name}{candidate_ext}.json"
+                            new_json_path = Path(root) / new_json_name
+                            if new_json_path.exists():
+                                LOGGER.warning(f"WARNING : [Extensions Fixer] : Destination file already exists: {new_json_path}")
+                                break
+                            os.rename(json_path, new_json_path)
+                            LOGGER.info(f"INFO    : [Extensions Fixer] : Renamed {json_file} → {new_json_name}")
+                            break
+                    pbar.update(1)

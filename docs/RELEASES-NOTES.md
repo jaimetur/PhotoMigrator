@@ -14,6 +14,7 @@
     - [x] Replace return arguments of `ClassTakeoutFolder.process()` method by a new object with all the arguments.
     - [x] Added more info while running Google Takeout Processing feature.
     - [x] Added a new Pre-Process step in Google Takeout Processing to fix truncated special suffixes at the end of the file (i.e: filename-edi.jpg instead of filename-edited.jpg).
+    - [x] Added a new Pre-Process step in Google Takeout Processing to fix truncated extensions in JSON files (i.e: filename.jp.json instead of filename.jpg.json).
     - [x] Updated GPTH to version `4.0.8` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
       - [x] Fix a bug in the albums folders creation when the album name start with a number.
       - [x] Fix skipping files whose content does not match with their extension.
