@@ -31,6 +31,7 @@ SPECIAL_SUFFIXES = [
     '-effects',
     '-smile',
     '-mix',
+    '-collage',
     '-edited',      # EN
     '-edytowane',   # PL
     '-bearbeitet',  # DE
