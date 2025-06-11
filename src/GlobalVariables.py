@@ -39,7 +39,7 @@ SPECIAL_SUFFIXES = [
     '-edytowane',   # PL
     '-bearbeitet',  # DE
     '-bewerkt',     # NL
-    '-編集済み',      # JA
+    '-編集済み',     # JA
     '-modificato',  # IT
     '-modifié',     # FR
     '-ha editado',  # ES
