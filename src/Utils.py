@@ -482,8 +482,8 @@ def zip_folder(temp_dir, output_file):
 
 
 def confirm_continue(log_level=logging.INFO):
-    # If flag 'skip-user-confirmation' is given then don't ask and wait for user confirmation
-    if ARGS['skip-user-confirmation']:
+    # If argument 'request-user-confirmarion' is false then don't ask and wait for user confirmation
+    if not ARGS['request-user-confirmarion']:
         return True
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function

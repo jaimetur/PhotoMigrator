@@ -4,7 +4,7 @@
 
 ## **Release**: v3.3.1  
 
-- ### **Release Date**: 2025-06-11
+- ### **Release Date**: 2025-06-12
 
 - ### Main Changes:
   - #### 🌟 New Features:
@@ -20,7 +20,7 @@
     - [x] Updated GPTH to version `4.0.8` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
       - [x] Fix a bug in the albums folders creation when the album name start with a number.
       - [x] Fix skipping files whose content does not match with their extension.
-    - [x] Added new flag `-skipConf, --skip-user-confirmation` to Skip User Confirmation before to execute any Feature. (Requested by @VictorAcon).
+    - [x] Added new flag `-confirm, --request-user-confirmarion` to Skip User Confirmation before to execute any Feature. (Requested by @VictorAcon).
     - [x] Added Steps Names Info in Logs during Google Takeout Processing Feature.
 
   - #### 🐛 Bug fixes:

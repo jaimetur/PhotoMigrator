@@ -115,7 +115,6 @@ def parse_arguments():
                         type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="Request User Confrimarion before execute any Feature. (default: True)."
     )
-    PARSER.add_argument("-skipConf", "--skip-user-confirmation", action="store_true", default="", help="This Flag allow you to Skip User Confirmation before to execute any Feature.")
     PARSER.add_argument("-OTP", "--one-time-password", action="store_true", default="", help="This Flag allow you to login into Synology Photos using 2FA with an OTP Token.")
 
     PARSER.add_argument("-from", "--filter-from-date", metavar="<FROM_DATE>", default=None, help="Specify the initial date to filter assets in the different Photo Clients.")
