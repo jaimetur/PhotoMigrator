@@ -49,7 +49,9 @@ From version 1.0.0 onwards, the Tool can process your Google Photos Takeout file
 > Step 10 is disabled by default, but it would be very usefull if you want to homogenize all your albums folders names (see Folder Rename Content Based Extra Feature).  
 >
 
-The result will be a folder named `<TAKEOUT_FOLDER>_<SUFFIX>_<TIMESTAMP>` by default, but you can or change the default suffix _`processed`_ by any other using the option _`-gofs, --google-output-folder-suffix <SUFFIX>`_) 
+### Output of Takeout Processing:
+The result will be a folder named `<TAKEOUT_FOLDER>_<SUFFIX>_<TIMESTAMP>` by default, but you can or change the default suffix _`processed`_ by any other using the option _`-gofs, --google-output-folder-suffix <SUFFIX>`_).  
+
 The final `<OUTPUT_FOLDER>` will include:
 - `Albums` subfolder with all the Albums without year/month structure (by default).
 - `No-Albums` subfolder with all the photos with year/month structure (by default).
