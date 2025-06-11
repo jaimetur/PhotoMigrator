@@ -47,7 +47,7 @@ Following general arguments have different purposses depending on the Execution 
 | `-o`,<br>`--output-folder`                 | Output folder to store results                         |
 | `-client`,<br>`--client`                   | Service client: `google-takeout`, `synology`, `immich` |
 | `-id`,<br>`--account-id`                   | Account ID (1–3) from `Config.ini`                     |
-| `-skipConf`,<br>`--skip-user-confirmation` | Skip User Confirmation before to execute any Feature.  |
+| `-confirm`,<br>`--request-user-confirmation` | Request User Confirmation before to execute any Feature.  |
 | `-OTP`,<br>`--one-time-password`           | Use 2FA login with OTP token                           |
 | `-from`,<br>`--filter-from-date`           | Filter assets from this date                           |
 | `-to`,<br>`--filter-to-date`               | Filter assets up to this date                          |
