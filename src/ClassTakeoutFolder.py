@@ -210,7 +210,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Fix truncated extensions in .json files (such as '...._003.jp.json')
             LOGGER.info("")
-            LOGGER.info("INFO    : Fixing truncated extensions in .json files from Google Photos and rename files to include the right extension based on the original asset...")
+            LOGGER.info("INFO    : Fixing truncated extensions in JSON files from Google Photos and rename files to include the right extension based on the original asset...")
             Utils.fix_truncated_extensions(input_folder)
 
             # Fix truncated special suffixes (such as '-ha edit.jpg' or '-ha e.jpg')
