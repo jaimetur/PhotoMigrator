@@ -2105,9 +2105,9 @@ def fix_mp4_files(input_folder, log_level=logging.INFO):
                             if not os.path.exists(new_json_path):
                                 # Copy the original JSON file to the new file
                                 shutil.copy(candidate_path, new_json_path)
-                                LOGGER.info(f"INFO    : [MP4 Fixer] : Fixed: {candidate_path} -> {new_json_name}")
+                                LOGGER.info(f"INFO    : [MP4 Fixer] : Fixed: {candidate} -> {new_json_name}")
                             else:
-                                LOGGER.info(f"INFO    : [MP4 Fixer] : Skipped: {new_json_path} already exists")
+                                LOGGER.info(f"INFO    : [MP4 Fixer] : Skipped: {new_json_name} already exists")
 
 
 def sync_mp4_timestamps_with_images(input_folder, log_level=logging.INFO):
