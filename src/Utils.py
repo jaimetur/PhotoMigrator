@@ -172,6 +172,7 @@ def count_images_in_folder(folder_path, log_level=logging.INFO):
                     total_images += 1
         return total_images
 
+
 def count_videos_in_folder(folder_path, log_level=logging.INFO):
     """
     Counts the number of video files in a folder, considering
@@ -188,6 +189,7 @@ def count_videos_in_folder(folder_path, log_level=logging.INFO):
                 if extension.lower() in VIDEO_EXT:
                     total_videos += 1
         return total_videos
+
 
 def count_videos_in_folder(folder_path, log_level=logging.INFO):
     """
@@ -251,290 +253,6 @@ def count_metadatas_in_folder(folder_path, log_level=logging.INFO):
                 if extension.lower() in METADATA_EXT:
                     total_metadatas += 1
         return total_metadatas
-
-
-def count_valid_albums(folder_path, log_level=logging.INFO):
-    """
-    Counts the number of subfolders within folder_path and its sublevels
-    that contain at least one valid image or video file.
-
-    A folder is considered valid if it contains at least one file with an extension
-    defined in IMAGE_EXT or VIDEO_EXT.
-    """
-    import os
-    from GlobalVariables import PHOTO_EXT, VIDEO_EXT
-    with set_log_level(LOGGER, log_level):  # Change log level temporarily
-        valid_albums = 0
-        for root, dirs, files in os.walk(folder_path):
-            # Check if there's at least one valid image or video file
-            if any(os.path.splitext(file)[1].lower() in PHOTO_EXT or os.path.splitext(file)[1].lower() in VIDEO_EXT for file in files):
-                valid_albums += 1
-        return valid_albums
-
-
-def unpack_zips(zip_folder, takeout_folder, log_level=logging.INFO):
-    """ Unzips all ZIP files from a folder into another """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        if not os.path.exists(zip_folder):
-            LOGGER.error(f"ERROR   : ZIP folder '{zip_folder}' does not exist.")
-            return
-        os.makedirs(takeout_folder, exist_ok=True)
-        for zip_file in os.listdir(zip_folder):
-            if zip_file.endswith(".zip"):
-                zip_path = os.path.join(zip_folder, zip_file)
-                try:
-                    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                        LOGGER.info(f"INFO    : Unzipping: {zip_file}")
-                        zip_ref.extractall(takeout_folder)
-                except zipfile.BadZipFile:
-                    LOGGER.error(f"ERROR   : Could not unzip file: {zip_file}")
-                
-
-def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log_level=logging.INFO):
-    """
-    Organizes files into subfolders based on their EXIF or modification date.
-
-    Args:
-        input_folder (str): The base directory containing the files.
-        type (str): 'year' to organize by year, or 'year-month' to organize by year and month.
-        exclude_subfolders (list): A list of subfolder names to exclude from processing.
-
-    Raises:
-        ValueError: If the value of `type` is invalid.
-    """
-    import os
-    import shutil
-    from datetime import datetime
-    import piexif
-    from PIL import Image
-
-    def get_exif_date(image_path):
-        try:
-            exif_dict = piexif.load(image_path)
-            for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
-                tag_id = piexif.ExifIFD.__dict__.get(tag)
-                value = exif_dict["Exif"].get(tag_id)
-                if value:
-                    return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
-        except Exception:
-            pass
-        return None
-
-    with set_log_level(LOGGER, log_level):
-        if type not in ['year', 'year/month', 'year-month']:
-            raise ValueError("The 'type' parameter must be 'year', 'year/month' or 'year-month'.")
-
-        total_files = 0
-        for _, dirs, files in os.walk(input_folder):
-            dirs[:] = [d for d in dirs if d not in exclude_subfolders]
-            total_files += len(files)
-
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : Organizing files with {type} structure in '{os.path.basename(os.path.normpath(input_folder))}'", unit=" files") as pbar:
-            for path, dirs, files in os.walk(input_folder, topdown=True):
-                dirs[:] = [d for d in dirs if d not in exclude_subfolders]
-                for file in files:
-                    pbar.update(1)
-                    file_path = os.path.join(path, file)
-                    if not os.path.isfile(file_path):
-                        continue
-
-                    mod_time = None
-                    ext = os.path.splitext(file)[1].lower()
-
-                    # Intentar obtener fecha EXIF si es imagen
-                    if ext in PHOTO_EXT:
-                        try:
-                            mod_time = get_exif_date(file_path)
-                        except Exception as e:
-                            LOGGER.warning(f"WARNING : Error reading EXIF from {file_path}: {e}")
-
-                    # Si no hay EXIF o no es imagen, usar fecha de sistema
-                    if not mod_time:
-                        try:
-                            mtime = os.path.getmtime(file_path)
-                            mod_time = datetime.fromtimestamp(mtime if mtime > 0 else 0)
-                        except Exception as e:
-                            LOGGER.warning(f"WARNING : Error reading mtime for {file_path}: {e}")
-                            mod_time = datetime(1970, 1, 1)
-
-                    LOGGER.debug(f"DEBUG   : Using date {mod_time} for file {file_path}")
-
-                    # Determinar carpeta destino
-                    if type == 'year':
-                        target_dir = os.path.join(path, mod_time.strftime('%Y'))
-                    elif type == 'year/month':
-                        target_dir = os.path.join(path, mod_time.strftime('%Y'), mod_time.strftime('%m'))
-                    elif type == 'year-month':
-                        target_dir = os.path.join(path, mod_time.strftime('%Y-%m'))
-
-                    os.makedirs(target_dir, exist_ok=True)
-                    shutil.move(file_path, os.path.join(target_dir, file))
-
-        LOGGER.info(f"INFO    : Organization completed. Folder structure per '{type}' created in '{input_folder}'.")
-
-
-
-def copy_move_folder(src, dst, ignore_patterns=None, move=False, log_level=logging.INFO):
-    """
-    Copies or moves an entire folder, including subfolders and files, to another location,
-    while ignoring files that match one or more specific patterns.
-
-    :param src: Path to the source folder.
-    :param dst: Path to the destination folder.
-    :param ignore_patterns: A pattern (string) or a list of patterns to ignore (e.g., '*.json' or ['*.json', '*.txt']).
-    :param move: If True, moves the files instead of copying them.
-    :return: None
-    """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Ignore function
-        action = 'Moving' if move else 'Copying'
-        try:
-            if not is_valid_path(src):
-                LOGGER.error(f"ERROR   : The path '{src}' is not valid for the execution plattform. Cannot copy/move folders from it.")
-                return False
-            if not is_valid_path(dst):
-                LOGGER.error(f"ERROR   : The path '{dst}' is not valid for the execution plattform. Cannot copy/move folders to it.")
-                return False
-    
-            def ignore_function(files, ignore_patterns):
-                if ignore_patterns:
-                    # Convert to a list if a single pattern is provided
-                    patterns = ignore_patterns if isinstance(ignore_patterns, list) else [ignore_patterns]
-                    ignored = []
-                    for pattern in patterns:
-                        ignored.extend(fnmatch.filter(files, pattern))
-                    return set(ignored)
-                return set()
-    
-            # Ensure the source folder exists
-            if not os.path.exists(src):
-                raise FileNotFoundError(f"Source folder does not exist: '{src}'")
-            # Create the destination folder if it doesn't exist
-            os.makedirs(dst, exist_ok=True)
-    
-            if move:
-                # Contar el total de carpetas
-                total_files = sum([len(files) for _, _, files in os.walk(src)])
-                # Mostrar la barra de progreso basada en carpetas
-                with tqdm(total=total_files, ncols=120, smoothing=0.1,  desc=f"INFO    : {action} Folders in '{src}' to Folder '{dst}'", unit=" files") as pbar:
-                    for path, dirs, files in os.walk(src, topdown=True):
-                        pbar.update(1)
-                        # Compute relative path
-                        rel_path = os.path.relpath(path, src)
-                        # Destination path
-                        dest_path = os.path.join(dst, rel_path) if rel_path != '.' else dst
-                        # Apply ignore function to files and dirs
-                        ignore = ignore_function(files + dirs, ignore_patterns=ignore_patterns)
-                        # Filter dirs in-place to skip ignored directories
-                        dirs[:] = [d for d in dirs if d not in ignore]
-                        # Create destination directory
-                        os.makedirs(dest_path, exist_ok=True)
-                        # Move files
-                        for file in files:
-                            if file not in ignore:
-                                src_file = os.path.join(path, file)
-                                dst_file = os.path.join(dest_path, file)
-                                shutil.move(src_file, dst_file)
-                    LOGGER.info(f"INFO    : Folder moved successfully from {src} to {dst}")
-            else:
-                # Copy the folder contents
-                shutil.copytree(src, dst, dirs_exist_ok=True, ignore=ignore_function)
-                LOGGER.info(f"INFO    : Folder copied successfully from {src} to {dst}")
-                return True
-        except Exception as e:
-            LOGGER.error(f"ERROR   : Error {action} folder: {e}")
-            return False
-
-
-def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None, log_level=logging.INFO):
-    """
-    Moves album folders to a specific subfolder, excluding the specified subfolder(s).
-
-    Parameters:
-        input_folder (str): Path to the input folder containing the albums.
-        albums_subfolder (str): Name of the subfolder where albums should be moved.
-        exclude_subfolder (str or list, optional): Subfolder(s) to exclude. Can be a single string or a list of strings.
-    """
-    # Ensure exclude_subfolder is a list, even if a single string is passed
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        def safe_move(folder_path, albums_path):
-            destination = os.path.join(albums_path, os.path.basename(folder_path))
-            if os.path.exists(destination):
-                if os.path.isdir(destination):
-                    shutil.rmtree(destination)
-                else:
-                    os.remove(destination)
-            shutil.move(folder_path, albums_path)
-    
-        if isinstance(exclude_subfolder, str):
-            exclude_subfolder = [exclude_subfolder]
-        albums_path = os.path.join(input_folder, albums_subfolder)
-        exclude_subfolder_paths = [os.path.abspath(os.path.join(input_folder, sub)) for sub in (exclude_subfolder or [])]
-        subfolders = os.listdir(input_folder)
-        subfolders = [subfolder for subfolder in subfolders if not subfolder=='@eaDir' and not subfolder=='No-Albums']
-        for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"INFO    : Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
-            folder_path = os.path.join(input_folder, subfolder)
-            if os.path.isdir(folder_path) and subfolder != albums_subfolder and os.path.abspath(folder_path) not in exclude_subfolder_paths:
-                LOGGER.debug(f"DEBUG   : Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")
-                os.makedirs(albums_path, exist_ok=True)
-                safe_move(folder_path, albums_path)
-        # Finally Move Albums to Albums root folder (removing 'Takeout' and 'Google Fotos' / 'Google Photos' folders if exists
-        move_albums_to_root(albums_path, log_level=logging.INFO)
-
-
-def move_albums_to_root(albums_root, log_level=logging.INFO):
-    """
-    Moves all albums from nested subdirectories ('Takeout/Google Fotos' or 'Takeout/Google Photos')
-    directly into the 'Albums' folder, removing unnecessary intermediate folders.
-    """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        possible_google_folders = ["Google Fotos", "Google Photos"]
-        takeout_path = os.path.join(albums_root, "Takeout")
-
-        # Check if 'Takeout' exists
-        if not os.path.exists(takeout_path):
-            LOGGER.debug(f"DEBUG   : 'Takeout' folder not found at {takeout_path}. Exiting.")
-            return
-
-        # Find the actual Google Photos folder name
-        google_photos_path = None
-        for folder in possible_google_folders:
-            path = os.path.join(takeout_path, folder)
-            if os.path.exists(path):
-                google_photos_path = path
-                break
-
-        if not google_photos_path:
-            LOGGER.debug(f"DEBUG   : No valid 'Google Fotos' or 'Google Photos' folder found inside 'Takeout'. Exiting.")
-            return
-
-        LOGGER.debug(f"DEBUG   : Found Google Photos folder: {google_photos_path}")
-
-        LOGGER.info(f"INFO    : Moving Albums to Albums root folder...")
-        # Move albums to the root 'Albums' directory
-        for album in os.listdir(google_photos_path):
-            album_path = os.path.join(google_photos_path, album)
-            target_path = os.path.join(albums_root, album)
-
-            if os.path.isdir(album_path):  # Ensure it's a directory (album)
-                new_target_path = target_path
-                count = 1
-
-                # Handle naming conflicts by adding a suffix
-                while os.path.exists(new_target_path):
-                    new_target_path = f"{target_path}_{count}"
-                    count += 1
-
-                # Move the album
-                shutil.move(album_path, new_target_path)
-                LOGGER.debug(f"DEBUG   : Moved: {album_path} → {new_target_path}")
-
-        # Attempt to remove empty folders
-        try:
-            shutil.rmtree(takeout_path)
-            LOGGER.debug(f"DEBUG   : 'Takeout' folder successfully removed.")
-        except Exception as e:
-            LOGGER.error(f"ERROR   : Failed to remove 'Takeout': {e}")
 
 
 def change_file_extension(input_folder, current_extension, new_extension, log_level=logging.INFO):
@@ -627,7 +345,6 @@ def remove_empty_dirs(input_folder, log_level=logging.INFO):
                 except OSError:
                     pass
                 
-
 
 def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten_root_folder=False, log_level=logging.INFO):
     """
@@ -727,6 +444,7 @@ def unzip(zipfile_path, dest_folder):
         zip_ref.extractall(dest_folder)
         print(f"ZIP file extracted to: {dest_folder}")
 
+
 def unzip_flatten(zipfile_path, dest_folder):
     """
     Unzips a ZIP file into the specified destination folder,
@@ -788,41 +506,6 @@ def zip_folder(temp_dir, output_file):
     print(f"File successfully packed: {output_file}")
 
 
-def fix_symlinks_broken(input_folder, log_level=logging.INFO):
-    """
-    Searches and fixes broken symbolic links in a directory and its subdirectories.
-    Optimized to handle very large numbers of files by indexing files beforehand.
-
-    :param input_folder: Path (relative or absolute) to the main directory where the links should be searched and fixed.
-    :return: A tuple containing the number of corrected symlinks and the number of symlinks that could not be corrected.
-    """
-    # ===========================
-    # AUX FUNCTIONS
-    # ===========================
-    def build_file_index(input_folder, log_level=logging.INFO):
-        """
-        Index all non-symbolic files in the directory and its subdirectories by their filename.
-        Returns a dictionary where keys are filenames and values are lists of their full paths.
-        """
-        
-        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-            file_index = {}
-            # Contar el total de carpetas
-            total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
-            # Mostrar la barra de progreso basada en carpetas
-            with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : Building Index files in '{input_folder}'", unit=" files") as pbar:
-                for path, _, files in os.walk(input_folder):
-                    for fname in files:
-                        pbar.update(1)
-                        full_path = os.path.join(path, fname)
-                        # Only index real files (not symbolic links)
-                        if os.path.isfile(full_path) and not os.path.islink(full_path):
-                            # Add the path to the index
-                            if fname not in file_index:
-                                file_index[fname] = []
-                            file_index[fname].append(full_path)
-            return file_index
-
     def find_real_file(file_index, target_name, log_level=logging.INFO):
         """
         Given a pre-built file index (dict: filename -> list of paths),
@@ -881,303 +564,6 @@ def fix_symlinks_broken(input_folder, log_level=logging.INFO):
         return corrected_count, failed_count
 
 
-def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_range='complete', log_level=logging.INFO):
-    # ===========================
-    # AUXILIARY FUNCTIONS
-    # ===========================
-    def clean_name(input_string: str, log_level=logging.INFO) -> str:
-        import re
-        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-            input_string = input_string.strip()
-            # Remove leading underscores or hyphens
-            input_string = re.sub(r'^[-_]+', '', input_string)
-            # Replace underscores or hyphens between numbers with dots (2023_11_23 → 2023.11.23)
-            input_string = re.sub(r'(?<=\d)[_-](?=\d)', '.', input_string)
-            # Convert yyyymmdd to yyyy.mm.dd (for years starting with 19xx or 20xx)
-            input_string = re.sub(r'\b((19|20)\d{2})(\d{2})(\d{2})\b', r'\1.\3.\4', input_string)
-            # Convert yyyymm to yyyy.mm (for years starting with 19xx or 20xx)
-            input_string = re.sub(r'\b((19|20)\d{2})(\d{2})\b', r'\1.\3', input_string)
-            # Convert ddmmyyyy to yyyy.mm.dd
-            input_string = re.sub(r'\b(\d{2})(\d{2})((19|20)\d{2})\b', r'\3.\2.\1', input_string)
-            # Convert mmyyyy to yyyy.mm
-            input_string = re.sub(r'\b(\d{2})((19|20)\d{2})\b', r'\2.\1', input_string)
-            # Replace underscores or hyphens between letters with spaces
-            input_string = re.sub(r'(?<=[a-zA-Z])[_-](?=[a-zA-Z])', ' ', input_string)
-            # Replace year ranges separated by dots with hyphens (1995.2004 → 1995-2004)
-            input_string = re.sub(r'\b((19|20)\d{2})\.(?=(19|20)\d{2})', r'\1-', input_string)
-            # Replace underscore/hyphen preceded by digit and followed by letter (1_A → 1 - A)
-            input_string = re.sub(r'(?<=\d)[_-](?=[a-zA-Z])', ' - ', input_string)
-            # Replace the last dot with an underscore in dddd.dd.dd.dd format anywhere in the string
-            input_string = re.sub(r'((19|20)\d{2}\.\d{2}\.\d{2})\.(\d{2})', r'\1_\3', input_string)
-            return input_string
-
-    def remove_dates(input_string: str, log_level=logging.INFO) -> str:
-        import re
-        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-            # Quita prefijo de fecha o rango de fechas si existe
-            input_string = re.sub(
-                r"""^                   # inicio del string
-                (
-                    (?:19|20)\d{2}                          # yyyy
-                    (?:[._-](?:0[1-9]|1[0-2]))?             # opcional: .mm o -mm o _mm
-                    (?:[._-](?:0[1-9]|[12]\d|3[01]))?       # opcional: .dd o -dd o _dd
-                    (?:\s*[-_]\s*                           # separador del rango
-                        (?:19|20)\d{2}
-                        (?:[._-](?:0[1-9]|1[0-2]))?
-                        (?:[._-](?:0[1-9]|[12]\d|3[01]))?
-                    )?
-                    \s*[-_]\s*                              # separador tras la fecha o rango
-                )
-                """,
-                '',
-                input_string,
-                flags=re.VERBOSE
-            )
-            return input_string
-
-    def get_year_range(folder: str, log_level=logging.INFO) -> str:
-        def get_exif_date(image_path):
-            try:
-                exif_dict = piexif.load(image_path)
-                for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
-                    value = exif_dict["Exif"].get(piexif.ExifIFD.__dict__.get(tag))
-                    if value:
-                        # piexif devuelve bytes, hay que decodificar
-                        return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
-            except Exception:
-                pass
-            return None
-        with set_log_level(LOGGER, log_level):
-            try:
-                files = [os.path.join(folder, f) for f in os.listdir(folder)]
-                files = [f for f in files if os.path.isfile(f)]
-                years = []
-                for f in files:
-                    ext = os.path.splitext(f)[1].lower()
-                    dt = None
-                    # Primero intenta con EXIF si es imagen
-                    if ext in PHOTO_EXT:
-                        try:
-                            dt = get_exif_date(f)
-                        except Exception as e:
-                            LOGGER.warning(f"WARNING : Error reading EXIF from {f}: {e}")
-                    # Si no hay EXIF o no es imagen compatible, usa mtime
-                    if not dt:
-                        try:
-                            ts = os.path.getmtime(f)
-                            if ts > 0:
-                                dt = datetime.fromtimestamp(ts)
-                        except Exception as e:
-                            LOGGER.warning(f"WARNING : Cannot read timestamp from {f}: {e}")
-                    if dt:
-                        years.append(dt.year)
-                if years:
-                    oldest_year = min(years)
-                    latest_year = max(years)
-                    if oldest_year == latest_year:
-                        return str(oldest_year)
-                    else:
-                        return f"{oldest_year}-{latest_year}"
-                else:
-                    LOGGER.warning(f"WARNING : No valid timestamps found in {folder}")
-            except Exception as e:
-                LOGGER.error(f"ERROR   : Error obtaining year range: {e}")
-            return None
-
-    def get_year_range(folder: str, log_level=logging.INFO) -> str:
-        def get_exif_date(image_path):
-            try:
-                exif_dict = piexif.load(image_path)
-                for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
-                    tag_id = piexif.ExifIFD.__dict__.get(tag)
-                    value = exif_dict["Exif"].get(tag_id)
-                    if value:
-                        return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
-            except Exception:
-                pass
-            return None
-
-        with set_log_level(LOGGER, log_level):
-            try:
-                files = [os.path.join(folder, f) for f in os.listdir(folder)]
-                files = [f for f in files if os.path.isfile(f)]
-                years = []
-                for f in files:
-                    ext = os.path.splitext(f)[1].lower()
-                    exif_date = None
-                    fs_date = None
-                    if ext in PHOTO_EXT:
-                        # Intenta obtener EXIF
-                        try:
-                            exif_date = get_exif_date(f)
-                        except Exception as e:
-                            LOGGER.warning(f"WARNING : Error reading EXIF from {f}: {e}")
-                        # Intenta obtener mtime
-                        try:
-                            ts = os.path.getmtime(f)
-                            if ts > 0:
-                                fs_date = datetime.fromtimestamp(ts)
-                        except Exception as e:
-                            LOGGER.warning(f"WARNING : Cannot read timestamp from {f}: {e}")
-                    # Elige la fecha más antigua entre EXIF y mtime
-                    chosen_date = None
-                    if exif_date and fs_date:
-                        chosen_date = min(exif_date, fs_date)
-                    else:
-                        chosen_date = exif_date or fs_date
-                    if chosen_date:
-                        years.append(chosen_date.year)
-                if not years:
-                    LOGGER.warning(f"WARNING : No valid timestamps found in {folder}")
-                    return None
-                # Extraer componentes
-                oldest_year = min(years)
-                latest_year = max(years)
-                if oldest_year == latest_year:
-                    return str(oldest_year)
-                else:
-                    return f"{oldest_year}-{latest_year}"
-            except Exception as e:
-                LOGGER.error(f"ERROR   : Error obtaining year range: {e}")
-            return None
-
-    def get_date_range(folder: str, log_level=logging.INFO) -> str:
-        def get_exif_date(image_path):
-            try:
-                exif_dict = piexif.load(image_path)
-                for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
-                    tag_id = piexif.ExifIFD.__dict__.get(tag)
-                    value = exif_dict["Exif"].get(tag_id)
-                    if value:
-                        return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
-            except Exception:
-                pass
-            return None
-
-        with set_log_level(LOGGER, log_level):
-            try:
-                files = [os.path.join(folder, f) for f in os.listdir(folder)]
-                files = [f for f in files if os.path.isfile(f)]
-                dates = []
-                for f in files:
-                    ext = os.path.splitext(f)[1].lower()
-                    exif_date = None
-                    fs_date = None
-                    if ext in PHOTO_EXT:
-                        try:
-                            exif_date = get_exif_date(f)
-                        except Exception as e:
-                            LOGGER.warning(f"WARNING : Error reading EXIF from {f}: {e}")
-                        try:
-                            ts = os.path.getmtime(f)
-                            if ts > 0:
-                                fs_date = datetime.fromtimestamp(ts)
-                        except Exception as e:
-                            LOGGER.warning(f"WARNING : Cannot read timestamp from {f}: {e}")
-                        # Escoger la fecha más antigua disponible
-                        chosen_date = None
-                        if exif_date and fs_date:
-                            chosen_date = min(exif_date, fs_date)
-                        else:
-                            chosen_date = exif_date or fs_date
-                        if chosen_date:
-                            dates.append(chosen_date)
-                if not dates:
-                    LOGGER.warning(f"WARNING : No valid timestamps found in {folder}")
-                    return None
-                # Extraer componentes
-                years = {dt.year for dt in dates}
-                months = {(dt.year, dt.month) for dt in dates}
-                days = {(dt.year, dt.month, dt.day) for dt in dates}
-                if len(days) == 1:
-                    dt = dates[0]
-                    return f"{dt.year:04}.{dt.month:02}.{dt.day:02}"
-                elif len(months) == 1:
-                    y, m = next(iter(months))
-                    return f"{y:04}.{m:02}"
-                elif len(years) == 1:
-                    sorted_months = sorted(months)
-                    start = f"{sorted_months[0][0]:04}.{sorted_months[0][1]:02}"
-                    end = f"{sorted_months[-1][0]:04}.{sorted_months[-1][1]:02}"
-                    return f"{start}-{end}"
-                else:
-                    return f"{min(years):04}-{max(years):04}"
-            except Exception as e:
-                LOGGER.error(f"ERROR   : Error obtaining date range: {e}")
-                return None
-
-    # ===========================
-    # END AUX FUNCTIONS
-    # ===========================
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Iterate over folders in albums_folder (only first level)
-        renamed_album_folders = 0
-        duplicates_album_folders = 0
-        duplicates_albums_fully_merged = 0
-        duplicates_albums_not_fully_merged = 0
-        info_actions = []
-        warning_actions = []
-
-        if isinstance(exclude_subfolder, str):
-            exclude_subfolder = [exclude_subfolder]
-
-        # total_folders = os.listdir(input_folder)
-        total_folders = get_subfolders_with_exclusions(input_folder, exclude_subfolder)
-
-        for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"INFO    : Renaming Albums folders in '<OUTPUT_TAKEOUT_FOLDER>'", unit=" folders"):
-            item_path = os.path.join(input_folder, original_folder_name)
-            if os.path.isdir(item_path):
-                cleaned_folder_name = clean_name(original_folder_name)
-                cleaned_folder_name = remove_dates(cleaned_folder_name)
-                # If folder name does not start with a year (19xx or 20xx)
-                if not re.match(r'^(19|20)\d{2}', cleaned_folder_name):
-                    if type_date_range.lower() == 'complete':
-                        date_range = get_date_range(item_path)
-                    elif type_date_range.lower() == 'year':
-                        date_range = get_year_range(item_path)
-                    else:
-                        warning_actions.append(f"WARNING : No valid type_date_range: '{type_date_range}'")
-
-                    if date_range:
-                        cleaned_folder_name = f"{date_range} - {cleaned_folder_name}"
-                        # info_actions.append(f"INFO    : Added year prefix '{date_range}' to folder: '{os.path.basename(cleaned_folder_name)}'")
-                # Skip renaming if the clean name is the same as the original
-                if cleaned_folder_name != original_folder_name:
-                    new_folder_path = os.path.join(input_folder, cleaned_folder_name)
-                    if os.path.exists(new_folder_path):
-                        duplicates_album_folders += 1
-                        warning_actions.append(f"WARNING : Folder '{new_folder_path}' already exists. Merging contents...")
-                        for item in os.listdir(item_path):
-                            src = os.path.join(item_path, item)
-                            dst = os.path.join(new_folder_path, item)
-                            if os.path.exists(dst):
-                                # Compare file sizes to decide if the original should be deleted
-                                if os.path.isfile(dst) and os.path.getsize(src) == os.path.getsize(dst):
-                                    os.remove(src)
-                                    info_actions.append(f"INFO    : Deleted duplicate file: '{src}'")
-                            else:
-                                shutil.move(src, dst)
-                                info_actions.append(f"INFO    : Moved '{src}' → '{dst}'")
-                        # Check if the folder is empty before removing it
-                        if not os.listdir(item_path):
-                            os.rmdir(item_path)
-                            info_actions.append(f"INFO    : Removed empty folder: '{item_path}'")
-                            duplicates_albums_fully_merged += 1
-                        else:
-                            # LOGGER.warning(f"WARNING : Folder not empty, skipping removal: {item_path}")
-                            duplicates_albums_not_fully_merged += 1
-                    else:
-                        if item_path != new_folder_path:
-                            os.rename(item_path, new_folder_path)
-                            info_actions.append(f"INFO    : Renamed folder: '{os.path.basename(item_path)}' → '{os.path.basename(new_folder_path)}'")
-                            renamed_album_folders += 1
-        for info_action in info_actions:
-            LOGGER.info(info_action)
-        for warning_action in warning_actions:
-            LOGGER.warning(warning_actions)
-
-        return renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged
-
 def confirm_continue(log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         while True:
@@ -1191,12 +577,14 @@ def confirm_continue(log_level=logging.INFO):
             else:
                 LOGGER.warning(f"WARNING : Invalid input. Please enter 'yes' or 'no'.")
 
+
 def remove_quotes(input_string: str, log_level=logging.INFO) -> str:
     """
     Elimina todas las comillas simples y dobles al inicio o fin de la cadena.
     """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         return input_string.strip('\'"')
+
 
 def contains_zip_files(input_folder, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -1207,33 +595,6 @@ def contains_zip_files(input_folder, log_level=logging.INFO):
         LOGGER.info(f"INFO    : No .zip files found in input folder.")
         return False
 
-def contains_takeout_structure(input_folder, log_level=logging.INFO):
-    """
-    Iteratively scans directories using a manual stack instead of recursion or os.walk.
-    This can reduce overhead in large, nested folder structures.
-    """
-    with set_log_level(LOGGER, log_level):
-        LOGGER.info("")
-        LOGGER.info("INFO    : Searching Google Takeout structure in input folder...")
-        stack = [input_folder]
-        while stack:
-            current = stack.pop()
-            try:
-                with os.scandir(current) as entries:
-                    for entry in entries:
-                        if entry.is_dir():
-                            name = entry.name
-                            if name.startswith("Photos from ") and name[12:16].isdigit():
-                                # LOGGER.info(f"INFO    : Found Takeout structure in folder: {entry.path}")
-                                LOGGER.info(f"INFO    : Found Takeout structure in folder: {current}")
-                                return True
-                            stack.append(entry.path)
-            except PermissionError:
-                LOGGER.warning(f"WARNING : Permission denied accessing: {current}")
-            except Exception as e:
-                LOGGER.warning(f"WARNING : Error scanning {current}: {e}")
-        LOGGER.info(f"INFO    : No Takeout structure found in input folder.")
-        return False
 
 def remove_server_name(path, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -1243,22 +604,11 @@ def remove_server_name(path, log_level=logging.INFO):
         path = re.sub(r'\\\\[^\\]+\\', '\\\\', path)
         return path
 
-def force_remove_directory(path, log_level=logging.INFO):
-    def onerror(func, path, exc_info):
-        # Cambia los permisos y vuelve a intentar
-        os.chmod(path, stat.S_IWRITE)
-        func(path)
-
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        if os.path.exists(path):
-            shutil.rmtree(path, onerror=onerror)
-            LOGGER.info(f"INFO    : The folder '{path}' and all its contant have been deleted.")
-        else:
-            LOGGER.warning(f"WARNING : Cannot delete the folder '{path}'.")
 
 def fix_paths(path, log_level=logging.INFO):
     fixed_path = path.replace('/', os.path.sep).replace('\\', os.path.sep)
     return fixed_path
+
 
 def is_valid_path(path, log_level=logging.INFO):
     """
@@ -1317,7 +667,6 @@ def update_metadata(file_path, date_time, log_level=logging.INFO):
         except Exception as e:
             LOGGER.error(f"ERROR   : Failed to update metadata for {file_path}. {e}")
         
-
 
 def update_exif_date(image_path, asset_time, log_level=logging.INFO):
     """
@@ -1475,7 +824,6 @@ def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=logging.
 # Convert to list
 def convert_to_list(input, log_level=logging.INFO):
     """ Convert a String to List"""
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
             output = input
@@ -1776,43 +1124,6 @@ def print_arguments_pretty(arguments, title="Arguments", use_logger=True):
     print("")
 
 
-# def run_command(command, logger, capture_output=False, capture_errors=True, print_progress_bars=False):
-#     """
-#     Ejecuta un comando en un subproceso y maneja la salida en tiempo real si capture_output=True.
-#     Evita registrar múltiples líneas de barras de progreso en el log.
-#     """
-#     print (print_progress_bars)
-#     if capture_output or capture_errors:
-#         process = subprocess.Popen(
-#             command,
-#             stdout=subprocess.PIPE if capture_output else subprocess.DEVNULL,
-#             stderr=subprocess.PIPE if capture_errors else subprocess.DEVNULL,
-#             text=True, encoding="utf-8", errors="replace"
-#         )
-#         if capture_output:
-#             for line in process.stdout:
-#                 # logger.info(f"INFO    : {line.strip()}")
-#                 if '\r' in line:
-#                     if print_progress_bars:
-#                         print(line, end='', flush=True)  # Muestra en pantalla como barra de progreso
-#                 else:
-#                     logger.info(f"INFO    : {line.strip()}")
-#         if capture_errors:
-#             for line in process.stderr:
-#                 # logger.error(f"ERROR   : {line.strip()}")
-#                 if '\r' in line:
-#                     if print_progress_bars:
-#                         print(line, end='', flush=True)  # Muestra en pantalla como barra de progreso
-#                 else:
-#                     logger.info(f"ERROR   : {line.strip()}")
-#         process.wait()  # Esperar a que el proceso termine
-#         return process.returncode
-#     else:
-#         # Ejecutar sin capturar la salida (dejar que se muestre en consola)
-#         result = subprocess.run(command, check=False, text=True, encoding="utf-8", errors="replace")
-#         return result.returncode
-
-
 def run_command(command, logger, capture_output=False, capture_errors=True):
     """
     Ejecuta un comando. Muestra en consola actualizaciones de progreso sin loguearlas.
@@ -1833,7 +1144,6 @@ def run_command(command, logger, capture_output=False, capture_errors=True):
             if not line.strip():
                 continue
             # Detect if the line to log is a update bar, and if it is, then don't log, use print instead, and print only the first and last status of the progress bar
-            # TODO: Review this because is missing lines for instance in GPTH step 1
             # common_part = line.split(':')[0] if ':' in line else line[:40]
             common_part = line.split(' : ')[0] if ' : ' in line else line
             is_progress = previous_prefix and line.startswith(previous_prefix)
@@ -1952,103 +1262,57 @@ def get_subfolders_with_exclusions(input_folder, exclude_subfolder=None):
     return subfolders
 
 
-# def fix_mp4_files(input_folder, log_level=logging.INFO):
-#     """
-#     Look for all .MP4 files that have the same name of any Live picture and is in the same folder.
-#     If found any, then copy the .json file of the original Live picture and change its name to the name of the .MP4 file
-#     """
-#     # Traverse all subdirectories in the input folder
-#     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-#         # Contar el total de carpetas
-#         mp4_files = []
-#         for _, _, files in os.walk(input_folder, topdown=True):
-#             for file in files:
-#                 if file.lower().endswith('.mp4'):
-#                     mp4_files.append(file)
-#         total_files = len(mp4_files)
-#         # Mostrar la barra de progreso basada en carpetas
-#         with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : [MP4 Fixer] : Fixing .MP4 files in '{input_folder}'", unit=" files") as pbar:
-#             for path, _, files in os.walk(input_folder):
-#                 # Filter files with .mp4 extension (case-insensitive)
-#                 mp4_files = [f for f in files if f.lower().endswith('.mp4')]
-#                 for mp4_file in mp4_files:
-#                     pbar.update(1)
-#                     # Get the base name of the MP4 file (without extension)
-#                     mp4_base_name = os.path.splitext(mp4_file)[0]
-#
-#                     # Define possible JSON extensions (case-insensitive)
-#                     json_extensions = ['.heic.json', '.jpg.json', '.jpeg.json']
-#                     # json_extensions = ['.heic.json', '.jpg.json', '.jpeg.json', '.heic.supplemental-metadata.json', '.jpg.supplemental-metadata.json', '.jpeg.supplemental-metadata.json']
-#                     # Search for JSON files with the same base name but ignoring case for the extension
-#                     for ext in json_extensions:
-#                         json_file_candidates = [
-#                             f for f in files
-#                             if f.startswith(mp4_base_name) and f.lower().endswith(ext.lower())
-#                         ]
-#                         for json_file in json_file_candidates:
-#                             json_path = os.path.join(path, json_file)
-#                             # Generate the new name for the duplicated file
-#                             new_json_name = f"{mp4_file}.json"
-#                             new_json_path = os.path.join(path, new_json_name)
-#                             # Check if the target file already exists to avoid overwriting
-#                             if not os.path.exists(new_json_path):
-#                                 # Copy the original JSON file to the new file
-#                                 shutil.copy(json_path, new_json_path)
-#                                 LOGGER.debug(f"DEBUG   : [MP4 Fixer] : Fixed: {json_path} -> {new_json_path}")
-#                             else:
-#                                 pass
-#                                 LOGGER.debug(f"DEBUG   : [MP4 Fixer] : Skipped: {new_json_path} already exists")
 
 
-# def fix_mp4_files(input_folder, log_level=logging.INFO):
-#     """
-#     Look for all .MP4 files that have the same base name as any Live Picture in the same folder.
-#     If found, copy the associated .json file (including those with '.supplemental-metadata' or a truncated version)
-#     and rename it to match the MP4 file.
-#
-#     Args:
-#         input_folder (str): The root folder to scan.
-#         log_level (int): Logging level (e.g., logging.INFO, logging.DEBUG).
-#     """
-#     with set_log_level(LOGGER, log_level):  # Set desired log level
-#         # Count total .mp4 files for progress bar
-#         mp4_files = []
-#         for _, _, files in os.walk(input_folder, topdown=True):
-#             for file in files:
-#                 if file.lower().endswith('.mp4'):
-#                     mp4_files.append(file)
-#         total_files = len(mp4_files)
-#         # Mostrar la barra de progreso basada en carpetas
-#         with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : [MP4 Fixer] : Fixing .MP4 files in '{input_folder}'", unit=" files") as pbar:
-#             for path, _, files in os.walk(input_folder):
-#                 # Filter files with .mp4 extension (case-insensitive)
-#                 mp4_files = [f for f in files if f.lower().endswith('.mp4')]
-#                 for mp4_file in mp4_files:
-#                     pbar.update(1)
-#                     # Get the base name of the MP4 file (without extension)
-#                     mp4_base = os.path.splitext(mp4_file)[0]
-#
-#                     # Build a regex pattern to match:
-#                     # IMG_1094.HEIC(.supplemental-metadata)?.json
-#                     # Define possible JSON extensions (case-insensitive)
-#                     json_pattern = re.compile(
-#                         re.escape(mp4_base) + r'\.(heic|jpg|jpeg)(\.supplemental-metadata[^\s]*)?\.json',
-#                         flags=re.IGNORECASE
-#                     )
-#                     # Search for JSON files with the same base name but ignoring case for the extension
-#                     for f in files:
-#                         if json_pattern.fullmatch(f):
-#                             json_path = os.path.join(path, f)
-#                             # Generate the new name for the duplicated file
-#                             new_json_name = f"{mp4_file}.json"
-#                             new_json_path = os.path.join(path, new_json_name)
-#                             # Check if the target file already exists to avoid overwriting
-#                             if not os.path.exists(new_json_path):
-#                                 # Copy the original JSON file to the new file
-#                                 shutil.copy(json_path, new_json_path)
-#                                 LOGGER.info(f"DEBUG   : [MP4 Fixer] : Fixed: {json_path} -> {new_json_path}")
-#                             else:
-#                                 LOGGER.info(f"DEBUG   : [MP4 Fixer] : Skipped: {new_json_path} already exists")
+
+# ---------------------------------------------------------------------------------------------------------------------------
+# GOOGLE TAKEOUT PRE-PROCESSING FUNCTIONS:
+# ---------------------------------------------------------------------------------------------------------------------------
+def unpack_zips(zip_folder, takeout_folder, log_level=logging.INFO):
+    """ Unzips all ZIP files from a folder into another """
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        if not os.path.exists(zip_folder):
+            LOGGER.error(f"ERROR   : ZIP folder '{zip_folder}' does not exist.")
+            return
+        os.makedirs(takeout_folder, exist_ok=True)
+        for zip_file in os.listdir(zip_folder):
+            if zip_file.endswith(".zip"):
+                zip_path = os.path.join(zip_folder, zip_file)
+                try:
+                    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                        LOGGER.info(f"INFO    : Unzipping: {zip_file}")
+                        zip_ref.extractall(takeout_folder)
+                except zipfile.BadZipFile:
+                    LOGGER.error(f"ERROR   : Could not unzip file: {zip_file}")
+
+
+def contains_takeout_structure(input_folder, log_level=logging.INFO):
+    """
+    Iteratively scans directories using a manual stack instead of recursion or os.walk.
+    This can reduce overhead in large, nested folder structures.
+    """
+    with set_log_level(LOGGER, log_level):
+        LOGGER.info("")
+        LOGGER.info("INFO    : Searching Google Takeout structure in input folder...")
+        stack = [input_folder]
+        while stack:
+            current = stack.pop()
+            try:
+                with os.scandir(current) as entries:
+                    for entry in entries:
+                        if entry.is_dir():
+                            name = entry.name
+                            if name.startswith("Photos from ") and name[12:16].isdigit():
+                                # LOGGER.info(f"INFO    : Found Takeout structure in folder: {entry.path}")
+                                LOGGER.info(f"INFO    : Found Takeout structure in folder: {current}")
+                                return True
+                            stack.append(entry.path)
+            except PermissionError:
+                LOGGER.warning(f"WARNING : Permission denied accessing: {current}")
+            except Exception as e:
+                LOGGER.warning(f"WARNING : Error scanning {current}: {e}")
+        LOGGER.info(f"INFO    : No Takeout structure found in input folder.")
+        return False
 
 
 def fix_mp4_files(input_folder, log_level=logging.INFO):
@@ -2074,12 +1338,10 @@ def fix_mp4_files(input_folder, log_level=logging.INFO):
             for path, _, files in os.walk(input_folder):
                 # Filter files with .mp4 extension (case-insensitive)
                 mp4_files = [f for f in files if f.lower().endswith('.mp4')]
-
                 for mp4_file in mp4_files:
                     pbar.update(1)
                     # Get the base name of the MP4 file (without extension)
                     mp4_base = os.path.splitext(mp4_file)[0]
-
                     # Search for JSON files with the same base name but ignoring case for the extension
                     for candidate in files:
                         if not candidate.lower().endswith('.json'):
@@ -2110,6 +1372,151 @@ def fix_mp4_files(input_folder, log_level=logging.INFO):
                                 LOGGER.info(f"INFO    : [MP4 Fixer] : Skipped: {new_json_name} already exists")
 
 
+def fix_special_suffixes(input_folder, log_level=logging.INFO):
+    """
+    Recursively traverses a folder and its subdirectories, renaming files whose names
+    end with a partial match of any suffix in SPECIAL_SUFFIXES (before the extension or a numbered copy).
+    If a filename includes a truncated '.supplemental-metadata' suffix, it completes it instead.
+    Ignores any file with a .json extension.
+
+    Args:
+        input_folder (str): Path to the folder to be scanned and processed.
+        log_level (str): Logging level to use within this function's context.
+    """
+    with set_log_level(LOGGER, log_level):  # Temporarily set the desired log level
+        # Count all files to initialize the progress bar
+        special_files = []
+        for _, _, files in os.walk(input_folder, topdown=True):
+            special_files.extend(files)
+        total_files = len(special_files)
+        # Start progress bar
+        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : [Special Suffix Fixer] : Fixing Truncated Special Suffixes in '{input_folder}'", unit=" files") as pbar:
+            for path, _, files in os.walk(input_folder):
+                for file in files:
+                    old_path = os.path.join(path, file)
+                    name, ext = os.path.splitext(file)
+                    changed = False
+                    # 1. Detect and complete truncated .supplemental-metadata (before .json or other extensions)
+                    if ext.lower() == '.json':
+                        for i in range(len(SUPPLEMENTAL_METADATA), 1, -1):
+                            trunc = SUPPLEMENTAL_METADATA[:i]
+                            if name.lower().endswith(trunc.lower()):
+                                corrected_name = name[:-len(trunc)] + SUPPLEMENTAL_METADATA
+                                new_filename = corrected_name + ext
+                                new_path = os.path.join(path, new_filename)
+                                if old_path != new_path:
+                                    os.rename(old_path, new_path)
+                                    LOGGER.info(f"INFO    : [Special Suffix Fixer] : Completed: {file} → {new_filename}")
+                                changed = True
+                                break
+                        if changed:
+                            pbar.update(1)
+                            continue  # Do not apply other renaming logic if this case matched
+                    # 2. Apply SPECIAL_SUFFIXES completion logic (skip .json files)
+                    if ext.lower() == '.json':
+                        pbar.update(1)
+                        continue
+                    for sufijo in SPECIAL_SUFFIXES:
+                        for i in range(2, len(sufijo) + 1):
+                            sub = sufijo[:i]
+                            optional_counter = r'(?:\(\d+\))?'
+                            if re.search(re.escape(sub) + optional_counter + re.escape(ext) + r'$', file, flags=re.IGNORECASE):
+                                replacement_pattern = re.compile(
+                                    re.escape(sub) + optional_counter + re.escape(ext) + r'$',
+                                    flags=re.IGNORECASE
+                                )
+                                new_filename = replacement_pattern.sub(
+                                    lambda m: sufijo + (m.group(0)[len(sub):-len(ext)] if m.group(0)[len(sub):-len(ext)] else '') + ext,
+                                    file
+                                )
+                                new_path = os.path.join(path, new_filename)
+                                if old_path != new_path:
+                                    os.rename(old_path, new_path)
+                                    LOGGER.info(f"INFO    : [Special Suffix Fixer] : Renamed: {file} → {new_filename}")
+                                    changed = True
+                                break
+                        if changed:
+                            break
+                    pbar.update(1)
+
+
+def fix_truncated_extensions(input_folder, log_level=logging.INFO):
+    """
+    Recursively traverses a directory and fixes .ext.json files that were created with truncated extensions.
+    It matches each .ext.json file with a real asset file in the same folder. If the extension is truncated,
+    it completes it. If the name ends with a truncated special suffix or a truncated '.supplemental-metadata',
+    it is also completed.
+
+    Args:
+        input_folder (str): Path to the root directory to be scanned.
+        log_level (int): Logging level (e.g., logging.INFO, logging.DEBUG).
+    """
+    with set_log_level(LOGGER, log_level):
+        # Count total files for progress bar
+        total_files = sum(len(files) for _, _, files in os.walk(input_folder))
+        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : [Extensions Fixer] : Fixing Truncated extensions in JSON files within '{input_folder}'", unit=" files") as pbar:
+            for root, _, files in os.walk(input_folder):
+                files_set = set(files)
+                json_files = [f for f in files if re.match(r'^.+\.[^.]+\.(json)$', f, flags=re.IGNORECASE)]
+                for json_file in json_files:
+                    json_path = Path(root) / json_file
+                    parts = json_file.rsplit('.', 2)  # [filename, ext, json]
+                    if len(parts) != 3:
+                        pbar.update(1)
+                        continue
+                    base_with_suffix, ext, _ = parts
+                    base_name = base_with_suffix
+                    # Step 1: complete supplemental-metadata if truncated
+                    for i in range(len(SUPPLEMENTAL_METADATA), 1, -1):
+                        trunc = SUPPLEMENTAL_METADATA[:i]
+                        if base_name.lower().endswith(trunc.lower()):
+                            if trunc.lower() != SUPPLEMENTAL_METADATA.lower():
+                                base_name = base_name[:-i] + SUPPLEMENTAL_METADATA
+                            break
+                    # Step 2: look for matching real file with base_name + real extension
+                    possible_matches = [
+                        f for f in files_set
+                        if f.lower().startswith(base_name.lower() + ".") and not f.lower().endswith(".json")
+                    ]
+                    if not possible_matches:
+                        pbar.update(1)
+                        continue
+                    matched_file = None
+                    for candidate in possible_matches:
+                        candidate_ext = Path(candidate).suffix.lstrip('.')
+                        if candidate_ext.lower().startswith(ext.lower()) and candidate_ext.lower() != ext.lower():
+                            matched_file = candidate
+                            break
+                    if not matched_file:
+                        pbar.update(1)
+                        continue
+                    # Step 3: get correct extension from matched file
+                    correct_ext = Path(matched_file).suffix
+                    # Step 4: optionally complete a truncated SPECIAL_SUFFIX
+                    suffix_completed = False
+                    for suf in SPECIAL_SUFFIXES:
+                        for i in range(len(suf), 1, -1):
+                            if base_name.lower().endswith(suf[:i].lower()):
+                                if suf[:i].lower() != suf.lower():
+                                    base_name = base_name[:-i] + suf
+                                    suffix_completed = True
+                                break
+                        if suffix_completed:
+                            break
+                    # Step 5: construct new filename
+                    new_json_name = f"{base_name}{correct_ext}.json"
+                    new_json_path = Path(root) / new_json_name
+                    if new_json_path.exists():
+                        LOGGER.warning(f"WARNING : [Extensions Fixer] : Destination already exists: {new_json_path}")
+                    else:
+                        os.rename(json_path, new_json_path)
+                        LOGGER.info(f"INFO    : [Extensions Fixer] : Renamed {json_file} → {new_json_name}")
+                    pbar.update(1)
+
+
+# ---------------------------------------------------------------------------------------------------------------------------
+# GOOGLE TAKEOUT POST-PROCESSING FUNCTIONS:
+# ---------------------------------------------------------------------------------------------------------------------------
 def sync_mp4_timestamps_with_images(input_folder, log_level=logging.INFO):
     """
     Look for .MP4 files with the same name of any Live Picture file (.HEIC, .JPG, .JPEG) in the same folder.
@@ -2156,218 +1563,595 @@ def sync_mp4_timestamps_with_images(input_folder, log_level=logging.INFO):
                             pass
 
 
-def fix_special_suffixes(input_folder, log_level=logging.INFO):
+def force_remove_directory(path, log_level=logging.INFO):
+    def onerror(func, path, exc_info):
+        # Cambia los permisos y vuelve a intentar
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        if os.path.exists(path):
+            shutil.rmtree(path, onerror=onerror)
+            LOGGER.info(f"INFO    : The folder '{path}' and all its contant have been deleted.")
+        else:
+            LOGGER.warning(f"WARNING : Cannot delete the folder '{path}'.")
+
+
+def copy_move_folder(src, dst, ignore_patterns=None, move=False, log_level=logging.INFO):
     """
-    Recursively traverses a folder and its subdirectories, renaming files whose names
-    end with a partial match of any suffix in SPECIAL_SUFFIXES (before the extension or a numbered copy).
-    If a filename includes a truncated '.supplemental-metadata' suffix, it completes it instead.
-    Ignores any file with a .json extension.
+    Copies or moves an entire folder, including subfolders and files, to another location,
+    while ignoring files that match one or more specific patterns.
 
-    Args:
-        input_folder (str): Path to the folder to be scanned and processed.
-        log_level (str): Logging level to use within this function's context.
+    :param src: Path to the source folder.
+    :param dst: Path to the destination folder.
+    :param ignore_patterns: A pattern (string) or a list of patterns to ignore (e.g., '*.json' or ['*.json', '*.txt']).
+    :param move: If True, moves the files instead of copying them.
+    :return: None
     """
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        # Ignore function
+        action = 'Moving' if move else 'Copying'
+        try:
+            if not is_valid_path(src):
+                LOGGER.error(f"ERROR   : The path '{src}' is not valid for the execution plattform. Cannot copy/move folders from it.")
+                return False
+            if not is_valid_path(dst):
+                LOGGER.error(f"ERROR   : The path '{dst}' is not valid for the execution plattform. Cannot copy/move folders to it.")
+                return False
 
-    with set_log_level(LOGGER, log_level):  # Temporarily set the desired log level
-        # Count all files to initialize the progress bar
-        special_files = []
-        for _, _, files in os.walk(input_folder, topdown=True):
-            special_files.extend(files)
-        total_files = len(special_files)
+            def ignore_function(files, ignore_patterns):
+                if ignore_patterns:
+                    # Convert to a list if a single pattern is provided
+                    patterns = ignore_patterns if isinstance(ignore_patterns, list) else [ignore_patterns]
+                    ignored = []
+                    for pattern in patterns:
+                        ignored.extend(fnmatch.filter(files, pattern))
+                    return set(ignored)
+                return set()
 
-        # Start progress bar
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : [Special Suffix Fixer] : Fixing Truncated Special Suffixes in '{input_folder}'", unit=" files") as pbar:
-            for path, _, files in os.walk(input_folder):
-                for file in files:
-                    old_path = os.path.join(path, file)
-                    name, ext = os.path.splitext(file)
-                    changed = False
+            # Ensure the source folder exists
+            if not os.path.exists(src):
+                raise FileNotFoundError(f"Source folder does not exist: '{src}'")
+            # Create the destination folder if it doesn't exist
+            os.makedirs(dst, exist_ok=True)
 
-                    # 1. Detect and complete truncated .supplemental-metadata (before .json or other extensions)
-                    if ext.lower() == '.json':
-                        for i in range(len(SUPPLEMENTAL_METADATA), 1, -1):
-                            trunc = SUPPLEMENTAL_METADATA[:i]
-                            if name.lower().endswith(trunc.lower()):
-                                corrected_name = name[:-len(trunc)] + SUPPLEMENTAL_METADATA
-                                new_filename = corrected_name + ext
-                                new_path = os.path.join(path, new_filename)
-                                if old_path != new_path:
-                                    os.rename(old_path, new_path)
-                                    LOGGER.info(f"INFO    : [Special Suffix Fixer] : Completed: {file} → {new_filename}")
-                                changed = True
-                                break
-                        if changed:
-                            pbar.update(1)
-                            continue  # Do not apply other renaming logic if this case matched
-
-                    # 2. Apply SPECIAL_SUFFIXES completion logic (skip .json files)
-                    if ext.lower() == '.json':
+            if move:
+                # Contar el total de carpetas
+                total_files = sum([len(files) for _, _, files in os.walk(src)])
+                # Mostrar la barra de progreso basada en carpetas
+                with tqdm(total=total_files, ncols=120, smoothing=0.1, desc=f"INFO    : {action} Folders in '{src}' to Folder '{dst}'", unit=" files") as pbar:
+                    for path, dirs, files in os.walk(src, topdown=True):
                         pbar.update(1)
-                        continue
-
-                    for sufijo in SPECIAL_SUFFIXES:
-                        for i in range(2, len(sufijo) + 1):
-                            sub = sufijo[:i]
-                            optional_counter = r'(?:\(\d+\))?'
-                            if re.search(re.escape(sub) + optional_counter + re.escape(ext) + r'$', file, flags=re.IGNORECASE):
-                                replacement_pattern = re.compile(
-                                    re.escape(sub) + optional_counter + re.escape(ext) + r'$',
-                                    flags=re.IGNORECASE
-                                )
-                                new_filename = replacement_pattern.sub(
-                                    lambda m: sufijo + (m.group(0)[len(sub):-len(ext)] if m.group(0)[len(sub):-len(ext)] else '') + ext,
-                                    file
-                                )
-                                new_path = os.path.join(path, new_filename)
-                                if old_path != new_path:
-                                    os.rename(old_path, new_path)
-                                    LOGGER.info(f"INFO    : [Special Suffix Fixer] : Renamed: {file} → {new_filename}")
-                                    changed = True
-                                break
-                        if changed:
-                            break
-                    pbar.update(1)
-
-
-# def fix_truncated_extensions(input_folder, log_level=logging.INFO):
-#     """
-#     Recursively traverses a directory and fixes .ext.json files that were created with truncated extensions.
-#     It does this by matching the base name (excluding known suffixes) with exact matches in the same folder,
-#     and only renames if the .ext portion of the .json does not correspond to any existing real file extension.
-#
-#     Args:
-#         input_folder (str): Path to the root directory to be scanned.
-#         log_level (int): Logging level (e.g., logging.INFO, logging.DEBUG).
-#     """
-#     with set_log_level(LOGGER, log_level):  # Temporarily set the desired log level
-#         # Count all files to initialize the progress bar
-#         all_files = []
-#         for _, _, files in os.walk(input_folder, topdown=True):
-#             all_files.extend(files)
-#         total_files = len(all_files)
-#         # Start progress bar
-#         with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : [Extensions Fixer] : Fixing Truncated extensions in JSON files within '{input_folder}'", unit=" files") as pbar:
-#             for root, _, files in os.walk(input_folder):
-#                 json_files = [f for f in files if re.match(r'^.+\.[^.]+\.(json)$', f, flags=re.IGNORECASE)]
-#                 non_json_files = [f for f in files if not f.lower().endswith('.json')]
-#                 for json_file in json_files:
-#                     json_path = Path(root) / json_file
-#                     parts = json_file.split('.')
-#                     if len(parts) < 3:
-#                         pbar.update(1)
-#                         continue  # Skip malformed .json files
-#                     *base_parts, ext, _ = parts
-#                     truncated_name = '.'.join(base_parts)
-#                     matched = False
-#                     for candidate in non_json_files:
-#                         name, candidate_ext = os.path.splitext(candidate)
-#                         original_name = name
-#                         # Remove known or partial special suffixes from the filename
-#                         for suf in SPECIAL_SUFFIXES:
-#                             if name.lower().endswith(suf.lower()):
-#                                 name = name[:-len(suf)]
-#                                 break
-#                             for i in range(2, len(suf)):
-#                                 sub = suf[:i]
-#                                 if name.lower().endswith(sub.lower()):
-#                                     name = name[:-len(sub)]
-#                                     break
-#                         # Ensure base name matches AND extension differs (truncated)
-#                         if name == truncated_name and candidate_ext.lower() != f".{ext}".lower():
-#                             new_json_name = f"{original_name}{candidate_ext}.json"
-#                             new_json_path = Path(root) / new_json_name
-#
-#                             if new_json_path.exists():
-#                                 LOGGER.warning(f"WARNING : [Extensions Fixer] : Destination file already exists: {new_json_path}")
-#                                 matched = True
-#                                 break
-#                             os.rename(json_path, new_json_path)
-#                             LOGGER.info(f"INFO    : [Extensions Fixer] : Renamed {json_file} → {new_json_name}")
-#                             matched = True
-#                             break
-#                     if not matched:
-#                         LOGGER.debug(f"DEBUG   : [Extensions Fixer] : No match for {json_file}")
-#                     pbar.update(1)
+                        # Compute relative path
+                        rel_path = os.path.relpath(path, src)
+                        # Destination path
+                        dest_path = os.path.join(dst, rel_path) if rel_path != '.' else dst
+                        # Apply ignore function to files and dirs
+                        ignore = ignore_function(files + dirs, ignore_patterns=ignore_patterns)
+                        # Filter dirs in-place to skip ignored directories
+                        dirs[:] = [d for d in dirs if d not in ignore]
+                        # Create destination directory
+                        os.makedirs(dest_path, exist_ok=True)
+                        # Move files
+                        for file in files:
+                            if file not in ignore:
+                                src_file = os.path.join(path, file)
+                                dst_file = os.path.join(dest_path, file)
+                                shutil.move(src_file, dst_file)
+                    LOGGER.info(f"INFO    : Folder moved successfully from {src} to {dst}")
+            else:
+                # Copy the folder contents
+                shutil.copytree(src, dst, dirs_exist_ok=True, ignore=ignore_function)
+                LOGGER.info(f"INFO    : Folder copied successfully from {src} to {dst}")
+                return True
+        except Exception as e:
+            LOGGER.error(f"ERROR   : Error {action} folder: {e}")
+            return False
 
 
-def fix_truncated_extensions(input_folder, log_level=logging.INFO):
+def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], log_level=logging.INFO):
     """
-    Recursively traverses a directory and fixes .ext.json files that were created with truncated extensions.
-    It matches each .ext.json file with a real asset file in the same folder. If the extension is truncated,
-    it completes it. If the name ends with a truncated special suffix or a truncated '.supplemental-metadata',
-    it is also completed.
+    Organizes files into subfolders based on their EXIF or modification date.
 
     Args:
-        input_folder (str): Path to the root directory to be scanned.
-        log_level (int): Logging level (e.g., logging.INFO, logging.DEBUG).
+        input_folder (str): The base directory containing the files.
+        type (str): 'year' to organize by year, or 'year-month' to organize by year and month.
+        exclude_subfolders (list): A list of subfolder names to exclude from processing.
+
+    Raises:
+        ValueError: If the value of `type` is invalid.
     """
+    import os
+    import shutil
+    from datetime import datetime
+    import piexif
+    from PIL import Image
+    def get_exif_date(image_path):
+        try:
+            exif_dict = piexif.load(image_path)
+            for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
+                tag_id = piexif.ExifIFD.__dict__.get(tag)
+                value = exif_dict["Exif"].get(tag_id)
+                if value:
+                    return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
+        except Exception:
+            pass
+        return None
     with set_log_level(LOGGER, log_level):
-        # Count total files for progress bar
-        total_files = sum(len(files) for _, _, files in os.walk(input_folder))
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : [Extensions Fixer] : Fixing Truncated extensions in JSON files within '{input_folder}'", unit=" files") as pbar:
-            for root, _, files in os.walk(input_folder):
-                files_set = set(files)
-                json_files = [f for f in files if re.match(r'^.+\.[^.]+\.(json)$', f, flags=re.IGNORECASE)]
-                for json_file in json_files:
-                    json_path = Path(root) / json_file
-                    parts = json_file.rsplit('.', 2)  # [filename, ext, json]
-                    if len(parts) != 3:
-                        pbar.update(1)
-                        continue
-                    base_with_suffix, ext, _ = parts
-                    base_name = base_with_suffix
-
-                    # Step 1: complete supplemental-metadata if truncated
-                    for i in range(len(SUPPLEMENTAL_METADATA), 1, -1):
-                        trunc = SUPPLEMENTAL_METADATA[:i]
-                        if base_name.lower().endswith(trunc.lower()):
-                            if trunc.lower() != SUPPLEMENTAL_METADATA.lower():
-                                base_name = base_name[:-i] + SUPPLEMENTAL_METADATA
-                            break
-
-                    # Step 2: look for matching real file with base_name + real extension
-                    possible_matches = [
-                        f for f in files_set
-                        if f.lower().startswith(base_name.lower() + ".") and not f.lower().endswith(".json")
-                    ]
-                    if not possible_matches:
-                        pbar.update(1)
-                        continue
-                    matched_file = None
-                    for candidate in possible_matches:
-                        candidate_ext = Path(candidate).suffix.lstrip('.')
-                        if candidate_ext.lower().startswith(ext.lower()) and candidate_ext.lower() != ext.lower():
-                            matched_file = candidate
-                            break
-
-                    if not matched_file:
-                        pbar.update(1)
-                        continue
-
-                    # Step 3: get correct extension from matched file
-                    correct_ext = Path(matched_file).suffix
-
-                    # Step 4: optionally complete a truncated SPECIAL_SUFFIX
-                    suffix_completed = False
-                    for suf in SPECIAL_SUFFIXES:
-                        for i in range(len(suf), 1, -1):
-                            if base_name.lower().endswith(suf[:i].lower()):
-                                if suf[:i].lower() != suf.lower():
-                                    base_name = base_name[:-i] + suf
-                                    suffix_completed = True
-                                break
-                        if suffix_completed:
-                            break
-
-                    # Step 5: construct new filename
-                    new_json_name = f"{base_name}{correct_ext}.json"
-                    new_json_path = Path(root) / new_json_name
-                    if new_json_path.exists():
-                        LOGGER.warning(f"WARNING : [Extensions Fixer] : Destination already exists: {new_json_path}")
-                    else:
-                        os.rename(json_path, new_json_path)
-                        LOGGER.info(f"INFO    : [Extensions Fixer] : Renamed {json_file} → {new_json_name}")
-
+        if type not in ['year', 'year/month', 'year-month']:
+            raise ValueError("The 'type' parameter must be 'year', 'year/month' or 'year-month'.")
+        total_files = 0
+        for _, dirs, files in os.walk(input_folder):
+            dirs[:] = [d for d in dirs if d not in exclude_subfolders]
+            total_files += len(files)
+        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : Organizing files with {type} structure in '{os.path.basename(os.path.normpath(input_folder))}'", unit=" files") as pbar:
+            for path, dirs, files in os.walk(input_folder, topdown=True):
+                dirs[:] = [d for d in dirs if d not in exclude_subfolders]
+                for file in files:
                     pbar.update(1)
+                    file_path = os.path.join(path, file)
+                    if not os.path.isfile(file_path):
+                        continue
+                    mod_time = None
+                    ext = os.path.splitext(file)[1].lower()
+                    # Intentar obtener fecha EXIF si es imagen
+                    if ext in PHOTO_EXT:
+                        try:
+                            mod_time = get_exif_date(file_path)
+                        except Exception as e:
+                            LOGGER.warning(f"WARNING : Error reading EXIF from {file_path}: {e}")
+                    # Si no hay EXIF o no es imagen, usar fecha de sistema
+                    if not mod_time:
+                        try:
+                            mtime = os.path.getmtime(file_path)
+                            mod_time = datetime.fromtimestamp(mtime if mtime > 0 else 0)
+                        except Exception as e:
+                            LOGGER.warning(f"WARNING : Error reading mtime for {file_path}: {e}")
+                            mod_time = datetime(1970, 1, 1)
+                    LOGGER.debug(f"DEBUG   : Using date {mod_time} for file {file_path}")
+                    # Determinar carpeta destino
+                    if type == 'year':
+                        target_dir = os.path.join(path, mod_time.strftime('%Y'))
+                    elif type == 'year/month':
+                        target_dir = os.path.join(path, mod_time.strftime('%Y'), mod_time.strftime('%m'))
+                    elif type == 'year-month':
+                        target_dir = os.path.join(path, mod_time.strftime('%Y-%m'))
+                    os.makedirs(target_dir, exist_ok=True)
+                    shutil.move(file_path, os.path.join(target_dir, file))
+        LOGGER.info(f"INFO    : Organization completed. Folder structure per '{type}' created in '{input_folder}'.")
 
 
+def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None, log_level=logging.INFO):
+    """
+    Moves album folders to a specific subfolder, excluding the specified subfolder(s).
+
+    Parameters:
+        input_folder (str): Path to the input folder containing the albums.
+        albums_subfolder (str): Name of the subfolder where albums should be moved.
+        exclude_subfolder (str or list, optional): Subfolder(s) to exclude. Can be a single string or a list of strings.
+    """
+    # Ensure exclude_subfolder is a list, even if a single string is passed
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        def safe_move(folder_path, albums_path):
+            destination = os.path.join(albums_path, os.path.basename(folder_path))
+            if os.path.exists(destination):
+                if os.path.isdir(destination):
+                    shutil.rmtree(destination)
+                else:
+                    os.remove(destination)
+            shutil.move(folder_path, albums_path)
+
+        if isinstance(exclude_subfolder, str):
+            exclude_subfolder = [exclude_subfolder]
+        albums_path = os.path.join(input_folder, albums_subfolder)
+        exclude_subfolder_paths = [os.path.abspath(os.path.join(input_folder, sub)) for sub in (exclude_subfolder or [])]
+        subfolders = os.listdir(input_folder)
+        subfolders = [subfolder for subfolder in subfolders if not subfolder == '@eaDir' and not subfolder == 'No-Albums']
+        for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"INFO    : Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
+            folder_path = os.path.join(input_folder, subfolder)
+            if os.path.isdir(folder_path) and subfolder != albums_subfolder and os.path.abspath(folder_path) not in exclude_subfolder_paths:
+                LOGGER.debug(f"DEBUG   : Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")
+                os.makedirs(albums_path, exist_ok=True)
+                safe_move(folder_path, albums_path)
+        # Finally Move Albums to Albums root folder (removing 'Takeout' and 'Google Fotos' / 'Google Photos' folders if exists
+        move_albums_to_root(albums_path, log_level=logging.INFO)
+
+
+def move_albums_to_root(albums_root, log_level=logging.INFO):
+    """
+    Moves all albums from nested subdirectories ('Takeout/Google Fotos' or 'Takeout/Google Photos')
+    directly into the 'Albums' folder, removing unnecessary intermediate folders.
+    """
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        possible_google_folders = ["Google Fotos", "Google Photos"]
+        takeout_path = os.path.join(albums_root, "Takeout")
+        # Check if 'Takeout' exists
+        if not os.path.exists(takeout_path):
+            LOGGER.debug(f"DEBUG   : 'Takeout' folder not found at {takeout_path}. Exiting.")
+            return
+        # Find the actual Google Photos folder name
+        google_photos_path = None
+        for folder in possible_google_folders:
+            path = os.path.join(takeout_path, folder)
+            if os.path.exists(path):
+                google_photos_path = path
+                break
+        if not google_photos_path:
+            LOGGER.debug(f"DEBUG   : No valid 'Google Fotos' or 'Google Photos' folder found inside 'Takeout'. Exiting.")
+            return
+        LOGGER.debug(f"DEBUG   : Found Google Photos folder: {google_photos_path}")
+        LOGGER.info(f"INFO    : Moving Albums to Albums root folder...")
+        # Move albums to the root 'Albums' directory
+        for album in os.listdir(google_photos_path):
+            album_path = os.path.join(google_photos_path, album)
+            target_path = os.path.join(albums_root, album)
+            if os.path.isdir(album_path):  # Ensure it's a directory (album)
+                new_target_path = target_path
+                count = 1
+                # Handle naming conflicts by adding a suffix
+                while os.path.exists(new_target_path):
+                    new_target_path = f"{target_path}_{count}"
+                    count += 1
+                # Move the album
+                shutil.move(album_path, new_target_path)
+                LOGGER.debug(f"DEBUG   : Moved: {album_path} → {new_target_path}")
+        # Attempt to remove empty folders
+        try:
+            shutil.rmtree(takeout_path)
+            LOGGER.debug(f"DEBUG   : 'Takeout' folder successfully removed.")
+        except Exception as e:
+            LOGGER.error(f"ERROR   : Failed to remove 'Takeout': {e}")
+
+
+def count_valid_albums(folder_path, log_level=logging.INFO):
+    """
+    Counts the number of subfolders within folder_path and its sublevels
+    that contain at least one valid image or video file.
+
+    A folder is considered valid if it contains at least one file with an extension
+    defined in IMAGE_EXT or VIDEO_EXT.
+    """
+    import os
+    from GlobalVariables import PHOTO_EXT, VIDEO_EXT
+    with set_log_level(LOGGER, log_level):  # Change log level temporarily
+        valid_albums = 0
+        for root, dirs, files in os.walk(folder_path):
+            # Check if there's at least one valid image or video file
+            if any(os.path.splitext(file)[1].lower() in PHOTO_EXT or os.path.splitext(file)[1].lower() in VIDEO_EXT for file in files):
+                valid_albums += 1
+        return valid_albums
+
+
+def fix_symlinks_broken(input_folder, log_level=logging.INFO):
+    """
+    Searches and fixes broken symbolic links in a directory and its subdirectories.
+    Optimized to handle very large numbers of files by indexing files beforehand.
+
+    :param input_folder: Path (relative or absolute) to the main directory where the links should be searched and fixed.
+    :return: A tuple containing the number of corrected symlinks and the number of symlinks that could not be corrected.
+    """
+
+    # ===========================
+    # AUX FUNCTIONS
+    # ===========================
+    def build_file_index(input_folder, log_level=logging.INFO):
+        """
+        Index all non-symbolic files in the directory and its subdirectories by their filename.
+        Returns a dictionary where keys are filenames and values are lists of their full paths.
+        """
+
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+            file_index = {}
+            # Contar el total de carpetas
+            total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
+            # Mostrar la barra de progreso basada en carpetas
+            with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : Building Index files in '{input_folder}'", unit=" files") as pbar:
+                for path, _, files in os.walk(input_folder):
+                    for fname in files:
+                        pbar.update(1)
+                        full_path = os.path.join(path, fname)
+                        # Only index real files (not symbolic links)
+                        if os.path.isfile(full_path) and not os.path.islink(full_path):
+                            # Add the path to the index
+                            if fname not in file_index:
+                                file_index[fname] = []
+                            file_index[fname].append(full_path)
+            return file_index
+
+
+def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_range='complete', log_level=logging.INFO):
+    # ===========================
+    # AUXILIARY FUNCTIONS
+    # ===========================
+    def clean_name(input_string: str, log_level=logging.INFO) -> str:
+        import re
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+            input_string = input_string.strip()
+            # Remove leading underscores or hyphens
+            input_string = re.sub(r'^[-_]+', '', input_string)
+            # Replace underscores or hyphens between numbers with dots (2023_11_23 → 2023.11.23)
+            input_string = re.sub(r'(?<=\d)[_-](?=\d)', '.', input_string)
+            # Convert yyyymmdd to yyyy.mm.dd (for years starting with 19xx or 20xx)
+            input_string = re.sub(r'\b((19|20)\d{2})(\d{2})(\d{2})\b', r'\1.\3.\4', input_string)
+            # Convert yyyymm to yyyy.mm (for years starting with 19xx or 20xx)
+            input_string = re.sub(r'\b((19|20)\d{2})(\d{2})\b', r'\1.\3', input_string)
+            # Convert ddmmyyyy to yyyy.mm.dd
+            input_string = re.sub(r'\b(\d{2})(\d{2})((19|20)\d{2})\b', r'\3.\2.\1', input_string)
+            # Convert mmyyyy to yyyy.mm
+            input_string = re.sub(r'\b(\d{2})((19|20)\d{2})\b', r'\2.\1', input_string)
+            # Replace underscores or hyphens between letters with spaces
+            input_string = re.sub(r'(?<=[a-zA-Z])[_-](?=[a-zA-Z])', ' ', input_string)
+            # Replace year ranges separated by dots with hyphens (1995.2004 → 1995-2004)
+            input_string = re.sub(r'\b((19|20)\d{2})\.(?=(19|20)\d{2})', r'\1-', input_string)
+            # Replace underscore/hyphen preceded by digit and followed by letter (1_A → 1 - A)
+            input_string = re.sub(r'(?<=\d)[_-](?=[a-zA-Z])', ' - ', input_string)
+            # Replace the last dot with an underscore in dddd.dd.dd.dd format anywhere in the string
+            input_string = re.sub(r'((19|20)\d{2}\.\d{2}\.\d{2})\.(\d{2})', r'\1_\3', input_string)
+            return input_string
+
+    def remove_dates(input_string: str, log_level=logging.INFO) -> str:
+        import re
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+            # Quita prefijo de fecha o rango de fechas si existe
+            input_string = re.sub(
+                r"""^                   # inicio del string
+                (
+                    (?:19|20)\d{2}                          # yyyy
+                    (?:[._-](?:0[1-9]|1[0-2]))?             # opcional: .mm o -mm o _mm
+                    (?:[._-](?:0[1-9]|[12]\d|3[01]))?       # opcional: .dd o -dd o _dd
+                    (?:\s*[-_]\s*                           # separador del rango
+                        (?:19|20)\d{2}
+                        (?:[._-](?:0[1-9]|1[0-2]))?
+                        (?:[._-](?:0[1-9]|[12]\d|3[01]))?
+                    )?
+                    \s*[-_]\s*                              # separador tras la fecha o rango
+                )
+                """,
+                '',
+                input_string,
+                flags=re.VERBOSE
+            )
+            return input_string
+
+    def get_year_range(folder: str, log_level=logging.INFO) -> str:
+        def get_exif_date(image_path):
+            try:
+                exif_dict = piexif.load(image_path)
+                for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
+                    value = exif_dict["Exif"].get(piexif.ExifIFD.__dict__.get(tag))
+                    if value:
+                        # piexif devuelve bytes, hay que decodificar
+                        return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
+            except Exception:
+                pass
+            return None
+        with set_log_level(LOGGER, log_level):
+            try:
+                files = [os.path.join(folder, f) for f in os.listdir(folder)]
+                files = [f for f in files if os.path.isfile(f)]
+                years = []
+                for f in files:
+                    ext = os.path.splitext(f)[1].lower()
+                    dt = None
+                    # Primero intenta con EXIF si es imagen
+                    if ext in PHOTO_EXT:
+                        try:
+                            dt = get_exif_date(f)
+                        except Exception as e:
+                            LOGGER.warning(f"WARNING : Error reading EXIF from {f}: {e}")
+                    # Si no hay EXIF o no es imagen compatible, usa mtime
+                    if not dt:
+                        try:
+                            ts = os.path.getmtime(f)
+                            if ts > 0:
+                                dt = datetime.fromtimestamp(ts)
+                        except Exception as e:
+                            LOGGER.warning(f"WARNING : Cannot read timestamp from {f}: {e}")
+                    if dt:
+                        years.append(dt.year)
+                if years:
+                    oldest_year = min(years)
+                    latest_year = max(years)
+                    if oldest_year == latest_year:
+                        return str(oldest_year)
+                    else:
+                        return f"{oldest_year}-{latest_year}"
+                else:
+                    LOGGER.warning(f"WARNING : No valid timestamps found in {folder}")
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Error obtaining year range: {e}")
+            return None
+
+    def get_year_range(folder: str, log_level=logging.INFO) -> str:
+        def get_exif_date(image_path):
+            try:
+                exif_dict = piexif.load(image_path)
+                for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
+                    tag_id = piexif.ExifIFD.__dict__.get(tag)
+                    value = exif_dict["Exif"].get(tag_id)
+                    if value:
+                        return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
+            except Exception:
+                pass
+            return None
+
+        with set_log_level(LOGGER, log_level):
+            try:
+                files = [os.path.join(folder, f) for f in os.listdir(folder)]
+                files = [f for f in files if os.path.isfile(f)]
+                years = []
+                for f in files:
+                    ext = os.path.splitext(f)[1].lower()
+                    exif_date = None
+                    fs_date = None
+                    if ext in PHOTO_EXT:
+                        # Intenta obtener EXIF
+                        try:
+                            exif_date = get_exif_date(f)
+                        except Exception as e:
+                            LOGGER.warning(f"WARNING : Error reading EXIF from {f}: {e}")
+                        # Intenta obtener mtime
+                        try:
+                            ts = os.path.getmtime(f)
+                            if ts > 0:
+                                fs_date = datetime.fromtimestamp(ts)
+                        except Exception as e:
+                            LOGGER.warning(f"WARNING : Cannot read timestamp from {f}: {e}")
+                    # Elige la fecha más antigua entre EXIF y mtime
+                    chosen_date = None
+                    if exif_date and fs_date:
+                        chosen_date = min(exif_date, fs_date)
+                    else:
+                        chosen_date = exif_date or fs_date
+                    if chosen_date:
+                        years.append(chosen_date.year)
+                if not years:
+                    LOGGER.warning(f"WARNING : No valid timestamps found in {folder}")
+                    return None
+                # Extraer componentes
+                oldest_year = min(years)
+                latest_year = max(years)
+                if oldest_year == latest_year:
+                    return str(oldest_year)
+                else:
+                    return f"{oldest_year}-{latest_year}"
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Error obtaining year range: {e}")
+            return None
+
+    def get_date_range(folder: str, log_level=logging.INFO) -> str:
+        def get_exif_date(image_path):
+            try:
+                exif_dict = piexif.load(image_path)
+                for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
+                    tag_id = piexif.ExifIFD.__dict__.get(tag)
+                    value = exif_dict["Exif"].get(tag_id)
+                    if value:
+                        return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
+            except Exception:
+                pass
+            return None
+
+        with set_log_level(LOGGER, log_level):
+            try:
+                files = [os.path.join(folder, f) for f in os.listdir(folder)]
+                files = [f for f in files if os.path.isfile(f)]
+                dates = []
+                for f in files:
+                    ext = os.path.splitext(f)[1].lower()
+                    exif_date = None
+                    fs_date = None
+                    if ext in PHOTO_EXT:
+                        try:
+                            exif_date = get_exif_date(f)
+                        except Exception as e:
+                            LOGGER.warning(f"WARNING : Error reading EXIF from {f}: {e}")
+                        try:
+                            ts = os.path.getmtime(f)
+                            if ts > 0:
+                                fs_date = datetime.fromtimestamp(ts)
+                        except Exception as e:
+                            LOGGER.warning(f"WARNING : Cannot read timestamp from {f}: {e}")
+                        # Escoger la fecha más antigua disponible
+                        chosen_date = None
+                        if exif_date and fs_date:
+                            chosen_date = min(exif_date, fs_date)
+                        else:
+                            chosen_date = exif_date or fs_date
+                        if chosen_date:
+                            dates.append(chosen_date)
+                if not dates:
+                    LOGGER.warning(f"WARNING : No valid timestamps found in {folder}")
+                    return None
+                # Extraer componentes
+                years = {dt.year for dt in dates}
+                months = {(dt.year, dt.month) for dt in dates}
+                days = {(dt.year, dt.month, dt.day) for dt in dates}
+                if len(days) == 1:
+                    dt = dates[0]
+                    return f"{dt.year:04}.{dt.month:02}.{dt.day:02}"
+                elif len(months) == 1:
+                    y, m = next(iter(months))
+                    return f"{y:04}.{m:02}"
+                elif len(years) == 1:
+                    sorted_months = sorted(months)
+                    start = f"{sorted_months[0][0]:04}.{sorted_months[0][1]:02}"
+                    end = f"{sorted_months[-1][0]:04}.{sorted_months[-1][1]:02}"
+                    return f"{start}-{end}"
+                else:
+                    return f"{min(years):04}-{max(years):04}"
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Error obtaining date range: {e}")
+                return None
+
+    # ===========================
+    # END AUX FUNCTIONS
+    # ===========================
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        # Iterate over folders in albums_folder (only first level)
+        renamed_album_folders = 0
+        duplicates_album_folders = 0
+        duplicates_albums_fully_merged = 0
+        duplicates_albums_not_fully_merged = 0
+        info_actions = []
+        warning_actions = []
+
+        if isinstance(exclude_subfolder, str):
+            exclude_subfolder = [exclude_subfolder]
+
+        # total_folders = os.listdir(input_folder)
+        total_folders = get_subfolders_with_exclusions(input_folder, exclude_subfolder)
+
+        for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"INFO    : Renaming Albums folders in '<OUTPUT_TAKEOUT_FOLDER>'", unit=" folders"):
+            item_path = os.path.join(input_folder, original_folder_name)
+            if os.path.isdir(item_path):
+                cleaned_folder_name = clean_name(original_folder_name)
+                cleaned_folder_name = remove_dates(cleaned_folder_name)
+                # If folder name does not start with a year (19xx or 20xx)
+                if not re.match(r'^(19|20)\d{2}', cleaned_folder_name):
+                    if type_date_range.lower() == 'complete':
+                        date_range = get_date_range(item_path)
+                    elif type_date_range.lower() == 'year':
+                        date_range = get_year_range(item_path)
+                    else:
+                        warning_actions.append(f"WARNING : No valid type_date_range: '{type_date_range}'")
+
+                    if date_range:
+                        cleaned_folder_name = f"{date_range} - {cleaned_folder_name}"
+                        # info_actions.append(f"INFO    : Added year prefix '{date_range}' to folder: '{os.path.basename(cleaned_folder_name)}'")
+                # Skip renaming if the clean name is the same as the original
+                if cleaned_folder_name != original_folder_name:
+                    new_folder_path = os.path.join(input_folder, cleaned_folder_name)
+                    if os.path.exists(new_folder_path):
+                        duplicates_album_folders += 1
+                        warning_actions.append(f"WARNING : Folder '{new_folder_path}' already exists. Merging contents...")
+                        for item in os.listdir(item_path):
+                            src = os.path.join(item_path, item)
+                            dst = os.path.join(new_folder_path, item)
+                            if os.path.exists(dst):
+                                # Compare file sizes to decide if the original should be deleted
+                                if os.path.isfile(dst) and os.path.getsize(src) == os.path.getsize(dst):
+                                    os.remove(src)
+                                    info_actions.append(f"INFO    : Deleted duplicate file: '{src}'")
+                            else:
+                                shutil.move(src, dst)
+                                info_actions.append(f"INFO    : Moved '{src}' → '{dst}'")
+                        # Check if the folder is empty before removing it
+                        if not os.listdir(item_path):
+                            os.rmdir(item_path)
+                            info_actions.append(f"INFO    : Removed empty folder: '{item_path}'")
+                            duplicates_albums_fully_merged += 1
+                        else:
+                            # LOGGER.warning(f"WARNING : Folder not empty, skipping removal: {item_path}")
+                            duplicates_albums_not_fully_merged += 1
+                    else:
+                        if item_path != new_folder_path:
+                            os.rename(item_path, new_folder_path)
+                            info_actions.append(f"INFO    : Renamed folder: '{os.path.basename(item_path)}' → '{os.path.basename(new_folder_path)}'")
+                            renamed_album_folders += 1
+        for info_action in info_actions:
+            LOGGER.info(info_action)
+        for warning_action in warning_actions:
+            LOGGER.warning(warning_actions)
+
+        return renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged
