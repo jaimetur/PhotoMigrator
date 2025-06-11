@@ -305,32 +305,6 @@ def delete_folder(folder_path):
     print(f"Deleted folder and contents: {folder_path}")
 
 
-def delete_subfolders(input_folder, folder_name_to_delete, log_level=logging.INFO):
-    """
-    Deletes all subdirectories (and their contents) inside the given base directory and all its subdirectories,
-    whose names match dir_name_to_delete, including hidden directories.
-
-    Args:
-        input_folder (str, Path): The path to the base directory to start the search from.
-        folder_name_to_delete (str): The name of the subdirectories to delete.
-    """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Contar el total de carpetas
-        total_dirs = sum([len(dirs) for _, dirs, _ in os.walk(input_folder)])
-        # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_dirs, smoothing=0.1, desc=f"INFO    : [Subfolders Deletion: {folder_name_to_delete}] : Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
-            for path, dirs, files in os.walk(input_folder, topdown=False):
-                for folder in dirs:
-                    pbar.update(1)
-                    if folder == folder_name_to_delete:
-                        dir_path = os.path.join(path, folder)
-                        try:
-                            shutil.rmtree(dir_path)
-                            # LOGGER.info(f"INFO    : Deleted directory: {dir_path}")
-                        except Exception as e:
-                            LOGGER.error(f"ERROR   : [Subfolders Deletion: {folder_name_to_delete}] : Error deleting {dir_path}: {e}")
-
-
 def remove_empty_dirs(input_folder, log_level=logging.INFO):
     """
     Remove empty directories recursively.
@@ -1212,13 +1186,14 @@ def get_subfolders_with_exclusions(input_folder, exclude_subfolder=None):
 
 
 # ---------------------------------------------------------------------------------------------------------------------------
-# GOOGLE TAKEOUT PRE-PROCESSING FUNCTIONS:
+# GOOGLE TAKEOUT PRE-CHECKS FUNCTIONS:
 # ---------------------------------------------------------------------------------------------------------------------------
 def unpack_zips(zip_folder, takeout_folder, log_level=logging.INFO):
     """ Unzips all ZIP files from a folder into another """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        PRECHECK_STEP_NAME = '[CHECKS] - [Check Takeout Structure]'
         if not os.path.exists(zip_folder):
-            LOGGER.error(f"ERROR   : ZIP folder '{zip_folder}' does not exist.")
+            LOGGER.error(f"ERROR   : {PRECHECK_STEP_NAME} : ZIP folder '{zip_folder}' does not exist.")
             return
         os.makedirs(takeout_folder, exist_ok=True)
         for zip_file in os.listdir(zip_folder):
@@ -1226,10 +1201,10 @@ def unpack_zips(zip_folder, takeout_folder, log_level=logging.INFO):
                 zip_path = os.path.join(zip_folder, zip_file)
                 try:
                     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                        LOGGER.info(f"INFO    : Unzipping: {zip_file}")
+                        LOGGER.info(f"INFO    : {PRECHECK_STEP_NAME} : Unzipping: {zip_file}")
                         zip_ref.extractall(takeout_folder)
                 except zipfile.BadZipFile:
-                    LOGGER.error(f"ERROR   : Could not unzip file: {zip_file}")
+                    LOGGER.error(f"ERROR   : {PRECHECK_STEP_NAME} : Could not unzip file: {zip_file}")
 
 
 def contains_takeout_structure(input_folder, log_level=logging.INFO):
@@ -1238,8 +1213,9 @@ def contains_takeout_structure(input_folder, log_level=logging.INFO):
     This can reduce overhead in large, nested folder structures.
     """
     with set_log_level(LOGGER, log_level):
+        PRECHECK_STEP_NAME = '[CHECKS] - [Check Takeout Structure]'
         LOGGER.info("")
-        LOGGER.info("INFO    : Searching Google Takeout structure in input folder...")
+        LOGGER.info(f"INFO    : {PRECHECK_STEP_NAME} : Google Takeout structure in input folder...")
         stack = [input_folder]
         while stack:
             current = stack.pop()
@@ -1250,15 +1226,44 @@ def contains_takeout_structure(input_folder, log_level=logging.INFO):
                             name = entry.name
                             if name.startswith("Photos from ") and name[12:16].isdigit():
                                 # LOGGER.info(f"INFO    : Found Takeout structure in folder: {entry.path}")
-                                LOGGER.info(f"INFO    : Found Takeout structure in folder: {current}")
+                                LOGGER.info(f"INFO    : {PRECHECK_STEP_NAME} : Found Takeout structure in folder: {current}")
                                 return True
                             stack.append(entry.path)
             except PermissionError:
-                LOGGER.warning(f"WARNING : Permission denied accessing: {current}")
+                LOGGER.warning(f"WARNING : {PRECHECK_STEP_NAME} : Permission denied accessing: {current}")
             except Exception as e:
-                LOGGER.warning(f"WARNING : Error scanning {current}: {e}")
-        LOGGER.info(f"INFO    : No Takeout structure found in input folder.")
+                LOGGER.warning(f"WARNING : {PRECHECK_STEP_NAME} : Error scanning {current}: {e}")
+        LOGGER.info(f"INFO    : {PRECHECK_STEP_NAME} : No Takeout structure found in input folder.")
         return False
+
+# ---------------------------------------------------------------------------------------------------------------------------
+# GOOGLE TAKEOUT PRE-PROCESSING FUNCTIONS:
+# ---------------------------------------------------------------------------------------------------------------------------
+def delete_subfolders(input_folder, folder_name_to_delete, log_level=logging.INFO):
+    """
+    Deletes all subdirectories (and their contents) inside the given base directory and all its subdirectories,
+    whose names match dir_name_to_delete, including hidden directories.
+
+    Args:
+        input_folder (str, Path): The path to the base directory to start the search from.
+        folder_name_to_delete (str): The name of the subdirectories to delete.
+    """
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        PREPROCESS_STEP_NAME = '[PRE] - [Clean Takeout Folder]'
+        # Contar el total de carpetas
+        total_dirs = sum([len(dirs) for _, dirs, _ in os.walk(input_folder)])
+        # Mostrar la barra de progreso basada en carpetas
+        with tqdm(total=total_dirs, smoothing=0.1, desc=f"INFO    : {PREPROCESS_STEP_NAME} : Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
+            for path, dirs, files in os.walk(input_folder, topdown=False):
+                for folder in dirs:
+                    pbar.update(1)
+                    if folder == folder_name_to_delete:
+                        dir_path = os.path.join(path, folder)
+                        try:
+                            shutil.rmtree(dir_path)
+                            # LOGGER.info(f"INFO    : Deleted directory: {dir_path}")
+                        except Exception as e:
+                            LOGGER.error(f"ERROR   : {PREPROCESS_STEP_NAME} : Error deleting {dir_path}: {e}")
 
 
 def fix_mp4_files(input_folder, log_level=logging.INFO):
