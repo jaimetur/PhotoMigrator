@@ -21,6 +21,7 @@
       - [x] Fix a bug in the albums folders creation when the album name start with a number.
       - [x] Fix skipping files whose content does not match with their extension.
     - [x] Added new flag `-skipConf, --skip-user-confirmation` to Skip User Confirmation before to execute any Feature. (Requested by @VictorAcon).
+    - [x] Added Steps Names Info in Logs during Google Takeout Processing Feature.
 
   - #### 🐛 Bug fixes:
     - [x] Fixed name of Takeout folder in info message while looking for Takeout folder structure. Before it showed the name of the first subfolder inside it instead of the name of the Takeout folder.
