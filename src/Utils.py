@@ -90,7 +90,7 @@ def check_OS_and_Terminal(log_level=logging.INFO):
         LOGGER.info("")
 
 
-def get_os(log_level=logging.INFO, use_logger=True):
+def get_os(log_level=logging.INFO, step_name="", use_logger=True):
     """Return normalized operating system name (linux, macos, windows)"""
     if use_logger:
         with set_log_level(LOGGER, log_level):
@@ -102,9 +102,9 @@ def get_os(log_level=logging.INFO, use_logger=True):
             elif current_os in ["Windows", "windows", "Win"]:
                 os_label = "windows"
             else:
-                LOGGER.error(f"ERROR   : Unsupported Operating System: {current_os}")
+                LOGGER.error(f"ERROR   : {step_name}Unsupported Operating System: {current_os}")
                 os_label = "unknown"
-            LOGGER.info(f"INFO    : Detected OS: {os_label}")
+            LOGGER.info(f"INFO    : {step_name}Detected OS: {os_label}")
     else:
         current_os = platform.system()
         if current_os in ["Linux", "linux"]:
@@ -114,13 +114,13 @@ def get_os(log_level=logging.INFO, use_logger=True):
         elif current_os in ["Windows", "windows", "Win"]:
             os_label = "windows"
         else:
-            print(f"ERROR   : Unsupported Operating System: {current_os}")
+            print(f"ERROR   : {step_name}Unsupported Operating System: {current_os}")
             os_label = "unknown"
-        print(f"INFO    : Detected OS: {os_label}")
+        print(f"INFO    : {step_name}Detected OS: {os_label}")
     return os_label
 
 
-def get_arch(log_level=logging.INFO, use_logger=True):
+def get_arch(log_level=logging.INFO, step_name="", use_logger=True):
     """Return normalized system architecture (e.g., x64, arm64)"""
     if use_logger:
         with set_log_level(LOGGER, log_level):
@@ -130,9 +130,9 @@ def get_arch(log_level=logging.INFO, use_logger=True):
             elif current_arch in ["aarch64", "arm64", 'ARM64']:
                 arch_label = "arm64"
             else:
-                LOGGER.error(f"ERROR   : Unsupported Architecture: {current_arch}")
+                LOGGER.error(f"ERROR   : {step_name}Unsupported Architecture: {current_arch}")
                 arch_label = "unknown"
-            LOGGER.info(f"INFO    : Detected architecture: {arch_label}")
+            LOGGER.info(f"INFO    : {step_name}Detected architecture: {arch_label}")
     else:
         current_arch = platform.machine()
         if current_arch in ["x86_64", "amd64", "AMD64", "X64", "x64"]:
@@ -140,9 +140,9 @@ def get_arch(log_level=logging.INFO, use_logger=True):
         elif current_arch in ["aarch64", "arm64", "ARM64"]:
             arch_label = "arm64"
         else:
-            print(f"ERROR   : Unsupported Architecture: {current_arch}")
+            print(f"ERROR   : {step_name}Unsupported Architecture: {current_arch}")
             arch_label = "unknown"
-        print(f"INFO    : Detected architecture: {arch_label}")
+        print(f"INFO    : {step_name}Detected architecture: {arch_label}")
     return arch_label
 
 

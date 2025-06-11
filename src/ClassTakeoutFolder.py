@@ -253,7 +253,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # step 2: Process photos with GPTH tool
             if not self.ARGS['google-skip-gpth-tool']:
-                step_name = '[PROCESS]-[Metadata Processinge] : '
+                step_name = '[PROCESS]-[Metadata Processing] : '
                 self.step += 1
                 LOGGER.info("")
                 LOGGER.info("=====================================================")

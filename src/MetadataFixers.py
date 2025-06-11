@@ -26,8 +26,8 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         LOGGER.info(f"INFO    : {step_name}Output Folder: '{output_folder}'")
 
         # Detect the operating system
-        current_os = get_os()
-        current_arch = get_arch()
+        current_os = get_os(step_name=step_name)
+        current_arch = get_arch(step_name=step_name)
 
         # Determine the Tool name based on the OS
         tool_name = f"gpth-{GPTH_VERSION}-{current_os}-{current_arch}"
