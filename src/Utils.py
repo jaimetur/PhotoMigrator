@@ -1776,43 +1776,6 @@ def print_arguments_pretty(arguments, title="Arguments", use_logger=True):
     print("")
 
 
-# def run_command(command, logger, capture_output=False, capture_errors=True, print_progress_bars=False):
-#     """
-#     Ejecuta un comando en un subproceso y maneja la salida en tiempo real si capture_output=True.
-#     Evita registrar múltiples líneas de barras de progreso en el log.
-#     """
-#     print (print_progress_bars)
-#     if capture_output or capture_errors:
-#         process = subprocess.Popen(
-#             command,
-#             stdout=subprocess.PIPE if capture_output else subprocess.DEVNULL,
-#             stderr=subprocess.PIPE if capture_errors else subprocess.DEVNULL,
-#             text=True, encoding="utf-8", errors="replace"
-#         )
-#         if capture_output:
-#             for line in process.stdout:
-#                 # logger.info(f"INFO    : {line.strip()}")
-#                 if '\r' in line:
-#                     if print_progress_bars:
-#                         print(line, end='', flush=True)  # Muestra en pantalla como barra de progreso
-#                 else:
-#                     logger.info(f"INFO    : {line.strip()}")
-#         if capture_errors:
-#             for line in process.stderr:
-#                 # logger.error(f"ERROR   : {line.strip()}")
-#                 if '\r' in line:
-#                     if print_progress_bars:
-#                         print(line, end='', flush=True)  # Muestra en pantalla como barra de progreso
-#                 else:
-#                     logger.info(f"ERROR   : {line.strip()}")
-#         process.wait()  # Esperar a que el proceso termine
-#         return process.returncode
-#     else:
-#         # Ejecutar sin capturar la salida (dejar que se muestre en consola)
-#         result = subprocess.run(command, check=False, text=True, encoding="utf-8", errors="replace")
-#         return result.returncode
-
-
 def run_command(command, logger, capture_output=False, capture_errors=True):
     """
     Ejecuta un comando. Muestra en consola actualizaciones de progreso sin loguearlas.
@@ -1833,7 +1796,6 @@ def run_command(command, logger, capture_output=False, capture_errors=True):
             if not line.strip():
                 continue
             # Detect if the line to log is a update bar, and if it is, then don't log, use print instead, and print only the first and last status of the progress bar
-            # TODO: Review this because is missing lines for instance in GPTH step 1
             # common_part = line.split(':')[0] if ':' in line else line[:40]
             common_part = line.split(' : ')[0] if ' : ' in line else line
             is_progress = previous_prefix and line.startswith(previous_prefix)
@@ -2000,7 +1962,7 @@ def sync_mp4_timestamps_with_images(input_folder, log_level=logging.INFO):
 
 
 # ---------------------------------------------------------------------------------------------------------------------------
-# PRE-PROCESSING FUNCTIONS:
+# GOOGLE TAKEOUT PRE-PROCESSING FUNCTIONS:
 # ---------------------------------------------------------------------------------------------------------------------------
 def fix_mp4_files(input_folder, log_level=logging.INFO):
     """
