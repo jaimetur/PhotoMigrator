@@ -58,8 +58,8 @@ The final `<OUTPUT_FOLDER>` will include:
 - `No-Albums` subfolder with all the photos with year/month structure (by default).
 
 ### Complete list of Flags/Arguments admited:
-- [Arguments](https://)
-- [Arguments short version](https://)
+- [Arguments](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description.md)
+- [Arguments short version](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description-short.md)
 
 > [!TIP]
 > If you want to use your processed assets within Synology Photos, you just need to move `OUTPUT_FOLDER` into your /home/Photos folder and let Synology index all files (it will take long time). 
