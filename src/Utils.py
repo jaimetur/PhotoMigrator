@@ -1022,7 +1022,7 @@ def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logge
     indent = "    "
     i = 0
     if use_logger:
-        LOGGER.info(f"INFO    : {title}:")
+        LOGGER.info(f"INFO    : {step_name}{title}:")
         while i < len(arguments):
             arg = arguments[i]
             if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
