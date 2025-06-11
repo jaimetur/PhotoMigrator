@@ -1212,7 +1212,7 @@ def contains_takeout_structure(input_folder, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):
         PRECHECK_STEP_NAME = '[CHECKS]-[Check Takeout Structure]'
         LOGGER.info("")
-        LOGGER.info(f"INFO    : {PRECHECK_STEP_NAME} : Google Takeout structure in input folder...")
+        LOGGER.info(f"INFO    : {PRECHECK_STEP_NAME} : Looking for Google Takeout structure in input folder...")
         stack = [input_folder]
         while stack:
             current = stack.pop()
@@ -1382,7 +1382,7 @@ def fix_special_suffixes(input_folder, log_level=logging.INFO):
                                 new_path = os.path.join(path, new_filename)
                                 if old_path != new_path:
                                     os.rename(old_path, new_path)
-                                    LOGGER.info(f"INFO    : {PREPROCESS_STEP_NAME} : Renamed: {file} → {new_filename}")
+                                    LOGGER.info(f"INFO    : {PREPROCESS_STEP_NAME} : Fixed: {file} → {new_filename}")
                                     changed = True
                                 break
                         if changed:
@@ -1461,7 +1461,7 @@ def fix_truncated_extensions(input_folder, log_level=logging.INFO):
                         LOGGER.warning(f"WARNING : {PREPROCESS_STEP_NAME} : Destination already exists: {new_json_path}")
                     else:
                         os.rename(json_path, new_json_path)
-                        LOGGER.info(f"INFO    : {PREPROCESS_STEP_NAME} : Renamed {json_file} → {new_json_name}")
+                        LOGGER.info(f"INFO    : {PREPROCESS_STEP_NAME} : Fixed {json_file} → {new_json_name}")
                     pbar.update(1)
 
 
