@@ -1,18 +1,9 @@
 # <span style="color:green">🗃️ Google Takeout Management</span>
 
->[!NOTE]
->## <span style="color:green">Google Takeout Support</span>
->From version 1.0.0 onwards, the Tool can process your Google Photos Takeout files to fix timestamp, geodata, organize files per year/month, organize assets within album(s) in subfolders, etc...
->
->>#### <span style="color:green">Example `Config.ini` for Google Takeout:</span>
->>
->>```
->># Configuration for Google Takeout
->>[Google Takeout]
->>```
->For the time being, Google Takeout Feature, does not need to include anything in the Config.ini, but it has it own section for futures features.
 
-### <span style="color:blue">Google Takeout Feature: Process Explained:</span>
+From version 1.0.0 onwards, the Tool can process your Google Photos Takeout files to fix timestamp, geodata, organize files per year/month, organize assets within album(s) in subfolders, etc...
+
+## Process Explained
 
 - To execute the Google Takeout Processing, you need to call the tool with the argument _**`-gTakeout, --google-takeout <INPUT_TAKEOUT_FOLDER>`**_.   
 
@@ -22,9 +13,11 @@
 
 - The Takeout Processing can be configured with different settings, depoending on the arguments used during the call to the Tool.
 
-- The whole process will do the next actions if all flag-arguments are disabled (by default):  
+- The whole process will do the next posible Steps (depending on which flag-arguments are enabled):  
 
-0. Unzip all the Takeout Zips from the `<TAKEOUT_FOLDER>` into a subfolder named `./<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>` (by default). This step will be skipped if you already have your Takeout folder unzipped.
+### Steps during Takeout Processing:
+
+0. Pre-Check the `<TAKEOUT_FOLDER>` and Unzip all the Takeout Zips (if it is in ZIP format) into a subfolder named `./<TAKEOUT_FOLDER>_unzipped_<TIMESTAMP>` (by default).
    
 1. Pre-Process `<TAKEOUT_FOLDER>` unzipped to delete `@eaDir` subfolders (Synology metadata subfolders with miniatures) and to Fix .MP4 files extracted from Live pictures and with no .json file associated.
 
@@ -42,12 +35,17 @@
 
 7. After that, the Tool will look in the `<OUTPUT_FOLDER>` for any symbolic link broken and will try to fix it by looking for the original file where the symlink is pointing to.
 
-8. (Optional) If flag `--grdf, --google-remove-duplicates-files` is detected, the Tool will look for any duplicate file on `<OUTPUT_FOLDER>` (ignoring symbolic links), and will remove all duplicates keeping only the principal file (giving more priority to duplicates files found into any album folder than those found on `ALL_PHOTOS` folder. 
+8. After that, the Tool will Count all Valid Albums on `<OUTPUT_FOLDER>` folder. 
 
-9. (Optional) If flag `--graf, --google-rename-albums-folders` is detected, the Tool rename all albums folders within `<OUTPUT_FOLDER>` based on content dates.
+9. (Optional) If flag `--grdf, --google-remove-duplicates-files` is detected, the Tool will look for any duplicate file on `<OUTPUT_FOLDER>` (ignoring symbolic links), and will remove all duplicates keeping only the principal file (giving more priority to duplicates files found into any album folder than those found on `ALL_PHOTOS` folder. 
 
-Step 8 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).  
-Step 9 is disabled by default, but it would be very usefull if you want to homogenize all your albums folders names (see Folder Rename Content Based Extra Feature).  
+10. (Optional) If flag `--graf, --google-rename-albums-folders` is detected, the Tool rename all albums folders within `<OUTPUT_FOLDER>` based on content dates.
+
+> [!NOTE]  
+> Step 9 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).   
+> 
+> Step 10 is disabled by default, but it would be very usefull if you want to homogenize all your albums folders names (see Folder Rename Content Based Extra Feature).  
+>
 
 The result will be a folder named `<TAKEOUT_FOLDER>_<SUFFIX>_<TIMESTAMP>` by default, but you can or change the default suffix _`processed`_ by any other using the option _`-gofs, --google-output-folder-suffix <SUFFIX>`_) 
 The final `<OUTPUT_FOLDER>` will include:
@@ -62,18 +60,19 @@ The final `<OUTPUT_FOLDER>` will include:
 > [!NOTE]
 > It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (408559 files zipped, 168168 photos/video files, 740 albums) and moved it into Synology Photos.  
 > 
-> The whole process took around **~8 hours** (or ~11 hours if includes last optional step) and this is the time split per steps:  
+> The whole process took around **~8 hours** (or ~11 hours if includes optional step 9) and this is the time split per steps:  
 > 
-> 0. Extraction process --> 1h 30m
-> 1. Pre-processing Takeout_folder --> 7m
+> 0. Pre-Checks & Extraction process --> 1h 30m
+> 1. Pre-processing Takeout folder --> 7m
 > 2. GPTH Tool fixing --> 6h
 > 3. <span style="color:grey">(Optional) Copy/Move files to output folder manually if GPTH processing was skipped --> 0h</span>
 > 4. Sync .MP4 timestamps --> 10s
 > 5. Create Date Folder Structure --> 50s
 > 6. Moving Album Folder --> 1s
 > 7. Fix Broken Symlinks --> 10m
-> 8. <span style="color:grey">(Optional) Remove Duplicates after fixing --> 3h</span>
-> 9. <span style="color:grey">(Optional) Rename Albums Folders after fixing --> 1m</span>
+> 8. Count Valid Albums --> 1s
+> 9. <span style="color:grey">(Optional) Remove Duplicates after fixing --> 3h</span>
+> 10. <span style="color:grey">(Optional) Rename Albums Folders after fixing --> 1m</span>
 >
 > NOTE: Above times are approximates and were measured running the tool on Linux using a Synology NAS DS920+.
 

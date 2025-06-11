@@ -1748,23 +1748,29 @@ def move_albums_to_root(albums_root, step_name="", log_level=logging.INFO):
             LOGGER.error(f"ERROR   : {step_name}Failed to remove 'Takeout': {e}")
 
 
-def count_valid_albums(folder_path, log_level=logging.INFO):
+def count_valid_albums(folder_path, step_name="", log_level=logging.INFO):
     """
     Counts the number of subfolders within folder_path and its sublevels
     that contain at least one valid image or video file.
 
     A folder is considered valid if it contains at least one file with an extension
-    defined in IMAGE_EXT or VIDEO_EXT.
+    defined in PHOTO_EXT or VIDEO_EXT. Folders named 'Photos from YYYY' (where YYYY starts
+    with 1 or 2) are excluded from the count.
     """
     import os
+    import re
     from GlobalVariables import PHOTO_EXT, VIDEO_EXT
     with set_log_level(LOGGER, log_level):  # Change log level temporarily
         valid_albums = 0
         for root, dirs, files in os.walk(folder_path):
+            # Skip folders named 'Photos from YYYY' where YYYY starts with 1 or 2
+            if re.search(r'^Photos from [12]\d{3}$', os.path.basename(root)):
+                continue
             # Check if there's at least one valid image or video file
             if any(os.path.splitext(file)[1].lower() in PHOTO_EXT or os.path.splitext(file)[1].lower() in VIDEO_EXT for file in files):
                 valid_albums += 1
         return valid_albums
+
 
 
 def fix_symlinks_broken(input_folder, step_name="", log_level=logging.INFO):
