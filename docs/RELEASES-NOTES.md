@@ -8,11 +8,15 @@
 
 - ### Main Changes:
   - #### 🌟 New Features:
+  - [x] Attempt to create a  Docker Version which execute within a Windows container instead of Linux container.
 
   - #### 🚀 Enhancements:
+    - [x] Ensure that filenames lenght are at least 40 chars before to Fix truncated speccial_suffixees or truncated extensions during Google Takeout Processing. 
 
   - #### 🐛 Bug fixes:
     - [x] Fixed unhandled exception in funcrion `sync_mp4_timestamps_with_images()` when the image have been moved from output folder before to complete MP4 timestamp synching.
+    - [x] Fixed 'Rename Albums' Feature when no date range is found in its name. Before it removed any date found, now, if is not possible to extract a date range, just keep the cleaned name (without date range proffix). 
+    - [x] Fixed Docker Version to include EXIF Tool.
 
   - #### 📚 Documentation:
     - [x] Improved Google Takeout Feature documentation.
@@ -28,7 +32,8 @@
 - ### Main Changes:
   - #### 🌟 New Features:
     - [x] Added new argument _**`-graf, --google-rename-albums-folders`**_ to rename all albums folders based on content dates when finish Google Takeout Processing.
-   
+    - [x] Added new flag `-confirm, --request-user-confirmarion` to Skip User Confirmation before to execute any Feature. (Requested by @VictorAcon).
+
   - #### 🚀 Enhancements:
     - [x] Replace return arguments of `ClassTakeoutFolder.process()` method by a new object with all the arguments.
     - [x] Added more info while running Google Takeout Processing feature.
@@ -40,7 +45,6 @@
     - [x] Updated GPTH to version `4.0.8` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
       - [x] Fixed a bug in the albums folders creation when the album name start with a number.
       - [x] Fixed skipping files whose content does not match with their extension.
-    - [x] Added new flag `-confirm, --request-user-confirmarion` to Skip User Confirmation before to execute any Feature. (Requested by @VictorAcon).
     - [x] Added Steps Names Info in Logs during Google Takeout Processing Feature.
 
   - #### 🐛 Bug fixes:
