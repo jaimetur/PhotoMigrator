@@ -98,8 +98,19 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
+      - name: 🧪 Verificar contexto
+        run: |
+          echo "SCRIPT_VERSION=${SCRIPT_VERSION}"
+          ls -la
+          echo "MOSTRANDO docker build con contexto visible:"
+          echo docker build --pull --no-cache -t jaimetur/photomigrator:${SCRIPT_VERSION} -f docker/dockerfile-linux .
+
+      - name: 🔧 Build sin multilínea
+        run: docker build --pull --no-cache -t jaimetur/photomigrator:${SCRIPT_VERSION} -t jaimetur/photomigrator:latest -f docker/dockerfile-linux .
+
+
       # 4a. Build & Push Linux Docker image
-      - name: 4. Build & Push Docker image
+      - name: 4a. Build & Push Docker image
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           # Fuerza a Docker a:
@@ -107,7 +118,7 @@ jobs:
           #  2) ignorar todas las capas cacheadas ( --no-cache )
           docker build --pull --no-cache \
             -t jaimetur/photomigrator:${SCRIPT_VERSION} \     # Etiquetar con el nombre de la versión
-            -t jaimetur/photomigrator:latest \                        # Etiquetar como latest
+            -t jaimetur/photomigrator:latest \                # Etiquetar como latest
             -f docker/dockerfile-linux .
 
           # Subir etiquetas latest y con versión específica
@@ -127,7 +138,7 @@ jobs:
           # Construir imagen Windows
           docker build --pull --no-cache \
             -t jaimetur/photomigrator:${SCRIPT_VERSION}-windows \     # Etiquetar con el nombre de la versión + '-windows'
-            -t jaimetur/photomigrator:latest-windows \                        # Etiquetar como latest-windows
+            -t jaimetur/photomigrator:latest-windows \                # Etiquetar como latest-windows
             -f docker/dockerfile-windows .
 
           # Subir etiquetas latest y con versión específica
