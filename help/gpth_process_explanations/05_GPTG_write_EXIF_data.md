@@ -1,8 +1,6 @@
-Step 5: Write EXIF data to media files
+# Step 5: Write EXIF data to media files
 
-This step embeds GPS coordinates and datetime information directly into media file
-EXIF metadata, ensuring that location and timing data is preserved permanently with
-each photo and video, independent of external metadata files.
+This step embeds GPS coordinates and datetime information directly into media file EXIF metadata, ensuring that location and timing data is preserved permanently with each photo and video, independent of external metadata files.
 
 ## Purpose and Benefits
 

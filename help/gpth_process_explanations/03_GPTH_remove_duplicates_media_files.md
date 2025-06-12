@@ -1,8 +1,6 @@
-Step 3: Remove duplicate media files
+# Step 3: Remove duplicate media files
 
-This essential step identifies and eliminates duplicate files based on content hashing,
-which is crucial for Google Photos Takeout exports that often contain multiple copies
-of the same photo across different albums and year folders.
+This essential step identifies and eliminates duplicate files based on content hashing, which is crucial for Google Photos Takeout exports that often contain multiple copies of the same photo across different albums and year folders.
 
 ## Duplicate Detection Strategy
 

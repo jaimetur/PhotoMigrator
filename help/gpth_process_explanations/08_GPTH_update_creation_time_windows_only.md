@@ -1,8 +1,6 @@
-Step 8: Update creation times (Windows only)
+# Step 8: Update creation times (Windows only)
 
-This Windows-specific final step synchronizes file creation timestamps with their
-modification times to ensure proper chronological sorting in Windows Explorer and
-other file managers that rely on creation time for organization.
+This Windows-specific final step synchronizes file creation timestamps with their modification times to ensure proper chronological sorting in Windows Explorer and other file managers that rely on creation time for organization.
 
 ## Purpose and Rationale
 
