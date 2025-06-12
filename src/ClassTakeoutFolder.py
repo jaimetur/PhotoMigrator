@@ -106,7 +106,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info("")
 
 
-    def precheck_takeout_and_process(self, capture_output=False, capture_errors=True, skip_process=False):
+    def precheck_takeout_and_process(self, capture_output=False, capture_errors=True, print_messages=True, skip_process=False):
         step_name = '[CHECKS]-[Check Takeout Structure] : '
         if self.needs_unzip:
             LOGGER.info(f"INFO    : {step_name}🗳️ Input Folder contains ZIP files and needs to be unzipped first. Unzipping it...")
@@ -123,14 +123,14 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 # else:
                 base_folder = Path(f"{self.takeout_folder}_{self.ARGS['google-output-folder-suffix']}_{self.TIMESTAMP}")
                 # Process Takeout_folder and put output into base_folder
-                self.process(output_takeout_folder=base_folder, capture_output=capture_output, capture_errors=capture_errors, log_level=logging.INFO)
+                self.process(output_takeout_folder=base_folder, capture_output=capture_output, capture_errors=capture_errors, print_messages=print_messages, log_level=logging.INFO)
                 super().__init__(base_folder)  # Inicializar con la carpeta procesada
             else:
                 base_folder = self.takeout_folder
                 super().__init__(base_folder)  # Inicializar con la carpeta original si no se necesita procesamiento
 
 
-    def process(self, output_takeout_folder, capture_output=True, capture_errors=True, log_level=logging.INFO):
+    def process(self, output_takeout_folder, capture_output=True, capture_errors=True, print_messages=True, create_localfolder_object=True, log_level=logging.INFO):
         """
         Main method to process Google Takeout data. Follows the same steps as the original
         process() function, but uses LOGGER and self.ARGS instead of global.
@@ -185,7 +185,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Determine if manual copy/move is needed (for step 3)
             manual_copy_move_needed = self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']
 
-            # step 1: Pre-Process Takeout folder
+            # Step 1: Pre-Process Takeout folder
+            # ----------------------------------------------------------------------------------------------------------------------
             self.step += 1
             LOGGER.info("")
             LOGGER.info("=============================================")
@@ -252,7 +253,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
 
 
-            # step 2: Process photos with GPTH tool
+            # Step 2: Process photos with GPTH tool
+            # ----------------------------------------------------------------------------------------------------------------------
             if not self.ARGS['google-skip-gpth-tool']:
                 step_name = '[PROCESS]-[Metadata Processing] : '
                 self.step += 1
@@ -278,6 +280,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     output_folder=output_takeout_folder,
                     capture_output=capture_output,
                     capture_errors=capture_errors,
+                    print_messages=print_messages,
                     symbolic_albums=self.ARGS['google-create-symbolic-albums'],
                     skip_extras=self.ARGS['google-skip-extras-files'],
                     move_takeout_folder=self.ARGS['google-move-takeout-folder'],
@@ -315,7 +318,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
 
-            # step 3: Copy/Move files to output folder manually
+            # Step 3: Copy/Move files to output folder manually
+            # ----------------------------------------------------------------------------------------------------------------------
             if manual_copy_move_needed:
                 step_name = '[POST]-[Copy/Move] : '
                 self.step += 1
@@ -345,7 +349,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step}b completed in {formatted_duration}.")
 
-            # step 4: Sync .MP4 live pictures timestamp
+            # Step 4: Sync .MP4 live pictures timestamp
+            # ----------------------------------------------------------------------------------------------------------------------
             self.step += 1
             step_name = '[POST]-[MP4 Timestamp Synch] : '
             LOGGER.info("")
@@ -361,7 +366,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
 
-            # step 5: Create Folders Year/Month or Year only structure
+            # Step 5: Create Folders Year/Month or Year only structure
+            # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-albums-folders-structure'].lower() != 'flatten' or self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten' or (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folders-structure'].lower() == 'flatten'):
                 step_name = '[POST]-[Create year/month struct] : '
                 self.step += 1
@@ -398,7 +404,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
 
-            # step 6: Move albums
+            # Step 6: Move albums
+            # ----------------------------------------------------------------------------------------------------------------------
             if not self.ARGS['google-skip-move-albums']:
                 step_name = '[POST]-[Move Albums] : '
                 self.step += 1
@@ -414,7 +421,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
 
-            # step 7: Fix Broken Symbolic Links
+            # Step 7: Fix Broken Symbolic Links
+            # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-create-symbolic-albums']:
                 step_name = '[POST]-[Fix Symlinks] : '
                 self.step += 1
@@ -431,7 +439,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
 
-            # step 8: Remove Duplicates
+            # Step 8: Remove Duplicates
+            # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-remove-duplicates-files']:
                 step_name = '[POST]-[Remove Duplicates] : '
                 self.step += 1
@@ -455,7 +464,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
 
-            # step 9: Count Albums
+            # Step 9: Count Albums
+            # ----------------------------------------------------------------------------------------------------------------------
             step_name = '[POST]-[Counting Albums] : '
             self.step += 1
             LOGGER.info("")
@@ -469,14 +479,16 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 album_folder = output_takeout_folder
 
             if os.path.isdir(output_takeout_folder):
-                valid_albums_found = Utils.count_valid_albums(album_folder, step_name=step_name)
+                excluded_folders = ["No-Albums", "ALL_PHOTOS"]
+                valid_albums_found = Utils.count_valid_albums(album_folder, excluded_folders=excluded_folders, step_name=step_name)
             LOGGER.info(f"INFO    : {step_name}Valid Albums Found {valid_albums_found}.")
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
 
-            # step 10: Rename Albums Folders based on content date
+            # Step 10: Rename Albums Folders based on content date
+            # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-rename-albums-folders']:
                 step_name = '[POST]-[Album Renaming] : '
                 self.step += 1
@@ -493,7 +505,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
 
-            # step 11: Renamove Empty Folders
+            # Step 11: Renamove Empty Folders
+            # ----------------------------------------------------------------------------------------------------------------------
             step_name = '[POST]-[Remove Empty Folders] : '
             self.step += 1
             LOGGER.info("")
@@ -509,7 +522,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
 
-
+            # FINISH
+            # ----------------------------------------------------------------------------------------------------------------------
             processing_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(processing_end_time - processing_start_time).seconds))
             LOGGER.info("")
@@ -521,7 +535,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info("=========================================================================================================")
 
             # At the end of the process, we call the super() to make this objet an sub-instance of the class ClassLocalFolder to create the same folder structure
-            super().__init__(output_takeout_folder)
+            if create_localfolder_object:
+                super().__init__(output_takeout_folder)
 
             # return (valid_albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders, renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged)
             return ProcessingResult(
@@ -621,5 +636,5 @@ if __name__ == "__main__":
     # base_folder = input_folder.parent / f"Takeout_processed_{timestamp}"
 
     takeout = ClassTakeoutFolder(input_folder)
-    result = takeout.process("Output_Takeout_Folder", capture_output=True, capture_errors=True, log_level=logging.DEBUG)
+    result = takeout.process("Output_Takeout_Folder", capture_output=True, capture_errors=True, print_messages=True, create_localfolder_object=False, log_level=logging.DEBUG)
     print(result)
