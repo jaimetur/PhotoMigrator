@@ -1,6 +1,5 @@
 # <span style="color:green">🗃️ Google Takeout Management</span>
 
-
 From version 1.0.0 onwards, the Tool can process your Google Photos Takeout files to embed timestamp and GPS data among to other tags within each photo/video found on it.
 
 But also this Feature can handle albums associations, remove duplicates, organize files per year/month, organize assets within album(s) in subfolders, autorename albums, etc...
@@ -12,6 +11,7 @@ Also, GPTH uses internally EXIF Tool to embed EXIF tags inside each photo/video 
 **PhotoMigrator** already includes embedded both tools GPTH and EXIF Tool, so you don't need to install any additional software to use them. 
 
 In the folowwing link you can find the [Complete Pipeline and features of GPTH Tool](https://github.com/jaimetur/PhotoMigrator/blob/main/help/gpth_process_explanations/00_GPTH_complete_pipeline.md).
+
 
 ## Process Explained
 
