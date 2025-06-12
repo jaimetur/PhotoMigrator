@@ -33,48 +33,43 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]  # os list
+#        os: [ubuntu-latest, windows-latest]  # os list
+        os: [ubuntu-latest]  # os list
         python-version: [ "3.12.10" ]
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      # Checkout Repository
-      - name: Checkout Repository
+      # 🧾 Checkout Repository
+      - name: 🧾 Checkout Repository
         uses: actions/checkout@v4
         with:
           token: ${{ inputs.token_github || secrets.TOKEN_GITHUB }}
 
-      # Set up Python
-      - name: Set up Python
+      # 🐍 Set up Python
+      - name: 🐍 Set up Python
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Install dependencies
-      - name: Install dependencies
+      # 📦 Install dependencies
+      - name: 📦 Install dependencies
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
           
 
-      # 1. - Execute for ubuntu --no-compile to avoid compile any binary
-      - name: 1. - Execute for ubuntu --no-compile to avoid compile any binary
+      # ▶️ Execute build.py with --no-compile to avoid compile any binary
+      - name: ▶️ Execute build.py with --no-compile to avoid compile any binary
+        shell: bash
         run: |
           echo "::group::Execute for ${{ matrix.os }}"
-            
           python3 build.py --no-compile
-
-          # Execute only for ubuntu
-          # if [[ "${{ matrix.os }}" == *"ubuntu"* ]]; then
-            # python3 build.py --no-compile
-          # fi
-          
           echo "::endgroup::"
-        shell: bash
+          
 
-      # 2. Read SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt
-      - name: 2. Read SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt
+      # 🏷️ Extract SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt
+      - name: 🏷️ Extract SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt
 #        if: runner.os != 'Windows'
         shell: bash
         run: |
@@ -96,16 +91,16 @@ jobs:
       # ===========================
       # Generate the Docker version
       # ===========================
-      # 3. Log in to Docker Hub
-      - name: 3. Log in to Docker Hub
+      # 🐳 Log in to Docker Hub
+      - name: 🐳 Log in to Docker Hub
 #        if: ${{ startsWith(matrix.os, 'ubuntu') }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      # 4a. Build & Push Linux Docker image
-      - name: 4a. Build & Push Docker image
+      # 🐳 Build & Push Docker image
+      - name: 🐳 Build & Push Docker image
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           # Fuerza a Docker a:
@@ -126,8 +121,8 @@ jobs:
             docker push jaimetur/photomigrator:latest-stable
           fi
 
-      # 4b. Build & Push Windows Docker image
-      - name: 4b. Build & Push Windows Docker image
+      # 🐳 Build & Push Windows Docker image
+      - name: 🐳 Build & Push Windows Docker image
         if: ${{ startsWith(matrix.os, 'windows') }}
         shell: bash
         run: |
@@ -148,8 +143,8 @@ jobs:
           fi
 
       
-      # 5. Prepare unified ZIP docker package
-      - name: 5. Prepare unified ZIP docker package
+      # 🧩 Prepare ZIP docker package
+      - name: 🧩 Prepare ZIP docker package
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           mkdir -p PhotoMigrator/docker
@@ -161,12 +156,20 @@ jobs:
           cp -r help PhotoMigrator/docker/
           cp README.md PhotoMigrator/docker/docs/README.md
           zip -r PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip PhotoMigrator
+
+      # 📤 Upload Docker ZIP as artifact to be used in the main workflow
+      - name: 📤 Upload Docker ZIP as artifact to be used in the main workflow
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-zip
+          path: PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
+
       # ================================
       # End of Docker version Generation
       # ================================
 
-      # 6. Create Release and Upload Artifact to it (only if this action have been launched manually with create_release=true)
-      - name: 6. Create Release and Upload Artifact to it (only if this action have been launched manually with create_release=true)
+      # 🏷️ Create Release and Upload Artifact to it (only if this action have been launched manually with create_release=true)
+      - name: 🏷️ Create Release and Upload Artifact to it (only if this action have been launched manually with create_release=true)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_release == 'true'
         uses: softprops/action-gh-release@v2
         with:
@@ -179,55 +182,3 @@ jobs:
             PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-
-      # 7. - Cleanup (Linux/macOS)
-      - name: 7. - Cleanup (Linux/macOS)
-        if: runner.os != 'Windows'
-        run: |
-          if [ -f artifact_base64.txt ]; then
-            rm artifact_base64.txt
-            echo "Archivo artifact_base64.txt eliminado de carpeta raiz."
-          elif [ -f src/artifact_base64.txt ]; then
-            rm artifact_base64.txt
-            echo "Archivo artifact_base64.txt eliminado de src."
-          fi
-        shell: bash
-
-
-#      # 8. Commit y push README.md (Solo si OS = ubuntu*)
-#      - name: 8. Commit y push README.md
-#        if: ${{ startsWith(matrix.os, 'ubuntu') }}
-#        run: |
-#          git config --global user.name "github-actions[bot]"
-#          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-#
-#          # Añadir solo README.md, evitando archivos no deseados
-#          git add README.md
-#
-#          # Si NO hay cambios en README.md, salir sin error
-#          if git diff --cached --quiet; then
-#            echo "No hay cambios en README.md"
-#            exit 0
-#          fi
-#
-#          # Guardar cambios en stash antes de pull --rebase
-#          git stash push -m "Pre-rebase stash"
-#
-#          # Actualizar la rama
-#          git pull --rebase origin ${{ github.ref_name }}
-#
-#          # Restaurar cambios del stash si existen
-#          git stash pop || echo "No hay stash para aplicar"
-#
-#          # Asegurar que README.md está agregado después del pop
-#          git add README.md
-#
-#          # Verificar nuevamente si hay cambios antes de hacer commit
-#          if git diff --cached --quiet; then
-#            echo "No hay cambios después del stash pop"
-#            exit 0
-#          fi
-#
-#          # Realizar commit y push
-#          git commit -m "README.md updated by Github Actions (build_docker.yml)"
-#          git push origin ${{ github.ref_name }}
