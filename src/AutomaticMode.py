@@ -15,7 +15,7 @@ import traceback
 from GlobalVariables import LOGGER, ARGS, TIMESTAMP, START_TIME, HELP_TEXTS, DEPRIORITIZE_FOLDERS_PATTERNS, SCRIPT_DESCRIPTION, SCRIPT_VERSION, SCRIPT_NAME_VERSION
 from GlobalFunctions import resolve_path
 from Duplicates import find_duplicates, process_duplicates_actions
-from CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, CustomLogFormatter, clone_logger
+from CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, CustomLogFormatter, clone_logger, get_logger_filename
 from ClassTakeoutFolder import ClassTakeoutFolder
 from ClassLocalFolder import ClassLocalFolder
 from ClassSynologyPhotos import ClassSynologyPhotos
@@ -252,10 +252,10 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             # 3) Verifica y procesa source_client y target_client si es una instancia de ClassTakeoutFolder
             if isinstance(source_client, ClassTakeoutFolder):
                 if source_client.needs_unzip or source_client.needs_process:
-                    source_client.precheck_takeout_and_process(capture_output=show_gpth_info, capture_errors=show_gpth_errors)
+                    source_client.precheck_takeout_and_process(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=False)
             if isinstance(target_client, ClassTakeoutFolder):
                 if target_client.needs_unzip or target_client.needs_process:
-                    target_client.precheck_takeout_and_process(capture_output=show_gpth_info, capture_errors=show_gpth_errors)
+                    target_client.precheck_takeout_and_process(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=False)
 
             # ---------------------------------------------------------------------------------------------------------
             # 4) Ejecutamos la migración en el hilo principal (ya sea con descargas y subidas en paralelo o secuencial)
@@ -357,7 +357,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     def main_thread(parallel=None, log_level=logging.INFO):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # Get Log_filename
-            log_file = Utils.get_logger_filename(LOGGER)
+            log_file = get_logger_filename(LOGGER)
 
             # Get source and target client names
             source_client_name = source_client.get_client_name()
@@ -1034,7 +1034,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
     # Opcional: si NO quieres imprimir por consola, puedes quitar el StreamHandler que tenga el logger por defecto (así solo se registran en la lista).
     # Por ejemplo:
     LOGGER.propagate = False
-    log_file = Utils.get_logger_filename(LOGGER)
+    log_file = get_logger_filename(LOGGER)
 
     # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (12 lines), logs fill remainder
     layout.split_column(

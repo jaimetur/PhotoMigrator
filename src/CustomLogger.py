@@ -5,14 +5,6 @@ from colorama import Fore, Style
 from contextlib import contextmanager
 import threading
 
-def check_color_support(log_level=logging.INFO):
-    """ Detect if Terminal has supports colors """
-    if sys.stdout.isatty():  # Verifica si es un terminal interactivo
-        term = os.getenv("TERM", "")
-        if term in ("dumb", "linux", "xterm-mono"):  # Terminales sin colores
-            return False
-        return True
-    return False
 
 # Clase personalizada para formatear los mensajes que van a la consola (Añadimos colorees según el nivel del mensaje)
 class CustomConsoleFormatter(logging.Formatter):
@@ -77,7 +69,6 @@ class CustomInMemoryLogHandler(logging.Handler):
     def __init__(self, log_queue):
         super().__init__()
         self.log_queue = log_queue   # lista compartida para almacenar los mensajes
-
     def emit(self, record):
         # Formatear mensaje
         msg = self.format(record)
@@ -88,19 +79,15 @@ class CustomInMemoryLogHandler(logging.Handler):
 
 class LoggerStream:
     """Intercepta stdout y stderr para redirigirlos al LOGGER."""
-
     def __init__(self, logger, level=logging.INFO):
         self.logger = logger
         self.level = level
-
     def write(self, message):
         if message.strip():
             self.logger.log(self.level, message.strip())  # Enviar a LOGGER
-
     def flush(self):
         """No es necesario hacer nada aquí, pero lo definimos para compatibilidad."""
         pass
-
     def isatty(self):
         """Evitar errores en detección de terminal."""
         return False
@@ -109,15 +96,12 @@ class LoggerStream:
 # 🚀 Clase para capturar `print()` y `stderr` sin afectar `rich.Live`
 class LoggerCapture:
     """Captura stdout y stderr y los redirige al LOGGER sin afectar Rich.Live"""
-
     def __init__(self, logger, level):
         self.logger = logger
         self.level = level
-
     def write(self, message):
         if message.strip():
             self.logger.log(self.level, message.strip())  # Guardar en el LOGGER sin imprimir en pantalla
-
     def flush(self):
         pass  # No es necesario para logging
 
@@ -125,11 +109,9 @@ class LoggerCapture:
 # Integrar tqdm con el logger
 class LoggerConsoleTqdm:
     """Redirige la salida de tqdm solo a los manejadores de consola del LOGGER."""
-
     def __init__(self, logger, level=logging.INFO):
         self.logger = logger
         self.level = level
-
     def write(self, message):
         message = message.strip()
         if message:
@@ -144,20 +126,18 @@ class LoggerConsoleTqdm:
                         args=(),
                         exc_info=None
                     ))
-
     def flush(self):
         pass  # Necesario para compatibilidad con tqdm
-
     def isatty(self):
         """Engañar a tqdm para que lo trate como un terminal interactivo."""
         return True
+
 
 class ThreadLevelFilter(logging.Filter):
     def __init__(self, level):
         super().__init__()
         self.level = level
         self.thread_id = threading.get_ident()
-
     def filter(self, record):
         # Solo afecta al hilo actual
         if threading.get_ident() == self.thread_id:
@@ -219,6 +199,41 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, time
     LOGGER.propagate = False # <-- IMPORTANTE PARA EVITAR USAR EL LOOGER RAIZ
 
     return LOGGER
+
+# ==============================================================================
+#                               LOGGING FUNCTIONS
+# ==============================================================================
+def check_color_support(log_level=logging.INFO):
+    """ Detect if Terminal has supports colors """
+    if sys.stdout.isatty():  # Verifica si es un terminal interactivo
+        term = os.getenv("TERM", "")
+        if term in ("dumb", "linux", "xterm-mono"):  # Terminales sin colores
+            return False
+        return True
+    return False
+
+def get_logger_filename(logger):
+    for handler in logger.handlers:
+        if isinstance(handler, logging.FileHandler):
+            return handler.baseFilename  # Devuelve el path del archivo de logs
+    return ""  # Si no hay un FileHandler, retorna ""
+
+
+# Create context to temporarily disable console output
+@contextmanager
+def suppress_console_output_temporarily(logger):
+    """
+    Temporarily removes handlers marked with `.is_console_output = True` from the logger.
+    """
+    original_handlers = logger.handlers[:]
+    original_propagate = logger.propagate
+    logger.handlers = [h for h in original_handlers if not getattr(h, 'is_console_output', False)]
+    logger.propagate = False
+    try:
+        yield
+    finally:
+        logger.handlers = original_handlers
+        logger.propagate = original_propagate
 
 
 # Crear un contexto para cambiar el nivel del logger temporalmente

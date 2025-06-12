@@ -8,8 +8,8 @@ import logging
 
 COPYRIGHT_TEXT                  = "(c) 2024-2025 - Jaime Tur (@jaimetur)"
 SCRIPT_NAME                     = "PhotoMigrator"
-SCRIPT_VERSION                  = "v3.3.1"
-SCRIPT_DATE                     = "2025-06-12"
+SCRIPT_VERSION                  = "v3.3.2"
+SCRIPT_DATE                     = "2025-06-13"
 SCRIPT_NAME_VERSION             = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
 GPTH_VERSION                    = "4.0.8"
 EXIF_VERSION                    = "3.0.0"
@@ -39,7 +39,7 @@ SPECIAL_SUFFIXES = [
     '-edytowane',   # PL
     '-bearbeitet',  # DE
     '-bewerkt',     # NL
-    '-編集済み',      # JA
+    '-編集済み',     # JA
     '-modificato',  # IT
     '-modifié',     # FR
     '-ha editado',  # ES

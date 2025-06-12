@@ -41,13 +41,62 @@ def tqdm(*args, **kwargs):
             kwargs['file'] = TQDM_LOGGER_INSTANCE
     return original_tqdm(*args, **kwargs)
 
+
 def dir_exists(dir):
     return os.path.isdir(dir)
+
 
 def run_from_synology(log_level=logging.INFO):
     """ Check if the srcript is running from a Synology NAS """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         return os.path.exists('/etc.defaults/synoinfo.conf')
+
+
+def clear_screen():
+    os.system('clear' if os.name == 'posix' else 'cls')
+
+
+def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logger=True):
+    """
+    Prints a list of command-line arguments in a structured and readable one-line-per-arg format.
+
+    Args:
+        :param arguments (list): List of arguments (e.g., for PyInstaller).
+        :param title (str): Optional title to display above the arguments.
+        :param use_logger:
+    """
+    print("")
+    indent = "    "
+    i = 0
+    if use_logger:
+        LOGGER.info(f"INFO    : {step_name}{title}:")
+        while i < len(arguments):
+            arg = arguments[i]
+            if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
+                LOGGER.info(f"INFO    : {step_name}{indent}{arg}={arguments[i + 1]}")
+                i += 2
+            else:
+                LOGGER.info(f"INFO    : {step_name}{indent}{arg}")
+                i += 1
+    else:
+        print(f"INFO    : {title}:")
+        while i < len(arguments):
+            arg = arguments[i]
+            if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
+                print(f"INFO    : {step_name}{indent}{arg}={arguments[i + 1]}")
+                i += 2
+            else:
+                print(f"INFO    : {step_name}{indent}{arg}")
+                i += 1
+    print("")
+
+
+def ensure_executable(path):
+    if platform.system() != "Windows":
+        # Añade permisos de ejecución al usuario, grupo y otros sin quitar los existentes
+        current_permissions = os.stat(path).st_mode
+        os.chmod(path, current_permissions | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
 
 def normalize_path(path, log_level=logging.INFO):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -55,40 +104,61 @@ def normalize_path(path, log_level=logging.INFO):
         return os.path.normpath(path)
 
 
-def check_OS_and_Terminal(log_level=logging.INFO):
-    """ Check OS, Terminal Type, and System Architecture """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Detect the operating system
-        current_os = get_os(log_level=logging.WARNING)
-        # Detect the machine architecture
-        arch_label = get_arch(log_level=logging.WARNING)
-
-        # Logging OS
-        if current_os == "linux":
-            if run_from_synology():
-                LOGGER.info(f"INFO    : Script running on Linux System in a Synology NAS")
-            else:
-                LOGGER.info(f"INFO    : Script running on Linux System")
-        elif current_os == "macos":
-            LOGGER.info(f"INFO    : Script running on MacOS System")
-        elif current_os == "windows":
-            LOGGER.info(f"INFO    : Script running on Windows System")
+def resource_path(relative_path):
+    """
+    Devuelve la ruta absoluta al recurso 'relative_path', funcionando en:
+    - PyInstaller (onefile o standalone)
+    - Nuitka (onefile o standalone)
+    - Python directo (desde cwd o desde dirname(__file__))
+    """
+    # IMPORTANT: Don't use LOGGER in this function because is also used by build.py which has not any LOGGER created.
+    DEBUG_MODE = False  # Cambia a False para silenciar
+    if DEBUG_MODE:
+        print("---DEBUG INFO")
+        print(f"DEBUG   : RESOURCES_IN_CURRENT_FOLDER : {RESOURCES_IN_CURRENT_FOLDER}")
+        print(f"DEBUG   : sys.frozen                  : {getattr(sys, 'frozen', False)}")
+        print(f"DEBUG   : NUITKA_ONEFILE_PARENT       : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
+        print(f"DEBUG   : sys.argv[0]                 : {sys.argv[0]}")
+        print(f"DEBUG   : sys.executable              : {sys.executable}")
+        print(f"DEBUG   : os.getcwd()                 : {os.getcwd()}")
+        print(f"DEBUG   : __file__                    : {globals().get('__file__', 'NO __file__')}")
+        try:
+            print(f"DEBUG   : __compiled__.containing_dir : {__compiled__.containing_dir}")
+        except NameError:
+            print(f"DEBUG   : __compiled__ not defined")
+        if hasattr(sys, '_MEIPASS'):
+            print(f"DEBUG   : _MEIPASS                    : {sys._MEIPASS}")
         else:
-            LOGGER.error(f"ERROR   : Unsupported Operating System: {current_os}")
-
-        # Logging Architecture
-        LOGGER.info(f"INFO    : Detected architecture: {arch_label}")
-
-        # Terminal type detection
-        if sys.stdout.isatty():
-            LOGGER.info("INFO    : Interactive (TTY) terminal detected for stdout")
+            print(f"DEBUG   : _MEIPASS not defined")
+        print("")
+    # PyInstaller
+    if hasattr(sys, '_MEIPASS'):
+        base_path = sys._MEIPASS
+        if DEBUG_MODE: print("DEBUG   : Entra en modo PyInstaller -> (sys._MEIPASS)")
+    # Nuitka onefile
+    elif "NUITKA_ONEFILE_PARENT" in os.environ:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        if DEBUG_MODE: print("DEBUG   : Entra en modo Nuitka --onefile -> (__file__)")
+    # Nuitka standalone
+    elif "__compiled__" in globals():
+        base_path = os.path.join(__compiled__.containing_dir, SCRIPT_NAME+'.dist')
+        # base_path = __compiled__
+        if DEBUG_MODE: print("DEBUG   : Entra en modo Nuitka --standalone -> (__compiled__.containing_dir)")
+    # Python normal
+    elif "__file__" in globals():
+        if RESOURCES_IN_CURRENT_FOLDER:
+            base_path = os.getcwd()
+            if DEBUG_MODE: print("DEBUG   : Entra en Python .py -> (cwd)")
         else:
-            LOGGER.info("INFO    : Non-Interactive (Non-TTY) terminal detected for stdout")
-        if sys.stdin.isatty():
-            LOGGER.info("INFO    : Interactive (TTY) terminal detected for stdin")
-        else:
-            LOGGER.info("INFO    : Non-Interactive (Non-TTY) terminal detected for stdin")
-        LOGGER.info("")
+            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            if DEBUG_MODE: print("DEBUG   : Entra en Python .py -> (dirname(dirname(__file__)))")
+    else:
+        base_path = os.getcwd()
+        if DEBUG_MODE: print("DEBUG   : Entra en fallback final -> os.getcwd()")
+    if DEBUG_MODE:
+        print(f"DEBUG   : return path                 : {os.path.join(base_path, relative_path)}")
+        print("--- END DEBUG INFO")
+    return os.path.join(base_path, relative_path)
 
 
 def get_os(log_level=logging.INFO, step_name="", use_logger=True):
@@ -145,6 +215,39 @@ def get_arch(log_level=logging.INFO, step_name="", use_logger=True):
             arch_label = "unknown"
         print(f"INFO    : {step_name}Detected architecture: {arch_label}")
     return arch_label
+
+
+def check_OS_and_Terminal(log_level=logging.INFO):
+    """ Check OS, Terminal Type, and System Architecture """
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        # Detect the operating system
+        current_os = get_os(log_level=logging.WARNING)
+        # Detect the machine architecture
+        arch_label = get_arch(log_level=logging.WARNING)
+        # Logging OS
+        if current_os == "linux":
+            if run_from_synology():
+                LOGGER.info(f"INFO    : Script running on Linux System in a Synology NAS")
+            else:
+                LOGGER.info(f"INFO    : Script running on Linux System")
+        elif current_os == "macos":
+            LOGGER.info(f"INFO    : Script running on MacOS System")
+        elif current_os == "windows":
+            LOGGER.info(f"INFO    : Script running on Windows System")
+        else:
+            LOGGER.error(f"ERROR   : Unsupported Operating System: {current_os}")
+        # Logging Architecture
+        LOGGER.info(f"INFO    : Detected architecture: {arch_label}")
+        # Terminal type detection
+        if sys.stdout.isatty():
+            LOGGER.info("INFO    : Interactive (TTY) terminal detected for stdout")
+        else:
+            LOGGER.info("INFO    : Non-Interactive (Non-TTY) terminal detected for stdout")
+        if sys.stdin.isatty():
+            LOGGER.info("INFO    : Interactive (TTY) terminal detected for stdin")
+        else:
+            LOGGER.info("INFO    : Non-Interactive (Non-TTY) terminal detected for stdin")
+        LOGGER.info("")
 
 
 def count_files_in_folder(folder_path, log_level=logging.INFO):
@@ -456,6 +559,7 @@ def unzip_flatten(zipfile_path, dest_folder):
                         target.write(source.read())
         print(f"ZIP file extracted to: {dest_folder}")
 
+
 def zip_folder(temp_dir, output_file):
     print(f"Creating packed file: {output_file}...")
 
@@ -607,16 +711,13 @@ def update_exif_date(image_path, asset_time, log_level=logging.INFO):
                 except ValueError as e:
                     LOGGER.warning(f"WARNING : Invalid date format for asset_time: {asset_time}. {e}")
                     return
-
             # Convertir el timestamp UNIX a formato EXIF "YYYY:MM:DD HH:MM:SS"
             date_time_exif = datetime.fromtimestamp(asset_time).strftime("%Y:%m:%d %H:%M:%S")
             date_time_bytes = date_time_exif.encode('utf-8')
-
             # Backup original timestamps
             original_times = os.stat(image_path)
             original_atime = original_times.st_atime
             original_mtime = original_times.st_mtime
-
             # Cargar EXIF data o crear un diccionario vacío si no tiene metadatos
             try:
                 exif_dict = piexif.load(image_path)
@@ -625,36 +726,30 @@ def update_exif_date(image_path, asset_time, log_level=logging.INFO):
                 # exif_dict = {"0th": {}, "Exif": {}, "GPS": {}, "Interop": {}, "1st": {}, "thumbnail": None}
                 LOGGER.warning(f"WARNING : No EXIF metadata found in {image_path}. Skipping it....")
                 return
-
             # Actualizar solo si existen las secciones
             if "0th" in exif_dict:
                 exif_dict["0th"][piexif.ImageIFD.DateTime] = date_time_bytes
             if "Exif" in exif_dict:
                 exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal] = date_time_bytes
                 exif_dict["Exif"][piexif.ExifIFD.DateTimeDigitized] = date_time_bytes
-
             # Verificar y corregir valores incorrectos antes de insertar
             for ifd_name in ["0th", "Exif"]:
                 for tag, value in exif_dict.get(ifd_name, {}).items():
                     if isinstance(value, int):
                         exif_dict[ifd_name][tag] = str(value).encode('utf-8')
-
             try:
                 # Dump and insert updated EXIF data
                 exif_bytes = piexif.dump(exif_dict)
                 piexif.insert(exif_bytes, image_path)
-
                 # Restaurar timestamps originales del archivo
                 os.utime(image_path, (original_atime, original_mtime))
                 LOGGER.debug(f"DEBUG   : EXIF metadata updated for {image_path} with timestamp {date_time_exif}")
             except Exception:
                 LOGGER.error(f"ERROR   : Error when restoring original metadata to file: '{image_path}'")
                 return
-
         except Exception as e:
             LOGGER.warning(f"WARNING : Failed to update EXIF metadata for {image_path}. {e}")
         
-
 
 def update_video_metadata(video_path, asset_time, log_level=logging.INFO):
     """
@@ -676,7 +771,6 @@ def update_video_metadata(video_path, asset_time, log_level=logging.INFO):
                 except ValueError:
                     LOGGER.warning(f"WARNING : Invalid date format for asset_time: {asset_time}")
                     return
-                
             # Convert timestamp to system format
             mod_time = asset_time
             create_time = asset_time
@@ -718,7 +812,6 @@ def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=logging.
                 except ValueError:
                     LOGGER.warning(f"WARNING : Invalid date format for asset_time: {asset_time}")
                     return
-                
             # Convert asset_time (UNIX timestamp) to format used by FFmpeg (YYYY-MM-DDTHH:MM:SS)
             formatted_date = datetime.fromtimestamp(asset_time).strftime("%Y-%m-%dT%H:%M:%S")
             # Backup original file timestamps
@@ -743,11 +836,11 @@ def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=logging.
         
 
 # Convert to list
-def convert_to_list(input, log_level=logging.INFO):
+def convert_to_list(input_string, log_level=logging.INFO):
     """ Convert a String to List"""
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
-            output = input
+            output = input_string
             if isinstance(output, list):
                 pass  # output ya es una lista
             elif isinstance(output, str):
@@ -762,9 +855,10 @@ def convert_to_list(input, log_level=logging.INFO):
             else:
                 output = [output]
         except Exception as e:
-            LOGGER.warning(f"WARNING : Failed to convert string to List for {input}. {e}")
+            LOGGER.warning(f"WARNING : Failed to convert string to List for {input_string}. {e}")
         
         return output
+
 
 def convert_asset_ids_to_str(asset_ids):
     """Convierte asset_ids a strings, incluso si es una lista de diferentes tipos."""
@@ -772,6 +866,7 @@ def convert_asset_ids_to_str(asset_ids):
         return [str(item) for item in asset_ids]
     else:
         return [str(asset_ids)]
+
 
 def sha1_checksum(file_path):
     """Calcula el SHA-1 hash de un archivo y devuelve tanto en formato HEX como Base64"""
@@ -786,29 +881,6 @@ def sha1_checksum(file_path):
 
     return sha1_hex, sha1_base64
 
-def get_logger_filename(logger):
-    for handler in logger.handlers:
-        if isinstance(handler, logging.FileHandler):
-            return handler.baseFilename  # Devuelve el path del archivo de logs
-    return ""  # Si no hay un FileHandler, retorna ""
-
-# ==============================================================================
-#                               LOGGING FUNCTIONS
-# ==============================================================================
-@contextmanager
-def suppress_console_output_temporarily(logger):
-    """
-    Temporarily removes handlers marked with `.is_console_output = True` from the logger.
-    """
-    original_handlers = logger.handlers[:]
-    original_propagate = logger.propagate
-    logger.handlers = [h for h in original_handlers if not getattr(h, 'is_console_output', False)]
-    logger.propagate = False
-    try:
-        yield
-    finally:
-        logger.handlers = original_handlers
-        logger.propagate = original_propagate
 
 # ==============================================================================
 #                               DATE PARSERS
@@ -831,7 +903,6 @@ def parse_text_to_iso8601(date_str):
     if not date_str or not date_str.strip():
         return None
     date_str = date_str.strip()
-
     # Lista de formatos con día, mes y año
     date_formats = [
         "%d/%m/%Y",
@@ -930,6 +1001,7 @@ def parse_text_datetime_to_epoch(value):
         return int(value.timestamp())
     return None
 
+
 # Deprecated fucntion
 def iso8601_to_epoch(iso_date):
     """
@@ -943,7 +1015,6 @@ def iso8601_to_epoch(iso_date):
     """
     if iso_date is None:
         return None
-
     try:
         if iso_date.endswith("Z"):
             iso_date = iso_date.replace("Z", "+00:00")
@@ -952,6 +1023,7 @@ def iso8601_to_epoch(iso_date):
     except Exception:
         # En caso de error inesperado, se devuelve -1
         return -1
+
 
 # Deprecated fucntion
 def epoch_to_iso8601(epoch):
@@ -1020,111 +1092,11 @@ def is_date_outside_range(date_to_check):
         return True
     return False
 
+
 def capitalize_first_letter(text):
     if not text:
         return text
     return text[0].upper() + text[1:]
-
-def clear_screen():
-    os.system('clear' if os.name == 'posix' else 'cls')
-
-def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logger=True):
-    """
-    Prints a list of command-line arguments in a structured and readable one-line-per-arg format.
-
-    Args:
-        :param arguments (list): List of arguments (e.g., for PyInstaller).
-        :param title (str): Optional title to display above the arguments.
-        :param use_logger:
-    """
-    print("")
-    indent = "    "
-    i = 0
-    if use_logger:
-        LOGGER.info(f"INFO    : {step_name}{title}:")
-        while i < len(arguments):
-            arg = arguments[i]
-            if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                LOGGER.info(f"INFO    : {step_name}{indent}{arg}={arguments[i + 1]}")
-                i += 2
-            else:
-                LOGGER.info(f"INFO    : {step_name}{indent}{arg}")
-                i += 1
-    else:
-        print(f"INFO    : {title}:")
-        while i < len(arguments):
-            arg = arguments[i]
-            if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                print(f"INFO    : {step_name}{indent}{arg}={arguments[i + 1]}")
-                i += 2
-            else:
-                print(f"INFO    : {step_name}{indent}{arg}")
-                i += 1
-    print("")
-
-
-def resource_path(relative_path):
-    """
-    Devuelve la ruta absoluta al recurso 'relative_path', funcionando en:
-    - PyInstaller (onefile o standalone)
-    - Nuitka (onefile o standalone)
-    - Python directo (desde cwd o desde dirname(__file__))
-    """
-    # IMPORTANT: Don't use LOGGER in this function because is also used by build.py which has not any LOGGER created.
-    DEBUG_MODE = False  # Cambia a False para silenciar
-    if DEBUG_MODE:
-        print("---DEBUG INFO")
-        print(f"DEBUG   : RESOURCES_IN_CURRENT_FOLDER : {RESOURCES_IN_CURRENT_FOLDER}")
-        print(f"DEBUG   : sys.frozen                  : {getattr(sys, 'frozen', False)}")
-        print(f"DEBUG   : NUITKA_ONEFILE_PARENT       : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
-        print(f"DEBUG   : sys.argv[0]                 : {sys.argv[0]}")
-        print(f"DEBUG   : sys.executable              : {sys.executable}")
-        print(f"DEBUG   : os.getcwd()                 : {os.getcwd()}")
-        print(f"DEBUG   : __file__                    : {globals().get('__file__', 'NO __file__')}")
-        try:
-            print(f"DEBUG   : __compiled__.containing_dir : {__compiled__.containing_dir}")
-        except NameError:
-            print(f"DEBUG   : __compiled__ not defined")
-        if hasattr(sys, '_MEIPASS'):
-            print(f"DEBUG   : _MEIPASS                    : {sys._MEIPASS}")
-        else:
-            print(f"DEBUG   : _MEIPASS not defined")
-        print("")
-    # PyInstaller
-    if hasattr(sys, '_MEIPASS'):
-        base_path = sys._MEIPASS
-        if DEBUG_MODE: print("DEBUG   : Entra en modo PyInstaller -> (sys._MEIPASS)")
-    # Nuitka onefile
-    elif "NUITKA_ONEFILE_PARENT" in os.environ:
-        base_path = os.path.dirname(os.path.abspath(__file__))
-        if DEBUG_MODE: print("DEBUG   : Entra en modo Nuitka --onefile -> (__file__)")
-    # Nuitka standalone
-    elif "__compiled__" in globals():
-        base_path = os.path.join(__compiled__.containing_dir, SCRIPT_NAME+'.dist')
-        # base_path = __compiled__
-        if DEBUG_MODE: print("DEBUG   : Entra en modo Nuitka --standalone -> (__compiled__.containing_dir)")
-    # Python normal
-    elif "__file__" in globals():
-        if RESOURCES_IN_CURRENT_FOLDER:
-            base_path = os.getcwd()
-            if DEBUG_MODE: print("DEBUG   : Entra en Python .py -> (cwd)")
-        else:
-            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            if DEBUG_MODE: print("DEBUG   : Entra en Python .py -> (dirname(dirname(__file__)))")
-    else:
-        base_path = os.getcwd()
-        if DEBUG_MODE: print("DEBUG   : Entra en fallback final -> os.getcwd()")
-    if DEBUG_MODE:
-        print(f"DEBUG   : return path                 : {os.path.join(base_path, relative_path)}")
-        print("--- END DEBUG INFO")
-    return os.path.join(base_path, relative_path)
-
-
-def ensure_executable(path):
-    if platform.system() != "Windows":
-        # Añade permisos de ejecución al usuario, grupo y otros sin quitar los existentes
-        current_permissions = os.stat(path).st_mode
-        os.chmod(path, current_permissions | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
 
 def get_subfolders_with_exclusions(input_folder, exclude_subfolder=None):
@@ -1185,6 +1157,7 @@ def contains_takeout_structure(input_folder, step_name="", log_level=logging.INF
                 LOGGER.warning(f"WARNING : {step_name}Error scanning {current}: {e}")
         LOGGER.info(f"INFO    : {step_name}No Takeout structure found in input folder.")
         return False
+
 
 # ---------------------------------------------------------------------------------------------------------------------------
 # GOOGLE TAKEOUT PRE-PROCESSING FUNCTIONS:
@@ -1425,11 +1398,12 @@ def fix_truncated_extensions(input_folder, step_name="", log_level=logging.INFO)
 # ---------------------------------------------------------------------------------------------------------------------------
 # GOOGLE TAKEOUT PROCESSING FUNCTIONS:
 # ---------------------------------------------------------------------------------------------------------------------------
-def run_command(command, logger, capture_output=False, capture_errors=True, step_name=""):
+def run_command(command, logger, capture_output=False, capture_errors=True, print_messages=True, step_name=""):
     """
     Ejecuta un comando. Muestra en consola actualizaciones de progreso sin loguearlas.
     Loguea solo líneas distintas a las de progreso. Corrige pegado de líneas en consola.
     """
+    from CustomLogger import suppress_console_output_temporarily
     # ------------------------------------------------------------------------------------------------------------------------------------------------------------
     def handle_stream(stream, is_error=False):
         import re
@@ -1452,17 +1426,19 @@ def run_command(command, logger, capture_output=False, capture_errors=True, step
             common_part = line.split(' : ')[0] if ' : ' in line else line
             is_progress = previous_prefix and line.startswith(previous_prefix)
             previous_prefix = common_part
-            if "WARNING" in line:
-                print()
-                print(f"{Fore.YELLOW}WARNING : {step_name}{line}", end='', flush=True)
-            elif "ERROR" in line:
-                print()
-                print(f"{Fore.RED}ERROR   : {step_name}{line}", end='', flush=True)
-            else:
-                print(f"\rINFO    : {step_name}{line}", end='', flush=True)
+            if print_messages:
+                if "WARNING" in line:
+                    print()
+                    print(f"{Fore.YELLOW}WARNING : {step_name}{line}", end='', flush=True)
+                elif "ERROR" in line:
+                    print()
+                    print(f"{Fore.RED}ERROR   : {step_name}{line}", end='', flush=True)
+                else:
+                    print(f"\rINFO    : {step_name}{line}", end='', flush=True)
             if not is_progress:
                 if not previous_progress:
                     print()
+                    # pass
                 if is_error:
                     logger.error(f"ERROR   : {step_name}{line}")
                 else:
@@ -1494,6 +1470,8 @@ def run_command(command, logger, capture_output=False, capture_errors=True, step
 
             process.wait()  # Esperar a que el proceso termine
             return process.returncode
+
+
 # ---------------------------------------------------------------------------------------------------------------------------
 # GOOGLE TAKEOUT POST-PROCESSING FUNCTIONS:
 # ---------------------------------------------------------------------------------------------------------------------------
@@ -1802,7 +1780,7 @@ def move_albums_to_root(albums_root, step_name="", log_level=logging.INFO):
 #         return valid_albums
 
 
-def count_valid_albums(folder_path, step_name="", log_level=logging.INFO):
+def count_valid_albums(folder_path, excluded_folders=[], step_name="", log_level=logging.INFO):
     """
     Counts the number of subfolders within folder_path and its sublevels
     that contain at least one valid image or video file.
@@ -1812,22 +1790,21 @@ def count_valid_albums(folder_path, step_name="", log_level=logging.INFO):
 
     The following folders (and all their subfolders) are excluded from the count:
     - Any folder named 'Photos from YYYY' where YYYY starts with 1 or 2.
-    - Folders named exactly 'Albums', 'Albums-shared', or 'No-Albums'.
+    - Folders named exactly as excluded_folder list.
     """
-    EXCLUDED_NAMES = {"Albums", "Albums-shared", "No-Albums"}
     YEAR_PATTERN = re.compile(r'^Photos from [12]\d{3}$')
     with set_log_level(LOGGER, log_level):  # Change log level temporarily
         valid_albums = 0
         for root, dirs, files in os.walk(folder_path):
             folder_name = os.path.basename(root)
             # Skip current folder if it matches any exclusion rule
-            if folder_name in EXCLUDED_NAMES or YEAR_PATTERN.fullmatch(folder_name):
+            if folder_name in excluded_folders or YEAR_PATTERN.fullmatch(folder_name):
                 dirs.clear()  # Prevent descending into subdirectories
                 continue
             # Also remove excluded subfolders from being walked into
             dirs[:] = [
                 d for d in dirs
-                if d not in EXCLUDED_NAMES and not YEAR_PATTERN.fullmatch(d)
+                if d not in excluded_folders and not YEAR_PATTERN.fullmatch(d)
             ]
             # Check for at least one valid image or video file
             if any(os.path.splitext(file)[1].lower() in PHOTO_EXT or os.path.splitext(file)[1].lower() in VIDEO_EXT for file in files):
@@ -1852,7 +1829,6 @@ def fix_symlinks_broken(input_folder, step_name="", log_level=logging.INFO):
         Index all non-symbolic files in the directory and its subdirectories by their filename.
         Returns a dictionary where keys are filenames and values are lists of their full paths.
         """
-
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             file_index = {}
             # Contar el total de carpetas
@@ -1880,7 +1856,6 @@ def fix_symlinks_broken(input_folder, step_name="", log_level=logging.INFO):
         If multiple matches exist, return the first found.
         If none is found, return None.
         """
-        
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             if target_name in file_index and file_index[target_name]:
                 return file_index[target_name][0]
@@ -1896,10 +1871,8 @@ def fix_symlinks_broken(input_folder, step_name="", log_level=logging.INFO):
         if not os.path.isdir(input_folder):
             LOGGER.error(f"ERROR   : {step_name}The directory '{input_folder}' does not exist or is not valid.")
             return 0, 0
-
         # Step 1: Index all real non-symbolic files
         file_index = build_file_index(input_folder)
-
         # Step 2: Search for broken symbolic links and fix them using the index
         already_warned = False
         total_files = sum([len(files) for _, _, files in os.walk(input_folder)]) # Contar el total de carpetas

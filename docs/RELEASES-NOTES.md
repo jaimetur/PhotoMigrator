@@ -2,7 +2,26 @@
 
 ---
 
-## **Release**: v3.3.1  
+## **Release**: v3.3.2  
+
+- ### **Release Date**: 2025-06-13
+
+- ### Main Changes:
+  - #### 🌟 New Features:
+   
+
+  - #### 🚀 Enhancements:
+    
+
+  - #### 🐛 Bug fixes:
+
+
+  - #### 📚 Documentation:
+    - [x] Updated documentation with all changes.
+  
+---
+
+## **Release**: v3.3.2  
 
 - ### **Release Date**: 2025-06-12
 

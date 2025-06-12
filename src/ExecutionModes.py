@@ -231,7 +231,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         # Create the Object
         takeout = ClassTakeoutFolder(ARGS['google-takeout'])
         # Call the Function
-        result = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], log_level=log_level)
+        result = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], print_messages=True, create_localfolder_object=False, log_level=log_level)
 
         # print result for debugging
         # print_result_pretty(asdict(result))
