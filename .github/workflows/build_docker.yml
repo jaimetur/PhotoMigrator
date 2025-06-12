@@ -89,10 +89,6 @@ jobs:
       # ===========================
       # Generate the Docker version
       # ===========================
-      - name: Check Docker info
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: docker info
-
       # 3. Log in to Docker Hub
       - name: 3. Log in to Docker Hub
 #        if: ${{ startsWith(matrix.os, 'ubuntu') }}
