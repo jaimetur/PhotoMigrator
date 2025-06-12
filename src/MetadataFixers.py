@@ -13,7 +13,7 @@ from CustomLogger import set_log_level
 from GlobalVariables import LOGGER, GPTH_VERSION
 from Utils import get_os, get_arch, resource_path, ensure_executable, run_command, print_arguments_pretty
 
-def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=False, capture_errors=True, skip_extras=False, symbolic_albums=False, move_takeout_folder=False, ignore_takeout_structure=False, step_name="", log_level=logging.INFO):
+def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=False, capture_errors=True, print_messages=True, skip_extras=False, symbolic_albums=False, move_takeout_folder=False, ignore_takeout_structure=False, step_name="", log_level=logging.INFO):
     
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         """Runs the GPTH Tool command to process photos."""
@@ -112,7 +112,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             print_arguments_pretty(gpth_command, title='GPTH Command', step_name=step_name, use_logger=True)
 
             # Run GPTH Tool
-            ok = run_command(gpth_command, LOGGER, capture_output=capture_output, capture_errors=capture_errors, step_name=step_name)      # Shows the output in real time and capture it to the LOGGER.
+            ok = run_command(gpth_command, LOGGER, capture_output=capture_output, capture_errors=capture_errors, print_messages=print_messages, step_name=step_name)      # Shows the output in real time and capture it to the LOGGER.
 
             # Rename folder 'ALL_PHOTOS' by 'No-Albums'
             all_photos_path = os.path.join(output_folder, 'ALL_PHOTOS')
