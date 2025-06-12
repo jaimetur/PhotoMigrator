@@ -1481,7 +1481,7 @@ def sync_mp4_timestamps_with_images(input_folder, step_name="", log_level=loggin
     If found, then set the date and time of the .MP4 file to the same date and time of the original Live Picture.
     """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Contar el total de carpetas
+        # Contar el total de archivos (para la barra de progreso)
         total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
         # Mostrar la barra de progreso basada en carpetas
         with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : {step_name}Synchronizing .MP4 files with Live Pictures in '{input_folder}'", unit=" files") as pbar:
@@ -1505,19 +1505,25 @@ def sync_mp4_timestamps_with_images(input_folder, step_name="", log_level=loggin
                         image_file_found = False
                         for image_ext in image_exts:
                             if image_ext in ext_file_map:
-                                image_filename = ext_file_map[image_ext]
-                                image_file_path = os.path.join(path, image_filename)
-                                # Obtener los tiempos de acceso y modificación del archivo de imagen
-                                image_stats = os.stat(image_file_path)
-                                atime = image_stats.st_atime  # Tiempo de último acceso
-                                mtime = image_stats.st_mtime  # Tiempo de última modificación
-                                # Aplicar los tiempos al archivo .MP4
-                                os.utime(mp4_file_path, (atime, mtime))
-                                LOGGER.debug(f"DEBUG   : {step_name}Date and time attributes synched for: {os.path.relpath(mp4_file_path,input_folder)} using:  {os.path.relpath(image_file_path,input_folder)}")
-                                image_file_found = True
-                                break  # Salir después de encontrar el primer archivo de imagen disponible
+                                try:
+                                    image_filename = ext_file_map[image_ext]
+                                    image_file_path = os.path.join(path, image_filename)
+                                    if os.path.exists(image_file_path) and os.path.exists(mp4_file_path):
+                                        # Obtener los tiempos de acceso y modificación del archivo de imagen
+                                        image_stats = os.stat(image_file_path)
+                                        atime = image_stats.st_atime  # Tiempo de último acceso
+                                        mtime = image_stats.st_mtime  # Tiempo de última modificación
+                                        # Aplicar los tiempos al archivo .MP4
+                                        os.utime(mp4_file_path, (atime, mtime))
+                                        LOGGER.debug(f"DEBUG   : {step_name}Date and time attributes synched for: {os.path.relpath(mp4_file_path,input_folder)} using:  {os.path.relpath(image_file_path,input_folder)}")
+                                        image_file_found = True
+                                        break  # Salir después de encontrar el primer archivo de imagen disponible
+                                    else:
+                                        LOGGER.warning(f"WARNING : {step_name}File not found. MP4: {mp4_file_path} | Image: {image_file_path}")
+                                except Exception as e:
+                                    LOGGER.error(f"ERROR   : {step_name}Could not sync timestamps for {mp4_file_path}. Reason: {e}")
                         if not image_file_found:
-                            #LOGGER.warning(f"WARNING : Cannot find Live picture file to sync with: {os.path.relpath(mp4_file_path,input_folder)}")
+                            LOGGER.debug(f"DEBUG   : {step_name}Cannot find Live picture file to sync with: {os.path.relpath(mp4_file_path,input_folder)}")
                             pass
 
 
