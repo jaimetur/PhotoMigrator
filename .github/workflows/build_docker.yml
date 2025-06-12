@@ -58,10 +58,10 @@ jobs:
             
           python3 build.py --no-compile
 
-#          # Execute only for ubuntu
-#          if [[ "${{ matrix.os }}" == *"ubuntu"* ]]; then
-#            python3 build.py --no-compile
-#          fi
+          # Execute only for ubuntu
+          # if [[ "${{ matrix.os }}" == *"ubuntu"* ]]; then
+            # python3 build.py --no-compile
+          # fi
           
           echo "::endgroup::"
         shell: bash
