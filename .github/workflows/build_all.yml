@@ -186,8 +186,6 @@ jobs:
     uses: ./.github/workflows/build_docker.yml  # Ruta relativa
     needs: set-input-matrix
     if: ${{ always() }}
-    with:
-      # aquí podrías pasarle inputs si los declaraste
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
