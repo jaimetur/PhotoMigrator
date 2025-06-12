@@ -8,15 +8,14 @@
 
 - ### Main Changes:
   - #### 🌟 New Features:
-   
 
   - #### 🚀 Enhancements:
-    
 
   - #### 🐛 Bug fixes:
 
-
   - #### 📚 Documentation:
+    - [x] Improved Google Takeout Feature documentation.
+    - [x] Included GPTH Process Expplanation documentation within Google Takeout Feature documentation.
     - [x] Updated documentation with all changes.
   
 ---
