@@ -124,6 +124,7 @@ jobs:
       # 4b. Build & Push Windows Docker image
       - name: 4b. Build & Push Windows Docker image
         if: ${{ startsWith(matrix.os, 'windows') }}
+        shell: bash
         run: |
           # Construir imagen Windows
           docker build --pull --no-cache \
