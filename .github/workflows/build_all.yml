@@ -183,9 +183,13 @@ jobs:
   # ==========================================================================================================================
   call-docker-packaging:
     name: 🐳 Run Docker Packaging Workflow
-    uses: ./.github/workflows/build_docker.yml  # Ruta relativa
+    uses: ./.github/workflows/build_docker.yml
     needs: set-input-matrix
     if: ${{ always() }}
+    with:
+      token_github: ${{ secrets.TOKEN_GITHUB }}
+      dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
   # ==========================================================================================================================
   # JOB build
