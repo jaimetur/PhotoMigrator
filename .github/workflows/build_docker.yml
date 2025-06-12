@@ -55,11 +55,13 @@ jobs:
       - name: 1. - Execute for ubuntu --no-compile to avoid compile any binary
         run: |
           echo "::group::Execute for ${{ matrix.os }}"
-                    
-          # Execute for ubuntu
-          if [[ "${{ matrix.os }}" == *"ubuntu"* ]]; then
-            python3 build.py --no-compile
-          fi
+            
+          python3 build.py --no-compile
+
+#          # Execute only for ubuntu
+#          if [[ "${{ matrix.os }}" == *"ubuntu"* ]]; then
+#            python3 build.py --no-compile
+#          fi
           
           echo "::endgroup::"
         shell: bash
