@@ -8,7 +8,7 @@
 
 - ### Main Changes:
   - #### 🌟 New Features:
-  - [x] Attempt to create a  Docker Version which execute within a Windows container instead of Linux container.
+    - [x] Attempt to create a  Docker Version which execute within a Windows container instead of Linux container.
 
   - #### 🚀 Enhancements:
     - [x] Ensure that filenames lenght are at least 40 chars before to Fix truncated speccial_suffixees or truncated extensions during Google Takeout Processing. 
