@@ -11,10 +11,10 @@ WORKDIR C:/app
 ENV TZ=Etc/UTC
 
 # Instala Python manualmente de forma robusta
-RUN powershell -Command `
-    Invoke-WebRequest -Uri https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe -OutFile python-installer.exe ; `
-    Start-Process python-installer.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1 Include_test=0' -Wait ; `
-    Remove-Item python-installer.exe -Force
+RUN powershell -Command " \
+    Invoke-WebRequest -Uri https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe -OutFile python-installer.exe ; \
+    Start-Process python-installer.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1 Include_test=0' -Wait ; \
+    Remove-Item python-installer.exe -Force"
 
 # Copiar los archivos
 COPY requirements.txt .
