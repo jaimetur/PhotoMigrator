@@ -1,9 +1,6 @@
-Step 1: Fix incorrect file extensions
+# Step 1: Fix incorrect file extensions
 
-This step identifies and fixes files where the extension doesn't match
-the actual MIME type, which commonly occurs when Google Photos compresses
-images but keeps original extensions or when web-downloaded images have
-incorrect extensions.
+This step identifies and fixes files where the extension doesn't match the actual MIME type, which commonly occurs when Google Photos compresses images but keeps original extensions or when web-downloaded images have incorrect extensions.
 
 ## Purpose
 Google Photos Takeout often contains files with mismatched extensions:

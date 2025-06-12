@@ -1,8 +1,6 @@
-Step 2: Discover and classify media files
+# Step 2: Discover and classify media files
 
-This comprehensive step handles the discovery and initial classification of all media files
-in the Google Photos Takeout structure. It processes both year-based organization and
-album folders to build a complete inventory of media files.
+This comprehensive step handles the discovery and initial classification of all media files in the Google Photos Takeout structure. It processes both year-based organization and album folders to build a complete inventory of media files.
 
 ## Discovery Process
 

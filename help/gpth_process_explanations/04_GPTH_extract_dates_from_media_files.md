@@ -1,8 +1,6 @@
-Step 4: Extract dates from media files
+# Step 4: Extract dates from media files
 
-This critical step determines the correct date and time for each media file using
-multiple extraction methods in order of reliability. Accurate date extraction is
-essential for proper chronological organization of photos and videos.
+This critical step determines the correct date and time for each media file using multiple extraction methods in order of reliability. Accurate date extraction is essential for proper chronological organization of photos and videos.
 
 ## Extraction Methods (Priority Order)
 

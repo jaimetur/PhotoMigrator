@@ -1,8 +1,6 @@
-Step 7: Move files to output directory
+# Step 7: Move files to output directory
 
-This critical final step organizes and relocates all processed media files from the
-Google Photos Takeout structure to the user's desired output organization. It applies
-all configuration choices including album behavior, date organization, and file operation modes.
+This critical final step organizes and relocates all processed media files from the Google Photos Takeout structure to the user's desired output organization. It applies all configuration choices including album behavior, date organization, and file operation modes.
 
 ## File Organization Strategies
 

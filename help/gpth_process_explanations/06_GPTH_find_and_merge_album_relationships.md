@@ -1,9 +1,6 @@
-Step 6: Find and merge album relationships
+# Step 6: Find and merge album relationships
 
-This sophisticated step analyzes the media collection to identify files that represent
-the same photo/video across different albums and locations, then merges them into
-unified Media objects. This is crucial for Google Photos exports where the same file
-appears in both year folders and multiple album folders.
+This sophisticated step analyzes the media collection to identify files that represent the same photo/video across different albums and locations, then merges them into unified Media objects. This is crucial for Google Photos exports where the same file appears in both year folders and multiple album folders.
 
 ## Album Relationship Detection
 
