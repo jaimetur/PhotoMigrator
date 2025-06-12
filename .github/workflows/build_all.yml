@@ -502,7 +502,7 @@ jobs:
     name: 🏷️ Create Release (single run)
     needs:
       - build
-#      - docker-packaging
+      - docker-packaging
     runs-on: ubuntu-22.04
 
     steps:
