@@ -96,6 +96,9 @@ on:
 
 
 jobs:
+  # ==========================================================================================================================
+  # JOB Set Input Matrix
+  # ==========================================================================================================================
   set-input-matrix:
     runs-on: ubuntu-latest
     outputs:
@@ -174,6 +177,20 @@ jobs:
 
           # Exportar en una sola línea (obligatorio)
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
+  # ==========================================================================================================================
+  # JOB Docker packaging (single run)
+  # ==========================================================================================================================
+  call-docker-packaging:
+    name: 🐳 Run Docker Packaging Workflow
+    uses: ./.github/workflows/build_docker.yml  # Ruta relativa
+    needs: set-input-matrix
+    if: ${{ always() }}
+    with:
+      # aquí podrías pasarle inputs si los declaraste
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
 
   # ==========================================================================================================================
   # JOB build
@@ -418,66 +435,66 @@ jobs:
           # fi
 
 
-  # ==========================================================================================================================
-  # JOB Docker packaging (single run)
-  # ==========================================================================================================================
-  docker-packaging:
-    name: 🐳 Docker packaging (single run)
-    needs: set-input-matrix
-    if: ${{ always() }}
-    runs-on: ubuntu-22.04
-    steps:
-      - name: 🧾 Checkout source code
-        uses: actions/checkout@v4
-
-      - name: 🏷️ Extract SCRIPT_VERSION from GlobalVariables.py
-        run: |
-          VERSION_LINE=$(grep '^SCRIPT_VERSION' ./src/GlobalVariables.py)
-          RAW_VERSION=$(echo "$VERSION_LINE" | cut -d'"' -f2)
-          SCRIPT_VERSION=${RAW_VERSION#v}
-          echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> $GITHUB_ENV
-          echo "✅ SCRIPT_VERSION = ${SCRIPT_VERSION}"
-
-      - name: 🐳 Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: 🐳 Build & Push Docker image
-        run: |
-          docker build --pull --no-cache \
-            -t jaimetur/photomigrator:${SCRIPT_VERSION} \
-            -f docker/Dockerfile .
-
-          docker tag jaimetur/photomigrator:${SCRIPT_VERSION} jaimetur/photomigrator:latest
-
-          if [[ "$SCRIPT_VERSION" != *alpha* && "$SCRIPT_VERSION" != *beta* && "$SCRIPT_VERSION" != *RC* ]]; then
-            docker tag jaimetur/photomigrator:${SCRIPT_VERSION} jaimetur/photomigrator:latest-stable
-            docker push jaimetur/photomigrator:latest-stable
-          fi
-
-          docker push jaimetur/photomigrator:${SCRIPT_VERSION}
-          docker push jaimetur/photomigrator:latest
-
-      - name: 🧩 Prepare ZIP docker package
-        run: |
-          mkdir -p PhotoMigrator/docker
-          cp docker/PhotoMigrator.sh PhotoMigrator/docker/
-          cp docker/PhotoMigrator.bat PhotoMigrator/docker/
-          cp docker/docker.conf PhotoMigrator/docker/
-          cp Config.ini PhotoMigrator/docker/
-          cp -r docs PhotoMigrator/docker/
-          cp -r help PhotoMigrator/docker/
-          cp README.md PhotoMigrator/docker/docs/README.md
-          zip -r PhotoMigrator_v${SCRIPT_VERSION}_docker.zip PhotoMigrator
-          echo "PhotoMigrator_v${SCRIPT_VERSION}_docker.zip"
-
-      - name: 📤 Upload Docker ZIP as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
-          path: PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
+#  # ==========================================================================================================================
+#  # JOB Docker packaging (single run)
+#  # ==========================================================================================================================
+#  docker-packaging:
+#    name: 🐳 Docker packaging (single run)
+#    needs: set-input-matrix
+#    if: ${{ always() }}
+#    runs-on: ubuntu-22.04
+#    steps:
+#      - name: 🧾 Checkout source code
+#        uses: actions/checkout@v4
+#
+#      - name: 🏷️ Extract SCRIPT_VERSION from GlobalVariables.py
+#        run: |
+#          VERSION_LINE=$(grep '^SCRIPT_VERSION' ./src/GlobalVariables.py)
+#          RAW_VERSION=$(echo "$VERSION_LINE" | cut -d'"' -f2)
+#          SCRIPT_VERSION=${RAW_VERSION#v}
+#          echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> $GITHUB_ENV
+#          echo "✅ SCRIPT_VERSION = ${SCRIPT_VERSION}"
+#
+#      - name: 🐳 Log in to Docker Hub
+#        uses: docker/login-action@v2
+#        with:
+#          username: ${{ secrets.DOCKERHUB_USERNAME }}
+#          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+#
+#      - name: 🐳 Build & Push Docker image
+#        run: |
+#          docker build --pull --no-cache \
+#            -t jaimetur/photomigrator:${SCRIPT_VERSION} \
+#            -f docker/Dockerfile .
+#
+#          docker tag jaimetur/photomigrator:${SCRIPT_VERSION} jaimetur/photomigrator:latest
+#
+#          if [[ "$SCRIPT_VERSION" != *alpha* && "$SCRIPT_VERSION" != *beta* && "$SCRIPT_VERSION" != *RC* ]]; then
+#            docker tag jaimetur/photomigrator:${SCRIPT_VERSION} jaimetur/photomigrator:latest-stable
+#            docker push jaimetur/photomigrator:latest-stable
+#          fi
+#
+#          docker push jaimetur/photomigrator:${SCRIPT_VERSION}
+#          docker push jaimetur/photomigrator:latest
+#
+#      - name: 🧩 Prepare ZIP docker package
+#        run: |
+#          mkdir -p PhotoMigrator/docker
+#          cp docker/PhotoMigrator.sh PhotoMigrator/docker/
+#          cp docker/PhotoMigrator.bat PhotoMigrator/docker/
+#          cp docker/docker.conf PhotoMigrator/docker/
+#          cp Config.ini PhotoMigrator/docker/
+#          cp -r docs PhotoMigrator/docker/
+#          cp -r help PhotoMigrator/docker/
+#          cp README.md PhotoMigrator/docker/docs/README.md
+#          zip -r PhotoMigrator_v${SCRIPT_VERSION}_docker.zip PhotoMigrator
+#          echo "PhotoMigrator_v${SCRIPT_VERSION}_docker.zip"
+#
+#      - name: 📤 Upload Docker ZIP as artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
+#          path: PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
 
   # ==========================================================================================================================
   # JOB Create Release (single run)
