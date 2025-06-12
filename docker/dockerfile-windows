@@ -1,0 +1,39 @@
+# Imagen base oficial de Python sobre Windows Server Core
+FROM mcr.microsoft.com/windows/python:3.11
+
+# Usamos PowerShell como shell por defecto
+SHELL ["powershell", "-Command"]
+
+# Creamos el directorio de trabajo
+WORKDIR C:/app
+
+# Establecer la zona horaria (opcional, pero no tiene efecto real en muchos entornos Windows Container)
+ENV TZ=Etc/UTC
+
+# Copiar los archivos
+COPY requirements.txt .
+
+# Instalar dependencias Python
+RUN python -m pip install --no-cache-dir -r requirements.txt
+
+# Copiar carpetas del proyecto
+COPY src/ ./src/
+COPY docs/ ./docs/
+COPY help/ ./help/
+COPY gpth_tool/ ./gpth_tool/
+COPY Config.ini ./default_config.ini
+COPY docker/docker.conf ./default_docker.conf
+COPY README.md ./docs/README.md
+COPY docker/docker-entrypoint.ps1 C:/docker-entrypoint.ps1
+
+# (Opcional) descomprimir gpth_tool/others.zip si existe
+RUN if (Test-Path 'gpth_tool/others.zip') { \
+        Expand-Archive -Path 'gpth_tool/others.zip' -DestinationPath 'gpth_tool' ; \
+        Remove-Item 'gpth_tool/others.zip' \
+    }
+
+# Dar permisos de ejecución (en Windows, solo relevante si invocas scripts)
+# No es necesario chmod, solo asegurar que PowerShell puede ejecutarlo
+
+# Entrypoint
+ENTRYPOINT ["powershell", "-File", "C:/docker-entrypoint.ps1"]

@@ -1,6 +1,7 @@
 name: Build Docker Image Only
 
 on:
+  workflow_call:          # Allow to call this workflow from another workflow
   workflow_dispatch:      # Allows manual execution of the workflow
     inputs:
       create_release:
@@ -25,7 +26,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest]  # os list
+        os: [ubuntu-latest, windows-latest]  # os list
         python-version: [ "3.12.10" ]
 
     runs-on: ${{ matrix.os }}
@@ -85,6 +86,10 @@ jobs:
       # ===========================
       # Generate the Docker version
       # ===========================
+      - name: Check Docker info
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: docker info
+
       # 3. Log in to Docker Hub
       - name: 3. Log in to Docker Hub
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
@@ -93,7 +98,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      # 4. Build & Push Docker image
+      # 4a. Build & Push Linux Docker image
       - name: 4. Build & Push Docker image
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
@@ -101,11 +106,13 @@ jobs:
           #  1) descargar la base actualizada ( --pull )
           #  2) ignorar todas las capas cacheadas ( --no-cache )
           docker build --pull --no-cache \
-            -t jaimetur/photomigrator:${{ env.SCRIPT_VERSION }} \
-            -f docker/Dockerfile .
+            -t jaimetur/photomigrator:${SCRIPT_VERSION} \     # Etiquetar con el nombre de la versión
+            -t jaimetur/photomigrator:latest \                        # Etiquetar como latest
+            -f docker/dockerfile-linux .
 
-          # Etiquetar como latest
-          docker tag jaimetur/photomigrator:${{ env.SCRIPT_VERSION }} jaimetur/photomigrator:latest
+          # Subir etiquetas latest y con versión específica
+          docker push jaimetur/photomigrator:${SCRIPT_VERSION}
+          docker push jaimetur/photomigrator:latest
 
           # Si es versión estable (no alpha, beta ni RC), etiquetar también como latest-stable
           if [[ "${SCRIPT_VERSION}" != *alpha* && "${SCRIPT_VERSION}" != *beta* && "${SCRIPT_VERSION}" != *RC* ]]; then
@@ -113,9 +120,26 @@ jobs:
             docker push jaimetur/photomigrator:latest-stable
           fi
 
+      # 4b. Build & Push Windows Docker image
+      - name: 4b. Build & Push Windows Docker image
+        if: ${{ startsWith(matrix.os, 'windows') }}
+        run: |
+          # Construir imagen Windows
+          docker build --pull --no-cache \
+            -t jaimetur/photomigrator:${SCRIPT_VERSION}-windows \     # Etiquetar con el nombre de la versión + '-windows'
+            -t jaimetur/photomigrator:latest-windows \                        # Etiquetar como latest-windows
+            -f docker/dockerfile-windows .
+
           # Subir etiquetas latest y con versión específica
-          docker push jaimetur/photomigrator:${SCRIPT_VERSION}
-          docker push jaimetur/photomigrator:latest
+          docker push jaimetur/photomigrator:${SCRIPT_VERSION}-windows
+          docker push jaimetur/photomigrator:latest-windows
+
+          # Si es versión estable (no alpha, beta ni RC), subir también como latest-stable-windows
+          if [[ "${SCRIPT_VERSION}" != *alpha* && "${SCRIPT_VERSION}" != *beta* && "${SCRIPT_VERSION}" != *RC* ]]; then
+            docker tag jaimetur/photomigrator:${SCRIPT_VERSION}-windows jaimetur/photomigrator:latest-stable-windows
+            docker push jaimetur/photomigrator:latest-stable-windows
+          fi
+
       
       # 5. Prepare unified ZIP docker package
       - name: 5. Prepare unified ZIP docker package

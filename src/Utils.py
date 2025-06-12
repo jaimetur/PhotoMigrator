@@ -1242,7 +1242,7 @@ def fix_mp4_files(input_folder, step_name="", log_level=logging.INFO):
                             if not os.path.exists(new_json_path):
                                 # Copy the original JSON file to the new file
                                 shutil.copy(candidate_path, new_json_path)
-                                LOGGER.info(f"INFO    : {step_name}Created: {candidate} -> {new_json_name}")
+                                LOGGER.info(f"INFO    : {step_name}Copied: {candidate} -> {new_json_name}")
                             else:
                                 LOGGER.info(f"INFO    : {step_name}Skipped: {new_json_name} already exists")
 
@@ -1272,6 +1272,9 @@ def fix_special_suffixes(input_folder, step_name="", log_level=logging.INFO):
                 for file in files:
                     old_path = os.path.join(path, file)
                     name, ext = os.path.splitext(file)
+                    # 0. Truncated fielenames (without extensions) use to have a filename lenght of 46 chars, let exclude filenames lenght <40
+                    if len(name) < 40:
+                        continue
                     changed = False
                     # 1. Detect and complete truncated .supplemental-metadata (before .json or other extensions)
                     if ext.lower() == '.json':
@@ -1349,6 +1352,9 @@ def fix_truncated_extensions(input_folder, step_name="", log_level=logging.INFO)
                         continue
                     base_with_suffix, ext, _ = parts
                     base_name = base_with_suffix
+                    # Step 0 Truncated fielenames (without extensions) use to have a filename lenght of 46 chars, let exclude filenames lenght <40
+                    if len(base_name) < 40:
+                        continue
                     # Step 1: complete supplemental-metadata if truncated
                     for i in range(len(SUPPLEMENTAL_METADATA), 1, -1):
                         trunc = SUPPLEMENTAL_METADATA[:i]
@@ -1391,7 +1397,7 @@ def fix_truncated_extensions(input_folder, step_name="", log_level=logging.INFO)
                         LOGGER.warning(f"WARNING : {step_name}Destination already exists: {new_json_path}")
                     else:
                         os.rename(json_path, new_json_path)
-                        LOGGER.info(f"INFO    : {step_name}Fixed {json_file} → {new_json_name}")
+                        LOGGER.info(f"INFO    : {step_name}Fixed: {json_file} → {new_json_name}")
 
 
 
@@ -1942,11 +1948,21 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
             input_string = re.sub(r'((19|20)\d{2}\.\d{2}\.\d{2})\.(\d{2})', r'\1_\3', input_string)
             return input_string
 
-    def remove_dates(input_string: str, log_level=logging.INFO) -> str:
+    def remove_dates(input_string: str, log_level=logging.INFO) -> dict:
+        """
+        Removes date or date range prefixes from the input string and returns a dictionary
+        with the cleaned name and the extracted date(s).
+
+        Returns:
+            dict: {
+                "clean-name": str,  # The input string with the date(s) removed
+                "dates": str        # The removed date(s) prefix, or empty string if none found
+            }
+        """
         import re
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-            # Quita prefijo de fecha o rango de fechas si existe
-            input_string = re.sub(
+            # Patrón para detectar fecha o rango de fechas al inicio del string
+            pattern = re.compile(
                 r"""^                   # inicio del string
                 (
                     (?:19|20)\d{2}                          # yyyy
@@ -1960,11 +1976,15 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     \s*[-_]\s*                              # separador tras la fecha o rango
                 )
                 """,
-                '',
-                input_string,
                 flags=re.VERBOSE
             )
-            return input_string
+            match = pattern.match(input_string)
+            dates = match.group(1) if match else ""
+            clean_name = input_string[match.end():] if match else input_string
+            return {
+                "clean-name": clean_name,
+                "dates": dates
+            }
 
     def get_year_range(folder: str, log_level=logging.INFO) -> str:
         def get_exif_date(image_path):
@@ -2158,8 +2178,9 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
         for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"INFO    : {step_name}Renaming Albums folders in '<OUTPUT_TAKEOUT_FOLDER>'", unit=" folders"):
             item_path = os.path.join(input_folder, original_folder_name)
             if os.path.isdir(item_path):
-                cleaned_folder_name = clean_name(original_folder_name)
-                cleaned_folder_name = remove_dates(cleaned_folder_name)
+                resultado = remove_dates(original_folder_name)
+                cleaned_folder_name = resultado["clean-name"]
+                original_dates = resultado["dates"]
                 # If folder name does not start with a year (19xx or 20xx)
                 if not re.match(r'^(19|20)\d{2}', cleaned_folder_name):
                     if type_date_range.lower() == 'complete':
@@ -2169,9 +2190,14 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     else:
                         warning_actions.append(f"WARNING : {step_name}No valid type_date_range: '{type_date_range}'")
 
+                    # if not possible to find a date_raange, continue with rename this folder
                     if date_range:
                         cleaned_folder_name = f"{date_range} - {cleaned_folder_name}"
                         # info_actions.append(f"INFO    : Added year prefix '{date_range}' to folder: '{os.path.basename(cleaned_folder_name)}'")
+                    else:
+                        # cleaned_folder_name = f"{original_dates}{cleaned_folder_name}"
+                        continue
+
                 # Skip renaming if the clean name is the same as the original
                 if cleaned_folder_name != original_folder_name:
                     new_folder_path = os.path.join(input_folder, cleaned_folder_name)
