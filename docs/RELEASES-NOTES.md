@@ -13,13 +13,14 @@
   - #### 🚀 Enhancements:
     - [x] Replace return arguments of `ClassTakeoutFolder.process()` method by a new object with all the arguments.
     - [x] Added more info while running Google Takeout Processing feature.
+    - [x] Improved messages visualization of GPTH Processing in Automatic Migration Feature disabling progress bars within this Feature.
     - [x] Improved Pre-Process steps in Google Takeout Processing with those new sub-steps:
-      - [x] Fix JSON Metadata for MP4 videos associated to Live Picturas (Now also take into account the `.supplemental-metadata` suffix and any posible variation/truncation of it (i.e: `IMG_0159.HEIC.supplemental-metad.json -> IMG_0159.MP4.supplemental-metadata.json)`.
-      - [x] Fix truncated special suffixes at the end of the file (i.e: `filename-edi.jpg -> filename-edited.jpg`). Also take into account the `.supplemental-metadata` suffix and  any posible variation/truncation of it
-      - [x] Fix truncated extensions in JSON files (i.e: `filename.jp.json -> filename.jpg.json`). Also take into account the `.supplemental-metadata` suffix and  any posible variation/truncation of it
+      - [x] Fixed JSON Metadata for MP4 videos associated to Live Picturas (Now also take into account the `.supplemental-metadata` suffix and any posible variation/truncation of it (i.e: `IMG_0159.HEIC.supplemental-metad.json -> IMG_0159.MP4.supplemental-metadata.json)`.
+      - [x] Fixed truncated special suffixes at the end of the file (i.e: `filename-edi.jpg -> filename-edited.jpg`). Also take into account the `.supplemental-metadata` suffix and  any posible variation/truncation of it
+      - [x] Fixed truncated extensions in JSON files (i.e: `filename.jp.json -> filename.jpg.json`). Also take into account the `.supplemental-metadata` suffix and  any posible variation/truncation of it
     - [x] Updated GPTH to version `4.0.8` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
-      - [x] Fix a bug in the albums folders creation when the album name start with a number.
-      - [x] Fix skipping files whose content does not match with their extension.
+      - [x] Fixed a bug in the albums folders creation when the album name start with a number.
+      - [x] Fixed skipping files whose content does not match with their extension.
     - [x] Added new flag `-confirm, --request-user-confirmarion` to Skip User Confirmation before to execute any Feature. (Requested by @VictorAcon).
     - [x] Added Steps Names Info in Logs during Google Takeout Processing Feature.
 
