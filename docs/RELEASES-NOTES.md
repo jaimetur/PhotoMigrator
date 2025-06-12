@@ -12,6 +12,7 @@
   - #### 🚀 Enhancements:
 
   - #### 🐛 Bug fixes:
+    - [x] Fixed unhandled exception in funcrion `sync_mp4_timestamps_with_images()` when the image have been moved from output folder before to complete MP4 timestamp synching.
 
   - #### 📚 Documentation:
     - [x] Improved Google Takeout Feature documentation.
