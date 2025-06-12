@@ -12,6 +12,8 @@
 
   - #### 🚀 Enhancements:
     - [x] Ensure that filenames lenght are at least 40 chars before to Fix truncated speccial_suffixees or truncated extensions during Google Takeout Processing. 
+    - [x] Build Workflow Improvements.
+    - [x] Enhance Statistics in Google Takeout Processing Results.
 
   - #### 🐛 Bug fixes:
     - [x] Fixed unhandled exception in funcrion `sync_mp4_timestamps_with_images()` when the image have been moved from output folder before to complete MP4 timestamp synching.

@@ -121,7 +121,7 @@ jobs:
             docker push jaimetur/photomigrator:latest-stable
           fi
 
-      # 🐳 Build & Push Windows Docker image
+      # 🐳 Build & Push Windows Docker image (disabled since this doesn't work as expected)
       - name: 🐳 Build & Push Windows Docker image
         if: ${{ startsWith(matrix.os, 'windows') }}
         shell: bash
@@ -161,7 +161,7 @@ jobs:
       - name: 📤 Upload Docker ZIP as artifact to be used in the main workflow
         uses: actions/upload-artifact@v4
         with:
-          name: docker-zip
+          name: PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
           path: PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
 
       # ================================
