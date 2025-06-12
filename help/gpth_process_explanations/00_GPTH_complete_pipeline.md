@@ -8,7 +8,7 @@ This pipeline executes the 8 processing steps in their fixed order:
 5. Write EXIF - Embed metadata into files - [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/gpth_process_explanations/05_GPTG_write_EXIF_data.md)
 6. Find Albums - Merge album relationships - [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/gpth_process_explanations/06_GPTH_find_and_merge_album_relationships.md)
 7. Move Files - Organize files to output structure - [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/gpth_process_explanations/07_GPTH_move_files_to_output_folder.md)
-8. Update Creation Time - Sync timestamps (Windows only) - [doc]()
+8. Update Creation Time - Sync timestamps (Windows only) - [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/gpth_process_explanations/08_GPTH_update_creation_time_windows_only.md)
 
 Each step checks configuration flags to determine if it should run.  
 
