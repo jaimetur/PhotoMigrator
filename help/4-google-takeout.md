@@ -89,7 +89,7 @@ The final `<OUTPUT_FOLDER>` will include:
 > 4. <span style="color:grey">(Optional) Copy/Move files to output folder manually if GPTH processing was skipped --> 0h</span>
 > 5. Sync .MP4 timestamps --> 30s
 > 6. Create Date Folder Structure --> 2m
-> 7. Moving Album Folder --> 30s
+> 7. Move Album Folder --> 30s
 > 8. <span style="color:grey">(Optional) Remove Duplicates after fixing --> 1h</span>
 > 9. <span style="color:grey">(Optional) Fix Broken Symlinks --> 10m</span>
 > 10. <span style="color:grey">(Optional) Rename Albums Folders after fixing --> 1m</span>
