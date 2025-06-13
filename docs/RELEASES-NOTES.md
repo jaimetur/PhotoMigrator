@@ -10,11 +10,11 @@
   - #### 🌟 New Features:
 
   - #### 🚀 Enhancements:
-    - [x] Ensure that filenames lenght are at least 40 chars before to Fix truncated speccial_suffixees or truncated extensions during Google Takeout Processing. 
-    - [x] Build Workflow Improvements.
-    - [x] Enhanced Statistics in Google Takeout Processing Results to include difference and percentage of assets between Takeout folder and Output folder.
+    - [x] Ensure that filenames lenght are at least 40 chars before to Fix truncated speccial suffixes or truncated extensions during Google Takeout Processing. 
+    - [x] Workflows Improvements.
+    - [x] Enhanced Results Statistics in Google Takeout Processing to include differencs and percentags of assets between Takeout folder and Output folder.
     - [x] Created DataModels for a better structure on those functions that returns multiples values.
-    - [x] Enhanced Feature `Find Duplicates` Feature during 'Google Takeout Processing'. 
+    - [x] Enhanced Feature `Find Duplicates` during Google Takeout Processing. 
       - Now the Tool will not detect as duplicates, those assets found in `No-Albums` folder and within any `Albums` subfolder.
 
   - #### 🐛 Bug fixes:
