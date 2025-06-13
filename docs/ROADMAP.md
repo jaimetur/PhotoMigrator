@@ -3,6 +3,21 @@
 
 ---
 
+## **Release**: v3.3.2
+
+- ### Release Date: (estimated)
+  - Alpha version    : 2025-06-13
+  - Beta version     : (No estimated date)
+  - Release Candidate: (No estimated date)
+  - Official Release : (No estimated date)
+
+- ### TODO:
+  - #### 🐛 Bug Fixing:
+    - [ ] Fix Docker launcher on Windows. 
+    - [ ] Fix no catch exeptions during `Automatic Migration`. 
+    - [ ] Update GPTH to fix files with extensions not matching their content. 
+---
+
 ## **Release**: v4.0.0 
 
 - ### Release Date: (estimated)
