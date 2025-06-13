@@ -8,12 +8,14 @@
 
 - ### Main Changes:
   - #### 🌟 New Features:
-    - [x] Attempt to create a  Docker Version which execute within a Windows container instead of Linux container.
 
   - #### 🚀 Enhancements:
-    - [x] Ensure that filenames lenght are at least 40 chars before to Fix truncated speccial_suffixees or truncated extensions during Google Takeout Processing. 
+    - [x] <OUTPUT_TAKEOUT_FOLDER> that filenames lenght are at least 40 chars before to Fix truncated speccial_suffixees or truncated extensions during Google Takeout Processing. 
     - [x] Build Workflow Improvements.
-    - [x] Enhance Statistics in Google Takeout Processing Results.
+    - [x] Enhanced Statistics in Google Takeout Processing Results.
+    - [x] Created DataModels for a better structure on those functions that returns multiples values.
+    - [x] Enhanced Feature `Find Duplicates` during 'Google Takeout Processing'. 
+      - Now the Tool will not detect as duplicates, those assets found in `No-Albums` folder and within any `Albums` subfolder.
 
   - #### 🐛 Bug fixes:
     - [x] Fixed unhandled exception in funcrion `sync_mp4_timestamps_with_images()` when the image have been moved from output folder before to complete MP4 timestamp synching.
