@@ -26,6 +26,7 @@ from dateutil import parser as date_parser
 from tqdm import tqdm as original_tqdm
 from CustomLogger import LoggerConsoleTqdm
 from GlobalVariables import LOGGER, ARGS, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES
+from DataModels import RenameAlbumResult
 
 # Crear instancia global del wrapper
 TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
@@ -2233,4 +2234,10 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
         for warning_action in warning_actions:
             LOGGER.warning(warning_actions)
 
-        return renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged
+        # return renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged
+        return RenameAlbumResult(
+            renamed_album_folders=renamed_album_folders,
+            duplicates_album_folders=duplicates_album_folders,
+            duplicates_albums_fully_merged=duplicates_albums_fully_merged,
+            duplicates_albums_not_fully_merged=duplicates_albums_not_fully_merged
+        )

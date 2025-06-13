@@ -15,7 +15,7 @@ from Utils import delete_subfolders, remove_empty_dirs, tqdm
 # ========================
 # Find Duolicates Function
 # ========================
-def find_duplicates(duplicates_action='list', duplicates_folders='./', deprioritize_folders_patterns=None, timestamp=None, step_name="", log_level=logging.INFO):
+def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion_folders=None, deprioritize_folders_patterns=None, timestamp=None, step_name="", log_level=logging.INFO):
     """
     This function searches for duplicate files based on their size and content (hash),
     ignoring file names or modification dates.
@@ -75,26 +75,6 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                         hasher.update(chunk)
             return hasher.hexdigest()
 
-    def folder_pattern_priority(folder, log_level=logging.INFO):
-        """
-        Evaluate folder priority based on patterns.
-        Returns (is_deprioritized, priority)
-        """
-        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-            if folder in cache_folders_priority:
-                return cache_folders_priority[folder]
-            matched_priorities = []
-            for i, pattern_lower in enumerate(deprioritize_folders_patterns):
-                if fnmatch.fnmatch(folder, pattern_lower):
-                    matched_priorities.append(i)
-                    break
-            if not matched_priorities:
-                result = (False, None)
-            else:
-                result = (True, max(matched_priorities))
-            cache_folders_priority[folder] = result
-            return result
-
     def folder_pattern_priority_regex_support(folder, log_level=logging.INFO):
         """
         Evalúa la prioridad de un folder basándose en patrones fnmatch.
@@ -139,8 +119,16 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                         LOGGER.debug(f"DEBUG   : {step_name}Removed empty directory in path {dirpath}")
                     except OSError:
                         pass
-                    
             return removed_folders
+
+    def is_under_exclusion(path: str) -> bool:
+        """
+        True si 'path' es exactamente una ruta excluida o está debajo de alguna de ellas.
+        """
+        return any(
+            path == ex or path.startswith(ex + os.sep)
+            for ex in exclusion_folders
+        )
 
     # ===========================
     # INITIALIZATION AND SETUP
@@ -150,19 +138,41 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
         removed_empty_folders = 0
         if deprioritize_folders_patterns is None:
             deprioritize_folders_patterns = []
+
+        # Convert duplicates_folders to list if is str
         if isinstance(duplicates_folders, str):
-            input_folders_list = [f.strip() for f in re.split('[,;]', duplicates_folders) if f.strip()]
-        else:
-            input_folders_list = duplicates_folders
-        if not input_folders_list:
-            input_folders_list = [resolve_path('./')]
+            duplicates_folders = [f.strip() for f in re.split('[,;]', duplicates_folders) if f.strip()]
+
+        # Convert exclusion_folders to list if is str
+        if exclusion_folders is None:
+            exclusion_folders = []
+        elif isinstance(exclusion_folders, str):
+            exclusion_folders = [f.strip() for f in re.split(r'[;,]', exclusion_folders) if f.strip()]
+
+        # ————————————————
+        # EXPANDIR a rutas absolutas bajo cada duplicates_folder
+        # ————————————————
+        abs_exclusions = []
+        for excl in exclusion_folders:
+            if os.path.isabs(excl):
+                abs_exclusions.append(os.path.normpath(excl))
+            else:
+                for root in duplicates_folders:
+                    abs_exclusions.append(
+                        os.path.normpath(os.path.join(root, excl))
+                    )
+        exclusion_folders = abs_exclusions
+        LOGGER.debug(f"DEBUG   : {step_name} Exclusiones absolutas: {exclusion_folders}")
+
+        if not duplicates_folders:
+            duplicates_folders = [resolve_path('./')]
         LOGGER.debug(f"DEBUG   : {step_name}Checking folder existence")
-        for folder in input_folders_list:
+        for folder in duplicates_folders:
             if not os.path.isdir(folder):
                 LOGGER.error(f"ERROR   : {step_name}The folder '{folder}' does not exist.")
                 return -1, -1
-        input_folders_list = [os.path.abspath(f) for f in input_folders_list]
-        LOGGER.debug(f"DEBUG   : {step_name}Absolute folder paths: {input_folders_list}")
+        duplicates_folders = [os.path.abspath(f) for f in duplicates_folders]
+        LOGGER.debug(f"DEBUG   : {step_name}Absolute folder paths: {duplicates_folders}")
         if timestamp is None:
             timestamp = time.strftime('%Y%m%d-%H%M%S', time.localtime())
         cache_folders_priority = {}
@@ -175,17 +185,42 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
         total_folders = 0
         total_files = 0
         total_symlinks = 0
-        for folder in input_folders_list:
+        for folder in duplicates_folders:
             LOGGER.debug(f"DEBUG   : {step_name}Walking folder {folder}")
-            # Contar el total de carpetas
-            for _, dirs, files in os.walk(folder):
-                dirs[:] = [d for d in dirs if d != '@eaDir']
-                total_files += sum([len(files)])
+
+            # ===========================
+            # CALCULAR TOTAL DE FICHEROS
+            # ===========================
+            total_files_to_process = 0
+            for path, dirs, files in os.walk(folder, topdown=True):
+                # Si el directorio padre ya está excluido, no desciendas más
+                if is_under_exclusion(path):
+                    dirs[:] = []  # impide seguir profundizando
+                    continue
+
+                # Excluir '@eaDir' y subdirectorios inmediatos en exclusion_folders
+                dirs[:] = [d for d in dirs
+                           if d != '@eaDir'
+                           and not is_under_exclusion(os.path.join(path, d))]
+
+                # Sumar ficheros de este nivel
+                total_files_to_process += len(files)
+            LOGGER.debug(f"DEBUG   : {step_name}Total files to process: {total_files_to_process}")
+
             # Show progress bar per fies
-            with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : {step_name}Processing files'", unit=" files") as pbar:
+            with tqdm(total=total_files_to_process, smoothing=0.1,  desc=f"INFO    : {step_name}Processing files'", unit=" files") as pbar:
                 # Recursively traverse the folder and excluding '@eaDir' folders
-                for path, dirs, files in os.walk(folder):
-                    dirs[:] = [d for d in dirs if d != '@eaDir']
+                for path, dirs, files in os.walk(folder, topdown=True):
+                    # 1) Si estamos en un árbol excluido, lo saltamos entero
+                    if is_under_exclusion(path):
+                        dirs[:] = []
+                        continue
+
+                    # 2) Filtrar '@eaDir' y cualquier subcarpeta excluida
+                    dirs[:] = [d for d in dirs
+                               if d != '@eaDir'
+                               and not is_under_exclusion(os.path.join(path, d))]
+
                     total_folders += len(dirs)
                     for file in files:
                         pbar.update(1)
@@ -203,14 +238,14 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                         size_dict.setdefault(file_size, []).append(full_path)
 
         # Optimización: Filtrar directamente los tamaños con más de un archivo
+        sizes_with_duplicates_dict = {size: paths for size, paths in size_dict.items() if len(paths) > 1}
         LOGGER.debug(f"DEBUG   : {step_name}Symbolic Links files will be excluded from Find Duplicates Algorithm (they don't use disk space)")
-        LOGGER.debug(f"DEBUG   : {step_name}Total subfolders found: {total_folders+len(input_folders_list)}")
+        LOGGER.debug(f"DEBUG   : {step_name}Total subfolders found: {total_folders+len(duplicates_folders)}")
         LOGGER.debug(f"DEBUG   : {step_name}Total files found: {total_files}")
         LOGGER.debug(f"DEBUG   : {step_name}Total Symbolic Links files found: {total_symlinks}")
         LOGGER.debug(f"DEBUG   : {step_name}Total files (not Symbolic Links) found: {total_files-total_symlinks}")
         LOGGER.debug(f"DEBUG   : {step_name}Total Groups of different files size found: {len(size_dict)}")
         LOGGER.debug(f"DEBUG   : {step_name}Filtering out groups with only one file with the same size")
-        sizes_with_duplicates_dict = {size: paths for size, paths in size_dict.items() if len(paths) > 1}
         LOGGER.debug(f"DEBUG   : {step_name}Groups with more than one file with the same size found: {len(sizes_with_duplicates_dict)}")
         del size_dict  # Liberar memoria anticipadamente
 
@@ -324,14 +359,14 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                     for file_hash, duplicates_path_list in duplicates.items():
                         reasson_for_principal = ""
                         duplicates_path_list_filtered = duplicates_path_list
-                        for folder in input_folders_list:
+                        for folder in duplicates_folders:
                             # Filtrar path_list para paths que comienzan con la carpeta actual
                             matched_paths = [path for path in duplicates_path_list if path.startswith(folder)]
                             if matched_paths:
                                 duplicates_path_list_filtered = matched_paths
                                 break  # Detener la búsqueda una vez encontrada la primera coincidencia
 
-                        # If there is only one file in the duplicate set that belongs to the main input folder (first folder of the input_folders_list with duplicates in this duplicates set), then this is the principal
+                        # If there is only one file in the duplicate set that belongs to the main input folder (first folder of the duplicates_folders with duplicates in this duplicates set), then this is the principal
                         if len(duplicates_path_list_filtered)==1:
                             principal = duplicates_path_list_filtered[0]
                             reasson_for_principal += " / Input folder order priority" # Reasson 1
@@ -437,13 +472,13 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
                             if duplicates_action == 'move':
                                 relative_path = None
                                 source_root = None
-                                for folder in input_folders_list:
+                                for folder in duplicates_folders:
                                     if duplicated.startswith(folder):
                                         source_root = folder
                                         relative_path = os.path.relpath(duplicated, folder)
                                         break
                                 if relative_path is None:
-                                    source_root = input_folders_list[0]
+                                    source_root = duplicates_folders[0]
                                     relative_path = os.path.relpath(duplicated, source_root)
                                 top_level_folder = os.path.basename(source_root)
                                 final_relative_path = os.path.join(top_level_folder, relative_path)
@@ -462,7 +497,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', depriorit
 
                 if duplicates_action in ('move', 'remove'):
                     LOGGER.info(f"INFO    : {step_name}Removing empty directories in original folders...")
-                    for folder in input_folders_list:
+                    for folder in duplicates_folders:
                         removed_empty_folders += remove_empty_dirs(folder, log_level=log_level)
 
         LOGGER.info(f"INFO    : {step_name}Finished processing. Total duplicates (excluding principals): {duplicates_counter}")

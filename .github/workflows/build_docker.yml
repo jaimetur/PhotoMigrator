@@ -122,7 +122,7 @@ jobs:
           fi
 
       # 🐳 Build & Push Windows Docker image (disabled since this doesn't work as expected)
-      - name: 🐳 Build & Push Windows Docker image
+      - name: 🐳 Build & Push Windows Docker image (disabled since this doesn't work as expected)
         if: ${{ startsWith(matrix.os, 'windows') }}
         shell: bash
         run: |
