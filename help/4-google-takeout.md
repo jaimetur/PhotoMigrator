@@ -43,11 +43,11 @@ In the folowwing link you can find the [Complete Pipeline and features of GPTH T
 
 7. Move all the Albums into `<OUTPUT_FOLDER>/Albums` subfolder and the Photos that does not belong to any album to `<OUTPUT_FOLDER>/No-Albums` folder. This step can be skipped using argument _`-gsma, --google-skip-move-albums`_
 
-8. (Optional) If flag `--grdf, --google-remove-duplicates-files` is detected, the Tool will look for any duplicate file on `<OUTPUT_FOLDER>` (ignoring symbolic links), and will remove all duplicates keeping only the principal file (giving more priority to duplicates files found into any album folder than those found on `ALL_PHOTOS` folder. 
+8. (Optional) If flag `-grdf, --google-remove-duplicates-files` is detected, the Tool will look for any duplicate file on `<OUTPUT_FOLDER>` (ignoring symbolic links), and will remove all duplicates keeping only the principal file (giving more priority to duplicates files found into any album folder than those found on `ALL_PHOTOS` folder. 
 
-9. Look into the `<OUTPUT_FOLDER>` for any symbolic link broken and try to fix them by looking for the original file where the symlink is pointing to.
+9. (Optional) if flag `-gcsa, --google-create-symbolic-albums` is detected, the Took will look into the `<OUTPUT_FOLDER>` for any symbolic link broken and try to fix them by looking for the original file where the symlink is pointing to.
 
-10. (Optional) If flag `--graf, --google-rename-albums-folders` is detected, the Tool rename all albums folders within `<OUTPUT_FOLDER>` based on content dates.
+10. (Optional) If flag `-graf, --google-rename-albums-folders` is detected, the Tool rename all albums folders within `<OUTPUT_FOLDER>` based on content dates.
 
 11. Remove all empty folders found within `<OUTPUT_FOLDER>` since sonetime after remove duplicates or move albums some folder may result empty. 
 
@@ -55,8 +55,10 @@ In the folowwing link you can find the [Complete Pipeline and features of GPTH T
 
 > [!NOTE]  
 > Step 8 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file in more than one folder (in case that the same file belongs to multiples Albums).   
+>
+> Step 9 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file, in more than one folder using a Symlink instead of several copies (in case that the same file belongs to multiples Albums).   
 > 
-> Step 10 is disabled by default, but it would be very usefull if you want to homogenize all your albums folders names (see Folder Rename Content Based Extra Feature).  
+> Step 10 is disabled by default, but it is very usefull if you want to homogenize all your albums folders names cleaning the name and adding a preffix based on the date range of its content. [see Folder Rename Content Based Extra Feature](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md#-folder-rename-content-based-extra-feature).  
 >
 
 ### Output of Takeout Processing:
@@ -79,20 +81,20 @@ The final `<OUTPUT_FOLDER>` will include:
 > [!NOTE]
 > It was very useful for me when I run it to process more than **300 GB** of Photos and Albums from Google Photos (408559 files zipped, 168168 photos/video files, 740 albums) and moved it into Synology Photos.  
 > 
-> The whole process took around **~8 hours** (or ~11 hours if includes optional step 9) and this is the time split per steps:  
+> The whole process took around **~8 hours** (or ~9 hours if includes optional steps) and this is the time split per steps:  
 > 
 > 1. Pre-Checks & Extraction process --> 1h 30m
-> 2. Pre-processing Takeout folder --> 7m
+> 2. Pre-processing Takeout folder --> 6m
 > 3. GPTH Tool fixing --> 6h
 > 4. <span style="color:grey">(Optional) Copy/Move files to output folder manually if GPTH processing was skipped --> 0h</span>
-> 5. Sync .MP4 timestamps --> 10s
-> 6. Create Date Folder Structure --> 50s
-> 7. Moving Album Folder --> 1s
-> 8. <span style="color:grey">(Optional) Remove Duplicates after fixing --> 3h</span>
-> 9. Fix Broken Symlinks --> 10m
+> 5. Sync .MP4 timestamps --> 30s
+> 6. Create Date Folder Structure --> 2m
+> 7. Moving Album Folder --> 30s
+> 8. <span style="color:grey">(Optional) Remove Duplicates after fixing --> 1h</span>
+> 9. <span style="color:grey">(Optional) Fix Broken Symlinks --> 10m</span>
 > 10. <span style="color:grey">(Optional) Rename Albums Folders after fixing --> 1m</span>
-> 11. Remove Empty Folders --> 10s
-> 12. Count Valid Albums --> 1s
+> 11. Remove Empty Folders --> 30s
+> 12. Count Valid Albums --> 30s
 >
 > NOTE: Above times are approximates and were measured running the tool on Linux using a Synology NAS DS920+.
 

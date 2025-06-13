@@ -409,7 +409,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 step_start_time = datetime.now()
 
                 # First Remove Duplicates from OUTPUT_TAKEOUT_FOLDER (excluding 'No-Albums' folder)
-                LOGGER.info(f"INFO    : {step_name}1. Removing duplicates from '<OUTPUT_TAKEOUT_FOLDER>', excluding 'No-Albums' folder. (priority folders will be applied)...")
+                LOGGER.info(f"INFO    : {step_name}1. Removing duplicates from '<OUTPUT_TAKEOUT_FOLDER>', excluding 'No-Albums' folder...")
                 duplicates_found, removed_empty_folders = find_duplicates(
                     duplicates_action='remove',
                     duplicates_folders=output_takeout_folder,
@@ -422,7 +422,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 result.duplicates_found += duplicates_found
                 result.removed_empty_folders += removed_empty_folders
                 # Second Remove Duplicates from OUTPUT_TAKEOUT_FOLDER/No-Albums (excluding any other folder outside it).
-                LOGGER.info(f"INFO    : {step_name}2. Removing duplicates from '<OUTPUT_TAKEOUT_FOLDER>/No-Albums', excluding any other folder outside it. (priority folders will be applied)...")
+                LOGGER.info(f"INFO    : {step_name}2. Removing duplicates from '<OUTPUT_TAKEOUT_FOLDER>/No-Albums', excluding any other folders outside it...")
                 duplicates_found, removed_empty_folders = find_duplicates(
                     duplicates_action='remove',
                     duplicates_folders=os.path.join(output_takeout_folder, 'No-Albums'),
@@ -436,7 +436,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info("")
-                LOGGER.info(f"INFO    : step {self.step} completed in {formatted_duration}.")
+                LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
 
             # Step 9: Fix Broken Symbolic Links
             # ----------------------------------------------------------------------------------------------------------------------
