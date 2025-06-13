@@ -1416,48 +1416,99 @@ def run_command(command, logger, capture_output=False, capture_errors=True, prin
         import re
         from colorama import init, Fore, Style
         init(autoreset=True)
-        previous_prefix = None
-        previous_progress = False
+
+        progress_re = re.compile(r': .*?(\d+)\s*/\s*(\d+)$')
+        last_was_progress = False
+        printed_final = set()
+
         while True:
-            line = stream.readline()
-            if not line:
+            raw = stream.readline()
+            if not raw:
                 break
-            # Remove ANSI colors from line
+
+            # Limpiar ANSI y espacios finales
             ansi_escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
-            line = ansi_escape.sub('', line)
-            line = line.rstrip()
-            if not line.strip():
-                continue
-            # Detect if the line to log is a update bar, and if it is, then don't log, use print instead, and print only the first and last status of the progress bar
-            # common_part = line.split(':')[0] if ':' in line else line[:40]
+            line = ansi_escape.sub('', raw).rstrip()
+
+            # Prefijo para agrupar barras
             common_part = line.split(' : ')[0] if ' : ' in line else line
-            is_progress = previous_prefix and line.startswith(previous_prefix)
-            previous_prefix = common_part
-            if print_messages:
-                if "WARNING" in line:
-                    print()
-                    print(f"{Fore.YELLOW}WARNING : {step_name}{line}", end='', flush=True)
-                elif "ERROR" in line:
-                    print()
-                    print(f"{Fore.RED}ERROR   : {step_name}{line}", end='', flush=True)
-                else:
-                    print(f"\rINFO    : {step_name}{line}", end='', flush=True)
-            if not is_progress:
-                if not previous_progress:
-                    print()
-                    # pass
-                if is_error:
-                    logger.error(f"ERROR   : {step_name}{line}")
-                else:
-                    if "WARNING" in line:
-                        logger.warning(f"WARNING : {step_name}{line}")
-                    elif "ERROR" in line:
-                        logger.error(f"ERROR   : {step_name}{line}")
+
+            # 1) ¿Es barra de progreso?
+            m = progress_re.search(line)
+            if m:
+                n, total = int(m.group(1)), int(m.group(2))
+                prefix = "ERROR   :" if is_error else "INFO    :"
+
+                # 1.a) Barra vacía (0/x)
+                if n == 0:
+                    if not print_messages:
+                        # Log inicial
+                        log_msg = f"{prefix} {step_name}{line}"
+                        if is_error:
+                            logger.error(log_msg)
+                        else:
+                            logger.info(log_msg)
+                    # nunca imprimo 0/x en pantalla
+                    last_was_progress = True
+                    continue
+
+                # 1.b) Progreso intermedio (1 <= n < total)
+                if n < total:
+                    if print_messages:
+                        print(f"\r{prefix} {step_name}{line}", end='', flush=True)
+                    last_was_progress = True
+                    # no logueamos intermedias
+                    continue
+
+                # 1.c) Barra completa (n >= total), solo una vez
+                if common_part not in printed_final:
+                    # impresión en pantalla
+                    if print_messages:
+                        print(f"\r{prefix} {step_name}{line}", end='', flush=True)
+                        print()
+                    # log final
+                    log_msg = f"{prefix} {step_name}{line}"
+                    if is_error:
+                        logger.error(log_msg)
                     else:
-                        logger.info(f"INFO    : {step_name}{line}")
-                previous_progress = True
+                        logger.info(log_msg)
+
+                    printed_final.add(common_part)
+
+                last_was_progress = False
+                continue
+
+            # 2) Mensaje normal: si venía de progreso vivo, forzamos salto
+            if last_was_progress and print_messages:
+                print()
+            last_was_progress = False
+
+            # 3) Impresión normal
+            if print_messages:
+                if is_error:
+                    print(f"{Fore.RED}ERROR   : {step_name}{line}")
+                else:
+                    if "ERROR" in line:
+                        print(f"{Fore.RED}ERROR   : {step_name}{line}")
+                    elif "WARNING" in line:
+                        print(f"{Fore.YELLOW}WARNING : {step_name}{line}")
+                    else:
+                        print(f"INFO    : {step_name}{line}")
+
+            # 4) Logging normal
+            if is_error:
+                logger.error(f"ERROR   : {step_name}{line}")
             else:
-                previous_progress = False
+                if "ERROR" in line:
+                    logger.error(f"ERROR   : {step_name}{line}")
+                elif "WARNING" in line:
+                    logger.warning(f"WARNING : {step_name}{line}")
+                else:
+                    logger.info(f"INFO    : {step_name}{line}")
+
+        # 5) Al cerrar stream, si quedó un progreso vivo, cerramos línea
+        if last_was_progress and print_messages:
+            print()
 
     # ------------------------------------------------------------------------------------------------------------------------------------------------------------
     with suppress_console_output_temporarily(logger):

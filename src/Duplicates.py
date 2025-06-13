@@ -7,6 +7,7 @@ import fnmatch
 import shutil
 import re
 import logging
+from pathlib import Path
 from CustomLogger import set_log_level
 from GlobalVariables import LOGGER
 from GlobalFunctions import resolve_path
@@ -139,9 +140,18 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
         if deprioritize_folders_patterns is None:
             deprioritize_folders_patterns = []
 
-        # Convert duplicates_folders to list if is str
-        if isinstance(duplicates_folders, str):
-            duplicates_folders = [f.strip() for f in re.split('[,;]', duplicates_folders) if f.strip()]
+        # —————————————
+        # NORMALIZAR duplicates_folders
+        # —————————————
+        if isinstance(duplicates_folders, (str, Path)):
+            # Si es str, puede venir "a,b;c", así que lo troceamos
+            s = str(duplicates_folders)
+            duplicates_folders = [f.strip() for f in re.split(r'[;,]', s) if f.strip()]
+        elif isinstance(duplicates_folders, list):
+            # Convertimos cada elemento (Path o str) a str limpio
+            duplicates_folders = [str(f).strip() for f in duplicates_folders if str(f).strip()]
+        else:
+            raise TypeError(f"ERROR   : duplicates_folders must be str, Path or List, no {type(duplicates_folders)}")
 
         # Convert exclusion_folders to list if is str
         if exclusion_folders is None:

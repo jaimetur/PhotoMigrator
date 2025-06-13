@@ -262,10 +262,11 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             # ---------------------------------------------------------------------------------------------------------
             try:
                 parallel_automatic_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, parallel=parallel, log_level=logging.INFO)
-                # if parallel:
-                #     parallel_automatic_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, parallel=parallel, log_level=logging.INFO)
-                # else:
-                #     sequential_automatic_migration(source_client=source_client, target_client=target_client, temp_folder=INTERMEDIATE_FOLDER, SHARED_DATA=SHARED_DATA, log_level=logging.INFO)
+            except Exception:
+                # 1) Mostrar el stack trace completo en stderr (o stdout)
+                traceback.print_exc()
+                # 2) Registrar en el logger con stack trace
+                LOGGER.exception("ERROR executing Automatic Migration Feature")
             finally:
                 migration_finished.set()
 
@@ -513,7 +514,6 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             num_push_threads = max(1, int(cpu_total_threads / 2))
             LOGGER.info(f"INFO    : Launching {num_push_threads} Push workers in parallel...")
 
-            # Crear hilos
             pull_threads = [threading.Thread(target=puller_worker, kwargs={"parallel": parallel}, daemon=True) for _ in range(num_pull_threads)]
             push_threads = [threading.Thread(target=pusher_worker, kwargs={"processed_albums": processed_albums, "worker_id": worker_id + 1}, daemon=True) for worker_id in range(num_push_threads)]
 
@@ -975,398 +975,409 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=lo
     from CustomLogger import LoggerStream
     from CustomLogger import LoggerCapture
 
-    # Min Terminal Height and Width to display the Live Dashboard
-    MIN_TERMINAL_HEIGHT = 30
-    MIN_TERMINAL_WIDTH = 100
-
-    # Calculate terminal_height and terminal_width
-    console = Console()
-    terminal_height = console.size.height
-    terminal_width = console.size.width
-
-    LOGGER.info(f"INFO    : Detected terminal height = {terminal_height}")
-    LOGGER.info(f"INFO    : Detected terminal width  = {terminal_width}")
-
-    if terminal_height < MIN_TERMINAL_HEIGHT:
-        LOGGER.info(f"INFO    : Cannot display Live Dashboard because the detected terminal height = {terminal_height} and the minumum needed height = {MIN_TERMINAL_HEIGHT}. Continuing without Live Dashboard...")
-        ARGS['dashboard'] = False  # Set this argument to False to avoid use TQDM outputs as if a Interactive Terminal (isatty() = True)
-        return
-
-    if terminal_width < MIN_TERMINAL_WIDTH:
-        LOGGER.info(f"INFO    : Cannot display Live Dashboard because the detected terminal width = {terminal_width} and the minumum needed width = {MIN_TERMINAL_WIDTH}. Continuing without Live Dashboard...")
-        ARGS['dashboard'] = False  # Set this argument to False to avoid use TQDM outputs as if a Interactive Terminal (isatty() = True)
-        return
-
-    # Iniciamos el contador de tiempo transcurrido
-    step_start_time = datetime.now()
-
-    layout = Layout()
-    layout.size = terminal_height
-
     # 🚀 Guardar stdout y stderr originales
     original_stdout = sys.stdout
     original_stderr = sys.stderr
+    try:
+        # Min Terminal Height and Width to display the Live Dashboard
+        MIN_TERMINAL_HEIGHT = 30
+        MIN_TERMINAL_WIDTH = 100
 
-    # # 🚀 Forzar la redirección de sys.stderr globalmente para asegurar que no se imprima en pantalla
-    # sys.stderr = sys.__stderr__ = LoggerCapture(LOGGER, logging.ERROR)
-    #
-    # # 🚀 Capturar e interceptar manualmente cualquier error antes de que `rich` lo maneje
-    # def log_exceptions(exctype, value, tb):
-    #     """Captura todas las excepciones no manejadas y las guarda en el LOGGER sin imprimir en pantalla"""
-    #     error_message = "".join(traceback.format_exception(exctype, value, tb))
-    #     LOGGER.error("Excepción no manejada:\n" + error_message)  # Guardar en logs sin imprimir en consola
-    #
-    # sys.excepthook = log_exceptions
+        # Calculate terminal_height and terminal_width
+        console = Console()
+        terminal_height = console.size.height
+        terminal_width = console.size.width
 
-    # Eliminar solo los StreamHandler sin afectar los FileHandler
-    for handler in list(LOGGER.handlers):  # Hacer una copia de la lista para evitar problemas al modificarla
-        if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler):
-            LOGGER.removeHandler(handler)
+        LOGGER.info(f"INFO    : Detected terminal height = {terminal_height}")
+        LOGGER.info(f"INFO    : Detected terminal width  = {terminal_width}")
 
-    # Crea el handler y configúralo con un formatter
-    memory_handler = CustomInMemoryLogHandler(SHARED_DATA.logs_queue)
-    memory_handler.setFormatter(CustomConsoleFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
-    memory_handler.setLevel(log_level)
+        if terminal_height < MIN_TERMINAL_HEIGHT:
+            LOGGER.info(f"INFO    : Cannot display Live Dashboard because the detected terminal height = {terminal_height} and the minumum needed height = {MIN_TERMINAL_HEIGHT}. Continuing without Live Dashboard...")
+            ARGS['dashboard'] = False  # Set this argument to False to avoid use TQDM outputs as if a Interactive Terminal (isatty() = True)
+            return
 
-    # Agrega el handler al LOGGER
-    LOGGER.addHandler(memory_handler)
+        if terminal_width < MIN_TERMINAL_WIDTH:
+            LOGGER.info(f"INFO    : Cannot display Live Dashboard because the detected terminal width = {terminal_width} and the minumum needed width = {MIN_TERMINAL_WIDTH}. Continuing without Live Dashboard...")
+            ARGS['dashboard'] = False  # Set this argument to False to avoid use TQDM outputs as if a Interactive Terminal (isatty() = True)
+            return
 
-    # Opcional: si NO quieres imprimir por consola, puedes quitar el StreamHandler que tenga el logger por defecto (así solo se registran en la lista).
-    # Por ejemplo:
-    LOGGER.propagate = False
-    log_file = get_logger_filename(LOGGER)
+        # Iniciamos el contador de tiempo transcurrido
+        step_start_time = datetime.now()
 
-    # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (12 lines), logs fill remainder
-    layout.split_column(
-        Layout(name="empty_line_1", size=1),  # Línea vacía
-        Layout(name="header_panel", size=8),
-        Layout(name="title_panel", size=3),
-        Layout(name="content_panel", size=12),
-        Layout(name="logs_panel", ratio=1),
-        Layout(name="empty_line_2", size=1),  # Línea vacía
-    )
+        layout = Layout()
+        layout.size = terminal_height
 
-    # Obtener el height de cada panel
-    empty_line_1_height = layout["empty_line_1"].size
-    header_panel_height = layout["header_panel"].size
-    title_panel_height = layout["title_panel"].size
-    content_panel_height = layout["content_panel"].size
-    empty_line_2_height = layout["empty_line_2"].size
-
-    # Calcular logs_panel en función del espacio restante
-    fixed_heights = sum([empty_line_1_height, header_panel_height, title_panel_height, content_panel_height, empty_line_2_height])
-    logs_panel_height = terminal_height - fixed_heights  # Espacio restante
-
-    # Asegurar que la línea vacía no tenga bordes ni contenido visible
-    layout["empty_line_1"].update("")
-    layout["empty_line_2"].update("")
-
-    # Split content_panel horizontally into 3 panels
-    layout["content_panel"].split_row(
-        Layout(name="info_panel", ratio=3),
-        Layout(name="pulls_panel", ratio=4),
-        Layout(name="pushs_panel", ratio=4),
-    )
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 0) Header Panel
-    # ─────────────────────────────────────────────────────────────────────────
-    header = textwrap.dedent(rf"""
-     ____  _           _        __  __ _                 _
-    |  _ \| |__   ___ | |_ ___ |  \/  (_) __ _ _ __ __ _| |_ ___  _ __
-    | |_) | '_ \ / _ \| __/ _ \| |\/| | |/ _` | '__/ _` | __/ _ \| '__|
-    |  __/| | | | (_) | || (_) | |  | | | (_| | | | (_| | || (_) | |
-    |_|   |_| |_|\___/ \__\___/|_|  |_|_|\__, |_|  \__,_|\__\___/|_|
-                                         |___/ {SCRIPT_VERSION}
-    """).lstrip("\n")  # Elimina solo la primera línea en blanco
-    # header =  textwrap.dedent(rf"""
-
-    layout["header_panel"].update(Panel(f"[gold1]{header}[/gold1]", border_style="gold1", expand=True))
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1) Title Panel
-    # ─────────────────────────────────────────────────────────────────────────
-    title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] 🡆 [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automatic Migration - {SCRIPT_NAME_VERSION}"
-
-    layout["title_panel"].update(Panel(f"🚀 {title}", border_style="bright_blue", expand=True))
-
-    def update_title_panel():
-        title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] 🡆 [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automatic Migration - {SCRIPT_NAME_VERSION}"
-        layout["title_panel"].update(Panel(f"🚀 {title}", border_style="bright_blue", expand=True))
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 2) Info Panel
-    # ─────────────────────────────────────────────────────────────────────────
-
-    def build_info_panel(clean_queue_history=False):
-        """Construye el panel de información con historial de la cola."""
-        # 🔹 Calcular el ancho real de "info_panel"
-
-        total_ratio = 3 + 4 + 4  # Suma de los ratios en split_row()
-        info_panel_ratio = 3  # Ratio de "info_panel"
-
-        # Estimación del ancho de info_panel antes de que Rich lo calcule
-        info_panel_width = (terminal_width * info_panel_ratio) // total_ratio
-
-        # # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-        # # Histograma temporal de la cola con barras como estas "  ▁▂▃▄▅▆▇█"  o estas "▁▂▄▆█"
-        # # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-        # # 🔹 Unicode para representar la barra de progreso vertical (10 niveles)
-        # BARS = "  ▁▂▃▄▅▆▇█"     # Se agregan 10 barras
-        # BARS = "▁▂▄▆█"          # # Se agregan 5 barras
+        # # 🚀 Forzar la redirección de sys.stderr globalmente para asegurar que no se imprima en pantalla
+        # sys.stderr = sys.__stderr__ = LoggerCapture(LOGGER, logging.ERROR)
         #
-        # # 🔹 Inicializar el historial de la cola dentro de la función
-        # if not hasattr(build_info_panel, "queue_history"):
-        #     build_info_panel.queue_history = collections.deque(maxlen=info_panel_width-31)
-        # queue_history = build_info_panel.queue_history
+        # # 🚀 Capturar e interceptar manualmente cualquier error antes de que `rich` lo maneje
+        # def log_exceptions(exctype, value, tb):
+        #     """Captura todas las excepciones no manejadas y las guarda en el LOGGER sin imprimir en pantalla"""
+        #     error_message = "".join(traceback.format_exception(exctype, value, tb))
+        #     LOGGER.error("Excepción no manejada:\n" + error_message)  # Guardar en logs sin imprimir en consola
         #
-        # # 🔹 Obtener el tamaño actual de la cola
-        # current_queue_size = SHARED_DATA.info.get('assets_in_queue', 0)
-        #
-        # # 🔹 Actualizar historial de la cola
-        # queue_history.append(current_queue_size)
-        #
-        # # 🔹 Definir los rangos de normalización (10 bloques de tamaño 10 cada uno)
-        # num_blocks = len(BARS)
-        # block_size = 100 / num_blocks  # Cada bloque cubre 10 unidades
-        #
-        # # 🔹 Asignar la barra correspondiente a cada valor de la cola
-        # progress_bars = [BARS[min(int(val // block_size), num_blocks - 1)] for val in queue_history]
-        #
-        # # 🔹 Unimos todas las barras
-        # queue_display = "".join(progress_bars)
+        # sys.excepthook = log_exceptions
 
-        # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-        # Barra de cola actual. Muestre una barra horizontal rellenable "███████████████████", cuando esté llena "██████████" cuando esté a la mitad, "██" cuando esté casi vacía
-        # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-        # 🔹 Definir el ancho de la barra de progreso dinámicamente
-        BAR_WIDTH = max(1, info_panel_width - 34)  # Asegurar que al menos sea 1
-        # 🔹 Obtener el tamaño actual de la cola
-        current_queue_size = SHARED_DATA.info.get('assets_in_queue', 0)
-        # 🔹 Normalizar el tamaño de la cola dentro del rango de la barra
-        filled_blocks = min(int((current_queue_size / 100) * BAR_WIDTH), BAR_WIDTH)
-        empty_blocks = BAR_WIDTH - filled_blocks
-        # 🔹 Crear la barra de progreso con "█" y espacios
-        queue_bar = "█" * filled_blocks + " " * empty_blocks
-        if parallel:
-            # 🔹 Mostrar la barra con la cantidad actual de elementos en la cola y el máximo de 100 al final
-            queue_bar = f"[{queue_bar}] {current_queue_size:>3}/100"
-        else:
-            # 🔹 Mostrar la barra con la cantidad actual de elementos en la cola aquí sin máximo, y dando espacio para 7 dígitos
-            queue_bar = f"[{queue_bar}] {current_queue_size:>7}"
-        # 🔹 borra la barra al final
-        if clean_queue_history:
-            queue_bar = 0
+        # Eliminar solo los StreamHandler sin afectar los FileHandler
+        for handler in list(LOGGER.handlers):  # Hacer una copia de la lista para evitar problemas al modificarla
+            if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler):
+                LOGGER.removeHandler(handler)
 
-        # 🔹 Datos a mostrar
-        info_data = [
-            ("🎯 Total Assets", SHARED_DATA.info.get('total_assets', 0)),
-            ("📷 Total Photos", SHARED_DATA.info.get('total_photos', 0)),
-            ("🎬 Total Videos", SHARED_DATA.info.get('total_videos', 0)),
-            ("📂 Total Albums", SHARED_DATA.info.get('total_albums', 0)),
-            ("🔒 Blocked Albums", SHARED_DATA.info.get('total_albums_blocked', 0)),
-            ("📜 Total Metadata", SHARED_DATA.info.get('total_metadata', 0)),
-            ("🔗 Total Sidecar", SHARED_DATA.info.get('total_sidecar', 0)),
-            ("🔍 Invalid Files", SHARED_DATA.info.get('total_invalid', 0)),
-            ("📊 Assets in Queue", f"{queue_bar}"),
-            ("🕒 Elapsed Time", SHARED_DATA.info.get('elapsed_time', 0)),
-        ]
+        # Crea el handler y configúralo con un formatter
+        memory_handler = CustomInMemoryLogHandler(SHARED_DATA.logs_queue)
+        memory_handler.setFormatter(CustomConsoleFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
+        memory_handler.setLevel(log_level)
 
-        # 🔹 Crear la tabla
-        table = Table.grid(expand=True)
-        table.add_column(justify="left", width=20, no_wrap=True)
-        table.add_column(justify="right", ratio=1)
-        for label, value in info_data:
-            table.add_row(f"[bright_magenta]{label:<17}: [/bright_magenta]", f"[bright_magenta]{value}[/bright_magenta]")
+        # Agrega el handler al LOGGER
+        LOGGER.addHandler(memory_handler)
 
-        # 🔹 Devolver el panel
-        return Panel(table, title="📊 Info Panel", border_style="bright_magenta", expand=True, padding=(0, 1))
+        # Opcional: si NO quieres imprimir por consola, puedes quitar el StreamHandler que tenga el logger por defecto (así solo se registran en la lista).
+        # Por ejemplo:
+        LOGGER.propagate = False
+        log_file = get_logger_filename(LOGGER)
 
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3) Progress Bars for pulls / pushs
-    #    Show "X / total" with a bar, no custom chars
-    # ─────────────────────────────────────────────────────────────────────────
-    def create_progress_bar(color: str) -> Progress:
-        """
-        Creates a bar with a longer width and displays 'X / total items' in color.
-        """
-        counter = f"{{task.completed}}/{{task.total}}"
-        return Progress(
-            BarColumn(
-                bar_width=100,  # longer bar for better visuals
-                style=f"{color} dim",
-                complete_style=f"{color} bold",
-                finished_style=f"{color} bold",
-                pulse_style="bar.pulse"
-                # pulse_style=f"{color} bold"
-            ),
-            TextColumn(f"[{color}]{counter:>15}[/{color}]"),
-            console=console,
-            expand=True
+        # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (12 lines), logs fill remainder
+        layout.split_column(
+            Layout(name="empty_line_1", size=1),  # Línea vacía
+            Layout(name="header_panel", size=8),
+            Layout(name="title_panel", size=3),
+            Layout(name="content_panel", size=12),
+            Layout(name="logs_panel", ratio=1),
+            Layout(name="empty_line_2", size=1),  # Línea vacía
         )
 
+        # Obtener el height de cada panel
+        empty_line_1_height = layout["empty_line_1"].size
+        header_panel_height = layout["header_panel"].size
+        title_panel_height = layout["title_panel"].size
+        content_panel_height = layout["content_panel"].size
+        empty_line_2_height = layout["empty_line_2"].size
 
-    # PULLS (Cyan)
-    pull_bars = {  # Dicccionario de Tuplas (bar, etiqueta_contador_completados, etiqueta_contador_totales)
-        "🎯 Pulled Assets": (create_progress_bar("cyan"), 'total_pulled_assets', "total_assets"),
-        "📷 Pulled Photos": (create_progress_bar("cyan"), 'total_pulled_photos', "total_photos"),
-        "🎬 Pulled Videos": (create_progress_bar("cyan"), 'total_pulled_videos', "total_videos"),
-        "📂 Pulled Albums": (create_progress_bar("cyan"), 'total_pulled_albums', "total_albums"),
-    }
-    failed_pulls = {
-        "🔒 Blocked Albums": 'total_albums_blocked',
-        "🔒 Blocked Assets": 'total_assets_blocked',
-        "🚩 Failed Assets": 'total_pull_failed_assets',
-        "🚩 Failed Photos": 'total_pull_failed_photos',
-        "🚩 Failed Videos": 'total_pull_failed_videos',
-        "🚩 Failed Albums": 'total_pull_failed_albums',
-    }
-    pull_tasks = {}
-    for label, (bar, completed_label, total_label) in pull_bars.items():
-        # bar.add_task retturns the task_id and we create a dictionary {task_label: task_id}
-        pull_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=SHARED_DATA.info.get(total_label, 0))
+        # Calcular logs_panel en función del espacio restante
+        fixed_heights = sum([empty_line_1_height, header_panel_height, title_panel_height, content_panel_height, empty_line_2_height])
+        logs_panel_height = terminal_height - fixed_heights  # Espacio restante
 
-    # PUSHS (Green)
-    push_bars = {  # Dicccionario de Tuplas (bar, etiqueta_contador_completados, etiqueta_contador_totales)
-        "🎯 Pushed Assets": (create_progress_bar("green"), 'total_pushed_assets', "total_assets"),
-        "📷 Pushed Photos": (create_progress_bar("green"), 'total_pushed_photos', "total_photos"),
-        "🎬 Pushed Videos": (create_progress_bar("green"), 'total_pushed_videos', "total_videos"),
-        "📂 Pushed Albums": (create_progress_bar("green"), 'total_pushed_albums', "total_albums"),
-    }
-    failed_pushs = {
-        "🧩 Duplicates": 'total_push_duplicates_assets',
-        "🚩 Failed Assets": 'total_push_failed_assets',
-        "🚩 Failed Photos": 'total_push_failed_photos',
-        "🚩 Failed Videos": 'total_push_failed_videos',
-        "🚩 Failed Albums": 'total_push_failed_albums',
-    }
-    push_tasks = {}
-    for label, (bar, completed_label, total_label) in push_bars.items():
-        # bar.add_task retturns the task_id and we create a dictionary {task_label: task_id}
-        push_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=SHARED_DATA.info.get(total_label, 0))
+        # Asegurar que la línea vacía no tenga bordes ni contenido visible
+        layout["empty_line_1"].update("")
+        layout["empty_line_2"].update("")
 
+        # Split content_panel horizontally into 3 panels
+        layout["content_panel"].split_row(
+            Layout(name="info_panel", ratio=3),
+            Layout(name="pulls_panel", ratio=4),
+            Layout(name="pushs_panel", ratio=4),
+        )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 4) Build the Pull/Push Panels
-    # ─────────────────────────────────────────────────────────────────────────
-    def build_pull_panel():
-        table = Table.grid(expand=True)
-        table.add_column(justify="left", width=20)
-        table.add_column(justify="right")
-        for label, (bar, completed_labeld, total_label) in pull_bars.items():
-            table.add_row(f"[cyan]{label:<17}:[/cyan]", bar)
-            bar.update(pull_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
-        for label, counter_label in failed_pulls.items():
-            value = SHARED_DATA.counters[counter_label]
-            table.add_row(f"[cyan]{label:<17}:[/cyan]", f"[cyan]{value}[/cyan]")
-        return Panel(table, title=f'📥 From: {SHARED_DATA.info.get("source_client_name", "Source Client")}', border_style="cyan", expand=True)
+        # ─────────────────────────────────────────────────────────────────────────
+        # 0) Header Panel
+        # ─────────────────────────────────────────────────────────────────────────
+        header = textwrap.dedent(rf"""
+         ____  _           _        __  __ _                 _
+        |  _ \| |__   ___ | |_ ___ |  \/  (_) __ _ _ __ __ _| |_ ___  _ __
+        | |_) | '_ \ / _ \| __/ _ \| |\/| | |/ _` | '__/ _` | __/ _ \| '__|
+        |  __/| | | | (_) | || (_) | |  | | | (_| | | | (_| | || (_) | |
+        |_|   |_| |_|\___/ \__\___/|_|  |_|_|\__, |_|  \__,_|\__\___/|_|
+                                             |___/ {SCRIPT_VERSION}
+        """).lstrip("\n")  # Elimina solo la primera línea en blanco
+        # header =  textwrap.dedent(rf"""
 
+        layout["header_panel"].update(Panel(f"[gold1]{header}[/gold1]", border_style="gold1", expand=True))
 
-    def build_push_panel():
-        table = Table.grid(expand=True)
-        table.add_column(justify="left", width=19)
-        table.add_column(justify="right")
-        for label, (bar, completed_labeld, total_label) in push_bars.items():
-            table.add_row(f"[green]{label:<16}:[/green]", bar)
-            bar.update(push_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
-        for label, counter_label in failed_pushs.items():
-            value = SHARED_DATA.counters[counter_label]
-            table.add_row(f"[green]{label:<16}:[/green]", f"[green]{value}[/green]")
-        return Panel(table, title=f'📤 To: {SHARED_DATA.info.get("target_client_name", "Source Client")}', border_style="green", expand=True)
+        # ─────────────────────────────────────────────────────────────────────────
+        # 1) Title Panel
+        # ─────────────────────────────────────────────────────────────────────────
+        title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] 🡆 [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automatic Migration - {SCRIPT_NAME_VERSION}"
 
+        layout["title_panel"].update(Panel(f"🚀 {title}", border_style="bright_blue", expand=True))
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 5) Logging Panel from Memmory Handler
-    # ─────────────────────────────────────────────────────────────────────────
-    # Lista (o deque) para mantener todo el historial de logs ya mostrados
-    logs_panel_height = terminal_height - fixed_heights - 2  # Espacio restante. Restamos 2 para quitar las líneas del borde superior e inferior del panel de Logs
-    ACCU_LOGS = deque(maxlen=logs_panel_height)
+        def update_title_panel():
+            title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] 🡆 [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automatic Migration - {SCRIPT_NAME_VERSION}"
+            layout["title_panel"].update(Panel(f"🚀 {title}", border_style="bright_blue", expand=True))
 
+        # ─────────────────────────────────────────────────────────────────────────
+        # 2) Info Panel
+        # ─────────────────────────────────────────────────────────────────────────
 
-    def build_log_panel():
-        """
-        Lee todos los mensajes pendientes en shared_data.logs_queue y los añade
-        a ACCU_LOGS, que conserva el historial completo.
-        Devuelve un Panel con todo el historial (de modo que se pueda hacer
-        scroll en la terminal si usas vertical_overflow='visible').
-        """
-        title_logs_panel = f"📜 Logs Panel (Only last {logs_panel_height} rows shown. Complete log file at: 'Logs/{os.path.basename(log_file)}')"
-        try:
-            while True:
-                # 1) Vaciamos la cola de logs, construyendo el historial completo
-                try:
-                    line = SHARED_DATA.logs_queue.get_nowait()  # lee un mensaje de la cola
-                except queue.Empty:
-                    break
+        def build_info_panel(clean_queue_history=False):
+            """Construye el panel de información con historial de la cola."""
+            # 🔹 Calcular el ancho real de "info_panel"
 
-                # Opcional: aplica color según la palabra “pull”/”push”
-                line_lower = line.lower()
-                if "warning :" in line_lower:
-                    line_colored = f"[yellow]{line}[/yellow]"
-                elif "error   :" in line_lower:
-                    line_colored = f"[red]{line}[/red]"
-                elif "debug   :" in line_lower:
-                    line_colored = f"[#EEEEEE]{line}[/#EEEEEE]"
-                elif "pull" in line_lower and not "push" in line_lower:
-                    line_colored = f"[cyan]{line}[/cyan]"
-                elif any(word in line_lower for word in ("push", "created", "duplicated")) and not "pull" in line_lower:
-                    line_colored = f"[green]{line}[/green]"
-                else:
-                    line_colored = f"[bright_white]{line}[/bright_white]"
+            total_ratio = 3 + 4 + 4  # Suma de los ratios en split_row()
+            info_panel_ratio = 3  # Ratio de "info_panel"
 
-                # Añadimos la versión coloreada al historial
-                ACCU_LOGS.append(line_colored)
+            # Estimación del ancho de info_panel antes de que Rich lo calcule
+            info_panel_width = (terminal_width * info_panel_ratio) // total_ratio
 
-            # 2) Unimos todo el historial en un solo string
-            if ACCU_LOGS:
-                logs_text = "\n".join(ACCU_LOGS)
+            # # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+            # # Histograma temporal de la cola con barras como estas "  ▁▂▃▄▅▆▇█"  o estas "▁▂▄▆█"
+            # # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+            # # 🔹 Unicode para representar la barra de progreso vertical (10 niveles)
+            # BARS = "  ▁▂▃▄▅▆▇█"     # Se agregan 10 barras
+            # BARS = "▁▂▄▆█"          # # Se agregan 5 barras
+            #
+            # # 🔹 Inicializar el historial de la cola dentro de la función
+            # if not hasattr(build_info_panel, "queue_history"):
+            #     build_info_panel.queue_history = collections.deque(maxlen=info_panel_width-31)
+            # queue_history = build_info_panel.queue_history
+            #
+            # # 🔹 Obtener el tamaño actual de la cola
+            # current_queue_size = SHARED_DATA.info.get('assets_in_queue', 0)
+            #
+            # # 🔹 Actualizar historial de la cola
+            # queue_history.append(current_queue_size)
+            #
+            # # 🔹 Definir los rangos de normalización (10 bloques de tamaño 10 cada uno)
+            # num_blocks = len(BARS)
+            # block_size = 100 / num_blocks  # Cada bloque cubre 10 unidades
+            #
+            # # 🔹 Asignar la barra correspondiente a cada valor de la cola
+            # progress_bars = [BARS[min(int(val // block_size), num_blocks - 1)] for val in queue_history]
+            #
+            # # 🔹 Unimos todas las barras
+            # queue_display = "".join(progress_bars)
+
+            # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+            # Barra de cola actual. Muestre una barra horizontal rellenable "███████████████████", cuando esté llena "██████████" cuando esté a la mitad, "██" cuando esté casi vacía
+            # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+            # 🔹 Definir el ancho de la barra de progreso dinámicamente
+            BAR_WIDTH = max(1, info_panel_width - 34)  # Asegurar que al menos sea 1
+            # 🔹 Obtener el tamaño actual de la cola
+            current_queue_size = SHARED_DATA.info.get('assets_in_queue', 0)
+            # 🔹 Normalizar el tamaño de la cola dentro del rango de la barra
+            filled_blocks = min(int((current_queue_size / 100) * BAR_WIDTH), BAR_WIDTH)
+            empty_blocks = BAR_WIDTH - filled_blocks
+            # 🔹 Crear la barra de progreso con "█" y espacios
+            queue_bar = "█" * filled_blocks + " " * empty_blocks
+            if parallel:
+                # 🔹 Mostrar la barra con la cantidad actual de elementos en la cola y el máximo de 100 al final
+                queue_bar = f"[{queue_bar}] {current_queue_size:>3}/100"
             else:
-                logs_text = "Initializing..."
+                # 🔹 Mostrar la barra con la cantidad actual de elementos en la cola aquí sin máximo, y dando espacio para 7 dígitos
+                queue_bar = f"[{queue_bar}] {current_queue_size:>7}"
+            # 🔹 borra la barra al final
+            if clean_queue_history:
+                queue_bar = 0
 
-            # 3) Construimos el panel y lo devolvemos
-            log_panel = Panel(logs_text, title=title_logs_panel, border_style="bright_red", expand=True, title_align="left")
-            return log_panel
+            # 🔹 Datos a mostrar
+            info_data = [
+                ("🎯 Total Assets", SHARED_DATA.info.get('total_assets', 0)),
+                ("📷 Total Photos", SHARED_DATA.info.get('total_photos', 0)),
+                ("🎬 Total Videos", SHARED_DATA.info.get('total_videos', 0)),
+                ("📂 Total Albums", SHARED_DATA.info.get('total_albums', 0)),
+                ("🔒 Blocked Albums", SHARED_DATA.info.get('total_albums_blocked', 0)),
+                ("📜 Total Metadata", SHARED_DATA.info.get('total_metadata', 0)),
+                ("🔗 Total Sidecar", SHARED_DATA.info.get('total_sidecar', 0)),
+                ("🔍 Invalid Files", SHARED_DATA.info.get('total_invalid', 0)),
+                ("📊 Assets in Queue", f"{queue_bar}"),
+                ("🕒 Elapsed Time", SHARED_DATA.info.get('elapsed_time', 0)),
+            ]
 
-        except Exception as e:
-            LOGGER.error(f"ERROR   : Building Log Panel: {e}")
+            # 🔹 Crear la tabla
+            table = Table.grid(expand=True)
+            table.add_column(justify="left", width=20, no_wrap=True)
+            table.add_column(justify="right", ratio=1)
+            for label, value in info_data:
+                table.add_row(f"[bright_magenta]{label:<17}: [/bright_magenta]", f"[bright_magenta]{value}[/bright_magenta]")
+
+            # 🔹 Devolver el panel
+            return Panel(table, title="📊 Info Panel", border_style="bright_magenta", expand=True, padding=(0, 1))
 
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 6) Main Live Loop
-    # ─────────────────────────────────────────────────────────────────────────
-    with Live(layout, refresh_per_second=1, console=console, vertical_overflow="crop"):
-        try:
-            update_title_panel()
-            layout["info_panel"].update(build_info_panel())
-            layout["pulls_panel"].update(build_pull_panel())
-            layout["pushs_panel"].update(build_push_panel())
-            layout["logs_panel"].update(build_log_panel())
-            # layout["logs_panel"].update(log_panel)  # inicializamos el panel solo una vez aquí
+        # ─────────────────────────────────────────────────────────────────────────
+        # 3) Progress Bars for pulls / pushs
+        #    Show "X / total" with a bar, no custom chars
+        # ─────────────────────────────────────────────────────────────────────────
+        def create_progress_bar(color: str) -> Progress:
+            """
+            Creates a bar with a longer width and displays 'X / total items' in color.
+            """
+            counter = f"{{task.completed}}/{{task.total}}"
+            return Progress(
+                BarColumn(
+                    bar_width=100,  # longer bar for better visuals
+                    style=f"{color} dim",
+                    complete_style=f"{color} bold",
+                    finished_style=f"{color} bold",
+                    pulse_style="bar.pulse"
+                    # pulse_style=f"{color} bold"
+                ),
+                TextColumn(f"[{color}]{counter:>15}[/{color}]"),
+                console=console,
+                expand=True
+            )
 
-            # Continue the loop until migration_finished.is_set()
-            while not migration_finished.is_set():
-                SHARED_DATA.info['elapsed_time'] = str(timedelta(seconds=(datetime.now() - step_start_time).seconds))
+
+        # PULLS (Cyan)
+        pull_bars = {  # Dicccionario de Tuplas (bar, etiqueta_contador_completados, etiqueta_contador_totales)
+            "🎯 Pulled Assets": (create_progress_bar("cyan"), 'total_pulled_assets', "total_assets"),
+            "📷 Pulled Photos": (create_progress_bar("cyan"), 'total_pulled_photos', "total_photos"),
+            "🎬 Pulled Videos": (create_progress_bar("cyan"), 'total_pulled_videos', "total_videos"),
+            "📂 Pulled Albums": (create_progress_bar("cyan"), 'total_pulled_albums', "total_albums"),
+        }
+        failed_pulls = {
+            "🔒 Blocked Albums": 'total_albums_blocked',
+            "🔒 Blocked Assets": 'total_assets_blocked',
+            "🚩 Failed Assets": 'total_pull_failed_assets',
+            "🚩 Failed Photos": 'total_pull_failed_photos',
+            "🚩 Failed Videos": 'total_pull_failed_videos',
+            "🚩 Failed Albums": 'total_pull_failed_albums',
+        }
+        pull_tasks = {}
+        for label, (bar, completed_label, total_label) in pull_bars.items():
+            # bar.add_task retturns the task_id and we create a dictionary {task_label: task_id}
+            pull_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=SHARED_DATA.info.get(total_label, 0))
+
+        # PUSHS (Green)
+        push_bars = {  # Dicccionario de Tuplas (bar, etiqueta_contador_completados, etiqueta_contador_totales)
+            "🎯 Pushed Assets": (create_progress_bar("green"), 'total_pushed_assets', "total_assets"),
+            "📷 Pushed Photos": (create_progress_bar("green"), 'total_pushed_photos', "total_photos"),
+            "🎬 Pushed Videos": (create_progress_bar("green"), 'total_pushed_videos', "total_videos"),
+            "📂 Pushed Albums": (create_progress_bar("green"), 'total_pushed_albums', "total_albums"),
+        }
+        failed_pushs = {
+            "🧩 Duplicates": 'total_push_duplicates_assets',
+            "🚩 Failed Assets": 'total_push_failed_assets',
+            "🚩 Failed Photos": 'total_push_failed_photos',
+            "🚩 Failed Videos": 'total_push_failed_videos',
+            "🚩 Failed Albums": 'total_push_failed_albums',
+        }
+        push_tasks = {}
+        for label, (bar, completed_label, total_label) in push_bars.items():
+            # bar.add_task retturns the task_id and we create a dictionary {task_label: task_id}
+            push_tasks[label] = bar.add_task(label, completed=SHARED_DATA.counters.get(completed_label), total=SHARED_DATA.info.get(total_label, 0))
+
+
+        # ─────────────────────────────────────────────────────────────────────────
+        # 4) Build the Pull/Push Panels
+        # ─────────────────────────────────────────────────────────────────────────
+        def build_pull_panel():
+            table = Table.grid(expand=True)
+            table.add_column(justify="left", width=20)
+            table.add_column(justify="right")
+            for label, (bar, completed_labeld, total_label) in pull_bars.items():
+                table.add_row(f"[cyan]{label:<17}:[/cyan]", bar)
+                bar.update(pull_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
+            for label, counter_label in failed_pulls.items():
+                value = SHARED_DATA.counters[counter_label]
+                table.add_row(f"[cyan]{label:<17}:[/cyan]", f"[cyan]{value}[/cyan]")
+            return Panel(table, title=f'📥 From: {SHARED_DATA.info.get("source_client_name", "Source Client")}', border_style="cyan", expand=True)
+
+
+        def build_push_panel():
+            table = Table.grid(expand=True)
+            table.add_column(justify="left", width=19)
+            table.add_column(justify="right")
+            for label, (bar, completed_labeld, total_label) in push_bars.items():
+                table.add_row(f"[green]{label:<16}:[/green]", bar)
+                bar.update(push_tasks[label], completed=SHARED_DATA.counters.get(completed_labeld), total=SHARED_DATA.info.get(total_label, 0))
+            for label, counter_label in failed_pushs.items():
+                value = SHARED_DATA.counters[counter_label]
+                table.add_row(f"[green]{label:<16}:[/green]", f"[green]{value}[/green]")
+            return Panel(table, title=f'📤 To: {SHARED_DATA.info.get("target_client_name", "Source Client")}', border_style="green", expand=True)
+
+
+        # ─────────────────────────────────────────────────────────────────────────
+        # 5) Logging Panel from Memmory Handler
+        # ─────────────────────────────────────────────────────────────────────────
+        # Lista (o deque) para mantener todo el historial de logs ya mostrados
+        logs_panel_height = terminal_height - fixed_heights - 2  # Espacio restante. Restamos 2 para quitar las líneas del borde superior e inferior del panel de Logs
+        ACCU_LOGS = deque(maxlen=logs_panel_height)
+
+
+        def build_log_panel():
+            """
+            Lee todos los mensajes pendientes en shared_data.logs_queue y los añade
+            a ACCU_LOGS, que conserva el historial completo.
+            Devuelve un Panel con todo el historial (de modo que se pueda hacer
+            scroll en la terminal si usas vertical_overflow='visible').
+            """
+            title_logs_panel = f"📜 Logs Panel (Only last {logs_panel_height} rows shown. Complete log file at: 'Logs/{os.path.basename(log_file)}')"
+            try:
+                while True:
+                    # 1) Vaciamos la cola de logs, construyendo el historial completo
+                    try:
+                        line = SHARED_DATA.logs_queue.get_nowait()  # lee un mensaje de la cola
+                    except queue.Empty:
+                        break
+
+                    # Opcional: aplica color según la palabra “pull”/”push”
+                    line_lower = line.lower()
+                    if "warning :" in line_lower:
+                        line_colored = f"[yellow]{line}[/yellow]"
+                    elif "error   :" in line_lower:
+                        line_colored = f"[red]{line}[/red]"
+                    elif "debug   :" in line_lower:
+                        line_colored = f"[#EEEEEE]{line}[/#EEEEEE]"
+                    elif "pull" in line_lower and not "push" in line_lower:
+                        line_colored = f"[cyan]{line}[/cyan]"
+                    elif any(word in line_lower for word in ("push", "created", "duplicated")) and not "pull" in line_lower:
+                        line_colored = f"[green]{line}[/green]"
+                    else:
+                        line_colored = f"[bright_white]{line}[/bright_white]"
+
+                    # Añadimos la versión coloreada al historial
+                    ACCU_LOGS.append(line_colored)
+
+                # 2) Unimos todo el historial en un solo string
+                if ACCU_LOGS:
+                    logs_text = "\n".join(ACCU_LOGS)
+                else:
+                    logs_text = "Initializing..."
+
+                # 3) Construimos el panel y lo devolvemos
+                log_panel = Panel(logs_text, title=title_logs_panel, border_style="bright_red", expand=True, title_align="left")
+                return log_panel
+
+            except Exception as e:
+                LOGGER.error(f"ERROR   : Building Log Panel: {e}")
+
+
+        # ─────────────────────────────────────────────────────────────────────────
+        # 6) Main Live Loop
+        # ─────────────────────────────────────────────────────────────────────────
+        with Live(layout, refresh_per_second=1, console=console, vertical_overflow="crop"):
+            try:
+                update_title_panel()
                 layout["info_panel"].update(build_info_panel())
                 layout["pulls_panel"].update(build_pull_panel())
                 layout["pushs_panel"].update(build_push_panel())
                 layout["logs_panel"].update(build_log_panel())
-                time.sleep(0.5)  # Evita un bucle demasiado agresivo
+                # layout["logs_panel"].update(log_panel)  # inicializamos el panel solo una vez aquí
 
-            # Pequeña pausa adicional para asegurar el dibujado final
-            time.sleep(1)
+                # Continue the loop until migration_finished.is_set()
+                while not migration_finished.is_set():
+                    SHARED_DATA.info['elapsed_time'] = str(timedelta(seconds=(datetime.now() - step_start_time).seconds))
+                    layout["info_panel"].update(build_info_panel())
+                    layout["pulls_panel"].update(build_pull_panel())
+                    layout["pushs_panel"].update(build_push_panel())
+                    layout["logs_panel"].update(build_log_panel())
+                    time.sleep(0.5)  # Evita un bucle demasiado agresivo
 
-            # Al terminar, asegurarse que todos los paneles finales se muestren
-            layout["info_panel"].update(build_info_panel(clean_queue_history=True))  # Limpiamos el histórico de la cola
-            layout["pulls_panel"].update(build_pull_panel())
-            layout["pushs_panel"].update(build_push_panel())
-            layout["logs_panel"].update(build_log_panel())
+                # Pequeña pausa adicional para asegurar el dibujado final
+                time.sleep(1)
 
-        finally:
-            # Restaurar stdout y stderr
-            sys.stdout = original_stdout
-            sys.stderr = original_stderr
+                # Al terminar, asegurarse que todos los paneles finales se muestren
+                layout["info_panel"].update(build_info_panel(clean_queue_history=True))  # Limpiamos el histórico de la cola
+                layout["pulls_panel"].update(build_pull_panel())
+                layout["pushs_panel"].update(build_push_panel())
+                layout["logs_panel"].update(build_log_panel())
+            finally:
+                # Restaurar stdout y stderr
+                sys.stdout = original_stdout
+                sys.stderr = original_stderr
 
+    except Exception:
+        # Restaurar stdout y stderr
+        sys.stdout = original_stdout
+        sys.stderr = original_stderr
+        traceback.print_exc()
+        LOGGER.exception(f"ERROR during Automatic Migration Feature")
+        raise
+    finally:
+        # Restaurar stdout y stderr
+        sys.stdout = original_stdout
+        sys.stderr = original_stderr
+        
 ######################
 # CALL FROM __MAIN__ #
 ######################
