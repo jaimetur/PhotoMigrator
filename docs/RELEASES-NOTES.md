@@ -12,9 +12,7 @@
   - #### 🚀 Enhancements:
     - [x] Performance Improvements: 
       - [x] Enhanced `MP4 from Live picture Fixing` during Google Takeout Processing to avoid check other candidates when the first one match. 
-      - [x] Enhanced `Google Takeout Processing` when launched by `Automatic Migration feature`. 
-        - In this case, Albums are created as symbolic links to the original files within `No-Albums` folder to save disk space and processing time. 
-    
+      - [x] Enhanced `Google Takeout Processing` when launched by `Automatic Migration feature`. In this case, Albums are created as symbolic links to the original files within `No-Albums` folder to save disk space and processing time.
     - [x] Ensure that filenames lenght are at least 40 chars before to Fix truncated speccial suffixes or truncated extensions during Google Takeout Processing. 
     - [x] Workflows Improvements.
     - [x] Enhanced Results Statistics in Google Takeout Processing to include differencs and percentags of assets between Takeout folder and Output folder.
