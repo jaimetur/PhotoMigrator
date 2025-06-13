@@ -201,19 +201,31 @@ class ClassTakeoutFolder(ClassLocalFolder):
             step_name = '[PRE-PROCESS]-[MP4 Fixer] : '
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Looking for .MP4 files from live pictures and asociate date and time with live picture file...")
-            Utils.fix_mp4_files(input_folder=input_folder, step_name=step_name, log_level=logging.INFO)
+            # TODO: Change log_level to WARNING when this function is fully tested
+            counter_mp4_files_changed = Utils.fix_mp4_files(input_folder=input_folder, step_name=step_name, log_level=logging.INFO)
+            LOGGER.info(f"INFO    : {step_name}Fix MP4 from live pictures metadata finished!")
+            LOGGER.info(f"INFO    : {step_name}    - Total MP4 from live pictures Files fixed     : {counter_mp4_files_changed}")
 
             # Fix truncated special suffixes (such as '-ha edit.jpg' or '-ha e.jpg')
             step_name = '[PRE-PROCESS]-[Special Suffix Fixer] : '
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Fixing Truncated Special Suffixes from Google Photos and rename files to include complete special suffix...")
-            Utils.fix_special_suffixes(input_folder=input_folder, step_name=step_name, log_level=logging.INFO)
+            # TODO: Change log_level to WARNING when this function is fully tested
+            total_files, counter_supplemental_metadata_files_changed, counter_special_suffix_files_changed = Utils.fix_special_suffixes(input_folder=input_folder, step_name=step_name, log_level=logging.INFO)
+            LOGGER.info(f"INFO    : {step_name}Fix Truncated Special Suffixes finished!")
+            LOGGER.info(f"INFO    : {step_name}    - Total Files found                            : {total_files}")
+            LOGGER.info(f"INFO    : {step_name}    - Total Truncated 'supplemental-metadata' fixed: {counter_supplemental_metadata_files_changed}")
+            LOGGER.info(f"INFO    : {step_name}    - Total Truncated other special suffixes fixed : {counter_special_suffix_files_changed}")
 
             # Fix truncated extensions in .json files (such as '...._003.jp.json')
             step_name = '[PRE-PROCESS]-[Extensions Fixer] : '
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Fixing Truncated Extensions in JSON files from Google Photos and rename files to include the right extension based on the original asset...")
-            Utils.fix_truncated_extensions(input_folder=input_folder, step_name=step_name, log_level=logging.INFO)
+            # TODO: Change log_level to WARNING when this function is fully tested
+            total_json_files, counter_truncated_extension_files_changed = Utils.fix_truncated_extensions(input_folder=input_folder, fix_special_suffixes=False, step_name=step_name, log_level=logging.INFO)
+            LOGGER.info(f"INFO    : {step_name}Fix Truncated Extensions finished!")
+            LOGGER.info(f"INFO    : {step_name}    - Total JSON Files found                       : {total_json_files}")
+            LOGGER.info(f"INFO    : {step_name}    - Total Truncated Extension fixed              : {counter_truncated_extension_files_changed}")
 
             # Count initial files in Takeout Folder before to process with GPTH, since once process input_folder may be deleted if --google-move-takeout-folder has been given
             step_name = '[PRE-PROCESS]-[Counting Files] : '
@@ -224,16 +236,25 @@ class ClassTakeoutFolder(ClassLocalFolder):
             initial_takeout_total_videos = Utils.count_videos_in_folder(folder_path=input_folder)
             initial_takeout_total_sidecars = Utils.count_sidecars_in_folder(folder_path=input_folder)
             initial_takeout_total_metadatas = Utils.count_metadatas_in_folder(folder_path=input_folder)
+
             # Calculate initial_takeout_total_supported_files and initial_takeout_total_not_supported_files
             initial_takeout_total_supported_files = initial_takeout_total_images + initial_takeout_total_videos + initial_takeout_total_sidecars + initial_takeout_total_metadatas
             initial_takeout_total_not_supported_files = initial_takeout_numfiles - initial_takeout_total_supported_files
-            LOGGER.info(f"INFO    : {step_name}Total Files files in Takeout folder         : {initial_takeout_numfiles}")
-            LOGGER.info(f"INFO    : {step_name}Total Supported files in Takeout folder     : {initial_takeout_total_supported_files}")
-            LOGGER.info(f"INFO    : {step_name}   - Total Images in Takeout folder         : {initial_takeout_total_images}")
-            LOGGER.info(f"INFO    : {step_name}   - Total Videos in Takeout folder         : {initial_takeout_total_videos}")
-            LOGGER.info(f"INFO    : {step_name}   - Total Sidecars in Takeout folder       : {initial_takeout_total_sidecars}")
-            LOGGER.info(f"INFO    : {step_name}   - Total Metadata in Takeout folder       : {initial_takeout_total_metadatas}")
-            LOGGER.info(f"INFO    : {step_name}Total Non-Supported files in Takeout folder : {initial_takeout_total_not_supported_files}")
+
+            LOGGER.info(f"INFO    : {step_name}Total Files files in Takeout folder                : {initial_takeout_numfiles}")
+            LOGGER.info(f"INFO    : {step_name}Total Supported files in Takeout folder            : {initial_takeout_total_supported_files}")
+            LOGGER.info(f"INFO    : {step_name}   - Total Images in Takeout folder                : {initial_takeout_total_images}")
+            LOGGER.info(f"INFO    : {step_name}   - Total Videos in Takeout folder                : {initial_takeout_total_videos}")
+            LOGGER.info(f"INFO    : {step_name}   - Total Sidecars in Takeout folder              : {initial_takeout_total_sidecars}")
+            LOGGER.info(f"INFO    : {step_name}   - Total Metadata in Takeout folder              : {initial_takeout_total_metadatas}")
+            LOGGER.info(f"INFO    : {step_name}Total Non-Supported files in Takeout folder        : {initial_takeout_total_not_supported_files}")
+            LOGGER.info("")
+            LOGGER.info(f"INFO    : {step_name}Total Fixed Files files in Takeout folder          : {counter_supplemental_metadata_files_changed+counter_special_suffix_files_changed+counter_truncated_extension_files_changed}")
+            LOGGER.info(f"INFO    : {step_name}    - Total MP4 from live pictures Files fixed     : {counter_mp4_files_changed}")
+            LOGGER.info(f"INFO    : {step_name}    - Total Truncated 'supplemental-metadata' fixed: {counter_supplemental_metadata_files_changed}")
+            LOGGER.info(f"INFO    : {step_name}    - Total Truncated other special suffixes fixed : {counter_special_suffix_files_changed}")
+            LOGGER.info(f"INFO    : {step_name}    - Total JSON Files found                       : {total_json_files}")
+            LOGGER.info(f"INFO    : {step_name}    - Total Truncated Extension fixed              : {counter_truncated_extension_files_changed}")
 
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))

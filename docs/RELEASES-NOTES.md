@@ -10,12 +10,21 @@
   - #### 🌟 New Features:
 
   - #### 🚀 Enhancements:
+    - [x] Performance Improvements: 
+      - [x] Enhanced `MP4 from Live picture Fixing` during Google Takeout Processing to avoid check other candidates when the first one match. 
+      - [x] Enhanced `Google Takeout Processing` when launched by `Automatic Migration feature`. 
+        - In this case, Albums are created as symbolic links to the original files within `No-Albums` folder to save disk space and processing time. 
+    
     - [x] Ensure that filenames lenght are at least 40 chars before to Fix truncated speccial suffixes or truncated extensions during Google Takeout Processing. 
     - [x] Workflows Improvements.
     - [x] Enhanced Results Statistics in Google Takeout Processing to include differencs and percentags of assets between Takeout folder and Output folder.
     - [x] Created DataModels for a better structure on those functions that returns multiples values.
-    - [x] Enhanced Feature `Find Duplicates` during Google Takeout Processing. 
+    - [x] Enhanced Feature `Find Duplicates` during Google Takeout Processing.
       - Now the Tool will not detect as duplicates, those assets found in `No-Albums` folder and within any `Albums` subfolder.
+    - [x] Enhanced `Truncated Special Suffixees Fixing` during Google Takeout Processing to fix at the same time truncated `supplemental-metadata` and `other-special-suffixes` within a file. 
+    - [x] Enhanced `Truncated Extension Fixing` during Google Takeout Processing to avoid fixing truncated `supplemental-metadata` and `other-special-suffixes` because this is already done in above step. 
+
+    
 
   - #### 🐛 Bug fixes:
     - [x] Fixed unhandled exception in funcrion `sync_mp4_timestamps_with_images()` when the image have been moved from output folder before to complete MP4 timestamp synching.
