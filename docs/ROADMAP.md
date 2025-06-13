@@ -13,9 +13,9 @@
 
 - ### TODO:
   - #### 🐛 Bug Fixing:
-    - [ ] Fix Docker launcher on Windows. 
     - [ ] Fix no catch exeptions during `Automatic Migration`. 
     - [ ] Update GPTH to fix files with extensions not matching their content. 
+    
 ---
 
 ## **Release**: v4.0.0 
