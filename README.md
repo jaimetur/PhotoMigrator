@@ -111,6 +111,7 @@ Check all arguments descriptions and usage examples in the [Arguments Descriptio
 - [Synology Photos Management](https://github.com/jaimetur/PhotoMigrator/blob/main/help/5-synology-photos.md)  
 - [Immich Photos Management](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md)  
 - [Other Features](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)  
+- [GPTH Tool Pipeline Description](https://github.com/jaimetur/PhotoMigrator/blob/main/help/gpth_process_explanations/00_GPTH_complete_pipeline.md)
 
 
 ## ▶️ Execution Methods
