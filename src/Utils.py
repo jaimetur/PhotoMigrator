@@ -26,7 +26,7 @@ from dateutil import parser as date_parser
 from tqdm import tqdm as original_tqdm
 from CustomLogger import LoggerConsoleTqdm
 from GlobalVariables import LOGGER, ARGS, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES
-from DataModels import RenameAlbumResult
+from DataModels import RenameAlbumResult, FixSpecialSuffixes
 
 # Crear instancia global del wrapper
 TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
@@ -1211,7 +1211,8 @@ def fix_mp4_files(input_folder, step_name="", log_level=logging.INFO):
         if total_files == 0:
             return 0
         # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing .MP4 files in '{input_folder}'", unit=" files") as pbar:
+        disable_tqdm = log_level < logging.WARNING
+        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing .MP4 files in '{input_folder}'", unit=" files", disable=disable_tqdm) as pbar:
             for path, _, files in os.walk(input_folder):
                 # Filter files with .mp4 extension (case-insensitive)
                 mp4_files = [f for f in files if f.lower().endswith('.mp4')]
@@ -1265,27 +1266,31 @@ def fix_special_suffixes(input_folder, step_name="", log_level=logging.INFO):
         input_folder (str): Path to the folder to be scanned and processed.
         log_level (str): Logging level to use within this function's context.
     """
-    with set_log_level(LOGGER, log_level):  # Temporarily set the desired log level
-        counter_supplemental_metadata_files_changed = 0
-        counter_special_suffix_files_changed = 0
+    with ((((set_log_level(LOGGER, log_level))))):  # Temporarily set the desired log level
+        counter_supplemental_metadata_changes = 0
+        counter_special_suffixes_changes = 0
+        counter_json_files_changed = 0
+        counter_non_json_files_changed = 0
         # Count all files to initialize the progress bar
         special_files = []
         for _, _, files in os.walk(input_folder, topdown=True):
             special_files.extend(files)
         total_files = len(special_files)
         if total_files == 0:
-            return 0,0,0
+            return FixSpecialSuffixes()
         # Start progress bar
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing Truncated Special Suffixes in '{input_folder}'", unit=" files") as pbar:
+        disable_tqdm = log_level < logging.WARNING
+        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing Truncated Special Suffixes in '{input_folder}'", unit=" files", disable=disable_tqdm) as pbar:
             for path, _, files in os.walk(input_folder):
                 for file in files:
+                    changed_supplemental_metadata = False
+                    changed_special_suffixes = False
                     pbar.update(1)
                     old_path = os.path.join(path, file)
                     name, ext = os.path.splitext(file)
                     # 0. Truncated filenames (without extensions) noraally have a filename lenght of 46 chars, let's exclude filenames lenght <45
                     if len(name) < 45:
                         continue
-                    changed = False
 
                     # 1. Detect and complete truncated .supplemental-metadata before .json (only applies for .json extensions)
                     if ext.lower() == '.json':
@@ -1298,11 +1303,13 @@ def fix_special_suffixes(input_folder, step_name="", log_level=logging.INFO):
                                 if old_path.lower() != new_path.lower():
                                     os.rename(old_path, new_path)
                                     LOGGER.info(f"INFO    : {step_name}Fixed: {file} → {new_filename}")
-                                    counter_supplemental_metadata_files_changed += 1
-                                    changed = True
-                                break
+                                    file = new_filename # We need to modify the file with the new assigned name to avoid falses positives in Step 2
+                                    counter_supplemental_metadata_changes += 1
+                                    changed_supplemental_metadata = True
+                                break # after match, we don't need to continue iterating for shorter suffix versions
+
                         # If you don't want to apply other renaming logic when found a supplemental metadata file, then uncomment below two lines, but it may happens that a supplemental metadata file also contains special suffixes on its names
-                        # if changed:
+                        # if changed_supplemental_metadata:
                         #     continue
 
                     # Initially I thought that the special suffixes were only added to non .json files, but it can be added to all files.
@@ -1310,30 +1317,68 @@ def fix_special_suffixes(input_folder, step_name="", log_level=logging.INFO):
                     #     continue
 
                     # 2. Apply SPECIAL_SUFFIXES completion logic (applies to .json  and other filesfiles)
+                    # Preparamos una lista con todos los sufijos completos y sus posibles truncaciones (mínimo 2 caracteres)
+                    all_variants = set()
+                    for suf in SPECIAL_SUFFIXES:
+                        all_variants.add(suf)
+                        for i in range(2, len(suf)):
+                            all_variants.add(suf[:i])
+
+                    # Ordenamos de más largo a más corto para que el regex pruebe primero las coincidencias más específicas
+                    variants_pattern = '|'.join(sorted(map(re.escape, all_variants), key=len, reverse=True))
+                    optional_counter = r'(?:\(\d+\))?'
+
                     for sufijo in SPECIAL_SUFFIXES:
-                        for i in range(2, len(sufijo) + 1):
+                        for i in range(len(sufijo), 1, -1):
                             sub = sufijo[:i]
-                            optional_counter = r'(?:\(\d+\))?'
-                            if re.search(re.escape(sub) + optional_counter + re.escape(ext) + r'$', file, flags=re.IGNORECASE):
-                                replacement_pattern = re.compile(
-                                    re.escape(sub) + optional_counter + re.escape(ext) + r'$',
-                                    flags=re.IGNORECASE
-                                )
-                                new_filename = replacement_pattern.sub(
-                                    lambda m: sufijo + (m.group(0)[len(sub):-len(ext)] if m.group(0)[len(sub):-len(ext)] else '') + ext,
-                                    file
-                                )
-                                new_path = os.path.join(path, new_filename)
-                                if old_path.lower() != new_path.lower():
-                                    os.rename(old_path, new_path)
-                                    LOGGER.info(f"INFO    : {step_name}Fixed: {file} → {new_filename}")
-                                    counter_special_suffix_files_changed += 1
-                                    changed = True
-                                break
-                        # If we only want to fix the first special suffix found, then use below code, else, don't use it
-                        # if changed:
-                        #     break
-        return total_files, counter_supplemental_metadata_files_changed, counter_special_suffix_files_changed
+                            # Ahora, tras 'sub' permitimos cero o más apariciones de cualquiera de los sufijos/variantes,
+                            # cada una con su contador opcional, antes del contador final y la extensión:
+                            pattern = re.compile(
+                                rf"{re.escape(sub)}"  # la truncación actual
+                                rf"(?:(?:{variants_pattern})"  # uno de los sufijos/variantes
+                                rf"{optional_counter})*"  # con su contador opcional
+                                rf"{optional_counter}"  # contador opcional final
+                                rf"{re.escape(ext)}$"  # y la extensión al final
+                                , flags=re.IGNORECASE
+                            )
+                            match = pattern.search(file)
+                            if not match:
+                                continue
+
+                            # build the new filename by replacing just _that_ suffix+counter
+                            def _repl(match):
+                                # match.group(0) == e.g. "-SMI(2).json"
+                                # match.group(0)[len(sub):-len(ext)] == "(2)"  (or "" if none)
+                                return sufijo + match.group(0)[len(sub):-len(ext)] + ext
+
+                            new_filename = pattern.sub(_repl, file)
+                            new_path = os.path.join(path, new_filename)
+
+                            # only rename if the name really changed (case-insensitive)
+                            if old_path.lower() != new_path.lower():
+                                os.rename(old_path, new_path)
+                                LOGGER.info(f"INFO    : {step_name}Fixed: {file} → {new_filename}")
+                                counter_special_suffixes_changes += 1
+                                changed_special_suffixes = True
+                                # *** update for the next suffix check! ***
+                                file = new_filename
+                                old_path = new_path
+                            break # whether we renamed or not, stop trying shorter truncations
+
+                    # Count only 1 change per file even if more than one suffix have been changed in the same file
+                    if changed_supplemental_metadata or changed_special_suffixes:
+                        if ext.lower() == '.json':
+                            counter_json_files_changed += 1
+                        else:
+                            counter_non_json_files_changed += 1
+
+        return FixSpecialSuffixes(
+            total_files = total_files,
+            counter_json_files_changed = counter_json_files_changed,
+            counter_non_json_files_changed = counter_non_json_files_changed,
+            counter_supplemental_metadata_changes = counter_supplemental_metadata_changes,
+            counter_special_suffixes_changes = counter_special_suffixes_changes
+        )
 
 
 def fix_truncated_extensions(input_folder, fix_special_suffixes=True, step_name="", log_level=logging.INFO):
@@ -1345,87 +1390,99 @@ def fix_truncated_extensions(input_folder, fix_special_suffixes=True, step_name=
 
     Args:
         input_folder (str): Path to the root directory to be scanned.
+        fix_special_suffixes (bool): Whether to correct truncated special suffixes.
         log_level (int): Logging level (e.g., logging.INFO, logging.DEBUG).
+
+    Returns:
+        total_json_files (int): Total number of .json files scanned.
+        counter_truncated_extension_files_changed (int): Number of files renamed.
     """
     with set_log_level(LOGGER, log_level):
         counter_truncated_extension_files_changed = 0
+
         # Count total files for progress bar
         json_file_list = []
         for root, _, files in os.walk(input_folder):
             json_file_list.extend([
                 (root, f) for f in files
-                if re.match(r'^.+\.[^.]+\.(json)$', f, flags=re.IGNORECASE)
+                if f.lower().endswith('.json')
             ])
+
         total_json_files = len(json_file_list)
-        with tqdm(total=total_json_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing Truncated Extensions in JSON files within '{input_folder}'", unit=" files") as pbar:
+        disable_tqdm = log_level < logging.WARNING
+        with tqdm(total=total_json_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing Truncated Extensions in JSON files within '{input_folder}'", unit=" files", disable=disable_tqdm) as pbar:
             for root, _, files in os.walk(input_folder):
                 files_set = set(files)
-                json_files = [f for f in files if re.match(r'^.+\.[^.]+\.(json)$', f, flags=re.IGNORECASE)]
+                # json_files = [f for f in files if re.match(r'^.+\.[^.]+\.(json)$', f, flags=re.IGNORECASE)] # This look for double extensions files where the last extension is .json
+                json_files = [f for f in files if f.lower().endswith('.json')]
                 for json_file in json_files:
                     pbar.update(1)
                     json_path = Path(root) / json_file
-                    parts = json_file.rsplit('.', 2)  # [filename, ext, json]
-                    if len(parts) != 3:
-                        continue
-                    base_with_suffix, ext, _ = parts
-                    base_name = base_with_suffix
-                    # Step 0 Truncated filenames (without extensions) use to have a filename lenght of 46 chars, let's exclude filenames lenght <45
-                    if len(base_name+'.'+ext) < 45: # In this case we should add the truncated extension to calculate the total lenght since the real extension of those files is .json (las part which is not included)
+
+                    # Split off '.json' first, then split on dots
+                    filename_nojson, _ = os.path.splitext(json_file)  # remove '.json'
+                    parts = filename_nojson.split('.')
+                    if len(parts) < 2:
                         continue
 
-                    # Step 1: look for matching real file with base_name + real extension
+                    base_name = parts[0]  # e.g. '1234..._DSCN0091'
+                    trunc_ext = parts[1]  # e.g. 'J' or 'JP'
+                    suffix_trunc = parts[2] if len(parts) > 2 else ""  # e.g. 'supplemental-meta'
+
+                    # Step 0 Truncated filenames (without extensions) use to have a filename lenght of 46 chars, let's exclude filenames lenght <45
+                    if len(filename_nojson) < 45:
+                        continue
+
+                    # Optional: complete truncated special suffix if requested
+                    suffix_full = suffix_trunc
+                    if fix_special_suffixes and suffix_trunc:
+                        # Check for supplemental-metadata first
+                        if SUPPLEMENTAL_METADATA.lower().startswith(suffix_trunc.lower()) and suffix_trunc.lower() != SUPPLEMENTAL_METADATA.lower():
+                            suffix_full = SUPPLEMENTAL_METADATA
+                        else:
+                            # Then check other suffixes
+                            for suf in SPECIAL_SUFFIXES:
+                                if suf.lower().startswith(suffix_trunc.lower()) and suffix_trunc.lower() != suf.lower():
+                                    suffix_full = suf
+                                    break
+
+                    # Step 1: find matching real file by matching truncated extension
+                    base_with_trunc = base_name + '.' + trunc_ext
                     possible_matches = [
                         f for f in files_set
-                        if f.lower().startswith(base_name.lower() + ".") and not f.lower().endswith(".json")
+                        if f.lower().startswith(base_with_trunc.lower()) and not f.lower().endswith('.json')
                     ]
-                    if not possible_matches:
-                        continue
+
                     matched_file = None
                     for candidate in possible_matches:
-                        candidate_ext = Path(candidate).suffix.lstrip('.')
-                        if candidate_ext.lower().startswith(ext.lower()) and candidate_ext.lower() != ext.lower():
+                        candidate_ext = Path(candidate).suffix.lstrip('.')  # e.g. 'jpg'
+                        # extension starts with the truncated ext and is longer -> likely match
+                        if candidate_ext.lower().startswith(trunc_ext.lower()) and candidate_ext.lower() != trunc_ext.lower():
                             matched_file = candidate
                             break
                     if not matched_file:
                         continue
 
                     # Step 2: get correct extension from matched file
-                    correct_ext = Path(matched_file).suffix
+                    correct_ext = Path(matched_file).suffix  # includes leading dot, e.g. '.JPG'
 
-                    # Following 2 steps are optionals
-                    if fix_special_suffixes:
-                        # Step 3: optionally complete supplemental-metadata if truncated
-                        for i in range(len(SUPPLEMENTAL_METADATA), 1, -1):
-                            trunc = SUPPLEMENTAL_METADATA[:i]
-                            if base_name.lower().endswith(trunc.lower()):
-                                if trunc.lower() != SUPPLEMENTAL_METADATA.lower():
-                                    base_name = base_name[:-i] + SUPPLEMENTAL_METADATA
-                                break
+                    # Step 3: construct new filename, preserving completed suffix if any
+                    if suffix_full:
+                        suffix_full = '.'+suffix_full
+                    new_json_name = f"{base_name}{correct_ext}{suffix_full}.json"
+                    json_path_new = Path(root) / new_json_name
 
-                        # Step 4: optionally complete a truncated SPECIAL_SUFFIX
-                        suffix_completed = False
-                        for suf in SPECIAL_SUFFIXES:
-                            for i in range(len(suf), 1, -1):
-                                if base_name.lower().endswith(suf[:i].lower()):
-                                    if suf[:i].lower() != suf.lower():
-                                        base_name = base_name[:-i] + suf
-                                        suffix_completed = True
-                                    break
-                            if suffix_completed:
-                                break
-
-                    # Step 5: construct new filename
-                    new_json_name = f"{base_name}{correct_ext}.json"
-                    new_json_path = Path(root) / new_json_name
-                    if new_json_path.exists():
-                        LOGGER.warning(f"WARNING : {step_name}Destination already exists: {new_json_path}")
+                    # Avoid overwriting existing files
+                    if json_path_new.exists():
+                        LOGGER.warning(f"WARNING : {step_name}Destination already exists: {json_path_new}")
                     else:
-                        if json_path.lower() != new_json_path.lower():
-                            os.rename(json_path, new_json_path)
+                        # Only rename if paths differ in case or content
+                        if json_path.as_posix().lower() != json_path_new.as_posix().lower():
+                            os.rename(json_path, json_path_new)
                             LOGGER.info(f"INFO    : {step_name}Fixed: {json_file} → {new_json_name}")
                             counter_truncated_extension_files_changed += 1
-        return total_json_files, counter_truncated_extension_files_changed
 
+        return total_json_files, counter_truncated_extension_files_changed
 
 
 # ---------------------------------------------------------------------------------------------------------------------------
