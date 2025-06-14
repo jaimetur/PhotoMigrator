@@ -27,3 +27,14 @@ class RenameAlbumResult:
     duplicates_album_folders:                       int = 0
     duplicates_albums_fully_merged:                 int = 0
     duplicates_albums_not_fully_merged:             int = 0
+
+
+@dataclass
+class FixSpecialSuffixes:
+    total_files:                                    int = 0
+    counter_json_files_changed:                     int = 0
+    counter_non_json_files_changed:                 int = 0
+    counter_supplemental_metadata_changes:          int = 0
+    counter_special_suffixes_changes:               int = 0
+
+
