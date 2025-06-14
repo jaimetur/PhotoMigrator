@@ -1209,7 +1209,7 @@ def fix_mp4_files(input_folder, step_name="", log_level=logging.INFO):
                     all_mp4_files.append(file)
         total_files = len(all_mp4_files)
         if total_files == 0:
-            return
+            return 0
         # Mostrar la barra de progreso basada en carpetas
         with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing .MP4 files in '{input_folder}'", unit=" files") as pbar:
             for path, _, files in os.walk(input_folder):
@@ -1274,7 +1274,7 @@ def fix_special_suffixes(input_folder, step_name="", log_level=logging.INFO):
             special_files.extend(files)
         total_files = len(special_files)
         if total_files == 0:
-            return
+            return 0,0,0
         # Start progress bar
         with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing Truncated Special Suffixes in '{input_folder}'", unit=" files") as pbar:
             for path, _, files in os.walk(input_folder):

@@ -169,7 +169,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
         person = ARGS.get('filter-by-person', None)
 
         LOGGER.info("")
-        LOGGER.info(f"INFO    : -AUTO, --AUTOMATIC-MIGRATION Mode detected")
+        LOGGER.info(f"INFO    : *** Automatic Migration Mode *** detected")
         LOGGER.warning('\n' + '-' * terminal_width)
         if not isinstance(source_client, ClassTakeoutFolder):
             LOGGER.warning(HELP_TEXTS["AUTOMATIC-MIGRATION"].replace('<SOURCE>', f"'{source}'").replace('<TARGET>', f"'{target}'"))
