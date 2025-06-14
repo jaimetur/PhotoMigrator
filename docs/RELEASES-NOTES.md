@@ -44,7 +44,7 @@
 - ### Main Changes:
   - #### 🌟 New Features:
     - [x] Added new argument _**`-graf, --google-rename-albums-folders`**_ to rename all albums folders based on content dates when finish Google Takeout Processing.
-    - [x] Added new flag `-confirm, --request-user-confirmarion` to Skip User Confirmation before to execute any Feature. (Requested by @VictorAcon).
+    - [x] Added new flag _**`-confirm, --request-user-confirmarion`**_ to Skip User Confirmation before to execute any Feature. (Requested by @VictorAcon).
 
   - #### 🚀 Enhancements:
     - [x] Replace return arguments of `ClassTakeoutFolder.process()` method by a new object with all the arguments.
