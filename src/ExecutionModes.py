@@ -262,7 +262,7 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
 
 
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=round(duration.total_seconds())))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         if output_total_files == 0:
             # FINAL SUMMARY
             LOGGER.info("")
@@ -371,7 +371,7 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=logg
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=round(duration.total_seconds())))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -444,7 +444,7 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=logging
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=round(duration.total_seconds())))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -524,7 +524,7 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=lo
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=round(duration.total_seconds())))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -583,7 +583,7 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=loggi
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=round(duration.total_seconds())))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -638,7 +638,7 @@ def mode_cloud_remove_empty_albums(client=None, user_confirmation=True, log_leve
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=round(duration.total_seconds())))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -690,7 +690,7 @@ def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=round(duration.total_seconds())))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -746,7 +746,7 @@ def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_
 
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=round(duration.total_seconds())))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -802,7 +802,7 @@ def mode_cloud_remove_orphan_assets(client=None, user_confirmation=True, log_lev
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=round(duration.total_seconds())))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -853,7 +853,7 @@ def mode_cloud_remove_ALL(client=None, user_confirmation=True, log_level=logging
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=round(duration.total_seconds())))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -907,7 +907,7 @@ def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=logg
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=round(duration.total_seconds())))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -968,7 +968,7 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=round(duration.total_seconds())))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -1025,7 +1025,7 @@ def mode_cloud_remove_all_albums(client=None, user_confirmation=True, log_level=
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=round(duration.total_seconds())))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -1059,7 +1059,7 @@ def mode_fix_symlinkgs(user_confirmation=True, log_level=logging.INFO):
         symlinks_fixed, symlinks_not_fixed = Utils.fix_symlinks_broken(ARGS['fix-symlinks-broken'])
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=round(duration.total_seconds())))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -1099,7 +1099,7 @@ def mode_find_duplicates(user_confirmation=True, log_level=logging.INFO):
             sys.exit(-1)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=round(duration.total_seconds())))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -1131,7 +1131,7 @@ def mode_process_duplicates(user_confirmation=True, log_level=logging.INFO):
         removed_duplicates, restored_duplicates, replaced_duplicates = process_duplicates_actions(ARGS['process-duplicates'])
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=round(duration.total_seconds())))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -1170,7 +1170,7 @@ def mode_folders_rename_content_based(user_confirmation=True, log_level=logging.
         renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = Utils.rename_album_folders(ARGS['rename-folders-content-based'])
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=round(duration.total_seconds())))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
