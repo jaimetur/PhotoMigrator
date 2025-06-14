@@ -28,6 +28,7 @@
     - [x] Fixed unhandled exception in funcrion `sync_mp4_timestamps_with_images()` when the image have been moved from output folder before to complete MP4 timestamp synching.
     - [x] Fixed 'Rename Albums' Feature when no date range is found in its name. Before it removed any date found, now, if is not possible to extract a date range, just keep the cleaned name (without date range proffix). 
     - [x] Fixed Docker Version to include EXIF Tool.
+    - [x] Fixed an issue in `Google Takeout Processing` feature creating output folder when automatically switch to `--google-ignore-check-structure` when no detecting a valid Takeout Structure.
 
   - #### 📚 Documentation:
     - [x] Improved Google Takeout Feature documentation.
