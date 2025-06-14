@@ -1255,6 +1255,175 @@ def fix_mp4_files(input_folder, step_name="", log_level=logging.INFO):
         return counter_mp4_files_changed
 
 
+import os
+import re
+import logging
+from pathlib import Path
+
+# Make sure to define these constants in your module:
+# SPECIAL_SUFFIXES = ['edited', 'supplemental-metadata', 'SMILE', ... ]
+# SUPPLEMENTAL_METADATA = 'supplemental-metadata'
+# LOGGER = logging.getLogger(__name__)
+# set_log_level = ...  # function that temporarily sets the logger’s level
+
+def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_length_threshold=46):
+    """
+    Recursively traverses `input_folder` and fixes:
+      1) .json files with a truncated '.supplemental-metadata' suffix.
+      2) .json files whose original extension is truncated (e.g. .jp.json → .jpg.json),
+         by finding the real asset file in the same directory.
+      3) Non-.json files with truncated special suffixes (based on SPECIAL_SUFFIXES).
+
+    Only processes files whose base name (without extension) exceeds `name_length_threshold` characters.
+
+    Args:
+        input_folder (str): Root folder to scan.
+        step_name (str): Prefix for log messages.
+        log_level (int): Logging level for this operation.
+        name_length_threshold (int): Minimum length of the name (sans extension) to consider.
+    Returns:
+        dict: Counters of changes made, with keys:
+          - total_files: total number of files found
+          - total_modified_files: number of files that were renamed at least once
+          - json_files_modified: number of .json files modified
+          - non_json_files_modified: number of non-.json files modified
+          - supplemental_metadata_fixed: count of '.supplemental-metadata' fixes
+          - extensions_fixed: count of JSON extension corrections
+          - special_suffixes_fixed: count of special-suffix completions
+    """
+    # Count all files up front
+    total_files = sum(len(files) for _, _, files in os.walk(input_folder))
+
+    counters = {
+        "total_files": total_files,
+        "total_modified_files": 0,
+        "json_files_modified": 0,
+        "non_json_files_modified": 0,
+        "supplemental_metadata_fixed": 0,
+        "extensions_fixed": 0,
+        "special_suffixes_fixed": 0
+    }
+
+    # Prepare regex pattern for all truncated variants of special suffixes
+    variants = set()
+    for suf in SPECIAL_SUFFIXES:
+        variants.add(suf)
+        for i in range(2, len(suf)):
+            variants.add(suf[:i])
+    variants_pattern = '|'.join(sorted(map(re.escape, variants), key=len, reverse=True))
+    optional_counter = r'(?:\(\d+\))?'
+
+    with set_log_level(LOGGER, log_level):
+        # Walk through all subdirectories
+        for root, _, files in os.walk(input_folder):
+            files_set = set(files)  # for matching JSON sidecars
+            for file in files:
+                name, ext = os.path.splitext(file)
+                # Skip short names
+                if len(name) <= name_length_threshold:
+                    continue
+
+                old_path = Path(root) / file
+                file_modified = False
+
+                # --- Case A: JSON files ---
+                if ext.lower() == '.json':
+                    low_name = name.lower()
+
+                    # 1) Fix truncated '.supplemental-metadata' suffix
+                    for i in range(len(SUPPLEMENTAL_METADATA), 1, -1):
+                        trunc = SUPPLEMENTAL_METADATA[:i]
+                        if low_name.endswith(trunc) and trunc != SUPPLEMENTAL_METADATA:
+                            corrected = name[:-len(trunc)] + SUPPLEMENTAL_METADATA
+                            new_name = corrected + ext
+                            new_path = Path(root) / new_name
+                            if old_path != new_path:
+                                os.rename(old_path, new_path)
+                                LOGGER.info(f"{step_name}Fixed .supplemental: {file} → {new_name}")
+                                counters["supplemental_metadata_fixed"] += 1
+                                if not file_modified:
+                                    counters["json_files_modified"] += 1
+                                    counters["total_modified_files"] += 1
+                                    file_modified = True
+                                file = new_name
+                                old_path = new_path
+                            break
+
+                    # 2) Fix truncated original extension by locating the real asset file
+                    parts = name.split('.')
+                    if len(parts) >= 2:
+                        base, trunc_ext = parts[0], parts[1]
+                        # find candidate files like "base.trunc_ext*"
+                        candidates = [
+                            f for f in files_set
+                            if f.lower().startswith(f"{base}.{trunc_ext}".lower())
+                            and not f.lower().endswith('.json')
+                        ]
+                        match = None
+                        for cand in candidates:
+                            real_ext = Path(cand).suffix.lstrip('.')
+                            if real_ext.lower().startswith(trunc_ext.lower()) and real_ext.lower() != trunc_ext.lower():
+                                match = cand
+                                break
+                        if match:
+                            correct_ext = Path(match).suffix  # e.g. '.jpg'
+                            # handle a possible third segment as truncated suffix
+                            suffix_trunc = parts[2] if len(parts) > 2 else ''
+                            suffix_full = ''
+                            if suffix_trunc:
+                                if SUPPLEMENTAL_METADATA.lower().startswith(suffix_trunc.lower()):
+                                    suffix_full = '.' + SUPPLEMENTAL_METADATA
+                                else:
+                                    for suf in SPECIAL_SUFFIXES:
+                                        if suf.lower().startswith(suffix_trunc.lower()):
+                                            suffix_full = '.' + suf
+                                            break
+                            new_json = f"{base}{correct_ext}{suffix_full}.json"
+                            new_path = Path(root) / new_json
+                            if not new_path.exists() and old_path != new_path:
+                                os.rename(old_path, new_path)
+                                LOGGER.info(f"{step_name}Fixed .json ext: {file} → {new_json}")
+                                counters["extensions_fixed"] += 1
+                                if not file_modified:
+                                    counters["json_files_modified"] += 1
+                                    counters["total_modified_files"] += 1
+                                    file_modified = True
+
+                # --- Case B: Non-JSON files (special suffixes) ---
+                else:
+                    for suf in SPECIAL_SUFFIXES:
+                        # try all truncations from longest to shortest
+                        for i in range(len(suf), 1, -1):
+                            sub = suf[:i]
+                            pattern = re.compile(
+                                rf"{re.escape(sub)}"
+                                rf"(?:(?:{variants_pattern}){optional_counter})*"
+                                rf"{optional_counter}"
+                                rf"{re.escape(ext)}$",
+                                flags=re.IGNORECASE
+                            )
+                            if pattern.search(file):
+                                def repl(m):
+                                    tail = m.group(0)[len(sub):-len(ext)]
+                                    return suf + tail + ext
+                                new_name = pattern.sub(repl, file)
+                                new_path = Path(root) / new_name
+                                if old_path != new_path:
+                                    os.rename(old_path, new_path)
+                                    LOGGER.info(f"{step_name}Fixed suffix: {file} → {new_name}")
+                                    counters["special_suffixes_fixed"] += 1
+                                    if not file_modified:
+                                        counters["non_json_files_modified"] += 1
+                                        counters["total_modified_files"] += 1
+                                        file_modified = True
+                                break
+                        if file_modified:
+                            break
+
+    return counters
+
+
+
 def fix_special_suffixes(input_folder, step_name="", log_level=logging.INFO):
     """
     Recursively traverses a folder and its subdirectories, renaming files whose names
