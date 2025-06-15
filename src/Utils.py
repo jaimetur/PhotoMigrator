@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 from dateutil import parser as date_parser
 from tqdm import tqdm as original_tqdm
 from CustomLogger import LoggerConsoleTqdm
-from GlobalVariables import LOGGER, ARGS, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES
+from GlobalVariables import LOGGER, ARGS, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, EDITTED_SUFFIXES
 from DataModels import RenameAlbumResult, FixSpecialSuffixes
 
 # Crear instancia global del wrapper
@@ -1237,7 +1237,7 @@ def fix_mp4_files(input_folder, step_name="", log_level=logging.INFO):
                                 # Try to match a valid truncation
                                 for i in range(2, len(SUPPLEMENTAL_METADATA) + 1):
                                     if suffix.lower() == SUPPLEMENTAL_METADATA[:i]:
-                                        suffix = SUPPLEMENTAL_METADATA
+                                        suffix = '.'+SUPPLEMENTAL_METADATA
                                         break
                             # Generate the new name for the duplicated file
                             new_json_name = f"{mp4_file}{suffix}.json"
@@ -1255,17 +1255,10 @@ def fix_mp4_files(input_folder, step_name="", log_level=logging.INFO):
         return counter_mp4_files_changed
 
 
-import os
-import re
-import logging
-from pathlib import Path
-
 # Make sure to define these constants in your module:
-# SPECIAL_SUFFIXES = ['edited', 'supplemental-metadata', 'SMILE', ... ]
 # SUPPLEMENTAL_METADATA = 'supplemental-metadata'
-# LOGGER = logging.getLogger(__name__)
-# set_log_level = ...  # function that temporarily sets the logger’s level
-
+# SPECIAL_SUFFIXES = ['EFFECTS', 'SMILE', ... ]
+# EDITED_SUFFIXES = ['edited', 'ha editado',  ... ]
 def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_length_threshold=46):
     """
     Recursively traverses `input_folder` and fixes:
@@ -1273,51 +1266,67 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
       2) .json files whose original extension is truncated (e.g. .jp.json → .jpg.json),
          by finding the real asset file in the same directory.
       3) Non-.json files with truncated special suffixes (based on SPECIAL_SUFFIXES).
+      4) Non-.json files with truncated edited suffixes in multiple languages (based on EDITTED).
 
     Only processes files whose base name (without extension) exceeds `name_length_threshold` characters.
 
     Args:
-        input_folder (str): Root folder to scan.
-        step_name (str): Prefix for log messages.
+        input_folder (str): Path to the root folder to scan.
+        step_name (str): Prefix for log messages (e.g. "DEBUG   : ").
         log_level (int): Logging level for this operation.
-        name_length_threshold (int): Minimum length of the name (sans extension) to consider.
+        name_length_threshold (int): Minimum length of the base filename (sans extension) to consider.
+
     Returns:
         dict: Counters of changes made, with keys:
           - total_files: total number of files found
-          - total_modified_files: number of files that were renamed at least once
-          - json_files_modified: number of .json files modified
-          - non_json_files_modified: number of non-.json files modified
+          - total_files_fixed: number of files that were renamed at least once
+          - json_files_fixed: number of .json files modified
+          - non_json_files_fixed: number of non-.json files modified
           - supplemental_metadata_fixed: count of '.supplemental-metadata' fixes
           - extensions_fixed: count of JSON extension corrections
           - special_suffixes_fixed: count of special-suffix completions
+          - edited_suffixes_fixed: count of edited-suffix completions
     """
-    # Count all files up front
+    def repl(m):
+        tail = m.group(0)[len(sub):-len(ext)]
+        return suf + tail + ext
+
+    # 1) Pre-count all files for reporting
     total_files = sum(len(files) for _, _, files in os.walk(input_folder))
 
     counters = {
         "total_files": total_files,
-        "total_modified_files": 0,
-        "json_files_modified": 0,
-        "non_json_files_modified": 0,
+        "total_files_fixed": 0,
+        "json_files_fixed": 0,
+        "non_json_files_fixed": 0,
         "supplemental_metadata_fixed": 0,
         "extensions_fixed": 0,
-        "special_suffixes_fixed": 0
+        "special_suffixes_fixed": 0,
+        "edited_suffixes_fixed": 0,
     }
 
-    # Prepare regex pattern for all truncated variants of special suffixes
-    variants = set()
-    for suf in SPECIAL_SUFFIXES:
-        variants.add(suf)
-        for i in range(2, len(suf)):
-            variants.add(suf[:i])
-    variants_pattern = '|'.join(sorted(map(re.escape, variants), key=len, reverse=True))
-    optional_counter = r'(?:\(\d+\))?'
+    # 2) Build a combined regex for ANY truncated prefix of any special or edited suffix
+    def make_variant_pattern(suffix_list):
+        variants = set(suffix_list)
+        for s in suffix_list:
+            for i in range(2, len(s)):
+                variants.add(s[:i])
+        # sort longest first so regex matches the largest truncation before smaller ones
+        return '|'.join(sorted(map(re.escape, variants), key=len, reverse=True))
+
+    variants_specials_pattern = make_variant_pattern(SPECIAL_SUFFIXES)
+    variants_editted_pattern = make_variant_pattern(EDITTED_SUFFIXES)
+    optional_counter = r'(?:\(\d+\))?'  # allow "(n)" counters
 
     with set_log_level(LOGGER, log_level):
         # Walk through all subdirectories
         for root, _, files in os.walk(input_folder):
             files_set = set(files)  # for matching JSON sidecars
             for file in files:
+                # Save original_file and original_path for final message
+                original_file = file
+                original_path = Path(root) / original_file
+
                 name, ext = os.path.splitext(file)
                 # Skip short names
                 if len(name) <= name_length_threshold:
@@ -1337,22 +1346,29 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                             corrected = name[:-len(trunc)] + SUPPLEMENTAL_METADATA
                             new_name = corrected + ext
                             new_path = Path(root) / new_name
-                            if old_path != new_path:
+                            if str(old_path).lower() != str(new_path).lower():
                                 os.rename(old_path, new_path)
-                                LOGGER.info(f"{step_name}Fixed .supplemental: {file} → {new_name}")
+                                # LOGGER.info(f"INFO    : {step_name}Fixed JSON Supplemental Ext: {file} → {new_name}")
                                 counters["supplemental_metadata_fixed"] += 1
-                                if not file_modified:
-                                    counters["json_files_modified"] += 1
-                                    counters["total_modified_files"] += 1
-                                    file_modified = True
+                                # We need to medify file and old_path for next steps
                                 file = new_name
                                 old_path = new_path
+                                if not file_modified:
+                                    counters["json_files_fixed"] += 1
+                                    counters["total_files_fixed"] += 1
+                                    file_modified = True
                             break
 
                     # 2) Fix truncated original extension by locating the real asset file
                     parts = name.split('.')
+
                     if len(parts) >= 2:
-                        base, trunc_ext = parts[0], parts[1]
+                        # base, trunc_ext = parts[0], parts[1]
+                        # CAMBIO 3: OK
+                        base = '.'.join(parts[:-2]) if len(parts) > 2 else parts[0]
+                        trunc_ext = parts[-2]
+                        # END CAMBIO 3:
+
                         # find candidate files like "base.trunc_ext*"
                         candidates = [
                             f for f in files_set
@@ -1368,8 +1384,19 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                         if match:
                             correct_ext = Path(match).suffix  # e.g. '.jpg'
                             # handle a possible third segment as truncated suffix
-                            suffix_trunc = parts[2] if len(parts) > 2 else ''
+
+                            # suffix_trunc = parts[2] if len(parts) > 2 else ''
+                            # CAMBIO 2: OK
+                            suffix_trunc_raw = parts[2] if len(parts) > 2 else ''
+                            # Remove optional counter (e.g., (1)) at the end
+                            match_counter = re.search(r'(.*?)\(\d+\)$', suffix_trunc_raw)
+                            suffix_trunc = match_counter.group(1) if match_counter else suffix_trunc_raw
+                            # END CAMBIO 2
+
                             suffix_full = ''
+                            # Restore the counter if it was present (e.g., (1))
+                            counter_match = re.search(r'\(\d+\)$', suffix_trunc_raw)
+                            counter = counter_match.group(0) if counter_match else ''
                             if suffix_trunc:
                                 if SUPPLEMENTAL_METADATA.lower().startswith(suffix_trunc.lower()):
                                     suffix_full = '.' + SUPPLEMENTAL_METADATA
@@ -1378,48 +1405,88 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                                         if suf.lower().startswith(suffix_trunc.lower()):
                                             suffix_full = '.' + suf
                                             break
-                            new_json = f"{base}{correct_ext}{suffix_full}.json"
-                            new_path = Path(root) / new_json
-                            if not new_path.exists() and old_path != new_path:
+                            new_name = f"{base}{correct_ext}{suffix_full}{counter}.json"
+                            new_path = Path(root) / new_name
+                            if not new_path.exists() and str(old_path).lower() != str(new_path).lower():
                                 os.rename(old_path, new_path)
-                                LOGGER.info(f"{step_name}Fixed .json ext: {file} → {new_json}")
+                                # LOGGER.info(f"INFO    : {step_name}Fixed JSON Origin File Ext : {file} → {new_name}")
                                 counters["extensions_fixed"] += 1
+                                # We need to medify file and old_path for next steps
+                                file = new_name
+                                old_path = new_path
                                 if not file_modified:
-                                    counters["json_files_modified"] += 1
-                                    counters["total_modified_files"] += 1
+                                    counters["json_files_fixed"] += 1
+                                    counters["total_files_fixed"] += 1
                                     file_modified = True
 
-                # --- Case B: Non-JSON files (special suffixes) ---
+                # --- Case B: Non-JSON files (special suffixes or editted) ---
                 else:
+                    # 1) Fix Special Suffixes: '-effects', '-smile', '-mix', 'collage'
                     for suf in SPECIAL_SUFFIXES:
                         # try all truncations from longest to shortest
                         for i in range(len(suf), 1, -1):
                             sub = suf[:i]
                             pattern = re.compile(
+                                rf"{re.escape(sub)}(?=(-|_|\.|{variants_editted_pattern}|{SUPPLEMENTAL_METADATA})?(?:\(\d+\))?{re.escape(ext)}$)",
+                                flags=re.IGNORECASE
+                            )
+
+                            if pattern.search(file):
+                                # new_name = pattern.sub(repl, file)
+                                # CAMBIO 1:
+                                match = pattern.search(file)
+                                if match:
+                                    start = match.start()
+                                    end = match.end()
+                                    tail = file[end:]  # everything after the matched truncation
+                                    new_name = file[:start] + suf + tail
+                                    # END CAMBIO 1
+                                    new_path = Path(root) / new_name
+                                    if str(old_path).lower() != str(new_path).lower():
+                                        os.rename(old_path, new_path)
+                                        # LOGGER.info(f"INFO    : {step_name}Fixed ORIGIN Special Suffix: {file} → {new_name}")
+                                        counters["special_suffixes_fixed"] += 1
+                                        # We need to medify file and old_path for next steps and to keep changes if other suffixes are found
+                                        file = new_name
+                                        old_path = new_path
+                                        if not file_modified:
+                                            counters["non_json_files_fixed"] += 1
+                                            counters["total_files_fixed"] += 1
+                                            file_modified = True
+                                    break # ✅ once one truncation of the current suf is applied, stop trying shorter ones
+
+                    # 2) Fix Editted Suffixes (multi-language): '-editted', '-edytowane', '-bearbeitet', '-bewerkt', '-編集済み', '-modificato', '-modifié', '-ha editado', '-editat'
+                    file_modified_by_editted_block = False
+                    for suf in EDITTED_SUFFIXES:
+                        # try all truncations from longest to shortest
+                        for i in range(len(suf), 1, -1):
+                            sub = suf[:i]
+                            pattern = re.compile(
                                 rf"{re.escape(sub)}"
-                                rf"(?:(?:{variants_pattern}){optional_counter})*"
+                                rf"(?:(?:{variants_editted_pattern}){optional_counter})*"
                                 rf"{optional_counter}"
                                 rf"{re.escape(ext)}$",
                                 flags=re.IGNORECASE
                             )
                             if pattern.search(file):
-                                def repl(m):
-                                    tail = m.group(0)[len(sub):-len(ext)]
-                                    return suf + tail + ext
                                 new_name = pattern.sub(repl, file)
                                 new_path = Path(root) / new_name
-                                if old_path != new_path:
+                                if str(old_path).lower() != str(new_path).lower():
                                     os.rename(old_path, new_path)
-                                    LOGGER.info(f"{step_name}Fixed suffix: {file} → {new_name}")
-                                    counters["special_suffixes_fixed"] += 1
+                                    # LOGGER.info(f"INFO    : {step_name}Fixed ORIGIN Edited Suffix : {file} → {new_name}")
+                                    counters["edited_suffixes_fixed"] += 1
+                                    # We need to medify file and old_path for next steps and to keep changes if other suffixes are found
+                                    file = new_name
+                                    old_path = new_path
                                     if not file_modified:
-                                        counters["non_json_files_modified"] += 1
-                                        counters["total_modified_files"] += 1
+                                        counters["non_json_files_fixed"] += 1
+                                        counters["total_files_fixed"] += 1
                                         file_modified = True
-                                break
-                        if file_modified:
-                            break
+                                break # ✅ once one truncation of the current suf is applied, stop trying shorter ones
 
+                if file_modified:
+                    pass
+                    LOGGER.info(f"INFO    : {step_name}Fixed Truncations : {original_file} → {new_name}")
     return counters
 
 
@@ -2226,7 +2293,17 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
     # ===========================
     # AUXILIARY FUNCTIONS
     # ===========================
-    def clean_name(input_string: str, log_level=logging.INFO) -> str:
+    def clean_name_and_remove_dates(input_string: str, log_level=logging.INFO) -> dict:
+        """
+        Removes date or date range prefixes from the input string and returns a dictionary
+        with the cleaned name and the extracted date(s).
+
+        Returns:
+            dict: {
+                "clean-name": str,  # The input string with the date(s) removed
+                "dates": str        # The removed date(s) prefix, or empty string if none found
+            }
+        """
         import re
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             input_string = input_string.strip()
@@ -2250,96 +2327,33 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
             input_string = re.sub(r'(?<=\d)[_-](?=[a-zA-Z])', ' - ', input_string)
             # Replace the last dot with an underscore in dddd.dd.dd.dd format anywhere in the string
             input_string = re.sub(r'((19|20)\d{2}\.\d{2}\.\d{2})\.(\d{2})', r'\1_\3', input_string)
-            return input_string
-
-    def remove_dates(input_string: str, log_level=logging.INFO) -> dict:
-        """
-        Removes date or date range prefixes from the input string and returns a dictionary
-        with the cleaned name and the extracted date(s).
-
-        Returns:
-            dict: {
-                "clean-name": str,  # The input string with the date(s) removed
-                "dates": str        # The removed date(s) prefix, or empty string if none found
-            }
-        """
-        import re
-        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # Patrón para detectar fecha o rango de fechas al inicio del string
             pattern = re.compile(
                 r"""^                   # inicio del string
-                (
-                    (?:19|20)\d{2}                          # yyyy
-                    (?:[._-](?:0[1-9]|1[0-2]))?             # opcional: .mm o -mm o _mm
-                    (?:[._-](?:0[1-9]|[12]\d|3[01]))?       # opcional: .dd o -dd o _dd
-                    (?:\s*[-_]\s*                           # separador del rango
-                        (?:19|20)\d{2}
-                        (?:[._-](?:0[1-9]|1[0-2]))?
-                        (?:[._-](?:0[1-9]|[12]\d|3[01]))?
-                    )?
-                    \s*[-_]\s*                              # separador tras la fecha o rango
-                )
+                (                                           # ← aquí empieza grupo 1
+                    (?:19|20)\d{2}                          # yyyy (año)
+                    (?:[._-](?:0[1-9]|1[0-2]))?             # opcional: .mm o -mm o _mm (mes precedido de '.', '-' o '_')
+                    (?:[._-](?:0[1-9]|[12]\d|3[01]))?       # opcional: .dd o -dd o _dd (día precedido de '.', '-' o '_')
+                    (?:\s*[-_]\s*                           # comienzo de rango opcional (comienza al detectar el separador del rango)
+                        (?:19|20)\d{2}                      # yyyy (año) dentro del rango opcional
+                        (?:[._-](?:0[1-9]|1[0-2]))?         # opcional dentro del rango opcional: .mm o -mm o _mm (mes precedido de '.', '-' o '_')
+                        (?:[._-](?:0[1-9]|[12]\d|3[01]))?   # opcional dentro del rango opcional: .dd o -dd o _dd (día precedido de '.', '-' o '_')
+                    )?                                      # fin rango opcional
+                )                                           # ← aquí termina grupo 1                 
+                \s*[-_]\s*                                  # separador tras la fecha o rango (FUERA de grupo 1)               
                 """,
                 flags=re.VERBOSE
             )
             match = pattern.match(input_string)
-            dates = match.group(1) if match else ""
+            original_dates = match.group(1) if match else ""
             clean_name = input_string[match.end():] if match else input_string
             return {
                 "clean-name": clean_name,
-                "dates": dates
+                "original-dates": original_dates
             }
 
-    def get_year_range(folder: str, log_level=logging.INFO) -> str:
-        def get_exif_date(image_path):
-            try:
-                exif_dict = piexif.load(image_path)
-                for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
-                    value = exif_dict["Exif"].get(piexif.ExifIFD.__dict__.get(tag))
-                    if value:
-                        # piexif devuelve bytes, hay que decodificar
-                        return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
-            except Exception:
-                pass
-            return None
-        with set_log_level(LOGGER, log_level):
-            try:
-                files = [os.path.join(folder, f) for f in os.listdir(folder)]
-                files = [f for f in files if os.path.isfile(f)]
-                years = []
-                for f in files:
-                    ext = os.path.splitext(f)[1].lower()
-                    dt = None
-                    # Primero intenta con EXIF si es imagen
-                    if ext in PHOTO_EXT:
-                        try:
-                            dt = get_exif_date(f)
-                        except Exception as e:
-                            LOGGER.warning(f"WARNING : {step_name}Error reading EXIF from {f}: {e}")
-                    # Si no hay EXIF o no es imagen compatible, usa mtime
-                    if not dt:
-                        try:
-                            ts = os.path.getmtime(f)
-                            if ts > 0:
-                                dt = datetime.fromtimestamp(ts)
-                        except Exception as e:
-                            LOGGER.warning(f"WARNING : {step_name}Cannot read timestamp from {f}: {e}")
-                    if dt:
-                        years.append(dt.year)
-                if years:
-                    oldest_year = min(years)
-                    latest_year = max(years)
-                    if oldest_year == latest_year:
-                        return str(oldest_year)
-                    else:
-                        return f"{oldest_year}-{latest_year}"
-                else:
-                    LOGGER.warning(f"WARNING : {step_name}No valid timestamps found in {folder}")
-            except Exception as e:
-                LOGGER.error(f"ERROR   : {step_name}Error obtaining year range: {e}")
-            return None
 
-    def get_year_range(folder: str, log_level=logging.INFO) -> str:
+    def get_content_based_year_range(folder: str, log_level=logging.INFO) -> str:
         def get_exif_date(image_path):
             try:
                 exif_dict = piexif.load(image_path)
@@ -2384,7 +2398,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                         years.append(chosen_date.year)
                 if not years:
                     LOGGER.warning(f"WARNING : {step_name}No valid timestamps found in {folder}")
-                    return None
+                    return False
                 # Extraer componentes
                 oldest_year = min(years)
                 latest_year = max(years)
@@ -2394,9 +2408,10 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     return f"{oldest_year}-{latest_year}"
             except Exception as e:
                 LOGGER.error(f"ERROR   : {step_name}Error obtaining year range: {e}")
-            return None
+            return False
 
-    def get_date_range(folder: str, log_level=logging.INFO) -> str:
+
+    def get_content_based_date_range(folder: str, log_level=logging.INFO) -> str:
         def get_exif_date(image_path):
             try:
                 exif_dict = piexif.load(image_path)
@@ -2439,7 +2454,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                             dates.append(chosen_date)
                 if not dates:
                     LOGGER.warning(f"WARNING : {step_name}No valid timestamps found in {folder}")
-                    return None
+                    return False
                 # Extraer componentes
                 years = {dt.year for dt in dates}
                 months = {(dt.year, dt.month) for dt in dates}
@@ -2459,7 +2474,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     return f"{min(years):04}-{max(years):04}"
             except Exception as e:
                 LOGGER.error(f"ERROR   : {step_name}Error obtaining date range: {e}")
-                return None
+                return False
 
     # ===========================
     # END AUX FUNCTIONS
@@ -2470,8 +2485,9 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
         duplicates_album_folders = 0
         duplicates_albums_fully_merged = 0
         duplicates_albums_not_fully_merged = 0
-        info_actions = []
-        warning_actions = []
+        debug_messages = []
+        info_messages = []
+        warning_messages = []
 
         if isinstance(exclude_subfolder, str):
             exclude_subfolder = [exclude_subfolder]
@@ -2482,32 +2498,32 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
         for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"INFO    : {step_name}Renaming Albums folders in '<OUTPUT_TAKEOUT_FOLDER>'", unit=" folders"):
             item_path = os.path.join(input_folder, original_folder_name)
             if os.path.isdir(item_path):
-                resultado = remove_dates(original_folder_name)
+                resultado = clean_name_and_remove_dates(original_folder_name)
                 cleaned_folder_name = resultado["clean-name"]
-                original_dates = resultado["dates"]
+                original_dates = resultado["original-dates"]
                 # If folder name does not start with a year (19xx or 20xx)
                 if not re.match(r'^(19|20)\d{2}', cleaned_folder_name):
+                    # Determine the date prefix depending on the argument type_date_range: year:2022-2024 or complete: 2022.06-2024-01
                     if type_date_range.lower() == 'complete':
-                        date_range = get_date_range(item_path)
+                        content_based_date_range = get_content_based_date_range(item_path)
                     elif type_date_range.lower() == 'year':
-                        date_range = get_year_range(item_path)
+                        content_based_date_range = get_content_based_year_range(item_path)
                     else:
-                        warning_actions.append(f"WARNING : {step_name}No valid type_date_range: '{type_date_range}'")
-
-                    # if not possible to find a date_raange, continue with rename this folder
-                    if date_range:
-                        cleaned_folder_name = f"{date_range} - {cleaned_folder_name}"
-                        # info_actions.append(f"INFO    : Added year prefix '{date_range}' to folder: '{os.path.basename(cleaned_folder_name)}'")
+                        warning_messages.append(f"WARNING : {step_name}No valid type_date_range: '{type_date_range}'")
+                    # if not possible to find a date_raange, keep the original_dates as prefix of the cleaned_folder_name
+                    if content_based_date_range:
+                        cleaned_folder_name = f"{content_based_date_range} - {cleaned_folder_name}"
+                        debug_messages.append(f"DEBUG   : Added date prefix '{content_based_date_range}' to folder: '{os.path.basename(cleaned_folder_name)}'")
                     else:
-                        # cleaned_folder_name = f"{original_dates}{cleaned_folder_name}"
-                        continue
+                        cleaned_folder_name = f"{original_dates} - {cleaned_folder_name}"
+                        debug_messages.append(f"DEBUG   : Keep date prefix '{original_dates}' in folder: '{os.path.basename(cleaned_folder_name)}'")
 
                 # Skip renaming if the clean name is the same as the original
                 if cleaned_folder_name != original_folder_name:
                     new_folder_path = os.path.join(input_folder, cleaned_folder_name)
                     if os.path.exists(new_folder_path):
                         duplicates_album_folders += 1
-                        warning_actions.append(f"WARNING : {step_name}Folder '{new_folder_path}' already exists. Merging contents...")
+                        warning_messages.append(f"WARNING : {step_name}Folder '{new_folder_path}' already exists. Merging contents...")
                         for item in os.listdir(item_path):
                             src = os.path.join(item_path, item)
                             dst = os.path.join(new_folder_path, item)
@@ -2515,14 +2531,14 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                                 # Compare file sizes to decide if the original should be deleted
                                 if os.path.isfile(dst) and os.path.getsize(src) == os.path.getsize(dst):
                                     os.remove(src)
-                                    info_actions.append(f"INFO    : {step_name}Deleted duplicate file: '{src}'")
+                                    info_messages.append(f"INFO    : {step_name}Deleted duplicate file: '{src}'")
                             else:
                                 shutil.move(src, dst)
-                                info_actions.append(f"INFO    : {step_name}Moved '{src}' → '{dst}'")
+                                info_messages.append(f"INFO    : {step_name}Moved '{src}' → '{dst}'")
                         # Check if the folder is empty before removing it
                         if not os.listdir(item_path):
                             os.rmdir(item_path)
-                            info_actions.append(f"INFO    : {step_name}Removed empty folder: '{item_path}'")
+                            info_messages.append(f"INFO    : {step_name}Removed empty folder: '{item_path}'")
                             duplicates_albums_fully_merged += 1
                         else:
                             # LOGGER.warning(f"WARNING : Folder not empty, skipping removal: {item_path}")
@@ -2530,12 +2546,16 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     else:
                         if item_path != new_folder_path:
                             os.rename(item_path, new_folder_path)
-                            info_actions.append(f"INFO    : {step_name}Renamed folder: '{os.path.basename(item_path)}' → '{os.path.basename(new_folder_path)}'")
+                            info_messages.append(f"INFO    : {step_name}Renamed folder: '{os.path.basename(item_path)}' → '{os.path.basename(new_folder_path)}'")
                             renamed_album_folders += 1
-        for info_action in info_actions:
-            LOGGER.info(info_action)
-        for warning_action in warning_actions:
-            LOGGER.warning(warning_actions)
+
+        # Finally we log all the messages captured during the process
+        for debug_message in debug_messages:
+            LOGGER.debug(debug_message)
+        for info_message in info_messages:
+            LOGGER.info(info_message)
+        for warning_message in warning_messages:
+            LOGGER.warning(warning_message)
 
         # return renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged
         return RenameAlbumResult(
