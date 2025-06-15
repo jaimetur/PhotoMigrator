@@ -1325,7 +1325,6 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
             for file in files:
                 # Save original_file and original_path for final message
                 original_file = file
-                original_path = Path(root) / original_file
 
                 name, ext = os.path.splitext(file)
                 # Skip short names
@@ -1456,7 +1455,6 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                                     break # ✅ once one truncation of the current suf is applied, stop trying shorter ones
 
                     # 2) Fix Editted Suffixes (multi-language): '-editted', '-edytowane', '-bearbeitet', '-bewerkt', '-編集済み', '-modificato', '-modifié', '-ha editado', '-editat'
-                    file_modified_by_editted_block = False
                     for suf in EDITTED_SUFFIXES:
                         # try all truncations from longest to shortest
                         for i in range(len(suf), 1, -1):
