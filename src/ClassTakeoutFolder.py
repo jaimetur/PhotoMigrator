@@ -174,6 +174,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Pre-check the object with skip_process=True to just unzip files in case they are zipped.
             self.precheck_takeout_and_process(skip_process=True)
 
+
             # Step 2: Pre-Process Takeout folder
             # ----------------------------------------------------------------------------------------------------------------------
             self.step += 1
@@ -199,33 +200,18 @@ class ClassTakeoutFolder(ClassLocalFolder):
             step_name = '[PRE-PROCESS]-[MP4 Fixer        ] : '
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Looking for .MP4 files from live pictures and asociate date and time with live picture file...")
-            # TODO: Change log_level to WARNING when this function is fully tested
             counter_mp4_files_fixed = Utils.fix_mp4_files(input_folder=input_folder, step_name=step_name, log_level=logging.INFO)
             LOGGER.info(f"INFO    : {step_name}Fixing MP4 from live pictures metadata finished!")
             LOGGER.info(f"INFO    : {step_name}Total MP4 from live pictures Files fixed         : {counter_mp4_files_fixed}")
 
-            # Fix truncated special suffixes (such as '-ha edit.jpg' or '-ha e.jpg')
+            # Fix truncated suffixes (such as '-ha edit.jpg' or '-ha e.jpg', or '-effec', or '-supplemen',...)
             step_name = '[PRE-PROCESS]-[Truncations Fixer] : '
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Fixing Truncated Special Suffixes from Google Photos and rename files to include complete special suffix...")
-            # TODO: Change log_level to WARNING when this function is fully tested
-            # result_fix_special_suffixes = Utils.fix_special_suffixes(input_folder=input_folder, step_name=step_name, log_level=logging.INFO)
             result_fix_truncations = Utils.fix_truncations(input_folder=input_folder, step_name=step_name, log_level=logging.INFO)
             LOGGER.info(f"INFO    : {step_name}Fixing Truncated Files finished!")
-
             LOGGER.info(f"INFO    : {step_name}Total Files files in Takeout folder              : {result_fix_truncations['total_files']}")
             LOGGER.info(f"INFO    : {step_name}Total Truncated files fixed                      : {result_fix_truncations['total_files_fixed']}")
-
-
-            # # Fix truncated extensions in .json files (such as '...._003.jp.json')
-            # step_name = '[PRE-PROCESS]-[Extensions Fixer] : '
-            # LOGGER.info("")
-            # LOGGER.info(f"INFO    : {step_name}Fixing Truncated Extensions in JSON files from Google Photos and rename files to include the right extension based on the original asset...")
-            # # TODO: Change log_level to WARNING when this function is fully tested
-            # total_json_files, counter_truncated_extension_files_changed = Utils.fix_truncated_extensions(input_folder=input_folder, fix_special_suffixes=False, step_name=step_name, log_level=logging.INFO)
-            # LOGGER.info(f"INFO    : {step_name}Fix Truncated Extensions finished!")
-            # LOGGER.info(f"INFO    : {step_name}    - Total JSON Files found                       : {total_json_files}")
-            # LOGGER.info(f"INFO    : {step_name}    - Total Truncated Extension fixed              : {counter_truncated_extension_files_changed}")
 
             # Count initial files in Takeout Folder before to process with GPTH, since once process input_folder may be deleted if --google-move-takeout-folder has been given
             step_name = '[PRE-PROCESS]-[Statistics       ] : '
@@ -265,7 +251,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             step_name = '[PRE-PROCESS] : '
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
-            sys.exit()
 
 
             # Step 3: Process photos with GPTH tool
@@ -320,6 +305,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
 
+
             # Step 4: Copy/Move files to output folder manually
             # ----------------------------------------------------------------------------------------------------------------------
             if manual_copy_move_needed:
@@ -348,6 +334,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
 
+
             # Step 5: Sync .MP4 live pictures timestamp
             # ----------------------------------------------------------------------------------------------------------------------
             self.step += 1
@@ -364,6 +351,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
+
 
             # Step 6: Create Folders Year/Month or Year only structure
             # ----------------------------------------------------------------------------------------------------------------------
@@ -403,6 +391,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
 
+
             # Step 7: Move albums
             # ----------------------------------------------------------------------------------------------------------------------
             if not self.ARGS['google-skip-move-albums']:
@@ -421,6 +410,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
+
 
             # Step 8: Remove Duplicates
             # ----------------------------------------------------------------------------------------------------------------------
@@ -464,6 +454,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
 
+
             # Step 9: Fix Broken Symbolic Links
             # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-create-symbolic-albums']:
@@ -481,6 +472,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
+
 
             # Step 10: Rename Albums Folders based on content date
             # ----------------------------------------------------------------------------------------------------------------------
@@ -505,6 +497,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
 
+
             # Step 11: Renamove Empty Folders
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '[POST]-[Remove Empty Folders] : '
@@ -521,6 +514,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
+
 
             # Step 11: Count Albums
             # ----------------------------------------------------------------------------------------------------------------------
