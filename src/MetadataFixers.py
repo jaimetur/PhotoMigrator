@@ -100,7 +100,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         if Version(GPTH_VERSION) >= Version("4.0.0"):
             gpth_command.append("--write-exif")
 
-        if Version(GPTH_VERSION) >= Version("4.0.9"):
+        if Version(GPTH_VERSION) >= Version("4.0.8"):
             gpth_command.append("--fix-extensions")
 
         try:

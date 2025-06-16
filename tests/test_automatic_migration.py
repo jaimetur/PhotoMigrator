@@ -1,6 +1,6 @@
 import unittest
 from tests.utils import get_test_file
-from AutomaticMode import mode_AUTOMATIC_MIGRATION
+from AutomaticMigration import mode_AUTOMATIC_MIGRATION
 
 class AutomaticMode(unittest.TestCase):
     def test_automatic_mode(self):
