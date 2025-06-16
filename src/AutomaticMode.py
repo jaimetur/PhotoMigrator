@@ -568,7 +568,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             LOGGER.info(f"")
             LOGGER.info(f"INFO    : 🚀 All assets pulled and pushed successfully!")
             LOGGER.info(f"")
-            LOGGER.info(f"INFO    : ----- SINCRONIZACIÓN FINALIZADA -----")
+            LOGGER.info(f"INFO    : ----- MIGRATION FINISHED  -----")
             LOGGER.info(f"INFO    : {source_client_name} --> {target_client_name}")
             LOGGER.info(f"INFO    : Pulled Albums               : {SHARED_DATA.counters['total_pulled_albums']}")
             LOGGER.info(f"INFO    : Pushed Albums               : {SHARED_DATA.counters['total_pushed_albums']}")
