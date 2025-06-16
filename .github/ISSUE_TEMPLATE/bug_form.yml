@@ -31,7 +31,7 @@ body:
     - type: dropdown
     id: os-arch
     attributes:
-      label: Operating System & Archiecture
+      label: Operating System / Archiecture
       description: What Operating System and Architecture are you running?
       options:
         - docker-version
