@@ -4,7 +4,7 @@
 
 ## **Release**: v3.3.2  
 
-- ### **Release Date**: 2025-06-13
+- ### **Release Date**: 2025-06-16
 
 - ### Main Changes:
   - #### 🌟 New Features:
@@ -21,7 +21,10 @@
       - Now the Tool will not detect as duplicates, those assets found in `No-Albums` folder and within any `Albums` subfolder.
     - [x] Enhanced `Truncated Special Suffixees Fixing` during Google Takeout Processing to fix at the same time truncated `supplemental-metadata` and `other-special-suffixes` within a file. 
     - [x] Enhanced `Truncated Extension Fixing` during Google Takeout Processing to avoid fixing truncated `supplemental-metadata` and `other-special-suffixes` because this is already done in above step. 
-
+    - [x] Updated GPTH to version `4.0.8` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
+      - Fixed a bug in the `--fix-extension` feature.
+      - Fixed a bug with tuncated special feature.
+      - Fixed skipping files whose content does not match with their extension.
     
 
   - #### 🐛 Bug fixes:
