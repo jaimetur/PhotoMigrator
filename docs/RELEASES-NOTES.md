@@ -23,8 +23,7 @@
     - [x] Enhanced `Truncated Extension Fixing` during Google Takeout Processing to avoid fixing truncated `supplemental-metadata` and `other-special-suffixes` because this is already done in above step. 
     - [x] Updated GPTH to version `4.0.8` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
       - Fixed a bug in the `--fix-extension` feature.
-      - Fixed a bug with tuncated special feature.
-      - Fixed skipping files whose content does not match with their extension.
+      - Fixed a bug with tuncated special suffixes or truncated extensions.
     
 
   - #### 🐛 Bug fixes:
