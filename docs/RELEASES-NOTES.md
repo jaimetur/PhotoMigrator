@@ -11,8 +11,7 @@
 
   - #### 🚀 Enhancements:
     - [x] Updated GPTH to version `4.0.9` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
-      - Fixed a bug in the `--fix-extension` feature.
-      - Fixed a bug with tuncated special suffixes or truncated extensions.
+      - Code totally refactored and optimized
 
 ---
 
