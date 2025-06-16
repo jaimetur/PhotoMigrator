@@ -11,6 +11,27 @@ body:
       value: |
         Thanks for taking the time to fill out this feature request!
 
+  - type: dropdown
+    id: feature-affected
+    attributes:
+      label: Feature Affected
+      description: What Feature of the tool is affected by this Feature Request?
+      options:
+        - Global (all features will be affected)
+        - Logging / Text Messages
+        - Documentation
+        - Automatic Migration
+        - Google Takeout Processing
+        - Synology Photos
+        - Immich Photos
+        - Album Auto-Renaming
+        - Find Duplicates
+        - Fix Symbolic Links
+        - Docker Running
+      default: 0
+    validations:
+      required: true
+
   - type: textarea
     id: feature-description
     attributes:
