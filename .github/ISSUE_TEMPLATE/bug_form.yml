@@ -1,6 +1,6 @@
 name: Bug Report
-description: Create a bug report.
-title: "[Bug]: "
+description: Create a Bug report to help us improve
+title: "[BUG]: "
 labels: ["bug", "public"]
 projects: ["jaimetur/PhotoMigrator"]
 assignees:
@@ -10,24 +10,8 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report!
-  - type: input
-    id: contact
-    attributes:
-      label: Contact Details
-      description: How can we get in touch with you if we need more info?
-      placeholder: ex. email@example.com
-    validations:
-      required: false
-  - type: textarea
-    id: what-happened
-    attributes:
-      label: What happened?
-      description: Also tell us, what did you expect to happen?
-      placeholder: Tell us what you see!
-      value: "A bug happened!"
-    validations:
-      required: true
-  - type: dropdown
+        
+    - type: dropdown
     id: version
     attributes:
       label: Version
@@ -43,12 +27,50 @@ body:
       default: 0
     validations:
       required: true
+
+    - type: dropdown
+    id: os-arch
+    attributes:
+      label: Operating System & Archiecture
+      description: What Operating System and Architecture are you running?
+      options:
+        - docker-version
+        - linux-x86
+        - linux-arm64
+        - macos-x86
+        - macos-arm64
+        - windows-x86
+        - windows-arm64
+      default: 0
+    validations:
+      required: true
+      
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Details
+      description: How can we get in touch with you if we need more info?
+      placeholder: ex. email@example.com
+    validations:
+      required: false
+      
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Also tell us, what did you expect to happen?
+      placeholder: Tell us what you see!
+      value: "A bug happened!"
+    validations:
+      required: true
+
   - type: textarea
     id: logs
     attributes:
       label: Relevant log output
       description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
       render: shell
+      
   - type: checkboxes
     id: terms
     attributes:
