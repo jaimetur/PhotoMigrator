@@ -1,0 +1,40 @@
+name: Feature Request
+description: Create a Feature Request to help us improve
+title: "[NEW FEATURE]: "
+labels: ["feature-request", "public"]
+projects: ["jaimetur/PhotoMigrator"]
+assignees:
+  - jaimetur
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feature request!
+             
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Details
+      description: How can we get in touch with you if we need more info?
+      placeholder: ex. email@example.com
+    validations:
+      required: false
+      
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature Description
+      description: Tell us, with the maximum level of detail, this feature request
+      placeholder: Feature description
+      value: "Feature description"
+    validations:
+      required: true
+      
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://example.com). 
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
