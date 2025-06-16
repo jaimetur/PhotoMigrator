@@ -12,6 +12,7 @@
   - #### 🚀 Enhancements:
     - [x] Updated GPTH to version `4.0.9` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
       - Code totally refactored and optimized
+    - [x] Created GitHub Forms on New Issues. 
 
 ---
 
