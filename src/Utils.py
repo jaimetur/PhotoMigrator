@@ -250,7 +250,7 @@ def check_OS_and_Terminal(log_level=logging.INFO):
         LOGGER.info("")
 
 
-def count_files_per_type_and_date(input_folder, log_level=logging.INFO):
+def count_files_per_type_and_date(input_folder, within_json_sidecar=True, log_level=logging.INFO):
     """
     Analyze all files in `input_folder`, counting:
       - total files
@@ -262,6 +262,72 @@ def count_files_per_type_and_date(input_folder, log_level=logging.INFO):
       - percentage of photos/videos with and without date
     Uses global PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, and TIMESTAMP.
     """
+    ###############
+    # AUX FUNCTIONS
+    ###############
+    def get_oldest_date(file_path, media_type, within_json_sidecar=True):
+        """
+        Devuelve la fecha más antigua válida encontrada en el archivo.
+        Considera EXIF (solo fotos), JSON sidecar, fecha de creación y mtime.
+        """
+        dates = []
+
+        try:
+            if media_type == 'photos':
+                try:
+                    img = Image.open(file_path)
+                    exif = img._getexif() or {}
+                    tag_map = {ExifTags.TAGS.get(k, k): v for k, v in exif.items()}
+                    for tag in ('DateTimeOriginal', 'DateTimeDigitized', 'DateTime'):
+                        if tag in tag_map:
+                            try:
+                                dt = datetime.strptime(tag_map[tag], "%Y:%m:%d %H:%M:%S")
+                                dates.append(dt)
+                            except ValueError:
+                                continue
+                except Exception:
+                    pass
+
+            if within_json_sidecar:
+                # Buscar JSON sidecar
+                json_path = Path(file_path).with_suffix(file_path.suffix + ".json")
+                if json_path.exists():
+                    try:
+                        with open(json_path, 'r', encoding='utf-8') as f:
+                            data = json.load(f)
+                            for key in ['photoTakenTime', 'creationTime', 'creationTimestamp']:
+                                ts = data.get(key, {}).get('timestamp') or data.get(key)
+                                if ts:
+                                    dt = datetime.fromtimestamp(int(ts))
+                                    dates.append(dt)
+                    except Exception:
+                        pass
+
+            # Fecha de creación (si está disponible en el sistema)
+            try:
+                stat = os.stat(file_path)
+                if hasattr(stat, 'st_birthtime'):
+                    dates.append(datetime.fromtimestamp(stat.st_birthtime))
+            except Exception:
+                pass
+
+            # Fecha de modificación
+            try:
+                mtime = os.path.getmtime(file_path)
+                dates.append(datetime.fromtimestamp(mtime))
+            except Exception:
+                pass
+
+        except Exception:
+            pass
+
+        if dates:
+            return min(dates)
+        return None
+    ######################
+    # END OF AUX FUNCTIONS
+    ######################
+
     with set_log_level(LOGGER, log_level):
         timestamp_dt = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S")
 
@@ -323,35 +389,10 @@ def count_files_per_type_and_date(input_folder, log_level=logging.INFO):
                     continue
 
                 counters[media_type]['total'] += 1
-                has_date = False
 
-                # EXIF date for photos
-                if media_type == 'photos':
-                    try:
-                        img = Image.open(os.path.join(root, filename))
-                        exif = img._getexif() or {}
-                        tag_map = {ExifTags.TAGS.get(k, k): v for k, v in exif.items()}
-                        for tag in ('DateTimeOriginal', 'DateTimeDigitized', 'DateTime'):
-                            if tag in tag_map:
-                                dt = tag_map[tag]
-                                try:
-                                    file_date = datetime.strptime(dt, "%Y:%m:%d %H:%M:%S")
-                                    has_date = True
-                                    break
-                                except ValueError:
-                                    pass
-                    except Exception:
-                        pass
-
-                # Fallback to file mtime
-                if not has_date:
-                    try:
-                        mtime = os.path.getmtime(os.path.join(root, filename))
-                        file_date = datetime.fromtimestamp(mtime)
-                        if file_date <= timestamp_dt:
-                            has_date = True
-                    except Exception:
-                        has_date = False
+                file_path = os.path.join(root, filename)
+                file_date = get_oldest_date(file_path, media_type, within_json_sidecar=within_json_sidecar)
+                has_date = file_date is not None and file_date <= timestamp_dt
 
                 if has_date:
                     counters[media_type]['with_date'] += 1
@@ -371,11 +412,6 @@ def count_files_per_type_and_date(input_folder, log_level=logging.INFO):
             counters['videos']['pct_without_date'] = (counters['videos']['without_date'] / total_videos) * 100
 
         return counters
-
-
-
-
-
 
 
 def count_files_in_folder(folder_path, log_level=logging.INFO):
