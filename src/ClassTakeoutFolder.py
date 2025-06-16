@@ -22,7 +22,6 @@ from Utils import rename_album_folders
 import MetadataFixers
 from Duplicates import find_duplicates
 from CustomLogger import set_log_level
-from DataModels import ProcessingResult
 
 # Import the global LOGGER from GlobalVariables
 from GlobalVariables import LOGGER
@@ -152,7 +151,20 @@ class ClassTakeoutFolder(ClassLocalFolder):
         """
         from GlobalVariables import LOGGER
         # Initialize Dataclass to return
-        result = ProcessingResult()
+        # result = ProcessingResult()
+        result = {
+            'input_counters': {},
+            'output_counters': {},
+            'valid_albums_found': 0,
+            'symlink_fixed': 0,
+            'symlink_not_fixed': 0,
+            'duplicates_found': 0,
+            'removed_empty_folders': 0,
+            'renamed_album_folders': 0,
+            'duplicates_album_folders': 0,
+            'duplicates_albums_fully_merged': 0,
+            'duplicates_albums_not_fully_merged': 0,
+        }
 
         # Determine where the Albums will be located
         if not self.ARGS['google-skip-move-albums']:
@@ -200,51 +212,58 @@ class ClassTakeoutFolder(ClassLocalFolder):
             step_name = '[PRE-PROCESS]-[MP4 Fixer        ] : '
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Looking for .MP4 files from live pictures and asociate date and time with live picture file...")
-            counter_mp4_files_fixed = Utils.fix_mp4_files(input_folder=input_folder, step_name=step_name, log_level=logging.INFO)
+            result_mp4_files_fixed = Utils.fix_mp4_files(input_folder=input_folder, step_name=step_name, log_level=logging.INFO)
             LOGGER.info(f"INFO    : {step_name}Fixing MP4 from live pictures metadata finished!")
-            LOGGER.info(f"INFO    : {step_name}Total MP4 from live pictures Files fixed         : {counter_mp4_files_fixed}")
+            LOGGER.info(f"INFO    : {step_name}Total MP4 from live pictures Files fixed         : {result_mp4_files_fixed}")
 
             # Fix truncated suffixes (such as '-ha edit.jpg' or '-ha e.jpg', or '-effec', or '-supplemen',...)
             step_name = '[PRE-PROCESS]-[Truncations Fixer] : '
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Fixing Truncated Special Suffixes from Google Photos and rename files to include complete special suffix...")
             result_fix_truncations = Utils.fix_truncations(input_folder=input_folder, step_name=step_name, log_level=logging.INFO)
+            LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Fixing Truncated Files finished!")
+            LOGGER.info(f"INFO    : {step_name}-----------------------------------------------------------------------------------")
             LOGGER.info(f"INFO    : {step_name}Total Files files in Takeout folder              : {result_fix_truncations['total_files']}")
-            LOGGER.info(f"INFO    : {step_name}Total Truncated files fixed                      : {result_fix_truncations['total_files_fixed']}")
+            LOGGER.info(f"INFO    : {step_name}  - Total Fixed Files files in Takeout folder    : {result_mp4_files_fixed + result_fix_truncations['total_files_fixed']:<7}")
+            LOGGER.info(f"INFO    : {step_name}    - Total MP4 from live pictures Files fixed   : {result_mp4_files_fixed:<7}")
+            LOGGER.info(f"INFO    : {step_name}    - Total Truncated files fixed                : {result_fix_truncations['total_files_fixed']:<7}")
+            LOGGER.info(f"INFO    : {step_name}      - Total JSON files fixed                   : {result_fix_truncations['json_files_fixed']:<7}")
+            LOGGER.info(f"INFO    : {step_name}        - Supplemental-metadata changes          : {result_fix_truncations['supplemental_metadata_fixed']:<7}")
+            LOGGER.info(f"INFO    : {step_name}        - Extensions changes                     : {result_fix_truncations['extensions_fixed']:<7}")
+            LOGGER.info(f"INFO    : {step_name}      - Total Images/Videos files fixed          : {result_fix_truncations['non_json_files_fixed']:<7}")
+            LOGGER.info(f"INFO    : {step_name}        - Special Suffixes changes               : {result_fix_truncations['special_suffixes_fixed']:<7}")
+            LOGGER.info(f"INFO    : {step_name}        - Edited Suffixes changes                : {result_fix_truncations['edited_suffixes_fixed']:<7}")
+            LOGGER.info(f"INFO    : {step_name}-----------------------------------------------------------------------------------")
 
             # Count initial files in Takeout Folder before to process with GPTH, since once process input_folder may be deleted if --google-move-takeout-folder has been given
             step_name = '[PRE-PROCESS]-[Statistics       ] : '
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Counting files in Takeout Folder: {input_folder}...")
-            initial_takeout_numfiles = Utils.count_files_in_folder(folder_path=input_folder)
-            initial_takeout_total_images = Utils.count_images_in_folder(folder_path=input_folder)
-            initial_takeout_total_videos = Utils.count_videos_in_folder(folder_path=input_folder)
-            initial_takeout_total_sidecars = Utils.count_sidecars_in_folder(folder_path=input_folder)
-            initial_takeout_total_metadatas = Utils.count_metadatas_in_folder(folder_path=input_folder)
+            # New function to count all file types and extract also date info
+            initial_takeout_counters = Utils.count_files_per_type_and_date(input_folder=input_folder, log_level=log_level)
+            # Clean input dict
+            result['input_counters'].clear()
+            # Assign all pairs key-value from initial_takeout_counters to counter['input_counters'] dict
+            result['input_counters'].update(initial_takeout_counters)
 
-            # Calculate initial_takeout_total_supported_files and initial_takeout_total_not_supported_files
-            initial_takeout_total_supported_files = initial_takeout_total_images + initial_takeout_total_videos + initial_takeout_total_sidecars + initial_takeout_total_metadatas
-            initial_takeout_total_not_supported_files = initial_takeout_numfiles - initial_takeout_total_supported_files
+            LOGGER.info(f"INFO    : {step_name}Counting Files finished!")
+            LOGGER.info(f"INFO    : {step_name}-----------------------------------------------------------------------------------")
+            LOGGER.info(f"INFO    : {step_name}Total Files in Takeout folder                    : {result['input_counters']['total_files']:<7}")
+            LOGGER.info(f"INFO    : {step_name}Total Non-Supported files in Takeout folder      : {result['input_counters']['unsupported_files']:<7}")
+            LOGGER.info(f"INFO    : {step_name}Total Supported files in Takeout folder          : {result['input_counters']['supported_files']:<7}")
+            LOGGER.info(f"INFO    : {step_name}  - Total Media files in Takeout folder          : {result['input_counters']['media_files']:<7}")
+            LOGGER.info(f"INFO    : {step_name}    - Total Images in Takeout folder             : {result['input_counters']['photo_files']:<7}")
+            LOGGER.info(f"INFO    : {step_name}      - With Date                                : {result['input_counters']['photos']['with_date']:<7} ({result['input_counters']['photos']['pct_with_date']:>5.1f}% of total photos) ")
+            LOGGER.info(f"INFO    : {step_name}      - Without Date                             : {result['input_counters']['photos']['without_date']:<7} ({result['input_counters']['photos']['pct_without_date']:>5.1f}% of total photos) ")
+            LOGGER.info(f"INFO    : {step_name}    - Total Videos in Takeout folder             : {result['input_counters']['video_files']:<7}")
+            LOGGER.info(f"INFO    : {step_name}      - With Date                                : {result['input_counters']['videos']['with_date']:<7} ({result['input_counters']['videos']['pct_with_date']:>5.1f}% of total videos) ")
+            LOGGER.info(f"INFO    : {step_name}      - Without Date                             : {result['input_counters']['videos']['without_date']:<7} ({result['input_counters']['videos']['pct_without_date']:>5.1f}% of total videos) ")
+            LOGGER.info(f"INFO    : {step_name}  - Total Non-Media files in Takeout folder      : {result['input_counters']['non_media_files']:<7}")
+            LOGGER.info(f"INFO    : {step_name}    - Total Metadata in Takeout folder           : {result['input_counters']['metadata_files']:<7}")
+            LOGGER.info(f"INFO    : {step_name}    - Total Sidecars in Takeout folder           : {result['input_counters']['sidecar_files']:<7}")
+            LOGGER.info(f"INFO    : {step_name}-----------------------------------------------------------------------------------")
 
-            LOGGER.info(f"INFO    : {step_name}Total Files files in Takeout folder              : {initial_takeout_numfiles}")
-            LOGGER.info(f"INFO    : {step_name}Total Supported files in Takeout folder          : {initial_takeout_total_supported_files}")
-            LOGGER.info(f"INFO    : {step_name} - Total Images in Takeout folder                : {initial_takeout_total_images}")
-            LOGGER.info(f"INFO    : {step_name} - Total Videos in Takeout folder                : {initial_takeout_total_videos}")
-            LOGGER.info(f"INFO    : {step_name} - Total Sidecars in Takeout folder              : {initial_takeout_total_sidecars}")
-            LOGGER.info(f"INFO    : {step_name} - Total Metadata in Takeout folder              : {initial_takeout_total_metadatas}")
-            LOGGER.info(f"INFO    : {step_name}Total Non-Supported files in Takeout folder      : {initial_takeout_total_not_supported_files}")
-            LOGGER.info("")
-            LOGGER.info(f"INFO    : {step_name}Total Files files in Takeout folder              : {result_fix_truncations['total_files']}")
-            LOGGER.info(f"INFO    : {step_name}  - Total Fixed Files files in Takeout folder    : {counter_mp4_files_fixed + result_fix_truncations['total_files_fixed']}")
-            LOGGER.info(f"INFO    : {step_name}    - Total MP4 from live pictures Files fixed   : {counter_mp4_files_fixed}")
-            LOGGER.info(f"INFO    : {step_name}    - Total Truncated files fixed                : {result_fix_truncations['total_files_fixed']}")
-            LOGGER.info(f"INFO    : {step_name}      - Total JSON files fixed                   : {result_fix_truncations['json_files_fixed']}")
-            LOGGER.info(f"INFO    : {step_name}        - Supplemental-metadata fixed            : {result_fix_truncations['supplemental_metadata_fixed']}")
-            LOGGER.info(f"INFO    : {step_name}        - Extensions fixed                       : {result_fix_truncations['extensions_fixed']}")
-            LOGGER.info(f"INFO    : {step_name}      - Total Images/Videos files fixed          : {result_fix_truncations['non_json_files_fixed']}")
-            LOGGER.info(f"INFO    : {step_name}        - Special Suffixes fixed                 : {result_fix_truncations['special_suffixes_fixed']}")
-            LOGGER.info(f"INFO    : {step_name}        - Edited Suffixes fixed                  : {result_fix_truncations['edited_suffixes_fixed']}")
 
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
@@ -292,7 +311,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     LOGGER.warning(f"WARNING : {step_name}Metadata fixing didn't finish properly due to GPTH error.")
                     LOGGER.warning(f"WARNING : {step_name}If your Takeout does not contains Year/Month folder structure, you can use '-gics, --google-ignore-check-structure' flag.")
                     # return (0, 0, 0, 0, initial_takeout_numfiles, 0, 0, 0, 0, 0)
-                    return ProcessingResult()
+                    return result
 
                 # Determine if manual copy/move is needed (for step 4)
                 manual_copy_move_needed = self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']
@@ -435,8 +454,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     step_name=step_name,
                     log_level=logging.INFO
                 )
-                result.duplicates_found += duplicates_found
-                result.removed_empty_folders += removed_empty_folders
+                result['duplicates_found'] += duplicates_found
+                result['removed_empty_folders'] += removed_empty_folders
+
                 # Second Remove Duplicates from OUTPUT_TAKEOUT_FOLDER/No-Albums (excluding any other folder outside it).
                 LOGGER.info(f"INFO    : {step_name}2. Removing duplicates from '<OUTPUT_TAKEOUT_FOLDER>/No-Albums', excluding any other folders outside it...")
                 duplicates_found, removed_empty_folders = find_duplicates(
@@ -447,8 +467,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     step_name=step_name,
                     log_level=logging.INFO
                 )
-                result.duplicates_found += duplicates_found
-                result.removed_empty_folders += removed_empty_folders
+                result['duplicates_found'] += duplicates_found
+                result['removed_empty_folders'] += removed_empty_folders
+
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info("")
@@ -467,7 +488,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Fixing broken symbolic links. This step is needed after moving any Folder structure...")
                 step_start_time = datetime.now()
-                result.symlink_fixed, result.symlink_not_fixed = Utils.fix_symlinks_broken(input_folder=output_takeout_folder, step_name=step_name)
+                result['symlink_fixed'], result['symlink_not_fixed'] = Utils.fix_symlinks_broken(input_folder=output_takeout_folder, step_name=step_name)
+
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info("")
@@ -487,10 +509,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"INFO    : {step_name}Renaming albums folders in <OUTPUT_TAKEOUT_FOLDER> based on their dates...")
                 step_start_time = datetime.now()
                 result_rename = rename_album_folders(input_folder=album_folder, exclude_subfolder=['No-Albums', '@eaDir'], step_name=step_name, log_level=logging.INFO)
-                result.renamed_album_folders = result_rename.renamed_album_folders
-                result.duplicates_album_folders = result_rename.duplicates_album_folders
-                result.duplicates_albums_fully_merged = result_rename.duplicates_albums_fully_merged
-                result.duplicates_albums_not_fully_merged = result_rename.duplicates_albums_not_fully_merged
+                # Merge all counts from result_rename into result in one go
+                result.update(result_rename)
 
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
@@ -521,14 +541,23 @@ class ClassTakeoutFolder(ClassLocalFolder):
             step_name = '[POST]-[Counting Albums] : '
             self.step += 1
             LOGGER.info("")
-            LOGGER.info("================================")
-            LOGGER.info(f"INFO    : {self.step}. COUNTING ALBUMS...")
-            LOGGER.info("================================")
+            LOGGER.info("==========================================")
+            LOGGER.info(f"INFO    : {self.step}. COUNTING ALBUMS AND FILES...")
+            LOGGER.info("==========================================")
             LOGGER.info("")
+            # 1. First count all Files in output Folder
+            # New function to count all file types and extract also date info
+            output_counters = Utils.count_files_per_type_and_date(input_folder=input_folder, log_level=log_level)
+            # Clean input dict
+            result['output_counters'].clear()
+            # Assign all pairs key-value from output_counters to counter['output_counters'] dict
+            result['output_counters'].update(output_counters)
+
+            # 2. Now count the Albums in output Folder
             if os.path.isdir(output_takeout_folder):
                 excluded_folders = ["No-Albums", "ALL_PHOTOS"]
-                result.valid_albums_found = Utils.count_valid_albums(album_folder, excluded_folders=excluded_folders, step_name=step_name)
-            LOGGER.info(f"INFO    : {step_name}Valid Albums Found {result.valid_albums_found}.")
+                result['valid_albums_found'] = Utils.count_valid_albums(album_folder, excluded_folders=excluded_folders, step_name=step_name)
+            LOGGER.info(f"INFO    : {step_name}Valid Albums Found {result['valid_albums_found']}.")
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             LOGGER.info("")
@@ -540,36 +569,18 @@ class ClassTakeoutFolder(ClassLocalFolder):
             processing_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(processing_end_time - processing_start_time).seconds))
             LOGGER.info("")
-            LOGGER.info("=========================================================================================================")
+            LOGGER.info("============================================================================================================================")
             LOGGER.info(f"INFO    : ✅ TAKEOUT PROCESSING FINISHED!!!")
             LOGGER.info(f"INFO    : Takeout Precessed Folder: '{output_takeout_folder}'.")
             LOGGER.info("")
             LOGGER.info(f"INFO    : Total Processing Time   :  {formatted_duration}.")
-            LOGGER.info("=========================================================================================================")
+            LOGGER.info("============================================================================================================================")
 
-            # At the end of the process, we call the super() to make this objet an sub-instance of the class ClassLocalFolder to create the same folder structure
+            # At the end of the process, we call the super() to make this objet a sub-instance of the class ClassLocalFolder to create the same folder structure
             if create_localfolder_object:
                 super().__init__(output_takeout_folder)
 
-            # return (valid_albums_found, symlink_fixed, symlink_not_fixed, duplicates_found, initial_takeout_numfiles, removed_empty_folders, renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged)
-            return ProcessingResult(
-                initial_takeout_numfiles=initial_takeout_numfiles,
-                initial_takeout_total_images=initial_takeout_total_images,
-                initial_takeout_total_videos=initial_takeout_total_videos,
-                initial_takeout_total_sidecars=initial_takeout_total_sidecars,
-                initial_takeout_total_metadatas=initial_takeout_total_metadatas,
-                initial_takeout_total_supported_files=initial_takeout_total_supported_files,
-                initial_takeout_total_not_supported_files=initial_takeout_total_not_supported_files,
-                valid_albums_found=result.valid_albums_found,
-                symlink_fixed=result.symlink_fixed,
-                symlink_not_fixed=result.symlink_not_fixed,
-                duplicates_found=result.duplicates_found,
-                removed_empty_folders=result.removed_empty_folders,
-                renamed_album_folders=result.renamed_album_folders,
-                duplicates_album_folders=result.duplicates_album_folders,
-                duplicates_albums_fully_merged=result.duplicates_albums_fully_merged,
-                duplicates_albums_not_fully_merged=result.duplicates_albums_not_fully_merged,
-            )
+            return result
 
 
 

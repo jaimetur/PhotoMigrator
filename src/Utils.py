@@ -12,7 +12,7 @@ import piexif
 import subprocess
 import logging
 from CustomLogger import set_log_level
-from PIL import Image
+from PIL import Image, ExifTags
 import hashlib
 import base64
 import inspect
@@ -25,8 +25,7 @@ from datetime import datetime, timezone
 from dateutil import parser as date_parser
 from tqdm import tqdm as original_tqdm
 from CustomLogger import LoggerConsoleTqdm
-from GlobalVariables import LOGGER, ARGS, PHOTO_EXT, VIDEO_EXT, SIDECAR_EXT, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, EDITTED_SUFFIXES
-from DataModels import RenameAlbumResult, FixSpecialSuffixes
+from GlobalVariables import LOGGER, ARGS, TIMESTAMP, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, EDITTED_SUFFIXES
 
 # Crear instancia global del wrapper
 TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
@@ -249,6 +248,134 @@ def check_OS_and_Terminal(log_level=logging.INFO):
         else:
             LOGGER.info("INFO    : Non-Interactive (Non-TTY) terminal detected for stdin")
         LOGGER.info("")
+
+
+def count_files_per_type_and_date(input_folder, log_level=logging.INFO):
+    """
+    Analyze all files in `input_folder`, counting:
+      - total files
+      - supported vs unsupported files based on global extension lists
+      - image files vs video files vs metadata files vs sidecar files
+      - media files (images + videos)
+      - non-media files (metadata + sidecar)
+      - for photos and videos, how many have an assigned date vs. not
+      - percentage of photos/videos with and without date
+    Uses global PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, and TIMESTAMP.
+    """
+    with set_log_level(LOGGER, log_level):
+        timestamp_dt = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S")
+
+        # Initialize overall counters with pct keys for media
+        counters = {
+            'total_files': 0,
+            'unsupported_files': 0,
+            'supported_files': 0,
+            'media_files': 0,
+            'photo_files': 0,
+            'video_files': 0,
+            'non_media_files': 0,
+            'metadata_files': 0,
+            'sidecar_files': 0,
+            # Nested counters for date assignment and percentages
+            'photos':    {'total': 0, 'with_date': 0, 'without_date': 0, 'pct_with_date': 100, 'pct_without_date': 100},
+            'videos':    {'total': 0, 'with_date': 0, 'without_date': 0, 'pct_with_date': 100, 'pct_without_date': 100},
+        }
+
+        supported_exts = set(PHOTO_EXT + VIDEO_EXT + METADATA_EXT + SIDECAR_EXT)
+
+        # Walk through all subdirectories and files
+        for root, dirs, files in os.walk(input_folder):
+            for filename in files:
+                _, ext = os.path.splitext(filename)
+                ext = ext.lower()
+
+                # Count every file
+                counters['total_files'] += 1
+
+                # Determine support status
+                if ext in supported_exts:
+                    counters['supported_files'] += 1
+                else:
+                    counters['unsupported_files'] += 1
+
+                # Categorize by extension
+                if ext in PHOTO_EXT:
+                    counters['photo_files'] += 1
+                    counters['media_files'] += 1
+                    media_type = 'photos'
+                elif ext in VIDEO_EXT:
+                    counters['video_files'] += 1
+                    counters['media_files'] += 1
+                    media_type = 'videos'
+                else:
+                    media_type = None
+
+                # Count metadata and sidecar
+                if ext in METADATA_EXT:
+                    counters['metadata_files'] += 1
+                if ext in SIDECAR_EXT:
+                    counters['sidecar_files'] += 1
+                if ext in METADATA_EXT or ext in SIDECAR_EXT:
+                    counters['non_media_files'] += 1
+
+                # Skip date logic for non-media
+                if not media_type:
+                    continue
+
+                counters[media_type]['total'] += 1
+                has_date = False
+
+                # EXIF date for photos
+                if media_type == 'photos':
+                    try:
+                        img = Image.open(os.path.join(root, filename))
+                        exif = img._getexif() or {}
+                        tag_map = {ExifTags.TAGS.get(k, k): v for k, v in exif.items()}
+                        for tag in ('DateTimeOriginal', 'DateTimeDigitized', 'DateTime'):
+                            if tag in tag_map:
+                                dt = tag_map[tag]
+                                try:
+                                    file_date = datetime.strptime(dt, "%Y:%m:%d %H:%M:%S")
+                                    has_date = True
+                                    break
+                                except ValueError:
+                                    pass
+                    except Exception:
+                        pass
+
+                # Fallback to file mtime
+                if not has_date:
+                    try:
+                        mtime = os.path.getmtime(os.path.join(root, filename))
+                        file_date = datetime.fromtimestamp(mtime)
+                        if file_date <= timestamp_dt:
+                            has_date = True
+                    except Exception:
+                        has_date = False
+
+                if has_date:
+                    counters[media_type]['with_date'] += 1
+                else:
+                    counters[media_type]['without_date'] += 1
+
+        # Calculate percentages for photos based on totals
+        total_photos = counters['photos']['total']
+        if total_photos > 0:
+            counters['photos']['pct_with_date'] = (counters['photos']['with_date'] / total_photos) * 100
+            counters['photos']['pct_without_date'] = (counters['photos']['without_date'] / total_photos) * 100
+
+        # Calculate percentages for videos based on totals
+        total_videos = counters['videos']['total']
+        if total_videos > 0:
+            counters['videos']['pct_with_date'] = (counters['videos']['with_date'] / total_videos) * 100
+            counters['videos']['pct_without_date'] = (counters['videos']['without_date'] / total_videos) * 100
+
+        return counters
+
+
+
+
+
 
 
 def count_files_in_folder(folder_path, log_level=logging.INFO):
@@ -1319,108 +1446,115 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
     optional_counter = r'(?:\(\d+\))?'  # allow "(n)" counters
 
     with set_log_level(LOGGER, log_level):
-        # Walk through all subdirectories
+        # --------------------------
+        # --- Case A: JSON files ---
+        # --------------------------
+        # Precompute suffix and regex to fix any truncated '.supplemental-metadata' (preserves '(n)' counters)
+        SUPPLEMENTAL_METADATA_WITH_DOT = '.' + SUPPLEMENTAL_METADATA
+        # Calculate max allowed truncation length (excluding the initial '.su')
+        MAX_TRUNC = len(SUPPLEMENTAL_METADATA_WITH_DOT) - len('.su')
+        # Compile pattern to capture truncated stub and optional counter like '(1)'
+        pattern = re.compile(
+            rf'(?P<base>.*?)(?P<stub>\.su[\w-]{{0,{MAX_TRUNC}}})(?P<counter>\(\d+\))?$',
+            re.IGNORECASE
+        )
+
+        # Walk through all subdirectories to process only JSON files
         for root, _, files in os.walk(input_folder):
             files_set = set(files)  # for matching JSON sidecars
             for file in files:
-                # Save original_file and original_path for final message
-                original_file = file
-
                 name, ext = os.path.splitext(file)
-                # Skip short names
-                if len(name) <= name_length_threshold:
-                    continue
+                if ext.lower() == '.json' and len(name) >= name_length_threshold:
+                    # Set file_modified = False in each file
+                    file_modified = False
+                    # Save original_file and original_path for final message
+                    original_file = file
+                    old_path = Path(root) / file
 
-                old_path = Path(root) / file
-                file_modified = False
+                    # A.1) Fix truncated '.supplemental-metadata' suffix
+                    match = pattern.match(name)
+                    if match:
+                        base = match.group('base')
+                        counter = match.group('counter') or ''  # preserve any '(n)' counter
+                        new_name = f"{base}{SUPPLEMENTAL_METADATA_WITH_DOT}{counter}{ext}"
+                        new_path = Path(root) / new_name
+                        if str(old_path).lower() != str(new_path).lower():
+                            os.rename(old_path, new_path)
+                            # LOGGER.info(f"INFO    : {step_name}Fixed JSON Supplemental Ext: {file} → {new_name}")
+                            counters["supplemental_metadata_fixed"] += 1
+                            # We need to medify file and old_path for next steps
+                            file = new_name
+                            old_path = new_path
+                            name, ext = os.path.splitext(file)  # Refresh name and ext
+                            files_set = set(os.listdir(root))   # Refresh to include any renamed files
+                            if not file_modified:
+                                counters["json_files_fixed"] += 1
+                                counters["total_files_fixed"] += 1
+                                file_modified = True
+                    # end A.1
 
-                # --- Case A: JSON files ---
-                if ext.lower() == '.json':
-                    low_name = name.lower()
-
-                    # 1) Fix truncated '.supplemental-metadata' suffix
-                    for i in range(len(SUPPLEMENTAL_METADATA), 1, -1):
-                        trunc = SUPPLEMENTAL_METADATA[:i]
-                        if low_name.endswith(trunc) and trunc != SUPPLEMENTAL_METADATA:
-                            corrected = name[:-len(trunc)] + SUPPLEMENTAL_METADATA
-                            new_name = corrected + ext
-                            new_path = Path(root) / new_name
-                            if str(old_path).lower() != str(new_path).lower():
-                                os.rename(old_path, new_path)
-                                # LOGGER.info(f"INFO    : {step_name}Fixed JSON Supplemental Ext: {file} → {new_name}")
-                                counters["supplemental_metadata_fixed"] += 1
-                                # We need to medify file and old_path for next steps
-                                file = new_name
-                                old_path = new_path
-                                if not file_modified:
-                                    counters["json_files_fixed"] += 1
-                                    counters["total_files_fixed"] += 1
-                                    file_modified = True
-                            break
-
-                    # 2) Fix truncated original extension by locating the real asset file
+                    # A.2) Fix truncated original extension by locating the real asset file
                     parts = name.split('.')
-
                     if len(parts) >= 2:
-                        # base, trunc_ext = parts[0], parts[1]
-                        # CAMBIO 3: OK
-                        base = '.'.join(parts[:-2]) if len(parts) > 2 else parts[0]
-                        trunc_ext = parts[-2]
-                        # END CAMBIO 3:
+                        # determine base_name and raw truncated ext (with possible "(n)")
+                        if len(parts) == 2:
+                            base_name, raw_trunc = parts
+                        else:
+                            base_name = '.'.join(parts[:-2])
+                            raw_trunc = parts[-2]
 
-                        # find candidate files like "base.trunc_ext*"
-                        candidates = [
-                            f for f in files_set
-                            if f.lower().startswith(f"{base}.{trunc_ext}".lower())
-                            and not f.lower().endswith('.json')
-                        ]
-                        match = None
-                        for cand in candidates:
-                            real_ext = Path(cand).suffix.lstrip('.')
-                            if real_ext.lower().startswith(trunc_ext.lower()) and real_ext.lower() != trunc_ext.lower():
-                                match = cand
-                                break
-                        if match:
-                            correct_ext = Path(match).suffix  # e.g. '.jpg'
-                            # handle a possible third segment as truncated suffix
+                        # strip counter from raw_trunc, but save it
+                        m_cnt = re.match(r'^(?P<ext>.*?)(\((?P<num>\d+)\))?$', raw_trunc)
+                        trunc_ext = m_cnt.group('ext')
+                        counter = f"({m_cnt.group('num')})" if m_cnt.group('num') else ''
 
-                            # suffix_trunc = parts[2] if len(parts) > 2 else ''
-                            # CAMBIO 2: OK
-                            suffix_trunc_raw = parts[2] if len(parts) > 2 else ''
-                            # Remove optional counter (e.g., (1)) at the end
-                            match_counter = re.search(r'(.*?)\(\d+\)$', suffix_trunc_raw)
-                            suffix_trunc = match_counter.group(1) if match_counter else suffix_trunc_raw
-                            # END CAMBIO 2
+                        # look for a matching asset: stem starts with base_name, ext starts with trunc_ext
+                        full_ext = None
+                        for cand in files_set:
+                            if cand.lower().endswith('.json'):
+                                continue
+                            cand_stem = Path(cand).stem
+                            if not cand_stem.lower().startswith(base_name.lower()):
+                                continue
+                            ext_cand = Path(cand).suffix.lstrip('.')
+                            if ext_cand.lower().startswith(trunc_ext.lower()):
+                                full_ext = Path(cand).suffix  # e.g. ".JPG"
+                                break # Once a candidate has matched, skipp looping other candidates
 
-                            suffix_full = ''
-                            # Restore the counter if it was present (e.g., (1))
-                            counter_match = re.search(r'\(\d+\)$', suffix_trunc_raw)
-                            counter = counter_match.group(0) if counter_match else ''
-                            if suffix_trunc:
-                                if SUPPLEMENTAL_METADATA.lower().startswith(suffix_trunc.lower()):
-                                    suffix_full = '.' + SUPPLEMENTAL_METADATA
-                                else:
-                                    for suf in SPECIAL_SUFFIXES:
-                                        if suf.lower().startswith(suffix_trunc.lower()):
-                                            suffix_full = '.' + suf
-                                            break
-                            new_name = f"{base}{correct_ext}{suffix_full}{counter}.json"
+                        if full_ext:
+                            # replace the first ".trunc_ext" in the JSON name with the full_ext, leaving any "(n)" counter at the end untouched, then append ".json"
+                            new_core = name.replace(f'.{trunc_ext}', full_ext, 1)
+                            # re-attach the counter just before the ".json"
+                            new_name = f"{new_core}{counter}{ext}"  # ext is ".json"
                             new_path = Path(root) / new_name
                             if not new_path.exists() and str(old_path).lower() != str(new_path).lower():
                                 os.rename(old_path, new_path)
                                 # LOGGER.info(f"INFO    : {step_name}Fixed JSON Origin File Ext : {file} → {new_name}")
                                 counters["extensions_fixed"] += 1
-                                # We need to medify file and old_path for next steps
-                                file = new_name
-                                old_path = new_path
                                 if not file_modified:
                                     counters["json_files_fixed"] += 1
                                     counters["total_files_fixed"] += 1
                                     file_modified = True
+                    # end A.2
 
-                # --- Case B: Non-JSON files (special suffixes or editted) ---
-                else:
-                    # 1) Fix Special Suffixes: '-effects', '-smile', '-mix', 'collage'
+                    if file_modified:
+                        LOGGER.info(f"INFO    : {step_name}Fixed JSON File  : {original_file} → {new_name}")
+
+        # ------------------------------------------------------------
+        # --- Case B: Non-JSON files (special suffixes or editted) ---
+        # ------------------------------------------------------------
+        # Walk through all subdirectories to process only Non-JSON files
+        for root, _, files in os.walk(input_folder):
+            for file in files:
+                name, ext = os.path.splitext(file)
+                if ext.lower() != '.json' and len(name) >= name_length_threshold:
+                    # Set file_modified = False in each file
+                    file_modified = False
+                    # Save original_file and original_path for final message
+                    original_file = file
+                    old_path = Path(root) / file
+
+                    # B.1) Fix Special Suffixes: '-effects', '-smile', '-mix', 'collage'
                     for suf in SPECIAL_SUFFIXES:
                         # try all truncations from longest to shortest
                         for i in range(len(suf), 1, -1):
@@ -1429,17 +1563,13 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                                 rf"{re.escape(sub)}(?=(-|_|\.|{variants_editted_pattern}|{SUPPLEMENTAL_METADATA})?(?:\(\d+\))?{re.escape(ext)}$)",
                                 flags=re.IGNORECASE
                             )
-
                             if pattern.search(file):
-                                # new_name = pattern.sub(repl, file)
-                                # CAMBIO 1:
                                 match = pattern.search(file)
                                 if match:
                                     start = match.start()
                                     end = match.end()
                                     tail = file[end:]  # everything after the matched truncation
                                     new_name = file[:start] + suf + tail
-                                    # END CAMBIO 1
                                     new_path = Path(root) / new_name
                                     if str(old_path).lower() != str(new_path).lower():
                                         os.rename(old_path, new_path)
@@ -1452,9 +1582,9 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                                             counters["non_json_files_fixed"] += 1
                                             counters["total_files_fixed"] += 1
                                             file_modified = True
-                                    break # ✅ once one truncation of the current suf is applied, stop trying shorter ones
+                                    break # Once one truncation of the current suf is applied, stop trying shorter ones
 
-                    # 2) Fix Editted Suffixes (multi-language): '-editted', '-edytowane', '-bearbeitet', '-bewerkt', '-編集済み', '-modificato', '-modifié', '-ha editado', '-editat'
+                    # B.2) Fix Editted Suffixes (multi-language): '-editted', '-edytowane', '-bearbeitet', '-bewerkt', '-編集済み', '-modificato', '-modifié', '-ha editado', '-editat'
                     for suf in EDITTED_SUFFIXES:
                         # try all truncations from longest to shortest
                         for i in range(len(suf), 1, -1):
@@ -1480,11 +1610,10 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                                         counters["non_json_files_fixed"] += 1
                                         counters["total_files_fixed"] += 1
                                         file_modified = True
-                                break # ✅ once one truncation of the current suf is applied, stop trying shorter ones
+                                break # Once one truncation of the current suf is applied, stop trying shorter ones
 
-                if file_modified:
-                    pass
-                    LOGGER.info(f"INFO    : {step_name}Fixed Truncations : {original_file} → {new_name}")
+                    if file_modified:
+                        LOGGER.info(f"INFO    : {step_name}Fixed MEDIA File : {original_file} → {new_name}")
     return counters
 
 
@@ -2479,7 +2608,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
     # END AUX FUNCTIONS
     # ===========================
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Iterate over folders in albums_folder (only first level)
+        # Initial template for rename results
         renamed_album_folders = 0
         duplicates_album_folders = 0
         duplicates_albums_fully_merged = 0
@@ -2491,7 +2620,6 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
         if isinstance(exclude_subfolder, str):
             exclude_subfolder = [exclude_subfolder]
 
-        # total_folders = os.listdir(input_folder)
         total_folders = get_subfolders_with_exclusions(input_folder, exclude_subfolder)
 
         for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"INFO    : {step_name}Renaming Albums folders in '<OUTPUT_TAKEOUT_FOLDER>'", unit=" folders"):
@@ -2557,9 +2685,9 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
             LOGGER.warning(warning_message)
 
         # return renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged
-        return RenameAlbumResult(
-            renamed_album_folders=renamed_album_folders,
-            duplicates_album_folders=duplicates_album_folders,
-            duplicates_albums_fully_merged=duplicates_albums_fully_merged,
-            duplicates_albums_not_fully_merged=duplicates_albums_not_fully_merged
-        )
+        return {
+            'renamed_album_folders': renamed_album_folders,
+            'duplicates_album_folders': duplicates_album_folders,
+            'duplicates_albums_fully_merged': duplicates_albums_fully_merged,
+            'duplicates_albums_not_fully_merged': duplicates_albums_not_fully_merged,
+        }
