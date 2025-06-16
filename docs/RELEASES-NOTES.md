@@ -2,6 +2,20 @@
 
 ---
 
+## **Release**: v3.3.3  
+
+- ### **Release Date**: 2025-06-17
+
+- ### Main Changes:
+  - #### 🌟 New Features:
+
+  - #### 🚀 Enhancements:
+    - [x] Updated GPTH to version `4.0.9` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
+      - Fixed a bug in the `--fix-extension` feature.
+      - Fixed a bug with tuncated special suffixes or truncated extensions.
+
+---
+
 ## **Release**: v3.3.2  
 
 - ### **Release Date**: 2025-06-16
