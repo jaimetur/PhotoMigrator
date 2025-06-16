@@ -547,7 +547,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info("")
             # 1. First count all Files in output Folder
             # New function to count all file types and extract also date info
-            output_counters = Utils.count_files_per_type_and_date(input_folder=input_folder, log_level=log_level)
+            output_counters = Utils.count_files_per_type_and_date(input_folder=output_takeout_folder, log_level=log_level)
             # Clean input dict
             result['output_counters'].clear()
             # Assign all pairs key-value from output_counters to counter['output_counters'] dict
