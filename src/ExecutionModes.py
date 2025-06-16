@@ -14,7 +14,7 @@ from Duplicates import find_duplicates, process_duplicates_actions
 from ClassTakeoutFolder import ClassTakeoutFolder
 from ClassSynologyPhotos import ClassSynologyPhotos
 from ClassImmichPhotos import ClassImmichPhotos
-from AutomaticMode import mode_AUTOMATIC_MIGRATION
+from AutomaticMigration import mode_AUTOMATIC_MIGRATION
 
 DEFAULT_DUPLICATES_ACTION = False
 EXECUTION_MODE = "default"
