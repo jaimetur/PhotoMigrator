@@ -2417,13 +2417,17 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                         content_based_date_range = get_content_based_year_range(item_path)
                     else:
                         warning_messages.append(f"WARNING : {step_name}No valid type_date_range: '{type_date_range}'")
-                    # if not possible to find a date_raange, keep the original_dates as prefix of the cleaned_folder_name
+                    # if not possible to find a date_raange, keep the original_dates (if exits) as prefix of the cleaned_folder_name
                     if content_based_date_range:
                         cleaned_folder_name = f"{content_based_date_range} - {cleaned_folder_name}"
                         debug_messages.append(f"DEBUG   : Added date prefix '{content_based_date_range}' to folder: '{os.path.basename(cleaned_folder_name)}'")
                     else:
-                        cleaned_folder_name = f"{original_dates} - {cleaned_folder_name}"
-                        debug_messages.append(f"DEBUG   : Keep date prefix '{original_dates}' in folder: '{os.path.basename(cleaned_folder_name)}'")
+                        if original_dates:
+                            cleaned_folder_name = f"{original_dates} - {cleaned_folder_name}"
+                            debug_messages.append(f"DEBUG   : Keep date prefix '{original_dates}' in folder: '{os.path.basename(cleaned_folder_name)}'")
+                        else:
+                            cleaned_folder_name = f"{cleaned_folder_name}"
+                            debug_messages.append(f"DEBUG   : No date prefix found in folder: '{os.path.basename(cleaned_folder_name)}'")
 
                 # Skip renaming if the clean name is the same as the original
                 if cleaned_folder_name != original_folder_name:
