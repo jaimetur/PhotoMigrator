@@ -1,0 +1,68 @@
+name: Imrpovement Request
+description: Create an Improvement Request to help us improve
+title: "[IMPROVEMENT]: "
+labels: ["IMPROVEMENT-request", "public"]
+projects: ["jaimetur/PhotoMigrator"]
+assignees:
+  - jaimetur
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feature request!
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: Version
+      description: What version of our software are you running?
+      options:
+        - 3.3.3 (latest)
+        - 3.3.2 (latest-stable)
+        - 3.3.1
+        - 3.3.0
+        - 3.2.x
+        - 3.1.x
+        - 3.0.x
+      default: 0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature-affected
+    attributes:
+      label: Feature Affected
+      description: What Feature of the tool will be affected by this Improvement Request?
+      options:
+        - Global (all features will be affected)
+        - Logging / Text Messages
+        - Documentation
+        - Google Takeout Processing
+        - Synology Photos
+        - Immich Photos
+        - Album Auto-Renaming
+        - Find Duplicates
+        - Fix Symbolic Links
+        - Docker Running
+      default: 0
+    validations:
+      required: true
+  
+  - type: textarea
+    id: improvement-description
+    attributes:
+      label: Improvement Description
+      description: Tell us, with the maximum level of detail, this improvement request
+      placeholder: Feature description
+      value: "Improvement description"
+    validations:
+      required: true
+      
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://example.com). 
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
