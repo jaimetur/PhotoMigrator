@@ -54,6 +54,7 @@ body:
         - Global (all features will be affected)
         - Logging / Text Messages
         - Documentation
+        - Automatic Migration
         - Google Takeout Processing
         - Synology Photos
         - Immich Photos
