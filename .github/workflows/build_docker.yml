@@ -25,7 +25,7 @@ on:
         required: true
       DOCKERHUB_PASSWORD:
         required: true
-    inptus:
+    inputs:
       prerelease:
         description: "Is this a Pre-release ?"
         required: true
