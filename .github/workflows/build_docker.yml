@@ -1,4 +1,4 @@
-name: Build Docker Image Only
+name: Build and Push Docker Image (optionally
 
 on:
   workflow_dispatch:      # Allows manual execution of the workflow
@@ -8,6 +8,33 @@ on:
         type: boolean
         required: true
         default: false
+      prerelease:
+        description: "Is this a Pre-release ?"
+        required: true
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+  workflow_call:          # Allow to call this workflow from another workflow
+    secrets:
+      TOKEN_GITHUB:
+        required: true
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_PASSWORD:
+        required: true
+    inptus:
+      prerelease:
+        description: "Is this a Pre-release ?"
+        required: true
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
   push:                   # Ejecución tras push en cualquier rama, excepto en los path-ignore
     branches:
       - main             # Ejecución tras push en main, excepto en los path-ignore
@@ -20,14 +47,7 @@ on:
 #  schedule:
 # Ejecución diaria a las 2 AM UTC
 #    - cron: '0 2 * * *'
-  workflow_call:          # Allow to call this workflow from another workflow
-    secrets:
-      TOKEN_GITHUB:
-        required: true
-      DOCKERHUB_USERNAME:
-        required: true
-      DOCKERHUB_PASSWORD:
-        required: true
+
 
 jobs:
   build:
@@ -107,19 +127,24 @@ jobs:
           #  1) descargar la base actualizada ( --pull )
           #  2) ignorar todas las capas cacheadas ( --no-cache )
           docker build --pull --no-cache \
-            -t jaimetur/photomigrator:${SCRIPT_VERSION} \
-            -t jaimetur/photomigrator:latest \
-            -f docker/dockerfile-linux .
-
-          # Subir etiquetas latest y con versión específica
+                -t jaimetur/photomigrator:${SCRIPT_VERSION} \
+                -f docker/dockerfile-linux .
+          
+          # Push siempre etiqueta obligatoria con la versión
           docker push jaimetur/photomigrator:${SCRIPT_VERSION}
-          docker push jaimetur/photomigrator:latest
-
-          # Si es versión estable (no alpha, beta ni RC), etiquetar también como latest-stable
-          if [[ "${SCRIPT_VERSION}" != *alpha* && "${SCRIPT_VERSION}" != *beta* && "${SCRIPT_VERSION}" != *RC* ]]; then
+          
+          # Push 'latest' if prerelease is true OR it's alpha/beta/RC
+          if [[ "${PRERELEASE}" == "true" || "${SCRIPT_VERSION}" == *alpha* || "${SCRIPT_VERSION}" == *beta* || "${SCRIPT_VERSION}" == *RC* ]]; then
+            docker tag jaimetur/photomigrator:${SCRIPT_VERSION} jaimetur/photomigrator:latest
+            docker push jaimetur/photomigrator:latest
+          fi
+      
+          # Push 'latest-stable' only if prerelease is false AND not alpha/beta/RC
+          if [[ "${PRERELEASE}" == "false" && "${SCRIPT_VERSION}" != *alpha* && "${SCRIPT_VERSION}" != *beta* && "${SCRIPT_VERSION}" != *RC* ]]; then
             docker tag jaimetur/photomigrator:${SCRIPT_VERSION} jaimetur/photomigrator:latest-stable
             docker push jaimetur/photomigrator:latest-stable
           fi
+          
 
       # 🐳 Build & Push Windows Docker image (disabled since this doesn't work as expected)
       - name: 🐳 Build & Push Windows Docker image (disabled since this doesn't work as expected)
@@ -128,16 +153,20 @@ jobs:
         run: |
           # Construir imagen Windows
           docker build --pull --no-cache \
-            -t jaimetur/photomigrator:${SCRIPT_VERSION}-windows \
-            -t jaimetur/photomigrator:latest-windows \
-            -f docker/dockerfile-windows .
-
-          # Subir etiquetas latest y con versión específica
+                -t jaimetur/photomigrator:${SCRIPT_VERSION}-windows \
+                -f docker/dockerfile-windows .
+          
+          # Push siempre etiqueta obligatoria con la versión
           docker push jaimetur/photomigrator:${SCRIPT_VERSION}-windows
-          docker push jaimetur/photomigrator:latest-windows
-
-          # Si es versión estable (no alpha, beta ni RC), subir también como latest-stable-windows
-          if [[ "${SCRIPT_VERSION}" != *alpha* && "${SCRIPT_VERSION}" != *beta* && "${SCRIPT_VERSION}" != *RC* ]]; then
+          
+          # Push 'latest' if prerelease is true OR it's alpha/beta/RC
+          if [[ "${PRERELEASE}" == "true" || "${SCRIPT_VERSION}" == *alpha* || "${SCRIPT_VERSION}" == *beta* || "${SCRIPT_VERSION}" == *RC* ]]; then
+            docker tag jaimetur/photomigrator:${SCRIPT_VERSION}-windows jaimetur/photomigrator:latest-windows
+            docker push jaimetur/photomigrator:latest-windows
+          fi
+      
+          # Push 'latest-stable' only if prerelease is false AND not alpha/beta/RC
+          if [[ "${PRERELEASE}" == "false" && "${SCRIPT_VERSION}" != *alpha* && "${SCRIPT_VERSION}" != *beta* && "${SCRIPT_VERSION}" != *RC* ]]; then
             docker tag jaimetur/photomigrator:${SCRIPT_VERSION}-windows jaimetur/photomigrator:latest-stable-windows
             docker push jaimetur/photomigrator:latest-stable-windows
           fi
