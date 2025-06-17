@@ -1,4 +1,4 @@
-name: 🐳 Build and Push Docker Image (optionally)
+name: 🐳 Build and Push Docker Image
 
 on:
   # ──────────────── 1) Disparador manual desde GitHub Actions ────────────────
