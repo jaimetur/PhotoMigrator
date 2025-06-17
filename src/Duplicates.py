@@ -16,7 +16,7 @@ from Utils import delete_subfolders, remove_empty_dirs, tqdm
 # ========================
 # Find Duolicates Function
 # ========================
-def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion_folders=None, deprioritize_folders_patterns=None, timestamp=None, step_name="", log_level=logging.INFO):
+def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion_folders=None, deprioritize_folders_patterns=None, timestamp=None, step_name="", log_level=None):
     """
     This function searches for duplicate files based on their size and content (hash),
     ignoring file names or modification dates.
@@ -51,7 +51,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
     # AUX FUNCTIONS
     # ===========================
 
-    def calculate_file_hash_optimized(path, full_hash=False, chunk_size=1024 * 1024, log_level=logging.INFO):
+    def calculate_file_hash_optimized(path, full_hash=False, chunk_size=1024 * 1024, log_level=None):
         """
         Calculate the hash of a file. Optionally calculates a partial hash for speed.
         Args:
@@ -76,7 +76,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
                         hasher.update(chunk)
             return hasher.hexdigest()
 
-    def folder_pattern_priority_regex_support(folder, log_level=logging.INFO):
+    def folder_pattern_priority_regex_support(folder, log_level=None):
         """
         Evalúa la prioridad de un folder basándose en patrones fnmatch.
         Retorna (is_deprioritized, priority).
@@ -105,7 +105,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
             cache_folders_priority[folder] = result
             return result
 
-    def remove_empty_dirs(root_dir, log_level=logging.INFO):
+    def remove_empty_dirs(root_dir, log_level=None):
         """
         Remove empty directories recursively.
         """
@@ -514,10 +514,10 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
         return duplicates_counter, removed_empty_folders
 
 
-def process_duplicates_actions(csv_revised: str, log_level=logging.INFO):
+def process_duplicates_actions(csv_revised: str, log_level=None):
     import unicodedata
 
-    def normalize_path(path: str, log_level=logging.INFO) -> str:
+    def normalize_path(path: str, log_level=None) -> str:
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             return unicodedata.normalize('NFC', path)
 
@@ -552,7 +552,7 @@ def process_duplicates_actions(csv_revised: str, log_level=logging.INFO):
 
             normalized_header = [col.strip().lower() for col in header]
 
-            def get_index(col_name, log_level=logging.INFO):
+            def get_index(col_name, log_level=None):
                 
                 with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
                     try:

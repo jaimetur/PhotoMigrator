@@ -103,14 +103,14 @@ class ClassImmichPhotos:
     ###########################################################################
     #                           CLASS PROPERTIES GETS                         #
     ###########################################################################
-    def get_client_name(self, log_level=logging.INFO):
+    def get_client_name(self, log_level=None):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             return self.CLIENT_NAME
 
     ###########################################################################
     #                           CONFIGURATION READING                         #
     ###########################################################################
-    def read_config_file(self, config_file='Config.ini', log_level=logging.INFO):
+    def read_config_file(self, config_file='Config.ini', log_level=None):
         """
         Reads the Configuration file and updates the instance attributes.
         If the config file is not found, prompts the user to manually input required data.
@@ -177,7 +177,7 @@ class ClassImmichPhotos:
     ###########################################################################
     #                         AUTHENTICATION / LOGOUT                         #
     ###########################################################################
-    def login(self, log_level=logging.INFO):
+    def login(self, log_level=None):
         """
         Logs into Immich and obtains a JWT token in self.SESSION_TOKEN,
         or sets x-api-key headers if self.API_KEY_LOGIN is True.
@@ -259,7 +259,7 @@ class ClassImmichPhotos:
             return True
 
 
-    def logout(self, log_level=logging.INFO):
+    def logout(self, log_level=None):
         """
         Logout locally by discarding the token. (Immich does not provide an official /logout endpoint).
 
@@ -275,7 +275,7 @@ class ClassImmichPhotos:
     ###########################################################################
     #                           GENERAL UTILITY                               #
     ###########################################################################
-    def get_supported_media_types(self, type='media', log_level=logging.INFO):
+    def get_supported_media_types(self, type='media', log_level=None):
         """
         Returns the supported media/sidecar extensions as reported by Immich (via /api/server/media-types).
         """
@@ -311,7 +311,7 @@ class ClassImmichPhotos:
                 return None
 
 
-    def get_user_id(self, log_level=logging.INFO):
+    def get_user_id(self, log_level=None):
         """
         Returns the user_id of the currently logged-in user.
         """
@@ -333,7 +333,7 @@ class ClassImmichPhotos:
                 return None
 
 
-    def get_user_mail(self, log_level=logging.INFO):
+    def get_user_mail(self, log_level=None):
         """
         Returns the user_mail of the currently logged-in user.
         """
@@ -354,7 +354,7 @@ class ClassImmichPhotos:
                 LOGGER.error(f"ERROR   : Cannot find User ID for user '{self.IMMICH_USERNAME}': {e}")
                 return None
 
-    def get_person_id(self, name, log_level=logging.INFO):
+    def get_person_id(self, name, log_level=None):
         """
         Returns the ID of the first person matching the given name.
         """
@@ -380,7 +380,7 @@ class ClassImmichPhotos:
     ###########################################################################
     #                           ALBUMS FUNCTIONS                              #
     ###########################################################################
-    def create_album(self, album_name, log_level=logging.INFO):
+    def create_album(self, album_name, log_level=None):
         """
         Creates a new album in Immich Photos with the specified name.
 
@@ -409,7 +409,7 @@ class ClassImmichPhotos:
 
 
 
-    def remove_album(self, album_id, album_name, log_level=logging.INFO):
+    def remove_album(self, album_id, album_name, log_level=None):
         """
         Removes an album in Immich Photos by its album ID.
 
@@ -436,7 +436,7 @@ class ClassImmichPhotos:
                 return False
 
 
-    def get_albums_owned_by_user(self, filter_assets=True, log_level=logging.INFO):
+    def get_albums_owned_by_user(self, filter_assets=True, log_level=None):
         """
         Get all albums in Immich Photos for the current user.
 
@@ -478,7 +478,7 @@ class ClassImmichPhotos:
                 return None
 
 
-    def get_albums_including_shared_with_user(self, filter_assets=True, log_level=logging.INFO):
+    def get_albums_including_shared_with_user(self, filter_assets=True, log_level=None):
         """
         Get both own and shared albums in Immich Photos.
 
@@ -518,7 +518,7 @@ class ClassImmichPhotos:
                 return None
 
 
-    def get_album_assets_size(self, album_id, log_level=logging.INFO):
+    def get_album_assets_size(self, album_id, log_level=None):
         """
         Gets the total size (bytes) of all assets in an album.
 
@@ -544,7 +544,7 @@ class ClassImmichPhotos:
 
 
 
-    def get_album_assets_count(self, album_id, log_level=logging.INFO):
+    def get_album_assets_count(self, album_id, log_level=None):
         """
         Gets the number of assets in an album.
 
@@ -564,7 +564,7 @@ class ClassImmichPhotos:
 
 
 
-    def album_exists(self, album_name, log_level=logging.INFO):
+    def album_exists(self, album_name, log_level=None):
         """
         Gets the number of items in an album.
 
@@ -600,7 +600,7 @@ class ClassImmichPhotos:
     ###########################################################################
     #                            ASSETS FILTERING                             #
     ###########################################################################
-    def filter_assets(self, assets, log_level=logging.INFO):
+    def filter_assets(self, assets, log_level=None):
         """
         Filters a list of assets by person name.
 
@@ -624,7 +624,7 @@ class ClassImmichPhotos:
                     filtered.append(asset)
             return filtered
 
-    def filter_assets_old(self, assets, log_level=logging.INFO):
+    def filter_assets_old(self, assets, log_level=None):
         """
         Filters a list of assets based on user-defined criteria such as date range,
         country, city, and asset type. Filter parameters are retrieved from the global ARGS dictionary.
@@ -782,7 +782,7 @@ class ClassImmichPhotos:
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
-    def get_asset_people(self, asset_id, log_level=logging.INFO):
+    def get_asset_people(self, asset_id, log_level=None):
         """
         Get assets iinfo.
 
@@ -806,7 +806,7 @@ class ClassImmichPhotos:
                 LOGGER.error(f"ERROR   : Failed to retrieve assets info for '{asset_id}': {str(e)}")
                 return []
 
-    def get_assets_by_filters(self, isNotInAlbum=None, isArchived=None, withDeleted=None, log_level=logging.INFO):
+    def get_assets_by_filters(self, isNotInAlbum=None, isArchived=None, withDeleted=None, log_level=None):
         """
         Lists all assets in Immich Photos that match with the specified filters.
 
@@ -915,7 +915,7 @@ class ClassImmichPhotos:
             return all_filtered_assets
 
 
-    def get_all_assets_from_album(self, album_id, album_name=None, log_level=logging.INFO):
+    def get_all_assets_from_album(self, album_id, album_name=None, log_level=None):
         """
         Get assets in a specific album.
 
@@ -949,7 +949,7 @@ class ClassImmichPhotos:
                     LOGGER.error(f"ERROR   : Failed to retrieve assets from album ID={album_id}: {str(e)}")
                 return []
 
-    def get_all_assets_from_album_shared(self, album_id, album_name=None, album_passphrase=None, log_level=logging.INFO):
+    def get_all_assets_from_album_shared(self, album_id, album_name=None, album_passphrase=None, log_level=None):
         """
         Get assets in a specific album.
 
@@ -1036,7 +1036,7 @@ class ClassImmichPhotos:
             return combined_assets
 
 
-    def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=logging.INFO):
+    def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=None):
         """
         Adds photos (asset_ids) to an album.
 
@@ -1070,7 +1070,7 @@ class ClassImmichPhotos:
                 return 0
 
 
-    def get_duplicates_assets(self, log_level=logging.INFO):
+    def get_duplicates_assets(self, log_level=None):
         """
         Returns the list of duplicate assets from Immich (via /api/duplicates).
         """
@@ -1082,7 +1082,7 @@ class ClassImmichPhotos:
             return resp.json()
 
 
-    def remove_assets(self, asset_ids, log_level=logging.INFO):
+    def remove_assets(self, asset_ids, log_level=None):
         """
         Removes the given asset(s) from Synology Photos.
 
@@ -1111,7 +1111,7 @@ class ClassImmichPhotos:
 
 
 
-    def remove_duplicates_assets(self, log_level=logging.INFO):
+    def remove_duplicates_assets(self, log_level=None):
         """
         Removes duplicate assets in the Immich database. Returns how many duplicates got removed.
         """
@@ -1131,7 +1131,7 @@ class ClassImmichPhotos:
             return 0
 
 
-    def push_asset(self, file_path, log_level=logging.INFO):
+    def push_asset(self, file_path, log_level=None):
         """
         Uploads a local file (photo/video) to Immich Photos via /api/assets.
 
@@ -1221,7 +1221,7 @@ class ClassImmichPhotos:
                 return None, None
 
 
-    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Immich", album_passphrase=None, log_level=logging.INFO):
+    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Immich", album_passphrase=None, log_level=None):
         """
         Downloads an asset (photo/video) from Immich Photos to a local folder,
         preserving the original timestamp if available.
@@ -1720,7 +1720,7 @@ class ClassImmichPhotos:
     #                   REMOVE EMPTY / DUPLICATES ALBUMS                      #
     ###########################################################################
     # TODO: Complete this method
-    def remove_empty_folders(self, log_level=logging.INFO):
+    def remove_empty_folders(self, log_level=None):
         """
         Recursively removes all empty folders and subfolders in Immich Photos,
         considering folders empty if they only contain '@eaDir'.

@@ -9,7 +9,7 @@ import os
 import re
 from datetime import datetime
 
-choices_for_message_levels          = ['debug', 'info', 'warning', 'error']
+choices_for_message_levels          = ['verbose', 'debug', 'info', 'warning', 'error']
 choices_for_folder_structure        = ['flatten', 'year', 'year/month', 'year-month']
 choices_for_remove_duplicates       = ['list', 'move', 'remove']
 choices_for_AUTOMATIC_MIGRATION_SRC = ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1', 'synology-photos-2', 'synology-photos2', 'synology-2', 'synology2', 'synology-photos-3', 'synology-photos3', 'synology-3', 'synology3',
@@ -351,22 +351,22 @@ def checkArgs(ARGS, PARSER):
         exit(1)
 
 
-    # Parse log-levels
-    if ARGS['log-level'].lower() == 'debug':
-        GV.LOG_LEVEL = logging.DEBUG
-        GV.LOGGER.setLevel(GV.LOG_LEVEL)
-    elif ARGS['log-level'].lower() == 'info':
-        GV.LOG_LEVEL = logging.INFO
-        GV.LOGGER.setLevel(GV.LOG_LEVEL)
-    elif ARGS['log-level'].lower() == 'warning':
-        GV.LOG_LEVEL = logging.WARNING
-        GV.LOGGER.setLevel(GV.LOG_LEVEL)
-    elif ARGS['log-level'].lower() == 'error':
-        GV.LOG_LEVEL = logging.ERROR
-        GV.LOGGER.setLevel(GV.LOG_LEVEL)
-    elif ARGS['log-level'].lower() == 'critical':
-        GV.LOG_LEVEL = logging.CRITICAL
-        GV.LOGGER.setLevel(GV.LOG_LEVEL)
+    # # Parse log-levels
+    # if ARGS['log-level'].lower() == 'debug':
+    #     GV.LOG_LEVEL = logging.DEBUG
+    #     GV.LOGGER.setLevel(GV.LOG_LEVEL)
+    # elif ARGS['log-level'].lower() == 'info':
+    #     GV.LOG_LEVEL = logging.INFO
+    #     GV.LOGGER.setLevel(GV.LOG_LEVEL)
+    # elif ARGS['log-level'].lower() == 'warning':
+    #     GV.LOG_LEVEL = logging.WARNING
+    #     GV.LOGGER.setLevel(GV.LOG_LEVEL)
+    # elif ARGS['log-level'].lower() == 'error':
+    #     GV.LOG_LEVEL = logging.ERROR
+    #     GV.LOGGER.setLevel(GV.LOG_LEVEL)
+    # elif ARGS['log-level'].lower() == 'critical':
+    #     GV.LOG_LEVEL = logging.CRITICAL
+    #     GV.LOGGER.setLevel(GV.LOG_LEVEL)
 
 
     # Parse download-albums to ensure than ARGS['output-folder'] is used to specify <OUTPUT_FOLDER>

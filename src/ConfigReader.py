@@ -136,7 +136,7 @@ if __name__ == "__main__":
     log_filename = f"{sys.argv[0]}_{TIMESTAMP}"
     log_folder = "Logs"
     LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
-    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=LOG_LEVEL)
+    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=LOG_LEVEL, skip_logfile=False, skip_console=False, detail_log=True, plain_log=False)
 
     if len(sys.argv[1:]) == 0:
         CONFIG = load_config(config_file='../Config.ini', section_to_load='Synology Photos')

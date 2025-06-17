@@ -23,7 +23,7 @@ HELP_TEXTS                      = None
 ARGS                            = None
 PARSER                          = None
 LOGGER                          = None
-LOG_LEVEL_MIN                   = logging.DEBUG
+LOG_LEVEL_MIN                   = 5
 LOG_LEVEL                       = logging.INFO
 
 # Supplemental Metadata Suffix

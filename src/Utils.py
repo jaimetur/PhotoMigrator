@@ -24,12 +24,13 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from dateutil import parser as date_parser
 from tqdm import tqdm as original_tqdm
+import GlobalVariables as GV
+from GlobalVariables import ARGS, TIMESTAMP, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, EDITTED_SUFFIXES
 from CustomLogger import LoggerConsoleTqdm
-from GlobalVariables import LOGGER, ARGS, TIMESTAMP, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, EDITTED_SUFFIXES
 from DataModels import init_count_files_counters
 
 # Crear instancia global del wrapper
-TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
+TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(GV.LOGGER, logging.INFO)
 
 ######################
 # FUNCIONES AUXILIARES
@@ -46,9 +47,9 @@ def dir_exists(dir):
     return os.path.isdir(dir)
 
 
-def run_from_synology(log_level=logging.INFO):
+def run_from_synology(log_level=None):
     """ Check if the srcript is running from a Synology NAS """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         return os.path.exists('/etc.defaults/synoinfo.conf')
 
 
@@ -69,14 +70,14 @@ def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logge
     indent = "    "
     i = 0
     if use_logger:
-        LOGGER.info(f"INFO    : {step_name}{title}:")
+        GV.LOGGER.info(f"INFO    : {step_name}{title}:")
         while i < len(arguments):
             arg = arguments[i]
             if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                LOGGER.info(f"INFO    : {step_name}{indent}{arg}={arguments[i + 1]}")
+                GV.LOGGER.info(f"INFO    : {step_name}{indent}{arg}={arguments[i + 1]}")
                 i += 2
             else:
-                LOGGER.info(f"INFO    : {step_name}{indent}{arg}")
+                GV.LOGGER.info(f"INFO    : {step_name}{indent}{arg}")
                 i += 1
     else:
         print(f"INFO    : {title}:")
@@ -98,8 +99,8 @@ def ensure_executable(path):
         os.chmod(path, current_permissions | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
 
-def normalize_path(path, log_level=logging.INFO):
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+def normalize_path(path, log_level=None):
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         # return os.path.normpath(path).strip(os.sep)
         return os.path.normpath(path)
 
@@ -164,7 +165,7 @@ def resource_path(relative_path):
 def get_os(log_level=logging.INFO, step_name="", use_logger=True):
     """Return normalized operating system name (linux, macos, windows)"""
     if use_logger:
-        with set_log_level(LOGGER, log_level):
+        with set_log_level(GV.LOGGER, log_level):
             current_os = platform.system()
             if current_os in ["Linux", "linux"]:
                 os_label = "linux"
@@ -173,9 +174,9 @@ def get_os(log_level=logging.INFO, step_name="", use_logger=True):
             elif current_os in ["Windows", "windows", "Win"]:
                 os_label = "windows"
             else:
-                LOGGER.error(f"ERROR   : {step_name}Unsupported Operating System: {current_os}")
+                GV.LOGGER.error(f"ERROR   : {step_name}Unsupported Operating System: {current_os}")
                 os_label = "unknown"
-            LOGGER.info(f"INFO    : {step_name}Detected OS: {os_label}")
+            GV.LOGGER.info(f"INFO    : {step_name}Detected OS: {os_label}")
     else:
         current_os = platform.system()
         if current_os in ["Linux", "linux"]:
@@ -194,16 +195,16 @@ def get_os(log_level=logging.INFO, step_name="", use_logger=True):
 def get_arch(log_level=logging.INFO, step_name="", use_logger=True):
     """Return normalized system architecture (e.g., x64, arm64)"""
     if use_logger:
-        with set_log_level(LOGGER, log_level):
+        with set_log_level(GV.LOGGER, log_level):
             current_arch = platform.machine()
             if current_arch in ["x86_64", "amd64", "AMD64", "X64", "x64"]:
                 arch_label = "x64"
             elif current_arch in ["aarch64", "arm64", 'ARM64']:
                 arch_label = "arm64"
             else:
-                LOGGER.error(f"ERROR   : {step_name}Unsupported Architecture: {current_arch}")
+                GV.LOGGER.error(f"ERROR   : {step_name}Unsupported Architecture: {current_arch}")
                 arch_label = "unknown"
-            LOGGER.info(f"INFO    : {step_name}Detected architecture: {arch_label}")
+            GV.LOGGER.info(f"INFO    : {step_name}Detected architecture: {arch_label}")
     else:
         current_arch = platform.machine()
         if current_arch in ["x86_64", "amd64", "AMD64", "X64", "x64"]:
@@ -217,9 +218,9 @@ def get_arch(log_level=logging.INFO, step_name="", use_logger=True):
     return arch_label
 
 
-def check_OS_and_Terminal(log_level=logging.INFO):
+def check_OS_and_Terminal(log_level=None):
     """ Check OS, Terminal Type, and System Architecture """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         # Detect the operating system
         current_os = get_os(log_level=logging.WARNING)
         # Detect the machine architecture
@@ -227,30 +228,30 @@ def check_OS_and_Terminal(log_level=logging.INFO):
         # Logging OS
         if current_os == "linux":
             if run_from_synology():
-                LOGGER.info(f"INFO    : Script running on Linux System in a Synology NAS")
+                GV.LOGGER.info(f"INFO    : Script running on Linux System in a Synology NAS")
             else:
-                LOGGER.info(f"INFO    : Script running on Linux System")
+                GV.LOGGER.info(f"INFO    : Script running on Linux System")
         elif current_os == "macos":
-            LOGGER.info(f"INFO    : Script running on MacOS System")
+            GV.LOGGER.info(f"INFO    : Script running on MacOS System")
         elif current_os == "windows":
-            LOGGER.info(f"INFO    : Script running on Windows System")
+            GV.LOGGER.info(f"INFO    : Script running on Windows System")
         else:
-            LOGGER.error(f"ERROR   : Unsupported Operating System: {current_os}")
+            GV.LOGGER.error(f"ERROR   : Unsupported Operating System: {current_os}")
         # Logging Architecture
-        LOGGER.info(f"INFO    : Detected architecture: {arch_label}")
+        GV.LOGGER.info(f"INFO    : Detected architecture: {arch_label}")
         # Terminal type detection
         if sys.stdout.isatty():
-            LOGGER.info("INFO    : Interactive (TTY) terminal detected for stdout")
+            GV.LOGGER.info("INFO    : Interactive (TTY) terminal detected for stdout")
         else:
-            LOGGER.info("INFO    : Non-Interactive (Non-TTY) terminal detected for stdout")
+            GV.LOGGER.info("INFO    : Non-Interactive (Non-TTY) terminal detected for stdout")
         if sys.stdin.isatty():
-            LOGGER.info("INFO    : Interactive (TTY) terminal detected for stdin")
+            GV.LOGGER.info("INFO    : Interactive (TTY) terminal detected for stdin")
         else:
-            LOGGER.info("INFO    : Non-Interactive (Non-TTY) terminal detected for stdin")
-        LOGGER.info("")
+            GV.LOGGER.info("INFO    : Non-Interactive (Non-TTY) terminal detected for stdin")
+        GV.LOGGER.info("")
 
 
-def count_files_per_type_and_date(input_folder, within_json_sidecar=True, log_level=logging.INFO):
+def count_files_per_type_and_date(input_folder, within_json_sidecar=True, log_level=None):
     """
     Analyze all files in `input_folder`, counting:
       - total files
@@ -328,7 +329,7 @@ def count_files_per_type_and_date(input_folder, within_json_sidecar=True, log_le
     # END OF AUX FUNCTIONS
     ######################
 
-    with set_log_level(LOGGER, log_level):
+    with set_log_level(GV.LOGGER, log_level):
         timestamp_dt = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S")
 
         # Initialize overall counters with pct keys for media
@@ -401,23 +402,23 @@ def count_files_per_type_and_date(input_folder, within_json_sidecar=True, log_le
         return counters
 
 
-def count_files_in_folder(folder_path, log_level=logging.INFO):
+def count_files_in_folder(folder_path, log_level=None):
     """ Counts the number of files in a folder """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         total_files = 0
         for path, dirs, files in os.walk(folder_path):
             total_files += len(files)
         return total_files
 
 
-def count_images_in_folder(folder_path, log_level=logging.INFO):
+def count_images_in_folder(folder_path, log_level=None):
     """
     Counts the number of image files in a folder, considering
     as images only those files with extensions defined in
     the global variable IMAGE_EXT (in lowercase).
     """
     from GlobalVariables import PHOTO_EXT
-    with set_log_level(LOGGER, log_level):  # Change log level temporarily
+    with set_log_level(GV.LOGGER, log_level):  # Change log level temporarily
         total_images = 0
         for path, dirs, files in os.walk(folder_path):
             for file_name in files:
@@ -428,14 +429,14 @@ def count_images_in_folder(folder_path, log_level=logging.INFO):
         return total_images
 
 
-def count_videos_in_folder(folder_path, log_level=logging.INFO):
+def count_videos_in_folder(folder_path, log_level=None):
     """
     Counts the number of video files in a folder, considering
     as videos only those files with extensions defined in
     the global variable VIDEO_EXT (in lowercase).
     """
     from GlobalVariables import VIDEO_EXT
-    with set_log_level(LOGGER, log_level):  # Change log level temporarily
+    with set_log_level(GV.LOGGER, log_level):  # Change log level temporarily
         total_videos = 0
         for path, dirs, files in os.walk(folder_path):
             for file_name in files:
@@ -446,14 +447,14 @@ def count_videos_in_folder(folder_path, log_level=logging.INFO):
         return total_videos
 
 
-def count_videos_in_folder(folder_path, log_level=logging.INFO):
+def count_videos_in_folder(folder_path, log_level=None):
     """
     Counts the number of video files in a folder, considering
     as videos only those files with extensions defined in
     the global variable VIDEO_EXT (in lowercase).
     """
     from GlobalVariables import VIDEO_EXT
-    with set_log_level(LOGGER, log_level):  # Change log level temporarily
+    with set_log_level(GV.LOGGER, log_level):  # Change log level temporarily
         total_videos = 0
         for path, dirs, files in os.walk(folder_path):
             for file_name in files:
@@ -464,7 +465,7 @@ def count_videos_in_folder(folder_path, log_level=logging.INFO):
         return total_videos
 
 
-def count_sidecars_in_folder(folder_path, log_level=logging.INFO):
+def count_sidecars_in_folder(folder_path, log_level=None):
     """
     Counts the number of sidecar files in a folder. A file is considered a sidecar if:
     1. Its extension is listed in the global variable SIDECAR_EXT (in lowercase).
@@ -472,7 +473,7 @@ def count_sidecars_in_folder(folder_path, log_level=logging.INFO):
     3. The sidecar file name may include the image extension before the sidecar extension.
     """
     from GlobalVariables import PHOTO_EXT, SIDECAR_EXT
-    with set_log_level(LOGGER, log_level):  # Change log level temporarily
+    with set_log_level(GV.LOGGER, log_level):  # Change log level temporarily
         total_sidecars = 0
         for path, dirs, files in os.walk(folder_path):
             # Extract base names of image files without extensions
@@ -491,7 +492,7 @@ def count_sidecars_in_folder(folder_path, log_level=logging.INFO):
         return total_sidecars
 
 
-def count_metadatas_in_folder(folder_path, log_level=logging.INFO):
+def count_metadatas_in_folder(folder_path, log_level=None):
     """
     Counts the number of metadata files in a folder. A file is considered a metadata if:
     1. Its extension is listed in the global variable METADATA_EXT (in lowercase).
@@ -499,7 +500,7 @@ def count_metadatas_in_folder(folder_path, log_level=logging.INFO):
     3. The sidecar file name may include the image extension before the sidecar extension.
     """
     from GlobalVariables import METADATA_EXT
-    with set_log_level(LOGGER, log_level):  # Change log level temporarily
+    with set_log_level(GV.LOGGER, log_level):  # Change log level temporarily
         total_metadatas = 0
         for path, dirs, files in os.walk(folder_path):
             for file_name in files:
@@ -510,7 +511,7 @@ def count_metadatas_in_folder(folder_path, log_level=logging.INFO):
         return total_metadatas
 
 
-def change_file_extension(input_folder, current_extension, new_extension, log_level=logging.INFO):
+def change_file_extension(input_folder, current_extension, new_extension, log_level=None):
     """
     Changes the extension of all files with a specific extension
     within a folder and its subfolders.
@@ -523,7 +524,7 @@ def change_file_extension(input_folder, current_extension, new_extension, log_le
     Returns:
         None
     """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         # Contar el total de carpetas
         total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
         # Mostrar la barra de progreso basada en carpetas
@@ -538,7 +539,7 @@ def change_file_extension(input_folder, current_extension, new_extension, log_le
                         new_file = os.path.join(path, file.replace(current_extension, new_extension))
                         # Rename the file
                         os.rename(original_file, new_file)
-                        LOGGER.debug(f"DEBUG   : Renamed: {original_file} -> {new_file}")
+                        GV.LOGGER.debug(f"DEBUG   : Renamed: {original_file} -> {new_file}")
 
 
 def delete_folder(folder_path):
@@ -560,22 +561,22 @@ def delete_folder(folder_path):
     print(f"Deleted folder and contents: {folder_path}")
 
 
-def remove_empty_dirs(input_folder, log_level=logging.INFO):
+def remove_empty_dirs(input_folder, log_level=None):
     """
     Remove empty directories recursively.
     """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         for path, dirs, files in os.walk(input_folder, topdown=False):
             filtered_dirnames = [d for d in dirs if d != '@eaDir']
             if not filtered_dirnames and not files:
                 try:
                     os.rmdir(path)
-                    LOGGER.info(f"INFO    : Removed empty directory {path}")
+                    GV.LOGGER.info(f"INFO    : Removed empty directory {path}")
                 except OSError:
                     pass
                 
 
-def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten_root_folder=False, log_level=logging.INFO):
+def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten_root_folder=False, log_level=None):
     """
     Flatten subfolders inside the given folder, moving all files to the root of their respective subfolders.
 
@@ -583,7 +584,7 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
         input_folder (str): Path to the folder to process.
         exclude_subfolders (list or None): List of folder name patterns (using wildcards) to exclude from flattening.
     """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         # Count number of sep of input_folder
         sep_input = input_folder.count(os.sep)
         # Convert wildcard patterns to regex patterns for matching
@@ -610,10 +611,10 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
                     continue
                 # Skip processing if the current directory matches any exclude pattern
                 if any(pattern.match(os.path.basename(folder)) for pattern in exclude_patterns):
-                    # LOGGER.warning(f"WARNING : Folder: '{dir_name}' not flattened due to is one of the exclude subfolder given in '{exclude_subfolders}'")
+                    # GV.LOGGER.warning(f"WARNING : Folder: '{dir_name}' not flattened due to is one of the exclude subfolder given in '{exclude_subfolders}'")
                     continue
                 subfolder_path = os.path.join(path, folder)
-                # LOGGER.info(f"INFO    : Flattening folder: '{dir_name}'")
+                # GV.LOGGER.info(f"INFO    : Flattening folder: '{dir_name}'")
                 for sub_root, _, sub_files in os.walk(subfolder_path):
                     for file_name in sub_files:
                         file_path = os.path.join(sub_root, file_name)
@@ -736,44 +737,44 @@ def zip_folder(temp_dir, output_file):
     print(f"File successfully packed: {output_file}")
 
 
-def confirm_continue(log_level=logging.INFO):
+def confirm_continue(log_level=None):
     # If argument 'request-user-confirmarion' is false then don't ask and wait for user confirmation
     if not ARGS['request-user-confirmarion']:
         return True
 
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         while True:
             response = input("Do you want to continue? (yes/no): ").strip().lower()
             if response in ['yes', 'y']:
-                LOGGER.info(f"INFO    : Continuing...")
+                GV.LOGGER.info(f"INFO    : Continuing...")
                 return True
             elif response in ['no', 'n']:
-                LOGGER.info(f"INFO    : Operation canceled.")
+                GV.LOGGER.info(f"INFO    : Operation canceled.")
                 return False
             else:
-                LOGGER.warning(f"WARNING : Invalid input. Please enter 'yes' or 'no'.")
+                GV.LOGGER.warning(f"WARNING : Invalid input. Please enter 'yes' or 'no'.")
 
 
 def remove_quotes(input_string: str, log_level=logging.INFO) -> str:
     """
     Elimina todas las comillas simples y dobles al inicio o fin de la cadena.
     """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         return input_string.strip('\'"')
 
 
-def contains_zip_files(input_folder, log_level=logging.INFO):
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info("INFO    : Searching .zip files in input folder...")
+def contains_zip_files(input_folder, log_level=None):
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+        GV.LOGGER.info("INFO    : Searching .zip files in input folder...")
         for file in os.listdir(input_folder):
             if file.endswith('.zip'):
                 return True
-        LOGGER.info(f"INFO    : No .zip files found in input folder.")
+        GV.LOGGER.info(f"INFO    : No .zip files found in input folder.")
         return False
 
 
-def remove_server_name(path, log_level=logging.INFO):
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+def remove_server_name(path, log_level=None):
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         # Expresión regular para rutas Linux (///servidor/)
         path = re.sub(r'///[^/]+/', '///', path)
         # Expresión regular para rutas Windows (\\servidor\)
@@ -781,12 +782,12 @@ def remove_server_name(path, log_level=logging.INFO):
         return path
 
 
-def fix_paths(path, log_level=logging.INFO):
+def fix_paths(path, log_level=None):
     fixed_path = path.replace('/', os.path.sep).replace('\\', os.path.sep)
     return fixed_path
 
 
-def is_valid_path(path, log_level=logging.INFO):
+def is_valid_path(path, log_level=None):
     """
     Verifica si la ruta es válida en la plataforma actual.
     - Debe ser una ruta absoluta.
@@ -795,17 +796,17 @@ def is_valid_path(path, log_level=logging.INFO):
     """
     from pathvalidate import validate_filepath, ValidationError
     
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
             # Verifica si `ruta` es válida como path en la plataforma actual.
             validate_filepath(path, platform="auto")
             return True
         except ValidationError as e:
-            LOGGER.error(f"ERROR   : Path validation ERROR   : {e}")
+            GV.LOGGER.error(f"ERROR   : Path validation ERROR   : {e}")
             return False
         
 
-def get_unique_items(list1, list2, key='filename', log_level=logging.INFO):
+def get_unique_items(list1, list2, key='filename', log_level=None):
     """
     Returns items that are in list1 but not in list2 based on a specified key.
 
@@ -817,13 +818,13 @@ def get_unique_items(list1, list2, key='filename', log_level=logging.INFO):
     Returns:
         list: Items present in list1 but not in list2.
     """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         set2 = {item[key] for item in list2}  # Create a set of filenames from list2
         unique_items = [item for item in list1 if item[key] not in set2]
         return unique_items
 
 
-def update_metadata(file_path, date_time, log_level=logging.INFO):
+def update_metadata(file_path, date_time, log_level=None):
     """
     Updates the metadata of a file (image, video, etc.) to set the creation date.
 
@@ -832,19 +833,19 @@ def update_metadata(file_path, date_time, log_level=logging.INFO):
         date_time (str): Date and time in 'YYYY-MM-DD HH:MM:SS' format.
         log_level (logging.LEVEL): log_level for logs and console
     """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         file_ext = os.path.splitext(file_path)[1].lower()
         try:
             if file_ext in PHOTO_EXT:
                 update_exif_date(file_path, date_time, log_level=log_level)
             elif file_ext in VIDEO_EXT:
                 update_video_metadata(file_path, date_time, log_level=log_level)
-            LOGGER.debug(f"DEBUG   : Metadata updated for {file_path} with timestamp {date_time}")
+            GV.LOGGER.debug(f"DEBUG   : Metadata updated for {file_path} with timestamp {date_time}")
         except Exception as e:
-            LOGGER.error(f"ERROR   : Failed to update metadata for {file_path}. {e}")
+            GV.LOGGER.error(f"ERROR   : Failed to update metadata for {file_path}. {e}")
         
 
-def update_exif_date(image_path, asset_time, log_level=logging.INFO):
+def update_exif_date(image_path, asset_time, log_level=None):
     """
     Updates the EXIF metadata of an image to set the DateTimeOriginal and related fields.
 
@@ -853,14 +854,14 @@ def update_exif_date(image_path, asset_time, log_level=logging.INFO):
         asset_time (int or str): Timestamp in UNIX Epoch format or a date string in "YYYY-MM-DD HH:MM:SS".
         log_level (logging.LEVEL): log_level for logs and console
     """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
             # Si asset_time es una cadena en formato 'YYYY-MM-DD HH:MM:SS', conviértelo a timestamp UNIX
             if isinstance(asset_time, str):
                 try:
                     asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
                 except ValueError as e:
-                    LOGGER.warning(f"WARNING : Invalid date format for asset_time: {asset_time}. {e}")
+                    GV.LOGGER.warning(f"WARNING : Invalid date format for asset_time: {asset_time}. {e}")
                     return
             # Convertir el timestamp UNIX a formato EXIF "YYYY:MM:DD HH:MM:SS"
             date_time_exif = datetime.fromtimestamp(asset_time).strftime("%Y:%m:%d %H:%M:%S")
@@ -873,9 +874,9 @@ def update_exif_date(image_path, asset_time, log_level=logging.INFO):
             try:
                 exif_dict = piexif.load(image_path)
             except Exception:
-                # LOGGER.warning(f"WARNING : No EXIF metadata found in {image_path}. Creating new EXIF data.")
+                # GV.LOGGER.warning(f"WARNING : No EXIF metadata found in {image_path}. Creating new EXIF data.")
                 # exif_dict = {"0th": {}, "Exif": {}, "GPS": {}, "Interop": {}, "1st": {}, "thumbnail": None}
-                LOGGER.warning(f"WARNING : No EXIF metadata found in {image_path}. Skipping it....")
+                GV.LOGGER.warning(f"WARNING : No EXIF metadata found in {image_path}. Skipping it....")
                 return
             # Actualizar solo si existen las secciones
             if "0th" in exif_dict:
@@ -894,15 +895,15 @@ def update_exif_date(image_path, asset_time, log_level=logging.INFO):
                 piexif.insert(exif_bytes, image_path)
                 # Restaurar timestamps originales del archivo
                 os.utime(image_path, (original_atime, original_mtime))
-                LOGGER.debug(f"DEBUG   : EXIF metadata updated for {image_path} with timestamp {date_time_exif}")
+                GV.LOGGER.debug(f"DEBUG   : EXIF metadata updated for {image_path} with timestamp {date_time_exif}")
             except Exception:
-                LOGGER.error(f"ERROR   : Error when restoring original metadata to file: '{image_path}'")
+                GV.LOGGER.error(f"ERROR   : Error when restoring original metadata to file: '{image_path}'")
                 return
         except Exception as e:
-            LOGGER.warning(f"WARNING : Failed to update EXIF metadata for {image_path}. {e}")
+            GV.LOGGER.warning(f"WARNING : Failed to update EXIF metadata for {image_path}. {e}")
         
 
-def update_video_metadata(video_path, asset_time, log_level=logging.INFO):
+def update_video_metadata(video_path, asset_time, log_level=None):
     """
     Updates the file system timestamps of a video file to set the creation and modification dates.
 
@@ -913,14 +914,14 @@ def update_video_metadata(video_path, asset_time, log_level=logging.INFO):
         asset_time (int | str): Timestamp in UNIX Epoch format or a string in 'YYYY-MM-DD HH:MM:SS' format.
         log_level (logging.LEVEL): log_level for logs and console
     """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
             # Convert asset_time to UNIX timestamp if it's in string format
             if isinstance(asset_time, str):
                 try:
                     asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
                 except ValueError:
-                    LOGGER.warning(f"WARNING : Invalid date format for asset_time: {asset_time}")
+                    GV.LOGGER.warning(f"WARNING : Invalid date format for asset_time: {asset_time}")
                     return
             # Convert timestamp to system format
             mod_time = asset_time
@@ -937,15 +938,15 @@ def update_video_metadata(video_path, asset_time, log_level=logging.INFO):
                     if handle != -1:
                         ctypes.windll.kernel32.SetFileTime(handle, ctypes.byref(ctypes.c_int64(windows_time)), None, None)
                         ctypes.windll.kernel32.CloseHandle(handle)
-                        LOGGER.debug(f"DEBUG     : File creation time updated for {video_path}")
+                        GV.LOGGER.debug(f"DEBUG     : File creation time updated for {video_path}")
                 except Exception as e:
-                    LOGGER.warning(f"WARNING : Failed to update file creation time on Windows. {e}")
-            LOGGER.debug(f"DEBUG   : File system timestamps updated for {video_path} with timestamp {datetime.fromtimestamp(mod_time)}")
+                    GV.LOGGER.warning(f"WARNING : Failed to update file creation time on Windows. {e}")
+            GV.LOGGER.debug(f"DEBUG   : File system timestamps updated for {video_path} with timestamp {datetime.fromtimestamp(mod_time)}")
         except Exception as e:
-            LOGGER.warning(f"WARNING : Failed to update video metadata for {video_path}. {e}")
+            GV.LOGGER.warning(f"WARNING : Failed to update video metadata for {video_path}. {e}")
 
 
-def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=logging.INFO):
+def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=None):
     """
     Updates the metadata of a video file to set the creation date without modifying file timestamps.
 
@@ -954,14 +955,14 @@ def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=logging.
         asset_time (int): Timestamp in UNIX Epoch format.
         log_level (logging.LEVEL): log_level for logs and console
     """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
             # Si asset_time es una cadena en formato 'YYYY-MM-DD HH:MM:SS', conviértelo a timestamp UNIX
             if isinstance(asset_time, str):
                 try:
                     asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
                 except ValueError:
-                    LOGGER.warning(f"WARNING : Invalid date format for asset_time: {asset_time}")
+                    GV.LOGGER.warning(f"WARNING : Invalid date format for asset_time: {asset_time}")
                     return
             # Convert asset_time (UNIX timestamp) to format used by FFmpeg (YYYY-MM-DDTHH:MM:SS)
             formatted_date = datetime.fromtimestamp(asset_time).strftime("%Y-%m-%dT%H:%M:%S")
@@ -981,15 +982,15 @@ def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=logging.
             os.replace(temp_file, video_path)  # Replace original file with updated one
             # Restore original file timestamps
             os.utime(video_path, (original_atime, original_mtime))
-            LOGGER.debug(f"DEBUG   : Video metadata updated for {video_path} with timestamp {formatted_date}")
+            GV.LOGGER.debug(f"DEBUG   : Video metadata updated for {video_path} with timestamp {formatted_date}")
         except Exception as e:
-            LOGGER.warning(f"WARNING : Failed to update video metadata for {video_path}. {e}")
+            GV.LOGGER.warning(f"WARNING : Failed to update video metadata for {video_path}. {e}")
         
 
 # Convert to list
-def convert_to_list(input_string, log_level=logging.INFO):
+def convert_to_list(input_string, log_level=None):
     """ Convert a String to List"""
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
             output = input_string
             if isinstance(output, list):
@@ -1006,7 +1007,7 @@ def convert_to_list(input_string, log_level=logging.INFO):
             else:
                 output = [output]
         except Exception as e:
-            LOGGER.warning(f"WARNING : Failed to convert string to List for {input_string}. {e}")
+            GV.LOGGER.warning(f"WARNING : Failed to convert string to List for {input_string}. {e}")
         
         return output
 
@@ -1263,11 +1264,11 @@ def get_subfolders_with_exclusions(input_folder, exclude_subfolder=None):
 # ---------------------------------------------------------------------------------------------------------------------------
 # GOOGLE TAKEOUT PRE-CHECKS FUNCTIONS:
 # ---------------------------------------------------------------------------------------------------------------------------
-def unpack_zips(zip_folder, takeout_folder, step_name="", log_level=logging.INFO):
+def unpack_zips(zip_folder, takeout_folder, step_name="", log_level=None):
     """ Unzips all ZIP files from a folder into another """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         if not os.path.exists(zip_folder):
-            LOGGER.error(f"ERROR   : {step_name}ZIP folder '{zip_folder}' does not exist.")
+            GV.LOGGER.error(f"ERROR   : {step_name}ZIP folder '{zip_folder}' does not exist.")
             return
         os.makedirs(takeout_folder, exist_ok=True)
         for zip_file in os.listdir(zip_folder):
@@ -1275,20 +1276,20 @@ def unpack_zips(zip_folder, takeout_folder, step_name="", log_level=logging.INFO
                 zip_path = os.path.join(zip_folder, zip_file)
                 try:
                     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                        LOGGER.info(f"INFO    : {step_name}Unzipping: {zip_file}")
+                        GV.LOGGER.info(f"INFO    : {step_name}Unzipping: {zip_file}")
                         zip_ref.extractall(takeout_folder)
                 except zipfile.BadZipFile:
-                    LOGGER.error(f"ERROR   : {step_name}Could not unzip file: {zip_file}")
+                    GV.LOGGER.error(f"ERROR   : {step_name}Could not unzip file: {zip_file}")
 
 
-def contains_takeout_structure(input_folder, step_name="", log_level=logging.INFO):
+def contains_takeout_structure(input_folder, step_name="", log_level=None):
     """
     Iteratively scans directories using a manual stack instead of recursion or os.walk.
     This can reduce overhead in large, nested folder structures.
     """
-    with set_log_level(LOGGER, log_level):
-        LOGGER.info("")
-        LOGGER.info(f"INFO    : {step_name}Looking for Google Takeout structure in input folder...")
+    with set_log_level(GV.LOGGER, log_level):
+        GV.LOGGER.info("")
+        GV.LOGGER.info(f"INFO    : {step_name}Looking for Google Takeout structure in input folder...")
         stack = [input_folder]
         while stack:
             current = stack.pop()
@@ -1298,22 +1299,22 @@ def contains_takeout_structure(input_folder, step_name="", log_level=logging.INF
                         if entry.is_dir():
                             name = entry.name
                             if name.startswith("Photos from ") and name[12:16].isdigit():
-                                # LOGGER.info(f"INFO    : Found Takeout structure in folder: {entry.path}")
-                                LOGGER.info(f"INFO    : {step_name}Found Takeout structure in folder: {current}")
+                                # GV.LOGGER.info(f"INFO    : Found Takeout structure in folder: {entry.path}")
+                                GV.LOGGER.info(f"INFO    : {step_name}Found Takeout structure in folder: {current}")
                                 return True
                             stack.append(entry.path)
             except PermissionError:
-                LOGGER.warning(f"WARNING : {step_name}Permission denied accessing: {current}")
+                GV.LOGGER.warning(f"WARNING : {step_name}Permission denied accessing: {current}")
             except Exception as e:
-                LOGGER.warning(f"WARNING : {step_name}Error scanning {current}: {e}")
-        LOGGER.info(f"INFO    : {step_name}No Takeout structure found in input folder.")
+                GV.LOGGER.warning(f"WARNING : {step_name}Error scanning {current}: {e}")
+        GV.LOGGER.info(f"INFO    : {step_name}No Takeout structure found in input folder.")
         return False
 
 
 # ---------------------------------------------------------------------------------------------------------------------------
 # GOOGLE TAKEOUT PRE-PROCESSING FUNCTIONS:
 # ---------------------------------------------------------------------------------------------------------------------------
-def delete_subfolders(input_folder, folder_name_to_delete, step_name="", log_level=logging.INFO):
+def delete_subfolders(input_folder, folder_name_to_delete, step_name="", log_level=None):
     """
     Deletes all subdirectories (and their contents) inside the given base directory and all its subdirectories,
     whose names match dir_name_to_delete, including hidden directories.
@@ -1322,7 +1323,7 @@ def delete_subfolders(input_folder, folder_name_to_delete, step_name="", log_lev
         input_folder (str, Path): The path to the base directory to start the search from.
         folder_name_to_delete (str): The name of the subdirectories to delete.
     """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         # Contar el total de carpetas
         total_dirs = sum([len(dirs) for _, dirs, _ in os.walk(input_folder)])
         # Mostrar la barra de progreso basada en carpetas
@@ -1334,12 +1335,12 @@ def delete_subfolders(input_folder, folder_name_to_delete, step_name="", log_lev
                         dir_path = os.path.join(path, folder)
                         try:
                             shutil.rmtree(dir_path)
-                            # LOGGER.info(f"INFO    : Deleted directory: {dir_path}")
+                            # GV.LOGGER.info(f"INFO    : Deleted directory: {dir_path}")
                         except Exception as e:
-                            LOGGER.error(f"ERROR   : {step_name}Error deleting {dir_path}: {e}")
+                            GV.LOGGER.error(f"ERROR   : {step_name}Error deleting {dir_path}: {e}")
 
 
-def fix_mp4_files(input_folder, step_name="", log_level=logging.INFO):
+def fix_mp4_files(input_folder, step_name="", log_level=None):
     """
     Look for all .MP4 files that have the same base name as any Live Picture in the same folder.
     If found, copy the associated .json file (including those with a truncated '.supplemental-metadata')
@@ -1349,7 +1350,7 @@ def fix_mp4_files(input_folder, step_name="", log_level=logging.INFO):
         input_folder (str): The root folder to scan.
         log_level (int): Logging level (e.g., logging.INFO, logging.DEBUG).
     """
-    with set_log_level(LOGGER, log_level):  # Set desired log level
+    with set_log_level(GV.LOGGER, log_level):  # Set desired log level
         counter_mp4_files_changed = 0
         # Count total .mp4 files for progress bar
         all_mp4_files = []
@@ -1405,11 +1406,11 @@ def fix_mp4_files(input_folder, step_name="", log_level=logging.INFO):
                                 # Copy the original JSON file to the new file
                                 if candidate_path.lower != new_json_path.lower():
                                     shutil.copy(candidate_path, new_json_path)
-                                    LOGGER.info(f"INFO    : {step_name}Copied: {candidate} -> {new_json_name}")
+                                    GV.LOGGER.info(f"INFO    : {step_name}Copied: {candidate} -> {new_json_name}")
                                     counter_mp4_files_changed += 1
                                     continue # if already found a matched candidate, then continue with the next file
                             else:
-                                LOGGER.info(f"INFO    : {step_name}Skipped: {new_json_name} already exists")
+                                GV.LOGGER.info(f"INFO    : {step_name}Skipped: {new_json_name} already exists")
         return counter_mp4_files_changed
 
 
@@ -1475,8 +1476,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
     variants_specials_pattern = make_variant_pattern(SPECIAL_SUFFIXES)
     variants_editted_pattern = make_variant_pattern(EDITTED_SUFFIXES)
     optional_counter = r'(?:\(\d+\))?'  # allow "(n)" counters
-
-    with set_log_level(LOGGER, log_level):
+    with set_log_level(GV.LOGGER, log_level):
         # --------------------------
         # --- Case A: JSON files ---
         # --------------------------
@@ -1511,7 +1511,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                         new_path = Path(root) / new_name
                         if str(old_path).lower() != str(new_path).lower():
                             os.rename(old_path, new_path)
-                            # LOGGER.info(f"INFO    : {step_name}Fixed JSON Supplemental Ext: {file} → {new_name}")
+                            # GV.LOGGER.info(f"INFO    : {step_name}Fixed JSON Supplemental Ext: {file} → {new_name}")
                             counters["supplemental_metadata_fixed"] += 1
                             # We need to medify file and old_path for next steps
                             file = new_name
@@ -1564,7 +1564,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                             new_path = Path(root) / new_name
                             if not new_path.exists() and str(old_path).lower() != str(new_path).lower():
                                 os.rename(old_path, new_path)
-                                # LOGGER.info(f"INFO    : {step_name}Fixed JSON Origin File Ext : {file} → {new_name}")
+                                # GV.LOGGER.info(f"INFO    : {step_name}Fixed JSON Origin File Ext : {file} → {new_name}")
                                 counters["extensions_fixed"] += 1
                                 if not file_modified:
                                     counters["json_files_fixed"] += 1
@@ -1573,7 +1573,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                     # end A.2
 
                     if file_modified:
-                        LOGGER.debug(f"DEBUG   : {step_name}Fixed JSON File  : {original_file} → {new_name}")
+                        GV.LOGGER.debug(f"DEBUG   : {step_name}Fixed JSON File  : {original_file} → {new_name}")
 
         # ------------------------------------------------------------
         # --- Case B: Non-JSON files (special suffixes or editted) ---
@@ -1608,7 +1608,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                                     new_path = Path(root) / new_name
                                     if str(old_path).lower() != str(new_path).lower():
                                         os.rename(old_path, new_path)
-                                        # LOGGER.info(f"INFO    : {step_name}Fixed ORIGIN Special Suffix: {file} → {new_name}")
+                                        # GV.LOGGER.info(f"INFO    : {step_name}Fixed ORIGIN Special Suffix: {file} → {new_name}")
                                         counters["special_suffixes_fixed"] += 1
                                         # We need to medify file and old_path for next steps and to keep changes if other suffixes are found
                                         file = new_name
@@ -1636,7 +1636,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                                 new_path = Path(root) / new_name
                                 if str(old_path).lower() != str(new_path).lower():
                                     os.rename(old_path, new_path)
-                                    # LOGGER.info(f"INFO    : {step_name}Fixed ORIGIN Edited Suffix : {file} → {new_name}")
+                                    # GV.LOGGER.info(f"INFO    : {step_name}Fixed ORIGIN Edited Suffix : {file} → {new_name}")
                                     counters["edited_suffixes_fixed"] += 1
                                     # We need to medify file and old_path for next steps and to keep changes if other suffixes are found
                                     file = new_name
@@ -1648,7 +1648,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                                 break # Once one truncation of the current suf is applied, stop trying shorter ones
 
                     if file_modified:
-                        LOGGER.debug(f"DEBUG   : {step_name}Fixed MEDIA File : {original_file} → {new_name}")
+                        GV.LOGGER.debug(f"DEBUG   : {step_name}Fixed MEDIA File : {original_file} → {new_name}")
     return counters
 
 
@@ -1783,12 +1783,12 @@ def run_command(command, logger, capture_output=False, capture_errors=True, prin
 # ---------------------------------------------------------------------------------------------------------------------------
 # GOOGLE TAKEOUT POST-PROCESSING FUNCTIONS:
 # ---------------------------------------------------------------------------------------------------------------------------
-def sync_mp4_timestamps_with_images(input_folder, step_name="", log_level=logging.INFO):
+def sync_mp4_timestamps_with_images(input_folder, step_name="", log_level=None):
     """
     Look for .MP4 files with the same name of any Live Picture file (.HEIC, .JPG, .JPEG) in the same folder.
     If found, then set the date and time of the .MP4 file to the same date and time of the original Live Picture.
     """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         # Contar el total de archivos (para la barra de progreso)
         total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
         # Mostrar la barra de progreso basada en carpetas
@@ -1823,33 +1823,33 @@ def sync_mp4_timestamps_with_images(input_folder, step_name="", log_level=loggin
                                         mtime = image_stats.st_mtime  # Tiempo de última modificación
                                         # Aplicar los tiempos al archivo .MP4
                                         os.utime(mp4_file_path, (atime, mtime))
-                                        LOGGER.debug(f"DEBUG   : {step_name}Date and time attributes synched for: {os.path.relpath(mp4_file_path,input_folder)} using:  {os.path.relpath(image_file_path,input_folder)}")
+                                        GV.LOGGER.debug(f"DEBUG   : {step_name}Date and time attributes synched for: {os.path.relpath(mp4_file_path,input_folder)} using:  {os.path.relpath(image_file_path,input_folder)}")
                                         image_file_found = True
                                         break  # Salir después de encontrar el primer archivo de imagen disponible
                                     else:
-                                        LOGGER.warning(f"WARNING : {step_name}File not found. MP4: {mp4_file_path} | Image: {image_file_path}")
+                                        GV.LOGGER.warning(f"WARNING : {step_name}File not found. MP4: {mp4_file_path} | Image: {image_file_path}")
                                 except Exception as e:
-                                    LOGGER.error(f"ERROR   : {step_name}Could not sync timestamps for {mp4_file_path}. Reason: {e}")
+                                    GV.LOGGER.error(f"ERROR   : {step_name}Could not sync timestamps for {mp4_file_path}. Reason: {e}")
                         if not image_file_found:
-                            LOGGER.debug(f"DEBUG   : {step_name}Cannot find Live picture file to sync with: {os.path.relpath(mp4_file_path,input_folder)}")
+                            GV.LOGGER.debug(f"DEBUG   : {step_name}Cannot find Live picture file to sync with: {os.path.relpath(mp4_file_path,input_folder)}")
                             pass
 
 
-def force_remove_directory(path, log_level=logging.INFO):
+def force_remove_directory(path, log_level=None):
     def onerror(func, path, exc_info):
         # Cambia los permisos y vuelve a intentar
         os.chmod(path, stat.S_IWRITE)
         func(path)
 
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         if os.path.exists(path):
             shutil.rmtree(path, onerror=onerror)
-            LOGGER.info(f"INFO    : The folder '{path}' and all its contant have been deleted.")
+            GV.LOGGER.info(f"INFO    : The folder '{path}' and all its contant have been deleted.")
         else:
-            LOGGER.warning(f"WARNING : Cannot delete the folder '{path}'.")
+            GV.LOGGER.warning(f"WARNING : Cannot delete the folder '{path}'.")
 
 
-def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", log_level=logging.INFO):
+def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", log_level=None):
     """
     Copies or moves an entire folder, including subfolders and files, to another location,
     while ignoring files that match one or more specific patterns.
@@ -1860,15 +1860,15 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
     :param move: If True, moves the files instead of copying them.
     :return: None
     """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         # Ignore function
         action = 'Moving' if move else 'Copying'
         try:
             if not is_valid_path(src):
-                LOGGER.error(f"ERROR   : {step_name}The path '{src}' is not valid for the execution plattform. Cannot copy/move folders from it.")
+                GV.LOGGER.error(f"ERROR   : {step_name}The path '{src}' is not valid for the execution plattform. Cannot copy/move folders from it.")
                 return False
             if not is_valid_path(dst):
-                LOGGER.error(f"ERROR   : {step_name}The path '{dst}' is not valid for the execution plattform. Cannot copy/move folders to it.")
+                GV.LOGGER.error(f"ERROR   : {step_name}The path '{dst}' is not valid for the execution plattform. Cannot copy/move folders to it.")
                 return False
 
             def ignore_function(files, ignore_patterns):
@@ -1910,18 +1910,18 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
                                 src_file = os.path.join(path, file)
                                 dst_file = os.path.join(dest_path, file)
                                 shutil.move(src_file, dst_file)
-                    LOGGER.info(f"INFO    : {step_name}Folder moved successfully from {src} to {dst}")
+                    GV.LOGGER.info(f"INFO    : {step_name}Folder moved successfully from {src} to {dst}")
             else:
                 # Copy the folder contents
                 shutil.copytree(src, dst, dirs_exist_ok=True, ignore=ignore_function)
-                LOGGER.info(f"INFO    : {step_name}Folder copied successfully from {src} to {dst}")
+                GV.LOGGER.info(f"INFO    : {step_name}Folder copied successfully from {src} to {dst}")
                 return True
         except Exception as e:
-            LOGGER.error(f"ERROR   : {step_name}Error {action} folder: {e}")
+            GV.LOGGER.error(f"ERROR   : {step_name}Error {action} folder: {e}")
             return False
 
 
-def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], step_name="", log_level=logging.INFO):
+def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], step_name="", log_level=None):
     """
     Organizes files into subfolders based on their EXIF or modification date.
 
@@ -1949,7 +1949,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], ste
         except Exception:
             pass
         return None
-    with set_log_level(LOGGER, log_level):
+    with set_log_level(GV.LOGGER, log_level):
         if type not in ['year', 'year/month', 'year-month']:
             raise ValueError(f"{step_name}The 'type' parameter must be 'year', 'year/month' or 'year-month'.")
         total_files = 0
@@ -1971,16 +1971,16 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], ste
                         try:
                             mod_time = get_exif_date(file_path)
                         except Exception as e:
-                            LOGGER.warning(f"WARNING : {step_name}Error reading EXIF from {file_path}: {e}")
+                            GV.LOGGER.warning(f"WARNING : {step_name}Error reading EXIF from {file_path}: {e}")
                     # Si no hay EXIF o no es imagen, usar fecha de sistema
                     if not mod_time:
                         try:
                             mtime = os.path.getmtime(file_path)
                             mod_time = datetime.fromtimestamp(mtime if mtime > 0 else 0)
                         except Exception as e:
-                            LOGGER.warning(f"WARNING : {step_name}Error reading mtime for {file_path}: {e}")
+                            GV.LOGGER.warning(f"WARNING : {step_name}Error reading mtime for {file_path}: {e}")
                             mod_time = datetime(1970, 1, 1)
-                    LOGGER.debug(f"DEBUG   : {step_name}Using date {mod_time} for file {file_path}")
+                    GV.LOGGER.debug(f"DEBUG   : {step_name}Using date {mod_time} for file {file_path}")
                     # Determinar carpeta destino
                     if type == 'year':
                         target_dir = os.path.join(path, mod_time.strftime('%Y'))
@@ -1990,10 +1990,10 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], ste
                         target_dir = os.path.join(path, mod_time.strftime('%Y-%m'))
                     os.makedirs(target_dir, exist_ok=True)
                     shutil.move(file_path, os.path.join(target_dir, file))
-        LOGGER.info(f"INFO    : {step_name}Organization completed. Folder structure per '{type}' created in '{input_folder}'.")
+        GV.LOGGER.info(f"INFO    : {step_name}Organization completed. Folder structure per '{type}' created in '{input_folder}'.")
 
 
-def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None, step_name="", log_level=logging.INFO):
+def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None, step_name="", log_level=None):
     """
     Moves album folders to a specific subfolder, excluding the specified subfolder(s).
 
@@ -2003,7 +2003,7 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None,
         exclude_subfolder (str or list, optional): Subfolder(s) to exclude. Can be a single string or a list of strings.
     """
     # Ensure exclude_subfolder is a list, even if a single string is passed
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         def safe_move(folder_path, albums_path):
             destination = os.path.join(albums_path, os.path.basename(folder_path))
             if os.path.exists(destination):
@@ -2022,24 +2022,24 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None,
         for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"INFO    : {step_name}Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
             folder_path = os.path.join(input_folder, subfolder)
             if os.path.isdir(folder_path) and subfolder != albums_subfolder and os.path.abspath(folder_path) not in exclude_subfolder_paths:
-                LOGGER.debug(f"DEBUG   : {step_name}Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")
+                GV.LOGGER.debug(f"DEBUG   : {step_name}Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")
                 os.makedirs(albums_path, exist_ok=True)
                 safe_move(folder_path, albums_path)
         # Finally Move Albums to Albums root folder (removing 'Takeout' and 'Google Fotos' / 'Google Photos' folders if exists
         move_albums_to_root(albums_path, step_name=step_name, log_level=logging.INFO)
 
 
-def move_albums_to_root(albums_root, step_name="", log_level=logging.INFO):
+def move_albums_to_root(albums_root, step_name="", log_level=None):
     """
     Moves all albums from nested subdirectories ('Takeout/Google Fotos' or 'Takeout/Google Photos')
     directly into the 'Albums' folder, removing unnecessary intermediate folders.
     """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         possible_google_folders = ["Google Fotos", "Google Photos"]
         takeout_path = os.path.join(albums_root, "Takeout")
         # Check if 'Takeout' exists
         if not os.path.exists(takeout_path):
-            LOGGER.debug(f"DEBUG   : {step_name}'Takeout' folder not found at {takeout_path}. Exiting.")
+            GV.LOGGER.debug(f"DEBUG   : {step_name}'Takeout' folder not found at {takeout_path}. Exiting.")
             return
         # Find the actual Google Photos folder name
         google_photos_path = None
@@ -2049,10 +2049,10 @@ def move_albums_to_root(albums_root, step_name="", log_level=logging.INFO):
                 google_photos_path = path
                 break
         if not google_photos_path:
-            LOGGER.debug(f"DEBUG   : {step_name}No valid 'Google Fotos' or 'Google Photos' folder found inside 'Takeout'. Exiting.")
+            GV.LOGGER.debug(f"DEBUG   : {step_name}No valid 'Google Fotos' or 'Google Photos' folder found inside 'Takeout'. Exiting.")
             return
-        LOGGER.debug(f"DEBUG   : {step_name}Found Google Photos folder: {google_photos_path}")
-        LOGGER.info(f"INFO    : {step_name}Moving Albums to Albums root folder...")
+        GV.LOGGER.debug(f"DEBUG   : {step_name}Found Google Photos folder: {google_photos_path}")
+        GV.LOGGER.info(f"INFO    : {step_name}Moving Albums to Albums root folder...")
         # Move albums to the root 'Albums' directory
         for album in os.listdir(google_photos_path):
             album_path = os.path.join(google_photos_path, album)
@@ -2066,16 +2066,16 @@ def move_albums_to_root(albums_root, step_name="", log_level=logging.INFO):
                     count += 1
                 # Move the album
                 shutil.move(album_path, new_target_path)
-                LOGGER.debug(f"DEBUG   : {step_name}Moved: {album_path} → {new_target_path}")
+                GV.LOGGER.debug(f"DEBUG   : {step_name}Moved: {album_path} → {new_target_path}")
         # Attempt to remove empty folders
         try:
             shutil.rmtree(takeout_path)
-            LOGGER.debug(f"DEBUG   : {step_name}'Takeout' folder successfully removed.")
+            GV.LOGGER.debug(f"DEBUG   : {step_name}'Takeout' folder successfully removed.")
         except Exception as e:
-            LOGGER.error(f"ERROR   : {step_name}Failed to remove 'Takeout': {e}")
+            GV.LOGGER.error(f"ERROR   : {step_name}Failed to remove 'Takeout': {e}")
 
 
-# def count_valid_albums(folder_path, step_name="", log_level=logging.INFO):
+# def count_valid_albums(folder_path, step_name="", log_level=None):
 #     """
 #     Counts the number of subfolders within folder_path and its sublevels
 #     that contain at least one valid image or video file.
@@ -2085,7 +2085,7 @@ def move_albums_to_root(albums_root, step_name="", log_level=logging.INFO):
 #     """
 #     import os
 #     from GlobalVariables import PHOTO_EXT, VIDEO_EXT
-#     with set_log_level(LOGGER, log_level):  # Change log level temporarily
+#     with set_log_level(GV.LOGGER, log_level):  # Change log level temporarily
 #         valid_albums = 0
 #         for root, dirs, files in os.walk(folder_path):
 #             # Check if there's at least one valid image or video file
@@ -2094,7 +2094,7 @@ def move_albums_to_root(albums_root, step_name="", log_level=logging.INFO):
 #         return valid_albums
 
 
-def count_valid_albums(folder_path, excluded_folders=[], step_name="", log_level=logging.INFO):
+def count_valid_albums(folder_path, excluded_folders=[], step_name="", log_level=None):
     """
     Counts the number of subfolders within folder_path and its sublevels
     that contain at least one valid image or video file.
@@ -2107,7 +2107,7 @@ def count_valid_albums(folder_path, excluded_folders=[], step_name="", log_level
     - Folders named exactly as excluded_folder list.
     """
     YEAR_PATTERN = re.compile(r'^Photos from [12]\d{3}$')
-    with set_log_level(LOGGER, log_level):  # Change log level temporarily
+    with set_log_level(GV.LOGGER, log_level):  # Change log level temporarily
         valid_albums = 0
         for root, dirs, files in os.walk(folder_path):
             folder_name = os.path.basename(root)
@@ -2127,7 +2127,7 @@ def count_valid_albums(folder_path, excluded_folders=[], step_name="", log_level
 
 
 
-def fix_symlinks_broken(input_folder, step_name="", log_level=logging.INFO):
+def fix_symlinks_broken(input_folder, step_name="", log_level=None):
     """
     Searches and fixes broken symbolic links in a directory and its subdirectories.
     Optimized to handle very large numbers of files by indexing files beforehand.
@@ -2138,12 +2138,12 @@ def fix_symlinks_broken(input_folder, step_name="", log_level=logging.INFO):
     # ===========================
     # AUX FUNCTIONS
     # ===========================
-    def build_file_index(input_folder, log_level=logging.INFO):
+    def build_file_index(input_folder, log_level=None):
         """
         Index all non-symbolic files in the directory and its subdirectories by their filename.
         Returns a dictionary where keys are filenames and values are lists of their full paths.
         """
-        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
             file_index = {}
             # Contar el total de carpetas
             total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
@@ -2163,14 +2163,14 @@ def fix_symlinks_broken(input_folder, step_name="", log_level=logging.INFO):
                             file_index[fname].append(full_path)
             return file_index
     
-    def find_real_file(file_index, target_name, log_level=logging.INFO):
+    def find_real_file(file_index, target_name, log_level=None):
         """
         Given a pre-built file index (dict: filename -> list of paths),
         return the first available real file path for the given target_name.
         If multiple matches exist, return the first found.
         If none is found, return None.
         """
-        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
             if target_name in file_index and file_index[target_name]:
                 return file_index[target_name][0]
             return None
@@ -2178,12 +2178,12 @@ def fix_symlinks_broken(input_folder, step_name="", log_level=logging.INFO):
     # ===========================
     # END AUX FUNCTIONS
     # ===========================
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         corrected_count = 0
         failed_count = 0
         # Validate the directory existence
         if not os.path.isdir(input_folder):
-            LOGGER.error(f"ERROR   : {step_name}The directory '{input_folder}' does not exist or is not valid.")
+            GV.LOGGER.error(f"ERROR   : {step_name}The directory '{input_folder}' does not exist or is not valid.")
             return 0, 0
         # Step 1: Index all real non-symbolic files
         file_index = build_file_index(input_folder)
@@ -2200,27 +2200,27 @@ def fix_symlinks_broken(input_folder, step_name="", log_level=logging.INFO):
                     if os.path.islink(file_path) and not os.path.exists(file_path):
                         # It's a broken symbolic link
                         target = os.readlink(file_path)
-                        # LOGGER.info(f"INFO    : Broken link found: {file_path} -> {target}")
+                        # GV.LOGGER.info(f"INFO    : Broken link found: {file_path} -> {target}")
                         target_name = os.path.basename(target)
 
                         fixed_path = find_real_file(file_index, target_name)
                         if fixed_path:
                             # Create the correct symbolic link
                             relative_path = os.path.relpath(fixed_path, start=os.path.dirname(file_path))
-                            # LOGGER.info(f"INFO    : Fixing link: {file_path} -> {relative_path}")
+                            # GV.LOGGER.info(f"INFO    : Fixing link: {file_path} -> {relative_path}")
                             os.unlink(file_path)
                             os.symlink(relative_path, file_path)
                             corrected_count += 1
                         else:
                             if not already_warned:
-                                LOGGER.warning("")
+                                GV.LOGGER.warning("")
                                 already_warned=True
-                            LOGGER.warning(f"WARNING : {step_name}Could not find the file for {file_path} within {input_folder}")
+                            GV.LOGGER.warning(f"WARNING : {step_name}Could not find the file for {file_path} within {input_folder}")
                             failed_count += 1
         return corrected_count, failed_count
 
 
-def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_range='complete', step_name="", log_level=logging.INFO):
+def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_range='complete', step_name="", log_level=None):
     # ===========================
     # AUXILIARY FUNCTIONS
     # ===========================
@@ -2236,7 +2236,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
             }
         """
         import re
-        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
             input_string = input_string.strip()
             # Remove leading underscores or hyphens
             input_string = re.sub(r'^[-_]+', '', input_string)
@@ -2297,7 +2297,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                 pass
             return None
 
-        with set_log_level(LOGGER, log_level):
+        with set_log_level(GV.LOGGER, log_level):
             try:
                 files = [os.path.join(folder, f) for f in os.listdir(folder)]
                 files = [f for f in files if os.path.isfile(f)]
@@ -2311,14 +2311,14 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                         try:
                             exif_date = get_exif_date(f)
                         except Exception as e:
-                            LOGGER.warning(f"WARNING : {step_name}Error reading EXIF from {f}: {e}")
+                            GV.LOGGER.warning(f"WARNING : {step_name}Error reading EXIF from {f}: {e}")
                         # Intenta obtener mtime
                         try:
                             ts = os.path.getmtime(f)
                             if ts > 0:
                                 fs_date = datetime.fromtimestamp(ts)
                         except Exception as e:
-                            LOGGER.warning(f"WARNING : {step_name}Cannot read timestamp from {f}: {e}")
+                            GV.LOGGER.warning(f"WARNING : {step_name}Cannot read timestamp from {f}: {e}")
                     # Elige la fecha más antigua entre EXIF y mtime
                     chosen_date = None
                     if exif_date and fs_date:
@@ -2328,7 +2328,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     if chosen_date:
                         years.append(chosen_date.year)
                 if not years:
-                    LOGGER.warning(f"WARNING : {step_name}No valid timestamps found in {folder}")
+                    GV.LOGGER.warning(f"WARNING : {step_name}No valid timestamps found in {folder}")
                     return False
                 # Extraer componentes
                 oldest_year = min(years)
@@ -2338,7 +2338,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                 else:
                     return f"{oldest_year}-{latest_year}"
             except Exception as e:
-                LOGGER.error(f"ERROR   : {step_name}Error obtaining year range: {e}")
+                GV.LOGGER.error(f"ERROR   : {step_name}Error obtaining year range: {e}")
             return False
 
 
@@ -2355,7 +2355,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                 pass
             return None
 
-        with set_log_level(LOGGER, log_level):
+        with set_log_level(GV.LOGGER, log_level):
             try:
                 files = [os.path.join(folder, f) for f in os.listdir(folder)]
                 files = [f for f in files if os.path.isfile(f)]
@@ -2368,13 +2368,13 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                         try:
                             exif_date = get_exif_date(f)
                         except Exception as e:
-                            LOGGER.warning(f"WARNING : {step_name}Error reading EXIF from {f}: {e}")
+                            GV.LOGGER.warning(f"WARNING : {step_name}Error reading EXIF from {f}: {e}")
                         try:
                             ts = os.path.getmtime(f)
                             if ts > 0:
                                 fs_date = datetime.fromtimestamp(ts)
                         except Exception as e:
-                            LOGGER.warning(f"WARNING : {step_name}Cannot read timestamp from {f}: {e}")
+                            GV.LOGGER.warning(f"WARNING : {step_name}Cannot read timestamp from {f}: {e}")
                         # Escoger la fecha más antigua disponible
                         chosen_date = None
                         if exif_date and fs_date:
@@ -2384,7 +2384,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                         if chosen_date:
                             dates.append(chosen_date)
                 if not dates:
-                    LOGGER.warning(f"WARNING : {step_name}No valid timestamps found in {folder}")
+                    GV.LOGGER.warning(f"WARNING : {step_name}No valid timestamps found in {folder}")
                     return False
                 # Extraer componentes
                 years = {dt.year for dt in dates}
@@ -2404,18 +2404,19 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                 else:
                     return f"{min(years):04}-{max(years):04}"
             except Exception as e:
-                LOGGER.error(f"ERROR   : {step_name}Error obtaining date range: {e}")
+                GV.LOGGER.error(f"ERROR   : {step_name}Error obtaining date range: {e}")
                 return False
 
     # ===========================
     # END AUX FUNCTIONS
     # ===========================
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
         # Initial template for rename results
         renamed_album_folders = 0
         duplicates_album_folders = 0
         duplicates_albums_fully_merged = 0
         duplicates_albums_not_fully_merged = 0
+        verbose_messages = []
         debug_messages = []
         info_messages = []
         warning_messages = []
@@ -2443,14 +2444,14 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     # if not possible to find a date_raange, keep the original_dates (if exits) as prefix of the cleaned_folder_name
                     if content_based_date_range:
                         cleaned_folder_name = f"{content_based_date_range} - {cleaned_folder_name}"
-                        debug_messages.append(f"DEBUG   : Added date prefix '{content_based_date_range}' to folder: '{os.path.basename(cleaned_folder_name)}'")
+                        verbose_messages.append(f"VERBOSE : Added date prefix '{content_based_date_range}' to folder: '{os.path.basename(cleaned_folder_name)}'")
                     else:
                         if original_dates:
                             cleaned_folder_name = f"{original_dates} - {cleaned_folder_name}"
-                            debug_messages.append(f"DEBUG   : Keep date prefix '{original_dates}' in folder: '{os.path.basename(cleaned_folder_name)}'")
+                            verbose_messages.append(f"VERBOSE : Keep date prefix '{original_dates}' in folder: '{os.path.basename(cleaned_folder_name)}'")
                         else:
                             cleaned_folder_name = f"{cleaned_folder_name}"
-                            debug_messages.append(f"DEBUG   : No date prefix found in folder: '{os.path.basename(cleaned_folder_name)}'")
+                            verbose_messages.append(f"VERBOSE   : No date prefix found in folder: '{os.path.basename(cleaned_folder_name)}'")
 
                 # Skip renaming if the clean name is the same as the original
                 if cleaned_folder_name != original_folder_name:
@@ -2465,31 +2466,33 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                                 # Compare file sizes to decide if the original should be deleted
                                 if os.path.isfile(dst) and os.path.getsize(src) == os.path.getsize(dst):
                                     os.remove(src)
-                                    info_messages.append(f"INFO    : {step_name}Deleted duplicate file: '{src}'")
+                                    debug_messages.append(f"DEBUG   : {step_name}Deleted duplicate file: '{src}'")
                             else:
                                 shutil.move(src, dst)
-                                info_messages.append(f"INFO    : {step_name}Moved '{src}' → '{dst}'")
+                                debug_messages.append(f"DEBUG   : {step_name}Moved '{src}' → '{dst}'")
                         # Check if the folder is empty before removing it
                         if not os.listdir(item_path):
                             os.rmdir(item_path)
-                            info_messages.append(f"INFO    : {step_name}Removed empty folder: '{item_path}'")
+                            debug_messages.append(f"DEBUG   : {step_name}Removed empty folder: '{item_path}'")
                             duplicates_albums_fully_merged += 1
                         else:
-                            # LOGGER.warning(f"WARNING : Folder not empty, skipping removal: {item_path}")
+                            # GV.LOGGER.warning(f"WARNING : Folder not empty, skipping removal: {item_path}")
                             duplicates_albums_not_fully_merged += 1
                     else:
                         if item_path != new_folder_path:
                             os.rename(item_path, new_folder_path)
-                            info_messages.append(f"INFO    : {step_name}Renamed folder: '{os.path.basename(item_path)}' → '{os.path.basename(new_folder_path)}'")
+                            debug_messages.append(f"DEBUG   : {step_name}Renamed folder: '{os.path.basename(item_path)}' → '{os.path.basename(new_folder_path)}'")
                             renamed_album_folders += 1
 
         # Finally we log all the messages captured during the process
+        for verbose_message in verbose_messages:
+            GV.LOGGER.verbose(verbose_message)
         for debug_message in debug_messages:
-            LOGGER.debug(debug_message)
+            GV.LOGGER.debug(debug_message)
         for info_message in info_messages:
-            LOGGER.info(info_message)
+            GV.LOGGER.info(info_message)
         for warning_message in warning_messages:
-            LOGGER.warning(warning_message)
+            GV.LOGGER.warning(warning_message)
 
         return {
             'renamed_album_folders': renamed_album_folders,

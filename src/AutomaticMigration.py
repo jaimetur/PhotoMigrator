@@ -34,7 +34,7 @@ class SharedData:
 ####################################
 # FEATURE: AUTOMATIC-MIGRATION: #
 ####################################
-def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show_gpth_info=None, show_gpth_errors=None, parallel=None, log_level=logging.INFO):
+def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show_gpth_info=None, show_gpth_errors=None, parallel=None, log_level=None):
     with set_log_level(LOGGER, log_level):
 
         # ───────────────────────────────────────────────────────────────
@@ -287,7 +287,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
 #########################################
 # parallel_automatic_migration Function #
 #########################################
-def parallel_automatic_migration(source_client, target_client, temp_folder, SHARED_DATA, parallel=None, log_level=logging.INFO):
+def parallel_automatic_migration(source_client, target_client, temp_folder, SHARED_DATA, parallel=None, log_level=None):
     """
     Sincroniza fotos y vídeos entre un 'source_client' y un 'destination_client',
     descargando álbumes y assets desde la fuente, y luego subiéndolos a destino,
@@ -357,7 +357,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # ------------------
     # 1) HILO PRINCIPAL
     # ------------------
-    def main_thread(parallel=None, log_level=logging.INFO):
+    def main_thread(parallel=None, log_level=None):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # Get Log_filename
             log_file = get_logger_filename(LOGGER)
@@ -587,7 +587,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # --------------------------------------------------------------------------------
     # 1) PULLER: Función puller_worker para descargar assets y poner en la cola
     # --------------------------------------------------------------------------------
-    def puller_worker(parallel=None, log_level=logging.INFO):
+    def puller_worker(parallel=None, log_level=None):
         with set_log_level(LOGGER, log_level):
 
             # 1.1) Descarga de álbumes
@@ -802,7 +802,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # ----------------------------------------------------------------------------
     # 2) PUSHER: Función pusher_worker para SUBIR (consumir de la cola)
     # ----------------------------------------------------------------------------
-    def pusher_worker(processed_albums=[], worker_id=1, log_level=logging.INFO):
+    def pusher_worker(processed_albums=[], worker_id=1, log_level=None):
         with set_log_level(LOGGER, log_level):
             while True:
                 try:
@@ -960,7 +960,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 ###########################
 # start_dashboard Function #
 ###########################
-def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=logging.INFO):
+def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=None):
     import time, random, threading
     from datetime import datetime
     from rich.console import Console

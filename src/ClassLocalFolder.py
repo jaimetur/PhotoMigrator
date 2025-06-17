@@ -171,13 +171,13 @@ class ClassLocalFolder:
                 return True
         return False
 
-    def get_takeout_assets_by_filters(self, type='all', log_level=logging.INFO):
+    def get_takeout_assets_by_filters(self, type='all', log_level=None):
         return []  # Clase base no tiene takeout, devuelve lista vacía
 
     ###########################################################################
     #                           CLASS PROPERTIES GETS                         #
     ###########################################################################
-    def get_client_name(self, log_level=logging.INFO):
+    def get_client_name(self, log_level=None):
         """
         Returns the name of the client.
 
@@ -195,7 +195,7 @@ class ClassLocalFolder:
     ###########################################################################
     #                           CONFIGURATION READING                         #
     ###########################################################################
-    def read_config_file(self, config_file='Config.ini', log_level=logging.INFO):
+    def read_config_file(self, config_file='Config.ini', log_level=None):
         """
         Reads a configuration file (not really used in local storage).
 
@@ -214,7 +214,7 @@ class ClassLocalFolder:
     ###########################################################################
     #                         AUTHENTICATION / LOGOUT                         #
     ###########################################################################
-    def login(self, log_level=logging.INFO):
+    def login(self, log_level=None):
         """
         Simulates a login operation. Always successful in local storage.
 
@@ -228,7 +228,7 @@ class ClassLocalFolder:
             LOGGER.info("INFO    : Logging in (local storage).")
             return True
 
-    def logout(self, log_level=logging.INFO):
+    def logout(self, log_level=None):
         """
         Simulates a logout operation. Always successful in local storage.
 
@@ -242,7 +242,7 @@ class ClassLocalFolder:
     ###########################################################################
     #                           GENERAL UTILITY                               #
     ###########################################################################
-    def get_supported_media_types(self, type='media', log_level=logging.INFO):
+    def get_supported_media_types(self, type='media', log_level=None):
         """
         Returns the supported media/sidecar extensions for local usage.
 
@@ -265,7 +265,7 @@ class ClassLocalFolder:
                 return self.ALLOWED_PHOTO_EXTENSIONS + self.ALLOWED_VIDEO_EXTENSIONS
 
 
-    def get_user_id(self, log_level=logging.INFO):
+    def get_user_id(self, log_level=None):
         """
         Returns a user ID, which is simply the base folder path in local usage.
 
@@ -280,7 +280,7 @@ class ClassLocalFolder:
             return str(self.base_folder)
 
 
-    def get_user_mail(self, log_level=logging.INFO):
+    def get_user_mail(self, log_level=None):
         """
         Returns the user_mail of the currently logged-in user.
         """
@@ -291,7 +291,7 @@ class ClassLocalFolder:
     ###########################################################################
     #                            ALBUMS FUNCTIONS                             #
     ###########################################################################
-    def create_album(self, album_name, log_level=logging.INFO):
+    def create_album(self, album_name, log_level=None):
         """
         Creates a new album (folder).
 
@@ -309,7 +309,7 @@ class ClassLocalFolder:
             return album_path
 
 
-    def remove_album(self, album_id, album_name=None, log_level=logging.INFO):
+    def remove_album(self, album_id, album_name=None, log_level=None):
         """
         Removes an album (folder) if it exists.
 
@@ -330,7 +330,7 @@ class ClassLocalFolder:
             return False
 
 
-    def get_albums_owned_by_user(self, filter_assets=True, log_level=logging.INFO):
+    def get_albums_owned_by_user(self, filter_assets=True, log_level=None):
         """
         Retrieves the list of owned albums.
 
@@ -359,7 +359,7 @@ class ClassLocalFolder:
             return albums_filtered
 
 
-    def get_albums_including_shared_with_user(self, filter_assets=True, log_level=logging.INFO):
+    def get_albums_including_shared_with_user(self, filter_assets=True, log_level=None):
         """
         Retrieves both owned and shared albums.
 
@@ -398,7 +398,7 @@ class ClassLocalFolder:
 
             return albums_filtered
 
-    def get_album_assets_size(self, album_id, type='all', log_level=logging.INFO):
+    def get_album_assets_size(self, album_id, type='all', log_level=None):
         """
         Gets the total size (bytes) of all assets in an album, with optional filtering by file type.
 
@@ -446,7 +446,7 @@ class ClassLocalFolder:
                 return 0
 
 
-    def get_album_assets_count(self, album_id, log_level=logging.INFO):
+    def get_album_assets_count(self, album_id, log_level=None):
         """
         Gets the number of assets in an album.
 
@@ -461,7 +461,7 @@ class ClassLocalFolder:
             return len(self.get_all_assets_from_album(album_id, log_level))
 
 
-    def album_exists(self, album_name, log_level=logging.INFO):
+    def album_exists(self, album_name, log_level=None):
         """
         Checks if an album with the given name exists in the 'Albums' folder.
 
@@ -483,7 +483,7 @@ class ClassLocalFolder:
     ###########################################################################
     #                            ASSETS FILTERING                             #
     ###########################################################################
-    def filter_assets(self, assets, log_level=logging.INFO):
+    def filter_assets(self, assets, log_level=None):
         """
         Filters a list of assets by person name.
 
@@ -508,7 +508,7 @@ class ClassLocalFolder:
                     filtered.append(asset)
             return filtered
 
-    def filter_assets_old(self, assets, log_level=logging.INFO):
+    def filter_assets_old(self, assets, log_level=None):
         """
         Filters a list of assets based on user-defined criteria such as date range,
         country, city, and asset type. Filter parameters are retrieved from the global ARGS dictionary.
@@ -883,7 +883,7 @@ class ClassLocalFolder:
             return combined_assets
 
 
-    def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=logging.INFO):
+    def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=None):
         """
         Adds (links) assets to an album using relative symbolic links. If symlink creation fails, copies the file instead.
 
@@ -928,7 +928,7 @@ class ClassLocalFolder:
             return count_added
 
 
-    def get_duplicates_assets(self, log_level=logging.INFO):
+    def get_duplicates_assets(self, log_level=None):
         """
         Returns a list of duplicate assets found in local storage.
 
@@ -956,7 +956,7 @@ class ClassLocalFolder:
             LOGGER.info(f"INFO    : Found {len(duplicates)} group(s) of duplicates.")
             return duplicates
 
-    def remove_assets(self, asset_ids, log_level=logging.INFO):
+    def remove_assets(self, asset_ids, log_level=None):
         """
         Removes the given asset(s) from local storage.
 
@@ -984,7 +984,7 @@ class ClassLocalFolder:
             LOGGER.info(f"INFO    : Removed {count} asset(s) from local storage.")
             return count
 
-    def remove_duplicates_assets(self, log_level=logging.INFO):
+    def remove_duplicates_assets(self, log_level=None):
         """
         Removes duplicate assets in local storage, keeping only the first one found.
 
@@ -1005,7 +1005,7 @@ class ClassLocalFolder:
             return count_removed
 
 
-    def push_asset(self, file_path, log_level=logging.INFO):
+    def push_asset(self, file_path, log_level=None):
         """
         Uploads (copies) a local file to the No-Albums directory following a year/month structure.
 
@@ -1040,7 +1040,7 @@ class ClassLocalFolder:
             return str(dest), False
 
 
-    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_LocalFolder", album_passphrase=None, log_level=logging.INFO):
+    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_LocalFolder", album_passphrase=None, log_level=None):
         """
         Downloads (copies) an asset to a specified local folder, preserving the file's timestamp.
 
@@ -1151,7 +1151,7 @@ class ClassLocalFolder:
         pass
 
 
-    def remove_empty_folders(self, log_level=logging.INFO):
+    def remove_empty_folders(self, log_level=None):
         """
         Recursively removes all empty folders in the entire base folder structure.
 
@@ -1183,7 +1183,7 @@ class ClassLocalFolder:
             return empty_folders_removed
 
 
-    def remove_all_albums(self, log_level=logging.INFO):
+    def remove_all_albums(self, log_level=None):
         """
         Removes all album folders. If removeAlbumsAssets=True, also removes files inside them.
 
@@ -1201,7 +1201,7 @@ class ClassLocalFolder:
             return True
 
 
-    def remove_empty_albums(self, log_level=logging.INFO):
+    def remove_empty_albums(self, log_level=None):
         """
         Removes all empty album folders.
         """

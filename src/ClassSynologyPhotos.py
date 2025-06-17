@@ -121,14 +121,14 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                           CLASS PROPERTIES GETS                         #
     ###########################################################################
-    def get_client_name(self, log_level=logging.INFO):
+    def get_client_name(self, log_level=None):
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             return self.CLIENT_NAME
 
     ###########################################################################
     #                           CONFIGURATION READING                         #
     ###########################################################################
-    def read_config_file(self, config_file='Config.ini', log_level=logging.INFO):
+    def read_config_file(self, config_file='Config.ini', log_level=None):
         """
         Reads the Configuration file and updates the instance attributes.
         If the config file is not found, prompts the user to manually input required data.
@@ -185,7 +185,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                         AUTHENTICATION / LOGOUT                         #
     ###########################################################################
-    def login(self, use_syno_token=False, use_OTP=ARGS['one-time-password'], log_level=logging.INFO):
+    def login(self, use_syno_token=False, use_OTP=ARGS['one-time-password'], log_level=None):
         """
         Logs into the NAS and returns the active session with the SID and Synology DSM URL.
 
@@ -250,7 +250,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while login into Synology Photos!. {e}")
             
 
-    def logout(self, log_level=logging.INFO):
+    def logout(self, log_level=None):
         """
         Logout from the Synology NAS and clears the active session and SID.
 
@@ -283,7 +283,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                           GENERAL UTILITY                               #
     ###########################################################################
-    def get_supported_media_types(self, type='media', log_level=logging.INFO):
+    def get_supported_media_types(self, type='media', log_level=None):
         """
         Returns the supported media/sidecar extensions as for Synology Photos
         """
@@ -310,7 +310,7 @@ class ClassSynologyPhotos:
                 return None
             
 
-    def get_user_id(self, log_level=logging.INFO):
+    def get_user_id(self, log_level=None):
         """
         Returns the user_id of the currently logged-in user.
         """
@@ -322,7 +322,7 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting user id. {e}")
 
-    def get_user_mail(self, log_level=logging.INFO):
+    def get_user_mail(self, log_level=None):
         """
         Returns the user_mail of the currently logged-in user.
         """
@@ -334,7 +334,7 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting user mail. {e}")
 
-    def get_geocoding_person_lists(self, log_level=logging.INFO):
+    def get_geocoding_person_lists(self, log_level=None):
         """
         Gets the Geocoding list.
 
@@ -371,7 +371,7 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting Geocoding List from Synology Photos. {e}")
 
-    def get_person_ids(self, person, log_level=logging.INFO):
+    def get_person_ids(self, person, log_level=None):
         """
         Retrieves the ID(s) of the person matching the provided name.
 
@@ -390,7 +390,7 @@ class ClassSynologyPhotos:
                     person_ids_list.append(item.get("id"))
             return person_ids_list
 
-    def get_geocoding_ids(self, place, log_level=logging.INFO):
+    def get_geocoding_ids(self, place, log_level=None):
         def collect_ids(node):
             """Recorre recursivamente un nodo y extrae su id y el de todos sus hijos"""
             ids = [node.get("id")]
@@ -412,7 +412,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                            ALBUMS FUNCTIONS                             #
     ###########################################################################
-    def create_album(self, album_name, log_level=logging.INFO):
+    def create_album(self, album_name, log_level=None):
         """
         Creates a new album in Synology Photos with the specified name.
 
@@ -452,7 +452,7 @@ class ClassSynologyPhotos:
                 LOGGER.warning(f"WARNING : Cannot create album: '{album_name}' due to API call error. Skipped! {e}")
 
 
-    def remove_album(self, album_id, album_name, log_level=logging.INFO):
+    def remove_album(self, album_id, album_name, log_level=None):
         """
         Removes an album in Synology Photos by its album ID.
 
@@ -490,7 +490,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while removing Album from Synology Photos. {e}")
 
 
-    def get_albums_owned_by_user(self, filter_assets=True, log_level=logging.INFO):
+    def get_albums_owned_by_user(self, filter_assets=True, log_level=None):
         """
         Get all albums in Synology Photos for the current user.
 
@@ -556,7 +556,7 @@ class ClassSynologyPhotos:
                 LOGGER.warning(f"WARNING : Cannot get albums due to API call error. Skipped! {e}")
 
 
-    def get_albums_including_shared_with_user(self, filter_assets=True, log_level=logging.INFO):
+    def get_albums_including_shared_with_user(self, filter_assets=True, log_level=None):
         """
         Get both own and shared albums in Synology Photos.
 
@@ -624,7 +624,7 @@ class ClassSynologyPhotos:
             return albums_filtered
 
 
-    def get_album_assets_size(self, album_id, album_name, log_level=logging.INFO):
+    def get_album_assets_size(self, album_id, album_name, log_level=None):
         """
         Gets the total size (bytes) of all assets in an album.
 
@@ -680,7 +680,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
             
 
-    def get_album_assets_count(self, album_id, album_name, log_level=logging.INFO):
+    def get_album_assets_count(self, album_id, album_name, log_level=None):
         """
         Gets the number of assets in an album.
 
@@ -717,7 +717,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets count from Synology Photos. {e}")
 
 
-    def album_exists(self, album_name, log_level=logging.INFO):
+    def album_exists(self, album_name, log_level=None):
         """
         Gets the number of items in an album.
 
@@ -752,7 +752,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                            ASSETS FILTERING                             #
     ###########################################################################
-    def filter_assets(self, assets, log_level=logging.INFO):
+    def filter_assets(self, assets, log_level=None):
         """
         Filters a list of assets by person name.
 
@@ -776,7 +776,7 @@ class ClassSynologyPhotos:
                     filtered.append(asset)
             return filtered
 
-    def filter_assets_old(self, assets, log_level=logging.INFO):
+    def filter_assets_old(self, assets, log_level=None):
         """
         Filters a list of assets based on user-defined criteria such as date range,
         country, city, and asset type. Filter parameters are retrieved from the global ARGS dictionary.
@@ -936,7 +936,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                        ASSETS (PHOTOS/VIDEOS)                           #
     ###########################################################################
-    def get_assets_by_filters(self, log_level=logging.INFO):
+    def get_assets_by_filters(self, log_level=None):
         """
         Lists all assets in Synology Photos.
 
@@ -1043,7 +1043,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while getting all Assets from Synology Photos. {e}")
             
 
-    def get_all_assets_from_album(self, album_id, album_name=None, log_level=logging.INFO):
+    def get_all_assets_from_album(self, album_id, album_name=None, log_level=None):
         """
         Get assets in a specific album.
 
@@ -1110,7 +1110,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while getting Album Assets from Synology Photos. {e}")
 
 
-    def get_all_assets_from_album_shared(self, album_id, album_name=None, album_passphrase=None, log_level=logging.INFO):
+    def get_all_assets_from_album_shared(self, album_id, album_name=None, album_passphrase=None, log_level=None):
         """
         Get assets in a specific shared album.
 
@@ -1304,7 +1304,7 @@ class ClassSynologyPhotos:
             
 
     # TODO: Complete this method
-    def get_duplicates_assets(self, log_level=logging.INFO):
+    def get_duplicates_assets(self, log_level=None):
         """
         Returns the list of duplicate assets from Synology
         """
@@ -1315,7 +1315,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while getting duplicates Assets from Synology Photos. {e}")
 
 
-    def remove_assets(self, asset_ids, log_level=logging.INFO):
+    def remove_assets(self, asset_ids, log_level=None):
         """
         Removes the given asset(s) from Synology Photos.
 
@@ -1366,7 +1366,7 @@ class ClassSynologyPhotos:
             
 
     # TODO: Complete this method
-    def remove_duplicates_assets(self, log_level=logging.INFO):
+    def remove_duplicates_assets(self, log_level=None):
         """
         Removes duplicate assets in the Synology database. Returns how many duplicates got removed.
         """
@@ -1377,7 +1377,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while removing duplicates assets from Synology Photos. {e}")
             
 
-    def push_asset(self, file_path, log_level=logging.INFO):
+    def push_asset(self, file_path, log_level=None):
         """
         Uploads a local file (photo/video) to Synology Photos.
 
@@ -1451,7 +1451,7 @@ class ClassSynologyPhotos:
                 return None, None
             
 
-    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Synology", album_passphrase=None, log_level=logging.INFO):
+    def pull_asset(self, asset_id, asset_filename, asset_time, download_folder="Downloaded_Synology", album_passphrase=None, log_level=None):
         """
         Downloads an asset (photo/video) from Synology Photos to a local folder,
         preserving the original timestamp if available.
@@ -1529,7 +1529,7 @@ class ClassSynologyPhotos:
     #                             FOLDERS FUNCTIONS                           #
     #             (This block is exclusive for ClassSynologyPhotos)           #
     ###########################################################################
-    def get_root_folder_id(self, log_level=logging.INFO):
+    def get_root_folder_id(self, log_level=None):
         """
         Retrieves the folder_id of the root folder in Synology Photos.
 
@@ -1650,7 +1650,7 @@ class ClassSynologyPhotos:
             except Exception as e:
                 LOGGER.error(f"ERROR   : Exception while getting folder ID from Synology Photos. {e}")
             
-    def get_folders(self, parent_folder_id, log_level=logging.INFO):
+    def get_folders(self, parent_folder_id, log_level=None):
         """
         Lists all subfolders under a specified parent_folder_id in Synology Photos.
 
@@ -1704,7 +1704,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while getting folders from Synology Photos. {e}")
             
 
-    def remove_folder(self, folder_id, folder_name, log_level=logging.INFO):
+    def remove_folder(self, folder_id, folder_name, log_level=None):
         """
         Removes a folder by its ID in Synology Photos.
 
@@ -1745,7 +1745,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while removing Folder from Synology Photos. {e}")
             
 
-    def get_folder_items_count(self, folder_id, folder_name, log_level=logging.INFO):
+    def get_folder_items_count(self, folder_id, folder_name, log_level=None):
         """
         Returns the assets count for a specific Synology Photos folder.
 
@@ -1791,7 +1791,7 @@ class ClassSynologyPhotos:
     #                         BACKGROUND TASKS MANAGEMENT                     #
     #             (This block is exclusive for ClassSynologyPhotos)           #
     ###########################################################################
-    def wait_for_background_remove_task(self, task_id, log_level=logging.INFO):
+    def wait_for_background_remove_task(self, task_id, log_level=None):
         """
         Internal helper to poll a background remove task until done.
 
@@ -1811,7 +1811,7 @@ class ClassSynologyPhotos:
                 LOGGER.error(f"ERROR   : Exception while waitting for remove task to finish in Synology Photos. {e}")
 
 
-    def wait_for_background_remove_task_finished_check(self, task_id, log_level=logging.INFO):
+    def wait_for_background_remove_task_finished_check(self, task_id, log_level=None):
         """
         Checks whether a background removal task is finished.
 
@@ -2076,7 +2076,7 @@ class ClassSynologyPhotos:
         return total_assets_uploaded, total_duplicated_assets_skipped, duplicates_assets_removed
 
 
-    def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.INFO):
+    def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=None):
         """
         Uploads ALL photos/videos from input_folder into Synology Photos.
         Returns details about how many albums and assets were uploaded.
@@ -2308,7 +2308,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                REMOVE EMPTY / DUPLICATES (FOLDERS & ALBUMS)            #
     ###########################################################################
-    def remove_empty_folders(self, log_level=logging.INFO):
+    def remove_empty_folders(self, log_level=None):
         """
         Recursively removes all empty folders and subfolders in Synology Photos,
         considering folders empty if they only contain '@eaDir'.
