@@ -187,7 +187,7 @@ jobs:
     uses: ./.github/workflows/build_docker.yml
     needs: set-input-matrix
     with:
-      final_release: ${{ github.event.inputs.final_release }}
+      final_release: ${{ inputs.final_release }}
 #      final_release: ${{ github.event.inputs.final_release || false }}
     secrets:
       TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
