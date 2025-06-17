@@ -188,8 +188,6 @@ jobs:
   build-docker:
     name: 🐳 Build Docker Workflow
     uses: ./.github/workflows/build_docker.yml
-    needs: set-input-matrix
-    if: ${{ always() }}
     with:
       prerelease: ${{ github.event.inputs.prerelease }}
     secrets:
