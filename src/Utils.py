@@ -1648,7 +1648,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                                 break # Once one truncation of the current suf is applied, stop trying shorter ones
 
                     if file_modified:
-                        LOGGER.info(f"INFO    : {step_name}Fixed MEDIA File : {original_file} → {new_name}")
+                        LOGGER.debug(f"DEBUG   : {step_name}Fixed MEDIA File : {original_file} → {new_name}")
     return counters
 
 
