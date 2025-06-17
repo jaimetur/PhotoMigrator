@@ -170,6 +170,8 @@ jobs:
           echo ""
           echo "📋 Desglose de Inputs:"
           echo "  🚧 Final-Release    : ${{ github.event.inputs.final_release }}"
+          echo "  🏁 Final-Release    : ${{ github.event.inputs.final_release }}"
+          echo "  🌿 Branch           : ${{ github.ref_name }}"
           echo "  📦 OS               : $(echo "$MATRIX" | jq -r '.os | join(", ")')"
           echo "  🛠️ Compiler         : $(echo "$MATRIX" | jq -r '.compiler | join(", ")')"
           echo "  🧪 Compilation mode : $(echo "$MATRIX" | jq -r '.compilation_mode | join(", ")')"
@@ -188,7 +190,6 @@ jobs:
     needs: set-input-matrix
     with:
       final_release: ${{ inputs.final_release }}
-#      final_release: ${{ github.event.inputs.final_release || false }}
     secrets:
       TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
