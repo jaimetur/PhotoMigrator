@@ -152,9 +152,9 @@ jobs:
         if: ${{ startsWith(matrix.os, 'windows') }}
         shell: bash
         run: |
-          # Define PRERELEASE con fallback si está vacío (por ejemplo, en eventos push)
+          # Define PRERELEASE=true con fallback si está vacío (por ejemplo, en eventos push)
           PRERELEASE="${{ inputs.prerelease }}"
-          PRERELEASE=${PRERELEASE:-false}
+          PRERELEASE=${PRERELEASE:-true}
       
           echo "→ PRERELEASE = $PRERELEASE"
           
