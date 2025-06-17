@@ -23,7 +23,8 @@ HELP_TEXTS                      = None
 ARGS                            = None
 PARSER                          = None
 LOGGER                          = None
-LOG_LEVEL_MIN                   = 5
+VERBOSE_LEVEL_NUM               = 5
+LOG_LEVEL_MIN                   = VERBOSE_LEVEL_NUM
 LOG_LEVEL                       = logging.INFO
 
 # Supplemental Metadata Suffix

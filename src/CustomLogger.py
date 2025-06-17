@@ -4,10 +4,9 @@ import logging
 from colorama import Fore, Style
 from contextlib import contextmanager
 import threading
-from GlobalVariables import LOG_LEVEL
+from GlobalVariables import LOG_LEVEL, VERBOSE_LEVEL_NUM
 
 # 1) Definir el nuevo nivel VERBOSE (valor 5)
-VERBOSE_LEVEL_NUM = 5
 logging.addLevelName(VERBOSE_LEVEL_NUM, "VERBOSE")
 
 # 2) Añadir el método `verbose()` a Logger
