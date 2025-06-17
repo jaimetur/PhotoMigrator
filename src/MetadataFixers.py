@@ -128,7 +128,9 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
                 return True
             else:
                 LOGGER.error(f"ERROR   : {step_name}❌ GPTH Tool fixing failed.")
-                return False
+                # TODO: Change this to False when GPTH fix the return code
+                # return False
+                return True
         except subprocess.CalledProcessError as e:
             LOGGER.error(f"ERROR   : {step_name}❌ GPTH Tool fixing failed:\n{e.stderr}")
             return False

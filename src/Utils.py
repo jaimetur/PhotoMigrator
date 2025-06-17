@@ -2491,7 +2491,6 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
         for warning_message in warning_messages:
             LOGGER.warning(warning_message)
 
-        # return renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged
         return {
             'renamed_album_folders': renamed_album_folders,
             'duplicates_album_folders': duplicates_album_folders,
