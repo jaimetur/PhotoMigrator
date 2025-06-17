@@ -7,7 +7,7 @@ on:
       final_release:
         description: "Is this a Final Release?"
         required: true
-        default: true
+        default: false
         type: boolean
       compiler:
         description: "Select Compiler:"
