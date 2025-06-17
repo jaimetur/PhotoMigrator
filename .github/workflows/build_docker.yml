@@ -9,31 +9,25 @@ on:
         required: true
         default: false
       prerelease:
-        description: "Is this a Pre-release ?"
+        description: "Is this a Pre-release?"
         required: true
-        default: "true"
-        type: choice
-        options:
-          - "true"
-          - "false"
+        default: true
+        type: boolean
 
   workflow_call:          # Allow to call this workflow from another workflow
-    secrets:
-      TOKEN_GITHUB:
-        required: true
-      DOCKERHUB_USERNAME:
-        required: true
-      DOCKERHUB_PASSWORD:
-        required: true
     inputs:
       prerelease:
-        description: "Is this a Pre-release ?"
+        description: "Is this a Pre-release?"
         required: true
-        default: "true"
-        type: choice
-        options:
-          - "true"
-          - "false"
+        default: true
+        type: boolean
+      secrets:
+        TOKEN_GITHUB:
+          required: true
+        DOCKERHUB_USERNAME:
+          required: true
+        DOCKERHUB_PASSWORD:
+          required: true
 
   push:                   # Ejecución tras push en cualquier rama, excepto en los path-ignore
     branches:
