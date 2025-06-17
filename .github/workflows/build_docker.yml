@@ -1,4 +1,4 @@
-name: Build and Push Docker Image (optionally
+name: 🐳 Build and Push Docker Image (optionally)
 
 on:
   # ──────────────── 1) Disparador manual desde GitHub Actions ────────────────
@@ -7,11 +7,11 @@ on:
       create_release:
         description: "Create Release ?"
         type: boolean
-        required: true
+        required: false
         default: false
       final_release:
         description: "Is this a Final Release?"
-        required: true
+        required: false
         default: true
         type: boolean
 
@@ -20,7 +20,7 @@ on:
     inputs:
       final_release:
         description: "Is this a Final Release?"
-        required: true
+        required: false
         default: true
         type: boolean
     secrets:
