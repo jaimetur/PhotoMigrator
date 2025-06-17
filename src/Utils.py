@@ -33,7 +33,33 @@ TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
 ######################
 # FUNCIONES AUXILIARES
 ######################
-
+def create_counters():
+    return {
+        'total_files': 0,
+        'unsupported_files': 0,
+        'supported_files': 0,
+        'media_files': 0,
+        'photo_files': 0,
+        'video_files': 0,
+        'non_media_files': 0,
+        'metadata_files': 0,
+        'sidecar_files': 0,
+        'photos': {
+            'total': 0,
+            'with_date': 0,
+            'without_date': 0,
+            'pct_with_date': 100,
+            'pct_without_date': 100,
+        },
+        'videos': {
+            'total': 0,
+            'with_date': 0,
+            'without_date': 0,
+            'pct_with_date': 100,
+            'pct_without_date': 100,
+        }
+    }
+    
 # Redefinir `tqdm` para usar `TQDM_LOGGER_INSTANCE` si no se especifica `file`
 def tqdm(*args, **kwargs):
     if ARGS['AUTOMATIC-MIGRATION'] and ARGS['dashboard'] == True:
@@ -332,20 +358,7 @@ def count_files_per_type_and_date(input_folder, within_json_sidecar=True, log_le
         timestamp_dt = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S")
 
         # Initialize overall counters with pct keys for media
-        counters = {
-            'total_files': 0,
-            'unsupported_files': 0,
-            'supported_files': 0,
-            'media_files': 0,
-            'photo_files': 0,
-            'video_files': 0,
-            'non_media_files': 0,
-            'metadata_files': 0,
-            'sidecar_files': 0,
-            # Nested counters for date assignment and percentages
-            'photos':    {'total': 0, 'with_date': 0, 'without_date': 0, 'pct_with_date': 100, 'pct_without_date': 100},
-            'videos':    {'total': 0, 'with_date': 0, 'without_date': 0, 'pct_with_date': 100, 'pct_without_date': 100},
-        }
+        counters = create_counters()
 
         supported_exts = set(PHOTO_EXT + VIDEO_EXT + METADATA_EXT + SIDECAR_EXT)
 
