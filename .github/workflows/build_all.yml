@@ -1,4 +1,4 @@
-name: Build Binaries for Multiple Platforms and Docker Image
+name: ▶️ Build Binaries for Multiple Platforms and Docker Image
 
 on:
   # ──────────────── 1) Disparador manual desde GitHub Actions ────────────────
@@ -450,7 +450,7 @@ jobs:
 
       - name: ✅ Check Final-Release
         run: |
-          echo "Final-Release: ${{ github.event.inputs.final_release }}"
+          echo "Final-Release: ${{ inputs.final_release }}"
 
       - name: 🏷️ Extract SCRIPT_VERSION from GlobalVariables.py
         run: |
@@ -565,7 +565,7 @@ jobs:
 
       # 🚀 Crear release estable (final_release == true)
       - name: 🚀 Create GitHub Release (stable)
-        if: ${{ github.event.inputs.final_release == true }}
+        if: ${{ inputs.final_release == true }}
         uses: softprops/action-gh-release@v2.2.2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
@@ -584,7 +584,7 @@ jobs:
       
       # 🚀 Crear prerelease (final_release == false)
       - name: 🚀 Create GitHub Release (prerelease)
-        if: ${{ github.event.inputs.final_release == false }}
+        if: ${{ inputs.final_release == false }}
         uses: softprops/action-gh-release@v2.2.2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
@@ -602,7 +602,7 @@ jobs:
 
 
 #      - name: 🔧 Patch release after creation
-#        if: ${{ github.event.inputs.final_release == true }}
+#        if: ${{ inputs.final_release == true }}
 #        run: |
 #          TAG="v${{ env.SCRIPT_VERSION }}"
 #          REPO="${{ github.repository }}"
