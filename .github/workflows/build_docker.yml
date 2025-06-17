@@ -120,7 +120,7 @@ jobs:
         run: |
           # Define PRERELEASE con fallback si está vacío (por ejemplo, en eventos push)
           PRERELEASE="${{ inputs.prerelease }}"
-          PRERELEASE=${PRERELEASE:-false}
+          PRERELEASE=${PRERELEASE:-true}
       
           echo "→ PRERELEASE = $PRERELEASE"
           
