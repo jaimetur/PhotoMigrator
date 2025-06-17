@@ -35,7 +35,7 @@ on:
   push:                   # Ejecución tras push en cualquier rama, excepto en los path-ignore
     branches:
       - main             # Ejecución tras push en main, excepto en los path-ignore
-      - developer        # Ejecución tras push en developer, excepto en los path-ignore
+      - development      # Ejecución tras push en developer, excepto en los path-ignore
     paths-ignore:
       - .gitignore
       - .idea/**
