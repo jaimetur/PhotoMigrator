@@ -3,7 +3,7 @@
 #####################################
 
 # Initialize Dataclass to return by count_files_per_type()
-def create_counters():
+def init_count_files_counters ():
     return {
         'total_files': 0,
         'unsupported_files': 0,
@@ -31,5 +31,17 @@ def create_counters():
     }
 
 # Initialize Dataclass to return by process() eithin ClassTakeoutFolder Class
-def create result();
-    pass
+def init_process_results ():
+    result = {
+            'input_counters': init_count_files_counters(),
+            'output_counters': init_count_files_counters(),
+            'valid_albums_found': 0,
+            'symlink_fixed': 0,
+            'symlink_not_fixed': 0,
+            'duplicates_found': 0,
+            'removed_empty_folders': 0,
+            'renamed_album_folders': 0,
+            'duplicates_album_folders': 0,
+            'duplicates_albums_fully_merged': 0,
+            'duplicates_albums_not_fully_merged': 0,
+        }
