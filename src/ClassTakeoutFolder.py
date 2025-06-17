@@ -151,9 +151,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         """
         from GlobalVariables import LOGGER
         from DataModels import init_process_results
-        
-        result = init_process_results()
-        
+
         # Determine where the Albums will be located
         if not self.ARGS['google-skip-move-albums']:
             album_folder = os.path.join(output_takeout_folder, 'Albums')
@@ -230,6 +228,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"INFO    : {step_name}Counting files in Takeout Folder: {input_folder}...")
             # New function to count all file types and extract also date info
             initial_takeout_counters = Utils.count_files_per_type_and_date(input_folder=input_folder, within_json_sidecar=False, log_level=log_level)
+
             # Clean input dict
             result['input_counters'].clear()
             # Assign all pairs key-value from initial_takeout_counters to counter['input_counters'] dict

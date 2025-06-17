@@ -32,7 +32,7 @@ def init_count_files_counters ():
 
 # Initialize Dataclass to return by process() eithin ClassTakeoutFolder Class
 def init_process_results ():
-    result = {
+    return {
             'input_counters': init_count_files_counters(),
             'output_counters': init_count_files_counters(),
             'valid_albums_found': 0,
