@@ -8,11 +8,16 @@
 
 - ### Main Changes:
   - #### 🌟 New Features:
+    - [x] Created GitHub Forms on New Issues.
+    - [x] Added Step duration summary at the end of `Google Takeout Processing` feature
 
   - #### 🚀 Enhancements:
     - [x] Updated GPTH to version `4.0.9` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
       - Code totally refactored and optimized
-    - [x] Created GitHub Forms on New Issues. 
+  
+  - #### 🐛 Bug fixes:
+    - [ ] Fix `--loglevel` argument.
+
 ---
 
 ## **Release**: v3.3.2  
