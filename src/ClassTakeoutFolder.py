@@ -150,22 +150,10 @@ class ClassTakeoutFolder(ClassLocalFolder):
         process() function, but uses LOGGER and self.ARGS instead of global.
         """
         from GlobalVariables import LOGGER
-        # Initialize Dataclass to return
-        # result = ProcessingResult()
-        result = {
-            'input_counters': {},
-            'output_counters': {},
-            'valid_albums_found': 0,
-            'symlink_fixed': 0,
-            'symlink_not_fixed': 0,
-            'duplicates_found': 0,
-            'removed_empty_folders': 0,
-            'renamed_album_folders': 0,
-            'duplicates_album_folders': 0,
-            'duplicates_albums_fully_merged': 0,
-            'duplicates_albums_not_fully_merged': 0,
-        }
-
+        from DataModels import init_process_results
+        
+        result = init_process_results()
+        
         # Determine where the Albums will be located
         if not self.ARGS['google-skip-move-albums']:
             album_folder = os.path.join(output_takeout_folder, 'Albums')
