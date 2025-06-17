@@ -151,10 +151,36 @@ class ClassTakeoutFolder(ClassLocalFolder):
         """
         from GlobalVariables import LOGGER
         # Initialize Dataclass to return
-        # result = ProcessingResult()
+        def create_counters():
+            return {
+                'total_files': 0,
+                'unsupported_files': 0,
+                'supported_files': 0,
+                'media_files': 0,
+                'photo_files': 0,
+                'video_files': 0,
+                'non_media_files': 0,
+                'metadata_files': 0,
+                'sidecar_files': 0,
+                'photos': {
+                    'total': 0,
+                    'with_date': 0,
+                    'without_date': 0,
+                    'pct_with_date': 100,
+                    'pct_without_date': 100,
+                },
+                'videos': {
+                    'total': 0,
+                    'with_date': 0,
+                    'without_date': 0,
+                    'pct_with_date': 100,
+                    'pct_without_date': 100,
+                }
+            }
+        
         result = {
-            'input_counters': {},
-            'output_counters': {},
+            'input_counters': create_counters(),
+            'output_counters': create_counters(),
             'valid_albums_found': 0,
             'symlink_fixed': 0,
             'symlink_not_fixed': 0,
@@ -165,7 +191,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             'duplicates_albums_fully_merged': 0,
             'duplicates_albums_not_fully_merged': 0,
         }
-
+        
         # Determine where the Albums will be located
         if not self.ARGS['google-skip-move-albums']:
             album_folder = os.path.join(output_takeout_folder, 'Albums')
