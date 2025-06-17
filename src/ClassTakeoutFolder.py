@@ -150,33 +150,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         process() function, but uses LOGGER and self.ARGS instead of global.
         """
         from GlobalVariables import LOGGER
-        # Initialize Dataclass to return
-        def create_counters():
-            return {
-                'total_files': 0,
-                'unsupported_files': 0,
-                'supported_files': 0,
-                'media_files': 0,
-                'photo_files': 0,
-                'video_files': 0,
-                'non_media_files': 0,
-                'metadata_files': 0,
-                'sidecar_files': 0,
-                'photos': {
-                    'total': 0,
-                    'with_date': 0,
-                    'without_date': 0,
-                    'pct_with_date': 100,
-                    'pct_without_date': 100,
-                },
-                'videos': {
-                    'total': 0,
-                    'with_date': 0,
-                    'without_date': 0,
-                    'pct_with_date': 100,
-                    'pct_without_date': 100,
-                }
-            }
+        from DataModels import create_counters
         
         result = {
             'input_counters': create_counters(),
