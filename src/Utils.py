@@ -26,7 +26,7 @@ from dateutil import parser as date_parser
 from tqdm import tqdm as original_tqdm
 from CustomLogger import LoggerConsoleTqdm
 from GlobalVariables import LOGGER, ARGS, TIMESTAMP, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, EDITTED_SUFFIXES
-from DataModels import create_counters
+from DataModels import init_count_files_counters
 
 # Crear instancia global del wrapper
 TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
@@ -332,7 +332,7 @@ def count_files_per_type_and_date(input_folder, within_json_sidecar=True, log_le
         timestamp_dt = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S")
 
         # Initialize overall counters with pct keys for media
-        counters = create_counters()
+        counters = init_count_files_counters ()
 
         supported_exts = set(PHOTO_EXT + VIDEO_EXT + METADATA_EXT + SIDECAR_EXT)
 
