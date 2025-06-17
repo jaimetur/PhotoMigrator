@@ -1,6 +1,7 @@
 name: Build and Push Docker Image (optionally
 
 on:
+  # ──────────────── 1) Disparador manual desde GitHub Actions ────────────────
   workflow_dispatch:      # Allows manual execution of the workflow
     inputs:
       create_release:
@@ -13,7 +14,7 @@ on:
         required: true
         default: true
         type: boolean
-
+  # ──────────────── 2) Disparador  desde otro workflow ────────────────
   workflow_call:          # Allow to call this workflow from another workflow
     inputs:
       prerelease:
@@ -28,7 +29,7 @@ on:
           required: true
         DOCKERHUB_PASSWORD:
           required: true
-
+  # ──────────────── 2) Disparador automático por push ──────────────────────
   push:                   # Ejecución tras push en cualquier rama, excepto en los path-ignore
     branches:
       - main             # Ejecución tras push en main, excepto en los path-ignore
@@ -41,7 +42,7 @@ on:
 #  schedule:
 # Ejecución diaria a las 2 AM UTC
 #    - cron: '0 2 * * *'
-
+  # ─────────────────────────────────────────────────────────────────────────
 
 jobs:
   build:
@@ -117,6 +118,12 @@ jobs:
       - name: 🐳 Build & Push Docker image
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
+          # Define PRERELEASE con fallback si está vacío (por ejemplo, en eventos push)
+          PRERELEASE="${{ inputs.prerelease }}"
+          PRERELEASE=${PRERELEASE:-false}
+      
+          echo "→ PRERELEASE = $PRERELEASE"
+          
           # Fuerza a Docker a:
           #  1) descargar la base actualizada ( --pull )
           #  2) ignorar todas las capas cacheadas ( --no-cache )
@@ -145,6 +152,12 @@ jobs:
         if: ${{ startsWith(matrix.os, 'windows') }}
         shell: bash
         run: |
+          # Define PRERELEASE con fallback si está vacío (por ejemplo, en eventos push)
+          PRERELEASE="${{ inputs.prerelease }}"
+          PRERELEASE=${PRERELEASE:-false}
+      
+          echo "→ PRERELEASE = $PRERELEASE"
+          
           # Construir imagen Windows
           docker build --pull --no-cache \
                 -t jaimetur/photomigrator:${SCRIPT_VERSION}-windows \
