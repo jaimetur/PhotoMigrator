@@ -1,6 +1,7 @@
-name: Build Docker Image Only
+name: Build and Push Docker Image (optionally
 
 on:
+  # ──────────────── 1) Disparador manual desde GitHub Actions ────────────────
   workflow_dispatch:      # Allows manual execution of the workflow
     inputs:
       create_release:
@@ -8,64 +9,87 @@ on:
         type: boolean
         required: true
         default: false
+      prerelease:
+        description: "Is this a Pre-release?"
+        required: true
+        default: true
+        type: boolean
+
+  # ──────────────── 2) Disparador  desde otro workflow ────────────────
+  workflow_call:          # Allow to call this workflow from another workflow
+    inputs:
+      prerelease:
+        description: "Is this a Pre-release?"
+        required: true
+        default: true
+        type: boolean
+    secrets:
+      TOKEN_GITHUB:
+        required: true
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_PASSWORD:
+        required: true
+
+  # ──────────────── 3) Disparador automático por push ──────────────────────
   push:                   # Ejecución tras push en cualquier rama, excepto en los path-ignore
     branches:
       - main             # Ejecución tras push en main, excepto en los path-ignore
+      - developer        # Ejecución tras push en developer, excepto en los path-ignore
     paths-ignore:
       - .gitignore
       - .idea/**
-      - .github/**
       - gpth*/**
       - README.md
-#  schedule:
-# Ejecución diaria a las 2 AM UTC
-#    - cron: '0 2 * * *'
+
+  # ──────────────── 4) Disparador automático por cron ──────────────────────
+  #  schedule:
+  #    - cron: '0 2 * * *' # Ejecución diaria a las 2 AM UTC
+  # ─────────────────────────────────────────────────────────────────────────
 
 jobs:
   build:
     strategy:
       matrix:
+#        os: [ubuntu-latest, windows-latest]  # os list
         os: [ubuntu-latest]  # os list
         python-version: [ "3.12.10" ]
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      # Checkout Repository
-      - name: Checkout Repository
+      # 🧾 Checkout Repository
+      - name: 🧾 Checkout Repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.TOKEN_GITHUB }}
+          token: ${{ inputs.token_github || secrets.TOKEN_GITHUB }}
 
-      # Set up Python
-      - name: Set up Python
+      # 🐍 Set up Python
+      - name: 🐍 Set up Python
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Install dependencies
-      - name: Install dependencies
+      # 📦 Install dependencies
+      - name: 📦 Install dependencies
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
           
 
-      # 1. - Execute for ubuntu --no-compile to avoid compile any binary
-      - name: 1. - Execute for ubuntu --no-compile to avoid compile any binary
+      # ▶️ Execute build.py with --no-compile to avoid compile any binary
+      - name: ▶️ Execute build.py with --no-compile to avoid compile any binary
+        shell: bash
         run: |
           echo "::group::Execute for ${{ matrix.os }}"
-                    
-          # Execute for ubuntu
-          if [[ "${{ matrix.os }}" == *"ubuntu"* ]]; then
-            python3 build.py --no-compile
-          fi
-          
+          python3 build.py --no-compile
           echo "::endgroup::"
-        shell: bash
+          
 
-      # 2. Read SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt (Linux/macOS)
-      - name: 2. Read SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt (Linux/macOS)
-        if: runner.os != 'Windows'
+      # 🏷️ Extract SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt
+      - name: 🏷️ Extract SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt
+#        if: runner.os != 'Windows'
+        shell: bash
         run: |
           # Read SCRIPT_VERSION from the first line
           SCRIPT_VERSION=$(grep '^SCRIPT_VERSION=' build_info.txt | cut -d'=' -f2-)
@@ -85,40 +109,81 @@ jobs:
       # ===========================
       # Generate the Docker version
       # ===========================
-      # 3. Log in to Docker Hub
-      - name: 3. Log in to Docker Hub
-        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+      # 🐳 Log in to Docker Hub
+      - name: 🐳 Log in to Docker Hub
+#        if: ${{ startsWith(matrix.os, 'ubuntu') }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      # 4. Build & Push Docker image
-      - name: 4. Build & Push Docker image
+      # 🐳 Build & Push Docker image
+      - name: 🐳 Build & Push Docker image
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
+          # Define PRERELEASE con fallback si está vacío (por ejemplo, en eventos push)
+          PRERELEASE="${{ inputs.prerelease }}"
+          PRERELEASE=${PRERELEASE:-true}
+      
+          echo "→ PRERELEASE = $PRERELEASE"
+          
           # Fuerza a Docker a:
           #  1) descargar la base actualizada ( --pull )
           #  2) ignorar todas las capas cacheadas ( --no-cache )
           docker build --pull --no-cache \
-            -t jaimetur/photomigrator:${{ env.SCRIPT_VERSION }} \
-            -f docker/Dockerfile .
-
-          # Etiquetar como latest
-          docker tag jaimetur/photomigrator:${{ env.SCRIPT_VERSION }} jaimetur/photomigrator:latest
-
-          # Si es versión estable (no alpha, beta ni RC), etiquetar también como latest-stable
-          if [[ "${SCRIPT_VERSION}" != *alpha* && "${SCRIPT_VERSION}" != *beta* && "${SCRIPT_VERSION}" != *RC* ]]; then
+                -t jaimetur/photomigrator:${SCRIPT_VERSION} \
+                -f docker/dockerfile-linux .
+          
+          # Push siempre etiqueta obligatoria con la versión
+          docker push jaimetur/photomigrator:${SCRIPT_VERSION}
+          
+          # Push 'latest' if prerelease is true OR it's alpha/beta/RC
+          if [[ "${PRERELEASE}" == "true" || "${SCRIPT_VERSION}" == *alpha* || "${SCRIPT_VERSION}" == *beta* || "${SCRIPT_VERSION}" == *RC* ]]; then
+            docker tag jaimetur/photomigrator:${SCRIPT_VERSION} jaimetur/photomigrator:latest
+            docker push jaimetur/photomigrator:latest
+          fi
+      
+          # Push 'latest-stable' only if prerelease is false AND not alpha/beta/RC
+          if [[ "${PRERELEASE}" == "false" && "${SCRIPT_VERSION}" != *alpha* && "${SCRIPT_VERSION}" != *beta* && "${SCRIPT_VERSION}" != *RC* ]]; then
             docker tag jaimetur/photomigrator:${SCRIPT_VERSION} jaimetur/photomigrator:latest-stable
             docker push jaimetur/photomigrator:latest-stable
           fi
+          
 
-          # Subir etiquetas latest y con versión específica
-          docker push jaimetur/photomigrator:${SCRIPT_VERSION}
-          docker push jaimetur/photomigrator:latest
+      # 🐳 Build & Push Windows Docker image (disabled since this doesn't work as expected)
+      - name: 🐳 Build & Push Windows Docker image (disabled since this doesn't work as expected)
+        if: ${{ startsWith(matrix.os, 'windows') }}
+        shell: bash
+        run: |
+          # Define PRERELEASE=true con fallback si está vacío (por ejemplo, en eventos push)
+          PRERELEASE="${{ inputs.prerelease }}"
+          PRERELEASE=${PRERELEASE:-true}
       
-      # 5. Prepare unified ZIP docker package
-      - name: 5. Prepare unified ZIP docker package
+          echo "→ PRERELEASE = $PRERELEASE"
+          
+          # Construir imagen Windows
+          docker build --pull --no-cache \
+                -t jaimetur/photomigrator:${SCRIPT_VERSION}-windows \
+                -f docker/dockerfile-windows .
+          
+          # Push siempre etiqueta obligatoria con la versión
+          docker push jaimetur/photomigrator:${SCRIPT_VERSION}-windows
+          
+          # Push 'latest' if prerelease is true OR it's alpha/beta/RC
+          if [[ "${PRERELEASE}" == "true" || "${SCRIPT_VERSION}" == *alpha* || "${SCRIPT_VERSION}" == *beta* || "${SCRIPT_VERSION}" == *RC* ]]; then
+            docker tag jaimetur/photomigrator:${SCRIPT_VERSION}-windows jaimetur/photomigrator:latest-windows
+            docker push jaimetur/photomigrator:latest-windows
+          fi
+      
+          # Push 'latest-stable' only if prerelease is false AND not alpha/beta/RC
+          if [[ "${PRERELEASE}" == "false" && "${SCRIPT_VERSION}" != *alpha* && "${SCRIPT_VERSION}" != *beta* && "${SCRIPT_VERSION}" != *RC* ]]; then
+            docker tag jaimetur/photomigrator:${SCRIPT_VERSION}-windows jaimetur/photomigrator:latest-stable-windows
+            docker push jaimetur/photomigrator:latest-stable-windows
+          fi
+
+      
+      # 🧩 Prepare ZIP docker package
+      - name: 🧩 Prepare ZIP docker package
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           mkdir -p PhotoMigrator/docker
@@ -130,12 +195,20 @@ jobs:
           cp -r help PhotoMigrator/docker/
           cp README.md PhotoMigrator/docker/docs/README.md
           zip -r PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip PhotoMigrator
+
+      # 📤 Upload Docker ZIP as artifact to be used in the main workflow
+      - name: 📤 Upload Docker ZIP as artifact to be used in the main workflow
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
+          path: PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
+
       # ================================
       # End of Docker version Generation
       # ================================
 
-      # 6. Create Release and Upload Artifact to it (only if this action have been launched manually with create_release=true)
-      - name: 6. Create Release and Upload Artifact to it (only if this action have been launched manually with create_release=true)
+      # 🏷️ Create Release and Upload Artifact to it (only if this action have been launched manually with create_release=true)
+      - name: 🏷️ Create Release and Upload Artifact to it (only if this action have been launched manually with create_release=true)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_release == 'true'
         uses: softprops/action-gh-release@v2
         with:
@@ -148,55 +221,3 @@ jobs:
             PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-
-      # 7. - Cleanup (Linux/macOS)
-      - name: 7. - Cleanup (Linux/macOS)
-        if: runner.os != 'Windows'
-        run: |
-          if [ -f artifact_base64.txt ]; then
-            rm artifact_base64.txt
-            echo "Archivo artifact_base64.txt eliminado de carpeta raiz."
-          elif [ -f src/artifact_base64.txt ]; then
-            rm artifact_base64.txt
-            echo "Archivo artifact_base64.txt eliminado de src."
-          fi
-        shell: bash
-
-
-#      # 8. Commit y push README.md (Solo si OS = ubuntu*)
-#      - name: 8. Commit y push README.md
-#        if: ${{ startsWith(matrix.os, 'ubuntu') }}
-#        run: |
-#          git config --global user.name "github-actions[bot]"
-#          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-#
-#          # Añadir solo README.md, evitando archivos no deseados
-#          git add README.md
-#
-#          # Si NO hay cambios en README.md, salir sin error
-#          if git diff --cached --quiet; then
-#            echo "No hay cambios en README.md"
-#            exit 0
-#          fi
-#
-#          # Guardar cambios en stash antes de pull --rebase
-#          git stash push -m "Pre-rebase stash"
-#
-#          # Actualizar la rama
-#          git pull --rebase origin ${{ github.ref_name }}
-#
-#          # Restaurar cambios del stash si existen
-#          git stash pop || echo "No hay stash para aplicar"
-#
-#          # Asegurar que README.md está agregado después del pop
-#          git add README.md
-#
-#          # Verificar nuevamente si hay cambios antes de hacer commit
-#          if git diff --cached --quiet; then
-#            echo "No hay cambios después del stash pop"
-#            exit 0
-#          fi
-#
-#          # Realizar commit y push
-#          git commit -m "README.md updated by Github Actions (build_docker.yml)"
-#          git push origin ${{ github.ref_name }}
