@@ -1,4 +1,4 @@
-name: Build and Push Docker Image (optionally
+name: 🐳 Build and Push Docker Image (optionally)
 
 on:
   # ──────────────── 1) Disparador manual desde GitHub Actions ────────────────
@@ -7,20 +7,20 @@ on:
       create_release:
         description: "Create Release ?"
         type: boolean
-        required: true
+        required: false
         default: false
-      prerelease:
-        description: "Is this a Pre-release?"
-        required: true
+      final_release:
+        description: "Is this a Final Release?"
+        required: false
         default: true
         type: boolean
 
   # ──────────────── 2) Disparador  desde otro workflow ────────────────
   workflow_call:          # Allow to call this workflow from another workflow
     inputs:
-      prerelease:
-        description: "Is this a Pre-release?"
-        required: true
+      final_release:
+        description: "Is this a Final Release?"
+        required: false
         default: true
         type: boolean
     secrets:
@@ -88,7 +88,6 @@ jobs:
 
       # 🏷️ Extract SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt
       - name: 🏷️ Extract SCRIPT_VERSION and ARCHIVE_PATH from build_info.txt
-#        if: runner.os != 'Windows'
         shell: bash
         run: |
           # Read SCRIPT_VERSION from the first line
@@ -111,7 +110,6 @@ jobs:
       # ===========================
       # 🐳 Log in to Docker Hub
       - name: 🐳 Log in to Docker Hub
-#        if: ${{ startsWith(matrix.os, 'ubuntu') }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -121,11 +119,11 @@ jobs:
       - name: 🐳 Build & Push Docker image
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
-          # Define PRERELEASE con fallback si está vacío (por ejemplo, en eventos push)
-          PRERELEASE="${{ inputs.prerelease }}"
-          PRERELEASE=${PRERELEASE:-true}
+          # Define FINAL_RELEASE=false con fallback si está vacío (por ejemplo, en eventos push)
+          FINAL_RELEASE="${{ inputs.final_release }}"
+          FINAL_RELEASE=${FINAL_RELEASE:-false}
       
-          echo "→ PRERELEASE = $PRERELEASE"
+          echo "→ FINAL_RELEASE = $FINAL_RELEASE"
           
           # Fuerza a Docker a:
           #  1) descargar la base actualizada ( --pull )
@@ -137,14 +135,14 @@ jobs:
           # Push siempre etiqueta obligatoria con la versión
           docker push jaimetur/photomigrator:${SCRIPT_VERSION}
           
-          # Push 'latest' if prerelease is true OR it's alpha/beta/RC
-          if [[ "${PRERELEASE}" == "true" || "${SCRIPT_VERSION}" == *alpha* || "${SCRIPT_VERSION}" == *beta* || "${SCRIPT_VERSION}" == *RC* ]]; then
+          # Push 'latest' if final_release is false OR it's alpha/beta/RC
+          if [[ "${FINAL_RELEASE}" == "false" || "${SCRIPT_VERSION}" == *alpha* || "${SCRIPT_VERSION}" == *beta* || "${SCRIPT_VERSION}" == *RC* ]]; then
             docker tag jaimetur/photomigrator:${SCRIPT_VERSION} jaimetur/photomigrator:latest
             docker push jaimetur/photomigrator:latest
           fi
       
-          # Push 'latest-stable' only if prerelease is false AND not alpha/beta/RC
-          if [[ "${PRERELEASE}" == "false" && "${SCRIPT_VERSION}" != *alpha* && "${SCRIPT_VERSION}" != *beta* && "${SCRIPT_VERSION}" != *RC* ]]; then
+          # Push 'latest-stable' only if final_release is true AND not alpha/beta/RC
+          if [[ "${FINAL_RELEASE}" == "true" && "${SCRIPT_VERSION}" != *alpha* && "${SCRIPT_VERSION}" != *beta* && "${SCRIPT_VERSION}" != *RC* ]]; then
             docker tag jaimetur/photomigrator:${SCRIPT_VERSION} jaimetur/photomigrator:latest-stable
             docker push jaimetur/photomigrator:latest-stable
           fi
@@ -155,11 +153,11 @@ jobs:
         if: ${{ startsWith(matrix.os, 'windows') }}
         shell: bash
         run: |
-          # Define PRERELEASE=true con fallback si está vacío (por ejemplo, en eventos push)
-          PRERELEASE="${{ inputs.prerelease }}"
-          PRERELEASE=${PRERELEASE:-true}
+          # Define FINAL_RELEASE=false con fallback si está vacío (por ejemplo, en eventos push)
+          FINAL_RELEASE="${{ inputs.final_release }}"
+          FINAL_RELEASE=${FINAL_RELEASE:-false}
       
-          echo "→ PRERELEASE = $PRERELEASE"
+          echo "→ FINAL_RELEASE = $FINAL_RELEASE"
           
           # Construir imagen Windows
           docker build --pull --no-cache \
@@ -169,19 +167,18 @@ jobs:
           # Push siempre etiqueta obligatoria con la versión
           docker push jaimetur/photomigrator:${SCRIPT_VERSION}-windows
           
-          # Push 'latest' if prerelease is true OR it's alpha/beta/RC
-          if [[ "${PRERELEASE}" == "true" || "${SCRIPT_VERSION}" == *alpha* || "${SCRIPT_VERSION}" == *beta* || "${SCRIPT_VERSION}" == *RC* ]]; then
+          # Push 'latest' if final_release is false OR it's alpha/beta/RC
+          if [[ "${FINAL_RELEASE}" == "false" || "${SCRIPT_VERSION}" == *alpha* || "${SCRIPT_VERSION}" == *beta* || "${SCRIPT_VERSION}" == *RC* ]]; then
             docker tag jaimetur/photomigrator:${SCRIPT_VERSION}-windows jaimetur/photomigrator:latest-windows
             docker push jaimetur/photomigrator:latest-windows
           fi
       
-          # Push 'latest-stable' only if prerelease is false AND not alpha/beta/RC
-          if [[ "${PRERELEASE}" == "false" && "${SCRIPT_VERSION}" != *alpha* && "${SCRIPT_VERSION}" != *beta* && "${SCRIPT_VERSION}" != *RC* ]]; then
+          # Push 'latest-stable' only if final_release is true AND not alpha/beta/RC
+          if [[ "${FINAL_RELEASE}" == "true" && "${SCRIPT_VERSION}" != *alpha* && "${SCRIPT_VERSION}" != *beta* && "${SCRIPT_VERSION}" != *RC* ]]; then
             docker tag jaimetur/photomigrator:${SCRIPT_VERSION}-windows jaimetur/photomigrator:latest-stable-windows
             docker push jaimetur/photomigrator:latest-stable-windows
           fi
 
-      
       # 🧩 Prepare ZIP docker package
       - name: 🧩 Prepare ZIP docker package
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
