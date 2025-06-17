@@ -185,8 +185,8 @@ jobs:
   # ==========================================================================================================================
   # JOB Docker packaging (single run)
   # ==========================================================================================================================
-  docker-packaging:
-    name: 🐳 Run Docker Packaging Workflow
+  build-docker:
+    name: 🐳 Build Docker Workflow
     uses: ./.github/workflows/build_docker.yml
     needs: set-input-matrix
     if: ${{ always() }}
@@ -444,7 +444,7 @@ jobs:
     name: 🏷️ Create Release
     needs:
       - build
-      - docker-packaging
+      - build-docker
     runs-on: ubuntu-22.04
 
     steps:
