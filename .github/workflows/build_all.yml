@@ -188,6 +188,7 @@ jobs:
   build-docker:
     name: 🐳 Build Docker Workflow
     uses: ./.github/workflows/build_docker.yml
+    needs: set-input-matrix
     with:
       prerelease: ${{ github.event.inputs.prerelease }}
     secrets:
@@ -566,7 +567,7 @@ jobs:
 
       # 🚀 Crear release estable (prerelease == false)
       - name: 🚀 Create GitHub Release (stable)
-        if: ${{ github.event.inputs.prerelease == 'false' }}
+        if: ${{ github.event.inputs.prerelease == "false" }}
         uses: softprops/action-gh-release@v2.2.2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
@@ -585,7 +586,7 @@ jobs:
       
       # 🚀 Crear prerelease (prerelease == true)
       - name: 🚀 Create GitHub Release (prerelease)
-        if: ${{ github.event.inputs.prerelease == 'true' }}
+        if: ${{ github.event.inputs.prerelease == "true" }}
         uses: softprops/action-gh-release@v2.2.2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
@@ -603,7 +604,7 @@ jobs:
 
 
 #      - name: 🔧 Patch release after creation
-#        if: ${{ github.event.inputs.prerelease == 'false' }}
+#        if: ${{ github.event.inputs.prerelease == "false" }}
 #        run: |
 #          TAG="v${{ env.SCRIPT_VERSION }}"
 #          REPO="${{ github.repository }}"
