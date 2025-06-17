@@ -5,13 +5,10 @@ on:
   workflow_dispatch:
     inputs:
       prerelease:
-        description: "Is this a Pre-release ?"
+        description: "Is this a Pre-release?"
         required: true
-        default: "true"
-        type: choice
-        options:
-          - "true"
-          - "false"
+        default: true
+        type: boolean
       compiler:
         description: "Select Compiler:"
         required: true
@@ -567,7 +564,7 @@ jobs:
 
       # 🚀 Crear release estable (prerelease == false)
       - name: 🚀 Create GitHub Release (stable)
-        if: ${{ github.event.inputs.prerelease == "false" }}
+        if: ${{ github.event.inputs.prerelease == false }}
         uses: softprops/action-gh-release@v2.2.2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
@@ -586,7 +583,7 @@ jobs:
       
       # 🚀 Crear prerelease (prerelease == true)
       - name: 🚀 Create GitHub Release (prerelease)
-        if: ${{ github.event.inputs.prerelease == "true" }}
+        if: ${{ github.event.inputs.prerelease == true }}
         uses: softprops/action-gh-release@v2.2.2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
@@ -604,7 +601,7 @@ jobs:
 
 
 #      - name: 🔧 Patch release after creation
-#        if: ${{ github.event.inputs.prerelease == "false" }}
+#        if: ${{ github.event.inputs.prerelease == false }}
 #        run: |
 #          TAG="v${{ env.SCRIPT_VERSION }}"
 #          REPO="${{ github.repository }}"
