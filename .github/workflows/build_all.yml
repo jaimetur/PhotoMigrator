@@ -4,8 +4,8 @@ on:
   # ──────────────── 1) Disparador manual desde GitHub Actions ────────────────
   workflow_dispatch:
     inputs:
-      prerelease:
-        description: "Is this a Pre-release?"
+      final_release:
+        description: "Is this a Final Release?"
         required: true
         default: true
         type: boolean
@@ -169,7 +169,7 @@ jobs:
           echo "$MATRIX"
           echo ""
           echo "📋 Desglose de Inputs:"
-          echo "  🚧 Pre-Release      : ${{ github.event.inputs.prerelease }}"
+          echo "  🚧 Final-Release    : ${{ github.event.inputs.final_release }}"
           echo "  📦 OS               : $(echo "$MATRIX" | jq -r '.os | join(", ")')"
           echo "  🛠️ Compiler         : $(echo "$MATRIX" | jq -r '.compiler | join(", ")')"
           echo "  🧪 Compilation mode : $(echo "$MATRIX" | jq -r '.compilation_mode | join(", ")')"
@@ -187,7 +187,7 @@ jobs:
     uses: ./.github/workflows/build_docker.yml
     needs: set-input-matrix
     with:
-      prerelease: ${{ github.event.inputs.prerelease }}
+      final_release: ${{ github.event.inputs.final_release }}
     secrets:
       TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -447,9 +447,9 @@ jobs:
       - name: 🧾 Checkout source code
         uses: actions/checkout@v4
 
-      - name: ✅ Check Pre-Release
+      - name: ✅ Check Final-Release
         run: |
-          echo "Pre-Release: ${{ github.event.inputs.prerelease }}"
+          echo "Final-Release: ${{ github.event.inputs.final_release }}"
 
       - name: 🏷️ Extract SCRIPT_VERSION from GlobalVariables.py
         run: |
@@ -562,9 +562,9 @@ jobs:
           ls -lh ./release_files/
           sha256sum ./release_files/*
 
-      # 🚀 Crear release estable (prerelease == false)
+      # 🚀 Crear release estable (final_release == true)
       - name: 🚀 Create GitHub Release (stable)
-        if: ${{ github.event.inputs.prerelease == false }}
+        if: ${{ github.event.inputs.final_release == true }}
         uses: softprops/action-gh-release@v2.2.2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
@@ -581,9 +581,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
       
-      # 🚀 Crear prerelease (prerelease == true)
+      # 🚀 Crear prerelease (final_release == false)
       - name: 🚀 Create GitHub Release (prerelease)
-        if: ${{ github.event.inputs.prerelease == true }}
+        if: ${{ github.event.inputs.final_release == false }}
         uses: softprops/action-gh-release@v2.2.2
         with:
           tag_name: v${{ env.SCRIPT_VERSION }}
@@ -601,7 +601,7 @@ jobs:
 
 
 #      - name: 🔧 Patch release after creation
-#        if: ${{ github.event.inputs.prerelease == false }}
+#        if: ${{ github.event.inputs.final_release == true }}
 #        run: |
 #          TAG="v${{ env.SCRIPT_VERSION }}"
 #          REPO="${{ github.repository }}"
@@ -609,7 +609,7 @@ jobs:
 #          echo "🔍 Fetching release ID for tag $TAG..."
 #          RELEASE_ID=$(gh api "repos/$REPO/releases/tags/$TAG" --jq .id 2>/dev/null || echo "")
 #
-#          echo "🛠️ Patching release $RELEASE_ID to force draft=false, prerelease=false and make_latest=true..."
+#          echo "🛠️ Patching release $RELEASE_ID to force draft=false, final_release=true and make_latest=true..."
 #          gh api --method PATCH "repos/$REPO/releases/$RELEASE_ID" \
 #            -H "Accept: application/vnd.github+json" \
 #            -f "target_commitish=main" \
