@@ -188,7 +188,6 @@ jobs:
     needs: set-input-matrix
     with:
       final_release: ${{ inputs.final_release }}
-#      final_release: ${{ github.event.inputs.final_release || false }}
     secrets:
       TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -442,6 +441,7 @@ jobs:
     needs:
       - build
       - build-docker
+
     runs-on: ubuntu-22.04
 
     steps:

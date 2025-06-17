@@ -192,7 +192,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
 
 
 ## <span style="color:blue">Remove Albums by Name Pattern from Synology Photos:</span>
-- **From:** v3.3.2
+- **From:** v3.3.3
 - **Usage:**
   - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
   - Also, you have to use the argument _**`--remove-albums \<ALBUMS_NAME_PATTERN>`**_
@@ -213,7 +213,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
       
 
 ## <span style="color:blue">Rename Albums by Name Pattern from Synology Photos:</span>
-- **From:** v3.3.2
+- **From:** v3.3.3
 - **Usage:**
   - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
   - Also, you have to use the argument _**`--rename-albums \<ALBUMS_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>`**_
@@ -264,7 +264,7 @@ SYNOLOGY_PASSWORD_3         = password_3                                    # Ac
 
 
 ## <span style="color:blue">Merge Duplicates Albums from Synology Photos:</span>
-- **From:** v3.3.2
+- **From:** v3.3.3
 - **Usage:**
   - To run this feature, first, is mandatory that you set `synology` as client using the argument _**`-client=synology`**_ or _**`--client=synology`**_
   - Also, you have to use the argument _`--merge-duplicates-albums`**_
