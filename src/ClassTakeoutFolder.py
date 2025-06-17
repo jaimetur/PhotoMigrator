@@ -152,6 +152,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
         from GlobalVariables import LOGGER
         from DataModels import init_process_results
 
+        result = init_process_results()
+
         # Determine where the Albums will be located
         if not self.ARGS['google-skip-move-albums']:
             album_folder = os.path.join(output_takeout_folder, 'Albums')
