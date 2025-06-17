@@ -26,6 +26,7 @@ from dateutil import parser as date_parser
 from tqdm import tqdm as original_tqdm
 from CustomLogger import LoggerConsoleTqdm
 from GlobalVariables import LOGGER, ARGS, TIMESTAMP, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, EDITTED_SUFFIXES
+from DataModels import create_counters
 
 # Crear instancia global del wrapper
 TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
@@ -33,33 +34,6 @@ TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
 ######################
 # FUNCIONES AUXILIARES
 ######################
-def create_counters():
-    return {
-        'total_files': 0,
-        'unsupported_files': 0,
-        'supported_files': 0,
-        'media_files': 0,
-        'photo_files': 0,
-        'video_files': 0,
-        'non_media_files': 0,
-        'metadata_files': 0,
-        'sidecar_files': 0,
-        'photos': {
-            'total': 0,
-            'with_date': 0,
-            'without_date': 0,
-            'pct_with_date': 100,
-            'pct_without_date': 100,
-        },
-        'videos': {
-            'total': 0,
-            'with_date': 0,
-            'without_date': 0,
-            'pct_with_date': 100,
-            'pct_without_date': 100,
-        }
-    }
-    
 # Redefinir `tqdm` para usar `TQDM_LOGGER_INSTANCE` si no se especifica `file`
 def tqdm(*args, **kwargs):
     if ARGS['AUTOMATIC-MIGRATION'] and ARGS['dashboard'] == True:
