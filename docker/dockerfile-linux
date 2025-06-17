@@ -1,0 +1,30 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# (Optional) install tzdata and unzip
+RUN apt-get update && apt-get install -y tzdata unzip && rm -rf /var/lib/apt/lists/*
+ENV TZ=Etc/UTC
+
+COPY requirements.txt ./
+RUN python -m pip install --no-cache-dir -r requirements.txt
+
+COPY src/ ./src/
+COPY docs/ ./docs/
+COPY help/ ./help/
+COPY gpth_tool/ ./gpth_tool/
+COPY exif_tool/others.zip ./gpth_tool/exif_tool/others.zip
+COPY Config.ini ./default_config.ini
+COPY docker/docker.conf ./default_docker.conf
+COPY README.md ./docs/README.md
+
+COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
+
+# Unzip others.zip inside gpth_tool
+RUN unzip ./gpth_tool/exif_tool/others.zip -d ./gpth_tool/exif_tool/ && rm ./gpth_tool/exif_tool/others.zip
+
+RUN chmod +x ./gpth_tool/* || true
+RUN chmod +x ./gpth_tool/exif_tool/* || true
+RUN chmod +x /docker-entrypoint.sh
+
+ENTRYPOINT ["/docker-entrypoint.sh"]

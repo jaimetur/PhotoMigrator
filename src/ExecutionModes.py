@@ -14,7 +14,7 @@ from Duplicates import find_duplicates, process_duplicates_actions
 from ClassTakeoutFolder import ClassTakeoutFolder
 from ClassSynologyPhotos import ClassSynologyPhotos
 from ClassImmichPhotos import ClassImmichPhotos
-from AutomaticMode import mode_AUTOMATIC_MIGRATION
+from AutomaticMigration import mode_AUTOMATIC_MIGRATION
 
 DEFAULT_DUPLICATES_ACTION = False
 EXECUTION_MODE = "default"
@@ -53,17 +53,12 @@ def profile_and_print(function_to_analyze, *args, **kwargs):
 # Determine the Execution mode based on the provide arguments:
 # -------------------------------------------------------------
 def detect_and_run_execution_mode():
-    # # AUTOMATIC-MIGRATION MODE:
-    # if ARGS['AUTOMATIC-MIGRATION']:
-    #     EXECUTION_MODE = 'AUTOMATIC-MIGRATION'
-    #     mode_AUTOMATIC_MIGRATION()
-    #     # profile_and_print(function_to_analyze=mode_AUTOMATIC_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.
-
     # AUTOMATIC-MIGRATION MODE:
     if ARGS['source'] and ARGS['target']:
         EXECUTION_MODE = 'AUTOMATIC-MIGRATION'
         mode_AUTOMATIC_MIGRATION(show_gpth_info=ARGS['show-gpth-info'])
         # profile_and_print(function_to_analyze=mode_AUTOMATIC_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.
+
 
     # Google Photos Mode:
     # elif "-gTakeout" in sys.argv or "--google-takeout" in sys.argv:
@@ -236,23 +231,39 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
         # print result for debugging
         # print_result_pretty(asdict(result))
 
-        # Count Files in Output Folder
-        output_total_files = Utils.count_files_in_folder(OUTPUT_TAKEOUT_FOLDER)
-        output_total_images = Utils.count_images_in_folder(OUTPUT_TAKEOUT_FOLDER)
-        output_total_videos = Utils.count_videos_in_folder(OUTPUT_TAKEOUT_FOLDER)
-        output_total_sidecars = Utils.count_sidecars_in_folder(OUTPUT_TAKEOUT_FOLDER)
-        output_total_metadatas = Utils.count_metadatas_in_folder(OUTPUT_TAKEOUT_FOLDER)
-        output_total_supported_files = output_total_images + output_total_videos + output_total_sidecars + output_total_metadatas
+        # Calculate percentages from output vs input
+        perc_of_input_total_files               = 100 * result['output_counters']['total_files']           / result['input_counters']['total_files']             if result['input_counters']['total_files']              != 0 else 100
+        perc_of_input_total_unsupported_files   = 100 * result['output_counters']['unsupported_files']     / result['input_counters']['unsupported_files']       if result['input_counters']['unsupported_files']        != 0 else 100
+        perc_of_input_total_supported_files     = 100 * result['output_counters']['supported_files']       / result['input_counters']['supported_files']         if result['input_counters']['supported_files']          != 0 else 100
+        perc_of_input_total_media               = 100 * result['output_counters']['media_files']           / result['input_counters']['media_files']             if result['input_counters']['media_files']              != 0 else 100
+        perc_of_input_total_images              = 100 * result['output_counters']['photo_files']           / result['input_counters']['photo_files']             if result['input_counters']['photo_files']              != 0 else 100
+        perc_of_input_total_photos_with_date    = 100 * result['output_counters']['photos']['with_date']   / result['input_counters']['photos']['with_date']     if result['input_counters']['photos']['with_date']      != 0 else 100
+        perc_of_input_total_photos_without_date = 100 * result['output_counters']['photos']['without_date']/ result['input_counters']['photos']['without_date']  if result['input_counters']['photos']['without_date']   != 0 else 100
+        perc_of_input_total_videos              = 100 * result['output_counters']['video_files']           / result['input_counters']['video_files']             if result['input_counters']['video_files']              != 0 else 100
+        perc_of_input_total_videos_with_date    = 100 * result['output_counters']['videos']['with_date']   / result['input_counters']['videos']['with_date']     if result['input_counters']['videos']['with_date']      != 0 else 100
+        perc_of_input_total_videos_without_date = 100 * result['output_counters']['videos']['without_date']/ result['input_counters']['videos']['without_date']  if result['input_counters']['videos']['without_date']   != 0 else 100
+        perc_of_input_total_non_media           = 100 * result['output_counters']['non_media_files']       / result['input_counters']['non_media_files']         if result['input_counters']['non_media_files']          != 0 else 100
+        perc_of_input_total_metadata            = 100 * result['output_counters']['metadata_files']        / result['input_counters']['metadata_files']          if result['input_counters']['metadata_files']           != 0 else 100
+        perc_of_input_total_sidecars            = 100 * result['output_counters']['sidecar_files']         / result['input_counters']['sidecar_files']           if result['input_counters']['sidecar_files']            != 0 else 100
 
         # Calculate differences from output vs input
-        difference_total_images = abs(output_total_images - result.initial_takeout_total_images)
-        difference_total_videos = abs(output_total_videos - result.initial_takeout_total_videos)
-        difference_total_sidecars = abs(output_total_sidecars - result.initial_takeout_total_sidecars)
-        difference_total_metadata = abs(output_total_metadatas - result.initial_takeout_total_metadatas)
+        diff_output_input_total_files               = abs(result['output_counters']['total_files']           - result['input_counters']['total_files'])
+        diff_output_input_total_unsupported_files   = abs(result['output_counters']['unsupported_files']     - result['input_counters']['unsupported_files'])
+        diff_output_input_total_supported_files     = abs(result['output_counters']['supported_files']       - result['input_counters']['supported_files'])
+        diff_output_input_total_media               = abs(result['output_counters']['media_files']           - result['input_counters']['media_files'])
+        diff_output_input_total_images              = abs(result['output_counters']['photo_files']           - result['input_counters']['photo_files'])
+        diff_output_input_total_photos_with_date    = abs(result['output_counters']['photos']['with_date']   - result['input_counters']['photos']['with_date'])
+        diff_output_input_total_photos_without_date = abs(result['output_counters']['photos']['without_date']- result['input_counters']['photos']['without_date'])
+        diff_output_input_total_videos              = abs(result['output_counters']['video_files']           - result['input_counters']['video_files'])
+        diff_output_input_total_videos_with_date    = abs(result['output_counters']['videos']['with_date']   - result['input_counters']['videos']['with_date'])
+        diff_output_input_total_videos_without_date = abs(result['output_counters']['videos']['without_date']- result['input_counters']['videos']['without_date'])
+        diff_output_input_total_non_media           = abs(result['output_counters']['non_media_files']       - result['input_counters']['non_media_files'])
+        diff_output_input_total_metadata            = abs(result['output_counters']['metadata_files']        - result['input_counters']['metadata_files'])
+        diff_output_input_total_sidecars            = abs(result['output_counters']['sidecar_files']         - result['input_counters']['sidecar_files'])
 
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
-        if output_total_files == 0:
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
+        if result['output_counters']['total_files'] == 0:
             # FINAL SUMMARY
             LOGGER.info("")
             LOGGER.error("=====================================================")
@@ -262,52 +273,66 @@ def mode_google_takeout(user_confirmation=True, log_level=logging.INFO):
             LOGGER.error(f"ERROR   : No files found in Output Folder  : '{OUTPUT_TAKEOUT_FOLDER}'")
             LOGGER.info("")
             LOGGER.info(f"Total time elapsed                          : {formatted_duration}")
-            LOGGER.info("=====================================================")
+            LOGGER.info("============================================================================================================================")
             LOGGER.info("")
         else:
             # FINAL SUMMARY
             LOGGER.info("")
-            LOGGER.info(f"=========================================================================================================")
+            LOGGER.info(f"============================================================================================================================")
             LOGGER.info(f"INFO    : PROCESS COMPLETED SUCCESSFULLY!")
             LOGGER.info("")
             LOGGER.info(f"INFO    : All the Photos/Videos Fixed can be found on folder: '{OUTPUT_TAKEOUT_FOLDER}'")
             LOGGER.info("")
-            LOGGER.info(f"INFO    : FINAL SUMMARY:")
-            LOGGER.info(f"INFO    : -------------------------------------------------------------------")
-            LOGGER.info(f"INFO    : Total Files files in Takeout folder         : {result.initial_takeout_numfiles}")
-            LOGGER.info(f"INFO    : Total Supported files in Takeout folder     : {result.initial_takeout_total_supported_files}")
-            LOGGER.info(f"INFO    :    - Total Images in Takeout folder         : {result.initial_takeout_total_images}")
-            LOGGER.info(f"INFO    :    - Total Videos in Takeout folder         : {result.initial_takeout_total_videos}")
-            LOGGER.info(f"INFO    :    - Total Sidecars in Takeout folder       : {result.initial_takeout_total_sidecars}")
-            LOGGER.info(f"INFO    :    - Total Metadata in Takeout folder       : {result.initial_takeout_total_metadatas}")
-            LOGGER.info(f"INFO    : Total Non-Supported files in Takeout folder : {result.initial_takeout_total_not_supported_files}")
+            LOGGER.info(f"INFO    : FINAL SUMMARY & STATISTICS:")
+            LOGGER.info(f"INFO    : ------------------------------------------------------------------------------------------------------------------")
+            LOGGER.info(f"INFO    : Total Files in Takeout folder               : {result['input_counters']['total_files']:<7}")
+            LOGGER.info(f"INFO    : Total Non-Supported files in Takeout folder : {result['input_counters']['unsupported_files']:<7}")
+            LOGGER.info(f"INFO    : Total Supported files in Takeout folder     : {result['input_counters']['supported_files']:<7}")
+            LOGGER.info(f"INFO    :   - Total Media files in Takeout folder     : {result['input_counters']['media_files']:<7}")
+            LOGGER.info(f"INFO    :     - Total Images in Takeout folder        : {result['input_counters']['photo_files']:<7}")
+            LOGGER.info(f"INFO    :       - With Date                           : {result['input_counters']['photos']['with_date']:<7} ({result['input_counters']['photos']['pct_with_date']:>5.1f}% of total photos) ")
+            LOGGER.info(f"INFO    :       - Without Date                        : {result['input_counters']['photos']['without_date']:<7} ({result['input_counters']['photos']['pct_without_date']:>5.1f}% of total photos) ")
+            LOGGER.info(f"INFO    :     - Total Videos in Takeout folder        : {result['input_counters']['video_files']:<7}")
+            LOGGER.info(f"INFO    :       - With Date                           : {result['input_counters']['videos']['with_date']:<7} ({result['input_counters']['videos']['pct_with_date']:>5.1f}% of total videos) ")
+            LOGGER.info(f"INFO    :       - Without Date                        : {result['input_counters']['videos']['without_date']:<7} ({result['input_counters']['videos']['pct_without_date']:>5.1f}% of total videos) ")
+            LOGGER.info(f"INFO    :   - Total Non-Media files in Takeout folder : {result['input_counters']['non_media_files']:<7}")
+            LOGGER.info(f"INFO    :     - Total Metadata in Takeout folder      : {result['input_counters']['metadata_files']:<7}")
+            LOGGER.info(f"INFO    :     - Total Sidecars in Takeout folder      : {result['input_counters']['sidecar_files']:<7}")
+            LOGGER.info(f"INFO    : ------------------------------------------------------------------------------------------------------------------")
+            LOGGER.info(f"INFO    : Total Files in Output folder                : {result['output_counters']['total_files']:<7} (diff: {diff_output_input_total_files:>5}) | ({perc_of_input_total_files:>5.1f}% of input) ")
+            LOGGER.info(f"INFO    : Total Non-Supported files in Output folder  : {result['output_counters']['unsupported_files']:<7} (diff: {diff_output_input_total_unsupported_files:>5}) | ({perc_of_input_total_unsupported_files:>5.1f}% of input) ")
+            LOGGER.info(f"INFO    : Total Supported files in Output folder      : {result['output_counters']['supported_files']:<7} (diff: {diff_output_input_total_supported_files:>5}) | ({perc_of_input_total_supported_files:>5.1f}% of input) ")
+            LOGGER.info(f"INFO    :   - Total Media files in Output folder      : {result['output_counters']['media_files']:<7} (diff: {diff_output_input_total_media:>5}) | ({perc_of_input_total_media:>5.1f}% of input) ")
+            LOGGER.info(f"INFO    :     - Total Images in Output folder         : {result['output_counters']['photo_files']:<7} (diff: {diff_output_input_total_images:>5}) | ({perc_of_input_total_images:>5.1f}% of input) ")
+            LOGGER.info(f"INFO    :       - With Date                           : {result['output_counters']['photos']['with_date']:<7} (diff: {diff_output_input_total_photos_with_date:>5}) | ({perc_of_input_total_photos_with_date:>5.1f}% of input) | ({result['output_counters']['photos']['pct_with_date']:>5.1f}% of total photos) ")
+            LOGGER.info(f"INFO    :       - Without Date                        : {result['output_counters']['photos']['without_date']:<7} (diff: {diff_output_input_total_photos_without_date:>5}) | ({perc_of_input_total_photos_without_date:>5.1f}% of input) | ({result['output_counters']['photos']['pct_without_date']:>5.1f}% of total photos) ")
+            LOGGER.info(f"INFO    :     - Total Videos in Output folder         : {result['output_counters']['video_files']:<7} (diff: {diff_output_input_total_videos:>5}) | ({perc_of_input_total_videos:>5.1f}% of input) ")
+            LOGGER.info(f"INFO    :       - With Date                           : {result['output_counters']['videos']['with_date']:<7} (diff: {diff_output_input_total_videos_with_date:>5}) | ({perc_of_input_total_videos_with_date:>5.1f}% of input) | ({result['output_counters']['videos']['pct_with_date']:>5.1f}% of total videos) ")
+            LOGGER.info(f"INFO    :       - Without Date                        : {result['output_counters']['videos']['without_date']:<7} (diff: {diff_output_input_total_videos_without_date:>5}) | ({perc_of_input_total_videos_without_date:>5.1f}% of input) | ({result['output_counters']['videos']['pct_without_date']:>5.1f}% of total videos) ")
+            LOGGER.info(f"INFO    :   - Total Non-Media files in Output folder  : {result['output_counters']['non_media_files']:<7} (diff: {diff_output_input_total_non_media:>5}) | ({perc_of_input_total_non_media:>5.1f}% of input) ")
+            LOGGER.info(f"INFO    :     - Total Metadata in Output folder       : {result['output_counters']['metadata_files']:<7} (diff: {diff_output_input_total_metadata:>5}) | ({perc_of_input_total_metadata:>5.1f}% of input) ")
+            LOGGER.info(f"INFO    :     - Total Sidecars in Output folder       : {result['output_counters']['sidecar_files']:<7} (diff: {diff_output_input_total_sidecars:>5}) | ({perc_of_input_total_sidecars:>5.1f}% of input) ")
+            LOGGER.info(f"INFO    : ------------------------------------------------------------------------------------------------------------------")
             LOGGER.info("")
-            LOGGER.info(f"INFO    : Total Files in Output folder                : {output_total_files}")
-            LOGGER.info(f"INFO    : Total Supported files in Output folder      : {output_total_supported_files}")
-            LOGGER.info(f"INFO    :    - Total Images in Output folder          : {output_total_images:<7} (diff: {difference_total_images})")
-            LOGGER.info(f"INFO    :    - Total Videos in Output folder          : {output_total_videos:<7} (diff: {difference_total_videos})")
-            LOGGER.info(f"INFO    :    - Total Sidecars in Output folder        : {output_total_sidecars:<7} (diff: {difference_total_sidecars})")
-            LOGGER.info(f"INFO    :    - Total Metadata in Output folder        : {output_total_metadatas:<7} (diff: {difference_total_metadata})")
-            LOGGER.info(f"INFO    : Total Non-Supported files in Output folder  : {output_total_files-output_total_supported_files}")
-            LOGGER.info("")
-            LOGGER.info(f"INFO    : Total Albums folders found in Output folder : {result.valid_albums_found}")
+            LOGGER.info(f"INFO    : ------------------------------------------------------------------------------------------------------------------")
+            LOGGER.info(f"INFO    : Total Albums folders found in Output folder : {result['valid_albums_found']}")
             if ARGS['google-rename-albums-folders']:
-                LOGGER.info(f"INFO    : Total Albums Renamed                        : {result.renamed_album_folders}")
-                LOGGER.info(f"INFO    : Total Albums Duplicated                     : {result.duplicates_album_folders}")
-                LOGGER.info(f"INFO    :    - Total Albums Fully Merged              : {result.duplicates_albums_fully_merged}")
-                LOGGER.info(f"INFO    :    - Total Albums Not Fully Merged          : {result.duplicates_albums_not_fully_merged}")
+                LOGGER.info(f"INFO    : Total Albums Renamed                        : {result['renamed_album_folders']}")
+                LOGGER.info(f"INFO    : Total Albums Duplicated                     : {result['duplicates_album_folders']}")
+                LOGGER.info(f"INFO    :    - Total Albums Fully Merged              : {result['duplicates_albums_fully_merged']}")
+                LOGGER.info(f"INFO    :    - Total Albums Not Fully Merged          : {result['duplicates_albums_not_fully_merged']}")
             if ARGS['google-create-symbolic-albums']:
                 LOGGER.info("")
-                LOGGER.info(f"INFO    : Total Symlinks Fixed                        : {result.symlink_fixed}")
-                LOGGER.info(f"INFO    : Total Symlinks Not Fixed                    : {result.symlink_not_fixed}")
+                LOGGER.info(f"INFO    : Total Symlinks Fixed                        : {result['symlink_fixed']}")
+                LOGGER.info(f"INFO    : Total Symlinks Not Fixed                    : {result['symlink_not_fixed']}")
             if ARGS['google-remove-duplicates-files']:
                 LOGGER.info("")
-                LOGGER.info(f"INFO    : Total Duplicates Removed                    : {result.duplicates_found}")
-                LOGGER.info(f"INFO    : Total Empty Folders Removed                 : {result.removed_empty_folders}")
+                LOGGER.info(f"INFO    : Total Duplicates Removed                    : {result['duplicates_found']}")
+                LOGGER.info(f"INFO    : Total Empty Folders Removed                 : {result['removed_empty_folders']}")
             LOGGER.info("")
             LOGGER.info(f"INFO    : Total time elapsed                          : {formatted_duration}")
-            LOGGER.info(f"INFO    : -------------------------------------------------------------------")
-            LOGGER.info(f"=========================================================================================================")
+            LOGGER.info(f"INFO    : ------------------------------------------------------------------------------------------------------------------")
+            LOGGER.info(f"============================================================================================================================")
             LOGGER.info("")
 
 
@@ -360,7 +385,7 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=logg
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -433,7 +458,7 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=logging
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -513,7 +538,7 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=lo
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -572,7 +597,7 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=loggi
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -627,7 +652,7 @@ def mode_cloud_remove_empty_albums(client=None, user_confirmation=True, log_leve
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -679,7 +704,7 @@ def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -735,7 +760,7 @@ def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_
 
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -791,7 +816,7 @@ def mode_cloud_remove_orphan_assets(client=None, user_confirmation=True, log_lev
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -842,7 +867,7 @@ def mode_cloud_remove_ALL(client=None, user_confirmation=True, log_level=logging
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -896,7 +921,7 @@ def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=logg
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -957,7 +982,7 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -1014,7 +1039,7 @@ def mode_cloud_remove_all_albums(client=None, user_confirmation=True, log_level=
         cloud_client_obj.logout(log_level=logging.WARNING)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -1048,7 +1073,7 @@ def mode_fix_symlinkgs(user_confirmation=True, log_level=logging.INFO):
         symlinks_fixed, symlinks_not_fixed = Utils.fix_symlinks_broken(ARGS['fix-symlinks-broken'])
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -1088,7 +1113,7 @@ def mode_find_duplicates(user_confirmation=True, log_level=logging.INFO):
             sys.exit(-1)
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -1120,7 +1145,7 @@ def mode_process_duplicates(user_confirmation=True, log_level=logging.INFO):
         removed_duplicates, restored_duplicates, replaced_duplicates = process_duplicates_actions(ARGS['process-duplicates'])
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")
@@ -1159,7 +1184,7 @@ def mode_folders_rename_content_based(user_confirmation=True, log_level=logging.
         renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = Utils.rename_album_folders(ARGS['rename-folders-content-based'])
         # FINAL SUMMARY
         end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(end_time - START_TIME).seconds))
+        formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
         LOGGER.info("")
         LOGGER.info("==================================================")
         LOGGER.info("         PROCESS COMPLETED SUCCESSFULLY!          ")

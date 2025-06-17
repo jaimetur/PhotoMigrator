@@ -4,15 +4,33 @@
 
 ## **Release**: v3.3.2  
 
-- ### **Release Date**: 2025-06-13
+- ### **Release Date**: 2025-06-16
 
 - ### Main Changes:
   - #### 🌟 New Features:
 
   - #### 🚀 Enhancements:
+    - [x] Performance Improvements: 
+      - [x] Enhanced `MP4 from Live picture Fixing` during Google Takeout Processing to avoid check other candidates when the first one match. 
+      - [x] Enhanced `Google Takeout Processing` when launched by `Automatic Migration feature`. In this case, Albums are created as symbolic links to the original files within `No-Albums` folder to save disk space and processing time.
+    - [x] Ensure that filenames lenght are at least 40 chars before to Fix truncated speccial suffixes or truncated extensions during Google Takeout Processing. 
+    - [x] Workflows Improvements.
+    - [x] Enhanced Results Statistics in Google Takeout Processing to include differencs and percentags of assets between Takeout folder and Output folder.
+    - [x] Created DataModels for a better structure on those functions that returns multiples values.
+    - [x] Enhanced Feature `Find Duplicates` during Google Takeout Processing.
+      - Now the Tool will not detect as duplicates, those assets found in `No-Albums` folder and within any `Albums` subfolder.
+    - [x] Enhanced `Truncated Special Suffixees Fixing` during Google Takeout Processing to fix at the same time truncated `supplemental-metadata` and `other-special-suffixes` within a file. 
+    - [x] Enhanced `Truncated Extension Fixing` during Google Takeout Processing to avoid fixing truncated `supplemental-metadata` and `other-special-suffixes` because this is already done in above step. 
+    - [x] Updated GPTH to version `4.0.8` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
+      - Fixed a bug in the `--fix-extension` feature.
+      - Fixed a bug with tuncated special suffixes or truncated extensions.
+    
 
   - #### 🐛 Bug fixes:
     - [x] Fixed unhandled exception in funcrion `sync_mp4_timestamps_with_images()` when the image have been moved from output folder before to complete MP4 timestamp synching.
+    - [x] Fixed 'Rename Albums' Feature when no date range is found in its name. Before it removed any date found, now, if is not possible to extract a date range, just keep the cleaned name (without date range proffix). 
+    - [x] Fixed Docker Version to include EXIF Tool.
+    - [x] Fixed an issue in `Google Takeout Processing` feature creating output folder when automatically switch to `--google-ignore-check-structure` when no detecting a valid Takeout Structure.
 
   - #### 📚 Documentation:
     - [x] Improved Google Takeout Feature documentation.
@@ -21,14 +39,15 @@
   
 ---
 
-## **Release**: v3.3.2  
+## **Release**: v3.3.1
 
 - ### **Release Date**: 2025-06-12
 
 - ### Main Changes:
   - #### 🌟 New Features:
     - [x] Added new argument _**`-graf, --google-rename-albums-folders`**_ to rename all albums folders based on content dates when finish Google Takeout Processing.
-   
+    - [x] Added new flag _**`-confirm, --request-user-confirmarion`**_ to Skip User Confirmation before to execute any Feature. (Requested by @VictorAcon).
+
   - #### 🚀 Enhancements:
     - [x] Replace return arguments of `ClassTakeoutFolder.process()` method by a new object with all the arguments.
     - [x] Added more info while running Google Takeout Processing feature.
@@ -40,7 +59,6 @@
     - [x] Updated GPTH to version `4.0.8` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
       - [x] Fixed a bug in the albums folders creation when the album name start with a number.
       - [x] Fixed skipping files whose content does not match with their extension.
-    - [x] Added new flag `-confirm, --request-user-confirmarion` to Skip User Confirmation before to execute any Feature. (Requested by @VictorAcon).
     - [x] Added Steps Names Info in Logs during Google Takeout Processing Feature.
 
   - #### 🐛 Bug fixes:

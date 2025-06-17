@@ -283,7 +283,7 @@ def validate_client_arg(ARGS, PARSER):
 
 
 def checkArgs(ARGS, PARSER):
-    global DEFAULT_DUPLICATES_ACTION, LOG_LEVEL
+    import GlobalVariables as GV
 
     # Assigns ARGS['google-takeout'] = ARGS['input-folder'] if --input-folder is detected and --google-takeout is not detected
     if ARGS['input-folder'] != '' and ARGS['google-takeout'] == '':
@@ -353,15 +353,20 @@ def checkArgs(ARGS, PARSER):
 
     # Parse log-levels
     if ARGS['log-level'].lower() == 'debug':
-        LOG_LEVEL = logging.DEBUG
+        GV.LOG_LEVEL = logging.DEBUG
+        GV.LOGGER.setLevel(GV.LOG_LEVEL)
     elif ARGS['log-level'].lower() == 'info':
-        LOG_LEVEL = logging.INFO
+        GV.LOG_LEVEL = logging.INFO
+        GV.LOGGER.setLevel(GV.LOG_LEVEL)
     elif ARGS['log-level'].lower() == 'warning':
-        LOG_LEVEL = logging.WARNING
+        GV.LOG_LEVEL = logging.WARNING
+        GV.LOGGER.setLevel(GV.LOG_LEVEL)
     elif ARGS['log-level'].lower() == 'error':
-        LOG_LEVEL = logging.ERROR
+        GV.LOG_LEVEL = logging.ERROR
+        GV.LOGGER.setLevel(GV.LOG_LEVEL)
     elif ARGS['log-level'].lower() == 'critical':
-        LOG_LEVEL = logging.CRITICAL
+        GV.LOG_LEVEL = logging.CRITICAL
+        GV.LOGGER.setLevel(GV.LOG_LEVEL)
 
 
     # Parse download-albums to ensure than ARGS['output-folder'] is used to specify <OUTPUT_FOLDER>
@@ -385,7 +390,7 @@ def checkArgs(ARGS, PARSER):
                 ARGS['duplicates-folders'].append(subarg)
     if ARGS['duplicates-action'] == "" and ARGS['duplicates-folders'] !=[]:
         ARGS['duplicates-action'] = 'list'  # Valor por defecto
-        DEFAULT_DUPLICATES_ACTION = True
+        GV.DEFAULT_DUPLICATES_ACTION = True
     ARGS['duplicates-folders'] = parse_folders_list(ARGS['duplicates-folders'])
 
     # Parse rename-albums

@@ -14,7 +14,6 @@ from GlobalVariables import LOGGER, GPTH_VERSION
 from Utils import get_os, get_arch, resource_path, ensure_executable, run_command, print_arguments_pretty
 
 def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=False, capture_errors=True, print_messages=True, skip_extras=False, symbolic_albums=False, move_takeout_folder=False, ignore_takeout_structure=False, step_name="", log_level=logging.INFO):
-    
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         """Runs the GPTH Tool command to process photos."""
         input_folder = os.path.abspath(input_folder)
@@ -102,7 +101,10 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
             gpth_command.append("--write-exif")
 
         if Version(GPTH_VERSION) >= Version("4.0.8"):
-            gpth_command.append("--fix-extensions")
+            gpth_command.append("--fix-extensions=standard")
+            # gpth_command.append("--fix-extensions=conservative")
+            # gpth_command.append("--fix-extensions=solo")
+            # gpth_command.append("--fix-extensions=none")
 
         try:
             command = ' '.join(gpth_command)
