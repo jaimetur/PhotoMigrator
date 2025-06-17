@@ -21,7 +21,7 @@ on:
       final_release:
         description: "Is this a Final Release?"
         required: false
-        default: true
+        default: false
         type: boolean
     secrets:
       TOKEN_GITHUB:
