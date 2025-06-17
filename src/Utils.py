@@ -1573,7 +1573,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                     # end A.2
 
                     if file_modified:
-                        LOGGER.info(f"INFO    : {step_name}Fixed JSON File  : {original_file} → {new_name}")
+                        LOGGER.debug(f"DEBUG   : {step_name}Fixed JSON File  : {original_file} → {new_name}")
 
         # ------------------------------------------------------------
         # --- Case B: Non-JSON files (special suffixes or editted) ---

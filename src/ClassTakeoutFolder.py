@@ -64,8 +64,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
         # Contador de pasos durante el procesamiento
         self.step = 0
 
-        # Create steps_duration dict
-        self.steps_duration = {}
+        # Create steps_duration list
+        self.steps_duration = []
 
         self.CLIENT_NAME = f'Google Takeout Folder ({self.takeout_folder.name})'
 
@@ -130,7 +130,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
         LOGGER.info("")
         LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
-        self.steps_duration[self.step] = {'step_name': step_name, 'duration': formatted_duration}
+        self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
         if not skip_process:
             if self.needs_process:
@@ -196,20 +196,33 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Delete hidden subfolders '@eaDir'
             step_name = '🧹 [PRE-PROCESS]-[Clean Takeout Folder] : '
+            sub_step_start_time = datetime.now()
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Cleaning hidden subfolders '@eaDir' (Synology metadata folders) from Takeout Folder if exists...")
             Utils.delete_subfolders(input_folder=input_folder, folder_name_to_delete="@eaDir", step_name=step_name)
+            sub_step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=(sub_step_end_time - sub_step_start_time).seconds))
+            LOGGER.info("")
+            LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
+            self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
             # Fix .MP4 JSON
-            step_name = '[PRE-PROCESS]-[MP4 Fixer        ] : '
+            step_name = '🧹 [PRE-PROCESS]-[MP4 Fixer           ] : '
+            sub_step_start_time = datetime.now()
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Looking for .MP4 files from live pictures and asociate date and time with live picture file...")
             result_mp4_files_fixed = Utils.fix_mp4_files(input_folder=input_folder, step_name=step_name, log_level=logging.INFO)
             LOGGER.info(f"INFO    : {step_name}Fixing MP4 from live pictures metadata finished!")
             LOGGER.info(f"INFO    : {step_name}Total MP4 from live pictures Files fixed         : {result_mp4_files_fixed}")
+            sub_step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=(sub_step_end_time - sub_step_start_time).seconds))
+            LOGGER.info("")
+            LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
+            self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
             # Fix truncated suffixes (such as '-ha edit.jpg' or '-ha e.jpg', or '-effec', or '-supplemen',...)
-            step_name = '🧹 [PRE-PROCESS]-[Truncations Fixer] : '
+            step_name = '🧹 [PRE-PROCESS]-[Truncations Fixer   ] : '
+            sub_step_start_time = datetime.now()
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Fixing Truncated Special Suffixes from Google Photos and rename files to include complete special suffix...")
             result_fix_truncations = Utils.fix_truncations(input_folder=input_folder, step_name=step_name, log_level=logging.INFO)
@@ -227,14 +240,19 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"INFO    : {step_name}        - Special Suffixes changes               : {result_fix_truncations['special_suffixes_fixed']:<7}")
             LOGGER.info(f"INFO    : {step_name}        - Edited Suffixes changes                : {result_fix_truncations['edited_suffixes_fixed']:<7}")
             LOGGER.info(f"INFO    : {step_name}-----------------------------------------------------------------------------------")
+            sub_step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=(sub_step_end_time - sub_step_start_time).seconds))
+            LOGGER.info("")
+            LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
+            self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
             # Count initial files in Takeout Folder before to process with GPTH, since once process input_folder may be deleted if --google-move-takeout-folder has been given
-            step_name = '🔢 [PRE-PROCESS]-[Statistics       ] : '
+            step_name = '🔢 [PRE-PROCESS]-[Statistics          ] : '
+            sub_step_start_time = datetime.now()
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Counting files in Takeout Folder: {input_folder}...")
             # New function to count all file types and extract also date info
             initial_takeout_counters = Utils.count_files_per_type_and_date(input_folder=input_folder, within_json_sidecar=False, log_level=log_level)
-
             # Clean input dict
             result['input_counters'].clear()
             # Assign all pairs key-value from initial_takeout_counters to counter['input_counters'] dict
@@ -256,14 +274,18 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"INFO    : {step_name}    - Total Metadata in Takeout folder           : {result['input_counters']['metadata_files']:<7}")
             LOGGER.info(f"INFO    : {step_name}    - Total Sidecars in Takeout folder           : {result['input_counters']['sidecar_files']:<7}")
             LOGGER.info(f"INFO    : {step_name}-----------------------------------------------------------------------------------")
-
+            sub_step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=(sub_step_end_time - sub_step_start_time).seconds))
+            LOGGER.info("")
+            LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
+            self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             step_name = '🧹 [PRE-PROCESS] : '
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
-            self.steps_duration[self.step] = {'step_name': step_name, 'duration': formatted_duration}
+            self.steps_duration.append({'step_id': self.step, 'step_name': step_name + '- TOTAL DURATION', 'duration': formatted_duration})
 
 
             # Step 3: Process photos with GPTH tool
@@ -317,7 +339,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
-                self.steps_duration[self.step] = {'step_name': step_name, 'duration': formatted_duration}
+                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
 
             # Step 4: Copy/Move files to output folder manually
@@ -347,7 +369,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
-                self.steps_duration[self.step] = {'step_name': step_name, 'duration': formatted_duration}
+                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
             # Step 5: Sync .MP4 live pictures timestamp
             # ----------------------------------------------------------------------------------------------------------------------
@@ -365,7 +387,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
-            self.steps_duration[self.step] = {'step_name': step_name, 'duration': formatted_duration}
+            self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
             # Step 6: Create Folders Year/Month or Year only structure
             # ----------------------------------------------------------------------------------------------------------------------
@@ -404,7 +426,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
-                self.steps_duration[self.step] = {'step_name': step_name, 'duration': formatted_duration}
+                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
             # Step 7: Move albums
             # ----------------------------------------------------------------------------------------------------------------------
@@ -424,7 +446,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
-                self.steps_duration[self.step] = {'step_name': step_name, 'duration': formatted_duration}
+                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
             # Step 8: Remove Duplicates
             # ----------------------------------------------------------------------------------------------------------------------
@@ -469,7 +491,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
-                self.steps_duration[self.step] = {'step_name': step_name, 'duration': formatted_duration}
+                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
             # Step 9: Fix Broken Symbolic Links
             # ----------------------------------------------------------------------------------------------------------------------
@@ -489,7 +511,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
-                self.steps_duration[self.step] = {'step_name': step_name, 'duration': formatted_duration}
+                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
             # Step 10: Rename Albums Folders based on content date
             # ----------------------------------------------------------------------------------------------------------------------
@@ -511,7 +533,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info("")
                 LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
-                self.steps_duration[self.step] = {'step_name': step_name, 'duration': formatted_duration}
+                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
             # Step 11: Renamove Empty Folders
             # ----------------------------------------------------------------------------------------------------------------------
@@ -529,7 +551,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
-            self.steps_duration[self.step] = {'step_name': step_name, 'duration': formatted_duration}
+            self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
             # Step 12: Count Albums
             # ----------------------------------------------------------------------------------------------------------------------
@@ -557,7 +579,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             LOGGER.info("")
             LOGGER.info(f"INFO    : {step_name}Step {self.step} completed in {formatted_duration}.")
-            self.steps_duration[self.step] = {'step_name': step_name, 'duration': formatted_duration}
+            self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
             # FINISH
             # ----------------------------------------------------------------------------------------------------------------------
@@ -569,9 +591,10 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"INFO    : {'Takeout Precessed Folder'.ljust(52)}  : '{output_takeout_folder}'.")
             LOGGER.info("")
             LOGGER.info(f"INFO    : Processing Time per Step:")
-            for i, (key, info) in enumerate(self.steps_duration.items(), start=1):
-                step_id_and_label = f"{str(key).rjust(2)}. {info['step_name'].replace(' : ', '')}"
-                LOGGER.info(f"INFO    : {step_id_and_label.ljust(52)} : {info['duration'].rjust(8)}")
+            for entry in self.steps_duration:
+                label_cleaned       = ' '.join(entry['step_name'].replace(' : ', '').split()).replace(' ]',']')
+                step_id_and_label   = f"{str(entry['step_id']).rjust(2)}. {label_cleaned}"
+                LOGGER.info(f"INFO    : {step_id_and_label.ljust(52)} : {entry['duration'].rjust(8)}")
             LOGGER.info("")
             LOGGER.info(f"INFO    : {'TOTAL PROCESSING TIME'.ljust(52)}  : {formatted_duration.rjust(8)}")
             LOGGER.info("============================================================================================================================")
