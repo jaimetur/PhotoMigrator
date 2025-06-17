@@ -1,6 +1,8 @@
-####################################
+#####################################
 # FUNCTIONS TO INITIALIZE DATA MODELS
 #####################################
+
+# Initialize Dataclass to return by count_files_per_type()
 def create_counters():
     return {
         'total_files': 0,
@@ -27,3 +29,7 @@ def create_counters():
             'pct_without_date': 100,
         }
     }
+
+# Initialize Dataclass to return by process() eithin ClassTakeoutFolder Class
+def create result();
+    pass
