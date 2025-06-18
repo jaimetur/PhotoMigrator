@@ -16,7 +16,11 @@
     - [ ] Include Input/Output folder size in Google Takeout Statistics. 
     - [ ] Speed up Counting files. 
     - [ ] Add argumenr `-gSkipPrep,--google-skip-preprocess` to Skipp Preproces steps during Google Takeout Processing feature. 
-    - [ ] Replace `-gmtf,--google-move-takeout-folder` argument by `-gCopy,--google-copy-takeout-folder` argument and implement the logic for Google Takeout Provessing. 
+    - [ ] Replace `-gmtf,--google-move-takeout-folder` argument by `-gCopy,--google-copy-takeout-folder` argument and implement the logic for Google Takeout Processing. 
+    - [ ] Call GPTH with `--verbose` when PhotoMigrator logLevel is VERBOSE or DEBUG. 
+  - #### 📚 Documentation:
+    - [ ] Move /doc/* into root folder?  
+    - [ ] Analyze and report any issue detected during GPTH execution. 
     
 ---
 
