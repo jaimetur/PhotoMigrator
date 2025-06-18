@@ -57,16 +57,19 @@ def clear_screen():
     os.system('clear' if os.name == 'posix' else 'cls')
 
 
-def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logger=True):
+def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logger=True, use_custom_print=True):
     """
     Prints a list of command-line arguments in a structured and readable one-line-per-arg format.
 
     Args:
+        :param arguments:
+        :param step_name:
+        :param title:
+        :param use_custom_print:
         :param arguments (list): List of arguments (e.g., for PyInstaller).
         :param title (str): Optional title to display above the arguments.
         :param use_logger:
     """
-    from CustomLogger import print_info
     print("")
     indent = "    "
     i = 0
@@ -81,16 +84,29 @@ def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logge
                 LOGGER.info(f"{step_name}{indent}{arg}")
                 i += 1
     else:
-        print_info(f"{title}:")
-        while i < len(arguments):
-            arg = arguments[i]
-            if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                print_info(f"{step_name}{indent}{arg}={arguments[i + 1]}")
-                i += 2
-            else:
-                print_info(f"{step_name}{indent}{arg}")
-                i += 1
-    print_info("")
+        if use_custom_print:
+            from CustomLogger import print_info
+            print_info(f"{title}:")
+            while i < len(arguments):
+                arg = arguments[i]
+                if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
+                    print_info(f"{step_name}{indent}{arg}={arguments[i + 1]}")
+                    i += 2
+                else:
+                    print_info(f"{step_name}{indent}{arg}")
+                    i += 1
+        else:
+            pass
+            print(f"INFO    : {title}:")
+            while i < len(arguments):
+                arg = arguments[i]
+                if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
+                    print(f"INFO    : {step_name}{indent}{arg}={arguments[i + 1]}")
+                    i += 2
+                else:
+                    print(f"INFO    : {step_name}{indent}{arg}")
+                    i += 1
+    print("")
 
 
 def ensure_executable(path):
