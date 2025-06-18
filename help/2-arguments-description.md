@@ -55,7 +55,7 @@ Following general arguments have different purposses depending on the Execution 
 | `-AlbFolder`,<br>`--albums-folders`               | `<ALBUMS_FOLDER>` |  path  |                        `existing path`                         | Creates albums for subfolders inside.                       |
 | `-rAlbAsset`,<br>`--remove-albums-assets`         |                   |  flag  |                                                                | Removes assets inside albums when albums are removed.       |
 | `-logLevel`,<br>`--log-level`                     | `<LEVEL>`         | string | `VERBOSE`, <br>`DEBUG`, <br>`INFO`, <br>`WARNING`, <br>`ERROR` | Sets logging verbosity.                                     |
-| `-logFormat`,<br>`--log-format`                   | `<FORMAT>`        | string |                  `log`, <br>`txt`, <br>`all`                   | Sets log file format.                                       |
+| `-logFormat`,<br>`--log-format`                   | `<FORMAT>`        | string |                  `LOG`, <br>`TXT`, <br>`ALL`                   | Sets log file format.                                       |
 | `-noLog`,<br>`--no-log-file`                      |                   |  flag  |                                                                | Disables writing to log file.                               |
 
 #### 🧪 Examples:
@@ -87,7 +87,7 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 | `-gsma`,<br>`--google-skip-move-albums`            |                    |  flag  |                                                                                    | Skips moving albums to 'Albums' folder.                            |
 | `-gsgt`,<br>`--google-skip-gpth-tool`              |                    |  flag  |                                                                                    | Skips GPTH tool processing (not recommended).                      |
 | `-gpthInfo`,<br>`--show-gpth-info`                 | `<bool>`           |  bool  |                       `true`, `false` <br>`(default: true)`                        | Show GPTH progress messages.                                       |
-| `-gpthError`,<br>`--show-gpth-errors`                | `<bool>`           |  bool  |                       `true`, `false` <br>`(default: true)`                        | Show GPTH error messages.                                          |
+| `-gpthError`,<br>`--show-gpth-errors`              | `<bool>`           |  bool  |                       `true`, `false` <br>`(default: true)`                        | Show GPTH error messages.                                          |
 
 
 #### 🧪 Examples:
