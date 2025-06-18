@@ -15,7 +15,7 @@
   - #### 🐛 Bug Fixing:
     - [ ] Include Input/Output folder size in Google Takeout Statistics. 
     - [ ] Speed up Counting files. 
-    - [ ] Replace -move argument to -copy argument and imolement the logic for Google Takeout Provessing. 
+    - [ ] Replace -move argument to -copy argument and implement the logic for Google Takeout Provessing. 
     
 ---
 
