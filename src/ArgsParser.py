@@ -371,24 +371,6 @@ def checkArgs(ARGS, PARSER):
         exit(1)
 
 
-    # # Parse log-levels
-    # if ARGS['log-level'].lower() == 'debug':
-    #     GV.LOG_LEVEL = logging.DEBUG
-    #     GV.LOGGER.setLevel(GV.LOG_LEVEL)
-    # elif ARGS['log-level'].lower() == 'info':
-    #     GV.LOG_LEVEL = logging.INFO
-    #     GV.LOGGER.setLevel(GV.LOG_LEVEL)
-    # elif ARGS['log-level'].lower() == 'warning':
-    #     GV.LOG_LEVEL = logging.WARNING
-    #     GV.LOGGER.setLevel(GV.LOG_LEVEL)
-    # elif ARGS['log-level'].lower() == 'error':
-    #     GV.LOG_LEVEL = logging.ERROR
-    #     GV.LOGGER.setLevel(GV.LOG_LEVEL)
-    # elif ARGS['log-level'].lower() == 'critical':
-    #     GV.LOG_LEVEL = logging.CRITICAL
-    #     GV.LOGGER.setLevel(GV.LOG_LEVEL)
-
-
     # Parse download-albums to ensure than ARGS['output-folder'] is used to specify <OUTPUT_FOLDER>
     if ARGS['download-albums'] != "" and ARGS['output-folder'] == "":
         PARSER.error(f"\n\n❌ ERROR   : When use flag -dAlb, --download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n")
