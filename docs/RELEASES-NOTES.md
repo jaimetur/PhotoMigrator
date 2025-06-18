@@ -17,7 +17,7 @@
     - [x] Renamed argument `-confirm, --request-user-confirmation` to `-noConfirm, --no-request-user-confirmation` and inverted logic.
     - [x] Renamed argument `-loglevel` to `-logLevel`.
     - [x] Renamed argument `-dashb` to `-dashboard`.
-    - [x] Renamed argument `-AlbFld` to `-AlbumFolder`.
+    - [x] Renamed argument `-AlbFld` to `-AlbFolder`.
     - [x] Renamed argument `-rAlbAss` to `-rAlbAsset`.
     - [x] Renamed argument `-gpthErr` to `-gpthError`.
     - [x] Updated GPTH to version `4.0.9` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
