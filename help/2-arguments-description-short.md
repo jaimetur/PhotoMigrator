@@ -41,25 +41,25 @@ PhotoMigrator.run --source=immich-1 --target=synology-2 --dashboard false --para
 ## ⚙️ General Options
 Following general arguments have different purposses depending on the Execution Mode.
 
-| Argument                                     | Description                                               |
-|----------------------------------------------|-----------------------------------------------------------|
-| `-i`,<br>`--input-folder`                    | Input folder to process                                   |
-| `-o`,<br>`--output-folder`                   | Output folder to store results                            |
-| `-client`,<br>`--client`                     | Service client: `google-takeout`, `synology`, `immich`    |
-| `-id`,<br>`--account-id`                     | Account ID (1–3) from `Config.ini`                        |
-| `-confirm`,<br>`--request-user-confirmation` | Request User Confirmation before to execute any Feature.  |
-| `-OTP`,<br>`--one-time-password`             | Use 2FA login with OTP token                              |
-| `-from`,<br>`--filter-from-date`             | Filter assets from this date                              |
-| `-to`,<br>`--filter-to-date`                 | Filter assets up to this date                             |
-| `-country`,<br>`--filter-by-country`         | Filter assets by country                                  |
-| `-city`,<br>`--filter-by-city`               | Filter assets by city                                     |
-| `-person`,<br>`--filter-by-person`           | Filter assets by person                                   |
-| `-type`,<br>`--filter-by-type`               | Filter assets by type: `image`, `video`, `all`            |
-| `-AlbFolder`,<br>`--albums-folders`          | Use subfolders in folder as albums                        |
-| `-rAlbAsset`,<br>`--remove-albums-assets`    | Remove assets inside deleted albums                       |
-| `-logLevel`,<br>`--log-level`                | Log level: `VERBOSE`, `DEBUG`, `INFO`, `WARNING`, `ERROR` |
-| `-logFormat`,<br>`--log-format`              | Log level: `log`, `txt`, `all                             |
-| `-noLog`,<br>`--no-log-file`                 | Disable log file creation                                 |
+| Argument                                          | Description                                                 |
+|---------------------------------------------------|-------------------------------------------------------------|
+| `-i`,<br>`--input-folder`                         | Input folder to process                                     |
+| `-o`,<br>`--output-folder`                        | Output folder to store results                              |
+| `-client`,<br>`--client`                          | Service client: `google-takeout`, `synology`, `immich`      |
+| `-id`,<br>`--account-id`                          | Account ID (1–3) from `Config.ini`                          |
+| `-noConfirm`,<br>`--no-request-user-confirmation` | No Request User Confirmation before to execute any Feature. |
+| `-OTP`,<br>`--one-time-password`                  | Use 2FA login with OTP token                                |
+| `-from`,<br>`--filter-from-date`                  | Filter assets from this date                                |
+| `-to`,<br>`--filter-to-date`                      | Filter assets up to this date                               |
+| `-country`,<br>`--filter-by-country`              | Filter assets by country                                    |
+| `-city`,<br>`--filter-by-city`                    | Filter assets by city                                       |
+| `-person`,<br>`--filter-by-person`                | Filter assets by person                                     |
+| `-type`,<br>`--filter-by-type`                    | Filter assets by type: `image`, `video`, `all`              |
+| `-AlbFolder`,<br>`--albums-folders`               | Use subfolders in folder as albums                          |
+| `-rAlbAsset`,<br>`--remove-albums-assets`         | Remove assets inside deleted albums                         |
+| `-logLevel`,<br>`--log-level`                     | Log level: `VERBOSE`, `DEBUG`, `INFO`, `WARNING`, `ERROR`   |
+| `-logFormat`,<br>`--log-format`                   | Log level: `log`, `txt`, `all                               |
+| `-noLog`,<br>`--no-log-file`                      | Disable log file creation                                   |
 
 #### 🧪 Examples:
 ```bash
@@ -90,7 +90,7 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 | `-gsma`,<br>`--google-skip-move-albums`            | Skip moving albums to "Albums" folder                                 |
 | `-gsgt`,<br>`--google-skip-gpth-tool`              | Skip processing with GPTH Tool (not recommended)                      |
 | `-gpthInfo`,<br>`--show-gpth-info`                 | Show GPTH progress messages (default: true)                           |
-| `-gpthError`,<br>`--show-gpth-errors`                | Show GPTH error messages (default: true)                              |
+| `-gpthError`,<br>`--show-gpth-errors`              | Show GPTH error messages (default: true)                              |
 
 #### 🧪 Examples:
 ```bash

@@ -14,6 +14,7 @@
     - [x] Added new argument `-logFormat, --log-format` to define the format of the Log File. Valid values: `[LOG, TXT, ALL]`.
 
   - #### 🚀 Enhancements:
+    - [x] Renamed argument `-confirm, --request-user-confirmation` to `-noConfirm, --no-request-user-confirmation` and inverted logic.
     - [x] Renamed argument `-loglevel` to `-logLevel`.
     - [x] Renamed argument `-dashb` to `-dashboard`.
     - [x] Renamed argument `-AlbFld` to `-AlbumFolder`.
@@ -119,7 +120,7 @@
 - ### Main Changes:
   - #### 🌟 New Features:
     - [x] Added new argument _**`-graf, --google-rename-albums-folders`**_ to rename all albums folders based on content dates when finish Google Takeout Processing.
-    - [x] Added new flag _**`-confirm, --request-user-confirmarion`**_ to Skip User Confirmation before to execute any Feature. (Requested by @VictorAcon).
+    - [x] Added new flag _**`-noConfirm, --no-request-user-confirmarion`**_ to Skip User Confirmation before to execute any Feature. (Requested by @VictorAcon).
 
   - #### 🚀 Enhancements:
     - [x] Replace return arguments of `ClassTakeoutFolder.process()` method by a new object with all the arguments.

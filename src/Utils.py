@@ -252,319 +252,6 @@ def check_OS_and_Terminal(log_level=None):
         LOGGER.info(f"")
 
 
-def count_files_per_type_and_date(input_folder, within_json_sidecar=True, log_level=None):
-    """
-    Analyze all files in `input_folder`, counting:
-      - total files
-      - supported vs unsupported files based on global extension lists
-      - image files vs video files vs metadata files vs sidecar files
-      - media files (images + videos)
-      - non-media files (metadata + sidecar)
-      - for photos and videos, how many have an assigned date vs. not
-      - percentage of photos/videos with and without date
-    Uses global PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, and TIMESTAMP.
-    """
-    ###############
-    # AUX FUNCTIONS
-    ###############
-    def get_oldest_date(file_path, media_type, within_json_sidecar=True):
-        """
-        Devuelve la fecha más antigua válida encontrada en el archivo.
-        Considera EXIF (solo fotos), JSON sidecar, fecha de creación y mtime.
-        """
-        dates = []
-
-        try:
-            if media_type == 'photos':
-                try:
-                    img = Image.open(file_path)
-                    exif = img._getexif() or {}
-                    tag_map = {ExifTags.TAGS.get(k, k): v for k, v in exif.items()}
-                    for tag in ('DateTimeOriginal', 'DateTimeDigitized', 'DateTime'):
-                        if tag in tag_map:
-                            try:
-                                dt = datetime.strptime(tag_map[tag], "%Y:%m:%d %H:%M:%S")
-                                dates.append(dt)
-                            except ValueError:
-                                continue
-                except Exception:
-                    pass
-
-            if within_json_sidecar:
-                # Buscar JSON sidecar
-                json_path = Path(file_path).with_suffix(file_path.suffix + ".json")
-                if json_path.exists():
-                    try:
-                        with open(json_path, 'r', encoding='utf-8') as f:
-                            data = json.load(f)
-                            for key in ['photoTakenTime', 'creationTime', 'creationTimestamp']:
-                                ts = data.get(key, {}).get('timestamp') or data.get(key)
-                                if ts:
-                                    dt = datetime.fromtimestamp(int(ts))
-                                    dates.append(dt)
-                    except Exception:
-                        pass
-
-            # Fecha de creación (si está disponible en el sistema)
-            try:
-                stat = os.stat(file_path)
-                if hasattr(stat, 'st_birthtime'):
-                    dates.append(datetime.fromtimestamp(stat.st_birthtime))
-            except Exception:
-                pass
-
-            # Fecha de modificación
-            try:
-                mtime = os.path.getmtime(file_path)
-                dates.append(datetime.fromtimestamp(mtime))
-            except Exception:
-                pass
-
-        except Exception:
-            pass
-
-        if dates:
-            return min(dates)
-        return None
-    ######################
-    # END OF AUX FUNCTIONS
-    ######################
-
-    with set_log_level(LOGGER, log_level):
-        timestamp_dt = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S")
-
-        # Initialize overall counters with pct keys for media
-        counters = init_count_files_counters ()
-
-        supported_exts = set(PHOTO_EXT + VIDEO_EXT + METADATA_EXT + SIDECAR_EXT)
-
-        # Walk through all subdirectories and files
-        for root, dirs, files in os.walk(input_folder):
-            for filename in files:
-                file_path = os.path.join(root, filename)
-                if os.path.islink(file_path):
-                    continue  # Skip symbolic links
-                    
-                _, ext = os.path.splitext(filename)
-                ext = ext.lower()
-
-                # Count every file
-                counters['total_files'] += 1
-
-                # Determine support status
-                if ext in supported_exts:
-                    counters['supported_files'] += 1
-                else:
-                    counters['unsupported_files'] += 1
-
-                # Categorize by extension
-                if ext in PHOTO_EXT:
-                    counters['photo_files'] += 1
-                    counters['media_files'] += 1
-                    media_type = 'photos'
-                elif ext in VIDEO_EXT:
-                    counters['video_files'] += 1
-                    counters['media_files'] += 1
-                    media_type = 'videos'
-                else:
-                    media_type = None
-
-                # Count metadata and sidecar
-                if ext in METADATA_EXT:
-                    counters['metadata_files'] += 1
-                if ext in SIDECAR_EXT:
-                    counters['sidecar_files'] += 1
-                if ext in METADATA_EXT or ext in SIDECAR_EXT:
-                    counters['non_media_files'] += 1
-
-                # Skip date logic for non-media
-                if not media_type:
-                    continue
-
-                counters[media_type]['total'] += 1
-
-                file_date = get_oldest_date(file_path, media_type, within_json_sidecar=within_json_sidecar)
-                has_date = file_date is not None and file_date <= timestamp_dt
-
-                if has_date:
-                    counters[media_type]['with_date'] += 1
-                else:
-                    counters[media_type]['without_date'] += 1
-
-        # Calculate percentages for photos based on totals
-        total_photos = counters['photos']['total']
-        if total_photos > 0:
-            counters['photos']['pct_with_date'] = (counters['photos']['with_date'] / total_photos) * 100
-            counters['photos']['pct_without_date'] = (counters['photos']['without_date'] / total_photos) * 100
-
-        # Calculate percentages for videos based on totals
-        total_videos = counters['videos']['total']
-        if total_videos > 0:
-            counters['videos']['pct_with_date'] = (counters['videos']['with_date'] / total_videos) * 100
-            counters['videos']['pct_without_date'] = (counters['videos']['without_date'] / total_videos) * 100
-
-        return counters
-
-
-def count_files_in_folder(folder_path, log_level=None):
-    """ Counts the number of files in a folder """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        total_files = 0
-        for path, dirs, files in os.walk(folder_path):
-            total_files += len(files)
-        return total_files
-
-
-def count_images_in_folder(folder_path, log_level=None):
-    """
-    Counts the number of image files in a folder, considering
-    as images only those files with extensions defined in
-    the global variable IMAGE_EXT (in lowercase).
-    """
-    from GlobalVariables import PHOTO_EXT
-    with set_log_level(LOGGER, log_level):  # Change log level temporarily
-        total_images = 0
-        for path, dirs, files in os.walk(folder_path):
-            for file_name in files:
-                # Extract the file extension in lowercase
-                _, extension = os.path.splitext(file_name)
-                if extension.lower() in PHOTO_EXT:
-                    total_images += 1
-        return total_images
-
-
-def count_videos_in_folder(folder_path, log_level=None):
-    """
-    Counts the number of video files in a folder, considering
-    as videos only those files with extensions defined in
-    the global variable VIDEO_EXT (in lowercase).
-    """
-    from GlobalVariables import VIDEO_EXT
-    with set_log_level(LOGGER, log_level):  # Change log level temporarily
-        total_videos = 0
-        for path, dirs, files in os.walk(folder_path):
-            for file_name in files:
-                # Extract the file extension in lowercase
-                _, extension = os.path.splitext(file_name)
-                if extension.lower() in VIDEO_EXT:
-                    total_videos += 1
-        return total_videos
-
-
-def count_videos_in_folder(folder_path, log_level=None):
-    """
-    Counts the number of video files in a folder, considering
-    as videos only those files with extensions defined in
-    the global variable VIDEO_EXT (in lowercase).
-    """
-    from GlobalVariables import VIDEO_EXT
-    with set_log_level(LOGGER, log_level):  # Change log level temporarily
-        total_videos = 0
-        for path, dirs, files in os.walk(folder_path):
-            for file_name in files:
-                # Extract the file extension in lowercase
-                _, extension = os.path.splitext(file_name)
-                if extension.lower() in VIDEO_EXT:
-                    total_videos += 1
-        return total_videos
-
-
-def count_sidecars_in_folder(folder_path, log_level=None):
-    """
-    Counts the number of sidecar files in a folder. A file is considered a sidecar if:
-    1. Its extension is listed in the global variable SIDECAR_EXT (in lowercase).
-    2. It shares the same base name as an image file in the same directory.
-    3. The sidecar file name may include the image extension before the sidecar extension.
-    """
-    from GlobalVariables import PHOTO_EXT, SIDECAR_EXT
-    with set_log_level(LOGGER, log_level):  # Change log level temporarily
-        total_sidecars = 0
-        for path, dirs, files in os.walk(folder_path):
-            # Extract base names of image files without extensions
-            image_base_names = set()
-            for file_name in files:
-                base_name, ext = os.path.splitext(file_name)
-                if ext.lower() in PHOTO_EXT:
-                    image_base_names.add(base_name)
-            # Count valid sidecar files
-            for file_name in files:
-                base_name, ext = os.path.splitext(file_name)
-                if ext.lower() in SIDECAR_EXT:
-                    # Check if there's a matching image file (direct match or with image extension included)
-                    if any(base_name.startswith(image_name) for image_name in image_base_names):
-                        total_sidecars += 1
-        return total_sidecars
-
-
-def count_metadatas_in_folder(folder_path, log_level=None):
-    """
-    Counts the number of metadata files in a folder. A file is considered a metadata if:
-    1. Its extension is listed in the global variable METADATA_EXT (in lowercase).
-    2. It shares the same base name as an image file in the same directory.
-    3. The sidecar file name may include the image extension before the sidecar extension.
-    """
-    from GlobalVariables import METADATA_EXT
-    with set_log_level(LOGGER, log_level):  # Change log level temporarily
-        total_metadatas = 0
-        for path, dirs, files in os.walk(folder_path):
-            for file_name in files:
-                # Extract the file extension in lowercase
-                _, extension = os.path.splitext(file_name)
-                if extension.lower() in METADATA_EXT:
-                    total_metadatas += 1
-        return total_metadatas
-
-
-def change_file_extension(input_folder, current_extension, new_extension, log_level=None):
-    """
-    Changes the extension of all files with a specific extension
-    within a folder and its subfolders.
-
-    Args:
-        input_folder (str): Path to the root folder to search for files.
-        current_extension (str): Current file extension (includes the dot, e.g., ".txt").
-        new_extension (str): New file extension (includes the dot, e.g., ".md").
-
-    Returns:
-        None
-    """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Contar el total de carpetas
-        total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
-        # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_files, ncols=120, smoothing=0.1, desc=f"INFO    : Changing File Extensions in '{input_folder}'", unit=" files") as pbar:
-            for path, dirs, files in os.walk(input_folder):
-                for file in files:
-                    pbar.update(1)
-                    # Check if the file has the current extension
-                    if file.endswith(current_extension):
-                        # Build the full paths of the original and new files
-                        original_file = os.path.join(path, file)
-                        new_file = os.path.join(path, file.replace(current_extension, new_extension))
-                        # Rename the file
-                        os.rename(original_file, new_file)
-                        LOGGER.debug(f"Renamed: {original_file} -> {new_file}")
-
-
-def delete_folder(folder_path):
-    """
-    Deletes a folder and all its contents.
-
-    Args:
-        folder_path (str): Path to the folder to delete.
-    """
-    if not os.path.exists(folder_path):
-        print(f"Folder does not exist: {folder_path}")
-        return
-
-    if not os.path.isdir(folder_path):
-        # return
-        raise ValueError(f"Specified path is not a folder: {folder_path}")
-
-    shutil.rmtree(folder_path)
-    print(f"Deleted folder and contents: {folder_path}")
-
-
 def remove_empty_dirs(input_folder, log_level=None):
     """
     Remove empty directories recursively.
@@ -742,8 +429,8 @@ def zip_folder(temp_dir, output_file):
 
 
 def confirm_continue(log_level=None):
-    # If argument 'request-user-confirmarion' is false then don't ask and wait for user confirmation
-    if not ARGS['request-user-confirmarion']:
+    # If argument 'no-request-user-confirmarion' is true then don't ask and wait for user confirmation
+    if ARGS['no-request-user-confirmarion']:
         return True
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -2079,25 +1766,6 @@ def move_albums_to_root(albums_root, step_name="", log_level=None):
             LOGGER.error(f"{step_name}Failed to remove 'Takeout': {e}")
 
 
-# def count_valid_albums(folder_path, step_name="", log_level=None):
-#     """
-#     Counts the number of subfolders within folder_path and its sublevels
-#     that contain at least one valid image or video file.
-#
-#     A folder is considered valid if it contains at least one file with an extension
-#     defined in IMAGE_EXT or VIDEO_EXT.
-#     """
-#     import os
-#     from GlobalVariables import PHOTO_EXT, VIDEO_EXT
-#     with set_log_level(LOGGER, log_level):  # Change log level temporarily
-#         valid_albums = 0
-#         for root, dirs, files in os.walk(folder_path):
-#             # Check if there's at least one valid image or video file
-#             if any(os.path.splitext(file)[1].lower() in PHOTO_EXT or os.path.splitext(file)[1].lower() in VIDEO_EXT for file in files):
-#                 valid_albums += 1
-#         return valid_albums
-
-
 def count_valid_albums(folder_path, excluded_folders=[], step_name="", log_level=None):
     """
     Counts the number of subfolders within folder_path and its sublevels
@@ -2128,7 +1796,6 @@ def count_valid_albums(folder_path, excluded_folders=[], step_name="", log_level
             if any(os.path.splitext(file)[1].lower() in PHOTO_EXT or os.path.splitext(file)[1].lower() in VIDEO_EXT for file in files):
                 valid_albums += 1
         return valid_albums
-
 
 
 def fix_symlinks_broken(input_folder, step_name="", log_level=None):
@@ -2504,3 +2171,159 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
             'duplicates_albums_fully_merged': duplicates_albums_fully_merged,
             'duplicates_albums_not_fully_merged': duplicates_albums_not_fully_merged,
         }
+
+
+def count_files_per_type_and_date(input_folder, within_json_sidecar=True, log_level=None):
+    """
+    Analyze all files in `input_folder`, counting:
+      - total files
+      - supported vs unsupported files based on global extension lists
+      - image files vs video files vs metadata files vs sidecar files
+      - media files (images + videos)
+      - non-media files (metadata + sidecar)
+      - for photos and videos, how many have an assigned date vs. not
+      - percentage of photos/videos with and without date
+    Uses global PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, and TIMESTAMP.
+    """
+
+    ###############
+    # AUX FUNCTIONS
+    ###############
+    def get_oldest_date(file_path, media_type, within_json_sidecar=True):
+        """
+        Devuelve la fecha más antigua válida encontrada en el archivo.
+        Considera EXIF (solo fotos), JSON sidecar, fecha de creación y mtime.
+        """
+        dates = []
+
+        try:
+            if media_type == 'photos':
+                try:
+                    img = Image.open(file_path)
+                    exif = img._getexif() or {}
+                    tag_map = {ExifTags.TAGS.get(k, k): v for k, v in exif.items()}
+                    for tag in ('DateTimeOriginal', 'DateTimeDigitized', 'DateTime'):
+                        if tag in tag_map:
+                            try:
+                                dt = datetime.strptime(tag_map[tag], "%Y:%m:%d %H:%M:%S")
+                                dates.append(dt)
+                            except ValueError:
+                                continue
+                except Exception:
+                    pass
+
+            if within_json_sidecar:
+                # Buscar JSON sidecar
+                json_path = Path(file_path).with_suffix(file_path.suffix + ".json")
+                if json_path.exists():
+                    try:
+                        with open(json_path, 'r', encoding='utf-8') as f:
+                            data = json.load(f)
+                            for key in ['photoTakenTime', 'creationTime', 'creationTimestamp']:
+                                ts = data.get(key, {}).get('timestamp') or data.get(key)
+                                if ts:
+                                    dt = datetime.fromtimestamp(int(ts))
+                                    dates.append(dt)
+                    except Exception:
+                        pass
+
+            # Fecha de creación (si está disponible en el sistema)
+            try:
+                stat = os.stat(file_path)
+                if hasattr(stat, 'st_birthtime'):
+                    dates.append(datetime.fromtimestamp(stat.st_birthtime))
+            except Exception:
+                pass
+
+            # Fecha de modificación
+            try:
+                mtime = os.path.getmtime(file_path)
+                dates.append(datetime.fromtimestamp(mtime))
+            except Exception:
+                pass
+
+        except Exception:
+            pass
+
+        if dates:
+            return min(dates)
+        return None
+
+    ######################
+    # END OF AUX FUNCTIONS
+    ######################
+
+    with set_log_level(LOGGER, log_level):
+        timestamp_dt = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S")
+
+        # Initialize overall counters with pct keys for media
+        counters = init_count_files_counters()
+
+        supported_exts = set(PHOTO_EXT + VIDEO_EXT + METADATA_EXT + SIDECAR_EXT)
+
+        # Walk through all subdirectories and files
+        for root, dirs, files in os.walk(input_folder):
+            for filename in files:
+                file_path = os.path.join(root, filename)
+                if os.path.islink(file_path):
+                    continue  # Skip symbolic links
+
+                _, ext = os.path.splitext(filename)
+                ext = ext.lower()
+
+                # Count every file
+                counters['total_files'] += 1
+
+                # Determine support status
+                if ext in supported_exts:
+                    counters['supported_files'] += 1
+                else:
+                    counters['unsupported_files'] += 1
+
+                # Categorize by extension
+                if ext in PHOTO_EXT:
+                    counters['photo_files'] += 1
+                    counters['media_files'] += 1
+                    media_type = 'photos'
+                elif ext in VIDEO_EXT:
+                    counters['video_files'] += 1
+                    counters['media_files'] += 1
+                    media_type = 'videos'
+                else:
+                    media_type = None
+
+                # Count metadata and sidecar
+                if ext in METADATA_EXT:
+                    counters['metadata_files'] += 1
+                if ext in SIDECAR_EXT:
+                    counters['sidecar_files'] += 1
+                if ext in METADATA_EXT or ext in SIDECAR_EXT:
+                    counters['non_media_files'] += 1
+
+                # Skip date logic for non-media
+                if not media_type:
+                    continue
+
+                counters[media_type]['total'] += 1
+
+                file_date = get_oldest_date(file_path, media_type, within_json_sidecar=within_json_sidecar)
+                has_date = file_date is not None and file_date <= timestamp_dt
+
+                if has_date:
+                    counters[media_type]['with_date'] += 1
+                else:
+                    counters[media_type]['without_date'] += 1
+
+        # Calculate percentages for photos based on totals
+        total_photos = counters['photos']['total']
+        if total_photos > 0:
+            counters['photos']['pct_with_date'] = (counters['photos']['with_date'] / total_photos) * 100
+            counters['photos']['pct_without_date'] = (counters['photos']['without_date'] / total_photos) * 100
+
+        # Calculate percentages for videos based on totals
+        total_videos = counters['videos']['total']
+        if total_videos > 0:
+            counters['videos']['pct_with_date'] = (counters['videos']['with_date'] / total_videos) * 100
+            counters['videos']['pct_without_date'] = (counters['videos']['without_date'] / total_videos) * 100
+
+        return counters

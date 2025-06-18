@@ -29,7 +29,7 @@ usage: PhotoMigrator [-h] [-v] [-source <SOURCE>] [-target <TARGET>] [-move [= [
                      [-dashboard [= [true,false]]] [-parallel [= [true,false]]]
                      [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
                      [-client = ['google-takeout', 'synology', 'immich']] [-id [= [1-3]]]
-                     [-confirm [= [true,false]]] [-OTP]
+                     [-noConfirm [= [true,false]]] [-OTP]
                      [-from <FROM_DATE>] [-to <TO_DATE>]
                      [-country <COUNTRY_NAME>] [-city <CITY_NAME>] [-person <PERSON_NAME>]
                      [-type = [image,video,all]]
@@ -126,8 +126,8 @@ Following general arguments have different purposses depending on the Execution 
               exist in the Configuration file as suffix of USERNAME/PASSORD or API_KEY_USER.
               (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2
               entries must exist in Config.ini file).
--confirm  ; --request-user-confirmarion = [true,false]
-              Request User Confrimarion before execute any Feature. (default: True).
+-noConfirm; --no-request-user-confirmarion = [true,false]
+              No Request User Confrimarion before execute any Feature. (default: False).
 -OTP      ; --one-time-password
               This Flag allow you to login into Synology Photos using 2FA with an OTP Token.
 -from     ; --filter-from-date <FROM_DATE>
