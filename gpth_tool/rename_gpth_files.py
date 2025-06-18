@@ -79,6 +79,8 @@ def main():
         print(f"{filename} > {new_name}")
 
         if not SIMULATE:
+            if os.path.exists(new_name):
+                os.remove(new_name)
             os.rename(filename, new_name)
 
     print(f"\n==== FINALIZADO (SIMULATE={'yes' if SIMULATE else 'no'}) ====")

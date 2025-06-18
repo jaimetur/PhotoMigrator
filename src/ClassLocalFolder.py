@@ -188,7 +188,7 @@ class ClassLocalFolder:
             str: The name of the client.
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.debug("DEBUG   : Fetching the client name.")
+            LOGGER.debug(f"Fetching the client name.")
             return self.CLIENT_NAME
 
 
@@ -207,7 +207,7 @@ class ClassLocalFolder:
             dict: An empty dictionary, as config is not used locally.
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Reading config file (Not applicable).")
+            LOGGER.info(f"Reading config file (Not applicable).")
             return {}
 
 
@@ -225,7 +225,7 @@ class ClassLocalFolder:
             bool: Always True for local usage.
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Logging in (local storage).")
+            LOGGER.info(f"Logging in (local storage).")
             return True
 
     def logout(self, log_level=None):
@@ -236,7 +236,7 @@ class ClassLocalFolder:
             log_level (logging.LEVEL): log level for logs and console.
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Logging out (local storage).")
+            LOGGER.info(f"Logging out (local storage).")
 
 
     ###########################################################################
@@ -276,7 +276,7 @@ class ClassLocalFolder:
             str: The path of the base folder as the user ID.
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Returning the user ID (base folder path).")
+            LOGGER.info(f"Returning the user ID (base folder path).")
             return str(self.base_folder)
 
 
@@ -303,7 +303,7 @@ class ClassLocalFolder:
             bool: True if the album was created successfully, False otherwise.
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info(f"INFO    : Creating album '{album_name}'.")
+            LOGGER.info(f"Creating album '{album_name}'.")
             album_path = self.albums_folder / album_name
             album_path.mkdir(parents=True, exist_ok=True)
             return album_path
@@ -323,7 +323,7 @@ class ClassLocalFolder:
         """
         with set_log_level(LOGGER, log_level):
             album_path = Path(album_id)
-            LOGGER.info(f"INFO    : Removing album '{album_name or album_id}'.")
+            LOGGER.info(f"Removing album '{album_name or album_id}'.")
             if album_path.exists() and album_path.is_dir():
                 shutil.rmtree(album_path)
                 return True
@@ -341,7 +341,7 @@ class ClassLocalFolder:
                         - 'albumName': Name of the album folder.
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Retrieving owned albums.")
+            LOGGER.info(f"Retrieving owned albums.")
 
             albums = [
                 {"id": str(p.resolve()), "albumName": p.name}
@@ -355,7 +355,7 @@ class ClassLocalFolder:
                 album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                 if len(album_assets) > 0:
                     albums_filtered.append(album)
-            LOGGER.info(f"INFO    : Found {len(albums_filtered)} owned albums.")
+            LOGGER.info(f"Found {len(albums_filtered)} owned albums.")
             return albums_filtered
 
 
@@ -372,7 +372,7 @@ class ClassLocalFolder:
         # TODO: Apply Filters to this method.
         with set_log_level(LOGGER, log_level):
             try:
-                LOGGER.info("INFO    : Retrieving owned and shared albums.")
+                LOGGER.info(f"Retrieving owned and shared albums.")
 
                 albums = [
                     {"id": str(p.resolve()), "albumName": p.name}
@@ -392,9 +392,9 @@ class ClassLocalFolder:
                     album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
                     if len(album_assets) > 0:
                         albums_filtered.append(album)
-                LOGGER.info(f"INFO    : Found {len(albums_filtered)} albums in total (owned + shared).")
+                LOGGER.info(f"Found {len(albums_filtered)} albums in total (owned + shared).")
             except Exception as e:
-                LOGGER.error(f"ERROR   : Failed to get albums (owned + shared): {str(e)}")
+                LOGGER.error(f"Failed to get albums (owned + shared): {str(e)}")
 
             return albums_filtered
 
@@ -415,7 +415,7 @@ class ClassLocalFolder:
             try:
                 album_path = Path(album_id)
                 if not album_path.exists() or not album_path.is_dir():
-                    LOGGER.warning(f"WARNING : Album path '{album_id}' does not exist or is not a directory.")
+                    LOGGER.warning(f"Album path '{album_id}' does not exist or is not a directory.")
                     return 0
 
                 selected_type_extensions = self._get_selected_extensions(type)
@@ -438,11 +438,11 @@ class ClassLocalFolder:
 
                         total_size += file.stat().st_size
 
-                LOGGER.info(f"INFO    : Total size of {type} assets in album {album_id}: {total_size} bytes.")
+                LOGGER.info(f"Total size of {type} assets in album {album_id}: {total_size} bytes.")
                 return total_size
 
             except Exception as e:
-                LOGGER.error(f"ERROR   : Failed to calculate size of {type} assets in album '{album_id}': {str(e)}")
+                LOGGER.error(f"Failed to calculate size of {type} assets in album '{album_id}': {str(e)}")
                 return 0
 
 
@@ -473,7 +473,7 @@ class ClassLocalFolder:
             tuple: (bool, str or None) -> (exists, album_path_if_exists)
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info(f"INFO    : Checking if album '{album_name}' exists.")
+            LOGGER.info(f"Checking if album '{album_name}' exists.")
             for album in self.get_albums_owned_by_user(filter_assets=False, log_level=log_level):
                 if album_name == album["albumName"]:
                     return True, album["id"]
@@ -534,7 +534,7 @@ class ClassLocalFolder:
                     filtered_assets = self.filter_assets_by_date(filtered_assets, self.from_date, self.to_date)
                 return filtered_assets
             except Exception as e:
-                LOGGER.error(f"ERROR   : Exception while filtering Assets from Local Folder. {e}")
+                LOGGER.error(f"Exception while filtering Assets from Local Folder. {e}")
 
     def filter_assets_by_type(self, assets, type):
         """
@@ -615,7 +615,7 @@ class ClassLocalFolder:
                         - 'type': Type of the file (image, video, metadata, sidecar, unknown).
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info(f"INFO    : Retrieving {type} assets from the base folder, excluding system folders and unwanted files.")
+            LOGGER.info(f"Retrieving {type} assets from the base folder, excluding system folders and unwanted files.")
             # If all_assets is already cached, return it
             if self.all_assets_filtered is not None:
                 return self.all_assets_filtered
@@ -649,7 +649,7 @@ class ClassLocalFolder:
                     })
             # Here we have to use the old filter_assets method in order to apply the filter to all_assets_filtered. Then the other methods can use the new filter_assets based in this pre-filtered list.
             all_filtered_assets = self.filter_assets_old(assets=all_assets, log_level=log_level)
-            LOGGER.info(f"INFO    : Found {len(all_filtered_assets)} assets of type '{type}' in the base folder.")
+            LOGGER.info(f"Found {len(all_filtered_assets)} assets of type '{type}' in the base folder.")
             self.all_assets_filtered = all_filtered_assets  # Cache all_assets for future use
             return all_filtered_assets
 
@@ -674,11 +674,11 @@ class ClassLocalFolder:
         """
         with set_log_level(LOGGER, log_level):
             try:
-                LOGGER.debug(f"DEBUG   : Retrieving '{type}' assets for album: {album_id}")
+                LOGGER.debug(f"Retrieving '{type}' assets for album: {album_id}")
 
                 album_path = Path(album_id)
                 if not album_path.exists() or not album_path.is_dir():
-                    LOGGER.warning(f"WARNING : Album path '{album_id}' does not exist or is not a directory.")
+                    LOGGER.warning(f"Album path '{album_id}' does not exist or is not a directory.")
                     return []
 
                 selected_type_extensions = self._get_selected_extensions(type)
@@ -709,7 +709,7 @@ class ClassLocalFolder:
                         })
 
                 filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
-                LOGGER.debug(f"DEBUG   : Found {len(filtered_album_assets)} assets of type '{type}' in album {album_id}.")
+                LOGGER.debug(f"Found {len(filtered_album_assets)} assets of type '{type}' in album {album_id}.")
                 return filtered_album_assets
 
             except Exception as e:
@@ -739,11 +739,11 @@ class ClassLocalFolder:
         # TODO: This method is just a copy of get_all_assets_from_album. Change to filter only shared albums
         with set_log_level(LOGGER, log_level):
             try:
-                LOGGER.debug(f"DEBUG   : Retrieving '{type}' assets for album: {album_id}")
+                LOGGER.debug(f"Retrieving '{type}' assets for album: {album_id}")
 
                 album_path = Path(album_id)
                 if not album_path.exists() or not album_path.is_dir():
-                    LOGGER.warning(f"WARNING : Album path '{album_id}' does not exist or is not a directory.")
+                    LOGGER.warning(f"Album path '{album_id}' does not exist or is not a directory.")
                     return []
 
                 selected_type_extensions = self._get_selected_extensions(type)
@@ -774,7 +774,7 @@ class ClassLocalFolder:
                         })
 
                 filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
-                LOGGER.debug(f"DEBUG   : Found {len(filtered_album_assets)} assets of type '{type}' in album {album_id}.")
+                LOGGER.debug(f"Found {len(filtered_album_assets)} assets of type '{type}' in album {album_id}.")
                 return filtered_album_assets
 
             except Exception as e:
@@ -802,7 +802,7 @@ class ClassLocalFolder:
                         - 'type': Type of the file (image, video, metadata, sidecar, unknown).
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info(f"INFO    : Retrieving {type} assets excluding albums, shared albums, and excluded patterns.")
+            LOGGER.info(f"Retrieving {type} assets excluding albums, shared albums, and excluded patterns.")
             # If assets_without_albums is already cached, return it.
             if self.assets_without_albums_filtered is not None:
                 return self.assets_without_albums_filtered
@@ -853,7 +853,7 @@ class ClassLocalFolder:
             takeout_metadata = self.get_takeout_assets_by_filters(type='metadata', log_level=log_level)
             takeout_sidecar = self.get_takeout_assets_by_filters(type='sidecar', log_level=log_level)
             takeout_unsupported = self.get_takeout_assets_by_filters(type='unsupported', log_level=log_level)
-            LOGGER.info(f"INFO    : Found {len(assets_without_albums)} assets of type '{type}' in No-Album folders.")
+            LOGGER.info(f"Found {len(assets_without_albums)} assets of type '{type}' in No-Album folders.")
             all_assets = assets_without_albums + takeout_metadata + takeout_sidecar + takeout_unsupported
             self.assets_without_albums_filtered = all_assets  # Cache assets_without_albums for future use
             return all_assets
@@ -869,7 +869,7 @@ class ClassLocalFolder:
             list[dict]: Merged assets from all albums.
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Gathering all albums' assets.")
+            LOGGER.info(f"Gathering all albums' assets.")
             # If albums_assets is already cached, return it
             if self.albums_assets_filtered is not None:
                 return self.albums_assets_filtered
@@ -897,7 +897,7 @@ class ClassLocalFolder:
             int: Number of assets added to the album.
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info(f"INFO    : Adding assets to album: {album_name or album_id}")
+            LOGGER.info(f"Adding assets to album: {album_name or album_id}")
             album_path = Path(album_id)
             album_path.mkdir(parents=True, exist_ok=True)
             count_added = 0
@@ -912,19 +912,19 @@ class ClassLocalFolder:
                         try:
                             relative_path = os.path.relpath(asset_path, start=symlink_path.parent)
                             symlink_path.symlink_to(relative_path)
-                            LOGGER.info(f"INFO    : Created relative symlink: {symlink_path} -> {relative_path}")
+                            LOGGER.info(f"Created relative symlink: {symlink_path} -> {relative_path}")
                         except Exception as e:
-                            LOGGER.warning(f"WARNING : Error: {e}")
-                            LOGGER.warning(f"WARNING : Failed to create symlink {symlink_path}. Copying a duplicated copy of the file into Album folder instead.")
+                            LOGGER.warning(f"Error: {e}")
+                            LOGGER.warning(f"Failed to create symlink {symlink_path}. Copying a duplicated copy of the file into Album folder instead.")
                             try:
                                 shutil.copy2(asset_path, symlink_path)
-                                LOGGER.info(f"INFO    : Copied file: {symlink_path}")
+                                LOGGER.info(f"Copied file: {symlink_path}")
                             except Exception as copy_error:
-                                LOGGER.error(f"ERROR   : Failed to copy file {asset_path} to {symlink_path}. Error: {copy_error}")
+                                LOGGER.error(f"Failed to copy file {asset_path} to {symlink_path}. Error: {copy_error}")
                                 continue
                         count_added += 1
 
-            LOGGER.info(f"INFO    : Added {count_added} asset(s) to album '{album_name or album_id}'.")
+            LOGGER.info(f"Added {count_added} asset(s) to album '{album_name or album_id}'.")
             return count_added
 
 
@@ -939,7 +939,7 @@ class ClassLocalFolder:
             list[list[str]]: Each element is a list of file paths considered duplicates.
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Searching for duplicate assets in local storage.")
+            LOGGER.info(f"Searching for duplicate assets in local storage.")
             size_map = {}
             duplicates = []
             for file in self.base_folder.rglob("*"):
@@ -953,7 +953,7 @@ class ClassLocalFolder:
             for fsize, group in size_map.items():
                 if len(group) > 1:
                     duplicates.append([str(x.resolve()) for x in group])
-            LOGGER.info(f"INFO    : Found {len(duplicates)} group(s) of duplicates.")
+            LOGGER.info(f"Found {len(duplicates)} group(s) of duplicates.")
             return duplicates
 
     def remove_assets(self, asset_ids, log_level=None):
@@ -978,10 +978,10 @@ class ClassLocalFolder:
                         asset_path.unlink()
                         count += 1
                     else:
-                        LOGGER.warning(f"WARNING : Skipped removing '{asset_path}' because it is not a file.")
+                        LOGGER.warning(f"Skipped removing '{asset_path}' because it is not a file.")
                 else:
-                    LOGGER.warning(f"WARNING : Asset path does not exist: {asset_path}")
-            LOGGER.info(f"INFO    : Removed {count} asset(s) from local storage.")
+                    LOGGER.warning(f"Asset path does not exist: {asset_path}")
+            LOGGER.info(f"Removed {count} asset(s) from local storage.")
             return count
 
     def remove_duplicates_assets(self, log_level=None):
@@ -1001,7 +1001,7 @@ class ClassLocalFolder:
                 # keep the first, remove the rest
                 to_remove.extend(dup_group[1:])
             count_removed = self.remove_assets(to_remove, log_level)
-            LOGGER.info(f"INFO    : Removed {count_removed} duplicate asset(s) from local storage.")
+            LOGGER.info(f"Removed {count_removed} duplicate asset(s) from local storage.")
             return count_removed
 
 
@@ -1036,7 +1036,7 @@ class ClassLocalFolder:
                 return str(dest), True
             else:
                 shutil.copy2(src, dest)
-                LOGGER.info(f"INFO    : Uploaded asset '{file_path}' to '{dest}'.")
+                LOGGER.info(f"Uploaded asset '{file_path}' to '{dest}'.")
             return str(dest), False
 
 
@@ -1057,7 +1057,7 @@ class ClassLocalFolder:
         with set_log_level(LOGGER, log_level):
             src = Path(asset_id)
             if not src.exists():
-                LOGGER.warning(f"WARNING : Asset '{asset_id}' does not exist.")
+                LOGGER.warning(f"Asset '{asset_id}' does not exist.")
                 return 0
 
             dest_dir = Path(download_folder)
@@ -1068,7 +1068,7 @@ class ClassLocalFolder:
             if asset_time:
                 os.utime(dest, (asset_time, asset_time))
 
-            LOGGER.info(f"INFO    : Downloaded asset '{src}' to '{dest}'.")
+            LOGGER.info(f"Downloaded asset '{src}' to '{dest}'.")
             return 1
 
 
@@ -1163,7 +1163,7 @@ class ClassLocalFolder:
                 LOGGER.warning(f"WARN    : Base folder does not exist: {self.base_folder}")
                 return 0
 
-            LOGGER.info(f"INFO    : Looking for empty folders in '{self.base_folder}'...")
+            LOGGER.info(f"Looking for empty folders in '{self.base_folder}'...")
 
             empty_folders_removed = 0
 
@@ -1175,11 +1175,11 @@ class ClassLocalFolder:
                         if not any(folder.iterdir()):
                             folder.rmdir()
                             empty_folders_removed += 1
-                            LOGGER.info(f"INFO    : Removed empty folder: {folder}")
+                            LOGGER.info(f"Removed empty folder: {folder}")
                     except Exception as e:
                         LOGGER.warning(f"WARN    : Could not remove folder '{folder}': {e}")
 
-            LOGGER.info(f"INFO    : Removed {empty_folders_removed} empty folders.")
+            LOGGER.info(f"Removed {empty_folders_removed} empty folders.")
             return empty_folders_removed
 
 
@@ -1191,13 +1191,13 @@ class ClassLocalFolder:
             tuple(int, int): (#albums_removed, #assets_removed_if_requested).
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Removing all albums.")
+            LOGGER.info(f"Removing all albums.")
 
             for album in self.albums_folder.iterdir():
                 if album.is_dir():
                     shutil.rmtree(album)
 
-            LOGGER.info("INFO    : All albums have been removed.")
+            LOGGER.info(f"All albums have been removed.")
             return True
 
 
@@ -1206,13 +1206,13 @@ class ClassLocalFolder:
         Removes all empty album folders.
         """
         with set_log_level(LOGGER, log_level):
-            LOGGER.info("INFO    : Removing empty albums.")
+            LOGGER.info(f"Removing empty albums.")
 
             empty_albums = [p for p in self.albums_folder.iterdir() if p.is_dir() and not any(p.iterdir())]
             for album in empty_albums:
                 shutil.rmtree(album)
 
-            LOGGER.info(f"INFO    : Removed {len(empty_albums)} empty albums.")
+            LOGGER.info(f"Removed {len(empty_albums)} empty albums.")
             return True
 
     def remove_duplicates_albums(self, request_user_confirmation=True, log_level=logging.WARNING):
@@ -1237,7 +1237,7 @@ class ClassLocalFolder:
                 LOGGER.warning(f"WARN    : Albums folder does not exist: {self.albums_folder}")
                 return 0
 
-            LOGGER.info("INFO    : Looking for exact duplicate albums in local folders...")
+            LOGGER.info(f"Looking for exact duplicate albums in local folders...")
 
             duplicates_map = defaultdict(list)
 
@@ -1251,35 +1251,35 @@ class ClassLocalFolder:
             for (album_name, total_size), folders in duplicates_map.items():
                 if len(folders) > 1:
                     keeper = folders[0]
-                    LOGGER.info(f"INFO    : Keeping folder '{keeper}' with size {total_size} bytes.")
+                    LOGGER.info(f"Keeping folder '{keeper}' with size {total_size} bytes.")
                     duplicates = folders[1:]
                     for dup_folder in duplicates:
                         folders_to_remove.append((album_name, total_size, dup_folder))
 
             if not folders_to_remove:
-                LOGGER.info("INFO    : No exact duplicate albums found.")
+                LOGGER.info(f"No exact duplicate albums found.")
                 return 0
 
             # Display the folders to be removed
-            LOGGER.info("INFO    : Folders marked for deletion:")
+            LOGGER.info(f"Folders marked for deletion:")
             for album_name, total_size, dup_folder in folders_to_remove:
                 print(f"  '{album_name}' - Size: {total_size} bytes -> {dup_folder}")
 
             # Ask for confirmation only if requested
             if request_user_confirmation and not confirm_continue():
-                LOGGER.info("INFO    : Exiting program.")
+                LOGGER.info(f"Exiting program.")
                 return 0
 
             total_removed = 0
             for album_name, total_size, dup_folder in folders_to_remove:
                 try:
                     shutil.rmtree(dup_folder)
-                    LOGGER.info(f"INFO    : Removed duplicate folder: {dup_folder}")
+                    LOGGER.info(f"Removed duplicate folder: {dup_folder}")
                     total_removed += 1
                 except Exception as e:
-                    LOGGER.error(f"ERROR   : Failed to remove folder '{dup_folder}': {e}")
+                    LOGGER.error(f"Failed to remove folder '{dup_folder}': {e}")
 
-            LOGGER.info(f"INFO    : Removed {total_removed} exact duplicate folders.")
+            LOGGER.info(f"Removed {total_removed} exact duplicate folders.")
             return total_removed
 
     def merge_duplicates_albums(self, strategy='count', request_user_confirmation=True, log_level=logging.WARNING):
@@ -1303,10 +1303,10 @@ class ClassLocalFolder:
             from collections import defaultdict
 
             if not self.albums_folder.exists():
-                LOGGER.warning(f"WARNING : Albums folder does not exist: {self.albums_folder}")
+                LOGGER.warning(f"Albums folder does not exist: {self.albums_folder}")
                 return 0
 
-            LOGGER.info("INFO    : Searching for duplicate albums in local folders...")
+            LOGGER.info(f"Searching for duplicate albums in local folders...")
 
             # Map from album name to list of folders
             albums_by_name = defaultdict(list)
@@ -1341,20 +1341,20 @@ class ClassLocalFolder:
                 })
 
             if not merge_plan:
-                LOGGER.info("INFO    : No duplicate albums found.")
+                LOGGER.info(f"No duplicate albums found.")
                 return 0
 
             # Display the merge plan
-            LOGGER.info("INFO    : Albums to be merged:")
+            LOGGER.info(f"Albums to be merged:")
             for item in merge_plan:
-                LOGGER.info(f"INFO    : \nAlbum: '{item['album_name']}'")
-                LOGGER.info(f"INFO    :   Keeper: {item['keeper_path']}")
+                LOGGER.info(f"\nAlbum: '{item['album_name']}'")
+                LOGGER.info(f"  Keeper: {item['keeper_path']}")
                 for dup_path in item["duplicates"]:
-                    LOGGER.info(f"INFO    :   Duplicate to merge and remove: {dup_path}")
+                    LOGGER.info(f"  Duplicate to merge and remove: {dup_path}")
 
             # Ask for confirmation
             if request_user_confirmation and not confirm_continue():
-                LOGGER.info("INFO    : Exiting program.")
+                LOGGER.info(f"Exiting program.")
                 return 0
 
             total_removed_duplicated_albums = 0
@@ -1363,7 +1363,7 @@ class ClassLocalFolder:
             for item in merge_plan:
                 keeper_path = item["keeper_path"]
                 for dup_path in item["duplicates"]:
-                    LOGGER.debug(f"DEBUG   : Moving files from duplicate folder: {dup_path}")
+                    LOGGER.debug(f"Moving files from duplicate folder: {dup_path}")
 
                     for file in dup_path.rglob("*"):
                         if file.is_file():
@@ -1378,13 +1378,13 @@ class ClassLocalFolder:
                     try:
                         dup_path.rmdir()  # Only works if the folder is empty
                         total_removed_duplicated_albums += 1
-                        LOGGER.info(f"INFO    : Removed duplicate folder: {dup_path}")
+                        LOGGER.info(f"Removed duplicate folder: {dup_path}")
                     except OSError:
                         shutil.rmtree(dup_path)
                         total_removed_duplicated_albums += 1
-                        LOGGER.info(f"INFO    : Removed duplicate folder and its contents: {dup_path}")
+                        LOGGER.info(f"Removed duplicate folder and its contents: {dup_path}")
 
-            LOGGER.info(f"INFO    : Removed {total_removed_duplicated_albums} duplicate folders.")
+            LOGGER.info(f"Removed {total_removed_duplicated_albums} duplicate folders.")
             return total_removed_duplicated_albums
 
     def remove_orphan_assets(self, user_confirmation=True, log_level=logging.WARNING):

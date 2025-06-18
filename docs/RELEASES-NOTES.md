@@ -4,19 +4,74 @@
 
 ## **Release**: v3.3.3  
 
-- ### **Release Date**: 2025-06-17
+- ### **Release Date**: 2025-06-18
 
 - ### Main Changes:
   - #### 🌟 New Features:
     - [x] Created GitHub Forms on New Issues.
-    - [x] Added Step duration summary at the end of `Google Takeout Processing` feature
+    - [x] Added Step duration summary at the end of `Google Takeout Processing` feature.
+    - [x] Added new `VERBOSE` value for `-loglevel` argument.
+    - [x] Added new argument `-logFormat, --log-format` to define the format of the Log File. Valid values: `[LOG, TXT, ALL]`.
 
   - #### 🚀 Enhancements:
+    - [x] Renamed argument `-loglevel` to `-logLevel`.
+    - [x] Renamed argument `-dashb` to `-dashboard`.
+    - [x] Renamed argument `-AlbFld` to `-AlbumFolder`.
+    - [x] Renamed argument `-rAlbAss` to `-rAlbAsset`.
+    - [x] Renamed argument `-gpthErr` to `-gpthError`.
     - [x] Updated GPTH to version `4.0.9` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
-      - Code totally refactored and optimized
-  
+      - This release represents a fundamental restructuring of the codebase following **Clean Architecture** principles, providing better maintainability, testability, and performance.
+      - ##### 🚨 **Critical Bug Fixes**
+        - **CRITICAL FIX**: Nothing mode now processes ALL files, preventing data loss in move mode
+        - **FIXED: Data loss in Nothing mode** - Album-only files are now properly moved in Nothing mode instead of being silently skipped, preventing potential data loss when using move mode with `--album-behavior=nothing`
+      - ##### 🚀 **Improvements**
+        - ##### **Performance & Reliability Improvements**
+          - **Stream-based file I/O operations** replacing synchronous access
+          - **Persistent ExifTool process** management (10-50x faster EXIF operations)
+          - **Concurrent media processing** with race condition protection
+          - **Memory optimization** - up to 99.4% reduction for large file operations
+          - **Streaming hash calculations** (20% faster with reduced memory usage)
+          - **Optimized directory scanning** (50% fewer I/O operations)
+          - **Parallel file moving operations** (40-50% performance improvement)
+          - **Smart duplicate detection** with memory-efficient algorithms
+        - ##### **Domain-Driven Design Implementation**
+          - **Reorganized codebase into distinct layers**: Domain, Infrastructure, and Presentation
+          - **Introduced service-oriented architecture** with dependency injection container
+          - **Implemented immutable domain entities** for better data integrity and performance
+          - **Added comprehensive test coverage** with over 200+ unit and integration tests   
+        - ##### **Service Consolidation & Modernization**
+          - **Unified service interfaces** through consolidated service pattern
+          - **Implemented ServiceContainer** for centralized dependency management
+          - **Refactored moving logic** into strategy pattern with pluggable implementations
+          - **Enhanced error handling** with proper exception hierarchies and logging
+        - ##### **Intelligent Extension Correction**
+          - **MIME type validation** with file header detection
+          - **RAW format protection** - prevents corruption of TIFF-based files
+          - **Comprehensive safety modes** for different use cases
+          - **JSON metadata synchronization** after extension fixes
+        - ##### **Enhanced Data Processing**
+          - **MediaEntity immutable models** for thread-safe operations
+          - **Coordinate processing** with validation and conversion
+          - **JSON metadata matching** with truncated filename support
+          - **Album relationship management** with shortcut strategies
+        - ##### **Bug Fixes & Stability**
+          - **Race condition elimination** in concurrent operations
+          - **JSON file matching improvements** for truncated names
+          - **Memory leak prevention** in long-running processes
+          - **Cross-platform filename handling** improvements
+        - ##### **Eight-Step Pipeline Architecture**
+          1. **Extension Fixing** - Intelligent MIME type correction
+          2. **Media Discovery** - Optimized file system scanning
+          3. **Duplicate Removal** - Content-based deduplication
+          4. **Date Extraction** - Multi-source timestamp resolution
+          5. **EXIF Writing** - Metadata synchronization
+          6. **Album Detection** - Smart folder classification
+          7. **File Moving** - Strategy-based organization
+          8. **Creation Time Updates** - Final timestamp alignment
+
+
   - #### 🐛 Bug fixes:
-    - [ ] Fix `--loglevel` argument.
+    - [x] Fixed LOG_LEVEL change in `Google Takeout Processing Feature`.
 
 ---
 
@@ -220,7 +275,7 @@
     - [x] Added a new argument **'--target'** to specify the \<TARGET> client for the Automatic Migration process.
     - [x] Added new flag '**-dashboard, --dashboard=[true, false]**' (default=true) to show/hide Live Dashboard during Atomated Migration Job.
     - [x] Added new flag '**-gpthInfo, --show-gpth-info=[true, false]**' (default=false) to show/hide progress messages during GPTH processing.
-    - [x] Added new flag '**--gpthErr, --show-gpth-errors=[true, false]**' (default=true) to show/hide errors messages during GPTH processing.
+    - [x] Added new flag '**--gpthError, --show-gpth-errors=[true, false]**' (default=true) to show/hide errors messages during GPTH processing.
     - [x] Support for 'Uploads Queue' to limit the max number of assets that the Puller worker will store in the temporary folder to 100 (this save disk space). In this way the Puller worker will never put more than 100 assets pending to Upload in the temporary folder.
     - [x] Support to use Local Folders as SOURCE/TARGET during Automatic Migration Process. Now the selected local folder works equal to other supported cloud services.
     - [x] Support Migration between 2 different accounts on the same Cloud Photo Service. 
@@ -278,10 +333,10 @@
       - **-i,        --input-folder <INPUT_FOLDER>** Specify the input folder that you want to process.
       - **-o,        --output-folder <OUTPUT_FOLDER>** Specify the output folder to save the result of the processing action.
       - **-loglevel, --log-level ['debug', 'info', 'warning', 'error', 'critical']** Specify the log level for logging and screen messages.  
-      - **-rAlbAss,  --remove-albums-assets** 
+      - **-rAlbAsset,  --remove-albums-assets** 
       If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums',  
       it will also delete the assets (photos/videos) inside each album.
-      - **-AlbFld,   --albums-folders <ALBUMS_FOLDER>**
+      - **-AlbFolder,--albums-folders <ALBUMS_FOLDER>**
       If used together with '-iuAll, --immich-upload-all' or '-iuAll, --immich- upload-all', 
       it will create an Album per each subfolder found in <ALBUMS_FOLDER>. 
 

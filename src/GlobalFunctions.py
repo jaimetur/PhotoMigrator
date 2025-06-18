@@ -105,19 +105,18 @@ def set_LOGGER():
         log_level=GV.LOG_LEVEL_MIN,
         skip_logfile=False,
         skip_console=False,
-        detail_log=True,
-        plain_log=False
+        format=ARGS['log-format']
     )
 
     # 2) Mapeo explícito de niveles soportados
     level_str = ARGS['log-level'].lower()
     level_mapping = {
-        'verbose': VERBOSE_LEVEL_NUM,
-        'debug':   logging.DEBUG,
-        'info':    logging.INFO,
-        'warning': logging.WARNING,
-        'error':   logging.ERROR,
-        'critical':logging.CRITICAL,
+        'verbose'   : VERBOSE_LEVEL_NUM,
+        'debug'     : logging.DEBUG,
+        'info'      : logging.INFO,
+        'warning'   : logging.WARNING,
+        'error'     : logging.ERROR,
+        'critical'  : logging.CRITICAL,
     }
 
     if level_str in level_mapping:

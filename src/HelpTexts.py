@@ -73,12 +73,12 @@ def set_help_texts():
 
     HELP_TEXTS["remove-all-albums"] = textwrap.dedent(f"""
             CAUTION!!! The Tool will remove ALL your Albums from your Photos account Database.
-            Optionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAss, --remove-albums-assets' argument.
+            Optionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAsset, --remove-albums-assets' argument.
             """)
 
     HELP_TEXTS["remove-albums"] = textwrap.dedent(f"""
             CAUTION!!! The Tool will remove those Albums from your Photos account Database whose name matches with the provided pattern '<ALBUMS_NAME_PATTERN>'.
-            Optionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAss, --remove-albums-assets' argument.
+            Optionally ALL the Assets associated to each Album can be removed If you also include the argument '-rAlbAsset, --remove-albums-assets' argument.
             """)
 
     HELP_TEXTS["rename-albums"] = textwrap.dedent(f"""

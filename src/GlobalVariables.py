@@ -9,7 +9,7 @@ import logging
 COPYRIGHT_TEXT                  = "(c) 2024-2025 - Jaime Tur (@jaimetur)"
 SCRIPT_NAME                     = "PhotoMigrator"
 SCRIPT_VERSION                  = "v3.3.3"
-SCRIPT_DATE                     = "2025-06-17"
+SCRIPT_DATE                     = "2025-06-18"
 SCRIPT_NAME_VERSION             = f"{SCRIPT_NAME} {SCRIPT_VERSION}"
 GPTH_VERSION                    = "4.0.9"
 EXIF_VERSION                    = "3.0.0"
@@ -26,6 +26,10 @@ LOGGER                          = None
 VERBOSE_LEVEL_NUM               = 5
 LOG_LEVEL_MIN                   = VERBOSE_LEVEL_NUM
 LOG_LEVEL                       = logging.INFO
+MAX_SHORT_ARGUMENT_LENGHT       = 10
+MAX_HELP_POSITION               = 100
+IDENT_ARGUMENT_DESCRIPTION      = 14
+IDENT_USAGE_DESCRIPTION         = 24
 
 # Supplemental Metadata Suffix
 SUPPLEMENTAL_METADATA           = "supplemental-metadata"

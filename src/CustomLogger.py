@@ -6,6 +6,38 @@ from contextlib import contextmanager
 import threading
 from GlobalVariables import LOG_LEVEL, VERBOSE_LEVEL_NUM
 
+import GlobalVariables as GV
+
+#------------------------------------------------------------------
+# Replace original print to use the same LOGGER formatter
+def print_verbose(*args, **kwargs):
+    # Construimos el mensaje igual que print normal
+    message = " ".join(str(a) for a in args)
+    # Y lo enviamos al LOGGER como INFO (o al nivel que quieras)
+    GV.LOGGER.verbose(message)
+def print_debug(*args, **kwargs):
+    # Construimos el mensaje igual que print normal
+    message = " ".join(str(a) for a in args)
+    # Y lo enviamos al LOGGER como INFO (o al nivel que quieras)
+    GV.LOGGER.debug(message)
+def print_info(*args, **kwargs):
+    # Construimos el mensaje igual que print normal
+    message = " ".join(str(a) for a in args)
+    # Y lo enviamos al LOGGER como INFO (o al nivel que quieras)
+    GV.LOGGER.info(message)
+def print_warning(*args, **kwargs):
+    # Construimos el mensaje igual que print normal
+    message = " ".join(str(a) for a in args)
+    # Y lo enviamos al LOGGER como INFO (o al nivel que quieras)
+    GV.LOGGER.warning(message)
+def print_critical(*args, **kwargs):
+    # Construimos el mensaje igual que print normal
+    message = " ".join(str(a) for a in args)
+    # Y lo enviamos al LOGGER como INFO (o al nivel que quieras)
+    GV.LOGGER.critical(message)
+#------------------------------------------------------------------
+
+#------------------------------------------------------------------
 # 1) Definir el nuevo nivel VERBOSE (valor 5)
 logging.addLevelName(VERBOSE_LEVEL_NUM, "VERBOSE")
 
@@ -14,6 +46,7 @@ def verbose(self, message, *args, **kws):
     if self.isEnabledFor(VERBOSE_LEVEL_NUM):
         self._log(VERBOSE_LEVEL_NUM, message, args, **kws)
 logging.Logger.verbose = verbose
+#------------------------------------------------------------------
 
 # Clase personalizada para formatear los mensajes que van a la consola (Añadimos colorees según el nivel del mensaje)
 class CustomConsoleFormatter(logging.Formatter):
@@ -27,8 +60,8 @@ class CustomConsoleFormatter(logging.Formatter):
         if color_support:
             """Formato personalizado con colores ANSI."""
             COLORS = {
-                "VERBOSE": Fore.LIGHTCYAN_EX,
-                "DEBUG": Fore.CYAN,
+                "VERBOSE": Fore.CYAN,
+                "DEBUG": Fore.LIGHTCYAN_EX,
                 # "INFO": Fore.GREEN,
                 # "INFO": Fore.WHITE,
                 "INFO": Fore.LIGHTWHITE_EX,
@@ -41,37 +74,37 @@ class CustomConsoleFormatter(logging.Formatter):
             formatted_message = f"{color}{formatted_message}{Style.RESET_ALL}"
         return formatted_message
 
-# Clase personalizada para formatear los mensajes que van al fichero plano txt (sin colores)
-class CustomTxtFormatter(logging.Formatter):
-    def format(self, record):
-        # Crear una copia del mensaje para evitar modificar record.msg globalmente
-        original_msg = record.msg
-        formatted_message = super().format(record)
-        # Restaurar el mensaje original
-        record.msg = original_msg
-        return formatted_message
+# # Clase personalizada para formatear los mensajes que van al fichero plano txt (sin colores)
+# class CustomTxtFormatter(logging.Formatter):
+#     def format(self, record):
+#         # Crear una copia del mensaje para evitar modificar record.msg globalmente
+#         original_msg = record.msg
+#         formatted_message = super().format(record)
+#         # Restaurar el mensaje original
+#         record.msg = original_msg
+#         return formatted_message
 
-# Clase personalizada para formatear los mensajes que van al fichero de log (Sin colores, y sustituyendo INFO:, WARNING:, ERROR:, CRITICAL:, DEBUG   : por '')
-class CustomLogFormatter(logging.Formatter):
-    def format(self, record):
-        # Crear una copia del mensaje para evitar modificar record.msg globalmente
-        original_msg = record.msg
-        if record.levelname == "VERBOSE":
-            record.msg = record.msg.replace("VERBOSE : ", "")
-        elif record.levelname == "DEBUG":
-            record.msg = record.msg.replace("DEBUG   : ", "")
-        elif record.levelname == "INFO":
-            record.msg = record.msg.replace("INFO    : ", "")
-        elif record.levelname == "WARNING":
-            record.msg = record.msg.replace("WARNING : ", "")
-        elif record.levelname == "ERROR":
-            record.msg = record.msg.replace("ERROR   : ", "")
-        elif record.levelname == "CRITICAL":
-            record.msg = record.msg.replace("CRITICAL: ", "")
-        formatted_message = super().format(record)
-        # Restaurar el mensaje original
-        record.msg = original_msg
-        return formatted_message
+# # Clase personalizada para formatear los mensajes que van al fichero de log (Sin colores, y sustituyendo INFO:, WARNING:, ERROR:, CRITICAL:, DEBUG:, VERBOSE: por '')
+# class CustomLogFormatter(logging.Formatter):
+#     def format(self, record):
+#         # Crear una copia del mensaje para evitar modificar record.msg globalmente
+#         original_msg = record.msg
+#         if record.levelname == "VERBOSE":
+#             record.msg = record.msg.replace("VERBOSE : ", "")
+#         elif record.levelname == "DEBUG":
+#             record.msg = record.msg.replace("DEBUG   : ", "")
+#         elif record.levelname == "INFO":
+#             record.msg = record.msg.replace("INFO    : ", "")
+#         elif record.levelname == "WARNING":
+#             record.msg = record.msg.replace("WARNING : ", "")
+#         elif record.levelname == "ERROR":
+#             record.msg = record.msg.replace("ERROR   : ", "")
+#         elif record.levelname == "CRITICAL":
+#             record.msg = record.msg.replace("CRITICAL: ", "")
+#         formatted_message = super().format(record)
+#         # Restaurar el mensaje original
+#         record.msg = original_msg
+#         return formatted_message
 
 class CustomInMemoryLogHandler(logging.Handler):
     """
@@ -157,7 +190,7 @@ class ThreadLevelFilter(logging.Filter):
         return True  # otros hilos no afectados
 
 
-def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip_logfile=False, skip_console=False, detail_log=True, plain_log=False):
+def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip_logfile=False, skip_console=False, format='log'):
     """
     Configures logger to a log file and console simultaneously.
     The console messages do not include timestamps.
@@ -181,26 +214,45 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
         # Set up console handler (simple output without asctime and levelname)
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(log_level)
-        console_handler.setFormatter(CustomConsoleFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
+        # console_handler.setFormatter(CustomConsoleFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
+        # Formato: hora, nivel alineado a 8, y luego el mensaje
+        console_handler.setFormatter(
+            CustomConsoleFormatter(
+                fmt="%(levelname)-8s: %(message)s",
+                datefmt="%H:%M:%S"
+            )
+        )
         console_handler.is_console_output = True
         LOGGER.addHandler(console_handler)
 
     if not skip_logfile:
-        if detail_log:
+        if format.lower() in ['log', 'all']:
             # Set up logfile handler (detailed output with asctime and levelname)
             log_file = os.path.join(log_folder, log_filename + '.log')
             file_handler_detailed = logging.FileHandler(log_file, encoding="utf-8")
             file_handler_detailed.setLevel(log_level)
-            file_handler_detailed.setFormatter(CustomLogFormatter(fmt='%(asctime)s [%(levelname)-8s] - %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
+            file_handler_detailed.setFormatter(
+                logging.Formatter(
+                    fmt='%(asctime)s [%(levelname)-8s] %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S'
+                )
+            )
             LOGGER.addHandler(file_handler_detailed)
-        if plain_log:
+        elif format.lower() in ['txt', 'all']:
             # Set up txt file handler (output without asctime and levelname)
             log_file = os.path.join(log_folder, log_filename + '.txt')
             file_handler_plain = logging.FileHandler(log_file, encoding="utf-8")
             file_handler_plain.setLevel(log_level)
             # Formato estándar para el manejador de ficheros plano
-            file_handler_plain.setFormatter(CustomTxtFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
+            file_handler_plain.setFormatter(
+                logging.Formatter(
+                    fmt='%(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S'
+                )
+            )
             LOGGER.addHandler(file_handler_plain)
+        else:
+            print (f"INFO    : Unknown format '{format}' for Logger. Please select a valid format between: ['log', 'txt', 'all].")
 
     # Set the log level for the root logger
     LOGGER.setLevel(log_level)

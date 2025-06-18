@@ -18,11 +18,11 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         """Runs the GPTH Tool command to process photos."""
         input_folder = os.path.abspath(input_folder)
         output_folder = os.path.abspath(output_folder)
-        LOGGER.info("")
-        LOGGER.info(f"INFO    : {step_name}Running GPTH Tool...")
-        LOGGER.info(f"INFO    : {step_name}GPTH Version : '{GPTH_VERSION}'")
-        LOGGER.info(f"INFO    : {step_name}Input Folder : '{input_folder}'")
-        LOGGER.info(f"INFO    : {step_name}Output Folder: '{output_folder}'")
+        LOGGER.info(f"")
+        LOGGER.info(f"{step_name}Running GPTH Tool...")
+        LOGGER.info(f"{step_name}GPTH Version : '{GPTH_VERSION}'")
+        LOGGER.info(f"{step_name}Input Folder : '{input_folder}'")
+        LOGGER.info(f"{step_name}Output Folder: '{output_folder}'")
 
         # Detect the operating system
         current_os = get_os(step_name=step_name)
@@ -35,19 +35,19 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         elif current_os == "windows":
             tool_name += ".exe"
         else:
-            LOGGER.error(f"ERROR   : {step_name}Invalid OS: {current_os}. Exiting...")
+            LOGGER.error(f"{step_name}Invalid OS: {current_os}. Exiting...")
             sys.exit(-1)
 
-        LOGGER.info(f"INFO    : {step_name}Using GPTH Tool file: '{tool_name}'...")
+        LOGGER.info(f"{step_name}Using GPTH Tool file: '{tool_name}'...")
         # Usar resource_path para acceder a archivos o directorios que se empaquetarán en el modo de ejecutable binario:
         gpth_tool_path = resource_path(os.path.join("gpth_tool", tool_name))
 
         # Check if the file exists
         if not os.path.exists(gpth_tool_path):
-            LOGGER.error(f"ERROR   : {step_name}❌ GPTH was not found at: {gpth_tool_path}")
+            LOGGER.error(f"{step_name}❌ GPTH was not found at: {gpth_tool_path}")
             return False
         else:
-            LOGGER.info(f"INFO    : {step_name}✅ GPTH found at: {gpth_tool_path}")
+            LOGGER.info(f"{step_name}✅ GPTH found at: {gpth_tool_path}")
 
         # Ensure exec permissions for the binary file
         ensure_executable(gpth_tool_path)
@@ -71,7 +71,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         # Append --albums shortcut / duplicate-copy based on value of flag -sa, --symbolic-albums
         gpth_command.append("--albums")
         if symbolic_albums:
-            LOGGER.info(f"INFO    : {step_name}Symbolic Albums will be created with links to the original files...")
+            LOGGER.info(f"{step_name}Symbolic Albums will be created with links to the original files...")
             gpth_command.append("shortcut")
         else:
             gpth_command.append("duplicate-copy")
@@ -108,13 +108,14 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
 
         try:
             command = ' '.join(gpth_command)
-            LOGGER.info(f"INFO    : {step_name}🛠️ Fixing and 🧩 organizing all your Takeout photos and videos.")
-            LOGGER.info(f"INFO    : {step_name}⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂.")
-            LOGGER.debug(f"DEBUG   : {step_name}Running GPTH with following command: {command}")
+            LOGGER.info(f"{step_name}🛠️ Fixing and 🧩 organizing all your Takeout photos and videos.")
+            LOGGER.info(f"{step_name}⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂.")
+            LOGGER.debug(f"{step_name}Running GPTH with following command: {command}")
             print_arguments_pretty(gpth_command, title='GPTH Command', step_name=step_name, use_logger=True)
 
             # Run GPTH Tool
             ok = run_command(gpth_command, LOGGER, capture_output=capture_output, capture_errors=capture_errors, print_messages=print_messages, step_name=step_name)      # Shows the output in real time and capture it to the LOGGER.
+            LOGGER.debug(f"{step_name}GPTH Return Code: {ok}")
 
             # Rename folder 'ALL_PHOTOS' by 'No-Albums'
             all_photos_path = os.path.join(output_folder, 'ALL_PHOTOS')
@@ -123,16 +124,16 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
                 os.rename(all_photos_path, others_path)
 
             # Check the result of GPTH process
-            if ok==0:
-                LOGGER.info(f"INFO    : {step_name}✅ GPTH Tool fixing completed successfully.")
+            if ok>=0:
+                LOGGER.info(f"{step_name}✅ GPTH Tool fixing completed successfully.")
                 return True
             else:
                 # TODO: Change this to False and remove comment below when GPTH fix the return code
-                # LOGGER.error(f"ERROR   : {step_name}❌ GPTH Tool fixing failed.")
-                # return False
-                return True
+                # return True
+                LOGGER.error(f"{step_name}❌ GPTH Tool fixing failed.")
+                return False
         except subprocess.CalledProcessError as e:
-            LOGGER.error(f"ERROR   : {step_name}❌ GPTH Tool fixing failed:\n{e.stderr}")
+            LOGGER.error(f"{step_name}❌ GPTH Tool fixing failed:\n{e.stderr}")
             return False
         
 
@@ -140,7 +141,7 @@ def fix_metadata_with_exif_tool(output_folder, log_level=None):
     """Runs the EXIF Tool command to fix photo metadata."""
     
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        LOGGER.info(f"INFO    : Fixing EXIF metadata in '{output_folder}'...")
+        LOGGER.info(f"Fixing EXIF metadata in '{output_folder}'...")
         # Detect the operating system
         current_os = platform.system()
         # Determine the Tool name based on the OS
@@ -167,9 +168,9 @@ def fix_metadata_with_exif_tool(output_folder, log_level=None):
             output_folder
         ]
         try:
-            # print (" ".join(exif_command))
+            # print_info(" ".join(exif_command))
             result = subprocess.run(exif_command, check=False)
-            LOGGER.info(f"INFO    : EXIF Tool fixing completed successfully.")
+            LOGGER.info(f"EXIF Tool fixing completed successfully.")
         except subprocess.CalledProcessError as e:
-            LOGGER.error(f"ERROR   : EXIF Tool fixing failed:\n{e.stderr}")
+            LOGGER.error(f"EXIF Tool fixing failed:\n{e.stderr}")
         
