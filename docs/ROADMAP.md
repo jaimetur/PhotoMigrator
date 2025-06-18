@@ -3,18 +3,20 @@
 
 ---
 
-## **Release**: v3.3.3
+## **Release**: v3.3.4
 
 - ### Release Date: (estimated)
-  - Alpha version    : 2025-06-13
+  - Alpha version    : 2025-06-30
   - Beta version     : (No estimated date)
   - Release Candidate: (No estimated date)
   - Official Release : (No estimated date)
 
 - ### TODO:
-  - #### 🐛 Bug Fixing:
-    - [ ] Fix no catch exeptions during `Automatic Migration`. 
-    - [ ] Update GPTH to fix files with extensions not matching their content. 
+  - #### 🌟 New Features:
+    - [ ] Include Input/Output folder size in Google Takeout Statistics. 
+    - [ ] Speed up Counting files. 
+    - [ ] Add argumenr `-gSkipPrep,--google-skip-preprocess` to Skipp Preproces steps during Google Takeout Processing feature. 
+    - [ ] Replace `-gmtf,--google-move-takeout-folder` argument by `-gCopy,--google-copy-takeout-folder` argument and implement the logic for Google Takeout Provessing. 
     
 ---
 
