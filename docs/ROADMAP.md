@@ -12,7 +12,7 @@
   - Official Release : (No estimated date)
 
 - ### TODO:
-  - #### 🐛 Bug Fixing:
+  - #### 🌟 New Features:
     - [ ] Include Input/Output folder size in Google Takeout Statistics. 
     - [ ] Speed up Counting files. 
     - [ ] Add argumenr `-gSkipPrep,--google-skip-preprocess` to Skipp Preproces steps during Google Takeout Processing feature. 
