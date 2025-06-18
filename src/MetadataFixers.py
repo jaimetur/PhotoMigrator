@@ -80,11 +80,13 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         if skip_extras:
             gpth_command.append("--skip-extras")
 
-        # Append --copy/--no-copy to the gpth tool call based on the values of move_takeout_folder
-        if move_takeout_folder:
-            gpth_command.append("--no-copy")
-        else:
-            gpth_command.append("--copy")
+        # This feature have been removed in v4.0.9
+        if Version(GPTH_VERSION) < Version("4.0.9"):
+            # Append --copy/--no-copy to the gpth tool call based on the values of move_takeout_folder
+            if move_takeout_folder:
+                gpth_command.append("--no-copy")
+            else:
+                gpth_command.append("--copy")
 
         if Version(GPTH_VERSION) >= Version("3.6.0"):
             # Use the new feature to Delete the "supplemental-metadata" suffix from .json files to ensure that script works correctly
@@ -100,22 +102,24 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         if Version(GPTH_VERSION) >= Version("4.0.0"):
             gpth_command.append("--write-exif")
 
-        if Version(GPTH_VERSION) >= Version("4.0.8"):
+        if Version(GPTH_VERSION) >= Version("4.0.9"):
             gpth_command.append("--fix-extensions=standard")
             # gpth_command.append("--fix-extensions=conservative")
             # gpth_command.append("--fix-extensions=solo")
             # gpth_command.append("--fix-extensions=none")
+        elif Version(GPTH_VERSION) >= Version("4.0.8"):
+            gpth_command.append("--fix-extensions")
 
         try:
             command = ' '.join(gpth_command)
             LOGGER.info(f"{step_name}🛠️ Fixing and 🧩 organizing all your Takeout photos and videos.")
             LOGGER.info(f"{step_name}⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂.")
-            LOGGER.debug(f"{step_name}Running GPTH with following command: {command}")
+            LOGGER.verbose(f"{step_name}Running GPTH with following command: {command}")
             print_arguments_pretty(gpth_command, title='GPTH Command', step_name=step_name, use_logger=True)
 
             # Run GPTH Tool
             ok = run_command(gpth_command, LOGGER, capture_output=capture_output, capture_errors=capture_errors, print_messages=print_messages, step_name=step_name)      # Shows the output in real time and capture it to the LOGGER.
-            LOGGER.debug(f"{step_name}GPTH Return Code: {ok}")
+            LOGGER.info(f"{step_name}GPTH Return Code: {ok}")
 
             # Rename folder 'ALL_PHOTOS' by 'No-Albums'
             all_photos_path = os.path.join(output_folder, 'ALL_PHOTOS')
@@ -128,8 +132,6 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
                 LOGGER.info(f"{step_name}✅ GPTH Tool fixing completed successfully.")
                 return True
             else:
-                # TODO: Change this to False and remove comment below when GPTH fix the return code
-                # return True
                 LOGGER.error(f"{step_name}❌ GPTH Tool fixing failed.")
                 return False
         except subprocess.CalledProcessError as e:

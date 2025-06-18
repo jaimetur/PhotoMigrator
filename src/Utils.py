@@ -66,6 +66,7 @@ def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logge
         :param title (str): Optional title to display above the arguments.
         :param use_logger:
     """
+    from CustomLogger import print_info
     print("")
     indent = "    "
     i = 0
@@ -80,16 +81,16 @@ def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logge
                 LOGGER.info(f"{step_name}{indent}{arg}")
                 i += 1
     else:
-        print(f"INFO    : {title}:")
+        print_info(f"{title}:")
         while i < len(arguments):
             arg = arguments[i]
             if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                print(f"INFO    : {step_name}{indent}{arg}={arguments[i + 1]}")
+                print_info(f"{step_name}{indent}{arg}={arguments[i + 1]}")
                 i += 2
             else:
-                print(f"INFO    : {step_name}{indent}{arg}")
+                print_info(f"{step_name}{indent}{arg}")
                 i += 1
-    print("")
+    print_info("")
 
 
 def ensure_executable(path):
@@ -340,6 +341,10 @@ def count_files_per_type_and_date(input_folder, within_json_sidecar=True, log_le
         # Walk through all subdirectories and files
         for root, dirs, files in os.walk(input_folder):
             for filename in files:
+                file_path = os.path.join(root, filename)
+                if os.path.islink(file_path):
+                    continue  # Skip symbolic links
+                    
                 _, ext = os.path.splitext(filename)
                 ext = ext.lower()
 
@@ -378,7 +383,6 @@ def count_files_per_type_and_date(input_folder, within_json_sidecar=True, log_le
 
                 counters[media_type]['total'] += 1
 
-                file_path = os.path.join(root, filename)
                 file_date = get_oldest_date(file_path, media_type, within_json_sidecar=within_json_sidecar)
                 has_date = file_date is not None and file_date <= timestamp_dt
 
