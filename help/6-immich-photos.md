@@ -129,7 +129,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
   - The Tool will connect automatically to your Immich Photos account and will upload all the assets contained in <INPUT_FOLDER> that are supported by Immich Photos.  
   - If you want to create Albums for some specific subfolders you have two options:
     1. Move all the Albums subfolders into a `<INPUT_FOLDER>/Albums`, in this way the Tool will consideer all the subfolders inside as an Album, and will create an Album in Immich Photos with the same name as the subfolder, associating all the assets inside to it.
-    2. Use the complementary argument _**`-AlbFld, --albums-folders <ALBUMS_FOLDER>`**_, in this way the Tool will create Albums also for each subfolder found in `<ALBUMS_FOLDER>` (apart from those found inside `<INPUT_FOLDER>/Albums`)
+    2. Use the complementary argument _**`-AlbFolder, --albums-folders <ALBUMS_FOLDER>`**_, in this way the Tool will create Albums also for each subfolder found in `<ALBUMS_FOLDER>` (apart from those found inside `<INPUT_FOLDER>/Albums`)
 - **Example of use:**
   ```
   ./PhotoMigrator.run --client=immich --upload-all ./MyLibrary
@@ -185,7 +185,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
 - **Explanation:**
   - The Tool will connect automatically to your Immich Photos account and will remove all the Albums found.
   - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.  
-  - Optionally ALL the Assets associated to each Album can be removed If you also include the complementary argument _**`-rAlbAss, --remove-albums-assets`**_
+  - Optionally ALL the Assets associated to each Album can be removed If you also include the complementary argument _**`-rAlbAsset, --remove-albums-assets`**_
 - **Example of use:**
   ```
   ./PhotoMigrator.run --client=immich --remove-all-albums --remove-albums-assets
@@ -206,7 +206,7 @@ IMMICH_PASSWORD_3           = password_3                                    # Ac
 - **Explanation:**
   - The Tool will connect automatically to your Immich Photos account and will rename all Albums whose name matches with the provided pattern.  
   - If you specify any date filter with arguments _**`-from, --filter-from-date`**_ or _**`-to, --filter-to-date`**_ then, only those albums whose creation date matches with the filters will be removed.  
-  - Optionally ALL the Assets associated to each removed Album can be removed If you also include the complementary argument _**`-rAlbAss, --remove-albums-assets`**_
+  - Optionally ALL the Assets associated to each removed Album can be removed If you also include the complementary argument _**`-rAlbAsset, --remove-albums-assets`**_
 - **Example of use:**
   ```
   ./PhotoMigrator.run --client=immich --rename-albums "\d{4}-\d{2}-\d{2}" --remove-albums-assets

@@ -9,7 +9,8 @@ import os
 import re
 from datetime import datetime
 
-choices_for_message_levels          = ['debug', 'info', 'warning', 'error']
+choices_for_message_levels          = ['verbose', 'debug', 'info', 'warning', 'error']
+choices_for_log_formats             = ['log', 'txt', 'all']
 choices_for_folder_structure        = ['flatten', 'year', 'year/month', 'year-month']
 choices_for_remove_duplicates       = ['list', 'move', 'remove']
 choices_for_AUTOMATIC_MIGRATION_SRC = ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1', 'synology-photos-2', 'synology-photos2', 'synology-2', 'synology2', 'synology-photos-3', 'synology-photos3', 'synology-3', 'synology3',
@@ -71,7 +72,7 @@ def parse_arguments():
                         type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="If this argument is present, the assets will be moved from <SOURCE> to <TARGET> instead of copy them. (default: False)."
     )
-    PARSER.add_argument("-dashb", "--dashboard",
+    PARSER.add_argument("-dashboard", "--dashboard",
                         metavar="= [true,false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
@@ -107,13 +108,13 @@ def parse_arguments():
                         type=validate_account_id,  # Ahora espera un entero como tipo de argumento
                         help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the Configuration file as suffix of USERNAME/PASSORD or API_KEY_USER. (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini file)."
                         )
-    PARSER.add_argument("-confirm", "--request-user-confirmarion",
+    PARSER.add_argument("-noConfirm", "--no-request-user-confirmarion",
                         metavar="= [true,false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
-                        default=True,  # Si no se pasa el argumento, el valor por defecto es True
+                        default=False,  # Si no se pasa el argumento, el valor por defecto es True
                         type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="Request User Confrimarion before execute any Feature. (default: True)."
+                        help="No Request User Confrimarion before execute any Feature. (default: False)."
     )
     PARSER.add_argument("-OTP", "--one-time-password", action="store_true", default="", help="This Flag allow you to login into Synology Photos using 2FA with an OTP Token.")
 
@@ -124,12 +125,25 @@ def parse_arguments():
     PARSER.add_argument("-person", "--filter-by-person", metavar="<PERSON_NAME>", default=None, help="Specify the Person Name to filter assets in the different Photo Clients.")
     PARSER.add_argument("-type", "--filter-by-type", metavar="= [image,video,all]", default=None, help="Specify the Asset Type to filter assets in the different Photo Clients. (default: all)")
 
-    PARSER.add_argument("-AlbFld", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-uAll, --upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
-    PARSER.add_argument("-rAlbAss", "--remove-albums-assets", action="store_true", default=False,
+    PARSER.add_argument("-AlbFolder", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-uAll, --upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
+    PARSER.add_argument("-rAlbAsset", "--remove-albums-assets", action="store_true", default=False,
                         help="If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-albums', it will also remove the assets (photos/videos) inside each album.")
-    PARSER.add_argument("-nolog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
-    PARSER.add_argument("-loglevel", "--log-level", metavar=f"{choices_for_message_levels}", choices=choices_for_message_levels, default="info", help="Specify the log level for logging and screen messages.")
-
+    PARSER.add_argument("-loglevel", "--log-level",
+                        metavar=f"=[{', '.join(level.upper() for level in choices_for_message_levels)}]",
+                        choices=choices_for_message_levels,
+                        default="info",
+                        type=lambda s: s.lower(),  # Convert input to lowercase
+                        help="Specify the log level for logging and screen messages.",
+                        )
+    PARSER.add_argument("-logFormat", "--log-format",
+                        metavar=f"=[{', '.join(format.upper() for format in choices_for_log_formats)}]",
+                        # metavar=f"{choices_for_log_formats}",
+                        choices=choices_for_log_formats,
+                        default="log",
+                        type=lambda s: s.lower(),  # Convert input to lowercase
+                        help="Specify the log file format.",
+                        )
+    PARSER.add_argument("-noLog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
 
     # FEATURES FOR GOOGLE PHOTOS:
     # ---------------------------
@@ -139,13 +153,19 @@ def parse_arguments():
                           "\nThis argument is mandatory to run the Google Takeout Processor Feature."
                         )
     PARSER.add_argument("-gofs", "--google-output-folder-suffix", metavar="<SUFFIX>", default="processed", help="Specify the suffix for the output folder. Default: 'processed'")
-    PARSER.add_argument("-gafs", "--google-albums-folders-structure", metavar=f"{choices_for_folder_structure}", default="flatten", help="Specify the type of folder structure for each Album folder (Default: 'flatten')."
-                        , type=lambda s: s.lower()  # Convert input to lowercase
-                        , choices=choices_for_folder_structure  # Valid choices
+    PARSER.add_argument("-gafs", "--google-albums-folders-structure",
+                        metavar=f"{choices_for_folder_structure}",
+                        default="flatten",
+                        help="Specify the type of folder structure for each Album folder (Default: 'flatten').",
+                        type=lambda s: s.lower(),  # Convert input to lowercase
+                        choices=choices_for_folder_structure  # Valid choices
                         )
-    PARSER.add_argument("-gnas", "--google-no-albums-folders-structure", metavar=f"{choices_for_folder_structure}", default="year/month", help="Specify the type of folder structure for 'No-Albums' folders (Default: 'year/month')."
-                        , type=lambda s: s.lower()  # Convert input to lowercase
-                        , choices=choices_for_folder_structure  # Valid choices
+    PARSER.add_argument("-gnas", "--google-no-albums-folders-structure",
+                        metavar=f"{choices_for_folder_structure}",
+                        default="year/month",
+                        help="Specify the type of folder structure for 'No-Albums' folders (Default: 'year/month').",
+                        type=lambda s: s.lower(),  # Convert input to lowercase
+                        choices=choices_for_folder_structure,  # Valid choices
                         )
     PARSER.add_argument("-gcsa", "--google-create-symbolic-albums", action="store_true", help="Creates symbolic links for Albums instead of duplicate the files of each Album. (Useful to save disk space but may not be portable to other systems).")
     PARSER.add_argument("-gics", "--google-ignore-check-structure", action="store_true", help="Ignore Check Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc..), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from them.")
@@ -163,7 +183,7 @@ def parse_arguments():
                         type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="Enable or disable Info messages during GPTH Processing. (default: True)."
     )
-    PARSER.add_argument("-gpthErr", "--show-gpth-errors",
+    PARSER.add_argument("-gpthError", "--show-gpth-errors",
                         metavar="= [true,false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
@@ -185,7 +205,7 @@ def parse_arguments():
     PARSER.add_argument("-uAll", "--upload-all", metavar="<INPUT_FOLDER>", default="",
                         help="The Tool will look for all Assets within <INPUT_FOLDER> and will upload them into the selected Photo client.\nYou must provide the Photo client using the mandatory argument '--client'."
                              "\n- The Tool will create a new Album per each Subfolder found in 'Albums' subfolder and all assets inside each subfolder will be associated to a new Album in the selected Photo client with the same name as the subfolder."
-                             "\n- If the argument '-AlbFld, --albums-folders <ALBUMS_FOLDER>' is also passed, then this function will create Albums also for each subfolder found in <ALBUMS_FOLDER>."
+                             "\n- If the argument '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, then this function will create Albums also for each subfolder found in <ALBUMS_FOLDER>."
                         )
     PARSER.add_argument("-dAll", "--download-all", metavar="<OUTPUT_FOLDER>", default="",
                         help="The Tool will connect to the selected Photo client and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.\nYou must provide the Photo client using the mandatory argument '--client'."
@@ -200,11 +220,11 @@ def parse_arguments():
                         help="CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also ALL your Albums from the selected Photo client.\nYou must provide the Photo client using the mandatory flag '--client'.")
     PARSER.add_argument("-rAllAlb", "--remove-all-albums", action="store_true", default="",
                         help="CAUTION!!! The Tool will remove ALL your Albums from the selected Photo client.\nYou must provide the Photo client using the mandatory flag '--client'."
-                             "\nOptionally ALL the Assets associated to each Album can be removed If you also include the flag '-rAlbAss, --remove-albums-assets'."
+                             "\nOptionally ALL the Assets associated to each Album can be removed If you also include the flag '-rAlbAsset, --remove-albums-assets'."
                         )
     PARSER.add_argument("-rAlb", "--remove-albums", metavar="<ALBUMS_NAME_PATTERN>", default="",
                         help="CAUTION!!! The Tool will look for all Albums in the selected Photo client whose names matches with the pattern and will remove them.\nYou must provide the Photo client using the mandatory flag '--client'."
-                             "\nOptionally ALL the Assets associated to each Album can be removed If you also include the flag '-rAlbAss, --remove-albums-assets' flag."
+                             "\nOptionally ALL the Assets associated to each Album can be removed If you also include the flag '-rAlbAsset, --remove-albums-assets' flag."
                         )
     PARSER.add_argument("-rEmpAlb", "--remove-empty-albums", action="store_true", default="",
                         help="The Tool will look for all Albums in the selected Photo client account and if any Album is empty, will remove it from the selected Photo client account.\nYou must provide the Photo client using the mandatory flag '--client'.")
@@ -351,22 +371,22 @@ def checkArgs(ARGS, PARSER):
         exit(1)
 
 
-    # Parse log-levels
-    if ARGS['log-level'].lower() == 'debug':
-        GV.LOG_LEVEL = logging.DEBUG
-        GV.LOGGER.setLevel(GV.LOG_LEVEL)
-    elif ARGS['log-level'].lower() == 'info':
-        GV.LOG_LEVEL = logging.INFO
-        GV.LOGGER.setLevel(GV.LOG_LEVEL)
-    elif ARGS['log-level'].lower() == 'warning':
-        GV.LOG_LEVEL = logging.WARNING
-        GV.LOGGER.setLevel(GV.LOG_LEVEL)
-    elif ARGS['log-level'].lower() == 'error':
-        GV.LOG_LEVEL = logging.ERROR
-        GV.LOGGER.setLevel(GV.LOG_LEVEL)
-    elif ARGS['log-level'].lower() == 'critical':
-        GV.LOG_LEVEL = logging.CRITICAL
-        GV.LOGGER.setLevel(GV.LOG_LEVEL)
+    # # Parse log-levels
+    # if ARGS['log-level'].lower() == 'debug':
+    #     GV.LOG_LEVEL = logging.DEBUG
+    #     GV.LOGGER.setLevel(GV.LOG_LEVEL)
+    # elif ARGS['log-level'].lower() == 'info':
+    #     GV.LOG_LEVEL = logging.INFO
+    #     GV.LOGGER.setLevel(GV.LOG_LEVEL)
+    # elif ARGS['log-level'].lower() == 'warning':
+    #     GV.LOG_LEVEL = logging.WARNING
+    #     GV.LOGGER.setLevel(GV.LOG_LEVEL)
+    # elif ARGS['log-level'].lower() == 'error':
+    #     GV.LOG_LEVEL = logging.ERROR
+    #     GV.LOGGER.setLevel(GV.LOG_LEVEL)
+    # elif ARGS['log-level'].lower() == 'critical':
+    #     GV.LOG_LEVEL = logging.CRITICAL
+    #     GV.LOGGER.setLevel(GV.LOG_LEVEL)
 
 
     # Parse download-albums to ensure than ARGS['output-folder'] is used to specify <OUTPUT_FOLDER>

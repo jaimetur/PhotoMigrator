@@ -63,11 +63,11 @@ class PagedParser(argparse.ArgumentParser):
         def check_color_support():
             curses.start_color()
             if not curses.has_colors():
-                LOGGER.warning(f'WARNING : Your terminal does not support colors')
+                LOGGER.warning(f"Your terminal does not support colors")
                 return False
             max_pairs = curses.COLOR_PAIRS
             if max_pairs < 4:
-                LOGGER.warning(f'WARNING : Your terminal only support {max_pairs} color pairs. The tool need 4')
+                LOGGER.warning(f"Your terminal only support {max_pairs} color pairs. The tool need 4")
                 return False
             return True
 

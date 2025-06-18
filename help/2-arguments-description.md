@@ -24,7 +24,7 @@ Following arguments allow you to execute the Automatic Migration Process to migr
 | `-source`,<br>`--source`               | `<SOURCE>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich` | Defines the source for the automatic migration process. |
 | `-target`,<br>`--target`               | `<TARGET>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich` | Defines the target for the automatic migration process. |
 | `-move`,<br>`--move-assets`            | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enable / Disables move assets instead of copying them.  |
-| `-dashb`,<br>`--dashboard`             | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enables / Disables the live dashboard during migration. |
+| `-dashboard`,<br>`--dashboard`         | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enables / Disables the live dashboard during migration. |
 | `-parallel`,<br>`--parallel-migration` | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enables / Disables parallel asset migration.            |
 
 #### 🧪 Examples:
@@ -38,24 +38,25 @@ PhotoMigrator.run --source=synology-1 --target=immich-1 --parallel-migration=fal
 ## ⚙️ General Options
 Following general arguments have different purposses depending on the Execution Mode.
 
-| Argument                                     | Parameter         |  Type  |                  Valid Values                   | Description                                              |
-|----------------------------------------------|-------------------|:------:|:-----------------------------------------------:|----------------------------------------------------------|
-| `-i`,<br>`--input-folder`                    | `<INPUT_FOLDER>`  |  path  |                 `existing path`                 | Folder containing assets to be processed.                |
-| `-o`,<br>`--output-folder`                   | `<OUTPUT_FOLDER>` |  path  |                  `valid path`                   | Folder where processed assets or results will be saved.  |
-| `-client`,<br>`--client`                     | `<CLIENT>`        | string | `google-takeout`, <br>`synology`, <br>`immich`  | Specifies the service to interact with.                  |
-| `-id`,<br>`--account-id`                     | `<ID>`            |  int   |        `1`, `2`, `3` <br>`(default: 1)`         | ID of the configured account in Config.ini.              |
-| `-confirm`,<br>`--request-user-confirmation` | `<bool>`          |  bool  |      `true`, `false` <br>`(default: true)`      | Request User Confirmation before to execute any Feature. |
-| `-OTP`,<br>`--one-time-password`             |                   |  flag  |                                                 | Enables / Disables OTP login for Synology (2FA).         |
-| `-from`,<br>`--filter-from-date`             | `<FROM_DATE>`     |  date  |     `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets from this date onward.                    |
-| `-to`,<br>`--filter-to-date`                 | `<TO_DATE>`       |  date  |     `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets up to this date.                          |
-| `-country`,<br>`--filter-by-country`         | `<COUNTRY>`       | string |                 `country-name`                  | Filters assets by country.                               |
-| `-city`,<br>`--filter-by-city`               | `<CITY>`          | string |                   `city-name`                   | Filters assets by city.                                  |
-| `-person`,<br>`--filter-by-person`           | `<PERSON>`        | string |                  `person-name`                  | Filters assets by person name.                           |
-| `-type`,<br>`--filter-by-type`               | `<TYPE>`          | string |  `image`, `video`, `all` <br>`(default: all)`   | Filters assets by type.                                  |
-| `-AlbFld`,<br>`--albums-folders`             | `<ALBUMS_FOLDER>` |  path  |                 `existing path`                 | Creates albums for subfolders inside.                    |
-| `-rAlbAss`,<br>`--remove-albums-assets`      |                   |  flag  |                                                 | Removes assets inside albums when albums are removed.    |
-| `-nolog`,<br>`--no-log-file`                 |                   |  flag  |                                                 | Disables writing to log file.                            |
-| `-loglevel`,<br>`--log-level`                | `<LEVEL>`         | string | `debug`, <br>`info`, <br>`warning`, <br>`error` | Sets logging verbosity.                                  |
+| Argument                                          | Parameter         |  Type  |                          Valid Values                          | Description                                                 |
+|---------------------------------------------------|-------------------|:------:|:--------------------------------------------------------------:|-------------------------------------------------------------|
+| `-i`,<br>`--input-folder`                         | `<INPUT_FOLDER>`  |  path  |                        `existing path`                         | Folder containing assets to be processed.                   |
+| `-o`,<br>`--output-folder`                        | `<OUTPUT_FOLDER>` |  path  |                          `valid path`                          | Folder where processed assets or results will be saved.     |
+| `-client`,<br>`--client`                          | `<CLIENT>`        | string |         `google-takeout`, <br>`synology`, <br>`immich`         | Specifies the service to interact with.                     |
+| `-id`,<br>`--account-id`                          | `<ID>`            |  int   |                `1`, `2`, `3` <br>`(default: 1)`                | ID of the configured account in Config.ini.                 |
+| `-noConfirm`,<br>`--no-request-user-confirmation` | `<bool>`          |  bool  |             `true`, `false` <br>`(default: false)`             | No Request User Confirmation before to execute any Feature. |
+| `-OTP`,<br>`--one-time-password`                  |                   |  flag  |                                                                | Enables / Disables OTP login for Synology (2FA).            |
+| `-from`,<br>`--filter-from-date`                  | `<FROM_DATE>`     |  date  |            `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`             | Filters assets from this date onward.                       |
+| `-to`,<br>`--filter-to-date`                      | `<TO_DATE>`       |  date  |            `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`             | Filters assets up to this date.                             |
+| `-country`,<br>`--filter-by-country`              | `<COUNTRY>`       | string |                         `country-name`                         | Filters assets by country.                                  |
+| `-city`,<br>`--filter-by-city`                    | `<CITY>`          | string |                          `city-name`                           | Filters assets by city.                                     |
+| `-person`,<br>`--filter-by-person`                | `<PERSON>`        | string |                         `person-name`                          | Filters assets by person name.                              |
+| `-type`,<br>`--filter-by-type`                    | `<TYPE>`          | string |          `image`, `video`, `all` <br>`(default: all)`          | Filters assets by type.                                     |
+| `-AlbFolder`,<br>`--albums-folders`               | `<ALBUMS_FOLDER>` |  path  |                        `existing path`                         | Creates albums for subfolders inside.                       |
+| `-rAlbAsset`,<br>`--remove-albums-assets`         |                   |  flag  |                                                                | Removes assets inside albums when albums are removed.       |
+| `-logLevel`,<br>`--log-level`                     | `<LEVEL>`         | string | `VERBOSE`, <br>`DEBUG`, <br>`INFO`, <br>`WARNING`, <br>`ERROR` | Sets logging verbosity.                                     |
+| `-logFormat`,<br>`--log-format`                   | `<FORMAT>`        | string |                  `log`, <br>`txt`, <br>`all`                   | Sets log file format.                                       |
+| `-noLog`,<br>`--no-log-file`                      |                   |  flag  |                                                                | Disables writing to log file.                               |
 
 #### 🧪 Examples:
 ```bash
@@ -86,7 +87,7 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 | `-gsma`,<br>`--google-skip-move-albums`            |                    |  flag  |                                                                                    | Skips moving albums to 'Albums' folder.                            |
 | `-gsgt`,<br>`--google-skip-gpth-tool`              |                    |  flag  |                                                                                    | Skips GPTH tool processing (not recommended).                      |
 | `-gpthInfo`,<br>`--show-gpth-info`                 | `<bool>`           |  bool  |                       `true`, `false` <br>`(default: true)`                        | Show GPTH progress messages.                                       |
-| `-gpthErr`,<br>`--show-gpth-errors`                | `<bool>`           |  bool  |                       `true`, `false` <br>`(default: true)`                        | Show GPTH error messages.                                          |
+| `-gpthError`,<br>`--show-gpth-errors`                | `<bool>`           |  bool  |                       `true`, `false` <br>`(default: true)`                        | Show GPTH error messages.                                          |
 
 
 #### 🧪 Examples:
@@ -134,7 +135,7 @@ PhotoMigrator.run --client=synology --remove-empty-albums
 or using short arguments,
 PhotoMigrator.run -client=synology -uAlb="Albums" -id=1
 PhotoMigrator.run -client=immich -dAlb="Vacaciones,Navidad" -o="Backups"
-PhotoMigrator.run -client=synology -rAlb="tmp_*" -rAlbAss
+PhotoMigrator.run -client=synology -rAlb="tmp_*" -rAlbAsset
 ```
 
 ---

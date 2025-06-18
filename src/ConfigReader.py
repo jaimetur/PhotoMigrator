@@ -22,12 +22,12 @@ def load_config(config_file='Config.ini', section_to_load='all'):
     # Resolver correctamente la ruta al archivo de configuración
     config_file = resolve_path(config_file)
 
-    LOGGER.info(f"INFO    : Searching for section(s) [{section_to_load}] in configuration file '{config_file}'...")
+    LOGGER.info(f"Searching for section(s) [{section_to_load}] in configuration file '{config_file}'...")
     if not os.path.exists(config_file):
-        LOGGER.error(f"ERROR   : Configuration file '{config_file}' not found. Exiting...")
+        LOGGER.error(f"Configuration file '{config_file}' not found. Exiting...")
         sys.exit(1)  # Termina el programa si no encuentra el archivo
 
-    LOGGER.info(f"INFO    : Configuration file found. Loading configuration for section(s) '{section_to_load}'...")
+    LOGGER.info(f"Configuration file found. Loading configuration for section(s) '{section_to_load}'...")
 
     # Preprocesar el archivo para eliminar claves duplicadas antes de leerlo con ConfigParser
     seen_keys = set()  # Conjunto para almacenar claves únicas
@@ -49,7 +49,7 @@ def load_config(config_file='Config.ini', section_to_load='all'):
                     unique_key = (section, key)  # Crear clave única combinando sección y clave
                     if unique_key in seen_keys:
                         if unique_key not in logged_warnings:  # Solo mostrar el mensaje una vez
-                            LOGGER.warning(f"WARNING : Duplicate key found in '{config_file}. Key: '{key}' in section {section}, keeping first.")
+                            LOGGER.warning(f"Duplicate key found in '{config_file}. Key: '{key}' in section {section}, keeping first.")
                             logged_warnings.add(unique_key)  # Registrar que ya mostramos el mensaje
                         continue  # Omitir clave duplicada
                     seen_keys.add(unique_key)
@@ -123,7 +123,7 @@ def load_config(config_file='Config.ini', section_to_load='all'):
                 else:
                     LOGGER.warning(f"WARNING: Missing key '{key}' in section '{section}', skipping.")
 
-    LOGGER.info(f"INFO    : Configuration Read Successfully from '{config_file}' for section '{section_to_load}'.")
+    LOGGER.info(f"Configuration Read Successfully from '{config_file}' for section '{section_to_load}'.")
     return CONFIG
 
 
@@ -136,7 +136,14 @@ if __name__ == "__main__":
     log_filename = f"{sys.argv[0]}_{TIMESTAMP}"
     log_folder = "Logs"
     LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
-    LOGGER = log_setup(log_folder=log_folder, log_filename=log_filename, log_level=LOG_LEVEL)
+    LOGGER = log_setup(
+        log_folder=log_folder,
+        log_filename=log_filename,
+        log_level=LOG_LEVEL,
+        skip_logfile=False,
+        skip_console=False,
+        format=ARGS['log-format']
+    )
 
     if len(sys.argv[1:]) == 0:
         CONFIG = load_config(config_file='../Config.ini', section_to_load='Synology Photos')
