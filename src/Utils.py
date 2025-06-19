@@ -44,31 +44,37 @@ TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
 # -------------------------------------------------------------
 def profile_and_print(function_to_analyze, *args, **kwargs):
     """
-    Executes the profiler and displays results in real-time while the function runs.
-    Supports both positional (`args`) and keyword (`kwargs`) arguments.
+    Ejecuta el profiler y muestra resultados en tiempo real mientras la función corre,
+    además devuelve lo que retorne la función analizada.
     """
+    import time
     import cProfile
     import pstats
-    import threading
+    from concurrent.futures import ThreadPoolExecutor, as_completed
     profiler = cProfile.Profile()
     profiler.enable()
 
-    # Ensure the function receives arguments correctly
-    thread = threading.Thread(target=function_to_analyze, args=args, kwargs=kwargs)
-    thread.start()
+    # Usamos un executor para poder obtener el resultado
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(function_to_analyze, *args, **kwargs)
 
-    # While the function is running, print profiling results every 5 seconds
-    while thread.is_alive():
-        time.sleep(10)
-        profiler.disable()
-        stats = pstats.Stats(profiler)
-        stats.strip_dirs().sort_stats("cumulative").print_stats(20)  # Show top 10 slowest functions
-        profiler.enable()  # Re-enable profiling to continue
+        # Mientras la tarea no termine, imprimimos estadísticas cada 10 segundos
+        while not future.done():
+            time.sleep(10)
+            profiler.disable()
+            stats = pstats.Stats(profiler)
+            stats.strip_dirs().sort_stats("cumulative").print_stats(20)
+            profiler.enable()
 
-    profiler.disable()  # Ensure the profiler stops after execution
+        # Una vez completada, obtenemos el resultado
+        result = future.result()
+
+    profiler.disable()
     print("\n🔍 **Final Profile Report:**")
     stats = pstats.Stats(profiler)
-    stats.strip_dirs().sort_stats("cumulative").print_stats(20)  # Show top 20 slowest functions
+    stats.strip_dirs().sort_stats("cumulative").print_stats(20)
+
+    return result
 
 
 # Redefinir `tqdm` para usar `TQDM_LOGGER_INSTANCE` si no se especifica `file`

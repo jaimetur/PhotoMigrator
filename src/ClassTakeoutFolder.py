@@ -647,12 +647,12 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Step 12: Count Albums
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🔢 [POST-PROCESS]-[Counting Albums] : '
+            step_name = '🔢 [POST-PROCESS]-[Counting Files & Albums] : '
             step_start_time = datetime.now()
             self.step += 1
             LOGGER.info(f"")
             LOGGER.info(f"==========================================")
-            LOGGER.info(f"{self.step}. COUNTING ALBUMS AND FILES...")
+            LOGGER.info(f"{self.step}. COUNTING FILES AND ALBUMS... ")
             LOGGER.info(f"==========================================")
             LOGGER.info(f"")
             # 1. First count all Files in output Folder
