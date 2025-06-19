@@ -971,20 +971,20 @@ def get_subfolders_with_exclusions(input_folder, exclude_subfolder=None):
 # ---------------------------------------------------------------------------------------------------------------------------
 # GOOGLE TAKEOUT PRE-CHECKS FUNCTIONS:
 # ---------------------------------------------------------------------------------------------------------------------------
-def unpack_zips(zip_folder, takeout_folder, step_name="", log_level=None):
+def unpack_zips(input_folder, unzip_folder, step_name="", log_level=None):
     """ Unzips all ZIP files from a folder into another """
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        if not os.path.exists(zip_folder):
-            LOGGER.error(f"{step_name}ZIP folder '{zip_folder}' does not exist.")
+        if not os.path.exists(input_folder):
+            LOGGER.error(f"{step_name}ZIP folder '{input_folder}' does not exist.")
             return
-        os.makedirs(takeout_folder, exist_ok=True)
-        for zip_file in os.listdir(zip_folder):
+        os.makedirs(unzip_folder, exist_ok=True)
+        for zip_file in os.listdir(input_folder):
             if zip_file.endswith(".zip"):
-                zip_path = os.path.join(zip_folder, zip_file)
+                zip_path = os.path.join(input_folder, zip_file)
                 try:
                     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                         LOGGER.info(f"{step_name}Unzipping: {zip_file}")
-                        zip_ref.extractall(takeout_folder)
+                        zip_ref.extractall(unzip_folder)
                 except zipfile.BadZipFile:
                     LOGGER.error(f"{step_name}Could not unzip file: {zip_file}")
 
@@ -1542,18 +1542,18 @@ def sync_mp4_timestamps_with_images(input_folder, step_name="", log_level=None):
                             pass
 
 
-def force_remove_directory(path, log_level=None):
+def force_remove_directory(folder, log_level=None):
     def onerror(func, path, exc_info):
         # Cambia los permisos y vuelve a intentar
         os.chmod(path, stat.S_IWRITE)
         func(path)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        if os.path.exists(path):
-            shutil.rmtree(path, onerror=onerror)
-            LOGGER.info(f"The folder '{path}' and all its contant have been deleted.")
+        if os.path.exists(folder):
+            shutil.rmtree(folder, onerror=onerror)
+            LOGGER.info(f"The folder '{folder}' and all its contant have been deleted.")
         else:
-            LOGGER.warning(f"Cannot delete the folder '{path}'.")
+            LOGGER.warning(f"Cannot delete the folder '{folder}'.")
 
 
 def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", log_level=None):
@@ -1687,7 +1687,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], ste
                         except Exception as e:
                             LOGGER.warning(f"{step_name}Error reading mtime for {file_path}: {e}")
                             mod_time = datetime(1970, 1, 1)
-                    LOGGER.debug(f"{step_name}Using date {mod_time} for file {file_path}")
+                    LOGGER.verbose(f"{step_name}Using date {mod_time} for file {file_path}")
                     # Determinar carpeta destino
                     if type == 'year':
                         target_dir = os.path.join(path, mod_time.strftime('%Y'))
@@ -2275,14 +2275,26 @@ def count_files_per_type_and_date(input_folder, within_json_sidecar=True, log_le
         # Initialize overall counters with pct keys for media
         counters = init_count_files_counters()
 
+        # Inicializa contador de tamaño en bytes
+        total_size_bytes = 0
+
+        # Get total supported extensions
         supported_exts = set(PHOTO_EXT + VIDEO_EXT + METADATA_EXT + SIDECAR_EXT)
 
         # Walk through all subdirectories and files
         for root, dirs, files in os.walk(input_folder):
             for filename in files:
                 file_path = os.path.join(root, filename)
+
+                # Saltar enlaces simbólicos
                 if os.path.islink(file_path):
                     continue  # Skip symbolic links
+
+                # Sumar tamaño
+                try:
+                    total_size_bytes += os.path.getsize(file_path)
+                except Exception:
+                    pass
 
                 _, ext = os.path.splitext(filename)
                 ext = ext.lower()
@@ -2341,5 +2353,8 @@ def count_files_per_type_and_date(input_folder, within_json_sidecar=True, log_le
         if total_videos > 0:
             counters['videos']['pct_with_date'] = (counters['videos']['with_date'] / total_videos) * 100
             counters['videos']['pct_without_date'] = (counters['videos']['without_date'] / total_videos) * 100
+
+        # Añade el tamaño total en MB al resultado
+        counters['total_size_mb'] = round(total_size_bytes / (1024 * 1024), 1)
 
         return counters

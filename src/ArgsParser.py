@@ -36,6 +36,62 @@ def parse_arguments():
 
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the Tool name, version, and date, then exit.")
 
+    # GENERAL FEATURES:
+    # -----------------
+    PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
+    PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
+    PARSER.add_argument("-logLevel", "--log-level",
+                        metavar=f"=[{', '.join(level.upper() for level in choices_for_message_levels)}]",
+                        choices=choices_for_message_levels,
+                        default="info",
+                        type=lambda s: s.lower(),  # Convert input to lowercase
+                        help="Specify the log level for logging and screen messages.",
+                        )
+    PARSER.add_argument("-logFormat", "--log-format",
+                        metavar=f"=[{', '.join(format.upper() for format in choices_for_log_formats)}]",
+                        # metavar=f"{choices_for_log_formats}",
+                        choices=choices_for_log_formats,
+                        default="log",
+                        type=lambda s: s.lower(),  # Convert input to lowercase
+                        help="Specify the log file format.",
+                        )
+    PARSER.add_argument("-noLog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
+    PARSER.add_argument("-noConfirm", "--no-request-user-confirmarion", action="store_true", help="No Request User Confrimarion before execute any Feature.")
+    # PARSER.add_argument("-noConfirm", "--no-request-user-confirmarion",
+    #                     metavar="= [true,false]",
+    #                     nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+    #                     const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
+    #                     default=False,  # Si no se pasa el argumento, el valor por defecto es True
+    #                     type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+    #                     help="No Request User Confrimarion before execute any Feature. (default: False)."
+    #                     )
+
+    PARSER.add_argument("-client", "--client",
+                        metavar="= ['google-takeout', 'synology', 'immich']",
+                        default='google-takeout',  # Si no se pasa el argumento, se asigna 'google-takeout'
+                        type=validate_client,      # Ahora espera un string con el nombre del cliente como tipo de argumento
+                        help="Set the client to use for the selected feature."
+                        )
+    PARSER.add_argument("-id", "--account-id",
+                        metavar="= [1-3]",
+                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
+                        const=1,  # Si el usuario pasa --account-id sin valor, se asigna 1
+                        default=1,  # Si no se pasa el argumento, también se asigna 1
+                        type=validate_account_id,  # Ahora espera un entero como tipo de argumento
+                        help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the Configuration file as suffix of USERNAME/PASSORD or API_KEY_USER. (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini file)."
+                        )
+
+    PARSER.add_argument("-from", "--filter-from-date", metavar="<FROM_DATE>", default=None, help="Specify the initial date to filter assets in the different Photo Clients.")
+    PARSER.add_argument("-to", "--filter-to-date", metavar="<TO_DATE>", default=None, help="Specify the final date to filter assets in the different Photo Clients.")
+    PARSER.add_argument("-type", "--filter-by-type", metavar="= [image,video,all]", default=None, help="Specify the Asset Type to filter assets in the different Photo Clients. (default: all)")
+    PARSER.add_argument("-country", "--filter-by-country", metavar="<COUNTRY_NAME>", default=None, help="Specify the Country Name to filter assets in the different Photo Clients.")
+    PARSER.add_argument("-city", "--filter-by-city", metavar="<CITY_NAME>", default=None, help="Specify the City Name to filter assets in the different Photo Clients.")
+    PARSER.add_argument("-person", "--filter-by-person", metavar="<PERSON_NAME>", default=None, help="Specify the Person Name to filter assets in the different Photo Clients.")
+
+    PARSER.add_argument("-AlbFolder", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-uAll, --upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
+    PARSER.add_argument("-rAlbAsset", "--remove-albums-assets", action="store_true", default=False,
+                        help="If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-albums', it will also remove the assets (photos/videos) inside each album.")
+
     # FEATURES FOR AUTOMATIC MIGRATION:
     # ---------------------------------
     PARSER.add_argument( "-source", "--source", metavar="<SOURCE>", default="",
@@ -90,61 +146,6 @@ def parse_arguments():
     )
 
 
-    # GENERAL FEATURES:
-    # -----------------
-    PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
-    PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
-    PARSER.add_argument("-client", "--client",
-                        metavar="= ['google-takeout', 'synology', 'immich']",
-                        default='google-takeout',  # Si no se pasa el argumento, se asigna 'google-takeout'
-                        type=validate_client,      # Ahora espera un string con el nombre del cliente como tipo de argumento
-                        help="Set the client to use for the selected feature."
-                        )
-    PARSER.add_argument("-id", "--account-id",
-                        metavar="= [1-3]",
-                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
-                        const=1,  # Si el usuario pasa --account-id sin valor, se asigna 1
-                        default=1,  # Si no se pasa el argumento, también se asigna 1
-                        type=validate_account_id,  # Ahora espera un entero como tipo de argumento
-                        help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the Configuration file as suffix of USERNAME/PASSORD or API_KEY_USER. (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini file)."
-                        )
-    PARSER.add_argument("-noConfirm", "--no-request-user-confirmarion",
-                        metavar="= [true,false]",
-                        nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
-                        const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
-                        default=False,  # Si no se pasa el argumento, el valor por defecto es True
-                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="No Request User Confrimarion before execute any Feature. (default: False)."
-    )
-    PARSER.add_argument("-OTP", "--one-time-password", action="store_true", default="", help="This Flag allow you to login into Synology Photos using 2FA with an OTP Token.")
-
-    PARSER.add_argument("-from", "--filter-from-date", metavar="<FROM_DATE>", default=None, help="Specify the initial date to filter assets in the different Photo Clients.")
-    PARSER.add_argument("-to", "--filter-to-date", metavar="<TO_DATE>", default=None, help="Specify the final date to filter assets in the different Photo Clients.")
-    PARSER.add_argument("-country", "--filter-by-country", metavar="<COUNTRY_NAME>", default=None, help="Specify the Country Name to filter assets in the different Photo Clients.")
-    PARSER.add_argument("-city", "--filter-by-city", metavar="<CITY_NAME>", default=None, help="Specify the City Name to filter assets in the different Photo Clients.")
-    PARSER.add_argument("-person", "--filter-by-person", metavar="<PERSON_NAME>", default=None, help="Specify the Person Name to filter assets in the different Photo Clients.")
-    PARSER.add_argument("-type", "--filter-by-type", metavar="= [image,video,all]", default=None, help="Specify the Asset Type to filter assets in the different Photo Clients. (default: all)")
-
-    PARSER.add_argument("-AlbFolder", "--albums-folders", metavar="<ALBUMS_FOLDER>", default="", nargs="*", help="If used together with '-uAll, --upload-all', it will create an Album per each subfolder found in <ALBUMS_FOLDER>.")
-    PARSER.add_argument("-rAlbAsset", "--remove-albums-assets", action="store_true", default=False,
-                        help="If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-albums', it will also remove the assets (photos/videos) inside each album.")
-    PARSER.add_argument("-loglevel", "--log-level",
-                        metavar=f"=[{', '.join(level.upper() for level in choices_for_message_levels)}]",
-                        choices=choices_for_message_levels,
-                        default="info",
-                        type=lambda s: s.lower(),  # Convert input to lowercase
-                        help="Specify the log level for logging and screen messages.",
-                        )
-    PARSER.add_argument("-logFormat", "--log-format",
-                        metavar=f"=[{', '.join(format.upper() for format in choices_for_log_formats)}]",
-                        # metavar=f"{choices_for_log_formats}",
-                        choices=choices_for_log_formats,
-                        default="log",
-                        type=lambda s: s.lower(),  # Convert input to lowercase
-                        help="Specify the log file format.",
-                        )
-    PARSER.add_argument("-noLog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
-
     # FEATURES FOR GOOGLE PHOTOS:
     # ---------------------------
     PARSER.add_argument("-gTakeout", "--google-takeout", metavar="<TAKEOUT_FOLDER>", default="",
@@ -175,6 +176,9 @@ def parse_arguments():
     PARSER.add_argument("-gsef", "--google-skip-extras-files", action="store_true", help="Skip processing extra photos such as  -edited, -effects photos.")
     PARSER.add_argument("-gsma", "--google-skip-move-albums", action="store_true", help="Skip moving albums to 'Albums' folder.")
     PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skip processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposses.")
+    PARSER.add_argument("-gSkipPrep", "--google-skip-preprocess", action="store_true",
+                        help="Skip Pre-process Google Takeout to 1.Clean Takeout Folder, 2.Fix MP4/Live Picture associations and 3.Fix Truncated filenames/extensions." 
+                           "\nThis Pre-process is very important for a high accuracy on the Output, but if you have already done this Pre-Processing before, and you are not using the flag '-gmtf,--google-move-takeout-folder' then you can skip this Pre-Processing.")
     PARSER.add_argument("-gpthInfo", "--show-gpth-info",
                         metavar="= [true,false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
@@ -237,18 +241,20 @@ def parse_arguments():
     PARSER.add_argument("-renAlb", "--rename-albums", metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>", nargs="+", default="",
                         help="CAUTION!!! The Tool will look for all Albums in the selected Photo client whose names matches with the pattern and will rename them from with the replacement pattern.\nYou must provide the Photo client using the mandatory flag '--client'."
                         )
+    PARSER.add_argument("-OTP", "--one-time-password", action="store_true", default="", help="This Flag allow you to login into Synology Photos using 2FA with an OTP Token.")
 
 
     # OTHERS STAND-ALONE FEATURES:
     # -------------------------------
+    PARSER.add_argument("-fixSym", "--fix-symlinks-broken", metavar="<FOLDER_TO_FIX>", default="",
+                        help="The Tool will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_TAKEOUT_FOLDER and some Albums seems to be empty.")
+    PARSER.add_argument("-renFldcb", "--rename-folders-content-based", metavar="<ALBUMS_FOLDER>", default="", help="Useful to rename and homogenize all Albums folders found in <ALBUMS_FOLDER> based on the date content found.")
     PARSER.add_argument("-findDup", "--find-duplicates", metavar=f"<ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]", nargs="+", default=["list", ""],
                         help="Find duplicates in specified folders."
                            "\n<ACTION> defines the action to take on duplicates ('move', 'delete' or 'list'). Default: 'list' "
                            "\n<DUPLICATES_FOLDER> are one or more folders (string or list), where the Tool will look for duplicates files. The order of this list is important to determine the principal file of a duplicates set. First folder will have higher priority."
                         )
     PARSER.add_argument("-procDup", "--process-duplicates", metavar="<DUPLICATES_REVISED_CSV>", default="", help="Specify the Duplicates CSV file revised with specifics Actions in Action column, and the Tool will execute that Action for each duplicates found in CSV. Valid Actions: restore_duplicate / remove_duplicate / replace_duplicate.")
-    PARSER.add_argument("-fixSym", "--fix-symlinks-broken", metavar="<FOLDER_TO_FIX>", default="", help="The Tool will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder (Useful if you have move any folder from the OUTPUT_TAKEOUT_FOLDER and some Albums seems to be empty.")
-    PARSER.add_argument("-renFldcb", "--rename-folders-content-based", metavar="<ALBUMS_FOLDER>", default="", help="Useful to rename and homogenize all Albums folders found in <ALBUMS_FOLDER> based on the date content found.")
 
     # Procesar la acción y las carpetas
 

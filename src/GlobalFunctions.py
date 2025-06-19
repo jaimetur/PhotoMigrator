@@ -129,7 +129,7 @@ def set_LOGGER():
         for handler in GV.LOGGER.handlers:
             handler.setLevel(new_level)
 
-        GV.LOGGER.info(f"Logging level changed to: {level_str.upper()}")
+        GV.LOGGER.info(f"Logging level changed to {level_str.upper()}")
     else:
         GV.LOGGER.warning(f"Unknown Logging level: {ARGS['log-level']}")
 

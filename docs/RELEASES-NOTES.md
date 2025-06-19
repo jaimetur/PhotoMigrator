@@ -2,15 +2,32 @@
 
 ---
 
-## **Release**: v3.3.3  
+## Release: v3.3.4  
+- ### Release Date: 2025-06-20
 
-- ### **Release Date**: 2025-06-18
+- ### Main Changes:
+  - #### 🌟 New Features:
+    - [x] Included Input/Output folder size in Google Takeout Statistics. 
+    - [x] Call GPTH with `--verbose` when PhotoMigrator logLevel is VERBOSE or DEBUG.
+    - [x] Add argument `-gSkipPrep,--google-skip-preprocess` to Skipp Preproces steps during Google Takeout Processing feature.
+    - [ ] Improved performance on Counting files during Google Takeout Processing.
+    - [ ] Auto-Update Issues Templates with new published releases. 
+    - ~~[ ] Replace `-gmtf,--google-move-takeout-folder` argument by `-gCopy,--google-copy-takeout-folder` argument and implement the logic for Google Takeout Processing.~~
+  - #### 📚 Documentation:
+    - [ ] Move /doc/* into root folder?  
+    - [ ] Analyze and report any issue detected during GPTH execution. 
+
+
+---
+
+## Release: v3.3.3  
+- ### Release Date: 2025-06-18
 
 - ### Main Changes:
   - #### 🌟 New Features:
     - [x] Created GitHub Forms on New Issues.
     - [x] Added Step duration summary at the end of `Google Takeout Processing` feature.
-    - [x] Added new `VERBOSE` value for `-loglevel` argument.
+    - [x] Added new `VERBOSE` value for `-logLevel` argument.
     - [x] Added new argument `-logFormat, --log-format` to define the format of the Log File. Valid values: `[LOG, TXT, ALL]`.
 
   - #### 🚀 Enhancements:
@@ -70,15 +87,14 @@
           7. **File Moving** - Strategy-based organization
           8. **Creation Time Updates** - Final timestamp alignment
 
-
   - #### 🐛 Bug fixes:
     - [x] Fixed LOG_LEVEL change in `Google Takeout Processing Feature`.
 
 ---
 
-## **Release**: v3.3.2  
+## Release: v3.3.2  
 
-- ### **Release Date**: 2025-06-16
+- ### Release Date: 2025-06-16
 
 - ### Main Changes:
   - #### 🌟 New Features:
@@ -113,9 +129,9 @@
   
 ---
 
-## **Release**: v3.3.1
+## Release: v3.3.1
 
-- ### **Release Date**: 2025-06-12
+- ### Release Date: 2025-06-12
 
 - ### Main Changes:
   - #### 🌟 New Features:
@@ -153,9 +169,9 @@
 
 ---
 
-## **Release**: v3.3.0  
+## Release: v3.3.0  
 
-- ### **Release Date**: 2025-05-30
+- ### Release Date: 2025-05-30
 
 - ### Main Changes:
   - #### 🚨 Breaking Changes:
@@ -235,9 +251,9 @@
 
 ---
 
-## **Release**: v3.2.0  
+## Release: v3.2.0  
 
-- ### **Release Date**: 2025-04-30
+- ### Release Date: 2025-04-30
 
 - ### Main Changes:
   - #### 🌟 New Features:
@@ -261,9 +277,9 @@
 
 ---
 
-## **Release**: v3.1.0  
+## Release: v3.1.0  
 
-- ### **Release Date**: 2025-03-31
+- ### Release Date: 2025-03-31
 
 - ### Main Changes:
   - #### 🚨 Breaking Changes:
@@ -302,9 +318,9 @@
 
 ---
 
-## **Release**: v3.0.0  
+## Release: v3.0.0  
 
-- ### **Release Date**: 2025-03-07
+- ### Release Date: 2025-03-07
 
 - ### Main Changes:
   - #### 🚨 Breaking Changes:
@@ -327,13 +343,13 @@
     - [x] Support to upload assets from/to any folder into Synology Photos (no need to be indexed within the Synology Photos root Folder)
     - [x] Remove Dupplicates Assets in Immich Photos after upload any Asset.
     - [x] Added function to Remove empty folders when delete assets in Synology Photos
-    - [x] Set Log levels per functions and include '-loglevel, --log-level' argument to set it up.
+    - [x] Set Log levels per functions and include '-logLevel, --log-level' argument to set it up.
     - [x] Support for colors in --help text for a better visualization.
     - [x] Support for colors in logger for a better visualization.
     - [x] New Arguments Added: 
       - **-i,        --input-folder <INPUT_FOLDER>** Specify the input folder that you want to process.
       - **-o,        --output-folder <OUTPUT_FOLDER>** Specify the output folder to save the result of the processing action.
-      - **-loglevel, --log-level ['debug', 'info', 'warning', 'error', 'critical']** Specify the log level for logging and screen messages.  
+      - **-logLevel, --log-level ['debug', 'info', 'warning', 'error', 'critical']** Specify the log level for logging and screen messages.  
       - **-rAlbAsset,  --remove-albums-assets** 
       If used together with '-srAllAlb, --synology-remove-all-albums' or '-irAllAlb, --immich-remove-all-albums',  
       it will also delete the assets (photos/videos) inside each album.
@@ -425,9 +441,9 @@
 
 ---
 
-## **Release**: v2.3.0  
+## Release: v2.3.0  
 
-- ### **Release Date**: 2025-01-14
+- ### Release Date: 2025-01-14
 
 - ### Main Changes:
   - #### New Features:
@@ -445,9 +461,9 @@
 
 ---
 
-## **Release**: v2.2.1  
+## Release: v2.2.1  
 
-- ### **Release Date**: 2025-01-08
+- ### Release Date: 2025-01-08
 
 - ### Main Changes:
   - #### New Features:
@@ -466,9 +482,9 @@
 
 ---
 
-## **Release**: v2.2.0  
+## Release: v2.2.0  
 
-- ### **Release Date**: 2025-01-04
+- ### Release Date: 2025-01-04
 
 - ### Main Changes:
   - #### New Features:
@@ -485,9 +501,9 @@
 
 ---
 
-## **Release**: v2.1.0  
+## Release: v2.1.0  
 
-- ### **Release Date**: 2024-12-27
+- ### Release Date: 2024-12-27
 
 - ### Main Changes:
   - #### New Features:
@@ -500,9 +516,9 @@
 
 ---
 
-## **Release**: v2.0.0  
+## Release: v2.0.0  
 
-- ### **Release Date**: 2024-12-24
+- ### Release Date: 2024-12-24
 
 - ### Main Changes:
   - #### New Features:
@@ -519,9 +535,9 @@
 
 ---
 
-## **Release**: v1.6.0  
+## Release: v1.6.0  
 
-- ### **Release Date**: 2024-12-18
+- ### Release Date: 2024-12-18
 
 - ### Main Changes:
   - #### New Features:
@@ -537,9 +553,9 @@
 
 ---
 
-## **Release**: v1.5.1  
+## Release: v1.5.1  
 
-- ### **Release Date**: 2024-12-17
+- ### Release Date: 2024-12-17
 
 - ### Main Changes:
   - #### New Features:
@@ -552,8 +568,8 @@
 
 ---
 
-## **Release**: v1.5.0  
-- ### **Release Date**: 2024-12-11
+## Release: v1.5.0  
+- ### Release Date: 2024-12-11
 
 - ### Main Changes:
   - #### New Features:
@@ -570,8 +586,8 @@
 
 ---
 
-## **Release**: v1.4.1  
-- ### **Release Date**: 2024-12-10
+## Release: v1.4.1  
+- ### Release Date: 2024-12-10
 
 - ### Main Changes:
   - #### Enhancements:
@@ -584,8 +600,8 @@
 
 ---
 
-## **Release**: v1.4.0  
-- ### **Release Date**: 2024-12-08
+## Release: v1.4.0  
+- ### Release Date: 2024-12-08
 
 - ### Main Changes:
   - #### New Features:
@@ -613,8 +629,8 @@
 
 ---
 
-## **Release**: v1.3.1  
-- ### **Release Date**: 2024-12-08
+## Release: v1.3.1  
+- ### Release Date: 2024-12-08
 
 - ### Main Changes:
   - #### Enhancements:
@@ -622,8 +638,8 @@
 
 ---
 
-## **Release**: v1.3.0  
-- ### **Release Date**: 2024-12-04
+## Release: v1.3.0  
+- ### Release Date: 2024-12-04
 
 - ### Main Changes:
   - #### New Features:
@@ -644,8 +660,8 @@
 
 ---
 
-## **Release**: v1.2.2  
-- ### **Release Date**: 2024-12-02
+## Release: v1.2.2  
+- ### Release Date: 2024-12-02
 
 - ### Main Changes:
   - #### New Features:
@@ -662,8 +678,8 @@
 
 ---
 
-## **Release**: v1.2.1  
-- ### **Release Date**: 2024-11-29
+## Release: v1.2.1  
+- ### Release Date: 2024-11-29
 
 - ### Main Changes:
   - #### New Features:
@@ -677,8 +693,8 @@
 
 ---
 
-## **Release**: v1.2.0  
-- ### **Release Date**: 2024-11-27
+## Release: v1.2.0  
+- ### Release Date: 2024-11-27
 
 - ### Main Changes:
   - #### New Features:
@@ -693,8 +709,8 @@
 
 ---
 
-## **Release**: v1.0.0 to v1.2.0  
-- ### **Release Date**: 2024-11
+## Release: v1.0.0 to v1.2.0  
+- ### Release Date: 2024-11
 
 - ### Main Changes:
   - Preliminary not published Script in bash.

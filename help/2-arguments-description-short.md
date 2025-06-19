@@ -45,21 +45,20 @@ Following general arguments have different purposses depending on the Execution 
 |---------------------------------------------------|----------------------------------------------------------------|
 | `-i`,<br>`--input-folder`                         | Input folder to process                                        |
 | `-o`,<br>`--output-folder`                        | Output folder to store results                                 |
-| `-client`,<br>`--client`                          | Service client: `google-takeout`, `synology`, `immich`         |
-| `-id`,<br>`--account-id`                          | Account ID (1–3) from `Config.ini`                             |
-| `-noConfirm`,<br>`--no-request-user-confirmation` | No Request User Confirmation before to execute any Feature.    |
-| `-OTP`,<br>`--one-time-password`                  | Use 2FA login with OTP token                                   |
-| `-from`,<br>`--filter-from-date`                  | Filter assets from this date                                   |
-| `-to`,<br>`--filter-to-date`                      | Filter assets up to this date                                  |
-| `-country`,<br>`--filter-by-country`              | Filter assets by country                                       |
-| `-city`,<br>`--filter-by-city`                    | Filter assets by city                                          |
-| `-person`,<br>`--filter-by-person`                | Filter assets by person                                        |
-| `-type`,<br>`--filter-by-type`                    | Filter assets by type: `image`, `video`, `all`                 |
-| `-AlbFolder`,<br>`--albums-folders`               | Use subfolders in folder as albums                             |
-| `-rAlbAsset`,<br>`--remove-albums-assets`         | Remove assets inside deleted albums                            |
 | `-logLevel`,<br>`--log-level`                     | Sets Log level: `VERBOSE`, `DEBUG`, `INFO`, `WARNING`, `ERROR` |
 | `-logFormat`,<br>`--log-format`                   | Sets log file format: `LOG`, `TXT`, `ALL`                      |
 | `-noLog`,<br>`--no-log-file`                      | Disable log file creation                                      |
+| `-noConfirm`,<br>`--no-request-user-confirmation` | No Request User Confirmation before to execute any Feature.    |
+| `-client`,<br>`--client`                          | Service client: `google-takeout`, `synology`, `immich`         |
+| `-id`,<br>`--account-id`                          | Account ID (1–3) from `Config.ini`                             |
+| `-from`,<br>`--filter-from-date`                  | Filter assets from this date                                   |
+| `-to`,<br>`--filter-to-date`                      | Filter assets up to this date                                  |
+| `-type`,<br>`--filter-by-type`                    | Filter assets by type: `image`, `video`, `all`                 |
+| `-country`,<br>`--filter-by-country`              | Filter assets by country                                       |
+| `-city`,<br>`--filter-by-city`                    | Filter assets by city                                          |
+| `-person`,<br>`--filter-by-person`                | Filter assets by person                                        |
+| `-AlbFolder`,<br>`--albums-folders`               | Use subfolders in folder as albums                             |
+| `-rAlbAsset`,<br>`--remove-albums-assets`         | Remove assets inside deleted albums                            |
 
 #### 🧪 Examples:
 ```bash
@@ -89,6 +88,7 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 | `-gsef`,<br>`--google-skip-extras-files`           | Skip `-edited`, `-effects` images                                     |
 | `-gsma`,<br>`--google-skip-move-albums`            | Skip moving albums to "Albums" folder                                 |
 | `-gsgt`,<br>`--google-skip-gpth-tool`              | Skip processing with GPTH Tool (not recommended)                      |
+| `-gSkipPrep`,<br>`--google-skip-preprocess`        | Skips Pre-process Google Takeout folder (not recommended).            |
 | `-gpthInfo`,<br>`--show-gpth-info`                 | Show GPTH progress messages (default: true)                           |
 | `-gpthError`,<br>`--show-gpth-errors`              | Show GPTH error messages (default: true)                              |
 
@@ -126,6 +126,7 @@ Following arguments allow you to interact with Synology/Immich Photos.
 | `-rAll`,<br>`--remove-all-assets`           | Delete all assets and albums (DANGER!)         |
 | `-rAllAlb`,<br>`--remove-all-albums`        | Delete all albums (assets optional)            |
 | `-rOrphan`,<br>`--remove-orphan-assets`     | Delete orphan assets                           |
+| `-OTP`,<br>`--one-time-password`            | Use 2FA login with OTP token                   |
 
 
 #### 🧪 Examples:
@@ -147,18 +148,18 @@ Following arguments can be used to execute the Tool in any of the usefull additi
 
 | Argument                                         | Description                                                    |
 |--------------------------------------------------|----------------------------------------------------------------|
-| `-findDup`,<br>`--find-duplicates`               | Find duplicates in folder(s). Action: `list`, `move`, `delete` |
-| `-procDup`,<br>`--process-duplicates`            | Execute actions from a reviewed duplicates CSV file            |
 | `-fixSym`,<br>`--fix-symlinks-broken`            | Fix broken symlinks in folder                                  |
 | `-renFldcb`,<br>`--rename-folders-content-based` | Rename folders based on media content date                     |
+| `-findDup`,<br>`--find-duplicates`               | Find duplicates in folder(s). Action: `list`, `move`, `delete` |
+| `-procDup`,<br>`--process-duplicates`            | Execute actions from a reviewed duplicates CSV file            |
 
 
 #### 🧪 Examples:
 ```bash
-PhotoMigrator.run --find-duplicates list "/mnt/folder1" "/mnt/folder2"
-PhotoMigrator.run --process-duplicates revised_duplicates.csv
 PhotoMigrator.run --fix-symlinks-broken="/mnt/albums"
 PhotoMigrator.run --rename-folders-content-based="/mnt/albums"
+PhotoMigrator.run --find-duplicates list "/mnt/folder1" "/mnt/folder2"
+PhotoMigrator.run --process-duplicates revised_duplicates.csv
 ```
 
 

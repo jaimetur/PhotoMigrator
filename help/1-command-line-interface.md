@@ -34,7 +34,7 @@ usage: PhotoMigrator [-h] [-v] [-source <SOURCE>] [-target <TARGET>] [-move [= [
                      [-country <COUNTRY_NAME>] [-city <CITY_NAME>] [-person <PERSON_NAME>]
                      [-type = [image,video,all]]
                      [-AlbFolder [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]] [-rAlbAsset]
-                     [-loglevel =[VERBOSE, DEBUG, INFO, WARNING, ERROR]]
+                     [-logLevel =[VERBOSE, DEBUG, INFO, WARNING, ERROR]]
                      [-logFormat =[LOG, TXT, ALL]] [-noLog]
                      [-gTakeout <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                      [-gafs ['flatten', 'year', 'year/month', 'year-month']]
@@ -148,7 +148,7 @@ Following general arguments have different purposses depending on the Execution 
 -rAlbAsset; --remove-albums-assets
               If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-albums', it
               will also remove the assets (photos/videos) inside each album.
--loglevel ; --log-level =[VERBOSE, DEBUG, INFO, WARNING, ERROR]
+-logLevel ; --log-level =[VERBOSE, DEBUG, INFO, WARNING, ERROR]
               Specify the log level for logging and screen messages.
 -logFormat; --log-format =[LOG, TXT, ALL]
               Specify the log file format.
