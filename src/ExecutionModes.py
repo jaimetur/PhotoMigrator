@@ -146,11 +146,16 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
     LOGGER.info(f"Starting Google Takeout Photos Processor Feature...")
     LOGGER.info(f"=============================================================")
     LOGGER.info(f"")
+
+    # Create the Object
+    takeout = ClassTakeoutFolder(ARGS['google-takeout'])
+
+    input_folder = ARGS['google-takeout']
     if ARGS['output-folder']:
         OUTPUT_TAKEOUT_FOLDER = ARGS['output-folder']
     else:
         OUTPUT_TAKEOUT_FOLDER = f"{ARGS['google-takeout']}_{ARGS['google-output-folder-suffix']}_{TIMESTAMP}"
-    input_folder = ARGS['google-takeout']
+
     if not Utils.dir_exists(input_folder):
         LOGGER.error(f"The Input Folder {input_folder} does not exists. Exiting...")
         sys.exit(-1)
@@ -223,10 +228,9 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
         if ARGS['no-log-file']:
             LOGGER.warning(f"Flag detected '-noLog, --no-log-file'. Skipping saving output into log file...")
 
-        # Create the Object
-        takeout = ClassTakeoutFolder(ARGS['google-takeout'])
         # Call the Function
-        result = takeout.process(output_takeout_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], print_messages=True, create_localfolder_object=False, log_level=log_level)
+        result = takeout.process(output_folder=OUTPUT_TAKEOUT_FOLDER, capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], print_messages=True, create_localfolder_object=False, log_level=log_level)
+        # result = takeout.process(capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], print_messages=True, create_localfolder_object=False, log_level=log_level)
 
         # print result for debugging
         # print_result_pretty(asdict(result))
@@ -291,6 +295,7 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
             LOGGER.info(f"")
             LOGGER.info(f"FINAL SUMMARY & STATISTICS:")
             LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
+            LOGGER.info(f"Total Size of Takeout folder                : {result['input_counters']['total_size_mb']} MB")
             LOGGER.info(f"Total Files in Takeout folder               : {result['input_counters']['total_files']:<7}")
             LOGGER.info(f"Total Non-Supported files in Takeout folder : {result['input_counters']['unsupported_files']:<7}")
             LOGGER.info(f"")
@@ -306,6 +311,7 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
             LOGGER.info(f"    - Total Metadata in Takeout folder      : {result['input_counters']['metadata_files']:<7}")
             LOGGER.info(f"    - Total Sidecars in Takeout folder      : {result['input_counters']['sidecar_files']:<7}")
             LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
+            LOGGER.info(f"Total Size of Output folder                 : {result['output_counters']['total_size_mb']} MB")
             LOGGER.info(f"Total Files in Output folder                : {result['output_counters']['total_files']:<7} {''.ljust(30)} |   (diff: {diff_output_input_total_files:>5})  |  ({perc_of_input_total_files:>5.1f}% of input) ")
             LOGGER.info(f"Total Non-Supported files in Output folder  : {result['output_counters']['unsupported_files']:<7} {''.ljust(30)} |   (diff: {diff_output_input_total_unsupported_files:>5})  |  ({perc_of_input_total_unsupported_files:>5.1f}% of input) ")
             LOGGER.info(f"")

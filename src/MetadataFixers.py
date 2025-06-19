@@ -10,7 +10,7 @@ import time
 from packaging.version import Version
 
 from CustomLogger import set_log_level
-from GlobalVariables import LOGGER, GPTH_VERSION
+from GlobalVariables import LOGGER, GPTH_VERSION, ARGS
 from Utils import get_os, get_arch, resource_path, ensure_executable, run_command, print_arguments_pretty
 
 def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=False, capture_errors=True, print_messages=True, skip_extras=False, symbolic_albums=False, move_takeout_folder=False, ignore_takeout_structure=False, step_name="", log_level=None):
@@ -54,6 +54,10 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
 
         # Basic GPTH Command
         gpth_command = [gpth_tool_path, "--input", input_folder, "--output", output_folder, "--no-interactive"]
+
+        # Add verbosity depending on log-level
+        if ARGS['log-level'].lower() in ['verbose', 'debug']:
+            gpth_command.append("--verbose")
 
         # If ignore_takeout_structure is True, we append --fix input_folder to the gpth tool call
         if ignore_takeout_structure:

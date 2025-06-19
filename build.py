@@ -95,12 +95,12 @@ def extract_release_body(download_file, input_file, output_file):
     release_notes_index = None
     second_release_index = None
     release_count = 0
-    # Loop through lines to find the start of the "Release Notes" section and locate the second occurrence of "**Release**"
+    # Loop through lines to find the start of the "Release Notes" section and locate the second occurrence of "## Release"
     for i, line in enumerate(lines):
         if line.strip() == "# 🗓️ Releases Notes":
             release_notes_index = i
             lines[i] = lines[i].replace("# 🗓️ Releases Notes", "# 🗓️ Release Notes")
-        if "## **Release**:" in line:
+        if "## Release:" in line:
             release_count += 1
             if release_count == 2:
                 second_release_index = i
@@ -109,7 +109,7 @@ def extract_release_body(download_file, input_file, output_file):
     if release_notes_index is None:
         print("Required sections not found in the file.")
         return
-    # Extract content from "## Release Notes:" to the second "**Release**"
+    # Extract content from "## Release Notes:" to the second "## Release"
     if second_release_index is not None:
         release_section = lines[release_notes_index:second_release_index]
     else:

@@ -99,11 +99,11 @@ def main():
         LOGGER.info(f"")
 
     # Test different LOG_LEVELS
-    print_verbose   ("This is a test message with loglevel: VERBOSE")
-    print_debug     ("This is a test message with loglevel: DEBUG")
-    print_info      ("This is a test message with loglevel: INFO")
-    print_warning   ("This is a test message with loglevel: WARNING")
-    print_critical  ("This is a test message with loglevel: CRITICAL")
+    print_verbose   ("This is a test message with logLevel: VERBOSE")
+    print_debug     ("This is a test message with logLevel: DEBUG")
+    print_info      ("This is a test message with logLevel: INFO")
+    print_warning   ("This is a test message with logLevel: WARNING")
+    print_critical  ("This is a test message with logLevel: CRITICAL")
 
     # Get the execution mode and run it.
     detect_and_run_execution_mode()

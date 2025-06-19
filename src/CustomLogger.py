@@ -7,6 +7,16 @@ import threading
 from GlobalVariables import LOG_LEVEL, VERBOSE_LEVEL_NUM
 
 import GlobalVariables as GV
+#------------------------------------------------------------------
+# 1) Definir el nuevo nivel VERBOSE (valor 5)
+logging.addLevelName(VERBOSE_LEVEL_NUM, "VERBOSE")
+
+# 2) Añadir el método `verbose()` a Logger
+def verbose(self, message, *args, **kws):
+    if self.isEnabledFor(VERBOSE_LEVEL_NUM):
+        self._log(VERBOSE_LEVEL_NUM, message, args, **kws)
+logging.Logger.verbose = verbose
+#------------------------------------------------------------------
 
 #------------------------------------------------------------------
 # Replace original print to use the same LOGGER formatter
@@ -35,17 +45,6 @@ def print_critical(*args, **kwargs):
     message = " ".join(str(a) for a in args)
     # Y lo enviamos al LOGGER como INFO (o al nivel que quieras)
     GV.LOGGER.critical(message)
-#------------------------------------------------------------------
-
-#------------------------------------------------------------------
-# 1) Definir el nuevo nivel VERBOSE (valor 5)
-logging.addLevelName(VERBOSE_LEVEL_NUM, "VERBOSE")
-
-# 2) Añadir el método `verbose()` a Logger
-def verbose(self, message, *args, **kws):
-    if self.isEnabledFor(VERBOSE_LEVEL_NUM):
-        self._log(VERBOSE_LEVEL_NUM, message, args, **kws)
-logging.Logger.verbose = verbose
 #------------------------------------------------------------------
 
 # Clase personalizada para formatear los mensajes que van a la consola (Añadimos colorees según el nivel del mensaje)
@@ -310,7 +309,7 @@ def set_log_level(logger: logging.Logger, level: int):
     """
     # If no level have been passed, or level=None, assign the GlovalVariable level defined by user arguments
     if not level:
-        level = LOG_LEVEL
+        level = GV.LOG_LEVEL
 
     # 1) Guardar estados originales
     orig_logger_level   = logger.level

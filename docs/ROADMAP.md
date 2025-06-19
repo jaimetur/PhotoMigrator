@@ -3,10 +3,9 @@
 
 ---
 
-## **Release**: v3.3.4
-
-- ### Release Date: (estimated)
-  - Alpha version    : 2025-06-30
+## Release: v3.3.4
+- ### Release Date   : (estimated)
+  - Alpha version    : 2025-06-20
   - Beta version     : (No estimated date)
   - Release Candidate: (No estimated date)
   - Official Release : (No estimated date)
@@ -25,9 +24,8 @@
     
 ---
 
-## **Release**: v4.0.0 
-
-- ### Release Date: (estimated)
+## Release: v4.0.0 
+- ### Release Date   : (estimated)
   - Alpha version    : (No estimated date)
   - Beta version     : (No estimated date)
   - Release Candidate: (No estimated date)

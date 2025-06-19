@@ -21,7 +21,7 @@ import Utils
 from Utils import rename_album_folders
 import MetadataFixers
 from Duplicates import find_duplicates
-from CustomLogger import set_log_level
+from CustomLogger import set_log_level, print_debug
 
 # Import the global LOGGER from GlobalVariables
 from GlobalVariables import LOGGER, LOG_LEVEL
@@ -39,8 +39,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
         Inicializa la clase con la carpeta base (donde se guardan los archivos ya procesados)
         y la carpeta de entrada (donde se encuentran los archivos sin procesar).
         """
-
         from GlobalVariables import ARGS, TIMESTAMP, DEPRIORITIZE_FOLDERS_PATTERNS
+        from DataModels import init_process_results
 
         self.ARGS = ARGS
         self.TIMESTAMP = TIMESTAMP
@@ -51,15 +51,25 @@ class ClassTakeoutFolder(ClassLocalFolder):
         # self.skip_gpth                      = self.ARGS['google-skip-gpth-tool']
         # self.ignore_takeout_structure       = self.ARGS['google-ignore-check-structure']
 
-        self.takeout_folder = Path(takeout_folder)
-        self.takeout_folder.mkdir(parents=True, exist_ok=True)  # Asegurar que input_folder existe
+        # Assign takeout_folder from the given argument when create the object
+        self.takeout_folder = Path(takeout_folder)  # Folder given when create the object
+        self.takeout_folder.mkdir(parents=True, exist_ok=True)  # Asegurar que takeout_folder existe
 
         # Verificar si la carpeta necesita ser descomprimida
-        self.needs_unzip = self.check_if_needs_unzip()
-        self.unzipped_folder = None
+        self.needs_unzip = self.check_if_needs_unzip(log_level=logging.WARNING)
+        self.unzipped_folder = None # Only will have value if the Takeout have been already unzipped
 
         # Verificar si la carpeta necesita ser procesada
-        self.needs_process = self.check_if_needs_process()
+        self.needs_process = self.check_if_needs_process(log_level=logging.WARNING)
+
+        # Set input_folder as the input for the Preprocessing and Processing Phases
+        self.input_folder = self.get_input_folder()
+
+        # Initiate the output_folder
+        self.output_folder = self.get_output_folder()
+
+        # Set Albums Folder
+        self.albums_folder = self.get_albums_folder()
 
         # Contador de pasos durante el procesamiento
         self.step = 0
@@ -68,14 +78,16 @@ class ClassTakeoutFolder(ClassLocalFolder):
         # Create steps_duration list
         self.steps_duration = []
 
+        # Create and init self.result dict
+        self.result = init_process_results()
+
         self.CLIENT_NAME = f'Google Takeout Folder ({self.takeout_folder.name})'
 
 #---------------------------------------------- CLASS METHODS ----------------------------------------------
     # @staticmethod # if use this flag, the method is static and no need to include self in the arguments
     def check_if_needs_process(self, log_level=None):
-        step_name = '[CHECKS/UNZIP]-[Check Takeout Structure] : '
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-            return Utils.contains_takeout_structure(input_folder=self.takeout_folder, step_name=step_name, log_level=log_level)
+            return Utils.contains_takeout_structure(input_folder=self.takeout_folder, log_level=log_level)
 
     # @staticmethod # if use this flag, the method is static and no need to include self in the arguments
     def check_if_needs_unzip(self, log_level=None):
@@ -85,117 +97,149 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     return True
             return False
 
-    def unzip(self, input_folder, unzip_folder, log_level=None):
-        """
-        Main method to process Google Takeout data. Follows the same steps as the original
-        process() function, but uses LOGGER and self.ARGS instead of global.
-        """
-        with set_log_level(LOGGER, log_level):  # Temporarily adjust log level
-            step_name = '[CHECKS/UNZIP]-[Check Takeout Structure] : '
-            # Unzip files
-            LOGGER.info(f"{step_name}Unpacking Takeout Folder...")
-            LOGGER.info(f"{step_name}⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂")
-            LOGGER.info(f"")
+    def get_input_folder(self):
+        if self.unzipped_folder:
+            self.input_folder = self.unzipped_folder
+        else:
+            self.input_folder = self.takeout_folder
+        return self.input_folder
+
+    def get_albums_folder(self):
+        if not self.ARGS['google-skip-move-albums']:
+            self.albums_folder = os.path.join(self.output_folder, 'Albums')
+        else:
+            self.albums_folder = self.output_folder
+        return self.albums_folder
+
+    def get_output_folder(self):
+        if self.needs_process:
+            if self.ARGS['output-folder']:
+                self.output_folder = Path(self.ARGS['output-folder'])
+            else:
+                self.output_folder = Path(f"{self.takeout_folder}_{self.ARGS['google-output-folder-suffix']}_{self.TIMESTAMP}")
+        else:
+            self.output_folder = self.takeout_folder
+        # Call get_albums_folder to update it with the new output_folder
+        self.get_albums_folder()
+        return self.output_folder
+
+
+
+    def precheck_takeout_and_calculate_initial_counters(self, capture_output=False, capture_errors=True, print_messages=True, skip_process=False, log_level=None):
+        with (set_log_level(LOGGER, log_level)):  # Temporarily adjust log level
+            # Start Pre-Checking
+            self.step += 1
+            self.substep = 0
             step_start_time = datetime.now()
-            Utils.unpack_zips(input_folder, unzip_folder, step_name=step_name)
-            # Make the 'Unzipped' folder as the new takeout_folder for the object
-            self.unzipped_folder = Path(unzip_folder)
-            # Change flag self.check_if_needs_unzip to False
-            self.needs_unzip = False
+            LOGGER.info(f"")
+            LOGGER.info(f"=============================================")
+            LOGGER.info(f"{self.step}. PRE-CHECKING TAKEOUT FOLDER...  ")
+            LOGGER.info(f"=============================================")
+            LOGGER.info(f"")
+
+            # Sub-Step 1: Extraction Process
+            # ----------------------------------------------------------------------------------------------------------------------
+            if self.needs_unzip:
+                step_name = '🔍 [PRE-CHECKS]-[Unzip Takeout] : '
+                self.substep += 1
+                sub_step_start_time = datetime.now()
+                LOGGER.info(f"")
+                LOGGER.info(f"{step_name}🗳️ Input Folder contains ZIP files and needs to be unzipped first. This process might take long time, depending on how big is your Takeout. Be patient... 🙂")
+                LOGGER.info(f"{step_name}🗳️ Unzipping Takeout Folder...")
+                # Make the 'Unzipped' folder as the new takeout_folder for the object
+                self.unzipped_folder= Path(f"{self.takeout_folder}_unzipped_{self.TIMESTAMP}")
+                # Unzip the files into unzip_folder
+                Utils.unpack_zips(input_folder=self.takeout_folder, unzip_folder=self.unzipped_folder, step_name=step_name, log_level=self.log_level)
+                # Update input_folder to take the new unzipped folder as reference
+                self.input_folder = self.unzipped_folder
+                # Change flag self.check_if_needs_unzip to False
+                self.needs_unzip = False
+                self.needs_process = Utils.contains_takeout_structure(input_folder=self.input_folder, step_name=step_name)
+                sub_step_end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=(sub_step_end_time - sub_step_start_time).seconds))
+                LOGGER.info(f"")
+                step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+                LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+                self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+
+            # Sub-Step 2: Count initial files in Takeout Folder before to process with GPTH and modify any original file
+            # ----------------------------------------------------------------------------------------------------------------------
+            # Determine the input_folder deppending if the Takeout have been unzipped or not
+            input_folder = self.get_input_folder()
+            step_name = '🔢 [PRE-CHECKS]-[Statistics   ] : '
+            self.substep += 1
+            sub_step_start_time = datetime.now()
+            LOGGER.info(f"")
+            LOGGER.info(f"{step_name}Counting files in Takeout Folder: {input_folder}...")
+            # New function to count all file types and extract also date info
+            initial_takeout_counters = Utils.count_files_per_type_and_date(input_folder=input_folder, within_json_sidecar=False, log_level=LOG_LEVEL)
+            # Clean input dict
+            self.result['input_counters'].clear()
+            # Assign all pairs key-value from initial_takeout_counters to counter['input_counters'] dict
+            self.result['input_counters'].update(initial_takeout_counters)
+            LOGGER.info(f"{step_name}Counting Files finished!")
+            LOGGER.info(f"{step_name}-----------------------------------------------------------------------------------")
+            LOGGER.info(f"{step_name}Total Files in Takeout folder                    : {self.result['input_counters']['total_files']:<7}")
+            LOGGER.info(f"{step_name}Total Non-Supported files in Takeout folder      : {self.result['input_counters']['unsupported_files']:<7}")
+            LOGGER.info(f"{step_name}Total Supported files in Takeout folder          : {self.result['input_counters']['supported_files']:<7}")
+            LOGGER.info(f"{step_name}  - Total Media files in Takeout folder          : {self.result['input_counters']['media_files']:<7}")
+            LOGGER.info(f"{step_name}    - Total Images in Takeout folder             : {self.result['input_counters']['photo_files']:<7}")
+            LOGGER.info(f"{step_name}      - With Date                                : {self.result['input_counters']['photos']['with_date']:<7} ({self.result['input_counters']['photos']['pct_with_date']:>5.1f}% of total photos) ")
+            LOGGER.info(f"{step_name}      - Without Date                             : {self.result['input_counters']['photos']['without_date']:<7} ({self.result['input_counters']['photos']['pct_without_date']:>5.1f}% of total photos) ")
+            LOGGER.info(f"{step_name}    - Total Videos in Takeout folder             : {self.result['input_counters']['video_files']:<7}")
+            LOGGER.info(f"{step_name}      - With Date                                : {self.result['input_counters']['videos']['with_date']:<7} ({self.result['input_counters']['videos']['pct_with_date']:>5.1f}% of total videos) ")
+            LOGGER.info(f"{step_name}      - Without Date                             : {self.result['input_counters']['videos']['without_date']:<7} ({self.result['input_counters']['videos']['pct_without_date']:>5.1f}% of total videos) ")
+            LOGGER.info(f"{step_name}  - Total Non-Media files in Takeout folder      : {self.result['input_counters']['non_media_files']:<7}")
+            LOGGER.info(f"{step_name}    - Total Metadata in Takeout folder           : {self.result['input_counters']['metadata_files']:<7}")
+            LOGGER.info(f"{step_name}    - Total Sidecars in Takeout folder           : {self.result['input_counters']['sidecar_files']:<7}")
+            LOGGER.info(f"{step_name}-----------------------------------------------------------------------------------")
+            sub_step_end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=(sub_step_end_time - sub_step_start_time).seconds))
+            LOGGER.info(f"")
+            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
+            LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
+            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
+
+            # Show Step Elapsed time
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             LOGGER.info(f"")
-            LOGGER.info(f"{step_name}Unzipping completed in {formatted_duration}.")
-            LOGGER.info(f"")
+            LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
+            self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+
+            # # Call Process() function if not skip_process
+            # if not skip_process:
+            #     if self.needs_process:
+            #         LOGGER.info(f"{step_name}🔢 Input Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
+            #         # if self.unzipped_folder:
+            #         #     output_folder = Path(f"{self.unzipped_folder}_{self.ARGS['google-output-folder-suffix']}_{self.TIMESTAMP}")
+            #         # else:
+            #         output_folder = Path(f"{self.takeout_folder}_{self.ARGS['google-output-folder-suffix']}_{self.TIMESTAMP}")
+            #         # Process Takeout_folder and put output into output_folder
+            #         self.process(output_folder=output_folder, capture_output=capture_output, capture_errors=capture_errors, print_messages=print_messages, log_level=logging.INFO)
+            #         super().__init__(output_folder)  # Inicializar con la carpeta procesada
+            #     else:
+            #         output_folder = self.takeout_folder
+            #         super().__init__(output_folder)  # Inicializar con la carpeta original si no se necesita procesamiento
 
 
-    def precheck_takeout_and_process(self, capture_output=False, capture_errors=True, print_messages=True, skip_process=False):
-        # Step 1: Pre-Checks & Extraction Process
-        # ----------------------------------------------------------------------------------------------------------------------
-        step_name = '🔍 [CHECKS/UNZIP]-[Check/Unzip Takeout Structure] : '
-        self.step += 1
-        LOGGER.info(f"")
-        LOGGER.info(f"=============================================")
-        LOGGER.info(f"{self.step}. CHECK/UNZIP TAKEOUT STRUCTURE...")
-        LOGGER.info(f"=============================================")
-        LOGGER.info(f"")
-        step_start_time = datetime.now()
-        if self.needs_unzip:
-            LOGGER.info(f"{step_name}🗳️ Input Folder contains ZIP files and needs to be unzipped first. Unzipping it...")
-            unzip_folder = Path(f"{self.takeout_folder}_unzipped_{self.TIMESTAMP}")
-            # Unzip the files into unzip_folder
-            self.unzip(input_folder=self.takeout_folder, unzip_folder=unzip_folder, log_level=self.log_level)
-            self.needs_process = Utils.contains_takeout_structure(input_folder=self.unzipped_folder, step_name=step_name)
-
-        step_end_time = datetime.now()
-        formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
-        LOGGER.info(f"")
-        LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
-        self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
-
-        if not skip_process:
-            if self.needs_process:
-                LOGGER.info(f"{step_name}🔢 Input Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
-                # if self.unzipped_folder:
-                #     base_folder = Path(f"{self.unzipped_folder}_{self.ARGS['google-output-folder-suffix']}_{self.TIMESTAMP}")
-                # else:
-                base_folder = Path(f"{self.takeout_folder}_{self.ARGS['google-output-folder-suffix']}_{self.TIMESTAMP}")
-                # Process Takeout_folder and put output into base_folder
-                self.process(output_takeout_folder=base_folder, capture_output=capture_output, capture_errors=capture_errors, print_messages=print_messages, log_level=logging.INFO)
-                super().__init__(base_folder)  # Inicializar con la carpeta procesada
-            else:
-                base_folder = self.takeout_folder
-                super().__init__(base_folder)  # Inicializar con la carpeta original si no se necesita procesamiento
-
-
-    def process(self, output_takeout_folder, capture_output=True, capture_errors=True, print_messages=True, create_localfolder_object=True, log_level=None):
-        """
-        Main method to process Google Takeout data. Follows the same steps as the original
-        process() function, but uses LOGGER and self.ARGS instead of global.
-        """
-        from GlobalVariables import LOGGER
-        from DataModels import init_process_results
-
-        # Create and init result dict
-        result = init_process_results()
-
-        # Determine where the Albums will be located
-        if not self.ARGS['google-skip-move-albums']:
-            album_folder = os.path.join(output_takeout_folder, 'Albums')
-        else:
-            album_folder = output_takeout_folder
-
-        # Start the Process
+    def preprocess(self, log_level=None):
+        # Start Pre-Process
         with (set_log_level(LOGGER, log_level)):  # Temporarily adjust log level
-            LOGGER.info(f"")
-            LOGGER.info(f"==========================================")
-            LOGGER.info(f"🔢 TAKEOUT PROCESSING STARTED...")
-            LOGGER.info(f"==========================================")
-            processing_start_time = datetime.now()
-
-            if capture_output is None: capture_output=self.ARGS['show-gpth-info']
-            if capture_errors is None: capture_errors=self.ARGS['show-gpth-errors']
-
-            # Pre-check the object with skip_process=True to just unzip files in case they are zipped.
-            self.precheck_takeout_and_process(skip_process=True)
-
-
-            # Step 2: Pre-Process Takeout folder
-            # ----------------------------------------------------------------------------------------------------------------------
             self.step += 1
+            self.substep = 0
             step_start_time = datetime.now()
             LOGGER.info(f"")
             LOGGER.info(f"=============================================")
             LOGGER.info(f"{self.step}. PRE-PROCESSING TAKEOUT FOLDER...")
             LOGGER.info(f"=============================================")
             LOGGER.info(f"")
-            # Select the input_folder deppending if the Takeout have been unzipped or not
-            if self.unzipped_folder:
-                input_folder = self.unzipped_folder
-            else:
-                input_folder = self.takeout_folder
 
-            # Delete hidden subfolders '@eaDir'
+            # Determine the input_folder deppending if the Takeout have been unzipped or not
+            input_folder = self.get_input_folder()
+
+            # Sub-Step 1: Delete hidden subfolders '@eaDir'
+            # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧹 [PRE-PROCESS]-[Clean Takeout Folder] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
@@ -209,15 +253,16 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Fix .MP4 JSON
-            step_name = '🧹 [PRE-PROCESS]-[MP4 Fixer           ] : '
+            # Sub-Step 2: Fix .MP4 JSON
+            # ----------------------------------------------------------------------------------------------------------------------
+            step_name = '🧹 [PRE-PROCESS]-[MP4/Live Pics. Fixer] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Looking for .MP4 files from live pictures and asociate date and time with live picture file...")
-            result_mp4_files_fixed = Utils.fix_mp4_files(input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL)
+            total_mp4_files_fixed = Utils.fix_mp4_files(input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL)
             LOGGER.info(f"{step_name}Fixing MP4 from live pictures metadata finished!")
-            LOGGER.info(f"{step_name}Total MP4 from live pictures Files fixed         : {result_mp4_files_fixed}")
+            LOGGER.info(f"{step_name}Total MP4 from live pictures Files fixed         : {total_mp4_files_fixed}")
             sub_step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(sub_step_end_time - sub_step_start_time).seconds))
             LOGGER.info(f"")
@@ -225,62 +270,33 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
-            # Fix truncated suffixes (such as '-ha edit.jpg' or '-ha e.jpg', or '-effec', or '-supplemen',...)
+            # Sub-Step 3: Fix truncated suffixes (such as '-ha edit.jpg' or '-ha e.jpg', or '-effec', or '-supplemen',...)
+            # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧹 [PRE-PROCESS]-[Truncations Fixer   ] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Fixing Truncated Special Suffixes from Google Photos and rename files to include complete special suffix...")
-            result_fix_truncations = Utils.fix_truncations(input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL)
+            fix_truncations_output = Utils.fix_truncations(input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL)
+
+            # Clean input dict
+            self.result['fix_truncations'].clear()
+            # Assign all pairs key-value from output_counters to counter['output_counters'] dict
+            self.result['fix_truncations'].update(fix_truncations_output)
+
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Fixing Truncated Files finished!")
             LOGGER.info(f"{step_name}-----------------------------------------------------------------------------------")
-            LOGGER.info(f"{step_name}Total Files files in Takeout folder              : {result_fix_truncations['total_files']}")
-            LOGGER.info(f"{step_name}  - Total Fixed Files files in Takeout folder    : {result_mp4_files_fixed + result_fix_truncations['total_files_fixed']:<7}")
-            LOGGER.info(f"{step_name}    - Total MP4 from live pictures Files fixed   : {result_mp4_files_fixed:<7}")
-            LOGGER.info(f"{step_name}    - Total Truncated files fixed                : {result_fix_truncations['total_files_fixed']:<7}")
-            LOGGER.info(f"{step_name}      - Total JSON files fixed                   : {result_fix_truncations['json_files_fixed']:<7}")
-            LOGGER.info(f"{step_name}        - Supplemental-metadata changes          : {result_fix_truncations['supplemental_metadata_fixed']:<7}")
-            LOGGER.info(f"{step_name}        - Extensions changes                     : {result_fix_truncations['extensions_fixed']:<7}")
-            LOGGER.info(f"{step_name}      - Total Images/Videos files fixed          : {result_fix_truncations['non_json_files_fixed']:<7}")
-            LOGGER.info(f"{step_name}        - Special Suffixes changes               : {result_fix_truncations['special_suffixes_fixed']:<7}")
-            LOGGER.info(f"{step_name}        - Edited Suffixes changes                : {result_fix_truncations['edited_suffixes_fixed']:<7}")
-            LOGGER.info(f"{step_name}-----------------------------------------------------------------------------------")
-            sub_step_end_time = datetime.now()
-            formatted_duration = str(timedelta(seconds=(sub_step_end_time - sub_step_start_time).seconds))
-            LOGGER.info(f"")
-            step_name_cleaned = ' '.join(step_name.replace(' : ', '').split()).replace(' ]', ']')
-            LOGGER.info(f"{step_name}Sub-Step {self.step}.{self.substep}: {step_name_cleaned} completed in {formatted_duration}.")
-            self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
-
-            # Count initial files in Takeout Folder before to process with GPTH, since once process input_folder may be deleted if --google-move-takeout-folder has been given
-            step_name = '🔢 [PRE-PROCESS]-[Statistics          ] : '
-            self.substep += 1
-            sub_step_start_time = datetime.now()
-            LOGGER.info(f"")
-            LOGGER.info(f"{step_name}Counting files in Takeout Folder: {input_folder}...")
-            # New function to count all file types and extract also date info
-            initial_takeout_counters = Utils.count_files_per_type_and_date(input_folder=input_folder, within_json_sidecar=False, log_level=LOG_LEVEL)
-            # Clean input dict
-            result['input_counters'].clear()
-            # Assign all pairs key-value from initial_takeout_counters to counter['input_counters'] dict
-            result['input_counters'].update(initial_takeout_counters)
-
-            LOGGER.info(f"{step_name}Counting Files finished!")
-            LOGGER.info(f"{step_name}-----------------------------------------------------------------------------------")
-            LOGGER.info(f"{step_name}Total Files in Takeout folder                    : {result['input_counters']['total_files']:<7}")
-            LOGGER.info(f"{step_name}Total Non-Supported files in Takeout folder      : {result['input_counters']['unsupported_files']:<7}")
-            LOGGER.info(f"{step_name}Total Supported files in Takeout folder          : {result['input_counters']['supported_files']:<7}")
-            LOGGER.info(f"{step_name}  - Total Media files in Takeout folder          : {result['input_counters']['media_files']:<7}")
-            LOGGER.info(f"{step_name}    - Total Images in Takeout folder             : {result['input_counters']['photo_files']:<7}")
-            LOGGER.info(f"{step_name}      - With Date                                : {result['input_counters']['photos']['with_date']:<7} ({result['input_counters']['photos']['pct_with_date']:>5.1f}% of total photos) ")
-            LOGGER.info(f"{step_name}      - Without Date                             : {result['input_counters']['photos']['without_date']:<7} ({result['input_counters']['photos']['pct_without_date']:>5.1f}% of total photos) ")
-            LOGGER.info(f"{step_name}    - Total Videos in Takeout folder             : {result['input_counters']['video_files']:<7}")
-            LOGGER.info(f"{step_name}      - With Date                                : {result['input_counters']['videos']['with_date']:<7} ({result['input_counters']['videos']['pct_with_date']:>5.1f}% of total videos) ")
-            LOGGER.info(f"{step_name}      - Without Date                             : {result['input_counters']['videos']['without_date']:<7} ({result['input_counters']['videos']['pct_without_date']:>5.1f}% of total videos) ")
-            LOGGER.info(f"{step_name}  - Total Non-Media files in Takeout folder      : {result['input_counters']['non_media_files']:<7}")
-            LOGGER.info(f"{step_name}    - Total Metadata in Takeout folder           : {result['input_counters']['metadata_files']:<7}")
-            LOGGER.info(f"{step_name}    - Total Sidecars in Takeout folder           : {result['input_counters']['sidecar_files']:<7}")
+            LOGGER.info(f"{step_name}Total Files files in Takeout folder              : {fix_truncations_output['total_files']}")
+            LOGGER.info(f"{step_name}  - Total Fixed Files files in Takeout folder    : {total_mp4_files_fixed + fix_truncations_output['total_files_fixed']:<7}")
+            LOGGER.info(f"{step_name}    - Total MP4 from live pictures Files fixed   : {total_mp4_files_fixed:<7}")
+            LOGGER.info(f"{step_name}    - Total Truncated files fixed                : {fix_truncations_output['total_files_fixed']:<7}")
+            LOGGER.info(f"{step_name}      - Total JSON files fixed                   : {fix_truncations_output['json_files_fixed']:<7}")
+            LOGGER.info(f"{step_name}        - Supplemental-metadata changes          : {fix_truncations_output['supplemental_metadata_fixed']:<7}")
+            LOGGER.info(f"{step_name}        - Extensions changes                     : {fix_truncations_output['extensions_fixed']:<7}")
+            LOGGER.info(f"{step_name}      - Total Images/Videos files fixed          : {fix_truncations_output['non_json_files_fixed']:<7}")
+            LOGGER.info(f"{step_name}        - Special Suffixes changes               : {fix_truncations_output['special_suffixes_fixed']:<7}")
+            LOGGER.info(f"{step_name}        - Edited Suffixes changes                : {fix_truncations_output['edited_suffixes_fixed']:<7}")
             LOGGER.info(f"{step_name}-----------------------------------------------------------------------------------")
             sub_step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(sub_step_end_time - sub_step_start_time).seconds))
@@ -299,34 +315,82 @@ class ClassTakeoutFolder(ClassLocalFolder):
             idx = len(self.steps_duration) - self.substep
             if idx < 0:  idx = 0  # si la lista tiene menos de self.substep elementos, lo ponemos al inicio
             # Insertamos ahí el nuevo registro (sin sobrescribir ninguno)
-            self.steps_duration.insert(idx,{'step_id': self.step, 'step_name': step_name + '- TOTAL DURATION', 'duration': formatted_duration})
+            self.steps_duration.insert(idx, {'step_id': self.step, 'step_name': step_name + '- TOTAL DURATION', 'duration': formatted_duration})
 
+
+    def process(self, output_folder=None, capture_output=True, capture_errors=True, print_messages=True, create_localfolder_object=True, log_level=None):
+        """
+        Main method to process Google Takeout data. Follows the same steps as the original
+        process() function, but uses LOGGER and self.ARGS instead of global.
+        """
+        # Start the Process
+        with (set_log_level(LOGGER, log_level)):  # Temporarily adjust log level
+            LOGGER.info(f"")
+            LOGGER.info(f"==========================================")
+            LOGGER.info(f"🔢 TAKEOUT PROCESSING STARTED...")
+            LOGGER.info(f"==========================================")
+            processing_start_time = datetime.now()
+
+            if capture_output is None: capture_output=self.ARGS['show-gpth-info']
+            if capture_errors is None: capture_errors=self.ARGS['show-gpth-errors']
+
+            # Step 1: Pre-check the object with skip_process=True to just unzip files in case they are zipped
+            # ----------------------------------------------------------------------------------------------------------------------
+            self.precheck_takeout_and_calculate_initial_counters(skip_process=True, log_level=log_level)
+
+
+            # --------------------------------------------------------------------------------------------------------------------------------------------------------
+            # DETERMINE BASIC FOLDERS AND INIT SUPER CLASS
+            # This need to be done after Prechecks because if takeout folders have been unzipped, the input_folder, output_folder and albums_folder need to be updated
+            # --------------------------------------------------------------------------------------------------------------------------------------------------------
+            # If the user have passed an output_folder directly to the process() method, then update the object with this output_folder
+            if output_folder:
+                self.output_folder = output_folder
+            # Determine the output_folder if it has not been given in the call to process() method
+            output_folder = self.get_output_folder()
+            # if output_folder is None:
+            #     output_folder = self.get_output_folder()
+            # else:
+            #     self.output_folder = output_folder
+            # Determine the input_folder deppending if the Takeout have been unzipped or not
+            input_folder = self.get_input_folder()
+            # Determine where the Albums will be located
+            albums_folder = self.get_albums_folder()
+
+
+
+            # Step 2: Pre-Process Takeout folder
+            # ----------------------------------------------------------------------------------------------------------------------
+            if not self.ARGS['google-skip-preprocess']:
+                # Call preprocess() with the same log_level as process()
+                self.preprocess(log_level=log_level)
 
             # Step 3: Process photos with GPTH tool
             # ----------------------------------------------------------------------------------------------------------------------
             if not self.ARGS['google-skip-gpth-tool']:
                 step_name = '🧠 [PROCESS]-[Metadata Processing] : '
+                step_start_time = datetime.now()
                 self.step += 1
                 LOGGER.info(f"")
                 LOGGER.info(f"=====================================================")
                 LOGGER.info(f"{self.step}. FIXING PHOTOS METADATA WITH GPTH TOOL...")
                 LOGGER.info(f"=====================================================")
                 LOGGER.info(f"")
-                step_start_time = datetime.now()
                 LOGGER.info(f"{step_name}⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂")
 
                 if self.ARGS['google-ignore-check-structure']:
                     LOGGER.warning(f"{step_name}Google Takeout Structure detected ('-gics, --google-ignore-check-structure' flag detected).")
                 else:
                     # Check Takeout structure
-                    has_takeout_structure = Utils.contains_takeout_structure(input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL)
-                    if not has_takeout_structure:
+                    # has_takeout_structure = Utils.contains_takeout_structure(input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL)
+                    # if not has_takeout_structure:
+                    if not self.needs_process:
                         LOGGER.warning(f"{step_name}No Takeout structure detected in input folder. The tool will process the folder ignoring Takeout structure.")
                         self.ARGS['google-ignore-check-structure'] = True
 
                 ok = MetadataFixers.fix_metadata_with_gpth_tool(
-                    input_folder=input_folder,
-                    output_folder=output_takeout_folder,
+                    input_folder=self.input_folder,
+                    output_folder=output_folder,
                     capture_output=capture_output,
                     capture_errors=capture_errors,
                     print_messages=print_messages,
@@ -341,14 +405,14 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     LOGGER.warning(f"{step_name}Metadata fixing didn't finish properly due to GPTH error.")
                     LOGGER.warning(f"{step_name}If your Takeout does not contains Year/Month folder structure, you can use '-gics, --google-ignore-check-structure' flag.")
                     # return (0, 0, 0, 0, initial_takeout_numfiles, 0, 0, 0, 0, 0)
-                    return result
+                    return self.result
 
                 # Determine if manual copy/move is needed (for step 4)
                 manual_copy_move_needed = self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']
 
                 # if manual copy is detected, don't delete the input folder yet, will do it in next step
                 if self.ARGS['google-move-takeout-folder'] and not manual_copy_move_needed:
-                    Utils.force_remove_directory(input_folder, log_level=LOG_LEVEL)
+                    Utils.force_remove_directory(folder=input_folder, log_level=LOG_LEVEL)
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
                 LOGGER.info(f"")
@@ -360,13 +424,13 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # ----------------------------------------------------------------------------------------------------------------------
             if manual_copy_move_needed:
                 step_name = '📁 [POST]-[Copy/Move] : '
+                step_start_time = datetime.now()
                 self.step += 1
                 LOGGER.info(f"")
                 LOGGER.info(f"======================================================")
                 LOGGER.info(f"{self.step}. COPYING/MOVING FILES TO OUTPUT FOLDER...")
                 LOGGER.info(f"======================================================")
                 LOGGER.info(f"")
-                step_start_time = datetime.now()
                 if self.ARGS['google-skip-gpth-tool']:
                     LOGGER.warning(f"{step_name}Metadata fixing with GPTH tool skipped ('-gsgt, --google-skip-gpth-tool' flag). step {self.step} is needed to copy files manually to output folder.")
                 if self.ARGS['google-ignore-check-structure']:
@@ -376,7 +440,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 else:
                     LOGGER.info(f"{step_name}Copying files from Takeout folder to Output folder...")
 
-                Utils.copy_move_folder(input_folder, output_takeout_folder, ignore_patterns=['*.json', '*.j'], move=self.ARGS['google-move-takeout-folder'], step_name=step_name, log_level=LOG_LEVEL)
+                Utils.copy_move_folder(input_folder, output_folder, ignore_patterns=['*.json', '*.j'], move=self.ARGS['google-move-takeout-folder'], step_name=step_name, log_level=LOG_LEVEL)
                 if self.ARGS['google-move-takeout-folder']:
                     Utils.force_remove_directory(input_folder)
                 step_end_time = datetime.now()
@@ -389,14 +453,14 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # ----------------------------------------------------------------------------------------------------------------------
             self.step += 1
             step_name = '🕒 [POST]-[MP4 Timestamp Synch] : '
+            step_start_time = datetime.now()
             LOGGER.info(f"")
             LOGGER.info(f"========================================================================")
             LOGGER.info(f"{self.step}. SYNC TIMESTAMPS OF .MP4 with IMAGES (.HEIC, .JPG, .JPEG)...")
             LOGGER.info(f"========================================================================")
             LOGGER.info(f"")
-            step_start_time = datetime.now()
             LOGGER.info(f"{step_name}Timestamps of '.MP4' file with Live pictures files (.HEIC, .JPG, .JPEG) if both files have the same name and are in the same folder...")
-            Utils.sync_mp4_timestamps_with_images(input_folder=output_takeout_folder, step_name=step_name, log_level=LOG_LEVEL)
+            Utils.sync_mp4_timestamps_with_images(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             LOGGER.info(f"")
@@ -407,17 +471,17 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-albums-folders-structure'].lower() != 'flatten' or self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten' or (self.ARGS['google-albums-folders-structure'].lower() == 'flatten' and self.ARGS['google-no-albums-folders-structure'].lower() == 'flatten'):
                 step_name = '📁 [POST]-[Create year/month struct] : '
+                step_start_time = datetime.now()
                 self.step += 1
                 LOGGER.info(f"")
                 LOGGER.info(f"====================================================")
                 LOGGER.info(f"{self.step}. CREATING YEAR/MONTH FOLDER STRUCTURE...")
                 LOGGER.info(f"====================================================")
-                step_start_time = datetime.now()
                 # For Albums
                 if self.ARGS['google-albums-folders-structure'].lower() != 'flatten':
                     LOGGER.info(f"")
                     LOGGER.info(f"{step_name}Creating Folder structure '{self.ARGS['google-albums-folders-structure'].lower()}' for each Album folder...")
-                    basedir = output_takeout_folder
+                    basedir = output_folder
                     type_structure = self.ARGS['google-albums-folders-structure']
                     exclude_subfolders = ['No-Albums']
                     Utils.organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, step_name=step_name, log_level=LOG_LEVEL)
@@ -426,7 +490,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 if self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten':
                     LOGGER.info(f"")
                     LOGGER.info(f"{step_name}Creating Folder structure '{self.ARGS['google-no-albums-folders-structure'].lower()}' for 'No-Albums' folders...")
-                    basedir = os.path.join(output_takeout_folder, 'No-Albums')
+                    basedir = os.path.join(output_folder, 'No-Albums')
                     type_structure = self.ARGS['google-no-albums-folders-structure']
                     exclude_subfolders = []
                     Utils.organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, step_name=step_name, log_level=LOG_LEVEL)
@@ -446,6 +510,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # ----------------------------------------------------------------------------------------------------------------------
             if not self.ARGS['google-skip-move-albums']:
                 step_name = '📚 [POST]-[Move Albums] : '
+                step_start_time = datetime.now()
                 self.step += 1
                 LOGGER.info(f"")
                 LOGGER.info(f"====================================")
@@ -453,8 +518,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"====================================")
                 LOGGER.info(f"")
                 LOGGER.info(f"{step_name}Moving All your albums into 'Albums' folder for a better organization...")
-                step_start_time = datetime.now()
-                Utils.move_albums(input_folder=output_takeout_folder, exclude_subfolder=['No-Albums', '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
+                Utils.move_albums(input_folder=output_folder, exclude_subfolder=['No-Albums', '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
                 step_end_time = datetime.now()
                 LOGGER.info(f"{step_name}All your albums have been moved successfully!")
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
@@ -466,40 +530,40 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-remove-duplicates-files']:
                 step_name = '👥 [POST]-[Remove Duplicates] : '
+                step_start_time = datetime.now()
                 self.step += 1
                 LOGGER.info(f"")
                 LOGGER.info(f"==============================================================")
                 LOGGER.info(f"{self.step}. REMOVING DUPLICATES IN <OUTPUT_TAKEOUT_FOLDER>...")
                 LOGGER.info(f"==============================================================")
                 LOGGER.info(f"")
-                step_start_time = datetime.now()
 
                 # First Remove Duplicates from OUTPUT_TAKEOUT_FOLDER (excluding 'No-Albums' folder)
                 LOGGER.info(f"{step_name}1. Removing duplicates from '<OUTPUT_TAKEOUT_FOLDER>', excluding 'No-Albums' folder...")
                 duplicates_found, removed_empty_folders = find_duplicates(
                     duplicates_action='remove',
-                    duplicates_folders=output_takeout_folder,
+                    duplicates_folders=output_folder,
                     exclusion_folders=['No-Albums'],    # Exclude 'No-Albums' folder since it will contain duplicates of all the assets withini 'Albums' subfolders.
                     deprioritize_folders_patterns=self.DEPRIORITIZE_FOLDERS_PATTERNS,
                     timestamp=self.TIMESTAMP,
                     step_name=step_name,
                     log_level=LOG_LEVEL
                 )
-                result['duplicates_found'] += duplicates_found
-                result['removed_empty_folders'] += removed_empty_folders
+                self.result['duplicates_found'] += duplicates_found
+                self.result['removed_empty_folders'] += removed_empty_folders
 
                 # Second Remove Duplicates from OUTPUT_TAKEOUT_FOLDER/No-Albums (excluding any other folder outside it).
                 LOGGER.info(f"{step_name}2. Removing duplicates from '<OUTPUT_TAKEOUT_FOLDER>/No-Albums', excluding any other folders outside it...")
                 duplicates_found, removed_empty_folders = find_duplicates(
                     duplicates_action='remove',
-                    duplicates_folders=os.path.join(output_takeout_folder, 'No-Albums'),
+                    duplicates_folders=os.path.join(output_folder, 'No-Albums'),
                     deprioritize_folders_patterns=self.DEPRIORITIZE_FOLDERS_PATTERNS,
                     timestamp=self.TIMESTAMP,
                     step_name=step_name,
                     log_level=LOG_LEVEL
                 )
-                result['duplicates_found'] += duplicates_found
-                result['removed_empty_folders'] += removed_empty_folders
+                self.result['duplicates_found'] += duplicates_found
+                self.result['removed_empty_folders'] += removed_empty_folders
 
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
@@ -511,6 +575,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-create-symbolic-albums']:
                 step_name = '🔗 [POST]-[Fix Symlinks] : '
+                step_start_time = datetime.now()
                 self.step += 1
                 LOGGER.info(f"")
                 LOGGER.info(f"=========================================================")
@@ -518,8 +583,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"=========================================================")
                 LOGGER.info(f"")
                 LOGGER.info(f"{step_name}Fixing broken symbolic links. This step is needed after moving any Folder structure...")
-                step_start_time = datetime.now()
-                result['symlink_fixed'], result['symlink_not_fixed'] = Utils.fix_symlinks_broken(input_folder=output_takeout_folder, step_name=step_name, log_level=LOG_LEVEL)
+                self.result['symlink_fixed'], self.result['symlink_not_fixed'] = Utils.fix_symlinks_broken(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
 
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
@@ -531,6 +595,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # ----------------------------------------------------------------------------------------------------------------------
             if self.ARGS['google-rename-albums-folders']:
                 step_name = '📝 [POST]-[Album Renaming] : '
+                step_start_time = datetime.now()
                 self.step += 1
                 LOGGER.info(f"")
                 LOGGER.info(f"============================================================")
@@ -538,10 +603,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"============================================================")
                 LOGGER.info(f"")
                 LOGGER.info(f"{step_name}Renaming albums folders in <OUTPUT_TAKEOUT_FOLDER> based on their dates...")
-                step_start_time = datetime.now()
-                result_rename = rename_album_folders(input_folder=album_folder, exclude_subfolder=['No-Albums', '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
-                # Merge all counts from result_rename into result in one go
-                result.update(result_rename)
+                rename_output = rename_album_folders(input_folder=albums_folder, exclude_subfolder=['No-Albums', '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
+                # Merge all counts from rename_output into self.result in one go
+                self.result.update(rename_output)
 
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
@@ -552,6 +616,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Step 11: Renamove Empty Folders
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧹 [POST]-[Remove Empty Folders] : '
+            step_start_time = datetime.now()
             self.step += 1
             LOGGER.info(f"")
             LOGGER.info(f"======================================")
@@ -559,8 +624,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"======================================")
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Removing empty folders in <OUTPUT_TAKEOUT_FOLDER>...")
-            step_start_time = datetime.now()
-            Utils.remove_empty_dirs(input_folder=output_takeout_folder, log_level=LOG_LEVEL)
+            Utils.remove_empty_dirs(input_folder=output_folder, log_level=LOG_LEVEL)
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             LOGGER.info(f"")
@@ -570,6 +634,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Step 12: Count Albums
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🔢 [POST]-[Counting Albums] : '
+            step_start_time = datetime.now()
             self.step += 1
             LOGGER.info(f"")
             LOGGER.info(f"==========================================")
@@ -578,17 +643,17 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             # 1. First count all Files in output Folder
             # New function to count all file types and extract also date info
-            output_counters = Utils.count_files_per_type_and_date(input_folder=output_takeout_folder, within_json_sidecar=False, log_level=LOG_LEVEL)
+            output_counters = Utils.count_files_per_type_and_date(input_folder=output_folder, within_json_sidecar=False, log_level=LOG_LEVEL)
             # Clean input dict
-            result['output_counters'].clear()
+            self.result['output_counters'].clear()
             # Assign all pairs key-value from output_counters to counter['output_counters'] dict
-            result['output_counters'].update(output_counters)
+            self.result['output_counters'].update(output_counters)
 
             # 2. Now count the Albums in output Folder
-            if os.path.isdir(output_takeout_folder):
+            if os.path.isdir(output_folder):
                 excluded_folders = ["No-Albums", "ALL_PHOTOS"]
-                result['valid_albums_found'] = Utils.count_valid_albums(album_folder, excluded_folders=excluded_folders, step_name=step_name, log_level=LOG_LEVEL)
-            LOGGER.info(f"{step_name}Valid Albums Found {result['valid_albums_found']}.")
+                self.result['valid_albums_found'] = Utils.count_valid_albums(albums_folder, excluded_folders=excluded_folders, step_name=step_name, log_level=LOG_LEVEL)
+            LOGGER.info(f"{step_name}Valid Albums Found {self.result['valid_albums_found']}.")
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(step_end_time - step_start_time).seconds))
             LOGGER.info(f"")
@@ -597,12 +662,15 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # FINISH
             # ----------------------------------------------------------------------------------------------------------------------
+            # Inicializar la clase padre ClassLocalFolder con output_folder
+            super().__init__(output_folder)
+
             processing_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=(processing_end_time - processing_start_time).seconds))
             LOGGER.info(f"")
             LOGGER.info(f"============================================================================================================================")
             LOGGER.info(f"✅ TAKEOUT PROCESSING FINISHED!!!")
-            LOGGER.info(f"{'Takeout Precessed Folder'.ljust(53)}  : '{output_takeout_folder}'.")
+            LOGGER.info(f"{'Takeout Precessed Folder'.ljust(53)}  : '{output_folder}'.")
             LOGGER.info(f"")
             LOGGER.info(f"Processing Time per Step:")
             for entry in self.steps_duration:
@@ -615,9 +683,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # At the end of the process, we call the super() to make this objet a sub-instance of the class ClassLocalFolder to create the same folder structure
             if create_localfolder_object:
-                super().__init__(output_takeout_folder)
+                super().__init__(output_folder)
 
-            return result
+            return self.result
 
 
 
@@ -697,5 +765,5 @@ if __name__ == "__main__":
     # base_folder = input_folder.parent / f"Takeout_processed_{timestamp}"
 
     takeout = ClassTakeoutFolder(input_folder)
-    result = takeout.process("Output_Takeout_Folder", capture_output=True, capture_errors=True, print_messages=True, create_localfolder_object=False, log_level=logging.DEBUG)
-    print(result)
+    res = takeout.process("Output_Takeout_Folder", capture_output=True, capture_errors=True, print_messages=True, create_localfolder_object=False, log_level=logging.DEBUG)
+    print(res)
