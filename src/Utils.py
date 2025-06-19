@@ -42,15 +42,16 @@ TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
 # -------------------------------------------------------------
 # Set Profile to analyze and optimize code:
 # -------------------------------------------------------------
-def profile_and_print(function_to_analyze, *args, **kwargs):
+def profile_and_print(function_to_analyze, *args, live_stats=False, **kwargs):
     """
-    Ejecuta el profiler y muestra resultados en tiempo real mientras la función corre,
-    además devuelve lo que retorne la función analizada.
+    Ejecuta el profiler y muestra resultados en tiempo real mientras la función corre
+    (si live_stats=True), y devuelve el resultado de la función analizada.
     """
     import time
     import cProfile
     import pstats
-    from concurrent.futures import ThreadPoolExecutor, as_completed
+    from concurrent.futures import ThreadPoolExecutor
+
     profiler = cProfile.Profile()
     profiler.enable()
 
@@ -58,19 +59,20 @@ def profile_and_print(function_to_analyze, *args, **kwargs):
     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(function_to_analyze, *args, **kwargs)
 
-        # Mientras la tarea no termine, imprimimos estadísticas cada 10 segundos
-        while not future.done():
-            time.sleep(10)
-            profiler.disable()
-            stats = pstats.Stats(profiler)
-            stats.strip_dirs().sort_stats("cumulative").print_stats(20)
-            profiler.enable()
+        if live_stats:
+            # Mientras la tarea no termine, imprimimos stats parciales cada 10s
+            while not future.done():
+                time.sleep(10)
+                profiler.disable()
+                stats = pstats.Stats(profiler)
+                stats.strip_dirs().sort_stats("cumulative").print_stats(20)
+                profiler.enable()
 
-        # Una vez completada, obtenemos el resultado
+        # Obtener el resultado cuando termine
         result = future.result()
 
     profiler.disable()
-    print("\n🔍 **Final Profile Report:**")
+    print("\n🔍 **Final Profile Report (top 20):**")
     stats = pstats.Stats(profiler)
     stats.strip_dirs().sort_stats("cumulative").print_stats(20)
 
