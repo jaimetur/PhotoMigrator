@@ -3,9 +3,6 @@ import os, sys
 from datetime import datetime, timedelta
 import Utils
 import logging
-import cProfile
-import pstats
-import threading
 import time
 import shutil
 from dataclasses import asdict
@@ -21,35 +18,6 @@ EXECUTION_MODE = "default"
 terminal_width = shutil.get_terminal_size().columns
 
 # -------------------------------------------------------------
-# Set Profile to analyze and optimize code:
-# -------------------------------------------------------------
-def profile_and_print(function_to_analyze, *args, **kwargs):
-    """
-    Executes the profiler and displays results in real-time while the function runs.
-    Supports both positional (`args`) and keyword (`kwargs`) arguments.
-    """
-    profiler = cProfile.Profile()
-    profiler.enable()
-
-    # Ensure the function receives arguments correctly
-    thread = threading.Thread(target=function_to_analyze, args=args, kwargs=kwargs)
-    thread.start()
-
-    # While the function is running, print profiling results every 5 seconds
-    while thread.is_alive():
-        time.sleep(10)
-        profiler.disable()
-        stats = pstats.Stats(profiler)
-        stats.strip_dirs().sort_stats("cumulative").print_stats(20)  # Show top 10 slowest functions
-        profiler.enable()  # Re-enable profiling to continue
-
-    profiler.disable()  # Ensure the profiler stops after execution
-    print("\n🔍 **Final Profile Report:**")
-    stats = pstats.Stats(profiler)
-    stats.strip_dirs().sort_stats("cumulative").print_stats(20)  # Show top 20 slowest functions
-
-
-# -------------------------------------------------------------
 # Determine the Execution mode based on the provide arguments:
 # -------------------------------------------------------------
 def detect_and_run_execution_mode():
@@ -57,7 +25,7 @@ def detect_and_run_execution_mode():
     if ARGS['source'] and ARGS['target']:
         EXECUTION_MODE = 'AUTOMATIC-MIGRATION'
         mode_AUTOMATIC_MIGRATION(show_gpth_info=ARGS['show-gpth-info'])
-        # profile_and_print(function_to_analyze=mode_AUTOMATIC_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.
+        # Utils.profile_and_print(function_to_analyze=mode_AUTOMATIC_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.
 
 
     # Google Photos Mode:

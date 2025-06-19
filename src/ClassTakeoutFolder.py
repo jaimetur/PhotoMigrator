@@ -16,6 +16,7 @@ import inspect
 import shutil
 from pathlib import Path
 
+import GlobalVariables
 # Keep your existing imports for external modules:
 import Utils
 from Utils import rename_album_folders
@@ -24,7 +25,7 @@ from Duplicates import find_duplicates
 from CustomLogger import set_log_level, print_debug
 
 # Import the global LOGGER from GlobalVariables
-from GlobalVariables import LOGGER, LOG_LEVEL
+from GlobalVariables import LOGGER, LOG_LEVEL, VERBOSE_LEVEL_NUM
 
 # Import ClassLocalFolder (Parent Class of this)
 from ClassLocalFolder import ClassLocalFolder
@@ -166,26 +167,18 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # ----------------------------------------------------------------------------------------------------------------------
             # Determine the input_folder deppending if the Takeout have been unzipped or not
             input_folder = self.get_input_folder()
-            step_name = '🔢 [PRE-CHECKS]-[Statistics   ] : '
+            step_name = '🔍 [PRE-CHECKS]-[Statistics   ] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Counting files in Takeout Folder: {input_folder}...")
-            # New function to count all file types and extract also date info
-            # initial_takeout_counters = Utils.count_files_per_type_and_date(input_folder=input_folder, within_json_sidecar=False, log_level=LOG_LEVEL)
 
-            # Vamos a hacer un Profile de esta función para su optimización
-            # Configura y arranca el profiler justo antes de la llamada que quieres medir
-            import cProfile
-            import pstats
-            profiler = cProfile.Profile()
-            profiler.enable()
-            # Aquí entra tu función compleja; internamente hará count_files_per_type_and_date
-            initial_takeout_counters = Utils.count_files_per_type_and_date(input_folder=input_folder, skip_exif=False, skip_json=True, log_level=LOG_LEVEL)
-            profiler.disable()
-            # Volca e imprime los resultados
-            stats = pstats.Stats(profiler).strip_dirs().sort_stats('cumtime')
-            stats.print_stats(20)  # muestra las 20 llamadas más costosas
+            # New function to count all file types and extract also date info
+            if LOG_LEVEL in [logging.DEBUG, VERBOSE_LEVEL_NUM]:
+                # Configura y arranca el profiler justo antes de la llamada que quieres medir
+                Utils.profile_and_print(Utils.count_files_per_type_and_date, input_folder=input_folder, skip_exif=False, skip_json=True, log_level=LOG_LEVEL)
+            else:
+                initial_takeout_counters = Utils.count_files_per_type_and_date(input_folder=input_folder, skip_exif=False, skip_json=True, log_level=LOG_LEVEL)
 
             # Clean input dict
             self.result['input_counters'].clear()
@@ -215,7 +208,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.steps_duration.append({'step_id': f"{self.step}.{self.substep}", 'step_name': step_name_cleaned, 'duration': formatted_duration})
 
             # Finally show TOTAL DURATION OF PRE-CHECKS PHASE
-            step_name = '🔢 [PRE-CHECKS] : '
+            step_name = '🔍 [PRE-CHECKS] : '
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
             LOGGER.info(f"")
@@ -664,7 +657,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             # 1. First count all Files in output Folder
             # New function to count all file types and extract also date info
-            output_counters = Utils.count_files_per_type_and_date(input_folder=output_folder, skip_exif=True, skip_json=True, log_level=LOG_LEVEL)
+            output_counters = Utils.count_files_per_type_and_date(input_folder=output_folder, skip_exif=False, skip_json=True, log_level=LOG_LEVEL)
             # Clean input dict
             self.result['output_counters'].clear()
             # Assign all pairs key-value from output_counters to counter['output_counters'] dict
@@ -683,6 +676,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # FINISH
             # ----------------------------------------------------------------------------------------------------------------------
+            # TODO: Insert logic here if GPTH implements again --copy argument to avoid remove input folder when using this argument
+            # Now removes completelly the input_folder because all the files (except JSON) have been already moved to output folder
+            Utils.remove_folder(input_folder)
             processing_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((processing_end_time - processing_start_time).total_seconds())))
             LOGGER.info(f"")

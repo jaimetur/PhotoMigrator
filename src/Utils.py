@@ -39,6 +39,38 @@ TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
 ######################
 # FUNCIONES AUXILIARES
 ######################
+# -------------------------------------------------------------
+# Set Profile to analyze and optimize code:
+# -------------------------------------------------------------
+def profile_and_print(function_to_analyze, *args, **kwargs):
+    """
+    Executes the profiler and displays results in real-time while the function runs.
+    Supports both positional (`args`) and keyword (`kwargs`) arguments.
+    """
+    import cProfile
+    import pstats
+    import threading
+    profiler = cProfile.Profile()
+    profiler.enable()
+
+    # Ensure the function receives arguments correctly
+    thread = threading.Thread(target=function_to_analyze, args=args, kwargs=kwargs)
+    thread.start()
+
+    # While the function is running, print profiling results every 5 seconds
+    while thread.is_alive():
+        time.sleep(10)
+        profiler.disable()
+        stats = pstats.Stats(profiler)
+        stats.strip_dirs().sort_stats("cumulative").print_stats(20)  # Show top 10 slowest functions
+        profiler.enable()  # Re-enable profiling to continue
+
+    profiler.disable()  # Ensure the profiler stops after execution
+    print("\n🔍 **Final Profile Report:**")
+    stats = pstats.Stats(profiler)
+    stats.strip_dirs().sort_stats("cumulative").print_stats(20)  # Show top 20 slowest functions
+
+
 # Redefinir `tqdm` para usar `TQDM_LOGGER_INSTANCE` si no se especifica `file`
 def tqdm(*args, **kwargs):
     if ARGS['AUTOMATIC-MIGRATION'] and ARGS['dashboard'] == True:
@@ -285,7 +317,40 @@ def remove_empty_dirs(input_folder, log_level=None):
                     LOGGER.info(f"Removed empty directory {path}")
                 except OSError:
                     pass
-                
+
+def remove_folder(folder, log_level=None):
+    """
+    Removes the specified `folder` and all of its contents, logging events
+    at the specified `log_level`.
+
+    Parameters:
+    - folder (str or Path): Path to the folder to remove.
+    - log_level (str): Logging level to use ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
+
+    Returns:
+    - True if the folder was removed successfully.
+    - False if an error occurred.
+    """
+    with set_log_level(LOGGER, log_level):  # Temporarily adjust LOGGER’s level for this operation
+        folder_path = Path(folder)
+        try:
+            LOGGER.debug(f"Attempting to remove: {folder_path}")
+            shutil.rmtree(folder_path)
+            LOGGER.info(f"Folder '{folder_path}' removed successfully.")
+            return True
+
+        except FileNotFoundError:
+            LOGGER.warning(f"Folder not found: '{folder_path}'.")
+            return False
+
+        except PermissionError:
+            LOGGER.error(f"Insufficient permissions to remove: '{folder_path}'.")
+            return False
+
+        except Exception as e:
+            LOGGER.critical(f"Unexpected error while removing '{folder_path}': {e}")
+            return False
+
 
 def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten_root_folder=False, log_level=None):
     """
@@ -1647,9 +1712,9 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], ste
     Organizes files into subfolders based on their EXIF or modification date.
 
     Args:
-        input_folder (str): The base directory containing the files.
-        type (str): 'year' to organize by year, or 'year-month' to organize by year and month.
-        exclude_subfolders (list): A list of subfolder names to exclude from processing.
+        input_folder (str, Path): The base directory containing the files.
+        type: 'year' to organize by year, or 'year-month' to organize by year and month.
+        exclude_subfolders (str, Path or list): A list of subfolder names to exclude from processing.
 
     Raises:
         ValueError: If the value of `type` is invalid.
@@ -1719,8 +1784,8 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None,
     Moves album folders to a specific subfolder, excluding the specified subfolder(s).
 
     Parameters:
-        input_folder (str): Path to the input folder containing the albums.
-        albums_subfolder (str): Name of the subfolder where albums should be moved.
+        input_folder (str, Path): Path to the input folder containing the albums.
+        albums_subfolder (str, Path): Name of the subfolder where albums should be moved.
         exclude_subfolder (str or list, optional): Subfolder(s) to exclude. Can be a single string or a list of strings.
     """
     # Ensure exclude_subfolder is a list, even if a single string is passed
@@ -2202,51 +2267,17 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
             'duplicates_albums_not_fully_merged': duplicates_albums_not_fully_merged,
         }
 
-def build_exif_cache(input_folder):
-    """
-    Run exiftool once over all supported media extensions
-    and build a dict mapping absolute filepath -> earliest EXIF date.
-    """
-    # Prepara los filtros de extensión: "-ext jpg -ext png -ext mp4 ..."
-    ext_args = []
-    for ext in PHOTO_EXT + VIDEO_EXT:
-        ext_args += ['-ext', ext.lstrip('.')]
-    # Pedimos a exiftool que nos dé un JSON con las etiquetas de fecha más comunes:
-    cmd = ['gpth_tool/exif_tool/exiftool', '-json',
-           '-DateTimeOriginal', '-DateTimeDigitized', '-CreateDate',
-           '-r', input_folder] + ext_args
-
-    OS = Utils.get_os()
-    if OS == 'windows':
-        cmd = cmd.replace('exiftool', 'exiftool.exe')
-    proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
-
-    data = json.loads(proc.stdout)
-    cache = {}
-    for item in data:
-        src = item.get('SourceFile')
-        dates = []
-        for tag in ('DateTimeOriginal', 'DateTimeDigitized', 'CreateDate'):
-            val = item.get(tag)
-            if isinstance(val, str):
-                try:
-                    # exiftool ya nos da "YYYY:MM:DD HH:MM:SS"
-                    dates.append(datetime.strptime(val, "%Y:%m:%d %H:%M:%S"))
-                except ValueError:
-                    pass
-        if dates:
-            cache[os.path.abspath(src)] = min(dates)
-    return cache
 
 def get_oldest_date(file_path, extensions, tag_ids, skip_exif=True, skip_json=True, log_level=None):
     """
-    Return the earliest valid timestamp found in a file by checking:
-      1) EXIF tags (if skip_exif=False and extension in extensions)
-      2) JSON sidecar (<file>.json) (if skip_json=False)
-      3) File birthtime and modification time via a single os.stat()
-    Caches results per (file_path, skip_exif, skip_json) to avoid reprocessing.
+    Return the earliest valid timestamp found by:
+      1) Birthtime/mtime for video files (early exit if ext in VIDEO_EXT)
+      2) EXIF tags (if skip_exif=False and ext in extensions)
+      3) JSON sidecar (<file>.json) (if skip_json=False)
+      4) File birthtime and modification time via one os.stat() fallback
+    Caches results per (file_path, skip_exif, skip_json) on the function.
     """
-    # initialize cache on first call
+    # initialize per‐call cache
     if not hasattr(get_oldest_date, "_cache"):
         get_oldest_date._cache = {}
     cache = get_oldest_date._cache
@@ -2255,17 +2286,29 @@ def get_oldest_date(file_path, extensions, tag_ids, skip_exif=True, skip_json=Tr
         return cache[key]
 
     with set_log_level(LOGGER, log_level):
-        dates = []
         ext = Path(file_path).suffix.lower()
 
-        # 1) EXIF extraction
+        # 1) Videos → no EXIF/JSON, just return birthtime or mtime
+        if ext in VIDEO_EXT:
+            try:
+                st = os.stat(file_path, follow_symlinks=False)
+                bt = getattr(st, "st_birthtime", None)
+                result = datetime.fromtimestamp(bt) if bt else datetime.fromtimestamp(st.st_mtime)
+            except Exception:
+                result = None
+            cache[key] = result
+            return result
+
+        dates = []
+
+        # 2) EXIF extraction for supported extensions
         if not skip_exif and ext in extensions:
             try:
                 exif = Image.open(file_path).getexif()
                 for tag_id in tag_ids:
                     raw = exif.get(tag_id)
                     if isinstance(raw, str) and len(raw) >= 19:
-                        # manual parse YYYY:MM:DD HH:MM:SS
+                        # fast parse 'YYYY:MM:DD HH:MM:SS'
                         y, mo, d   = int(raw[0:4]), int(raw[5:7]), int(raw[8:10])
                         hh, mm, ss = int(raw[11:13]), int(raw[14:16]), int(raw[17:19])
                         dates.append(datetime(y, mo, d, hh, mm, ss))
@@ -2273,27 +2316,26 @@ def get_oldest_date(file_path, extensions, tag_ids, skip_exif=True, skip_json=Tr
             except Exception:
                 pass
 
-        # 2) JSON sidecar parsing
+        # 3) JSON sidecar parsing
         if not skip_json:
-            p = Path(file_path)
-            js = p.with_suffix(p.suffix + ".json")
+            js = Path(file_path).with_suffix(ext + ".json")
             if js.exists():
                 try:
-                    data = json.loads(js.read_text(encoding='utf-8'))
-                    for k in ('photoTakenTime','creationTime','creationTimestamp'):
-                        ts = data.get(k)
+                    data = json.loads(js.read_text(encoding="utf-8"))
+                    for name in ("photoTakenTime", "creationTime", "creationTimestamp"):
+                        ts = data.get(name)
                         if isinstance(ts, dict):
-                            ts = ts.get('timestamp')
+                            ts = ts.get("timestamp")
                         if ts:
                             dates.append(datetime.fromtimestamp(int(ts)))
                             break
                 except Exception:
                     pass
 
-        # 3) File birthtime and mtime
+        # 4) Fallback to birthtime + mtime
         try:
             st = os.stat(file_path, follow_symlinks=False)
-            bt = getattr(st, 'st_birthtime', None)
+            bt = getattr(st, "st_birthtime", None)
             if bt is not None:
                 dates.append(datetime.fromtimestamp(bt))
             dates.append(datetime.fromtimestamp(st.st_mtime))
@@ -2303,6 +2345,8 @@ def get_oldest_date(file_path, extensions, tag_ids, skip_exif=True, skip_json=Tr
         result = min(dates) if dates else None
         cache[key] = result
         return result
+
+
 
 
 def count_files_per_type_and_date(input_folder, skip_exif=True, skip_json=True, log_level=None):
