@@ -9,14 +9,14 @@ There is also a [shorter version](https://github.com/jaimetur/PhotoMigrator/blob
 
 ## 🧩 Core Arguments
 
-| Argument             | Parameter | Type | Valid Values | Description                          |
-|----------------------|-----------|:----:|:------------:|--------------------------------------|
-| `-h`,<br>`--help`                               |                  | flag |              | Displays the help message and exits. |
-| `-v`,<br>`--version`                            |                  | flag |              | Shows the tool version and exits.    |
-| `-logLevel`,<br>`--log-level`                   | `<LEVEL>`        | string | `VERBOSE`, <br>`DEBUG`, <br>`INFO`, <br>`WARNING`, <br>`ERROR` | Sets logging verbosity.                                     |
-| `-logFormat`,<br>`--log-format`                   | `<FORMAT>`        | string |                  `LOG`, <br>`TXT`, <br>`ALL`                   | Sets log file format.                                       |
-| `-noLog`,<br>`--no-log-file`                      |                   |  flag  |                                                                | Disables writing to log file.                               |
-| `-noConfirm`,<br>`--no-request-user-confirmation` |                   |  flag  |                                                                | No Request User Confirmation before to execute any Feature. |
+| Argument                                          | Parameter  |  Type  |                          Valid Values                          | Description                                                 |
+|---------------------------------------------------|------------|:------:|:--------------------------------------------------------------:|-------------------------------------------------------------|
+| `-h`,<br>`--help`                                 |            |  flag  |                                                                | Displays the help message and exits.                        |
+| `-v`,<br>`--version`                              |            |  flag  |                                                                | Shows the tool version and exits.                           |
+| `-noConfirm`,<br>`--no-request-user-confirmation` |            |  flag  |                                                                | No Request User Confirmation before to execute any Feature. |
+| `-noLog`,<br>`--no-log-file`                      |            |  flag  |                                                                | Disables writing to log file.                               |
+| `-logLevel`,<br>`--log-level`                     | `<LEVEL>`  | string | `VERBOSE`, <br>`DEBUG`, <br>`INFO`, <br>`WARNING`, <br>`ERROR` | Sets logging verbosity.                                     |
+| `-logFormat`,<br>`--log-format`                   | `<FORMAT>` | string |                  `LOG`, <br>`TXT`, <br>`ALL`                   | Sets log file format.                                       |
 
 ---
 ## ⚙️ General Options
@@ -130,12 +130,12 @@ Following arguments allow you to interact with Synology/Immich Photos.
 ```bash
 PhotoMigrator.run --client=immich --upload-all=/mnt/pictures
 PhotoMigrator.run --client=synology --download-albums "album1 album2 album3" --output-folder=/mnt/backup
-PhotoMigrator.run --client=synology --remove-empty-albums
+PhotoMigrator.run --client=synology --remove-empty-albums --one-time-password
 
 or using short arguments,
 PhotoMigrator.run -client=synology -uAlb="Albums" -id=1
 PhotoMigrator.run -client=immich -dAlb="Vacaciones,Navidad" -o="Backups"
-PhotoMigrator.run -client=synology -rAlb="tmp_*" -rAlbAsset
+PhotoMigrator.run -client=synology -rAlb="tmp_*" -rAlbAsset -OTP
 ```
 
 ---
@@ -244,7 +244,7 @@ Downloads selected albums from Synology.
 ```
 
 ```bash
-PhotoMigrator.run --client=synology --remove-empty-albums
+PhotoMigrator.run --client=synology --remove-empty-albums --one-time-password
 
 Removes all empty albums from Synology.
 ```
@@ -252,18 +252,6 @@ Removes all empty albums from Synology.
 ---
 
 ### 🛠️ Other Standalone Features
-
-```bash
-PhotoMigrator.run --find-duplicates list "/mnt/folder1" "/mnt/folder2"
-
-Lists duplicate files across multiple folders.
-```
-
-```bash
-PhotoMigrator.run --process-duplicates revised_duplicates.csv
-
-Processes duplicates based on a CSV file with actions.
-```
 
 ```bash
 PhotoMigrator.run --fix-symlinks-broken="/mnt/albums"
@@ -275,6 +263,18 @@ Fix symbolic links found in the given folder
 PhotoMigrator.run --rename-folders-content-based="/mnt/albums"
 
 Renames album folders based on content creation dates.
+```
+
+```bash
+PhotoMigrator.run --find-duplicates list "/mnt/folder1" "/mnt/folder2"
+
+Lists duplicate files across multiple folders.
+```
+
+```bash
+PhotoMigrator.run --process-duplicates revised_duplicates.csv
+
+Processes duplicates based on a CSV file with actions.
 ```
 
 ---

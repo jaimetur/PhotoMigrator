@@ -35,11 +35,8 @@ def parse_arguments():
             parser.exit()
 
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the Tool name, version, and date, then exit.")
-
-    # GENERAL FEATURES:
-    # -----------------
-    PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
-    PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
+    PARSER.add_argument("-noConfirm", "--no-request-user-confirmarion", action="store_true", help="No Request User Confrimarion before execute any Feature.")
+    PARSER.add_argument("-noLog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
     PARSER.add_argument("-logLevel", "--log-level",
                         metavar=f"=[{', '.join(level.upper() for level in choices_for_message_levels)}]",
                         choices=choices_for_message_levels,
@@ -55,17 +52,12 @@ def parse_arguments():
                         type=lambda s: s.lower(),  # Convert input to lowercase
                         help="Specify the log file format.",
                         )
-    PARSER.add_argument("-noLog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
-    PARSER.add_argument("-noConfirm", "--no-request-user-confirmarion", action="store_true", help="No Request User Confrimarion before execute any Feature.")
-    # PARSER.add_argument("-noConfirm", "--no-request-user-confirmarion",
-    #                     metavar="= [true,false]",
-    #                     nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
-    #                     const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
-    #                     default=False,  # Si no se pasa el argumento, el valor por defecto es True
-    #                     type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-    #                     help="No Request User Confrimarion before execute any Feature. (default: False)."
-    #                     )
 
+
+    # GENERAL FEATURES:
+    # -----------------
+    PARSER.add_argument("-i", "--input-folder", metavar="<INPUT_FOLDER>", default="", help="Specify the input folder that you want to process.")
+    PARSER.add_argument("-o", "--output-folder", metavar="<OUTPUT_FOLDER>", default="", help="Specify the output folder to save the result of the processing action.")
     PARSER.add_argument("-client", "--client",
                         metavar="= ['google-takeout', 'synology', 'immich']",
                         default='google-takeout',  # Si no se pasa el argumento, se asigna 'google-takeout'

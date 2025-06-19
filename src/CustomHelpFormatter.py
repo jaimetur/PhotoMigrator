@@ -259,8 +259,8 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
 
-            # OTHERS STANDALONE FEATURES: two lines before "Find duplicates in specified folders."
-            if help_text.find("Find duplicates in specified folders.")!=-1:
+            # OTHERS STANDALONE FEATURES: two lines before "The Tool will try to fix all symbolic links for Albums"
+            if help_text.find("The Tool will try to fix all symbolic links for Albums")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
                 OTHER STANDALONE FEATURES:
