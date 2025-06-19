@@ -14,7 +14,8 @@ def set_help_texts():
     # FEATURE: GOOGLE PHOTOS #
     ##########################
     HELP_TEXTS["google-photos-takeout"] = textwrap.dedent(f"""
-        ATTENTION!!!: This module will process your <TAKEOUT_FOLDER> to fix metadata of all your assets and organize them according with the settings defined by user (above settings).
+        ATTENTION!!!: This module will process <TAKEOUT_FOLDER> 
+        to fix metadata of all your assets and organize them according with the settings defined by user (above settings).
         """)
 
 
