@@ -42,7 +42,7 @@ class ClassLocalFolder:
         Initializes the class and sets up the base folder where albums and assets will be managed.
 
         Args:
-            base_folder (str): Path to the main directory where albums and assets will be stored.
+            base_folder (str, Path): Path to the main directory where albums and assets will be stored.
         """
         self.base_folder = Path(base_folder)
         self.albums_folder = self.base_folder / "Albums"
