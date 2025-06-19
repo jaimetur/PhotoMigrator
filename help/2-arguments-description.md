@@ -11,9 +11,12 @@ There is also a [shorter version](https://github.com/jaimetur/PhotoMigrator/blob
 
 | Argument             | Parameter | Type | Valid Values | Description                          |
 |----------------------|-----------|:----:|:------------:|--------------------------------------|
-| `-h`,<br>`--help`    |           | flag |              | Displays the help message and exits. |
-| `-v`,<br>`--version` |           | flag |              | Shows the tool version and exits.    |
-
+| `-h`,<br>`--help`                               |                  | flag |              | Displays the help message and exits. |
+| `-v`,<br>`--version`                            |                  | flag |              | Shows the tool version and exits.    |
+| `-logLevel`,<br>`--log-level`                   | `<LEVEL>`        | string | `VERBOSE`, <br>`DEBUG`, <br>`INFO`, <br>`WARNING`, <br>`ERROR` | Sets logging verbosity.                                     |
+| `-logFormat`,<br>`--log-format`                   | `<FORMAT>`        | string |                  `LOG`, <br>`TXT`, <br>`ALL`                   | Sets log file format.                                       |
+| `-noLog`,<br>`--no-log-file`                      |                   |  flag  |                                                                | Disables writing to log file.                               |
+| `-noConfirm`,<br>`--no-request-user-confirmation` |                   |  flag  |                                                                | No Request User Confirmation before to execute any Feature. |
 
 ---
 ## ⚙️ General Options
@@ -23,10 +26,6 @@ Following general arguments have different purposses depending on the Execution 
 |---------------------------------------------------|-------------------|:------:|:--------------------------------------------------------------:|-------------------------------------------------------------|
 | `-i`,<br>`--input-folder`                         | `<INPUT_FOLDER>`  |  path  |                        `existing path`                         | Folder containing assets to be processed.                   |
 | `-o`,<br>`--output-folder`                        | `<OUTPUT_FOLDER>` |  path  |                          `valid path`                          | Folder where processed assets or results will be saved.     |
-| `-logLevel`,<br>`--log-level`                     | `<LEVEL>`         | string | `VERBOSE`, <br>`DEBUG`, <br>`INFO`, <br>`WARNING`, <br>`ERROR` | Sets logging verbosity.                                     |
-| `-logFormat`,<br>`--log-format`                   | `<FORMAT>`        | string |                  `LOG`, <br>`TXT`, <br>`ALL`                   | Sets log file format.                                       |
-| `-noLog`,<br>`--no-log-file`                      |                   |  flag  |                                                                | Disables writing to log file.                               |
-| `-noConfirm`,<br>`--no-request-user-confirmation` |                   |  flag  |                                                                | No Request User Confirmation before to execute any Feature. |
 | `-client`,<br>`--client`                          | `<CLIENT>`        | string |         `google-takeout`, <br>`synology`, <br>`immich`         | Specifies the service to interact with.                     |
 | `-id`,<br>`--account-id`                          | `<ID>`            |  int   |                `1`, `2`, `3` <br>`(default: 1)`                | ID of the configured account in Config.ini.                 |
 | `-from`,<br>`--filter-from-date`                  | `<FROM_DATE>`     |  date  |            `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`             | Filters assets from this date onward.                       |
