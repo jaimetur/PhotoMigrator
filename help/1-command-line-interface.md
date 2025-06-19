@@ -48,7 +48,7 @@ usage: PhotoMigrator [-h] [-v]
                      [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
                      [-procDup <DUPLICATES_REVISED_CSV>]
 
-PhotoMigrator v3.3.4 - 2025-06-18
+PhotoMigrator v3.3.4 - 2025-06-30
 
 Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
 such as Google Photos, Synology Photos, Immich Photos & Apple Photos.

@@ -4,6 +4,10 @@
 
 ## Release: v3.3.4  
 - ### Release Date: 2025-06-30
+  - Alpha version    : 2025-06-18
+  - Beta version     : 2025-06-23
+  - Release Candidate: 2025-06-27
+  - Official Release : 2025-06-30
 
 - ### Main Changes:
   - #### 🌟 New Features:

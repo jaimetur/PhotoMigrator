@@ -5,10 +5,10 @@
 
 ## Release: v3.3.4
 - ### Release Date   : (estimated)
-  - Alpha version    : 2025-06-30
-  - Beta version     : (No estimated date)
-  - Release Candidate: (No estimated date)
-  - Official Release : (No estimated date)
+  - Alpha version    : 2025-06-18
+  - Beta version     : 2025-06-23
+  - Release Candidate: 2025-06-27
+  - Official Release : 2025-06-30
 
 - ### TODO:
   - #### 🌟 New Features:
