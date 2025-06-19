@@ -16,25 +16,6 @@ There is also a [shorter version](https://github.com/jaimetur/PhotoMigrator/blob
 
 
 ---
-## 🚀 Automatic Migration
-Following arguments allow you to execute the Automatic Migration Process to migrate your assets from one Photo Cloud Service to other, or from two different accounts within the same Photo Cloud service.
-
-| Argument                               | Parameter  |       Type        |                 Valid Values                  | Description                                             |
-|----------------------------------------|------------|:-----------------:|:---------------------------------------------:|---------------------------------------------------------|
-| `-source`,<br>`--source`               | `<SOURCE>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich` | Defines the source for the automatic migration process. |
-| `-target`,<br>`--target`               | `<TARGET>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich` | Defines the target for the automatic migration process. |
-| `-move`,<br>`--move-assets`            | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enable / Disables move assets instead of copying them.  |
-| `-dashboard`,<br>`--dashboard`         | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enables / Disables the live dashboard during migration. |
-| `-parallel`,<br>`--parallel-migration` | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enables / Disables parallel asset migration.            |
-
-#### 🧪 Examples:
-```bash
-PhotoMigrator.run --source=immich-1 --target=synology-2
-PhotoMigrator.run --source=/mnt/photos --target=/mnt/synology --move-assets=true
-PhotoMigrator.run --source=synology-1 --target=immich-1 --parallel-migration=false
-```
-
----
 ## ⚙️ General Options
 Following general arguments have different purposses depending on the Execution Mode.
 
@@ -45,7 +26,7 @@ Following general arguments have different purposses depending on the Execution 
 | `-logLevel`,<br>`--log-level`                     | `<LEVEL>`         | string | `VERBOSE`, <br>`DEBUG`, <br>`INFO`, <br>`WARNING`, <br>`ERROR` | Sets logging verbosity.                                     |
 | `-logFormat`,<br>`--log-format`                   | `<FORMAT>`        | string |                  `LOG`, <br>`TXT`, <br>`ALL`                   | Sets log file format.                                       |
 | `-noLog`,<br>`--no-log-file`                      |                   |  flag  |                                                                | Disables writing to log file.                               |
-| `-noConfirm`,<br>`--no-request-user-confirmation` | `<bool>`          |  bool  |             `true`, `false` <br>`(default: false)`             | No Request User Confirmation before to execute any Feature. |
+| `-noConfirm`,<br>`--no-request-user-confirmation` |                   |  flag  |                                                                | No Request User Confirmation before to execute any Feature. |
 | `-client`,<br>`--client`                          | `<CLIENT>`        | string |         `google-takeout`, <br>`synology`, <br>`immich`         | Specifies the service to interact with.                     |
 | `-id`,<br>`--account-id`                          | `<ID>`            |  int   |                `1`, `2`, `3` <br>`(default: 1)`                | ID of the configured account in Config.ini.                 |
 | `-from`,<br>`--filter-from-date`                  | `<FROM_DATE>`     |  date  |            `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`             | Filters assets from this date onward.                       |
@@ -62,6 +43,25 @@ Following general arguments have different purposses depending on the Execution 
 PhotoMigrator.run --input-folder=/mnt/import --output-folder=/mnt/export
 PhotoMigrator.run --filter-from-date=2022-01-01 --filter-to-date=2022-12-31
 PhotoMigrator.run --filter-by-type=video --log-level=debug
+```
+
+---
+## 🚀 Automatic Migration
+Following arguments allow you to execute the Automatic Migration Process to migrate your assets from one Photo Cloud Service to other, or from two different accounts within the same Photo Cloud service.
+
+| Argument                               | Parameter  |       Type        |                 Valid Values                  | Description                                             |
+|----------------------------------------|------------|:-----------------:|:---------------------------------------------:|---------------------------------------------------------|
+| `-source`,<br>`--source`               | `<SOURCE>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich` | Defines the source for the automatic migration process. |
+| `-target`,<br>`--target`               | `<TARGET>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich` | Defines the target for the automatic migration process. |
+| `-move`,<br>`--move-assets`            | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enable / Disables move assets instead of copying them.  |
+| `-dashboard`,<br>`--dashboard`         | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enables / Disables the live dashboard during migration. |
+| `-parallel`,<br>`--parallel-migration` | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enables / Disables parallel asset migration.            |
+
+#### 🧪 Examples:
+```bash
+PhotoMigrator.run --source=immich-1 --target=synology-2
+PhotoMigrator.run --source=/mnt/photos --target=/mnt/synology --move-assets=true
+PhotoMigrator.run --source=synology-1 --target=immich-1 --parallel-migration=false
 ```
 
 ---
