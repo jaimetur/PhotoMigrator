@@ -176,7 +176,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # New function to count all file types and extract also date info
             if LOG_LEVEL in [logging.DEBUG, VERBOSE_LEVEL_NUM]:
                 # Configura y arranca el profiler justo antes de la llamada que quieres medir
-                Utils.profile_and_print(Utils.count_files_per_type_and_date, input_folder=input_folder, skip_exif=False, skip_json=True, log_level=LOG_LEVEL)
+                initial_takeout_counters = Utils.profile_and_print(Utils.count_files_per_type_and_date, input_folder=input_folder, skip_exif=False, skip_json=True, log_level=LOG_LEVEL)
             else:
                 initial_takeout_counters = Utils.count_files_per_type_and_date(input_folder=input_folder, skip_exif=False, skip_json=True, log_level=LOG_LEVEL)
 
