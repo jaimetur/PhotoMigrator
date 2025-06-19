@@ -3,20 +3,23 @@
 ---
 
 ## Release: v3.3.4  
-- ### Release Date: 2025-06-20
+- ### Release Date: 2025-06-30
 
 - ### Main Changes:
   - #### 🌟 New Features:
     - [x] Call GPTH with `--verbose` when PhotoMigrator logLevel is VERBOSE or DEBUG.
     - [x] Add argument `-gSkipPrep,--google-skip-preprocess` to Skipp Preproces steps during Google Takeout Processing feature.
+  - #### 🚀 Enhancements:
+    - [x] Reorganized Pre-checks/Pre-process/Process steps for a clearer maintainance and better visualization. 
+    - [x] The Feature `Google Takeout Processing` is no longer called using the Pre-checks functions but always using the Process() function from ClassTakeoutFolder Class.
     - [x] Included Input/Output folder size in Google Takeout Statistics.
     - [ ] Improved performance on Counting files during Google Takeout Processing.
-    - [ ] Auto-Update Issues Templates with new published releases. 
+    - [ ] Auto-Update Issues Templates with new published releases.
     - ~~[ ] Replace `-gmtf,--google-move-takeout-folder` argument by `-gCopy,--google-copy-takeout-folder` argument and implement the logic for Google Takeout Processing.~~
+  - #### 🐛 Bug fixes:
+    - [x] Fixed a bug setting lovLevel because it wasn't read from GlobalVariables in set_log_level() function.
   - #### 📚 Documentation:
     - [ ] Move /doc/* into root folder?  
-    - [ ] Analyze and report any issue detected during GPTH execution. 
-
 
 ---
 
