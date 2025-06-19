@@ -7,9 +7,9 @@
 
 - ### Main Changes:
   - #### 🌟 New Features:
-    - [x] Included Input/Output folder size in Google Takeout Statistics. 
     - [x] Call GPTH with `--verbose` when PhotoMigrator logLevel is VERBOSE or DEBUG.
     - [x] Add argument `-gSkipPrep,--google-skip-preprocess` to Skipp Preproces steps during Google Takeout Processing feature.
+    - [x] Included Input/Output folder size in Google Takeout Statistics.
     - [ ] Improved performance on Counting files during Google Takeout Processing.
     - [ ] Auto-Update Issues Templates with new published releases. 
     - ~~[ ] Replace `-gmtf,--google-move-takeout-folder` argument by `-gCopy,--google-copy-takeout-folder` argument and implement the logic for Google Takeout Processing.~~
