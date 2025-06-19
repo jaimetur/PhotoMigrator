@@ -44,37 +44,41 @@ TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
 # -------------------------------------------------------------
 def profile_and_print(function_to_analyze, *args, live_stats=False, **kwargs):
     """
-    Ejecuta el profiler y muestra resultados en tiempo real mientras la función corre
-    (si live_stats=True), y devuelve el resultado de la función analizada.
+    Ejecuta el profiler y registra resultados en tiempo real (si live_stats=True)
+    usando LOGGER.debug, además devuelve lo que retorne la función analizada.
     """
     import time
+    import io
     import cProfile
     import pstats
     from concurrent.futures import ThreadPoolExecutor
+    import logging
 
+    LOGGER = logging.getLogger(__name__)
     profiler = cProfile.Profile()
     profiler.enable()
 
-    # Usamos un executor para poder obtener el resultado
     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(function_to_analyze, *args, **kwargs)
 
         if live_stats:
-            # Mientras la tarea no termine, imprimimos stats parciales cada 10s
+            # Mientras la tarea no termine, volcamos stats a LOGGER.debug cada 10s
             while not future.done():
                 time.sleep(10)
                 profiler.disable()
-                stats = pstats.Stats(profiler)
+                stream = io.StringIO()
+                stats = pstats.Stats(profiler, stream=stream)
                 stats.strip_dirs().sort_stats("cumulative").print_stats(20)
+                LOGGER.debug("\n⏱️ Estadísticas intermedias (top 20):\n%s", stream.getvalue())
                 profiler.enable()
 
-        # Obtener el resultado cuando termine
         result = future.result()
 
     profiler.disable()
-    print("\n🔍 **Final Profile Report (top 20):**")
-    stats = pstats.Stats(profiler)
+    stream = io.StringIO()
+    stats = pstats.Stats(profiler, stream=stream)
     stats.strip_dirs().sort_stats("cumulative").print_stats(20)
+    LOGGER.debug("\n🔍 Informe final de perfil (top 20):\n%s", stream.getvalue())
 
     return result
 
