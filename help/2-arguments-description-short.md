@@ -11,11 +11,42 @@ There is also a [extended version](https://github.com/jaimetur/PhotoMigrator/blo
 |----------------------|----------------------------|
 | `-h`,<br>`--help`    | Show help and exit         |
 | `-v`,<br>`--version` | Show tool version and exit |
+| `-logLevel`,<br>`--log-level`                     | Sets Log level: `VERBOSE`, `DEBUG`, `INFO`, `WARNING`, `ERROR` |
+| `-logFormat`,<br>`--log-format`                   | Sets log file format: `LOG`, `TXT`, `ALL`                      |
+| `-noLog`,<br>`--no-log-file`                      | Disable log file creation                                      |
+| `-noConfirm`,<br>`--no-request-user-confirmation` | No Request User Confirmation before to execute any Feature.    |
 
 #### 🧪 Examples:
 ```bash
 PhotoMigrator.run --help
 PhotoMigrator.run --version
+
+
+---
+## ⚙️ General Options
+Following general arguments have different purposses depending on the Execution Mode.
+
+| Argument                                          | Description                                                    |
+|---------------------------------------------------|----------------------------------------------------------------|
+| `-i`,<br>`--input-folder`                         | Input folder to process                                        |
+| `-o`,<br>`--output-folder`                        | Output folder to store results                                 |
+| `-client`,<br>`--client`                          | Service client: `google-takeout`, `synology`, `immich`         |
+| `-id`,<br>`--account-id`                          | Account ID (1–3) from `Config.ini`                             |
+| `-from`,<br>`--filter-from-date`                  | Filter assets from this date                                   |
+| `-to`,<br>`--filter-to-date`                      | Filter assets up to this date                                  |
+| `-type`,<br>`--filter-by-type`                    | Filter assets by type: `image`, `video`, `all`                 |
+| `-country`,<br>`--filter-by-country`              | Filter assets by country                                       |
+| `-city`,<br>`--filter-by-city`                    | Filter assets by city                                          |
+| `-person`,<br>`--filter-by-person`                | Filter assets by person                                        |
+| `-AlbFolder`,<br>`--albums-folders`               | Use subfolders in folder as albums                             |
+| `-rAlbAsset`,<br>`--remove-albums-assets`         | Remove assets inside deleted albums                            |
+
+#### 🧪 Examples:
+```bash
+PhotoMigrator.run --input-folder=/mnt/import --output-folder=/mnt/export
+PhotoMigrator.run --filter-from-date=2022-01-01 --filter-to-date=2022-12-31
+PhotoMigrator.run --filter-by-type=video --log-level=debug
+```
 ```
 
 ---
@@ -35,36 +66,6 @@ Following arguments allow you to execute the Automatic Migration Process to migr
 PhotoMigrator.run --source=immich-1 --target=synology-2
 PhotoMigrator.run --source="/home/user/Takeout" --target="/mnt/photos" --move-assets true
 PhotoMigrator.run --source=immich-1 --target=synology-2 --dashboard false --parallel-migration false
-```
-
----
-## ⚙️ General Options
-Following general arguments have different purposses depending on the Execution Mode.
-
-| Argument                                          | Description                                                    |
-|---------------------------------------------------|----------------------------------------------------------------|
-| `-i`,<br>`--input-folder`                         | Input folder to process                                        |
-| `-o`,<br>`--output-folder`                        | Output folder to store results                                 |
-| `-logLevel`,<br>`--log-level`                     | Sets Log level: `VERBOSE`, `DEBUG`, `INFO`, `WARNING`, `ERROR` |
-| `-logFormat`,<br>`--log-format`                   | Sets log file format: `LOG`, `TXT`, `ALL`                      |
-| `-noLog`,<br>`--no-log-file`                      | Disable log file creation                                      |
-| `-noConfirm`,<br>`--no-request-user-confirmation` | No Request User Confirmation before to execute any Feature.    |
-| `-client`,<br>`--client`                          | Service client: `google-takeout`, `synology`, `immich`         |
-| `-id`,<br>`--account-id`                          | Account ID (1–3) from `Config.ini`                             |
-| `-from`,<br>`--filter-from-date`                  | Filter assets from this date                                   |
-| `-to`,<br>`--filter-to-date`                      | Filter assets up to this date                                  |
-| `-type`,<br>`--filter-by-type`                    | Filter assets by type: `image`, `video`, `all`                 |
-| `-country`,<br>`--filter-by-country`              | Filter assets by country                                       |
-| `-city`,<br>`--filter-by-city`                    | Filter assets by city                                          |
-| `-person`,<br>`--filter-by-person`                | Filter assets by person                                        |
-| `-AlbFolder`,<br>`--albums-folders`               | Use subfolders in folder as albums                             |
-| `-rAlbAsset`,<br>`--remove-albums-assets`         | Remove assets inside deleted albums                            |
-
-#### 🧪 Examples:
-```bash
-PhotoMigrator.run --input-folder=/mnt/import --output-folder=/mnt/export
-PhotoMigrator.run --filter-from-date=2022-01-01 --filter-to-date=2022-12-31
-PhotoMigrator.run --filter-by-type=video --log-level=debug
 ```
 
 ---
