@@ -228,7 +228,7 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
         if format.lower() in ['log', 'all']:
             # Set up logfile handler (detailed output with asctime and levelname)
             log_file = os.path.join(log_folder, log_filename + '.log')
-            file_handler_detailed = logging.FileHandler(log_file, encoding="utf-8")
+            file_handler_detailed = logging.FileHandler(log_file, encoding="utf-8-sig")
             file_handler_detailed.setLevel(log_level)
             file_handler_detailed.setFormatter(
                 logging.Formatter(
@@ -240,7 +240,7 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
         elif format.lower() in ['txt', 'all']:
             # Set up txt file handler (output without asctime and levelname)
             log_file = os.path.join(log_folder, log_filename + '.txt')
-            file_handler_plain = logging.FileHandler(log_file, encoding="utf-8")
+            file_handler_plain = logging.FileHandler(log_file, encoding="utf-8-sig")
             file_handler_plain.setLevel(log_level)
             # Formato estándar para el manejador de ficheros plano
             file_handler_plain.setFormatter(
