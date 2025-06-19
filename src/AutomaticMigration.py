@@ -563,8 +563,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             Utils.remove_empty_dirs(temp_folder)
 
             end_time = datetime.now()
-            migration_formatted_duration = str(timedelta(seconds=(end_time - migration_start_time).seconds))
-            total_formatted_duration = str(timedelta(seconds=(end_time - SHARED_DATA.info["start_time"]).seconds))
+            migration_formatted_duration = str(timedelta(seconds=round((end_time - migration_start_time).total_seconds())))
+            total_formatted_duration = str(timedelta(seconds=round((end_time - SHARED_DATA.info["start_time"]).total_seconds())))
 
             # ----------------------------------------------------------------------------
             # 4) Mostrar o retornar contadores
@@ -1352,7 +1352,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=No
 
                 # Continue the loop until migration_finished.is_set()
                 while not migration_finished.is_set():
-                    SHARED_DATA.info['elapsed_time'] = str(timedelta(seconds=(datetime.now() - step_start_time).seconds))
+                    SHARED_DATA.info['elapsed_time'] = str(timedelta(seconds=round((datetime.now() - step_start_time).total_seconds())))
                     layout["info_panel"].update(build_info_panel())
                     layout["pulls_panel"].update(build_pull_panel())
                     layout["pushs_panel"].update(build_push_panel())
