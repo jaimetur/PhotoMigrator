@@ -25,31 +25,30 @@ Below you can find the list of all commands that the Tool can receive to execute
 
 ```
 ---------------------------------------------------------------------------------------------------------
-usage: PhotoMigrator [-h] [-v] [-source <SOURCE>] [-target <TARGET>] [-move [= [true,false]]]
-                     [-dashboard [= [true,false]]] [-parallel [= [true,false]]]
+usage: PhotoMigrator [-h] [-v]
                      [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
-                     [-client = ['google-takeout', 'synology', 'immich']] [-id [= [1-3]]]
-                     [-noConfirm [= [true,false]]] [-OTP]
-                     [-from <FROM_DATE>] [-to <TO_DATE>]
-                     [-country <COUNTRY_NAME>] [-city <CITY_NAME>] [-person <PERSON_NAME>]
-                     [-type = [image,video,all]]
-                     [-AlbFolder [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]] [-rAlbAsset]
                      [-logLevel =[VERBOSE, DEBUG, INFO, WARNING, ERROR]]
-                     [-logFormat =[LOG, TXT, ALL]] [-noLog]
+                     [-logFormat =[LOG, TXT, ALL]] [-noLog] [-noConfirm]
+                     [-client = ['google-takeout', 'synology', 'immich']] [-id [= [1-3]]]
+                     [-from <FROM_DATE>] [-to <TO_DATE>] [-type = [image,video,all]]
+                     [-country <COUNTRY_NAME>] [-city <CITY_NAME>] [-person <PERSON_NAME>]
+                     [-AlbFolder [<ALBUMS_FOLDER> [<ALBUMS_FOLDER> ...]]] [-rAlbAsset]
+                     [-source <SOURCE>] [-target <TARGET>] [-move [= [true,false]]]
+                     [-dashboard [= [true,false]]] [-parallel [= [true,false]]]
                      [-gTakeout <TAKEOUT_FOLDER>] [-gofs <SUFFIX>]
                      [-gafs ['flatten', 'year', 'year/month', 'year-month']]
                      [-gnas ['flatten', 'year', 'year/month', 'year-month']] [-gcsa] [-gics]
-                     [-gmtf] [-grdf] [-graf] [-gsef] [-gsma] [-gsgt]
+                     [-gmtf] [-grdf] [-graf] [-gsef] [-gsma] [-gsgt] [-gSkipPrep]
                      [-gpthInfo [= [true,false]]] [-gpthError [= [true,false]]]
                      [-uAlb <ALBUMS_FOLDER>] [-dAlb <ALBUMS_NAME> [<ALBUMS_NAME> ...]]
                      [-uAll <INPUT_FOLDER>] [-dAll <OUTPUT_FOLDER>] [-rOrphan] [-rAll] [-rAllAlb]
                      [-rAlb <ALBUMS_NAME_PATTERN>] [-rEmpAlb] [-rDupAlb] [-mDupAlb]
-                     [-renAlb <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>]
+                     [-renAlb <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>] [-OTP]
+                     [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
                      [-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]
                      [-procDup <DUPLICATES_REVISED_CSV>]
-                     [-fixSym <FOLDER_TO_FIX>] [-renFldcb <ALBUMS_FOLDER>]
 
-PhotoMigrator v3.3.3 - 2025-06-18
+PhotoMigrator v3.3.4 - 2025-06-18
 
 Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
 such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
@@ -62,6 +61,49 @@ optional arguments:
               show this help message and exit
 -v        ; --version
               Show the Tool name, version, and date, then exit.
+
+
+GENERAL ARGUMENTS:
+------------------
+Following general arguments have different purposses depending on the Execution Mode.
+
+-i        ; --input-folder <INPUT_FOLDER>
+              Specify the input folder that you want to process.
+-o        ; --output-folder <OUTPUT_FOLDER>
+              Specify the output folder to save the result of the processing action.
+-logLevel ; --log-level =[VERBOSE, DEBUG, INFO, WARNING, ERROR]
+              Specify the log level for logging and screen messages.
+-logFormat; --log-format =[LOG, TXT, ALL]
+              Specify the log file format.
+-noLog    ; --no-log-file
+              Skip saving output messages to execution log file.
+-noConfirm; --no-request-user-confirmarion
+              No Request User Confrimarion before execute any Feature.
+-client   ; --client = ['google-takeout', 'synology', 'immich']
+              Set the client to use for the selected feature.
+-id       ; --account-id = [1-3]
+              Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must
+              exist in the Configuration file as suffix of USERNAME/PASSORD or API_KEY_USER.
+              (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2
+              entries must exist in Config.ini file).
+-from     ; --filter-from-date <FROM_DATE>
+              Specify the initial date to filter assets in the different Photo Clients.
+-to       ; --filter-to-date <TO_DATE>
+              Specify the final date to filter assets in the different Photo Clients.
+-type     ; --filter-by-type = [image,video,all]
+              Specify the Asset Type to filter assets in the different Photo Clients. (default: all)
+-country  ; --filter-by-country <COUNTRY_NAME>
+              Specify the Country Name to filter assets in the different Photo Clients.
+-city     ; --filter-by-city <CITY_NAME>
+              Specify the City Name to filter assets in the different Photo Clients.
+-person   ; --filter-by-person <PERSON_NAME>
+              Specify the Person Name to filter assets in the different Photo Clients.
+-AlbFolder; --albums-folders <ALBUMS_FOLDER>
+              If used together with '-uAll, --upload-all', it will create an Album per each
+              subfolder found in <ALBUMS_FOLDER>.
+-rAlbAsset; --remove-albums-assets
+              If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-albums', it
+              will also remove the assets (photos/videos) inside each album.
 
 
 AUTOMATIC MIGRATION PROCESS:
@@ -111,51 +153,6 @@ service.
               MIGRATION FEATURE). (default: True).
 
 
-GENERAL ARGUMENTS:
-------------------
-Following general arguments have different purposses depending on the Execution Mode.
-
--i        ; --input-folder <INPUT_FOLDER>
-              Specify the input folder that you want to process.
--o        ; --output-folder <OUTPUT_FOLDER>
-              Specify the output folder to save the result of the processing action.
--client   ; --client = ['google-takeout', 'synology', 'immich']
-              Set the client to use for the selected feature.
--id       ; --account-id = [1-3]
-              Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must
-              exist in the Configuration file as suffix of USERNAME/PASSORD or API_KEY_USER.
-              (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2
-              entries must exist in Config.ini file).
--noConfirm; --no-request-user-confirmarion = [true,false]
-              No Request User Confrimarion before execute any Feature. (default: False).
--OTP      ; --one-time-password
-              This Flag allow you to login into Synology Photos using 2FA with an OTP Token.
--from     ; --filter-from-date <FROM_DATE>
-              Specify the initial date to filter assets in the different Photo Clients.
--to       ; --filter-to-date <TO_DATE>
-              Specify the final date to filter assets in the different Photo Clients.
--country  ; --filter-by-country <COUNTRY_NAME>
-              Specify the Country Name to filter assets in the different Photo Clients.
--city     ; --filter-by-city <CITY_NAME>
-              Specify the City Name to filter assets in the different Photo Clients.
--person   ; --filter-by-person <PERSON_NAME>
-              Specify the Person Name to filter assets in the different Photo Clients.
--type     ; --filter-by-type = [image,video,all]
-              Specify the Asset Type to filter assets in the different Photo Clients. (default: all)
--AlbFolder; --albums-folders <ALBUMS_FOLDER>
-              If used together with '-uAll, --upload-all', it will create an Album per each
-              subfolder found in <ALBUMS_FOLDER>.
--rAlbAsset; --remove-albums-assets
-              If used together with '-rAllAlb, --remove-all-albums' or '-rAlb, --remove-albums', it
-              will also remove the assets (photos/videos) inside each album.
--logLevel ; --log-level =[VERBOSE, DEBUG, INFO, WARNING, ERROR]
-              Specify the log level for logging and screen messages.
--logFormat; --log-format =[LOG, TXT, ALL]
-              Specify the log file format.
--noLog    ; --no-log-file
-              Skip saving output messages to execution log file.
-
-
 GOOGLE PHOTOS TAKEOUT MANAGEMENT:
 ---------------------------------
 Following arguments allow you to interact with Google Photos Takeout Folder.
@@ -203,6 +200,12 @@ use the default values for the rest of the arguments for this extra mode.
               Skip processing files with GPTH Tool.
               CAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos
               Takeout Process. Use this flag only for testing purposses.
+-gSkipPrep; --google-skip-preprocess
+              Skip Pre-process Google Takeout to 1.Clean Takeout Folder, 2.Fix MP4/Live Picture
+              associations and 3.Fix Truncated filenames/extensions.
+              This Pre-process is very important for a high accuracy on the Output, but if you have
+              already done this Pre-Processing before, and you are not using the flag '-gmtf,--
+              google-move-takeout-folder' then you can skip this Pre-Processing.
 -gpthInfo ; --show-gpth-info = [true,false]
               Enable or disable Info messages during GPTH Processing. (default: True).
 -gpthError; --show-gpth-errors = [true,false]
@@ -277,6 +280,15 @@ use the default values for the rest of the arguments for this extra mode.
               CAUTION!!! The Tool will look for all Albums in the selected Photo client whose names
               matches with the pattern and will rename them from with the replacement pattern.
               You must provide the Photo client using the mandatory flag '--client'.
+-OTP      ; --one-time-password
+              This Flag allow you to login into Synology Photos using 2FA with an OTP Token.
+-fixSym   ; --fix-symlinks-broken <FOLDER_TO_FIX>
+              The Tool will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder
+              (Useful if you have move any folder from the OUTPUT_TAKEOUT_FOLDER and some Albums
+              seems to be empty.
+-renFldcb ; --rename-folders-content-based <ALBUMS_FOLDER>
+              Useful to rename and homogenize all Albums folders found in <ALBUMS_FOLDER> based on
+              the date content found.
 
 
 OTHER STANDALONE FEATURES:
@@ -296,13 +308,6 @@ If more than one Feature is detected, only the first one will be executed.
               Specify the Duplicates CSV file revised with specifics Actions in Action column, and
               the Tool will execute that Action for each duplicates found in CSV. Valid Actions:
               restore_duplicate / remove_duplicate / replace_duplicate.
--fixSym   ; --fix-symlinks-broken <FOLDER_TO_FIX>
-              The Tool will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder
-              (Useful if you have move any folder from the OUTPUT_TAKEOUT_FOLDER and some Albums
-              seems to be empty.
--renFldcb ; --rename-folders-content-based <ALBUMS_FOLDER>
-              Useful to rename and homogenize all Albums folders found in <ALBUMS_FOLDER> based on
-              the date content found.
 ---------------------------------------------------------------------------------------------------------
 ```
 
