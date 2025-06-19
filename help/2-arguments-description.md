@@ -11,9 +11,38 @@ There is also a [shorter version](https://github.com/jaimetur/PhotoMigrator/blob
 
 | Argument             | Parameter | Type | Valid Values | Description                          |
 |----------------------|-----------|:----:|:------------:|--------------------------------------|
-| `-h`,<br>`--help`    |           | flag |              | Displays the help message and exits. |
-| `-v`,<br>`--version` |           | flag |              | Shows the tool version and exits.    |
+| `-h`,<br>`--help`                               |                  | flag |              | Displays the help message and exits. |
+| `-v`,<br>`--version`                            |                  | flag |              | Shows the tool version and exits.    |
+| `-logLevel`,<br>`--log-level`                   | `<LEVEL>`        | string | `VERBOSE`, <br>`DEBUG`, <br>`INFO`, <br>`WARNING`, <br>`ERROR` | Sets logging verbosity.                                     |
+| `-logFormat`,<br>`--log-format`                   | `<FORMAT>`        | string |                  `LOG`, <br>`TXT`, <br>`ALL`                   | Sets log file format.                                       |
+| `-noLog`,<br>`--no-log-file`                      |                   |  flag  |                                                                | Disables writing to log file.                               |
+| `-noConfirm`,<br>`--no-request-user-confirmation` |                   |  flag  |                                                                | No Request User Confirmation before to execute any Feature. |
 
+---
+## ⚙️ General Options
+Following general arguments have different purposses depending on the Execution Mode.
+
+| Argument                                          | Parameter         |  Type  |                          Valid Values                          | Description                                                 |
+|---------------------------------------------------|-------------------|:------:|:--------------------------------------------------------------:|-------------------------------------------------------------|
+| `-i`,<br>`--input-folder`                         | `<INPUT_FOLDER>`  |  path  |                        `existing path`                         | Folder containing assets to be processed.                   |
+| `-o`,<br>`--output-folder`                        | `<OUTPUT_FOLDER>` |  path  |                          `valid path`                          | Folder where processed assets or results will be saved.     |
+| `-client`,<br>`--client`                          | `<CLIENT>`        | string |         `google-takeout`, <br>`synology`, <br>`immich`         | Specifies the service to interact with.                     |
+| `-id`,<br>`--account-id`                          | `<ID>`            |  int   |                `1`, `2`, `3` <br>`(default: 1)`                | ID of the configured account in Config.ini.                 |
+| `-from`,<br>`--filter-from-date`                  | `<FROM_DATE>`     |  date  |            `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`             | Filters assets from this date onward.                       |
+| `-to`,<br>`--filter-to-date`                      | `<TO_DATE>`       |  date  |            `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`             | Filters assets up to this date.                             |
+| `-type`,<br>`--filter-by-type`                    | `<TYPE>`          | string |          `image`, `video`, `all` <br>`(default: all)`          | Filters assets by type.                                     |
+| `-country`,<br>`--filter-by-country`              | `<COUNTRY>`       | string |                         `country-name`                         | Filters assets by country.                                  |
+| `-city`,<br>`--filter-by-city`                    | `<CITY>`          | string |                          `city-name`                           | Filters assets by city.                                     |
+| `-person`,<br>`--filter-by-person`                | `<PERSON>`        | string |                         `person-name`                          | Filters assets by person name.                              |
+| `-AlbFolder`,<br>`--albums-folders`               | `<ALBUMS_FOLDER>` |  path  |                        `existing path`                         | Creates albums for subfolders inside.                       |
+| `-rAlbAsset`,<br>`--remove-albums-assets`         |                   |  flag  |                                                                | Removes assets inside albums when albums are removed.       |
+
+#### 🧪 Examples:
+```bash
+PhotoMigrator.run --input-folder=/mnt/import --output-folder=/mnt/export
+PhotoMigrator.run --filter-from-date=2022-01-01 --filter-to-date=2022-12-31
+PhotoMigrator.run --filter-by-type=video --log-level=debug
+```
 
 ---
 ## 🚀 Automatic Migration
@@ -32,36 +61,6 @@ Following arguments allow you to execute the Automatic Migration Process to migr
 PhotoMigrator.run --source=immich-1 --target=synology-2
 PhotoMigrator.run --source=/mnt/photos --target=/mnt/synology --move-assets=true
 PhotoMigrator.run --source=synology-1 --target=immich-1 --parallel-migration=false
-```
-
----
-## ⚙️ General Options
-Following general arguments have different purposses depending on the Execution Mode.
-
-| Argument                                          | Parameter         |  Type  |                          Valid Values                          | Description                                                 |
-|---------------------------------------------------|-------------------|:------:|:--------------------------------------------------------------:|-------------------------------------------------------------|
-| `-i`,<br>`--input-folder`                         | `<INPUT_FOLDER>`  |  path  |                        `existing path`                         | Folder containing assets to be processed.                   |
-| `-o`,<br>`--output-folder`                        | `<OUTPUT_FOLDER>` |  path  |                          `valid path`                          | Folder where processed assets or results will be saved.     |
-| `-logLevel`,<br>`--log-level`                     | `<LEVEL>`         | string | `VERBOSE`, <br>`DEBUG`, <br>`INFO`, <br>`WARNING`, <br>`ERROR` | Sets logging verbosity.                                     |
-| `-logFormat`,<br>`--log-format`                   | `<FORMAT>`        | string |                  `LOG`, <br>`TXT`, <br>`ALL`                   | Sets log file format.                                       |
-| `-noLog`,<br>`--no-log-file`                      |                   |  flag  |                                                                | Disables writing to log file.                               |
-| `-noConfirm`,<br>`--no-request-user-confirmation` | `<bool>`          |  bool  |             `true`, `false` <br>`(default: false)`             | No Request User Confirmation before to execute any Feature. |
-| `-client`,<br>`--client`                          | `<CLIENT>`        | string |         `google-takeout`, <br>`synology`, <br>`immich`         | Specifies the service to interact with.                     |
-| `-id`,<br>`--account-id`                          | `<ID>`            |  int   |                `1`, `2`, `3` <br>`(default: 1)`                | ID of the configured account in Config.ini.                 |
-| `-from`,<br>`--filter-from-date`                  | `<FROM_DATE>`     |  date  |            `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`             | Filters assets from this date onward.                       |
-| `-to`,<br>`--filter-to-date`                      | `<TO_DATE>`       |  date  |            `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`             | Filters assets up to this date.                             |
-| `-type`,<br>`--filter-by-type`                    | `<TYPE>`          | string |          `image`, `video`, `all` <br>`(default: all)`          | Filters assets by type.                                     |
-| `-country`,<br>`--filter-by-country`              | `<COUNTRY>`       | string |                         `country-name`                         | Filters assets by country.                                  |
-| `-city`,<br>`--filter-by-city`                    | `<CITY>`          | string |                          `city-name`                           | Filters assets by city.                                     |
-| `-person`,<br>`--filter-by-person`                | `<PERSON>`        | string |                         `person-name`                          | Filters assets by person name.                              |
-| `-AlbFolder`,<br>`--albums-folders`               | `<ALBUMS_FOLDER>` |  path  |                        `existing path`                         | Creates albums for subfolders inside.                       |
-| `-rAlbAsset`,<br>`--remove-albums-assets`         |                   |  flag  |                                                                | Removes assets inside albums when albums are removed.       |
-
-#### 🧪 Examples:
-```bash
-PhotoMigrator.run --input-folder=/mnt/import --output-folder=/mnt/export
-PhotoMigrator.run --filter-from-date=2022-01-01 --filter-to-date=2022-12-31
-PhotoMigrator.run --filter-by-type=video --log-level=debug
 ```
 
 ---
@@ -163,27 +162,6 @@ PhotoMigrator.run --process-duplicates revised_duplicates.csv
 ## 🧪 Examples description:
 Below you can find a short description of  above examples 
 
-### 🚀 Automatic Migration
-
-```bash
-PhotoMigrator.run --source=immich-1 --target=synology-2
-
-Migrates all content from Immich account 1 to Synology account 2.
-```
-
-```bash
-PhotoMigrator.run --source=/mnt/photos --target=/mnt/synology --move-assets=true
-
-Migrates local folder to target and removes files from the source.
-```
-
-```bash
-PhotoMigrator.run --source=synology-1 --target=immich-1 --parallel-migration=false
-
-Uses sequential migration instead of parallel.
-```
-
----
 
 ### ⚙️ General Options
 
@@ -203,6 +181,28 @@ Filters assets from 2022 only.
 PhotoMigrator.run --filter-by-type=video --log-level=debug
 
 Processes only video files and shows debug logs.
+```
+
+---
+
+### 🚀 Automatic Migration
+
+```bash
+PhotoMigrator.run --source=immich-1 --target=synology-2
+
+Migrates all content from Immich account 1 to Synology account 2.
+```
+
+```bash
+PhotoMigrator.run --source=/mnt/photos --target=/mnt/synology --move-assets=true
+
+Migrates local folder to target and removes files from the source.
+```
+
+```bash
+PhotoMigrator.run --source=synology-1 --target=immich-1 --parallel-migration=false
+
+Uses sequential migration instead of parallel.
 ```
 
 ---
