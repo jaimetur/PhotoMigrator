@@ -669,9 +669,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # FINISH
             # ----------------------------------------------------------------------------------------------------------------------
-            # Inicializar la clase padre ClassLocalFolder con output_folder
-            super().__init__(output_folder)
-
             processing_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((processing_end_time - processing_start_time).total_seconds())))
             LOGGER.info(f"")
@@ -693,7 +690,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 super().__init__(output_folder)
 
             return self.result
-
 
 
     # sobreescribimos el método get_takeout_assets_by_filters() para que obtenga los assets de takeout_folder directamente en lugar de base_folder, para poder hacer el recuento de metadatos, sidecar, y archivos no soportados.
