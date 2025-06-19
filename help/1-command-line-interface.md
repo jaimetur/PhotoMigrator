@@ -25,10 +25,10 @@ Below you can find the list of all commands that the Tool can receive to execute
 
 ```
 ---------------------------------------------------------------------------------------------------------
-usage: PhotoMigrator [-h] [-v]
-                     [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
+usage: PhotoMigrator [-h] [-v] [-noConfirm] [-noLog]
                      [-logLevel =[VERBOSE, DEBUG, INFO, WARNING, ERROR]]
-                     [-logFormat =[LOG, TXT, ALL]] [-noLog] [-noConfirm]
+                     [-logFormat =[LOG, TXT, ALL]]
+                     [-i <INPUT_FOLDER>] [-o <OUTPUT_FOLDER>]
                      [-client = ['google-takeout', 'synology', 'immich']] [-id [= [1-3]]]
                      [-from <FROM_DATE>] [-to <TO_DATE>] [-type = [image,video,all]]
                      [-country <COUNTRY_NAME>] [-city <CITY_NAME>] [-person <PERSON_NAME>]
@@ -61,6 +61,14 @@ optional arguments:
               show this help message and exit
 -v        ; --version
               Show the Tool name, version, and date, then exit.
+-noConfirm; --no-request-user-confirmarion
+              No Request User Confrimarion before execute any Feature.
+-noLog    ; --no-log-file
+              Skip saving output messages to execution log file.
+-logLevel ; --log-level =[VERBOSE, DEBUG, INFO, WARNING, ERROR]
+              Specify the log level for logging and screen messages.
+-logFormat; --log-format =[LOG, TXT, ALL]
+              Specify the log file format.
 
 
 GENERAL ARGUMENTS:
@@ -71,14 +79,6 @@ Following general arguments have different purposses depending on the Execution 
               Specify the input folder that you want to process.
 -o        ; --output-folder <OUTPUT_FOLDER>
               Specify the output folder to save the result of the processing action.
--logLevel ; --log-level =[VERBOSE, DEBUG, INFO, WARNING, ERROR]
-              Specify the log level for logging and screen messages.
--logFormat; --log-format =[LOG, TXT, ALL]
-              Specify the log file format.
--noLog    ; --no-log-file
-              Skip saving output messages to execution log file.
--noConfirm; --no-request-user-confirmarion
-              No Request User Confrimarion before execute any Feature.
 -client   ; --client = ['google-takeout', 'synology', 'immich']
               Set the client to use for the selected feature.
 -id       ; --account-id = [1-3]
@@ -282,13 +282,6 @@ use the default values for the rest of the arguments for this extra mode.
               You must provide the Photo client using the mandatory flag '--client'.
 -OTP      ; --one-time-password
               This Flag allow you to login into Synology Photos using 2FA with an OTP Token.
--fixSym   ; --fix-symlinks-broken <FOLDER_TO_FIX>
-              The Tool will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder
-              (Useful if you have move any folder from the OUTPUT_TAKEOUT_FOLDER and some Albums
-              seems to be empty.
--renFldcb ; --rename-folders-content-based <ALBUMS_FOLDER>
-              Useful to rename and homogenize all Albums folders found in <ALBUMS_FOLDER> based on
-              the date content found.
 
 
 OTHER STANDALONE FEATURES:
@@ -297,6 +290,13 @@ Following arguments can be used to execute the Tool in any of the usefull additi
 Standalone Features included.
 If more than one Feature is detected, only the first one will be executed.
 
+-fixSym   ; --fix-symlinks-broken <FOLDER_TO_FIX>
+              The Tool will try to fix all symbolic links for Albums in <FOLDER_TO_FIX> folder
+              (Useful if you have move any folder from the OUTPUT_TAKEOUT_FOLDER and some Albums
+              seems to be empty.
+-renFldcb ; --rename-folders-content-based <ALBUMS_FOLDER>
+              Useful to rename and homogenize all Albums folders found in <ALBUMS_FOLDER> based on
+              the date content found.
 -findDup  ; --find-duplicates <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER> ...]
               Find duplicates in specified folders.
               <ACTION> defines the action to take on duplicates ('move', 'delete' or 'list').
