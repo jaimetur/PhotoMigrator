@@ -11,6 +11,10 @@ import platform
 import piexif
 import subprocess
 import logging
+import json
+from functools import lru_cache
+
+import Utils
 from CustomLogger import set_log_level
 from PIL import Image, ExifTags
 import hashlib
@@ -1394,13 +1398,12 @@ def run_command(command, logger, capture_output=False, capture_errors=True, prin
             m = progress_re.search(line)
             if m:
                 n, total = int(m.group(1)), int(m.group(2))
-                prefix = "ERROR   :" if is_error else "INFO    :"
 
                 # 1.a) Barra vacía (0/x)
                 if n == 0:
                     if not print_messages:
                         # Log inicial
-                        log_msg = f"{prefix} {step_name}{line}"
+                        log_msg = f"{step_name}{line}"
                         if is_error:
                             logger.error(log_msg)
                         else:
@@ -1412,7 +1415,7 @@ def run_command(command, logger, capture_output=False, capture_errors=True, prin
                 # 1.b) Progreso intermedio (1 <= n < total)
                 if n < total:
                     if print_messages:
-                        print(f"\r{prefix} {step_name}{line}", end='', flush=True)
+                        print(f"\r{step_name}{line}", end='', flush=True)
                     last_was_progress = True
                     # no logueamos intermedias
                     continue
@@ -1421,10 +1424,10 @@ def run_command(command, logger, capture_output=False, capture_errors=True, prin
                 if common_part not in printed_final:
                     # impresión en pantalla
                     if print_messages:
-                        print(f"\r{prefix} {step_name}{line}", end='', flush=True)
+                        print(f"\r{step_name}{line}", end='', flush=True)
                         print()
                     # log final
-                    log_msg = f"{prefix} {step_name}{line}"
+                    log_msg = f"{step_name}{line}"
                     if is_error:
                         logger.error(log_msg)
                     else:
@@ -1492,54 +1495,65 @@ def run_command(command, logger, capture_output=False, capture_errors=True, prin
 # ---------------------------------------------------------------------------------------------------------------------------
 def sync_mp4_timestamps_with_images(input_folder, step_name="", log_level=None):
     """
-    Look for .MP4 files with the same name of any Live Picture file (.HEIC, .JPG, .JPEG) in the same folder.
-    If found, then set the date and time of the .MP4 file to the same date and time of the original Live Picture.
+    Look for .MP4 files with the same base name as any Live Picture file (.HEIC, .JPG, .JPEG)
+    in the same folder. If found, set the date and time of the .MP4 file (or the symlink itself)
+    to match the original Live Picture.
     """
-    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        # Contar el total de archivos (para la barra de progreso)
-        total_files = sum([len(files) for _, _, files in os.walk(input_folder)])
-        # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_files, smoothing=0.1,  desc=f"INFO    : {step_name}Synchronizing .MP4 files with Live Pictures in '{input_folder}'", unit=" files") as pbar:
+    # Set logging level for this operation
+    with set_log_level(LOGGER, log_level):
+        # Count total files for progress bar
+        total_files = sum(len(files) for _, _, files in os.walk(input_folder))
+        with tqdm(
+            total=total_files,
+            smoothing=0.1,
+            desc=f"INFO    : {step_name}Synchronizing .MP4 files with Live Pictures in '{input_folder}'",
+            unit=" files"
+        ) as pbar:
+            # Walk through all directories and files
             for path, _, files in os.walk(input_folder):
-                # Crear un diccionario que mapea nombres base a extensiones y nombres de archivos
+                # Build a mapping from base filename to its extensions
                 file_dict = {}
                 for filename in files:
                     pbar.update(1)
                     name, ext = os.path.splitext(filename)
                     base_name = name.lower()
                     ext = ext.lower()
-                    if base_name not in file_dict:
-                        file_dict[base_name] = {}
-                    file_dict[base_name][ext] = filename  # Guardar el nombre original del archivo
+                    file_dict.setdefault(base_name, {})[ext] = filename
+                # For each group of files sharing the same base name
                 for base_name, ext_file_map in file_dict.items():
-                    if '.mp4' in ext_file_map:
-                        mp4_filename = ext_file_map['.mp4']
-                        mp4_file_path = os.path.join(path, mp4_filename)
-                        # Buscar si existe un archivo .heic, .jpg o .jpeg con el mismo nombre
-                        image_exts = ['.heic', '.jpg', '.jpeg']
-                        image_file_found = False
-                        for image_ext in image_exts:
-                            if image_ext in ext_file_map:
-                                try:
-                                    image_filename = ext_file_map[image_ext]
-                                    image_file_path = os.path.join(path, image_filename)
-                                    if os.path.exists(image_file_path) and os.path.exists(mp4_file_path):
-                                        # Obtener los tiempos de acceso y modificación del archivo de imagen
-                                        image_stats = os.stat(image_file_path)
-                                        atime = image_stats.st_atime  # Tiempo de último acceso
-                                        mtime = image_stats.st_mtime  # Tiempo de última modificación
-                                        # Aplicar los tiempos al archivo .MP4
-                                        os.utime(mp4_file_path, (atime, mtime))
-                                        LOGGER.debug(f"{step_name}Date and time attributes synched for: {os.path.relpath(mp4_file_path,input_folder)} using:  {os.path.relpath(image_file_path,input_folder)}")
-                                        image_file_found = True
-                                        break  # Salir después de encontrar el primer archivo de imagen disponible
-                                    else:
-                                        LOGGER.warning(f"{step_name}File not found. MP4: {mp4_file_path} | Image: {image_file_path}")
-                                except Exception as e:
-                                    LOGGER.error(f"{step_name}Could not sync timestamps for {mp4_file_path}. Reason: {e}")
-                        if not image_file_found:
-                            LOGGER.debug(f"{step_name}Cannot find Live picture file to sync with: {os.path.relpath(mp4_file_path,input_folder)}")
-                            pass
+                    if '.mp4' not in ext_file_map:
+                        continue
+                    mp4_filename = ext_file_map['.mp4']
+                    mp4_file_path = os.path.join(path, mp4_filename)
+                    # Detect if the .mp4 is a symlink
+                    is_mp4_link = os.path.islink(mp4_file_path)
+                    # Look for a matching Live Picture image
+                    image_exts = ['.heic', '.jpg', '.jpeg']
+                    for image_ext in image_exts:
+                        if image_ext not in ext_file_map:
+                            continue
+                        image_filename = ext_file_map[image_ext]
+                        image_file_path = os.path.join(path, image_filename)
+                        try:
+                            # Get the image's atime and mtime
+                            image_stats = os.stat(image_file_path)
+                            atime, mtime = image_stats.st_atime, image_stats.st_mtime
+                            if is_mp4_link:
+                                # Apply timestamps to the symlink itself
+                                os.utime(mp4_file_path, (atime, mtime), follow_symlinks=False)
+                                LOGGER.debug(f"{step_name}Timestamps applied to symlink: {os.path.relpath(mp4_file_path, input_folder)}")
+                            else:
+                                # Apply timestamps to the regular .mp4 file
+                                os.utime(mp4_file_path, (atime, mtime))
+                                LOGGER.debug(f"{step_name}Timestamps applied to file: {os.path.relpath(mp4_file_path, input_folder)}")
+                        except FileNotFoundError:
+                            # Warn if either the .mp4 or the image file is missing
+                            LOGGER.warning(f"{step_name}File not found. MP4: {mp4_file_path} | Image: {image_file_path}")
+                        except Exception as e:
+                            # Log any other errors encountered
+                            LOGGER.error(f"{step_name}Error syncing {mp4_file_path}: {e}")
+                        # Only sync with the first matching image
+                        break
 
 
 def force_remove_directory(folder, log_level=None):
@@ -2188,8 +2202,110 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
             'duplicates_albums_not_fully_merged': duplicates_albums_not_fully_merged,
         }
 
+def build_exif_cache(input_folder):
+    """
+    Run exiftool once over all supported media extensions
+    and build a dict mapping absolute filepath -> earliest EXIF date.
+    """
+    # Prepara los filtros de extensión: "-ext jpg -ext png -ext mp4 ..."
+    ext_args = []
+    for ext in PHOTO_EXT + VIDEO_EXT:
+        ext_args += ['-ext', ext.lstrip('.')]
+    # Pedimos a exiftool que nos dé un JSON con las etiquetas de fecha más comunes:
+    cmd = ['gpth_tool/exif_tool/exiftool', '-json',
+           '-DateTimeOriginal', '-DateTimeDigitized', '-CreateDate',
+           '-r', input_folder] + ext_args
 
-def count_files_per_type_and_date(input_folder, within_json_sidecar=True, log_level=None):
+    OS = Utils.get_os()
+    if OS == 'windows':
+        cmd = cmd.replace('exiftool', 'exiftool.exe')
+    proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+
+    data = json.loads(proc.stdout)
+    cache = {}
+    for item in data:
+        src = item.get('SourceFile')
+        dates = []
+        for tag in ('DateTimeOriginal', 'DateTimeDigitized', 'CreateDate'):
+            val = item.get(tag)
+            if isinstance(val, str):
+                try:
+                    # exiftool ya nos da "YYYY:MM:DD HH:MM:SS"
+                    dates.append(datetime.strptime(val, "%Y:%m:%d %H:%M:%S"))
+                except ValueError:
+                    pass
+        if dates:
+            cache[os.path.abspath(src)] = min(dates)
+    return cache
+
+def get_oldest_date(file_path, extensions, tag_ids, skip_exif=True, skip_json=True, log_level=None):
+    """
+    Return the earliest valid timestamp found in a file by checking:
+      1) EXIF tags (if skip_exif=False and extension in extensions)
+      2) JSON sidecar (<file>.json) (if skip_json=False)
+      3) File birthtime and modification time via a single os.stat()
+    Caches results per (file_path, skip_exif, skip_json) to avoid reprocessing.
+    """
+    # initialize cache on first call
+    if not hasattr(get_oldest_date, "_cache"):
+        get_oldest_date._cache = {}
+    cache = get_oldest_date._cache
+    key = (file_path, bool(skip_exif), bool(skip_json))
+    if key in cache:
+        return cache[key]
+
+    with set_log_level(LOGGER, log_level):
+        dates = []
+        ext = Path(file_path).suffix.lower()
+
+        # 1) EXIF extraction
+        if not skip_exif and ext in extensions:
+            try:
+                exif = Image.open(file_path).getexif()
+                for tag_id in tag_ids:
+                    raw = exif.get(tag_id)
+                    if isinstance(raw, str) and len(raw) >= 19:
+                        # manual parse YYYY:MM:DD HH:MM:SS
+                        y, mo, d   = int(raw[0:4]), int(raw[5:7]), int(raw[8:10])
+                        hh, mm, ss = int(raw[11:13]), int(raw[14:16]), int(raw[17:19])
+                        dates.append(datetime(y, mo, d, hh, mm, ss))
+                        break
+            except Exception:
+                pass
+
+        # 2) JSON sidecar parsing
+        if not skip_json:
+            p = Path(file_path)
+            js = p.with_suffix(p.suffix + ".json")
+            if js.exists():
+                try:
+                    data = json.loads(js.read_text(encoding='utf-8'))
+                    for k in ('photoTakenTime','creationTime','creationTimestamp'):
+                        ts = data.get(k)
+                        if isinstance(ts, dict):
+                            ts = ts.get('timestamp')
+                        if ts:
+                            dates.append(datetime.fromtimestamp(int(ts)))
+                            break
+                except Exception:
+                    pass
+
+        # 3) File birthtime and mtime
+        try:
+            st = os.stat(file_path, follow_symlinks=False)
+            bt = getattr(st, 'st_birthtime', None)
+            if bt is not None:
+                dates.append(datetime.fromtimestamp(bt))
+            dates.append(datetime.fromtimestamp(st.st_mtime))
+        except Exception:
+            pass
+
+        result = min(dates) if dates else None
+        cache[key] = result
+        return result
+
+
+def count_files_per_type_and_date(input_folder, skip_exif=True, skip_json=True, log_level=None):
     """
     Analyze all files in `input_folder`, counting:
       - total files
@@ -2201,75 +2317,8 @@ def count_files_per_type_and_date(input_folder, within_json_sidecar=True, log_le
       - percentage of photos/videos with and without date
     Uses global PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, and TIMESTAMP.
     """
-
-    ###############
-    # AUX FUNCTIONS
-    ###############
-    def get_oldest_date(file_path, media_type, within_json_sidecar=True):
-        """
-        Devuelve la fecha más antigua válida encontrada en el archivo.
-        Considera EXIF (solo fotos), JSON sidecar, fecha de creación y mtime.
-        """
-        dates = []
-
-        try:
-            if media_type == 'photos':
-                try:
-                    img = Image.open(file_path)
-                    exif = img._getexif() or {}
-                    tag_map = {ExifTags.TAGS.get(k, k): v for k, v in exif.items()}
-                    for tag in ('DateTimeOriginal', 'DateTimeDigitized', 'DateTime'):
-                        if tag in tag_map:
-                            try:
-                                dt = datetime.strptime(tag_map[tag], "%Y:%m:%d %H:%M:%S")
-                                dates.append(dt)
-                            except ValueError:
-                                continue
-                except Exception:
-                    pass
-
-            if within_json_sidecar:
-                # Buscar JSON sidecar
-                json_path = Path(file_path).with_suffix(file_path.suffix + ".json")
-                if json_path.exists():
-                    try:
-                        with open(json_path, 'r', encoding='utf-8') as f:
-                            data = json.load(f)
-                            for key in ['photoTakenTime', 'creationTime', 'creationTimestamp']:
-                                ts = data.get(key, {}).get('timestamp') or data.get(key)
-                                if ts:
-                                    dt = datetime.fromtimestamp(int(ts))
-                                    dates.append(dt)
-                    except Exception:
-                        pass
-
-            # Fecha de creación (si está disponible en el sistema)
-            try:
-                stat = os.stat(file_path)
-                if hasattr(stat, 'st_birthtime'):
-                    dates.append(datetime.fromtimestamp(stat.st_birthtime))
-            except Exception:
-                pass
-
-            # Fecha de modificación
-            try:
-                mtime = os.path.getmtime(file_path)
-                dates.append(datetime.fromtimestamp(mtime))
-            except Exception:
-                pass
-
-        except Exception:
-            pass
-
-        if dates:
-            return min(dates)
-        return None
-
-    ######################
-    # END OF AUX FUNCTIONS
-    ######################
-
     with set_log_level(LOGGER, log_level):
+        # This is used to check if files had any date before Takeout Processing started.
         timestamp_dt = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S")
 
         # Initialize overall counters with pct keys for media
@@ -2280,6 +2329,16 @@ def count_files_per_type_and_date(input_folder, within_json_sidecar=True, log_le
 
         # Get total supported extensions
         supported_exts = set(PHOTO_EXT + VIDEO_EXT + METADATA_EXT + SIDECAR_EXT)
+
+        # 1) Set de extensiones soportadas para EXIF
+        MEDIA_EXT = set(ext.lower() for ext in PHOTO_EXT + VIDEO_EXT)
+
+        # 2) IDs de EXIF para DateTimeOriginal, DateTimeDigitized, DateTime
+        WANTED_TAG_IDS = {
+            tag_id
+            for tag_id, tag_name in ExifTags.TAGS.items()
+            if tag_name in ('DateTimeOriginal', 'DateTimeDigitized', 'DateTime')
+        }
 
         # Walk through all subdirectories and files
         for root, dirs, files in os.walk(input_folder):
@@ -2334,7 +2393,7 @@ def count_files_per_type_and_date(input_folder, within_json_sidecar=True, log_le
 
                 counters[media_type]['total'] += 1
 
-                file_date = get_oldest_date(file_path, media_type, within_json_sidecar=within_json_sidecar)
+                file_date = get_oldest_date(file_path=file_path, extensions=MEDIA_EXT, tag_ids=WANTED_TAG_IDS, skip_exif=skip_exif, skip_json=skip_json)
                 has_date = file_date is not None and file_date <= timestamp_dt
 
                 if has_date:
