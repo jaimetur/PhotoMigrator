@@ -167,28 +167,6 @@ PhotoMigrator.run --process-duplicates revised_duplicates.csv
 ## 🧪 Examples description:
 Below you can find a short description of  above examples 
 
-### 🚀 Automatic Migration
-
-```bash
-PhotoMigrator.run --source=immich-1 --target=synology-2
-
-Migrates all content from Immich account 1 to Synology account 2.
-```
-
-```bash
-PhotoMigrator.run --source=/mnt/photos --target=/mnt/synology --move-assets=true
-
-Migrates local folder to target and removes files from the source.
-```
-
-```bash
-PhotoMigrator.run --source=synology-1 --target=immich-1 --parallel-migration=false
-
-Uses sequential migration instead of parallel.
-```
-
----
-
 ### ⚙️ General Options
 
 ```bash
@@ -207,6 +185,28 @@ Filters assets from 2022 only.
 PhotoMigrator.run --filter-by-type=video --log-level=debug
 
 Processes only video files and shows debug logs.
+```
+
+---
+
+### 🚀 Automatic Migration
+
+```bash
+PhotoMigrator.run --source=immich-1 --target=synology-2
+
+Migrates all content from Immich account 1 to Synology account 2.
+```
+
+```bash
+PhotoMigrator.run --source=/mnt/photos --target=/mnt/synology --move-assets=true
+
+Migrates local folder to target and removes files from the source.
+```
+
+```bash
+PhotoMigrator.run --source=synology-1 --target=immich-1 --parallel-migration=false
+
+Uses sequential migration instead of parallel.
 ```
 
 ---
