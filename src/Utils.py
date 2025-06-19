@@ -42,45 +42,55 @@ TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
 # -------------------------------------------------------------
 # Set Profile to analyze and optimize code:
 # -------------------------------------------------------------
-def profile_and_print(function_to_analyze, *args, live_stats=False, **kwargs):
+def profile_and_print(function_to_analyze, *args, step_name='', live_stats=True, interval=10, top_n=10, **kwargs):
     """
-    Ejecuta el profiler y registra resultados en tiempo real (si live_stats=True)
-    usando LOGGER.debug, además devuelve lo que retorne la función analizada.
+    Ejecuta cProfile solo sobre `function_to_analyze` (dejando el sleep
+    del wrapper fuera del profiling), vuelca stats a LOGGER.debug si
+    live_stats=True, y devuelve el resultado de la función analizada.
     """
     import time
     import io
     import cProfile
     import pstats
-    from concurrent.futures import ThreadPoolExecutor
+    from concurrent.futures import ThreadPoolExecutor, TimeoutError
     import logging
 
-    LOGGER = logging.getLogger(__name__)
     profiler = cProfile.Profile()
-    profiler.enable()
 
+    # Ejecutamos la función BAJO profiler.runcall, de modo que
+    # el wrapper (y sus sleep) no entren en el perfil
     with ThreadPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(function_to_analyze, *args, **kwargs)
+        future = executor.submit(
+            profiler.runcall,
+            function_to_analyze, *args, **kwargs
+        )
 
         if live_stats:
-            # Mientras la tarea no termine, volcamos stats a LOGGER.debug cada 10s
-            while not future.done():
-                time.sleep(10)
-                profiler.disable()
-                stream = io.StringIO()
-                stats = pstats.Stats(profiler, stream=stream)
-                stats.strip_dirs().sort_stats("cumulative").print_stats(20)
-                LOGGER.debug("\n⏱️ Estadísticas intermedias (top 20):\n%s", stream.getvalue())
-                profiler.enable()
+            # Mientras la tarea no termine, volcamos stats cada interval
+            while True:
+                try:
+                    # Esperamos como máximo `interval` segundos
+                    result = future.result(timeout=interval)
+                    break
+                except TimeoutError:
+                    # Si no ha acabado, imprimimos stats parciales
+                    stream = io.StringIO()
+                    stats = pstats.Stats(profiler, stream=stream)
+                    stats.strip_dirs().sort_stats("cumulative").print_stats(top_n)
+                    LOGGER.debug(f"{step_name}⏱️ Intermediate Stats (top %d):\n\n%s", top_n, stream.getvalue() )
 
-        result = future.result()
+            final_result = result
+        else:
+            # Si no queremos live stats, esperamos a que acabe y ya está
+            final_result = future.result()
 
-    profiler.disable()
+    # Informe final
     stream = io.StringIO()
     stats = pstats.Stats(profiler, stream=stream)
-    stats.strip_dirs().sort_stats("cumulative").print_stats(20)
-    LOGGER.debug("\n🔍 Informe final de perfil (top 20):\n%s", stream.getvalue())
+    stats.strip_dirs().sort_stats("cumulative").print_stats(top_n)
+    LOGGER.debug(f"{step_name}🔍 Final Profile Report (top %d):\n\n%s", top_n, stream.getvalue() )
 
-    return result
+    return final_result
 
 
 # Redefinir `tqdm` para usar `TQDM_LOGGER_INSTANCE` si no se especifica `file`
@@ -1492,7 +1502,7 @@ def run_command(command, logger, capture_output=False, capture_errors=True, prin
                 # 1.b) Progreso intermedio (1 <= n < total)
                 if n < total:
                     if print_messages:
-                        print(f"\r{step_name}{line}", end='', flush=True)
+                        print(f"\rINFO    : {step_name}{line}", end='', flush=True)
                     last_was_progress = True
                     # no logueamos intermedias
                     continue
@@ -1501,7 +1511,7 @@ def run_command(command, logger, capture_output=False, capture_errors=True, prin
                 if common_part not in printed_final:
                     # impresión en pantalla
                     if print_messages:
-                        print(f"\r{step_name}{line}", end='', flush=True)
+                        print(f"\rINFO    : {step_name}{line}", end='', flush=True)
                         print()
                     # log final
                     log_msg = f"{step_name}{line}"
