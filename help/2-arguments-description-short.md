@@ -20,7 +20,7 @@ There is also a [extended version](https://github.com/jaimetur/PhotoMigrator/blo
 ```bash
 PhotoMigrator.run --help
 PhotoMigrator.run --version
-
+```
 
 ---
 ## ⚙️ General Options
@@ -46,7 +46,6 @@ Following general arguments have different purposses depending on the Execution 
 PhotoMigrator.run --input-folder=/mnt/import --output-folder=/mnt/export
 PhotoMigrator.run --filter-from-date=2022-01-01 --filter-to-date=2022-12-31
 PhotoMigrator.run --filter-by-type=video --log-level=debug
-```
 ```
 
 ---
