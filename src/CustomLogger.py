@@ -5,7 +5,6 @@ from colorama import Fore, Style
 from contextlib import contextmanager
 import threading
 from GlobalVariables import LOG_LEVEL, VERBOSE_LEVEL_NUM
-
 import GlobalVariables as GV
 #------------------------------------------------------------------
 # 1) Definir el nuevo nivel VERBOSE (valor 5)
@@ -46,6 +45,24 @@ def print_critical(*args, **kwargs):
     # Y lo enviamos al LOGGER como INFO (o al nivel que quieras)
     GV.LOGGER.critical(message)
 #------------------------------------------------------------------
+# Class to Downgrade from INFO to DEBUG/WARNING/ERROR when certain chain is detected
+class ChangeLevelFilter(logging.Filter):
+    TAG_LEVEL_MAP = {
+        '[DEBUG]': logging.DEBUG,
+        '[WARNING]': logging.WARNING,
+        '[ERROR]': logging.ERROR,
+    }
+    def filter(self, record):
+        # Solo intervenimos mensajes lanzados con logger.info()
+        if record.levelno == logging.INFO:
+            msg = record.getMessage()
+            for tag, lvl in self.TAG_LEVEL_MAP.items():
+                if tag in msg:
+                    record.levelno = lvl
+                    record.levelname = logging.getLevelName(lvl)
+                    break
+        return True
+
 
 # Clase personalizada para formatear los mensajes que van a la consola (Añadimos colorees según el nivel del mensaje)
 class CustomConsoleFormatter(logging.Formatter):
@@ -61,8 +78,6 @@ class CustomConsoleFormatter(logging.Formatter):
             COLORS = {
                 "VERBOSE": Fore.CYAN,
                 "DEBUG": Fore.LIGHTCYAN_EX,
-                # "INFO": Fore.GREEN,
-                # "INFO": Fore.WHITE,
                 "INFO": Fore.LIGHTWHITE_EX,
                 "WARNING": Fore.YELLOW,
                 "ERROR": Fore.RED,
@@ -213,14 +228,13 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
         # Set up console handler (simple output without asctime and levelname)
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(log_level)
-        # console_handler.setFormatter(CustomConsoleFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
-        # Formato: hora, nivel alineado a 8, y luego el mensaje
         console_handler.setFormatter(
             CustomConsoleFormatter(
                 fmt="%(levelname)-8s: %(message)s",
                 datefmt="%H:%M:%S"
             )
         )
+        console_handler.addFilter(ChangeLevelFilter())      # Add Filter to Downgrade from INFO to DEBUG/WARNING/ERROR when detected chains
         console_handler.is_console_output = True
         LOGGER.addHandler(console_handler)
 
@@ -236,6 +250,7 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
                     datefmt='%Y-%m-%d %H:%M:%S'
                 )
             )
+            file_handler_detailed.addFilter(ChangeLevelFilter())  # Add Filter to Downgrade from INFO to DEBUG/WARNING/ERROR when detected chains
             LOGGER.addHandler(file_handler_detailed)
         elif format.lower() in ['txt', 'all']:
             # Set up txt file handler (output without asctime and levelname)
@@ -249,9 +264,10 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
                     datefmt='%Y-%m-%d %H:%M:%S'
                 )
             )
+            file_handler_plain.addFilter(ChangeLevelFilter())  # Add Filter to Downgrade from INFO to DEBUG/WARNING/ERROR when detected chains
             LOGGER.addHandler(file_handler_plain)
         else:
-            print (f"INFO    : Unknown format '{format}' for Logger. Please select a valid format between: ['log', 'txt', 'all].")
+            print (f"{GV.TAG_INFO}Unknown format '{format}' for Logger. Please select a valid format between: ['log', 'txt', 'all].")
 
     # Set the log level for the root logger
     LOGGER.setLevel(log_level)

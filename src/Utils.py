@@ -28,8 +28,8 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from dateutil import parser as date_parser
 from tqdm import tqdm as original_tqdm
-# import GlobalVariables as GV
 from GlobalVariables import LOGGER, ARGS, TIMESTAMP, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, EDITTED_SUFFIXES
+import GlobalVariables as GV
 from CustomLogger import LoggerConsoleTqdm
 from DataModels import init_count_files_counters
 
@@ -42,45 +42,55 @@ TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
 # -------------------------------------------------------------
 # Set Profile to analyze and optimize code:
 # -------------------------------------------------------------
-def profile_and_print(function_to_analyze, *args, live_stats=False, **kwargs):
+def profile_and_print(function_to_analyze, *args, step_name='', live_stats=True, interval=10, top_n=10, **kwargs):
     """
-    Ejecuta el profiler y registra resultados en tiempo real (si live_stats=True)
-    usando LOGGER.debug, además devuelve lo que retorne la función analizada.
+    Ejecuta cProfile solo sobre `function_to_analyze` (dejando el sleep
+    del wrapper fuera del profiling), vuelca stats a LOGGER.debug si
+    live_stats=True, y devuelve el resultado de la función analizada.
     """
     import time
     import io
     import cProfile
     import pstats
-    from concurrent.futures import ThreadPoolExecutor
+    from concurrent.futures import ThreadPoolExecutor, TimeoutError
     import logging
 
-    LOGGER = logging.getLogger(__name__)
     profiler = cProfile.Profile()
-    profiler.enable()
 
+    # Ejecutamos la función BAJO profiler.runcall, de modo que
+    # el wrapper (y sus sleep) no entren en el perfil
     with ThreadPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(function_to_analyze, *args, **kwargs)
+        future = executor.submit(
+            profiler.runcall,
+            function_to_analyze, *args, **kwargs
+        )
 
         if live_stats:
-            # Mientras la tarea no termine, volcamos stats a LOGGER.debug cada 10s
-            while not future.done():
-                time.sleep(10)
-                profiler.disable()
-                stream = io.StringIO()
-                stats = pstats.Stats(profiler, stream=stream)
-                stats.strip_dirs().sort_stats("cumulative").print_stats(20)
-                LOGGER.debug("\n⏱️ Estadísticas intermedias (top 20):\n%s", stream.getvalue())
-                profiler.enable()
+            # Mientras la tarea no termine, volcamos stats cada interval
+            while True:
+                try:
+                    # Esperamos como máximo `interval` segundos
+                    result = future.result(timeout=interval)
+                    break
+                except TimeoutError:
+                    # Si no ha acabado, imprimimos stats parciales
+                    stream = io.StringIO()
+                    stats = pstats.Stats(profiler, stream=stream)
+                    stats.strip_dirs().sort_stats("cumulative").print_stats(top_n)
+                    LOGGER.debug(f"{step_name}⏱️ Intermediate Stats (top %d):\n\n%s", top_n, stream.getvalue() )
 
-        result = future.result()
+            final_result = result
+        else:
+            # Si no queremos live stats, esperamos a que acabe y ya está
+            final_result = future.result()
 
-    profiler.disable()
+    # Informe final
     stream = io.StringIO()
     stats = pstats.Stats(profiler, stream=stream)
-    stats.strip_dirs().sort_stats("cumulative").print_stats(20)
-    LOGGER.debug("\n🔍 Informe final de perfil (top 20):\n%s", stream.getvalue())
+    stats.strip_dirs().sort_stats("cumulative").print_stats(top_n)
+    LOGGER.debug(f"{step_name}🔍 Final Profile Report (top %d):\n\n%s", top_n, stream.getvalue() )
 
-    return result
+    return final_result
 
 
 # Redefinir `tqdm` para usar `TQDM_LOGGER_INSTANCE` si no se especifica `file`
@@ -145,14 +155,14 @@ def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logge
                     i += 1
         else:
             pass
-            print(f"INFO    : {title}:")
+            print(f"{GV.TAG_INFO}{title}:")
             while i < len(arguments):
                 arg = arguments[i]
                 if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                    print(f"INFO    : {step_name}{indent}{arg}={arguments[i + 1]}")
+                    print(f"{GV.TAG_INFO}{step_name}{indent}{arg}={arguments[i + 1]}")
                     i += 2
                 else:
-                    print(f"INFO    : {step_name}{indent}{arg}")
+                    print(f"{GV.TAG_INFO}{step_name}{indent}{arg}")
                     i += 1
     print("")
 
@@ -181,48 +191,48 @@ def resource_path(relative_path):
     DEBUG_MODE = False  # Cambia a False para silenciar
     if DEBUG_MODE:
         print("---DEBUG INFO")
-        print(f"DEBUG   : RESOURCES_IN_CURRENT_FOLDER : {RESOURCES_IN_CURRENT_FOLDER}")
-        print(f"DEBUG   : sys.frozen                  : {getattr(sys, 'frozen', False)}")
-        print(f"DEBUG   : NUITKA_ONEFILE_PARENT       : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
-        print(f"DEBUG   : sys.argv[0]                 : {sys.argv[0]}")
-        print(f"DEBUG   : sys.executable              : {sys.executable}")
-        print(f"DEBUG   : os.getcwd()                 : {os.getcwd()}")
-        print(f"DEBUG   : __file__                    : {globals().get('__file__', 'NO __file__')}")
+        print(f"{GV.COLORTAG_DEBUG}RESOURCES_IN_CURRENT_FOLDER : {RESOURCES_IN_CURRENT_FOLDER}")
+        print(f"{GV.COLORTAG_DEBUG}sys.frozen                  : {getattr(sys, 'frozen', False)}")
+        print(f"{GV.COLORTAG_DEBUG}NUITKA_ONEFILE_PARENT       : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
+        print(f"{GV.COLORTAG_DEBUG}sys.argv[0]                 : {sys.argv[0]}")
+        print(f"{GV.COLORTAG_DEBUG}sys.executable              : {sys.executable}")
+        print(f"{GV.COLORTAG_DEBUG}os.getcwd()                 : {os.getcwd()}")
+        print(f"{GV.COLORTAG_DEBUG}__file__                    : {globals().get('__file__', 'NO __file__')}")
         try:
-            print(f"DEBUG   : __compiled__.containing_dir : {__compiled__.containing_dir}")
+            print(f"{GV.COLORTAG_DEBUG}__compiled__.containing_dir : {__compiled__.containing_dir}")
         except NameError:
-            print(f"DEBUG   : __compiled__ not defined")
+            print(f"{GV.COLORTAG_DEBUG}__compiled__ not defined")
         if hasattr(sys, '_MEIPASS'):
-            print(f"DEBUG   : _MEIPASS                    : {sys._MEIPASS}")
+            print(f"{GV.COLORTAG_DEBUG}_MEIPASS                    : {sys._MEIPASS}")
         else:
-            print(f"DEBUG   : _MEIPASS not defined")
+            print(f"{GV.COLORTAG_DEBUG}_MEIPASS not defined")
         print("")
     # PyInstaller
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
-        if DEBUG_MODE: print("DEBUG   : Entra en modo PyInstaller -> (sys._MEIPASS)")
+        if DEBUG_MODE: print(f"{GV.COLORTAG_DEBUG}Entra en modo PyInstaller -> (sys._MEIPASS)")
     # Nuitka onefile
     elif "NUITKA_ONEFILE_PARENT" in os.environ:
         base_path = os.path.dirname(os.path.abspath(__file__))
-        if DEBUG_MODE: print("DEBUG   : Entra en modo Nuitka --onefile -> (__file__)")
+        if DEBUG_MODE: print(f"{GV.COLORTAG_DEBUG}Entra en modo Nuitka --onefile -> (__file__)")
     # Nuitka standalone
     elif "__compiled__" in globals():
         base_path = os.path.join(__compiled__.containing_dir, SCRIPT_NAME+'.dist')
         # base_path = __compiled__
-        if DEBUG_MODE: print("DEBUG   : Entra en modo Nuitka --standalone -> (__compiled__.containing_dir)")
+        if DEBUG_MODE: print(f"{GV.COLORTAG_DEBUG}Entra en modo Nuitka --standalone -> (__compiled__.containing_dir)")
     # Python normal
     elif "__file__" in globals():
         if RESOURCES_IN_CURRENT_FOLDER:
             base_path = os.getcwd()
-            if DEBUG_MODE: print("DEBUG   : Entra en Python .py -> (cwd)")
+            if DEBUG_MODE: print(f"{GV.COLORTAG_DEBUG}Entra en Python .py -> (cwd)")
         else:
             base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            if DEBUG_MODE: print("DEBUG   : Entra en Python .py -> (dirname(dirname(__file__)))")
+            if DEBUG_MODE: print(f"{GV.COLORTAG_DEBUG}Entra en Python .py -> (dirname(dirname(__file__)))")
     else:
         base_path = os.getcwd()
-        if DEBUG_MODE: print("DEBUG   : Entra en fallback final -> os.getcwd()")
+        if DEBUG_MODE: print(f"{GV.COLORTAG_DEBUG}Entra en fallback final -> os.getcwd()")
     if DEBUG_MODE:
-        print(f"DEBUG   : return path                 : {os.path.join(base_path, relative_path)}")
+        print(f"{GV.COLORTAG_DEBUG}return path                 : {os.path.join(base_path, relative_path)}")
         print("--- END DEBUG INFO")
     return os.path.join(base_path, relative_path)
 
@@ -251,9 +261,9 @@ def get_os(log_level=logging.INFO, step_name="", use_logger=True):
         elif current_os in ["Windows", "windows", "Win"]:
             os_label = "windows"
         else:
-            print(f"ERROR   : {step_name}Unsupported Operating System: {current_os}")
+            print(f"{GV.TAG_ERROR}{step_name}Unsupported Operating System: {current_os}")
             os_label = "unknown"
-        print(f"INFO    : {step_name}Detected OS: {os_label}")
+        print(f"{GV.TAG_INFO}{step_name}Detected OS: {os_label}")
     return os_label
 
 
@@ -277,9 +287,9 @@ def get_arch(log_level=logging.INFO, step_name="", use_logger=True):
         elif current_arch in ["aarch64", "arm64", "ARM64"]:
             arch_label = "arm64"
         else:
-            print(f"ERROR   : {step_name}Unsupported Architecture: {current_arch}")
+            print(f"{GV.TAG_ERROR}{step_name}Unsupported Architecture: {current_arch}")
             arch_label = "unknown"
-        print(f"INFO    : {step_name}Detected architecture: {arch_label}")
+        print(f"{GV.TAG_INFO}{step_name}Detected architecture: {arch_label}")
     return arch_label
 
 
@@ -377,7 +387,7 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
         sep_input = input_folder.count(os.sep)
         # Convert wildcard patterns to regex patterns for matching
         exclude_patterns = [re.compile(fnmatch.translate(pattern)) for pattern in exclude_subfolders]
-        for path, dirs, files in tqdm(os.walk(input_folder, topdown=True), ncols=120, smoothing=0.1, desc=f"INFO    : Flattening Subfolders in '{input_folder}'", unit=" subfolders"):
+        for path, dirs, files in tqdm(os.walk(input_folder, topdown=True), ncols=120, smoothing=0.1, desc=f"{GV.TAG_INFO}Flattening Subfolders in '{input_folder}'", unit=" subfolders"):
             # Count number of sep of root folder
             sep_root = int(path.count(os.sep))
             depth = sep_root - sep_input
@@ -590,7 +600,7 @@ def is_valid_path(path, log_level=None):
             validate_filepath(path, platform="auto")
             return True
         except ValidationError as e:
-            LOGGER.error(f"Path validation ERROR   : {e}")
+            LOGGER.error(f"Path validation ERROR: {e}")
             return False
         
 
@@ -1115,7 +1125,7 @@ def delete_subfolders(input_folder, folder_name_to_delete, step_name="", log_lev
         # Contar el total de carpetas
         total_dirs = sum([len(dirs) for _, dirs, _ in os.walk(input_folder)])
         # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_dirs, smoothing=0.1, desc=f"INFO    : {step_name}Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
+        with tqdm(total=total_dirs, smoothing=0.1, desc=f"{GV.TAG_INFO}{step_name}Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
             for path, dirs, files in os.walk(input_folder, topdown=False):
                 for folder in dirs:
                     pbar.update(1)
@@ -1151,7 +1161,7 @@ def fix_mp4_files(input_folder, step_name="", log_level=None):
             return 0
         # Mostrar la barra de progreso basada en carpetas
         disable_tqdm = log_level < logging.WARNING
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing .MP4 files in '{input_folder}'", unit=" files", disable=disable_tqdm) as pbar:
+        with tqdm(total=total_files, smoothing=0.1, desc=f"{GV.TAG_INFO}{step_name}Fixing .MP4 files in '{input_folder}'", unit=" files", disable=disable_tqdm) as pbar:
             for path, _, files in os.walk(input_folder):
                 # Filter files with .mp4 extension (case-insensitive)
                 mp4_files = [f for f in files if f.lower().endswith('.mp4')]
@@ -1453,6 +1463,7 @@ def run_command(command, logger, capture_output=False, capture_errors=True, prin
     def handle_stream(stream, is_error=False):
         import re
         from colorama import init, Fore, Style
+        from GlobalVariables import COLORTAG_VERBOSE, COLORTAG_DEBUG, COLORTAG_INFO, COLORTAG_WARNING, COLORTAG_ERROR, COLORTAG_CRITICAL
         init(autoreset=True)
 
         progress_re = re.compile(r': .*?(\d+)\s*/\s*(\d+)$')
@@ -1492,7 +1503,7 @@ def run_command(command, logger, capture_output=False, capture_errors=True, prin
                 # 1.b) Progreso intermedio (1 <= n < total)
                 if n < total:
                     if print_messages:
-                        print(f"\r{step_name}{line}", end='', flush=True)
+                        print(f"\r{GV.TAG_INFO}{step_name}{line}", end='', flush=True)
                     last_was_progress = True
                     # no logueamos intermedias
                     continue
@@ -1501,7 +1512,7 @@ def run_command(command, logger, capture_output=False, capture_errors=True, prin
                 if common_part not in printed_final:
                     # impresión en pantalla
                     if print_messages:
-                        print(f"\r{step_name}{line}", end='', flush=True)
+                        print(f"\r{GV.TAG_INFO}{step_name}{line}", end='', flush=True)
                         print()
                     # log final
                     log_msg = f"{step_name}{line}"
@@ -1523,14 +1534,18 @@ def run_command(command, logger, capture_output=False, capture_errors=True, prin
             # 3) Impresión normal
             if print_messages:
                 if is_error:
-                    print(f"{Fore.RED}ERROR   : {step_name}{line}")
+                    print(f"{GV.COLORTAG_ERROR}{step_name}{line}")
                 else:
                     if "ERROR" in line:
-                        print(f"{Fore.RED}ERROR   : {step_name}{line}")
+                        print(f"{GV.COLORTAG_ERROR}{step_name}{line}")
                     elif "WARNING" in line:
-                        print(f"{Fore.YELLOW}WARNING : {step_name}{line}")
+                        print(f"{GV.COLORTAG_WARNING}{step_name}{line}")
+                    elif "DEBUG" in line:
+                        print(f"{GV.COLORTAG_DEBUG}{step_name}{line}")
+                    elif "VERBOSE" in line:
+                        print(f"{GV.COLORTAG_VERBOSE}{step_name}{line}")
                     else:
-                        print(f"INFO    : {step_name}{line}")
+                        print(f"{GV.COLORTAG_INFO}{step_name}{line}")
 
             # 4) Logging normal
             if is_error:
@@ -1540,6 +1555,10 @@ def run_command(command, logger, capture_output=False, capture_errors=True, prin
                     logger.error(f"{step_name}{line}")
                 elif "WARNING" in line:
                     logger.warning(f"{step_name}{line}")
+                elif "DEBUG" in line:
+                    logger.debug(f"{step_name}{line}")
+                elif "VERBOSE" in line:
+                    logger.verbose(f"{step_name}{line}")
                 else:
                     logger.info(f"{step_name}{line}")
 
@@ -1583,7 +1602,7 @@ def sync_mp4_timestamps_with_images(input_folder, step_name="", log_level=None):
         with tqdm(
             total=total_files,
             smoothing=0.1,
-            desc=f"INFO    : {step_name}Synchronizing .MP4 files with Live Pictures in '{input_folder}'",
+            desc=f"{GV.TAG_INFO}{step_name}Synchronizing .MP4 files with Live Pictures in '{input_folder}'",
             unit=" files"
         ) as pbar:
             # Walk through all directories and files
@@ -1689,7 +1708,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
                 # Contar el total de carpetas
                 total_files = sum([len(files) for _, _, files in os.walk(src)])
                 # Mostrar la barra de progreso basada en carpetas
-                with tqdm(total=total_files, ncols=120, smoothing=0.1, desc=f"INFO    : {step_name}{action} Folders in '{src}' to Folder '{dst}'", unit=" files") as pbar:
+                with tqdm(total=total_files, ncols=120, smoothing=0.1, desc=f"{GV.TAG_INFO}{step_name}{action} Folders in '{src}' to Folder '{dst}'", unit=" files") as pbar:
                     for path, dirs, files in os.walk(src, topdown=True):
                         pbar.update(1)
                         # Compute relative path
@@ -1754,7 +1773,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], ste
         for _, dirs, files in os.walk(input_folder):
             dirs[:] = [d for d in dirs if d not in exclude_subfolders]
             total_files += len(files)
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Organizing files with {type} structure in '{os.path.basename(os.path.normpath(input_folder))}'", unit=" files") as pbar:
+        with tqdm(total=total_files, smoothing=0.1, desc=f"{GV.TAG_INFO}{step_name}Organizing files with {type} structure in '{os.path.basename(os.path.normpath(input_folder))}'", unit=" files") as pbar:
             for path, dirs, files in os.walk(input_folder, topdown=True):
                 dirs[:] = [d for d in dirs if d not in exclude_subfolders]
                 for file in files:
@@ -1817,7 +1836,7 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None,
         exclude_subfolder_paths = [os.path.abspath(os.path.join(input_folder, sub)) for sub in (exclude_subfolder or [])]
         subfolders = os.listdir(input_folder)
         subfolders = [subfolder for subfolder in subfolders if not subfolder == '@eaDir' and not subfolder == 'No-Albums']
-        for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"INFO    : {step_name}Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
+        for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"{GV.TAG_INFO}{step_name}Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
             folder_path = os.path.join(input_folder, subfolder)
             if os.path.isdir(folder_path) and subfolder != albums_subfolder and os.path.abspath(folder_path) not in exclude_subfolder_paths:
                 LOGGER.debug(f"{step_name}Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")
@@ -1928,7 +1947,7 @@ def fix_symlinks_broken(input_folder, step_name="", log_level=None):
             if total_files == 0:
                 return file_index
             # Mostrar la barra de progreso basada en carpetas
-            with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Building Index files in '{input_folder}'", unit=" files") as pbar:
+            with tqdm(total=total_files, smoothing=0.1, desc=f"{GV.TAG_INFO}{step_name}Building Index files in '{input_folder}'", unit=" files") as pbar:
                 for path, _, files in os.walk(input_folder):
                     for fname in files:
                         pbar.update(1)
@@ -1970,7 +1989,7 @@ def fix_symlinks_broken(input_folder, step_name="", log_level=None):
         total_files = sum([len(files) for _, _, files in os.walk(input_folder)]) # Contar el total de carpetas
         if total_files ==0:
             corrected_count, failed_count
-        with tqdm(total=total_files, smoothing=0.1, desc=f"INFO    : {step_name}Fixing Symbolic Links in '{input_folder}'", unit=" files") as pbar: # Mostrar la barra de progreso basada en carpetas
+        with tqdm(total=total_files, smoothing=0.1, desc=f"{GV.TAG_INFO}{step_name}Fixing Symbolic Links in '{input_folder}'", unit=" files") as pbar: # Mostrar la barra de progreso basada en carpetas
             for path, _, files in os.walk(input_folder):
                 for file in files:
                     pbar.update(1)
@@ -2204,7 +2223,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
 
         total_folders = get_subfolders_with_exclusions(input_folder, exclude_subfolder)
 
-        for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"INFO    : {step_name}Renaming Albums folders in '<OUTPUT_TAKEOUT_FOLDER>'", unit=" folders"):
+        for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"{GV.TAG_INFO}{step_name}Renaming Albums folders in '<OUTPUT_TAKEOUT_FOLDER>'", unit=" folders"):
             item_path = os.path.join(input_folder, original_folder_name)
             if os.path.isdir(item_path):
                 resultado = clean_name_and_remove_dates(original_folder_name)

@@ -19,6 +19,7 @@ from CustomLogger import set_log_level
 
 # Import the global LOGGER from GlobalVariables
 from GlobalVariables import LOGGER, ARGS
+import GlobalVariables as GV
 
 
 """
@@ -224,7 +225,7 @@ class ClassSynologyPhotos:
 
                 if use_OTP:
                     LOGGER.warning(f"SYNOLOGY OTP TOKEN required (flag -OTP, --one-time-password detected). OTP Token will be requested on screen...")
-                    OTP = input("INFO    : Enter SYNOLOGY OTP Token: ")
+                    OTP = input(f"{GV.TAG_INFO}Enter SYNOLOGY OTP Token: ")
                     params.update({"otp_code": {OTP}})
                     params.update({"enable_device_token": "yes"})
                     params.update({"device_name": "PhotoMigrator"})
@@ -1394,7 +1395,7 @@ class ClassSynologyPhotos:
                 self.login(log_level=log_level)
 
                 if not os.path.exists(file_path):
-                    raise FileNotFoundError(f"ERROR   : The file '{file_path}' does not exists.")
+                    raise FileNotFoundError(f"{GV.TAG_ERROR}The file '{file_path}' does not exists.")
 
                 filename, ext = os.path.splitext(file_path)
                 ext = ext.lower()
@@ -1926,7 +1927,7 @@ class ClassSynologyPhotos:
                     first_level_folders += subfolders_inclusion
                     first_level_folders = list(dict.fromkeys(first_level_folders))
 
-                with tqdm(total=len(valid_folders), smoothing=0.1, desc=f"INFO    : Uploading Albums from '{os.path.basename(input_folder)}' sub-folders", unit=" sub-folder") as pbar:
+                with tqdm(total=len(valid_folders), smoothing=0.1, desc=f"{GV.TAG_INFO}Uploading Albums from '{os.path.basename(input_folder)}' sub-folders", unit=" sub-folder") as pbar:
                     for subpath in valid_folders:
                         pbar.update(1)
                         album_assets_ids = []
@@ -2049,7 +2050,7 @@ class ClassSynologyPhotos:
                 total_assets_uploaded = 0
                 total_duplicated_assets_skipped = 0
 
-                with tqdm(total=total_files, smoothing=0.1, desc="INFO    : Uploading Assets", unit=" asset") as pbar:
+                with tqdm(total=total_files, smoothing=0.1, desc=f"{GV.TAG_INFO}Uploading Assets", unit=" asset") as pbar:
                     for file_ in file_paths:
                         asset_id, is_dup = self.push_asset(file_, log_level=logging.WARNING)
                         if is_dup:
@@ -2184,7 +2185,7 @@ class ClassSynologyPhotos:
 
                 albums_downloaded = len(albums_to_download)
 
-                for album in tqdm(albums_to_download, desc="INFO    : Downloading Albums", unit=" albums"):
+                for album in tqdm(albums_to_download, desc=f"{GV.TAG_INFO}Downloading Albums", unit=" albums"):
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
                     LOGGER.info(f"Processing album: '{album_name}' (ID: {album_id})")
@@ -2238,7 +2239,7 @@ class ClassSynologyPhotos:
                     LOGGER.warning(f"No assets without Albums associated to download.")
                     return 0
 
-                for asset in tqdm(assets_without_albums, desc="INFO    : Downloading Assets without associated Albums", unit=" assets"):
+                for asset in tqdm(assets_without_albums, desc=f"{GV.TAG_INFO}Downloading Assets without associated Albums", unit=" assets"):
                     asset_id = asset.get('id')
                     asset_filename = asset.get('filename')
                     asset_time = asset.get('time')
@@ -2386,7 +2387,7 @@ class ClassSynologyPhotos:
                 return 0
 
             albums_to_rename = {}
-            for album in tqdm(albums, desc="INFO    : Searching for albums to rename", unit="albums"):
+            for album in tqdm(albums, desc=f"{GV.TAG_INFO}Searching for albums to rename", unit="albums"):
                 album_date = album.get("create_time")
                 if is_date_outside_range(album_date):
                     continue
@@ -2462,7 +2463,7 @@ class ClassSynologyPhotos:
                 return 0, 0
 
             albums_to_remove = []
-            for album in tqdm(albums, desc="INFO    : Searching for albums to remove", unit="albums"):
+            for album in tqdm(albums, desc=f"{GV.TAG_INFO}Searching for albums to remove", unit="albums"):
                 album_date = album.get("create_time")
                 if is_date_outside_range(album_date):
                     continue
@@ -2534,7 +2535,7 @@ class ClassSynologyPhotos:
                     return 0, 0
 
                 albums_to_remove = []
-                for album in tqdm(albums, desc="INFO    : Searching for albums to remove", unit="albums"):
+                for album in tqdm(albums, desc=f"{GV.TAG_INFO}Searching for albums to remove", unit="albums"):
                     album_date = album.get("create_time")
                     if is_date_outside_range(album_date):
                         continue
@@ -2615,7 +2616,7 @@ class ClassSynologyPhotos:
 
                 total_removed_empty_albums = 0
                 LOGGER.info(f"Looking for empty albums in Synology Photos...")
-                for album in tqdm(albums, desc=f"INFO    : Searching for Empty Albums", unit=" albums"):
+                for album in tqdm(albums, desc=f"{GV.TAG_INFO}Searching for Empty Albums", unit=" albums"):
                     # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
                     album_date = album.get("create_time")
                     if is_date_outside_range(album_date):
@@ -2661,7 +2662,7 @@ class ClassSynologyPhotos:
 
                 LOGGER.info(f"Searching for duplicate albums in Synology Photos...")
                 duplicates_map = {}
-                for album in tqdm(albums, smoothing=0.1, desc="INFO    : Searching for duplicate albums", unit="albums"):
+                for album in tqdm(albums, smoothing=0.1, desc=f"{GV.TAG_INFO}Searching for duplicate albums", unit="albums"):
                     album_date = album.get("create_time")
                     if is_date_outside_range(album_date):
                         continue
@@ -2733,7 +2734,7 @@ class ClassSynologyPhotos:
 
                 LOGGER.info(f"Looking for duplicate albums in Synology Photos...")
                 albums_by_name = {}
-                for album in tqdm(albums, smoothing=0.1, desc="INFO    : Grouping Albums by Name", unit=" albums"):
+                for album in tqdm(albums, smoothing=0.1, desc=f"{GV.TAG_INFO}Grouping Albums by Name", unit=" albums"):
                     # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
                     album_date = album.get("create_time")
                     if is_date_outside_range(album_date):

@@ -1,11 +1,12 @@
 import logging
 
 from GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
+import GlobalVariables as GV
 from GlobalFunctions import resolve_path
 from CustomHelpFormatter import CustomHelpFormatter
 from CustomPager import PagedParser
 import argparse
-import os
+import sys, os
 import re
 from datetime import datetime
 
@@ -117,7 +118,7 @@ def parse_arguments():
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=False,  # Si no se pasa el argumento, el valor por defecto es False
-                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        type=str2bool,  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="If this argument is present, the assets will be moved from <SOURCE> to <TARGET> instead of copy them. (default: False)."
     )
     PARSER.add_argument("-dashboard", "--dashboard",
@@ -125,7 +126,7 @@ def parse_arguments():
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=True,  # Si no se pasa el argumento, el valor por defecto es True
-                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        type=str2bool,  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="Enable or disable Live Dashboard feature during Autometed Migration Job. This argument only applies if both '--source' and '--target' arguments are given (AUTOMATIC-MIGRATION FEATURE). (default: True)."
     )
     PARSER.add_argument("-parallel", "--parallel-migration",
@@ -133,7 +134,7 @@ def parse_arguments():
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=True,  # Si no se pasa el argumento, el valor por defecto es True
-                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        type=str2bool,  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="Select Parallel/Secuencial Migration during Automatic Migration Job. This argument only applies if both '--source' and '--target' arguments are given (AUTOMATIC-MIGRATION FEATURE). (default: True)."
     )
 
@@ -176,7 +177,7 @@ def parse_arguments():
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=True,  # Si no se pasa el argumento, el valor por defecto es True
-                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        type=str2bool,  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="Enable or disable Info messages during GPTH Processing. (default: True)."
     )
     PARSER.add_argument("-gpthError", "--show-gpth-errors",
@@ -184,7 +185,7 @@ def parse_arguments():
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=True,  # Si no se pasa el argumento, el valor por defecto es True
-                        type=lambda v: v.lower() in ("true", "1", "yes", "on"),  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
+                        type=str2bool,  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="Enable or disable Error messages during GPTH Processing. (default: True)."
     )
 
@@ -256,6 +257,18 @@ def parse_arguments():
 
     return ARGS, PARSER
 
+def str2bool(v):
+    if v is None:
+        # Cuando solo se escribe "--dashboard" sin valor
+        return True
+    v_low = v.lower()
+    if v_low in ('yes', 'y', 'true', 'on', '1'):
+        return True
+    if v_low in ('no', 'n', 'false', 'off', '0'):
+        return False
+    raise argparse.ArgumentTypeError(f"Expected boolean value for --dashboard, received '{v}'!")
+
+
 def validate_account_id(valor):
     try:
         valor_int = int(valor)
@@ -296,7 +309,7 @@ def validate_client_arg(ARGS, PARSER):
     for flag in client_required_flags:
         if ARGS.get(flag):  # Si el usuario ha pasado este argumento
             if ARGS.get('client')=='google-takeout':
-                PARSER.error(f"\n\n❌ ERROR   : The flag '--{flag}' requires that '--client' is also specified.\n")
+                PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}The flag '--{flag}' requires that '--client' is also specified.\n")
                 exit(1)
 
 
@@ -338,40 +351,44 @@ def checkArgs(ARGS, PARSER):
     # Parse AUTOMATIC-MIGRATION Arguments
     # Manual validation of --source and --target to allow predefined values but also local folders.
     if ARGS['source'] and not ARGS['target']:
-        PARSER.error(f"\n\n❌ ERROR   : Invalid syntax. Argument '--source' detected but not '--target' providen'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid syntax. Argument '--source' detected but not '--target' providen'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n")
         exit(1)
     if ARGS['target'] and not ARGS['source']:
-        PARSER.error(f"\n\n❌ ERROR   : Invalid syntax. Argument '--target' detected but not '--source' providen'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid syntax. Argument '--target' detected but not '--source' providen'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n")
         exit(1)
     if ARGS['source'] and ARGS['source'] not in choices_for_AUTOMATIC_MIGRATION_SRC and not os.path.isdir(ARGS['source']):
-        PARSER.error(f"\n\n❌ ERROR   : Invalid choice detected for --source='{ARGS['source']}'. \nMust be an existing local folder or one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_SRC}.\n")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid choice detected for --source='{ARGS['source']}'. \nMust be an existing local folder or one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_SRC}.\n")
         exit(1)
     if ARGS['target'] and ARGS['target'] not in choices_for_AUTOMATIC_MIGRATION_TGT and not os.path.isdir(ARGS['target']):
-        PARSER.error(f"\n\n❌ ERROR   : Invalid choice detected for --target='{ARGS['target']}'. \nMust be an existing local folder one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_TGT}.\n")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid choice detected for --target='{ARGS['target']}'. \nMust be an existing local folder one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_TGT}.\n")
         exit(1)
     if ARGS['source'] and ARGS['target']:
         ARGS['AUTOMATIC-MIGRATION'] = [ARGS['source'], ARGS['target']]
 
 
-    # Check if --dashboard=True and not --source and --target have been given
-    args = PARSER.parse_args()
-    dashboard_provided = "--dashboard" in [arg.split("=")[0] for arg in vars(args).keys()]
-    if dashboard_provided and not (ARGS['source'] or ARGS['target']):
-        PARSER.error(f"\n\n❌ ERROR   : Argument '--dashboard' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n")
+    # Check if --dashboard was given as argumente and not --source and --target have been given
+    dashboard_provided = any(
+        re.match(r"^-{1,2}dashboard(?:$|=)", tok)
+        for tok in sys.argv[1:]
+    )
+    if dashboard_provided  and not (ARGS['source'] or ARGS['target']):
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Argument '--dashboard' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n")
         exit(1)
 
 
-    # Check if --parallel-migration=True and not --source and --target have been given
-    args = PARSER.parse_args()
-    dashboard_provided = "--parallel-migration" in [arg.split("=")[0] for arg in vars(args).keys()]
-    if dashboard_provided and not (ARGS['source'] or ARGS['target']):
-        PARSER.error(f"\n\n❌ ERROR   : Argument '--parallel-migration' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n")
+    # Check if --parallel was given as argument and not --source and --target have been given
+    paralel_provided = any(
+        re.match(r"^-{1,2}parallel(?:$|=)", tok)
+        for tok in sys.argv[1:]
+    )
+    if paralel_provided and not (ARGS['source'] or ARGS['target']):
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Argument '--parallel-migration' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n")
         exit(1)
 
 
     # Parse download-albums to ensure than ARGS['output-folder'] is used to specify <OUTPUT_FOLDER>
     if ARGS['download-albums'] != "" and ARGS['output-folder'] == "":
-        PARSER.error(f"\n\n❌ ERROR   : When use flag -dAlb, --download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}When use flag -dAlb, --download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n")
         exit(1)
 
 
@@ -396,17 +413,17 @@ def checkArgs(ARGS, PARSER):
     # Parse rename-albums
     if ARGS['rename-albums']:
         if len(ARGS['rename-albums']) != 2:
-            PARSER.error(f"\n\n❌ ERROR   : --rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
+            PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
             exit(1)
         for subarg in ARGS['rename-albums']:
             if subarg is None:
-                PARSER.error(f"\n\n❌ ERROR   : --rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
+                PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
                 exit(1)
 
 
     # Parse 'remove-albums-assets' to check if 'remove-all-albums' or 'remove-albums' have been detected
     if ARGS['remove-albums-assets'] and not (ARGS['remove-all-albums'] or ARGS['remove-albums']):
-        PARSER.error(f"\n\n❌ ERROR   : --remove-albums-assets is a modifier of argument. It need to be used together with one of the following flags:"
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--remove-albums-assets is a modifier of argument. It need to be used together with one of the following flags:"
                      f"\n--remove-all-albums"
                      f"\n--remove-albums"
                      f"\n")
@@ -420,7 +437,7 @@ def checkArgs(ARGS, PARSER):
 
     # Parseamos type
     if ARGS['filter-by-type'] and ARGS['filter-by-type'].lower() not in valid_asset_types:
-        PARSER.error(f"\n\n❌ ERROR   : --filter-by-type flag is invalid. Valid values are:\n{valid_asset_types}")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--filter-by-type flag is invalid. Valid values are:\n{valid_asset_types}")
         exit(1)
 
     # Validamos que se haya pasado --client cuando pasamos como argumento una feature de Synology/Immich

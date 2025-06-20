@@ -13,6 +13,7 @@ from threading import main_thread
 import Utils
 import traceback
 from GlobalVariables import LOGGER, ARGS, TIMESTAMP, START_TIME, HELP_TEXTS, DEPRIORITIZE_FOLDERS_PATTERNS, SCRIPT_DESCRIPTION, SCRIPT_VERSION, SCRIPT_NAME_VERSION
+import GlobalVariables as GV
 from GlobalFunctions import resolve_path
 from Duplicates import find_duplicates, process_duplicates_actions
 from CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, clone_logger, get_logger_filename
@@ -141,7 +142,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             elif Path(client_type).is_dir():
                 return ClassLocalFolder(base_folder=client_type)  # In this clase, client_type is the path to the base Local Folder
             else:
-                raise ValueError(f"ERROR   : Tipo de cliente no válido: {client_type}")
+                raise ValueError(f"{GV.TAG_ERROR}Tipo de cliente no válido: {client_type}")
 
         # Creamos los objetos source_client y target_client y obtenemos sus nombres para mostrar en el show_dashboard
         source_client = get_client_object(source)

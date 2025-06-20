@@ -24,9 +24,14 @@ def detect_and_run_execution_mode():
     # AUTOMATIC-MIGRATION MODE:
     if ARGS['source'] and ARGS['target']:
         EXECUTION_MODE = 'AUTOMATIC-MIGRATION'
-        mode_AUTOMATIC_MIGRATION(show_gpth_info=ARGS['show-gpth-info'])
-        # Utils.profile_and_print(function_to_analyze=mode_AUTOMATIC_MIGRATION, show_dashboard=False)  # Profiler to analyze and optimize each function.
 
+        if LOG_LEVEL in [logging.DEBUG, VERBOSE_LEVEL_NUM]:
+            step_name = ''
+            # Configura y arranca el profiler justo antes de la llamada que quieres medir
+            LOGGER.debug(f"{step_name}Profiling Function mode_AUTOMATIC_MIGRATION")
+            initial_takeout_counters = Utils.profile_and_print(mode_AUTOMATIC_MIGRATION, show_dashboard=False, show_gpth_info=ARGS['show-gpth-info'], step_name=step_name)
+        else:
+            mode_AUTOMATIC_MIGRATION(show_gpth_info=ARGS['show-gpth-info'])
 
     # Google Photos Mode:
     # elif "-gTakeout" in sys.argv or "--google-takeout" in sys.argv:
