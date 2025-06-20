@@ -2,19 +2,28 @@
 
 ---
 
-## Release: v3.3.4  
+## Release: v3.4.0  
 - ### Release Date: 2025-06-30
-  - Alpha version    : 2025-06-18
+  - Alpha version    : 2025-06-16
   - Beta version     : 2025-06-23
   - Release Candidate: 2025-06-27
   - Official Release : 2025-06-30
 
 - ### Main Changes:
   - #### 🚨 Breaking Changes:
-    - [ ] Replaced `-gmtf, --google-move-takeout-folder` argument by `-gKeepTake, --google-keep-takeout-folder` argument and implement the logic for Google Takeout Processing.
+    - [ ] Replaced argument `-gmtf, --google-move-takeout-folder` by `-gKeepTake, --google-keep-takeout-folder` argument and inverted the logic for Google Takeout Processing.
+    - [ ] Replaced argument `-gnsa, --google-create-symbolic-albums` by `-gcsa, --google-no-symbolic-albums` argument and inverted the logic for Google Takeout Processing.
+    - [x] Replaced argument `-confirm, --request-user-confirmation` by `-noConfirm, --no-request-user-confirmation` and inverted logic. 
+    
   - #### 🌟 New Features:
+    - [x] Created GitHub Forms on New Issues.
+      - [ ] Auto-Update Issues Templates with new published releases.
+    - [x] Added Step duration summary at the end of `Google Takeout Processing` feature.
+    - [x] Added new `VERBOSE` value for `-logLevel` argument.
+    - [x] Added new argument `-logFormat, --log-format` to define the format of the Log File. Valid values: `[LOG, TXT, ALL]`.
     - [x] Call GPTH with `--verbose` when PhotoMigrator logLevel is VERBOSE or DEBUG.
     - [x] Add argument `-gSkipPrep,--google-skip-preprocess` to Skipp Preproces steps during Google Takeout Processing feature.
+  
   - #### 🚀 Enhancements:
     - [x] Reorganized Pre-checks/Pre-process/Process steps for a clearer maintainance and better visualization. 
     - [x] The Feature `Google Takeout Processing` is no longer called using the Pre-checks functions but always using the Process() function from ClassTakeoutFolder Class.
@@ -24,25 +33,6 @@
     - [x] Improved Logging messages and screen messages prefixes using Global Variables instead of hardcoded.
     - [x] Inserted Profiler support to Profile any function and optimize it.
     - [x] Removed `input_folder` after successfull completion of `Google Takeout Processing` if the user used the flag `-gmtf, --google-move-takeout-folder`. Note that this only remove the `input_folder` with a valid Takeout Structure, this will not remove your original Takeout Zip folder with your Takeout Zips.
-    - [ ] Auto-Update Issues Templates with new published releases.
-  - #### 🐛 Bug fixes:
-    - [x] Fixed a bug setting lovLevel because it wasn't read from GlobalVariables in set_log_level() function.
-  - #### 📚 Documentation:
-
----
-
-## Release: v3.3.3  
-- ### Release Date: 2025-06-18
-
-- ### Main Changes:
-  - #### 🌟 New Features:
-    - [x] Created GitHub Forms on New Issues.
-    - [x] Added Step duration summary at the end of `Google Takeout Processing` feature.
-    - [x] Added new `VERBOSE` value for `-logLevel` argument.
-    - [x] Added new argument `-logFormat, --log-format` to define the format of the Log File. Valid values: `[LOG, TXT, ALL]`.
-
-  - #### 🚀 Enhancements:
-    - [x] Renamed argument `-confirm, --request-user-confirmation` to `-noConfirm, --no-request-user-confirmation` and inverted logic.
     - [x] Renamed argument `-loglevel` to `-logLevel`.
     - [x] Renamed argument `-dashb` to `-dashboard`.
     - [x] Renamed argument `-AlbFld` to `-AlbFolder`.
@@ -97,9 +87,13 @@
           6. **Album Detection** - Smart folder classification
           7. **File Moving** - Strategy-based organization
           8. **Creation Time Updates** - Final timestamp alignment
-
+        
   - #### 🐛 Bug fixes:
     - [x] Fixed LOG_LEVEL change in `Google Takeout Processing Feature`.
+    - [x] Fixed a bug setting lovLevel because it wasn't read from GlobalVariables in set_log_level() function.
+
+  - #### 📚 Documentation:
+    - [x] Updated documentation with all changes.
 
 ---
 
