@@ -8,14 +8,11 @@ import stat
 from datetime import datetime
 import ctypes
 import platform
-import piexif
 import subprocess
 import logging
 import json
 from functools import lru_cache
-
-import Utils
-from CustomLogger import set_log_level
+import piexif
 from PIL import Image, ExifTags
 import hashlib
 import base64
@@ -28,9 +25,11 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from dateutil import parser as date_parser
 from tqdm import tqdm as original_tqdm
+
 from GlobalVariables import LOGGER, ARGS, TIMESTAMP, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, EDITTED_SUFFIXES
 import GlobalVariables as GV
-from CustomLogger import LoggerConsoleTqdm
+import Utils
+from CustomLogger import set_log_level, LoggerConsoleTqdm
 from DataModels import init_count_files_counters
 
 # Crear instancia global del wrapper
@@ -2378,8 +2377,6 @@ def get_oldest_date(file_path, extensions, tag_ids, skip_exif=True, skip_json=Tr
         return result
 
 
-
-
 def count_files_per_type_and_date(input_folder, skip_exif=True, skip_json=True, log_level=None):
     """
     Analyze all files in `input_folder`, counting:
@@ -2468,6 +2465,7 @@ def count_files_per_type_and_date(input_folder, skip_exif=True, skip_json=True, 
 
                 counters[media_type]['total'] += 1
 
+                # file_date = get_oldest_date(file_path=file_path, skip_exif=skip_exif, skip_json=skip_json)
                 file_date = get_oldest_date(file_path=file_path, extensions=MEDIA_EXT, tag_ids=WANTED_TAG_IDS, skip_exif=skip_exif, skip_json=skip_json)
                 has_date = file_date is not None and file_date <= timestamp_dt
 

@@ -5,7 +5,7 @@ idna
 importlib_metadata
 packaging~=25.0
 pyinstaller
-nuitka
+nuitka~=2.7.3
 pyinstaller-hooks-contrib
 requests~=2.32.3
 tqdm~=4.67.1
