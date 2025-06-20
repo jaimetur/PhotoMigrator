@@ -2335,14 +2335,15 @@ def get_oldest_date(file_path, extensions, tag_ids, skip_exif=True, skip_json=Tr
         if not skip_exif and ext in extensions:
             try:
                 exif = Image.open(file_path).getexif()
-                for tag_id in tag_ids:
-                    raw = exif.get(tag_id)
-                    if isinstance(raw, str) and len(raw) >= 19:
-                        # fast parse 'YYYY:MM:DD HH:MM:SS'
-                        y, mo, d   = int(raw[0:4]), int(raw[5:7]), int(raw[8:10])
-                        hh, mm, ss = int(raw[11:13]), int(raw[14:16]), int(raw[17:19])
-                        dates.append(datetime(y, mo, d, hh, mm, ss))
-                        break
+                if len(exif)>0:
+                    for tag_id in tag_ids:
+                        raw = exif.get(tag_id)
+                        if isinstance(raw, str) and len(raw) >= 19:
+                            # fast parse 'YYYY:MM:DD HH:MM:SS'
+                            y, mo, d   = int(raw[0:4]), int(raw[5:7]), int(raw[8:10])
+                            hh, mm, ss = int(raw[11:13]), int(raw[14:16]), int(raw[17:19])
+                            dates.append(datetime(y, mo, d, hh, mm, ss))
+                            break
             except Exception:
                 pass
 
