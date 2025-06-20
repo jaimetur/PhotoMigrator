@@ -10,6 +10,8 @@
   - Official Release : 2025-06-30
 
 - ### Main Changes:
+  - #### 🚨 Breaking Changes:
+    - [ ] Replaced `-gmtf, --google-move-takeout-folder` argument by `-gKeepTake, --google-keep-takeout-folder` argument and implement the logic for Google Takeout Processing.
   - #### 🌟 New Features:
     - [x] Call GPTH with `--verbose` when PhotoMigrator logLevel is VERBOSE or DEBUG.
     - [x] Add argument `-gSkipPrep,--google-skip-preprocess` to Skipp Preproces steps during Google Takeout Processing feature.
@@ -17,13 +19,15 @@
     - [x] Reorganized Pre-checks/Pre-process/Process steps for a clearer maintainance and better visualization. 
     - [x] The Feature `Google Takeout Processing` is no longer called using the Pre-checks functions but always using the Process() function from ClassTakeoutFolder Class.
     - [x] Included Input/Output folder size in Google Takeout Statistics.
-    - [ ] Improved performance on Counting files during Google Takeout Processing.
+    - [x] Improved performance on Counting files during Google Takeout Processing.
+    - [x] Improved Logging messages type detection when running GPTH.
+    - [x] Improved Logging messages and screen messages prefixes using Global Variables instead of hardcoded.
+    - [x] Inserted Profiler support to Profile any function and optimize it.
+    - [x] Removed `input_folder` after successfull completion of `Google Takeout Processing` if the user used the flag `-gmtf, --google-move-takeout-folder`. Note that this only remove the `input_folder` with a valid Takeout Structure, this will not remove your original Takeout Zip folder with your Takeout Zips.
     - [ ] Auto-Update Issues Templates with new published releases.
-    - ~~[ ] Replace `-gmtf,--google-move-takeout-folder` argument by `-gCopy,--google-copy-takeout-folder` argument and implement the logic for Google Takeout Processing.~~
   - #### 🐛 Bug fixes:
     - [x] Fixed a bug setting lovLevel because it wasn't read from GlobalVariables in set_log_level() function.
   - #### 📚 Documentation:
-    - [ ] Move /doc/* into root folder?  
 
 ---
 
