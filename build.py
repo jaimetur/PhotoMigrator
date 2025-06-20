@@ -1,4 +1,13 @@
 import os, sys
+
+# ------------------------------------------------------------
+# Add 'src/' folder to path to import any module from 'src/'.
+current_dir = os.path.dirname(__file__)
+src_path = os.path.abspath(os.path.join(current_dir, "src"))
+if src_path not in sys.path:
+    sys.path.insert(0, src_path)
+# ------------------------------------------------------------
+
 import shutil
 import zipfile
 import tempfile
@@ -6,18 +15,10 @@ import subprocess
 import glob
 import platform
 from pathlib import Path
-
-import GlobalVariables as GV
-
 from nuitka.Options import shallAskForWindowsUIAccessRights
 
-# Add 'src/' folder to path to import any module from 'src/'.
-current_dir = os.path.dirname(__file__)
-src_path = os.path.abspath(os.path.join(current_dir, "src"))
-if src_path not in sys.path:
-    sys.path.insert(0, src_path)
-
 from GlobalVariables import SCRIPT_NAME, SCRIPT_VERSION, GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
+import GlobalVariables as GV
 from Utils import zip_folder, unzip_to_temp, unzip, unzip_flatten, clear_screen, print_arguments_pretty, get_os, get_arch, resource_path, ensure_executable
 
 def include_extrafiles_and_zip(input_file, output_file):
