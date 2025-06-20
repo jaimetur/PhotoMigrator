@@ -678,8 +678,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # FINISH
             # ----------------------------------------------------------------------------------------------------------------------
             # TODO: Insert logic here if GPTH implements again --copy argument to avoid remove input folder when using this argument
-            # Now removes completelly the input_folder because all the files (except JSON) have been already moved to output folder
-            Utils.remove_folder(input_folder)
+            if ARGS['google-move-takeout-folder'] or not ARGS['google-move-takeout-folder']:
+                # Now removes completelly the input_folder because all the files (except JSON) have been already moved to output folder
+                Utils.remove_folder(input_folder)
             processing_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((processing_end_time - processing_start_time).total_seconds())))
             LOGGER.info(f"")
