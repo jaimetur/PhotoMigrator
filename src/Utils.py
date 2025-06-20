@@ -2378,7 +2378,7 @@ def get_oldest_date(file_path, extensions, tag_ids, skip_exif=True, skip_json=Tr
         return result
 
 
-def get_embedded_datetime(file_path):
+def get_embedded_datetime(file_path, step_name=''):
     """
     Devuelve la fecha embebida más antigua encontrada como datetime.datetime,
     usando exiftool desde ./gpth_tool/exif_tool/. Si no hay fechas embebidas válidas, retorna None.
@@ -2401,7 +2401,7 @@ def get_embedded_datetime(file_path):
     exiftool_path = Path("gpth_tool/exif_tool/exiftool.exe" if is_windows else "gpth_tool/exif_tool/exiftool").resolve()
 
     if not exiftool_path.exists():
-        GV.LOGGER.debug(f"[get_embedded_datetime] exiftool not found at: {exiftool_path}")
+        GV.LOGGER.debug(f"{step_name}[get_embedded_datetime] exiftool not found at: {exiftool_path}")
         return None
 
     try:
@@ -2414,7 +2414,7 @@ def get_embedded_datetime(file_path):
         )
         metadata_list = json.loads(result.stdout)
         if not metadata_list or not isinstance(metadata_list, list) or not metadata_list[0]:
-            GV.LOGGER.debug(f"[get_embedded_datetime] No metadata returned for: {file_path.name}")
+            GV.LOGGER.debug(f"{step_name}[get_embedded_datetime] No metadata returned for: {file_path.name}")
             return None
 
         metadata = metadata_list[0]
@@ -2430,7 +2430,7 @@ def get_embedded_datetime(file_path):
 
         available_tags = [tag for tag in candidate_tags if tag in metadata]
         if not available_tags:
-            GV.LOGGER.debug(f"[get_embedded_datetime] No embedded date tags found in metadata for: {file_path.name}")
+            GV.LOGGER.debug(f"{step_name}[get_embedded_datetime] No embedded date tags found in metadata for: {file_path.name}")
             return None
 
         date_formats = [
@@ -2453,15 +2453,15 @@ def get_embedded_datetime(file_path):
                     continue
 
         if not found_dates:
-            GV.LOGGER.debug(f"[get_embedded_datetime] None of the embedded date fields could be parsed for: {file_path.name}")
+            GV.LOGGER.debug(f"{step_name}[get_embedded_datetime] None of the embedded date fields could be parsed for: {file_path.name}")
             return None
 
         oldest = min(found_dates, key=lambda x: x[1])
-        GV.LOGGER.debug(f"[get_embedded_datetime] Selected tag '{oldest[0]}' with date {oldest[1]} for: {file_path.name}")
+        GV.LOGGER.debug(f"{step_name}[get_embedded_datetime] Selected tag '{oldest[0]}' with date {oldest[1]} for: {file_path.name}")
         return oldest[1]
 
     except Exception as e:
-        GV.LOGGER.error(f"[get_embedded_datetime] Error processing '{file_path}': {e}")
+        GV.LOGGER.error(f"{step_name}[get_embedded_datetime] Error processing '{file_path}': {e}")
         return None
 
 
@@ -2476,11 +2476,12 @@ def get_embedded_datetimes_bulk(folder, step_name=''):
         dict[Path, datetime.datetime]: mapping de archivo → fecha más antigua encontrada
     """
     folder = Path(folder).resolve()
-
+    step_name = f"{step_name}[get_embedded_datetimes_bulk] : "
+    
     is_windows = platform.system().lower() == 'windows'
     exiftool_path = Path("gpth_tool/exif_tool/exiftool.exe" if is_windows else "gpth_tool/exif_tool/exiftool").resolve()
     if not exiftool_path.exists():
-        GV.LOGGER.error(f"[get_embedded_datetimes_bulk] ❌ exiftool not found at: {exiftool_path}")
+        GV.LOGGER.error(f"{step_name}❌ exiftool not found at: {exiftool_path}")
         return {}
 
     try:
@@ -2496,7 +2497,7 @@ def get_embedded_datetimes_bulk(folder, step_name=''):
             step_name=step_name
         )
         if return_code != 0:
-            LOGGER.warning(f"{step_name}exiftool return code: %d", return_code)
+            LOGGER.warning(f"{step_name}❌ exiftool return code: %d", return_code)
 
         # Decodifica el stdout:
         output = out.decode("utf-8")
@@ -2548,7 +2549,7 @@ def get_embedded_datetimes_bulk(folder, step_name=''):
         if found_dates:
             oldest = min(found_dates)
             result_dict[file_path] = oldest
-            GV.LOGGER.debug(f"[get_embedded_datetimes_bulk] ✅ {oldest} →  {file_path.name}")
+            GV.LOGGER.debug(f"{step_name}✅ {oldest} →  {file_path.name}")
 
     return result_dict
 
