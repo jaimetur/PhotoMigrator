@@ -5,7 +5,6 @@ from colorama import Fore, Style
 from contextlib import contextmanager
 import threading
 from GlobalVariables import LOG_LEVEL, VERBOSE_LEVEL_NUM
-
 import GlobalVariables as GV
 #------------------------------------------------------------------
 # 1) Definir el nuevo nivel VERBOSE (valor 5)
@@ -79,8 +78,6 @@ class CustomConsoleFormatter(logging.Formatter):
             COLORS = {
                 "VERBOSE": Fore.CYAN,
                 "DEBUG": Fore.LIGHTCYAN_EX,
-                # "INFO": Fore.GREEN,
-                # "INFO": Fore.WHITE,
                 "INFO": Fore.LIGHTWHITE_EX,
                 "WARNING": Fore.YELLOW,
                 "ERROR": Fore.RED,
@@ -270,7 +267,7 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
             file_handler_plain.addFilter(ChangeLevelFilter())  # Add Filter to Downgrade from INFO to DEBUG/WARNING/ERROR when detected chains
             LOGGER.addHandler(file_handler_plain)
         else:
-            print (f"INFO    : Unknown format '{format}' for Logger. Please select a valid format between: ['log', 'txt', 'all].")
+            print (f"{GV.TAG_INFO}Unknown format '{format}' for Logger. Please select a valid format between: ['log', 'txt', 'all].")
 
     # Set the log level for the root logger
     LOGGER.setLevel(log_level)

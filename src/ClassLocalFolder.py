@@ -15,6 +15,7 @@ from CustomLogger import set_log_level
 
 # Import the global LOGGER from GlobalVariables
 from GlobalVariables import LOGGER, ARGS
+import GlobalVariables as GV
 
 """
 -------------------
@@ -713,7 +714,7 @@ class ClassLocalFolder:
                 return filtered_album_assets
 
             except Exception as e:
-                error_message = f"ERROR   : Failed to retrieve {type} assets from album '{album_name}'" if album_name else f"ERROR   : Failed to retrieve {type} assets from album ID={album_id}"
+                error_message = f"Failed to retrieve {type} assets from album '{album_name}'" if album_name else f"Failed to retrieve {type} assets from album ID={album_id}"
                 LOGGER.error(f"{error_message}: {str(e)}")
                 return []
 
@@ -778,7 +779,7 @@ class ClassLocalFolder:
                 return filtered_album_assets
 
             except Exception as e:
-                error_message = f"ERROR   : Failed to retrieve {type} assets from album '{album_name}'" if album_name else f"ERROR   : Failed to retrieve {type} assets from album ID={album_id}"
+                error_message = f"Failed to retrieve {type} assets from album '{album_name}'" if album_name else f"Failed to retrieve {type} assets from album ID={album_id}"
                 LOGGER.error(f"{error_message}: {str(e)}")
                 return []
 
@@ -1020,7 +1021,7 @@ class ClassLocalFolder:
         with set_log_level(LOGGER, log_level):
             src = Path(file_path)
             if not src.exists() or not src.is_file():
-                LOGGER.warning(f"INFO    : File '{file_path}' does not exist or is not a file.")
+                LOGGER.warning(f"{GV.TAG_INFO}File '{file_path}' does not exist or is not a file.")
                 return None, None
 
             mtime = src.stat().st_mtime
@@ -1373,7 +1374,7 @@ class ClassLocalFolder:
                             if not target_file.exists():
                                 file.rename(target_file)
                             else:
-                                LOGGER.warning(f"WARNING  : Skipped moving '{file}' as it already exists at destination.")
+                                LOGGER.warning(f"Skipped moving '{file}' as it already exists at destination.")
 
                     try:
                         dup_path.rmdir()  # Only works if the folder is empty

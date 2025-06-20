@@ -1,6 +1,7 @@
 from datetime import datetime
 import textwrap
 import logging
+from colorama import Fore
 
 #---------------------------------------
 # GLOBAL VARIABLES FOR THE WHOLE PROJECT
@@ -30,6 +31,20 @@ MAX_SHORT_ARGUMENT_LENGHT       = 10
 MAX_HELP_POSITION               = 100
 IDENT_ARGUMENT_DESCRIPTION      = 14
 IDENT_USAGE_DESCRIPTION         = 24
+
+TAG_VERBOSE                     = f"VERBOSE : "
+TAG_DEBUG                       = f"DEBUG   : "
+TAG_INFO                        = f"INFO    : "
+TAG_WARNING                     = f"WARNING : "
+TAG_ERROR                       = f"ERROR   : "
+TAG_CRITICAL                    = f"CRITICAL: "
+COLORTAG_VERBOSE                = f"{Fore.CYAN}{TAG_VERBOSE}"
+COLORTAG_DEBUG                  = f"{Fore.LIGHTCYAN_EX}{TAG_DEBUG}"
+COLORTAG_INFO                   = f"{Fore.LIGHTWHITE_EX}{TAG_INFO}"
+COLORTAG_WARNING                = f"{Fore.YELLOW}{TAG_WARNING}"
+COLORTAG_ERROR                  = f"{Fore.RED}{TAG_ERROR}"
+COLORTAG_CRITICAL               = f"{Fore.MAGENTA}{TAG_CRITICAL}"
+
 
 # Supplemental Metadata Suffix
 SUPPLEMENTAL_METADATA           = "supplemental-metadata"

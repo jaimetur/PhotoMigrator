@@ -7,6 +7,8 @@ import glob
 import platform
 from pathlib import Path
 
+import GlobalVariables as GV
+
 from nuitka.Options import shallAskForWindowsUIAccessRights
 
 # Add 'src/' folder to path to import any module from 'src/'.

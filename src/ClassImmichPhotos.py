@@ -20,6 +20,7 @@ from CustomLogger import set_log_level
 
 # Import the global LOGGER from GlobalVariables
 from GlobalVariables import LOGGER, ARGS
+import GlobalVariables as GV
 
 """
 --------------------
@@ -1347,7 +1348,7 @@ class ClassImmichPhotos:
                     first_level_folders += subfolders_inclusion
                     first_level_folders = list(dict.fromkeys(first_level_folders))
 
-                with tqdm(total=len(valid_folders), smoothing=0.1, desc=f"INFO    : Uploading Albums from '{os.path.basename(input_folder)}' sub-folders", unit=" sub-folder") as pbar:
+                with tqdm(total=len(valid_folders), smoothing=0.1, desc=f"{GV.TAG_INFO}Uploading Albums from '{os.path.basename(input_folder)}' sub-folders", unit=" sub-folder") as pbar:
                     for subpath in valid_folders:
                         pbar.update(1)
                         album_assets_ids = []
@@ -1469,7 +1470,7 @@ class ClassImmichPhotos:
             total_duplicated_assets_skipped = 0
 
             with tqdm(total=total_files, smoothing=0.1,
-                      desc="INFO    : Uploading Assets", unit=" asset") as pbar:
+                      desc=f"{GV.TAG_INFO}Uploading Assets", unit=" asset") as pbar:
                 for f_idx, file_path in enumerate(file_paths, start=1):
                     pbar.update(1)
                     _, ext = os.path.splitext(file_path)
@@ -1604,7 +1605,7 @@ class ClassImmichPhotos:
             total_albums_downloaded = 0
             total_albums = len(albums_to_download)
 
-            for album in tqdm(albums_to_download, desc="INFO    : Downloading Albums", unit=" albums"):
+            for album in tqdm(albums_to_download, desc=f"{GV.TAG_INFO}Downloading Albums", unit=" albums"):
             # for album in albums_to_download:
                 album_id = album.get("id")
                 album_name = album.get("albumName", f"album_{album_id}")
@@ -1613,7 +1614,7 @@ class ClassImmichPhotos:
 
                 album_assets = self.get_all_assets_from_album(album_id, log_level=log_level)
                 for asset in album_assets:
-                # for asset in tqdm(album_assets, desc=f"INFO    : Downloading '{alb_name}'", unit=" assets"):
+                # for asset in tqdm(album_assets, desc=f"{GV.TAG_INFO}Downloading '{alb_name}'", unit=" assets"):
                     asset_id = asset.get("id")
                     asset_filename = os.path.basename(asset.get("originalFileName", "unknown"))
                     if asset_id:
@@ -1651,7 +1652,7 @@ class ClassImmichPhotos:
             os.makedirs(no_albums_folder, exist_ok=True)
 
             LOGGER.info(f"Found {len(all_assets_without_albums)} asset(s) without any album associated.")
-            for asset in tqdm(all_assets_without_albums, desc="INFO    : Downloading assets without associated albums", unit=" assets"):
+            for asset in tqdm(all_assets_without_albums, desc=f"{GV.TAG_INFO}Downloading assets without associated albums", unit=" assets"):
                 asset_id = asset.get("id")
                 asset_filename = os.path.basename(asset.get("originalFileName", "unknown"))
                 if not asset_id:
@@ -1760,7 +1761,7 @@ class ClassImmichPhotos:
                 return 0
 
             albums_to_rename = {}
-            for album in tqdm(albums, desc="INFO    : Searching for albums to rename", unit="albums"):
+            for album in tqdm(albums, desc=f"{GV.TAG_INFO}Searching for albums to rename", unit="albums"):
                 album_date = album.get("createdAt")
                 if is_date_outside_range(album_date):
                     continue
@@ -1839,7 +1840,7 @@ class ClassImmichPhotos:
                 return 0, 0
 
             albums_to_remove = []
-            for album in tqdm(albums, desc="INFO    : Searching for albums to remove", unit="albums"):
+            for album in tqdm(albums, desc=f"{GV.TAG_INFO}Searching for albums to remove", unit="albums"):
                 album_date = album.get("createdAt")
                 if is_date_outside_range(album_date):
                     continue
@@ -1913,7 +1914,7 @@ class ClassImmichPhotos:
                 return 0, 0
 
             albums_to_remove = []
-            for album in tqdm(albums, desc="INFO    : Searching for albums to remove", unit="albums"):
+            for album in tqdm(albums, desc=f"{GV.TAG_INFO}Searching for albums to remove", unit="albums"):
                 album_date = album.get("createdAt")
                 if is_date_outside_range(album_date):
                     continue
@@ -1994,7 +1995,7 @@ class ClassImmichPhotos:
 
             total_removed_empty_albums = 0
             LOGGER.info(f"Looking for empty albums in Immich Photos...")
-            for album in tqdm(albums, desc=f"INFO    : Searching for Empty Albums", unit=" albums"):
+            for album in tqdm(albums, desc=f"{GV.TAG_INFO}Searching for Empty Albums", unit=" albums"):
                 # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
                 album_date = album.get("createdAt")
                 if is_date_outside_range(album_date):
@@ -2035,7 +2036,7 @@ class ClassImmichPhotos:
 
             LOGGER.info(f"Searching for duplicate albums in Immich Photos...")
             duplicates_map = {}
-            for album in tqdm(albums, desc="INFO    : Searching for duplicate albums", unit="albums"):
+            for album in tqdm(albums, desc=f"{GV.TAG_INFO}Searching for duplicate albums", unit="albums"):
                 album_date = album.get("createdAt")
                 if is_date_outside_range(album_date):
                     continue
@@ -2102,7 +2103,7 @@ class ClassImmichPhotos:
 
             LOGGER.info(f"Looking for duplicate albums in Immich Photos...")
             albums_by_name = {}
-            for album in tqdm(albums, desc="INFO    : Grouping Albums by Name", unit=" albums"):
+            for album in tqdm(albums, desc=f"{GV.TAG_INFO}Grouping Albums by Name", unit=" albums"):
                 # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
                 album_date = album.get("create_time")
                 if is_date_outside_range(album_date):
@@ -2258,7 +2259,7 @@ class ClassImmichPhotos:
                     return 0
 
             headers['x-api-key'] = self.IMMICH_USER_API_KEY  # Use user API key for deletion
-            with tqdm(total=num_entries, desc="INFO    : Removing orphaned media assets", unit="asset") as progress_bar:
+            with tqdm(total=num_entries, desc=f"{GV.TAG_INFO}Removing orphaned media assets", unit="asset") as progress_bar:
                 for asset in orphan_media_assets:
                     entity_id = asset['entityId']
                     asset_url = f'{api_url}/assets'
@@ -2320,7 +2321,7 @@ class ClassImmichPhotos:
 
             # Delete in batches
             if assets_ids:
-                with tqdm(total=total_assets_found, desc="INFO    : Removing assets", unit=" assets") as pbar:
+                with tqdm(total=total_assets_found, desc=f"{GV.TAG_INFO}Removing assets", unit=" assets") as pbar:
                     for i in range(0, len(assets_ids), BATCH_SIZE):
                         batch = assets_ids[i:i + BATCH_SIZE]
                         removed_count = self.remove_assets(batch, log_level=logging.WARNING)

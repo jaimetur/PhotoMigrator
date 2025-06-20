@@ -1,5 +1,6 @@
 import os
 from CustomLogger import print_verbose, print_debug, print_info, print_warning, print_critical
+import GlobalVariables as GV
 def change_working_dir(change_dir=None):
     if change_dir:
         """ Definir la ruta de trabajo deseada """
@@ -8,4 +9,4 @@ def change_working_dir(change_dir=None):
         if os.path.exists(WORKING_DIR) and os.path.isdir(WORKING_DIR):
             os.chdir(WORKING_DIR)
             current_directory = os.getcwd()
-            print(f"INFO    : Directorio cambiado a: {os.getcwd()}")
+            print(f"{GV.TAG_INFO}Directorio cambiado a: {os.getcwd()}")
