@@ -41,9 +41,9 @@ TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
 # -------------------------------------------------------------
 # Set Profile to analyze and optimize code:
 # -------------------------------------------------------------
-def profile_and_print(function_to_analyze, *args, step_name='', live_stats=True, interval=10, top_n=10, **kwargs):
+def profile_and_print(function_to_analyze, *args, step_name_for_profile='', live_stats=True, interval=10, top_n=10, **kwargs):
     """
-    Ejecuta cProfile solo sobre `function_to_analyze` (dejando el sleep
+    Ejecuta cProfile solo sobre function_to_analyze (dejando el sleep
     del wrapper fuera del profiling), vuelca stats a LOGGER.debug si
     live_stats=True, y devuelve el resultado de la función analizada.
     """
@@ -68,7 +68,7 @@ def profile_and_print(function_to_analyze, *args, step_name='', live_stats=True,
             # Mientras la tarea no termine, volcamos stats cada interval
             while True:
                 try:
-                    # Esperamos como máximo `interval` segundos
+                    # Esperamos como máximo interval segundos
                     result = future.result(timeout=interval)
                     break
                 except TimeoutError:
@@ -76,7 +76,7 @@ def profile_and_print(function_to_analyze, *args, step_name='', live_stats=True,
                     stream = io.StringIO()
                     stats = pstats.Stats(profiler, stream=stream)
                     stats.strip_dirs().sort_stats("cumulative").print_stats(top_n)
-                    LOGGER.debug(f"{step_name}⏱️ Intermediate Stats (top %d):\n\n%s", top_n, stream.getvalue() )
+                    LOGGER.debug(f"{step_name_for_profile}⏱️ Intermediate Stats (top %d):\n\n%s", top_n, stream.getvalue() )
 
             final_result = result
         else:
@@ -87,7 +87,7 @@ def profile_and_print(function_to_analyze, *args, step_name='', live_stats=True,
     stream = io.StringIO()
     stats = pstats.Stats(profiler, stream=stream)
     stats.strip_dirs().sort_stats("cumulative").print_stats(top_n)
-    LOGGER.debug(f"{step_name}🔍 Final Profile Report (top %d):\n\n%s", top_n, stream.getvalue() )
+    LOGGER.debug(f"{step_name_for_profile}Final Profile Report (top %d):\n\n%s", top_n, stream.getvalue() )
 
     return final_result
 
@@ -2335,14 +2335,15 @@ def get_oldest_date(file_path, extensions, tag_ids, skip_exif=True, skip_json=Tr
         if not skip_exif and ext in extensions:
             try:
                 exif = Image.open(file_path).getexif()
-                for tag_id in tag_ids:
-                    raw = exif.get(tag_id)
-                    if isinstance(raw, str) and len(raw) >= 19:
-                        # fast parse 'YYYY:MM:DD HH:MM:SS'
-                        y, mo, d   = int(raw[0:4]), int(raw[5:7]), int(raw[8:10])
-                        hh, mm, ss = int(raw[11:13]), int(raw[14:16]), int(raw[17:19])
-                        dates.append(datetime(y, mo, d, hh, mm, ss))
-                        break
+                if len(exif)>0:
+                    for tag_id in tag_ids:
+                        raw = exif.get(tag_id)
+                        if isinstance(raw, str) and len(raw) >= 19:
+                            # fast parse 'YYYY:MM:DD HH:MM:SS'
+                            y, mo, d   = int(raw[0:4]), int(raw[5:7]), int(raw[8:10])
+                            hh, mm, ss = int(raw[11:13]), int(raw[14:16]), int(raw[17:19])
+                            dates.append(datetime(y, mo, d, hh, mm, ss))
+                            break
             except Exception:
                 pass
 
@@ -2377,7 +2378,196 @@ def get_oldest_date(file_path, extensions, tag_ids, skip_exif=True, skip_json=Tr
         return result
 
 
-def count_files_per_type_and_date(input_folder, skip_exif=True, skip_json=True, log_level=None):
+def get_embedded_datetime(file_path, step_name=''):
+    """
+    Devuelve la fecha embebida más antigua encontrada como datetime.datetime,
+    usando exiftool desde ./gpth_tool/exif_tool/. Si no hay fechas embebidas válidas, retorna None.
+
+    Usa GV.PHOTO_EXT, GV.VIDEO_EXT y GV.LOGGER.
+
+    Args:
+        file_path (str, Literal or Path): Ruta al archivo.
+
+    Returns:
+        datetime.datetime or None
+    """
+    file_path = Path(file_path)
+    ext = file_path.suffix.lower()
+
+    if ext not in GV.PHOTO_EXT and ext not in GV.VIDEO_EXT:
+        return None
+
+    is_windows = platform.system().lower() == 'windows'
+    exiftool_path = Path("gpth_tool/exif_tool/exiftool.exe" if is_windows else "gpth_tool/exif_tool/exiftool").resolve()
+
+    if not exiftool_path.exists():
+        GV.LOGGER.debug(f"{step_name}[get_embedded_datetime] exiftool not found at: {exiftool_path}")
+        return None
+
+    try:
+        result = subprocess.run(
+            [str(exiftool_path), '-j', '-time:all', '-s', str(file_path)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            encoding='utf-8',
+            check=True
+        )
+        metadata_list = json.loads(result.stdout)
+        if not metadata_list or not isinstance(metadata_list, list) or not metadata_list[0]:
+            GV.LOGGER.debug(f"{step_name}[get_embedded_datetime] No metadata returned for: {file_path.name}")
+            return None
+
+        metadata = metadata_list[0]
+
+        candidate_tags = [
+            'DateTimeOriginal',
+            'CreateDate',
+            'MediaCreateDate',
+            'TrackCreateDate',
+            'EncodedDate',
+            'MetadataDate',
+        ]
+
+        available_tags = [tag for tag in candidate_tags if tag in metadata]
+        if not available_tags:
+            GV.LOGGER.debug(f"{step_name}[get_embedded_datetime] No embedded date tags found in metadata for: {file_path.name}")
+            return None
+
+        date_formats = [
+            "%Y:%m:%d %H:%M:%S",
+            "%Y-%m-%d %H:%M:%S",
+            "%Y:%m:%d",
+            "%Y-%m-%d",
+        ]
+
+        found_dates = []
+
+        for tag in available_tags:
+            raw_value = metadata[tag].strip()
+            for fmt in date_formats:
+                try:
+                    parsed_date = datetime.strptime(raw_value, fmt)
+                    found_dates.append((tag, parsed_date))
+                    break
+                except ValueError:
+                    continue
+
+        if not found_dates:
+            GV.LOGGER.debug(f"{step_name}[get_embedded_datetime] None of the embedded date fields could be parsed for: {file_path.name}")
+            return None
+
+        oldest = min(found_dates, key=lambda x: x[1])
+        GV.LOGGER.debug(f"{step_name}[get_embedded_datetime] Selected tag '{oldest[0]}' with date {oldest[1]} for: {file_path.name}")
+        return oldest[1]
+
+    except Exception as e:
+        GV.LOGGER.error(f"{step_name}[get_embedded_datetime] Error processing '{file_path}': {e}")
+        return None
+
+
+def get_embedded_datetimes_bulk(folder, step_name=''):
+    """
+    Devuelve un diccionario con la fecha embebida más antigua de cada archivo multimedia en la carpeta y subcarpetas.
+
+    Args:
+        folder (str or Path): Carpeta raíz
+
+    Returns:
+        dict[Path, datetime.datetime]: mapping de archivo → fecha más antigua encontrada
+    """
+    folder = Path(folder).resolve()
+    step_name = f"{step_name}[get_embedded_datetimes_bulk] : "
+    
+    is_windows = platform.system().lower() == 'windows'
+    exiftool_path = Path("gpth_tool/exif_tool/exiftool.exe" if is_windows else "gpth_tool/exif_tool/exiftool").resolve()
+    if not exiftool_path.exists():
+        GV.LOGGER.error(f"{step_name}❌ exiftool not found at: {exiftool_path}")
+        return {}
+
+    try:
+        # result = subprocess.run(
+        #     [str(exiftool_path), "-r", "-j", "-time:all", "-s", str(folder)],
+        #     stdout=subprocess.PIPE,
+        #     stderr=subprocess.DEVNULL,
+        #     encoding='utf-8',
+        #     check=False  # <== importante
+        # )
+        return_code, out, err = timed_subprocess(
+            [str(exiftool_path), "-r", "-j", "-time:all", "-s", str(folder)],
+            step_name=step_name
+        )
+        if return_code != 0:
+            LOGGER.warning(f"{step_name}❌ exiftool return code: %d", return_code)
+
+        # Decodifica el stdout:
+        output = out.decode("utf-8")
+            
+        metadata_list = json.loads(output)
+    except Exception as e:
+        GV.LOGGER.error(f"{step_name}❌ Failed to run exiftool: {e}")
+        return {}
+
+    date_formats = [
+        "%Y:%m:%d %H:%M:%S",
+        "%Y-%m-%d %H:%M:%S",
+        "%Y:%m:%d",
+        "%Y-%m-%d",
+    ]
+
+    candidate_tags = [
+        'DateTimeOriginal',
+        'CreateDate',
+        'MediaCreateDate',
+        'TrackCreateDate',
+        'EncodedDate',
+        'MetadataDate',
+    ]
+
+    result_dict = {}
+
+    for entry in metadata_list:
+        source_file = entry.get("SourceFile")
+        if not source_file:
+            continue
+        file_path = Path(source_file)
+        ext = file_path.suffix.lower()
+        if ext not in GV.PHOTO_EXT and ext not in GV.VIDEO_EXT:
+            continue
+
+        found_dates = []
+        for tag in candidate_tags:
+            if tag in entry:
+                raw_value = entry[tag].strip()
+                for fmt in date_formats:
+                    try:
+                        dt = datetime.strptime(raw_value, fmt)
+                        found_dates.append(dt)
+                        break
+                    except ValueError:
+                        continue
+
+        if found_dates:
+            oldest = min(found_dates)
+            result_dict[file_path] = oldest
+            GV.LOGGER.debug(f"{step_name}✅ {oldest} →  {file_path.name}")
+
+    return result_dict
+
+
+def timed_subprocess(cmd, step_name=""):
+    """
+    Ejecuta cmd con Popen, espera a que termine y registra sólo
+    el tiempo total de ejecución al final.
+    """
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    start = time.time()
+    out, err = proc.communicate()
+    total = time.time() - start
+    LOGGER.debug(f"{step_name}✅ subprocess finished in {total:.2f}s")
+    return proc.returncode, out, err
+
+
+def count_files_per_type_and_date(input_folder, skip_exif=True, skip_json=True, step_name='', log_level=None):
     """
     Analyze all files in `input_folder`, counting:
       - total files
@@ -2411,6 +2601,9 @@ def count_files_per_type_and_date(input_folder, skip_exif=True, skip_json=True, 
             for tag_id, tag_name in ExifTags.TAGS.items()
             if tag_name in ('DateTimeOriginal', 'DateTimeDigitized', 'DateTime')
         }
+
+        # Create a dictionary with all files dates using exiftool
+        dates_dict = get_embedded_datetimes_bulk(folder=input_folder, step_name=step_name)
 
         # Walk through all subdirectories and files
         for root, dirs, files in os.walk(input_folder):
@@ -2466,7 +2659,9 @@ def count_files_per_type_and_date(input_folder, skip_exif=True, skip_json=True, 
                 counters[media_type]['total'] += 1
 
                 # file_date = get_oldest_date(file_path=file_path, skip_exif=skip_exif, skip_json=skip_json)
-                file_date = get_oldest_date(file_path=file_path, extensions=MEDIA_EXT, tag_ids=WANTED_TAG_IDS, skip_exif=skip_exif, skip_json=skip_json)
+                # file_date = get_oldest_date(file_path=file_path, extensions=MEDIA_EXT, tag_ids=WANTED_TAG_IDS, skip_exif=skip_exif, skip_json=skip_json)
+                # file_date = get_embedded_datetime(file_path=file_path)
+                file_date = dates_dict.get(Path(file_path))
                 has_date = file_date is not None and file_date <= timestamp_dt
 
                 if has_date:

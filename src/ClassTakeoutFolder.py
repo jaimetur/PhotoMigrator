@@ -177,9 +177,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
             if LOG_LEVEL in [logging.DEBUG, VERBOSE_LEVEL_NUM]:
                 # Configura y arranca el profiler justo antes de la llamada que quieres medir
                 LOGGER.debug(f"{step_name}Profiling Function count_files_per_type_and_date")
-                initial_takeout_counters = Utils.profile_and_print(Utils.count_files_per_type_and_date, input_folder=input_folder, skip_exif=False, skip_json=True, log_level=LOG_LEVEL, step_name=step_name, live_stats=True, interval=10)
+                initial_takeout_counters = Utils.profile_and_print(Utils.count_files_per_type_and_date, input_folder=input_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL, live_stats=True, interval=10, step_name_for_profile=step_name)
             else:
-                initial_takeout_counters = Utils.count_files_per_type_and_date(input_folder=input_folder, skip_exif=False, skip_json=True, log_level=LOG_LEVEL)
+                initial_takeout_counters = Utils.count_files_per_type_and_date(input_folder=input_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL)
 
             # Clean input dict
             self.result['input_counters'].clear()
@@ -658,7 +658,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             # 1. First count all Files in output Folder
             # New function to count all file types and extract also date info
-            output_counters = Utils.count_files_per_type_and_date(input_folder=output_folder, skip_exif=False, skip_json=True, log_level=LOG_LEVEL)
+            output_counters = Utils.count_files_per_type_and_date(input_folder=output_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL)
             # Clean input dict
             self.result['output_counters'].clear()
             # Assign all pairs key-value from output_counters to counter['output_counters'] dict
