@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "photomigrator"
+dynamic = ["version"]           # la versión la aporta setup.py
+description = "Herramienta de migración de fotos"
+readme = "README.md"
+requires-python = ">=3.7"
+
+[project.scripts]
+photomigrator = "photomigrator.PhotoMigrator:main"
