@@ -4,8 +4,9 @@ import os
 import shutil
 import logging
 import re
-import Utils
-from Utils import parse_text_datetime_to_epoch, match_pattern, replace_pattern, has_any_filter, is_date_outside_range
+from Globals import Utils, ChangeWorkingDir, GlobalVariables as GV
+from Utils import has_any_filter
+from DateFunctions import parse_text_datetime_to_epoch
 from datetime import datetime
 import time
 from pathlib import Path
@@ -15,7 +16,6 @@ from CustomLogger import set_log_level
 
 # Import the global LOGGER from GlobalVariables
 from GlobalVariables import LOGGER, ARGS
-import GlobalVariables as GV
 
 """
 -------------------
@@ -1424,7 +1424,6 @@ class ClassLocalFolder:
 ##############################################################################
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-    import ChangeWorkingDir
     ChangeWorkingDir.change_working_dir(change_dir=False)
 
     # Create the Object

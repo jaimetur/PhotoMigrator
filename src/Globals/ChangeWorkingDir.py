@@ -1,6 +1,8 @@
 import os
-from CustomLogger import print_verbose, print_debug, print_info, print_warning, print_critical
-import GlobalVariables as GV
+
+from Globals import GlobalVariables as GV
+
+
 def change_working_dir(change_dir=None):
     if change_dir:
         """ Definir la ruta de trabajo deseada """

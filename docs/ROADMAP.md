@@ -26,6 +26,7 @@
     - [x] Add argument `-gSkipPrep,--google-skip-preprocess` to Skipp Preproces steps during Google Takeout Processing feature.
   
   - #### 🚀 Enhancements:
+    - [x] Code totally refactored and organized per modules within Gloal and Features Subfolders.
     - [x] Reorganized Pre-checks/Pre-process/Process steps for a clearer maintainance and better visualization. 
     - [x] The Feature `Google Takeout Processing` is no longer called using the Pre-checks functions but always using the Process() function from ClassTakeoutFolder.
     - [x] Included Input/Output folder size in Google Takeout Statistics.

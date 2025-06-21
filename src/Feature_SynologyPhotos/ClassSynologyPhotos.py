@@ -12,15 +12,15 @@ from datetime import datetime
 import time
 import logging
 
-from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm, parse_text_datetime_to_epoch, match_pattern, replace_pattern, has_any_filter, is_date_outside_range, confirm_continue
-
+from Utils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, is_date_outside_range, confirm_continue
+from DateFunctions import parse_text_datetime_to_epoch
+import GoogleTakeoutPostprocess as GPOST
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
 
 # Import the global LOGGER from GlobalVariables
 from GlobalVariables import LOGGER, ARGS
-import GlobalVariables as GV
-
+from Globals import GlobalVariables as GV
 
 """
 ----------------------
@@ -2262,7 +2262,7 @@ class ClassSynologyPhotos:
                     total_assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=target_folder, log_level=logging.INFO)
 
                 # Now organize them by date (year/month)
-                organize_files_by_date(input_folder=no_albums_folder, type='year/month')
+                GPOST.organize_files_by_date(input_folder=no_albums_folder, type='year/month')
 
                 LOGGER.info(f"Album(s) downloaded successfully. You can find them in '{no_albums_folder}'")
                 # self.logout(log_level=log_level)

@@ -1,7 +1,7 @@
 import os
 import unittest
 from tests.utils import get_test_file
-from ClassTakeoutFolder import ClassTakeoutFolder
+
 
 class TestGoogleTakeoutProcessor(unittest.TestCase):
     def setUp(self):

@@ -1,8 +1,15 @@
-# Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-import ChangeWorkingDir
-ChangeWorkingDir.change_working_dir(change_dir=True)
-
 import os,sys
+from pathlib import Path
+
+# Añadir 'src/' al PYTHONPATH
+sys.path.append(str(Path(__file__).resolve().parent))
+
+# Change Working Dir before to import GlobalVariables or other Modules that depends on it.
+from Globals.ChangeWorkingDir import change_working_dir
+change_working_dir(change_dir=True)
+
+
+import Globals.GlobalVariables as GV
 import importlib
 print("")
 print ("Loading Tool...")
@@ -39,7 +46,6 @@ def select_folder_gui():
     root.withdraw()
     return filedialog.askdirectory(title="Select the Google Takeout folder to process")
 
-import GlobalVariables as GV
 
 # Verificar si el script se ejecutó con un solo argumento que sea una ruta de una carpeta existente
 if len(sys.argv) >= 2 and os.path.isdir(sys.argv[1]):
@@ -72,7 +78,6 @@ elif len(sys.argv) == 1:
         print(f"{GV.TAG_ERROR}No valid folder selected. Exiting.")
         sys.exit(1)
 
-import GlobalFunctions
 from Utils import check_OS_and_Terminal
 from GlobalVariables import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME, SCRIPT_NAME
 from ExecutionModes import detect_and_run_execution_mode

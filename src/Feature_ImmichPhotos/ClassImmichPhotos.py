@@ -13,14 +13,14 @@ from urllib.parse import urlparse
 from halo import Halo
 from tabulate import tabulate
 
-from Utils import update_metadata, convert_to_list, tqdm, parse_text_datetime_to_epoch, organize_files_by_date, match_pattern, replace_pattern, has_any_filter, is_date_outside_range, confirm_continue
-
+from Utils import update_metadata, convert_to_list, tqdm, match_pattern, replace_pattern, has_any_filter, is_date_outside_range, confirm_continue
+from DateFunctions import parse_text_datetime_to_epoch
+import GoogleTakeoutPostprocess as GPOST
 # We also keep references to your custom logger context manager and utility functions:
 from CustomLogger import set_log_level
 
 # Import the global LOGGER from GlobalVariables
 from GlobalVariables import LOGGER, ARGS
-import GlobalVariables as GV
 
 """
 --------------------
@@ -1674,7 +1674,7 @@ class ClassImmichPhotos:
                 total_assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=target_folder, log_level=log_level)
 
             # Now organize them by date (year/month)
-            organize_files_by_date(input_folder=no_albums_folder, type='year/month')
+            GPOST.organize_files_by_date(input_folder=no_albums_folder, type='year/month')
 
             LOGGER.info(f"Download of assets without associated albums completed.")
             LOGGER.info(f"Total Assets downloaded: {total_assets_downloaded}")
@@ -2347,7 +2347,8 @@ class ClassImmichPhotos:
 ##############################################################################
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-    import ChangeWorkingDir
+    from Globals import ChangeWorkingDir, GlobalVariables as GV
+
     ChangeWorkingDir.change_working_dir(change_dir=False)
 
     # Create the Object
