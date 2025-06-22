@@ -4,18 +4,16 @@ import os
 import shutil
 import logging
 import re
-import Utils
-from Utils import parse_text_datetime_to_epoch, match_pattern, replace_pattern, has_any_filter, is_date_outside_range
+from Core.Utils import parse_text_datetime_to_epoch, has_any_filter
 from datetime import datetime
 import time
 from pathlib import Path
 
 # We also keep references to your custom logger context manager and utility functions:
-from CustomLogger import set_log_level
+from Core.CustomLogger import set_log_level
 
 # Import the global LOGGER from GlobalVariables
-from GlobalVariables import LOGGER, ARGS
-import GlobalVariables as GV
+from Core.GlobalVariables import LOGGER, ARGS
 
 """
 -------------------
@@ -1424,7 +1422,8 @@ class ClassLocalFolder:
 ##############################################################################
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-    import ChangeWorkingDir
+    from Core import ChangeWorkingDir, Utils, GlobalVariables as GV
+
     ChangeWorkingDir.change_working_dir(change_dir=False)
 
     # Create the Object

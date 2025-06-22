@@ -1,6 +1,6 @@
 import unittest
 from tests.utils import get_test_file
-from ClassImmichPhotos import ClassImmichPhotos
+
 
 class TestImmichPhotosManager(unittest.TestCase):
     def setUp(self):

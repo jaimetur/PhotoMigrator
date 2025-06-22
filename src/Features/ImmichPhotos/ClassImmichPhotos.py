@@ -13,14 +13,14 @@ from urllib.parse import urlparse
 from halo import Halo
 from tabulate import tabulate
 
-from Utils import update_metadata, convert_to_list, tqdm, parse_text_datetime_to_epoch, organize_files_by_date, match_pattern, replace_pattern, has_any_filter, is_date_outside_range, confirm_continue
+from Core.Utils import update_metadata, convert_to_list, tqdm, parse_text_datetime_to_epoch, match_pattern, replace_pattern, has_any_filter, is_date_outside_range, confirm_continue
+from GoogleTakeoutFunctions import organize_files_by_date
 
 # We also keep references to your custom logger context manager and utility functions:
-from CustomLogger import set_log_level
+from Core.CustomLogger import set_log_level
 
 # Import the global LOGGER from GlobalVariables
-from GlobalVariables import LOGGER, ARGS
-import GlobalVariables as GV
+from Core.GlobalVariables import LOGGER, ARGS
 
 """
 --------------------
@@ -123,7 +123,7 @@ class ClassImmichPhotos:
         Returns:
             dict: The loaded configuration dictionary.
         """
-        from ConfigReader import load_config
+        from Core.ConfigReader import load_config
         
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             if self.CONFIG:
@@ -2347,7 +2347,8 @@ class ClassImmichPhotos:
 ##############################################################################
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-    import ChangeWorkingDir
+    from Core import ChangeWorkingDir, GlobalVariables as GV
+
     ChangeWorkingDir.change_working_dir(change_dir=False)
 
     # Create the Object

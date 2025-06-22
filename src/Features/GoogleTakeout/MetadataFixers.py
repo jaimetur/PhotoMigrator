@@ -1,17 +1,13 @@
 import os,sys
 import platform
 import subprocess
-import logging
-import select
-import threading
-import queue
-import re
-import time
 from packaging.version import Version
 
-from CustomLogger import set_log_level
-from GlobalVariables import LOGGER, GPTH_VERSION, ARGS
-from Utils import get_os, get_arch, resource_path, ensure_executable, run_command, print_arguments_pretty
+from Core.CustomLogger import set_log_level
+from Core.GlobalVariables import LOGGER, GPTH_VERSION, ARGS
+from Core.Utils import get_os, get_arch, resource_path, ensure_executable, print_arguments_pretty
+from GoogleTakeoutFunctions import run_command
+
 
 def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=False, capture_errors=True, print_messages=True, skip_extras=False, symbolic_albums=False, move_takeout_folder=False, ignore_takeout_structure=False, step_name="", log_level=None):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -159,7 +155,7 @@ def fix_metadata_with_exif_tool(output_folder, log_level=None):
         elif current_os == "Windows":
             script_name = "exiftool.exe"
         # Usar resource_path para acceder a archivos o directorios:
-        exif_tool_path = resource_path(os.path.join("exif_tool",script_name))
+        exif_tool_path = resource_path(os.path.join("exif_tool", script_name))
 
         # Ensure exec permissions for the binary file
         ensure_executable(exif_tool_path)

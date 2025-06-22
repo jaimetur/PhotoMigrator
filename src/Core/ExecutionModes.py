@@ -1,11 +1,10 @@
+import GoogleTakeoutFunctions
 from GlobalVariables import LOGGER, ARGS, TIMESTAMP, START_TIME, HELP_TEXTS, DEPRIORITIZE_FOLDERS_PATTERNS, SCRIPT_DESCRIPTION
 import os, sys
 from datetime import datetime, timedelta
 import Utils
 import logging
-import time
 import shutil
-from dataclasses import asdict
 from CustomLogger import set_log_level
 from Duplicates import find_duplicates, process_duplicates_actions
 from ClassTakeoutFolder import ClassTakeoutFolder
@@ -1057,7 +1056,7 @@ def mode_fix_symlinkgs(user_confirmation=True, log_level=None):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"Fixing broken symbolic links Mode detected. Only this module will be run!!!")
         LOGGER.info(f"Fixing broken symbolic links in folder '{ARGS['fix-symlinks-broken']}'...")
-        symlinks_fixed, symlinks_not_fixed = Utils.fix_symlinks_broken(ARGS['fix-symlinks-broken'])
+        symlinks_fixed, symlinks_not_fixed = GoogleTakeoutFunctions.fix_symlinks_broken(ARGS['fix-symlinks-broken'])
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
@@ -1168,7 +1167,7 @@ def mode_folders_rename_content_based(user_confirmation=True, log_level=None):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"Rename Albums Mode detected. Only this module will be run!!!")
         LOGGER.info(f"Argument detected '-ra, --rename-folders-content-based'. The Tool will look for any Subfolder in '{ARGS['rename-folders-content-based']}' and will rename the folder name in order to unificate all the Albums names.")
-        renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = Utils.rename_album_folders(ARGS['rename-folders-content-based'])
+        renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = GoogleTakeoutFunctions.rename_album_folders(ARGS['rename-folders-content-based'])
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))

@@ -9,17 +9,13 @@ if src_path not in sys.path:
 # ------------------------------------------------------------
 
 import shutil
-import zipfile
 import tempfile
 import subprocess
 import glob
-import platform
 from pathlib import Path
-from nuitka.Options import shallAskForWindowsUIAccessRights
 
-from GlobalVariables import SCRIPT_NAME, SCRIPT_VERSION, GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
-import GlobalVariables as GV
-from Utils import zip_folder, unzip_to_temp, unzip, unzip_flatten, clear_screen, print_arguments_pretty, get_os, get_arch, resource_path, ensure_executable
+from Core.GlobalVariables import SCRIPT_NAME, SCRIPT_VERSION, GPTH_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
+from Core.Utils import zip_folder, unzip_to_temp, clear_screen, print_arguments_pretty, get_os, get_arch, resource_path, ensure_executable
 
 def include_extrafiles_and_zip(input_file, output_file):
     extra_files_to_subdir = [
