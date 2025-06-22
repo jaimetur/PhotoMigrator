@@ -12,7 +12,7 @@ from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import TAG_INFO, TAG_ERROR, LOGGER
 from Core.StandaloneFunctions import resolve_path
 from Core.Utils import remove_empty_dirs, tqdm
-from GoogleTakeoutPreprocess import delete_subfolders
+from Features.GoogleTakeout.GoogleTakeoutPreprocess import delete_subfolders
 
 
 # ========================

@@ -1,6 +1,6 @@
 import os
 
-from nuitka.Progress import tqdm
+from Core.Utils import tqdm
 
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import TAG_INFO, LOGGER

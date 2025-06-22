@@ -4,6 +4,7 @@ import sys
 from configparser import ConfigParser
 
 from Core.StandaloneFunctions import resolve_path
+from Core.GlobalVariables import LOGGER
 
 CONFIG = None
 

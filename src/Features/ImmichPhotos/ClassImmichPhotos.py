@@ -22,7 +22,7 @@ from Core.DateFunctions import parse_text_datetime_to_epoch
 from Core.GlobalVariables import LOGGER, ARGS, TAG_INFO
 from Core.StandaloneFunctions import change_working_dir
 from Core.Utils import update_metadata, convert_to_list, tqdm, match_pattern, replace_pattern, has_any_filter, is_date_outside_range, confirm_continue
-from GoogleTakeoutPostprocess import organize_files_by_date
+from Features.GoogleTakeout.GoogleTakeoutPostprocess import organize_files_by_date
 
 """
 --------------------

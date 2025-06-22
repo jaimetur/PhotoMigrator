@@ -6,19 +6,19 @@ import os
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from AutoRenameAlbumsFolders import rename_album_folders
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import ARGS, LOG_LEVEL, VERBOSE_LEVEL_NUM, LOGGER
+from Core.StandaloneFunctions import change_working_dir
 from Core.Utils import remove_folder, remove_empty_dirs, profile_and_print
+from Features.AutoRenameAlbumsFolders.AutoRenameAlbumsFolders import rename_album_folders
 from Features.Duplicates.Duplicates import find_duplicates
 from Features.GoogleTakeout import MetadataFixers
 # Import ClassLocalFolder (Parent Class of this)
 from Features.GoogleTakeout.ClassLocalFolder import ClassLocalFolder
-from FixSymLinks import fix_symlinks_broken
-from GoogleTakeoutPostprocess import count_valid_albums, count_files_per_type_and_date, move_albums, organize_files_by_date, sync_mp4_timestamps_with_images, force_remove_directory, copy_move_folder
-from GoogleTakeoutPrechecks import contains_takeout_structure, unpack_zips
-from GoogleTakeoutPreprocess import fix_truncations, fix_mp4_files, delete_subfolders
-from Core.StandaloneFunctions import change_working_dir
+from Features.FixSymLinks.FixSymLinks import fix_symlinks_broken
+from Features.GoogleTakeout.GoogleTakeoutPostprocess import count_valid_albums, count_files_per_type_and_date, move_albums, organize_files_by_date, sync_mp4_timestamps_with_images, force_remove_directory, copy_move_folder
+from Features.GoogleTakeout.GoogleTakeoutPrechecks import contains_takeout_structure, unpack_zips
+from Features.GoogleTakeout.GoogleTakeoutPreprocess import fix_truncations, fix_mp4_files, delete_subfolders
 
 
 ##############################################################################
