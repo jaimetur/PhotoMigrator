@@ -19,10 +19,10 @@ def set_LOGGER():
     current_directory = os.getcwd()
     log_folder = resolve_path("Logs")
     log_filename = f"{script_name}_{GV.TIMESTAMP}"
-    GV.LOG_FOLDER_FILENAME = os.path.join(current_directory, log_folder, log_filename)
+    LOG_FOLDER_FILENAME = os.path.join(current_directory, log_folder, log_filename)
 
     # 1) Inicializas el logger con el nivel por defecto
-    GV.LOGGER = log_setup(
+    LOGGER = log_setup(
         log_folder=log_folder,
         log_filename=log_filename,
         log_level=GV.LOG_LEVEL_MIN,
@@ -44,26 +44,26 @@ def set_LOGGER():
 
     if level_str in level_mapping:
         new_level = level_mapping[level_str]
-        GV.LOG_LEVEL = new_level
+        LOG_LEVEL = new_level
 
         # Cambiamos el nivel del logger
-        GV.LOGGER.setLevel(new_level)
+        LOGGER.setLevel(new_level)
         # Y de cada handler
-        for handler in GV.LOGGER.handlers:
+        for handler in LOGGER.handlers:
             handler.setLevel(new_level)
 
-        GV.LOGGER.info(f"Logging level changed to {level_str.upper()}")
+        LOGGER.info(f"Logging level changed to {level_str.upper()}")
     else:
-        GV.LOGGER.warning(f"Unknown Logging level: {GV.ARGS['log-level']}")
+        LOGGER.warning(f"Unknown Logging level: {GV.ARGS['log-level']}")
 
 def set_ARGS_PARSER():
     args, parser = parse_arguments()
     args = checkArgs(args, parser)
-    GV.ARGS = args
-    GV.PARSER = parser
+    ARGS = args
+    PARSER = parser
 
 def set_HELP_TEXT():
-    GV.HELP_TEXTS  = set_help_texts()
+    HELP_TEXTS  = set_help_texts()
 
 
 

@@ -18,12 +18,12 @@ from pathlib import Path
 import piexif
 from tqdm import tqdm as original_tqdm
 
-from Core import GlobalVariables as GV
 from Core.CustomLogger import LoggerConsoleTqdm, set_log_level
 from Core.DateFunctions import parse_text_datetime_to_epoch
+from Core.GlobalVariables import ARGS, VIDEO_EXT, PHOTO_EXT, TAG_INFO, TAG_ERROR, COLORTAG_DEBUG, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, LOGGER
 
 # Crear instancia global del wrapper
-TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(GV.LOGGER, logging.INFO)
+TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
 
 ######################
 # FUNCIONES AUXILIARES
@@ -34,7 +34,7 @@ TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(GV.LOGGER, logging.INFO)
 def profile_and_print(function_to_analyze, *args, step_name_for_profile='', live_stats=True, interval=10, top_n=10, **kwargs):
     """
     Ejecuta cProfile solo sobre function_to_analyze (dejando el sleep
-    del wrapper fuera del profiling), vuelca stats a GV.LOGGER.debug si
+    del wrapper fuera del profiling), vuelca stats a LOGGER.debug si
     live_stats=True, y devuelve el resultado de la función analizada.
     """
     import io
@@ -64,7 +64,7 @@ def profile_and_print(function_to_analyze, *args, step_name_for_profile='', live
                     stream = io.StringIO()
                     stats = pstats.Stats(profiler, stream=stream)
                     stats.strip_dirs().sort_stats("cumulative").print_stats(top_n)
-                    GV.LOGGER.debug(f"{step_name_for_profile}⏱️ Intermediate Stats (top %d):\n\n%s", top_n, stream.getvalue() )
+                    LOGGER.debug(f"{step_name_for_profile}⏱️ Intermediate Stats (top %d):\n\n%s", top_n, stream.getvalue() )
 
             final_result = result
         else:
@@ -75,14 +75,14 @@ def profile_and_print(function_to_analyze, *args, step_name_for_profile='', live
     stream = io.StringIO()
     stats = pstats.Stats(profiler, stream=stream)
     stats.strip_dirs().sort_stats("cumulative").print_stats(top_n)
-    GV.LOGGER.debug(f"{step_name_for_profile}Final Profile Report (top %d):\n\n%s", top_n, stream.getvalue() )
+    LOGGER.debug(f"{step_name_for_profile}Final Profile Report (top %d):\n\n%s", top_n, stream.getvalue() )
 
     return final_result
 
 
 # Redefinir `tqdm` para usar `TQDM_LOGGER_INSTANCE` si no se especifica `file`
 def tqdm(*args, **kwargs):
-    if GV.ARGS['AUTOMATIC-MIGRATION'] and GV.ARGS['dashboard'] == True:
+    if ARGS['AUTOMATIC-MIGRATION'] and ARGS['dashboard'] == True:
         if 'file' not in kwargs:  # Si el usuario no especifica `file`, usar `TQDM_LOGGER_INSTANCE`
             kwargs['file'] = TQDM_LOGGER_INSTANCE
     return original_tqdm(*args, **kwargs)
@@ -94,7 +94,7 @@ def dir_exists(dir):
 
 def run_from_synology(log_level=None):
     """ Check if the srcript is running from a Synology NAS """
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         return os.path.exists('/etc.defaults/synoinfo.conf')
 
 
@@ -111,22 +111,20 @@ def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logge
         :param step_name:
         :param title:
         :param use_custom_print:
-        :param arguments (list): List of arguments (e.g., for PyInstaller).
-        :param title (str): Optional title to display above the arguments.
         :param use_logger:
     """
     print("")
     indent = "    "
     i = 0
     if use_logger:
-        GV.LOGGER.info(f"{step_name}{title}:")
+        LOGGER.info(f"{step_name}{title}:")
         while i < len(arguments):
             arg = arguments[i]
             if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                GV.LOGGER.info(f"{step_name}{indent}{arg}={arguments[i + 1]}")
+                LOGGER.info(f"{step_name}{indent}{arg}={arguments[i + 1]}")
                 i += 2
             else:
-                GV.LOGGER.info(f"{step_name}{indent}{arg}")
+                LOGGER.info(f"{step_name}{indent}{arg}")
                 i += 1
     else:
         if use_custom_print:
@@ -142,14 +140,14 @@ def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logge
                     i += 1
         else:
             pass
-            print(f"{GV.TAG_INFO}{title}:")
+            print(f"{TAG_INFO}{title}:")
             while i < len(arguments):
                 arg = arguments[i]
                 if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                    print(f"{GV.TAG_INFO}{step_name}{indent}{arg}={arguments[i + 1]}")
+                    print(f"{TAG_INFO}{step_name}{indent}{arg}={arguments[i + 1]}")
                     i += 2
                 else:
-                    print(f"{GV.TAG_INFO}{step_name}{indent}{arg}")
+                    print(f"{TAG_INFO}{step_name}{indent}{arg}")
                     i += 1
     print("")
 
@@ -162,7 +160,7 @@ def ensure_executable(path):
 
 
 def normalize_path(path, log_level=None):
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # return os.path.normpath(path).strip(os.sep)
         return os.path.normpath(path)
 
@@ -174,52 +172,52 @@ def resource_path(relative_path):
     - Nuitka (onefile o standalone)
     - Python directo (desde cwd o desde dirname(__file__))
     """
-    # IMPORTANT: Don't use GV.LOGGER in this function because is also used by build-binary.py which has not any GV.LOGGER created.
+    # IMPORTANT: Don't use LOGGER in this function because is also used by build-binary.py which has not any LOGGER created.
     DEBUG_MODE = False  # Cambia a False para silenciar
     if DEBUG_MODE:
         print("---DEBUG INFO")
-        print(f"{GV.COLORTAG_DEBUG}GV.RESOURCES_IN_CURRENT_FOLDER : {GV.RESOURCES_IN_CURRENT_FOLDER}")
-        print(f"{GV.COLORTAG_DEBUG}sys.frozen                  : {getattr(sys, 'frozen', False)}")
-        print(f"{GV.COLORTAG_DEBUG}NUITKA_ONEFILE_PARENT       : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
-        print(f"{GV.COLORTAG_DEBUG}sys.argv[0]                 : {sys.argv[0]}")
-        print(f"{GV.COLORTAG_DEBUG}sys.executable              : {sys.executable}")
-        print(f"{GV.COLORTAG_DEBUG}os.getcwd()                 : {os.getcwd()}")
-        print(f"{GV.COLORTAG_DEBUG}__file__                    : {globals().get('__file__', 'NO __file__')}")
+        print(f"{COLORTAG_DEBUG}RESOURCES_IN_CURRENT_FOLDER : {RESOURCES_IN_CURRENT_FOLDER}")
+        print(f"{COLORTAG_DEBUG}sys.frozen                  : {getattr(sys, 'frozen', False)}")
+        print(f"{COLORTAG_DEBUG}NUITKA_ONEFILE_PARENT       : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
+        print(f"{COLORTAG_DEBUG}sys.argv[0]                 : {sys.argv[0]}")
+        print(f"{COLORTAG_DEBUG}sys.executable              : {sys.executable}")
+        print(f"{COLORTAG_DEBUG}os.getcwd()                 : {os.getcwd()}")
+        print(f"{COLORTAG_DEBUG}__file__                    : {globals().get('__file__', 'NO __file__')}")
         try:
-            print(f"{GV.COLORTAG_DEBUG}__compiled__.containing_dir : {__compiled__.containing_dir}")
+            print(f"{COLORTAG_DEBUG}__compiled__.containing_dir : {__compiled__.containing_dir}")
         except NameError:
-            print(f"{GV.COLORTAG_DEBUG}__compiled__ not defined")
+            print(f"{COLORTAG_DEBUG}__compiled__ not defined")
         if hasattr(sys, '_MEIPASS'):
-            print(f"{GV.COLORTAG_DEBUG}_MEIPASS                    : {sys._MEIPASS}")
+            print(f"{COLORTAG_DEBUG}_MEIPASS                    : {sys._MEIPASS}")
         else:
-            print(f"{GV.COLORTAG_DEBUG}_MEIPASS not defined")
+            print(f"{COLORTAG_DEBUG}_MEIPASS not defined")
         print("")
     # PyInstaller
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
-        if DEBUG_MODE: print(f"{GV.COLORTAG_DEBUG}Entra en modo PyInstaller -> (sys._MEIPASS)")
+        if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en modo PyInstaller -> (sys._MEIPASS)")
     # Nuitka onefile
     elif "NUITKA_ONEFILE_PARENT" in os.environ:
         base_path = os.path.dirname(os.path.abspath(__file__))
-        if DEBUG_MODE: print(f"{GV.COLORTAG_DEBUG}Entra en modo Nuitka --onefile -> (__file__)")
+        if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en modo Nuitka --onefile -> (__file__)")
     # Nuitka standalone
     elif "__compiled__" in globals():
-        base_path = os.path.join(__compiled__.containing_dir, GV.SCRIPT_NAME+'.dist')
+        base_path = os.path.join(__compiled__.containing_dir, SCRIPT_NAME+'.dist')
         # base_path = __compiled__
-        if DEBUG_MODE: print(f"{GV.COLORTAG_DEBUG}Entra en modo Nuitka --standalone -> (__compiled__.containing_dir)")
+        if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en modo Nuitka --standalone -> (__compiled__.containing_dir)")
     # Python normal
     elif "__file__" in globals():
-        if GV.RESOURCES_IN_CURRENT_FOLDER:
+        if RESOURCES_IN_CURRENT_FOLDER:
             base_path = os.getcwd()
-            if DEBUG_MODE: print(f"{GV.COLORTAG_DEBUG}Entra en Python .py -> (cwd)")
+            if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en Python .py -> (cwd)")
         else:
             base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            if DEBUG_MODE: print(f"{GV.COLORTAG_DEBUG}Entra en Python .py -> (dirname(dirname(__file__)))")
+            if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en Python .py -> (dirname(dirname(__file__)))")
     else:
         base_path = os.getcwd()
-        if DEBUG_MODE: print(f"{GV.COLORTAG_DEBUG}Entra en fallback final -> os.getcwd()")
+        if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en fallback final -> os.getcwd()")
     if DEBUG_MODE:
-        print(f"{GV.COLORTAG_DEBUG}return path                 : {os.path.join(base_path, relative_path)}")
+        print(f"{COLORTAG_DEBUG}return path                 : {os.path.join(base_path, relative_path)}")
         print("--- END DEBUG INFO")
     return os.path.join(base_path, relative_path)
 
@@ -227,7 +225,7 @@ def resource_path(relative_path):
 def get_os(log_level=logging.INFO, step_name="", use_logger=True):
     """Return normalized operating system name (linux, macos, windows)"""
     if use_logger:
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             current_os = platform.system()
             if current_os in ["Linux", "linux"]:
                 os_label = "linux"
@@ -236,9 +234,9 @@ def get_os(log_level=logging.INFO, step_name="", use_logger=True):
             elif current_os in ["Windows", "windows", "Win"]:
                 os_label = "windows"
             else:
-                GV.LOGGER.error(f"{step_name}Unsupported Operating System: {current_os}")
+                LOGGER.error(f"{step_name}Unsupported Operating System: {current_os}")
                 os_label = "unknown"
-            GV.LOGGER.info(f"{step_name}Detected OS: {os_label}")
+            LOGGER.info(f"{step_name}Detected OS: {os_label}")
     else:
         current_os = platform.system()
         if current_os in ["Linux", "linux"]:
@@ -248,25 +246,25 @@ def get_os(log_level=logging.INFO, step_name="", use_logger=True):
         elif current_os in ["Windows", "windows", "Win"]:
             os_label = "windows"
         else:
-            print(f"{GV.TAG_ERROR}{step_name}Unsupported Operating System: {current_os}")
+            print(f"{TAG_ERROR}{step_name}Unsupported Operating System: {current_os}")
             os_label = "unknown"
-        print(f"{GV.TAG_INFO}{step_name}Detected OS: {os_label}")
+        print(f"{TAG_INFO}{step_name}Detected OS: {os_label}")
     return os_label
 
 
 def get_arch(log_level=logging.INFO, step_name="", use_logger=True):
     """Return normalized system architecture (e.g., x64, arm64)"""
     if use_logger:
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             current_arch = platform.machine()
             if current_arch in ["x86_64", "amd64", "AMD64", "X64", "x64"]:
                 arch_label = "x64"
             elif current_arch in ["aarch64", "arm64", 'ARM64']:
                 arch_label = "arm64"
             else:
-                GV.LOGGER.error(f"{step_name}Unsupported Architecture: {current_arch}")
+                LOGGER.error(f"{step_name}Unsupported Architecture: {current_arch}")
                 arch_label = "unknown"
-            GV.LOGGER.info(f"{step_name}Detected architecture: {arch_label}")
+            LOGGER.info(f"{step_name}Detected architecture: {arch_label}")
     else:
         current_arch = platform.machine()
         if current_arch in ["x86_64", "amd64", "AMD64", "X64", "x64"]:
@@ -274,15 +272,15 @@ def get_arch(log_level=logging.INFO, step_name="", use_logger=True):
         elif current_arch in ["aarch64", "arm64", "ARM64"]:
             arch_label = "arm64"
         else:
-            print(f"{GV.TAG_ERROR}{step_name}Unsupported Architecture: {current_arch}")
+            print(f"{TAG_ERROR}{step_name}Unsupported Architecture: {current_arch}")
             arch_label = "unknown"
-        print(f"{GV.TAG_INFO}{step_name}Detected architecture: {arch_label}")
+        print(f"{TAG_INFO}{step_name}Detected architecture: {arch_label}")
     return arch_label
 
 
 def check_OS_and_Terminal(log_level=None):
     """ Check OS, Terminal Type, and System Architecture """
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Detect the operating system
         current_os = get_os(log_level=logging.WARNING)
         # Detect the machine architecture
@@ -290,40 +288,40 @@ def check_OS_and_Terminal(log_level=None):
         # Logging OS
         if current_os == "linux":
             if run_from_synology():
-                GV.LOGGER.info(f"Script running on Linux System in a Synology NAS")
+                LOGGER.info(f"Script running on Linux System in a Synology NAS")
             else:
-                GV.LOGGER.info(f"Script running on Linux System")
+                LOGGER.info(f"Script running on Linux System")
         elif current_os == "macos":
-            GV.LOGGER.info(f"Script running on MacOS System")
+            LOGGER.info(f"Script running on MacOS System")
         elif current_os == "windows":
-            GV.LOGGER.info(f"Script running on Windows System")
+            LOGGER.info(f"Script running on Windows System")
         else:
-            GV.LOGGER.error(f"Unsupported Operating System: {current_os}")
+            LOGGER.error(f"Unsupported Operating System: {current_os}")
         # Logging Architecture
-        GV.LOGGER.info(f"Detected architecture: {arch_label}")
+        LOGGER.info(f"Detected architecture: {arch_label}")
         # Terminal type detection
         if sys.stdout.isatty():
-            GV.LOGGER.info(f"Interactive (TTY) terminal detected for stdout")
+            LOGGER.info(f"Interactive (TTY) terminal detected for stdout")
         else:
-            GV.LOGGER.info(f"Non-Interactive (Non-TTY) terminal detected for stdout")
+            LOGGER.info(f"Non-Interactive (Non-TTY) terminal detected for stdout")
         if sys.stdin.isatty():
-            GV.LOGGER.info(f"Interactive (TTY) terminal detected for stdin")
+            LOGGER.info(f"Interactive (TTY) terminal detected for stdin")
         else:
-            GV.LOGGER.info(f"Non-Interactive (Non-TTY) terminal detected for stdin")
-        GV.LOGGER.info(f"")
+            LOGGER.info(f"Non-Interactive (Non-TTY) terminal detected for stdin")
+        LOGGER.info(f"")
 
 
 def remove_empty_dirs(input_folder, log_level=None):
     """
     Remove empty directories recursively.
     """
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         for path, dirs, files in os.walk(input_folder, topdown=False):
             filtered_dirnames = [d for d in dirs if d != '@eaDir']
             if not filtered_dirnames and not files:
                 try:
                     os.rmdir(path)
-                    GV.LOGGER.info(f"Removed empty directory {path}")
+                    LOGGER.info(f"Removed empty directory {path}")
                 except OSError:
                     pass
 
@@ -340,24 +338,24 @@ def remove_folder(folder, log_level=None):
     - True if the folder was removed successfully.
     - False if an error occurred.
     """
-    with set_log_level(GV.LOGGER, log_level):  # Temporarily adjust GV.LOGGER’s level for this operation
+    with set_log_level(LOGGER, log_level):  # Temporarily adjust LOGGER’s level for this operation
         folder_path = Path(folder)
         try:
-            GV.LOGGER.debug(f"Attempting to remove: {folder_path}")
+            LOGGER.debug(f"Attempting to remove: {folder_path}")
             shutil.rmtree(folder_path)
-            GV.LOGGER.info(f"Folder '{folder_path}' removed successfully.")
+            LOGGER.info(f"Folder '{folder_path}' removed successfully.")
             return True
 
         except FileNotFoundError:
-            GV.LOGGER.warning(f"Folder not found: '{folder_path}'.")
+            LOGGER.warning(f"Folder not found: '{folder_path}'.")
             return False
 
         except PermissionError:
-            GV.LOGGER.error(f"Insufficient permissions to remove: '{folder_path}'.")
+            LOGGER.error(f"Insufficient permissions to remove: '{folder_path}'.")
             return False
 
         except Exception as e:
-            GV.LOGGER.critical(f"Unexpected error while removing '{folder_path}': {e}")
+            LOGGER.critical(f"Unexpected error while removing '{folder_path}': {e}")
             return False
 
 
@@ -368,21 +366,22 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
     Args:
         input_folder (str): Path to the folder to process.
         exclude_subfolders (list or None): List of folder name patterns (using wildcards) to exclude from flattening.
+        :param log_level:
         :param input_folder:
         :param exclude_subfolders:
         :param max_depth:
         :param flatten_root_folder:
     """
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Count number of sep of input_folder
         sep_input = input_folder.count(os.sep)
         # Convert wildcard patterns to regex patterns for matching
         exclude_patterns = [re.compile(fnmatch.translate(pattern)) for pattern in exclude_subfolders]
-        for path, dirs, files in Utils.tqdm(os.walk(input_folder, topdown=True), ncols=120, smoothing=0.1, desc=f"{GV.TAG_INFO}Flattening Subfolders in '{input_folder}'", unit=" subfolders"):
+        for path, dirs, files in tqdm(os.walk(input_folder, topdown=True), ncols=120, smoothing=0.1, desc=f"{TAG_INFO}Flattening Subfolders in '{input_folder}'", unit=" subfolders"):
             # Count number of sep of root folder
             sep_root = int(path.count(os.sep))
             depth = sep_root - sep_input
-            GV.LOGGER.verbose(f"Depth: {depth}")
+            LOGGER.verbose(f"Depth: {depth}")
             if depth > max_depth:
                 # Skip deeper levels
                 continue
@@ -400,10 +399,10 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
                     continue
                 # Skip processing if the current directory matches any exclude pattern
                 if any(pattern.match(os.path.basename(folder)) for pattern in exclude_patterns):
-                    # GV.LOGGER.warning(f"Folder: '{dir_name}' not flattened due to is one of the exclude subfolder given in '{exclude_subfolders}'")
+                    # LOGGER.warning(f"Folder: '{dir_name}' not flattened due to is one of the exclude subfolder given in '{exclude_subfolders}'")
                     continue
                 subfolder_path = os.path.join(path, folder)
-                # GV.LOGGER.info(f"Flattening folder: '{dir_name}'")
+                # LOGGER.info(f"Flattening folder: '{dir_name}'")
                 for sub_root, _, sub_files in os.walk(subfolder_path):
                     for file_name in sub_files:
                         file_path = os.path.join(sub_root, file_name)
@@ -527,33 +526,33 @@ def zip_folder(temp_dir, output_file):
 
 
 def confirm_continue(log_level=None):
-    # If argument 'no-request-user-confirmarion' is true then don't ask and wait for user confirmation
-    if GV.ARGS['no-request-user-confirmarion']:
+    # If argument 'no-request-user-confirmation' is true then don't ask and wait for user confirmation
+    if ARGS['no-request-user-confirmation']:
         return True
 
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         while True:
             response = input("Do you want to continue? (yes/no): ").strip().lower()
             if response in ['yes', 'y']:
-                GV.LOGGER.info(f"Continuing...")
+                LOGGER.info(f"Continuing...")
                 return True
             elif response in ['no', 'n']:
-                GV.LOGGER.info(f"Operation canceled.")
+                LOGGER.info(f"Operation canceled.")
                 return False
             else:
-                GV.LOGGER.warning(f"Invalid input. Please enter 'yes' or 'no'.")
+                LOGGER.warning(f"Invalid input. Please enter 'yes' or 'no'.")
 
 
 def remove_quotes(input_string: str, log_level=logging.INFO) -> str:
     """
     Elimina todas las comillas simples y dobles al inicio o fin de la cadena.
     """
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         return input_string.strip('\'"')
 
 
 def remove_server_name(path, log_level=None):
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Expresión regular para rutas Linux (///servidor/)
         path = re.sub(r'///[^/]+/', '///', path)
         # Expresión regular para rutas Windows (\\servidor\)
@@ -575,13 +574,13 @@ def is_valid_path(path, log_level=None):
     """
     from pathvalidate import validate_filepath, ValidationError
     
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
             # Verifica si `ruta` es válida como path en la plataforma actual.
             validate_filepath(path, platform="auto")
             return True
         except ValidationError as e:
-            GV.LOGGER.error(f"Path validation ERROR: {e}")
+            LOGGER.error(f"Path validation ERROR: {e}")
             return False
         
 
@@ -596,8 +595,9 @@ def get_unique_items(list1, list2, key='filename', log_level=None):
 
     Returns:
         list: Items present in list1 but not in list2.
+        :param log_level:
     """
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         set2 = {item[key] for item in list2}  # Create a set of filenames from list2
         unique_items = [item for item in list1 if item[key] not in set2]
         return unique_items
@@ -612,16 +612,16 @@ def update_metadata(file_path, date_time, log_level=None):
         date_time (str): Date and time in 'YYYY-MM-DD HH:MM:SS' format.
         log_level (logging.LEVEL): log_level for logs and console
     """
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         file_ext = os.path.splitext(file_path)[1].lower()
         try:
-            if file_ext in GV.PHOTO_EXT:
+            if file_ext in PHOTO_EXT:
                 update_exif_date(file_path, date_time, log_level=log_level)
-            elif file_ext in GV.VIDEO_EXT:
+            elif file_ext in VIDEO_EXT:
                 update_video_metadata(file_path, date_time, log_level=log_level)
-            GV.LOGGER.debug(f"Metadata updated for {file_path} with timestamp {date_time}")
+            LOGGER.debug(f"Metadata updated for {file_path} with timestamp {date_time}")
         except Exception as e:
-            GV.LOGGER.error(f"Failed to update metadata for {file_path}. {e}")
+            LOGGER.error(f"Failed to update metadata for {file_path}. {e}")
         
 
 def update_exif_date(image_path, asset_time, log_level=None):
@@ -633,14 +633,14 @@ def update_exif_date(image_path, asset_time, log_level=None):
         asset_time (int or str): Timestamp in UNIX Epoch format or a date string in "YYYY-MM-DD HH:MM:SS".
         log_level (logging.LEVEL): log_level for logs and console
     """
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
             # Si asset_time es una cadena en formato 'YYYY-MM-DD HH:MM:SS', conviértelo a timestamp UNIX
             if isinstance(asset_time, str):
                 try:
                     asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
                 except ValueError as e:
-                    GV.LOGGER.warning(f"Invalid date format for asset_time: {asset_time}. {e}")
+                    LOGGER.warning(f"Invalid date format for asset_time: {asset_time}. {e}")
                     return
             # Convertir el timestamp UNIX a formato EXIF "YYYY:MM:DD HH:MM:SS"
             date_time_exif = datetime.fromtimestamp(asset_time).strftime("%Y:%m:%d %H:%M:%S")
@@ -653,9 +653,9 @@ def update_exif_date(image_path, asset_time, log_level=None):
             try:
                 exif_dict = piexif.load(image_path)
             except Exception:
-                # GV.LOGGER.warning(f"No EXIF metadata found in {image_path}. Creating new EXIF data.")
+                # LOGGER.warning(f"No EXIF metadata found in {image_path}. Creating new EXIF data.")
                 # exif_dict = {"0th": {}, "Exif": {}, "GPS": {}, "Interop": {}, "1st": {}, "thumbnail": None}
-                GV.LOGGER.warning(f"No EXIF metadata found in {image_path}. Skipping it....")
+                LOGGER.warning(f"No EXIF metadata found in {image_path}. Skipping it....")
                 return
             # Actualizar solo si existen las secciones
             if "0th" in exif_dict:
@@ -674,12 +674,12 @@ def update_exif_date(image_path, asset_time, log_level=None):
                 piexif.insert(exif_bytes, image_path)
                 # Restaurar timestamps originales del archivo
                 os.utime(image_path, (original_atime, original_mtime))
-                GV.LOGGER.debug(f"EXIF metadata updated for {image_path} with timestamp {date_time_exif}")
+                LOGGER.debug(f"EXIF metadata updated for {image_path} with timestamp {date_time_exif}")
             except Exception:
-                GV.LOGGER.error(f"Error when restoring original metadata to file: '{image_path}'")
+                LOGGER.error(f"Error when restoring original metadata to file: '{image_path}'")
                 return
         except Exception as e:
-            GV.LOGGER.warning(f"Failed to update EXIF metadata for {image_path}. {e}")
+            LOGGER.warning(f"Failed to update EXIF metadata for {image_path}. {e}")
         
 
 def update_video_metadata(video_path, asset_time, log_level=None):
@@ -693,14 +693,14 @@ def update_video_metadata(video_path, asset_time, log_level=None):
         asset_time (int | str): Timestamp in UNIX Epoch format or a string in 'YYYY-MM-DD HH:MM:SS' format.
         log_level (logging.LEVEL): log_level for logs and console
     """
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
             # Convert asset_time to UNIX timestamp if it's in string format
             if isinstance(asset_time, str):
                 try:
                     asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
                 except ValueError:
-                    GV.LOGGER.warning(f"Invalid date format for asset_time: {asset_time}")
+                    LOGGER.warning(f"Invalid date format for asset_time: {asset_time}")
                     return
             # Convert timestamp to system format
             mod_time = asset_time
@@ -717,12 +717,12 @@ def update_video_metadata(video_path, asset_time, log_level=None):
                     if handle != -1:
                         ctypes.windll.kernel32.SetFileTime(handle, ctypes.byref(ctypes.c_int64(windows_time)), None, None)
                         ctypes.windll.kernel32.CloseHandle(handle)
-                        GV.LOGGER.debug(f"DEBUG     : File creation time updated for {video_path}")
+                        LOGGER.debug(f"DEBUG     : File creation time updated for {video_path}")
                 except Exception as e:
-                    GV.LOGGER.warning(f"Failed to update file creation time on Windows. {e}")
-            GV.LOGGER.debug(f"File system timestamps updated for {video_path} with timestamp {datetime.fromtimestamp(mod_time)}")
+                    LOGGER.warning(f"Failed to update file creation time on Windows. {e}")
+            LOGGER.debug(f"File system timestamps updated for {video_path} with timestamp {datetime.fromtimestamp(mod_time)}")
         except Exception as e:
-            GV.LOGGER.warning(f"Failed to update video metadata for {video_path}. {e}")
+            LOGGER.warning(f"Failed to update video metadata for {video_path}. {e}")
 
 
 def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=None):
@@ -734,14 +734,14 @@ def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=None):
         asset_time (int): Timestamp in UNIX Epoch format.
         log_level (logging.LEVEL): log_level for logs and console
     """
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
             # Si asset_time es una cadena en formato 'YYYY-MM-DD HH:MM:SS', conviértelo a timestamp UNIX
             if isinstance(asset_time, str):
                 try:
                     asset_time = datetime.strptime(asset_time, "%Y-%m-%d %H:%M:%S").timestamp()
                 except ValueError:
-                    GV.LOGGER.warning(f"Invalid date format for asset_time: {asset_time}")
+                    LOGGER.warning(f"Invalid date format for asset_time: {asset_time}")
                     return
             # Convert asset_time (UNIX timestamp) to format used by FFmpeg (YYYY-MM-DDTHH:MM:SS)
             formatted_date = datetime.fromtimestamp(asset_time).strftime("%Y-%m-%dT%H:%M:%S")
@@ -761,15 +761,15 @@ def update_video_metadata_with_ffmpeg(video_path, asset_time, log_level=None):
             os.replace(temp_file, video_path)  # Replace original file with updated one
             # Restore original file timestamps
             os.utime(video_path, (original_atime, original_mtime))
-            GV.LOGGER.debug(f"Video metadata updated for {video_path} with timestamp {formatted_date}")
+            LOGGER.debug(f"Video metadata updated for {video_path} with timestamp {formatted_date}")
         except Exception as e:
-            GV.LOGGER.warning(f"Failed to update video metadata for {video_path}. {e}")
+            LOGGER.warning(f"Failed to update video metadata for {video_path}. {e}")
         
 
 # Convert to list
 def convert_to_list(input_string, log_level=None):
     """ Convert a String to List"""
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         try:
             output = input_string
             if isinstance(output, list):
@@ -786,7 +786,7 @@ def convert_to_list(input_string, log_level=None):
             else:
                 output = [output]
         except Exception as e:
-            GV.LOGGER.warning(f"Failed to convert string to List for {input_string}. {e}")
+            LOGGER.warning(f"Failed to convert string to List for {input_string}. {e}")
         
         return output
 
@@ -828,7 +828,7 @@ def replace_pattern(string, pattern, pattern_to_replace):
 
 
 def has_any_filter():
-    return GV.ARGS.get('filter-by-type', None) or GV.ARGS.get('filter-from-date', None) or GV.ARGS.get('filter-to-date', None) or GV.ARGS.get('filter-by-country', None) or GV.ARGS.get('filter-by-city', None) or GV.ARGS.get('filter-by-person', None)
+    return ARGS.get('filter-by-type', None) or ARGS.get('filter-from-date', None) or ARGS.get('filter-to-date', None) or ARGS.get('filter-by-country', None) or ARGS.get('filter-by-city', None) or ARGS.get('filter-by-person', None)
 
 
 def get_filters():
@@ -842,13 +842,13 @@ def get_filters():
         'filter-by-person',
     ]
     for key in keys:
-        filters[key] = GV.ARGS.get(key)
+        filters[key] = ARGS.get(key)
     return filters
 
 
 def is_date_outside_range(date_to_check):
-    from_date = parse_text_datetime_to_epoch(GV.ARGS.get('filter-from-date'))
-    to_date = parse_text_datetime_to_epoch(GV.ARGS.get('filter-to-date'))
+    from_date = parse_text_datetime_to_epoch(ARGS.get('filter-from-date'))
+    to_date = parse_text_datetime_to_epoch(ARGS.get('filter-to-date'))
     date_to_check = parse_text_datetime_to_epoch(date_to_check)
     if from_date is not None and date_to_check < from_date:
         return True
@@ -874,15 +874,15 @@ def get_subfolders_with_exclusions(input_folder, exclude_subfolder=None):
 
 
 def contains_zip_files(input_folder, log_level=None):
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
-        GV.LOGGER.info(f"Searching .zip files in input folder...")
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
+        LOGGER.info(f"Searching .zip files in input folder...")
         for file in os.listdir(input_folder):
             if file.endswith('.zip'):
                 return True
-        GV.LOGGER.info(f"No .zip files found in input folder.")
+        LOGGER.info(f"No .zip files found in input folder.")
         return False
 
 
 def print_dict_pretty(result):
     for key, value in result.items():
-        GV.LOGGER.info(f"{key:35}: {value}")
+        LOGGER.info(f"{key:35}: {value}")

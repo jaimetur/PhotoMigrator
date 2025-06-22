@@ -4,14 +4,14 @@ import textwrap
 
 from colorama import Fore, Style
 
-from Core import GlobalVariables as GV
+from Core.GlobalVariables import MAX_SHORT_ARGUMENT_LENGHT, IDENT_ARGUMENT_DESCRIPTION, IDENT_USAGE_DESCRIPTION
 
 
 class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
     def __init__(self, *args, **kwargs):
         # Configura la anchura máxima del texto de ayuda
-        kwargs['width'] = GV.MAX_SHORT_ARGUMENT_LENGHT  # Ancho total del texto de ayuda
-        kwargs['max_help_position'] = GV.MAX_SHORT_ARGUMENT_LENGHT  # Ajusta la posición de inicio de las descripciones
+        kwargs['width'] = MAX_SHORT_ARGUMENT_LENGHT  # Ancho total del texto de ayuda
+        kwargs['max_help_position'] = MAX_SHORT_ARGUMENT_LENGHT  # Ajusta la posición de inicio de las descripciones
         super().__init__(*args, **kwargs)
 
     def _tokenize_usage(self, usage_text):
@@ -58,7 +58,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             forced_tokens,
             width,
             first_line_indent = '',
-            subsequent_indent = ' ' * GV.IDENT_USAGE_DESCRIPTION
+            subsequent_indent = ' ' * IDENT_USAGE_DESCRIPTION
         ):
         final_lines = []
         for (orig_indent, tokens) in tokenized_usage:
@@ -150,7 +150,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         # 6) Ancho real
         max_width = getattr(self, '_width', 90)
         # 7) Reconstruimos con indentaciones
-        ident_spaces = GV.IDENT_USAGE_DESCRIPTION
+        ident_spaces = IDENT_USAGE_DESCRIPTION
         usage = self._build_lines_with_forced_tokens(
             tokenized_usage   = tokenized,
             forced_tokens     = force_new_line_for_tokens,
@@ -182,7 +182,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
 
         # Texto de ayuda, formateado e identado
         if action.help:
-            help_text = justificar_texto(action.help, initial_indent=" " * GV.IDENT_ARGUMENT_DESCRIPTION, subsequent_indent=" " * GV.IDENT_ARGUMENT_DESCRIPTION)
+            help_text = justificar_texto(action.help, initial_indent=" " * IDENT_ARGUMENT_DESCRIPTION, subsequent_indent=" " * IDENT_ARGUMENT_DESCRIPTION)
 
             # AUTOMATIC-MIGRATION PROCESS: two lines before "Select the <SOURCE> for the AUTOMATIC-MIGRATION Process"
             if help_text.find("Select the <SOURCE> for the AUTOMATIC-MIGRATION Process")!=-1:
@@ -296,7 +296,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             for opt in action.option_strings:
                 # Argumento corto, agrega una coma detrás
                 if opt.startswith("-") and not opt.startswith("--"):
-                    option_strings.append(f"{opt.ljust(GV.MAX_SHORT_ARGUMENT_LENGHT)};")
+                    option_strings.append(f"{opt.ljust(MAX_SHORT_ARGUMENT_LENGHT)};")
                 else:
                     option_strings.append(f"{opt}")
 

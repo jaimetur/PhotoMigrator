@@ -107,7 +107,7 @@
 > [!TIP]  
 > Use this feature before to upload this folder to any Photo Cloud service in order to have a clean Albums structure in your Photo Cloud service database.  
 > 
-> This feature is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneus way.  
+> This feature is useful if you want to Upload all your Albums to a new Cloud Service and you would like to start with all the new Albums in a cleaner homogeneous way.  
 
 > [!CAUTION]  
 > This Feature will modify the original subfolder names found in <ALBUMS_FOLDER>. 

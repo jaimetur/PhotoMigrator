@@ -33,7 +33,7 @@ You can see the default Config.ini file here:
 >```
 
 ## Google Takeout Section:
-In this section you don't have to provide any settings (it is here for futures purposses):
+In this section you don't have to provide any settings (it is here for futures purposes):
 
 ## Synology Photos Section:
 In this section you have to provide:
@@ -66,11 +66,11 @@ In this section you have to provide:
 - **IMMICH_API_KEY_USER_3:** The API_KEY for the Immich Account 3 (Optional: just in case that you need to migrate assets from Account 1 to Account 3)
 
 > [!NOTE]  
-> In Immich you can choose if you want to login with username/password or you prefeer to use an API_KEY instead.  
+> In Immich you can choose if you want to login with username/password or you prefer to use an API_KEY instead.  
 >
-> If you choose username/password authentification method, then, you don't need to provide any API_KEY for that account.  
+> If you choose username/password authentication method, then, you don't need to provide any API_KEY for that account.  
 >
-> If you choose API_KEY authentification method, then, you don't need to provide any username/password for htat account.  
+> If you choose API_KEY authentication method, then, you don't need to provide any username/password for that account.  
 
 ---
 

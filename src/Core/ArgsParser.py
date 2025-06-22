@@ -3,10 +3,10 @@ import os
 import re
 import sys
 
-from Core import GlobalVariables as GV
 from Core.CustomHelpFormatter import CustomHelpFormatter
 from Core.CustomPager import PagedParser
 from Core.DateFunctions import parse_text_to_iso8601
+from Core.GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE, COLORTAG_ERROR
 from Core.StandaloneFunctions import resolve_path
 
 choices_for_message_levels          = ['verbose', 'debug', 'info', 'warning', 'error']
@@ -24,18 +24,18 @@ PARSER = None
 def parse_arguments():
     # Parser with Pagination:
     PARSER = PagedParser(
-        description=GV.SCRIPT_DESCRIPTION,
+        description=SCRIPT_DESCRIPTION,
         formatter_class=CustomHelpFormatter,  # Aplica el formatter
     )
 
     # Acción personalizada para --version
     class VersionAction(argparse.Action):
         def __call__(self, parser, namespace, values, option_string=None):
-            print(f"\n{GV.SCRIPT_NAME} {GV.SCRIPT_VERSION} {GV.SCRIPT_DATE} by Jaime Tur (@jaimetur)\n")
+            print(f"\n{SCRIPT_NAME} {SCRIPT_VERSION} {SCRIPT_DATE} by Jaime Tur (@jaimetur)\n")
             parser.exit()
 
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the Tool name, version, and date, then exit.")
-    PARSER.add_argument("-noConfirm", "--no-request-user-confirmarion", action="store_true", help="No Request User Confrimarion before execute any Feature.")
+    PARSER.add_argument("-noConfirm", "--no-request-user-confirmation", action="store_true", help="No Request User Confirmation before execute any Feature.")
     PARSER.add_argument("-noLog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
     PARSER.add_argument("-logLevel", "--log-level",
                         metavar=f"=[{', '.join(level.upper() for level in choices_for_message_levels)}]",
@@ -70,7 +70,7 @@ def parse_arguments():
                         const=1,  # Si el usuario pasa --account-id sin valor, se asigna 1
                         default=1,  # Si no se pasa el argumento, también se asigna 1
                         type=validate_account_id,  # Ahora espera un entero como tipo de argumento
-                        help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the Configuration file as suffix of USERNAME/PASSORD or API_KEY_USER. (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini file)."
+                        help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the Configuration file as suffix of USERNAME/PASSWORD or API_KEY_USER. (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini file)."
                         )
 
     PARSER.add_argument("-from", "--filter-from-date", metavar="<FROM_DATE>", default=None, help="Specify the initial date to filter assets in the different Photo Clients.")
@@ -167,7 +167,7 @@ def parse_arguments():
     PARSER.add_argument("-graf", "--google-rename-albums-folders", action="store_true", help="Rename Albums Folders in <OUTPUT_TAKEOUT_FOLDER> based on content date of each album after fixing them.")
     PARSER.add_argument("-gsef", "--google-skip-extras-files", action="store_true", help="Skip processing extra photos such as  -edited, -effects photos.")
     PARSER.add_argument("-gsma", "--google-skip-move-albums", action="store_true", help="Skip moving albums to 'Albums' folder.")
-    PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skip processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposses.")
+    PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skip processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposes.")
     PARSER.add_argument("-gSkipPrep", "--google-skip-preprocess", action="store_true",
                         help="Skip Pre-process Google Takeout to 1.Clean Takeout Folder, 2.Fix MP4/Live Picture associations and 3.Fix Truncated filenames/extensions." 
                            "\nThis Pre-process is very important for a high accuracy on the Output, but if you have already done this Pre-Processing before, and you are not using the flag '-gmtf,--google-move-takeout-folder' then you can skip this Pre-Processing.")
@@ -308,7 +308,7 @@ def validate_client_arg(ARGS, PARSER):
     for flag in client_required_flags:
         if ARGS.get(flag):  # Si el usuario ha pasado este argumento
             if ARGS.get('client')=='google-takeout':
-                PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}The flag '--{flag}' requires that '--client' is also specified.\n")
+                PARSER.error(f"\n\n❌ {COLORTAG_ERROR}The flag '--{flag}' requires that '--client' is also specified.\n")
                 exit(1)
 
 
@@ -342,23 +342,23 @@ def checkArgs(ARGS, PARSER):
     # Set None for google-input-zip-folder argument, and only if unzip is needed will change this to the proper folder.
     ARGS['google-input-zip-folder'] = None
 
-    # Set None for MIGRATION argument, and only if both source and target argument are providin, it will set properly.
+    # Set None for MIGRATION argument, and only if both source and target argument are providing, it will set properly.
     ARGS['AUTOMATIC-MIGRATION'] = None
 
 
     # Parse AUTOMATIC-MIGRATION Arguments
     # Manual validation of --source and --target to allow predefined values but also local folders.
     if ARGS['source'] and not ARGS['target']:
-        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid syntax. Argument '--source' detected but not '--target' providen'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n")
+        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Invalid syntax. Argument '--source' detected but not '--target' provide'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n")
         exit(1)
     if ARGS['target'] and not ARGS['source']:
-        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid syntax. Argument '--target' detected but not '--source' providen'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n")
+        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Invalid syntax. Argument '--target' detected but not '--source' provide'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n")
         exit(1)
     if ARGS['source'] and ARGS['source'] not in choices_for_AUTOMATIC_MIGRATION_SRC and not os.path.isdir(ARGS['source']):
-        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid choice detected for --source='{ARGS['source']}'. \nMust be an existing local folder or one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_SRC}.\n")
+        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Invalid choice detected for --source='{ARGS['source']}'. \nMust be an existing local folder or one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_SRC}.\n")
         exit(1)
     if ARGS['target'] and ARGS['target'] not in choices_for_AUTOMATIC_MIGRATION_TGT and not os.path.isdir(ARGS['target']):
-        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid choice detected for --target='{ARGS['target']}'. \nMust be an existing local folder one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_TGT}.\n")
+        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Invalid choice detected for --target='{ARGS['target']}'. \nMust be an existing local folder one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_TGT}.\n")
         exit(1)
     if ARGS['source'] and ARGS['target']:
         ARGS['AUTOMATIC-MIGRATION'] = [ARGS['source'], ARGS['target']]
@@ -370,23 +370,23 @@ def checkArgs(ARGS, PARSER):
         for tok in sys.argv[1:]
     )
     if dashboard_provided  and not (ARGS['source'] or ARGS['target']):
-        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Argument '--dashboard' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n")
+        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Argument '--dashboard' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n")
         exit(1)
 
 
     # Check if --parallel was given as argument and not --source and --target have been given
-    paralel_provided = any(
+    parallel_provided = any(
         re.match(r"^-{1,2}parallel(?:$|=)", tok)
         for tok in sys.argv[1:]
     )
-    if paralel_provided and not (ARGS['source'] or ARGS['target']):
-        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Argument '--parallel-migration' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n")
+    if parallel_provided and not (ARGS['source'] or ARGS['target']):
+        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Argument '--parallel-migration' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n")
         exit(1)
 
 
     # Parse download-albums to ensure than ARGS['output-folder'] is used to specify <OUTPUT_FOLDER>
     if ARGS['download-albums'] != "" and ARGS['output-folder'] == "":
-        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}When use flag -dAlb, --download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n")
+        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}When use flag -dAlb, --download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n")
         exit(1)
 
 
@@ -405,23 +405,23 @@ def checkArgs(ARGS, PARSER):
                 ARGS['duplicates-folders'].append(subarg)
     if ARGS['duplicates-action'] == "" and ARGS['duplicates-folders'] !=[]:
         ARGS['duplicates-action'] = 'list'  # Valor por defecto
-        GV.DEFAULT_DUPLICATES_ACTION = True
+        DEFAULT_DUPLICATES_ACTION = True
     ARGS['duplicates-folders'] = parse_folders_list(ARGS['duplicates-folders'])
 
     # Parse rename-albums
     if ARGS['rename-albums']:
         if len(ARGS['rename-albums']) != 2:
-            PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
+            PARSER.error(f"\n\n❌ {COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
             exit(1)
         for subarg in ARGS['rename-albums']:
             if subarg is None:
-                PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
+                PARSER.error(f"\n\n❌ {COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
                 exit(1)
 
 
     # Parse 'remove-albums-assets' to check if 'remove-all-albums' or 'remove-albums' have been detected
     if ARGS['remove-albums-assets'] and not (ARGS['remove-all-albums'] or ARGS['remove-albums']):
-        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--remove-albums-assets is a modifier of argument. It need to be used together with one of the following flags:"
+        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}--remove-albums-assets is a modifier of argument. It need to be used together with one of the following flags:"
                      f"\n--remove-all-albums"
                      f"\n--remove-albums"
                      f"\n")
@@ -435,7 +435,7 @@ def checkArgs(ARGS, PARSER):
 
     # Parseamos type
     if ARGS['filter-by-type'] and ARGS['filter-by-type'].lower() not in valid_asset_types:
-        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--filter-by-type flag is invalid. Valid values are:\n{valid_asset_types}")
+        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}--filter-by-type flag is invalid. Valid values are:\n{valid_asset_types}")
         exit(1)
 
     # Validamos que se haya pasado --client cuando pasamos como argumento una feature de Synology/Immich

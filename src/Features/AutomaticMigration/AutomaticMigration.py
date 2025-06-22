@@ -10,9 +10,10 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from queue import Queue
 
-from Core import Utils, StandaloneFunctions, GlobalVariables as GV
 from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
-from Core.StandaloneFunctions import resolve_path
+from Core.GlobalVariables import SCRIPT_NAME_VERSION, SCRIPT_VERSION, ARGS, HELP_TEXTS, TAG_ERROR, TIMESTAMP, LOGGER
+from Core.StandaloneFunctions import resolve_path, change_working_dir
+from Core.Utils import remove_empty_dirs, confirm_continue, contains_zip_files, normalize_path
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassLocalFolder, ClassTakeoutFolder
 from Features.GoogleTakeout.GoogleTakeoutPrechecks import contains_takeout_structure
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
@@ -32,7 +33,7 @@ class SharedData:
 # FEATURE: AUTOMATIC-MIGRATION: #
 ####################################
 def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show_gpth_info=None, show_gpth_errors=None, parallel=None, log_level=None):
-    with set_log_level(GV.LOGGER, log_level):
+    with set_log_level(LOGGER, log_level):
 
         # ───────────────────────────────────────────────────────────────
         # Declare shared variables to pass as reference to both functions
@@ -87,22 +88,22 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
 
         SHARED_DATA = SharedData(input_info, counters, logs_queue)
 
-        # Check if parallel=None, and in that case, get it from GV.ARGS
-        if parallel is None: parallel = GV.ARGS['parallel-migration']
+        # Check if parallel=None, and in that case, get it from ARGS
+        if parallel is None: parallel = ARGS['parallel-migration']
 
         # Detect source and target from the given arguments if have not been provided on the function call
-        if not source: source = GV.ARGS['source']
-        if not target: target = GV.ARGS['target']
+        if not source: source = ARGS['source']
+        if not target: target = ARGS['target']
 
         # Detect show_dashboard from the given arguments if it has not been provided on the function call
-        if show_dashboard is None: show_dashboard = GV.ARGS['dashboard']
+        if show_dashboard is None: show_dashboard = ARGS['dashboard']
 
         # Detect show_gpth_info and show_gpth_errors from the given arguments if it has not been provided on the function call
-        if show_gpth_info is None: show_gpth_info = GV.ARGS['show-gpth-info']
-        if show_gpth_errors is None: show_gpth_errors = GV.ARGS['show-gpth-errors']
+        if show_gpth_info is None: show_gpth_info = ARGS['show-gpth-info']
+        if show_gpth_errors is None: show_gpth_errors = ARGS['show-gpth-errors']
 
         # Define the INTERMEDIATE_FOLDER
-        INTERMEDIATE_FOLDER = resolve_path(f'./Temp_folder_{GV.TIMESTAMP}')
+        INTERMEDIATE_FOLDER = resolve_path(f'./Temp_folder_{TIMESTAMP}')
 
         # ---------------------------------------------------------------------------------------------------------
         # 1) Creamos los objetos source_client y target_client en función de los argumentos source y target
@@ -111,35 +112,35 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             """Retorna la instancia del cliente en función del tipo de fuente o destino."""
 
             # Return ClassSynologyPhotos
-            if client_type.lower() in ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1'] and not GV.ARGS['account-id'] > 1:
+            if client_type.lower() in ['synology-photos', 'synology', 'synology-photos-1', 'synology-photos1', 'synology-1', 'synology1'] and not ARGS['account-id'] > 1:
                 return ClassSynologyPhotos(account_id=1)
             elif client_type.lower() in ['synology-photos-2', 'synology-photos2', 'synology-2', 'synology2']:
                 return ClassSynologyPhotos(account_id=2)
             elif client_type.lower() in ['synology-photos-3', 'synology-photos3', 'synology-3', 'synology3']:
                 return ClassSynologyPhotos(account_id=3)
-            elif client_type.lower() in ['synology-photos', 'synology'] and GV.ARGS['account-id'] > 1:
-                return ClassSynologyPhotos(account_id=GV.ARGS['account-id'])
+            elif client_type.lower() in ['synology-photos', 'synology'] and ARGS['account-id'] > 1:
+                return ClassSynologyPhotos(account_id=ARGS['account-id'])
 
             # Return ClassImmichPhotos
-            elif client_type.lower() in ['immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1'] and not GV.ARGS['account-id'] > 1:
+            elif client_type.lower() in ['immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1'] and not ARGS['account-id'] > 1:
                 return ClassImmichPhotos(account_id=1)
             elif client_type.lower() in ['immich-photos-2', 'immich-photos2', 'immich-2', 'immich2']:
                 return ClassImmichPhotos(account_id=2)
             elif client_type.lower() in ['immich-photos-3', 'immich-photos3', 'immich-3', 'immich3']:
                 return ClassImmichPhotos(account_id=3)
-            elif client_type.lower() in ['immich-photos', 'immich'] and GV.ARGS['account-id'] > 1:
-                return ClassImmichPhotos(account_id=GV.ARGS['account-id'])
+            elif client_type.lower() in ['immich-photos', 'immich'] and ARGS['account-id'] > 1:
+                return ClassImmichPhotos(account_id=ARGS['account-id'])
 
             # Return ClassTakeoutFolder
             elif Path(client_type).is_dir() and (
-                    Utils.contains_zip_files(client_type, log_level=logging.WARNING) or contains_takeout_structure(client_type, log_level=logging.WARNING)):
+                    contains_zip_files(client_type, log_level=logging.WARNING) or contains_takeout_structure(client_type, log_level=logging.WARNING)):
                 return ClassTakeoutFolder(client_type)  # In this clase, client_type is the path to the Takeout Folder
 
             # Return ClassLocalFolder
             elif Path(client_type).is_dir():
                 return ClassLocalFolder(base_folder=client_type)  # In this clase, client_type is the path to the base Local Folder
             else:
-                raise ValueError(f"{GV.TAG_ERROR}Tipo de cliente no válido: {client_type}")
+                raise ValueError(f"{TAG_ERROR}Tipo de cliente no válido: {client_type}")
 
         # Creamos los objetos source_client y target_client y obtenemos sus nombres para mostrar en el show_dashboard
         source_client = get_client_object(source)
@@ -156,60 +157,60 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
         # Check if '-move, --move-assets' have been passed as argument
-        move_assets = GV.ARGS.get('move-assets', False)
+        move_assets = ARGS.get('move-assets', False)
 
         # Get the values from the arguments (if exists)
-        type = GV.ARGS.get('filter-by-type', None)
-        from_date = GV.ARGS.get('filter-from-date', None)
-        to_date = GV.ARGS.get('filter-to-date', None)
-        country = GV.ARGS.get('filter-by-country', None)
-        city = GV.ARGS.get('filter-by-city', None)
-        person = GV.ARGS.get('filter-by-person', None)
+        type = ARGS.get('filter-by-type', None)
+        from_date = ARGS.get('filter-from-date', None)
+        to_date = ARGS.get('filter-to-date', None)
+        country = ARGS.get('filter-by-country', None)
+        city = ARGS.get('filter-by-city', None)
+        person = ARGS.get('filter-by-person', None)
 
-        GV.LOGGER.info(f"")
-        GV.LOGGER.info(f"*** Automatic Migration Mode *** detected")
-        GV.LOGGER.warning('\n' + '-' * terminal_width)
+        LOGGER.info(f"")
+        LOGGER.info(f"*** Automatic Migration Mode *** detected")
+        LOGGER.warning('\n' + '-' * terminal_width)
         if not isinstance(source_client, ClassTakeoutFolder):
-            GV.LOGGER.warning(GV.HELP_TEXTS["AUTOMATIC-MIGRATION"].replace('<SOURCE>', f"'{source}'").replace('<TARGET>', f"'{target}'"))
+            LOGGER.warning(HELP_TEXTS["AUTOMATIC-MIGRATION"].replace('<SOURCE>', f"'{source}'").replace('<TARGET>', f"'{target}'"))
         else:
-            GV.LOGGER.warning(GV.HELP_TEXTS["AUTOMATIC-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{source}'").replace('<TARGET>', f"'{target}'").replace('Pulling', 'Analyzing and Fixing'))
-        GV.LOGGER.warning('\n' + '-' * (terminal_width-11))
-        GV.LOGGER.info(f"Source Client  : {source_client_name}")
-        GV.LOGGER.info(f"Target Client  : {target_client_name}")
-        GV.LOGGER.info(f"Temp Folder    : {INTERMEDIATE_FOLDER}")
+            LOGGER.warning(HELP_TEXTS["AUTOMATIC-MIGRATION"].replace('<SOURCE> Cloud Service', f"folder '{source}'").replace('<TARGET>', f"'{target}'").replace('Pulling', 'Analyzing and Fixing'))
+        LOGGER.warning('\n' + '-' * (terminal_width-11))
+        LOGGER.info(f"Source Client  : {source_client_name}")
+        LOGGER.info(f"Target Client  : {target_client_name}")
+        LOGGER.info(f"Temp Folder    : {INTERMEDIATE_FOLDER}")
 
         if parallel:
-            GV.LOGGER.info(f"Migration Mode : Parallel")
+            LOGGER.info(f"Migration Mode : Parallel")
         else:
-            GV.LOGGER.info(f"Migration Mode : Secuential")
+            LOGGER.info(f"Migration Mode : Secuential")
 
-        GV.LOGGER.info(f"Move Assets    : {move_assets}")
+        LOGGER.info(f"Move Assets    : {move_assets}")
 
         if from_date or to_date or type or country or city or person:
-            GV.LOGGER.info(f"Assets Filters :")
+            LOGGER.info(f"Assets Filters :")
         else:
-            GV.LOGGER.info(f"Assets Filters : None")
+            LOGGER.info(f"Assets Filters : None")
         if from_date:
             date_obj = datetime.strptime(from_date, "%Y-%m-%dT%H:%M:%S.%fZ")
-            GV.LOGGER.info(f"     from Date : {date_obj.strftime('%Y-%m-%d')}")
+            LOGGER.info(f"     from Date : {date_obj.strftime('%Y-%m-%d')}")
         if to_date:
             date_obj = datetime.strptime(to_date, "%Y-%m-%dT%H:%M:%S.%fZ")
-            GV.LOGGER.info(f"       to Date : {date_obj.strftime('%Y-%m-%d')}")
+            LOGGER.info(f"       to Date : {date_obj.strftime('%Y-%m-%d')}")
         if type:
-            GV.LOGGER.info(f"       by Type : {type}")
+            LOGGER.info(f"       by Type : {type}")
         if country:
-            GV.LOGGER.info(f"    by Country : {country} {unsupported_text}")
+            LOGGER.info(f"    by Country : {country} {unsupported_text}")
         if city:
-            GV.LOGGER.info(f"       by City : {city} {unsupported_text}")
+            LOGGER.info(f"       by City : {city} {unsupported_text}")
         if person:
-            GV.LOGGER.info(f"     by Person : {person} {unsupported_text}")
+            LOGGER.info(f"     by Person : {person} {unsupported_text}")
 
-        GV.LOGGER.info(f"")
-        if not Utils.confirm_continue():
-            GV.LOGGER.info(f"Exiting program.")
+        LOGGER.info(f"")
+        if not confirm_continue():
+            LOGGER.info(f"Exiting program.")
             sys.exit(0)
 
-        with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
             # Call the parallel_automatic_migration module to do the whole migration process
             # parallel_automatic_migration(source, target, temp_folder, SHARED_DATA.input_info, SHARED_DATA.counters, SHARED_DATA.logs_queue)
@@ -240,24 +241,24 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                 # Pequeña espera para garantizar que el show_dashboard ha arrancado antes de la migración
                 time.sleep(2)
 
-            GV.LOGGER.info(f"")
-            GV.LOGGER.info(f"=========================================================================================================================================================")
-            GV.LOGGER.info(f"🚀 AUTOMATIC MIGRATION JOB STARTED - {source_client_name} ➜ {target_client_name}")
-            GV.LOGGER.info(f"=========================================================================================================================================================")
-            GV.LOGGER.info(f"")
+            LOGGER.info(f"")
+            LOGGER.info(f"=========================================================================================================================================================")
+            LOGGER.info(f"🚀 AUTOMATIC MIGRATION JOB STARTED - {source_client_name} ➜ {target_client_name}")
+            LOGGER.info(f"=========================================================================================================================================================")
+            LOGGER.info(f"")
 
             # ------------------------------------------------------------------------------------------------------
             # 3) Verifica y procesa source_client y target_client si es una instancia de ClassTakeoutFolder
             if isinstance(source_client, ClassTakeoutFolder):
-                source_client.GV.ARGS['google-create-symbolic-albums'] = True  # If the processing is done by Automatic Mode Feature, then use symbolic links for Albums (faster and less space needed)
+                source_client.ARGS['google-create-symbolic-albums'] = True  # If the processing is done by Automatic Mode Feature, then use symbolic links for Albums (faster and less space needed)
                 if source_client.needs_unzip or source_client.needs_process:
-                    GV.LOGGER.info(f"🔢 Source Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
+                    LOGGER.info(f"🔢 Source Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
                     # source_client.precheck_takeout_and_calculate_initial_counters(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=False)
                     source_client.process(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=False)
             if isinstance(target_client, ClassTakeoutFolder):
-                target_client.GV.ARGS['google-create-symbolic-albums'] = True  # If the processing is done by Automatic Mode Feature, then use symbolic links for Albums (faster and less space needed)
+                target_client.ARGS['google-create-symbolic-albums'] = True  # If the processing is done by Automatic Mode Feature, then use symbolic links for Albums (faster and less space needed)
                 if target_client.needs_unzip or target_client.needs_process:
-                    GV.LOGGER.info(f"🔢 Target Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
+                    LOGGER.info(f"🔢 Target Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
                     # target_client.precheck_takeout_and_calculate_initial_counters(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=False)
                     target_client.process(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=False)
 
@@ -270,7 +271,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                 # 1) Mostrar el stack trace completo en stderr (o stdout)
                 traceback.print_exc()
                 # 2) Registrar en el logger con stack trace
-                GV.LOGGER.exception("ERROR executing Automatic Migration Feature")
+                LOGGER.exception("ERROR executing Automatic Migration Feature")
             finally:
                 migration_finished.set()
 
@@ -360,9 +361,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # 1) HILO PRINCIPAL
     # ------------------
     def main_thread(parallel=None, log_level=None):
-        with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # Get Log_filename
-            log_file = get_logger_filename(GV.LOGGER)
+            log_file = get_logger_filename(LOGGER)
 
             # Get source and target client names
             source_client_name = source_client.get_client_name()
@@ -374,57 +375,57 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 unsupported_text = f"(Unsupported for this source client: {source_client_name}. Filter Ignored)"
 
             # Check if '-move, --move-assets' have been passed as argument
-            move_assets = GV.ARGS.get('move-assets', False)
+            move_assets = ARGS.get('move-assets', False)
 
             # Check if there is some filter applied
             with_filters = False
-            if GV.ARGS.get('filter-by-type', None) or GV.ARGS.get('filter-from-date', None) or GV.ARGS.get('filter-to-date', None) or GV.ARGS.get('filter-by-country', None) or GV.ARGS.get('filter-by-city', None) or GV.ARGS.get('filter-by-person', None):
+            if ARGS.get('filter-by-type', None) or ARGS.get('filter-from-date', None) or ARGS.get('filter-to-date', None) or ARGS.get('filter-by-country', None) or ARGS.get('filter-by-city', None) or ARGS.get('filter-by-person', None):
                 with_filters = True
 
             # Get the values from the arguments (if exists)
-            type = GV.ARGS.get('filter-by-type', None)
-            from_date = GV.ARGS.get('filter-from-date', None)
-            to_date = GV.ARGS.get('filter-to-date', None)
-            country = GV.ARGS.get('filter-by-country', None)
-            city = GV.ARGS.get('filter-by-city', None)
-            person = GV.ARGS.get('filter-by-person', None)
+            type = ARGS.get('filter-by-type', None)
+            from_date = ARGS.get('filter-from-date', None)
+            to_date = ARGS.get('filter-to-date', None)
+            country = ARGS.get('filter-by-country', None)
+            city = ARGS.get('filter-by-city', None)
+            person = ARGS.get('filter-by-person', None)
 
-            GV.LOGGER.info(f"🚀 Starting Automatic Migration Process: {source_client_name} ➜ {target_client_name}...")
-            GV.LOGGER.info(f"Source Client  : {source_client_name}")
-            GV.LOGGER.info(f"Target Client  : {target_client_name}")
-            GV.LOGGER.info(f"Temp Folder    : {temp_folder}")
-            GV.LOGGER.info(f"Log File       : {log_file}")
+            LOGGER.info(f"🚀 Starting Automatic Migration Process: {source_client_name} ➜ {target_client_name}...")
+            LOGGER.info(f"Source Client  : {source_client_name}")
+            LOGGER.info(f"Target Client  : {target_client_name}")
+            LOGGER.info(f"Temp Folder    : {temp_folder}")
+            LOGGER.info(f"Log File       : {log_file}")
 
             if parallel:
-                GV.LOGGER.info(f"Migration Mode : Parallel")
+                LOGGER.info(f"Migration Mode : Parallel")
             else:
-                GV.LOGGER.info(f"Migration Mode : Sequential")
+                LOGGER.info(f"Migration Mode : Sequential")
 
-            GV.LOGGER.info(f"Move Assets    : {move_assets}")
+            LOGGER.info(f"Move Assets    : {move_assets}")
 
-            GV.LOGGER.info(f"")
+            LOGGER.info(f"")
             if from_date or to_date or type or country or city or person:
-                GV.LOGGER.info(f"Assets Filters :")
+                LOGGER.info(f"Assets Filters :")
             else:
-                GV.LOGGER.info(f"Assets Filters : None")
+                LOGGER.info(f"Assets Filters : None")
             if from_date:
                 date_obj = datetime.strptime(from_date, "%Y-%m-%dT%H:%M:%S.%fZ")
-                GV.LOGGER.info(f"     from Date : {date_obj.strftime('%Y-%m-%d')}")
+                LOGGER.info(f"     from Date : {date_obj.strftime('%Y-%m-%d')}")
             if to_date:
                 date_obj = datetime.strptime(to_date, "%Y-%m-%dT%H:%M:%S.%fZ")
-                GV.LOGGER.info(f"       to Date : {date_obj.strftime('%Y-%m-%d')}")
+                LOGGER.info(f"       to Date : {date_obj.strftime('%Y-%m-%d')}")
             if type:
-                GV.LOGGER.info(f"       by Type : {type}")
+                LOGGER.info(f"       by Type : {type}")
             if country:
-                GV.LOGGER.info(f"    by Country : {country} {unsupported_text}")
+                LOGGER.info(f"    by Country : {country} {unsupported_text}")
             if city:
-                GV.LOGGER.info(f"       by City : {city} {unsupported_text}")
+                LOGGER.info(f"       by City : {city} {unsupported_text}")
             if person:
-                GV.LOGGER.info(f"     by Person : {person} {unsupported_text}")
+                LOGGER.info(f"     by Person : {person} {unsupported_text}")
 
-            GV.LOGGER.info(f"")
-            GV.LOGGER.info(f"Starting Pulling/Pushing Workers...")
-            GV.LOGGER.info(f"Analyzing Source client and Applying filters. This process may take some time, please be patient...")
+            LOGGER.info(f"")
+            LOGGER.info(f"Starting Pulling/Pushing Workers...")
+            LOGGER.info(f"Analyzing Source client and Applying filters. This process may take some time, please be patient...")
 
             # Get source client statistics:
             blocked_assets = []
@@ -433,8 +434,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             try:
                 all_albums = source_client.get_albums_including_shared_with_user(filter_assets=with_filters, log_level=logging.WARNING)
             except Exception as e:
-                GV.LOGGER.error(f"Error Retrieving All Albums from '{source_client_name}'. - {e}")
-            GV.LOGGER.info(f"{len(all_albums)} Albums found on '{source_client_name}' matching filters criteria")
+                LOGGER.error(f"Error Retrieving All Albums from '{source_client_name}'. - {e}")
+            LOGGER.info(f"{len(all_albums)} Albums found on '{source_client_name}' matching filters criteria")
             for album in all_albums:
                 album_id = album['id']
                 album_name = album['albumName']
@@ -445,22 +446,22 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 else:
                     album_shared_role = ""  # O cualquier valor por defecto que desees
                 if album_shared_role.lower() == 'view':
-                    GV.LOGGER.info(f"Album '{album_name}' cannot be pulled because is a blocked shared album. Skipped!")
+                    LOGGER.info(f"Album '{album_name}' cannot be pulled because is a blocked shared album. Skipped!")
                     total_albums_blocked_count += 1
                     total_assets_blocked_count += album.get('item_count')
                     try:
                         blocked_assets.extend(source_client.get_all_assets_from_album_shared(album_passphrase=album_passphrase, album_id=album_id, album_name=album_name, log_level=logging.WARNING))
                     except Exception as e:
-                        GV.LOGGER.error(f"Error Retrieving Shared Albums's Assets from '{source_client_name}' - {e}")
+                        LOGGER.error(f"Error Retrieving Shared Albums's Assets from '{source_client_name}' - {e}")
             # Get all assets and filter out those blocked assets (from blocked shared albums) if any
             try:
                 all_no_albums_assets = source_client.get_all_assets_without_albums(log_level=logging.WARNING)
             except Exception as e:
-                GV.LOGGER.error(f"Error Retrieving Assets without albums from '{source_client_name}' - {e}")
+                LOGGER.error(f"Error Retrieving Assets without albums from '{source_client_name}' - {e}")
             try:
                 all_albums_assets = source_client.get_all_assets_from_all_albums(log_level=logging.WARNING)
             except Exception as e:
-                GV.LOGGER.error(f"Error Retrieving Albums's Assets from '{source_client_name}' - {e}")
+                LOGGER.error(f"Error Retrieving Albums's Assets from '{source_client_name}' - {e}")
 
             all_supported_assets = all_no_albums_assets + all_albums_assets
             blocked_assets_ids = {asset["id"] for asset in blocked_assets}
@@ -487,9 +488,9 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             SHARED_DATA.counters['total_albums_blocked'] = total_albums_blocked_count
             SHARED_DATA.counters['total_assets_blocked'] = total_assets_blocked_count
 
-            GV.LOGGER.info(f"Input Info Analysis: ")
+            LOGGER.info(f"Input Info Analysis: ")
             for key, value in SHARED_DATA.info.items():
-                GV.LOGGER.info(f"   {key}: {value}")
+                LOGGER.info(f"   {key}: {value}")
 
             # Delete unneeded vars to clean memory
             del all_albums
@@ -511,12 +512,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             # ------------------------------------------------------------------------------------------------------
             # Obtain the number of Threads for the CPU and launch as many Push workers as max(1, int(cpu_total_threads/2))
             cpu_total_threads = os.cpu_count()
-            GV.LOGGER.info(f"")
-            GV.LOGGER.info(f"CPU Total Threads Detected = {cpu_total_threads}")
+            LOGGER.info(f"")
+            LOGGER.info(f"CPU Total Threads Detected = {cpu_total_threads}")
             num_pull_threads = 1  # no Iniciar más de 1 hilo de descarga, de lo contrario los assets se descargarán multiples veces.
-            GV.LOGGER.info(f"Launching {num_pull_threads} Pull worker in parallel...")
+            LOGGER.info(f"Launching {num_pull_threads} Pull worker in parallel...")
             num_push_threads = max(1, int(cpu_total_threads / 2))
-            GV.LOGGER.info(f"Launching {num_push_threads} Push workers in parallel...")
+            LOGGER.info(f"Launching {num_push_threads} Push workers in parallel...")
 
             pull_threads = [threading.Thread(target=puller_worker, kwargs={"parallel": parallel}, daemon=True) for _ in range(num_pull_threads)]
             push_threads = [threading.Thread(target=pusher_worker, kwargs={"processed_albums": processed_albums, "worker_id": worker_id + 1}, daemon=True) for worker_id in range(num_push_threads)]
@@ -558,7 +559,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             # En este punto todos los pulls y pushs están listas y la cola está vacía.
 
             # Finalmente, borrar carpetas vacías que queden en temp_folder
-            Utils.remove_empty_dirs(temp_folder)
+            remove_empty_dirs(temp_folder)
 
             end_time = datetime.now()
             migration_formatted_duration = str(timedelta(seconds=round((end_time - migration_start_time).total_seconds())))
@@ -567,38 +568,38 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             # ----------------------------------------------------------------------------
             # 4) Mostrar o retornar contadores
             # ----------------------------------------------------------------------------
-            GV.LOGGER.info(f"")
-            GV.LOGGER.info(f"🚀 All assets pulled and pushed successfully!")
-            GV.LOGGER.info(f"")
-            GV.LOGGER.info(f"----- MIGRATION FINISHED  -----")
-            GV.LOGGER.info(f"{source_client_name} --> {target_client_name}")
-            GV.LOGGER.info(f"Pulled Albums               : {SHARED_DATA.counters['total_pulled_albums']}")
-            GV.LOGGER.info(f"Pushed Albums               : {SHARED_DATA.counters['total_pushed_albums']}")
-            GV.LOGGER.info(f"Pulled Assets               : {SHARED_DATA.counters['total_pulled_assets']} (Photos: {SHARED_DATA.counters['total_pulled_photos']}, Videos: {SHARED_DATA.counters['total_pulled_videos']})")
-            GV.LOGGER.info(f"Pushed Assets               : {SHARED_DATA.counters['total_pushed_assets']} (Photos: {SHARED_DATA.counters['total_pushed_photos']}, Videos: {SHARED_DATA.counters['total_pushed_videos']})")
-            GV.LOGGER.info(f"Push Duplicates (skipped)   : {SHARED_DATA.counters['total_push_duplicates_assets']}")
-            GV.LOGGER.info(f"Pull Failed Assets          : {SHARED_DATA.counters['total_pull_failed_assets']}")
-            GV.LOGGER.info(f"Push Failed Assets          : {SHARED_DATA.counters['total_push_failed_assets']}")
-            GV.LOGGER.info(f"")
-            GV.LOGGER.info(f"Migration Job completed in  : {migration_formatted_duration}")
-            GV.LOGGER.info(f"Total Elapsed Time          : {total_formatted_duration}")
-            GV.LOGGER.info(f"")
-            GV.LOGGER.info(f"")
+            LOGGER.info(f"")
+            LOGGER.info(f"🚀 All assets pulled and pushed successfully!")
+            LOGGER.info(f"")
+            LOGGER.info(f"----- MIGRATION FINISHED  -----")
+            LOGGER.info(f"{source_client_name} --> {target_client_name}")
+            LOGGER.info(f"Pulled Albums               : {SHARED_DATA.counters['total_pulled_albums']}")
+            LOGGER.info(f"Pushed Albums               : {SHARED_DATA.counters['total_pushed_albums']}")
+            LOGGER.info(f"Pulled Assets               : {SHARED_DATA.counters['total_pulled_assets']} (Photos: {SHARED_DATA.counters['total_pulled_photos']}, Videos: {SHARED_DATA.counters['total_pulled_videos']})")
+            LOGGER.info(f"Pushed Assets               : {SHARED_DATA.counters['total_pushed_assets']} (Photos: {SHARED_DATA.counters['total_pushed_photos']}, Videos: {SHARED_DATA.counters['total_pushed_videos']})")
+            LOGGER.info(f"Push Duplicates (skipped)   : {SHARED_DATA.counters['total_push_duplicates_assets']}")
+            LOGGER.info(f"Pull Failed Assets          : {SHARED_DATA.counters['total_pull_failed_assets']}")
+            LOGGER.info(f"Push Failed Assets          : {SHARED_DATA.counters['total_push_failed_assets']}")
+            LOGGER.info(f"")
+            LOGGER.info(f"Migration Job completed in  : {migration_formatted_duration}")
+            LOGGER.info(f"Total Elapsed Time          : {total_formatted_duration}")
+            LOGGER.info(f"")
+            LOGGER.info(f"")
             return SHARED_DATA.counters
 
     # --------------------------------------------------------------------------------
     # 1) PULLER: Función puller_worker para descargar assets y poner en la cola
     # --------------------------------------------------------------------------------
     def puller_worker(parallel=None, log_level=None):
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
 
             # 1.1) Descarga de álbumes
             albums = []
             try:
                 albums = source_client.get_albums_including_shared_with_user(filter_assets=True, log_level=logging.ERROR)
             except Exception as e:
-                GV.LOGGER.error(f"Error Retrieving All Albums - {e} \n{traceback.format_exc()}")
-                GV.LOGGER.info(f"Albums Assets Skipped")
+                LOGGER.error(f"Error Retrieving All Albums - {e} \n{traceback.format_exc()}")
+                LOGGER.info(f"Albums Assets Skipped")
 
             pulled_assets = 0
             for album in albums:
@@ -624,7 +625,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         # SHARED_DATA.counters['total_pull_failed_albums'] += 1     # If we uncomment this line, it will count as failed Empties albums
                         continue
                 except Exception as e:
-                    GV.LOGGER.error(f"Error Retrieving All Assets from album {album_name} - {e} \n{traceback.format_exc()}")
+                    LOGGER.error(f"Error Retrieving All Assets from album {album_name} - {e} \n{traceback.format_exc()}")
                     SHARED_DATA.counters['total_pull_failed_albums'] += 1
                     continue
 
@@ -661,7 +662,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                         # Actualizamos Contadores de descargas
                         if pulled_assets > 0:
-                            GV.LOGGER.info(f"Asset Pulled    : '{os.path.basename(local_file_path)}'")
+                            LOGGER.info(f"Asset Pulled    : '{os.path.basename(local_file_path)}'")
                             # pulled_assets_ids.add(asset["id"])
                             SHARED_DATA.counters['total_pulled_assets'] += 1
                             if asset_type.lower() in video_labels:
@@ -679,16 +680,16 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             # añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
                             unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
                             if not unique:
-                                GV.LOGGER.info(f"Asset Duplicated: '{os.path.basename(local_file_path)}' from Album '{album_name}. Skipped")
+                                LOGGER.info(f"Asset Duplicated: '{os.path.basename(local_file_path)}' from Album '{album_name}. Skipped")
                                 SHARED_DATA.counters['total_push_duplicates_assets'] += 1
                                 # Solo borramos si ya no está en la cola (ignorando mayúsculas)
                                 if not is_asset_in_queue(push_queue, local_file_path) and os.path.exists(local_file_path):
                                     try:
                                         os.remove(local_file_path)
                                     except Exception as e:
-                                        GV.LOGGER.warning(f"Could not remove file '{local_file_path}': {e}")
+                                        LOGGER.warning(f"Could not remove file '{local_file_path}': {e}")
                         else:
-                            GV.LOGGER.warning(f"Asset Pull Fail : '{os.path.basename(local_file_path)}' from Album '{album_name}'")
+                            LOGGER.warning(f"Asset Pull Fail : '{os.path.basename(local_file_path)}' from Album '{album_name}'")
                             SHARED_DATA.counters['total_pull_failed_assets'] += 1
                             if asset_type.lower() in video_labels:
                                 SHARED_DATA.counters['total_pull_failed_videos'] += 1
@@ -696,7 +697,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 SHARED_DATA.counters['total_pull_failed_photos'] += 1
 
                 except Exception as e:
-                    GV.LOGGER.error(f"Asset Pull Error: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e} \n{traceback.format_exc()}")
+                    LOGGER.error(f"Asset Pull Error: '{os.path.basename(asset_filename)}' from Album '{album_name}' - {e} \n{traceback.format_exc()}")
                     SHARED_DATA.counters['total_pull_failed_assets'] += 1
                     if asset_type.lower() in video_labels:
                         SHARED_DATA.counters['total_pull_failed_videos'] += 1
@@ -710,14 +711,14 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                 # Incrementamos contador de álbumes descargados
                 SHARED_DATA.counters['total_pulled_albums'] += 1
-                GV.LOGGER.info(f"Album Pulled    : '{album_name}'")
+                LOGGER.info(f"Album Pulled    : '{album_name}'")
 
             # 1.2) Descarga de assets sin álbum
             assets_no_album = []
             try:
                 assets_no_album = source_client.get_all_assets_without_albums(log_level=logging.ERROR)
             except Exception as e:
-                GV.LOGGER.error(f"Error Retrieving All Assets without Albums - {e} \n{traceback.format_exc()}")
+                LOGGER.error(f"Error Retrieving All Assets without Albums - {e} \n{traceback.format_exc()}")
 
             # Crear carpeta temp_folder si no existe, y bloquea su eliminación hasta que terminen las descargas
             os.makedirs(temp_folder, exist_ok=True)
@@ -751,7 +752,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         # Eliminar archivo de bloqueo después de la descarga
                         os.remove(lock_file)
                     except Exception as e:
-                        GV.LOGGER.error(f"Asset Pull Error: '{os.path.basename(local_file_path)}' - {e} \n{traceback.format_exc()}")
+                        LOGGER.error(f"Asset Pull Error: '{os.path.basename(local_file_path)}' - {e} \n{traceback.format_exc()}")
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
                         if asset_type.lower() in video_labels:
                             SHARED_DATA.counters['total_pull_failed_videos'] += 1
@@ -762,7 +763,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                     # Si se ha hecho correctamente el pull del asset, actualizamos contadores y enviamos el asset a la cola de push
                     if pulled_assets > 0:
                         # Actualizamos Contadores de descargas
-                        GV.LOGGER.info(f"Asset Pulled    : '{os.path.basename(local_file_path)}'")
+                        LOGGER.info(f"Asset Pulled    : '{os.path.basename(local_file_path)}'")
                         SHARED_DATA.counters['total_pulled_assets'] += 1
                         if asset_type.lower() in video_labels:
                             SHARED_DATA.counters['total_pulled_videos'] += 1
@@ -779,16 +780,16 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         }
                         unique = enqueue_unique(push_queue, asset_dict, parallel=parallel)  # Añadimos el asset a la cola solo si no se había añadido ya un asset con el mismo 'asset_file_path'
                         if not unique:
-                            GV.LOGGER.info(f"Asset Duplicated: '{os.path.basename(local_file_path)}'. Skipped")
+                            LOGGER.info(f"Asset Duplicated: '{os.path.basename(local_file_path)}'. Skipped")
                             SHARED_DATA.counters['total_push_duplicates_assets'] += 1
                             # Solo borramos si ya no está en la cola (ignorando mayúsculas)
                             if not is_asset_in_queue(push_queue, local_file_path) and os.path.exists(local_file_path):
                                 try:
                                     os.remove(local_file_path)
                                 except Exception as e:
-                                    GV.LOGGER.warning(f"Could not remove file '{local_file_path}': {e}")
+                                    LOGGER.warning(f"Could not remove file '{local_file_path}': {e}")
                     else:
-                        GV.LOGGER.warning(f"Asset Pull Fail : '{os.path.basename(local_file_path)}'")
+                        LOGGER.warning(f"Asset Pull Fail : '{os.path.basename(local_file_path)}'")
                         SHARED_DATA.counters['total_pull_failed_assets'] += 1
                         if asset_type.lower() in video_labels:
                             SHARED_DATA.counters['total_pull_failed_videos'] += 1
@@ -799,13 +800,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                 if os.path.exists(active_file):
                     os.remove(active_file)
 
-            GV.LOGGER.info(f"Puller Task Finished!")
+            LOGGER.info(f"Puller Task Finished!")
 
     # ----------------------------------------------------------------------------
     # 2) PUSHER: Función pusher_worker para SUBIR (consumir de la cola)
     # ----------------------------------------------------------------------------
     def pusher_worker(processed_albums=[], worker_id=1, log_level=None):
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             while True:
                 try:
                     # Extraemos el siguiente asset de la cola
@@ -832,7 +833,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                         if asset_id:
                             asset_pushed = True
                             if isDuplicated:
-                                GV.LOGGER.info(f"Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
+                                LOGGER.info(f"Asset Duplicated: '{os.path.basename(asset_file_path)}'. Skipped")
                                 SHARED_DATA.counters['total_push_duplicates_assets'] += 1
                             else:
                                 SHARED_DATA.counters['total_pushed_assets'] += 1
@@ -840,12 +841,12 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     SHARED_DATA.counters['total_pushed_videos'] += 1
                                 else:
                                     SHARED_DATA.counters['total_pushed_photos'] += 1
-                                GV.LOGGER.info(f"Asset Pushed    : '{os.path.basename(asset_file_path)}'")
+                                LOGGER.info(f"Asset Pushed    : '{os.path.basename(asset_file_path)}'")
                         else:
                             if album_name:
-                                GV.LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
+                                LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
                             else:
-                                GV.LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'")
+                                LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'")
                             SHARED_DATA.counters['total_push_failed_assets'] += 1
                             if asset_type.lower() in video_labels:
                                 SHARED_DATA.counters['total_push_failed_videos'] += 1
@@ -853,7 +854,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 SHARED_DATA.counters['total_push_failed_photos'] += 1
 
                         # Borrar asset de 'source' client si hemos pasado el argumento '-move, --move-assets'
-                        move_assets = GV.ARGS.get('move-assets', None)
+                        move_assets = ARGS.get('move-assets', None)
                         if move_assets:
                             source_client.remove_assets(asset_ids=asset['asset_id'], log_level=log_level)
 
@@ -865,10 +866,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                 pass
                     except Exception as e:
                         if album_name:
-                            GV.LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
+                            LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
                         else:
-                            GV.LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'")
-                        GV.LOGGER.error(f"Caught Exception: {str(e)} \n{traceback.format_exc()}")
+                            LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'")
+                        LOGGER.error(f"Caught Exception: {str(e)} \n{traceback.format_exc()}")
                         SHARED_DATA.counters['total_push_failed_assets'] += 1
                         if asset_type.lower() in video_labels:
                             SHARED_DATA.counters['total_push_failed_videos'] += 1
@@ -885,8 +886,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                             # Añadir el asset al álbum
                             target_client.add_assets_to_album(album_id=album_id_dest, asset_ids=asset_id, album_name=album_name, log_level=logging.ERROR)
                         except Exception as e:
-                            GV.LOGGER.error(f"Album Push Fail : '{album_name}'")
-                            GV.LOGGER.error(f"Caught Exception: {str(e)} \n{traceback.format_exc()}")
+                            LOGGER.error(f"Album Push Fail : '{album_name}'")
+                            LOGGER.error(f"Caught Exception: {str(e)} \n{traceback.format_exc()}")
                             SHARED_DATA.counters['total_push_failed_albums'] += 1
 
                         # Verificar si la carpeta local del álbum está vacía y borrarla
@@ -906,7 +907,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     processed_albums.append(album_name)  # Lo incluimos en la lista de albumes procesados
                                     SHARED_DATA.counters['total_pushed_albums'] += 1
                                     SHARED_DATA.counters['total_pushed_albums'] = min(SHARED_DATA.counters['total_pushed_albums'], SHARED_DATA.counters['total_pulled_albums'])  # Avoid to set total_pushed_albums > total_pulled_albums
-                                    GV.LOGGER.info(f"Album Pushed    : '{album_name}'")
+                                    LOGGER.info(f"Album Pushed    : '{album_name}'")
                             except OSError:
                                 # Si no está vacía, ignoramos el error
                                 pass
@@ -915,17 +916,17 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 
                 except Exception as e:
                     if album_name:
-                        GV.LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
+                        LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
                     else:
-                        GV.LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'")
-                    GV.LOGGER.error(f"Caught Exception: {str(e)} \n{traceback.format_exc()}")
+                        LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'")
+                    LOGGER.error(f"Caught Exception: {str(e)} \n{traceback.format_exc()}")
                     SHARED_DATA.counters['total_push_failed_assets'] += 1
                     if asset_type.lower() in video_labels:
                         SHARED_DATA.counters['total_push_failed_videos'] += 1
                     else:
                         SHARED_DATA.counters['total_push_failed_photos'] += 1
 
-            GV.LOGGER.info(f"Pusher {worker_id} - Task Finished!")
+            LOGGER.info(f"Pusher {worker_id} - Task Finished!")
 
     # ----------------------------
     # 4) LLAMADA AL HILO PRINCIPAL
@@ -944,7 +945,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     file_paths_lock = threading.Lock()
 
     # Normalizamos temp_folder
-    temp_folder = Utils.normalize_path(temp_folder)
+    temp_folder = normalize_path(temp_folder)
 
     # Listas de posibles etiquetas para los distintos tipos de archivos en los diferentes clientes
     image_labels = ['photo', 'image']
@@ -952,8 +953,8 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     metadata_labels = ['metadata']
     sidecar_labels = ['sidecar']
 
-    # Check if parallel=None, and in that case, get it from GV.ARGS
-    if parallel is None: parallel = GV.ARGS['parallel-migration']
+    # Check if parallel=None, and in that case, get it from ARGS
+    if parallel is None: parallel = ARGS['parallel-migration']
 
     # Llamada al hilo principal
     main_thread(parallel=parallel, log_level=log_level)
@@ -987,17 +988,17 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=No
         terminal_height = console.size.height
         terminal_width = console.size.width
 
-        GV.LOGGER.info(f"Detected terminal height = {terminal_height}")
-        GV.LOGGER.info(f"Detected terminal width  = {terminal_width}")
+        LOGGER.info(f"Detected terminal height = {terminal_height}")
+        LOGGER.info(f"Detected terminal width  = {terminal_width}")
 
         if terminal_height < MIN_TERMINAL_HEIGHT:
-            GV.LOGGER.info(f"Cannot display Live Dashboard because the detected terminal height = {terminal_height} and the minumum needed height = {MIN_TERMINAL_HEIGHT}. Continuing without Live Dashboard...")
-            GV.ARGS['dashboard'] = False  # Set this argument to False to avoid use TQDM outputs as if a Interactive Terminal (isatty() = True)
+            LOGGER.info(f"Cannot display Live Dashboard because the detected terminal height = {terminal_height} and the minumum needed height = {MIN_TERMINAL_HEIGHT}. Continuing without Live Dashboard...")
+            ARGS['dashboard'] = False  # Set this argument to False to avoid use TQDM outputs as if a Interactive Terminal (isatty() = True)
             return
 
         if terminal_width < MIN_TERMINAL_WIDTH:
-            GV.LOGGER.info(f"Cannot display Live Dashboard because the detected terminal width = {terminal_width} and the minumum needed width = {MIN_TERMINAL_WIDTH}. Continuing without Live Dashboard...")
-            GV.ARGS['dashboard'] = False  # Set this argument to False to avoid use TQDM outputs as if a Interactive Terminal (isatty() = True)
+            LOGGER.info(f"Cannot display Live Dashboard because the detected terminal width = {terminal_width} and the minumum needed width = {MIN_TERMINAL_WIDTH}. Continuing without Live Dashboard...")
+            ARGS['dashboard'] = False  # Set this argument to False to avoid use TQDM outputs as if a Interactive Terminal (isatty() = True)
             return
 
         # Iniciamos el contador de tiempo transcurrido
@@ -1007,33 +1008,33 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=No
         layout.size = terminal_height
 
         # # 🚀 Forzar la redirección de sys.stderr globalmente para asegurar que no se imprima en pantalla
-        # sys.stderr = sys.__stderr__ = LoggerCapture(GV.LOGGER, logging.ERROR)
+        # sys.stderr = sys.__stderr__ = LoggerCapture(LOGGER, logging.ERROR)
         #
         # # 🚀 Capturar e interceptar manualmente cualquier error antes de que `rich` lo maneje
         # def log_exceptions(exctype, value, tb):
-        #     """Captura todas las excepciones no manejadas y las guarda en el GV.LOGGER sin imprimir en pantalla"""
+        #     """Captura todas las excepciones no manejadas y las guarda en el LOGGER sin imprimir en pantalla"""
         #     error_message = "".join(traceback.format_exception(exctype, value, tb))
-        #     GV.LOGGER.error(f"Excepción no manejada:\n" + error_message)  # Guardar en logs sin imprimir en consola
+        #     LOGGER.error(f"Excepción no manejada:\n" + error_message)  # Guardar en logs sin imprimir en consola
         #
         # sys.excepthook = log_exceptions
 
         # Eliminar solo los StreamHandler sin afectar los FileHandler
-        for handler in list(GV.LOGGER.handlers):  # Hacer una copia de la lista para evitar problemas al modificarla
+        for handler in list(LOGGER.handlers):  # Hacer una copia de la lista para evitar problemas al modificarla
             if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler):
-                GV.LOGGER.removeHandler(handler)
+                LOGGER.removeHandler(handler)
 
         # Crea el handler y configúralo con un formatter
         memory_handler = CustomInMemoryLogHandler(SHARED_DATA.logs_queue)
         memory_handler.setFormatter(CustomConsoleFormatter(fmt='%(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
         memory_handler.setLevel(log_level)
 
-        # Agrega el handler al GV.LOGGER
-        GV.LOGGER.addHandler(memory_handler)
+        # Agrega el handler al LOGGER
+        LOGGER.addHandler(memory_handler)
 
         # Opcional: si NO quieres imprimir por consola, puedes quitar el StreamHandler que tenga el logger por defecto (así solo se registran en la lista).
         # Por ejemplo:
-        GV.LOGGER.propagate = False
-        log_file = get_logger_filename(GV.LOGGER)
+        LOGGER.propagate = False
+        log_file = get_logger_filename(LOGGER)
 
         # Split layout: header_panel (8 lines), title_panel (3 lines), content_panel (12 lines), logs fill remainder
         layout.split_column(
@@ -1076,7 +1077,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=No
         | |_) | '_ \ / _ \| __/ _ \| |\/| | |/ _` | '__/ _` | __/ _ \| '__|
         |  __/| | | | (_) | || (_) | |  | | | (_| | | | (_| | || (_) | |
         |_|   |_| |_|\___/ \__\___/|_|  |_|_|\__, |_|  \__,_|\__\___/|_|
-                                             |___/ {GV.SCRIPT_VERSION}
+                                             |___/ {SCRIPT_VERSION}
         """).lstrip("\n")  # Elimina solo la primera línea en blanco
         # header =  textwrap.dedent(rf"""
 
@@ -1085,12 +1086,12 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=No
         # ─────────────────────────────────────────────────────────────────────────
         # 1) Title Panel
         # ─────────────────────────────────────────────────────────────────────────
-        title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] 🡆 [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automatic Migration - {GV.SCRIPT_NAME_VERSION}"
+        title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] 🡆 [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automatic Migration - {SCRIPT_NAME_VERSION}"
 
         layout["title_panel"].update(Panel(f"🚀 {title}", border_style="bright_blue", expand=True))
 
         def update_title_panel():
-            title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] 🡆 [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automatic Migration - {GV.SCRIPT_NAME_VERSION}"
+            title = f"[bold cyan]{SHARED_DATA.info.get('source_client_name')}[/bold cyan] 🡆 [green]{SHARED_DATA.info.get('target_client_name')}[/green] - Automatic Migration - {SCRIPT_NAME_VERSION}"
             layout["title_panel"].update(Panel(f"🚀 {title}", border_style="bright_blue", expand=True))
 
         # ─────────────────────────────────────────────────────────────────────────
@@ -1328,7 +1329,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=No
                 return log_panel
 
             except Exception as e:
-                GV.LOGGER.error(f"Building Log Panel: {e}")
+                LOGGER.error(f"Building Log Panel: {e}")
 
 
         # ─────────────────────────────────────────────────────────────────────────
@@ -1370,7 +1371,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=No
         sys.stdout = original_stdout
         sys.stderr = original_stderr
         traceback.print_exc()
-        GV.LOGGER.exception(f"ERROR during Automatic Migration Feature")
+        LOGGER.exception(f"ERROR during Automatic Migration Feature")
         raise
     finally:
         # Restaurar stdout y stderr
@@ -1383,7 +1384,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=No
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
 
-    ChangeWorkingDir.change_working_dir(change_dir=False)
+    change_working_dir(change_dir=False)
 
     # # Paths para Windows
     local_folder = r'r:\jaimetur\PhotoMigrator\LocalFolderClient'

@@ -14,8 +14,18 @@ import subprocess
 import glob
 from pathlib import Path
 
-from Core import SCRIPT_NAME, SCRIPT_VERSION, GPTH_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
+from Core.GlobalVariables import SCRIPT_NAME, SCRIPT_VERSION, GPTH_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
 from Core.Utils import zip_folder, unzip_to_temp, clear_screen, print_arguments_pretty, get_os, get_arch, resource_path, ensure_executable
+
+global OPERATING_SYSTEM
+global ARCHITECTURE
+global SCRIPT_SOURCE_NAME
+global SCRIPT_VERSION_WITHOUT_V
+global SCRIPT_NAME_VERSION
+global root_dir
+global script_name_with_version_os_arch
+global script_zip_file
+global archive_path_relative
 
 def include_extrafiles_and_zip(input_file, output_file):
     extra_files_to_subdir = [

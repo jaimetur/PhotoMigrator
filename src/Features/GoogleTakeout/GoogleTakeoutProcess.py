@@ -3,7 +3,7 @@ import subprocess
 
 from colorama import init
 
-from Core import GlobalVariables as GV
+from Core.GlobalVariables import COLORTAG_INFO, COLORTAG_VERBOSE, COLORTAG_DEBUG, COLORTAG_WARNING, COLORTAG_ERROR, TAG_INFO, LOGGER
 
 
 # ---------------------------------------------------------------------------------------------------------------------------
@@ -46,9 +46,9 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
                         # Log inicial
                         log_msg = f"{step_name}{line}"
                         if is_error:
-                            GV.LOGGER.error(log_msg)
+                            LOGGER.error(log_msg)
                         else:
-                            GV.LOGGER.info(log_msg)
+                            LOGGER.info(log_msg)
                     # nunca imprimo 0/x en pantalla
                     last_was_progress = True
                     continue
@@ -56,7 +56,7 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
                 # 1.b) Progreso intermedio (1 <= n < total)
                 if n < total:
                     if print_messages:
-                        print(f"\r{GV.TAG_INFO}{step_name}{line}", end='', flush=True)
+                        print(f"\r{TAG_INFO}{step_name}{line}", end='', flush=True)
                     last_was_progress = True
                     # no logueamos intermedias
                     continue
@@ -65,14 +65,14 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
                 if common_part not in printed_final:
                     # impresión en pantalla
                     if print_messages:
-                        print(f"\r{GV.TAG_INFO}{step_name}{line}", end='', flush=True)
+                        print(f"\r{TAG_INFO}{step_name}{line}", end='', flush=True)
                         print()
                     # log final
                     log_msg = f"{step_name}{line}"
                     if is_error:
-                        GV.LOGGER.error(log_msg)
+                        LOGGER.error(log_msg)
                     else:
-                        GV.LOGGER.info(log_msg)
+                        LOGGER.info(log_msg)
 
                     printed_final.add(common_part)
 
@@ -87,40 +87,40 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
             # 3) Impresión normal
             if print_messages:
                 if is_error:
-                    print(f"{GV.COLORTAG_ERROR}{step_name}{line}")
+                    print(f"{COLORTAG_ERROR}{step_name}{line}")
                 else:
                     if "ERROR" in line:
-                        print(f"{GV.COLORTAG_ERROR}{step_name}{line}")
+                        print(f"{COLORTAG_ERROR}{step_name}{line}")
                     elif "WARNING" in line:
-                        print(f"{GV.COLORTAG_WARNING}{step_name}{line}")
+                        print(f"{COLORTAG_WARNING}{step_name}{line}")
                     elif "DEBUG" in line:
-                        print(f"{GV.COLORTAG_DEBUG}{step_name}{line}")
+                        print(f"{COLORTAG_DEBUG}{step_name}{line}")
                     elif "VERBOSE" in line:
-                        print(f"{GV.COLORTAG_VERBOSE}{step_name}{line}")
+                        print(f"{COLORTAG_VERBOSE}{step_name}{line}")
                     else:
-                        print(f"{GV.COLORTAG_INFO}{step_name}{line}")
+                        print(f"{COLORTAG_INFO}{step_name}{line}")
 
             # 4) Logging normal
             if is_error:
-                GV.LOGGER.error(f"{step_name}{line}")
+                LOGGER.error(f"{step_name}{line}")
             else:
                 if "ERROR" in line:
-                    GV.LOGGER.error(f"{step_name}{line}")
+                    LOGGER.error(f"{step_name}{line}")
                 elif "WARNING" in line:
-                    GV.LOGGER.warning(f"{step_name}{line}")
+                    LOGGER.warning(f"{step_name}{line}")
                 elif "DEBUG" in line:
-                    GV.LOGGER.debug(f"{step_name}{line}")
+                    LOGGER.debug(f"{step_name}{line}")
                 elif "VERBOSE" in line:
-                    GV.LOGGER.verbose(f"{step_name}{line}")
+                    LOGGER.verbose(f"{step_name}{line}")
                 else:
-                    GV.LOGGER.info(f"{step_name}{line}")
+                    LOGGER.info(f"{step_name}{line}")
 
         # 5) Al cerrar stream, si quedó un progreso vivo, cerramos línea
         if last_was_progress and print_messages:
             print()
 
     # ------------------------------------------------------------------------------------------------------------------------------------------------------------
-    with suppress_console_output_temporarily(GV.LOGGER):
+    with suppress_console_output_temporarily(LOGGER):
         if not capture_output and not capture_errors:
             return subprocess.run(command, check=False, text=True, encoding="utf-8", errors="replace").returncode
         else:

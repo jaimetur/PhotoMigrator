@@ -8,11 +8,11 @@ import time
 from collections import namedtuple
 from pathlib import Path
 
-from Core import GlobalVariables as GV
 from Core.CustomLogger import set_log_level
+from Core.GlobalVariables import TAG_INFO, TAG_ERROR, LOGGER
 from Core.StandaloneFunctions import resolve_path
 from Core.Utils import remove_empty_dirs, tqdm
-from Features.GoogleTakeout import GoogleTakeoutPreprocess as GT_PREP
+from GoogleTakeoutPreprocess import delete_subfolders
 
 
 # ========================
@@ -64,8 +64,9 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
 
         Returns:
             str: The calculated hash.
+            :param log_level:
         """
-        with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             hasher = hashlib.md5()
             with open(path, 'rb') as f:
                 if not full_hash:
@@ -83,7 +84,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
         Evalúa la prioridad de un folder basándose en patrones fnmatch.
         Retorna (is_deprioritized, priority).
         """
-        with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             # Reutilizar resultados almacenados en caché
             if folder in cache_folders_priority:
                 return cache_folders_priority[folder]
@@ -111,7 +112,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
         """
         Remove empty directories recursively.
         """
-        with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             removed_folders = 0
             for dirpath, dirnames, filenames in os.walk(root_dir, topdown=False):
                 filtered_dirnames = [d for d in dirnames if d != '@eaDir']
@@ -119,7 +120,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
                     try:
                         os.rmdir(dirpath)
                         removed_folders += 1
-                        GV.LOGGER.debug(f"{step_name}Removed empty directory in path {dirpath}")
+                        LOGGER.debug(f"{step_name}Removed empty directory in path {dirpath}")
                     except OSError:
                         pass
             return removed_folders
@@ -137,7 +138,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
     # INITIALIZATION AND SETUP
     # ===========================
     
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         removed_empty_folders = 0
         if deprioritize_folders_patterns is None:
             deprioritize_folders_patterns = []
@@ -153,7 +154,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
             # Convertimos cada elemento (Path o str) a str limpio
             duplicates_folders = [str(f).strip() for f in duplicates_folders if str(f).strip()]
         else:
-            raise TypeError(f"{GV.TAG_ERROR}duplicates_folders must be str, Path or List, no {type(duplicates_folders)}")
+            raise TypeError(f"{TAG_ERROR}duplicates_folders must be str, Path or List, no {type(duplicates_folders)}")
 
         # Convert exclusion_folders to list if is str
         if exclusion_folders is None:
@@ -174,17 +175,17 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
                         os.path.normpath(os.path.join(root, excl))
                     )
         exclusion_folders = abs_exclusions
-        GV.LOGGER.debug(f"{step_name} Exclusiones absolutas: {exclusion_folders}")
+        LOGGER.debug(f"{step_name} Exclusiones absolutas: {exclusion_folders}")
 
         if not duplicates_folders:
             duplicates_folders = [resolve_path('../../../../../../../../../')]
-        GV.LOGGER.debug(f"{step_name}Checking folder existence")
+        LOGGER.debug(f"{step_name}Checking folder existence")
         for folder in duplicates_folders:
             if not os.path.isdir(folder):
-                GV.LOGGER.error(f"{step_name}The folder '{folder}' does not exist.")
+                LOGGER.error(f"{step_name}The folder '{folder}' does not exist.")
                 return -1, -1
         duplicates_folders = [os.path.abspath(f) for f in duplicates_folders]
-        GV.LOGGER.debug(f"{step_name}Absolute folder paths: {duplicates_folders}")
+        LOGGER.debug(f"{step_name}Absolute folder paths: {duplicates_folders}")
         if timestamp is None:
             timestamp = time.strftime('%Y%m%d-%H%M%S', time.localtime())
         cache_folders_priority = {}
@@ -192,13 +193,13 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
         # ===========================
         # PROCESSING FILES BY SIZE
         # ===========================
-        GV.LOGGER.debug(f"{step_name}Grouping files by size")
+        LOGGER.debug(f"{step_name}Grouping files by size")
         size_dict = {}
         total_folders = 0
         total_files = 0
         total_symlinks = 0
         for folder in duplicates_folders:
-            GV.LOGGER.debug(f"{step_name}Walking folder {folder}")
+            LOGGER.debug(f"{step_name}Walking folder {folder}")
 
             # ===========================
             # CALCULAR TOTAL DE FICHEROS
@@ -217,10 +218,10 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
 
                 # Sumar ficheros de este nivel
                 total_files_to_process += len(files)
-            GV.LOGGER.debug(f"{step_name}Total files to process: {total_files_to_process}")
+            LOGGER.debug(f"{step_name}Total files to process: {total_files_to_process}")
 
             # Show progress bar per fies
-            with tqdm(total=total_files_to_process, smoothing=0.1,  desc=f"{GV.TAG_INFO}{step_name}Processing files'", unit=" files") as pbar:
+            with tqdm(total=total_files_to_process, smoothing=0.1,  desc=f"{TAG_INFO}{step_name}Processing files'", unit=" files") as pbar:
                 # Recursively traverse the folder and excluding '@eaDir' folders
                 for path, dirs, files in os.walk(folder, topdown=True):
                     # 1) Si estamos en un árbol excluido, lo saltamos entero
@@ -244,21 +245,21 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
                         try:
                             file_size = os.path.getsize(full_path)
                         except (PermissionError, OSError):
-                            GV.LOGGER.warning(f"{step_name}Skipping inaccessible file {full_path}")
+                            LOGGER.warning(f"{step_name}Skipping inaccessible file {full_path}")
                             continue
                         
                         size_dict.setdefault(file_size, []).append(full_path)
 
         # Optimización: Filtrar directamente los tamaños con más de un archivo
         sizes_with_duplicates_dict = {size: paths for size, paths in size_dict.items() if len(paths) > 1}
-        GV.LOGGER.debug(f"{step_name}Symbolic Links files will be excluded from Find Duplicates Algorithm (they don't use disk space)")
-        GV.LOGGER.debug(f"{step_name}Total subfolders found: {total_folders+len(duplicates_folders)}")
-        GV.LOGGER.debug(f"{step_name}Total files found: {total_files}")
-        GV.LOGGER.debug(f"{step_name}Total Symbolic Links files found: {total_symlinks}")
-        GV.LOGGER.debug(f"{step_name}Total files (not Symbolic Links) found: {total_files-total_symlinks}")
-        GV.LOGGER.debug(f"{step_name}Total Groups of different files size found: {len(size_dict)}")
-        GV.LOGGER.debug(f"{step_name}Filtering out groups with only one file with the same size")
-        GV.LOGGER.debug(f"{step_name}Groups with more than one file with the same size found: {len(sizes_with_duplicates_dict)}")
+        LOGGER.debug(f"{step_name}Symbolic Links files will be excluded from Find Duplicates Algorithm (they don't use disk space)")
+        LOGGER.debug(f"{step_name}Total subfolders found: {total_folders+len(duplicates_folders)}")
+        LOGGER.debug(f"{step_name}Total files found: {total_files}")
+        LOGGER.debug(f"{step_name}Total Symbolic Links files found: {total_symlinks}")
+        LOGGER.debug(f"{step_name}Total files (not Symbolic Links) found: {total_files-total_symlinks}")
+        LOGGER.debug(f"{step_name}Total Groups of different files size found: {len(size_dict)}")
+        LOGGER.debug(f"{step_name}Filtering out groups with only one file with the same size")
+        LOGGER.debug(f"{step_name}Groups with more than one file with the same size found: {len(sizes_with_duplicates_dict)}")
         del size_dict  # Liberar memoria anticipadamente
 
         # ===============================================================================
@@ -285,77 +286,77 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
                     CHUNK_SIZE = 4 * 1024 * 1024  # 4 MB
                 CHUNK_SIZE = max(4 * 1024, average_size // 100)  # 10% del tamaño medio, mínimo 4 KB
 
-                GV.LOGGER.debug(f"{step_name}Hashing files with same size ")
-                GV.LOGGER.debug(f"{step_name}Applying partial/full hashing technique")
-                GV.LOGGER.debug(f"{step_name}Using dynamic chunk_size of {round(CHUNK_SIZE / 1024, 0)} KB based on average file size of {round(average_size / 1024, 2)} KB for sizes with more than one file")
+                LOGGER.debug(f"{step_name}Hashing files with same size ")
+                LOGGER.debug(f"{step_name}Applying partial/full hashing technique")
+                LOGGER.debug(f"{step_name}Using dynamic chunk_size of {round(CHUNK_SIZE / 1024, 0)} KB based on average file size of {round(average_size / 1024, 2)} KB for sizes with more than one file")
                 partial_hash_dict = {}
                 hash_dict = {}
 
-                GV.LOGGER.debug(f"{step_name}Calculating Partial Hashes (chunk_size={round(CHUNK_SIZE / 1024, 0)} KB) for {len(sizes_with_duplicates_dict)} groups of sizes with more than one file")
-                for file_size, paths in tqdm(sizes_with_duplicates_dict.items(), smoothing=0, desc=f"{GV.TAG_INFO}Partial Hashing Progress", unit=" groups"):
+                LOGGER.debug(f"{step_name}Calculating Partial Hashes (chunk_size={round(CHUNK_SIZE / 1024, 0)} KB) for {len(sizes_with_duplicates_dict)} groups of sizes with more than one file")
+                for file_size, paths in tqdm(sizes_with_duplicates_dict.items(), smoothing=0, desc=f"{TAG_INFO}Partial Hashing Progress", unit=" groups"):
                     for path in paths:
                         try:
                             partial_hash = calculate_file_hash_optimized(path, full_hash=False, chunk_size=CHUNK_SIZE)
                             partial_hash_dict.setdefault(partial_hash, []).append(path)
                         except (PermissionError, OSError):
-                            GV.LOGGER.warning(f"{step_name}Skipping file due to error {path}")
+                            LOGGER.warning(f"{step_name}Skipping file due to error {path}")
                             continue
                         
                 del sizes_with_duplicates_dict
                 partial_hash_with_duplicates_dict = {partial_hash: partial_hash_paths for partial_hash, partial_hash_paths in partial_hash_dict.items() if len(partial_hash_paths) > 1}
                 del partial_hash_dict
-                GV.LOGGER.debug(f"{step_name}Groups with same Partial Hash found: {len(partial_hash_with_duplicates_dict)}")
+                LOGGER.debug(f"{step_name}Groups with same Partial Hash found: {len(partial_hash_with_duplicates_dict)}")
                 if len(partial_hash_with_duplicates_dict)>0:
-                    GV.LOGGER.debug(f"{step_name}Calculating Full Hashes for {len(partial_hash_with_duplicates_dict)} groups of partial hashes with more than one file")
-                    for partial_hash, paths in tqdm(partial_hash_with_duplicates_dict.items(), smoothing=0, desc=f"{GV.TAG_INFO}Full Hashing Progress", unit=" groups"):
+                    LOGGER.debug(f"{step_name}Calculating Full Hashes for {len(partial_hash_with_duplicates_dict)} groups of partial hashes with more than one file")
+                    for partial_hash, paths in tqdm(partial_hash_with_duplicates_dict.items(), smoothing=0, desc=f"{TAG_INFO}Full Hashing Progress", unit=" groups"):
                         for path in paths:
                             try:
                                 full_hash = calculate_file_hash_optimized(path, full_hash=True)
                                 hash_dict.setdefault(full_hash, []).append(path)
                             except (PermissionError, OSError):
-                                GV.LOGGER.warning(f"{step_name}Skipping file due to error {path}")
+                                LOGGER.warning(f"{step_name}Skipping file due to error {path}")
                                 continue
                             
                 del partial_hash_with_duplicates_dict
             else:
-                GV.LOGGER.debug(f"{step_name}Hashing files with same size")
+                LOGGER.debug(f"{step_name}Hashing files with same size")
                 hash_dict = {}
-                for file_size, paths in tqdm(sizes_with_duplicates_dict.items(), smoothing=0, desc=f"{GV.TAG_INFO}Full Hashing Progress", unit=" groups"):
+                for file_size, paths in tqdm(sizes_with_duplicates_dict.items(), smoothing=0, desc=f"{TAG_INFO}Full Hashing Progress", unit=" groups"):
                     for path in paths:
                         try:
                             full_hash = calculate_file_hash_optimized(path, full_hash=True)
                             hash_dict.setdefault(full_hash, []).append(path)
                         except (PermissionError, OSError):
-                            GV.LOGGER.warning(f"{step_name}Skipping file due to error {path}")
+                            LOGGER.warning(f"{step_name}Skipping file due to error {path}")
                             continue
                         
                 del sizes_with_duplicates_dict
 
             duplicates = {hash: paths for hash, paths in hash_dict.items() if len(paths) > 1}
-            GV.LOGGER.debug(f"{step_name}Groups with same Full Hash found: {len(duplicates)}")
+            LOGGER.debug(f"{step_name}Groups with same Full Hash found: {len(duplicates)}")
             del hash_dict
 
             # ===========================
             # IDENTIFYING DUPLICATES
             # ===========================
-            GV.LOGGER.debug(f"{step_name}Identifying duplicates by hash.")
-            GV.LOGGER.debug(f"{step_name}{len(duplicates)} duplicate sets found")
+            LOGGER.debug(f"{step_name}Identifying duplicates by hash.")
+            LOGGER.debug(f"{step_name}{len(duplicates)} duplicate sets found")
 
             if len(duplicates)>0:
                 # ===========================
                 # CSV WRITING
                 # ===========================
-                GV.LOGGER.info(f"{step_name}Creating duplicates directories")
+                LOGGER.info(f"{step_name}Creating duplicates directories")
                 duplicates_root = resolve_path('')
                 timestamp_dir = os.path.join(duplicates_root, 'Duplicates_' + timestamp)
                 os.makedirs(timestamp_dir, exist_ok=True)
-                GV.LOGGER.info(f"{step_name}Results in {timestamp_dir}")
+                LOGGER.info(f"{step_name}Results in {timestamp_dir}")
                 duplicates_csv_path = os.path.join(timestamp_dir, f'Duplicates_{timestamp}.csv')
                 header = ['Num_Duplicates', 'Principal', 'Duplicate', 'Principal_Path', 'Duplicate_Path', 'Action', 'Reason for Principal']
                 if duplicates_action == 'move':
                     header.append('Destination')
 
-                GV.LOGGER.debug(f"{step_name}Writing CSV header.")
+                LOGGER.debug(f"{step_name}Writing CSV header.")
                 with open(duplicates_csv_path, 'w', encoding='utf-8-sig', newline='') as duplicates_file:
                     writer = csv.writer(duplicates_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                     writer.writerow(header)
@@ -363,7 +364,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
                     # ===================================================================
                     # START OF DUPLICATES LOGIC TO DETERMINE ThE PRINCIPAL DUPLICATE FILE
                     # ===================================================================
-                    GV.LOGGER.debug(f"{step_name}Processing each duplicates set to determine the principal file and move/remove the duplicates ones (if duplicates_action = move/remove).")
+                    LOGGER.debug(f"{step_name}Processing each duplicates set to determine the principal file and move/remove the duplicates ones (if duplicates_action = move/remove).")
 
                     # Memory to keep consistent principal folder selection in tie scenarios
                     cache_principal_folders = {}
@@ -502,17 +503,17 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
                                 try:
                                     os.remove(duplicated)
                                 except OSError:
-                                    GV.LOGGER.warning(f"{step_name}Could not remove file {duplicated}")
+                                    LOGGER.warning(f"{step_name}Could not remove file {duplicated}")
 
                             writer.writerow(row)
                             duplicates_counter += 1
 
                 if duplicates_action in ('move', 'remove'):
-                    GV.LOGGER.info(f"{step_name}Removing empty directories in original folders...")
+                    LOGGER.info(f"{step_name}Removing empty directories in original folders...")
                     for folder in duplicates_folders:
                         removed_empty_folders += remove_empty_dirs(folder, log_level=log_level)
 
-        GV.LOGGER.info(f"{step_name}Finished processing. Total duplicates (excluding principals): {duplicates_counter}")
+        LOGGER.info(f"{step_name}Finished processing. Total duplicates (excluding principals): {duplicates_counter}")
         return duplicates_counter, removed_empty_folders
 
 
@@ -520,11 +521,11 @@ def process_duplicates_actions(csv_revised: str, log_level=None):
     import unicodedata
 
     def normalize_path(path: str, log_level=None) -> str:
-        with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             return unicodedata.normalize('NFC', path)
 
     
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Initialize counters
         removed_count = 0
         restored_count = 0
@@ -535,7 +536,7 @@ def process_duplicates_actions(csv_revised: str, log_level=None):
 
         # Check if the CSV file exists
         if not os.path.isfile(csv_revised):
-            GV.LOGGER.info(f"File {csv_revised} does not exist.")
+            LOGGER.info(f"File {csv_revised} does not exist.")
             return removed_count, restored_count, replaced_count
 
         # Open the CSV file once and read lines, using UTF-8.
@@ -548,7 +549,7 @@ def process_duplicates_actions(csv_revised: str, log_level=None):
             try:
                 header = next(reader)
             except StopIteration:
-                GV.LOGGER.info(f"The file {csv_revised} is empty.")
+                LOGGER.info(f"The file {csv_revised} is empty.")
                 return removed_count, restored_count, replaced_count
 
 
@@ -556,7 +557,7 @@ def process_duplicates_actions(csv_revised: str, log_level=None):
 
             def get_index(col_name, log_level=None):
                 
-                with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+                with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
                     try:
                         return normalized_header.index(col_name)
                     except ValueError:
@@ -570,7 +571,7 @@ def process_duplicates_actions(csv_revised: str, log_level=None):
 
             # Check if all required columns are present
             if any(i == -1 for i in [principal_index, duplicate_index, action_index]):
-                GV.LOGGER.info(f"Columns 'Principal', 'Duplicate' or 'Action' not found in {csv_revised}.")
+                LOGGER.info(f"Columns 'Principal', 'Duplicate' or 'Action' not found in {csv_revised}.")
                 return removed_count, restored_count, replaced_count
 
             # If no Destination Column found, use Duplicate column as destination
@@ -595,15 +596,15 @@ def process_duplicates_actions(csv_revised: str, log_level=None):
                         if target_dir and not os.path.exists(target_dir):
                             os.makedirs(target_dir, exist_ok=True)
                         os.rename(destination_file, duplicate_file)
-                        GV.LOGGER.info(f"Restored: {duplicate_file}")
+                        LOGGER.info(f"Restored: {duplicate_file}")
 
                         if os.path.isfile(principal_file):
                             os.remove(principal_file)
-                            GV.LOGGER.info(f"Removed: {principal_file}")
+                            LOGGER.info(f"Removed: {principal_file}")
                             removed_dirs.add(os.path.dirname(principal_file))
                         replaced_count += 1
                     else:
-                        GV.LOGGER.info(f"File {destination_file} does not exist. Skipping.")
+                        LOGGER.info(f"File {destination_file} does not exist. Skipping.")
 
                 elif action in ("restore_duplicate", "restore-duplicate", "restore"):
                     if os.path.isfile(destination_file):
@@ -611,29 +612,29 @@ def process_duplicates_actions(csv_revised: str, log_level=None):
                         if target_dir and not os.path.exists(target_dir):
                             os.makedirs(target_dir, exist_ok=True)
                         os.rename(destination_file, duplicate_file)
-                        GV.LOGGER.info(f"Restored: {duplicate_file}")
+                        LOGGER.info(f"Restored: {duplicate_file}")
                         restored_count += 1
                     else:
-                        GV.LOGGER.info(f"File {destination_file} does not exist. Skipping restore.")
+                        LOGGER.info(f"File {destination_file} does not exist. Skipping restore.")
 
                 elif action in ("remove_duplicate", "remove-duplicate", "remove"):
                     if os.path.isfile(destination_file):
                         os.remove(destination_file)
-                        GV.LOGGER.info(f"Removed: {destination_file}")
+                        LOGGER.info(f"Removed: {destination_file}")
                         removed_dirs.add(os.path.dirname(destination_file))
                         removed_count += 1
                     else:
-                        GV.LOGGER.info(f"File {destination_file} does not exist. Skipping remove.")
+                        LOGGER.info(f"File {destination_file} does not exist. Skipping remove.")
 
                 else:
-                    GV.LOGGER.warning(f"Not recognized action: {action}. Skipped duplicate '{duplicate_file}'")
+                    LOGGER.warning(f"Not recognized action: {action}. Skipped duplicate '{duplicate_file}'")
 
         # Attempt to remove empty directories from all paths where files have been removed.
         for d in removed_dirs:
             # Verificar si el directorio no contiene ficheros
             if not any(os.path.isfile(os.path.join(d, f)) for f in os.listdir(d)):
-                GT_PREP.delete_subfolders(d, 'eaDir')
+                delete_subfolders(d, 'eaDir')
             remove_empty_dirs(d)
-            GV.LOGGER.info(f"Removed empty directories in path {d}")
+            LOGGER.info(f"Removed empty directories in path {d}")
 
         return removed_count, restored_count, replaced_count

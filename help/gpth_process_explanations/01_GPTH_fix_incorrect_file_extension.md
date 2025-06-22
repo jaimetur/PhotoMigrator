@@ -33,4 +33,4 @@ Google Photos Takeout often contains files with mismatched extensions:
 - Gracefully handles filesystem permission errors
 - Logs warnings for files that cannot be processed
 - Continues processing other files when individual failures occur
-- Provides detailed error messages for troubleshootin
+- Provides detailed error messages for troubleshooting

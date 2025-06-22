@@ -13,10 +13,10 @@ from pathlib import Path
 
 from PIL import Image, ExifTags
 
-from Core import Utils
-from Core import GlobalVariables as GV
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
+from Core.GlobalVariables import LOGGER, SIDECAR_EXT, METADATA_EXT, VIDEO_EXT, PHOTO_EXT, TIMESTAMP, TAG_INFO
+from Core.Utils import tqdm, is_valid_path
 
 
 # ---------------------------------------------------------------------------------------------------------------------------
@@ -29,13 +29,13 @@ def sync_mp4_timestamps_with_images(input_folder, step_name="", log_level=None):
     to match the original Live Picture.
     """
     # Set logging level for this operation
-    with set_log_level(GV.LOGGER, log_level):
+    with set_log_level(LOGGER, log_level):
         # Count total files for progress bar
         total_files = sum(len(files) for _, _, files in os.walk(input_folder))
-        with Utils.tqdm(
+        with tqdm(
                 total=total_files,
                 smoothing=0.1,
-                desc=f"{GV.TAG_INFO}{step_name}Synchronizing .MP4 files with Live Pictures in '{input_folder}'",
+                desc=f"{TAG_INFO}{step_name}Synchronizing .MP4 files with Live Pictures in '{input_folder}'",
                 unit=" files"
         ) as pbar:
             # Walk through all directories and files
@@ -70,17 +70,17 @@ def sync_mp4_timestamps_with_images(input_folder, step_name="", log_level=None):
                             if is_mp4_link:
                                 # Apply timestamps to the symlink itself
                                 os.utime(mp4_file_path, (atime, mtime), follow_symlinks=False)
-                                GV.LOGGER.debug(f"{step_name}Timestamps applied to symlink: {os.path.relpath(mp4_file_path, input_folder)}")
+                                LOGGER.debug(f"{step_name}Timestamps applied to symlink: {os.path.relpath(mp4_file_path, input_folder)}")
                             else:
                                 # Apply timestamps to the regular .mp4 file
                                 os.utime(mp4_file_path, (atime, mtime))
-                                GV.LOGGER.debug(f"{step_name}Timestamps applied to file: {os.path.relpath(mp4_file_path, input_folder)}")
+                                LOGGER.debug(f"{step_name}Timestamps applied to file: {os.path.relpath(mp4_file_path, input_folder)}")
                         except FileNotFoundError:
                             # Warn if either the .mp4 or the image file is missing
-                            GV.LOGGER.warning(f"{step_name}File not found. MP4: {mp4_file_path} | Image: {image_file_path}")
+                            LOGGER.warning(f"{step_name}File not found. MP4: {mp4_file_path} | Image: {image_file_path}")
                         except Exception as e:
                             # Log any other errors encountered
-                            GV.LOGGER.error(f"{step_name}Error syncing {mp4_file_path}: {e}")
+                            LOGGER.error(f"{step_name}Error syncing {mp4_file_path}: {e}")
                         # Only sync with the first matching image
                         break
 
@@ -91,12 +91,12 @@ def force_remove_directory(folder, log_level=None):
         os.chmod(path, stat.S_IWRITE)
         func(path)
 
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         if os.path.exists(folder):
             shutil.rmtree(folder, onerror=onerror)
-            GV.LOGGER.info(f"The folder '{folder}' and all its contant have been deleted.")
+            LOGGER.info(f"The folder '{folder}' and all its contant have been deleted.")
         else:
-            GV.LOGGER.warning(f"Cannot delete the folder '{folder}'.")
+            LOGGER.warning(f"Cannot delete the folder '{folder}'.")
 
 
 def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", log_level=None):
@@ -104,21 +104,23 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
     Copies or moves an entire folder, including subfolders and files, to another location,
     while ignoring files that match one or more specific patterns.
 
+    :param step_name:
+    :param log_level:
     :param src: Path to the source folder.
     :param dst: Path to the destination folder.
     :param ignore_patterns: A pattern (string) or a list of patterns to ignore (e.g., '*.json' or ['*.json', '*.txt']).
     :param move: If True, moves the files instead of copying them.
     :return: None
     """
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Ignore function
         action = 'Moving' if move else 'Copying'
         try:
-            if not Utils.is_valid_path(src):
-                GV.LOGGER.error(f"{step_name}The path '{src}' is not valid for the execution plattform. Cannot copy/move folders from it.")
+            if not is_valid_path(src):
+                LOGGER.error(f"{step_name}The path '{src}' is not valid for the execution plattform. Cannot copy/move folders from it.")
                 return False
-            if not Utils.is_valid_path(dst):
-                GV.LOGGER.error(f"{step_name}The path '{dst}' is not valid for the execution plattform. Cannot copy/move folders to it.")
+            if not is_valid_path(dst):
+                LOGGER.error(f"{step_name}The path '{dst}' is not valid for the execution plattform. Cannot copy/move folders to it.")
                 return False
 
             def ignore_function(files, ignore_patterns):
@@ -141,7 +143,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
                 # Contar el total de carpetas
                 total_files = sum([len(files) for _, _, files in os.walk(src)])
                 # Mostrar la barra de progreso basada en carpetas
-                with Utils.tqdm(total=total_files, ncols=120, smoothing=0.1, desc=f"{GV.TAG_INFO}{step_name}{action} Folders in '{src}' to Folder '{dst}'", unit=" files") as pbar:
+                with tqdm(total=total_files, ncols=120, smoothing=0.1, desc=f"{TAG_INFO}{step_name}{action} Folders in '{src}' to Folder '{dst}'", unit=" files") as pbar:
                     for path, dirs, files in os.walk(src, topdown=True):
                         pbar.update(1)
                         # Compute relative path
@@ -160,14 +162,14 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
                                 src_file = os.path.join(path, file)
                                 dst_file = os.path.join(dest_path, file)
                                 shutil.move(src_file, dst_file)
-                    GV.LOGGER.info(f"{step_name}Folder moved successfully from {src} to {dst}")
+                    LOGGER.info(f"{step_name}Folder moved successfully from {src} to {dst}")
             else:
                 # Copy the folder contents
                 shutil.copytree(src, dst, dirs_exist_ok=True, ignore=ignore_function)
-                GV.LOGGER.info(f"{step_name}Folder copied successfully from {src} to {dst}")
+                LOGGER.info(f"{step_name}Folder copied successfully from {src} to {dst}")
                 return True
         except Exception as e:
-            GV.LOGGER.error(f"{step_name}Error {action} folder: {e}")
+            LOGGER.error(f"{step_name}Error {action} folder: {e}")
             return False
 
 
@@ -182,6 +184,8 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], ste
 
     Raises:
         ValueError: If the value of `type` is invalid.
+        :param step_name:
+        :param log_level:
     """
     import os
     import shutil
@@ -199,14 +203,14 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], ste
             pass
         return None
 
-    with set_log_level(GV.LOGGER, log_level):
+    with set_log_level(LOGGER, log_level):
         if type not in ['year', 'year/month', 'year-month']:
             raise ValueError(f"{step_name}The 'type' parameter must be 'year', 'year/month' or 'year-month'.")
         total_files = 0
         for _, dirs, files in os.walk(input_folder):
             dirs[:] = [d for d in dirs if d not in exclude_subfolders]
             total_files += len(files)
-        with Utils.tqdm(total=total_files, smoothing=0.1, desc=f"{GV.TAG_INFO}{step_name}Organizing files with {type} structure in '{os.path.basename(os.path.normpath(input_folder))}'", unit=" files") as pbar:
+        with tqdm(total=total_files, smoothing=0.1, desc=f"{TAG_INFO}{step_name}Organizing files with {type} structure in '{os.path.basename(os.path.normpath(input_folder))}'", unit=" files") as pbar:
             for path, dirs, files in os.walk(input_folder, topdown=True):
                 dirs[:] = [d for d in dirs if d not in exclude_subfolders]
                 for file in files:
@@ -217,20 +221,20 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], ste
                     mod_time = None
                     ext = os.path.splitext(file)[1].lower()
                     # Intentar obtener fecha EXIF si es imagen
-                    if ext in GV.PHOTO_EXT:
+                    if ext in PHOTO_EXT:
                         try:
                             mod_time = get_exif_date(file_path)
                         except Exception as e:
-                            GV.LOGGER.warning(f"{step_name}Error reading EXIF from {file_path}: {e}")
+                            LOGGER.warning(f"{step_name}Error reading EXIF from {file_path}: {e}")
                     # Si no hay EXIF o no es imagen, usar fecha de sistema
                     if not mod_time:
                         try:
                             mtime = os.path.getmtime(file_path)
                             mod_time = datetime.fromtimestamp(mtime if mtime > 0 else 0)
                         except Exception as e:
-                            GV.LOGGER.warning(f"{step_name}Error reading mtime for {file_path}: {e}")
+                            LOGGER.warning(f"{step_name}Error reading mtime for {file_path}: {e}")
                             mod_time = datetime(1970, 1, 1)
-                    GV.LOGGER.verbose(f"{step_name}Using date {mod_time} for file {file_path}")
+                    LOGGER.verbose(f"{step_name}Using date {mod_time} for file {file_path}")
                     # Determinar carpeta destino
                     if type == 'year':
                         target_dir = os.path.join(path, mod_time.strftime('%Y'))
@@ -240,7 +244,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], ste
                         target_dir = os.path.join(path, mod_time.strftime('%Y-%m'))
                     os.makedirs(target_dir, exist_ok=True)
                     shutil.move(file_path, os.path.join(target_dir, file))
-        GV.LOGGER.info(f"{step_name}Organization completed. Folder structure per '{type}' created in '{input_folder}'.")
+        LOGGER.info(f"{step_name}Organization completed. Folder structure per '{type}' created in '{input_folder}'.")
 
 
 def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None, step_name="", log_level=None):
@@ -251,9 +255,11 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None,
         input_folder (str, Path): Path to the input folder containing the albums.
         albums_subfolder (str, Path): Name of the subfolder where albums should be moved.
         exclude_subfolder (str or list, optional): Subfolder(s) to exclude. Can be a single string or a list of strings.
+        :param step_name:
+        :param log_level:
     """
     # Ensure exclude_subfolder is a list, even if a single string is passed
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         def safe_move(folder_path, albums_path):
             destination = os.path.join(albums_path, os.path.basename(folder_path))
             if os.path.exists(destination):
@@ -269,10 +275,10 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None,
         exclude_subfolder_paths = [os.path.abspath(os.path.join(input_folder, sub)) for sub in (exclude_subfolder or [])]
         subfolders = os.listdir(input_folder)
         subfolders = [subfolder for subfolder in subfolders if not subfolder == '@eaDir' and not subfolder == 'No-Albums']
-        for subfolder in Utils.tqdm(subfolders, smoothing=0.1, desc=f"{GV.TAG_INFO}{step_name}Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
+        for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"{TAG_INFO}{step_name}Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
             folder_path = os.path.join(input_folder, subfolder)
             if os.path.isdir(folder_path) and subfolder != albums_subfolder and os.path.abspath(folder_path) not in exclude_subfolder_paths:
-                GV.LOGGER.debug(f"{step_name}Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")
+                LOGGER.debug(f"{step_name}Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")
                 os.makedirs(albums_path, exist_ok=True)
                 safe_move(folder_path, albums_path)
         # Finally Move Albums to Albums root folder (removing 'Takeout' and 'Google Fotos' / 'Google Photos' folders if exists
@@ -284,12 +290,12 @@ def move_albums_to_root(albums_root, step_name="", log_level=None):
     Moves all albums from nested subdirectories ('Takeout/Google Fotos' or 'Takeout/Google Photos')
     directly into the 'Albums' folder, removing unnecessary intermediate folders.
     """
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         possible_google_folders = ["Google Fotos", "Google Photos"]
         takeout_path = os.path.join(albums_root, "Takeout")
         # Check if 'Takeout' exists
         if not os.path.exists(takeout_path):
-            GV.LOGGER.debug(f"{step_name}'Takeout' folder not found at {takeout_path}. Exiting.")
+            LOGGER.debug(f"{step_name}'Takeout' folder not found at {takeout_path}. Exiting.")
             return
         # Find the actual Google Photos folder name
         google_photos_path = None
@@ -299,10 +305,10 @@ def move_albums_to_root(albums_root, step_name="", log_level=None):
                 google_photos_path = path
                 break
         if not google_photos_path:
-            GV.LOGGER.debug(f"{step_name}No valid 'Google Fotos' or 'Google Photos' folder found inside 'Takeout'. Exiting.")
+            LOGGER.debug(f"{step_name}No valid 'Google Fotos' or 'Google Photos' folder found inside 'Takeout'. Exiting.")
             return
-        GV.LOGGER.debug(f"{step_name}Found Google Photos folder: {google_photos_path}")
-        GV.LOGGER.info(f"{step_name}Moving Albums to Albums root folder...")
+        LOGGER.debug(f"{step_name}Found Google Photos folder: {google_photos_path}")
+        LOGGER.info(f"{step_name}Moving Albums to Albums root folder...")
         # Move albums to the root 'Albums' directory
         for album in os.listdir(google_photos_path):
             album_path = os.path.join(google_photos_path, album)
@@ -316,13 +322,13 @@ def move_albums_to_root(albums_root, step_name="", log_level=None):
                     count += 1
                 # Move the album
                 shutil.move(album_path, new_target_path)
-                GV.LOGGER.debug(f"{step_name}Moved: {album_path} → {new_target_path}")
+                LOGGER.debug(f"{step_name}Moved: {album_path} → {new_target_path}")
         # Attempt to remove empty folders
         try:
             shutil.rmtree(takeout_path)
-            GV.LOGGER.debug(f"{step_name}'Takeout' folder successfully removed.")
+            LOGGER.debug(f"{step_name}'Takeout' folder successfully removed.")
         except Exception as e:
-            GV.LOGGER.error(f"{step_name}Failed to remove 'Takeout': {e}")
+            LOGGER.error(f"{step_name}Failed to remove 'Takeout': {e}")
 
 
 def count_valid_albums(folder_path, excluded_folders=[], step_name="", log_level=None):
@@ -331,14 +337,14 @@ def count_valid_albums(folder_path, excluded_folders=[], step_name="", log_level
     that contain at least one valid image or video file.
 
     A folder is considered valid if it contains at least one file with an extension
-    defined in GV.PHOTO_EXT or GV.VIDEO_EXT.
+    defined in PHOTO_EXT or VIDEO_EXT.
 
     The following folders (and all their subfolders) are excluded from the count:
     - Any folder named 'Photos from YYYY' where YYYY starts with 1 or 2.
     - Folders named exactly as excluded_folder list.
     """
     YEAR_PATTERN = re.compile(r'^Photos from [12]\d{3}$')
-    with set_log_level(GV.LOGGER, log_level):  # Change log level temporarily
+    with set_log_level(LOGGER, log_level):  # Change log level temporarily
         valid_albums = 0
         for root, dirs, files in os.walk(folder_path):
             folder_name = os.path.basename(root)
@@ -352,7 +358,7 @@ def count_valid_albums(folder_path, excluded_folders=[], step_name="", log_level
                 if d not in excluded_folders and not YEAR_PATTERN.fullmatch(d)
             ]
             # Check for at least one valid image or video file
-            if any(os.path.splitext(file)[1].lower() in GV.PHOTO_EXT or os.path.splitext(file)[1].lower() in GV.VIDEO_EXT for file in files):
+            if any(os.path.splitext(file)[1].lower() in PHOTO_EXT or os.path.splitext(file)[1].lower() in VIDEO_EXT for file in files):
                 valid_albums += 1
         return valid_albums
 
@@ -360,7 +366,7 @@ def count_valid_albums(folder_path, excluded_folders=[], step_name="", log_level
 def get_oldest_date(file_path, extensions, tag_ids, skip_exif=True, skip_json=True, log_level=None):
     """
     Return the earliest valid timestamp found by:
-      1) Birthtime/mtime for video files (early exit if ext in GV.VIDEO_EXT)
+      1) Birthtime/mtime for video files (early exit if ext in VIDEO_EXT)
       2) EXIF tags (if skip_exif=False and ext in extensions)
       3) JSON sidecar (<file>.json) (if skip_json=False)
       4) File birthtime and modification time via one os.stat() fallback
@@ -374,11 +380,11 @@ def get_oldest_date(file_path, extensions, tag_ids, skip_exif=True, skip_json=Tr
     if key in cache:
         return cache[key]
 
-    with set_log_level(GV.LOGGER, log_level):
+    with set_log_level(LOGGER, log_level):
         ext = Path(file_path).suffix.lower()
 
         # 1) Videos → no EXIF/JSON, just return birthtime or mtime
-        if ext in GV.VIDEO_EXT:
+        if ext in VIDEO_EXT:
             try:
                 st = os.stat(file_path, follow_symlinks=False)
                 bt = getattr(st, "st_birthtime", None)
@@ -442,25 +448,26 @@ def get_embedded_datetime(file_path, step_name=''):
     Devuelve la fecha embebida más antigua encontrada como datetime.datetime,
     usando exiftool desde ./gpth_tool/exif_tool/. Si no hay fechas embebidas válidas, retorna None.
 
-    Usa GV.PHOTO_EXT, GV.VIDEO_EXT y GV.LOGGER.
+    Usa PHOTO_EXT, VIDEO_EXT y LOGGER.
 
     Args:
         file_path (str, Literal or Path): Ruta al archivo.
 
     Returns:
         datetime.datetime or None
+        :param step_name:
     """
     file_path = Path(file_path)
     ext = file_path.suffix.lower()
 
-    if ext not in GV.PHOTO_EXT and ext not in GV.VIDEO_EXT:
+    if ext not in PHOTO_EXT and ext not in VIDEO_EXT:
         return None
 
     is_windows = platform.system().lower() == 'windows'
     exiftool_path = Path("gpth_tool/exif_tool/exiftool.exe" if is_windows else "gpth_tool/exif_tool/exiftool").resolve()
 
     if not exiftool_path.exists():
-        GV.LOGGER.debug(f"{step_name}[get_embedded_datetime] exiftool not found at: {exiftool_path}")
+        LOGGER.debug(f"{step_name}[get_embedded_datetime] exiftool not found at: {exiftool_path}")
         return None
 
     try:
@@ -473,7 +480,7 @@ def get_embedded_datetime(file_path, step_name=''):
         )
         metadata_list = json.loads(result.stdout)
         if not metadata_list or not isinstance(metadata_list, list) or not metadata_list[0]:
-            GV.LOGGER.debug(f"{step_name}[get_embedded_datetime] No metadata returned for: {file_path.name}")
+            LOGGER.debug(f"{step_name}[get_embedded_datetime] No metadata returned for: {file_path.name}")
             return None
 
         metadata = metadata_list[0]
@@ -489,7 +496,7 @@ def get_embedded_datetime(file_path, step_name=''):
 
         available_tags = [tag for tag in candidate_tags if tag in metadata]
         if not available_tags:
-            GV.LOGGER.debug(f"{step_name}[get_embedded_datetime] No embedded date tags found in metadata for: {file_path.name}")
+            LOGGER.debug(f"{step_name}[get_embedded_datetime] No embedded date tags found in metadata for: {file_path.name}")
             return None
 
         date_formats = [
@@ -512,15 +519,15 @@ def get_embedded_datetime(file_path, step_name=''):
                     continue
 
         if not found_dates:
-            GV.LOGGER.debug(f"{step_name}[get_embedded_datetime] None of the embedded date fields could be parsed for: {file_path.name}")
+            LOGGER.debug(f"{step_name}[get_embedded_datetime] None of the embedded date fields could be parsed for: {file_path.name}")
             return None
 
         oldest = min(found_dates, key=lambda x: x[1])
-        GV.LOGGER.debug(f"{step_name}[get_embedded_datetime] Selected tag '{oldest[0]}' with date {oldest[1]} for: {file_path.name}")
+        LOGGER.debug(f"{step_name}[get_embedded_datetime] Selected tag '{oldest[0]}' with date {oldest[1]} for: {file_path.name}")
         return oldest[1]
 
     except Exception as e:
-        GV.LOGGER.error(f"{step_name}[get_embedded_datetime] Error processing '{file_path}': {e}")
+        LOGGER.error(f"{step_name}[get_embedded_datetime] Error processing '{file_path}': {e}")
         return None
 
 
@@ -533,6 +540,7 @@ def get_embedded_datetimes_bulk(folder, step_name=''):
 
     Returns:
         dict[Path, datetime.datetime]: mapping de archivo → fecha más antigua encontrada
+        :param step_name:
     """
     folder = Path(folder).resolve()
     step_name = f"{step_name}[get_embedded_datetimes_bulk] : "
@@ -540,7 +548,7 @@ def get_embedded_datetimes_bulk(folder, step_name=''):
     is_windows = platform.system().lower() == 'windows'
     exiftool_path = Path("gpth_tool/exif_tool/exiftool.exe" if is_windows else "gpth_tool/exif_tool/exiftool").resolve()
     if not exiftool_path.exists():
-        GV.LOGGER.error(f"{step_name}❌ exiftool not found at: {exiftool_path}")
+        LOGGER.error(f"{step_name}❌ exiftool not found at: {exiftool_path}")
         return {}
 
     try:
@@ -556,14 +564,14 @@ def get_embedded_datetimes_bulk(folder, step_name=''):
             step_name=step_name
         )
         if return_code != 0:
-            GV.LOGGER.warning(f"{step_name}❌ exiftool return code: %d", return_code)
+            LOGGER.warning(f"{step_name}❌ exiftool return code: %d", return_code)
 
         # Decodifica el stdout:
         output = out.decode("utf-8")
 
         metadata_list = json.loads(output)
     except Exception as e:
-        GV.LOGGER.error(f"{step_name}❌ Failed to run exiftool: {e}")
+        LOGGER.error(f"{step_name}❌ Failed to run exiftool: {e}")
         return {}
 
     date_formats = [
@@ -590,7 +598,7 @@ def get_embedded_datetimes_bulk(folder, step_name=''):
             continue
         file_path = Path(source_file)
         ext = file_path.suffix.lower()
-        if ext not in GV.PHOTO_EXT and ext not in GV.VIDEO_EXT:
+        if ext not in PHOTO_EXT and ext not in VIDEO_EXT:
             continue
 
         found_dates = []
@@ -608,7 +616,7 @@ def get_embedded_datetimes_bulk(folder, step_name=''):
         if found_dates:
             oldest = min(found_dates)
             result_dict[file_path] = oldest
-            GV.LOGGER.debug(f"{step_name}✅ {oldest} →  {file_path.name}")
+            LOGGER.debug(f"{step_name}✅ {oldest} →  {file_path.name}")
 
     return result_dict
 
@@ -622,7 +630,7 @@ def timed_subprocess(cmd, step_name=""):
     start = time.time()
     out, err = proc.communicate()
     total = time.time() - start
-    GV.LOGGER.debug(f"{step_name}✅ subprocess finished in {total:.2f}s")
+    LOGGER.debug(f"{step_name}✅ subprocess finished in {total:.2f}s")
     return proc.returncode, out, err
 
 
@@ -636,11 +644,11 @@ def count_files_per_type_and_date(input_folder, skip_exif=True, skip_json=True, 
       - non-media files (metadata + sidecar)
       - for photos and videos, how many have an assigned date vs. not
       - percentage of photos/videos with and without date
-    Uses global GV.PHOTO_EXT, GV.VIDEO_EXT, GV.METADATA_EXT, GV.SIDECAR_EXT, and GV.TiMESTAMP.
+    Uses global PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, and TIMESTAMP.
     """
-    with set_log_level(GV.LOGGER, log_level):
+    with set_log_level(LOGGER, log_level):
         # This is used to check if files had any date before Takeout Processing started.
-        timestamp_dt = datetime.strptime(GV.TiMESTAMP, "%Y%m%d-%H%M%S")
+        timestamp_dt = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S")
 
         # Initialize overall counters with pct keys for media
         counters = init_count_files_counters()
@@ -649,10 +657,10 @@ def count_files_per_type_and_date(input_folder, skip_exif=True, skip_json=True, 
         total_size_bytes = 0
 
         # Get total supported extensions
-        supported_exts = set(GV.PHOTO_EXT + GV.VIDEO_EXT + GV.METADATA_EXT + GV.SIDECAR_EXT)
+        supported_exts = set(PHOTO_EXT + VIDEO_EXT + METADATA_EXT + SIDECAR_EXT)
 
         # 1) Set de extensiones soportadas para EXIF
-        MEDIA_EXT = set(ext.lower() for ext in GV.PHOTO_EXT + GV.VIDEO_EXT)
+        MEDIA_EXT = set(ext.lower() for ext in PHOTO_EXT + VIDEO_EXT)
 
         # 2) IDs de EXIF para DateTimeOriginal, DateTimeDigitized, DateTime
         WANTED_TAG_IDS = {
@@ -692,11 +700,11 @@ def count_files_per_type_and_date(input_folder, skip_exif=True, skip_json=True, 
                     counters['unsupported_files'] += 1
 
                 # Categorize by extension
-                if ext in GV.PHOTO_EXT:
+                if ext in PHOTO_EXT:
                     counters['photo_files'] += 1
                     counters['media_files'] += 1
                     media_type = 'photos'
-                elif ext in GV.VIDEO_EXT:
+                elif ext in VIDEO_EXT:
                     counters['video_files'] += 1
                     counters['media_files'] += 1
                     media_type = 'videos'
@@ -704,11 +712,11 @@ def count_files_per_type_and_date(input_folder, skip_exif=True, skip_json=True, 
                     media_type = None
 
                 # Count metadata and sidecar
-                if ext in GV.METADATA_EXT:
+                if ext in METADATA_EXT:
                     counters['metadata_files'] += 1
-                if ext in GV.SIDECAR_EXT:
+                if ext in SIDECAR_EXT:
                     counters['sidecar_files'] += 1
-                if ext in GV.METADATA_EXT or ext in GV.SIDECAR_EXT:
+                if ext in METADATA_EXT or ext in SIDECAR_EXT:
                     counters['non_media_files'] += 1
 
                 # Skip date logic for non-media

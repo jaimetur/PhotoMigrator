@@ -60,7 +60,7 @@ Currently, the Features Included per each Supported Photo Cloud Service are:
 
 - [**Other Useful Features**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)  
 Apart from Manage the different Photo Cloud Services and the 'Automatic Migration Mode', the Tool also contains Other Useful Features such as:
-  - **Metadata fixing** of any Photo Library in your local drive (not necesarely needs to be a Google Takeout folder)
+  - **Metadata fixing** of any Photo Library in your local drive (not necessarily needs to be a Google Takeout folder)
   - **Library Organization** features:
     - Manage Duplicates assets
     - Splitting of assets with and without associated albums
@@ -71,7 +71,7 @@ Apart from Manage the different Photo Cloud Services and the 'Automatic Migratio
 
 
 ## 💾 Download
-Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
+Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 architectures) or Docker version (platform & architecture independent) as you prefer, directly from following links:
 - [Latest Stable Release](https://github.com/jaimetur/PhotoMigrator/releases/latest)
 - [Pre-Release](https://github.com/jaimetur/PhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 - [All Releases](https://github.com/jaimetur/PhotoMigrator/releases)  
@@ -85,7 +85,7 @@ Or check the [Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/CHA
 
 
 ## ⚙️ Configuration File
-In order to connect to the different Photo Cloud Services, you must configure the conection settings using the Configuration file (Config.ini) provided with the Tool.  
+In order to connect to the different Photo Cloud Services, you must configure the connection settings using the Configuration file (Config.ini) provided with the Tool.  
 
 You can see how to configure the Configuration File in this help section:
 [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md) 
@@ -120,7 +120,7 @@ There are three different methods to execute this Tool:
 - From [Docker Container](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-docker.md)
 - From [Source Repository](https://github.com/jaimetur/PhotoMigrator/blob/main/help/execution/execution-from-source.md)
 
-The below tables show the pros and cons of each method together with a comparative rating of each one of them for you to decide wich one fits best with your needed: 
+The below tables show the pros and cons of each method together with a comparative rating of each one of them for you to decide which one fits best with your needed: 
 
 - ### 🆚 Execution Methods Comparison
 
@@ -135,15 +135,15 @@ The below tables show the pros and cons of each method together with a comparati
 
 - ### 🆚 Execution Methods Comparison Rating
   | Feature                                               | Binaries<br>(*easiest way*) | Docker<br>(*recommended*) | Source<br>(*more difficult*) |
-  |-------------------------------------------------------|---------------------------|-------------------------|----------------------------|
-  | Platform and architecture independence                | ⭐☆☆☆☆                     | ⭐⭐⭐⭐⭐                   | ⭐⭐⭐⭐⭐                      |
-  | Ease of updating to new release                       | ⭐⭐⭐☆☆                     | ⭐⭐⭐⭐⭐                   | ⭐☆☆☆☆                      |
-  | Allow paths arguments point outside execution folder  | ⭐⭐⭐⭐⭐                     | ⭐☆☆☆☆                   | ⭐⭐⭐⭐⭐                      |
-  | No Requires Technical knowledge (Command line syntax) | ⭐⭐⭐⭐⭐                     | ⭐⭐⭐☆☆                   | ⭐☆☆☆☆                      |
-  | No Requires additional tools/software                 | ⭐⭐⭐⭐⭐                     | ⭐⭐⭐☆☆                   | ⭐☆☆☆☆                      |
-  | No Risk of Antivirus alert (especially on Windows)    | ⭐⭐☆☆☆                     | ⭐⭐⭐⭐⭐                   | ⭐⭐⭐⭐⭐                      |
-  | **Average Rating**                                    | ⭐⭐⭐⭐☆                     | ⭐⭐⭐⭐☆                   | ⭐⭐⭐☆☆                      |
-  | **Average Score**                                     | 3.5                       | 3.7                     | 3.0                        |
+  |-------------------------------------------------------|-----------------------------|---------------------------|------------------------------|
+  | Platform and architecture independence                | ⭐☆☆☆☆                       | ⭐⭐⭐⭐⭐                     | ⭐⭐⭐⭐⭐                        |
+  | Ease of updating to new release                       | ⭐⭐⭐☆☆                       | ⭐⭐⭐⭐⭐                     | ⭐☆☆☆☆                        |
+  | Allow paths arguments point outside execution folder  | ⭐⭐⭐⭐⭐                       | ⭐☆☆☆☆                     | ⭐⭐⭐⭐⭐                        |
+  | No Requires Technical knowledge (Command line syntax) | ⭐⭐⭐⭐⭐                       | ⭐⭐⭐☆☆                     | ⭐☆☆☆☆                        |
+  | No Requires additional tools/software                 | ⭐⭐⭐⭐⭐                       | ⭐⭐⭐☆☆                     | ⭐☆☆☆☆                        |
+  | No Risk of Antivirus alert (especially on Windows)    | ⭐⭐☆☆☆                       | ⭐⭐⭐⭐⭐                     | ⭐⭐⭐⭐⭐                        |
+  | **Average Rating**                                    | ⭐⭐⭐⭐☆                       | ⭐⭐⭐⭐☆                     | ⭐⭐⭐☆☆                        |
+  | **Average Score**                                     | 3.5                         | 3.7                       | 3.0                          |
 
 
 ---
@@ -173,8 +173,8 @@ Part of this Tool is based on [GPTH Tool](https://github.com/Xentraxx/GooglePhot
 
 
 ## 🙏 Donation / Sponsor
-If you consideer that this Tool has helped you, you can also consider donating me with a ☕  
-I spent a lot of time developping this Tool for free, so donations will contribute to motivate me to continue working on this project 💖  
+If you consider that this Tool has helped you, you can also consider donating me with a ☕  
+I spent a lot of time developing this Tool for free, so donations will contribute to motivate me to continue working on this project 💖  
 
 <a href="https://www.buymeacoffee.com/jaimetur">
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="180" height="40">

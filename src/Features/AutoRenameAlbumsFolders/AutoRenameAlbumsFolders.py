@@ -5,10 +5,11 @@ import shutil
 from datetime import datetime
 
 import piexif
+from nuitka.Progress import tqdm
 
-from Core import Utils
-from Core import GlobalVariables as GV
 from Core.CustomLogger import set_log_level
+from Core.GlobalVariables import TAG_INFO, PHOTO_EXT, LOGGER
+from Core.Utils import get_subfolders_with_exclusions
 
 
 def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_range='complete', step_name="", log_level=None):
@@ -27,7 +28,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
             }
         """
         import re
-        with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             input_string = input_string.strip()
             # Remove leading underscores or hyphens
             input_string = re.sub(r'^[-_]+', '', input_string)
@@ -87,7 +88,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                 pass
             return None
 
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 files = [os.path.join(folder, f) for f in os.listdir(folder)]
                 files = [f for f in files if os.path.isfile(f)]
@@ -96,19 +97,19 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     ext = os.path.splitext(f)[1].lower()
                     exif_date = None
                     fs_date = None
-                    if ext in GV.PHOTO_EXT:
+                    if ext in PHOTO_EXT:
                         # Intenta obtener EXIF
                         try:
                             exif_date = get_exif_date(f)
                         except Exception as e:
-                            GV.LOGGER.warning(f"{step_name}Error reading EXIF from {f}: {e}")
+                            LOGGER.warning(f"{step_name}Error reading EXIF from {f}: {e}")
                         # Intenta obtener mtime
                         try:
                             ts = os.path.getmtime(f)
                             if ts > 0:
                                 fs_date = datetime.fromtimestamp(ts)
                         except Exception as e:
-                            GV.LOGGER.warning(f"{step_name}Cannot read timestamp from {f}: {e}")
+                            LOGGER.warning(f"{step_name}Cannot read timestamp from {f}: {e}")
                     # Elige la fecha más antigua entre EXIF y mtime
                     chosen_date = None
                     if exif_date and fs_date:
@@ -118,7 +119,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     if chosen_date:
                         years.append(chosen_date.year)
                 if not years:
-                    GV.LOGGER.warning(f"{step_name}No valid timestamps found in {folder}")
+                    LOGGER.warning(f"{step_name}No valid timestamps found in {folder}")
                     return False
                 # Extraer componentes
                 oldest_year = min(years)
@@ -128,7 +129,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                 else:
                     return f"{oldest_year}-{latest_year}"
             except Exception as e:
-                GV.LOGGER.error(f"{step_name}Error obtaining year range: {e}")
+                LOGGER.error(f"{step_name}Error obtaining year range: {e}")
             return False
 
     def get_content_based_date_range(folder: str, log_level=logging.INFO) -> str:
@@ -144,7 +145,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                 pass
             return None
 
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 files = [os.path.join(folder, f) for f in os.listdir(folder)]
                 files = [f for f in files if os.path.isfile(f)]
@@ -153,17 +154,17 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     ext = os.path.splitext(f)[1].lower()
                     exif_date = None
                     fs_date = None
-                    if ext in GV.PHOTO_EXT:
+                    if ext in PHOTO_EXT:
                         try:
                             exif_date = get_exif_date(f)
                         except Exception as e:
-                            GV.LOGGER.warning(f"{step_name}Error reading EXIF from {f}: {e}")
+                            LOGGER.warning(f"{step_name}Error reading EXIF from {f}: {e}")
                         try:
                             ts = os.path.getmtime(f)
                             if ts > 0:
                                 fs_date = datetime.fromtimestamp(ts)
                         except Exception as e:
-                            GV.LOGGER.warning(f"{step_name}Cannot read timestamp from {f}: {e}")
+                            LOGGER.warning(f"{step_name}Cannot read timestamp from {f}: {e}")
                         # Escoger la fecha más antigua disponible
                         chosen_date = None
                         if exif_date and fs_date:
@@ -173,7 +174,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                         if chosen_date:
                             dates.append(chosen_date)
                 if not dates:
-                    GV.LOGGER.warning(f"{step_name}No valid timestamps found in {folder}")
+                    LOGGER.warning(f"{step_name}No valid timestamps found in {folder}")
                     return False
                 # Extraer componentes
                 years = {dt.year for dt in dates}
@@ -193,13 +194,13 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                 else:
                     return f"{min(years):04}-{max(years):04}"
             except Exception as e:
-                GV.LOGGER.error(f"{step_name}Error obtaining date range: {e}")
+                LOGGER.error(f"{step_name}Error obtaining date range: {e}")
                 return False
 
     # ===========================
     # END AUX FUNCTIONS
     # ===========================
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Initial template for rename results
         renamed_album_folders = 0
         duplicates_album_folders = 0
@@ -213,9 +214,9 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
         if isinstance(exclude_subfolder, str):
             exclude_subfolder = [exclude_subfolder]
 
-        total_folders = Utils.get_subfolders_with_exclusions(input_folder, exclude_subfolder)
+        total_folders = get_subfolders_with_exclusions(input_folder, exclude_subfolder)
 
-        for original_folder_name in Utils.tqdm(total_folders, smoothing=0.1, desc=f"{GV.TAG_INFO}{step_name}Renaming Albums folders in '<OUTPUT_TAKEOUT_FOLDER>'", unit=" folders"):
+        for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"{TAG_INFO}{step_name}Renaming Albums folders in '<OUTPUT_TAKEOUT_FOLDER>'", unit=" folders"):
             item_path = os.path.join(input_folder, original_folder_name)
             if os.path.isdir(item_path):
                 resultado = clean_name_and_remove_dates(original_folder_name)
@@ -265,7 +266,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                             debug_messages.append(f"{step_name}Removed empty folder: '{item_path}'")
                             duplicates_albums_fully_merged += 1
                         else:
-                            # GV.LOGGER.warning(f"Folder not empty, skipping removal: {item_path}")
+                            # LOGGER.warning(f"Folder not empty, skipping removal: {item_path}")
                             duplicates_albums_not_fully_merged += 1
                     else:
                         if item_path != new_folder_path:
@@ -275,13 +276,13 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
 
         # Finally we log all the messages captured during the process
         for verbose_message in verbose_messages:
-            GV.LOGGER.verbose(verbose_message)
+            LOGGER.verbose(verbose_message)
         for debug_message in debug_messages:
-            GV.LOGGER.debug(debug_message)
+            LOGGER.debug(debug_message)
         for info_message in info_messages:
-            GV.LOGGER.info(info_message)
+            LOGGER.info(info_message)
         for warning_message in warning_messages:
-            GV.LOGGER.warning(warning_message)
+            LOGGER.warning(warning_message)
 
         return {
             'renamed_album_folders': renamed_album_folders,

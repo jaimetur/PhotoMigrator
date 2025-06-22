@@ -24,19 +24,19 @@
     - [x] Added new `VERBOSE` value for `-logLevel` argument.
     - [x] Added new argument `-logFormat, --log-format` to define the format of the Log File. Valid values: `[LOG, TXT, ALL]`.
     - [x] Call GPTH with `--verbose` when PhotoMigrator logLevel is VERBOSE or DEBUG.
-    - [x] Add argument `-gSkipPrep,--google-skip-preprocess` to Skipp Preproces steps during Google Takeout Processing feature.
+    - [x] Add argument `-gSkipPrep,--google-skip-preprocess` to Skipp Preprocess steps during Google Takeout Processing feature.
   
   - #### 🚀 Enhancements:
-    - [x] Code totally refactored and structured in a Single Package called `photomigrator` for a better portability and maintainance.
+    - [x] Code totally refactored and structured in a Single Package called `photomigrator` for a better portability and maintenance.
     - [x] Code organized per modules within Core and Features Sub-Packages.
-    - [x] Reorganized Pre-checks/Pre-process/Process steps for a clearer maintainance and better visualization. 
+    - [x] Reorganized Pre-checks/Pre-process/Process steps for a clearer maintenance and better visualization. 
     - [x] The Feature `Google Takeout Processing` is no longer called using the Pre-checks functions but always using the Process() function from ClassTakeoutFolder.
     - [x] Included Input/Output folder size in Google Takeout Statistics.
     - [x] Improved performance on Counting files during Google Takeout Processing.
     - [x] Improved Logging messages type detection when running GPTH.
     - [x] Improved Logging messages and screen messages prefixes using Global Variables instead of hardcoded strings.
     - [x] Inserted Profiler support to Profile any function and optimize it.
-    - [x] Removed `input_folder` after successfull completion of `Google Takeout Processing` if the user used the flag `-gmtf, --google-move-takeout-folder`. Note that this only remove the `input_folder` with a valid Takeout Structure, this will not remove your original Takeout Zip folder with your Takeout Zips.
+    - [x] Removed `input_folder` after successfully completion of `Google Takeout Processing` if the user used the flag `-gmtf, --google-move-takeout-folder`. Note that this only remove the `input_folder` with a valid Takeout Structure, this will not remove your original Takeout Zip folder with your Takeout Zips.
     - [x] Renamed argument `-loglevel` to `-logLevel`.
     - [x] Renamed argument `-dashb` to `-dashboard`.
     - [x] Renamed argument `-AlbFld` to `-AlbFolder`.
@@ -116,9 +116,9 @@
     - [x] Performance Improvements: 
       - [x] Enhanced `MP4 from Live picture Fixing` during Google Takeout Processing to avoid check other candidates when the first one match. 
       - [x] Enhanced `Google Takeout Processing` when launched by `Automatic Migration feature`. In this case, Albums are created as symbolic links to the original files within `No-Albums` folder to save disk space and processing time.
-    - [x] Ensure that filenames lenght are at least 40 chars before to Fix truncated speccial suffixes or truncated extensions during Google Takeout Processing. 
+    - [x] Ensure that filenames length are at least 40 chars before to Fix truncated special suffixes or truncated extensions during Google Takeout Processing. 
     - [x] Workflows Improvements.
-    - [x] Enhanced Results Statistics in Google Takeout Processing to include differencs and percentags of assets between Takeout folder and Output folder.
+    - [x] Enhanced Results Statistics in Google Takeout Processing to include differences and percentags of assets between Takeout folder and Output folder.
     - [x] Created DataModels for a better structure on those functions that returns multiples values.
     - [x] Enhanced Feature `Find Duplicates` during Google Takeout Processing.
       - Now the Tool will not detect as duplicates, those assets found in `No-Albums` folder and within any `Albums` subfolder.
@@ -126,18 +126,18 @@
     - [x] Enhanced `Truncated Extension Fixing` during Google Takeout Processing to avoid fixing truncated `supplemental-metadata` and `other-special-suffixes` because this is already done in above step. 
     - [x] Updated GPTH to version `4.0.8` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
       - Fixed a bug in the `--fix-extension` feature.
-      - Fixed a bug with tuncated special suffixes or truncated extensions.
+      - Fixed a bug with truncated special suffixes or truncated extensions.
     
 
   - #### 🐛 Bug fixes:
-    - [x] Fixed unhandled exception in funcrion `sync_mp4_timestamps_with_images()` when the image have been moved from output folder before to complete MP4 timestamp synching.
-    - [x] Fixed 'Rename Albums' Feature when no date range is found in its name. Before it removed any date found, now, if is not possible to extract a date range, just keep the cleaned name (without date range proffix). 
+    - [x] Fixed unhandled exception in function `sync_mp4_timestamps_with_images()` when the image have been moved from output folder before to complete MP4 timestamp syncing.
+    - [x] Fixed 'Rename Albums' Feature when no date range is found in its name. Before it removed any date found, now, if is not possible to extract a date range, just keep the cleaned name (without date range prefix). 
     - [x] Fixed Docker Version to include EXIF Tool.
     - [x] Fixed an issue in `Google Takeout Processing` feature creating output folder when automatically switch to `--google-ignore-check-structure` when no detecting a valid Takeout Structure.
 
   - #### 📚 Documentation:
     - [x] Improved Google Takeout Feature documentation.
-    - [x] Included GPTH Process Expplanation documentation within Google Takeout Feature documentation.
+    - [x] Included GPTH Process Explanation documentation within Google Takeout Feature documentation.
     - [x] Updated documentation with all changes.
   
 ---
@@ -149,14 +149,14 @@
 - ### Main Changes:
   - #### 🌟 New Features:
     - [x] Added new argument _**`-graf, --google-rename-albums-folders`**_ to rename all albums folders based on content dates when finish Google Takeout Processing.
-    - [x] Added new flag _**`-noConfirm, --no-request-user-confirmarion`**_ to Skip User Confirmation before to execute any Feature. (Requested by @VictorAcon).
+    - [x] Added new flag _**`-noConfirm, --no-request-user-confirmation`**_ to Skip User Confirmation before to execute any Feature. (Requested by @VictorAcon).
 
   - #### 🚀 Enhancements:
     - [x] Replace return arguments of `ClassTakeoutFolder.process()` method by a new object with all the arguments.
     - [x] Added more info while running Google Takeout Processing feature.
     - [x] Improved messages visualization of GPTH Processing in Automatic Migration Feature disabling progress bars within this Feature.
     - [x] Improved Pre-Process steps in Google Takeout Processing with those new sub-steps:
-      - [x] Fixed JSON Metadata for MP4 videos associated to Live Picturas (Now also take into account the `.supplemental-metadata` suffix and any posible variation/truncation of it (i.e: `IMG_0159.HEIC.supplemental-metad.json -> IMG_0159.MP4.supplemental-metadata.json)`.
+      - [x] Fixed JSON Metadata for MP4 videos associated to Live Pictures (Now also take into account the `.supplemental-metadata` suffix and any posible variation/truncation of it (i.e: `IMG_0159.HEIC.supplemental-metad.json -> IMG_0159.MP4.supplemental-metadata.json)`.
       - [x] Fixed truncated special suffixes at the end of the file (i.e: `filename-edi.jpg -> filename-edited.jpg`). Also take into account the `.supplemental-metadata` suffix and  any posible variation/truncation of it
       - [x] Fixed truncated extensions in JSON files (i.e: `filename.jp.json -> filename.jpg.json`). Also take into account the `.supplemental-metadata` suffix and  any posible variation/truncation of it
     - [x] Updated GPTH to version `4.0.8` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
@@ -214,7 +214,7 @@
       - [x] remove-duplicates-albums
       - [x] rename-albums
       - [x] merge-albums
-    - [x] Automatic filters flags detection in Dowload features for Synology/Immich Photos.
+    - [x] Automatic filters flags detection in Download features for Synology/Immich Photos.
       - [x] download-all
       - [x] download-albums
     - [x] Request user confirmation before Rename/Remove/Merge massive Albums (show the affected Albums).
@@ -225,7 +225,7 @@
     - [x] Improved Performance on Pull functions when no filtering options have been given.
     - [x] Improved performance when searching Google Takeout structure on huge local folder with many subfolders.
     - [x] Renamed `Automated Mode` to `Automatic Mode`.
-    - [x] Improved performance retrieving assets when filters are detected. Use smart filtering detection to avoid person filterimg if not apply (this filter is very slow in Synology Photos)
+    - [x] Improved performance retrieving assets when filters are detected. Use smart filtering detection to avoid person filtering if not apply (this filter is very slow in Synology Photos)
     - [x] Avoid logout from Synology Photos when some mode uses more than one call to Synology Photos API (to avoid OTP token expiration)  
     - [x] Merged Features 'Remove All Albums' & 'Remove Albums by name' (You can remove ALL Albums using '.*' as pattern).
     - [x] Merged Synology/Immich features using a parameter and replacing Comments and Classes based on it. 
@@ -238,7 +238,7 @@
     - [x] Updated GPTH to version `4.0.5` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts.     
       - [x] Re-written most of the code to clean screen logs and make it more easy to read (divided by steps). 
       - [x] GPTH is now enhanced with EXIF Tool support for a better metadata fixing (supporting geolocations update, almost all media formats, multiple camera brands, etc...).     
-      - [x] EXIF Tool habe been integrated into the binary file for GPTH to make use of it. 
+      - [x] EXIF Tool have been integrated into the binary file for GPTH to make use of it. 
     - [x] Improved build-binary.py to support both compilers (Pyinstaller and Nuitka).     
     - [x] Added Splash logo at the loading screen when execute from binaries on Windows.  
     - [x] Renamed binaries files for architecture `amd64` from `amd64` to `x64`.     
@@ -247,8 +247,8 @@
     - [x] Many improvements and automations in GitHub Actions to generate new builds and releases.     
 
   - #### 🐛 Bug fixes:
-    - [x] Fixed issue when username/password cotains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
-    - [x] Fixed a bug with feature **Remove All Albums** from Synology Photos and Immich Photos when the flag _**`--remove-albums-assets`**_ was selected (the assetes were not removed properly).
+    - [x] Fixed issue when username/password contains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
+    - [x] Fixed a bug with feature **Remove All Albums** from Synology Photos and Immich Photos when the flag _**`--remove-albums-assets`**_ was selected (the assets were not removed properly).
     - [x] Fixed a bug with feature **Synology Upload Album(s)** when the folder to upload is not named "Albums".
     - [x] Fixed a bug when any input folder ends with '\' or '/' but is enclosed between double quotes (").
     - [x] Fixed a bug replacing argument provided with flag _**`-dAlb, --download-albums \<ALBUMS_NAME>`**_ in the HELP text screen.
@@ -303,7 +303,7 @@
     - [x] Included Live Progress Dashboard in Automatic Migration process for a better visualization of the job progress.
     - [x] Added a new argument **'--source'** to specify the \<SOURCE> client for the Automatic Migration process.
     - [x] Added a new argument **'--target'** to specify the \<TARGET> client for the Automatic Migration process.
-    - [x] Added new flag '**-dashboard, --dashboard=[true, false]**' (default=true) to show/hide Live Dashboard during Atomated Migration Job.
+    - [x] Added new flag '**-dashboard, --dashboard=[true, false]**' (default=true) to show/hide Live Dashboard during Automated Migration Job.
     - [x] Added new flag '**-gpthInfo, --show-gpth-info=[true, false]**' (default=false) to show/hide progress messages during GPTH processing.
     - [x] Added new flag '**--gpthError, --show-gpth-errors=[true, false]**' (default=true) to show/hide errors messages during GPTH processing.
     - [x] Support for 'Uploads Queue' to limit the max number of assets that the Puller worker will store in the temporary folder to 100 (this save disk space). In this way the Puller worker will never put more than 100 assets pending to Upload in the temporary folder.
@@ -323,7 +323,7 @@
     - [x] Bug Fixing.
 
   - #### 📚 Documentation:
-    - [x] Documentation completelly re-written and structured in different filels
+    - [x] Documentation completely re-written and structured in different files
     - [x] Documentation is now included as part of the distribution packages.
 
   - #### 🖥️ Live Dashboard Preview:
@@ -354,7 +354,7 @@
 
     - [x] Wildcards support on <ALBUMS_NAME> argument on --synology-download-albums and --immich-download-albums options.
     - [x] Support to upload assets from/to any folder into Synology Photos (no need to be indexed within the Synology Photos root Folder)
-    - [x] Remove Dupplicates Assets in Immich Photos after upload any Asset.
+    - [x] Remove Duplicates Assets in Immich Photos after upload any Asset.
     - [x] Added function to Remove empty folders when delete assets in Synology Photos
     - [x] Set Log levels per functions and include '-logLevel, --log-level' argument to set it up.
     - [x] Support for colors in --help text for a better visualization.
@@ -439,7 +439,7 @@
       - -sea,  --synology-extract-albums is now **-sdAlb,  --synology-download-albums <ALBUMS_NAME>**.
       - -fsym, --fix-symlinks-broken <FOLDER_TO_FIX> is now **-fixSym, --fix-symlinks-broken <FOLDER_TO_FIX>**.
       - -fdup, --find-duplicates <ACTION> <DUPLICATES_FOLDER> is now **-findDup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>**.
-      - -pdup, --process-duplicates <DUPLICATES_REVISED> is now **-procdDup, --process-duplicates <DUPLICATES_REVISED>**.
+      - -pdup, --process-duplicates <DUPLICATES_REVISED> is now **-procDup, --process-duplicates <DUPLICATES_REVISED>**.
 
   - #### 🐛 Bug fixes:
     - [x] Fixed limit of 250 when search for Immich assets.
@@ -681,7 +681,7 @@
     - Included new argument '-mt, --move-takeout-folder' to move (instead of copy) photos/albums from <TAKEOUT_FOLDER> to <OUTPUT_FOLDER>. This will let you save disk space and increase execution speed. CAUTION: With this option you will lost your original unzipped takeout files. Use this only if you have disk space limitation or if you don't care to lost the unzipped files because you still have the original zips files.
     - Argument '-se, --skip-exif-tool' renamed to '-re, --run-exif-tool'. Now EXIF Tool will not be executed by default unless you include this argument when running the Tool.
     - Argument '-sl, --skip-log' renamed to '-nl, --no-log-file' for better comprehension.
-    - New feature to auto-sync timestamp of .MP4 files generated for Google Photos when a picture is a Live picture. With this feature the Tool will look for files picure files (.HEIVC, .JPG, .JPEG) with the same name than .MP4 file and in the same folder. If found, then the .MP4 file will have the same timestamp than the original picture file.
+    - New feature to auto-sync timestamp of .MP4 files generated for Google Photos when a picture is a Live picture. With this feature the Tool will look for files picture files (.HEIVC, .JPG, .JPEG) with the same name than .MP4 file and in the same folder. If found, then the .MP4 file will have the same timestamp than the original picture file.
     - New feature to move_folders with better performance when you use the argument '-mt, --move-takeout-folder'.
   - #### Enhancements:
     - Now GPTH Tool / EXIF Tool outputs will be sent to console and logfile.
@@ -701,7 +701,7 @@
   - #### Enhancements:
     - Change help format for better reading
   - #### Bug Fixing:
-    - Fixed bug when running in some linux environment where /tmp folder has noexec attributes
+    - Fixed bug when running in some linux environment where /tmp folder has no exec attributes
     - Fixed some minor bugs.
 
 ---

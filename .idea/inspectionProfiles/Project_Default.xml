@@ -8,5 +8,6 @@
         </list>
       </option>
     </inspection_tool>
+    <inspection_tool class="UnsatisfiedRequirementInspection" enabled="true" level="ERROR" enabled_by_default="true" editorAttributes="ERRORS_ATTRIBUTES" />
   </profile>
 </component>

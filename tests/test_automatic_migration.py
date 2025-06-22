@@ -1,5 +1,7 @@
 import unittest
-from Features import mode_AUTOMATIC_MIGRATION
+
+from AutomaticMigration import mode_AUTOMATIC_MIGRATION
+
 
 class AutomaticMode(unittest.TestCase):
     def test_automatic_mode(self):

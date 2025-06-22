@@ -4,7 +4,7 @@ import platform
 import re
 import sys
 
-from Core import GlobalVariables as GV
+from Core.GlobalVariables import SCRIPT_NAME_VERSION, LOGGER
 
 if platform.system() == "Windows":
     try:
@@ -39,8 +39,8 @@ class PagedParser(argparse.ArgumentParser):
             clean_line = ANSI_ESCAPE.sub('', line)  # Eliminar secuencias ANSI de colorama
             if 'usage' in clean_line.lower() and usage_first_line == -1:  # Detectar la primera línea con usage
                 usage_first_line = i
-            if GV.SCRIPT_NAME_VERSION in clean_line:  # Detectar la última línea de usage (pero NO pintarla en verde)
-                usage_last_line = i - 1  # Detener una línea antes de GV.SCRIPT_NAME_VERSION
+            if SCRIPT_NAME_VERSION in clean_line:  # Detectar la última línea de usage (pero NO pintarla en verde)
+                usage_last_line = i - 1  # Detener una línea antes de SCRIPT_NAME_VERSION
                 break  # No hace falta seguir buscando
 
         # Determinar todos los bloques de "CAUTION:"
@@ -65,11 +65,11 @@ class PagedParser(argparse.ArgumentParser):
         def check_color_support():
             curses.start_color()
             if not curses.has_colors():
-                GV.LOGGER.warning(f"Your terminal does not support colors")
+                LOGGER.warning(f"Your terminal does not support colors")
                 return False
             max_pairs = curses.COLOR_PAIRS
             if max_pairs < 4:
-                GV.LOGGER.warning(f"Your terminal only support {max_pairs} color pairs. The tool need 4")
+                LOGGER.warning(f"Your terminal only support {max_pairs} color pairs. The tool need 4")
                 return False
             return True
 
@@ -96,7 +96,7 @@ class PagedParser(argparse.ArgumentParser):
                         clean_line = ANSI_ESCAPE.sub('', line)  # Eliminar secuencias ANSI de colorama
                         line_number = index + i  # Línea absoluta en el texto
                         if color_support:
-                            # Pintar todas las líneas dentro del bloque usage en verde (excepto la línea con GV.SCRIPT_NAME_VERSION)
+                            # Pintar todas las líneas dentro del bloque usage en verde (excepto la línea con SCRIPT_NAME_VERSION)
                             if usage_first_line <= line_number <= usage_last_line:
                                 stdscr.addstr(i, 0, clean_line[:curses.COLS], curses.color_pair(1))  # Verde
                             # Pintar todas las líneas dentro de cualquier bloque “CAUTION:” en rojo

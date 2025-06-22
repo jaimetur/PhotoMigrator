@@ -3,7 +3,6 @@ import re
 import sys
 from configparser import ConfigParser
 
-from Core import GlobalVariables as GV
 from Core.StandaloneFunctions import resolve_path
 
 CONFIG = None
@@ -24,12 +23,12 @@ def load_config(config_file='Config.ini', section_to_load='all'):
     # Resolver correctamente la ruta al archivo de configuración
     config_file = resolve_path(config_file)
 
-    GV.LOGGER.info(f"Searching for section(s) [{section_to_load}] in configuration file '{config_file}'...")
+    LOGGER.info(f"Searching for section(s) [{section_to_load}] in configuration file '{config_file}'...")
     if not os.path.exists(config_file):
-        GV.LOGGER.error(f"Configuration file '{config_file}' not found. Exiting...")
+        LOGGER.error(f"Configuration file '{config_file}' not found. Exiting...")
         sys.exit(1)  # Termina el programa si no encuentra el archivo
 
-    GV.LOGGER.info(f"Configuration file found. Loading configuration for section(s) '{section_to_load}'...")
+    LOGGER.info(f"Configuration file found. Loading configuration for section(s) '{section_to_load}'...")
 
     # Preprocesar el archivo para eliminar claves duplicadas antes de leerlo con ConfigParser
     seen_keys = set()  # Conjunto para almacenar claves únicas
@@ -51,7 +50,7 @@ def load_config(config_file='Config.ini', section_to_load='all'):
                     unique_key = (section, key)  # Crear clave única combinando sección y clave
                     if unique_key in seen_keys:
                         if unique_key not in logged_warnings:  # Solo mostrar el mensaje una vez
-                            GV.LOGGER.warning(f"Duplicate key found in '{config_file}. Key: '{key}' in section {section}, keeping first.")
+                            LOGGER.warning(f"Duplicate key found in '{config_file}. Key: '{key}' in section {section}, keeping first.")
                             logged_warnings.add(unique_key)  # Registrar que ya mostramos el mensaje
                         continue  # Omitir clave duplicada
                     seen_keys.add(unique_key)
@@ -121,24 +120,25 @@ def load_config(config_file='Config.ini', section_to_load='all'):
                     value = clean_value(config.get(section, key, raw=True))
                     CONFIG[section][key] = value  # Agregar al diccionario sin sobrescribir otros valores
                     if key.strip() == '':
-                        GV.LOGGER.warning(f"WARNING: Missing value for key '{key}' in section '{section}', skipping.")
+                        LOGGER.warning(f"WARNING: Missing value for key '{key}' in section '{section}', skipping.")
                 else:
-                    GV.LOGGER.warning(f"WARNING: Missing key '{key}' in section '{section}', skipping.")
+                    LOGGER.warning(f"WARNING: Missing key '{key}' in section '{section}', skipping.")
 
-    GV.LOGGER.info(f"Configuration Read Successfully from '{config_file}' for section '{section_to_load}'.")
+    LOGGER.info(f"Configuration Read Successfully from '{config_file}' for section '{section_to_load}'.")
     return CONFIG
 
 
 if __name__ == "__main__":
-    # Create timestamp, and initialize GV.LOGGER.
+    # Create timestamp, and initialize LOGGER.
     from datetime import datetime
     from CustomLogger import log_setup
-    from Core.GlobalVariables import LOG_LEVEL
+    from Core.GlobalVariables import LOG_LEVEL, ARGS
+
     TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
     log_filename = f"{sys.argv[0]}_{TIMESTAMP}"
     log_folder = "Logs"
     LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
-    GV.LOGGER = log_setup(
+    LOGGER = log_setup(
         log_folder=log_folder,
         log_filename=log_filename,
         log_level=LOG_LEVEL,

@@ -4,7 +4,7 @@ import re
 import shutil
 from pathlib import Path
 
-from Core import GlobalVariables as GV
+from Core.GlobalVariables import LOGGER, EDITTED_SUFFIXES, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, TAG_INFO
 from Core.CustomLogger import set_log_level
 from Core.Utils import tqdm
 
@@ -20,12 +20,14 @@ def delete_subfolders(input_folder, folder_name_to_delete, step_name="", log_lev
     Args:
         input_folder (str, Path): The path to the base directory to start the search from.
         folder_name_to_delete (str): The name of the subdirectories to delete.
+        :param step_name:
+        :param log_level:
     """
-    with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+    with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         # Contar el total de carpetas
         total_dirs = sum([len(dirs) for _, dirs, _ in os.walk(input_folder)])
         # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_dirs, smoothing=0.1, desc=f"{GV.TAG_INFO}{step_name}Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
+        with tqdm(total=total_dirs, smoothing=0.1, desc=f"{TAG_INFO}{step_name}Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
             for path, dirs, files in os.walk(input_folder, topdown=False):
                 for folder in dirs:
                     pbar.update(1)
@@ -33,9 +35,9 @@ def delete_subfolders(input_folder, folder_name_to_delete, step_name="", log_lev
                         dir_path = os.path.join(path, folder)
                         try:
                             shutil.rmtree(dir_path)
-                            # GV.LOGGER.info(f"Deleted directory: {dir_path}")
+                            # LOGGER.info(f"Deleted directory: {dir_path}")
                         except Exception as e:
-                            GV.LOGGER.error(f"{step_name}Error deleting {dir_path}: {e}")
+                            LOGGER.error(f"{step_name}Error deleting {dir_path}: {e}")
 
 
 def fix_mp4_files(input_folder, step_name="", log_level=None):
@@ -47,8 +49,9 @@ def fix_mp4_files(input_folder, step_name="", log_level=None):
     Args:
         input_folder (str): The root folder to scan.
         log_level (int): Logging level (e.g., logging.INFO, logging.DEBUG).
+        :param step_name:
     """
-    with set_log_level(GV.LOGGER, log_level):  # Set desired log level
+    with set_log_level(LOGGER, log_level):  # Set desired log level
         counter_mp4_files_changed = 0
         # Count total .mp4 files for progress bar
         all_mp4_files = []
@@ -61,7 +64,7 @@ def fix_mp4_files(input_folder, step_name="", log_level=None):
             return 0
         # Mostrar la barra de progreso basada en carpetas
         disable_tqdm = log_level < logging.WARNING
-        with tqdm(total=total_files, smoothing=0.1, desc=f"{GV.TAG_INFO}{step_name}Fixing .MP4 files in '{input_folder}'", unit=" files", disable=disable_tqdm) as pbar:
+        with tqdm(total=total_files, smoothing=0.1, desc=f"{TAG_INFO}{step_name}Fixing .MP4 files in '{input_folder}'", unit=" files", disable=disable_tqdm) as pbar:
             for path, _, files in os.walk(input_folder):
                 # Filter files with .mp4 extension (case-insensitive)
                 mp4_files = [f for f in files if f.lower().endswith('.mp4')]
@@ -78,7 +81,7 @@ def fix_mp4_files(input_folder, step_name="", log_level=None):
                         # Build a regex pattern to match: (i.e: IMG_1094.HEIC(.supplemental-metadata)?.json)
 
                         # Precompute suffix and regex to fix any truncated '.supplemental-metadata' (preserves '(n)' counters)
-                        SUPPLEMENTAL_METADATA_WITH_DOT = '.' + GV.SUPPLEMENTAL_METADATA
+                        SUPPLEMENTAL_METADATA_WITH_DOT = '.' + SUPPLEMENTAL_METADATA
                         # common part
                         base_pattern = rf'({re.escape(mp4_base)}\.(?:heic|jpg|jpeg))'
                         # parte con llaves literales y variable
@@ -90,11 +93,11 @@ def fix_mp4_files(input_folder, step_name="", log_level=None):
                             base_part = match.group(1)
                             suffix = match.group(3) or ''
                             # Check if it's a truncated version of '.supplemental-metadata'
-                            if suffix and not suffix.lower().startswith(GV.SUPPLEMENTAL_METADATA):
+                            if suffix and not suffix.lower().startswith(SUPPLEMENTAL_METADATA):
                                 # Try to match a valid truncation
-                                for i in range(2, len(GV.SUPPLEMENTAL_METADATA) + 1):
-                                    if suffix.lower() == GV.SUPPLEMENTAL_METADATA[:i]:
-                                        suffix = '.'+GV.SUPPLEMENTAL_METADATA
+                                for i in range(2, len(SUPPLEMENTAL_METADATA) + 1):
+                                    if suffix.lower() == SUPPLEMENTAL_METADATA[:i]:
+                                        suffix = '.'+SUPPLEMENTAL_METADATA
                                         break
                             # Generate the new name for the duplicated file
                             new_json_name = f"{mp4_file}{suffix}.json"
@@ -104,11 +107,11 @@ def fix_mp4_files(input_folder, step_name="", log_level=None):
                                 # Copy the original JSON file to the new file
                                 if candidate_path.lower != new_json_path.lower():
                                     shutil.copy(candidate_path, new_json_path)
-                                    GV.LOGGER.info(f"{step_name}Copied: {candidate} -> {new_json_name}")
+                                    LOGGER.info(f"{step_name}Copied: {candidate} -> {new_json_name}")
                                     counter_mp4_files_changed += 1
                                     continue # if already found a matched candidate, then continue with the next file
                             else:
-                                GV.LOGGER.info(f"{step_name}Skipped: {new_json_name} already exists")
+                                LOGGER.info(f"{step_name}Skipped: {new_json_name} already exists")
         return counter_mp4_files_changed
 
 
@@ -118,7 +121,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
       1) .json files with a truncated '.supplemental-metadata' suffix.
       2) .json files whose original extension is truncated (e.g. .jp.json → .jpg.json),
          by finding the real asset file in the same directory.
-      3) Non-.json files with truncated special suffixes (based on GV.SPECIAL_SUFFIXES).
+      3) Non-.json files with truncated special suffixes (based on SPECIAL_SUFFIXES).
       4) Non-.json files with truncated edited suffixes in multiple languages (based on EDITTED).
 
     Only processes files whose base name (without extension) exceeds `name_length_threshold` characters.
@@ -167,15 +170,15 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
         # sort longest first so regex matches the largest truncation before smaller ones
         return '|'.join(sorted(map(re.escape, variants), key=len, reverse=True))
 
-    variants_specials_pattern = make_variant_pattern(GV.SPECIAL_SUFFIXES)
-    variants_editted_pattern = make_variant_pattern(GV.EDITTED_SUFFIXES)
+    variants_specials_pattern = make_variant_pattern(SPECIAL_SUFFIXES)
+    variants_editted_pattern = make_variant_pattern(EDITTED_SUFFIXES)
     optional_counter = r'(?:\(\d+\))?'  # allow "(n)" counters
-    with set_log_level(GV.LOGGER, log_level):
+    with set_log_level(LOGGER, log_level):
         # --------------------------
         # --- Case A: JSON files ---
         # --------------------------
         # Precompute suffix and regex to fix any truncated '.supplemental-metadata' (preserves '(n)' counters)
-        SUPPLEMENTAL_METADATA_WITH_DOT = '.' + GV.SUPPLEMENTAL_METADATA
+        SUPPLEMENTAL_METADATA_WITH_DOT = '.' + SUPPLEMENTAL_METADATA
         # Calculate max allowed truncation length (excluding the initial '.su')
         MAX_TRUNC = len(SUPPLEMENTAL_METADATA_WITH_DOT) - len('.su')
         # Compile pattern to capture truncated stub and optional counter like '(1)'
@@ -205,7 +208,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                         new_path = Path(root) / new_name
                         if str(old_path).lower() != str(new_path).lower():
                             os.rename(old_path, new_path)
-                            GV.LOGGER.verbose(f"{step_name}Fixed JSON Supplemental Ext: {file} → {new_name}")
+                            LOGGER.verbose(f"{step_name}Fixed JSON Supplemental Ext: {file} → {new_name}")
                             counters["supplemental_metadata_fixed"] += 1
                             # We need to medify file and old_path for next steps
                             file = new_name
@@ -258,7 +261,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                             new_path = Path(root) / new_name
                             if not new_path.exists() and str(old_path).lower() != str(new_path).lower():
                                 os.rename(old_path, new_path)
-                                GV.LOGGER.verbose(f"{step_name}Fixed JSON Origin File Ext : {file} → {new_name}")
+                                LOGGER.verbose(f"{step_name}Fixed JSON Origin File Ext : {file} → {new_name}")
                                 counters["extensions_fixed"] += 1
                                 if not file_modified:
                                     counters["json_files_fixed"] += 1
@@ -267,7 +270,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                     # end A.2
 
                     if file_modified:
-                        GV.LOGGER.debug(f"{step_name}Fixed JSON File  : {original_file} → {new_name}")
+                        LOGGER.debug(f"{step_name}Fixed JSON File  : {original_file} → {new_name}")
 
         # ------------------------------------------------------------
         # --- Case B: Non-JSON files (special suffixes or editted) ---
@@ -284,12 +287,12 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                     old_path = Path(root) / file
 
                     # B.1) Fix Special Suffixes: '-effects', '-smile', '-mix', 'collage'
-                    for suf in GV.SPECIAL_SUFFIXES:
+                    for suf in SPECIAL_SUFFIXES:
                         # try all truncations from longest to shortest
                         for i in range(len(suf), 1, -1):
                             sub = suf[:i]
                             pattern = re.compile(
-                                rf"{re.escape(sub)}(?=(-|_|\.|{variants_editted_pattern}|{GV.SUPPLEMENTAL_METADATA})?(?:\(\d+\))?{re.escape(ext)}$)",
+                                rf"{re.escape(sub)}(?=(-|_|\.|{variants_editted_pattern}|{SUPPLEMENTAL_METADATA})?(?:\(\d+\))?{re.escape(ext)}$)",
                                 flags=re.IGNORECASE
                             )
                             if pattern.search(file):
@@ -302,7 +305,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                                     new_path = Path(root) / new_name
                                     if str(old_path).lower() != str(new_path).lower():
                                         os.rename(old_path, new_path)
-                                        GV.LOGGER.verbose(f"{step_name}Fixed ORIGIN Special Suffix: {file} → {new_name}")
+                                        LOGGER.verbose(f"{step_name}Fixed ORIGIN Special Suffix: {file} → {new_name}")
                                         counters["special_suffixes_fixed"] += 1
                                         # We need to medify file and old_path for next steps and to keep changes if other suffixes are found
                                         file = new_name
@@ -314,7 +317,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                                     break # Once one truncation of the current suf is applied, stop trying shorter ones
 
                     # B.2) Fix Editted Suffixes (multi-language): '-editted', '-edytowane', '-bearbeitet', '-bewerkt', '-編集済み', '-modificato', '-modifié', '-ha editado', '-editat'
-                    for suf in GV.EDITTED_SUFFIXES:
+                    for suf in EDITTED_SUFFIXES:
                         # try all truncations from longest to shortest
                         for i in range(len(suf), 1, -1):
                             sub = suf[:i]
@@ -330,7 +333,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                                 new_path = Path(root) / new_name
                                 if str(old_path).lower() != str(new_path).lower():
                                     os.rename(old_path, new_path)
-                                    GV.LOGGER.verbose(f"{step_name}Fixed ORIGIN Edited Suffix : {file} → {new_name}")
+                                    LOGGER.verbose(f"{step_name}Fixed ORIGIN Edited Suffix : {file} → {new_name}")
                                     counters["edited_suffixes_fixed"] += 1
                                     # We need to medify file and old_path for next steps and to keep changes if other suffixes are found
                                     file = new_name
@@ -342,5 +345,5 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                                 break # Once one truncation of the current suf is applied, stop trying shorter ones
 
                     if file_modified:
-                        GV.LOGGER.debug(f"{step_name}Fixed MEDIA File : {original_file} → {new_name}")
+                        LOGGER.debug(f"{step_name}Fixed MEDIA File : {original_file} → {new_name}")
     return counters

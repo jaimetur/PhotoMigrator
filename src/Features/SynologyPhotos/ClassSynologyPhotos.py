@@ -14,10 +14,10 @@ import urllib3
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 import Features.GoogleTakeout.GoogleTakeoutPostprocess as GT_POST
-from Core import GlobalVariables as GV
 from Core.CustomLogger import set_log_level
 from Core.DateFunctions import parse_text_datetime_to_epoch
-# Import the global GV.LOGGER from GlobalVariables
+from Core.GlobalVariables import TAG_INFO, TAG_ERROR, ARGS, LOGGER
+# Import the global LOGGER from GlobalVariables
 from Core.Utils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, is_date_outside_range, confirm_continue
 
 """
@@ -48,18 +48,18 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 class ClassSynologyPhotos:
     """
     Encapsulates all functionality from ClassSynologyPhotos.py into a single class
-    that uses a global GV.LOGGER from GlobalVariables. It maintains original log messages
+    that uses a global LOGGER from GlobalVariables. It maintains original log messages
     and docstrings are now in English.
     """
 
     def __init__(self, account_id=1):
         """
         Constructor that initializes what were previously global variables.
-        Also imports the global GV.LOGGER from GlobalVariables.
+        Also imports the global LOGGER from GlobalVariables.
         """
         self.ACCOUNT_ID = str(account_id)  # Used to identify wich Account to use from the configuration file
         if account_id not in [1, 2, 3]:
-            GV.LOGGER.error(f"Cannot create Immich Photos object with ACCOUNT_ID: {account_id}. Valid valies are [1, 2]. Exiting...")
+            LOGGER.error(f"Cannot create Immich Photos object with ACCOUNT_ID: {account_id}. Valid valies are [1, 2]. Exiting...")
             sys.exit(-1)
 
         # Variables that were previously global:
@@ -72,7 +72,7 @@ class ClassSynologyPhotos:
         self.SID = None
         self.SYNO_TOKEN_HEADER = {}
 
-        self.use_OTP = GV.ARGS.get('one-time-password', None)
+        self.use_OTP = ARGS.get('one-time-password', None)
 
         # Allowed extensions:
         self.ALLOWED_SIDECAR_EXTENSIONS = []
@@ -101,12 +101,12 @@ class ClassSynologyPhotos:
         self.albums_assets_filtered = None
 
         # Get the values from the arguments (if exists)
-        self.type = GV.ARGS.get('filter-by-type', None)
-        self.from_date = GV.ARGS.get('filter-from-date', None)
-        self.to_date = GV.ARGS.get('filter-to-date', None)
-        self.country = GV.ARGS.get('filter-by-country', None)
-        self.city = GV.ARGS.get('filter-by-city', None)
-        self.person = GV.ARGS.get('filter-by-person', None)
+        self.type = ARGS.get('filter-by-type', None)
+        self.from_date = ARGS.get('filter-from-date', None)
+        self.to_date = ARGS.get('filter-to-date', None)
+        self.country = ARGS.get('filter-by-country', None)
+        self.city = ARGS.get('filter-by-city', None)
+        self.person = ARGS.get('filter-by-person', None)
         self.person_ids_list = []
         self.geocoding_ids_list = []
         self.geocoding_country_ids_list = []
@@ -123,7 +123,7 @@ class ClassSynologyPhotos:
     #                           CLASS PROPERTIES GETS                         #
     ###########################################################################
     def get_client_name(self, log_level=None):
-        with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             return self.CLIENT_NAME
 
     ###########################################################################
@@ -143,7 +143,7 @@ class ClassSynologyPhotos:
         """
         from Core.ConfigReader import load_config
 
-        with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             if self.CONFIG:
                 return self.CONFIG  # Configuration already read previously
 
@@ -158,27 +158,27 @@ class ClassSynologyPhotos:
             self.SYNOLOGY_PASSWORD = self.CONFIG.get(section_to_load).get(f'SYNOLOGY_PASSWORD_{self.ACCOUNT_ID}', None)      # Read the configuration for the user account given by the suffix ACCAUNT_ID
 
             if not self.SYNOLOGY_URL or self.SYNOLOGY_URL.strip() == '':
-                GV.LOGGER.warning(f"SYNOLOGY_URL not found. It will be requested on screen.")
+                LOGGER.warning(f"SYNOLOGY_URL not found. It will be requested on screen.")
                 self.CONFIG['SYNOLOGY_URL'] = input("\nEnter SYNOLOGY_URL: ")
                 self.SYNOLOGY_URL = self.CONFIG['SYNOLOGY_URL']
 
             if not self.SYNOLOGY_USERNAME or self.SYNOLOGY_USERNAME.strip() == '':
-                GV.LOGGER.warning(f"SYNOLOGY_USERNAME not found. It will be requested on screen.")
+                LOGGER.warning(f"SYNOLOGY_USERNAME not found. It will be requested on screen.")
                 self.CONFIG['SYNOLOGY_USERNAME'] = input("\nEnter SYNOLOGY_USERNAME: ")
                 self.SYNOLOGY_USERNAME = self.CONFIG['SYNOLOGY_USERNAME']
 
             if not self.SYNOLOGY_PASSWORD or self.SYNOLOGY_PASSWORD.strip() == '':
-                GV.LOGGER.warning(f"SYNOLOGY_PASSWORD not found. It will be requested on screen.")
+                LOGGER.warning(f"SYNOLOGY_PASSWORD not found. It will be requested on screen.")
                 self.CONFIG['SYNOLOGY_PASSWORD'] = input("\nEnter SYNOLOGY_PASSWORD: ")
                 self.SYNOLOGY_PASSWORD = self.CONFIG['SYNOLOGY_PASSWORD']
 
-            GV.LOGGER.info(f"")
-            GV.LOGGER.info(f"Synology Config Read:")
-            GV.LOGGER.info(f"---------------------")
+            LOGGER.info(f"")
+            LOGGER.info(f"Synology Config Read:")
+            LOGGER.info(f"---------------------")
             masked_password = '*' * len(self.SYNOLOGY_PASSWORD)
-            GV.LOGGER.info(f"SYNOLOGY_URL              : {self.SYNOLOGY_URL}")
-            GV.LOGGER.info(f"SYNOLOGY_USERNAME         : {self.SYNOLOGY_USERNAME}")
-            GV.LOGGER.info(f"SYNOLOGY_PASSWORD         : {masked_password}")
+            LOGGER.info(f"SYNOLOGY_URL              : {self.SYNOLOGY_URL}")
+            LOGGER.info(f"SYNOLOGY_USERNAME         : {self.SYNOLOGY_USERNAME}")
+            LOGGER.info(f"SYNOLOGY_PASSWORD         : {masked_password}")
 
             return self.CONFIG
 
@@ -197,10 +197,11 @@ class ClassSynologyPhotos:
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns (self.SESSION, self.SID) or (self.SESSION, self.SID, self.SYNO_TOKEN_HEADER)
+        :param use_OTP:
         """
         if use_OTP is None:
             use_OTP = self.use_OTP
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 if self.SESSION and self.SID and self.SYNO_TOKEN_HEADER:
                     return (self.SESSION, self.SID, self.SYNO_TOKEN_HEADER)
@@ -208,8 +209,8 @@ class ClassSynologyPhotos:
                     return (self.SESSION, self.SID)
 
                 self.read_config_file(log_level=log_level)
-                GV.LOGGER.info(f"")
-                GV.LOGGER.info(f"Authenticating on Synology Photos and getting Session...")
+                LOGGER.info(f"")
+                LOGGER.info(f"Authenticating on Synology Photos and getting Session...")
 
                 self.SESSION = requests.Session()
                 url = f"{self.SYNOLOGY_URL}/webapi/auth.cgi"
@@ -226,8 +227,8 @@ class ClassSynologyPhotos:
                     params.update({"enable_syno_token": "yes"})
 
                 if use_OTP:
-                    GV.LOGGER.warning(f"SYNOLOGY OTP TOKEN required (flag -OTP, --one-time-password detected). OTP Token will be requested on screen...")
-                    OTP = input(f"{GV.TAG_INFO}Enter SYNOLOGY OTP Token: ")
+                    LOGGER.warning(f"SYNOLOGY OTP TOKEN required (flag -OTP, --one-time-password detected). OTP Token will be requested on screen...")
+                    OTP = input(f"{TAG_INFO}Enter SYNOLOGY OTP Token: ")
                     params.update({"otp_code": {OTP}})
                     params.update({"enable_device_token": "yes"})
                     params.update({"device_name": "PhotoMigrator"})
@@ -239,18 +240,18 @@ class ClassSynologyPhotos:
                 if data.get("success"):
                     self.SID = data["data"]["sid"]
                     self.SESSION.cookies.set("id", self.SID)
-                    GV.LOGGER.info(f"Authentication Successfully with user/password found in Config file. Cookie properly set with session id.")
+                    LOGGER.info(f"Authentication Successfully with user/password found in Config file. Cookie properly set with session id.")
                     if use_syno_token:
-                        GV.LOGGER.info(f"SYNO_TOKEN_HEADER created as global variable. You must include 'SYNO_TOKEN_HEADER' in your request to work with this session.")
+                        LOGGER.info(f"SYNO_TOKEN_HEADER created as global variable. You must include 'SYNO_TOKEN_HEADER' in your request to work with this session.")
                         self.SYNO_TOKEN_HEADER = {"X-SYNO-TOKEN": data["data"]["synotoken"],}
                         return (self.SESSION, self.SID, self.SYNO_TOKEN_HEADER)
                     else:
                         return (self.SESSION, self.SID)
                 else:
-                    GV.LOGGER.error(f"Unable to authenticate with the provided Synology Photos data: {data}")
+                    LOGGER.error(f"Unable to authenticate with the provided Synology Photos data: {data}")
                     sys.exit(-1)
             except Exception as e:
-                GV.LOGGER.error(f"Exception while login into Synology Photos!. {e}")
+                LOGGER.error(f"Exception while login into Synology Photos!. {e}")
             
 
     def logout(self, log_level=None):
@@ -260,7 +261,7 @@ class ClassSynologyPhotos:
         Args:
             log_level (logging.LEVEL): log_level for logs and console
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 if self.SESSION and self.SID:
                     url = f"{self.SYNOLOGY_URL}/webapi/auth.cgi"
@@ -273,14 +274,14 @@ class ClassSynologyPhotos:
                     response.raise_for_status()
                     data = response.json()
                     if data.get("success"):
-                        GV.LOGGER.info(f"Session closed successfully.")
+                        LOGGER.info(f"Session closed successfully.")
                         self.SESSION = None
                         self.SID = None
                         self.SYNO_TOKEN_HEADER = {}
                     else:
-                        GV.LOGGER.error(f"Unable to close session in Synology NAS.")
+                        LOGGER.error(f"Unable to close session in Synology NAS.")
             except Exception as e:
-                GV.LOGGER.error(f"Exception while logout from Synology Photos!. {e}")
+                LOGGER.error(f"Exception while logout from Synology Photos!. {e}")
             
 
     ###########################################################################
@@ -290,26 +291,26 @@ class ClassSynologyPhotos:
         """
         Returns the supported media/sidecar extensions as for Synology Photos
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 if type.lower() == 'media':
                     supported_types = self.ALLOWED_MEDIA_EXTENSIONS
-                    GV.LOGGER.debug(f"Supported media types: '{supported_types}'.")
+                    LOGGER.debug(f"Supported media types: '{supported_types}'.")
                 elif type.lower() == 'image':
                     supported_types = self.ALLOWED_PHOTO_EXTENSIONS
-                    GV.LOGGER.debug(f"Supported image types: '{supported_types}'.")
+                    LOGGER.debug(f"Supported image types: '{supported_types}'.")
                 elif type.lower() == 'video':
                     supported_types = self.ALLOWED_VIDEO_EXTENSIONS
-                    GV.LOGGER.debug(f"Supported video types: '{supported_types}'.")
+                    LOGGER.debug(f"Supported video types: '{supported_types}'.")
                 elif type.lower() == 'sidecar':
                     supported_types = self.ALLOWED_SIDECAR_EXTENSIONS
-                    GV.LOGGER.debug(f"Supported sidecar types: '{supported_types}'.")
+                    LOGGER.debug(f"Supported sidecar types: '{supported_types}'.")
                 else:
-                    GV.LOGGER.error(f"Invalid type '{type}' to get supported media types. Types allowed are 'media', 'image', 'video' or 'sidecar'")
+                    LOGGER.error(f"Invalid type '{type}' to get supported media types. Types allowed are 'media', 'image', 'video' or 'sidecar'")
                     return None
                 return supported_types
             except Exception as e:
-                GV.LOGGER.error(f"Cannot get Supported media types: {e}")
+                LOGGER.error(f"Cannot get Supported media types: {e}")
                 return None
             
 
@@ -317,25 +318,25 @@ class ClassSynologyPhotos:
         """
         Returns the user_id of the currently logged-in user.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
-                GV.LOGGER.info(f"User ID: '{self.SYNOLOGY_USERNAME}' found.")
-                GV.LOGGER.info(f"")
+                LOGGER.info(f"User ID: '{self.SYNOLOGY_USERNAME}' found.")
+                LOGGER.info(f"")
                 return self.SYNOLOGY_USERNAME
             except Exception as e:
-                GV.LOGGER.error(f"Exception while getting user id. {e}")
+                LOGGER.error(f"Exception while getting user id. {e}")
 
     def get_user_mail(self, log_level=None):
         """
         Returns the user_mail of the currently logged-in user.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
-                GV.LOGGER.info(f"User ID: '{self.SYNOLOGY_USERNAME}' found.")
-                GV.LOGGER.info(f"")
+                LOGGER.info(f"User ID: '{self.SYNOLOGY_USERNAME}' found.")
+                LOGGER.info(f"")
                 return self.SYNOLOGY_USERNAME
             except Exception as e:
-                GV.LOGGER.error(f"Exception while getting user mail. {e}")
+                LOGGER.error(f"Exception while getting user mail. {e}")
 
     def get_geocoding_person_lists(self, log_level=None):
         """
@@ -346,7 +347,7 @@ class ClassSynologyPhotos:
         Returns:
              int: List of Geocoding used in the database.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -368,11 +369,11 @@ class ClassSynologyPhotos:
                     geocoding_list.extend(data["data"]["geocoding"])
                     person_list.extend(data["data"]["person"])
                 else:
-                    GV.LOGGER.error(f"Failed to get Geocoding/Person list: ", data)
+                    LOGGER.error(f"Failed to get Geocoding/Person list: ", data)
                     return None, None
                 return geocoding_list, person_list
             except Exception as e:
-                GV.LOGGER.error(f"Exception while getting Geocoding List from Synology Photos. {e}")
+                LOGGER.error(f"Exception while getting Geocoding List from Synology Photos. {e}")
 
     def get_person_ids(self, person, log_level=None):
         """
@@ -385,7 +386,7 @@ class ClassSynologyPhotos:
         Returns:
             list: A list with the matching person ID(s). Empty if no match is found.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             geocoding_list, person_list = self.get_geocoding_person_lists(log_level=log_level)
             person_ids_list = []
             for item in person_list:
@@ -400,7 +401,7 @@ class ClassSynologyPhotos:
             for child in node.get("children", []):
                 ids.extend(collect_ids(child))
             return ids
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             geocoding_list, person_list = self.get_geocoding_person_lists(log_level=log_level)
             for item in geocoding_list:
                 stack = [item]
@@ -426,7 +427,7 @@ class ClassSynologyPhotos:
         Returns:
             str: New album ID or None if it fails
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -445,14 +446,14 @@ class ClassSynologyPhotos:
                 data = resp.json()
 
                 if not data["success"]:
-                    GV.LOGGER.error(f"Unable to create album '{album_name}': {data}")
+                    LOGGER.error(f"Unable to create album '{album_name}': {data}")
                     return None
 
                 album_id = data["data"]["album"]["id"]
-                GV.LOGGER.info(f"Album '{album_name}' created with ID: {album_id}.")
+                LOGGER.info(f"Album '{album_name}' created with ID: {album_id}.")
                 return album_id
             except Exception as e:
-                GV.LOGGER.warning(f"Cannot create album: '{album_name}' due to API call error. Skipped! {e}")
+                LOGGER.warning(f"Cannot create album: '{album_name}' due to API call error. Skipped! {e}")
 
 
     def remove_album(self, album_id, album_name, log_level=None):
@@ -466,7 +467,7 @@ class ClassSynologyPhotos:
 
         Returns True on success, False otherwise.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -486,11 +487,11 @@ class ClassSynologyPhotos:
                 data = response.json()
                 success = True
                 if not data["success"]:
-                    GV.LOGGER.warning(f"Could not delete album {album_id}: {data}")
+                    LOGGER.warning(f"Could not delete album {album_id}: {data}")
                     success = False
                 return success
             except Exception as e:
-                GV.LOGGER.error(f"Exception while removing Album from Synology Photos. {e}")
+                LOGGER.error(f"Exception while removing Album from Synology Photos. {e}")
 
 
     def get_albums_owned_by_user(self, filter_assets=True, log_level=None):
@@ -508,8 +509,9 @@ class ClassSynologyPhotos:
                       "...",
                     }
             None on error
+            :param filter_assets:
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -535,7 +537,7 @@ class ClassSynologyPhotos:
                     if data["success"]:
                         album_list.extend(data["data"]["list"])
                     else:
-                        GV.LOGGER.error(f"Failed to list albums: ", data)
+                        LOGGER.error(f"Failed to list albums: ", data)
                         return None
 
                     if len(data["data"]["list"]) < limit:
@@ -556,7 +558,7 @@ class ClassSynologyPhotos:
                         albums_filtered.append(album)
                 return albums_filtered
             except Exception as e:
-                GV.LOGGER.warning(f"Cannot get albums due to API call error. Skipped! {e}")
+                LOGGER.warning(f"Cannot get albums due to API call error. Skipped! {e}")
 
 
     def get_albums_including_shared_with_user(self, filter_assets=True, log_level=None):
@@ -574,8 +576,9 @@ class ClassSynologyPhotos:
                       "...",
                     }
             None on error
+            :param filter_assets:
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -602,14 +605,14 @@ class ClassSynologyPhotos:
                     r = self.SESSION.get(url, params=params, headers=headers, verify=False)
                     data = r.json()
                     if not data.get("success"):
-                        GV.LOGGER.error(f"Failed to list own albums:", data)
+                        LOGGER.error(f"Failed to list own albums:", data)
                         return None
                     album_list.extend(data["data"]["list"])
                     if len(data["data"]["list"]) < limit:
                         break
                     offset += limit
             except Exception as e:
-                GV.LOGGER.error(f"Exception while listing own albums. {e}")
+                LOGGER.error(f"Exception while listing own albums. {e}")
                 return None
             
             albums_filtered = []
@@ -639,7 +642,7 @@ class ClassSynologyPhotos:
         Returns:
             int: Album Size or -1 on error.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -666,7 +669,7 @@ class ClassSynologyPhotos:
                     data = resp.json()
 
                     if not data["success"]:
-                        GV.LOGGER.warning(f"Cannot list files for album: '{album_name}' due to API call error. Skipped!")
+                        LOGGER.warning(f"Cannot list files for album: '{album_name}' due to API call error. Skipped!")
                         return -1
 
                     album_items.append(data["data"]["list"])
@@ -680,7 +683,7 @@ class ClassSynologyPhotos:
 
                 return album_size
             except Exception as e:
-                GV.LOGGER.error(f"Exception while getting Album Assets from Synology Photos. {e}")
+                LOGGER.error(f"Exception while getting Album Assets from Synology Photos. {e}")
             
 
     def get_album_assets_count(self, album_id, album_name, log_level=None):
@@ -694,7 +697,7 @@ class ClassSynologyPhotos:
         Returns:
              int: Album Items Count or -1 on error.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -713,11 +716,11 @@ class ClassSynologyPhotos:
                 data = response.json()
 
                 if not data["success"]:
-                    GV.LOGGER.warning(f"Cannot count files for album: '{album_name}' due to API call error. Skipped!")
+                    LOGGER.warning(f"Cannot count files for album: '{album_name}' due to API call error. Skipped!")
                     return -1
                 return data["data"]["count"]
             except Exception as e:
-                GV.LOGGER.error(f"Exception while getting Album Assets count from Synology Photos. {e}")
+                LOGGER.error(f"Exception while getting Album Assets count from Synology Photos. {e}")
 
 
     def album_exists(self, album_name, log_level=None):
@@ -731,7 +734,7 @@ class ClassSynologyPhotos:
              bool: True if Album exists. False if Album does not exists.
              album_id (str): album_id if Album  exists. None if Album does not exists.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 # First, check if the album is already in the user's dictionary
                 if album_name in self.albums_owned_by_user:
@@ -749,7 +752,7 @@ class ClassSynologyPhotos:
                             break
                 return album_exists, album_id
             except Exception as e:
-                GV.LOGGER.error(f"Exception while checking if Album exists on Synology Photos. {e}")
+                LOGGER.error(f"Exception while checking if Album exists on Synology Photos. {e}")
 
 
     ###########################################################################
@@ -767,8 +770,9 @@ class ClassSynologyPhotos:
 
         Returns:
             list: A filtered list of assets that include the specified person.
+            :param log_level:
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             filtered = []
             for asset in assets:
                 asset_id = asset.get('id')
@@ -782,7 +786,7 @@ class ClassSynologyPhotos:
     def filter_assets_old(self, assets, log_level=None):
         """
         Filters a list of assets based on user-defined criteria such as date range,
-        country, city, and asset type. Filter parameters are retrieved from the global GV.ARGS dictionary.
+        country, city, and asset type. Filter parameters are retrieved from the global ARGS dictionary.
 
         The filtering steps are applied in the following order:
         1. By date range (from-date, to-date)
@@ -798,8 +802,8 @@ class ClassSynologyPhotos:
         Returns:
             list: A filtered list of assets that match the specified criteria.
         """
-        with set_log_level(GV.LOGGER, log_level):
-            # Now Filter the assets list based on the filters given by GV.ARGS
+        with set_log_level(LOGGER, log_level):
+            # Now Filter the assets list based on the filters given by ARGS
             try:
                 filtered_assets = assets
                 if self.type:
@@ -814,7 +818,7 @@ class ClassSynologyPhotos:
                     filtered_assets = self.filter_assets_by_person(filtered_assets, self.person)
                 return filtered_assets
             except Exception as e:
-                GV.LOGGER.error(f"Exception while filtering Assets from Synology Photos. {e}")
+                LOGGER.error(f"Exception while filtering Assets from Synology Photos. {e}")
 
     def filter_assets_by_type(self, assets, type):
         """
@@ -949,7 +953,7 @@ class ClassSynologyPhotos:
         Returns:
             list: A list of assets (dict) in the entire library or Empty list on error.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 # If all_filtered_assets is already cached, return it
                 if self.all_assets_filtered is not None:
@@ -1017,7 +1021,7 @@ class ClassSynologyPhotos:
                     if self.type.lower() in ['video', 'videos']:
                         types.append(1)
                 if types: base_params["item_type"] = json.dumps(types)
-                GV.LOGGER.debug(f"base_params: {json.dumps(base_params, indent=4)}")
+                LOGGER.debug(f"base_params: {json.dumps(base_params, indent=4)}")
 
                 offset = 0
                 limit = 5000
@@ -1030,20 +1034,20 @@ class ClassSynologyPhotos:
                         resp = self.SESSION.get(url, headers=headers, params=params, verify=False)
                         data = resp.json()
                         if not data.get("success"):
-                            GV.LOGGER.error(f"Failed to list assets")
+                            LOGGER.error(f"Failed to list assets")
                             return []
                         all_filtered_assets.extend(data["data"]["list"])
                         if len(data["data"]["list"]) < limit:
                             break
                         offset += limit
                     except Exception as e:
-                        GV.LOGGER.error(f"Exception while listing assets {e}")
+                        LOGGER.error(f"Exception while listing assets {e}")
                         return []
 
                 self.all_assets_filtered = all_filtered_assets # Cache all_filtered_assets for future use
                 return all_filtered_assets
             except Exception as e:
-                GV.LOGGER.error(f"Exception while getting all Assets from Synology Photos. {e}")
+                LOGGER.error(f"Exception while getting all Assets from Synology Photos. {e}")
             
 
     def get_all_assets_from_album(self, album_id, album_name=None, log_level=None):
@@ -1058,7 +1062,7 @@ class ClassSynologyPhotos:
         Returns:
             list: A list of assets in the album (dict objects). [] if no assets found.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 # base_params settings
                 base_params = {
@@ -1090,9 +1094,9 @@ class ClassSynologyPhotos:
                         data = resp.json()
                         if not data.get("success"):
                             if album_name:
-                                GV.LOGGER.error(f"Failed to list photos in the album '{album_name}'")
+                                LOGGER.error(f"Failed to list photos in the album '{album_name}'")
                             else:
-                                GV.LOGGER.error(f"Failed to list photos in the album ID={album_id}")
+                                LOGGER.error(f"Failed to list photos in the album ID={album_id}")
                             return []
                         if len(data["data"]["list"])>0:
                             album_assets.extend(data["data"]["list"])
@@ -1102,15 +1106,15 @@ class ClassSynologyPhotos:
                         offset += limit
                     except Exception as e:
                         if album_name:
-                            GV.LOGGER.error(f"Exception while listing photos in the album '{album_name}' {e}")
+                            LOGGER.error(f"Exception while listing photos in the album '{album_name}' {e}")
                         else:
-                            GV.LOGGER.error(f"Exception while listing photos in the album ID={album_id} {e}")
+                            LOGGER.error(f"Exception while listing photos in the album ID={album_id} {e}")
                         return []
 
                 filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
                 return filtered_album_assets
             except Exception as e:
-                GV.LOGGER.error(f"Exception while getting Album Assets from Synology Photos. {e}")
+                LOGGER.error(f"Exception while getting Album Assets from Synology Photos. {e}")
 
 
     def get_all_assets_from_album_shared(self, album_id, album_name=None, album_passphrase=None, log_level=None):
@@ -1126,7 +1130,7 @@ class ClassSynologyPhotos:
         Returns:
             list: A list of assets in the album (dict objects). [] if no assets found.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 # base_params settings
                 base_params = {
@@ -1158,9 +1162,9 @@ class ClassSynologyPhotos:
                         data = resp.json()
                         if not data.get("success"):
                             if album_name:
-                                GV.LOGGER.error(f"Failed to list photos in the album '{album_name}'")
+                                LOGGER.error(f"Failed to list photos in the album '{album_name}'")
                             else:
-                                GV.LOGGER.error(f"Failed to list photos in the album ID={album_id}")
+                                LOGGER.error(f"Failed to list photos in the album ID={album_id}")
                             return []
                         if len(data["data"]["list"]) > 0:
                             album_assets.extend(data["data"]["list"])
@@ -1170,15 +1174,15 @@ class ClassSynologyPhotos:
                         offset += limit
                     except Exception as e:
                         if album_name:
-                            GV.LOGGER.error(f"Exception while listing photos in the album '{album_name}' {e}")
+                            LOGGER.error(f"Exception while listing photos in the album '{album_name}' {e}")
                         else:
-                            GV.LOGGER.error(f"Exception while listing photos in the album ID={album_id} {e}")
+                            LOGGER.error(f"Exception while listing photos in the album ID={album_id} {e}")
                         return []
 
                 filtered_album_assets = self.filter_assets(assets=album_assets, log_level=log_level)
                 return filtered_album_assets
             except Exception as e:
-                GV.LOGGER.error(f"Exception while getting Album Assets from Synology Photos. {e}")
+                LOGGER.error(f"Exception while getting Album Assets from Synology Photos. {e}")
 
 
     def get_all_assets_without_albums(self, log_level=logging.WARNING):
@@ -1190,7 +1194,7 @@ class ClassSynologyPhotos:
 
         Returns assets_without_albums
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 # If assets_without_albums is already cached, return it.
                 if self.assets_without_albums_filtered is not None:
@@ -1200,11 +1204,11 @@ class ClassSynologyPhotos:
                 album_assets = self.get_all_assets_from_all_albums(log_level=logging.INFO)
                 # Use get_unique_items from your Utils to find items that are in all_assets but not in album_asset
                 assets_without_albums = get_unique_items(all_assets, album_assets, key='filename')
-                GV.LOGGER.info(f"Number of all_assets without Albums associated: {len(assets_without_albums)}")
+                LOGGER.info(f"Number of all_assets without Albums associated: {len(assets_without_albums)}")
                 self.assets_without_albums_filtered = assets_without_albums # Cache assets_without_albums for future use
                 return assets_without_albums
             except Exception as e:
-                GV.LOGGER.error(f"Exception while getting No-Albums Assets from Synology Photos. {e}")
+                LOGGER.error(f"Exception while getting No-Albums Assets from Synology Photos. {e}")
 
 
     def get_all_assets_from_all_albums(self, log_level=logging.WARNING):
@@ -1217,7 +1221,7 @@ class ClassSynologyPhotos:
         Returns:
             list: Albums Assets
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 # If albums_assets is already cached, return it
                 if self.albums_assets_filtered is not None:
@@ -1241,7 +1245,7 @@ class ClassSynologyPhotos:
                 self.albums_assets_filtered = combined_assets # Cache albums_assets for future use
                 return combined_assets
             except Exception as e:
-                GV.LOGGER.error(f"Exception while getting All Albums Assets from Synology Photos. {e}")
+                LOGGER.error(f"Exception while getting All Albums Assets from Synology Photos. {e}")
             
 
     def add_assets_to_album(self, album_id, asset_ids, album_name=None, log_level=logging.WARNING):
@@ -1257,10 +1261,10 @@ class ClassSynologyPhotos:
         Returns:
             int: Number of assets added to the album
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 if not asset_ids:
-                    GV.LOGGER.warning(f"No assets found to add to Album ID: '{album_id}'. Skipped!")
+                    LOGGER.warning(f"No assets found to add to Album ID: '{album_id}'. Skipped!")
                     return -1
                 # asset_ids = convert_asset_ids_to_str(asset_ids)
                 asset_ids = convert_to_list(asset_ids)
@@ -1274,9 +1278,9 @@ class ClassSynologyPhotos:
                 total_added = len(asset_ids) if isinstance(asset_ids, list) else 1
                 if not total_added > 0:
                     if album_name:
-                        GV.LOGGER.warning(f"No assets found to add to Album: '{album_name}'. Skipped!")
+                        LOGGER.warning(f"No assets found to add to Album: '{album_name}'. Skipped!")
                     else:
-                        GV.LOGGER.warning(f"No assets found to add to Album ID: '{album_id}'. Skipped!")
+                        LOGGER.warning(f"No assets found to add to Album ID: '{album_id}'. Skipped!")
                     return -1
 
                 params = {
@@ -1292,18 +1296,18 @@ class ClassSynologyPhotos:
 
                 if not data["success"]:
                     if album_name:
-                        GV.LOGGER.warning(f"Cannot add assets to album: '{album_name}' due to API call error. Skipped!")
+                        LOGGER.warning(f"Cannot add assets to album: '{album_name}' due to API call error. Skipped!")
                     else:
-                        GV.LOGGER.warning(f"Cannot add assets to album ID: '{album_id}' due to API call error. Skipped!")
+                        LOGGER.warning(f"Cannot add assets to album ID: '{album_id}' due to API call error. Skipped!")
                     return -1
                 if album_name:
-                    GV.LOGGER.info(f"{total_added} Assets successfully added to album: '{album_name}'.")
+                    LOGGER.info(f"{total_added} Assets successfully added to album: '{album_name}'.")
                 else:
-                    GV.LOGGER.info(f"{total_added} Assets successfully added to album ID: '{album_id}'.")
+                    LOGGER.info(f"{total_added} Assets successfully added to album ID: '{album_id}'.")
                 return total_added
 
             except Exception as e:
-                GV.LOGGER.warning(f"Cannot add Assets to album: '{album_name}' due to API call error. Skipped!")
+                LOGGER.warning(f"Cannot add Assets to album: '{album_name}' due to API call error. Skipped!")
             
 
     # TODO: Complete this method
@@ -1311,11 +1315,11 @@ class ClassSynologyPhotos:
         """
         Returns the list of duplicate assets from Synology
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 return []
             except Exception as e:
-                GV.LOGGER.error(f"Exception while getting duplicates Assets from Synology Photos. {e}")
+                LOGGER.error(f"Exception while getting duplicates Assets from Synology Photos. {e}")
 
 
     def remove_assets(self, asset_ids, log_level=None):
@@ -1329,7 +1333,7 @@ class ClassSynologyPhotos:
         Returns:
             int: Number of assets removed
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -1351,10 +1355,10 @@ class ClassSynologyPhotos:
                     response = self.SESSION.get(url, params=params, headers=headers, verify=False)
                     data = response.json()
                     if not data.get("success"):
-                        GV.LOGGER.error(f"Failed to remove assets")
+                        LOGGER.error(f"Failed to remove assets")
                         return 0
                 except Exception as e:
-                    GV.LOGGER.error(f"Exception while removing assets {e}")
+                    LOGGER.error(f"Exception while removing assets {e}")
                     return 0
                 
 
@@ -1365,7 +1369,7 @@ class ClassSynologyPhotos:
                 self.wait_for_background_remove_task(task_id, log_level=log_level)
                 return removed_count
             except Exception as e:
-                GV.LOGGER.error(f"Exception while removing Assets from Synology Photos. {e}")
+                LOGGER.error(f"Exception while removing Assets from Synology Photos. {e}")
             
 
     # TODO: Complete this method
@@ -1373,11 +1377,11 @@ class ClassSynologyPhotos:
         """
         Removes duplicate assets in the Synology database. Returns how many duplicates got removed.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 return 0
             except Exception as e:
-                GV.LOGGER.error(f"Exception while removing duplicates assets from Synology Photos. {e}")
+                LOGGER.error(f"Exception while removing duplicates assets from Synology Photos. {e}")
             
 
     def push_asset(self, file_path, log_level=None):
@@ -1392,12 +1396,12 @@ class ClassSynologyPhotos:
             str: the asset_id if success, or None if it fails or is an unsupported extension.
             bool: is_duplicated = False if success, or None if it fails or is an unsupported extension.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
 
                 if not os.path.exists(file_path):
-                    raise FileNotFoundError(f"{GV.TAG_ERROR}The file '{file_path}' does not exists.")
+                    raise FileNotFoundError(f"{TAG_ERROR}The file '{file_path}' does not exists.")
 
                 filename, ext = os.path.splitext(file_path)
                 ext = ext.lower()
@@ -1405,7 +1409,7 @@ class ClassSynologyPhotos:
                     if ext in self.ALLOWED_SIDECAR_EXTENSIONS:
                         return None, None
                     else:
-                        GV.LOGGER.warning(f"File '{file_path}' has an unsupported extension. Skipped.")
+                        LOGGER.warning(f"File '{file_path}' has an unsupported extension. Skipped.")
                         return None, None
 
                 headers = {}
@@ -1438,19 +1442,19 @@ class ClassSynologyPhotos:
                     response.raise_for_status()
                     data = response.json()
                     if not data["success"]:
-                        GV.LOGGER.warning(f"Cannot upload asset: '{file_path}' due to API call error. Skipped!")
+                        LOGGER.warning(f"Cannot upload asset: '{file_path}' due to API call error. Skipped!")
                         return None, None
                     else:
                         asset_id = data["data"].get("id")
                         is_duplicated = data["data"].get("action") == "ignore"
                         if is_duplicated:
-                            GV.LOGGER.debug(f"Duplicated Asset: '{os.path.basename(file_path)}'. Skipped!")
+                            LOGGER.debug(f"Duplicated Asset: '{os.path.basename(file_path)}'. Skipped!")
                         else:
-                            GV.LOGGER.debug(f"Uploaded '{os.path.basename(file_path)}' with asset_id={asset_id}")
+                            LOGGER.debug(f"Uploaded '{os.path.basename(file_path)}' with asset_id={asset_id}")
                         return asset_id, is_duplicated
 
             except Exception as e:
-                GV.LOGGER.warning(f"Cannot upload asset: '{file_path}' due to API call error. Skipped!")
+                LOGGER.warning(f"Cannot upload asset: '{file_path}' due to API call error. Skipped!")
                 return None, None
             
 
@@ -1470,7 +1474,7 @@ class ClassSynologyPhotos:
         Returns:
             int: 1 if download succeeded, 0 if failed.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 os.makedirs(download_folder, exist_ok=True)
@@ -1505,8 +1509,8 @@ class ClassSynologyPhotos:
 
                 resp = self.SESSION.get(url, params=params, headers=headers, verify=False, stream=True)
                 if resp.status_code != 200:
-                    GV.LOGGER.error(f"")
-                    GV.LOGGER.error(f"Failed to download asset '{asset_filename}' with ID [{asset_id}]. Status code: {resp.status_code}")
+                    LOGGER.error(f"")
+                    LOGGER.error(f"Failed to download asset '{asset_filename}' with ID [{asset_id}]. Status code: {resp.status_code}")
                     return 0
 
                 with open(file_path, "wb") as f:
@@ -1518,12 +1522,12 @@ class ClassSynologyPhotos:
                 if file_ext in self.ALLOWED_MEDIA_EXTENSIONS:
                     update_metadata(file_path, asset_datetime.strftime("%Y-%m-%d %H:%M:%S"), log_level=logging.ERROR)
 
-                GV.LOGGER.debug(f"")
-                GV.LOGGER.debug(f"Asset '{asset_filename}' downloaded and saved at {file_path}")
+                LOGGER.debug(f"")
+                LOGGER.debug(f"Asset '{asset_filename}' downloaded and saved at {file_path}")
                 return 1
             except Exception as e:
-                GV.LOGGER.error(f"")
-                GV.LOGGER.error(f"Exception occurred while downloading asset '{asset_filename}' with ID [{asset_id}]. {e}")
+                LOGGER.error(f"")
+                LOGGER.error(f"Exception occurred while downloading asset '{asset_filename}' with ID [{asset_id}]. {e}")
                 return 0
             
 
@@ -1542,7 +1546,7 @@ class ClassSynologyPhotos:
         Returns:
             str: The ID of the folder (folder_id).
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
 
@@ -1561,17 +1565,17 @@ class ClassSynologyPhotos:
                 data = response.json()
 
                 if not data.get("success"):
-                    GV.LOGGER.error(f"Cannot obtain Photos Root Folder ID due to an error in the API call.")
+                    LOGGER.error(f"Cannot obtain Photos Root Folder ID due to an error in the API call.")
                     sys.exit(-1)
 
                 folder_name = data["data"]["folder"]["name"]
                 folder_id = str(data["data"]["folder"]["id"])
                 if not folder_id or folder_name != "/":
-                    GV.LOGGER.error(f"Cannot obtain Photos Root Folder ID.")
+                    LOGGER.error(f"Cannot obtain Photos Root Folder ID.")
                     sys.exit(-1)
                 return folder_id
             except Exception as e:
-                GV.LOGGER.error(f"Exception while geting root folder ID from Synology Photos. {e}")
+                LOGGER.error(f"Exception while geting root folder ID from Synology Photos. {e}")
             
 
     def get_folder_id(self, search_in_folder_id, folder_name, log_level=logging.WARNING):
@@ -1587,7 +1591,7 @@ class ClassSynologyPhotos:
         Returns:
             str: The ID of the folder (folder_id), or None if not found.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
 
@@ -1606,7 +1610,7 @@ class ClassSynologyPhotos:
                 response = self.SESSION.get(url, params=params, headers=headers, verify=False)
                 data = response.json()
                 if not data.get("success"):
-                    GV.LOGGER.error(f"Cannot obtain name for folder ID '{search_in_folder_id}' due to an error in the API call.")
+                    LOGGER.error(f"Cannot obtain name for folder ID '{search_in_folder_id}' due to an error in the API call.")
                     sys.exit(-1)
                 search_in_folder_name = data["data"]["folder"]["name"]
 
@@ -1627,7 +1631,7 @@ class ClassSynologyPhotos:
                     data_list = resp.json()
 
                     if not data_list.get("success"):
-                        GV.LOGGER.error(f"Cannot obtain ID for folder '{folder_name}' due to an error in the API call.")
+                        LOGGER.error(f"Cannot obtain ID for folder '{folder_name}' due to an error in the API call.")
                         sys.exit(-1)
 
                     subfolders_dict = {
@@ -1651,7 +1655,7 @@ class ClassSynologyPhotos:
                             return sub_found
                     return None
             except Exception as e:
-                GV.LOGGER.error(f"Exception while getting folder ID from Synology Photos. {e}")
+                LOGGER.error(f"Exception while getting folder ID from Synology Photos. {e}")
             
     def get_folders(self, parent_folder_id, log_level=None):
         """
@@ -1664,7 +1668,7 @@ class ClassSynologyPhotos:
         Returns:
             dict: A dictionary with folder IDs as keys and folder names as values.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -1695,7 +1699,7 @@ class ClassSynologyPhotos:
                             if "id" in item:
                                 folders_dict[item["id"]] = item["name"]
                     else:
-                        GV.LOGGER.error(f"Failed to list albums: ", data)
+                        LOGGER.error(f"Failed to list albums: ", data)
                         return {}
 
                     if len(data["data"]["list"]) < limit:
@@ -1704,7 +1708,7 @@ class ClassSynologyPhotos:
 
                 return folders_dict
             except Exception as e:
-                GV.LOGGER.error(f"Exception while getting folders from Synology Photos. {e}")
+                LOGGER.error(f"Exception while getting folders from Synology Photos. {e}")
             
 
     def remove_folder(self, folder_id, folder_name, log_level=None):
@@ -1716,7 +1720,7 @@ class ClassSynologyPhotos:
             folder_name (str): Name of the folder.
             log_level (logging.LEVEL): log_level for logs and console
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -1738,14 +1742,14 @@ class ClassSynologyPhotos:
                     response = self.SESSION.get(url, params=params, headers=headers, verify=False)
                     data = response.json()
                     if not data.get("success"):
-                        GV.LOGGER.error(f"Failed to remove folder '{folder_name}'")
+                        LOGGER.error(f"Failed to remove folder '{folder_name}'")
                         return 0
                 except Exception as e:
-                    GV.LOGGER.error(f"Exception while removing folder '{folder_name}' {e}")
+                    LOGGER.error(f"Exception while removing folder '{folder_name}' {e}")
                     return 0
                 return len(folder_id)
             except Exception as e:
-                GV.LOGGER.error(f"Exception while removing Folder from Synology Photos. {e}")
+                LOGGER.error(f"Exception while removing Folder from Synology Photos. {e}")
             
 
     def get_folder_items_count(self, folder_id, folder_name, log_level=None):
@@ -1760,7 +1764,7 @@ class ClassSynologyPhotos:
         Returns:
             int: Folder Items Count or -1 on error.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -1778,15 +1782,15 @@ class ClassSynologyPhotos:
                     resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
                     data = resp.json()
                     if not data.get("success"):
-                        GV.LOGGER.error(f"Failed to count assets for folder '{folder_name}'.")
+                        LOGGER.error(f"Failed to count assets for folder '{folder_name}'.")
                         return -1
                     asset_count = data["data"]["count"]
                 except Exception as e:
-                    GV.LOGGER.error(f"Exception while retrieving assets count for folder '{folder_name}'. {e}")
+                    LOGGER.error(f"Exception while retrieving assets count for folder '{folder_name}'. {e}")
                     return -1
                 return asset_count
             except Exception as e:
-                GV.LOGGER.error(f"Exception while getting Folder items count from Synology Photos. {e}")
+                LOGGER.error(f"Exception while getting Folder items count from Synology Photos. {e}")
             
 
 
@@ -1800,18 +1804,19 @@ class ClassSynologyPhotos:
 
         Args:
             log_level (logging.LEVEL): log_level for logs and console
+            :param task_id:
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 while True:
                     status = self.wait_for_background_remove_task_finished_check(task_id, log_level=log_level)
                     if status == 'done' or status is True:
                         break
                     else:
-                        GV.LOGGER.debug(f"Task not finished yet. Waiting 5 seconds more.")
+                        LOGGER.debug(f"Task not finished yet. Waiting 5 seconds more.")
                         time.sleep(5)
             except Exception as e:
-                GV.LOGGER.error(f"Exception while waitting for remove task to finish in Synology Photos. {e}")
+                LOGGER.error(f"Exception while waitting for remove task to finish in Synology Photos. {e}")
 
 
     def wait_for_background_remove_task_finished_check(self, task_id, log_level=None):
@@ -1820,8 +1825,9 @@ class ClassSynologyPhotos:
 
         Args:
             log_level (logging.LEVEL): log_level for logs and console
+            :param task_id:
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 url = f"{self.SYNOLOGY_URL}/webapi/entry.cgi"
@@ -1839,7 +1845,7 @@ class ClassSynologyPhotos:
                     resp = self.SESSION.get(url, params=params, headers=headers, verify=False)
                     data = resp.json()
                     if not data.get("success"):
-                        GV.LOGGER.error(f"Failed to get removing assets status")
+                        LOGGER.error(f"Failed to get removing assets status")
                         return False
                     lst = data['data'].get('list', [])
                     if len(lst) > 0:
@@ -1847,10 +1853,10 @@ class ClassSynologyPhotos:
                     else:
                         return True
                 except Exception as e:
-                    GV.LOGGER.error(f"Exception while checking removing assets status {e}")
+                    LOGGER.error(f"Exception while checking removing assets status {e}")
                     return False
             except Exception as e:
-                GV.LOGGER.error(f"Exception while checking if background task has finished in Synology Photos. {e}")
+                LOGGER.error(f"Exception while checking if background task has finished in Synology Photos. {e}")
             
 
     ###########################################################################
@@ -1876,12 +1882,12 @@ class ClassSynologyPhotos:
 
         Returns: (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_duplicates_assets_removed)
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
 
                 if not os.path.isdir(input_folder):
-                    GV.LOGGER.error(f"The folder '{input_folder}' does not exist.")
+                    LOGGER.error(f"The folder '{input_folder}' does not exist.")
                     return 0, 0, 0, 0, 0
 
                 subfolders_exclusion = convert_to_list(subfolders_exclusion)
@@ -1929,12 +1935,12 @@ class ClassSynologyPhotos:
                     first_level_folders += subfolders_inclusion
                     first_level_folders = list(dict.fromkeys(first_level_folders))
 
-                with tqdm(total=len(valid_folders), smoothing=0.1, desc=f"{GV.TAG_INFO}Uploading Albums from '{os.path.basename(input_folder)}' sub-folders", unit=" sub-folder") as pbar:
+                with tqdm(total=len(valid_folders), smoothing=0.1, desc=f"{TAG_INFO}Uploading Albums from '{os.path.basename(input_folder)}' sub-folders", unit=" sub-folder") as pbar:
                     for subpath in valid_folders:
                         pbar.update(1)
                         album_assets_ids = []
                         if not os.path.isdir(subpath):
-                            GV.LOGGER.warning(f"Could not create album for subfolder '{subpath}'.")
+                            LOGGER.warning(f"Could not create album for subfolder '{subpath}'.")
                             total_albums_skipped += 1
                             continue
 
@@ -1964,7 +1970,7 @@ class ClassSynologyPhotos:
                             asset_id, is_dup = self.push_asset(file_path, log_level=logging.WARNING)
                             if is_dup:
                                 total_duplicates_assets_skipped += 1
-                                GV.LOGGER.debug(f"Dupplicated Asset: {file_path}. Asset ID: {asset_id} upload skipped")
+                                LOGGER.debug(f"Dupplicated Asset: {file_path}. Asset ID: {asset_id} upload skipped")
                             else:
                                 total_assets_uploaded += 1
 
@@ -1976,27 +1982,27 @@ class ClassSynologyPhotos:
                         if album_assets_ids:
                             album_id = self.create_album(album_name, log_level=log_level)
                             if not album_id:
-                                GV.LOGGER.warning(f"Could not create album for subfolder '{subpath}'.")
+                                LOGGER.warning(f"Could not create album for subfolder '{subpath}'.")
                                 total_albums_skipped += 1
                             else:
                                 self.add_assets_to_album(album_id, album_assets_ids, album_name=album_name, log_level=log_level)
-                                GV.LOGGER.debug(f"Album '{album_name}' created with ID: {album_id}. Total Assets added to Album: {len(album_assets_ids)}.")
+                                LOGGER.debug(f"Album '{album_name}' created with ID: {album_id}. Total Assets added to Album: {len(album_assets_ids)}.")
                                 total_albums_uploaded += 1
                         else:
                             total_albums_skipped += 1
 
                 if remove_duplicates:
-                    GV.LOGGER.info(f"Removing Duplicates Assets...")
+                    LOGGER.info(f"Removing Duplicates Assets...")
                     total_duplicates_assets_removed = self.remove_duplicates_assets(log_level=log_level)
 
-                GV.LOGGER.info(f"Uploaded {total_albums_uploaded} album(s) from '{input_folder}'.")
-                GV.LOGGER.info(f"Uploaded {total_assets_uploaded} asset(s) from '{input_folder}' to Albums.")
-                GV.LOGGER.info(f"Skipped {total_albums_skipped} album(s) from '{input_folder}'.")
-                GV.LOGGER.info(f"Removed {total_duplicates_assets_removed} duplicates asset(s) from Synology Database.")
-                GV.LOGGER.info(f"Skipped {total_duplicates_assets_skipped} duplicated asset(s) from '{input_folder}' to Albums.")
+                LOGGER.info(f"Uploaded {total_albums_uploaded} album(s) from '{input_folder}'.")
+                LOGGER.info(f"Uploaded {total_assets_uploaded} asset(s) from '{input_folder}' to Albums.")
+                LOGGER.info(f"Skipped {total_albums_skipped} album(s) from '{input_folder}'.")
+                LOGGER.info(f"Removed {total_duplicates_assets_removed} duplicates asset(s) from Synology Database.")
+                LOGGER.info(f"Skipped {total_duplicates_assets_skipped} duplicated asset(s) from '{input_folder}' to Albums.")
 
             except Exception as e:
-                GV.LOGGER.error(f"Exception while uploading Albums assets into Synology Photos. {e}")
+                LOGGER.error(f"Exception while uploading Albums assets into Synology Photos. {e}")
                 return 0,0,0,0,0
 
             # self.logout(log_level=log_level)
@@ -2015,12 +2021,13 @@ class ClassSynologyPhotos:
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns: assets_uploaded
+        :param remove_duplicates:
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
 
             self.login(log_level=log_level)
             if not os.path.isdir(input_folder):
-                GV.LOGGER.error(f"The folder '{input_folder}' does not exist.")
+                LOGGER.error(f"The folder '{input_folder}' does not exist.")
                 return 0,0,0
 
             subfolders_exclusion = convert_to_list(subfolders_exclusion)
@@ -2033,7 +2040,7 @@ class ClassSynologyPhotos:
                     for sub in only_subs:
                         sub_path = os.path.join(base, sub)
                         if not os.path.isdir(sub_path):
-                            GV.LOGGER.warning(f"Subfolder '{sub}' does not exist in '{base}'. Skipping.")
+                            LOGGER.warning(f"Subfolder '{sub}' does not exist in '{base}'. Skipping.")
                             continue
                         for r, dirs, files in os.walk(sub_path):
                             dirs[:] = [d for d in dirs if d not in SUBFOLDERS_EXCLUSIONS]
@@ -2052,28 +2059,28 @@ class ClassSynologyPhotos:
                 total_assets_uploaded = 0
                 total_duplicated_assets_skipped = 0
 
-                with tqdm(total=total_files, smoothing=0.1, desc=f"{GV.TAG_INFO}Uploading Assets", unit=" asset") as pbar:
+                with tqdm(total=total_files, smoothing=0.1, desc=f"{TAG_INFO}Uploading Assets", unit=" asset") as pbar:
                     for file_ in file_paths:
                         asset_id, is_dup = self.push_asset(file_, log_level=logging.WARNING)
                         if is_dup:
                             total_duplicated_assets_skipped += 1
-                            GV.LOGGER.debug(f"Dupplicated Asset: {file_path}. Asset ID: {asset_id} skipped")
+                            LOGGER.debug(f"Dupplicated Asset: {file_path}. Asset ID: {asset_id} skipped")
                         elif asset_id:
-                            GV.LOGGER.debug(f"Asset ID: {asset_id} uploaded to Immich Photos")
+                            LOGGER.debug(f"Asset ID: {asset_id} uploaded to Immich Photos")
                             total_assets_uploaded += 1
                         pbar.update(1)
 
                 duplicates_assets_removed = 0
                 if remove_duplicates:
-                    GV.LOGGER.info(f"Removing Duplicates Assets...")
+                    LOGGER.info(f"Removing Duplicates Assets...")
                     duplicates_assets_removed = self.remove_duplicates_assets(log_level=log_level)
 
-                GV.LOGGER.info(f"Uploaded {total_assets_uploaded} files (without album) from '{input_folder}'.")
-                GV.LOGGER.info(f"Skipped {total_duplicated_assets_skipped} duplicated asset(s) from '{input_folder}'.")
-                GV.LOGGER.info(f"Removed {duplicates_assets_removed} duplicates asset(s) from Synology Database.")
+                LOGGER.info(f"Uploaded {total_assets_uploaded} files (without album) from '{input_folder}'.")
+                LOGGER.info(f"Skipped {total_duplicated_assets_skipped} duplicated asset(s) from '{input_folder}'.")
+                LOGGER.info(f"Removed {duplicates_assets_removed} duplicates asset(s) from Synology Database.")
 
             except Exception as e:
-                GV.LOGGER.error(f"Exception while uploading No-Albums assets into Synology Photos. {e}")
+                LOGGER.error(f"Exception while uploading No-Albums assets into Synology Photos. {e}")
                 return 0,0,0
             
         return total_assets_uploaded, total_duplicated_assets_skipped, duplicates_assets_removed
@@ -2092,7 +2099,7 @@ class ClassSynologyPhotos:
 
         Returns: (total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed)
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
 
@@ -2104,13 +2111,13 @@ class ClassSynologyPhotos:
                 if not albums_folder_included:
                     albums_folders.append('Albums')
 
-                GV.LOGGER.info(f"")
-                GV.LOGGER.info(f"Uploading Assets and creating Albums into synology Photos from '{albums_folders}' subfolders...")
+                LOGGER.info(f"")
+                LOGGER.info(f"Uploading Assets and creating Albums into synology Photos from '{albums_folders}' subfolders...")
 
                 total_albums_uploaded, total_albums_skipped, total_assets_uploaded_within_albums, total_duplicates_assets_removed_1, total_dupplicated_assets_skipped_1 = self.push_albums(input_folder=input_folder, subfolders_inclusion=albums_folders, remove_duplicates=False, log_level=logging.WARNING)
 
-                GV.LOGGER.info(f"")
-                GV.LOGGER.info(f"Uploading Assets without Albums creation into synology Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
+                LOGGER.info(f"")
+                LOGGER.info(f"Uploading Assets without Albums creation into synology Photos from '{input_folder}' (excluding albums subfolders '{albums_folders}')...")
 
                 total_assets_uploaded_without_albums, total_dupplicated_assets_skipped_2, total_duplicates_assets_removed_2 = self.push_no_albums(input_folder=input_folder, subfolders_exclusion=albums_folders, log_level=logging.WARNING)
 
@@ -2119,11 +2126,11 @@ class ClassSynologyPhotos:
                 total_assets_uploaded = total_assets_uploaded_within_albums + total_assets_uploaded_without_albums
 
                 if remove_duplicates:
-                    GV.LOGGER.info(f"Removing Duplicates Assets...")
+                    LOGGER.info(f"Removing Duplicates Assets...")
                     total_duplicates_assets_removed += self.remove_duplicates_assets(log_level=logging.WARNING)
 
             except Exception as e:
-                GV.LOGGER.error(f"Exception while uploading ALL assets into Synology Photos. {e}")
+                LOGGER.error(f"Exception while uploading ALL assets into Synology Photos. {e}")
 
             return total_albums_uploaded, total_albums_skipped, total_assets_uploaded, total_assets_uploaded_within_albums, total_assets_uploaded_without_albums, total_duplicates_assets_removed, total_dupplicated_assets_skipped
 
@@ -2140,7 +2147,7 @@ class ClassSynologyPhotos:
         Returns:
             tuple: (albums_downloaded, assets_downloaded)
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
 
@@ -2163,7 +2170,7 @@ class ClassSynologyPhotos:
 
                 if 'ALL' in [x.strip().upper() for x in albums_name]:
                     albums_to_download = all_albums
-                    GV.LOGGER.info(f"ALL albums ({len(all_albums)}) will be downloaded...")
+                    LOGGER.info(f"ALL albums ({len(all_albums)}) will be downloaded...")
                 else:
                     # Flatten user-specified album patterns
                     pattern_list = []
@@ -2180,21 +2187,21 @@ class ClassSynologyPhotos:
                                 break
 
                     if not albums_to_download:
-                        GV.LOGGER.error(f"No albums found matching the provided patterns.")
+                        LOGGER.error(f"No albums found matching the provided patterns.")
                         # self.logout(log_level=log_level)
                         return 0, 0
-                    GV.LOGGER.info(f"{len(albums_to_download)} albums from Synology Photos will be downloaded to '{output_folder}'...")
+                    LOGGER.info(f"{len(albums_to_download)} albums from Synology Photos will be downloaded to '{output_folder}'...")
 
                 albums_downloaded = len(albums_to_download)
 
-                for album in tqdm(albums_to_download, desc=f"{GV.TAG_INFO}Downloading Albums", unit=" albums"):
+                for album in tqdm(albums_to_download, desc=f"{TAG_INFO}Downloading Albums", unit=" albums"):
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
-                    GV.LOGGER.info(f"Processing album: '{album_name}' (ID: {album_id})")
+                    LOGGER.info(f"Processing album: '{album_name}' (ID: {album_id})")
                     album_assets = self.get_all_assets_from_album(album_id, album_name, log_level=log_level)
-                    GV.LOGGER.info(f"Number of album_assets in the album '{album_name}': {len(album_assets)}")
+                    LOGGER.info(f"Number of album_assets in the album '{album_name}': {len(album_assets)}")
                     if not album_assets:
-                        GV.LOGGER.warning(f"No album_assets to download in the album '{album_name}'.")
+                        LOGGER.warning(f"No album_assets to download in the album '{album_name}'.")
                         continue
 
                     album_folder_name = f'{album_name}'
@@ -2207,10 +2214,10 @@ class ClassSynologyPhotos:
                         # Download
                         assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=album_folder_path, log_level=logging.INFO)
 
-                GV.LOGGER.info(f"Album(s) downloaded successfully. You can find them in '{output_folder}'")
+                LOGGER.info(f"Album(s) downloaded successfully. You can find them in '{output_folder}'")
                 # self.logout(log_level=log_level)
             except Exception as e:
-                GV.LOGGER.error(f"Exception while uploading ALL assets into Synology Photos. {e}")
+                LOGGER.error(f"Exception while uploading ALL assets into Synology Photos. {e}")
                 return 0,0
             
             return albums_downloaded, assets_downloaded
@@ -2227,7 +2234,7 @@ class ClassSynologyPhotos:
 
         Returns total_assets_downloaded or 0 if no assets are downloaded
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 total_assets_downloaded = 0
@@ -2236,12 +2243,12 @@ class ClassSynologyPhotos:
                 no_albums_folder = os.path.join(no_albums_folder, 'No-Albums')
                 os.makedirs(no_albums_folder, exist_ok=True)
 
-                GV.LOGGER.info(f"Number of assets without Albums associated to download: {len(assets_without_albums)}")
+                LOGGER.info(f"Number of assets without Albums associated to download: {len(assets_without_albums)}")
                 if not assets_without_albums:
-                    GV.LOGGER.warning(f"No assets without Albums associated to download.")
+                    LOGGER.warning(f"No assets without Albums associated to download.")
                     return 0
 
-                for asset in tqdm(assets_without_albums, desc=f"{GV.TAG_INFO}Downloading Assets without associated Albums", unit=" assets"):
+                for asset in tqdm(assets_without_albums, desc=f"{TAG_INFO}Downloading Assets without associated Albums", unit=" assets"):
                     asset_id = asset.get('id')
                     asset_filename = asset.get('filename')
                     asset_time = asset.get('time')
@@ -2266,10 +2273,10 @@ class ClassSynologyPhotos:
                 # Now organize them by date (year/month)
                 GT_POST.organize_files_by_date(input_folder=no_albums_folder, type='year/month')
 
-                GV.LOGGER.info(f"Album(s) downloaded successfully. You can find them in '{no_albums_folder}'")
+                LOGGER.info(f"Album(s) downloaded successfully. You can find them in '{no_albums_folder}'")
                 # self.logout(log_level=log_level)
             except Exception as e:
-                GV.LOGGER.error(f"Exception while downloading No-Albums assets from Synology Photos. {e}")
+                LOGGER.error(f"Exception while downloading No-Albums assets from Synology Photos. {e}")
             
             return total_assets_downloaded
 
@@ -2291,19 +2298,19 @@ class ClassSynologyPhotos:
             log_level (logging.LEVEL): log_level for logs and console
         """
         
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 total_albums_downloaded, total_assets_downloaded_within_albums = self.pull_albums(albums_name='ALL', output_folder=output_folder, log_level=logging.WARNING)
                 total_assets_downloaded_without_albums = self.pull_no_albums(no_albums_folder=output_folder, log_level=logging.WARNING)
                 total_assets_downloaded = total_assets_downloaded_within_albums + total_assets_downloaded_without_albums
-                GV.LOGGER.info(f"Download of ALL assets completed.")
-                GV.LOGGER.info(f"Total Albums downloaded                   : {total_albums_downloaded}")
-                GV.LOGGER.info(f"Total Assets downloaded                   : {total_assets_downloaded}")
-                GV.LOGGER.info(f"Total Assets downloaded within albums     : {total_assets_downloaded_within_albums}")
-                GV.LOGGER.info(f"Total Assets downloaded without albums    : {total_assets_downloaded_without_albums}")
+                LOGGER.info(f"Download of ALL assets completed.")
+                LOGGER.info(f"Total Albums downloaded                   : {total_albums_downloaded}")
+                LOGGER.info(f"Total Assets downloaded                   : {total_assets_downloaded}")
+                LOGGER.info(f"Total Assets downloaded within albums     : {total_assets_downloaded_within_albums}")
+                LOGGER.info(f"Total Assets downloaded without albums    : {total_assets_downloaded_without_albums}")
             except Exception as e:
-                GV.LOGGER.error(f"Exception while downloading ALL assets from Synology Photos. {e}")
+                LOGGER.error(f"Exception while downloading ALL assets from Synology Photos. {e}")
             
             return (total_albums_downloaded, total_assets_downloaded, total_assets_downloaded_within_albums, total_assets_downloaded_without_albums)
 
@@ -2337,29 +2344,29 @@ class ClassSynologyPhotos:
                 is_truly_empty = (folders_count == 0 and assets_count == 0)
 
                 if (is_truly_empty or only_eaDir_present) and folder_name != '/':
-                    GV.LOGGER.debug(f"")
-                    GV.LOGGER.debug(f"Removing empty folder: '{folder_name}' (ID: {folder_id}) within Synology Photos")
+                    LOGGER.debug(f"")
+                    LOGGER.debug(f"Removing empty folder: '{folder_name}' (ID: {folder_id}) within Synology Photos")
                     self.remove_folder(folder_id, folder_name, log_level=log_level)
                     removed_count += 1
                 else:
-                    GV.LOGGER.debug(f"The folder '{folder_name}' cannot be removed because is not empty.")
+                    LOGGER.debug(f"The folder '{folder_name}' cannot be removed because is not empty.")
             except Exception as e:
-                GV.LOGGER.error(f"Exception while removing empty folders from Synology Photos. {e}")
+                LOGGER.error(f"Exception while removing empty folders from Synology Photos. {e}")
             
             return removed_count
 
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
-                GV.LOGGER.info(f"Starting empty folder removal from Synology Photos...")
+                LOGGER.info(f"Starting empty folder removal from Synology Photos...")
 
                 root_folder_id = self.get_root_folder_id(log_level=log_level)
                 total_removed = remove_empty_folders_recursive(root_folder_id, '/')
 
-                GV.LOGGER.info(f"Process Remove empty folders from Synology Photos finished. Total removed folders: {total_removed}")
+                LOGGER.info(f"Process Remove empty folders from Synology Photos finished. Total removed folders: {total_removed}")
                 # self.logout(log_level=log_level)
             except Exception as e:
-                GV.LOGGER.error(f"Exception while removing empty folders from Synology Photos. {e}")
+                LOGGER.error(f"Exception while removing empty folders from Synology Photos. {e}")
             
             return total_removed
 
@@ -2378,18 +2385,19 @@ class ClassSynologyPhotos:
 
         Returns:
             int: The number of albums renamed.
+            :param request_user_confirmation:
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            GV.LOGGER.warning(f"Searching for albums that match the provided pattern. This process may take some time. Please be patient...")
+            LOGGER.warning(f"Searching for albums that match the provided pattern. This process may take some time. Please be patient...")
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
-                GV.LOGGER.info(f"No albums found.")
+                LOGGER.info(f"No albums found.")
                 # self.logout(log_level=log_level)
                 return 0
 
             albums_to_rename = {}
-            for album in tqdm(albums, desc=f"{GV.TAG_INFO}Searching for albums to rename", unit="albums"):
+            for album in tqdm(albums, desc=f"{TAG_INFO}Searching for albums to rename", unit="albums"):
                 album_date = album.get("create_time")
                 if is_date_outside_range(album_date):
                     continue
@@ -2403,18 +2411,18 @@ class ClassSynologyPhotos:
                     }
 
             if not albums_to_rename:
-                GV.LOGGER.info(f"No albums matched the pattern.")
+                LOGGER.info(f"No albums matched the pattern.")
                 # self.logout(log_level=log_level)
                 return 0
 
             # Display the albums that will be renamed
-            GV.LOGGER.info(f"Albums to be renamed:")
+            LOGGER.info(f"Albums to be renamed:")
             for album_info in albums_to_rename.values():
                 print(f"  '{album_info['album_name']}' --> '{album_info['new_name']}'")
 
             # Ask for confirmation only if requested
             if request_user_confirmation and not confirm_continue():
-                GV.LOGGER.info(f"Exiting program.")
+                LOGGER.info(f"Exiting program.")
                 return 0
 
             total_renamed_albums = 0
@@ -2432,10 +2440,10 @@ class ClassSynologyPhotos:
                 }
                 response = self.SESSION.get(url, params=params, headers=headers, verify=False)
                 if response.ok:
-                    GV.LOGGER.info(f"Album '{album_info['album_name']}' (ID={album_id}) renamed to '{album_info['new_name']}'.")
+                    LOGGER.info(f"Album '{album_info['album_name']}' (ID={album_id}) renamed to '{album_info['new_name']}'.")
                     total_renamed_albums += 1
 
-            GV.LOGGER.info(f"Renamed {total_renamed_albums} albums whose names matched the provided pattern.")
+            LOGGER.info(f"Renamed {total_renamed_albums} albums whose names matched the provided pattern.")
             # self.logout(log_level=log_level)
             return total_renamed_albums
 
@@ -2455,17 +2463,17 @@ class ClassSynologyPhotos:
         Returns:
             tuple: (number of albums removed, number of assets removed)
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
-            GV.LOGGER.warning(f"Searching for albums that match the provided pattern. This process may take some time. Please be patient...")
+            LOGGER.warning(f"Searching for albums that match the provided pattern. This process may take some time. Please be patient...")
             albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
             if not albums:
-                GV.LOGGER.info(f"No albums found.")
+                LOGGER.info(f"No albums found.")
                 # self.logout(log_level=log_level)
                 return 0, 0
 
             albums_to_remove = []
-            for album in tqdm(albums, desc=f"{GV.TAG_INFO}Searching for albums to remove", unit="albums"):
+            for album in tqdm(albums, desc=f"{TAG_INFO}Searching for albums to remove", unit="albums"):
                 album_date = album.get("create_time")
                 if is_date_outside_range(album_date):
                     continue
@@ -2478,18 +2486,18 @@ class ClassSynologyPhotos:
                     })
 
             if not albums_to_remove:
-                GV.LOGGER.info(f"No albums matched the pattern.")
+                LOGGER.info(f"No albums matched the pattern.")
                 # self.logout(log_level=log_level)
                 return 0, 0
 
             # Display the albums that will be removed
-            GV.LOGGER.warning(f"Albums marked for deletion:")
+            LOGGER.warning(f"Albums marked for deletion:")
             for album_info in albums_to_remove:
-                GV.LOGGER.warning(f"{album_info['album_name']}' (ID={album_info['album_id']})")
+                LOGGER.warning(f"{album_info['album_name']}' (ID={album_info['album_id']})")
 
             # Ask for confirmation only if requested
             if request_user_confirmation and not confirm_continue():
-                GV.LOGGER.info(f"Exiting program.")
+                LOGGER.info(f"Exiting program.")
                 # self.logout(log_level=log_level)
                 return 0, 0
 
@@ -2505,11 +2513,11 @@ class ClassSynologyPhotos:
                         self.remove_assets(album_assets_ids, log_level=logging.WARNING)
                         total_removed_assets += len(album_assets_ids)
                 if self.remove_album(album_id, album_name):
-                    GV.LOGGER.info(f"Album '{album_name}' (ID={album_id}) removed.")
+                    LOGGER.info(f"Album '{album_name}' (ID={album_id}) removed.")
                     total_removed_albums += 1
 
-            GV.LOGGER.info(f"Removed {total_removed_albums} albums whose names matched the provided pattern.")
-            GV.LOGGER.info(f"Removed {total_removed_assets} assets from those removed albums.")
+            LOGGER.info(f"Removed {total_removed_albums} albums whose names matched the provided pattern.")
+            LOGGER.info(f"Removed {total_removed_assets} assets from those removed albums.")
             # self.logout(log_level=log_level)
             return total_removed_albums, total_removed_assets
 
@@ -2528,16 +2536,16 @@ class ClassSynologyPhotos:
         Returns:
             tuple: (number of albums removed, number of assets removed)
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
                 if not albums:
-                    GV.LOGGER.info(f"No albums found.")
+                    LOGGER.info(f"No albums found.")
                     return 0, 0
 
                 albums_to_remove = []
-                for album in tqdm(albums, desc=f"{GV.TAG_INFO}Searching for albums to remove", unit="albums"):
+                for album in tqdm(albums, desc=f"{TAG_INFO}Searching for albums to remove", unit="albums"):
                     album_date = album.get("create_time")
                     if is_date_outside_range(album_date):
                         continue
@@ -2551,17 +2559,17 @@ class ClassSynologyPhotos:
                     })
 
                 if not albums_to_remove:
-                    GV.LOGGER.info(f"No albums found to remove after date filtering.")
+                    LOGGER.info(f"No albums found to remove after date filtering.")
                     return 0, 0
 
                 # Display albums that will be removed
-                GV.LOGGER.warning(f"Albums marked for deletion:")
+                LOGGER.warning(f"Albums marked for deletion:")
                 for album_info in albums_to_remove:
-                    GV.LOGGER.warning(f"'{album_info['album_name']}' (ID={album_info['album_id']})")
+                    LOGGER.warning(f"'{album_info['album_name']}' (ID={album_info['album_id']})")
 
                 # Ask for confirmation only if requested
                 if request_user_confirmation and not confirm_continue():
-                    GV.LOGGER.info(f"Exiting program.")
+                    LOGGER.info(f"Exiting program.")
                     return 0, 0
 
                 total_removed_albums = 0
@@ -2579,20 +2587,20 @@ class ClassSynologyPhotos:
                             total_removed_assets += assets_removed
 
                     if self.remove_album(album_id, album_name, log_level=logging.WARNING):
-                        GV.LOGGER.info(f"Album '{album_name}' (ID={album_id}) removed.")
+                        LOGGER.info(f"Album '{album_name}' (ID={album_id}) removed.")
                         total_removed_albums += 1
 
                 # Try to remove empty albums if any remain
-                GV.LOGGER.info(f"Getting empty albums to remove...")
+                LOGGER.info(f"Getting empty albums to remove...")
                 empty_albums_removed = self.remove_empty_albums(log_level=logging.WARNING)
                 total_removed_albums += empty_albums_removed
 
-                GV.LOGGER.info(f"Removed {total_removed_albums} albums.")
+                LOGGER.info(f"Removed {total_removed_albums} albums.")
                 if removeAlbumsAssets:
-                    GV.LOGGER.info(f"Removed {total_removed_assets} assets associated with those albums.")
+                    LOGGER.info(f"Removed {total_removed_assets} assets associated with those albums.")
 
             except Exception as e:
-                GV.LOGGER.error(f"Exception while removing all albums from Synology Photos: {e}")
+                LOGGER.error(f"Exception while removing all albums from Synology Photos: {e}")
 
             return total_removed_albums, total_removed_assets
 
@@ -2607,18 +2615,18 @@ class ClassSynologyPhotos:
         Returns:
             int: The number of empty albums deleted.
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
                 if not albums:
-                    GV.LOGGER.info(f"No albums found.")
+                    LOGGER.info(f"No albums found.")
                     # self.logout(log_level=log_level)
                     return 0
 
                 total_removed_empty_albums = 0
-                GV.LOGGER.info(f"Looking for empty albums in Synology Photos...")
-                for album in tqdm(albums, desc=f"{GV.TAG_INFO}Searching for Empty Albums", unit=" albums"):
+                LOGGER.info(f"Looking for empty albums in Synology Photos...")
+                for album in tqdm(albums, desc=f"{TAG_INFO}Searching for Empty Albums", unit=" albums"):
                     # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
                     album_date = album.get("create_time")
                     if is_date_outside_range(album_date):
@@ -2629,13 +2637,13 @@ class ClassSynologyPhotos:
                     asset_count = self.get_album_assets_count(album_id, album_name, log_level=logging.WARNING)
                     if asset_count == 0:
                         if self.remove_album(album_id, album_name):
-                            GV.LOGGER.info(f"Empty album '{album_name}' (ID={album_id}) removed.")
+                            LOGGER.info(f"Empty album '{album_name}' (ID={album_id}) removed.")
                             total_removed_empty_albums += 1
 
-                GV.LOGGER.info(f"Removed {total_removed_empty_albums} empty albums.")
+                LOGGER.info(f"Removed {total_removed_empty_albums} empty albums.")
                 # self.logout(log_level=log_level)
             except Exception as e:
-                GV.LOGGER.error(f"Exception while removing empties albums from Synology Photos. {e}")
+                LOGGER.error(f"Exception while removing empties albums from Synology Photos. {e}")
             
             return total_removed_empty_albums
 
@@ -2652,8 +2660,9 @@ class ClassSynologyPhotos:
 
         Returns:
             int: The number of duplicate albums deleted.
+            :param request_user_confirmation:
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
@@ -2662,9 +2671,9 @@ class ClassSynologyPhotos:
                     # self.logout(log_level=log_level)
                     return 0
 
-                GV.LOGGER.info(f"Searching for duplicate albums in Synology Photos...")
+                LOGGER.info(f"Searching for duplicate albums in Synology Photos...")
                 duplicates_map = {}
-                for album in tqdm(albums, smoothing=0.1, desc=f"{GV.TAG_INFO}Searching for duplicate albums", unit="albums"):
+                for album in tqdm(albums, smoothing=0.1, desc=f"{TAG_INFO}Searching for duplicate albums", unit="albums"):
                     album_date = album.get("create_time")
                     if is_date_outside_range(album_date):
                         continue
@@ -2676,38 +2685,38 @@ class ClassSynologyPhotos:
 
                 albums_to_remove = []
                 for (assets_count, assets_size), group in duplicates_map.items():
-                    GV.LOGGER.debug(f"Assets Count: {assets_count}. Assets Size: {assets_size}.")
+                    LOGGER.debug(f"Assets Count: {assets_count}. Assets Size: {assets_size}.")
                     if len(group) > 1:
                         group_sorted = sorted(group, key=lambda x: x[0])  # Sort by album ID
                         to_remove = group_sorted[1:]  # Keep the first, remove the rest
                         albums_to_remove.extend(to_remove)
 
                 if not albums_to_remove:
-                    GV.LOGGER.info(f"No duplicate albums found.")
+                    LOGGER.info(f"No duplicate albums found.")
                     # self.logout(log_level=log_level)
                     return 0
 
                 # Display the albums that will be removed
-                GV.LOGGER.info(f"Albums marked for deletion:")
+                LOGGER.info(f"Albums marked for deletion:")
                 for alb_id, alb_name in albums_to_remove:
                     print(f"  '{alb_name}' (ID={alb_id})")
 
                 # Ask for confirmation
                 if not confirm_continue():
-                    GV.LOGGER.info(f"Exiting program.")
+                    LOGGER.info(f"Exiting program.")
                     # self.logout(log_level=log_level)
                     return 0
 
                 total_removed_duplicated_albums = 0
                 for alb_id, alb_name in albums_to_remove:
-                    GV.LOGGER.info(f"Removing duplicate album: '{alb_name}' (ID={alb_id})")
+                    LOGGER.info(f"Removing duplicate album: '{alb_name}' (ID={alb_id})")
                     if self.remove_album(alb_id, alb_name, log_level=log_level):
                         total_removed_duplicated_albums += 1
 
-                GV.LOGGER.info(f"Removed {total_removed_duplicated_albums} duplicate albums.")
+                LOGGER.info(f"Removed {total_removed_duplicated_albums} duplicate albums.")
 
             except Exception as e:
-                GV.LOGGER.error(f"Exception while removing duplicate albums from Synology Photos: {e}")
+                LOGGER.error(f"Exception while removing duplicate albums from Synology Photos: {e}")
 
             # self.logout(log_level=log_level)
             return total_removed_duplicated_albums
@@ -2725,8 +2734,9 @@ class ClassSynologyPhotos:
 
         Returns:
             int: The number of duplicate albums deleted.
+            :param request_user_confirmation:
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
                 albums = self.get_albums_owned_by_user(filter_assets=False, log_level=log_level)
@@ -2734,9 +2744,9 @@ class ClassSynologyPhotos:
                 if not albums:
                     return 0
 
-                GV.LOGGER.info(f"Looking for duplicate albums in Synology Photos...")
+                LOGGER.info(f"Looking for duplicate albums in Synology Photos...")
                 albums_by_name = {}
-                for album in tqdm(albums, smoothing=0.1, desc=f"{GV.TAG_INFO}Grouping Albums by Name", unit=" albums"):
+                for album in tqdm(albums, smoothing=0.1, desc=f"{TAG_INFO}Grouping Albums by Name", unit=" albums"):
                     # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
                     album_date = album.get("create_time")
                     if is_date_outside_range(album_date):
@@ -2759,7 +2769,7 @@ class ClassSynologyPhotos:
                 # Comprobar si hay algún grupo con más de un álbum
                 if any(len(album_group) > 1 for album_group in albums_by_name.values()):
                     # Loop through each album name and its group to show all Duplicates Albums and request User Confifmation to continue
-                    GV.LOGGER.info(f"The following Albums are duplicates (by Name) and will be merged into the first album:")
+                    LOGGER.info(f"The following Albums are duplicates (by Name) and will be merged into the first album:")
                     for album_name, album_group in albums_by_name.items():
                         if len(album_group) > 1:
                             # Ordenar el grupo según la estrategia
@@ -2773,15 +2783,15 @@ class ClassSynologyPhotos:
                             albums_to_delete = sorted_group[1:]
 
                             # Mostrarlo en el log
-                            GV.LOGGER.info(f"{album_name}:")
-                            GV.LOGGER.info(f"          [KEEP ] {main_album}")
+                            LOGGER.info(f"{album_name}:")
+                            LOGGER.info(f"          [KEEP ] {main_album}")
                             for album in albums_to_delete:
-                                GV.LOGGER.info(f"          [MERGE] {album}")
-                    GV.LOGGER.info(f"")
+                                LOGGER.info(f"          [MERGE] {album}")
+                    LOGGER.info(f"")
 
                     # Ask for confirmation only if requested
                     if request_user_confirmation and not confirm_continue():
-                        GV.LOGGER.info(f"Exiting program.")
+                        LOGGER.info(f"Exiting program.")
                         return 0
 
 
@@ -2800,27 +2810,27 @@ class ClassSynologyPhotos:
                     keeper_id = keeper["id"]
                     keeper_name = keeper["name"]
 
-                    GV.LOGGER.info(f"Keeping album '{keeper_name}' (ID={keeper_id}) with {keeper['count']} assets and {keeper['size']} bytes.")
+                    LOGGER.info(f"Keeping album '{keeper_name}' (ID={keeper_id}) with {keeper['count']} assets and {keeper['size']} bytes.")
 
                     for duplicate in sorted_group[1:]:
                         dup_id = duplicate["id"]
                         dup_name = duplicate["name"]
 
-                        GV.LOGGER.debug(f"Transferring assets from duplicate album '{dup_name}' (ID={dup_id})")
+                        LOGGER.debug(f"Transferring assets from duplicate album '{dup_name}' (ID={dup_id})")
                         assets = self.get_all_assets_from_album(dup_id, dup_name, log_level=log_level)
                         asset_ids = [asset["id"] for asset in assets] if assets else []
                         if asset_ids:
                             self.add_assets_to_album(keeper_id, asset_ids, keeper_name, log_level=log_level)
 
-                        GV.LOGGER.info(f"Removing duplicate album: '{dup_name}' (ID={dup_id})")
+                        LOGGER.info(f"Removing duplicate album: '{dup_name}' (ID={dup_id})")
                         if self.remove_album(dup_id, dup_name, log_level=log_level):
                             total_removed_duplicated_albums += 1
 
-                GV.LOGGER.info(f"Removed {total_removed_duplicated_albums} duplicate albums.")
+                LOGGER.info(f"Removed {total_removed_duplicated_albums} duplicate albums.")
                 # self.logout(log_level=log_level)
 
             except Exception as e:
-                GV.LOGGER.error(f"Exception while removing duplicates albums from Synology Photos. {e}")
+                LOGGER.error(f"Exception while removing duplicates albums from Synology Photos. {e}")
 
             return total_removed_duplicated_albums
 
@@ -2834,7 +2844,7 @@ class ClassSynologyPhotos:
 
         Returns how many orphan got removed.
         """
-        with set_log_level(GV.LOGGER, log_level):  # Change Log Level to log_level for this function
+        with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             return 0
 
 
@@ -2850,18 +2860,18 @@ class ClassSynologyPhotos:
 
         Returns (assets_removed, albums_removed, folders_removed)
         """
-        with set_log_level(GV.LOGGER, log_level):
+        with set_log_level(LOGGER, log_level):
             try:
                 self.login(log_level=log_level)
-                GV.LOGGER.info(f"Getting list of asset(s) to remove...")
+                LOGGER.info(f"Getting list of asset(s) to remove...")
 
                 all_assets = self.get_assets_by_filters(log_level=log_level)
                 combined_ids = [a.get("id") for a in all_assets if a.get("id")]
 
                 total_assets_found = len(combined_ids)
                 if total_assets_found == 0:
-                    GV.LOGGER.warning(f"No Assets found that matches filters criteria in Synology Photos.")
-                GV.LOGGER.info(f"Found {total_assets_found} asset(s) to remove.")
+                    LOGGER.warning(f"No Assets found that matches filters criteria in Synology Photos.")
+                LOGGER.info(f"Found {total_assets_found} asset(s) to remove.")
 
                 removed_assets = 0
                 BATCH_SIZE = 250
@@ -2871,15 +2881,15 @@ class ClassSynologyPhotos:
                     removed_assets += self.remove_assets(batch, log_level=log_level)
                     i += BATCH_SIZE
 
-                GV.LOGGER.info(f"Removing empty folders if remain...")
+                LOGGER.info(f"Removing empty folders if remain...")
                 removed_folders = self.remove_empty_folders(log_level=log_level)
 
-                GV.LOGGER.info(f"Removing empty albums if remain...")
+                LOGGER.info(f"Removing empty albums if remain...")
                 removed_albums = self.remove_empty_albums(log_level=log_level)
 
                 # self.logout(log_level=log_level)
             except Exception as e:
-                GV.LOGGER.error(f"Exception while removing ALL assets from Synology Photos. {e}")
+                LOGGER.error(f"Exception while removing ALL assets from Synology Photos. {e}")
             
             return (removed_assets, removed_albums, removed_folders)
 

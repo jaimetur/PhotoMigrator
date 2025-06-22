@@ -7,16 +7,17 @@ from contextlib import contextmanager
 
 from colorama import Fore, Style
 
-from Core import GlobalVariables as GV
+from Core.GlobalVariables import LOG_LEVEL, TAG_INFO, VERBOSE_LEVEL_NUM, LOGGER, SCRIPT_NAME
+from Core.StandaloneFunctions import resolve_path
 
 #------------------------------------------------------------------
 # 1) Definir el nuevo nivel VERBOSE (valor 5)
-logging.addLevelName(GV.VERBOSE_LEVEL_NUM, "VERBOSE")
+logging.addLevelName(VERBOSE_LEVEL_NUM, "VERBOSE")
 
 # 2) Añadir el método `verbose()` a Logger
 def verbose(self, message, *args, **kws):
-    if self.isEnabledFor(GV.VERBOSE_LEVEL_NUM):
-        self._log(GV.VERBOSE_LEVEL_NUM, message, args, **kws)
+    if self.isEnabledFor(VERBOSE_LEVEL_NUM):
+        self._log(VERBOSE_LEVEL_NUM, message, args, **kws)
 logging.Logger.verbose = verbose
 #------------------------------------------------------------------
 
@@ -26,27 +27,27 @@ def print_verbose(*args, **kwargs):
     # Construimos el mensaje igual que print normal
     message = " ".join(str(a) for a in args)
     # Y lo enviamos al LOGGER como INFO (o al nivel que quieras)
-    GV.LOGGER.verbose(message)
+    LOGGER.verbose(message)
 def print_debug(*args, **kwargs):
     # Construimos el mensaje igual que print normal
     message = " ".join(str(a) for a in args)
     # Y lo enviamos al LOGGER como INFO (o al nivel que quieras)
-    GV.LOGGER.debug(message)
+    LOGGER.debug(message)
 def print_info(*args, **kwargs):
     # Construimos el mensaje igual que print normal
     message = " ".join(str(a) for a in args)
     # Y lo enviamos al LOGGER como INFO (o al nivel que quieras)
-    GV.LOGGER.info(message)
+    LOGGER.info(message)
 def print_warning(*args, **kwargs):
     # Construimos el mensaje igual que print normal
     message = " ".join(str(a) for a in args)
     # Y lo enviamos al LOGGER como INFO (o al nivel que quieras)
-    GV.LOGGER.warning(message)
+    LOGGER.warning(message)
 def print_critical(*args, **kwargs):
     # Construimos el mensaje igual que print normal
     message = " ".join(str(a) for a in args)
     # Y lo enviamos al LOGGER como INFO (o al nivel que quieras)
-    GV.LOGGER.critical(message)
+    LOGGER.critical(message)
 #------------------------------------------------------------------
 # Class to Downgrade from INFO to DEBUG/WARNING/ERROR when certain chain is detected
 class ChangeLevelFilter(logging.Filter):
@@ -212,9 +213,9 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
     Configures logger to a log file and console simultaneously.
     The console messages do not include timestamps.
     """
-    from Core.StandaloneFunctions import resolve_path
+
     if not log_filename:
-        log_filename=script_name
+        log_filename=SCRIPT_NAME
 
     # Crear la carpeta de logs si no existe
     # Resolver log_folder a ruta absoluta
@@ -270,7 +271,7 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
             file_handler_plain.addFilter(ChangeLevelFilter())  # Add Filter to Downgrade from INFO to DEBUG/WARNING/ERROR when detected chains
             LOGGER.addHandler(file_handler_plain)
         else:
-            print (f"{GV.TAG_INFO}Unknown format '{format}' for Logger. Please select a valid format between: ['log', 'txt', 'all].")
+            print (f"{TAG_INFO}Unknown format '{format}' for Logger. Please select a valid format between: ['log', 'txt', 'all].")
 
     # Set the log level for the root logger
     LOGGER.setLevel(log_level)
@@ -328,7 +329,7 @@ def set_log_level(logger: logging.Logger, level: int):
     """
     # If no level have been passed, or level=None, assign the GlovalVariable level defined by user arguments
     if not level:
-        level = GV.LOG_LEVEL
+        level = LOG_LEVEL
 
     # 1) Guardar estados originales
     orig_logger_level   = logger.level

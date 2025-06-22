@@ -3,7 +3,7 @@ This section describe the different arguments and flags used by the tool.
 - An **argument** is a modifier that is followed by any parameter.
 - On the other hand, a **flag** is a modifier that don't require any parameter, hence, if the flag is present the feature is enabled, otherwise, the feature is disabled.
 
-There is also a [extended version](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description.md) of this doccument available.
+There is also a [extended version](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description.md) of this document available.
 
 ## 🧩 Core Arguments
 
@@ -24,7 +24,7 @@ PhotoMigrator.run --version
 
 ---
 ## ⚙️ General Options
-Following general arguments have different purposses depending on the Execution Mode.
+Following general arguments have different purposes depending on the Execution Mode.
 
 | Argument                                          | Description                                                    |
 |---------------------------------------------------|----------------------------------------------------------------|
@@ -144,7 +144,7 @@ PhotoMigrator.run -client=synology -rAlb="tmp_*" -rAlbAsset -OTP
 ---
 ## 🛠️ Standalone Features
 If more than one Feature is detected, only the first one will be executed.  
-Following arguments can be used to execute the Tool in any of the usefull additionals Extra Standalone Features included.  
+Following arguments can be used to execute the Tool in any of the usefully additional Extra Standalone Features included.  
 
 | Argument                                         | Description                                                    |
 |--------------------------------------------------|----------------------------------------------------------------|
