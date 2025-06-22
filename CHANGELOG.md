@@ -25,7 +25,8 @@
     - [x] Add argument `-gSkipPrep,--google-skip-preprocess` to Skipp Preproces steps during Google Takeout Processing feature.
   
   - #### 🚀 Enhancements:
-    - [x] Code totally refactored and organized per modules within Gloal and Features Subfolders.
+    - [x] Code totally refactored and structured in a Single Package called `photomigrator` for a better portability and maintainance.
+    - [x] Code organized per modules within Core and Features Sub-Packages.
     - [x] Reorganized Pre-checks/Pre-process/Process steps for a clearer maintainance and better visualization. 
     - [x] The Feature `Google Takeout Processing` is no longer called using the Pre-checks functions but always using the Process() function from ClassTakeoutFolder.
     - [x] Included Input/Output folder size in Google Takeout Statistics.
@@ -94,6 +95,9 @@
     - [x] Fixed a bug setting lovLevel because it wasn't read from GlobalVariables in set_log_level() function.
 
   - #### 📚 Documentation:
+    - [x] Renamed RELEASES-NOTES.md by CHANGELOG.md
+    - [x] Included CODE_OF_CONDUCT.md
+    - [x] Moved CHANGELOG.md, ROADMAP.md, DOWNLOADS.md, README.md and CODE_OF_CONDUCT.md to the root of the repository for more visibility.
     - [x] Updated documentation with all changes.
 
 ---
@@ -232,7 +236,7 @@
       - [x] Re-written most of the code to clean screen logs and make it more easy to read (divided by steps). 
       - [x] GPTH is now enhanced with EXIF Tool support for a better metadata fixing (supporting geolocations update, almost all media formats, multiple camera brands, etc...).     
       - [x] EXIF Tool habe been integrated into the binary file for GPTH to make use of it. 
-    - [x] Improved _build.py to support both compilers (Pyinstaller and Nuitka).     
+    - [x] Improved build-binary.py to support both compilers (Pyinstaller and Nuitka).     
     - [x] Added Splash logo at the loading screen when execute from binaries on Windows.  
     - [x] Renamed binaries files for architecture `amd64` from `amd64` to `x64`.     
     - [x] Included binary for 'Windows arm64' architecture.     

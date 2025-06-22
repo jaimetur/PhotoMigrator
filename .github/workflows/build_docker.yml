@@ -77,12 +77,12 @@ jobs:
           python3 -m pip install -r requirements.txt
           
 
-      # ▶️ Execute build.py with --no-compile to avoid compile any binary
-      - name: ▶️ Execute build.py with --no-compile to avoid compile any binary
+      # ▶️ Execute build-binary.py with --no-compile to avoid compile any binary
+      - name: ▶️ Execute build-binary.py with --no-compile to avoid compile any binary
         shell: bash
         run: |
           echo "::group::Execute for ${{ matrix.os }}"
-          python3 build.py --no-compile
+          python3 build-binary.py --no-compile
           echo "::endgroup::"
           
 

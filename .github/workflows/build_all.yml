@@ -280,7 +280,7 @@ jobs:
           echo "================================================================================================="
           echo "INFO    : COMPILING..."
           echo "================================================================================================="
-          python3 build.py --${{ matrix.compiler }} --${{ matrix.compilation_mode }}
+          python3 build-binary.py --${{ matrix.compiler }} --${{ matrix.compilation_mode }}
 
           echo "::endgroup::"
 
@@ -310,7 +310,7 @@ jobs:
                 echo "================================================================================================="
                 echo "INFO    : COMPILING..."
                 echo "================================================================================================="
-                python3 build.py --${{ matrix.compiler }} --${{ matrix.compilation_mode }}
+                python3 build-binary.py --${{ matrix.compiler }} --${{ matrix.compilation_mode }}
             '
           # Build for Linux (arm64), macOS (x64 & arm64), Windows (x64 & arm64)
           else
@@ -331,7 +331,7 @@ jobs:
             echo "================================================================================================="
             echo "INFO    : COMPILING..."
             echo "================================================================================================="
-            python3 build.py --${{ matrix.compiler }} --${{ matrix.compilation_mode }}
+            python3 build-binary.py --${{ matrix.compiler }} --${{ matrix.compilation_mode }}
           fi
 
           echo "::endgroup::"

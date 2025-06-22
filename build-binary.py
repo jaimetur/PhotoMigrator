@@ -227,11 +227,11 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     print("Extracting body of CURRENT-RELEASE-NOTES...")
 
     # Ruta de los archivos CHANGELOG.md, CURRENT-RELEASE.md, README.md y ROADMAP.md
-    download_filepath = os.path.join(root_dir, 'docs', 'DOWNLOAD.md')
-    releases_filepath = os.path.join(root_dir, 'docs', 'CHANGELOG.md')
+    download_filepath = os.path.join(root_dir, 'DOWNLOAD.md')
+    releases_filepath = os.path.join(root_dir, 'CHANGELOG.md')
     current_release_filepath = os.path.join(root_dir, 'CURRENT-RELEASE.md')
-    roadmap_filepath = os.path.join(root_dir, 'docs', 'ROADMAP.md')
-    readme_filepath = os.path.join(root_dir,'README.md')
+    roadmap_filepath = os.path.join(root_dir, 'ROADMAP.md')
+    readme_filepath = os.path.join(root_dir, 'README.md')
 
     # Extraer el cuerpo de la Release actual de CHANGELOG.md
     extract_release_body(download_filepath, releases_filepath, current_release_filepath)
