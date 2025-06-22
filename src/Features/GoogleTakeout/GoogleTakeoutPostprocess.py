@@ -620,6 +620,86 @@ def get_embedded_datetimes_bulk(folder, step_name=''):
     return result_dict
 
 
+def date_extractor(folder_path, max_files=None, exclude_ext=None, include_ext=None, output_file="metadata_output.json", progress_interval=300, step_name=''):
+    """
+    Extracts EXIF date metadata using exiftool with periodic progress reporting.
+
+    Args:
+        folder_path: Directory to scan.
+        max_files: Maximum number of files to process. If None, processes all.
+        exclude_ext: List of extensions to exclude (without dot).
+        include_ext: List of extensions to include (without dot).
+        output_file: Name of the output JSON file.
+        progress_interval: Interval in seconds to report progress.
+        step_name: Optional prefix for logging messages.
+    """
+    folder = Path(folder_path)
+    exclude_ext = exclude_ext or ["json"]
+    output_path = Path(output_file)
+
+    # Step 1: Collect all files matching the criteria
+    LOGGER.debug(f"{step_name}📅[date_extractor] Scanning directory: {folder}")
+    all_files = list(folder.rglob("*"))
+    selected_files = []
+
+    for file in all_files:
+        if not file.is_file():
+            continue
+        ext = file.suffix.lower().lstrip(".")
+        if ext in exclude_ext:
+            continue
+        if include_ext and ext not in include_ext:
+            continue
+        selected_files.append(str(file))
+
+    if max_files:
+        selected_files = selected_files[:max_files]
+
+    LOGGER.debug(f"{step_name}📅[date_extractor] {len(selected_files)} files selected for processing.")
+
+    if not selected_files:
+        LOGGER.warning(f"{step_name}📅[date_extractor] No valid files found for processing.")
+        return
+
+    # Step 2: Launch exiftool in background
+    exiftool_cmd = [
+        "../gpth_tool/exif_tool/exiftool",
+        "-j", "-n", "-time:all", "-fast", "-fast2", "-s"
+    ] + selected_files
+
+    LOGGER.debug(f"{step_name}📅[date_extractor] Starting exiftool...")
+
+    with open(output_file, "w", encoding="utf-8") as fout:
+        proc = subprocess.Popen(exiftool_cmd, stdout=fout, stderr=subprocess.PIPE)
+        start_time = time.time()
+        last_count = 0
+
+        # Step 3: Periodic progress feedback while exiftool runs
+        while proc.poll() is None:
+            time.sleep(progress_interval)
+            elapsed = int(time.time() - start_time)
+            try:
+                if output_path.exists():
+                    with open(output_file, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                        current_count = len(data)
+                        LOGGER.debug(f"{step_name}📅[date_extractor] ⏱️ {elapsed//60} min → {current_count} files processed")
+                        last_count = current_count
+            except Exception:
+                LOGGER.warning(f"{step_name}📅[date_extractor] ⚠️ Cannot read {output_file} yet to report progress.")
+
+        # Step 4: Final report once exiftool finishes
+        proc.communicate()
+        total_time = int(time.time() - start_time)
+
+        try:
+            with open(output_file, "r", encoding="utf-8") as f:
+                final_data = json.load(f)
+                LOGGER.debug(f"{step_name}📅[date_extractor] ✅ Completed: {len(final_data)} files processed in {total_time//60} min")
+        except Exception as e:
+            LOGGER.warning(f"{step_name}📅[date_extractor] ⚠️ Failed to read final output '{output_file}': {e}")
+            
+
 def count_files_per_type_and_date(input_folder, skip_exif=True, skip_json=True, step_name='', log_level=None):
     """
     Analyze all files in `input_folder`, counting:
@@ -738,3 +818,180 @@ def count_files_per_type_and_date(input_folder, skip_exif=True, skip_json=True, 
         counters['total_size_mb'] = round(total_size_bytes / (1024 * 1024), 1)
 
         return counters
+        
+
+
+def count_files_per_type_and_date(input_folder, max_files=None, exclude_ext=None, include_ext=None, output_file="metadata_output.json", progress_interval=300, extract_dates=True, step_name=''):
+    """
+    Analyzes files under `input_folder`, and optionally extracts oldest EXIF date per file using exiftool.
+    Returns both a counters summary and a dictionary of oldest dates per file.
+    """
+    exclude_ext = set((exclude_ext or ["json"]))
+    include_ext = set(include_ext) if include_ext else None
+    input_folder = os.fspath(input_folder)  # ensure str
+    output_file = os.fspath(output_file)
+
+    # Normalize extension lists once
+    supported_exts = set(ext.lower() for ext in PHOTO_EXT + VIDEO_EXT + METADATA_EXT + SIDECAR_EXT)
+    media_exts = set(ext.lower() for ext in PHOTO_EXT + VIDEO_EXT)
+    timestamp_dt = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S")
+
+    counters = init_count_files_counters()
+    result = {}
+    total_size_bytes = 0
+
+    selected_files = []
+    ext_cache = {}  # extension normalization cache
+
+    # Fast and memory-efficient file collection
+    for root, _, files in os.walk(input_folder):
+        for name in files:
+            full_path = os.path.join(root, name)
+            if os.path.islink(full_path):
+                continue
+            ext = os.path.splitext(name)[1].lstrip(".").lower()
+            if ext in exclude_ext:
+                continue
+            if include_ext and ext not in include_ext:
+                continue
+            selected_files.append(full_path)
+            if max_files and len(selected_files) >= max_files:
+                break
+        if max_files and len(selected_files) >= max_files:
+            break
+
+    total_files = len(selected_files)
+    LOGGER.debug(f"{step_name}📅[count_files_per_type_and_date] {total_files} files selected for processing.")
+    if total_files == 0:
+        LOGGER.warning(f"{step_name}📅[count_files_per_type_and_date] No valid files found for processing.")
+        return counters, {}
+
+    # Extract metadata only if requested
+    metadata_by_path = {}
+    if extract_dates:
+        LOGGER.debug(f"{step_name}📅[count_files_per_type_and_date] Starting exiftool...")
+        cmd = ["../gpth_tool/exif_tool/exiftool", "-j", "-n", "-time:all", "-fast", "-fast2", "-s"] + selected_files
+
+        with open(output_file, "w", encoding="utf-8") as fout:
+            proc = subprocess.Popen(cmd, stdout=fout, stderr=subprocess.DEVNULL)
+            start_time = time.time()
+
+            while proc.poll() is None:
+                time.sleep(progress_interval)
+                elapsed = time.time() - start_time
+                try:
+                    if os.path.exists(output_file):
+                        with open(output_file, "r", encoding="utf-8") as f:
+                            metadata = json.load(f)
+                            current_count = len(metadata)
+                            rate = current_count / elapsed if elapsed else 0
+                            est_total = total_files / rate if rate else 0
+                            remaining = est_total - elapsed
+                            LOGGER.debug(f"{step_name}📅[count_files_per_type_and_date] ⏱️ {int(elapsed)//60} min → {current_count}/{total_files} files • Est. total: {int(est_total)//60} min • Remaining: {int(remaining)//60} min")
+                except Exception:
+                    pass
+
+            proc.communicate()
+
+        try:
+            with open(output_file, "r", encoding="utf-8") as f:
+                metadata = json.load(f)
+                metadata_by_path = {entry.get("SourceFile"): entry for entry in metadata if "SourceFile" in entry}
+        except Exception as e:
+            LOGGER.warning(f"{step_name}📅[count_files_per_type_and_date] Failed to read output: {e}")
+            return counters, {}
+
+    # Prepare once
+    candidate_tags = {
+        'DateTimeOriginal', 'CreateDate', 'MediaCreateDate',
+        'TrackCreateDate', 'EncodedDate', 'MetadataDate',
+    }
+    date_formats = ("%Y:%m:%d %H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y:%m:%d", "%Y-%m-%d")
+
+    for file_path in selected_files:
+        try:
+            ext = os.path.splitext(file_path)[1].lstrip(".").lower()
+            counters['total_files'] += 1
+            if ext in supported_exts:
+                counters['supported_files'] += 1
+            else:
+                counters['unsupported_files'] += 1
+
+            try:
+                total_size_bytes += os.path.getsize(file_path)
+            except Exception:
+                pass
+
+            media_type = None
+            if ext in PHOTO_EXT:
+                counters['photo_files'] += 1
+                counters['media_files'] += 1
+                media_type = 'photos'
+            elif ext in VIDEO_EXT:
+                counters['video_files'] += 1
+                counters['media_files'] += 1
+                media_type = 'videos'
+
+            if ext in METADATA_EXT:
+                counters['metadata_files'] += 1
+            if ext in SIDECAR_EXT:
+                counters['sidecar_files'] += 1
+            if ext in METADATA_EXT or ext in SIDECAR_EXT:
+                counters['non_media_files'] += 1
+
+            if not extract_dates:
+                if media_type:
+                    counters[media_type]['total'] += 1
+                    counters[media_type]['with_date'] = None
+                    counters[media_type]['without_date'] = None
+                result[file_path] = None
+                continue
+
+            entry = metadata_by_path.get(file_path)
+            if not entry:
+                result[file_path] = None
+                continue
+
+            found_dates = []
+            for tag in candidate_tags:
+                raw = entry.get(tag)
+                if not raw or isinstance(raw, int):
+                    continue
+                raw = raw.strip()
+                for fmt in date_formats:
+                    try:
+                        parsed = datetime.strptime(raw, fmt)
+                        found_dates.append(parsed)
+                        break
+                    except ValueError:
+                        continue
+
+            oldest = min(found_dates) if found_dates else None
+            result[file_path] = oldest
+
+            if media_type:
+                counters[media_type]['total'] += 1
+                has_date = oldest is not None and oldest <= timestamp_dt
+                if has_date:
+                    counters[media_type]['with_date'] += 1
+                else:
+                    counters[media_type]['without_date'] += 1
+
+        except Exception as e:
+            LOGGER.warning(f"{step_name}📅[count_files_per_type_and_date] Error: {e}")
+
+    # Final stats
+    for media_type in ['photos', 'videos']:
+        total = counters[media_type]['total']
+        if total > 0 and extract_dates:
+            with_date = counters[media_type]['with_date']
+            without_date = counters[media_type]['without_date']
+            counters[media_type]['pct_with_date'] = (with_date / total) * 100 if with_date is not None else None
+            counters[media_type]['pct_without_date'] = (without_date / total) * 100 if without_date is not None else None
+        else:
+            counters[media_type]['pct_with_date'] = None
+            counters[media_type]['pct_without_date'] = None
+
+    counters['total_size_mb'] = round(total_size_bytes / (1024 * 1024), 1)
+
+    return counters, result
