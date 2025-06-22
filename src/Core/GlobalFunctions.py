@@ -49,7 +49,7 @@ def set_LOGGER():
         # Cambiamos el nivel del logger
         GV.LOGGER.setLevel(new_level)
         # Y de cada handler
-        for handler in LOGGER.handlers:
+        for handler in GV.LOGGER.handlers:
             handler.setLevel(new_level)
 
         GV.LOGGER.info(f"Logging level changed to {level_str.upper()}")

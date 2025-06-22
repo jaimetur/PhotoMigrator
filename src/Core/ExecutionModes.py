@@ -5,8 +5,7 @@ import sys
 from dataclasses import asdict
 from datetime import datetime, timedelta
 
-import FixSymLinks
-from AutoRenameAlbumsFolders import rename_album_folders
+from Features.AutoRenameAlbumsFolders.AutoRenameAlbumsFolders import rename_album_folders
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import START_TIME, ARGS, HELP_TEXTS, DEPRIORITIZE_FOLDERS_PATTERNS, LOG_LEVEL, TIMESTAMP, VERBOSE_LEVEL_NUM, LOGGER
 from Core.Utils import confirm_continue, capitalize_first_letter, print_dict_pretty, contains_zip_files, dir_exists, profile_and_print
@@ -15,6 +14,7 @@ from Features.Duplicates.Duplicates import find_duplicates, process_duplicates_a
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassTakeoutFolder
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
+from Features.FixSymLinks.FixSymLinks import fix_symlinks_broken
 
 DEFAULT_DUPLICATES_ACTION = False
 EXECUTION_MODE = "default"
@@ -1057,7 +1057,7 @@ def mode_fix_symlinkgs(user_confirmation=True, log_level=None):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"Fixing broken symbolic links Mode detected. Only this module will be run!!!")
         LOGGER.info(f"Fixing broken symbolic links in folder '{ARGS['fix-symlinks-broken']}'...")
-        symlinks_fixed, symlinks_not_fixed = FixSymLinks.fix_symlinks_broken(ARGS['fix-symlinks-broken'])
+        symlinks_fixed, symlinks_not_fixed = fix_symlinks_broken(ARGS['fix-symlinks-broken'])
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
