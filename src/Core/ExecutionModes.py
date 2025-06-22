@@ -5,16 +5,16 @@ import sys
 from dataclasses import asdict
 from datetime import datetime, timedelta
 
-from Features.AutoRenameAlbumsFolders.AutoRenameAlbumsFolders import rename_album_folders
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import START_TIME, ARGS, HELP_TEXTS, DEPRIORITIZE_FOLDERS_PATTERNS, LOG_LEVEL, TIMESTAMP, VERBOSE_LEVEL_NUM, LOGGER
 from Core.Utils import confirm_continue, capitalize_first_letter, print_dict_pretty, contains_zip_files, dir_exists, profile_and_print
+from Features.AutoRenameAlbumsFolders.AutoRenameAlbumsFolders import rename_album_folders
 from Features.AutomaticMigration.AutomaticMigration import mode_AUTOMATIC_MIGRATION
 from Features.Duplicates.Duplicates import find_duplicates, process_duplicates_actions
+from Features.FixSymLinks.FixSymLinks import fix_symlinks_broken
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassTakeoutFolder
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
-from Features.FixSymLinks.FixSymLinks import fix_symlinks_broken
 
 DEFAULT_DUPLICATES_ACTION = False
 EXECUTION_MODE = "default"
