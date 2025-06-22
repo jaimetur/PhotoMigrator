@@ -1,7 +1,7 @@
 import re
 import subprocess
 
-from colorama import init
+from colorama import init, Style
 
 from Core.GlobalVariables import COLORTAG_INFO, COLORTAG_VERBOSE, COLORTAG_DEBUG, COLORTAG_WARNING, COLORTAG_ERROR, TAG_INFO, LOGGER
 
@@ -87,18 +87,18 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
             # 3) Impresión normal
             if print_messages:
                 if is_error:
-                    print(f"{COLORTAG_ERROR}{step_name}{line}")
+                    print(f"{COLORTAG_ERROR}{step_name}{line}{Style.RESET_ALL}")
                 else:
                     if "ERROR" in line:
-                        print(f"{COLORTAG_ERROR}{step_name}{line}")
+                        print(f"{COLORTAG_ERROR}{step_name}{line}{Style.RESET_ALL}")
                     elif "WARNING" in line:
-                        print(f"{COLORTAG_WARNING}{step_name}{line}")
+                        print(f"{COLORTAG_WARNING}{step_name}{line}{Style.RESET_ALL}")
                     elif "DEBUG" in line:
-                        print(f"{COLORTAG_DEBUG}{step_name}{line}")
+                        print(f"{COLORTAG_DEBUG}{step_name}{line}{Style.RESET_ALL}")
                     elif "VERBOSE" in line:
-                        print(f"{COLORTAG_VERBOSE}{step_name}{line}")
+                        print(f"{COLORTAG_VERBOSE}{step_name}{line}{Style.RESET_ALL}")
                     else:
-                        print(f"{COLORTAG_INFO}{step_name}{line}")
+                        print(f"{COLORTAG_INFO}{step_name}{line}{Style.RESET_ALL}")
 
             # 4) Logging normal
             if is_error:

@@ -11,11 +11,13 @@ import stat
 import subprocess
 import sys
 import tempfile
+import time
 import zipfile
 from datetime import datetime
 from pathlib import Path
 
 import piexif
+from colorama import Style
 from tqdm import tqdm as original_tqdm
 
 from Core.CustomLogger import LoggerConsoleTqdm, set_log_level
@@ -175,50 +177,50 @@ def resource_path(relative_path):
     # IMPORTANT: Don't use LOGGER in this function because is also used by build-binary.py which has not any LOGGER created.
     DEBUG_MODE = False  # Cambia a False para silenciar
     if DEBUG_MODE:
-        print("---DEBUG INFO")
-        print(f"{COLORTAG_DEBUG}RESOURCES_IN_CURRENT_FOLDER : {RESOURCES_IN_CURRENT_FOLDER}")
-        print(f"{COLORTAG_DEBUG}sys.frozen                  : {getattr(sys, 'frozen', False)}")
-        print(f"{COLORTAG_DEBUG}NUITKA_ONEFILE_PARENT       : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}")
-        print(f"{COLORTAG_DEBUG}sys.argv[0]                 : {sys.argv[0]}")
-        print(f"{COLORTAG_DEBUG}sys.executable              : {sys.executable}")
-        print(f"{COLORTAG_DEBUG}os.getcwd()                 : {os.getcwd()}")
-        print(f"{COLORTAG_DEBUG}__file__                    : {globals().get('__file__', 'NO __file__')}")
+        print(f"{COLORTAG_DEBUG}---DEBUG INFO{Style.RESET_ALL}")
+        print(f"{COLORTAG_DEBUG}RESOURCES_IN_CURRENT_FOLDER : {RESOURCES_IN_CURRENT_FOLDER}{Style.RESET_ALL}")
+        print(f"{COLORTAG_DEBUG}sys.frozen                  : {getattr(sys, 'frozen', False)}{Style.RESET_ALL}")
+        print(f"{COLORTAG_DEBUG}NUITKA_ONEFILE_PARENT       : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}{Style.RESET_ALL}")
+        print(f"{COLORTAG_DEBUG}sys.argv[0]                 : {sys.argv[0]}{Style.RESET_ALL}")
+        print(f"{COLORTAG_DEBUG}sys.executable              : {sys.executable}{Style.RESET_ALL}")
+        print(f"{COLORTAG_DEBUG}os.getcwd()                 : {os.getcwd()}{Style.RESET_ALL}")
+        print(f"{COLORTAG_DEBUG}__file__                    : {globals().get('__file__', 'NO __file__')}{Style.RESET_ALL}")
         try:
-            print(f"{COLORTAG_DEBUG}__compiled__.containing_dir : {__compiled__.containing_dir}")
+            print(f"{COLORTAG_DEBUG}__compiled__.containing_dir : {__compiled__.containing_dir}{Style.RESET_ALL}")
         except NameError:
-            print(f"{COLORTAG_DEBUG}__compiled__ not defined")
+            print(f"{COLORTAG_DEBUG}__compiled__ not defined{Style.RESET_ALL}")
         if hasattr(sys, '_MEIPASS'):
-            print(f"{COLORTAG_DEBUG}_MEIPASS                    : {sys._MEIPASS}")
+            print(f"{COLORTAG_DEBUG}_MEIPASS                    : {sys._MEIPASS}{Style.RESET_ALL}")
         else:
-            print(f"{COLORTAG_DEBUG}_MEIPASS not defined")
+            print(f"{COLORTAG_DEBUG}_MEIPASS not defined{Style.RESET_ALL}")
         print("")
     # PyInstaller
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
-        if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en modo PyInstaller -> (sys._MEIPASS)")
+        if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en modo PyInstaller -> (sys._MEIPASS){Style.RESET_ALL}")
     # Nuitka onefile
     elif "NUITKA_ONEFILE_PARENT" in os.environ:
         base_path = os.path.dirname(os.path.abspath(__file__))
-        if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en modo Nuitka --onefile -> (__file__)")
+        if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en modo Nuitka --onefile -> (__file__){Style.RESET_ALL}")
     # Nuitka standalone
     elif "__compiled__" in globals():
         base_path = os.path.join(__compiled__.containing_dir, SCRIPT_NAME+'.dist')
         # base_path = __compiled__
-        if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en modo Nuitka --standalone -> (__compiled__.containing_dir)")
+        if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en modo Nuitka --standalone -> (__compiled__.containing_dir){Style.RESET_ALL}")
     # Python normal
     elif "__file__" in globals():
         if RESOURCES_IN_CURRENT_FOLDER:
             base_path = os.getcwd()
-            if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en Python .py -> (cwd)")
+            if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en Python .py -> (cwd){Style.RESET_ALL}")
         else:
             base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en Python .py -> (dirname(dirname(__file__)))")
+            if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en Python .py -> (dirname(dirname(__file__))){Style.RESET_ALL}")
     else:
         base_path = os.getcwd()
-        if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en fallback final -> os.getcwd()")
+        if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en fallback final -> os.getcwd(){Style.RESET_ALL}")
     if DEBUG_MODE:
-        print(f"{COLORTAG_DEBUG}return path                 : {os.path.join(base_path, relative_path)}")
-        print("--- END DEBUG INFO")
+        print(f"{COLORTAG_DEBUG}return path                 : {os.path.join(base_path, relative_path)}{Style.RESET_ALL}")
+        print(f"{COLORTAG_DEBUG}--- END DEBUG INFO{Style.RESET_ALL}")
     return os.path.join(base_path, relative_path)
 
 
@@ -886,3 +888,16 @@ def contains_zip_files(input_folder, log_level=None):
 def print_dict_pretty(result):
     for key, value in result.items():
         LOGGER.info(f"{key:35}: {value}")
+
+
+def timed_subprocess(cmd, step_name=""):
+    """
+    Ejecuta cmd con Popen, espera a que termine y registra sólo
+    el tiempo total de ejecución al final.
+    """
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    start = time.time()
+    out, err = proc.communicate()
+    total = time.time() - start
+    LOGGER.debug(f"{step_name}✅ subprocess finished in {total:.2f}s")
+    return proc.returncode, out, err

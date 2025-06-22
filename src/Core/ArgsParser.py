@@ -3,6 +3,8 @@ import os
 import re
 import sys
 
+from colorama import Style
+
 from Core.CustomHelpFormatter import CustomHelpFormatter
 from Core.CustomPager import PagedParser
 from Core.DateFunctions import parse_text_to_iso8601
@@ -308,7 +310,7 @@ def validate_client_arg(ARGS, PARSER):
     for flag in client_required_flags:
         if ARGS.get(flag):  # Si el usuario ha pasado este argumento
             if ARGS.get('client')=='google-takeout':
-                PARSER.error(f"\n\n❌ {COLORTAG_ERROR}The flag '--{flag}' requires that '--client' is also specified.\n")
+                PARSER.error(f"\n\n❌ {COLORTAG_ERROR}The flag '--{flag}' requires that '--client' is also specified.\n{Style.RESET_ALL}")
                 exit(1)
 
 
@@ -349,16 +351,16 @@ def checkArgs(ARGS, PARSER):
     # Parse AUTOMATIC-MIGRATION Arguments
     # Manual validation of --source and --target to allow predefined values but also local folders.
     if ARGS['source'] and not ARGS['target']:
-        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Invalid syntax. Argument '--source' detected but not '--target' provide'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n")
+        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Invalid syntax. Argument '--source' detected but not '--target' provide'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n{Style.RESET_ALL}")
         exit(1)
     if ARGS['target'] and not ARGS['source']:
-        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Invalid syntax. Argument '--target' detected but not '--source' provide'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n")
+        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Invalid syntax. Argument '--target' detected but not '--source' provide'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n{Style.RESET_ALL}")
         exit(1)
     if ARGS['source'] and ARGS['source'] not in choices_for_AUTOMATIC_MIGRATION_SRC and not os.path.isdir(ARGS['source']):
-        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Invalid choice detected for --source='{ARGS['source']}'. \nMust be an existing local folder or one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_SRC}.\n")
+        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Invalid choice detected for --source='{ARGS['source']}'. \nMust be an existing local folder or one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_SRC}.\n{Style.RESET_ALL}")
         exit(1)
     if ARGS['target'] and ARGS['target'] not in choices_for_AUTOMATIC_MIGRATION_TGT and not os.path.isdir(ARGS['target']):
-        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Invalid choice detected for --target='{ARGS['target']}'. \nMust be an existing local folder one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_TGT}.\n")
+        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Invalid choice detected for --target='{ARGS['target']}'. \nMust be an existing local folder one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_TGT}.\n{Style.RESET_ALL}")
         exit(1)
     if ARGS['source'] and ARGS['target']:
         ARGS['AUTOMATIC-MIGRATION'] = [ARGS['source'], ARGS['target']]
@@ -370,7 +372,7 @@ def checkArgs(ARGS, PARSER):
         for tok in sys.argv[1:]
     )
     if dashboard_provided  and not (ARGS['source'] or ARGS['target']):
-        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Argument '--dashboard' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n")
+        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Argument '--dashboard' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n{Style.RESET_ALL}")
         exit(1)
 
 
@@ -380,13 +382,13 @@ def checkArgs(ARGS, PARSER):
         for tok in sys.argv[1:]
     )
     if parallel_provided and not (ARGS['source'] or ARGS['target']):
-        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Argument '--parallel-migration' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n")
+        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Argument '--parallel-migration' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n{Style.RESET_ALL}")
         exit(1)
 
 
     # Parse download-albums to ensure than ARGS['output-folder'] is used to specify <OUTPUT_FOLDER>
     if ARGS['download-albums'] != "" and ARGS['output-folder'] == "":
-        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}When use flag -dAlb, --download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n")
+        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}When use flag -dAlb, --download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n{Style.RESET_ALL}")
         exit(1)
 
 
@@ -411,11 +413,11 @@ def checkArgs(ARGS, PARSER):
     # Parse rename-albums
     if ARGS['rename-albums']:
         if len(ARGS['rename-albums']) != 2:
-            PARSER.error(f"\n\n❌ {COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
+            PARSER.error(f"\n\n❌ {COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n{Style.RESET_ALL}")
             exit(1)
         for subarg in ARGS['rename-albums']:
             if subarg is None:
-                PARSER.error(f"\n\n❌ {COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
+                PARSER.error(f"\n\n❌ {COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n{Style.RESET_ALL}")
                 exit(1)
 
 
@@ -424,7 +426,7 @@ def checkArgs(ARGS, PARSER):
         PARSER.error(f"\n\n❌ {COLORTAG_ERROR}--remove-albums-assets is a modifier of argument. It need to be used together with one of the following flags:"
                      f"\n--remove-all-albums"
                      f"\n--remove-albums"
-                     f"\n")
+                     f"\n{Style.RESET_ALL}")
         exit(1)
 
 
@@ -435,7 +437,7 @@ def checkArgs(ARGS, PARSER):
 
     # Parseamos type
     if ARGS['filter-by-type'] and ARGS['filter-by-type'].lower() not in valid_asset_types:
-        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}--filter-by-type flag is invalid. Valid values are:\n{valid_asset_types}")
+        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}--filter-by-type flag is invalid. Valid values are:\n{valid_asset_types}{Style.RESET_ALL}")
         exit(1)
 
     # Validamos que se haya pasado --client cuando pasamos como argumento una feature de Synology/Immich

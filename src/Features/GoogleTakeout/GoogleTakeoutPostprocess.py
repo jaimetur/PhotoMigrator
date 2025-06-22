@@ -7,7 +7,6 @@ import re
 import shutil
 import stat
 import subprocess
-import time
 from datetime import datetime
 from pathlib import Path
 
@@ -16,7 +15,7 @@ from PIL import Image, ExifTags
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
 from Core.GlobalVariables import LOGGER, SIDECAR_EXT, METADATA_EXT, VIDEO_EXT, PHOTO_EXT, TIMESTAMP, TAG_INFO
-from Core.Utils import tqdm, is_valid_path
+from Core.Utils import tqdm, is_valid_path, timed_subprocess
 
 
 # ---------------------------------------------------------------------------------------------------------------------------
@@ -619,19 +618,6 @@ def get_embedded_datetimes_bulk(folder, step_name=''):
             LOGGER.debug(f"{step_name}✅ {oldest} →  {file_path.name}")
 
     return result_dict
-
-
-def timed_subprocess(cmd, step_name=""):
-    """
-    Ejecuta cmd con Popen, espera a que termine y registra sólo
-    el tiempo total de ejecución al final.
-    """
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    start = time.time()
-    out, err = proc.communicate()
-    total = time.time() - start
-    LOGGER.debug(f"{step_name}✅ subprocess finished in {total:.2f}s")
-    return proc.returncode, out, err
 
 
 def count_files_per_type_and_date(input_folder, skip_exif=True, skip_json=True, step_name='', log_level=None):
