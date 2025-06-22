@@ -10,7 +10,7 @@ import importlib
 from Core.GlobalVariables import LOGGER, LOG_FOLDER_FILENAME, ARGS, SCRIPT_DESCRIPTION, SCRIPT_NAME, TAG_ERROR, TAG_INFO, TAG_WARNING
 from Core.Utils import check_OS_and_Terminal
 from Core.StandaloneFunctions import change_working_dir
-from Core.GlobalFunctions import set_ARGS_PARSER, set_LOGGER, set_HELP_TEXT
+from Core.GlobalFunctions import set_ARGS_PARSER, set_LOGGER, set_HELP_TEXTS
 from Core.ExecutionModes import detect_and_run_execution_mode
 from Core.CustomLogger import print_verbose, print_debug, print_info, print_warning, print_critical
 
@@ -96,7 +96,7 @@ def main():
 
     set_ARGS_PARSER()
     set_LOGGER()
-    set_HELP_TEXT()
+    set_HELP_TEXTS()
 
     # Print the Header (common for all modules)
     LOGGER.info(f"")

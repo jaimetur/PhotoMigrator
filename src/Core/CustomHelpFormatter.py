@@ -4,14 +4,14 @@ import textwrap
 
 from colorama import Fore, Style
 
-from Core.GlobalVariables import MAX_SHORT_ARGUMENT_LENGHT, IDENT_ARGUMENT_DESCRIPTION, IDENT_USAGE_DESCRIPTION
+from Core.GlobalVariables import MAX_SHORT_ARGUMENT_LENGTH, IDENT_ARGUMENT_DESCRIPTION, IDENT_USAGE_DESCRIPTION
 
 
 class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
     def __init__(self, *args, **kwargs):
         # Configura la anchura máxima del texto de ayuda
-        kwargs['width'] = MAX_SHORT_ARGUMENT_LENGHT  # Ancho total del texto de ayuda
-        kwargs['max_help_position'] = MAX_SHORT_ARGUMENT_LENGHT  # Ajusta la posición de inicio de las descripciones
+        kwargs['width'] = MAX_SHORT_ARGUMENT_LENGTH  # Ancho total del texto de ayuda
+        kwargs['max_help_position'] = MAX_SHORT_ARGUMENT_LENGTH  # Ajusta la posición de inicio de las descripciones
         super().__init__(*args, **kwargs)
 
     def _tokenize_usage(self, usage_text):
@@ -296,7 +296,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             for opt in action.option_strings:
                 # Argumento corto, agrega una coma detrás
                 if opt.startswith("-") and not opt.startswith("--"):
-                    option_strings.append(f"{opt.ljust(MAX_SHORT_ARGUMENT_LENGHT)};")
+                    option_strings.append(f"{opt.ljust(MAX_SHORT_ARGUMENT_LENGTH)};")
                 else:
                     option_strings.append(f"{opt}")
 

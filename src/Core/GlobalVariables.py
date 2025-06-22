@@ -7,7 +7,6 @@ from colorama import Fore
 #---------------------------------------
 # GLOBAL VARIABLES FOR THE WHOLE PROJECT
 #---------------------------------------
-
 COPYRIGHT_TEXT                  = "(c) 2024-2025 - Jaime Tur (@jaimetur)"
 SCRIPT_NAME                     = "PhotoMigrator"
 SCRIPT_VERSION_WITHOUT_V        = "3.4.0"
@@ -22,17 +21,6 @@ RESOURCES_IN_CURRENT_FOLDER     = True
 LOG_FOLDER_FILENAME             = ""
 START_TIME                      = datetime.now()
 TIMESTAMP                       = datetime.now().strftime("%Y%m%d-%H%M%S")
-HELP_TEXTS                      = None
-ARGS                            = None
-PARSER                          = None
-LOGGER                          = None
-VERBOSE_LEVEL_NUM               = 5
-LOG_LEVEL_MIN                   = VERBOSE_LEVEL_NUM
-LOG_LEVEL                       = logging.INFO
-MAX_SHORT_ARGUMENT_LENGHT       = 10
-MAX_HELP_POSITION               = 100
-IDENT_ARGUMENT_DESCRIPTION      = 14
-IDENT_USAGE_DESCRIPTION         = 24
 
 TAG_VERBOSE                     = f"VERBOSE : "
 TAG_DEBUG                       = f"DEBUG   : "
@@ -47,6 +35,18 @@ COLORTAG_WARNING                = f"{Fore.YELLOW}{TAG_WARNING}"
 COLORTAG_ERROR                  = f"{Fore.RED}{TAG_ERROR}"
 COLORTAG_CRITICAL               = f"{Fore.MAGENTA}{TAG_CRITICAL}"
 
+VERBOSE_LEVEL_NUM               = 5
+LOG_LEVEL_MIN                   = VERBOSE_LEVEL_NUM
+LOG_LEVEL                       = logging.INFO                                  # To be Changed in set_LOGGER
+HELP_TEXTS                      = None                                          # To be Changed in set_HELP_TEXTS
+ARGS                            = None                                          # To be Changed in set_ARGS_PARSER
+PARSER                          = None                                          # To be Changed in set_ARGS_PARSER
+LOGGER                          = None                                          # To be Changed in set_LOGGER
+
+MAX_SHORT_ARGUMENT_LENGTH       = 10
+MAX_HELP_POSITION               = 100
+IDENT_ARGUMENT_DESCRIPTION      = 14
+IDENT_USAGE_DESCRIPTION         = 24
 
 # Supplemental Metadata Suffix
 SUPPLEMENTAL_METADATA           = "supplemental-metadata"
