@@ -1,4 +1,4 @@
-# 🗓️ Releases Notes
+# 🗓️ CHANGELOG
 
 ---
 
@@ -443,7 +443,7 @@
     - [x] Added Help texts for Google Photos Mode.
     - [x] Updated -h, --help to reflect the new changes.
     - [x] Moved at the end of the help the standard option (those that are not related to any Support mode).
-    - [x] Included _RELEASES-NOTES.md_ and _ROADMAP.md_ files to the distribution package.
+    - [x] Included _CHANGELOG.md_ and _ROADMAP.md_ files to the distribution package.
 
 ---
 

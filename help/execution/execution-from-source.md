@@ -40,9 +40,9 @@ Find below the needed steps:
      ```
 
 
-### 📦 5. Install dependencies:  
+### 📦 5. Install photomigrator package with all its dependencies:  
    ```bash
-   pip3 install -r requirements.txt
+   pip3 install -e .
    ```
 
 
@@ -55,6 +55,7 @@ Open the file `Config.ini` included in the package with any text editor and upda
 
 ### 🚀 7. Run the Tool to show the command line help:
    ```bash
+   python3 ./src/PhotoMigrator.py -h
    python3 ./src/PhotoMigrator.py -h
    ```
 

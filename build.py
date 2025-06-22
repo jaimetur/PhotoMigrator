@@ -29,7 +29,7 @@ def include_extrafiles_and_zip(input_file, output_file):
         },
         {
             'subdir': 'docs',# Estos ficheros van al subdirectorio 'docs'
-            'files': ["./docs/RELEASES-NOTES.md", "./docs/ROADMAP.md"]
+            'files': ["./docs/CHANGELOG.md", "./docs/ROADMAP.md"]
         },
         {
             'subdir': 'help',  # Estos ficheros van al subdirectorio 'help'
@@ -91,28 +91,28 @@ def extract_release_body(download_file, input_file, output_file):
     with open(input_file, 'r', encoding='utf-8') as infile:
         lines = infile.readlines()
     # Initialize key indices and counter
-    release_notes_index = None
+    changelog_index = None
     second_release_index = None
     release_count = 0
-    # Loop through lines to find the start of the "Release Notes" section and locate the second occurrence of "## Release"
+    # Loop through lines to find the start of the "Changelog" section and locate the second occurrence of "## Release"
     for i, line in enumerate(lines):
-        if line.strip() == "# 🗓️ Releases Notes":
-            release_notes_index = i
-            lines[i] = lines[i].replace("# 🗓️ Releases Notes", "# 🗓️ Release Notes")
+        if line.strip() == "# 🗓️ CHANGELOG":
+            changelog_index = i
+            # lines[i] = lines[i].replace("# 🗓️ CHANGELOG", "# 🗓️ Changelog")
         if "## Release:" in line:
             release_count += 1
             if release_count == 2:
                 second_release_index = i
                 break
     # Validate that all release notes section exists
-    if release_notes_index is None:
+    if changelog_index is None:
         print("Required sections not found in the file.")
         return
-    # Extract content from "## Release Notes:" to the second "## Release"
+    # Extract content from "## Changelog:" to the second "## Release"
     if second_release_index is not None:
-        release_section = lines[release_notes_index:second_release_index]
+        release_section = lines[changelog_index:second_release_index]
     else:
-        release_section = lines[release_notes_index:]
+        release_section = lines[changelog_index:]
     # Read content of download_file
     with open(download_file, 'r', encoding='utf-8') as df:
         download_content = df.readlines()
@@ -226,14 +226,14 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     # print("Extracting body of CURRENT-RELEASE-NOTES and adding ROADMAP to file README.md...")
     print("Extracting body of CURRENT-RELEASE-NOTES...")
 
-    # Ruta de los archivos RELEASES-NOTES.md, CURRENT-RELEASE.md, README.md y ROADMAP.md
+    # Ruta de los archivos CHANGELOG.md, CURRENT-RELEASE.md, README.md y ROADMAP.md
     download_filepath = os.path.join(root_dir, 'docs', 'DOWNLOAD.md')
-    releases_filepath = os.path.join(root_dir, 'docs', 'RELEASES-NOTES.md')
+    releases_filepath = os.path.join(root_dir, 'docs', 'CHANGELOG.md')
     current_release_filepath = os.path.join(root_dir, 'CURRENT-RELEASE.md')
     roadmap_filepath = os.path.join(root_dir, 'docs', 'ROADMAP.md')
     readme_filepath = os.path.join(root_dir,'README.md')
 
-    # Extraer el cuerpo de la Release actual de RELEASES-NOTES.md
+    # Extraer el cuerpo de la Release actual de CHANGELOG.md
     extract_release_body(download_filepath, releases_filepath, current_release_filepath)
     print(f"File '{current_release_filepath}' created successfully!.")
 

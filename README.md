@@ -76,7 +76,7 @@ Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 arc
 - [Pre-Release](https://github.com/jaimetur/PhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 - [All Releases](https://github.com/jaimetur/PhotoMigrator/releases)  
 
-Or check the [Historical Releases Notes](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/RELEASES-NOTES.md) to choose any specific release. 
+Or check the [Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/CHANGELOG.md) to choose any specific release. 
 
 > [!NOTE]  
 > The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), so feel free to download the version according to your system. 
@@ -148,15 +148,15 @@ The below tables show the pros and cons of each method together with a comparati
 
 ---
 
-## 📝 RELEASES-NOTES
-The Historical Releases Notes can be checked in the following link:
-[Releases Notes](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/RELEASES-NOTES.md)
+## 📝 CHANGELOG
+The Historical Change Log can be checked in the following link:
+[Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/CHANGELOG.md)
 
 ---
 
 ## 📅 ROADMAP
 The Planned Roadmap for futures releases can be checked in the following link:
-[Planed Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/ROADMAP.md)
+[Planned Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/ROADMAP.md)
 
 ---
 

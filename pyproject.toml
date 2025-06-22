@@ -15,3 +15,9 @@ requires-python = ">=3.7"   # Supported Python versions
 [project.scripts]
 # Defines the console script that calls the main() function
 photomigrator = "photomigrator.PhotoMigrator:main"
+
+[project.urls]
+Homepage = "https://github.com/jaimetur/PhotoMigrator"
+Documentation = "https://pip.pypa.io"
+Source = "https://github.com/pypa/pip"
+Changelog = "https://pip.pypa.io/en/stable/news/"
