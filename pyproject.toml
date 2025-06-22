@@ -1,0 +1,17 @@
+# pyproject.toml
+[build-system]
+# Build dependencies for creating wheels and source distributions
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "photomigrator"      # Project name as published on PyPI
+dynamic = ["version"]       # Version is provided dynamically by setup.py
+
+description = "Photo migration tool"
+readme = "README.md"        # Path to project README
+requires-python = ">=3.7"   # Supported Python versions
+
+[project.scripts]
+# Defines the console script that calls the main() function
+photomigrator = "photomigrator.PhotoMigrator:main"
