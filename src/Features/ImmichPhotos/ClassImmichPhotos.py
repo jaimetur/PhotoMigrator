@@ -15,12 +15,13 @@ from tabulate import tabulate
 
 from Core.Utils import update_metadata, convert_to_list, tqdm, match_pattern, replace_pattern, has_any_filter, is_date_outside_range, confirm_continue
 from Core.DateFunctions import parse_text_datetime_to_epoch
-import Features.GoogleTakeout.GoogleTakeoutPostprocess as GT_POST
+from Features.GoogleTakeout import GoogleTakeoutPostprocess as GT_POST
 # We also keep references to your custom logger context manager and utility functions:
 from Core.CustomLogger import set_log_level
 
 # Import the global LOGGER from GlobalVariables
 from Core.GlobalVariables import LOGGER, ARGS
+
 
 """
 --------------------
@@ -2347,7 +2348,7 @@ class ClassImmichPhotos:
 ##############################################################################
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-    from Core import ChangeWorkingDir, GlobalVariables as GV
+    from Core import StandaloneFunctions, GlobalVariables as GV
 
     ChangeWorkingDir.change_working_dir(change_dir=False)
 

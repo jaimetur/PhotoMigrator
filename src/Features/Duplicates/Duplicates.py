@@ -10,7 +10,7 @@ from pathlib import Path
 
 from Core import GlobalVariables as GV
 from Core.CustomLogger import set_log_level
-from Core.GlobalFunctions import resolve_path
+from Core.StandaloneFunctions import resolve_path
 from Core.Utils import remove_empty_dirs, tqdm
 from Features.GoogleTakeout import GoogleTakeoutPreprocess as GT_PREP
 

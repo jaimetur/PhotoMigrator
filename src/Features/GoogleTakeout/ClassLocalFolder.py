@@ -5,7 +5,7 @@ import shutil
 import logging
 import re
 from Core import Utils
-from Core import ChangeWorkingDir, GlobalVariables as GV
+from Core import StandaloneFunctions, GlobalVariables as GV
 from Core.Utils import has_any_filter
 from Core.DateFunctions import parse_text_datetime_to_epoch
 from datetime import datetime

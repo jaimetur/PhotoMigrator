@@ -212,7 +212,7 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
     Configures logger to a log file and console simultaneously.
     The console messages do not include timestamps.
     """
-    from GlobalFunctions import resolve_path
+    from Core.StandaloneFunctions import resolve_path
     if not log_filename:
         log_filename=script_name
 

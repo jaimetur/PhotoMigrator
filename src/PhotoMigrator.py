@@ -5,7 +5,7 @@ sys.path.insert(0, src_path)            # Now src is the root for imports
 
 import importlib
 
-from Core.ChangeWorkingDir import change_working_dir
+from Core.StandaloneFunctions import change_working_dir
 from Core.Utils import check_OS_and_Terminal
 from Core.GlobalVariables import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME, SCRIPT_NAME
 from Core.GlobalFunctions import set_ARGS_PARSER, set_LOGGER, set_HELP_TEXT
@@ -49,13 +49,6 @@ def main():
     print("Tool loaded!")
     print("")
 
-    try:
-        import tkinter as tk
-        from tkinter import filedialog
-        TKINTER_AVAILABLE = True
-    except ImportError:
-        TKINTER_AVAILABLE = False
-
     # Verificar si el script se ejecutó con un solo argumento que sea una ruta de una carpeta existente
     if len(sys.argv) >= 2 and os.path.isdir(sys.argv[1]):
         print(f"{GV.TAG_INFO}Valid folder detected as input: '{sys.argv[1]}'")
@@ -68,6 +61,13 @@ def main():
             root = tk.Tk()
             root.withdraw()
             return filedialog.askdirectory(title="Select the Google Takeout folder to process")
+
+        try:
+            import tkinter as tk
+            from tkinter import filedialog
+            TKINTER_AVAILABLE = True
+        except ImportError:
+            TKINTER_AVAILABLE = False
 
         print(f"{GV.TAG_INFO}No input folder provided. By default, the Google Takeout Photos Processor feature will be executed.")
         has_display = os.environ.get("DISPLAY") is not None or sys.platform == "win32"

@@ -7,7 +7,7 @@ from Core import GlobalVariables as GV
 from Core.CustomHelpFormatter import CustomHelpFormatter
 from Core.CustomPager import PagedParser
 from Core.DateFunctions import parse_text_to_iso8601
-from Core.GlobalFunctions import resolve_path
+from Core.StandaloneFunctions import resolve_path
 
 choices_for_message_levels          = ['verbose', 'debug', 'info', 'warning', 'error']
 choices_for_log_formats             = ['log', 'txt', 'all']

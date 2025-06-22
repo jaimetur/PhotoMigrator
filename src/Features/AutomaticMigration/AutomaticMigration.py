@@ -10,9 +10,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from queue import Queue
 
-from Core import Utils, ChangeWorkingDir, GlobalVariables as GV
+from Core import Utils, StandaloneFunctions, GlobalVariables as GV
 from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
-from Core.GlobalFunctions import resolve_path
+from Core.StandaloneFunctions import resolve_path
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassLocalFolder, ClassTakeoutFolder
 from Features.GoogleTakeout.GoogleTakeoutPrechecks import contains_takeout_structure
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
