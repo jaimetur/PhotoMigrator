@@ -168,10 +168,10 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 # Configura y arranca el profiler justo antes de la llamada que quieres medir
                 LOGGER.debug(f"{step_name}Profiling Function count_files_per_type_and_date")
                 # initial_takeout_counters = profile_and_print(count_files_per_type_and_date, input_folder=input_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL, live_stats=True, interval=10, step_name_for_profile=step_name)
-                initial_takeout_counters = profile_and_print(count_files_per_type_and_date, input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL, live_stats=True, interval=10, step_name_for_profile=step_name)
+                initial_takeout_counters, dates = profile_and_print(count_files_per_type_and_date, input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL, live_stats=True, interval=10, step_name_for_profile=step_name)
             else:
                 # initial_takeout_counters = count_files_per_type_and_date(input_folder=input_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL)
-                initial_takeout_counters = count_files_per_type_and_date(input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL)
+                initial_takeout_counters, dates = count_files_per_type_and_date(input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL)
 
             # Clean input dict
             self.result['input_counters'].clear()
