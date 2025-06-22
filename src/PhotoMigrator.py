@@ -1,6 +1,5 @@
 # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-from Core import ChangeWorkingDir, GlobalVariables as GV
-
+import ChangeWorkingDir
 ChangeWorkingDir.change_working_dir(change_dir=True)
 
 import os,sys
@@ -40,6 +39,7 @@ def select_folder_gui():
     root.withdraw()
     return filedialog.askdirectory(title="Select the Google Takeout folder to process")
 
+import GlobalVariables as GV
 
 # Verificar si el script se ejecutó con un solo argumento que sea una ruta de una carpeta existente
 if len(sys.argv) >= 2 and os.path.isdir(sys.argv[1]):
@@ -72,10 +72,11 @@ elif len(sys.argv) == 1:
         print(f"{GV.TAG_ERROR}No valid folder selected. Exiting.")
         sys.exit(1)
 
-from Core.Utils import check_OS_and_Terminal
-from Core.GlobalVariables import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME, SCRIPT_NAME
-from Core.ExecutionModes import detect_and_run_execution_mode
-from Core.CustomLogger import print_verbose, print_debug, print_info, print_warning, print_critical
+import GlobalFunctions
+from Utils import check_OS_and_Terminal
+from GlobalVariables import LOGGER, ARGS, SCRIPT_DESCRIPTION, LOG_FOLDER_FILENAME, SCRIPT_NAME
+from ExecutionModes import detect_and_run_execution_mode
+from CustomLogger import print_verbose, print_debug, print_info, print_warning, print_critical
 
 # -------------------------------------------------------------
 # MAIN FUNCTION

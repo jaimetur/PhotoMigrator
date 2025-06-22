@@ -5,15 +5,18 @@ import threading
 from queue import Queue
 from collections import deque
 from pathlib import Path
+import json
 import time
 import shutil
+from threading import main_thread
 
+import Utils
 import traceback
-
-import GoogleTakeoutFunctions
-from Core.GlobalVariables import LOGGER, ARGS, TIMESTAMP, HELP_TEXTS, SCRIPT_VERSION, SCRIPT_NAME_VERSION
-from Core.GlobalFunctions import resolve_path
-from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
+from GlobalVariables import LOGGER, ARGS, TIMESTAMP, START_TIME, HELP_TEXTS, DEPRIORITIZE_FOLDERS_PATTERNS, SCRIPT_DESCRIPTION, SCRIPT_VERSION, SCRIPT_NAME_VERSION
+import GlobalVariables as GV
+from GlobalFunctions import resolve_path
+from Duplicates import find_duplicates, process_duplicates_actions
+from CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, clone_logger, get_logger_filename
 from ClassTakeoutFolder import ClassTakeoutFolder
 from ClassLocalFolder import ClassLocalFolder
 from ClassSynologyPhotos import ClassSynologyPhotos
@@ -132,7 +135,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                 return ClassImmichPhotos(account_id=ARGS['account-id'])
 
             # Return ClassTakeoutFolder
-            elif Path(client_type).is_dir() and (Utils.contains_zip_files(client_type, log_level=logging.WARNING) or GoogleTakeoutFunctions.contains_takeout_structure(client_type, log_level=logging.WARNING)):
+            elif Path(client_type).is_dir() and (Utils.contains_zip_files(client_type, log_level=logging.WARNING) or Utils.contains_takeout_structure(client_type, log_level=logging.WARNING)):
                 return ClassTakeoutFolder(client_type)  # In this clase, client_type is the path to the Takeout Folder
 
             # Return ClassLocalFolder
@@ -963,16 +966,21 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 # start_dashboard Function #
 ###########################
 def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=None):
-    import time
+    import time, random, threading
     from datetime import datetime
     from rich.console import Console
     from rich.layout import Layout
     from rich.progress import Progress, BarColumn, TextColumn
     from rich.table import Table
     from rich.panel import Panel
+    from rich.text import Text
     from rich.live import Live
+    from rich.columns import Columns
+    import collections
     import queue
     import textwrap
+    from CustomLogger import LoggerStream
+    from CustomLogger import LoggerCapture
 
     # 🚀 Guardar stdout y stderr originales
     original_stdout = sys.stdout
@@ -1382,7 +1390,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=No
 ######################
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-    from Core import ChangeWorkingDir, Utils, GlobalVariables as GV
+    import ChangeWorkingDir
 
     ChangeWorkingDir.change_working_dir(change_dir=False)
 

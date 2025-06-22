@@ -146,7 +146,7 @@ if __name__ == "__main__":
     )
 
     if len(sys.argv[1:]) == 0:
-        CONFIG = load_config(config_file='../../Config.ini', section_to_load='Synology Photos')
+        CONFIG = load_config(config_file='../Config.ini', section_to_load='Synology Photos')
         print("\nUsing Configuration File: ['Config.ini']\n")
     else:
         CONFIG = load_config(config_file=sys.argv[1], section_to_load='All')
