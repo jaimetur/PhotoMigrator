@@ -1,4 +1,5 @@
-# setup.py
+### setup.py
+
 import os
 import re
 from setuptools import setup, find_packages
@@ -42,18 +43,30 @@ if os.path.isfile(requirements_path):
             if line.strip() and not line.strip().startswith("#"):
                 requirements.append(line.strip())
 
+# Read the long description from README.md
+readme_path = os.path.join(here, "README.md")
+with open(readme_path, encoding="utf-8") as f:
+    long_description = f.read()
+
 # Configure the package setup
 setup(
-    name="photomigrator",                 # Distribution and package name
-    version=version,                      # Version read from GlobalVariables
-    description="Photo migration tool",
-    package_dir={"": "src"},              # Root of packages is src/
-    packages=find_packages(where="src"),  # Automatically find all packages under src/
-    install_requires=requirements,        # Dependencies from requirements.txt
-    entry_points={                        # Define console script entry point
+    name="photomigrator",                           # Distribution and package name
+    version=version,                                # Version read from GlobalVariables
+    description="Photo Migration Tool",             # Short description
+    long_description=long_description,              # Detailed description from README
+    long_description_content_type="text/markdown",  # README is markdown
+    package_dir={"": "src"},                        # Root of packages is src/
+    packages=find_packages(where="src"),            # Automatically find all packages under src/
+    install_requires=requirements,                  # Dependencies from requirements.txt
+    entry_points={                                  # Define console script entry point
         "console_scripts": [
             "photomigrator = photomigrator.PhotoMigrator:main",
         ],
     },
-    python_requires=">=3.7",              # Minimum supported Python version
+    python_requires=">=3.7",                        # Minimum supported Python version
+    classifiers=[                                   # Package metadata
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
 )

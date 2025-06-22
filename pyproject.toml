@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 name = "photomigrator"      # Project name as published on PyPI
 dynamic = ["version"]       # Version is provided dynamically by setup.py
 
-description = "Photo migration tool"
+description = "Photo Migration Tool"
 readme = "README.md"        # Path to project README
 requires-python = ">=3.7"   # Supported Python versions
 
@@ -17,7 +17,7 @@ requires-python = ">=3.7"   # Supported Python versions
 photomigrator = "photomigrator.PhotoMigrator:main"
 
 [project.urls]
-Homepage = "https://github.com/jaimetur/PhotoMigrator"
-Documentation = "https://pip.pypa.io"
-Source = "https://github.com/pypa/pip"
-Changelog = "https://pip.pypa.io/en/stable/news/"
+GitHub = "https://github.com/jaimetur/PhotoMigrator"
+Documentation = "https://github.com/jaimetur/PhotoMigrator/tree/main/help"
+Source = "https://github.com/jaimetur/PhotoMigrator/tree/main/src"
+Changelog = "https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md"

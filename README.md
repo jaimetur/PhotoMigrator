@@ -52,10 +52,10 @@ Currently, the Features Included per each Supported Photo Cloud Service are:
   | Remove Orphans Assets           | No Available                                                                                                                              | [doc](https://github.com/jaimetur/PhotoMigrator/blob/main/help/6-immich-photos.md#remove-orphans-assets-from-immich-photos)           |
 
 - **Apple Photos**  
-  (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/ROADMAP.md) for next release)
+  (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
 
 - **Google Photos**  
-  (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/ROADMAP.md) for next release)
+  (not available yet but is on the [Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md) for next release)
 
 
 - [**Other Useful Features**](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md)  
@@ -76,7 +76,7 @@ Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 arc
 - [Pre-Release](https://github.com/jaimetur/PhotoMigrator/releases?q=%22alpha%22+OR+%22beta%22+OR+%22RC%22&expanded=true)
 - [All Releases](https://github.com/jaimetur/PhotoMigrator/releases)  
 
-Or check the [Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/CHANGELOG.md) to choose any specific release. 
+Or check the [Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md) to choose any specific release. 
 
 > [!NOTE]  
 > The Tool is Multi-Platform and Multi-Architecture, and has been designed to be run directly within a Linux Server or NAS such as Synology NAS (Compatible with DSM 7.0 or higher), so feel free to download the version according to your system. 
@@ -150,13 +150,18 @@ The below tables show the pros and cons of each method together with a comparati
 
 ## 📝 CHANGELOG
 The Historical Change Log can be checked in the following link:
-[Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/CHANGELOG.md)
+[Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/CHANGELOG.md)
 
 ---
 
 ## 📅 ROADMAP
 The Planned Roadmap for futures releases can be checked in the following link:
-[Planned Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/docs/ROADMAP.md)
+[Planned Roadmap](https://github.com/jaimetur/PhotoMigrator/blob/main/ROADMAP.md)
+
+---
+
+## 🛡️ CODE OF CONDUCT
+By participating in this project, you agree to abide by our [Code of Conduct](https://github.com/jaimetur/PhotoMigrator/blob/main/CODE_OF_CONDUCT.md).
 
 ---
 
