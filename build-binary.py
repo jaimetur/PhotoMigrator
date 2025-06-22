@@ -14,8 +14,8 @@ import subprocess
 import glob
 from pathlib import Path
 
-from photomigrator.Core.GlobalVariables import SCRIPT_NAME, SCRIPT_VERSION, GPTH_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
-from photomigrator.Core.Utils import zip_folder, unzip_to_temp, clear_screen, print_arguments_pretty, get_os, get_arch, resource_path, ensure_executable
+from Core import SCRIPT_NAME, SCRIPT_VERSION, GPTH_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
+from Core.Utils import zip_folder, unzip_to_temp, clear_screen, print_arguments_pretty, get_os, get_arch, resource_path, ensure_executable
 
 def include_extrafiles_and_zip(input_file, output_file):
     extra_files_to_subdir = [

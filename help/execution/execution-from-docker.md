@@ -65,7 +65,7 @@ TZ=Europe/Madrid        # Set the Time Zone for the Docker container (Important 
 
 You can obtain the different RELEASE_TAG using below command:
 ```bash
-curl -s "https://registry.hub.docker.com/v2/repositories/jaimetur/photomigrator/tags?page_size=100" | jq '.results[].name'
+curl -s "https://registry.hub.docker.com/v2/repositories/jaimetur/tags?page_size=100" | jq '.results[].name'
 ```
 The result should be something like this:  
   "latest"  

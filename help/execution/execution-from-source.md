@@ -22,7 +22,7 @@ Find below the needed steps:
 
 ### 🐍 3. Create a Python virtual environment:  
    ```bash
-   python3 -m venv venv
+   python -m venv venv
    ```
 
 ### 🐍 4. Activate the virtual environment:  
@@ -42,7 +42,8 @@ Find below the needed steps:
 
 ### 📦 5. Install photomigrator package with all its dependencies:  
    ```bash
-   pip3 install -e .
+   pip install -r requirements.txt
+   pip install -e .
    ```
 
 
@@ -55,8 +56,11 @@ Open the file `Config.ini` included in the package with any text editor and upda
 
 ### 🚀 7. Run the Tool to show the command line help:
    ```bash
-   python3 ./src/PhotoMigrator.py -h
-   python3 ./src/PhotoMigrator.py -h
+   python ./src/PhotoMigrator.py -h
+   ```
+Or if you prefeer to execute the tool directly from the built package just use:
+   ```bash
+   photomigrator -h
    ```
 
 ---

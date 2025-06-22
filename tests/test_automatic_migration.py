@@ -1,5 +1,5 @@
 import unittest
-from photomigrator.Features.Feature_AutomaticMigration import mode_AUTOMATIC_MIGRATION
+from Features import mode_AUTOMATIC_MIGRATION
 
 class AutomaticMode(unittest.TestCase):
     def test_automatic_mode(self):

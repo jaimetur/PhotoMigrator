@@ -14,7 +14,7 @@ requires-python = ">=3.7"   # Supported Python versions
 
 [project.scripts]
 # Defines the console script that calls the main() function
-photomigrator = "photomigrator.PhotoMigrator:main"
+photomigrator = "PhotoMigrator:main"
 
 [project.urls]
 GitHub = "https://github.com/jaimetur/PhotoMigrator"
