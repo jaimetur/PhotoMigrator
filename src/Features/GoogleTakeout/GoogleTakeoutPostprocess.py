@@ -995,3 +995,248 @@ def count_files_per_type_and_date(input_folder, max_files=None, exclude_ext=None
     counters['total_size_mb'] = round(total_size_bytes / (1024 * 1024), 1)
 
     return counters, result
+    
+
+# ================================
+# NEW VERSION USING MULTI-THREADS
+# ================================
+import os
+import json
+import time
+import math
+import shutil
+import multiprocessing
+from datetime import datetime
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
+def merge_counters(list_of_counters):
+    merged = init_count_files_counters()
+    for c in list_of_counters:
+        for key in merged:
+            if isinstance(merged[key], dict):
+                for subkey in merged[key]:
+                    merged[key][subkey] += c[key].get(subkey, 0)
+            else:
+                merged[key] += c.get(key, 0)
+    for media_type in ['photos', 'videos']:
+        total = merged[media_type]['total']
+        if total > 0:
+            merged[media_type]['pct_with_date'] = (merged[media_type]['with_date'] / total) * 100
+            merged[media_type]['pct_without_date'] = (merged[media_type]['without_date'] / total) * 100
+        else:
+            merged[media_type]['pct_with_date'] = None
+            merged[media_type]['pct_without_date'] = None
+    return merged
+
+def merge_json_files(temp_dir, final_output_path):
+    merged = []
+    for file in sorted(Path(temp_dir).glob("metadata_chunk_*.json")):
+        try:
+            with open(file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                merged.extend(data)
+        except Exception:
+            continue
+    with open(final_output_path, "w", encoding="utf-8") as f:
+        json.dump(merged, f, ensure_ascii=False, indent=2)
+
+def process_block(file_list, idx, output_dir, step_name=""):
+    from subprocess import run, DEVNULL
+
+    output_json = os.path.join(output_dir, f"metadata_chunk_{idx}.json")
+    cmd = ["../gpth_tool/exif_tool/exiftool", "-j", "-n", "-time:all", "-fast", "-fast2", "-s"] + file_list
+
+    try:
+        with open(output_json, "w", encoding="utf-8") as fout:
+            run(cmd, stdout=fout, stderr=DEVNULL, check=True)
+    except Exception as e:
+        LOGGER.warning(f"{step_name}📅[block {idx}] exiftool failed: {e}")
+        return {}, {}
+
+    candidate_tags = [
+        'DateTimeOriginal', 'CreateDate', 'MediaCreateDate',
+        'TrackCreateDate', 'EncodedDate', 'MetadataDate',
+    ]
+    date_formats = [
+        "%Y:%m:%d %H:%M:%S", "%Y-%m-%d %H:%M:%S",
+        "%Y:%m:%d", "%Y-%m-%d"
+    ]
+    supported_exts = set(PHOTO_EXT + VIDEO_EXT + METADATA_EXT + SIDECAR_EXT)
+    timestamp_dt = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S")
+
+    counters = init_count_files_counters()
+    result = {}
+    total_size_bytes = 0
+
+    try:
+        with open(output_json, "r", encoding="utf-8") as f:
+            metadata = json.load(f)
+    except Exception as e:
+        LOGGER.warning(f"{step_name}📅[block {idx}] can't read JSON: {e}")
+        return counters, result
+
+    metadata_by_path = {entry["SourceFile"]: entry for entry in metadata if "SourceFile" in entry}
+
+    for path in file_list:
+        try:
+            ext = Path(path).suffix.lower().lstrip(".")
+            counters['total_files'] += 1
+            if ext in supported_exts:
+                counters['supported_files'] += 1
+            else:
+                counters['unsupported_files'] += 1
+            try:
+                total_size_bytes += os.path.getsize(path)
+            except Exception:
+                pass
+            media_type = None
+            if ext in PHOTO_EXT:
+                counters['photo_files'] += 1
+                counters['media_files'] += 1
+                media_type = 'photos'
+            elif ext in VIDEO_EXT:
+                counters['video_files'] += 1
+                counters['media_files'] += 1
+                media_type = 'videos'
+            if ext in METADATA_EXT:
+                counters['metadata_files'] += 1
+            if ext in SIDECAR_EXT:
+                counters['sidecar_files'] += 1
+            if ext in METADATA_EXT or ext in SIDECAR_EXT:
+                counters['non_media_files'] += 1
+
+            entry = metadata_by_path.get(path)
+            if not entry:
+                result[path] = None
+                continue
+
+            found_dates = []
+            for tag in candidate_tags:
+                raw = entry.get(tag)
+                if not raw or isinstance(raw, int):
+                    continue
+                raw = raw.strip()
+                for fmt in date_formats:
+                    try:
+                        parsed = datetime.strptime(raw, fmt)
+                        found_dates.append(parsed)
+                        break
+                    except Exception:
+                        continue
+
+            oldest = min(found_dates) if found_dates else None
+            result[path] = oldest
+            if media_type:
+                counters[media_type]['total'] += 1
+                if oldest and oldest <= timestamp_dt:
+                    counters[media_type]['with_date'] += 1
+                else:
+                    counters[media_type]['without_date'] += 1
+        except Exception as e:
+            LOGGER.warning(f"{step_name}📅[block {idx}] error: {e}")
+
+    counters['total_size_mb'] = round(total_size_bytes / (1024 * 1024), 1)
+    return counters, result
+
+def count_files_per_type_and_date(input_folder, max_files=None, exclude_ext=None, include_ext=None, output_file="metadata_output.json", progress_interval=300, extract_dates=True, step_name='', log_level=None):
+    with set_log_level(LOGGER, log_level):
+        exclude_ext = set(exclude_ext) if exclude_ext else set()
+        exclude_ext.update({"json"})  # siempre excluir .json
+        include_ext = set(include_ext) if include_ext else None
+        input_folder = os.fspath(input_folder)
+        output_file = os.fspath(output_file)
+
+        supported_exts = set(ext.lower() for ext in PHOTO_EXT + VIDEO_EXT + METADATA_EXT + SIDECAR_EXT)
+        timestamp_dt = datetime.strptime(TIMESTAMP, "%Y%m%d-%H%M%S")
+        all_files = []
+
+        for root, dirs, files in os.walk(input_folder):
+            dirs[:] = [d for d in dirs if not d.startswith('.') and d != '@eaDir']
+            for name in files:
+                full_path = os.path.join(root, name)
+                if os.path.islink(full_path):
+                    continue
+                ext = os.path.splitext(name)[1].lstrip(".").lower()
+                if ext in exclude_ext:
+                    continue
+                if include_ext and ext not in include_ext:
+                    continue
+                all_files.append(full_path)
+                if max_files and len(all_files) >= max_files:
+                    break
+            if max_files and len(all_files) >= max_files:
+                break
+
+        total_files = len(all_files)
+        LOGGER.debug(f"{step_name}📅[count_files_per_type_and_date] {total_files} files selected for processing.")
+
+        if total_files == 0:
+            LOGGER.warning(f"{step_name}📅[count_files_per_type_and_date] No valid files found.")
+            return {}, {}
+
+        if not extract_dates:
+            counters = init_count_files_counters()
+            result = {}
+            for path in all_files:
+                ext = os.path.splitext(path)[1].lstrip(".").lower()
+                counters['total_files'] += 1
+                if ext in supported_exts:
+                    counters['supported_files'] += 1
+                else:
+                    counters['unsupported_files'] += 1
+                if ext in PHOTO_EXT:
+                    counters['photo_files'] += 1
+                    counters['media_files'] += 1
+                    counters['photos']['total'] += 1
+                elif ext in VIDEO_EXT:
+                    counters['video_files'] += 1
+                    counters['media_files'] += 1
+                    counters['videos']['total'] += 1
+                if ext in METADATA_EXT:
+                    counters['metadata_files'] += 1
+                if ext in SIDECAR_EXT:
+                    counters['sidecar_files'] += 1
+                if ext in METADATA_EXT or ext in SIDECAR_EXT:
+                    counters['non_media_files'] += 1
+                result[path] = None
+
+            for media_type in ['photos', 'videos']:
+                counters[media_type]['with_date'] = None
+                counters[media_type]['without_date'] = None
+                counters[media_type]['pct_with_date'] = None
+                counters[media_type]['pct_without_date'] = None
+
+            counters['total_size_mb'] = round(sum(os.path.getsize(p) for p in all_files if os.path.exists(p)) / (1024 * 1024), 1)
+            return counters, result
+
+        if total_files <= 10000:
+            counters, result = process_block(all_files, 0, os.path.dirname(output_file), step_name)
+            shutil.move(os.path.join(os.path.dirname(output_file), "metadata_chunk_0.json"), output_file)
+            return counters, result
+
+        num_cores = multiprocessing.cpu_count()
+        chunk_size = math.ceil(total_files / num_cores)
+        chunks = [all_files[i:i + chunk_size] for i in range(0, total_files, chunk_size)]
+
+        LOGGER.debug(f"{step_name}📅[count_files_per_type_and_date] Launching {len(chunks)} parallel blocks...")
+
+        with TemporaryDirectory() as temp_dir:
+            with multiprocessing.Pool(processes=len(chunks)) as pool:
+                results = [
+                    pool.apply_async(process_block, args=(chunk, i, temp_dir, step_name))
+                    for i, chunk in enumerate(chunks)
+                ]
+                results = [r.get() for r in results]
+
+            all_counters = [r[0] for r in results]
+            all_dicts = [r[1] for r in results]
+
+            final_counters = merge_counters(all_counters)
+            final_result = {}
+            for d in all_dicts:
+                final_result.update(d)
+
+            merge_json_files(temp_dir, output_file)
+
+        return final_counters, final_result
