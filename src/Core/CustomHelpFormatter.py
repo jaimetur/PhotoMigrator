@@ -4,20 +4,21 @@ import textwrap
 
 from colorama import Fore, Style
 
-from Core.GlobalVariables import MAX_SHORT_ARGUMENT_LENGTH, IDENT_ARGUMENT_DESCRIPTION, IDENT_USAGE_DESCRIPTION
+from Core.GlobalVariables import MAX_HELP_POSITION, MAX_SHORT_ARGUMENT_LENGTH, IDENT_ARGUMENT_DESCRIPTION, IDENT_USAGE_DESCRIPTION
 
 
 class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
     def __init__(self, *args, **kwargs):
         # Configura la anchura máxima del texto de ayuda
-        kwargs['width'] = MAX_SHORT_ARGUMENT_LENGTH  # Ancho total del texto de ayuda
-        kwargs['max_help_position'] = MAX_SHORT_ARGUMENT_LENGTH  # Ajusta la posición de inicio de las descripciones
+        kwargs['width'] = MAX_HELP_POSITION  # Ancho total del texto de ayuda
+        kwargs['max_help_position'] = MAX_HELP_POSITION  # Ajusta la posición de inicio de las descripciones
         super().__init__(*args, **kwargs)
 
     def _tokenize_usage(self, usage_text):
         # 1) Sustituimos saltos de línea por espacio (para no partir el texto en varias líneas).
         flattened = usage_text.replace('\n', ' ')
         def parse_brackets(s):
+            print("entro en parse_brackets")
             tokens = []
             i = 0
             n = len(s)
@@ -60,6 +61,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             first_line_indent = '',
             subsequent_indent = ' ' * IDENT_USAGE_DESCRIPTION
         ):
+        print("entro en _build_lines_with_forced_tokens")
         final_lines = []
         for (orig_indent, tokens) in tokenized_usage:
             if not tokens:
@@ -114,6 +116,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
 
     def _format_usage(self, usage, actions, groups, prefix, **kwargs):
         def remove_chain(usage, chain_to_remove):
+            print("entro en remove_chain")
             # 1) Unir todas las líneas (sustituir saltos de línea por espacio)
             usage_single_line = usage.replace('\n', ' ')
             # 2) Reemplazar 2 o más espacios consecutivos por uno solo
@@ -163,6 +166,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
 
     def _format_action(self, action):
         def justificar_texto(text, initial_indent="", subsequent_indent=""):
+            print("entro en justificar_texto")
             # 1. Separar en líneas
             lines = text.splitlines()
             # 2. Aplicar fill() a cada línea
@@ -287,6 +291,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         return "".join(parts)
 
     def _format_action_invocation(self, action):
+        print("entro en _format_action_invocation")
         if not action.option_strings:
             # Para argumentos posicionales
             return super()._format_action_invocation(action)

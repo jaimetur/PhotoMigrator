@@ -1,10 +1,8 @@
+from Core.GlobalVariables import SCRIPT_NAME_VERSION, LOGGER
 import argparse
-import os
+import os, sys
 import platform
 import re
-import sys
-
-from Core.GlobalVariables import SCRIPT_NAME_VERSION, LOGGER
 
 if platform.system() == "Windows":
     try:

@@ -2,13 +2,13 @@ import argparse
 import os
 import re
 import sys
+from datetime import datetime
 
-from colorama import Style
-
+from Core import GlobalVariables as GV
 from Core.CustomHelpFormatter import CustomHelpFormatter
 from Core.CustomPager import PagedParser
 from Core.DateFunctions import parse_text_to_iso8601
-from Core.GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE, COLORTAG_ERROR
+from Core.GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
 from Core.StandaloneFunctions import resolve_path
 
 choices_for_message_levels          = ['verbose', 'debug', 'info', 'warning', 'error']
@@ -21,7 +21,6 @@ choices_for_AUTOMATIC_MIGRATION_TGT = ['synology-photos', 'synology', 'synology-
                                        'immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1', 'immich-photos-2', 'immich-photos2', 'immich-2', 'immich2', 'immich-photos-', 'immich-photos3', 'immich-3', 'immich3']
 valid_asset_types                   = ['all', 'image', 'images', 'photo', 'photos', 'video', 'videos']
 
-PARSER = None
 
 def parse_arguments():
     # Parser with Pagination:
@@ -252,7 +251,7 @@ def parse_arguments():
 
     # Procesar la acción y las carpetas
 
-    # Obtain args from PARSER and create global variable ARGS to easier manipulation of argument variables using the same string as in the argument (this facilitates futures refactors on arguments names)
+    # Obtain args from GV.PARSER and create global variable GV.ARGS to easier manipulation of argument variables using the same string as in the argument (this facilitates futures refactors on arguments names)
     args = PARSER.parse_args()
     ARGS = create_global_variable_from_args(args)
 
@@ -310,11 +309,12 @@ def validate_client_arg(ARGS, PARSER):
     for flag in client_required_flags:
         if ARGS.get(flag):  # Si el usuario ha pasado este argumento
             if ARGS.get('client')=='google-takeout':
-                PARSER.error(f"\n\n❌ {COLORTAG_ERROR}The flag '--{flag}' requires that '--client' is also specified.\n{Style.RESET_ALL}")
+                PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}The flag '--{flag}' requires that '--client' is also specified.\n")
                 exit(1)
 
 
 def checkArgs(ARGS, PARSER):
+    import GlobalVariables as GV
 
     # Assigns ARGS['google-takeout'] = ARGS['input-folder'] if --input-folder is detected and --google-takeout is not detected
     if ARGS['input-folder'] != '' and ARGS['google-takeout'] == '':
@@ -344,23 +344,23 @@ def checkArgs(ARGS, PARSER):
     # Set None for google-input-zip-folder argument, and only if unzip is needed will change this to the proper folder.
     ARGS['google-input-zip-folder'] = None
 
-    # Set None for MIGRATION argument, and only if both source and target argument are providing, it will set properly.
+    # Set None for MIGRATION argument, and only if both source and target argument are providin, it will set properly.
     ARGS['AUTOMATIC-MIGRATION'] = None
 
 
     # Parse AUTOMATIC-MIGRATION Arguments
     # Manual validation of --source and --target to allow predefined values but also local folders.
     if ARGS['source'] and not ARGS['target']:
-        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Invalid syntax. Argument '--source' detected but not '--target' provide'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n{Style.RESET_ALL}")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid syntax. Argument '--source' detected but not '--target' providen'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n")
         exit(1)
     if ARGS['target'] and not ARGS['source']:
-        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Invalid syntax. Argument '--target' detected but not '--source' provide'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n{Style.RESET_ALL}")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid syntax. Argument '--target' detected but not '--source' providen'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n")
         exit(1)
     if ARGS['source'] and ARGS['source'] not in choices_for_AUTOMATIC_MIGRATION_SRC and not os.path.isdir(ARGS['source']):
-        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Invalid choice detected for --source='{ARGS['source']}'. \nMust be an existing local folder or one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_SRC}.\n{Style.RESET_ALL}")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid choice detected for --source='{ARGS['source']}'. \nMust be an existing local folder or one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_SRC}.\n")
         exit(1)
     if ARGS['target'] and ARGS['target'] not in choices_for_AUTOMATIC_MIGRATION_TGT and not os.path.isdir(ARGS['target']):
-        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Invalid choice detected for --target='{ARGS['target']}'. \nMust be an existing local folder one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_TGT}.\n{Style.RESET_ALL}")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid choice detected for --target='{ARGS['target']}'. \nMust be an existing local folder one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_TGT}.\n")
         exit(1)
     if ARGS['source'] and ARGS['target']:
         ARGS['AUTOMATIC-MIGRATION'] = [ARGS['source'], ARGS['target']]
@@ -372,23 +372,23 @@ def checkArgs(ARGS, PARSER):
         for tok in sys.argv[1:]
     )
     if dashboard_provided  and not (ARGS['source'] or ARGS['target']):
-        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Argument '--dashboard' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n{Style.RESET_ALL}")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Argument '--dashboard' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n")
         exit(1)
 
 
     # Check if --parallel was given as argument and not --source and --target have been given
-    parallel_provided = any(
+    paralel_provided = any(
         re.match(r"^-{1,2}parallel(?:$|=)", tok)
         for tok in sys.argv[1:]
     )
-    if parallel_provided and not (ARGS['source'] or ARGS['target']):
-        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}Argument '--parallel-migration' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n{Style.RESET_ALL}")
+    if paralel_provided and not (ARGS['source'] or ARGS['target']):
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Argument '--parallel-migration' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n")
         exit(1)
 
 
     # Parse download-albums to ensure than ARGS['output-folder'] is used to specify <OUTPUT_FOLDER>
     if ARGS['download-albums'] != "" and ARGS['output-folder'] == "":
-        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}When use flag -dAlb, --download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n{Style.RESET_ALL}")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}When use flag -dAlb, --download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n")
         exit(1)
 
 
@@ -407,26 +407,26 @@ def checkArgs(ARGS, PARSER):
                 ARGS['duplicates-folders'].append(subarg)
     if ARGS['duplicates-action'] == "" and ARGS['duplicates-folders'] !=[]:
         ARGS['duplicates-action'] = 'list'  # Valor por defecto
-        DEFAULT_DUPLICATES_ACTION = True
+        GV.DEFAULT_DUPLICATES_ACTION = True
     ARGS['duplicates-folders'] = parse_folders_list(ARGS['duplicates-folders'])
 
     # Parse rename-albums
     if ARGS['rename-albums']:
         if len(ARGS['rename-albums']) != 2:
-            PARSER.error(f"\n\n❌ {COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n{Style.RESET_ALL}")
+            PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
             exit(1)
         for subarg in ARGS['rename-albums']:
             if subarg is None:
-                PARSER.error(f"\n\n❌ {COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n{Style.RESET_ALL}")
+                PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
                 exit(1)
 
 
     # Parse 'remove-albums-assets' to check if 'remove-all-albums' or 'remove-albums' have been detected
     if ARGS['remove-albums-assets'] and not (ARGS['remove-all-albums'] or ARGS['remove-albums']):
-        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}--remove-albums-assets is a modifier of argument. It need to be used together with one of the following flags:"
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--remove-albums-assets is a modifier of argument. It need to be used together with one of the following flags:"
                      f"\n--remove-all-albums"
                      f"\n--remove-albums"
-                     f"\n{Style.RESET_ALL}")
+                     f"\n")
         exit(1)
 
 
@@ -437,7 +437,7 @@ def checkArgs(ARGS, PARSER):
 
     # Parseamos type
     if ARGS['filter-by-type'] and ARGS['filter-by-type'].lower() not in valid_asset_types:
-        PARSER.error(f"\n\n❌ {COLORTAG_ERROR}--filter-by-type flag is invalid. Valid values are:\n{valid_asset_types}{Style.RESET_ALL}")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--filter-by-type flag is invalid. Valid values are:\n{valid_asset_types}")
         exit(1)
 
     # Validamos que se haya pasado --client cuando pasamos como argumento una feature de Synology/Immich
@@ -472,9 +472,6 @@ def create_global_variable_from_args(args):
     """
     ARGS = {arg_name.replace("_", "-"): arg_value for arg_name, arg_value in vars(args).items()}
     return ARGS
-
-def getParser():
-    return PARSER
 
 def clean_path(path: str) -> str:
     """Limpia una ruta:
@@ -548,4 +545,5 @@ def resolve_all_possible_paths(args_dict, keys_to_check=None):
                 else:
                     resolved_parts.append(resolve_path(part))
             args_dict[key] = ', '.join(resolved_parts) if ',' in value else resolved_parts[0]
+
 

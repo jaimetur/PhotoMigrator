@@ -91,13 +91,13 @@ def main():
             sys.exit(1)
 
     from Core.GlobalFunctions import set_ARGS_PARSER, set_LOGGER, set_HELP_TEXTS
+    from Core.CustomLogger import print_verbose, print_debug, print_info, print_warning, print_critical
     set_ARGS_PARSER()
     set_LOGGER()
     set_HELP_TEXTS()
 
     from Core.Utils import check_OS_and_Terminal
     from Core.ExecutionModes import detect_and_run_execution_mode
-    from Core.CustomLogger import print_verbose, print_debug, print_info, print_warning, print_critical
 
     # Print the Header (common for all modules)
     GV.LOGGER.info(f"")
