@@ -95,6 +95,7 @@
     - [x] Fixed a bug setting lovLevel because it wasn't read from GlobalVariables in set_log_level() function.
 
   - #### 📚 Documentation:
+    - [x] Modified 'Execution from Source' documentation to support the new package structure.
     - [x] Renamed RELEASES-NOTES.md by CHANGELOG.md
     - [x] Included CODE_OF_CONDUCT.md
     - [x] Moved CHANGELOG.md, ROADMAP.md, DOWNLOADS.md, README.md and CODE_OF_CONDUCT.md to the root of the repository for more visibility.
