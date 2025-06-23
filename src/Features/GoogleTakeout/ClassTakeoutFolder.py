@@ -136,8 +136,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.substep += 1
                 sub_step_start_time = datetime.now()
                 LOGGER.info(f"")
-                LOGGER.info(f"{step_name}🗳️ Input Folder contains ZIP files and needs to be unzipped first. This process might take long time, depending on how big is your Takeout. Be patient... 🙂")
-                LOGGER.info(f"{step_name}🗳️ Unzipping Takeout Folder...")
+                LOGGER.info(f"{step_name}📦 Input Folder contains ZIP files and needs to be unzipped first. This process might take long time, depending on how big is your Takeout. Be patient... 🙂")
+                LOGGER.info(f"{step_name}📦 Unzipping Takeout Folder...")
                 # Make the 'Unzipped' folder as the new takeout_folder for the object
                 self.unzipped_folder= Path(f"{self.takeout_folder}_unzipped_{self.TIMESTAMP}")
                 # Unzip the files into unzip_folder
@@ -236,7 +236,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Sub-Step 1: Delete hidden subfolders '@eaDir'
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🛠️ [PRE-PROCESS]-[Clean Takeout Folder] : '
+            step_name = '🪛 [PRE-PROCESS]-[Clean Takeout Folder] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
@@ -251,7 +251,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Sub-Step 2: Fix .MP4 JSON
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🛠️ [PRE-PROCESS]-[MP4/Live Pics. Fixer] : '
+            step_name = '🪛 [PRE-PROCESS]-[MP4/Live Pics. Fixer] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
@@ -268,7 +268,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Sub-Step 3: Fix truncated suffixes (such as '-ha edit.jpg' or '-ha e.jpg', or '-effec', or '-supplemen',...)
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🛠️ [PRE-PROCESS]-[Truncations Fixer   ] : '
+            step_name = '🪛 [PRE-PROCESS]-[Truncations Fixer   ] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
@@ -304,7 +304,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Finally show TOTAL DURATION OF PRE-PROCESS PHASE
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
-            step_name = '🛠️ [PRE-PROCESS] : '
+            step_name = '🪛 [PRE-PROCESS] : '
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
             # Índice self.substep posiciones antes del final
@@ -333,10 +333,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # ----------------------------------------------------------------------------------------------------------------------
             self.precheck_takeout_and_calculate_initial_counters(skip_process=True, log_level=log_level)
 
-
             # --------------------------------------------------------------------------------------------------------------------------------------------------------
             # DETERMINE BASIC FOLDERS AND INIT SUPER CLASS
-            # This need to be done after Prechecks because if takeout folders have been unzipped, the input_folder, output_folder and albums_folder need to be updated
+            # This need to be done after Pre-checks because if takeout folders have been unzipped, the input_folder, output_folder and albums_folder need to be updated
             # --------------------------------------------------------------------------------------------------------------------------------------------------------
             # If the user have passed an output_folder directly to the process() method, then update the object with this output_folder
             if output_folder:
@@ -347,12 +346,10 @@ class ClassTakeoutFolder(ClassLocalFolder):
             #     output_folder = self.get_output_folder()
             # else:
             #     self.output_folder = output_folder
-            # Determine the input_folder deppending if the Takeout have been unzipped or not
+            # Determine the input_folder depending if the Takeout have been unzipped or not
             input_folder = self.get_input_folder()
             # Determine where the Albums will be located
             albums_folder = self.get_albums_folder()
-
-
 
             # Step 2: Pre-Process Takeout folder
             # ----------------------------------------------------------------------------------------------------------------------

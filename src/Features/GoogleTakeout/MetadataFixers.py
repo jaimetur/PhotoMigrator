@@ -115,7 +115,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
 
         try:
             command = ' '.join(gpth_command)
-            LOGGER.info(f"{step_name}🛠️ Fixing and 🧩 organizing all your Takeout photos and videos.")
+            LOGGER.info(f"{step_name}🪛 Fixing and 🧩 organizing all your Takeout photos and videos.")
             LOGGER.info(f"{step_name}⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂.")
             LOGGER.verbose(f"{step_name}Running GPTH with following command: {command}")
             print_arguments_pretty(gpth_command, title='GPTH Command', step_name=step_name, use_logger=True)
