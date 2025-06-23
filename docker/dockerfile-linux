@@ -9,14 +9,21 @@ ENV TZ=Etc/UTC
 COPY requirements.txt ./
 RUN python -m pip install --no-cache-dir -r requirements.txt
 
+# Crea la carpeta 'docs' antes de copiar
+RUN mkdir -p ./docs
+
 COPY src/ ./src/
-COPY docs/ ./docs/
 COPY help/ ./help/
 COPY gpth_tool/ ./gpth_tool/
 COPY exif_tool/others.zip ./gpth_tool/exif_tool/others.zip
 COPY Config.ini ./default_config.ini
 COPY docker/docker.conf ./default_docker.conf
 COPY README.md ./docs/README.md
+COPY CHANGELOG.md ./docs/CHANGELOG.md
+COPY ROADMAP.md ./docs/ROADMAP.md
+COPY DOWNLOAD.md ./docs/DOWNLOAD.md
+COPY CODE_OF_CONDUCT.md ./docs/CODE_OF_CONDUCT.md
+COPY LICENSE ./docs/LICENSE
 
 COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
 

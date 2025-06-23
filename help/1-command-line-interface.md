@@ -5,11 +5,11 @@ Most of the argument can be given with two formats:
 - Short format: '-' followed by the short name
 - Long format: '--' followed by the long name
 
-Both methods are exactly the same, long name is more conveninet in some cases to remember better what the command does, while short format is easier to write
+Both methods are exactly the same, long name is more convenient in some cases to remember better what the command does, while short format is easier to write
 
 Some arguments must be followed by a value. This value can be separated from the argument by '=' or just by space ' ', both ways are valid.
 
-- Example 1: Following commmands are exactly the same
+- Example 1: Following commands are exactly the same
   - -country Spain
   - -country=Spain
   - --filter-by-country Spain
@@ -61,7 +61,7 @@ optional arguments:
               show this help message and exit
 -v        ; --version
               Show the Tool name, version, and date, then exit.
--noConfirm; --no-request-user-confirmarion
+-noConfirm; --no-request-user-confirmation
               No Request User Confrimarion before execute any Feature.
 -noLog    ; --no-log-file
               Skip saving output messages to execution log file.

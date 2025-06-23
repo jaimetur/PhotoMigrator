@@ -17,7 +17,7 @@ This is the recommended option, since it will download a small package that cont
 - Documentation folder.
 - Help folder.
 - Default Configuration file (Config.ini).
-- docker.conf file to easilly select the docker container image that you want to run.
+- docker.conf file to easily select the docker container image that you want to run.
 
 If you chose this option, just need to follow the next steps:
 
@@ -30,7 +30,7 @@ Download the latest version of the Docker package from the [Releases page](https
     curl -L -o PhotoMigrator_v3.4.0-alpha_docker.zip https://github.com/jaimetur/PhotoMigrator/releases/download/v3.4.0-alpha/PhotoMigrator_v3.4.0-alpha_docker.zip
     ```
   
-- **Windows (PoowerShell):**
+- **Windows (PowerShell):**
     ```bash
     curl.exe -L -o PhotoMigrator_v3.4.0-alpha_docker.zip https://github.com/jaimetur/PhotoMigrator/releases/download/v3.4.0-alpha/PhotoMigrator_v3.4.0-alpha_docker.zip
     ```
@@ -45,7 +45,7 @@ Download the latest version of the Docker package from the [Releases page](https
     cd PhotoMigrator/docker
     ```
 
-- **Windows (PoowerShell):**
+- **Windows (PowerShell):**
     ```bash
     powershell -Command "Expand-Archive -Path PhotoMigrator_v3.4.0-alpha_docker.zip -DestinationPath ./"
     cd PhotoMigrator\docker
@@ -65,7 +65,7 @@ TZ=Europe/Madrid        # Set the Time Zone for the Docker container (Important 
 
 You can obtain the different RELEASE_TAG using below command:
 ```bash
-curl -s "https://registry.hub.docker.com/v2/repositories/jaimetur/photomigrator/tags?page_size=100" | jq '.results[].name'
+curl -s "https://registry.hub.docker.com/v2/repositories/jaimetur/tags?page_size=100" | jq '.results[].name'
 ```
 The result should be something like this:  
   "latest"  
@@ -99,7 +99,7 @@ Make sure Docker is running, then:
 #### Where,
   - **[OPTIONS]** are the arguments that you want to pass to the Tool (i.e: -h)
  
-#### Exampe for Linux / MacOS:
+#### Example for Linux / MacOS:
   - Execute the Tool to show the command line help:
     ```bash
     ./PhotoMigrator.sh -h
@@ -158,7 +158,7 @@ Make sure Docker is running, then:
     ```bash
     curl -L -o Config.ini https://raw.githubusercontent.com/jaimetur/PhotoMigrator/main/Config.ini
     ```
-- **Windows (PoowerShell):**
+- **Windows (PowerShell):**
   ```bash
   curl.exe -L -o Config.ini https://raw.githubusercontent.com/jaimetur/PhotoMigrator/main/Config.ini
   ```

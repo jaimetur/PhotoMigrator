@@ -1,26 +1,24 @@
-import os, sys
-from datetime import datetime, timedelta
 import logging
-import threading
-from queue import Queue
-from collections import deque
-from pathlib import Path
-import json
-import time
+import os
 import shutil
-from threading import main_thread
-
-import Utils
+import sys
+import threading
+import time
 import traceback
-from GlobalVariables import LOGGER, ARGS, TIMESTAMP, START_TIME, HELP_TEXTS, DEPRIORITIZE_FOLDERS_PATTERNS, SCRIPT_DESCRIPTION, SCRIPT_VERSION, SCRIPT_NAME_VERSION
-import GlobalVariables as GV
-from GlobalFunctions import resolve_path
-from Duplicates import find_duplicates, process_duplicates_actions
-from CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, clone_logger, get_logger_filename
-from ClassTakeoutFolder import ClassTakeoutFolder
-from ClassLocalFolder import ClassLocalFolder
-from ClassSynologyPhotos import ClassSynologyPhotos
-from ClassImmichPhotos import ClassImmichPhotos
+from collections import deque
+from datetime import datetime, timedelta
+from pathlib import Path
+from queue import Queue
+
+from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
+from Core.GlobalVariables import SCRIPT_NAME_VERSION, SCRIPT_VERSION, ARGS, HELP_TEXTS, TAG_ERROR, TIMESTAMP, LOGGER
+from Features.GoogleTakeout.ClassTakeoutFolder import ClassLocalFolder, ClassTakeoutFolder
+from Features.GoogleTakeout.GoogleTakeoutFunctions import contains_takeout_structure
+from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
+from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
+from Utils.FileUtils import remove_empty_dirs, contains_zip_files, normalize_path
+from Utils.StandaloneUtils import resolve_path, change_working_dir
+from Utils.GeneralUtils import confirm_continue
 
 terminal_width = shutil.get_terminal_size().columns
 
@@ -135,14 +133,15 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
                 return ClassImmichPhotos(account_id=ARGS['account-id'])
 
             # Return ClassTakeoutFolder
-            elif Path(client_type).is_dir() and (Utils.contains_zip_files(client_type, log_level=logging.WARNING) or Utils.contains_takeout_structure(client_type, log_level=logging.WARNING)):
+            elif Path(client_type).is_dir() and (
+                    contains_zip_files(client_type, log_level=logging.WARNING) or contains_takeout_structure(client_type, log_level=logging.WARNING)):
                 return ClassTakeoutFolder(client_type)  # In this clase, client_type is the path to the Takeout Folder
 
             # Return ClassLocalFolder
             elif Path(client_type).is_dir():
                 return ClassLocalFolder(base_folder=client_type)  # In this clase, client_type is the path to the base Local Folder
             else:
-                raise ValueError(f"{GV.TAG_ERROR}Tipo de cliente no válido: {client_type}")
+                raise ValueError(f"{TAG_ERROR}Tipo de cliente no válido: {client_type}")
 
         # Creamos los objetos source_client y target_client y obtenemos sus nombres para mostrar en el show_dashboard
         source_client = get_client_object(source)
@@ -208,7 +207,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             LOGGER.info(f"     by Person : {person} {unsupported_text}")
 
         LOGGER.info(f"")
-        if not Utils.confirm_continue():
+        if not confirm_continue():
             LOGGER.info(f"Exiting program.")
             sys.exit(0)
 
@@ -561,7 +560,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             # En este punto todos los pulls y pushs están listas y la cola está vacía.
 
             # Finalmente, borrar carpetas vacías que queden en temp_folder
-            Utils.remove_empty_dirs(temp_folder)
+            remove_empty_dirs(temp_folder)
 
             end_time = datetime.now()
             migration_formatted_duration = str(timedelta(seconds=round((end_time - migration_start_time).total_seconds())))
@@ -947,7 +946,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     file_paths_lock = threading.Lock()
 
     # Normalizamos temp_folder
-    temp_folder = Utils.normalize_path(temp_folder)
+    temp_folder = normalize_path(temp_folder)
 
     # Listas de posibles etiquetas para los distintos tipos de archivos en los diferentes clientes
     image_labels = ['photo', 'image']
@@ -966,21 +965,16 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
 # start_dashboard Function #
 ###########################
 def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=None):
-    import time, random, threading
+    import time
     from datetime import datetime
     from rich.console import Console
     from rich.layout import Layout
     from rich.progress import Progress, BarColumn, TextColumn
     from rich.table import Table
     from rich.panel import Panel
-    from rich.text import Text
     from rich.live import Live
-    from rich.columns import Columns
-    import collections
     import queue
     import textwrap
-    from CustomLogger import LoggerStream
-    from CustomLogger import LoggerCapture
 
     # 🚀 Guardar stdout y stderr originales
     original_stdout = sys.stdout
@@ -1390,9 +1384,8 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=No
 ######################
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-    import ChangeWorkingDir
 
-    ChangeWorkingDir.change_working_dir(change_dir=False)
+    change_working_dir(change_dir=False)
 
     # # Paths para Windows
     local_folder = r'r:\jaimetur\PhotoMigrator\LocalFolderClient'

@@ -2,7 +2,7 @@
 
 From version 1.0.0 onwards, the Tool can process your Google Photos Takeout files to embed timestamp and GPS data among to other tags within each photo/video found on it.
 
-But also this Feature can handle albums associations, remove duplicates, organize files per year/month, organize assets within album(s) in subfolders, autorename albums, etc...
+But also this Feature can handle albums associations, remove duplicates, organize files per year/month, organize assets within album(s) in subfolders, auto rename albums, etc...
 
 The CORE of this Feature is the Tool Google Photos Takeout Helper ([GPTH Tool](https://github.com/Xentraxx/GooglePhotosTakeoutHelper) by [TheLastGimbus](https://github.com/TheLastGimbus)/[Wacheee](https://github.com/Wacheee) and v4.x.x by [Xentraxx](https://github.com/Xentraxx)).
 
@@ -10,7 +10,7 @@ Also, GPTH uses internally EXIF Tool to embed EXIF tags inside each photo/video 
 
 **PhotoMigrator** already includes embedded both tools GPTH and EXIF Tool, so you don't need to install any additional software to use them. 
 
-In the folowwing link you can find the [Complete Pipeline and features of GPTH Tool](https://github.com/jaimetur/PhotoMigrator/blob/main/help/gpth_process_explanations/00_GPTH_complete_pipeline.md).
+In the following link you can find the [Complete Pipeline and features of GPTH Tool](https://github.com/jaimetur/PhotoMigrator/blob/main/help/gpth_process_explanations/00_GPTH_complete_pipeline.md).
 
 
 ## Process Explained
@@ -31,7 +31,7 @@ In the folowwing link you can find the [Complete Pipeline and features of GPTH T
    
 2. Pre-Process `<TAKEOUT_FOLDER>` to delete `@eaDir` subfolders (Synology metadata subfolders with miniatures) and to Fix .MP4 files extracted from Live pictures and with no .json file associated.
 
-3. Use GPTH Tool to process all .json files and fix date/gelocation/filetype etc... of all photos/videos found on your Takeout and organize them into the output folder (This step can be skipped using the flag _`gsgt, --google-skip-gpth-tool`_ but is. ot recommended since this is the CORE of this feature). 
+3. Use GPTH Tool to process all .json files and fix date/geolocation/filetype etc... of all photos/videos found on your Takeout and organize them into the output folder (This step can be skipped using the flag _`gsgt, --google-skip-gpth-tool`_ but is. ot recommended since this is the CORE of this feature). 
 
 4. `(Disabled by default)` Copy/Move files to output folder manually, only if GPTH processing was skipped using the flag _`gsgt, --google-skip-gpth-tool`_
   
@@ -49,7 +49,7 @@ In the folowwing link you can find the [Complete Pipeline and features of GPTH T
 
 10. `(Disabled by default)` If flag `-graf, --google-rename-albums-folders` is detected, the Tool rename all albums folders within `<OUTPUT_FOLDER>` based on content dates.
 
-11. Remove all empty folders found within `<OUTPUT_FOLDER>` since sonetime after remove duplicates or move albums some folder may result empty. 
+11. Remove all empty folders found within `<OUTPUT_FOLDER>` since sometime after remove duplicates or move albums some folder may result empty. 
 
 12. Count all Valid Albums in `<OUTPUT_FOLDER>`. 
 
@@ -58,7 +58,7 @@ In the folowwing link you can find the [Complete Pipeline and features of GPTH T
 >
 > Step 9 is disabled by default, and is only recommended if you want to save disk space and want to avoid having the same physical file, in more than one folder using a Symlink instead of several copies (in case that the same file belongs to multiples Albums).   
 > 
-> Step 10 is disabled by default, but it is very usefull if you want to homogenize all your albums folders names cleaning the name and adding a preffix based on the date range of its content. [see Folder Rename Content Based Extra Feature](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md#-folder-rename-content-based-extra-feature).  
+> Step 10 is disabled by default, but it is very usefully if you want to homogenize all your albums folders names cleaning the name and adding a prefix based on the date range of its content. [see Folder Rename Content Based Extra Feature](https://github.com/jaimetur/PhotoMigrator/blob/main/help/7-other-features.md#-folder-rename-content-based-extra-feature).  
 >
 
 ### Output of Takeout Processing:
@@ -69,7 +69,7 @@ The final `<OUTPUT_FOLDER>` will include:
 - `Albums` subfolder with all the Albums without year/month structure (by default).
 - `No-Albums` subfolder with all the photos with year/month structure (by default).
 
-### Complete list of Flags/Arguments admited:
+### Complete list of Flags/Arguments admitted:
 - [Arguments](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description.md)
 - [Arguments short version](https://github.com/jaimetur/PhotoMigrator/blob/main/help/2-arguments-description-short.md)
 

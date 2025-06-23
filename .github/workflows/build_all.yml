@@ -184,7 +184,7 @@ jobs:
   # JOB Docker packaging (single run)
   # ==========================================================================================================================
   build-docker:
-    name: 🐳 Build Docker Workflow
+    name: 🐳 Build Docker
     uses: ./.github/workflows/build_docker.yml
     needs: set-input-matrix
     with:
@@ -198,7 +198,8 @@ jobs:
   # ==========================================================================================================================
   # JOB build
   # ==========================================================================================================================
-  build:
+  build-binaries:
+    name: ▶️ Build Binaries
     # Different VM images to compile in all SO and all Archs according to:
     # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
     needs: set-input-matrix
@@ -280,7 +281,7 @@ jobs:
           echo "================================================================================================="
           echo "INFO    : COMPILING..."
           echo "================================================================================================="
-          python3 build.py --${{ matrix.compiler }} --${{ matrix.compilation_mode }}
+          python3 build-binary.py --${{ matrix.compiler }} --${{ matrix.compilation_mode }}
 
           echo "::endgroup::"
 
@@ -310,7 +311,7 @@ jobs:
                 echo "================================================================================================="
                 echo "INFO    : COMPILING..."
                 echo "================================================================================================="
-                python3 build.py --${{ matrix.compiler }} --${{ matrix.compilation_mode }}
+                python3 build-binary.py --${{ matrix.compiler }} --${{ matrix.compilation_mode }}
             '
           # Build for Linux (arm64), macOS (x64 & arm64), Windows (x64 & arm64)
           else
@@ -331,7 +332,7 @@ jobs:
             echo "================================================================================================="
             echo "INFO    : COMPILING..."
             echo "================================================================================================="
-            python3 build.py --${{ matrix.compiler }} --${{ matrix.compilation_mode }}
+            python3 build-binary.py --${{ matrix.compiler }} --${{ matrix.compilation_mode }}
           fi
 
           echo "::endgroup::"
@@ -440,7 +441,7 @@ jobs:
   create-release:
     name: 🏷️ Create Release
     needs:
-      - build
+      - build-binaries
       - build-docker
 
     runs-on: ubuntu-22.04
@@ -455,10 +456,11 @@ jobs:
 
       - name: 🏷️ Extract SCRIPT_VERSION from GlobalVariables.py
         run: |
-          VERSION_LINE=$(grep '^SCRIPT_VERSION' ./src/GlobalVariables.py)
-          RAW_VERSION=$(echo "$VERSION_LINE" | cut -d'"' -f2)
-          SCRIPT_VERSION=${RAW_VERSION#v}
-          echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> $GITHUB_ENV
+          # 1️⃣ Obtenemos el valor sin la “v”
+          SCRIPT_VERSION=$(grep -oP '^SCRIPT_VERSION_WITHOUT_V\s*=\s*"\K[^"]+' ./src/Core/GlobalVariables.py)
+
+          # 3️⃣ Lo exportamos para los siguientes steps
+          echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> "$GITHUB_ENV"
           echo "✅ SCRIPT_VERSION = ${SCRIPT_VERSION}"
 
       - name: 🧼 Delete GitHub release, tag and associated discussion (only for stable releases)

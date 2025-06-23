@@ -1,26 +1,23 @@
 # -*- coding: utf-8 -*-
 
+import fnmatch
+import json
+import logging
+import mimetypes
 import os
 import sys
-import fnmatch
-import requests
-import json
-import urllib3
-import mimetypes
-from requests_toolbelt.multipart.encoder import MultipartEncoder
-from datetime import datetime
 import time
-import logging
+from datetime import datetime
 
-from Utils import update_metadata, convert_to_list, get_unique_items, organize_files_by_date, tqdm, parse_text_datetime_to_epoch, match_pattern, replace_pattern, has_any_filter, is_date_outside_range, confirm_continue
+import requests
+import urllib3
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-# We also keep references to your custom logger context manager and utility functions:
-from CustomLogger import set_log_level
-
-# Import the global LOGGER from GlobalVariables
-from GlobalVariables import LOGGER, ARGS
-import GlobalVariables as GV
-
+from Core.CustomLogger import set_log_level
+from Core.GlobalVariables import TAG_INFO, TAG_ERROR, ARGS, LOGGER
+from Features.GoogleTakeout.GoogleTakeoutFunctions import organize_files_by_date
+from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
+from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue
 
 """
 ----------------------
@@ -73,6 +70,8 @@ class ClassSynologyPhotos:
         self.SESSION = None
         self.SID = None
         self.SYNO_TOKEN_HEADER = {}
+
+        self.use_OTP = ARGS.get('one-time-password', None)
 
         # Allowed extensions:
         self.ALLOWED_SIDECAR_EXTENSIONS = []
@@ -141,7 +140,7 @@ class ClassSynologyPhotos:
         Returns:
             dict: The loaded configuration dictionary.
         """
-        from ConfigReader import load_config
+        from Core.ConfigReader import load_config
 
         with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
             if self.CONFIG:
@@ -186,7 +185,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                         AUTHENTICATION / LOGOUT                         #
     ###########################################################################
-    def login(self, use_syno_token=False, use_OTP=ARGS['one-time-password'], log_level=None):
+    def login(self, use_syno_token=False, use_OTP=None, log_level=None):
         """
         Logs into the NAS and returns the active session with the SID and Synology DSM URL.
 
@@ -197,7 +196,10 @@ class ClassSynologyPhotos:
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns (self.SESSION, self.SID) or (self.SESSION, self.SID, self.SYNO_TOKEN_HEADER)
+        :param use_OTP:
         """
+        if use_OTP is None:
+            use_OTP = self.use_OTP
         with set_log_level(LOGGER, log_level):
             try:
                 if self.SESSION and self.SID and self.SYNO_TOKEN_HEADER:
@@ -225,7 +227,7 @@ class ClassSynologyPhotos:
 
                 if use_OTP:
                     LOGGER.warning(f"SYNOLOGY OTP TOKEN required (flag -OTP, --one-time-password detected). OTP Token will be requested on screen...")
-                    OTP = input(f"{GV.TAG_INFO}Enter SYNOLOGY OTP Token: ")
+                    OTP = input(f"{TAG_INFO}Enter SYNOLOGY OTP Token: ")
                     params.update({"otp_code": {OTP}})
                     params.update({"enable_device_token": "yes"})
                     params.update({"device_name": "PhotoMigrator"})
@@ -506,6 +508,7 @@ class ClassSynologyPhotos:
                       "...",
                     }
             None on error
+            :param filter_assets:
         """
         with set_log_level(LOGGER, log_level):
             try:
@@ -572,6 +575,7 @@ class ClassSynologyPhotos:
                       "...",
                     }
             None on error
+            :param filter_assets:
         """
         with set_log_level(LOGGER, log_level):
             try:
@@ -765,6 +769,7 @@ class ClassSynologyPhotos:
 
         Returns:
             list: A filtered list of assets that include the specified person.
+            :param log_level:
         """
         with set_log_level(LOGGER, log_level):
             filtered = []
@@ -1395,7 +1400,7 @@ class ClassSynologyPhotos:
                 self.login(log_level=log_level)
 
                 if not os.path.exists(file_path):
-                    raise FileNotFoundError(f"{GV.TAG_ERROR}The file '{file_path}' does not exists.")
+                    raise FileNotFoundError(f"{TAG_ERROR}The file '{file_path}' does not exists.")
 
                 filename, ext = os.path.splitext(file_path)
                 ext = ext.lower()
@@ -1798,6 +1803,7 @@ class ClassSynologyPhotos:
 
         Args:
             log_level (logging.LEVEL): log_level for logs and console
+            :param task_id:
         """
         with set_log_level(LOGGER, log_level):
             try:
@@ -1818,6 +1824,7 @@ class ClassSynologyPhotos:
 
         Args:
             log_level (logging.LEVEL): log_level for logs and console
+            :param task_id:
         """
         with set_log_level(LOGGER, log_level):
             try:
@@ -1927,7 +1934,7 @@ class ClassSynologyPhotos:
                     first_level_folders += subfolders_inclusion
                     first_level_folders = list(dict.fromkeys(first_level_folders))
 
-                with tqdm(total=len(valid_folders), smoothing=0.1, desc=f"{GV.TAG_INFO}Uploading Albums from '{os.path.basename(input_folder)}' sub-folders", unit=" sub-folder") as pbar:
+                with tqdm(total=len(valid_folders), smoothing=0.1, desc=f"{TAG_INFO}Uploading Albums from '{os.path.basename(input_folder)}' sub-folders", unit=" sub-folder") as pbar:
                     for subpath in valid_folders:
                         pbar.update(1)
                         album_assets_ids = []
@@ -2013,6 +2020,7 @@ class ClassSynologyPhotos:
             log_level (logging.LEVEL): log_level for logs and console
 
         Returns: assets_uploaded
+        :param remove_duplicates:
         """
         with set_log_level(LOGGER, log_level):
 
@@ -2050,7 +2058,7 @@ class ClassSynologyPhotos:
                 total_assets_uploaded = 0
                 total_duplicated_assets_skipped = 0
 
-                with tqdm(total=total_files, smoothing=0.1, desc=f"{GV.TAG_INFO}Uploading Assets", unit=" asset") as pbar:
+                with tqdm(total=total_files, smoothing=0.1, desc=f"{TAG_INFO}Uploading Assets", unit=" asset") as pbar:
                     for file_ in file_paths:
                         asset_id, is_dup = self.push_asset(file_, log_level=logging.WARNING)
                         if is_dup:
@@ -2185,7 +2193,7 @@ class ClassSynologyPhotos:
 
                 albums_downloaded = len(albums_to_download)
 
-                for album in tqdm(albums_to_download, desc=f"{GV.TAG_INFO}Downloading Albums", unit=" albums"):
+                for album in tqdm(albums_to_download, desc=f"{TAG_INFO}Downloading Albums", unit=" albums"):
                     album_id = album.get('id')
                     album_name = album.get("albumName", "")
                     LOGGER.info(f"Processing album: '{album_name}' (ID: {album_id})")
@@ -2239,7 +2247,7 @@ class ClassSynologyPhotos:
                     LOGGER.warning(f"No assets without Albums associated to download.")
                     return 0
 
-                for asset in tqdm(assets_without_albums, desc=f"{GV.TAG_INFO}Downloading Assets without associated Albums", unit=" assets"):
+                for asset in tqdm(assets_without_albums, desc=f"{TAG_INFO}Downloading Assets without associated Albums", unit=" assets"):
                     asset_id = asset.get('id')
                     asset_filename = asset.get('filename')
                     asset_time = asset.get('time')
@@ -2376,6 +2384,7 @@ class ClassSynologyPhotos:
 
         Returns:
             int: The number of albums renamed.
+            :param request_user_confirmation:
         """
         with set_log_level(LOGGER, log_level):
             self.login(log_level=log_level)
@@ -2387,7 +2396,7 @@ class ClassSynologyPhotos:
                 return 0
 
             albums_to_rename = {}
-            for album in tqdm(albums, desc=f"{GV.TAG_INFO}Searching for albums to rename", unit="albums"):
+            for album in tqdm(albums, desc=f"{TAG_INFO}Searching for albums to rename", unit="albums"):
                 album_date = album.get("create_time")
                 if is_date_outside_range(album_date):
                     continue
@@ -2463,7 +2472,7 @@ class ClassSynologyPhotos:
                 return 0, 0
 
             albums_to_remove = []
-            for album in tqdm(albums, desc=f"{GV.TAG_INFO}Searching for albums to remove", unit="albums"):
+            for album in tqdm(albums, desc=f"{TAG_INFO}Searching for albums to remove", unit="albums"):
                 album_date = album.get("create_time")
                 if is_date_outside_range(album_date):
                     continue
@@ -2535,7 +2544,7 @@ class ClassSynologyPhotos:
                     return 0, 0
 
                 albums_to_remove = []
-                for album in tqdm(albums, desc=f"{GV.TAG_INFO}Searching for albums to remove", unit="albums"):
+                for album in tqdm(albums, desc=f"{TAG_INFO}Searching for albums to remove", unit="albums"):
                     album_date = album.get("create_time")
                     if is_date_outside_range(album_date):
                         continue
@@ -2616,7 +2625,7 @@ class ClassSynologyPhotos:
 
                 total_removed_empty_albums = 0
                 LOGGER.info(f"Looking for empty albums in Synology Photos...")
-                for album in tqdm(albums, desc=f"{GV.TAG_INFO}Searching for Empty Albums", unit=" albums"):
+                for album in tqdm(albums, desc=f"{TAG_INFO}Searching for Empty Albums", unit=" albums"):
                     # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
                     album_date = album.get("create_time")
                     if is_date_outside_range(album_date):
@@ -2650,6 +2659,7 @@ class ClassSynologyPhotos:
 
         Returns:
             int: The number of duplicate albums deleted.
+            :param request_user_confirmation:
         """
         with set_log_level(LOGGER, log_level):
             try:
@@ -2662,7 +2672,7 @@ class ClassSynologyPhotos:
 
                 LOGGER.info(f"Searching for duplicate albums in Synology Photos...")
                 duplicates_map = {}
-                for album in tqdm(albums, smoothing=0.1, desc=f"{GV.TAG_INFO}Searching for duplicate albums", unit="albums"):
+                for album in tqdm(albums, smoothing=0.1, desc=f"{TAG_INFO}Searching for duplicate albums", unit="albums"):
                     album_date = album.get("create_time")
                     if is_date_outside_range(album_date):
                         continue
@@ -2723,6 +2733,7 @@ class ClassSynologyPhotos:
 
         Returns:
             int: The number of duplicate albums deleted.
+            :param request_user_confirmation:
         """
         with set_log_level(LOGGER, log_level):
             try:
@@ -2734,7 +2745,7 @@ class ClassSynologyPhotos:
 
                 LOGGER.info(f"Looking for duplicate albums in Synology Photos...")
                 albums_by_name = {}
-                for album in tqdm(albums, smoothing=0.1, desc=f"{GV.TAG_INFO}Grouping Albums by Name", unit=" albums"):
+                for album in tqdm(albums, smoothing=0.1, desc=f"{TAG_INFO}Grouping Albums by Name", unit=" albums"):
                     # Check if Album Creation date is outside filters date range (if provided), in that case, skip this album
                     album_date = album.get("create_time")
                     if is_date_outside_range(album_date):
@@ -2891,7 +2902,7 @@ class ClassSynologyPhotos:
 ##############################################################################
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-    from ChangeWorkingDir import change_working_dir
+    from Utils.StandaloneUtils import change_working_dir
     change_working_dir()
 
     # Create the Object

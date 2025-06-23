@@ -1,15 +1,23 @@
-# Module to define Globals Variables accesible to all other modules
-import os,sys
+import os
 import posixpath
-import GlobalVariables as GV
+
+from Core.GlobalVariables import TAG_INFO
 
 
-#-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# FUNCTIONS TO INITIALIZE GLOBAL VARIABLES THAT DEPENDS OF OTHER MODULES
-# Since we cannot import other modules directly on the GlobalVariables.py module to avoid circular references, we need to initialize those variables using independent functions.
-#-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+def change_working_dir(change_dir=None):
+    if change_dir:
+        """ Definir la ruta de trabajo deseada """
+        WORKING_DIR = r"R:\jaimetur\PhotoMigrator"
+        # Verificar si la carpeta existe y cambiar a ella si existe
+        if os.path.exists(WORKING_DIR) and os.path.isdir(WORKING_DIR):
+            os.chdir(WORKING_DIR)
+            current_directory = os.getcwd()
+            print(f"{TAG_INFO}Directorio cambiado a: {os.getcwd()}")
+
+
 def is_inside_docker():
     return os.path.exists("/.dockerenv") or os.environ.get("RUNNING_IN_DOCKER") == "1"
+
 
 def resolve_path(user_path):
     """
@@ -82,79 +90,3 @@ def resolve_path(user_path):
     else:
         # Outside Docker, return absolute path on the local system
         return os.path.abspath(path_clean)
-
-
-def set_LOGGER():
-    import logging
-    import GlobalVariables as GV
-    from GlobalVariables import ARGS
-    from CustomLogger import log_setup, VERBOSE_LEVEL_NUM  # traemos la constante de verbose
-    from GlobalFunctions import resolve_path
-    import os, sys
-
-    script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
-    current_directory = os.getcwd()
-    log_folder = resolve_path("Logs")
-    log_filename = f"{script_name}_{GV.TIMESTAMP}"
-    GV.LOG_FOLDER_FILENAME = os.path.join(current_directory, log_folder, log_filename)
-
-    # 1) Inicializas el logger con el nivel por defecto
-    GV.LOGGER = log_setup(
-        log_folder=log_folder,
-        log_filename=log_filename,
-        log_level=GV.LOG_LEVEL_MIN,
-        skip_logfile=False,
-        skip_console=False,
-        format=ARGS['log-format']
-    )
-
-    # 2) Mapeo explícito de niveles soportados
-    level_str = ARGS['log-level'].lower()
-    level_mapping = {
-        'verbose'   : VERBOSE_LEVEL_NUM,
-        'debug'     : logging.DEBUG,
-        'info'      : logging.INFO,
-        'warning'   : logging.WARNING,
-        'error'     : logging.ERROR,
-        'critical'  : logging.CRITICAL,
-    }
-
-    if level_str in level_mapping:
-        new_level = level_mapping[level_str]
-        GV.LOG_LEVEL = new_level
-
-        # Cambiamos el nivel del logger
-        GV.LOGGER.setLevel(new_level)
-        # Y de cada handler
-        for handler in GV.LOGGER.handlers:
-            handler.setLevel(new_level)
-
-        GV.LOGGER.info(f"Logging level changed to {level_str.upper()}")
-    else:
-        GV.LOGGER.warning(f"Unknown Logging level: {ARGS['log-level']}")
-
-
-
-def set_ARGS_PARSER():
-    from ArgsParser import parse_arguments, checkArgs, getParser
-    args, parser = parse_arguments()
-    args = checkArgs(args, parser)
-    GV.ARGS = args
-    GV.PARSER = parser
-
-def set_HELP_TEXT():
-    from HelpTexts import set_help_texts
-    GV.HELP_TEXTS  = set_help_texts()
-
-set_ARGS_PARSER()
-set_LOGGER()
-set_HELP_TEXT()
-
-
-
-
-
-
-
-
-

@@ -1,21 +1,18 @@
 # -*- coding: utf-8 -*-
 
-import os
-import shutil
 import logging
+import os
 import re
-import Utils
-from Utils import parse_text_datetime_to_epoch, match_pattern, replace_pattern, has_any_filter, is_date_outside_range
-from datetime import datetime
+import shutil
 import time
+from datetime import datetime
 from pathlib import Path
 
-# We also keep references to your custom logger context manager and utility functions:
-from CustomLogger import set_log_level
-
-# Import the global LOGGER from GlobalVariables
-from GlobalVariables import LOGGER, ARGS
-import GlobalVariables as GV
+from Core.CustomLogger import set_log_level
+from Core.GlobalVariables import LOGGER, ARGS, TAG_INFO
+from Utils.DateUtils import parse_text_datetime_to_epoch
+from Utils.StandaloneUtils import change_working_dir
+from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list
 
 """
 -------------------
@@ -496,6 +493,7 @@ class ClassLocalFolder:
 
         Returns:
             list: A filtered list of assets that include the specified person.
+            :param log_level:
         """
         with set_log_level(LOGGER, log_level):
             filtered = []
@@ -902,7 +900,7 @@ class ClassLocalFolder:
             album_path = Path(album_id)
             album_path.mkdir(parents=True, exist_ok=True)
             count_added = 0
-            asset_ids = Utils.convert_to_list(asset_ids)
+            asset_ids = convert_to_list(asset_ids)
 
             for asset in asset_ids:
                 asset_path = Path(asset)
@@ -1021,7 +1019,7 @@ class ClassLocalFolder:
         with set_log_level(LOGGER, log_level):
             src = Path(file_path)
             if not src.exists() or not src.is_file():
-                LOGGER.warning(f"{GV.TAG_INFO}File '{file_path}' does not exist or is not a file.")
+                LOGGER.warning(f"{TAG_INFO}File '{file_path}' does not exist or is not a file.")
                 return None, None
 
             mtime = src.stat().st_mtime
@@ -1054,6 +1052,7 @@ class ClassLocalFolder:
 
         Returns:
             int: 1 if download succeeded, 0 otherwise.
+            :param album_passphrase:
         """
         with set_log_level(LOGGER, log_level):
             src = Path(asset_id)
@@ -1424,8 +1423,7 @@ class ClassLocalFolder:
 ##############################################################################
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-    import ChangeWorkingDir
-    ChangeWorkingDir.change_working_dir(change_dir=False)
+    change_working_dir(change_dir=False)
 
     # Create the Object
     localFolder = ClassLocalFolder()

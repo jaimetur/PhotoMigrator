@@ -34,7 +34,7 @@ This step embeds GPS coordinates and datetime information directly into media fi
 
 ### EXIF Tag Management
 - **Standard Tags**: Uses industry-standard EXIF tag numbers and formats
-- **Multiple Tags**: Writes to primary and subsecond datetime tags
+- **Multiple Tags**: Writes to primary and secondary datetime tags
 - **GPS Tags**: Populates comprehensive GPS tag set (latitude, longitude, altitude, etc.)
 - **Metadata Preservation**: Maintains existing EXIF data while adding new information
 

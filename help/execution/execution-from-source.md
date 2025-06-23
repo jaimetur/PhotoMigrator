@@ -2,7 +2,7 @@
 
 > [!IMPORTANT]  
 > ### ✅ Prerequisites:
-> - You have to make sure that you have the following tools instaled on your system:
+> - You have to make sure that you have the following tools installed on your system:
 >   - Python 3.8 or higher - [Install Instructions](https://github.com/jaimetur/PhotoMigrator/blob/main/help/install-python/install-python.md)
 >   - Git - [Install Instructions](https://github.com/jaimetur/PhotoMigrator/blob/main/help/install-git/install-git.md)
 
@@ -22,7 +22,7 @@ Find below the needed steps:
 
 ### 🐍 3. Create a Python virtual environment:  
    ```bash
-   python3 -m venv venv
+   python -m venv venv
    ```
 
 ### 🐍 4. Activate the virtual environment:  
@@ -40,9 +40,10 @@ Find below the needed steps:
      ```
 
 
-### 📦 5. Install dependencies:  
+### 📦 5. Install photo migrator package with all its dependencies:  
    ```bash
-   pip3 install -r requirements.txt
+   pip install -r requirements.txt
+   pip install -e .
    ```
 
 
@@ -55,7 +56,11 @@ Open the file `Config.ini` included in the package with any text editor and upda
 
 ### 🚀 7. Run the Tool to show the command line help:
    ```bash
-   python3 ./src/PhotoMigrator.py -h
+   python ./src/PhotoMigrator.py -h
+   ```
+Or if you prefer to execute the tool directly from the built package just use:
+   ```bash
+   photomigrator -h
    ```
 
 ---

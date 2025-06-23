@@ -1,17 +1,20 @@
-from GlobalVariables import LOGGER, ARGS, TIMESTAMP, START_TIME, HELP_TEXTS, DEPRIORITIZE_FOLDERS_PATTERNS, SCRIPT_DESCRIPTION
-import os, sys
-from datetime import datetime, timedelta
-import Utils
 import logging
-import time
+import os
 import shutil
-from dataclasses import asdict
-from CustomLogger import set_log_level
-from Duplicates import find_duplicates, process_duplicates_actions
-from ClassTakeoutFolder import ClassTakeoutFolder
-from ClassSynologyPhotos import ClassSynologyPhotos
-from ClassImmichPhotos import ClassImmichPhotos
-from AutomaticMigration import mode_AUTOMATIC_MIGRATION
+import sys
+from datetime import datetime, timedelta
+
+from Core.CustomLogger import set_log_level
+from Core.GlobalVariables import START_TIME, ARGS, HELP_TEXTS, DEPRIORITIZE_FOLDERS_PATTERNS, LOG_LEVEL, TIMESTAMP, VERBOSE_LEVEL_NUM, LOGGER
+from Features.AutomaticMigration.AutomaticMigration import mode_AUTOMATIC_MIGRATION
+from Features.GoogleTakeout.ClassTakeoutFolder import ClassTakeoutFolder
+from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
+from Features.StandAlone.AutoRenameAlbumsFolders import rename_album_folders
+from Features.StandAlone.Duplicates import find_duplicates, process_duplicates_actions
+from Features.StandAlone.FixSymLinks import fix_symlinks_broken
+from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
+from Utils.FileUtils import dir_exists, contains_zip_files
+from Utils.GeneralUtils import confirm_continue, capitalize_first_letter, print_dict_pretty, profile_and_print
 
 DEFAULT_DUPLICATES_ACTION = False
 EXECUTION_MODE = "default"
@@ -29,7 +32,7 @@ def detect_and_run_execution_mode():
             step_name = ''
             # Configura y arranca el profiler justo antes de la llamada que quieres medir
             LOGGER.debug(f"{step_name}Profiling Function mode_AUTOMATIC_MIGRATION")
-            initial_takeout_counters = Utils.profile_and_print(mode_AUTOMATIC_MIGRATION, show_dashboard=False, show_gpth_info=ARGS['show-gpth-info'], step_name=step_name)
+            profile_and_print(mode_AUTOMATIC_MIGRATION, show_dashboard=False, show_gpth_info=ARGS['show-gpth-info'], step_name=step_name)
         else:
             mode_AUTOMATIC_MIGRATION(show_gpth_info=ARGS['show-gpth-info'])
 
@@ -110,10 +113,6 @@ def detect_and_run_execution_mode():
 # FEATURE: GOOGLE PHOTOS TAKEOUT: #
 ###################################
 def mode_google_takeout(user_confirmation=True, log_level=None):
-    def print_result_pretty(result):
-        for key, value in result.items():
-            print(f"{key:35}: {value}")
-
     # Configure default arguments for mode_google_takeout() execution
     LOGGER.info(f"=============================================================")
     LOGGER.info(f"Starting Google Takeout Photos Processor Feature...")
@@ -129,10 +128,10 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
     else:
         OUTPUT_TAKEOUT_FOLDER = f"{ARGS['google-takeout']}_{ARGS['google-output-folder-suffix']}_{TIMESTAMP}"
 
-    if not Utils.dir_exists(input_folder):
+    if not dir_exists(input_folder):
         LOGGER.error(f"The Input Folder {input_folder} does not exists. Exiting...")
         sys.exit(-1)
-    need_unzip = Utils.contains_zip_files(input_folder)
+    need_unzip = contains_zip_files(input_folder)
     if need_unzip:
         ARGS['google-input-zip-folder'] = input_folder
         LOGGER.info(f"")
@@ -171,7 +170,7 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
         LOGGER.warning('\n' + '-' * (terminal_width-11))
         LOGGER.warning(HELP_TEXTS["google-photos-takeout"].replace('<TAKEOUT_FOLDER>',f"'{ARGS['google-takeout']}'"))
         LOGGER.warning('\n' + '-' * (terminal_width-11))
-        if not Utils.confirm_continue():
+        if not confirm_continue():
             LOGGER.info(f"Exiting program.")
             sys.exit(0)
 
@@ -206,7 +205,9 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
         # result = takeout.process(capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], print_messages=True, create_localfolder_object=False, log_level=log_level)
 
         # print result for debugging
-        # print_result_pretty(asdict(result))
+        if LOG_LEVEL <= logging.DEBUG:
+            LOGGER.debug (f"Process Output:")
+            print_dict_pretty(result, log_level=LOG_LEVEL)
 
         # Extract percentages of totals
         output_perc_photos_with_date = result['output_counters']['photos']['pct_with_date']
@@ -327,7 +328,7 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
 # SYNOLOGY/IMMICH FEATURES: #
 #############################
 def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=None):
-    client = Utils.capitalize_first_letter(client)
+    client = capitalize_first_letter(client)
     input_folder = ARGS['upload-albums']
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"Argument detected  : '-uAlb, --upload-albums'.")
@@ -335,7 +336,7 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=None
     LOGGER.warning(HELP_TEXTS["upload-albums"].replace('<ALBUMS_FOLDER>', f"'{ARGS['upload-albums']}'"))
     LOGGER.warning('\n' + '-' * (terminal_width-11))
 
-    if user_confirmation and not Utils.confirm_continue():
+    if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
@@ -397,7 +398,7 @@ def mode_cloud_upload_albums(client=None, user_confirmation=True, log_level=None
 
 
 def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=None):
-    client = Utils.capitalize_first_letter(client)
+    client = capitalize_first_letter(client)
     input_folder = ARGS['upload-all']
     albums_folders = ARGS['albums-folders']
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
@@ -408,7 +409,7 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=None):
     LOGGER.warning(HELP_TEXTS["upload-all"].replace('<INPUT_FOLDER>', f"{input_folder}"))
     LOGGER.warning('\n' + '-' * (terminal_width-11))
 
-    if user_confirmation and not Utils.confirm_continue():
+    if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
@@ -471,7 +472,7 @@ def mode_cloud_upload_ALL(client=None, user_confirmation=True, log_level=None):
 
 
 def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=None):
-    client = Utils.capitalize_first_letter(client)
+    client = capitalize_first_letter(client)
     albums_name = ARGS['download-albums']
     output_folder = ARGS['output-folder']
     albums_str = ", ".join(albums_name)
@@ -483,7 +484,7 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=No
     LOGGER.warning(HELP_TEXTS["download-albums"].replace("<ALBUMS_NAME>", albums_str).replace("<OUTPUT_FOLDER>", output_folder))
     LOGGER.warning('\n' + '-' * (terminal_width-11))
 
-    if user_confirmation and not Utils.confirm_continue():
+    if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
@@ -543,7 +544,7 @@ def mode_cloud_download_albums(client=None, user_confirmation=True, log_level=No
 
 
 def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=None):
-    client = Utils.capitalize_first_letter(client)
+    client = capitalize_first_letter(client)
     output_folder = ARGS['download-all']
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"Argument detected  : 'dAll, --download-all'.")
@@ -551,7 +552,7 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=None)
     LOGGER.warning(HELP_TEXTS["download-all"].replace('<OUTPUT_FOLDER>', output_folder))
     LOGGER.warning('\n' + '-' * (terminal_width-11))
 
-    if user_confirmation and not Utils.confirm_continue():
+    if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
@@ -604,7 +605,7 @@ def mode_cloud_download_ALL(client=None, user_confirmation=True, log_level=None)
 
 
 def mode_cloud_remove_empty_albums(client=None, user_confirmation=True, log_level=None):
-    client = Utils.capitalize_first_letter(client)
+    client = capitalize_first_letter(client)
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"Flag detected  : '-rEmpAlb, --remove-empty-albums'.")
     LOGGER.info(f"The Tool will look for any empty album in your {client} Photos account and will remove them (if any empty album is found).")
@@ -612,7 +613,7 @@ def mode_cloud_remove_empty_albums(client=None, user_confirmation=True, log_leve
     LOGGER.warning(HELP_TEXTS["remove-empty-albums"])
     LOGGER.warning('\n' + '-' * (terminal_width-11))
 
-    if user_confirmation and not Utils.confirm_continue():
+    if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
@@ -656,7 +657,7 @@ def mode_cloud_remove_empty_albums(client=None, user_confirmation=True, log_leve
 
 
 def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log_level=None):
-    client = Utils.capitalize_first_letter(client)
+    client = capitalize_first_letter(client)
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"Flag detected  : '-rDupAlb, --remove-duplicates-albums'.")
     LOGGER.info(f"The Tool will look for any duplicated album (based on assets counts and assets size) in your {client} Photos account and will remove them (if any duplicated album is found).")
@@ -664,7 +665,7 @@ def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log
     LOGGER.warning(HELP_TEXTS["remove-duplicates-albums"])
     LOGGER.warning('\n' + '-' * (terminal_width-11))
 
-    if user_confirmation and not Utils.confirm_continue():
+    if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
@@ -708,7 +709,7 @@ def mode_cloud_remove_duplicates_albums(client=None, user_confirmation=True, log
 
 
 def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_level=None):
-    client = Utils.capitalize_first_letter(client)
+    client = capitalize_first_letter(client)
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"Flag detected  : '-mDupAlb, --merge-duplicates-albums'.")
     LOGGER.info(f"The Tool will look for any duplicated album in your {client} Photos account, merge their content into the most relevant one, and remove the duplicates.")
@@ -716,7 +717,7 @@ def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_
     LOGGER.warning(HELP_TEXTS["merge-duplicates-albums"])
     LOGGER.warning('\n' + '-' * (terminal_width-11))
 
-    if user_confirmation and not Utils.confirm_continue():
+    if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
@@ -764,7 +765,7 @@ def mode_cloud_merge_duplicates_albums(client=None, user_confirmation=True, log_
 
 
 def mode_cloud_remove_orphan_assets(client=None, user_confirmation=True, log_level=None):
-    client = Utils.capitalize_first_letter(client)
+    client = capitalize_first_letter(client)
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"Flag detected  : '-rOrphan, --remove-orphan-assets'.")
 
@@ -776,7 +777,7 @@ def mode_cloud_remove_orphan_assets(client=None, user_confirmation=True, log_lev
     LOGGER.warning(HELP_TEXTS["remove-orphan-assets"])
     LOGGER.warning('\n' + '-' * (terminal_width-11))
 
-    if user_confirmation and not Utils.confirm_continue():
+    if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
@@ -820,14 +821,14 @@ def mode_cloud_remove_orphan_assets(client=None, user_confirmation=True, log_lev
 
 
 def mode_cloud_remove_ALL(client=None, user_confirmation=True, log_level=None):
-    client = Utils.capitalize_first_letter(client)
+    client = capitalize_first_letter(client)
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"Flag detected  : '-rAll, --remove-all-assets'.")
     LOGGER.warning('\n' + '-' * terminal_width)
     LOGGER.warning(HELP_TEXTS["remove-all-assets"])
     LOGGER.warning('\n' + '-' * (terminal_width-11))
 
-    if user_confirmation and not Utils.confirm_continue():
+    if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
@@ -872,7 +873,7 @@ def mode_cloud_remove_ALL(client=None, user_confirmation=True, log_level=None):
 
 
 def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=None):
-    client = Utils.capitalize_first_letter(client)
+    client = capitalize_first_letter(client)
     albums_name_pattern = ARGS['rename-albums'][0]
     albums_name_replacement_pattern = ARGS['rename-albums'][1]
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
@@ -881,7 +882,7 @@ def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=None
     LOGGER.warning(HELP_TEXTS["rename-albums"].replace('<ALBUMS_NAME_PATTERN>', albums_name_pattern).replace('<ALBUMS_NAME_REPLACEMENT_PATTERN>',albums_name_replacement_pattern))
     LOGGER.warning('\n' + '-' * (terminal_width-11))
 
-    if user_confirmation and not Utils.confirm_continue():
+    if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
@@ -925,7 +926,7 @@ def mode_cloud_rename_albums(client=None, user_confirmation=True, log_level=None
 
 
 def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True, log_level=None):
-    client = Utils.capitalize_first_letter(client)
+    client = capitalize_first_letter(client)
     if ARGS['remove-all-albums'] != "":
         albums_name_pattern = '.*'
     else:
@@ -942,7 +943,7 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
         LOGGER.info(f"Since, flag '-rAlbAsset, --remove-albums-assets' have been detected, ALL the Assets associated to any removed Albums will also be removed.")
         LOGGER.info(f"")
 
-    if user_confirmation and not Utils.confirm_continue():
+    if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
@@ -987,7 +988,7 @@ def mode_cloud_remove_albums_by_name_pattern(client=None, user_confirmation=True
 
 
 def mode_cloud_remove_all_albums(client=None, user_confirmation=True, log_level=None):
-    client = Utils.capitalize_first_letter(client)
+    client = capitalize_first_letter(client)
     remove_albums_assets = ARGS['remove-albums-assets']
     LOGGER.info(f"Client detected: '{client} Photos' (Account ID={ARGS['account-id']}).")
     LOGGER.info(f"Flag detected  : '-rAllAlb, --remove-all-albums'.")
@@ -999,7 +1000,7 @@ def mode_cloud_remove_all_albums(client=None, user_confirmation=True, log_level=
         LOGGER.info(f"Since, flag '-rAlbAsset, --remove-albums-assets' have been detected, ALL the Assets associated to any removed Albums will also be removed.")
         LOGGER.info(f"")
 
-    if user_confirmation and not Utils.confirm_continue():
+    if user_confirmation and not confirm_continue():
         LOGGER.info(f"Exiting program.")
         sys.exit(0)
 
@@ -1051,13 +1052,13 @@ def mode_fix_symlinkgs(user_confirmation=True, log_level=None):
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["fix-symlinks-broken"].replace('<FOLDER_TO_FIX>', f"'{ARGS['fix-symlinks-broken']}'"))
         LOGGER.warning('\n' + '-' * (terminal_width-11))
-        if not Utils.confirm_continue():
+        if not confirm_continue():
             LOGGER.info(f"Exiting program.")
             sys.exit(0)
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"Fixing broken symbolic links Mode detected. Only this module will be run!!!")
         LOGGER.info(f"Fixing broken symbolic links in folder '{ARGS['fix-symlinks-broken']}'...")
-        symlinks_fixed, symlinks_not_fixed = Utils.fix_symlinks_broken(ARGS['fix-symlinks-broken'])
+        symlinks_fixed, symlinks_not_fixed = fix_symlinks_broken(ARGS['fix-symlinks-broken'])
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
@@ -1085,7 +1086,7 @@ def mode_find_duplicates(user_confirmation=True, log_level=None):
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["find-duplicates"].replace('<DUPLICATES_FOLDER>', f"'{ARGS['duplicates-folders']}'"))
         LOGGER.warning('\n' + '-' * (terminal_width-11))
-        if not Utils.confirm_continue():
+        if not confirm_continue():
             LOGGER.info(f"Exiting program.")
             sys.exit(0)
 
@@ -1122,7 +1123,7 @@ def mode_process_duplicates(user_confirmation=True, log_level=None):
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["process-duplicates"])
         LOGGER.warning('\n' + '-' * (terminal_width-11))
-        if not Utils.confirm_continue():
+        if not confirm_continue():
             LOGGER.info(f"Exiting program.")
             sys.exit(0)
 
@@ -1151,24 +1152,18 @@ def mode_process_duplicates(user_confirmation=True, log_level=None):
 
 
 def mode_folders_rename_content_based(user_confirmation=True, log_level=None):
-    LOGGER.info(SCRIPT_DESCRIPTION)
-    LOGGER.info(f"")
-    LOGGER.info(f"===================")
-    LOGGER.info(f"STARTING PROCESS...")
-    LOGGER.info(f"===================")
-    LOGGER.info(f"")
     if user_confirmation:
         LOGGER.warning('\n' + '-' * terminal_width)
         LOGGER.warning(HELP_TEXTS["rename-folders-content-based"].replace('<ALBUMS_FOLDER>', f"'{ARGS['rename-folders-content-based']}'"))
         LOGGER.warning('\n' + '-' * (terminal_width-11))
-        if not Utils.confirm_continue():
+        if not confirm_continue():
             LOGGER.info(f"Exiting program.")
             sys.exit(0)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         LOGGER.info(f"Rename Albums Mode detected. Only this module will be run!!!")
         LOGGER.info(f"Argument detected '-ra, --rename-folders-content-based'. The Tool will look for any Subfolder in '{ARGS['rename-folders-content-based']}' and will rename the folder name in order to unificate all the Albums names.")
-        renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = Utils.rename_album_folders(ARGS['rename-folders-content-based'])
+        renamed_album_folders, duplicates_album_folders, duplicates_albums_fully_merged, duplicates_albums_not_fully_merged = rename_album_folders(ARGS['rename-folders-content-based'])
         # FINAL SUMMARY
         end_time = datetime.now()
         formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))

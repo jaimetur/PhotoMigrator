@@ -1,8 +1,10 @@
-from configparser import ConfigParser
-from GlobalVariables import LOGGER  # Import global LOGGER
-from GlobalFunctions import resolve_path
-import os, sys
+import os
 import re
+import sys
+from configparser import ConfigParser
+
+from Core.GlobalVariables import LOGGER
+from Utils.StandaloneUtils import resolve_path
 
 CONFIG = None
 
@@ -131,7 +133,8 @@ if __name__ == "__main__":
     # Create timestamp, and initialize LOGGER.
     from datetime import datetime
     from CustomLogger import log_setup
-    from GlobalVariables import LOG_LEVEL
+    from Core.GlobalVariables import LOG_LEVEL, ARGS
+
     TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
     log_filename = f"{sys.argv[0]}_{TIMESTAMP}"
     log_folder = "Logs"
@@ -146,7 +149,7 @@ if __name__ == "__main__":
     )
 
     if len(sys.argv[1:]) == 0:
-        CONFIG = load_config(config_file='../Config.ini', section_to_load='Synology Photos')
+        CONFIG = load_config(config_file='../../Config.ini', section_to_load='Synology Photos')
         print("\nUsing Configuration File: ['Config.ini']\n")
     else:
         CONFIG = load_config(config_file=sys.argv[1], section_to_load='All')

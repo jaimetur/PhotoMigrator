@@ -1,5 +1,5 @@
 ## 💾 Download
-Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 architectures) or Docker version (plattform & architecture independent) as you prefer, directly from following links:
+Download the tool either for Linux, MacOS or Windows (for both x64 and arm64 architectures) or Docker version (platform & architecture independent) as you prefer, directly from following links:
 
 **Linux:**:  
   - [Download x64 version](https://github.com/jaimetur/PhotoMigrator/releases/download/v3.4.0/PhotoMigrator_v3.4.0_linux_x64.zip)  

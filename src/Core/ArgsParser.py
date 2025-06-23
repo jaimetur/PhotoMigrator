@@ -1,14 +1,16 @@
-import logging
-
-from GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
-import GlobalVariables as GV
-from GlobalFunctions import resolve_path
-from CustomHelpFormatter import CustomHelpFormatter
-from CustomPager import PagedParser
 import argparse
-import sys, os
+import os
 import re
-from datetime import datetime
+import sys
+
+from colorama import Style
+
+from Core import GlobalVariables as GV
+from Core.CustomHelpFormatter import CustomHelpFormatter
+from Core.CustomPager import PagedParser
+from Core.GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
+from Utils.DateUtils import parse_text_to_iso8601
+from Utils.StandaloneUtils import resolve_path
 
 choices_for_message_levels          = ['verbose', 'debug', 'info', 'warning', 'error']
 choices_for_log_formats             = ['log', 'txt', 'all']
@@ -20,7 +22,6 @@ choices_for_AUTOMATIC_MIGRATION_TGT = ['synology-photos', 'synology', 'synology-
                                        'immich-photos', 'immich', 'immich-photos-1', 'immich-photos1', 'immich-1', 'immich1', 'immich-photos-2', 'immich-photos2', 'immich-2', 'immich2', 'immich-photos-', 'immich-photos3', 'immich-3', 'immich3']
 valid_asset_types                   = ['all', 'image', 'images', 'photo', 'photos', 'video', 'videos']
 
-PARSER = None
 
 def parse_arguments():
     # Parser with Pagination:
@@ -36,7 +37,7 @@ def parse_arguments():
             parser.exit()
 
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the Tool name, version, and date, then exit.")
-    PARSER.add_argument("-noConfirm", "--no-request-user-confirmarion", action="store_true", help="No Request User Confrimarion before execute any Feature.")
+    PARSER.add_argument("-noConfirm", "--no-request-user-confirmation", action="store_true", help="No Request User Confirmation before execute any Feature.")
     PARSER.add_argument("-noLog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
     PARSER.add_argument("-logLevel", "--log-level",
                         metavar=f"=[{', '.join(level.upper() for level in choices_for_message_levels)}]",
@@ -71,7 +72,7 @@ def parse_arguments():
                         const=1,  # Si el usuario pasa --account-id sin valor, se asigna 1
                         default=1,  # Si no se pasa el argumento, también se asigna 1
                         type=validate_account_id,  # Ahora espera un entero como tipo de argumento
-                        help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the Configuration file as suffix of USERNAME/PASSORD or API_KEY_USER. (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini file)."
+                        help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the Configuration file as suffix of USERNAME/PASSWORD or API_KEY_USER. (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini file)."
                         )
 
     PARSER.add_argument("-from", "--filter-from-date", metavar="<FROM_DATE>", default=None, help="Specify the initial date to filter assets in the different Photo Clients.")
@@ -168,7 +169,7 @@ def parse_arguments():
     PARSER.add_argument("-graf", "--google-rename-albums-folders", action="store_true", help="Rename Albums Folders in <OUTPUT_TAKEOUT_FOLDER> based on content date of each album after fixing them.")
     PARSER.add_argument("-gsef", "--google-skip-extras-files", action="store_true", help="Skip processing extra photos such as  -edited, -effects photos.")
     PARSER.add_argument("-gsma", "--google-skip-move-albums", action="store_true", help="Skip moving albums to 'Albums' folder.")
-    PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skip processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposses.")
+    PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skip processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposes.")
     PARSER.add_argument("-gSkipPrep", "--google-skip-preprocess", action="store_true",
                         help="Skip Pre-process Google Takeout to 1.Clean Takeout Folder, 2.Fix MP4/Live Picture associations and 3.Fix Truncated filenames/extensions." 
                            "\nThis Pre-process is very important for a high accuracy on the Output, but if you have already done this Pre-Processing before, and you are not using the flag '-gmtf,--google-move-takeout-folder' then you can skip this Pre-Processing.")
@@ -251,7 +252,7 @@ def parse_arguments():
 
     # Procesar la acción y las carpetas
 
-    # Obtain args from PARSER and create global variable ARGS to easier manipulation of argument variables using the same string as in the argument (this facilitates futures refactors on arguments names)
+    # Obtain args from GV.PARSER and create global variable GV.ARGS to easier manipulation of argument variables using the same string as in the argument (this facilitates futures refactors on arguments names)
     args = PARSER.parse_args()
     ARGS = create_global_variable_from_args(args)
 
@@ -309,12 +310,11 @@ def validate_client_arg(ARGS, PARSER):
     for flag in client_required_flags:
         if ARGS.get(flag):  # Si el usuario ha pasado este argumento
             if ARGS.get('client')=='google-takeout':
-                PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}The flag '--{flag}' requires that '--client' is also specified.\n")
+                PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}The flag '--{flag}' requires that '--client' is also specified.\n{Style.RESET_ALL}")
                 exit(1)
 
 
 def checkArgs(ARGS, PARSER):
-    import GlobalVariables as GV
 
     # Assigns ARGS['google-takeout'] = ARGS['input-folder'] if --input-folder is detected and --google-takeout is not detected
     if ARGS['input-folder'] != '' and ARGS['google-takeout'] == '':
@@ -351,16 +351,16 @@ def checkArgs(ARGS, PARSER):
     # Parse AUTOMATIC-MIGRATION Arguments
     # Manual validation of --source and --target to allow predefined values but also local folders.
     if ARGS['source'] and not ARGS['target']:
-        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid syntax. Argument '--source' detected but not '--target' providen'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid syntax. Argument '--source' detected but not '--target' providen'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n{Style.RESET_ALL}")
         exit(1)
     if ARGS['target'] and not ARGS['source']:
-        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid syntax. Argument '--target' detected but not '--source' providen'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid syntax. Argument '--target' detected but not '--source' providen'. You must specify both, --source and --target to execute AUTOMATIC-MIGRATION task.\n{Style.RESET_ALL}")
         exit(1)
     if ARGS['source'] and ARGS['source'] not in choices_for_AUTOMATIC_MIGRATION_SRC and not os.path.isdir(ARGS['source']):
-        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid choice detected for --source='{ARGS['source']}'. \nMust be an existing local folder or one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_SRC}.\n")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid choice detected for --source='{ARGS['source']}'. \nMust be an existing local folder or one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_SRC}.\n{Style.RESET_ALL}")
         exit(1)
     if ARGS['target'] and ARGS['target'] not in choices_for_AUTOMATIC_MIGRATION_TGT and not os.path.isdir(ARGS['target']):
-        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid choice detected for --target='{ARGS['target']}'. \nMust be an existing local folder one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_TGT}.\n")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Invalid choice detected for --target='{ARGS['target']}'. \nMust be an existing local folder one of the following values: \n{choices_for_AUTOMATIC_MIGRATION_TGT}.\n{Style.RESET_ALL}")
         exit(1)
     if ARGS['source'] and ARGS['target']:
         ARGS['AUTOMATIC-MIGRATION'] = [ARGS['source'], ARGS['target']]
@@ -372,7 +372,7 @@ def checkArgs(ARGS, PARSER):
         for tok in sys.argv[1:]
     )
     if dashboard_provided  and not (ARGS['source'] or ARGS['target']):
-        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Argument '--dashboard' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Argument '--dashboard' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n{Style.RESET_ALL}")
         exit(1)
 
 
@@ -382,13 +382,13 @@ def checkArgs(ARGS, PARSER):
         for tok in sys.argv[1:]
     )
     if paralel_provided and not (ARGS['source'] or ARGS['target']):
-        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Argument '--parallel-migration' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}Argument '--parallel-migration' can only be used with Automatic Migration feature. Arguments --source and --target are required.\n{Style.RESET_ALL}")
         exit(1)
 
 
     # Parse download-albums to ensure than ARGS['output-folder'] is used to specify <OUTPUT_FOLDER>
     if ARGS['download-albums'] != "" and ARGS['output-folder'] == "":
-        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}When use flag -dAlb, --download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}When use flag -dAlb, --download-albums, you need to provide an Output folder using flag -o, -output-folder <OUTPUT_FOLDER>\n{Style.RESET_ALL}")
         exit(1)
 
 
@@ -413,11 +413,11 @@ def checkArgs(ARGS, PARSER):
     # Parse rename-albums
     if ARGS['rename-albums']:
         if len(ARGS['rename-albums']) != 2:
-            PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
+            PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n{Style.RESET_ALL}")
             exit(1)
         for subarg in ARGS['rename-albums']:
             if subarg is None:
-                PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n")
+                PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--rename-albums requires two arguments <ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>.\n{Style.RESET_ALL}")
                 exit(1)
 
 
@@ -426,7 +426,7 @@ def checkArgs(ARGS, PARSER):
         PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--remove-albums-assets is a modifier of argument. It need to be used together with one of the following flags:"
                      f"\n--remove-all-albums"
                      f"\n--remove-albums"
-                     f"\n")
+                     f"\n{Style.RESET_ALL}")
         exit(1)
 
 
@@ -437,7 +437,7 @@ def checkArgs(ARGS, PARSER):
 
     # Parseamos type
     if ARGS['filter-by-type'] and ARGS['filter-by-type'].lower() not in valid_asset_types:
-        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--filter-by-type flag is invalid. Valid values are:\n{valid_asset_types}")
+        PARSER.error(f"\n\n❌ {GV.COLORTAG_ERROR}--filter-by-type flag is invalid. Valid values are:\n{valid_asset_types}{Style.RESET_ALL}")
         exit(1)
 
     # Validamos que se haya pasado --client cuando pasamos como argumento una feature de Synology/Immich
@@ -472,9 +472,6 @@ def create_global_variable_from_args(args):
     """
     ARGS = {arg_name.replace("_", "-"): arg_value for arg_name, arg_value in vars(args).items()}
     return ARGS
-
-def getParser():
-    return PARSER
 
 def clean_path(path: str) -> str:
     """Limpia una ruta:
@@ -549,57 +546,4 @@ def resolve_all_possible_paths(args_dict, keys_to_check=None):
                     resolved_parts.append(resolve_path(part))
             args_dict[key] = ', '.join(resolved_parts) if ',' in value else resolved_parts[0]
 
-def parse_text_to_iso8601(date_str):
-    """
-    Intenta convertir una cadena de fecha a formato ISO 8601 (UTC a medianoche).
 
-    Soporta:
-    - Día/Mes/Año (varios formatos)
-    - Año/Mes o Mes/Año (como '2024-03' o '03/2024')
-    - Solo año (como '2024')
-
-    Args:
-        date_str (str): La cadena de fecha.
-
-    Returns:
-        str | None: Fecha en formato ISO 8601 o None si no se pudo convertir.
-    """
-    if not date_str or not date_str.strip():
-        return None
-    date_str = date_str.strip()
-
-    # Lista de formatos con día, mes y año
-    date_formats = [
-        "%d/%m/%Y",
-        "%d-%m-%Y",
-        "%Y-%m-%d",
-        "%Y/%m/%d",
-    ]
-    for fmt in date_formats:
-        try:
-            dt = datetime.strptime(date_str, fmt)
-            return dt.strftime("%Y-%m-%dT00:00:00.000Z")
-        except ValueError:
-            continue
-    # Año y mes: YYYY-MM, YYYY/MM, MM-YYYY, MM/YYYY
-    try:
-        match = re.fullmatch(r"(\d{4})[-/](\d{1,2})", date_str)
-        if match:
-            year, month = int(match.group(1)), int(match.group(2))
-            dt = datetime(year, month, 1)
-            return dt.strftime("%Y-%m-%dT00:00:00.000Z")
-        match = re.fullmatch(r"(\d{1,2})[-/](\d{4})", date_str)
-        if match:
-            month, year = int(match.group(1)), int(match.group(2))
-            dt = datetime(year, month, 1)
-            return dt.strftime("%Y-%m-%dT00:00:00.000Z")
-    except Exception:
-        pass
-    # Solo año
-    if re.fullmatch(r"\d{4}", date_str):
-        try:
-            dt = datetime(int(date_str), 1, 1)
-            return dt.strftime("%Y-%m-%dT00:00:00.000Z")
-        except Exception:
-            pass
-    return None

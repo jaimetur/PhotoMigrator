@@ -9,23 +9,30 @@ if src_path not in sys.path:
 # ------------------------------------------------------------
 
 import shutil
-import zipfile
 import tempfile
 import subprocess
 import glob
-import platform
 from pathlib import Path
-from nuitka.Options import shallAskForWindowsUIAccessRights
 
-from GlobalVariables import SCRIPT_NAME, SCRIPT_VERSION, GPTH_VERSION, EXIF_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
-import GlobalVariables as GV
-from Utils import zip_folder, unzip_to_temp, unzip, unzip_flatten, clear_screen, print_arguments_pretty, get_os, get_arch, resource_path, ensure_executable
+from Core.GlobalVariables import SCRIPT_NAME, SCRIPT_VERSION, GPTH_VERSION, INCLUDE_EXIF_TOOL, COPYRIGHT_TEXT, COMPILE_IN_ONE_FILE
+from Utils.GeneralUtils import clear_screen, print_arguments_pretty, get_os, get_arch, ensure_executable
+from Utils.FileUtils import unzip_to_temp, zip_folder, resource_path
+
+global OPERATING_SYSTEM
+global ARCHITECTURE
+global SCRIPT_SOURCE_NAME
+global SCRIPT_VERSION_WITHOUT_V
+global SCRIPT_NAME_VERSION
+global root_dir
+global script_name_with_version_os_arch
+global script_zip_file
+global archive_path_relative
 
 def include_extrafiles_and_zip(input_file, output_file):
     extra_files_to_subdir = [
         {
             'subdir': '', # Para indicar que estos ficheros van al directorio raiz del script
-            'files': ["./README.md", "./Config.ini"]
+            'files': ["./Config.ini"]
         },
         {
             'subdir': 'assets/logos',# Estos ficheros van al subdirectorio 'assets'
@@ -33,7 +40,7 @@ def include_extrafiles_and_zip(input_file, output_file):
         },
         {
             'subdir': 'docs',# Estos ficheros van al subdirectorio 'docs'
-            'files': ["./docs/RELEASES-NOTES.md", "./docs/ROADMAP.md"]
+            'files': ["./README.md", "./CHANGELOG.md", "./ROADMAP.md", "./DOWNLOAD.md", "./CODE_OF_CONDUCT.md", "./LICENSE"]
         },
         {
             'subdir': 'help',  # Estos ficheros van al subdirectorio 'help'
@@ -95,28 +102,28 @@ def extract_release_body(download_file, input_file, output_file):
     with open(input_file, 'r', encoding='utf-8') as infile:
         lines = infile.readlines()
     # Initialize key indices and counter
-    release_notes_index = None
+    changelog_index = None
     second_release_index = None
     release_count = 0
-    # Loop through lines to find the start of the "Release Notes" section and locate the second occurrence of "## Release"
+    # Loop through lines to find the start of the "Changelog" section and locate the second occurrence of "## Release"
     for i, line in enumerate(lines):
-        if line.strip() == "# 🗓️ Releases Notes":
-            release_notes_index = i
-            lines[i] = lines[i].replace("# 🗓️ Releases Notes", "# 🗓️ Release Notes")
+        if line.strip() == "# 🗓️ CHANGELOG":
+            changelog_index = i
+            # lines[i] = lines[i].replace("# 🗓️ CHANGELOG", "# 🗓️ Changelog")
         if "## Release:" in line:
             release_count += 1
             if release_count == 2:
                 second_release_index = i
                 break
     # Validate that all release notes section exists
-    if release_notes_index is None:
+    if changelog_index is None:
         print("Required sections not found in the file.")
         return
-    # Extract content from "## Release Notes:" to the second "## Release"
+    # Extract content from "## Changelog:" to the second "## Release"
     if second_release_index is not None:
-        release_section = lines[release_notes_index:second_release_index]
+        release_section = lines[changelog_index:second_release_index]
     else:
-        release_section = lines[release_notes_index:]
+        release_section = lines[changelog_index:]
     # Read content of download_file
     with open(download_file, 'r', encoding='utf-8') as df:
         download_content = df.readlines()
@@ -230,14 +237,14 @@ def main(compiler='pyinstaller', compile_in_one_file=COMPILE_IN_ONE_FILE):
     # print("Extracting body of CURRENT-RELEASE-NOTES and adding ROADMAP to file README.md...")
     print("Extracting body of CURRENT-RELEASE-NOTES...")
 
-    # Ruta de los archivos RELEASES-NOTES.md, CURRENT-RELEASE.md, README.md y ROADMAP.md
-    download_filepath = os.path.join(root_dir, 'docs', 'DOWNLOAD.md')
-    releases_filepath = os.path.join(root_dir, 'docs', 'RELEASES-NOTES.md')
+    # Ruta de los archivos CHANGELOG.md, CURRENT-RELEASE.md, README.md y ROADMAP.md
+    download_filepath = os.path.join(root_dir, 'DOWNLOAD.md')
+    releases_filepath = os.path.join(root_dir, 'CHANGELOG.md')
     current_release_filepath = os.path.join(root_dir, 'CURRENT-RELEASE.md')
-    roadmap_filepath = os.path.join(root_dir, 'docs', 'ROADMAP.md')
-    readme_filepath = os.path.join(root_dir,'README.md')
+    roadmap_filepath = os.path.join(root_dir, 'ROADMAP.md')
+    readme_filepath = os.path.join(root_dir, 'README.md')
 
-    # Extraer el cuerpo de la Release actual de RELEASES-NOTES.md
+    # Extraer el cuerpo de la Release actual de CHANGELOG.md
     extract_release_body(download_filepath, releases_filepath, current_release_filepath)
     print(f"File '{current_release_filepath}' created successfully!.")
 

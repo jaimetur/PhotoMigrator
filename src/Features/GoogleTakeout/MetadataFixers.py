@@ -1,17 +1,16 @@
-import os,sys
+import os
 import platform
 import subprocess
-import logging
-import select
-import threading
-import queue
-import re
-import time
+import sys
+
 from packaging.version import Version
 
-from CustomLogger import set_log_level
-from GlobalVariables import LOGGER, GPTH_VERSION, ARGS
-from Utils import get_os, get_arch, resource_path, ensure_executable, run_command, print_arguments_pretty
+from Core.CustomLogger import set_log_level
+from Core.GlobalVariables import LOGGER, GPTH_VERSION, ARGS
+from Features.GoogleTakeout.GoogleTakeoutFunctions import run_command
+from Utils.FileUtils import resource_path
+from Utils.GeneralUtils import get_os, get_arch, ensure_executable, print_arguments_pretty
+
 
 def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=False, capture_errors=True, print_messages=True, skip_extras=False, symbolic_albums=False, move_takeout_folder=False, ignore_takeout_structure=False, step_name="", log_level=None):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
@@ -56,7 +55,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         gpth_command = [gpth_tool_path, "--input", input_folder, "--output", output_folder, "--no-interactive"]
 
         # Add verbosity depending on log-level
-        if ARGS['log-level'].lower() in ['verbose', 'debug']:
+        if ARGS['log-level'].lower() in ['verbose']:
             gpth_command.append("--verbose")
 
         # If ignore_takeout_structure is True, we append --fix input_folder to the gpth tool call
@@ -116,13 +115,13 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
 
         try:
             command = ' '.join(gpth_command)
-            LOGGER.info(f"{step_name}🛠️ Fixing and 🧩 organizing all your Takeout photos and videos.")
+            LOGGER.info(f"{step_name}🪛 Fixing and 🧩 organizing all your Takeout photos and videos.")
             LOGGER.info(f"{step_name}⏳ This process may take long time, depending on how big is your Takeout. Be patient... 🙂.")
             LOGGER.verbose(f"{step_name}Running GPTH with following command: {command}")
             print_arguments_pretty(gpth_command, title='GPTH Command', step_name=step_name, use_logger=True)
 
             # Run GPTH Tool
-            ok = run_command(gpth_command, LOGGER, capture_output=capture_output, capture_errors=capture_errors, print_messages=print_messages, step_name=step_name)      # Shows the output in real time and capture it to the LOGGER.
+            ok = run_command(gpth_command, capture_output=capture_output, capture_errors=capture_errors, print_messages=print_messages, step_name=step_name)      # Shows the output in real time and capture it to the LOGGER.
             LOGGER.info(f"{step_name}GPTH Return Code: {ok}")
 
             # Rename folder 'ALL_PHOTOS' by 'No-Albums'
@@ -159,7 +158,7 @@ def fix_metadata_with_exif_tool(output_folder, log_level=None):
         elif current_os == "Windows":
             script_name = "exiftool.exe"
         # Usar resource_path para acceder a archivos o directorios:
-        exif_tool_path = resource_path(os.path.join("exif_tool",script_name))
+        exif_tool_path = resource_path(os.path.join("exif_tool", script_name))
 
         # Ensure exec permissions for the binary file
         ensure_executable(exif_tool_path)

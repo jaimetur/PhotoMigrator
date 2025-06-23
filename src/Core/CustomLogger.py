@@ -1,48 +1,52 @@
 # CustomLogger.py
-import os,sys
 import logging
-from colorama import Fore, Style
-from contextlib import contextmanager
+import os
+import sys
 import threading
-from GlobalVariables import LOG_LEVEL, VERBOSE_LEVEL_NUM
-import GlobalVariables as GV
+from contextlib import contextmanager
+
+from colorama import Fore, Style
+
+from Core import GlobalVariables as GV
+from Utils.StandaloneUtils import resolve_path
+
 #------------------------------------------------------------------
 # 1) Definir el nuevo nivel VERBOSE (valor 5)
-logging.addLevelName(VERBOSE_LEVEL_NUM, "VERBOSE")
+logging.addLevelName(GV.VERBOSE_LEVEL_NUM, "VERBOSE")
 
 # 2) Añadir el método `verbose()` a Logger
 def verbose(self, message, *args, **kws):
-    if self.isEnabledFor(VERBOSE_LEVEL_NUM):
-        self._log(VERBOSE_LEVEL_NUM, message, args, **kws)
+    if self.isEnabledFor(GV.VERBOSE_LEVEL_NUM):
+        self._log(GV.VERBOSE_LEVEL_NUM, message, args, **kws)
 logging.Logger.verbose = verbose
 #------------------------------------------------------------------
 
 #------------------------------------------------------------------
-# Replace original print to use the same LOGGER formatter
+# Replace original print to use the same GV.LOGGER formatter
 def print_verbose(*args, **kwargs):
     # Construimos el mensaje igual que print normal
     message = " ".join(str(a) for a in args)
-    # Y lo enviamos al LOGGER como INFO (o al nivel que quieras)
+    # Y lo enviamos al GV.LOGGER como INFO (o al nivel que quieras)
     GV.LOGGER.verbose(message)
 def print_debug(*args, **kwargs):
     # Construimos el mensaje igual que print normal
     message = " ".join(str(a) for a in args)
-    # Y lo enviamos al LOGGER como INFO (o al nivel que quieras)
+    # Y lo enviamos al GV.LOGGER como INFO (o al nivel que quieras)
     GV.LOGGER.debug(message)
 def print_info(*args, **kwargs):
     # Construimos el mensaje igual que print normal
     message = " ".join(str(a) for a in args)
-    # Y lo enviamos al LOGGER como INFO (o al nivel que quieras)
+    # Y lo enviamos al GV.LOGGER como INFO (o al nivel que quieras)
     GV.LOGGER.info(message)
 def print_warning(*args, **kwargs):
     # Construimos el mensaje igual que print normal
     message = " ".join(str(a) for a in args)
-    # Y lo enviamos al LOGGER como INFO (o al nivel que quieras)
+    # Y lo enviamos al GV.LOGGER como INFO (o al nivel que quieras)
     GV.LOGGER.warning(message)
 def print_critical(*args, **kwargs):
     # Construimos el mensaje igual que print normal
     message = " ".join(str(a) for a in args)
-    # Y lo enviamos al LOGGER como INFO (o al nivel que quieras)
+    # Y lo enviamos al GV.LOGGER como INFO (o al nivel que quieras)
     GV.LOGGER.critical(message)
 #------------------------------------------------------------------
 # Class to Downgrade from INFO to DEBUG/WARNING/ERROR when certain chain is detected
@@ -137,13 +141,13 @@ class CustomInMemoryLogHandler(logging.Handler):
         # self.log_queue.append(msg)
 
 class LoggerStream:
-    """Intercepta stdout y stderr para redirigirlos al LOGGER."""
+    """Intercepta stdout y stderr para redirigirlos al GV.LOGGER."""
     def __init__(self, logger, level=logging.INFO):
         self.logger = logger
         self.level = level
     def write(self, message):
         if message.strip():
-            self.logger.log(self.level, message.strip())  # Enviar a LOGGER
+            self.logger.log(self.level, message.strip())  # Enviar a GV.LOGGER
     def flush(self):
         """No es necesario hacer nada aquí, pero lo definimos para compatibilidad."""
         pass
@@ -154,20 +158,20 @@ class LoggerStream:
 
 # 🚀 Clase para capturar `print()` y `stderr` sin afectar `rich.Live`
 class LoggerCapture:
-    """Captura stdout y stderr y los redirige al LOGGER sin afectar Rich.Live"""
+    """Captura stdout y stderr y los redirige al GV.LOGGER sin afectar Rich.Live"""
     def __init__(self, logger, level):
         self.logger = logger
         self.level = level
     def write(self, message):
         if message.strip():
-            self.logger.log(self.level, message.strip())  # Guardar en el LOGGER sin imprimir en pantalla
+            self.logger.log(self.level, message.strip())  # Guardar en el GV.LOGGER sin imprimir en pantalla
     def flush(self):
         pass  # No es necesario para logging
 
 
 # Integrar tqdm con el logger
 class LoggerConsoleTqdm:
-    """Redirige la salida de tqdm solo a los manejadores de consola del LOGGER."""
+    """Redirige la salida de tqdm solo a los manejadores de consola del GV.LOGGER."""
     def __init__(self, logger, level=logging.INFO):
         self.logger = logger
         self.level = level
@@ -209,9 +213,9 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
     Configures logger to a log file and console simultaneously.
     The console messages do not include timestamps.
     """
-    from GlobalFunctions import resolve_path
+
     if not log_filename:
-        log_filename=script_name
+        log_filename=GV.SCRIPT_NAME
 
     # Crear la carpeta de logs si no existe
     # Resolver log_folder a ruta absoluta
@@ -219,10 +223,10 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
     os.makedirs(log_folder, exist_ok=True)
 
     # Clear existing handlers to avoid duplicate logs
-    LOGGER = logging.getLogger('PhotoMigrator')
+    GV.LOGGER = logging.getLogger('PhotoMigrator')
 
-    if LOGGER.hasHandlers():
-        LOGGER.handlers.clear()
+    if GV.LOGGER.hasHandlers():
+        GV.LOGGER.handlers.clear()
 
     if not skip_console:
         # Set up console handler (simple output without asctime and levelname)
@@ -236,7 +240,7 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
         )
         console_handler.addFilter(ChangeLevelFilter())      # Add Filter to Downgrade from INFO to DEBUG/WARNING/ERROR when detected chains
         console_handler.is_console_output = True
-        LOGGER.addHandler(console_handler)
+        GV.LOGGER.addHandler(console_handler)
 
     if not skip_logfile:
         if format.lower() in ['log', 'all']:
@@ -251,7 +255,7 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
                 )
             )
             file_handler_detailed.addFilter(ChangeLevelFilter())  # Add Filter to Downgrade from INFO to DEBUG/WARNING/ERROR when detected chains
-            LOGGER.addHandler(file_handler_detailed)
+            GV.LOGGER.addHandler(file_handler_detailed)
         elif format.lower() in ['txt', 'all']:
             # Set up txt file handler (output without asctime and levelname)
             log_file = os.path.join(log_folder, log_filename + '.txt')
@@ -265,15 +269,15 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
                 )
             )
             file_handler_plain.addFilter(ChangeLevelFilter())  # Add Filter to Downgrade from INFO to DEBUG/WARNING/ERROR when detected chains
-            LOGGER.addHandler(file_handler_plain)
+            GV.LOGGER.addHandler(file_handler_plain)
         else:
             print (f"{GV.TAG_INFO}Unknown format '{format}' for Logger. Please select a valid format between: ['log', 'txt', 'all].")
 
     # Set the log level for the root logger
-    LOGGER.setLevel(log_level)
-    LOGGER.propagate = False # <-- IMPORTANTE PARA EVITAR USAR EL LOOGER RAIZ
+    GV.LOGGER.setLevel(log_level)
+    GV.LOGGER.propagate = False # <-- IMPORTANTE PARA EVITAR USAR EL LOOGER RAIZ
 
-    return LOGGER
+    return GV.LOGGER
 
 # ==============================================================================
 #                               LOGGING FUNCTIONS
