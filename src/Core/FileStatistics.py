@@ -229,7 +229,7 @@ def count_files_per_type_and_extract_dates_multi_process(input_folder, max_files
                     remaining = avg_block_time * (num_blocks - completed_blocks)
                     LOGGER.info(
                         f"{step_name}📊 Block {completed_blocks}/{num_blocks} done • "
-                        f"Elapsed: {int(elapsed // 60)}m • Remaining: {int(remaining // 60)}m"
+                        f"Elapsed: {int(elapsed // 60)}m • Estimated Remaining: {int(remaining // 60)}m"
                     )
 
                     merged_counters_list.append(block_counters)
@@ -487,7 +487,7 @@ def count_files_per_type_and_extract_dates_multi_threads(input_folder, max_files
                     avg_block_time = elapsed / completed_blocks
                     remain = avg_block_time * (num_blocks - completed_blocks)
                     LOGGER.debug(f"{step_name}📊 Block {completed_blocks}/{num_blocks} done • "
-                                 f"Elapsed: {int(elapsed // 60)}m • Remaining: {int(remain // 60)}m")
+                                 f"Elapsed: {int(elapsed // 60)}m • Estimated Remaining: {int(remain // 60)}m")
 
                     merged_counters_list.append(block_counters)
                     merged_dates.update(block_dates)
