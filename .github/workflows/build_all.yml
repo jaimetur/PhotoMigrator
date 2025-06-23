@@ -456,10 +456,14 @@ jobs:
 
       - name: 🏷️ Extract SCRIPT_VERSION from GlobalVariables.py
         run: |
-          VERSION_LINE=$(grep '^SCRIPT_VERSION' ./src/Core/GlobalVariables.py)
-          RAW_VERSION=$(echo "$VERSION_LINE" | cut -d'"' -f2)
-          SCRIPT_VERSION=${RAW_VERSION#v}
-          echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> $GITHUB_ENV
+          # 1️⃣ Obtenemos el valor sin la “v”
+          RAW_VERSION=$(grep -oP '^SCRIPT_VERSION_WITHOUT_V\s*=\s*"\K[^"]+' ./src/Core/GlobalVariables.py)
+
+          # 2️⃣ Le añadimos la “v” delante
+          SCRIPT_VERSION="v${RAW_VERSION}"
+
+          # 3️⃣ Lo exportamos para los siguientes steps
+          echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> "$GITHUB_ENV"
           echo "✅ SCRIPT_VERSION = ${SCRIPT_VERSION}"
 
       - name: 🧼 Delete GitHub release, tag and associated discussion (only for stable releases)
