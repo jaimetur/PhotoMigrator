@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from Core.CustomLogger import set_log_level
-from Core.FileStatistics import count_files_per_type_and_date
+from Core.FileStatistics import count_files_per_type_and_extract_dates_multi_threads
 from Core.GlobalVariables import ARGS, LOG_LEVEL, VERBOSE_LEVEL_NUM, LOGGER
 from Features.GoogleTakeout import MetadataFixers
 # Import ClassLocalFolder (Parent Class of this)
@@ -167,15 +167,15 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # New function to count all file types and extract also date info
             # if LOG_LEVEL in [logging.DEBUG, VERBOSE_LEVEL_NUM]:
             #     # Configura y arranca el profiler justo antes de la llamada que quieres medir
-            #     LOGGER.debug(f"{step_name}Profiling Function count_files_per_type_and_date")
-            #     # initial_takeout_counters = profile_and_print(count_files_per_type_and_date, input_folder=input_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL, live_stats=True, interval=10, step_name_for_profile=step_name)
-            #     initial_takeout_counters, dates = profile_and_print(count_files_per_type_and_date, input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL, live_stats=True, interval=10, step_name_for_profile=step_name)
+            #     LOGGER.debug(f"{step_name}Profiling Function count_files_per_type_and_extract_dates_multi_threads")
+            #     # initial_takeout_counters = profile_and_print(count_files_per_type_and_extract_dates_multi_threads, input_folder=input_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL, live_stats=True, interval=10, step_name_for_profile=step_name)
+            #     initial_takeout_counters, dates = profile_and_print(count_files_per_type_and_extract_dates_multi_threads, input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL, live_stats=True, interval=10, step_name_for_profile=step_name)
             # else:
-            #     # initial_takeout_counters = count_files_per_type_and_date(input_folder=input_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL)
-            #     initial_takeout_counters, dates = count_files_per_type_and_date(input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL)
+            #     # initial_takeout_counters = count_files_per_type_and_extract_dates_multi_threads(input_folder=input_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL)
+            #     initial_takeout_counters, dates = count_files_per_type_and_extract_dates_multi_threads(input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL)
 
             # New function to count all file types and extract also date info
-            initial_takeout_counters, dates = count_files_per_type_and_date(input_folder=input_folder, output_file="input_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
+            initial_takeout_counters, dates = count_files_per_type_and_extract_dates_multi_threads(input_folder=input_folder, output_file="input_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
 
             # Clean input dict
             self.result['input_counters'].clear()
@@ -637,10 +637,10 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # 1. First count all Files in output Folder
 
             # New function to count all file types and extract also date info
-            # output_counters = count_files_per_type_and_date(input_folder=output_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL)
+            # output_counters = count_files_per_type_and_extract_dates_multi_threads(input_folder=output_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL)
 
             # New function to count all file types and extract also date info
-            output_counters, dates = count_files_per_type_and_date(input_folder=output_folder, output_file="output_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
+            output_counters, dates = count_files_per_type_and_extract_dates_multi_threads(input_folder=output_folder, output_file="output_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
 
             # Clean input dict
             self.result['output_counters'].clear()
