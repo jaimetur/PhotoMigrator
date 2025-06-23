@@ -184,7 +184,7 @@ jobs:
   # JOB Docker packaging (single run)
   # ==========================================================================================================================
   build-docker:
-    name: 🐳 Build Docker Workflow
+    name: 🐳 Build Docker
     uses: ./.github/workflows/build_docker.yml
     needs: set-input-matrix
     with:
@@ -198,7 +198,8 @@ jobs:
   # ==========================================================================================================================
   # JOB build
   # ==========================================================================================================================
-  build:
+  build-binaries:
+    name: ▶️ Build Binaries
     # Different VM images to compile in all SO and all Archs according to:
     # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
     needs: set-input-matrix
@@ -440,7 +441,7 @@ jobs:
   create-release:
     name: 🏷️ Create Release
     needs:
-      - build
+      - build-binaries
       - build-docker
 
     runs-on: ubuntu-22.04
