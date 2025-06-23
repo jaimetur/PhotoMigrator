@@ -32,7 +32,7 @@ def include_extrafiles_and_zip(input_file, output_file):
     extra_files_to_subdir = [
         {
             'subdir': '', # Para indicar que estos ficheros van al directorio raiz del script
-            'files': ["./README.md", "./Config.ini"]
+            'files': ["./Config.ini"]
         },
         {
             'subdir': 'assets/logos',# Estos ficheros van al subdirectorio 'assets'
@@ -40,7 +40,7 @@ def include_extrafiles_and_zip(input_file, output_file):
         },
         {
             'subdir': 'docs',# Estos ficheros van al subdirectorio 'docs'
-            'files': ["./docs/CHANGELOG.md", "./docs/ROADMAP.md"]
+            'files': ["./README.md", "./CHANGELOG.md", "./ROADMAP.md", "./DOWNLOAD.md", "./CODE_OF_CONDUCT.md", "./LICENSE"]
         },
         {
             'subdir': 'help',  # Estos ficheros van al subdirectorio 'help'

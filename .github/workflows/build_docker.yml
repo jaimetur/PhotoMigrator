@@ -184,13 +184,18 @@ jobs:
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           mkdir -p PhotoMigrator/docker
+          mkdir -p PhotoMigrator/docker/docs
           cp docker/PhotoMigrator.sh PhotoMigrator/docker/
           cp docker/PhotoMigrator.bat PhotoMigrator/docker/
           cp docker/docker.conf PhotoMigrator/docker/
           cp Config.ini PhotoMigrator/docker/
-          cp -r docs PhotoMigrator/docker/
           cp -r help PhotoMigrator/docker/
           cp README.md PhotoMigrator/docker/docs/README.md
+          cp CHANGELOG.md PhotoMigrator/docker/docs/CHANGELOG.md
+          cp ROADMAP.md PhotoMigrator/docker/docs/ROADMAP.md
+          cp DOWNLOAD.md PhotoMigrator/docker/docs/DOWNLOAD.md
+          cp CODE_OF_CONDUCT.md PhotoMigrator/docker/docs/CODE_OF_CONDUCT.md
+          cp LICENSE PhotoMigrator/docker/docs/LICENSE
           zip -r PhotoMigrator_v${{ env.SCRIPT_VERSION }}_docker.zip PhotoMigrator
 
       # 📤 Upload Docker ZIP as artifact to be used in the main workflow
