@@ -574,7 +574,6 @@ def print_dict_pretty(result, log_level):
             LOGGER.error(f"{key:35}: {value}")
 
 
-
 def timed_subprocess(cmd, step_name=""):
     """
     Ejecuta cmd con Popen, espera a que termine y registra sólo
