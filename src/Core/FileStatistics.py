@@ -1,18 +1,19 @@
 import json
 import multiprocessing
 import os
+import platform
+import subprocess
 import time
 from datetime import datetime
 from pathlib import Path
 from subprocess import run, DEVNULL
-import platform
 from tempfile import TemporaryDirectory
+
 from PIL import Image
-import subprocess
 
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
-from Core.GlobalVariables import PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, TIMESTAMP, LOGGER
+from Core.GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, TIMESTAMP
 from Utils.GeneralUtils import timed_subprocess
 
 
