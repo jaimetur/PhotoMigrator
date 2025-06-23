@@ -7,18 +7,19 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from Core.CustomLogger import set_log_level
+from Core.FileStatistics import count_files_per_type_and_date
 from Core.GlobalVariables import ARGS, LOG_LEVEL, VERBOSE_LEVEL_NUM, LOGGER
 from Features.GoogleTakeout import MetadataFixers
 # Import ClassLocalFolder (Parent Class of this)
 from Features.GoogleTakeout.ClassLocalFolder import ClassLocalFolder
 from Features.GoogleTakeout.GoogleTakeoutFunctions import contains_takeout_structure, unpack_zips
+from Features.GoogleTakeout.GoogleTakeoutFunctions import fix_mp4_files, fix_truncations, sync_mp4_timestamps_with_images, force_remove_directory, copy_move_folder, organize_files_by_date, move_albums, count_valid_albums
 from Features.StandAlone.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAlone.Duplicates import find_duplicates
 from Features.StandAlone.FixSymLinks import fix_symlinks_broken
-from Features.GoogleTakeout.GoogleTakeoutFunctions import fix_mp4_files, fix_truncations, sync_mp4_timestamps_with_images, force_remove_directory, copy_move_folder, organize_files_by_date, move_albums, count_valid_albums, count_files_per_type_and_date
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs, remove_folder
-from Utils.StandaloneUtils import change_working_dir
 from Utils.GeneralUtils import profile_and_print
+from Utils.StandaloneUtils import change_working_dir
 
 
 ##############################################################################
@@ -157,21 +158,24 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # ----------------------------------------------------------------------------------------------------------------------
             # Determine the input_folder deppending if the Takeout have been unzipped or not
             input_folder = self.get_input_folder()
-            step_name = '🔍 [PRE-CHECKS]-[Statistics   ] : '
+            step_name = '🔍 [PRE-CHECKS]-[Count Files  ] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Counting files in Takeout Folder: {input_folder}...")
 
             # New function to count all file types and extract also date info
-            if LOG_LEVEL in [logging.DEBUG, VERBOSE_LEVEL_NUM]:
-                # Configura y arranca el profiler justo antes de la llamada que quieres medir
-                LOGGER.debug(f"{step_name}Profiling Function count_files_per_type_and_date")
-                # initial_takeout_counters = profile_and_print(count_files_per_type_and_date, input_folder=input_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL, live_stats=True, interval=10, step_name_for_profile=step_name)
-                initial_takeout_counters, dates = profile_and_print(count_files_per_type_and_date, input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL, live_stats=True, interval=10, step_name_for_profile=step_name)
-            else:
-                # initial_takeout_counters = count_files_per_type_and_date(input_folder=input_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL)
-                initial_takeout_counters, dates = count_files_per_type_and_date(input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL)
+            # if LOG_LEVEL in [logging.DEBUG, VERBOSE_LEVEL_NUM]:
+            #     # Configura y arranca el profiler justo antes de la llamada que quieres medir
+            #     LOGGER.debug(f"{step_name}Profiling Function count_files_per_type_and_date")
+            #     # initial_takeout_counters = profile_and_print(count_files_per_type_and_date, input_folder=input_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL, live_stats=True, interval=10, step_name_for_profile=step_name)
+            #     initial_takeout_counters, dates = profile_and_print(count_files_per_type_and_date, input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL, live_stats=True, interval=10, step_name_for_profile=step_name)
+            # else:
+            #     # initial_takeout_counters = count_files_per_type_and_date(input_folder=input_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL)
+            #     initial_takeout_counters, dates = count_files_per_type_and_date(input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL)
+
+            # New function to count all file types and extract also date info
+            initial_takeout_counters, dates = count_files_per_type_and_date(input_folder=input_folder, output_file="input_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
 
             # Clean input dict
             self.result['input_counters'].clear()
@@ -232,7 +236,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Sub-Step 1: Delete hidden subfolders '@eaDir'
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🧹 [PRE-PROCESS]-[Clean Takeout Folder] : '
+            step_name = '🛠️ [PRE-PROCESS]-[Clean Takeout Folder] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
@@ -247,7 +251,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Sub-Step 2: Fix .MP4 JSON
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🧹 [PRE-PROCESS]-[MP4/Live Pics. Fixer] : '
+            step_name = '🛠️ [PRE-PROCESS]-[MP4/Live Pics. Fixer] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
@@ -264,7 +268,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Sub-Step 3: Fix truncated suffixes (such as '-ha edit.jpg' or '-ha e.jpg', or '-effec', or '-supplemen',...)
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🧹 [PRE-PROCESS]-[Truncations Fixer   ] : '
+            step_name = '🛠️ [PRE-PROCESS]-[Truncations Fixer   ] : '
             self.substep += 1
             sub_step_start_time = datetime.now()
             LOGGER.info(f"")
@@ -300,7 +304,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # Finally show TOTAL DURATION OF PRE-PROCESS PHASE
             step_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
-            step_name = '🧹 [PRE-PROCESS] : '
+            step_name = '🛠️ [PRE-PROCESS] : '
             LOGGER.info(f"")
             LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
             # Índice self.substep posiciones antes del final
@@ -604,7 +608,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
-            # Step 11: Renamove Empty Folders
+            # Step 11: Remove Empty Folders
             # ----------------------------------------------------------------------------------------------------------------------
             step_name = '🧹 [POST-PROCESS]-[Remove Empty Folders] : '
             step_start_time = datetime.now()
@@ -624,7 +628,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Step 12: Count Albums
             # ----------------------------------------------------------------------------------------------------------------------
-            step_name = '🔢 [POST-PROCESS]-[Counting Files & Albums] : '
+            step_name = '🔢 [POST-PROCESS]-[Count Files & Albums] : '
             step_start_time = datetime.now()
             self.step += 1
             LOGGER.info(f"")
@@ -632,10 +636,15 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{self.step}. COUNTING FILES AND ALBUMS... ")
             LOGGER.info(f"==========================================")
             LOGGER.info(f"")
+
             # 1. First count all Files in output Folder
+
             # New function to count all file types and extract also date info
             # output_counters = count_files_per_type_and_date(input_folder=output_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL)
-            output_counters, dates = count_files_per_type_and_date(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
+
+            # New function to count all file types and extract also date info
+            output_counters, dates = count_files_per_type_and_date(input_folder=output_folder, output_file="output_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
+
             # Clean input dict
             self.result['output_counters'].clear()
             # Assign all pairs key-value from output_counters to counter['output_counters'] dict
@@ -652,12 +661,29 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
             self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
+            # Step 13: FINAL CLEANING
+            # ----------------------------------------------------------------------------------------------------------------------
+            if ARGS['google-move-takeout-folder'] or not ARGS['google-move-takeout-folder']:
+                # TODO: Insert logic here if GPTH implements again --copy argument to avoid remove input folder when using this argument
+                step_name = '🧹 [FINAL-CLEANING] : '
+                step_start_time = datetime.now()
+                self.step += 1
+                LOGGER.info(f"")
+                LOGGER.info(f"==========================================")
+                LOGGER.info(f"{self.step}. FINAL CLEANING... ")
+                LOGGER.info(f"==========================================")
+                LOGGER.info(f"")
+                # Removes completely the input_folder because all the files (except JSON) have been already moved to output folder
+                remove_folder(folder=input_folder, step_name=step_name)
+                step_end_time = datetime.now()
+                formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
+                LOGGER.info(f"")
+                LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
+                self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
+
+            
             # FINISH
             # ----------------------------------------------------------------------------------------------------------------------
-            # TODO: Insert logic here if GPTH implements again --copy argument to avoid remove input folder when using this argument
-            if ARGS['google-move-takeout-folder'] or not ARGS['google-move-takeout-folder']:
-                # Now removes completelly the input_folder because all the files (except JSON) have been already moved to output folder
-                remove_folder(input_folder)
             processing_end_time = datetime.now()
             formatted_duration = str(timedelta(seconds=round((processing_end_time - processing_start_time).total_seconds())))
             LOGGER.info(f"")

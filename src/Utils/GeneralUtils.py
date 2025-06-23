@@ -16,7 +16,7 @@ import piexif
 from tqdm import tqdm as original_tqdm
 
 from Core.CustomLogger import LoggerConsoleTqdm, set_log_level
-from Core.GlobalVariables import ARGS, VIDEO_EXT, PHOTO_EXT, TAG_INFO, TAG_ERROR, LOGGER
+from Core.GlobalVariables import ARGS, VIDEO_EXT, PHOTO_EXT, TAG_INFO, TAG_ERROR, LOGGER, VERBOSE_LEVEL_NUM
 
 # Crear instancia global del wrapper
 TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
@@ -120,7 +120,7 @@ def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logge
                 i += 1
     else:
         if use_custom_print:
-            from CustomLogger import print_info
+            from Core.CustomLogger import print_info
             print_info(f"{title}:")
             while i < len(arguments):
                 arg = arguments[i]
@@ -553,7 +553,7 @@ def get_subfolders_with_exclusions(input_folder, exclude_subfolder=None):
     return subfolders
 
 
-def print_dict_pretty(result):
+def print_dict_pretty(result, log_level):
     # Si es un dataclass, lo convierto a dict
     if is_dataclass(result):
         result = asdict(result)
@@ -562,7 +562,16 @@ def print_dict_pretty(result):
         raise TypeError(f"Se esperaba dict o dataclass, pero recibí {type(result).__name__}")
     # Imprimo cada par clave:valor de forma alineada
     for key, value in result.items():
-        LOGGER.info(f"{key:35}: {value}")
+        if log_level == VERBOSE_LEVEL_NUM:
+            LOGGER.verbose(f"{key:35}: {value}")
+        elif log_level == logging.DEBUG:
+            LOGGER.debug(f"{key:35}: {value}")
+        elif log_level == logging.INFO:
+            LOGGER.info(f"{key:35}: {value}")
+        elif log_level == logging.WARNING:
+            LOGGER.warning(f"{key:35}: {value}")
+        elif log_level == logging.ERROR:
+            LOGGER.error(f"{key:35}: {value}")
 
 
 

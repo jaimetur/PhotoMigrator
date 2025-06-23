@@ -205,8 +205,9 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
         # result = takeout.process(capture_output=ARGS['show-gpth-info'], capture_errors=ARGS['show-gpth-errors'], print_messages=True, create_localfolder_object=False, log_level=log_level)
 
         # print result for debugging
-        if LOG_LEVEL == logging.DEBUG:
-            print_dict_pretty(result)
+        if LOG_LEVEL <= logging.DEBUG:
+            LOGGER.debug (f"Process Output:")
+            print_dict_pretty(result, log_level=LOG_LEVEL)
 
         # Extract percentages of totals
         output_perc_photos_with_date = result['output_counters']['photos']['pct_with_date']

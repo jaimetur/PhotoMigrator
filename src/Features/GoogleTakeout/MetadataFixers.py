@@ -55,7 +55,7 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         gpth_command = [gpth_tool_path, "--input", input_folder, "--output", output_folder, "--no-interactive"]
 
         # Add verbosity depending on log-level
-        if ARGS['log-level'].lower() in ['verbose', 'debug']:
+        if ARGS['log-level'].lower() in ['verbose']:
             gpth_command.append("--verbose")
 
         # If ignore_takeout_structure is True, we append --fix input_folder to the gpth tool call

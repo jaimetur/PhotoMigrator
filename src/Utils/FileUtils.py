@@ -11,7 +11,7 @@ from colorama import Style
 
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import LOGGER, TAG_INFO, COLORTAG_DEBUG, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME
-from GeneralUtils.Utils import tqdm
+from Utils.GeneralUtils import tqdm
 
 
 # ---------------------------------------------------------------------------------------------------------------------------
@@ -252,7 +252,7 @@ def remove_empty_dirs(input_folder, log_level=None):
                     pass
 
 
-def remove_folder(folder, log_level=None):
+def remove_folder(folder, step_name='', log_level=None):
     """
     Removes the specified `folder` and all of its contents, logging events
     at the specified `log_level`.
@@ -268,21 +268,21 @@ def remove_folder(folder, log_level=None):
     with set_log_level(LOGGER, log_level):  # Temporarily adjust LOGGER’s level for this operation
         folder_path = Path(folder)
         try:
-            LOGGER.debug(f"Attempting to remove: {folder_path}")
+            LOGGER.debug(f"{step_name}Attempting to remove: {folder_path}")
             shutil.rmtree(folder_path)
-            LOGGER.info(f"Folder '{folder_path}' removed successfully.")
+            LOGGER.info(f"{step_name}Folder '{folder_path}' removed successfully.")
             return True
 
         except FileNotFoundError:
-            LOGGER.warning(f"Folder not found: '{folder_path}'.")
+            LOGGER.warning(f"{step_name}Folder not found: '{folder_path}'.")
             return False
 
         except PermissionError:
-            LOGGER.error(f"Insufficient permissions to remove: '{folder_path}'.")
+            LOGGER.error(f"{step_name}Insufficient permissions to remove: '{folder_path}'.")
             return False
 
         except Exception as e:
-            LOGGER.critical(f"Unexpected error while removing '{folder_path}': {e}")
+            LOGGER.critical(f"{step_name}Unexpected error while removing '{folder_path}': {e}")
             return False
 
 
