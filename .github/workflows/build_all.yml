@@ -457,10 +457,7 @@ jobs:
       - name: 🏷️ Extract SCRIPT_VERSION from GlobalVariables.py
         run: |
           # 1️⃣ Obtenemos el valor sin la “v”
-          RAW_VERSION=$(grep -oP '^SCRIPT_VERSION_WITHOUT_V\s*=\s*"\K[^"]+' ./src/Core/GlobalVariables.py)
-
-          # 2️⃣ Le añadimos la “v” delante
-          SCRIPT_VERSION="v${RAW_VERSION}"
+          SCRIPT_VERSION=$(grep -oP '^SCRIPT_VERSION_WITHOUT_V\s*=\s*"\K[^"]+' ./src/Core/GlobalVariables.py)
 
           # 3️⃣ Lo exportamos para los siguientes steps
           echo "SCRIPT_VERSION=${SCRIPT_VERSION}" >> "$GITHUB_ENV"
