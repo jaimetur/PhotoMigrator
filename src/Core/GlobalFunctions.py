@@ -7,7 +7,7 @@ import Core.GlobalVariables as GV
 from Core.ArgsParser import parse_arguments, checkArgs
 from Core.CustomLogger import log_setup
 from Core.HelpTexts import set_help_texts
-from Core.StandaloneFunctions import resolve_path
+from Utils.StandaloneUtils import resolve_path
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------

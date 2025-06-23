@@ -8,7 +8,7 @@ sys.path.insert(0, src_path)            # Now src is the root for imports
 import importlib
 
 from Core import GlobalVariables as GV
-from Core.StandaloneFunctions import change_working_dir
+from Utils.StandaloneUtils import change_working_dir
 # -------------------------------------------------------------
 # MAIN FUNCTION
 # -------------------------------------------------------------
@@ -96,7 +96,7 @@ def main():
     set_LOGGER()
     set_HELP_TEXTS()
 
-    from Core.Utils import check_OS_and_Terminal
+    from Utils.GeneralUtils import check_OS_and_Terminal
     from Core.ExecutionModes import detect_and_run_execution_mode
 
     # Print the Header (common for all modules)

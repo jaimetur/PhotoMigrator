@@ -8,9 +8,9 @@ from colorama import Style
 from Core import GlobalVariables as GV
 from Core.CustomHelpFormatter import CustomHelpFormatter
 from Core.CustomPager import PagedParser
-from Core.DateFunctions import parse_text_to_iso8601
 from Core.GlobalVariables import SCRIPT_DESCRIPTION, SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_DATE
-from Core.StandaloneFunctions import resolve_path
+from Utils.DateUtils import parse_text_to_iso8601
+from Utils.StandaloneUtils import resolve_path
 
 choices_for_message_levels          = ['verbose', 'debug', 'info', 'warning', 'error']
 choices_for_log_formats             = ['log', 'txt', 'all']

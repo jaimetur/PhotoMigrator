@@ -3,8 +3,8 @@ import re
 import sys
 from configparser import ConfigParser
 
-from Core.StandaloneFunctions import resolve_path
 from Core.GlobalVariables import LOGGER
+from Utils.StandaloneUtils import resolve_path
 
 CONFIG = None
 

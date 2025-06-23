@@ -13,12 +13,11 @@ import requests
 import urllib3
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-import Features.GoogleTakeout.GoogleTakeoutPostprocess as GT_POST
 from Core.CustomLogger import set_log_level
-from Core.DateFunctions import parse_text_datetime_to_epoch
 from Core.GlobalVariables import TAG_INFO, TAG_ERROR, ARGS, LOGGER
-# Import the global LOGGER from GlobalVariables
-from Core.Utils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, is_date_outside_range, confirm_continue
+from Features.GoogleTakeout.GoogleTakeoutFunctions import organize_files_by_date
+from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
+from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue
 
 """
 ----------------------
@@ -2271,7 +2270,7 @@ class ClassSynologyPhotos:
                     total_assets_downloaded += self.pull_asset(asset_id=asset_id, asset_filename=asset_filename, asset_time=asset_time, download_folder=target_folder, log_level=logging.INFO)
 
                 # Now organize them by date (year/month)
-                GT_POST.organize_files_by_date(input_folder=no_albums_folder, type='year/month')
+                organize_files_by_date(input_folder=no_albums_folder, type='year/month')
 
                 LOGGER.info(f"Album(s) downloaded successfully. You can find them in '{no_albums_folder}'")
                 # self.logout(log_level=log_level)
@@ -2903,7 +2902,7 @@ class ClassSynologyPhotos:
 ##############################################################################
 if __name__ == "__main__":
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-    from Core.StandaloneFunctions import change_working_dir
+    from Utils.StandaloneUtils import change_working_dir
     change_working_dir()
 
     # Create the Object

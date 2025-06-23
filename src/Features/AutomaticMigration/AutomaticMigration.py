@@ -12,12 +12,13 @@ from queue import Queue
 
 from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
 from Core.GlobalVariables import SCRIPT_NAME_VERSION, SCRIPT_VERSION, ARGS, HELP_TEXTS, TAG_ERROR, TIMESTAMP, LOGGER
-from Core.StandaloneFunctions import resolve_path, change_working_dir
-from Core.Utils import remove_empty_dirs, confirm_continue, contains_zip_files, normalize_path
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassLocalFolder, ClassTakeoutFolder
-from Features.GoogleTakeout.GoogleTakeoutPrechecks import contains_takeout_structure
+from Features.GoogleTakeout.GoogleTakeoutFunctions import contains_takeout_structure
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
+from Utils.FileUtils import remove_empty_dirs, contains_zip_files, normalize_path
+from Utils.StandaloneUtils import resolve_path, change_working_dir
+from Utils.GeneralUtils import confirm_continue
 
 terminal_width = shutil.get_terminal_size().columns
 

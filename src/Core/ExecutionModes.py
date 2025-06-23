@@ -2,19 +2,19 @@ import logging
 import os
 import shutil
 import sys
-from dataclasses import asdict
 from datetime import datetime, timedelta
 
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import START_TIME, ARGS, HELP_TEXTS, DEPRIORITIZE_FOLDERS_PATTERNS, LOG_LEVEL, TIMESTAMP, VERBOSE_LEVEL_NUM, LOGGER
-from Core.Utils import confirm_continue, capitalize_first_letter, print_dict_pretty, contains_zip_files, dir_exists, profile_and_print
-from Features.AutoRenameAlbumsFolders.AutoRenameAlbumsFolders import rename_album_folders
 from Features.AutomaticMigration.AutomaticMigration import mode_AUTOMATIC_MIGRATION
-from Features.Duplicates.Duplicates import find_duplicates, process_duplicates_actions
-from Features.FixSymLinks.FixSymLinks import fix_symlinks_broken
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassTakeoutFolder
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
+from Features.StandAlone.AutoRenameAlbumsFolders import rename_album_folders
+from Features.StandAlone.Duplicates import find_duplicates, process_duplicates_actions
+from Features.StandAlone.FixSymLinks import fix_symlinks_broken
 from Features.SynologyPhotos.ClassSynologyPhotos import ClassSynologyPhotos
+from Utils.FileUtils import dir_exists, contains_zip_files
+from Utils.GeneralUtils import confirm_continue, capitalize_first_letter, print_dict_pretty, profile_and_print
 
 DEFAULT_DUPLICATES_ACTION = False
 EXECUTION_MODE = "default"
@@ -206,7 +206,7 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
 
         # print result for debugging
         if LOG_LEVEL == logging.DEBUG:
-            print_dict_pretty(asdict(result))
+            print_dict_pretty(result)
 
         # Extract percentages of totals
         output_perc_photos_with_date = result['output_counters']['photos']['pct_with_date']

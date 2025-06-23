@@ -8,8 +8,7 @@ import piexif
 
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import TAG_INFO, PHOTO_EXT, LOGGER
-from Core.Utils import get_subfolders_with_exclusions
-from Core.Utils import tqdm
+from Utils.GeneralUtils import tqdm, get_subfolders_with_exclusions
 
 
 def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_range='complete', step_name="", log_level=None):

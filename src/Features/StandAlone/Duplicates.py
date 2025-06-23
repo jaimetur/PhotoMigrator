@@ -10,9 +10,9 @@ from pathlib import Path
 
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import TAG_INFO, TAG_ERROR, LOGGER
-from Core.StandaloneFunctions import resolve_path
-from Core.Utils import remove_empty_dirs, tqdm
-from Features.GoogleTakeout.GoogleTakeoutPreprocess import delete_subfolders
+from Utils.FileUtils import delete_subfolders, remove_empty_dirs
+from Utils.StandaloneUtils import resolve_path
+from Utils.GeneralUtils import tqdm
 
 
 # ========================

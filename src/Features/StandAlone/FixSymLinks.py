@@ -1,9 +1,8 @@
 import os
 
-from Core.Utils import tqdm
-
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import TAG_INFO, LOGGER
+from Utils.GeneralUtils import tqdm
 
 
 def fix_symlinks_broken(input_folder, step_name="", log_level=None):

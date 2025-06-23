@@ -7,8 +7,8 @@ from contextlib import contextmanager
 
 from colorama import Fore, Style
 
-from Core.StandaloneFunctions import resolve_path
 from Core import GlobalVariables as GV
+from Utils.StandaloneUtils import resolve_path
 
 #------------------------------------------------------------------
 # 1) Definir el nuevo nivel VERBOSE (valor 5)

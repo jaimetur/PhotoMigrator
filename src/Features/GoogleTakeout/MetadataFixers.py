@@ -1,12 +1,16 @@
-import os,sys
+import os
 import platform
 import subprocess
+import sys
+
 from packaging.version import Version
 
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import LOGGER, GPTH_VERSION, ARGS
-from Core.Utils import get_os, get_arch, resource_path, ensure_executable, print_arguments_pretty
-from Features.GoogleTakeout.GoogleTakeoutProcess import run_command
+from Features.GoogleTakeout.GoogleTakeoutFunctions import run_command
+from Utils.FileUtils import resource_path
+from Utils.GeneralUtils import get_os, get_arch, ensure_executable, print_arguments_pretty
+
 
 def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=False, capture_errors=True, print_messages=True, skip_extras=False, symbolic_albums=False, move_takeout_folder=False, ignore_takeout_structure=False, step_name="", log_level=None):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function

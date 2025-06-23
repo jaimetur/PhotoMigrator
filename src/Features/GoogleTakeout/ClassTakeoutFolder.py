@@ -8,17 +8,17 @@ from pathlib import Path
 
 from Core.CustomLogger import set_log_level
 from Core.GlobalVariables import ARGS, LOG_LEVEL, VERBOSE_LEVEL_NUM, LOGGER
-from Core.StandaloneFunctions import change_working_dir
-from Core.Utils import remove_folder, remove_empty_dirs, profile_and_print
-from Features.AutoRenameAlbumsFolders.AutoRenameAlbumsFolders import rename_album_folders
-from Features.Duplicates.Duplicates import find_duplicates
 from Features.GoogleTakeout import MetadataFixers
 # Import ClassLocalFolder (Parent Class of this)
 from Features.GoogleTakeout.ClassLocalFolder import ClassLocalFolder
-from Features.FixSymLinks.FixSymLinks import fix_symlinks_broken
-from Features.GoogleTakeout.GoogleTakeoutPostprocess import count_valid_albums, count_files_per_type_and_date, move_albums, organize_files_by_date, sync_mp4_timestamps_with_images, force_remove_directory, copy_move_folder
-from Features.GoogleTakeout.GoogleTakeoutPrechecks import contains_takeout_structure, unpack_zips
-from Features.GoogleTakeout.GoogleTakeoutPreprocess import fix_truncations, fix_mp4_files, delete_subfolders
+from Features.GoogleTakeout.GoogleTakeoutFunctions import contains_takeout_structure, unpack_zips
+from Features.StandAlone.AutoRenameAlbumsFolders import rename_album_folders
+from Features.StandAlone.Duplicates import find_duplicates
+from Features.StandAlone.FixSymLinks import fix_symlinks_broken
+from Features.GoogleTakeout.GoogleTakeoutFunctions import fix_mp4_files, fix_truncations, sync_mp4_timestamps_with_images, force_remove_directory, copy_move_folder, organize_files_by_date, move_albums, count_valid_albums, count_files_per_type_and_date
+from Utils.FileUtils import delete_subfolders, remove_empty_dirs, remove_folder
+from Utils.StandaloneUtils import change_working_dir
+from Utils.GeneralUtils import profile_and_print
 
 
 ##############################################################################
@@ -213,21 +213,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
             if idx < 0:  idx = 0  # si la lista tiene menos de self.substep elementos, lo ponemos al inicio
             # Insertamos ahí el nuevo registro (sin sobrescribir ninguno)
             self.steps_duration.insert(idx, {'step_id': self.step, 'step_name': step_name + '- TOTAL DURATION', 'duration': formatted_duration})
-
-            # # Call Process() function if not skip_process
-            # if not skip_process:
-            #     if self.needs_process:
-            #         LOGGER.info(f"{step_name}🔢 Input Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
-            #         # if self.unzipped_folder:
-            #         #     output_folder = Path(f"{self.unzipped_folder}_{self.ARGS['google-output-folder-suffix']}_{self.TIMESTAMP}")
-            #         # else:
-            #         output_folder = Path(f"{self.takeout_folder}_{self.ARGS['google-output-folder-suffix']}_{self.TIMESTAMP}")
-            #         # Process Takeout_folder and put output into output_folder
-            #         self.process(output_folder=output_folder, capture_output=capture_output, capture_errors=capture_errors, print_messages=print_messages, log_level=logging.INFO)
-            #         super().__init__(output_folder)  # Inicializar con la carpeta procesada
-            #     else:
-            #         output_folder = self.takeout_folder
-            #         super().__init__(output_folder)  # Inicializar con la carpeta original si no se necesita procesamiento
 
 
     def preprocess(self, log_level=None):
@@ -649,7 +634,8 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             # 1. First count all Files in output Folder
             # New function to count all file types and extract also date info
-            output_counters = count_files_per_type_and_date(input_folder=output_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL)
+            # output_counters = count_files_per_type_and_date(input_folder=output_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL)
+            output_counters, dates = count_files_per_type_and_date(input_folder=output_folder, step_name=step_name, log_level=LOG_LEVEL)
             # Clean input dict
             self.result['output_counters'].clear()
             # Assign all pairs key-value from output_counters to counter['output_counters'] dict

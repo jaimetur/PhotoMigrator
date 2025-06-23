@@ -15,14 +15,12 @@ from dateutil import parser
 from halo import Halo
 from tabulate import tabulate
 
-# We also keep references to your custom logger context manager and utility functions:
 from Core.CustomLogger import set_log_level
-from Core.DateFunctions import parse_text_datetime_to_epoch
-# Import the global LOGGER from GlobalVariables
 from Core.GlobalVariables import LOGGER, ARGS, TAG_INFO
-from Core.StandaloneFunctions import change_working_dir
-from Core.Utils import update_metadata, convert_to_list, tqdm, match_pattern, replace_pattern, has_any_filter, is_date_outside_range, confirm_continue
-from Features.GoogleTakeout.GoogleTakeoutPostprocess import organize_files_by_date
+from Features.GoogleTakeout.GoogleTakeoutFunctions import organize_files_by_date
+from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
+from Utils.StandaloneUtils import change_working_dir
+from Utils.GeneralUtils import update_metadata, convert_to_list, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue
 
 """
 --------------------

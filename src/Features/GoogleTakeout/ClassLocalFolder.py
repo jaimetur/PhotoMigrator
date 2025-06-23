@@ -8,13 +8,11 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-# We also keep references to your custom logger context manager and utility functions:
 from Core.CustomLogger import set_log_level
-from Core.DateFunctions import parse_text_datetime_to_epoch
-# Import the global LOGGER from GlobalVariables
 from Core.GlobalVariables import LOGGER, ARGS, TAG_INFO
-from Core.StandaloneFunctions import change_working_dir
-from Core.Utils import has_any_filter, confirm_continue, convert_to_list
+from Utils.DateUtils import parse_text_datetime_to_epoch
+from Utils.StandaloneUtils import change_working_dir
+from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list
 
 """
 -------------------
