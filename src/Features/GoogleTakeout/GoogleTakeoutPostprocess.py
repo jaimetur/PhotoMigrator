@@ -1141,6 +1141,9 @@ def process_block(file_list, idx, output_dir, step_name=""):
 
 def count_files_per_type_and_date(input_folder, max_files=None, exclude_ext=None, include_ext=None, output_file="metadata_output.json", progress_interval=300, extract_dates=True, step_name='', log_level=None):
     with set_log_level(LOGGER, log_level):
+        counters = init_count_files_counters()
+        dates = {}
+
         exclude_ext = set(exclude_ext) if exclude_ext else set()
         exclude_ext.update({"json"})  # siempre excluir .json
         include_ext = set(include_ext) if include_ext else None
@@ -1173,11 +1176,9 @@ def count_files_per_type_and_date(input_folder, max_files=None, exclude_ext=None
 
         if total_files == 0:
             LOGGER.warning(f"{step_name}📅[count_files_per_type_and_date] No valid files found.")
-            return {}, {}
+            return counters, dates
 
         if not extract_dates:
-            counters = init_count_files_counters()
-            result = {}
             for path in all_files:
                 ext = os.path.splitext(path)[1].lstrip(".").lower()
                 counters['total_files'] += 1
@@ -1199,7 +1200,7 @@ def count_files_per_type_and_date(input_folder, max_files=None, exclude_ext=None
                     counters['sidecar_files'] += 1
                 if ext in METADATA_EXT or ext in SIDECAR_EXT:
                     counters['non_media_files'] += 1
-                result[path] = None
+                dates[path] = None
 
             for media_type in ['photos', 'videos']:
                 counters[media_type]['with_date'] = None
@@ -1208,12 +1209,12 @@ def count_files_per_type_and_date(input_folder, max_files=None, exclude_ext=None
                 counters[media_type]['pct_without_date'] = None
 
             counters['total_size_mb'] = round(sum(os.path.getsize(p) for p in all_files if os.path.exists(p)) / (1024 * 1024), 1)
-            return counters, result
+            return counters, dates
 
         if total_files <= 10000:
-            counters, result = process_block(all_files, 0, os.path.dirname(output_file), step_name)
+            counters, dates = process_block(all_files, 0, os.path.dirname(output_file), step_name)
             shutil.move(os.path.join(os.path.dirname(output_file), "metadata_chunk_0.json"), output_file)
-            return counters, result
+            return counters, dates
 
         num_cores = multiprocessing.cpu_count()
         chunk_size = math.ceil(total_files / num_cores)
@@ -1232,11 +1233,11 @@ def count_files_per_type_and_date(input_folder, max_files=None, exclude_ext=None
             all_counters = [r[0] for r in results]
             all_dicts = [r[1] for r in results]
 
-            final_counters = merge_counters(all_counters)
-            final_result = {}
+            counters = merge_counters(all_counters)
+            dates = {}
             for d in all_dicts:
-                final_result.update(d)
+                dates.update(d)
 
             merge_json_files(temp_dir, output_file)
 
-        return final_counters, final_result
+        return counters, dates
