@@ -23,7 +23,7 @@
     - [x] Added Step duration summary at the end of `Google Takeout Processing` feature.
     - [x] Added new `VERBOSE` value for `-logLevel` argument.
     - [x] Added new argument `-logFormat, --log-format` to define the format of the Log File. Valid values: `[LOG, TXT, ALL]`.
-    - [x] Call GPTH with `--verbose` when PhotoMigrator logLevel is VERBOSE or DEBUG.
+    - [x] Call GPTH with `--verbose` when PhotoMigrator logLevel is VERBOSE.
     - [x] Add argument `-gSkipPrep,--google-skip-preprocess` to Skipp Preprocess steps during Google Takeout Processing feature.
   
   - #### 🚀 Enhancements:
