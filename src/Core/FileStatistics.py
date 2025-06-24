@@ -78,7 +78,7 @@ def process_block(file_paths, block_index, temporary_directory, output_filename,
 
     # chunk_json in temporary directory and error_log in current directory
     chunk_json_path = os.path.join(temporary_directory, f"{TIMESTAMP}_{output_filename}_{block_index}{output_ext}")
-    error_log_path = os.path.abspath(os.path.join(DIR_FOR_EXIFTOOL_OUTPUT, f"{TIMESTAMP}_exiftool_errors.log"))
+    error_log_path = os.path.abspath(os.path.join(DIR_FOR_EXIFTOOL_OUTPUT, f"{TIMESTAMP}_exiftool_log.log"))
 
     # 1) Extract dates If extract_dates is enabled --> run exiftool and load metadata
     if extract_dates:
@@ -351,7 +351,7 @@ def count_files_per_type_and_extract_dates_multi_threads(input_folder, max_files
 
         # chunk_json in temporary directory and error_log in current directory
         chunk_json_path = os.path.join(temporary_directory, f"{TIMESTAMP}_{output_filename}_{block_index}{output_ext}")
-        error_log_path = os.path.abspath(os.path.join(DIR_FOR_EXIFTOOL_OUTPUT, f"{TIMESTAMP}_exiftool_errors.log"))
+        error_log_path = os.path.abspath(os.path.join(DIR_FOR_EXIFTOOL_OUTPUT, f"{TIMESTAMP}_exiftool_log.log"))
 
         # 1) Extract dates If extract_dates is enabled --> run exiftool and load metadata
         if extract_dates:
