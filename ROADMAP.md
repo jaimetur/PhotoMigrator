@@ -27,7 +27,6 @@
 
   - #### 🚀 Enhancements:
     - [ ] Investigate Performance on Automatic Migration when target=`synology`. 
-    - [ ] Enhanced Argument table with long help descriptions. 
         
   - #### 🐛 Bug fixes:
 
