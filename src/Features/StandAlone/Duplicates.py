@@ -9,7 +9,7 @@ from collections import namedtuple
 from pathlib import Path
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import TAG_INFO, TAG_ERROR, LOGGER
+from Core.GlobalVariables import LOGGER, MSG_TAGS
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs
 from Utils.StandaloneUtils import resolve_path
 from Utils.GeneralUtils import tqdm
@@ -154,7 +154,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
             # Convertimos cada elemento (Path o str) a str limpio
             duplicates_folders = [str(f).strip() for f in duplicates_folders if str(f).strip()]
         else:
-            raise TypeError(f"{TAG_ERROR}duplicates_folders must be str, Path or List, no {type(duplicates_folders)}")
+            raise TypeError(f"{MSG_TAGS['ERROR']}duplicates_folders must be str, Path or List, no {type(duplicates_folders)}")
 
         # Convert exclusion_folders to list if is str
         if exclusion_folders is None:
@@ -221,7 +221,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
             LOGGER.debug(f"{step_name}Total files to process: {total_files_to_process}")
 
             # Show progress bar per fies
-            with tqdm(total=total_files_to_process, smoothing=0.1,  desc=f"{TAG_INFO}{step_name}Processing files'", unit=" files") as pbar:
+            with tqdm(total=total_files_to_process, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Processing files'", unit=" files") as pbar:
                 # Recursively traverse the folder and excluding '@eaDir' folders
                 for path, dirs, files in os.walk(folder, topdown=True):
                     # 1) Si estamos en un árbol excluido, lo saltamos entero
@@ -293,7 +293,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
                 hash_dict = {}
 
                 LOGGER.debug(f"{step_name}Calculating Partial Hashes (chunk_size={round(CHUNK_SIZE / 1024, 0)} KB) for {len(sizes_with_duplicates_dict)} groups of sizes with more than one file")
-                for file_size, paths in tqdm(sizes_with_duplicates_dict.items(), smoothing=0, desc=f"{TAG_INFO}Partial Hashing Progress", unit=" groups"):
+                for file_size, paths in tqdm(sizes_with_duplicates_dict.items(), smoothing=0, desc=f"{MSG_TAGS['INFO']}Partial Hashing Progress", unit=" groups"):
                     for path in paths:
                         try:
                             partial_hash = calculate_file_hash_optimized(path, full_hash=False, chunk_size=CHUNK_SIZE)
@@ -308,7 +308,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
                 LOGGER.debug(f"{step_name}Groups with same Partial Hash found: {len(partial_hash_with_duplicates_dict)}")
                 if len(partial_hash_with_duplicates_dict)>0:
                     LOGGER.debug(f"{step_name}Calculating Full Hashes for {len(partial_hash_with_duplicates_dict)} groups of partial hashes with more than one file")
-                    for partial_hash, paths in tqdm(partial_hash_with_duplicates_dict.items(), smoothing=0, desc=f"{TAG_INFO}Full Hashing Progress", unit=" groups"):
+                    for partial_hash, paths in tqdm(partial_hash_with_duplicates_dict.items(), smoothing=0, desc=f"{MSG_TAGS['INFO']}Full Hashing Progress", unit=" groups"):
                         for path in paths:
                             try:
                                 full_hash = calculate_file_hash_optimized(path, full_hash=True)
@@ -321,7 +321,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
             else:
                 LOGGER.debug(f"{step_name}Hashing files with same size")
                 hash_dict = {}
-                for file_size, paths in tqdm(sizes_with_duplicates_dict.items(), smoothing=0, desc=f"{TAG_INFO}Full Hashing Progress", unit=" groups"):
+                for file_size, paths in tqdm(sizes_with_duplicates_dict.items(), smoothing=0, desc=f"{MSG_TAGS['INFO']}Full Hashing Progress", unit=" groups"):
                     for path in paths:
                         try:
                             full_hash = calculate_file_hash_optimized(path, full_hash=True)

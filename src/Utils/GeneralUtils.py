@@ -15,8 +15,9 @@ from datetime import datetime
 import piexif
 from tqdm import tqdm as original_tqdm
 
+# import Core.GlobalVariables as GV
 from Core.CustomLogger import LoggerConsoleTqdm, set_log_level
-from Core.GlobalVariables import ARGS, VIDEO_EXT, PHOTO_EXT, TAG_INFO, TAG_ERROR, LOGGER, VERBOSE_LEVEL_NUM
+from Core.GlobalVariables import ARGS, LOGGER, VIDEO_EXT, PHOTO_EXT, MSG_TAGS, VERBOSE_LEVEL_NUM
 
 # Crear instancia global del wrapper
 TQDM_LOGGER_INSTANCE = LoggerConsoleTqdm(LOGGER, logging.INFO)
@@ -120,26 +121,26 @@ def print_arguments_pretty(arguments, title="Arguments", step_name="", use_logge
                 i += 1
     else:
         if use_custom_print:
-            from Core.CustomLogger import print_info
-            print_info(f"{title}:")
+            from Core.CustomLogger import custom_print
+            custom_print(f"{title}:")
             while i < len(arguments):
                 arg = arguments[i]
                 if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                    print_info(f"{step_name}{indent}{arg}={arguments[i + 1]}")
+                    custom_print(f"{step_name}{indent}{arg}={arguments[i + 1]}")
                     i += 2
                 else:
-                    print_info(f"{step_name}{indent}{arg}")
+                    custom_print(f"{step_name}{indent}{arg}")
                     i += 1
         else:
             pass
-            print(f"{TAG_INFO}{title}:")
+            print(f"{MSG_TAGS['INFO']}{title}:")
             while i < len(arguments):
                 arg = arguments[i]
                 if arg.startswith('--') and i + 1 < len(arguments) and not arguments[i + 1].startswith('--'):
-                    print(f"{TAG_INFO}{step_name}{indent}{arg}={arguments[i + 1]}")
+                    print(f"{MSG_TAGS['INFO']}{step_name}{indent}{arg}={arguments[i + 1]}")
                     i += 2
                 else:
-                    print(f"{TAG_INFO}{step_name}{indent}{arg}")
+                    print(f"{MSG_TAGS['INFO']}{step_name}{indent}{arg}")
                     i += 1
     print("")
 
@@ -175,9 +176,9 @@ def get_os(log_level=logging.INFO, step_name="", use_logger=True):
         elif current_os in ["Windows", "windows", "Win"]:
             os_label = "windows"
         else:
-            print(f"{TAG_ERROR}{step_name}Unsupported Operating System: {current_os}")
+            print(f"{MSG_TAGS['ERROR']}{step_name}Unsupported Operating System: {current_os}")
             os_label = "unknown"
-        print(f"{TAG_INFO}{step_name}Detected OS: {os_label}")
+        print(f"{MSG_TAGS['INFO']}{step_name}Detected OS: {os_label}")
     return os_label
 
 
@@ -201,9 +202,9 @@ def get_arch(log_level=logging.INFO, step_name="", use_logger=True):
         elif current_arch in ["aarch64", "arm64", "ARM64"]:
             arch_label = "arm64"
         else:
-            print(f"{TAG_ERROR}{step_name}Unsupported Architecture: {current_arch}")
+            print(f"{MSG_TAGS['ERROR']}{step_name}Unsupported Architecture: {current_arch}")
             arch_label = "unknown"
-        print(f"{TAG_INFO}{step_name}Detected architecture: {arch_label}")
+        print(f"{MSG_TAGS['INFO']}{step_name}Detected architecture: {arch_label}")
     return arch_label
 
 

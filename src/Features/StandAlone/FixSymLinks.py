@@ -1,7 +1,7 @@
 import os
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import TAG_INFO, LOGGER
+from Core.GlobalVariables import LOGGER, MSG_TAGS
 from Utils.GeneralUtils import tqdm
 
 
@@ -31,7 +31,7 @@ def fix_symlinks_broken(input_folder, step_name="", log_level=None):
             if total_files == 0:
                 return file_index
             # Mostrar la barra de progreso basada en carpetas
-            with tqdm(total=total_files, smoothing=0.1, desc=f"{TAG_INFO}{step_name}Building Index files in '{input_folder}'", unit=" files") as pbar:
+            with tqdm(total=total_files, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Building Index files in '{input_folder}'", unit=" files") as pbar:
                 for path, _, files in os.walk(input_folder):
                     for fname in files:
                         pbar.update(1)
@@ -73,7 +73,7 @@ def fix_symlinks_broken(input_folder, step_name="", log_level=None):
         total_files = sum([len(files) for _, _, files in os.walk(input_folder)])  # Contar el total de carpetas
         if total_files == 0:
             corrected_count, failed_count
-        with tqdm(total=total_files, smoothing=0.1, desc=f"{TAG_INFO}{step_name}Fixing Symbolic Links in '{input_folder}'", unit=" files") as pbar:  # Mostrar la barra de progreso basada en carpetas
+        with tqdm(total=total_files, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Fixing Symbolic Links in '{input_folder}'", unit=" files") as pbar:  # Mostrar la barra de progreso basada en carpetas
             for path, _, files in os.walk(input_folder):
                 for file in files:
                     pbar.update(1)

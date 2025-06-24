@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import LOGGER, ARGS, TAG_INFO
+from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS
 from Utils.DateUtils import parse_text_datetime_to_epoch
 from Utils.StandaloneUtils import change_working_dir
 from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list
@@ -1019,7 +1019,7 @@ class ClassLocalFolder:
         with set_log_level(LOGGER, log_level):
             src = Path(file_path)
             if not src.exists() or not src.is_file():
-                LOGGER.warning(f"{TAG_INFO}File '{file_path}' does not exist or is not a file.")
+                LOGGER.warning(f"File '{file_path}' does not exist or is not a file.")
                 return None, None
 
             mtime = src.stat().st_mtime
