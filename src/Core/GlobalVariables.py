@@ -22,18 +22,22 @@ LOG_FOLDER_FILENAME             = ""
 START_TIME                      = datetime.now()
 TIMESTAMP                       = datetime.now().strftime("%Y%m%d-%H%M%S")
 
-TAG_VERBOSE                     = f"VERBOSE : "
-TAG_DEBUG                       = f"DEBUG   : "
-TAG_INFO                        = f"INFO    : "
-TAG_WARNING                     = f"WARNING : "
-TAG_ERROR                       = f"ERROR   : "
-TAG_CRITICAL                    = f"CRITICAL: "
-COLORTAG_VERBOSE                = f"{Fore.CYAN}{TAG_VERBOSE}"
-COLORTAG_DEBUG                  = f"{Fore.LIGHTCYAN_EX}{TAG_DEBUG}"
-COLORTAG_INFO                   = f"{Fore.LIGHTWHITE_EX}{TAG_INFO}"
-COLORTAG_WARNING                = f"{Fore.YELLOW}{TAG_WARNING}"
-COLORTAG_ERROR                  = f"{Fore.RED}{TAG_ERROR}"
-COLORTAG_CRITICAL               = f"{Fore.MAGENTA}{TAG_CRITICAL}"
+MSG_TAGS = {
+    'VERBOSE'                   : "VERBOSE : ",
+    'DEBUG'                     : "DEBUG   : ",
+    'INFO'                      : "INFO    : ",
+    'WARNING'                   : "WARNING : ",
+    'ERROR'                     : "ERROR   : ",
+    'CRITICAL'                  : "CRITICAL: ",
+}
+MSG_TAGS_COLORED = {
+    'VERBOSE'                   : f"{Fore.CYAN}{MSG_TAGS['VERBOSE']}",
+    'DEBUG'                     : f"{Fore.LIGHTCYAN_EX}{MSG_TAGS['DEBUG']}",
+    'INFO'                      : f"{Fore.LIGHTWHITE_EX}{MSG_TAGS['INFO']}",
+    'WARNING'                   : f"{Fore.YELLOW}{MSG_TAGS['WARNING']}",
+    'ERROR'                     : f"{Fore.RED}{MSG_TAGS['ERROR']}",
+    'CRITICAL'                  : f"{Fore.MAGENTA}{MSG_TAGS['CRITICAL']}",
+}
 
 VERBOSE_LEVEL_NUM               = 5
 LOG_LEVEL_MIN                   = VERBOSE_LEVEL_NUM

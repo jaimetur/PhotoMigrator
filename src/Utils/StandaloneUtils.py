@@ -1,7 +1,7 @@
 import os
 import posixpath
 
-from Core.GlobalVariables import TAG_INFO
+from Core.GlobalVariables import MSG_TAGS
 
 
 def change_working_dir(change_dir=None):
@@ -12,7 +12,7 @@ def change_working_dir(change_dir=None):
         if os.path.exists(WORKING_DIR) and os.path.isdir(WORKING_DIR):
             os.chdir(WORKING_DIR)
             current_directory = os.getcwd()
-            print(f"{TAG_INFO}Directorio cambiado a: {os.getcwd()}")
+            print(f"{MSG_TAGS['INFO']}Directorio cambiado a: {os.getcwd()}")
 
 
 def is_inside_docker():

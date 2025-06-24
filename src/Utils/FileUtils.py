@@ -1,4 +1,5 @@
 import fnmatch
+import logging
 import os
 import re
 import shutil
@@ -7,10 +8,8 @@ import tempfile
 import zipfile
 from pathlib import Path
 
-from colorama import Style
-
-from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import LOGGER, TAG_INFO, COLORTAG_DEBUG, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME
+from Core.CustomLogger import set_log_level, custom_print
+from Core.GlobalVariables import LOGGER, MSG_TAGS, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME
 from Utils.GeneralUtils import tqdm
 
 
@@ -58,7 +57,7 @@ def delete_subfolders(input_folder, folder_name_to_delete, step_name="", log_lev
         # Contar el total de carpetas
         total_dirs = sum([len(dirs) for _, dirs, _ in os.walk(input_folder)])
         # Mostrar la barra de progreso basada en carpetas
-        with tqdm(total=total_dirs, smoothing=0.1, desc=f"{TAG_INFO}{step_name}Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
+        with tqdm(total=total_dirs, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Deleting files within subfolders '{folder_name_to_delete}' in '{input_folder}'", unit=" subfolders") as pbar:
             for path, dirs, files in os.walk(input_folder, topdown=False):
                 for folder in dirs:
                     pbar.update(1)
@@ -89,7 +88,7 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
         sep_input = input_folder.count(os.sep)
         # Convert wildcard patterns to regex patterns for matching
         exclude_patterns = [re.compile(fnmatch.translate(pattern)) for pattern in exclude_subfolders]
-        for path, dirs, files in tqdm(os.walk(input_folder, topdown=True), ncols=120, smoothing=0.1, desc=f"{TAG_INFO}Flattening Subfolders in '{input_folder}'", unit=" subfolders"):
+        for path, dirs, files in tqdm(os.walk(input_folder, topdown=True), ncols=120, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}Flattening Subfolders in '{input_folder}'", unit=" subfolders"):
             # Count number of sep of root folder
             sep_root = int(path.count(os.sep))
             depth = sep_root - sep_input
@@ -296,50 +295,50 @@ def resource_path(relative_path):
     # IMPORTANT: Don't use LOGGER in this function because is also used by build-binary.py which has not any LOGGER created.
     DEBUG_MODE = False  # Cambia a False para silenciar
     if DEBUG_MODE:
-        print(f"{COLORTAG_DEBUG}---DEBUG INFO{Style.RESET_ALL}")
-        print(f"{COLORTAG_DEBUG}RESOURCES_IN_CURRENT_FOLDER : {RESOURCES_IN_CURRENT_FOLDER}{Style.RESET_ALL}")
-        print(f"{COLORTAG_DEBUG}sys.frozen                  : {getattr(sys, 'frozen', False)}{Style.RESET_ALL}")
-        print(f"{COLORTAG_DEBUG}NUITKA_ONEFILE_PARENT       : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}{Style.RESET_ALL}")
-        print(f"{COLORTAG_DEBUG}sys.argv[0]                 : {sys.argv[0]}{Style.RESET_ALL}")
-        print(f"{COLORTAG_DEBUG}sys.executable              : {sys.executable}{Style.RESET_ALL}")
-        print(f"{COLORTAG_DEBUG}os.getcwd()                 : {os.getcwd()}{Style.RESET_ALL}")
-        print(f"{COLORTAG_DEBUG}__file__                    : {globals().get('__file__', 'NO __file__')}{Style.RESET_ALL}")
+        custom_print(f"---DEBUG INFO", log_level=logging.DEBUG)
+        custom_print(f"RESOURCES_IN_CURRENT_FOLDER : {RESOURCES_IN_CURRENT_FOLDER}", log_level=logging.DEBUG)
+        custom_print(f"sys.frozen                  : {getattr(sys, 'frozen', False)}", log_level=logging.DEBUG)
+        custom_print(f"NUITKA_ONEFILE_PARENT       : {'YES' if 'NUITKA_ONEFILE_PARENT' in os.environ else 'NO'}", log_level=logging.DEBUG)
+        custom_print(f"sys.argv[0]                 : {sys.argv[0]}", log_level=logging.DEBUG)
+        custom_print(f"sys.executable              : {sys.executable}", log_level=logging.DEBUG)
+        custom_print(f"os.getcwd()                 : {os.getcwd()}", log_level=logging.DEBUG)
+        custom_print(f"__file__                    : {globals().get('__file__', 'NO __file__')}", log_level=logging.DEBUG)
         try:
-            print(f"{COLORTAG_DEBUG}__compiled__.containing_dir : {__compiled__.containing_dir}{Style.RESET_ALL}")
+            custom_print(f"__compiled__.containing_dir : {__compiled__.containing_dir}", log_level=logging.DEBUG)
         except NameError:
-            print(f"{COLORTAG_DEBUG}__compiled__ not defined{Style.RESET_ALL}")
+            custom_print(f"__compiled__ not defined", log_level=logging.DEBUG)
         if hasattr(sys, '_MEIPASS'):
-            print(f"{COLORTAG_DEBUG}_MEIPASS                    : {sys._MEIPASS}{Style.RESET_ALL}")
+            custom_print(f"_MEIPASS                    : {sys._MEIPASS}", log_level=logging.DEBUG)
         else:
-            print(f"{COLORTAG_DEBUG}_MEIPASS not defined{Style.RESET_ALL}")
+            custom_print(f"_MEIPASS not defined", log_level=logging.DEBUG)
         print("")
     # PyInstaller
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
-        if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en modo PyInstaller -> (sys._MEIPASS){Style.RESET_ALL}")
+        if DEBUG_MODE: custom_print(f"Entra en modo PyInstaller -> (sys._MEIPASS)", log_level=logging.DEBUG)
     # Nuitka onefile
     elif "NUITKA_ONEFILE_PARENT" in os.environ:
         base_path = os.path.dirname(os.path.abspath(__file__))
-        if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en modo Nuitka --onefile -> (__file__){Style.RESET_ALL}")
+        if DEBUG_MODE: custom_print(f"Entra en modo Nuitka --onefile -> (__file__)", log_level=logging.DEBUG)
     # Nuitka standalone
     elif "__compiled__" in globals():
         base_path = os.path.join(__compiled__.containing_dir, SCRIPT_NAME+'.dist')
         # base_path = __compiled__
-        if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en modo Nuitka --standalone -> (__compiled__.containing_dir){Style.RESET_ALL}")
+        if DEBUG_MODE: custom_print(f"Entra en modo Nuitka --standalone -> (__compiled__.containing_dir)", log_level=logging.DEBUG)
     # Python normal
     elif "__file__" in globals():
         if RESOURCES_IN_CURRENT_FOLDER:
             base_path = os.getcwd()
-            if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en Python .py -> (cwd){Style.RESET_ALL}")
+            if DEBUG_MODE: custom_print(f"Entra en Python .py -> (cwd)", log_level=logging.DEBUG)
         else:
             base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en Python .py -> (dirname(dirname(__file__))){Style.RESET_ALL}")
+            if DEBUG_MODE: custom_print(f"Entra en Python .py -> (dirname(dirname(__file__)))", log_level=logging.DEBUG)
     else:
         base_path = os.getcwd()
-        if DEBUG_MODE: print(f"{COLORTAG_DEBUG}Entra en fallback final -> os.getcwd(){Style.RESET_ALL}")
+        if DEBUG_MODE: custom_print(f"Entra en fallback final -> os.getcwd()", log_level=logging.DEBUG)
     if DEBUG_MODE:
-        print(f"{COLORTAG_DEBUG}return path                 : {os.path.join(base_path, relative_path)}{Style.RESET_ALL}")
-        print(f"{COLORTAG_DEBUG}--- END DEBUG INFO{Style.RESET_ALL}")
+        custom_print(f"return path                 : {os.path.join(base_path, relative_path)}", log_level=logging.DEBUG)
+        custom_print(f"--- END DEBUG INFO", log_level=logging.DEBUG)
     return os.path.join(base_path, relative_path)
 
 

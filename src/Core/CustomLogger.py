@@ -8,46 +8,49 @@ from contextlib import contextmanager
 from colorama import Fore, Style
 
 from Core import GlobalVariables as GV
+from Core.GlobalVariables import VERBOSE_LEVEL_NUM, MSG_TAGS_COLORED
 from Utils.StandaloneUtils import resolve_path
 
 #------------------------------------------------------------------
-# 1) Definir el nuevo nivel VERBOSE (valor 5)
-logging.addLevelName(GV.VERBOSE_LEVEL_NUM, "VERBOSE")
+def enable_verbose_level(level_num=GV.VERBOSE_LEVEL_NUM):
+    """
+    Activa el nivel VERBOSE en el módulo logging, permitiendo:
+    - logging.VERBOSE para obtener el nivel numérico.
+    - logger.verbose(...) para registrar mensajes con ese nivel.
+    """
+    # 0) Evitar redefinir si ya está activado
+    if hasattr(logging, "VERBOSE"):
+        return
 
-# 2) Añadir el método `verbose()` a Logger
-def verbose(self, message, *args, **kws):
-    if self.isEnabledFor(GV.VERBOSE_LEVEL_NUM):
-        self._log(GV.VERBOSE_LEVEL_NUM, message, args, **kws)
-logging.Logger.verbose = verbose
+    # 1) Register the level_name
+    logging.addLevelName(level_num, "VERBOSE")
+
+    # 2) Add as attribute to logging module
+    logging.VERBOSE = level_num
+
+    # 3) define .verbose() method
+    def verbose(self, message, *args, **kwargs):
+        if self.isEnabledFor(level_num):
+            self._log(level_num, message, args, **kwargs)
+
+    # 4) Inject the method verbose to the class logging.Logger to be available in all loggers
+    logging.Logger.verbose = verbose
 #------------------------------------------------------------------
+# Execute the function at the beginning to enable verbose level from the beginning of the tool
+enable_verbose_level()
 
+#------------------------------------------------------------------
+# Create standard logging function to send to GV.LOGGER any message with the right log_level
+def custom_log(*args, log_level=logging.INFO, **kwargs):
+    message = " ".join(str(a) for a in args)
+    GV.LOGGER.log(log_level, message, **kwargs)
 #------------------------------------------------------------------
 # Replace original print to use the same GV.LOGGER formatter
-def print_verbose(*args, **kwargs):
-    # Construimos el mensaje igual que print normal
+def custom_print(*args, log_level=logging.INFO, **kwargs):
     message = " ".join(str(a) for a in args)
-    # Y lo enviamos al GV.LOGGER como INFO (o al nivel que quieras)
-    GV.LOGGER.verbose(message)
-def print_debug(*args, **kwargs):
-    # Construimos el mensaje igual que print normal
-    message = " ".join(str(a) for a in args)
-    # Y lo enviamos al GV.LOGGER como INFO (o al nivel que quieras)
-    GV.LOGGER.debug(message)
-def print_info(*args, **kwargs):
-    # Construimos el mensaje igual que print normal
-    message = " ".join(str(a) for a in args)
-    # Y lo enviamos al GV.LOGGER como INFO (o al nivel que quieras)
-    GV.LOGGER.info(message)
-def print_warning(*args, **kwargs):
-    # Construimos el mensaje igual que print normal
-    message = " ".join(str(a) for a in args)
-    # Y lo enviamos al GV.LOGGER como INFO (o al nivel que quieras)
-    GV.LOGGER.warning(message)
-def print_critical(*args, **kwargs):
-    # Construimos el mensaje igual que print normal
-    message = " ".join(str(a) for a in args)
-    # Y lo enviamos al GV.LOGGER como INFO (o al nivel que quieras)
-    GV.LOGGER.critical(message)
+    log_level_name = logging.getLevelName(log_level)
+    colortag = MSG_TAGS_COLORED.get(log_level_name, MSG_TAGS_COLORED['INFO'])
+    print(f"{colortag}{message}{Style.RESET_ALL}", **kwargs)
 #------------------------------------------------------------------
 # Class to Downgrade from INFO to DEBUG/WARNING/ERROR when certain chain is detected
 class ChangeLevelFilter(logging.Filter):
@@ -271,7 +274,8 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
             file_handler_plain.addFilter(ChangeLevelFilter())  # Add Filter to Downgrade from INFO to DEBUG/WARNING/ERROR when detected chains
             GV.LOGGER.addHandler(file_handler_plain)
         else:
-            print (f"{GV.TAG_INFO}Unknown format '{format}' for Logger. Please select a valid format between: ['log', 'txt', 'all].")
+            # print (f"{GV.TAG_INFO}Unknown format '{format}' for Logger. Please select a valid format between: ['log', 'txt', 'all].")
+            custom_print (f"Unknown format '{format}' for Logger. Please select a valid format between: ['log', 'txt', 'all].", log_level=logging.INFO)
 
     # Set the log level for the root logger
     GV.LOGGER.setLevel(log_level)

@@ -11,7 +11,7 @@ from pathlib import Path
 from queue import Queue
 
 from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
-from Core.GlobalVariables import SCRIPT_NAME_VERSION, SCRIPT_VERSION, ARGS, HELP_TEXTS, TAG_ERROR, TIMESTAMP, LOGGER
+from Core.GlobalVariables import SCRIPT_NAME_VERSION, SCRIPT_VERSION, ARGS, HELP_TEXTS, MSG_TAGS, TIMESTAMP, LOGGER
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassLocalFolder, ClassTakeoutFolder
 from Features.GoogleTakeout.GoogleTakeoutFunctions import contains_takeout_structure
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
@@ -141,7 +141,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             elif Path(client_type).is_dir():
                 return ClassLocalFolder(base_folder=client_type)  # In this clase, client_type is the path to the base Local Folder
             else:
-                raise ValueError(f"{TAG_ERROR}Tipo de cliente no válido: {client_type}")
+                raise ValueError(f"{MSG_TAGS['ERROR']}Tipo de cliente no válido: {client_type}")
 
         # Creamos los objetos source_client y target_client y obtenemos sus nombres para mostrar en el show_dashboard
         source_client = get_client_object(source)

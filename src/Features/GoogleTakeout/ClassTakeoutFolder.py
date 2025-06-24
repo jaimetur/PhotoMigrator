@@ -165,7 +165,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{step_name}Counting files in Takeout Folder: {input_folder}...")
 
             # New function to count all file types and extract also date info
-            initial_takeout_counters, dates = count_files_per_type_and_extract_dates_multi_threads(input_folder=input_folder, output_file=f"input_dates_metadata_{TIMESTAMP}.json", step_name=step_name, log_level=LOG_LEVEL)
+            initial_takeout_counters, dates = count_files_per_type_and_extract_dates_multi_threads(input_folder=input_folder, output_file=f"input_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
 
             # Clean input dict
             self.result['input_counters'].clear()
@@ -177,7 +177,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"{step_name}Total Non-Supported files in Takeout folder      : {self.result['input_counters']['unsupported_files']:<7}")
             LOGGER.info(f"{step_name}Total Supported files in Takeout folder          : {self.result['input_counters']['supported_files']:<7}")
             LOGGER.info(f"{step_name}  - Total Media files in Takeout folder          : {self.result['input_counters']['media_files']:<7}")
-            LOGGER.info(f"{step_name}    - Total Images in Takeout folder             : {self.result['input_counters']['photo_files']:<7}")
+            LOGGER.info(f"{step_name}    - Total Photos in Takeout folder             : {self.result['input_counters']['photo_files']:<7}")
             LOGGER.info(f"{step_name}      - Correct Date                             : {self.result['input_counters']['photos']['with_date']:<7} ({self.result['input_counters']['photos']['pct_with_date']:>5.1f}% of total photos) ")
             LOGGER.info(f"{step_name}      - Incorrect Date                           : {self.result['input_counters']['photos']['without_date']:<7} ({self.result['input_counters']['photos']['pct_without_date']:>5.1f}% of total photos) ")
             LOGGER.info(f"{step_name}    - Total Videos in Takeout folder             : {self.result['input_counters']['video_files']:<7}")
@@ -630,7 +630,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             # output_counters = count_files_per_type_and_extract_dates_multi_threads(input_folder=output_folder, skip_exif=False, skip_json=True, step_name=step_name, log_level=LOG_LEVEL)
 
             # New function to count all file types and extract also date info
-            output_counters, dates = count_files_per_type_and_extract_dates_multi_threads(input_folder=output_folder, output_file=f"output_dates_metadata_{TIMESTAMP}.json", step_name=step_name, log_level=LOG_LEVEL)
+            output_counters, dates = count_files_per_type_and_extract_dates_multi_threads(input_folder=output_folder, output_file=f"output_dates_metadata.json", step_name=step_name, log_level=LOG_LEVEL)
 
             # Clean input dict
             self.result['output_counters'].clear()

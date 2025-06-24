@@ -1,11 +1,11 @@
 # src/PhotoMigrator.py
-import os
-import sys
 
+import os, sys
+import importlib
+import logging
+# Añadir 'src/' al PYTHONPATH
 src_path = os.path.dirname(__file__)
 sys.path.insert(0, src_path)            # Now src is the root for imports
-
-import importlib
 
 from Core import GlobalVariables as GV
 from Utils.StandaloneUtils import change_working_dir
@@ -16,14 +16,10 @@ def main():
     # Limpiar la pantalla y parseamos argumentos de entrada
     os.system('cls' if os.name == 'nt' else 'clear')
 
-    # Añadir 'src/' al PYTHONPATH
-    # sys.path.append(str(Path(__file__).resolve().parent))
-
     # Change Working Dir before to import GlobalVariables or other Modules that depends on it.
-
     change_working_dir(change_dir=True)
 
-    # import Core.GlobalVariables as GV
+    # Load Tool while splash image is shown (only for Windows)
     print("")
     print("Loading Tool...")
     # Remove Splash image from Pyinstaller
@@ -46,11 +42,29 @@ def main():
             os.unlink(splash_filename)
     print("Tool loaded!")
     print("")
+        
+    # Initialize ARGS_PARSER, LOGGER and HELP_TEXT
+    # IMPORTANT: DO NOT IMPORT ANY TOOL's MODULE (except Utils.StandaloneUtils or Core.GlobalVariables) BEFORE TO RUN set_ARGS_PARSER AND set_LOGGER
+    #            otherwise the ARGS, PARSER, LOGGER and HELP_TEXTS variables will be None on those imported modules.
+    from Core.GlobalFunctions import set_ARGS_PARSER, set_LOGGER, set_HELP_TEXTS
+    set_ARGS_PARSER()
+    set_LOGGER()
+    set_HELP_TEXTS()
+
+    # Now we can safety import any other tool's module
+    from Utils.GeneralUtils import check_OS_and_Terminal
+    from Core.CustomLogger import custom_print
+    from Core.ExecutionModes import detect_and_run_execution_mode
+
+    # Check OS and Terminal before to import GlobalVariables or other Modules that depends on it
+    check_OS_and_Terminal()
 
     # Verificar si el script se ejecutó con un solo argumento que sea una ruta de una carpeta existente
     if len(sys.argv) >= 2 and os.path.isdir(sys.argv[1]):
-        print(f"{GV.TAG_INFO}Valid folder detected as input: '{sys.argv[1]}'")
-        print(f"{GV.TAG_INFO}Executing Google Takeout Photos Processor Feature with the provided input folder...")
+        # print(f"{GV.TAG_INFO}Valid folder detected as input: '{sys.argv[1]}'")
+        # print(f"{GV.TAG_INFO}Executing Google Takeout Photos Processor Feature with the provided input folder...")
+        custom_print(f"Valid folder detected as input: '{sys.argv[1]}'", log_level=logging.INFO)
+        custom_print(f"Executing Google Takeout Photos Processor Feature with the provided input folder...", log_level=logging.INFO)
         sys.argv.insert(1, "--google-takeout")
 
     # Verificar si el script se ejecutó sin argumentos, en ese caso se pedira al usuario queue introduzca la ruta de la caroeta que contiene el Takeout a procesar
@@ -59,7 +73,6 @@ def main():
             root = tk.Tk()
             root.withdraw()
             return filedialog.askdirectory(title="Select the Google Takeout folder to process")
-
         try:
             import tkinter as tk
             from tkinter import filedialog
@@ -67,47 +80,42 @@ def main():
         except ImportError:
             TKINTER_AVAILABLE = False
 
-        print(f"{GV.TAG_INFO}No input folder provided. By default, the Google Takeout Photos Processor feature will be executed.")
+        # print(f"{GV.TAG_INFO}No input folder provided. By default, the Google Takeout Photos Processor feature will be executed.")
+        custom_print(f"No input folder provided. By default, the Google Takeout Photos Processor feature will be executed.", log_level=logging.INFO)
         has_display = os.environ.get("DISPLAY") is not None or sys.platform == "win32"
         selected_folder = None
 
         if has_display and TKINTER_AVAILABLE:
-            print(f"{GV.TAG_INFO}GUI environment detected. Opening folder selection dialog...")
+            # print(f"{GV.TAG_INFO}GUI environment detected. Opening folder selection dialog...")
+            custom_print(f"GUI environment detected. Opening folder selection dialog...", log_level=logging.INFO)
             selected_folder = select_folder_gui()
         else:
             if not TKINTER_AVAILABLE and has_display:
-                print(f"{GV.TAG_WARNING}Tkinter is not installed. Falling back to console input.")
+                # print(f"{GV.TAG_WARNING}Tkinter is not installed. Falling back to console input.")
+                custom_print(f"Tkinter is not installed. Falling back to console input.", log_level=logging.WARNING)
             else:
-                print(f"{GV.TAG_INFO}No GUI detected. Using console input.")
-            print(f"Please type the full path to the Takeout folder:")
+                # print(f"{GV.TAG_INFO}No GUI detected. Using console input.")
+                custom_print(f"No GUI detected. Using console input.", log_level=logging.INFO)
+            # print(f"Please type the full path to the Takeout folder:")
+            custom_print(f"Please type the full path to the Takeout folder:", log_level=logging.WARNING)
             selected_folder = input("Folder path: ").strip()
 
         if selected_folder and os.path.isdir(selected_folder):
-            print(f"{GV.TAG_INFO}Folder selected: '{selected_folder}'")
+            # print(f"{GV.TAG_INFO}Folder selected: '{selected_folder}'")
+            custom_print(f"Folder selected: '{selected_folder}'", log_level=logging.INFO)
             sys.argv.append("--google-takeout")
             sys.argv.append(selected_folder)
         else:
-            print(f"{GV.TAG_ERROR}No valid folder selected. Exiting.")
+            # print(f"{GV.TAG_ERROR}No valid folder selected. Exiting.")
+            custom_print(f"No valid folder selected. Exiting.", log_level=logging.ERROR)
             sys.exit(1)
-
-    from Core.GlobalFunctions import set_ARGS_PARSER, set_LOGGER, set_HELP_TEXTS
-    from Core.CustomLogger import print_verbose, print_debug, print_info, print_warning, print_critical
-    set_ARGS_PARSER()
-    set_LOGGER()
-    set_HELP_TEXTS()
-
-    from Utils.GeneralUtils import check_OS_and_Terminal
-    from Core.ExecutionModes import detect_and_run_execution_mode
 
     # Print the Header (common for all modules)
     GV.LOGGER.info(f"")
     GV.LOGGER.info(f"==========================================")
-    GV.LOGGER.info(f"Sarting {GV.SCRIPT_NAME} Process...")
+    GV.LOGGER.info(f"Starting {GV.SCRIPT_NAME} Process...")
     GV.LOGGER.info(f"==========================================")
     GV.LOGGER.info(GV.SCRIPT_DESCRIPTION)
-
-    # Check OS and Terminal
-    check_OS_and_Terminal()
 
     GV.LOGGER.info(f"Log Level         : {str(GV.ARGS['log-level']).upper()}")
     if not GV.ARGS['no-log-file']:
@@ -115,11 +123,12 @@ def main():
         GV.LOGGER.info(f"")
 
     # Test different LOG_LEVELS
-    print_verbose   ("This is a test message with logLevel: VERBOSE")
-    print_debug     ("This is a test message with logLevel: DEBUG")
-    print_info      ("This is a test message with logLevel: INFO")
-    print_warning   ("This is a test message with logLevel: WARNING")
-    print_critical  ("This is a test message with logLevel: CRITICAL")
+    custom_print("This is a test message with logLevel: VERBOSE", log_level=logging.VERBOSE)
+    custom_print("This is a test message with logLevel: DEBUG", log_level=logging.DEBUG)
+    custom_print("This is a test message with logLevel: INFO", log_level=logging.INFO)
+    custom_print("This is a test message with logLevel: WARNING", log_level=logging.WARNING)
+    custom_print("This is a test message with logLevel: ERROR", log_level=logging.ERROR)
+    custom_print("This is a test message with logLevel: CRITICAL", log_level=logging.CRITICAL)
 
     # Get the execution mode and run it.
     detect_and_run_execution_mode()

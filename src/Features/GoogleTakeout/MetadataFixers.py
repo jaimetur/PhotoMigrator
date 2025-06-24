@@ -173,7 +173,7 @@ def fix_metadata_with_exif_tool(output_folder, log_level=None):
             output_folder
         ]
         try:
-            # print_info(" ".join(exif_command))
+            # custom_print(" ".join(exif_command))
             result = subprocess.run(exif_command, check=False)
             LOGGER.info(f"EXIF Tool fixing completed successfully.")
         except subprocess.CalledProcessError as e:

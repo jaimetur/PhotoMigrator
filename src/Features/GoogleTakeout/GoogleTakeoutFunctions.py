@@ -10,8 +10,8 @@ from pathlib import Path
 
 from colorama import init, Style
 
-from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import LOGGER, TAG_INFO, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, COLORTAG_ERROR, COLORTAG_WARNING, COLORTAG_DEBUG, COLORTAG_VERBOSE, COLORTAG_INFO, PHOTO_EXT, VIDEO_EXT
+from Core.CustomLogger import set_log_level, custom_print
+from Core.GlobalVariables import LOGGER, MSG_TAGS, MSG_TAGS_COLORED, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT
 from Utils.FileUtils import is_valid_path
 from Utils.GeneralUtils import tqdm
 
@@ -93,7 +93,7 @@ def fix_mp4_files(input_folder, step_name="", log_level=None):
             return 0
         # Mostrar la barra de progreso basada en carpetas
         disable_tqdm = log_level < logging.WARNING
-        with tqdm(total=total_files, smoothing=0.1, desc=f"{TAG_INFO}{step_name}Fixing .MP4 files in '{input_folder}'", unit=" files", disable=disable_tqdm) as pbar:
+        with tqdm(total=total_files, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Fixing .MP4 files in '{input_folder}'", unit=" files", disable=disable_tqdm) as pbar:
             for path, _, files in os.walk(input_folder):
                 # Filter files with .mp4 extension (case-insensitive)
                 mp4_files = [f for f in files if f.lower().endswith('.mp4')]
@@ -428,7 +428,8 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
                 # 1.b) Progreso intermedio (1 <= n < total)
                 if n < total:
                     if print_messages:
-                        print(f"\r{TAG_INFO}{step_name}{line}", end='', flush=True)
+                        print(f"\r{MSG_TAGS['INFO']}{step_name}{line}", end='', flush=True)
+                        # custom_print(f"\r{step_name}{line}", end='', flush=True, log_level=logging.INFO)
                     last_was_progress = True
                     # no logueamos intermedias
                     continue
@@ -437,7 +438,8 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
                 if common_part not in printed_final:
                     # impresión en pantalla
                     if print_messages:
-                        print(f"\r{TAG_INFO}{step_name}{line}", end='', flush=True)
+                        print(f"\r{MSG_TAGS['INFO']}{step_name}{line}", end='', flush=True)
+                        # custom_print(f"\r{step_name}{line}", end='', flush=True, log_level=logging.INFO)
                         print()
                     # log final
                     log_msg = f"{step_name}{line}"
@@ -464,20 +466,28 @@ def run_command(command, capture_output=False, capture_errors=True, print_messag
             ]
             if print_messages:
                 if is_error:
-                    print(f"{COLORTAG_ERROR}{step_name}{line}{Style.RESET_ALL}")
+                    # print(f"{MSG_TAGS_COLORED['ERROR']}{step_name}{line}{Style.RESET_ALL}")
+                    custom_print(f"{step_name}{line}", log_level=logging.ERROR)
                 else:
-                    if "ERROR" in line:
-                        print(f"{COLORTAG_ERROR}{step_name}{line}{Style.RESET_ALL}")
-                    elif "WARNING" in line:
-                        print(f"{COLORTAG_WARNING}{step_name}{line}{Style.RESET_ALL}")
+                    if "VERBOSE" in line:
+                        # print(f"{MSG_TAGS_COLORED['VERBOSE']}{step_name}{line}{Style.RESET_ALL}")
+                        custom_print(f"{step_name}{line}", log_level=logging.VERBOSE)         # Could raise error if we have not previously set logging.VERBOSE properly
+                        # custom_print(f"{step_name}{line}", log_level=VERBOSE_LEVEL_NUM)
                     elif "DEBUG" in line:
-                        print(f"{COLORTAG_DEBUG}{step_name}{line}{Style.RESET_ALL}")
-                    elif "VERBOSE" in line:
-                        print(f"{COLORTAG_VERBOSE}{step_name}{line}{Style.RESET_ALL}")
+                        # print(f"{MSG_TAGS_COLORED['DEBUG']}{step_name}{line}{Style.RESET_ALL}")
+                        custom_print(f"{step_name}{line}", log_level=logging.DEBUG)
+                    elif "WARNING" in line:
+                        # print(f"{MSG_TAGS_COLORED['WARNING']}{step_name}{line}{Style.RESET_ALL}")
+                        custom_print(f"{step_name}{line}", log_level=logging.WARNING)
                     elif any(kw in line for kw in warning_keywords):
-                        print(f"{COLORTAG_WARNING}{step_name}{line}{Style.RESET_ALL}")
+                        # print(f"{MSG_TAGS_COLORED['WARNING']}{step_name}{line}{Style.RESET_ALL}")
+                        custom_print(f"{step_name}{line}", log_level=logging.WARNING)
+                    elif "ERROR" in line:
+                        # print(f"{MSG_TAGS_COLORED['ERROR']}{step_name}{line}{Style.RESET_ALL}")
+                        custom_print(f"{step_name}{line}", log_level=logging.ERROR)
                     else:
-                        print(f"{COLORTAG_INFO}{step_name}{line}{Style.RESET_ALL}")
+                        # print(f"{MSG_TAGS_COLORED['INFO']}{step_name}{line}{Style.RESET_ALL}")
+                        custom_print(f"{step_name}{line}", log_level=logging.INFO)
 
             # 4) Logging normal
             if is_error:
@@ -533,12 +543,8 @@ def sync_mp4_timestamps_with_images(input_folder, step_name="", log_level=None):
     with set_log_level(LOGGER, log_level):
         # Count total files for progress bar
         total_files = sum(len(files) for _, _, files in os.walk(input_folder))
-        with tqdm(
-                total=total_files,
-                smoothing=0.1,
-                desc=f"{TAG_INFO}{step_name}Synchronizing .MP4 files with Live Pictures in '{input_folder}'",
-                unit=" files"
-        ) as pbar:
+        with tqdm(total=total_files, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Synchronizing .MP4 files with Live Pictures in '{input_folder}'", unit=" files"
+                  ) as pbar:
             # Walk through all directories and files
             for path, _, files in os.walk(input_folder):
                 # Build a mapping from base filename to its extensions
@@ -644,7 +650,7 @@ def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", l
                 # Contar el total de carpetas
                 total_files = sum([len(files) for _, _, files in os.walk(src)])
                 # Mostrar la barra de progreso basada en carpetas
-                with tqdm(total=total_files, ncols=120, smoothing=0.1, desc=f"{TAG_INFO}{step_name}{action} Folders in '{src}' to Folder '{dst}'", unit=" files") as pbar:
+                with tqdm(total=total_files, ncols=120, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}{action} Folders in '{src}' to Folder '{dst}'", unit=" files") as pbar:
                     for path, dirs, files in os.walk(src, topdown=True):
                         pbar.update(1)
                         # Compute relative path
@@ -711,7 +717,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], ste
         for _, dirs, files in os.walk(input_folder):
             dirs[:] = [d for d in dirs if d not in exclude_subfolders]
             total_files += len(files)
-        with tqdm(total=total_files, smoothing=0.1, desc=f"{TAG_INFO}{step_name}Organizing files with {type} structure in '{os.path.basename(os.path.normpath(input_folder))}'", unit=" files") as pbar:
+        with tqdm(total=total_files, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Organizing files with {type} structure in '{os.path.basename(os.path.normpath(input_folder))}'", unit=" files") as pbar:
             for path, dirs, files in os.walk(input_folder, topdown=True):
                 dirs[:] = [d for d in dirs if d not in exclude_subfolders]
                 for file in files:
@@ -776,7 +782,7 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None,
         exclude_subfolder_paths = [os.path.abspath(os.path.join(input_folder, sub)) for sub in (exclude_subfolder or [])]
         subfolders = os.listdir(input_folder)
         subfolders = [subfolder for subfolder in subfolders if not subfolder == '@eaDir' and not subfolder == 'No-Albums']
-        for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"{TAG_INFO}{step_name}Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
+        for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
             folder_path = os.path.join(input_folder, subfolder)
             if os.path.isdir(folder_path) and subfolder != albums_subfolder and os.path.abspath(folder_path) not in exclude_subfolder_paths:
                 LOGGER.debug(f"{step_name}Moving to '{os.path.basename(albums_path)}' the folder: '{os.path.basename(folder_path)}'")

@@ -7,7 +7,7 @@ from datetime import datetime
 import piexif
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import TAG_INFO, PHOTO_EXT, LOGGER
+from Core.GlobalVariables import MSG_TAGS, PHOTO_EXT, LOGGER
 from Utils.GeneralUtils import tqdm, get_subfolders_with_exclusions
 
 
@@ -215,7 +215,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
 
         total_folders = get_subfolders_with_exclusions(input_folder, exclude_subfolder)
 
-        for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"{TAG_INFO}{step_name}Renaming Albums folders in '<OUTPUT_TAKEOUT_FOLDER>'", unit=" folders"):
+        for original_folder_name in tqdm(total_folders, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Renaming Albums folders in '<OUTPUT_TAKEOUT_FOLDER>'", unit=" folders"):
             item_path = os.path.join(input_folder, original_folder_name)
             if os.path.isdir(item_path):
                 resultado = clean_name_and_remove_dates(original_folder_name)
