@@ -37,6 +37,7 @@
     - [x] Improved Logging messages type detection when running GPTH (automatically detects warning messages and log them as warnings instead of info).
     - [x] Inserted Profiler support to Profile any function and optimize it.
     - [x] Removed `input_folder` after successfully completion of `Google Takeout Processing` if the user used the flag `-gmtf, --google-move-takeout-folder`. Note that this only remove the `input_folder` with a valid Takeout Structure, this will not remove your original Takeout Zip folder with your Takeout Zips.
+    - [x] Increased the number of threads to 2 * number of cpu cores in all multi-threads processings. 
     - [x] Renamed argument `-loglevel` to `-logLevel`.
     - [x] Renamed argument `-dashb` to `-dashboard`.
     - [x] Renamed argument `-AlbFld` to `-AlbFolder`.
