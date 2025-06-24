@@ -85,7 +85,7 @@ Or check the [Changelog](https://github.com/jaimetur/PhotoMigrator/blob/main/CHA
 
 
 ## ⚙️ Configuration File
-In order to connect to the different Photo Cloud Services, you must configure the connection settings using the Configuration file (Config.ini) provided with the Tool.  
+In order to connect to the different Photo Cloud Services, you must configure the connection settings using the Configuration file `<CONFIGURATION_FILE>` provided with the Tool.  
 
 You can see how to configure the Configuration File in this help section:
 [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md) 

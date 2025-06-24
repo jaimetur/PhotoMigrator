@@ -22,6 +22,29 @@ LOG_FOLDER_FILENAME             = ""
 START_TIME                      = datetime.now()
 TIMESTAMP                       = datetime.now().strftime("%Y%m%d-%H%M%S")
 
+# Customizable DIR Folders
+DIR_FOR_LOGS                    = "Logs"                                        # To be Changed in set_DIRS
+DIR_FOR_DUPLICATES              = "Duplicates"                                  # To be Changed in set_DIRS
+DIR_FOR_EXIFTOOL_OUTPUT         = "Exiftool_outputs"                            # To be Changed in set_DIRS
+DIR_FOR_ALBUMS                  = "Albums"                                      # To be Changed in set_DIRS
+DIR_FOR_NO_ALBUMS               = "ALL_PHOTOS"                                  # To be Changed in set_DIRS
+CONFIGURATION_FILE              = "Config.ini"                                  # To be Changed in set_DIRS
+
+VERBOSE_LEVEL_NUM               = 5
+LOG_LEVEL_MIN                   = VERBOSE_LEVEL_NUM
+LOG_LEVEL                       = logging.INFO                                  # To be Changed in set_LOGGER
+HELP_TEXTS                      = None                                          # To be Changed in set_HELP_TEXTS
+ARGS                            = None                                          # To be Changed in set_ARGS_PARSER
+PARSER                          = None                                          # To be Changed in set_ARGS_PARSER
+LOGGER                          = None                                          # To be Changed in set_LOGGER
+
+# Configure parameters for CustomHelpFormatter & CustomPager
+MAX_SHORT_ARGUMENT_LENGTH       = 10
+MAX_HELP_POSITION               = 100
+IDENT_ARGUMENT_DESCRIPTION      = 14
+IDENT_USAGE_DESCRIPTION         = 24
+
+# TAG and TAGS Colored for messages output (in console and log)
 MSG_TAGS = {
     'VERBOSE'                   : "VERBOSE : ",
     'DEBUG'                     : "DEBUG   : ",
@@ -38,19 +61,6 @@ MSG_TAGS_COLORED = {
     'ERROR'                     : f"{Fore.RED}{MSG_TAGS['ERROR']}",
     'CRITICAL'                  : f"{Fore.MAGENTA}{MSG_TAGS['CRITICAL']}",
 }
-
-VERBOSE_LEVEL_NUM               = 5
-LOG_LEVEL_MIN                   = VERBOSE_LEVEL_NUM
-LOG_LEVEL                       = logging.INFO                                  # To be Changed in set_LOGGER
-HELP_TEXTS                      = None                                          # To be Changed in set_HELP_TEXTS
-ARGS                            = None                                          # To be Changed in set_ARGS_PARSER
-PARSER                          = None                                          # To be Changed in set_ARGS_PARSER
-LOGGER                          = None                                          # To be Changed in set_LOGGER
-
-MAX_SHORT_ARGUMENT_LENGTH       = 10
-MAX_HELP_POSITION               = 100
-IDENT_ARGUMENT_DESCRIPTION      = 14
-IDENT_USAGE_DESCRIPTION         = 24
 
 # Supplemental Metadata Suffix
 SUPPLEMENTAL_METADATA           = "supplemental-metadata"

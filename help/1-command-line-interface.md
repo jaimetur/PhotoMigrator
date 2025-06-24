@@ -85,7 +85,7 @@ Following general arguments have different purposses depending on the Execution 
               Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must
               exist in the Configuration file as suffix of USERNAME/PASSORD or API_KEY_USER.
               (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2
-              entries must exist in Config.ini file).
+              entries must exist in <CONFIGURATION_FILE> file).
 -from     ; --filter-from-date <FROM_DATE>
               Specify the initial date to filter assets in the different Photo Clients.
 -to       ; --filter-to-date <TO_DATE>
@@ -114,12 +114,12 @@ service.
 
 -source   ; --source <SOURCE>
               Select the <SOURCE> for the AUTOMATIC-MIGRATION Process to Pull all your Assets
-              (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud
+              (including <ALBUMS_FOLDER>) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud
               Service (including all Albums that you may have on the <SOURCE> Cloud Service).
 
               Possible values:
                 ['synology', 'immich']-[id] or <INPUT_FOLDER>
-                [id] = [1, 2] select which account to use from the Config.ini file.
+                [id] = [1, 2] select which account to use from the <CONFIGURATION_FILE> file.
 
               Examples:
                ​--source=immich-1 -> Select Immich Photos account 1 as Source.
@@ -129,12 +129,12 @@ service.
                ​                      (both, zipped and unzipped format are supported)
 -target   ; --target <TARGET>
               Select the <TARGET> for the AUTOMATIC-MIGRATION Process to Pull all your Assets
-              (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud
+              (including <ALBUMS_FOLDER>) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud
               Service (including all Albums that you may have on the <SOURCE> Cloud Service).
 
               Possible values:
                 ['synology', 'immich']-[id] or <OUTPUT_FOLDER>
-                [id] = [1, 2] select which account to use from the Config.ini file.
+                [id] = [1, 2] select which account to use from the <CONFIGURATION_FILE> file.
 
               Examples:
                ​--target=immich-1 -> Select Immich Photos account 1 as Target.
@@ -173,7 +173,7 @@ use the default values for the rest of the arguments for this extra mode.
 -gafs     ; --google-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
               Specify the type of folder structure for each Album folder (Default: 'flatten').
 -gnas     ; --google-no-albums-folders-structure ['flatten', 'year', 'year/month', 'year-month']
-              Specify the type of folder structure for 'No-Albums' folders (Default: 'year/month').
+              Specify the type of folder structure for '<NO_ALBUMS_FOLDER>' folders (Default: 'year/month').
 -gcsa     ; --google-create-symbolic-albums
               Creates symbolic links for Albums instead of duplicate the files of each Album.
               (Useful to save disk space but may not be portable to other systems).
@@ -195,7 +195,7 @@ use the default values for the rest of the arguments for this extra mode.
 -gsef     ; --google-skip-extras-files
               Skip processing extra photos such as  -edited, -effects photos.
 -gsma     ; --google-skip-move-albums
-              Skip moving albums to 'Albums' folder.
+              Skip moving albums to '<ALBUMS_FOLDER>'.
 -gsgt     ; --google-skip-gpth-tool
               Skip processing files with GPTH Tool.
               CAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos
@@ -229,7 +229,7 @@ use the default values for the rest of the arguments for this extra mode.
               The Tool will look for all Assets within <INPUT_FOLDER> and will upload them into the
               selected Photo client.
               You must provide the Photo client using the mandatory argument '--client'.
-              - The Tool will create a new Album per each Subfolder found in 'Albums' subfolder and
+              - The Tool will create a new Album per each Subfolder found in '<ALBUMS_FOLDER>' subfolder and
               all assets inside each subfolder will be associated to a new Album in the selected
               Photo client with the same name as the subfolder.
               - If the argument '-AlbFolder, --albums-folders <ALBUMS_FOLDER>' is also passed, then
@@ -238,15 +238,15 @@ use the default values for the rest of the arguments for this extra mode.
               The Tool will connect to the selected Photo client and will download all the Album and
               Assets without Albums into the folder <OUTPUT_FOLDER>.
               You must provide the Photo client using the mandatory argument '--client'.
-              - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/Albums/ with the
+              - All Albums will be downloaded within a subfolder of <OUTPUT_FOLDER>/<ALBUMS_FOLDER>/ with the
               same name of the Album and all files will be flattened into it.
               - Assets with no Albums associated will be downloaded within a subfolder called
-              <OUTPUT_FOLDER>/No-Albums/ and will have a year/month structure inside.
+              <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ and will have a year/month structure inside.
 -rOrphan  ; --remove-orphan-assets
               The Tool will look for all Orphan Assets in the selected Photo client and will remove
               them.
               You must provide the Photo client using the mandatory argument '--client'. IMPORTANT:
-              This feature requires a valid ADMIN_API_KEY configured in Config.ini.
+              This feature requires a valid ADMIN_API_KEY configured in <CONFIGURATION_FILE>.
 -rAll     ; --remove-all-assets
               CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also ALL your
               Albums from the selected Photo client.

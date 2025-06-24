@@ -3,12 +3,12 @@ import re
 import sys
 from configparser import ConfigParser
 
-from Core.GlobalVariables import LOGGER
+from Core.GlobalVariables import LOGGER, DIR_FOR_LOGS, CONFIGURATION_FILE
 from Utils.StandaloneUtils import resolve_path
 
 CONFIG = None
 
-def load_config(config_file='Config.ini', section_to_load='all'):
+def load_config(config_file=CONFIGURATION_FILE, section_to_load='all'):
     #
     # Load and Set Global CONFIG variable
     #
@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
     TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
     log_filename = f"{sys.argv[0]}_{TIMESTAMP}"
-    log_folder = "Logs"
+    log_folder = resolve_path(DIR_FOR_LOGS)
     LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
     LOGGER = log_setup(
         log_folder=log_folder,
@@ -149,8 +149,8 @@ if __name__ == "__main__":
     )
 
     if len(sys.argv[1:]) == 0:
-        CONFIG = load_config(config_file='../../Config.ini', section_to_load='Synology Photos')
-        print("\nUsing Configuration File: ['Config.ini']\n")
+        CONFIG = load_config(config_file=f'../../{CONFIGURATION_FILE}', section_to_load='Synology Photos')
+        print(f"\nUsing Configuration File: ['{CONFIGURATION_FILE}']\n")
     else:
         CONFIG = load_config(config_file=sys.argv[1], section_to_load='All')
         print("\nUsing Configuration File:", sys.argv[1:], "\n")

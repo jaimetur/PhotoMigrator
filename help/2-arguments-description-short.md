@@ -31,7 +31,7 @@ Following general arguments have different purposes depending on the Execution M
 | `-i`,<br>`--input-folder`                         | Input folder to process                                        |
 | `-o`,<br>`--output-folder`                        | Output folder to store results                                 |
 | `-client`,<br>`--client`                          | Service client: `google-takeout`, `synology`, `immich`         |
-| `-id`,<br>`--account-id`                          | Account ID (1–3) from `Config.ini`                             |
+| `-id`,<br>`--account-id`                          | Account ID (1–3) from `<CONFIGURATION_FILE>`                             |
 | `-from`,<br>`--filter-from-date`                  | Filter assets from this date                                   |
 | `-to`,<br>`--filter-to-date`                      | Filter assets up to this date                                  |
 | `-type`,<br>`--filter-by-type`                    | Filter assets by type: `image`, `video`, `all`                 |
@@ -86,7 +86,7 @@ Following arguments allow you to interact with Google Photos Takeout Folder.
 | `-grdf`,<br>`--google-remove-duplicates-files`     | Removes duplicate files in the output folder.                         |
 | `-graf`,<br>`--google-rename-albums-folders`       | Renames albums folders based on content dates.                        |
 | `-gsef`,<br>`--google-skip-extras-files`           | Skip `-edited`, `-effects` images                                     |
-| `-gsma`,<br>`--google-skip-move-albums`            | Skip moving albums to "Albums" folder                                 |
+| `-gsma`,<br>`--google-skip-move-albums`            | Skip moving albums to `<ALBUMS_FOLDER>`                               |
 | `-gsgt`,<br>`--google-skip-gpth-tool`              | Skip processing with GPTH Tool (not recommended)                      |
 | `-gSkipPrep`,<br>`--google-skip-preprocess`        | Skips Pre-process Google Takeout folder (not recommended).            |
 | `-gpthInfo`,<br>`--show-gpth-info`                 | Show GPTH progress messages (default: true)                           |
@@ -107,7 +107,7 @@ PhotoMigrator.run -gTakeout="/home/user/Takeout" -gics -gmtf=true
 ---
 ## 🖼️ Synology / Immich Photo Management
 To use following features, it is mandatory to use the argument `--client=[synology, immich]` to specify which Photo Service do you want to use.  
-You can optionally use the argument `--id=[1-3]` to specify the account id for a particular account defined in Config.ini.  
+You can optionally use the argument `--id=[1-3]` to specify the account id for a particular account defined in <CONFIGURATION_FILE>.  
 If more than one optional arguments are detected, only the first one will be executed.  
 
 Following arguments allow you to interact with Synology/Immich Photos.

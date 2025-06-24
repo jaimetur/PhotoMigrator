@@ -258,7 +258,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 ----------------------------------{Style.RESET_ALL}
                 To use following features, it is mandatory to use the argument '--client=[synology, immich]' to specify which Photo Service do you want to use.   
                 
-                You can optionally use the argument '--id=[1-3]' to specify the account id for a particular account defined in Config.ini.                  
+                You can optionally use the argument '--id=[1-3]' to specify the account id for a particular account defined in <CONFIGURATION_FILE>.                  
                 
                 Following arguments allow you to interact with Synology/Immich Photos. 
                 If more than one optional arguments are detected, only the first one will be executed.

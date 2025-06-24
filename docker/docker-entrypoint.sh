@@ -30,20 +30,20 @@ else
     echo "✅ docker.conf found"
 fi
 
-# Config.ini
+# <CONFIGURATION_FILE>
 echo "🚀 Initializing container and launching PhotoMigrator..."
 if [ ! -r "$CONFIG_FILE" ]; then
-    echo "❌ Config.ini not found or not readable in current folder ($CONFIG_FILE)"
+    echo "❌ <CONFIGURATION_FILE> not found or not readable in current folder ($CONFIG_FILE)"
     if [ -w "$CONFIG_DIR" ]; then
         echo "🛠️  Creating a default configuration file..."
         cp "$DEFAULT_CONFIG" "$CONFIG_FILE"
-        echo "✏️  Please edit Config.ini with your settings and run the script again."
+        echo "✏️  Please edit <CONFIGURATION_FILE> with your settings and run the script again."
     else
         echo "⚠️  Cannot write to $CONFIG_DIR. Please create Config.ini manually."
     fi
     exit 1
 else
-    echo "✅ Config.ini found"
+    echo "✅ <CONFIGURATION_FILE> found"
 fi
 
 exec python3 /app/src/PhotoMigrator.py "$@"

@@ -16,7 +16,7 @@ from halo import Halo
 from tabulate import tabulate
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS
+from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS, DIR_FOR_NO_ALBUMS, CONFIGURATION_FILE
 from Features.GoogleTakeout.GoogleTakeoutFunctions import organize_files_by_date
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.StandaloneUtils import change_working_dir
@@ -111,7 +111,7 @@ class ClassImmichPhotos:
     ###########################################################################
     #                           CONFIGURATION READING                         #
     ###########################################################################
-    def read_config_file(self, config_file='Config.ini', log_level=None):
+    def read_config_file(self, config_file=CONFIGURATION_FILE, log_level=None):
         """
         Reads the Configuration file and updates the instance attributes.
         If the config file is not found, prompts the user to manually input required data.
@@ -1284,7 +1284,7 @@ class ClassImmichPhotos:
     ###########################################################################
     #                  HIGH-LEVEL MAIN FUNCTIONS (UPLOAD/DOWNLOAD)            #
     ###########################################################################
-    def push_albums(self, input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
+    def push_albums(self, input_folder, subfolders_exclusion=DIR_FOR_NO_ALBUMS, subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         """
         Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals the subfolder name).
         Within each subfolder, it uploads all files with allowed extensions (based on self.ALLOWED_IMMICH_EXTENSIONS) and associates them with the album.
@@ -1640,7 +1640,7 @@ class ClassImmichPhotos:
 
     def pull_no_albums(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
-        Downloads assets not associated to any album from Immich Photos into output_folder/No-Albums/.
+        Downloads assets not associated to any album from Immich Photos into output_folder/<NO_ALBUMS_FOLDER>/.
         Then organizes them by year/month inside that folder.
 
         Args:
@@ -1654,7 +1654,7 @@ class ClassImmichPhotos:
             total_assets_downloaded = 0
 
             all_assets_without_albums = self.get_all_assets_without_albums(log_level=log_level)
-            no_albums_folder = os.path.join(output_folder, 'No-Albums')
+            no_albums_folder = os.path.join(output_folder, DIR_FOR_NO_ALBUMS)
             os.makedirs(no_albums_folder, exist_ok=True)
 
             LOGGER.info(f"Found {len(all_assets_without_albums)} asset(s) without any album associated.")
@@ -1697,7 +1697,7 @@ class ClassImmichPhotos:
           │    ├─ albumName1/ (assets in the album)
           │    ├─ albumName2/ (assets in the album)
           │    ...
-          └─ No-Albums/
+          └─ <NO_ALBUMS_FOLDER>/
                └─ yyyy/
                    └─ mm/ (assets not in any album for that year/month)
 
@@ -2135,7 +2135,7 @@ class ClassImmichPhotos:
 
             # Comprobar si hay algún grupo con más de un álbum
             if any(len(album_group) > 1 for album_group in albums_by_name.values()):
-                # Loop through each album name and its group to show all Duplicates Albums and request User Confifmation to continue
+                # Loop through each album name and its group to show all Duplicates Albums and request User Confirmation to continue
                 LOGGER.info(f"The following Albums are duplicates (by Name) and will be merged into the first album:")
                 for album_name, album_group in albums_by_name.items():
                     if len(album_group) > 1:
@@ -2363,7 +2363,7 @@ if __name__ == "__main__":
     immich = ClassImmichPhotos()
 
     # 0) Read configuration and log in
-    immich.read_config_file('Config.ini')
+    immich.read_config_file(CONFIGURATION_FILE)
     immich.login()
 
     # 1) Example: Remove empty albums
@@ -2392,7 +2392,7 @@ if __name__ == "__main__":
     total_albums, total_assets = immich.pull_albums("1994 - Recuerdos", output_folder="Downloads_Immich", log_level=logging.DEBUG)
     print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums} different albbums.")
 
-    # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
+    # 6) Example: Download everything in the structure /Albums/<albumName>/ + /<NO_ALBUMS_FOLDER>/yyyy/mm
     print("\n=== EXAMPLE: pull_ALL() ===")
     # total_struct = pull_ALL(output_folder="Downloads_Immich")
     total_albums_downloaded, total_assets_downloaded = immich.pull_ALL(output_folder="Downloads_Immich", log_level=logging.DEBUG)

@@ -45,7 +45,7 @@ def set_help_texts():
     HELP_TEXTS["upload-all"] = textwrap.dedent(f"""
             ATTENTION!!!: This process will connect to your to your Photos account and will Upload all Assets found in <INPUT_FOLDER> 
             All the Subfolders with valid assets inside '<INPUT_FOLDER>/Albums' will be considered as an Album, and will create new Album in your Photos account with the name of the Subfolder.
-            If the folder '<INPUT_FOLDER>' contains a Subfolder called 'No-Albums' then, all assets inside each that subfolder will be uploaded without creating any Album for them.
+            If the folder '<INPUT_FOLDER>' contains a Subfolder called '<NO_ALBUMS_FOLDER>' then, all assets inside each that subfolder will be uploaded without creating any Album for them.
             """)
 
     HELP_TEXTS["download-albums"] = textwrap.dedent(f"""
@@ -60,12 +60,12 @@ def set_help_texts():
             ATTENTION!!!: This process will connect to your Photos account and will download all the Albums Assets and also 
             Assets without Albums into the folder '<OUTPUT_FOLDER>'. If the file already exists, it will be OVERWRITTEN!!!
             - All Albums Assets will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums' with the same name of the Album and all files will be flattened into it.
-            - All Assets with no Albums associated will be downloaded within a subfolder '<OUTPUT_FOLDER>/No-Albums' and will have a year/month structure inside.
+            - All Assets with no Albums associated will be downloaded within a subfolder '<OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>' and will have a year/month structure inside.
             """)
 
     HELP_TEXTS["remove-orphan-assets"] = textwrap.dedent(f"""
             ATTENTION!!!: In this process, the Tool will look for all Orphan Assets in your Photos account Database and will remove them. 
-            IMPORTANT!!!: This feature requires a valid ADMIN_API_KEY configured in Config.ini.
+            IMPORTANT!!!: This feature requires a valid ADMIN_API_KEY configured in <CONFIGURATION_FILE>.
             """)
 
     HELP_TEXTS["remove-all-assets"] = textwrap.dedent(f"""
@@ -94,7 +94,7 @@ def set_help_texts():
         You must take into account that if not valid action is detected within the arguments of '-findDup, --find-duplicates <ACTION> <DUPLICATES_FOLDER>', then 'list' will be the default action.
         Possible duplicates-action are:
             - list   : This action is not dangerous, just list all duplicates files found in a Duplicates.csv file.
-            - move   : This action could be dangerous but is easily reversible if you find that any duplicated file have been moved to Duplicates folder and you want to restore it later
+            - move   : This action could be dangerous but is easily reversible if you find that any duplicated file have been moved to `<DUPLICATES_FOLDER>` and you want to restore it later
                        You can easily restore it using option -procDup, --process-duplicates
             - remove : This action could be dangerous and is irreversible, since the Tool will remove all duplicates found and will keep only a Principal file per each duplicates set. 
                        The principal file is chosen carefully based on some heuristic methods
@@ -105,10 +105,10 @@ def set_help_texts():
         based on the Action column value of 'Duplicates.csv' file generated in 'Find Duplicates Mode'. 
         You can modify individually each Action column value for each duplicate found, but take into account that the below actions list are irreversible:
         Possible Actions in revised CSV file are:
-            - remove_duplicate  : Duplicated file moved to Duplicates folder will be permanently removed
-            - restore_duplicate : Duplicated file moved to Duplicates folder will be restored to its original location
+            - remove_duplicate  : Duplicated file moved to `<DUPLICATES_FOLDER>` will be permanently removed
+            - restore_duplicate : Duplicated file moved to `<DUPLICATES_FOLDER>` will be restored to its original location
             - replace_duplicate : This action can be used to replace the principal file chosen for each duplicates and select manually other principal file
-                                  Duplicated file moved to Duplicates folder will be restored to its original location as principal file
+                                  Duplicated file moved to `<DUPLICATES_FOLDER>` folder will be restored to its original location as principal file
                                   and Original Principal file detected by the Script will be removed permanently
         """)
 
