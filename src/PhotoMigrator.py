@@ -129,6 +129,7 @@ def main():
     custom_print("This is a test message with logLevel: WARNING", log_level=logging.WARNING)
     custom_print("This is a test message with logLevel: ERROR", log_level=logging.ERROR)
     custom_print("This is a test message with logLevel: CRITICAL", log_level=logging.CRITICAL)
+    custom_print("", log_level=logging.INFO)
 
     # Get the execution mode and run it.
     detect_and_run_execution_mode()
