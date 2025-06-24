@@ -50,7 +50,7 @@ Following arguments allow you to execute the Automatic Migration Process to migr
 
 | Argument                               | Parameter  |       Type        |                 Valid Values                  | Description                                             |
 |----------------------------------------|------------|:-----------------:|:---------------------------------------------:|---------------------------------------------------------|
-| `-source`,<br>`--source`               | `<SOURCE>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich` | Defines the source for the automatic migration process.|
+| `-source`,<br>`--source`               | `<SOURCE>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich` | Defines the source for the automatic migration process. |
 | `-target`,<br>`--target`               | `<TARGET>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich` | Defines the target for the automatic migration process. |
 | `-move`,<br>`--move-assets`            | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enable / Disables move assets instead of copying them.  |
 | `-dashboard`,<br>`--dashboard`         | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enables / Disables the live dashboard during migration. |
