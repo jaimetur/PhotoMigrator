@@ -14,7 +14,7 @@ import urllib3
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import ARGS, LOGGER, MSG_TAGS, DIR_FOR_NO_ALBUMS, CONFIGURATION_FILE
+from Core.GlobalVariables import ARGS, LOGGER, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE
 from Features.GoogleTakeout.GoogleTakeoutFunctions import organize_files_by_date
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue
@@ -1861,7 +1861,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #             MAIN FUNCTIONS TO CALL FROM OTHER MODULES (API)            #
     ###########################################################################
-    def push_albums(self, input_folder, subfolders_exclusion=DIR_FOR_NO_ALBUMS, subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
+    def push_albums(self, input_folder, subfolders_exclusion=FOLDERNAME_NO_ALBUMS, subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         """
         Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals
         the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on
@@ -2239,7 +2239,7 @@ class ClassSynologyPhotos:
                 total_assets_downloaded = 0
 
                 assets_without_albums = self.get_all_assets_without_albums(log_level=logging.INFO)
-                no_albums_folder = os.path.join(no_albums_folder, DIR_FOR_NO_ALBUMS)
+                no_albums_folder = os.path.join(no_albums_folder, FOLDERNAME_NO_ALBUMS)
                 os.makedirs(no_albums_folder, exist_ok=True)
 
                 LOGGER.info(f"Number of assets without Albums associated to download: {len(assets_without_albums)}")

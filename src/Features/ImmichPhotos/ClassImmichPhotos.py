@@ -16,7 +16,7 @@ from halo import Halo
 from tabulate import tabulate
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS, DIR_FOR_NO_ALBUMS, CONFIGURATION_FILE
+from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE
 from Features.GoogleTakeout.GoogleTakeoutFunctions import organize_files_by_date
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.StandaloneUtils import change_working_dir
@@ -1284,7 +1284,7 @@ class ClassImmichPhotos:
     ###########################################################################
     #                  HIGH-LEVEL MAIN FUNCTIONS (UPLOAD/DOWNLOAD)            #
     ###########################################################################
-    def push_albums(self, input_folder, subfolders_exclusion=DIR_FOR_NO_ALBUMS, subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
+    def push_albums(self, input_folder, subfolders_exclusion=FOLDERNAME_NO_ALBUMS, subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         """
         Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals the subfolder name).
         Within each subfolder, it uploads all files with allowed extensions (based on self.ALLOWED_IMMICH_EXTENSIONS) and associates them with the album.
@@ -1654,7 +1654,7 @@ class ClassImmichPhotos:
             total_assets_downloaded = 0
 
             all_assets_without_albums = self.get_all_assets_without_albums(log_level=log_level)
-            no_albums_folder = os.path.join(output_folder, DIR_FOR_NO_ALBUMS)
+            no_albums_folder = os.path.join(output_folder, FOLDERNAME_NO_ALBUMS)
             os.makedirs(no_albums_folder, exist_ok=True)
 
             LOGGER.info(f"Found {len(all_assets_without_albums)} asset(s) without any album associated.")

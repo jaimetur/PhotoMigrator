@@ -3,7 +3,7 @@ import re
 import sys
 from configparser import ConfigParser
 
-from Core.GlobalVariables import LOGGER, DIR_FOR_LOGS, CONFIGURATION_FILE
+from Core.GlobalVariables import LOGGER, FOLDERNAME_LOGS, CONFIGURATION_FILE
 from Utils.StandaloneUtils import resolve_path
 
 CONFIG = None
@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
     TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
     log_filename = f"{sys.argv[0]}_{TIMESTAMP}"
-    log_folder = resolve_path(DIR_FOR_LOGS)
+    log_folder = resolve_path(FOLDERNAME_LOGS)
     LOG_FOLDER_FILENAME = os.path.join(log_folder, log_filename + '.log')
     LOGGER = log_setup(
         log_folder=log_folder,

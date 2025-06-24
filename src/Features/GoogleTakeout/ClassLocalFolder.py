@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS, DIR_FOR_NO_ALBUMS, CONFIGURATION_FILE
+from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE
 from Utils.DateUtils import parse_text_datetime_to_epoch
 from Utils.StandaloneUtils import change_working_dir
 from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list
@@ -45,7 +45,7 @@ class ClassLocalFolder:
         self.base_folder = Path(base_folder)
         self.albums_folder = self.base_folder / "Albums"
         self.shared_albums_folder = self.base_folder / "Albums-shared"
-        self.no_albums_folder = self.base_folder / DIR_FOR_NO_ALBUMS
+        self.no_albums_folder = self.base_folder / FOLDERNAME_NO_ALBUMS
 
         # Ensure all required folders exist
         self.base_folder.mkdir(parents=True, exist_ok=True)
@@ -1072,7 +1072,7 @@ class ClassLocalFolder:
             return 1
 
 
-    def push_albums(self, input_folder, subfolders_exclusion=DIR_FOR_NO_ALBUMS,
+    def push_albums(self, input_folder, subfolders_exclusion=FOLDERNAME_NO_ALBUMS,
                     subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         """
         Recursively uploads each subfolder of 'input_folder' as an album,

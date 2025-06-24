@@ -11,7 +11,7 @@ from pathlib import Path
 from colorama import init, Style
 
 from Core.CustomLogger import set_log_level, custom_print
-from Core.GlobalVariables import LOGGER, MSG_TAGS, MSG_TAGS_COLORED, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, DIR_FOR_NO_ALBUMS
+from Core.GlobalVariables import LOGGER, MSG_TAGS, MSG_TAGS_COLORED, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, FOLDERNAME_NO_ALBUMS
 from Utils.FileUtils import is_valid_path
 from Utils.GeneralUtils import tqdm
 
@@ -781,7 +781,7 @@ def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None,
         albums_path = os.path.join(input_folder, albums_subfolder)
         exclude_subfolder_paths = [os.path.abspath(os.path.join(input_folder, sub)) for sub in (exclude_subfolder or [])]
         subfolders = os.listdir(input_folder)
-        subfolders = [subfolder for subfolder in subfolders if not subfolder == '@eaDir' and not subfolder == DIR_FOR_NO_ALBUMS]
+        subfolders = [subfolder for subfolder in subfolders if not subfolder == '@eaDir' and not subfolder == FOLDERNAME_NO_ALBUMS]
         for subfolder in tqdm(subfolders, smoothing=0.1, desc=f"{MSG_TAGS['INFO']}{step_name}Moving Albums in '{input_folder}' to Subolder '{albums_subfolder}'", unit=" albums"):
             folder_path = os.path.join(input_folder, subfolder)
             if os.path.isdir(folder_path) and subfolder != albums_subfolder and os.path.abspath(folder_path) not in exclude_subfolder_paths:

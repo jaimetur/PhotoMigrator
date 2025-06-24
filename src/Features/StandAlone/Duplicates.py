@@ -9,7 +9,7 @@ from collections import namedtuple
 from pathlib import Path
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import LOGGER, MSG_TAGS, DIR_FOR_DUPLICATES
+from Core.GlobalVariables import LOGGER, MSG_TAGS, FOLDERNAME_DUPLICATES
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs
 from Utils.StandaloneUtils import resolve_path
 from Utils.GeneralUtils import tqdm
@@ -347,7 +347,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
                 # CSV WRITING
                 # ===========================
                 LOGGER.info(f"{step_name}Creating duplicates directories")
-                duplicates_root = resolve_path(DIR_FOR_DUPLICATES)
+                duplicates_root = resolve_path(FOLDERNAME_DUPLICATES)
                 timestamp_dir = os.path.join(duplicates_root, 'Duplicates_' + timestamp)
                 os.makedirs(timestamp_dir, exist_ok=True)
                 LOGGER.info(f"{step_name}Results in {timestamp_dir}")

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from Core.CustomLogger import set_log_level
 from Core.FileStatistics import count_files_per_type_and_extract_dates_multi_threads
-from Core.GlobalVariables import ARGS, LOG_LEVEL, VERBOSE_LEVEL_NUM, LOGGER, TIMESTAMP, DIR_FOR_NO_ALBUMS
+from Core.GlobalVariables import ARGS, LOG_LEVEL, VERBOSE_LEVEL_NUM, LOGGER, TIMESTAMP, FOLDERNAME_NO_ALBUMS
 from Features.GoogleTakeout import MetadataFixers
 # Import ClassLocalFolder (Parent Class of this)
 from Features.GoogleTakeout.ClassLocalFolder import ClassLocalFolder
@@ -465,14 +465,14 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     LOGGER.info(f"{step_name}Creating Folder structure '{self.ARGS['google-albums-folders-structure'].lower()}' for each Album folder...")
                     basedir = output_folder
                     type_structure = self.ARGS['google-albums-folders-structure']
-                    exclude_subfolders = [DIR_FOR_NO_ALBUMS]
+                    exclude_subfolders = [FOLDERNAME_NO_ALBUMS]
                     organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, step_name=step_name, log_level=LOG_LEVEL)
 
                 # For No-Albums
                 if self.ARGS['google-no-albums-folders-structure'].lower() != 'flatten':
                     LOGGER.info(f"")
-                    LOGGER.info(f"{step_name}Creating Folder structure '{self.ARGS['google-no-albums-folders-structure'].lower()}' for '{DIR_FOR_NO_ALBUMS}' folder...")
-                    basedir = os.path.join(output_folder, DIR_FOR_NO_ALBUMS)
+                    LOGGER.info(f"{step_name}Creating Folder structure '{self.ARGS['google-no-albums-folders-structure'].lower()}' for '{FOLDERNAME_NO_ALBUMS}' folder...")
+                    basedir = os.path.join(output_folder, FOLDERNAME_NO_ALBUMS)
                     type_structure = self.ARGS['google-no-albums-folders-structure']
                     exclude_subfolders = []
                     organize_files_by_date(input_folder=basedir, type=type_structure, exclude_subfolders=exclude_subfolders, step_name=step_name, log_level=LOG_LEVEL)
@@ -500,7 +500,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"====================================")
                 LOGGER.info(f"")
                 LOGGER.info(f"{step_name}Moving All your albums into 'Albums' folder for a better organization...")
-                move_albums(input_folder=output_folder, exclude_subfolder=[DIR_FOR_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
+                move_albums(input_folder=output_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
                 step_end_time = datetime.now()
                 LOGGER.info(f"{step_name}All your albums have been moved successfully!")
                 formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
@@ -525,7 +525,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 duplicates_found, removed_empty_folders = find_duplicates(
                     duplicates_action='remove',
                     duplicates_folders=output_folder,
-                    exclusion_folders=[DIR_FOR_NO_ALBUMS],    # Exclude '<NO_ALBUMS_FOLDER>' folder since it will contain duplicates of all the assets withini 'Albums' subfolders.
+                    exclusion_folders=[FOLDERNAME_NO_ALBUMS],    # Exclude '<NO_ALBUMS_FOLDER>' folder since it will contain duplicates of all the assets withini 'Albums' subfolders.
                     deprioritize_folders_patterns=self.DEPRIORITIZE_FOLDERS_PATTERNS,
                     timestamp=self.TIMESTAMP,
                     step_name=step_name,
@@ -538,7 +538,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}2. Removing duplicates from '<OUTPUT_TAKEOUT_FOLDER>/<NO_ALBUMS_FOLDER>', excluding any other folders outside it...")
                 duplicates_found, removed_empty_folders = find_duplicates(
                     duplicates_action='remove',
-                    duplicates_folders=os.path.join(output_folder, DIR_FOR_NO_ALBUMS),
+                    duplicates_folders=os.path.join(output_folder, FOLDERNAME_NO_ALBUMS),
                     deprioritize_folders_patterns=self.DEPRIORITIZE_FOLDERS_PATTERNS,
                     timestamp=self.TIMESTAMP,
                     step_name=step_name,
@@ -585,7 +585,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"============================================================")
                 LOGGER.info(f"")
                 LOGGER.info(f"{step_name}Renaming albums folders in <OUTPUT_TAKEOUT_FOLDER> based on their dates...")
-                rename_output = rename_album_folders(input_folder=albums_folder, exclude_subfolder=[DIR_FOR_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
+                rename_output = rename_album_folders(input_folder=albums_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
                 # Merge all counts from rename_output into self.result in one go
                 self.result.update(rename_output)
 
@@ -639,7 +639,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # 2. Now count the Albums in output Folder
             if os.path.isdir(output_folder):
-                excluded_folders = [DIR_FOR_NO_ALBUMS, "ALL_PHOTOS"]
+                excluded_folders = [FOLDERNAME_NO_ALBUMS, "ALL_PHOTOS"]
                 self.result['valid_albums_found'] = count_valid_albums(albums_folder, excluded_folders=excluded_folders, step_name=step_name, log_level=LOG_LEVEL)
             LOGGER.info(f"{step_name}Valid Albums Found {self.result['valid_albums_found']}.")
             step_end_time = datetime.now()

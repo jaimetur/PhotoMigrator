@@ -6,7 +6,7 @@ import sys
 import Core.GlobalVariables as GV
 from Core.ArgsParser import parse_arguments, checkArgs
 from Core.CustomLogger import log_setup
-from Core.GlobalVariables import DIR_FOR_LOGS
+from Core.GlobalVariables import FOLDERNAME_LOGS
 from Core.HelpTexts import set_help_texts
 from Utils.StandaloneUtils import resolve_path
 
@@ -18,7 +18,7 @@ from Utils.StandaloneUtils import resolve_path
 def set_LOGGER():
     script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     current_directory = os.getcwd()
-    log_folder = resolve_path(DIR_FOR_LOGS)
+    log_folder = resolve_path(FOLDERNAME_LOGS)
     log_filename = f"{script_name}_{GV.TIMESTAMP}"
     GV.LOG_FOLDER_FILENAME = os.path.join(current_directory, log_folder, log_filename)
 
