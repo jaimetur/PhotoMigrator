@@ -1,13 +1,15 @@
+import json
 import logging
 import os
 import re
 import shutil
+import subprocess
 from datetime import datetime
 
 import piexif
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import MSG_TAGS, PHOTO_EXT, LOGGER
+from Core.GlobalVariables import MSG_TAGS, PHOTO_EXT, LOGGER, VIDEO_EXT
 from Utils.GeneralUtils import tqdm, get_subfolders_with_exclusions
 
 
@@ -74,24 +76,89 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                 "original-dates": original_dates
             }
 
-    def get_content_based_year_range(folder: str, log_level=logging.INFO) -> str:
-        def get_exif_date(image_path):
+    def get_exif_oldest_date_using_exiftool(image_path, step_name='', log_level=None):
+        with set_log_level(LOGGER, log_level):
             try:
+                LOGGER.debug(f"{step_name} Executing exiftool for {image_path}")
+                # Llama a exiftool con todos los flags recomendados
+                result = subprocess.check_output([
+                    "./gpth_tool/exif_tool/exiftool",
+                    "-j", "-n", "-time:all", "-fast", "-fast2", "-s",
+                    image_path
+                ], stderr=subprocess.STDOUT)
+                metadata = json.loads(result)[0]
+
+                candidate_tags = ['DateTimeOriginal', 'CreateDate', 'MediaCreateDate',
+                                  'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'FileModifyDate']
+                date_formats = ["%Y:%m:%d %H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y:%m:%d", "%Y-%m-%d"]
+                found_dates = []
+
+                for tag in candidate_tags:
+                    raw_value = metadata.get(tag)
+                    if not raw_value:
+                        continue  # No value for this tag
+                    for fmt in date_formats:
+                        try:
+                            parsed = datetime.strptime(str(raw_value).strip(), fmt)
+                            found_dates.append(parsed)
+                            LOGGER.debug(f"{step_name} Parsed {parsed} from tag {tag}")
+                            break
+                        except ValueError:
+                            continue
+
+                if found_dates:
+                    oldest = min(found_dates)
+                    LOGGER.debug(f"{step_name} Oldest EXIF date: {oldest}")
+                    return oldest
+
+                LOGGER.debug(f"{step_name} No EXIF dates found")
+                return None
+
+            except subprocess.CalledProcessError as e:
+                LOGGER.debug(f"{step_name} exiftool error: {e.output.decode(errors='ignore')}")
+                return None
+            except Exception as e:
+                LOGGER.debug(f"{step_name} Unexpected error retrieving EXIF date: {e}")
+                return None
+
+    def get_exif_oldest_date_using_piexif(image_path, step_name='', log_level=None):
+        with set_log_level(LOGGER, log_level):
+            try:
+                LOGGER.debug(f"{step_name} Loading EXIF from {image_path}")
                 exif_dict = piexif.load(image_path)
-                candidate_date_tags = [
-                    'DateTimeOriginal', 'CreateDate', 'MediaCreateDate',
-                    'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'FileModifyDate'
-                ]
-                # for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
+                # Candidate EXIF date tags
+                candidate_date_tags = ['DateTimeOriginal', 'CreateDate', 'MediaCreateDate', 'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'FileModifyDate']
+                # Supported date formats
+                date_formats = ["%Y:%m:%d %H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y:%m:%d", "%Y-%m-%d"]
+                found_dates = []
                 for tag in candidate_date_tags:
                     tag_id = piexif.ExifIFD.__dict__.get(tag)
-                    value = exif_dict["Exif"].get(tag_id)
-                    if value:
-                        return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
-            except Exception:
-                pass
-            return None
+                    if tag_id is None:
+                        continue  # Tag not defined in ExifIFD
+                    raw_value = exif_dict.get("Exif", {}).get(tag_id)
+                    if not raw_value:
+                        continue  # No value for this tag
+                    # Normalize raw_value to string if it's bytes
+                    raw_str = raw_value.decode('utf-8', errors='ignore') if isinstance(raw_value, (bytes, bytearray)) else raw_value
+                    for fmt in date_formats:
+                        try:
+                            parsed_date = datetime.strptime(raw_str.strip(), fmt)
+                            found_dates.append(parsed_date)
+                            LOGGER.debug(f"{step_name} Parsed {parsed_date} from tag {tag}")
+                            break
+                        except ValueError:
+                            continue
+                if found_dates:
+                    oldest = min(found_dates)
+                    LOGGER.debug(f"{step_name} Oldest EXIF date: {oldest}")
+                    return oldest
+                LOGGER.debug(f"{step_name} No EXIF dates found")
+                return None
+            except Exception as e:
+                LOGGER.debug(f"{step_name} Error retrieving EXIF date: {e}")
+                return None
 
+    def get_content_based_year_range(folder: str, exif_search=False, log_level=logging.INFO) -> str:
         with set_log_level(LOGGER, log_level):
             try:
                 files = [os.path.join(folder, f) for f in os.listdir(folder)]
@@ -101,12 +168,14 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     ext = os.path.splitext(f)[1].lower()
                     exif_date = None
                     fs_date = None
-                    if ext in PHOTO_EXT:
+                    if ext in PHOTO_EXT+VIDEO_EXT:
                         # Intenta obtener EXIF
-                        try:
-                            exif_date = get_exif_date(f)
-                        except Exception as e:
-                            LOGGER.warning(f"{step_name}Error reading EXIF from {f}: {e}")
+                        if exif_search:
+                            try:
+                                exif_date = get_exif_oldest_date_using_piexif(f, step_name=step_name)
+                                # exif_date = get_exif_oldest_date_using_exiftool(f, step_name=step_name)
+                            except Exception as e:
+                                LOGGER.warning(f"{step_name}Error reading EXIF from {f}: {e}")
                         # Intenta obtener mtime
                         try:
                             ts = os.path.getmtime(f)
@@ -136,19 +205,7 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                 LOGGER.error(f"{step_name}Error obtaining year range: {e}")
             return False
 
-    def get_content_based_date_range(folder: str, log_level=logging.INFO) -> str:
-        def get_exif_date(image_path):
-            try:
-                exif_dict = piexif.load(image_path)
-                for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
-                    tag_id = piexif.ExifIFD.__dict__.get(tag)
-                    value = exif_dict["Exif"].get(tag_id)
-                    if value:
-                        return datetime.strptime(value.decode(), "%Y:%m:%d %H:%M:%S")
-            except Exception:
-                pass
-            return None
-
+    def get_content_based_date_range(folder: str, exif_search=False, log_level=logging.INFO) -> str:
         with set_log_level(LOGGER, log_level):
             try:
                 files = [os.path.join(folder, f) for f in os.listdir(folder)]
@@ -158,11 +215,15 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
                     ext = os.path.splitext(f)[1].lower()
                     exif_date = None
                     fs_date = None
-                    if ext in PHOTO_EXT:
-                        try:
-                            exif_date = get_exif_date(f)
-                        except Exception as e:
-                            LOGGER.warning(f"{step_name}Error reading EXIF from {f}: {e}")
+                    if ext in PHOTO_EXT+VIDEO_EXT:
+                        # Intenta obtener EXIF
+                        if exif_search:
+                            try:
+                                exif_date = get_exif_oldest_date_using_piexif(f, step_name=step_name)
+                                # exif_date = get_exif_oldest_date_using_exiftool(f, step_name=step_name)
+                            except Exception as e:
+                                LOGGER.warning(f"{step_name}Error reading EXIF from {f}: {e}")
+                        # Intenta obtener mtime
                         try:
                             ts = os.path.getmtime(f)
                             if ts > 0:
