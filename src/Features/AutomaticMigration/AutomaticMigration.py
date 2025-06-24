@@ -511,13 +511,13 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             # ------------------------------------------------------------------------------------------------------
             # 1) Iniciar uno o varios hilos de pull y push para manejar los pull y push concurrentes
             # ------------------------------------------------------------------------------------------------------
-            # Obtain the number of Threads for the CPU and launch as many Push workers as max(1, int(cpu_total_threads/2))
+            # Obtain the number of Threads for the CPU and launch as many Push workers as max(1, int(cpu_total_threads*2))
             cpu_total_threads = os.cpu_count()
             LOGGER.info(f"")
-            LOGGER.info(f"CPU Total Threads Detected = {cpu_total_threads}")
+            LOGGER.info(f"CPU Total Cores Detected = {cpu_total_threads}")
             num_pull_threads = 1  # no Iniciar más de 1 hilo de descarga, de lo contrario los assets se descargarán multiples veces.
             LOGGER.info(f"Launching {num_pull_threads} Pull worker in parallel...")
-            num_push_threads = max(1, int(cpu_total_threads / 2))
+            num_push_threads = max(1, int(cpu_total_threads * 2))
             LOGGER.info(f"Launching {num_push_threads} Push workers in parallel...")
 
             pull_threads = [threading.Thread(target=puller_worker, kwargs={"parallel": parallel}, daemon=True) for _ in range(num_pull_threads)]
