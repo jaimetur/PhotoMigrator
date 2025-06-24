@@ -50,19 +50,7 @@ Following arguments allow you to execute the Automatic Migration Process to migr
 
 | Argument                               | Parameter  |       Type        |                 Valid Values                  | Description                                             |
 |----------------------------------------|------------|:-----------------:|:---------------------------------------------:|---------------------------------------------------------|
-| `-source`,<br>`--source`               | `<SOURCE>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich` | Defines the source for the automatic migration process. <br>Select the <SOURCE> for the AUTOMATIC-MIGRATION Process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
-                         "\n"
-                         "\nPossible values:"
-                         "\n  ['synology', 'immich']-[id] or <INPUT_FOLDER>"
-                         "\n  [id] = [1, 2] select which account to use from the Config.ini file."
-                         "\n"    
-                         "\nExamples: "
-                         "\n ​--source=immich-1 -> Select Immich Photos account 1 as Source."
-                         "\n ​--source=synology-2 -> Select Synology Photos account 2 as Source."
-                         "\n ​--source=/home/local_folder -> Select this local folder as Source."
-                         "\n ​--source=/home/Takeout -> Select this Takeout folder as Source."
-                         "\n ​                      (both, zipped and unzipped format are supported)"
-               |
+| `-source`,<br>`--source`               | `<SOURCE>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich` | Defines the source for the automatic migration process.|
 | `-target`,<br>`--target`               | `<TARGET>` | path / <br>string | `existing path`, <br>`synology`, <br>`immich` | Defines the target for the automatic migration process. |
 | `-move`,<br>`--move-assets`            | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enable / Disables move assets instead of copying them.  |
 | `-dashboard`,<br>`--dashboard`         | `<bool>`   |       bool        |    `true`, `false` <br>`(default: false)`     | Enables / Disables the live dashboard during migration. |
