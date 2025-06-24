@@ -24,6 +24,7 @@
     - [ ] Allow user to define folder namefor 'Exiftool Outputs'.
     - [ ] Allow user to define folder name for 'Albums'.
     - [ ] Allow user to define folder name for 'All Photos'.
+    - [ ] Allow user to define Configurarion file (path and name).
 
   - #### 🚀 Enhancements:
     - [ ] Investigate Performance on Automatic Migration when target=`synology`. 
