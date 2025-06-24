@@ -3,6 +3,10 @@
 import os, sys
 import importlib
 import logging
+
+from Core.CustomLogger import custom_log
+from Core.GlobalFunctions import set_FOLDERS
+
 # Añadir 'src/' al PYTHONPATH
 src_path = os.path.dirname(__file__)
 sys.path.insert(0, src_path)            # Now src is the root for imports
@@ -47,8 +51,9 @@ def main():
     # IMPORTANT: DO NOT IMPORT ANY TOOL's MODULE (except Utils.StandaloneUtils or Core.GlobalVariables) BEFORE TO RUN set_ARGS_PARSER AND set_LOGGER
     #            otherwise the ARGS, PARSER, LOGGER and HELP_TEXTS variables will be None on those imported modules.
     from Core.GlobalFunctions import set_ARGS_PARSER, set_LOGGER, set_HELP_TEXTS
-    set_ARGS_PARSER()
-    set_LOGGER()
+    set_ARGS_PARSER()   # Need to be called first of all
+    set_FOLDERS()       # Need to be called after set_ARGS_PARSER() but before set_LOGGER()
+    set_LOGGER()        # Need to be called after set_FOLDERS()
     set_HELP_TEXTS()
 
     # Now we can safety import any other tool's module
@@ -110,19 +115,10 @@ def main():
             custom_print(f"No valid folder selected. Exiting.", log_level=logging.ERROR)
             sys.exit(1)
 
-    # Print the Header (common for all modules)
-    GV.LOGGER.info(f"")
-    GV.LOGGER.info(f"==========================================")
-    GV.LOGGER.info(f"Starting {GV.SCRIPT_NAME} Process...")
-    GV.LOGGER.info(f"==========================================")
-    GV.LOGGER.info(GV.SCRIPT_DESCRIPTION)
-
-    GV.LOGGER.info(f"Log Level         : {str(GV.ARGS['log-level']).upper()}")
-    if not GV.ARGS['no-log-file']:
-        GV.LOGGER.info(f"Log File Location : {GV.LOG_FOLDER_FILENAME+'.log'}")
-        GV.LOGGER.info(f"")
 
     # Test different LOG_LEVELS
+    custom_print("Testing Custom Print Function for all different logLevels.")
+    custom_print("All LogLevel should be displayed on console:")
     custom_print("This is a test message with logLevel: VERBOSE", log_level=logging.VERBOSE)
     custom_print("This is a test message with logLevel: DEBUG", log_level=logging.DEBUG)
     custom_print("This is a test message with logLevel: INFO", log_level=logging.INFO)
@@ -130,6 +126,35 @@ def main():
     custom_print("This is a test message with logLevel: ERROR", log_level=logging.ERROR)
     custom_print("This is a test message with logLevel: CRITICAL", log_level=logging.CRITICAL)
     custom_print("", log_level=logging.INFO)
+
+    custom_log("Testing Custom Log Function for all different logLevels. ")
+    custom_log("Only LogLevels Higher or Equal than provided by '-logLevel, --log-level' argument should be displayed on console and Log file:")
+    custom_log("This is a test message with logLevel: VERBOSE", log_level=logging.VERBOSE)
+    custom_log("This is a test message with logLevel: DEBUG", log_level=logging.DEBUG)
+    custom_log("This is a test message with logLevel: INFO", log_level=logging.INFO)
+    custom_log("This is a test message with logLevel: WARNING", log_level=logging.WARNING)
+    custom_log("This is a test message with logLevel: ERROR", log_level=logging.ERROR)
+    custom_log("This is a test message with logLevel: CRITICAL", log_level=logging.CRITICAL)
+    custom_log("", log_level=logging.INFO)
+
+    # Print the Header (common for all modules)
+    GV.LOGGER.info(f"")
+    GV.LOGGER.info(f"==========================================")
+    GV.LOGGER.info(f"Starting {GV.SCRIPT_NAME} Tool...")
+    GV.LOGGER.info(f"==========================================")
+    GV.LOGGER.info(GV.SCRIPT_DESCRIPTION)
+    GV.LOGGER.info(f"")
+    GV.LOGGER.info(f"Tool Configured with the following Global Settings:")
+    GV.LOGGER.info(f"  - Configuration File            : {GV.CONFIGURATION_FILE}")
+    GV.LOGGER.info(f"  - Folder for Albums             : {GV.FOLDERNAME_ALBUMS}")
+    GV.LOGGER.info(f"  - Folder for No-Albums          : {GV.FOLDERNAME_NO_ALBUMS}")
+    GV.LOGGER.info(f"  - Folder for Duplicates Outputs : {GV.FOLDERNAME_DUPLICATES_OUTPUT}")
+    GV.LOGGER.info(f"  - Folder for Exiftool Outputs   : {GV.FOLDERNAME_EXIFTOOL_OUTPUT}")
+    if not GV.ARGS['no-log-file']:
+        GV.LOGGER.info(f"  - Folder for Logs               : {GV.FOLDERNAME_LOGS}")
+        GV.LOGGER.info(f"  - Log File Location             : {GV.LOG_FOLDER_FILENAME+'.log'}")
+        GV.LOGGER.info(f"  - Log Level                     : {logging.getLevelName(GV.LOG_LEVEL)} ({str(GV.LOG_LEVEL).upper()})")
+    GV.LOGGER.info(f"")
 
     # Get the execution mode and run it.
     detect_and_run_execution_mode()

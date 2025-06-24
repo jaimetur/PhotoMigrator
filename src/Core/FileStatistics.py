@@ -10,7 +10,7 @@ from tempfile import TemporaryDirectory
 
 from Core.CustomLogger import set_log_level
 from Core.DataModels import init_count_files_counters
-from Core.GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, TIMESTAMP
+from Core.GlobalVariables import LOGGER, PHOTO_EXT, VIDEO_EXT, METADATA_EXT, SIDECAR_EXT, TIMESTAMP, FOLDERNAME_EXIFTOOL_OUTPUT
 
 
 # ---------------------------------------------------------------------------------------------------------------------------
@@ -42,8 +42,7 @@ def merge_counters(list_of_counter_dicts):
 # ------------------------------------------------------------------
 def merge_json_files(temporary_directory, final_output_path, output_filename, output_ext):
     combined_metadata = []
-    # for chunk_file in sorted(Path(temporary_directory).glob(f"metadata_chunk_{TIMESTAMP}*.json")):
-    for chunk_file in sorted(Path(temporary_directory).glob(f"{output_filename}_{TIMESTAMP}_*{output_ext}")):
+    for chunk_file in sorted(Path(temporary_directory).glob(f"{TIMESTAMP}_{output_filename}_*{output_ext}")):
         try:
             # Read and accumulate metadata_chunk
             with open(chunk_file, "r", encoding="utf-8") as handle:
@@ -78,8 +77,8 @@ def process_block(file_paths, block_index, temporary_directory, output_filename,
     total_bytes = 0
 
     # chunk_json in temporary directory and error_log in current directory
-    chunk_json_path = os.path.join(temporary_directory, f"{output_filename}_{TIMESTAMP}_{block_index}{output_ext}")
-    error_log_path = os.path.abspath(f"exiftool_errors_{TIMESTAMP}.log")
+    chunk_json_path = os.path.join(temporary_directory, f"{TIMESTAMP}_{output_filename}_{block_index}{output_ext}")
+    error_log_path = os.path.abspath(os.path.join(FOLDERNAME_EXIFTOOL_OUTPUT, f"{TIMESTAMP}_exiftool_log.log"))
 
     # 1) Extract dates If extract_dates is enabled --> run exiftool and load metadata
     if extract_dates:
@@ -188,6 +187,9 @@ def count_files_per_type_and_extract_dates_multi_process(input_folder, max_files
         output_file = output_file + '.json'
     # Separate output_filename and output_ext
     output_filename, output_ext = os.path.splitext(output_file)
+    # Add TIMESTAMP to output_file
+    output_filename = f"{TIMESTAMP}_{output_filename}"
+    output_file = f"{output_filename}{output_ext}"
     with set_log_level(LOGGER, log_level):
         # --- 1) Prepare extension filters
         excluded_extensions = {ext if ext.startswith('.') else f".{ext}" for ext in (exclude_ext or [])} or None    # Accepts exclude_ext with and without '.'
@@ -256,7 +258,7 @@ def count_files_per_type_and_extract_dates_multi_process(input_folder, max_files
 
             # Merge JSON outputs if we extracted dates
             if extract_dates:
-                merge_json_files(temp_dir, output_file, output_filename, output_ext)
+                merge_json_files(temp_dir, os.path.join(FOLDERNAME_EXIFTOOL_OUTPUT, output_file), output_filename, output_ext)
 
         # --- 5) Merge all block counters and compute final percentages
         final_counters = merge_counters(merged_counters_list)
@@ -267,8 +269,8 @@ def count_files_per_type_and_extract_dates_multi_process(input_folder, max_files
                 final_counters[media_category]['pct_with_date'] = (with_date / total_count) * 100
                 final_counters[media_category]['pct_without_date'] = ((total_count - with_date) / total_count) * 100
             else:
-                final_counters[media_category]['pct_with_date'] = None
-                final_counters[media_category]['pct_without_date'] = None
+                final_counters[media_category]['pct_with_date'] = 0
+                final_counters[media_category]['pct_without_date'] = 0
 
         return final_counters, merged_dates
 
@@ -291,6 +293,9 @@ def count_files_per_type_and_extract_dates_multi_threads(input_folder, max_files
         output_file = output_file + '.json'
     # Separate output_filename and output_ext
     output_filename, output_ext = os.path.splitext(output_file)
+    # Add TIMESTAMP to output_file
+    output_filename = f"{TIMESTAMP}_{output_filename}"
+    output_file = f"{output_filename}{output_ext}"
     # ------------------------------------------------------------------
     # Aux: merge counters from multiple blocks
     # ------------------------------------------------------------------
@@ -310,8 +315,7 @@ def count_files_per_type_and_extract_dates_multi_threads(input_folder, max_files
     # ------------------------------------------------------------------
     def merge_json_files(temporary_directory, final_output_path):
         combined_metadata = []
-        # for chunk_file in sorted(Path(temporary_directory).glob(f"metadata_chunk_{TIMESTAMP}*.json")):
-        for chunk_file in sorted(Path(temporary_directory).glob(f"{output_filename}_{TIMESTAMP}_*{output_ext}")):
+        for chunk_file in sorted(Path(temporary_directory).glob(f"{TIMESTAMP}_{output_filename}_*{output_ext}")):
             try:
                 # Read and accumulate metadata_chunk
                 with open(chunk_file, "r", encoding="utf-8") as handle:
@@ -346,8 +350,8 @@ def count_files_per_type_and_extract_dates_multi_threads(input_folder, max_files
         total_bytes = 0
 
         # chunk_json in temporary directory and error_log in current directory
-        chunk_json_path = os.path.join(temporary_directory, f"{output_filename}_{TIMESTAMP}_{block_index}{output_ext}")
-        error_log_path = os.path.abspath(f"exiftool_errors_{TIMESTAMP}.log")
+        chunk_json_path = os.path.join(temporary_directory, f"{TIMESTAMP}_{output_filename}_{block_index}{output_ext}")
+        error_log_path = os.path.abspath(os.path.join(FOLDERNAME_EXIFTOOL_OUTPUT, f"{TIMESTAMP}_exiftool_log.log"))
 
         # 1) Extract dates If extract_dates is enabled --> run exiftool and load metadata
         if extract_dates:
@@ -524,7 +528,8 @@ def count_files_per_type_and_extract_dates_multi_threads(input_folder, max_files
 
             # Merge JSON outputs if we extracted dates
             if extract_dates:
-                merge_json_files(temp_dir, output_file)
+                os.makedirs(FOLDERNAME_EXIFTOOL_OUTPUT, exist_ok=True)
+                merge_json_files(temp_dir, os.path.join(FOLDERNAME_EXIFTOOL_OUTPUT, output_file))
 
         # --- 5) Merge all block counters and compute final percentages
         final_counters = merge_counters(merged_counters_list)
@@ -535,7 +540,7 @@ def count_files_per_type_and_extract_dates_multi_threads(input_folder, max_files
                 final_counters[media_category]['pct_with_date'] = (with_date / total_count) * 100
                 final_counters[media_category]['pct_without_date'] = ((total_count - with_date) / total_count) * 100
             else:
-                final_counters[media_category]['pct_with_date'] = None
-                final_counters[media_category]['pct_without_date'] = None
+                final_counters[media_category]['pct_with_date'] = 0
+                final_counters[media_category]['pct_without_date'] = 0
 
         return final_counters, merged_dates

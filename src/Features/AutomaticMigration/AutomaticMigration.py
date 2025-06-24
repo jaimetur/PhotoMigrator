@@ -11,7 +11,7 @@ from pathlib import Path
 from queue import Queue
 
 from Core.CustomLogger import set_log_level, CustomInMemoryLogHandler, CustomConsoleFormatter, get_logger_filename
-from Core.GlobalVariables import SCRIPT_NAME_VERSION, SCRIPT_VERSION, ARGS, HELP_TEXTS, MSG_TAGS, TIMESTAMP, LOGGER
+from Core.GlobalVariables import SCRIPT_NAME_VERSION, SCRIPT_VERSION, ARGS, HELP_TEXTS, MSG_TAGS, TIMESTAMP, LOGGER, FOLDERNAME_LOGS
 from Features.GoogleTakeout.ClassTakeoutFolder import ClassLocalFolder, ClassTakeoutFolder
 from Features.GoogleTakeout.GoogleTakeoutFunctions import contains_takeout_structure
 from Features.ImmichPhotos.ClassImmichPhotos import ClassImmichPhotos
@@ -1292,7 +1292,7 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=No
             Devuelve un Panel con todo el historial (de modo que se pueda hacer
             scroll en la terminal si usas vertical_overflow='visible').
             """
-            title_logs_panel = f"📜 Logs Panel (Only last {logs_panel_height} rows shown. Complete log file at: 'Logs/{os.path.basename(log_file)}')"
+            title_logs_panel = f"📜 Logs Panel (Only last {logs_panel_height} rows shown. Complete log file at: '{FOLDERNAME_LOGS}/{os.path.basename(log_file)}')"
             try:
                 while True:
                     # 1) Vaciamos la cola de logs, construyendo el historial completo

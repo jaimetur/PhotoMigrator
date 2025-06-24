@@ -14,7 +14,7 @@ import urllib3
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import ARGS, LOGGER, MSG_TAGS
+from Core.GlobalVariables import ARGS, LOGGER, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE
 from Features.GoogleTakeout.GoogleTakeoutFunctions import organize_files_by_date
 from Utils.DateUtils import parse_text_datetime_to_epoch, is_date_outside_range
 from Utils.GeneralUtils import update_metadata, convert_to_list, get_unique_items, tqdm, match_pattern, replace_pattern, has_any_filter, confirm_continue
@@ -128,7 +128,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #                           CONFIGURATION READING                         #
     ###########################################################################
-    def read_config_file(self, config_file='Config.ini', log_level=None):
+    def read_config_file(self, config_file=CONFIGURATION_FILE, log_level=None):
         """
         Reads the Configuration file and updates the instance attributes.
         If the config file is not found, prompts the user to manually input required data.
@@ -1861,7 +1861,7 @@ class ClassSynologyPhotos:
     ###########################################################################
     #             MAIN FUNCTIONS TO CALL FROM OTHER MODULES (API)            #
     ###########################################################################
-    def push_albums(self, input_folder, subfolders_exclusion='No-Albums', subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
+    def push_albums(self, input_folder, subfolders_exclusion=FOLDERNAME_NO_ALBUMS, subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         """
         Traverses the subfolders of 'input_folder', creating an album for each valid subfolder (album name equals
         the subfolder name). Within each subfolder, it uploads all files with allowed extensions (based on
@@ -2224,7 +2224,7 @@ class ClassSynologyPhotos:
 
     def pull_no_albums(self, no_albums_folder='Downloads_Synology', log_level=logging.WARNING):
         """
-        Downloads assets not associated to any album from Synology Photos into output_folder/No-Albums/.
+        Downloads assets not associated to any album from Synology Photos into output_folder/<NO_ALBUMS_FOLDER>/.
         Then organizes them by year/month inside that folder.
 
         Args:
@@ -2239,7 +2239,7 @@ class ClassSynologyPhotos:
                 total_assets_downloaded = 0
 
                 assets_without_albums = self.get_all_assets_without_albums(log_level=logging.INFO)
-                no_albums_folder = os.path.join(no_albums_folder, 'No-Albums')
+                no_albums_folder = os.path.join(no_albums_folder, FOLDERNAME_NO_ALBUMS)
                 os.makedirs(no_albums_folder, exist_ok=True)
 
                 LOGGER.info(f"Number of assets without Albums associated to download: {len(assets_without_albums)}")
@@ -2288,7 +2288,7 @@ class ClassSynologyPhotos:
           │    ├─ albumName1/ (assets in the album)
           │    ├─ albumName2/ (assets in the album)
           │    ...
-          └─ No-Albums/
+          └─ <NO_ALBUMS_FOLDER>/
                └─ yyyy/
                    └─ mm/ (assets not in any album for that year/month)
 
@@ -2767,7 +2767,7 @@ class ClassSynologyPhotos:
 
                 # Comprobar si hay algún grupo con más de un álbum
                 if any(len(album_group) > 1 for album_group in albums_by_name.values()):
-                    # Loop through each album name and its group to show all Duplicates Albums and request User Confifmation to continue
+                    # Loop through each album name and its group to show all Duplicates Albums and request User Confirmation to continue
                     LOGGER.info(f"The following Albums are duplicates (by Name) and will be merged into the first album:")
                     for album_name, album_group in albums_by_name.items():
                         if len(album_group) > 1:
@@ -2909,7 +2909,7 @@ if __name__ == "__main__":
     syno = ClassSynologyPhotos()
 
     # Read configuration and log in
-    syno.read_config_file('Config.ini')
+    syno.read_config_file(CONFIGURATION_FILE)
     syno.login(use_syno_token=True)
     # login(use_syno_token=False)
 

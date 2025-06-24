@@ -9,7 +9,7 @@ from collections import namedtuple
 from pathlib import Path
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import LOGGER, MSG_TAGS
+from Core.GlobalVariables import LOGGER, MSG_TAGS, FOLDERNAME_DUPLICATES_OUTPUT
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs
 from Utils.StandaloneUtils import resolve_path
 from Utils.GeneralUtils import tqdm
@@ -25,16 +25,16 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
 
     Selection rules for the principal file:
     1. If duplicates are in multiple input folders, pick from the earliest folder in the provided list.
-       If multiple files in that folder, choose shortest filename.
-    2. If all duplicates are in one folder, choose shortest filename among them.
+       If multiple files in that folder, choose the shortest filename.
+    2. If all duplicates are in one folder, choose the shortest filename among them.
     3. With deprioritized folders, any folder matching given patterns is less prioritized.
-       Among multiple patterns, the last pattern is highest priority. If all are deprioritized,
-       pick from the one with highest priority pattern. If tie remains, apply original logic.
+       Among multiple patterns, the last pattern is the highest priority. If all are deprioritized,
+       pick from the one with the highest priority pattern. If tie remains, apply original logic.
 
     Additional notes:
     - If find_duplicates_in_folders is a string separated by commas/semicolons, convert to a list.
     - If any folder doesn't exist, log error and return -1.
-    - Create "Duplicates" and "Duplicates_<timestamp>" directories, store "Duplicates_<timestamp>.csv".
+    - Create "<DUPLICATES_FOLDER>" and "Duplicates_<timestamp>" directories, store "Duplicates_<timestamp>.csv".
     - CSV format: Num_Duplicates, Principal, Duplicate, Principal_Path, Duplicate_Path, Action, [Destination if move].
     - Return number of duplicates (excluding principals).
     - If move/remove, perform actions and then remove empty dirs.
@@ -347,7 +347,7 @@ def find_duplicates(duplicates_action='list', duplicates_folders='./', exclusion
                 # CSV WRITING
                 # ===========================
                 LOGGER.info(f"{step_name}Creating duplicates directories")
-                duplicates_root = resolve_path('')
+                duplicates_root = resolve_path(FOLDERNAME_DUPLICATES_OUTPUT)
                 timestamp_dir = os.path.join(duplicates_root, 'Duplicates_' + timestamp)
                 os.makedirs(timestamp_dir, exist_ok=True)
                 LOGGER.info(f"{step_name}Results in {timestamp_dir}")

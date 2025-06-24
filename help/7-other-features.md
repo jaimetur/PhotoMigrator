@@ -24,16 +24,16 @@
   - None
 - **Explanation:**
   - With this feature, the Tool will find duplicates files in a smart way based on file size and content and will perform the action based on the <ACTION> selected:
-    - If `<ACTION>` is `list`, then the Tool will only generate a CSV file with all the duplicates found and store it within the folder `Duplicates`. 
-    - If `<ACTION>` is `move` then the Tool will maintain the main file and move the others inside the folder Duplicates/Duplicates_timestamp and also, will generate a CSV file with all the duplicates found and store it within the folder `Duplicates`. 
-    - If `<ACTION>` is `remove` the Tool will maintain the main file and remove the others and also will generate a CSV file with all the duplicates found and store it within the folder `Duplicates`.
+    - If `<ACTION>` is `list`, then the Tool will only generate a CSV file with all the duplicates found and store it within the folder `<DUPLICATES_FOLDER>`. 
+    - If `<ACTION>` is `move` then the Tool will maintain the main file and move the others inside the folder <DUPLICATES_FOLDER>/Duplicates_timestamp and also, will generate a CSV file with all the duplicates found and store it within the folder `Duplicates`. 
+    - If `<ACTION>` is `remove` the Tool will maintain the main file and remove the others and also will generate a CSV file with all the duplicates found and store it within the folder `<DUPLICATES_FOLDER>`.
 - **Example of use:**
   ```
   ./PhotoMigrator --find-duplicatess move ./Albums ./ALL_PHOTOS move
   ```
   With this example, the Tool will find duplicates files within folders ./Albums and ./ALL_PHOTOS,
-  If finds any duplicates, will keep the file within ./Albums folder (because it has been passed first on the list)
-  and will move (because the selected action is `move`) the others duplicates files into the ./Duplicates folder on the root folder of the Tool.
+  If it finds any duplicates, will keep the file within ./Albums folder (because it has been passed first on the list)
+  and will move (because the selected action is `move`) the others duplicates files into the ´<DUPLICATES_FOLDER>´ folder.
 
 
 # <span style="color:blue"> Process Duplicates (Extra Feature)</span>
@@ -47,10 +47,10 @@
   - With this feature, the Tool will process the CSV generated during execution of 'Find Duplicates' feature and will perform the Action given in column Action for each duplicated file.
   - You can revise and change the Action column values of the `<DUPLICATES_REVISED_CSV>` file.
   - Possible Actions in revised CSV file are:
-      - `remove_duplicate`  : Duplicated file moved to Duplicates folder will be permanently removed
-      - `restore_duplicate` : Duplicated file moved to Duplicates folder will be restored to its original location
-      - `replace_duplicate` : Use this action to replace the principal file chosen for each duplicates and select manually the principal file
-          - Duplicated file moved to Duplicates folder will be restored to its original location as principal file
+      - `remove_duplicate`  : Duplicated file moved to `<DUPLICATES_FOLDER>` will be permanently removed
+      - `restore_duplicate` : Duplicated file moved to `<DUPLICATES_FOLDER>` will be restored to its original location
+      - `replace_duplicate` : Use this action to replace the principal file chosen for each duplicate and select manually the principal file
+          - Duplicated file moved to `<DUPLICATES_FOLDER>` will be restored to its original location as principal file
           - and Original Principal file detected by the Script will be removed permanently
 - **Example of use:**
   ```
@@ -77,7 +77,7 @@
   the Tool will try to fix it finding the target of the symlink within the same `OUTPUT_FOLDER` structure.
 
 > [!TIP]  
-> This is useful when you run the Tool using argument _**`-gcsa, --google-create-symbolic-albums`**_ to create symbolic Albums instead of duplicate copies of the files contained on Albums.  
+> This is useful when you run the Tool using argument _**`-gcsa, --google-create-symbolic-albums`**_ to create symbolic Albums instead of duplicate copies of the files contained on '<ALBUMS_FOLDER>'.  
 > 
 > If you run the Tool with this argument and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken, and you will need to use this feature to fix them.
 

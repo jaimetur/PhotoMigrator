@@ -25,6 +25,12 @@
     - [x] Added new argument `-logFormat, --log-format` to define the format of the Log File. Valid values: `[LOG, TXT, ALL]`.
     - [x] Call GPTH with `--verbose` when PhotoMigrator logLevel is VERBOSE.
     - [x] Add argument `-gSkipPrep,--google-skip-preprocess` to Skipp Preprocess steps during Google Takeout Processing feature.
+    - [x] Allow user to define folder name for 'Logs'.
+    - [x] Allow user to define folder name for 'Duplicates'.
+    - [x] Allow user to define folder name for 'Exiftool Outputs'.
+    - [x] Allow user to define folder name for 'Albums'.
+    - [x] Allow user to define folder name for 'No-Albums'.
+    - [x] Allow user to define configuration file (path and name).
   
   - #### 🚀 Enhancements:
     - [x] Code totally refactored and structured in a Single Package called `photomigrator` for a better portability and maintenance.
@@ -37,6 +43,7 @@
     - [x] Improved Logging messages type detection when running GPTH (automatically detects warning messages and log them as warnings instead of info).
     - [x] Inserted Profiler support to Profile any function and optimize it.
     - [x] Removed `input_folder` after successfully completion of `Google Takeout Processing` if the user used the flag `-gmtf, --google-move-takeout-folder`. Note that this only remove the `input_folder` with a valid Takeout Structure, this will not remove your original Takeout Zip folder with your Takeout Zips.
+    - [x] Increased the number of threads to 2 * number of cpu cores in all multi-threads processings. 
     - [x] Renamed argument `-loglevel` to `-logLevel`.
     - [x] Renamed argument `-dashb` to `-dashboard`.
     - [x] Renamed argument `-AlbFld` to `-AlbFolder`.
@@ -95,6 +102,7 @@
   - #### 🐛 Bug fixes:
     - [x] Fixed LOG_LEVEL change in `Google Takeout Processing Feature`.
     - [x] Fixed a bug setting lovLevel because it wasn't read from GlobalVariables in set_log_level() function.
+    - [x] Fixed a bug in `Auto Rename Albums content based` when an Albums only contains Videos because the list of TAGS where search dates did't include valid TAGs for Video files.
 
   - #### 📚 Documentation:
     - [x] Modified 'Execution from Source' documentation to support the new package structure.
@@ -115,13 +123,13 @@
   - #### 🚀 Enhancements:
     - [x] Performance Improvements: 
       - [x] Enhanced `MP4 from Live picture Fixing` during Google Takeout Processing to avoid check other candidates when the first one match. 
-      - [x] Enhanced `Google Takeout Processing` when launched by `Automatic Migration feature`. In this case, Albums are created as symbolic links to the original files within `No-Albums` folder to save disk space and processing time.
+      - [x] Enhanced `Google Takeout Processing` when launched by `Automatic Migration feature`. In this case, Albums are created as symbolic links to the original files within `<NO_ALBUMS_FOLDER>` folder to save disk space and processing time.
     - [x] Ensure that filenames length are at least 40 chars before to Fix truncated special suffixes or truncated extensions during Google Takeout Processing. 
     - [x] Workflows Improvements.
     - [x] Enhanced Results Statistics in Google Takeout Processing to include differences and percentags of assets between Takeout folder and Output folder.
     - [x] Created DataModels for a better structure on those functions that returns multiples values.
     - [x] Enhanced Feature `Find Duplicates` during Google Takeout Processing.
-      - Now the Tool will not detect as duplicates, those assets found in `No-Albums` folder and within any `Albums` subfolder.
+      - Now the Tool will not detect as duplicates, those assets found in `<NO_ALBUMS_FOLDER>` folder and within any `Albums` subfolder.
     - [x] Enhanced `Truncated Special Suffixees Fixing` during Google Takeout Processing to fix at the same time truncated `supplemental-metadata` and `other-special-suffixes` within a file. 
     - [x] Enhanced `Truncated Extension Fixing` during Google Takeout Processing to avoid fixing truncated `supplemental-metadata` and `other-special-suffixes` because this is already done in above step. 
     - [x] Updated GPTH to version `4.0.8` (by @Xentraxx) which includes several improvements extracting metadata info from Google Takeouts. 
@@ -196,13 +204,13 @@
     - [x] Added Support for 3 accounts of each Cloud Photo Service (before it was only 2).
     - [x] Merged Synology/Immich arguments (now you can specify the client using a new argument _**`-client, --client \<CLIENT_NAME>`**_)
     - [x] Added new argument _**`-client, --cient \<CLIENT_NAME>`**_ to set the Cloud Photo client to use.
-    - [x] Added new argument _**`-id, --account-id \<ID>`**_ to specify which account to use for Synology Photos and Immich Photos from Config.ini.
+    - [x] Added new argument _**`-id, --account-id \<ID>`**_ to specify which account to use for Synology Photos and Immich Photos from <CONFIGURATION_FILE>.
     - [x] Added new argument _**`-move, --move-assets`**_ to move assets (instead of copy) from \<SOURCE> client to \<TARGET> client during Automatic Migration process.
     - [x] Added support for 2FA in Synology Photos requesting the OTP Token if flag _**`-OTP, --one-time-password`**_ is detected. [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
       - New flag _**`-OTP, --one-time-password`**_ to allow login into Synology Photos accounts with 2FA activated.
-    - [x] Added new Feature to **Remove Albums by Name Pattern** from Synology Photos and Immich Photos to remove those albums whose name matches with a provided pattern (using regular expresions). Added following new flag to execute this new features:
+    - [x] Added new Feature to **Remove Albums by Name Pattern** from Synology Photos and Immich Photos to remove those albums whose name matches with a provided pattern (using regular expressions). Added following new flag to execute this new features:
       - _**`-rAlb, --remove-albums \<ALBUM_NAME_PATTERN>`**_
-    - [x] Added new Feature to **Rename Albums by Name Pattern** from Synology Photos and Immich Photos to rename those albums whose name matches with a provided pattern (using regular expresions). Added following new flag to execute this new features:
+    - [x] Added new Feature to **Rename Albums by Name Pattern** from Synology Photos and Immich Photos to rename those albums whose name matches with a provided pattern (using regular expressions). Added following new flag to execute this new features:
       - _**`-renAlb, --rename-albums \<ALBUM_NAME_PATTERN>, \<ALBUMS_NAME_REPLACEMENT_PATTERN>`**_
     - [x] Added new Feature to **Merge Albums** with the same name and different assets. Added following new flag to execute this new feature:
       - _**`-mDupAlb, --merge-duplicates-albums`**_ 
@@ -247,7 +255,7 @@
     - [x] Many improvements and automations in GitHub Actions to generate new builds and releases.     
 
   - #### 🐛 Bug fixes:
-    - [x] Fixed issue when username/password contains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
+    - [x] Fixed issue when username/password contains the special char (#) reserved for in-line comments in the configuration file (<CONFIGURATION_FILE>). [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
     - [x] Fixed a bug with feature **Remove All Albums** from Synology Photos and Immich Photos when the flag _**`--remove-albums-assets`**_ was selected (the assets were not removed properly).
     - [x] Fixed a bug with feature **Synology Upload Album(s)** when the folder to upload is not named "Albums".
     - [x] Fixed a bug when any input folder ends with '\' or '/' but is enclosed between double quotes (").
@@ -296,7 +304,7 @@
 
 - ### Main Changes:
   - #### 🚨 Breaking Changes:
-    - Config.ini file has changed to support multi-accounts over the same Cloud Photo Service. 
+    - <CONFIGURATION_FILE> file has changed to support multi-accounts over the same Cloud Photo Service. 
 
   - #### 🌟 New Features:
     - [x] Support for running the Tool from Docker container.
@@ -337,7 +345,7 @@
 
 - ### Main Changes:
   - #### 🚨 Breaking Changes:
-    - [x] Unificate a single Config.ini file and included tags for the different configuration sections.
+    - [x] Unificate a single <CONFIGURATION_FILE> file and included tags for the different configuration sections.
 
   - #### 🌟 New Features:
     - [x] Added **_Immich Photos Support_**.
@@ -390,7 +398,7 @@
       - **-sdAll,    --synology-download-all <OUTPUT_FOLDER>**  
         - The Tool will connect to Synology Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
         - Albums will be downloaded within a subfolder '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
-        - Assets with no Albums associated will be downloaded within a subfolder 'OUTPUT_FOLDER/No-Albums/' and will have a year/month structure inside.
+        - Assets with no Albums associated will be downloaded within a subfolder '<OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/' and will have a year/month structure inside.
       - **-srEmpAlb  --synology-remove-empty-albums**  
         - The Tool will look for all Albums in your Synology Photos account and if any Album is empty, will remove it from your Synology Photos account.  
       - **-srDupAlb, --synology-remove-duplicates-albums**  
@@ -411,7 +419,7 @@
       - **-idAll,    --immich-download-all <OUTPUT_FOLDER>>**  
         - The Tool will connect to Immich Photos and will download all the Album and Assets without Albums into the folder <OUTPUT_FOLDER>.  
         - Albums will be downloaded within a subfolder of '<OUTPUT_FOLDER>/Albums/' with the same name of the Album and all files will be flattened into it.  
-        - Assets with no Albums associated will be downloaded within a subfolder called '<OUTPUT_FOLDER>/No-Albums/' and will have a year/month structure inside.
+        - Assets with no Albums associated will be downloaded within a subfolder called '<OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/' and will have a year/month structure inside.
       - **-irEmpAlb, --immich-remove-empty-albums**  
         - The Tool will look for all Albums in your Immich Photos account and if any Album is empty, will remove it from your Immich Photos account.  
       - **-irDupAlb  --immich-remove-duplicates-albums**  
@@ -420,18 +428,18 @@
       - **-irAllAlb, --immich-remove-all-albums** to delete ALL Albums in Immich Photos (optionally all associated assets can be also deleted).  
       - **-irOrphan, --immich-remove-orphan-assets**  
         - The Tool will look for all Orphan Assets in Immich Database and will delete them.  
-        - **IMPORTANT!**: This feature requires a valid ADMIN_API_KEY configured in Config.ini.
+        - **IMPORTANT!**: This feature requires a valid ADMIN_API_KEY configured in <CONFIGURATION_FILE>.
 
   - #### 🚀 Enhancements:
     - [x] New Script name '**PhotoMigrator**' (former 'GoogleTakeoutPhotos')
     - [x] The Tool is now Open Source (all contributors that want to collaborate on this project are more than welcome)
-    - [x] Replaced 'ALL_PHOTOS' by 'No-Albums' as output subfolder for assets without any album associated (be careful if you already run the Tool with previous version because before, the folder for assets without albums was named 'ALL_PHOTOS')
+    - [x] Replaced 'ALL_PHOTOS' by '<NO_ALBUMS_FOLDER>' as output subfolder for assets without any album associated (be careful if you already run the Tool with previous version because before, the folder for assets without albums was named 'ALL_PHOTOS')
     - [x] Ignored `@eaDir` folders when upload assets to Synology/Immich Photos.
     - [x] Refactor and group All Google Takeout arguments in one block for 'Google Photos Takeout' Support.
     - [X] Refactor normal_mode to google_takeout_mode.
     - [x] Changed the logic to detect google_takeout_mode (former normal_mode)
     - [x] Merged -z and -t options in just one option ('-gtProc, -google-takeout-to-process') and detect if contains Takeout Zip files, in that case Zip files will be Unzipped to <TAKEOUT_FOLDER>_<TIMESTAMP> folder.
-    - [x] Removed SYNOLOGY_ROOT_PHOTOS_PATH from Config.ini, since it is not needed anymore.
+    - [x] Removed SYNOLOGY_ROOT_PHOTOS_PATH from <CONFIGURATION_FILE>, since it is not needed anymore.
     - [x] Removed Indexing Functions on ServiceSynology file (not needed anymore)
     - [x] Code refactored.
     - [x] Renamed options:
@@ -554,7 +562,7 @@
 
 - ### Main Changes:
   - #### New Features:
-    - Included new flag '-pd, --process-duplicates-revised' to process the Duplicates.csv output file after execute the 'Find Duplicates Mode' with 'duplicates-action=move'. In that case, the Tool will move all duplicates found to Duplicates folder and will generate a CSV file that can be revised and change the Action column values.
+    - Included new flag '-pd, --process-duplicates-revised' to process the Duplicates.csv output file after execute the 'Find Duplicates Mode' with 'duplicates-action=move'. In that case, the Tool will move all duplicates found to `<DUPLICATES_FOLDER>` and will generate a CSV file that can be revised and change the Action column values.
     Possible Actions in revised CSV file are:
         - remove_duplicate  : Duplicated file moved to Duplicates folder will be permanently removed
         - restore_duplicate : Duplicated file moved to Duplicates folder will be restored to its original location

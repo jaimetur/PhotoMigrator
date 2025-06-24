@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS
+from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE
 from Utils.DateUtils import parse_text_datetime_to_epoch
 from Utils.StandaloneUtils import change_working_dir
 from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list
@@ -45,7 +45,7 @@ class ClassLocalFolder:
         self.base_folder = Path(base_folder)
         self.albums_folder = self.base_folder / "Albums"
         self.shared_albums_folder = self.base_folder / "Albums-shared"
-        self.no_albums_folder = self.base_folder / "No-Albums"
+        self.no_albums_folder = self.base_folder / FOLDERNAME_NO_ALBUMS
 
         # Ensure all required folders exist
         self.base_folder.mkdir(parents=True, exist_ok=True)
@@ -193,7 +193,7 @@ class ClassLocalFolder:
     ###########################################################################
     #                           CONFIGURATION READING                         #
     ###########################################################################
-    def read_config_file(self, config_file='Config.ini', log_level=None):
+    def read_config_file(self, config_file=CONFIGURATION_FILE, log_level=None):
         """
         Reads a configuration file (not really used in local storage).
 
@@ -1072,7 +1072,7 @@ class ClassLocalFolder:
             return 1
 
 
-    def push_albums(self, input_folder, subfolders_exclusion='No-Albums',
+    def push_albums(self, input_folder, subfolders_exclusion=FOLDERNAME_NO_ALBUMS,
                     subfolders_inclusion=None, remove_duplicates=True, log_level=logging.WARNING):
         """
         Recursively uploads each subfolder of 'input_folder' as an album,
@@ -1096,7 +1096,7 @@ class ClassLocalFolder:
                        subfolders_inclusion=None, remove_duplicates=True,
                        log_level=logging.WARNING):
         """
-        Recursively uploads all compatible files from 'input_folder' to the No-Albums folder,
+        Recursively uploads all compatible files from 'input_folder' to <NO_ALBUMS_FOLDER>,
         ignoring any subfolders named in 'subfolders_exclusion'.
 
         Returns:
@@ -1109,7 +1109,7 @@ class ClassLocalFolder:
     def push_ALL(self, input_folder, albums_folders=None, remove_duplicates=False, log_level=logging.WARNING):
         """
         Uploads all photos/videos from input_folder to local storage,
-        dividing them between 'albums_folders' and 'No-Albums'.
+        dividing them between '<ALBUMS_FOLDER>' and '<NO_ALBUMS_FOLDER>'.
 
         Returns:
             tuple: (albums_uploaded, albums_skipped, total_assets_uploaded,
@@ -1132,7 +1132,7 @@ class ClassLocalFolder:
 
     def pull_no_albums(self, output_folder="Downloads_Immich", log_level=logging.WARNING):
         """
-        Simulates downloading 'no albums' assets to output_folder/No-Albums, organizing by year/month.
+        Simulates downloading 'no albums' assets to output_folder/<NO_ALBUMS_FOLDER>, organizing by year/month.
 
         Returns:
             int: Number of assets downloaded.
@@ -1406,7 +1406,7 @@ class ClassLocalFolder:
     ###########################################################################
     def remove_all_assets(self, log_level=logging.WARNING):
         """
-        Removes all assets from local storage (both in albums and No-Albums).
+        Removes all assets from local storage (both in <ALBUMS_FOLDER> and <NO_ALBUMS_FOLDER>).
 
         Returns:
             bool: True if success.
@@ -1429,7 +1429,7 @@ if __name__ == "__main__":
     localFolder = ClassLocalFolder()
 
     # 0) Read configuration and log in
-    localFolder.read_config_file('Config.ini')
+    localFolder.read_config_file(CONFIGURATION_FILE)
     localFolder.login()
 
     # 1) Example: Remove empty albums
@@ -1458,7 +1458,7 @@ if __name__ == "__main__":
     total_albums, total_assets = localFolder.pull_albums("1994 - Recuerdos", output_folder="Downloads_Immich", log_level=logging.DEBUG)
     print(f"[RESULT] A total of {total_assets} assets have been downloaded from {total_albums} different albbums.")
 
-    # 6) Example: Download everything in the structure /Albums/<albumName>/ + /No-Albums/yyyy/mm
+    # 6) Example: Download everything in the structure /Albums/<albumName>/ + /<NO_ALBUMS_FOLDER>/yyyy/mm
     print("\n=== EXAMPLE: pull_ALL() ===")
     # total_struct = pull_ALL(output_folder="Downloads_Immich")
     total_albums_downloaded, total_assets_downloaded = localFolder.pull_ALL(output_folder="Downloads_Immich", log_level=logging.DEBUG)
