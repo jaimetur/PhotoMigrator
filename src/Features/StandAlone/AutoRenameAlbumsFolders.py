@@ -78,7 +78,12 @@ def rename_album_folders(input_folder: str, exclude_subfolder=None, type_date_ra
         def get_exif_date(image_path):
             try:
                 exif_dict = piexif.load(image_path)
-                for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
+                candidate_date_tags = [
+                    'DateTimeOriginal', 'CreateDate', 'MediaCreateDate',
+                    'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'FileModifyDate'
+                ]
+                # for tag in ["DateTimeOriginal", "DateTimeDigitized", "DateTime"]:
+                for tag in candidate_date_tags:
                     tag_id = piexif.ExifIFD.__dict__.get(tag)
                     value = exif_dict["Exif"].get(tag_id)
                     if value:

@@ -25,6 +25,12 @@
     - [x] Added new argument `-logFormat, --log-format` to define the format of the Log File. Valid values: `[LOG, TXT, ALL]`.
     - [x] Call GPTH with `--verbose` when PhotoMigrator logLevel is VERBOSE.
     - [x] Add argument `-gSkipPrep,--google-skip-preprocess` to Skipp Preprocess steps during Google Takeout Processing feature.
+    - [x] Allow user to define folder name for 'Logs'.
+    - [x] Allow user to define folder name for 'Duplicates'.
+    - [x] Allow user to define folder name for 'Exiftool Outputs'.
+    - [x] Allow user to define folder name for 'Albums'.
+    - [x] Allow user to define folder name for 'No-Albums'.
+    - [x] Allow user to define configuration file (path and name).
   
   - #### 🚀 Enhancements:
     - [x] Code totally refactored and structured in a Single Package called `photomigrator` for a better portability and maintenance.
@@ -96,6 +102,7 @@
   - #### 🐛 Bug fixes:
     - [x] Fixed LOG_LEVEL change in `Google Takeout Processing Feature`.
     - [x] Fixed a bug setting lovLevel because it wasn't read from GlobalVariables in set_log_level() function.
+    - [x] Fixed a bug in `Auto Rename Albums content based` when an Albums only contains Videos because the list of TAGS where search dates did't include valid TAGs for Video files.
 
   - #### 📚 Documentation:
     - [x] Modified 'Execution from Source' documentation to support the new package structure.

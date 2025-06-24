@@ -19,15 +19,10 @@
   - #### 🌟 New Features:
     - [x] Created GitHub Forms on New Issues.
       - [ ] Auto-Update Issues Templates with new published releases.
-    - [x] Allow user to define folder name for 'Logs'.
-    - [x] Allow user to define folder name for 'Duplicates'.
-    - [x] Allow user to define folder name for 'Exiftool Outputs'.
-    - [x] Allow user to define folder name for 'Albums'.
-    - [x] Allow user to define folder name for 'All Photos'.
-    - [x] Allow user to define configuration file (path and name).
 
   - #### 🚀 Enhancements:
     - [ ] Investigate Performance on Automatic Migration when target=`synology`. 
+    - [ ] Investigate Missing Logging Messages on Automatic Migration when target=`synology`. 
         
   - #### 🐛 Bug fixes:
 

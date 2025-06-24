@@ -54,6 +54,12 @@ def parse_arguments():
                         type=lambda s: s.lower(),  # Convert input to lowercase
                         help="Specify the log file format.",
                         )
+    PARSER.add_argument("-fnAlbums", "--foldername-albums", metavar="<ALBUMS_FOLDER>", default="Albums", help="Specify the folder name to store all your processed photos associated to any Album.")
+    PARSER.add_argument("-fnNoAlbums", "--foldername-no-albums", metavar="<NO_ALBUMS_FOLDER>", default="ALL_PHOTOS", help="Specify the folder name to store all your processed photos (including those associated to Albums).")
+    PARSER.add_argument("-fnLogs", "--foldername-logs", metavar="<LOG_FOLDER>", default="Logs", help="Specify the folder name to save the execution Logs.")
+    PARSER.add_argument("-fnDuplicat", "--foldername-duplicates-output", metavar="<DUPLICATES_OUTPUT_FOLDER>", default="Duplicates_outputs", help="Specify the folder name to save the outputs of 'Find Duplicates' Feature.")
+    PARSER.add_argument("-fnExiftool", "--foldername-exiftool-output", metavar="<EXIFTOOL_OUTPUT_FOLDER>", default="Exiftool_outputs", help="Specify the folder name to save the outputs of 'Exiftool' Metadata Fixer.")
+    PARSER.add_argument("-config", "--configuration-file", metavar="<CONFIGURATION_FILE>", default="Config.ini", help="Specify the file that contains the Configuration to connect to the different Photo Cloud Services.")
 
 
     # GENERAL FEATURES:
@@ -269,7 +275,6 @@ def str2bool(v):
         return False
     raise argparse.ArgumentTypeError(f"Expected boolean value for --dashboard, received '{v}'!")
 
-
 def validate_account_id(valor):
     try:
         valor_int = int(valor)
@@ -324,6 +329,7 @@ def checkArgs(ARGS, PARSER):
     keys_to_check = ['source', 'target', 'input-folder', 'output-folder', 'albums-folder', 'google-takeout',
                      'upload-albums', 'upload-all', 'download-all',
                      'find-duplicates', 'fix-symlinks-broken', 'rename-folders-content-based',
+                     'foldername-logs', 'foldername-duplicates-output', 'foldername-exiftool-output', 'configuration-file'
                      ]
 
     resolve_all_possible_paths(args_dict=ARGS, keys_to_check=keys_to_check)
@@ -332,6 +338,11 @@ def checkArgs(ARGS, PARSER):
     ARGS['google-output-folder-suffix'] = ARGS['google-output-folder-suffix'].lstrip('_')
 
     # Remove last / for all folders expected as arguments:
+    ARGS['foldername-albums']               = clean_path(ARGS['foldername-albums'])
+    ARGS['foldername-no-albums']            = clean_path(ARGS['foldername-no-albums'])
+    ARGS['foldername-logs']                 = clean_path(ARGS['foldername-logs'])
+    ARGS['foldername-duplicates-output']    = clean_path(ARGS['foldername-duplicates-output'])
+    ARGS['foldername-exiftool-output']      = clean_path(ARGS['foldername-exiftool-output'])
     ARGS['input-folder']                    = clean_path(ARGS['input-folder'])
     ARGS['output-folder']                   = clean_path(ARGS['output-folder'])
     ARGS['google-takeout']                  = clean_path(ARGS['google-takeout'])

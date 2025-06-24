@@ -1,3 +1,4 @@
+import logging
 import os
 import platform
 import subprocess
@@ -5,7 +6,7 @@ import sys
 
 from packaging.version import Version
 
-from Core.CustomLogger import set_log_level
+from Core.CustomLogger import set_log_level, custom_print
 from Core.GlobalVariables import LOGGER, GPTH_VERSION, ARGS, FOLDERNAME_NO_ALBUMS
 from Features.GoogleTakeout.GoogleTakeoutFunctions import run_command
 from Utils.FileUtils import resource_path
@@ -126,9 +127,9 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
 
             # Rename folder 'ALL_PHOTOS' by '<NO_ALBUMS_FOLDER>'
             all_photos_path = os.path.join(output_folder, 'ALL_PHOTOS')
-            others_path = os.path.join(output_folder, FOLDERNAME_NO_ALBUMS)
-            if os.path.exists(all_photos_path) and os.path.isdir(all_photos_path):
-                os.rename(all_photos_path, others_path)
+            no_albums_path = os.path.join(output_folder, FOLDERNAME_NO_ALBUMS)
+            if os.path.exists(all_photos_path) and os.path.isdir(all_photos_path) and all_photos_path != no_albums_path:
+                os.rename(all_photos_path, no_albums_path)
 
             # Check the result of GPTH process
             if ok>=0:

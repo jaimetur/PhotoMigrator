@@ -15,6 +15,20 @@ from Utils.StandaloneUtils import resolve_path
 # FUNCTIONS TO INITIALIZE GLOBAL LOGGER AND GLOBAL ARGS TO BE USED BY OTHER MODULES
 # Since we cannot import other modules directly on the GlobalVariables.py module to avoid circular references, we need to initialize those variables using independent functions.
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+def set_ARGS_PARSER():
+    args, parser = parse_arguments()
+    args = checkArgs(args, parser)
+    GV.ARGS = args
+    GV.PARSER = parser
+
+def set_FOLDERS():
+    GV.FOLDERNAME_ALBUMS = GV.ARGS['foldername-albums']
+    GV.FOLDERNAME_NO_ALBUMS = GV.ARGS['foldername-no-albums']
+    GV.FOLDERNAME_LOGS = GV.ARGS['foldername-logs']
+    GV.FOLDERNAME_DUPLICATES_OUTPUT = GV.ARGS['foldername-duplicates-output']
+    GV.FOLDERNAME_EXIFTOOL_OUTPUT = GV.ARGS['foldername-exiftool-output']
+    GV.CONFIGURATION_FILE = GV.ARGS['configuration-file']
+
 def set_LOGGER():
     script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     current_directory = os.getcwd()
@@ -57,14 +71,10 @@ def set_LOGGER():
     else:
         GV.LOGGER.warning(f"Unknown Logging level: {GV.ARGS['log-level']}")
 
-def set_ARGS_PARSER():
-    args, parser = parse_arguments()
-    args = checkArgs(args, parser)
-    GV.ARGS = args
-    GV.PARSER = parser
-
 def set_HELP_TEXTS():
     GV.HELP_TEXTS  = set_help_texts()
+
+
 
 
 

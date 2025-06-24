@@ -23,12 +23,12 @@ START_TIME                      = datetime.now()
 TIMESTAMP                       = datetime.now().strftime("%Y%m%d-%H%M%S")
 
 # Customizable DIR Folders
-FOLDERNAME_LOGS                 = "Logs"                                        # To be Changed in set_DIRS
-FOLDERNAME_DUPLICATES           = "Duplicates"                                  # To be Changed in set_DIRS
-FOLDERNAME_EXIFTOOL_OUTPUT      = "Exiftool_outputs"                            # To be Changed in set_DIRS
-FOLDERNAME_ALBUMS               = "Albums"                                      # To be Changed in set_DIRS
-FOLDERNAME_NO_ALBUMS            = "ALL_PHOTOS"                                  # To be Changed in set_DIRS
-CONFIGURATION_FILE              = "Config.ini"                                  # To be Changed in set_DIRS
+FOLDERNAME_ALBUMS               = "Albums"                                      # To be Changed in set_FOLDERS
+FOLDERNAME_NO_ALBUMS            = "ALL_PHOTOS"                                  # To be Changed in set_FOLDERS
+FOLDERNAME_LOGS                 = "Logs"                                        # To be Changed in set_FOLDERS
+FOLDERNAME_DUPLICATES_OUTPUT    = "Duplicates_outputs"                          # To be Changed in set_FOLDERS
+FOLDERNAME_EXIFTOOL_OUTPUT      = "Exiftool_outputs"                            # To be Changed in set_FOLDERS
+CONFIGURATION_FILE              = "Config.ini"                                  # To be Changed in set_FOLDERS
 
 VERBOSE_LEVEL_NUM               = 5
 LOG_LEVEL_MIN                   = VERBOSE_LEVEL_NUM
