@@ -8,7 +8,7 @@ from pathlib import Path
 
 from Core.CustomLogger import set_log_level
 from Core.FileStatistics import count_files_per_type_and_extract_dates_multi_threads
-from Core.GlobalVariables import ARGS, LOG_LEVEL, VERBOSE_LEVEL_NUM, LOGGER, TIMESTAMP, FOLDERNAME_NO_ALBUMS
+from Core.GlobalVariables import ARGS, LOG_LEVEL, VERBOSE_LEVEL_NUM, LOGGER, TIMESTAMP, FOLDERNAME_NO_ALBUMS, START_TIME
 from Features.GoogleTakeout import MetadataFixers
 # Import ClassLocalFolder (Parent Class of this)
 from Features.GoogleTakeout.ClassLocalFolder import ClassLocalFolder
@@ -18,7 +18,7 @@ from Features.StandAlone.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAlone.Duplicates import find_duplicates
 from Features.StandAlone.FixSymLinks import fix_symlinks_broken
 from Utils.FileUtils import delete_subfolders, remove_empty_dirs, remove_folder
-from Utils.GeneralUtils import profile_and_print
+from Utils.GeneralUtils import profile_and_print, print_dict_pretty
 from Utils.StandaloneUtils import change_working_dir
 
 
@@ -672,7 +672,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{step_name}Step {self.step} completed in {formatted_duration}.")
                 self.steps_duration.append({'step_id': self.step, 'step_name': step_name, 'duration': formatted_duration})
 
-            
             # FINISH
             # ----------------------------------------------------------------------------------------------------------------------
             processing_end_time = datetime.now()
@@ -684,12 +683,135 @@ class ClassTakeoutFolder(ClassLocalFolder):
             LOGGER.info(f"")
             LOGGER.info(f"Processing Time per Step:")
             for entry in self.steps_duration:
-                label_cleaned       = ' '.join(entry['step_name'].replace(' : ', '').split()).replace(' ]',']')
-                step_id_and_label   = f"Step {(str(entry['step_id'])).ljust(4)} : {label_cleaned}"
+                label_cleaned = ' '.join(entry['step_name'].replace(' : ', '').split()).replace(' ]', ']')
+                step_id_and_label = f"Step {(str(entry['step_id'])).ljust(4)} : {label_cleaned}"
                 LOGGER.info(f"{step_id_and_label.ljust(55)} : {entry['duration'].rjust(8)}")
             LOGGER.info(f"")
             LOGGER.info(f"{'TOTAL PROCESSING TIME'.ljust(55)}  : {formatted_duration.rjust(8)}")
             LOGGER.info(f"============================================================================================================================")
+
+            # PRINT RESULTS
+            # ----------------------------------------------------------------------------------------------------------------------
+            result = self.result
+            if LOG_LEVEL <= logging.DEBUG:
+                LOGGER.debug (f"Process Output:")
+                print_dict_pretty(result, log_level=LOG_LEVEL)
+
+            # Extract percentages of totals
+            output_perc_photos_with_date = result['output_counters']['photos']['pct_with_date']
+            output_perc_photos_without_date = result['output_counters']['photos']['pct_without_date']
+            output_perc_videos_with_date = result['output_counters']['videos']['pct_with_date']
+            output_perc_videos_without_date = result['output_counters']['videos']['pct_without_date']
+
+            # Calculate percentages from output vs input
+            perc_of_input_total_files               = 100 * result['output_counters']['total_files']           / result['input_counters']['total_files']             if result['input_counters']['total_files']           != 0 and result['output_counters']['total_files']           != 0 else 100
+            perc_of_input_total_unsupported_files   = 100 * result['output_counters']['unsupported_files']     / result['input_counters']['unsupported_files']       if result['input_counters']['unsupported_files']     != 0 and result['output_counters']['unsupported_files']     != 0 else 100
+            perc_of_input_total_supported_files     = 100 * result['output_counters']['supported_files']       / result['input_counters']['supported_files']         if result['input_counters']['supported_files']       != 0 and result['output_counters']['supported_files']       != 0 else 100
+            perc_of_input_total_media               = 100 * result['output_counters']['media_files']           / result['input_counters']['media_files']             if result['input_counters']['media_files']           != 0 and result['output_counters']['media_files']           != 0 else 100
+            perc_of_input_total_images              = 100 * result['output_counters']['photo_files']           / result['input_counters']['photo_files']             if result['input_counters']['photo_files']           != 0 and result['output_counters']['photo_files']           != 0 else 100
+            perc_of_input_total_photos_with_date    = 100 * result['output_counters']['photos']['with_date']   / result['input_counters']['photos']['with_date']     if result['input_counters']['photos']['with_date']   != 0 and result['output_counters']['photos']['with_date']   != 0 else 100
+            perc_of_input_total_photos_without_date = 100 * result['output_counters']['photos']['without_date']/ result['input_counters']['photos']['without_date']  if result['input_counters']['photos']['without_date']!= 0 and result['output_counters']['photos']['without_date']!= 0 else 100
+            perc_of_input_total_videos              = 100 * result['output_counters']['video_files']           / result['input_counters']['video_files']             if result['input_counters']['video_files']           != 0 and result['output_counters']['video_files']           != 0 else 100
+            perc_of_input_total_videos_with_date    = 100 * result['output_counters']['videos']['with_date']   / result['input_counters']['videos']['with_date']     if result['input_counters']['videos']['with_date']   != 0 and result['output_counters']['videos']['with_date']   != 0 else 100
+            perc_of_input_total_videos_without_date = 100 * result['output_counters']['videos']['without_date']/ result['input_counters']['videos']['without_date']  if result['input_counters']['videos']['without_date']!= 0 and result['output_counters']['videos']['without_date']!= 0 else 100
+            perc_of_input_total_non_media           = 100 * result['output_counters']['non_media_files']       / result['input_counters']['non_media_files']         if result['input_counters']['non_media_files']       != 0 and result['output_counters']['non_media_files']       != 0 else 100
+            perc_of_input_total_metadata            = 100 * result['output_counters']['metadata_files']        / result['input_counters']['metadata_files']          if result['input_counters']['metadata_files']        != 0 and result['output_counters']['metadata_files']        != 0 else 100
+            perc_of_input_total_sidecars            = 100 * result['output_counters']['sidecar_files']         / result['input_counters']['sidecar_files']           if result['input_counters']['sidecar_files']         != 0 and result['output_counters']['sidecar_files']         != 0 else 100
+
+            # Calculate differences from output vs input
+            diff_output_input_total_files               = result['output_counters']['total_files']           - result['input_counters']['total_files']              if result['input_counters']['total_files']           != 0 and result['output_counters']['total_files']           != 0 else 0
+            diff_output_input_total_unsupported_files   = result['output_counters']['unsupported_files']     - result['input_counters']['unsupported_files']        if result['input_counters']['unsupported_files']     != 0 and result['output_counters']['unsupported_files']     != 0 else 0
+            diff_output_input_total_supported_files     = result['output_counters']['supported_files']       - result['input_counters']['supported_files']          if result['input_counters']['supported_files']       != 0 and result['output_counters']['supported_files']       != 0 else 0
+            diff_output_input_total_media               = result['output_counters']['media_files']           - result['input_counters']['media_files']              if result['input_counters']['media_files']           != 0 and result['output_counters']['media_files']           != 0 else 0
+            diff_output_input_total_images              = result['output_counters']['photo_files']           - result['input_counters']['photo_files']              if result['input_counters']['photo_files']           != 0 and result['output_counters']['photo_files']           != 0 else 0
+            diff_output_input_total_photos_with_date    = result['output_counters']['photos']['with_date']   - result['input_counters']['photos']['with_date']      if result['input_counters']['photos']['with_date']   != 0 and result['output_counters']['photos']['with_date']   != 0 else 0
+            diff_output_input_total_photos_without_date = result['output_counters']['photos']['without_date']- result['input_counters']['photos']['without_date']   if result['input_counters']['photos']['without_date']!= 0 and result['output_counters']['photos']['without_date']!= 0 else 0
+            diff_output_input_total_videos              = result['output_counters']['video_files']           - result['input_counters']['video_files']              if result['input_counters']['video_files']           != 0 and result['output_counters']['video_files']           != 0 else 0
+            diff_output_input_total_videos_with_date    = result['output_counters']['videos']['with_date']   - result['input_counters']['videos']['with_date']      if result['input_counters']['videos']['with_date']   != 0 and result['output_counters']['videos']['with_date']   != 0 else 0
+            diff_output_input_total_videos_without_date = result['output_counters']['videos']['without_date']- result['input_counters']['videos']['without_date']   if result['input_counters']['videos']['without_date']!= 0 and result['output_counters']['videos']['without_date']!= 0 else 0
+            diff_output_input_total_non_media           = result['output_counters']['non_media_files']       - result['input_counters']['non_media_files']          if result['input_counters']['non_media_files']       != 0 and result['output_counters']['non_media_files']       != 0 else 0
+            diff_output_input_total_metadata            = result['output_counters']['metadata_files']        - result['input_counters']['metadata_files']           if result['input_counters']['metadata_files']        != 0 and result['output_counters']['metadata_files']        != 0 else 0
+            diff_output_input_total_sidecars            = result['output_counters']['sidecar_files']         - result['input_counters']['sidecar_files']            if result['input_counters']['sidecar_files']         != 0 and result['output_counters']['sidecar_files']         != 0 else 0
+
+            end_time = datetime.now()
+            formatted_duration = str(timedelta(seconds=round((end_time - START_TIME).total_seconds())))
+            if result['output_counters']['total_files'] == 0:
+                # FINAL SUMMARY
+                LOGGER.info(f"")
+                LOGGER.error(f"=====================================================")
+                LOGGER.error(f"❌ PROCESS COMPLETED WITH ERRORS!           ")
+                LOGGER.error(f"=====================================================")
+                LOGGER.info(f"")
+                LOGGER.error(f"No files found in Output Folder  : '{output_folder}'")
+                LOGGER.info(f"")
+                LOGGER.info(f"Total time elapsed                          : {formatted_duration}")
+                LOGGER.info(f"============================================================================================================================")
+                LOGGER.info(f"")
+            else:
+                # FINAL SUMMARY
+                LOGGER.info(f"")
+                LOGGER.info(f"============================================================================================================================")
+                LOGGER.info(f"✅ PROCESS COMPLETED SUCCESSFULLY!")
+                LOGGER.info(f"")
+                LOGGER.info(f"All the Photos/Videos Fixed can be found on folder: '{output_folder}'")
+                LOGGER.info(f"")
+                LOGGER.info(f"📊 FINAL SUMMARY & STATISTICS:")
+                LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
+                LOGGER.info(f"Total Size of Takeout folder                : {result['input_counters']['total_size_mb']} MB")
+                LOGGER.info(f"Total Files in Takeout folder               : {result['input_counters']['total_files']:<7}")
+                LOGGER.info(f"Total Non-Supported files in Takeout folder : {result['input_counters']['unsupported_files']:<7}")
+                LOGGER.info(f"")
+                LOGGER.info(f"Total Supported files in Takeout folder     : {result['input_counters']['supported_files']:<7}")
+                LOGGER.info(f"  - Total Media files in Takeout folder     : {result['input_counters']['media_files']:<7}")
+                LOGGER.info(f"    - Total Images in Takeout folder        : {result['input_counters']['photo_files']:<7}")
+                LOGGER.info(f"      - Correct Date                        : {result['input_counters']['photos']['with_date']:<7} ({result['input_counters']['photos']['pct_with_date']:>5.1f}% of total photos) ")
+                LOGGER.info(f"      - Incorrect Date                      : {result['input_counters']['photos']['without_date']:<7} ({result['input_counters']['photos']['pct_without_date']:>5.1f}% of total photos) ")
+                LOGGER.info(f"    - Total Videos in Takeout folder        : {result['input_counters']['video_files']:<7}")
+                LOGGER.info(f"      - Correct Date                        : {result['input_counters']['videos']['with_date']:<7} ({result['input_counters']['videos']['pct_with_date']:>5.1f}% of total videos) ")
+                LOGGER.info(f"      - Incorrect Date                      : {result['input_counters']['videos']['without_date']:<7} ({result['input_counters']['videos']['pct_without_date']:>5.1f}% of total videos) ")
+                LOGGER.info(f"  - Total Non-Media files in Takeout folder : {result['input_counters']['non_media_files']:<7}")
+                LOGGER.info(f"    - Total Metadata in Takeout folder      : {result['input_counters']['metadata_files']:<7}")
+                LOGGER.info(f"    - Total Sidecars in Takeout folder      : {result['input_counters']['sidecar_files']:<7}")
+                LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
+                LOGGER.info(f"Total Size of Output folder                 : {result['output_counters']['total_size_mb']} MB")
+                LOGGER.info(f"Total Files in Output folder                : {result['output_counters']['total_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_files:>5})  |  ({perc_of_input_total_files:>5.1f}% of input) ")
+                LOGGER.info(f"Total Non-Supported files in Output folder  : {result['output_counters']['unsupported_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_unsupported_files:>5})  |  ({perc_of_input_total_unsupported_files:>5.1f}% of input) ")
+                LOGGER.info(f"")
+                LOGGER.info(f"Total Supported files in Output folder      : {result['output_counters']['supported_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_supported_files:>5})  |  ({perc_of_input_total_supported_files:>5.1f}% of input) ")
+                LOGGER.info(f"  - Total Media files in Output folder      : {result['output_counters']['media_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_media:>5})  |  ({perc_of_input_total_media:>5.1f}% of input) ")
+                LOGGER.info(f"    - Total Photos in Output folder         : {result['output_counters']['photo_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_images:>5})  |  ({perc_of_input_total_images:>5.1f}% of input) ")
+                LOGGER.info(f"      - Correct Date                        : {result['output_counters']['photos']['with_date']:<7}" f" {f'({output_perc_photos_with_date:>5.1f}% of total photos)'.ljust(29)}" f"{f'|   (diff: {diff_output_input_total_photos_with_date:>5})  |  ({perc_of_input_total_photos_with_date:>5.1f}% of input)'.rjust(40)} ")
+                LOGGER.info(f"      - Incorrect Date                      : {result['output_counters']['photos']['without_date']:<7}" f" {f'({output_perc_photos_without_date:>5.1f}% of total photos)'.ljust(29)}" f"{f'|   (diff: {diff_output_input_total_photos_without_date:>5})  |  ({perc_of_input_total_photos_without_date:>5.1f}% of input)'.rjust(40)} ")
+                LOGGER.info(f"    - Total Videos in Output folder         : {result['output_counters']['video_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_videos:>5})  |  ({perc_of_input_total_videos:>5.1f}% of input) ")
+                LOGGER.info(f"      - Correct Date                        : {result['output_counters']['videos']['with_date']:<7}" f" {f'({output_perc_videos_with_date:>5.1f}% of total videos)'.ljust(29)}" f"{f'|   (diff: {diff_output_input_total_videos_with_date:>5})  |  ({perc_of_input_total_videos_with_date:>5.1f}% of input)'.rjust(40)} ")
+                LOGGER.info(f"      - Incorrect Date                      : {result['output_counters']['videos']['without_date']:<7}" f" {f'({output_perc_videos_without_date:>5.1f}% of total videos)'.ljust(29)}" f"{f'|   (diff: {diff_output_input_total_videos_without_date:>5})  |  ({perc_of_input_total_videos_without_date:>5.1f}% of input)'.rjust(40)} ")
+                LOGGER.info(f"  - Total Non-Media files in Output folder  : {result['output_counters']['non_media_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_non_media:>5})  |  ({perc_of_input_total_non_media:>5.1f}% of input) ")
+                LOGGER.info(f"    - Total Metadata in Output folder       : {result['output_counters']['metadata_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_metadata:>5})  |  ({perc_of_input_total_metadata:>5.1f}% of input) ")
+                LOGGER.info(f"    - Total Sidecars in Output folder       : {result['output_counters']['sidecar_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_sidecars:>5})  |  ({perc_of_input_total_sidecars:>5.1f}% of input) ")
+                LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
+                LOGGER.info(f"")
+                LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
+                LOGGER.info(f"Total Albums folders found in Output folder : {result['valid_albums_found']}")
+                if ARGS['google-rename-albums-folders']:
+                    LOGGER.info(f"Total Albums Renamed                        : {result['renamed_album_folders']}")
+                    LOGGER.info(f"Total Albums Duplicated                     : {result['duplicates_album_folders']}")
+                    LOGGER.info(f"   - Total Albums Fully Merged              : {result['duplicates_albums_fully_merged']}")
+                    LOGGER.info(f"   - Total Albums Not Fully Merged          : {result['duplicates_albums_not_fully_merged']}")
+                if not ARGS['google-no-symbolic-albums']:
+                    LOGGER.info(f"")
+                    LOGGER.info(f"Total Symlinks Fixed                        : {result['symlink_fixed']}")
+                    LOGGER.info(f"Total Symlinks Not Fixed                    : {result['symlink_not_fixed']}")
+                if ARGS['google-remove-duplicates-files']:
+                    LOGGER.info(f"")
+                    LOGGER.info(f"Total Duplicates Removed                    : {result['duplicates_found']}")
+                    LOGGER.info(f"Total Empty Folders Removed                 : {result['removed_empty_folders']}")
+                LOGGER.info(f"")
+                LOGGER.info(f"Total time elapsed                          : {formatted_duration}")
+                LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
+                LOGGER.info(f"============================================================================================================================")
+                LOGGER.info(f"")
+
+
 
             # At the end of the process, we call the super() to make this objet a sub-instance of the class ClassLocalFolder to create the same folder structure
             if create_localfolder_object:
