@@ -78,9 +78,9 @@ def parse_arguments():
                         const=1,  # Si el usuario pasa --account-id sin valor, se asigna 1
                         default=1,  # Si no se pasa el argumento, también se asigna 1
                         type=validate_account_id,  # Ahora espera un entero como tipo de argumento
-                        help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the <CONFIGURATION_FILE> as suffix of USERNAME/PASSWORD or API_KEY_USER. "
+                        help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the Config.ini as suffix of USERNAME/PASSWORD or API_KEY_USER. "
                            "\nExample for Immich ID=2:"
-                           "\n  IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in <CONFIGURATION_FILE>."
+                           "\n  IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini."
                         )
     PARSER.add_argument("-OTP", "--one-time-password", action="store_true", default="", help="This Flag allow you to login into Synology Photos using 2FA with an OTP Token.")
 
@@ -102,7 +102,7 @@ def parse_arguments():
                          "\n"
                          "\nPossible values:"
                          "\n  ['synology', 'immich']-[id] or <INPUT_FOLDER>"
-                         "\n  [id] = [1, 2] select which account to use from the <CONFIGURATION_FILE> file."
+                         "\n  [id] = [1, 2] select which account to use from the Config.ini file."
                          "\n"    
                          "\nExamples: "
                          "\n ​--source=immich-1 -> Select Immich Photos account 1 as Source."
@@ -115,7 +115,7 @@ def parse_arguments():
                          "\n"
                          "\nPossible values:"
                          "\n  ['synology', 'immich']-[id] or <OUTPUT_FOLDER>"
-                         "\n  [id] = [1, 2] select which account to use from the <CONFIGURATION_FILE> file."
+                         "\n  [id] = [1, 2] select which account to use from the Config.ini file."
                          "\n"    
                          "\nExamples: "
                          "\n ​--target=immich-1 -> Select Immich Photos account 1 as Target."
@@ -226,7 +226,7 @@ def parse_arguments():
                         )
 
     PARSER.add_argument("-rOrphan", "--remove-orphan-assets", action="store_true", default="",
-                        help="The Tool will look for all Orphan Assets in the selected Photo client and will remove them.\nYou must provide the Photo client using the mandatory argument '--client'. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in <CONFIGURATION_FILE>.")
+                        help="The Tool will look for all Orphan Assets in the selected Photo client and will remove them.\nYou must provide the Photo client using the mandatory argument '--client'. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in Config.ini.")
 
     PARSER.add_argument("-rAll", "--remove-all-assets", action="store_true", default="",
                         help="CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also ALL your Albums from the selected Photo client.\nYou must provide the Photo client using the mandatory flag '--client'.")

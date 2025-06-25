@@ -1,15 +1,13 @@
 # <span style="color:green">🛠️ Other Standalone Extra Features</span>
 
-> [!NOTE]
-> ## <span style="color:green">Other Standalone Extra Features</span>
->Additionally, this Tool can be executed with 4 Standalone Extra Features: 
-> 
-> - **Find Duplicates** 
-> - **Process Duplicates** 
-> - **Fix Symbolic Links Broken** 
-> - **Folder Rename Content Based** 
->
-> If more than one Stand Alone Extra Feature is detected, only the first one will be executed
+Additionally, this Tool can be executed with 4 Standalone Extra Features: 
+ 
+1. **Find Duplicates**
+2. **Process Duplicates**
+3. **Fix Symbolic Links Broken**
+4. **Folder Rename Content Based** 
+
+If more than one Stand Alone Extra Feature is detected, only the first one will be executed
 
 
 # <span style="color:blue"> Find Duplicates (Extra Feature)</span>

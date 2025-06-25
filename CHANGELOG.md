@@ -204,7 +204,7 @@
     - [x] Added Support for 3 accounts of each Cloud Photo Service (before it was only 2).
     - [x] Merged Synology/Immich arguments (now you can specify the client using a new argument _**`-client, --client \<CLIENT_NAME>`**_)
     - [x] Added new argument _**`-client, --cient \<CLIENT_NAME>`**_ to set the Cloud Photo client to use.
-    - [x] Added new argument _**`-id, --account-id \<ID>`**_ to specify which account to use for Synology Photos and Immich Photos from <CONFIGURATION_FILE>.
+    - [x] Added new argument _**`-id, --account-id \<ID>`**_ to specify which account to use for Synology Photos and Immich Photos from Config.ini.
     - [x] Added new argument _**`-move, --move-assets`**_ to move assets (instead of copy) from \<SOURCE> client to \<TARGET> client during Automatic Migration process.
     - [x] Added support for 2FA in Synology Photos requesting the OTP Token if flag _**`-OTP, --one-time-password`**_ is detected. [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
       - New flag _**`-OTP, --one-time-password`**_ to allow login into Synology Photos accounts with 2FA activated.
@@ -255,7 +255,7 @@
     - [x] Many improvements and automations in GitHub Actions to generate new builds and releases.     
 
   - #### 🐛 Bug fixes:
-    - [x] Fixed issue when username/password contains the special char (#) reserved for in-line comments in the configuration file (<CONFIGURATION_FILE>). [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
+    - [x] Fixed issue when username/password contains the special char (#) reserved for in-line comments in the configuration file (Config.ini). [#218](https://github.com/jaimetur/PhotoMigrator/issues/218).
     - [x] Fixed a bug with feature **Remove All Albums** from Synology Photos and Immich Photos when the flag _**`--remove-albums-assets`**_ was selected (the assets were not removed properly).
     - [x] Fixed a bug with feature **Synology Upload Album(s)** when the folder to upload is not named "Albums".
     - [x] Fixed a bug when any input folder ends with '\' or '/' but is enclosed between double quotes (").
@@ -304,7 +304,7 @@
 
 - ### Main Changes:
   - #### 🚨 Breaking Changes:
-    - <CONFIGURATION_FILE> file has changed to support multi-accounts over the same Cloud Photo Service. 
+    - Config.ini file has changed to support multi-accounts over the same Cloud Photo Service. 
 
   - #### 🌟 New Features:
     - [x] Support for running the Tool from Docker container.
@@ -345,7 +345,7 @@
 
 - ### Main Changes:
   - #### 🚨 Breaking Changes:
-    - [x] Unificate a single <CONFIGURATION_FILE> file and included tags for the different configuration sections.
+    - [x] Unificate a single Config.ini file and included tags for the different configuration sections.
 
   - #### 🌟 New Features:
     - [x] Added **_Immich Photos Support_**.
@@ -428,7 +428,7 @@
       - **-irAllAlb, --immich-remove-all-albums** to delete ALL Albums in Immich Photos (optionally all associated assets can be also deleted).  
       - **-irOrphan, --immich-remove-orphan-assets**  
         - The Tool will look for all Orphan Assets in Immich Database and will delete them.  
-        - **IMPORTANT!**: This feature requires a valid ADMIN_API_KEY configured in <CONFIGURATION_FILE>.
+        - **IMPORTANT!**: This feature requires a valid ADMIN_API_KEY configured in Config.ini.
 
   - #### 🚀 Enhancements:
     - [x] New Script name '**PhotoMigrator**' (former 'GoogleTakeoutPhotos')
@@ -439,7 +439,7 @@
     - [X] Refactor normal_mode to google_takeout_mode.
     - [x] Changed the logic to detect google_takeout_mode (former normal_mode)
     - [x] Merged -z and -t options in just one option ('-gtProc, -google-takeout-to-process') and detect if contains Takeout Zip files, in that case Zip files will be Unzipped to <TAKEOUT_FOLDER>_<TIMESTAMP> folder.
-    - [x] Removed SYNOLOGY_ROOT_PHOTOS_PATH from <CONFIGURATION_FILE>, since it is not needed anymore.
+    - [x] Removed SYNOLOGY_ROOT_PHOTOS_PATH from Config.ini, since it is not needed anymore.
     - [x] Removed Indexing Functions on ServiceSynology file (not needed anymore)
     - [x] Code refactored.
     - [x] Renamed options:

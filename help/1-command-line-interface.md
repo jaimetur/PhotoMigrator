@@ -97,9 +97,9 @@ Following general arguments have different purposses depending on the Execution 
               Set the client to use for the selected feature.
 -id        ; --account-id = [1-3]
               Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the
-              <CONFIGURATION_FILE> as suffix of USERNAME/PASSWORD or API_KEY_USER.
+              Config.ini as suffix of USERNAME/PASSWORD or API_KEY_USER.
               Example for Immich ID=2:
-                IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in <CONFIGURATION_FILE>.
+                IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini.
 -OTP       ; --one-time-password
               This Flag allow you to login into Synology Photos using 2FA with an OTP Token.
 -from      ; --filter-from-date <FROM_DATE>
@@ -134,7 +134,7 @@ Service to other, or from two different accounts within the same Photo Cloud ser
 
               Possible values:
                 ['synology', 'immich']-[id] or <INPUT_FOLDER>
-                [id] = [1, 2] select which account to use from the <CONFIGURATION_FILE> file.
+                [id] = [1, 2] select which account to use from the Config.ini file.
 
               Examples:
                ​--source=immich-1 -> Select Immich Photos account 1 as Source.
@@ -148,7 +148,7 @@ Service to other, or from two different accounts within the same Photo Cloud ser
 
               Possible values:
                 ['synology', 'immich']-[id] or <OUTPUT_FOLDER>
-                [id] = [1, 2] select which account to use from the <CONFIGURATION_FILE> file.
+                [id] = [1, 2] select which account to use from the Config.ini file.
 
               Examples:
                ​--target=immich-1 -> Select Immich Photos account 1 as Target.
@@ -228,7 +228,7 @@ To use following features, it is mandatory to use the argument '--client=[synolo
 Service do you want to use.
 
 You can optionally use the argument '--id=[1-3]' to specify the account id for a particular account defined in
-<CONFIGURATION_FILE>.
+Config.ini.
 
 Following arguments allow you to interact with Synology/Immich Photos.
 If more than one optional arguments are detected, only the first one will be executed.
@@ -267,7 +267,7 @@ If more than one optional arguments are detected, only the first one will be exe
 -rOrphan   ; --remove-orphan-assets
               The Tool will look for all Orphan Assets in the selected Photo client and will remove them.
               You must provide the Photo client using the mandatory argument '--client'. IMPORTANT: This feature
-              requires a valid ADMIN_API_KEY configured in <CONFIGURATION_FILE>.
+              requires a valid ADMIN_API_KEY configured in Config.ini.
 -rAll      ; --remove-all-assets
               CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also ALL your Albums from the
               selected Photo client.
