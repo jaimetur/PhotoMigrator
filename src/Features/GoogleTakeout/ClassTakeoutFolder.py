@@ -116,8 +116,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
         return self.output_folder
 
 
-
-    def precheck_takeout_and_calculate_initial_counters(self, capture_output=False, capture_errors=True, print_messages=True, skip_process=False, log_level=None):
+    def precheck_takeout_and_calculate_initial_counters(self, log_level=None):
         with (set_log_level(LOGGER, log_level)):  # Temporarily adjust log level
             # Start Pre-Checking
             self.step += 1
@@ -322,7 +321,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Step 1: Pre-check the object with skip_process=True to just unzip files in case they are zipped
             # ----------------------------------------------------------------------------------------------------------------------
-            self.precheck_takeout_and_calculate_initial_counters(skip_process=True, log_level=log_level)
+            self.precheck_takeout_and_calculate_initial_counters(log_level=log_level)
 
             # --------------------------------------------------------------------------------------------------------------------------------------------------------
             # DETERMINE BASIC FOLDERS AND INIT SUPER CLASS
