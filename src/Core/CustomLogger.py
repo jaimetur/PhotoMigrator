@@ -55,9 +55,12 @@ def custom_print(*args, log_level=logging.INFO, **kwargs):
 # Class to Downgrade from INFO to DEBUG/WARNING/ERROR when certain chain is detected
 class ChangeLevelFilter(logging.Filter):
     TAG_LEVEL_MAP = {
+        '[VERBOSE]': VERBOSE_LEVEL_NUM,
         '[DEBUG]': logging.DEBUG,
+        '[INFO]': logging.INFO,
         '[WARNING]': logging.WARNING,
         '[ERROR]': logging.ERROR,
+        '[CRITICAL]': logging.CRITICAL,
     }
     def filter(self, record):
         # Solo intervenimos mensajes lanzados con logger.info()
@@ -69,6 +72,17 @@ class ChangeLevelFilter(logging.Filter):
                     record.levelname = logging.getLevelName(lvl)
                     break
         return True
+
+class ThreadLevelFilter(logging.Filter):
+    def __init__(self, level):
+        super().__init__()
+        self.level = level
+        self.thread_id = threading.get_ident()
+    def filter(self, record):
+        # Solo afecta al hilo actual
+        if threading.get_ident() == self.thread_id:
+            return record.levelno >= self.level
+        return True  # otros hilos no afectados
 
 
 # Clase personalizada para formatear los mensajes que van a la consola (Añadimos colorees según el nivel del mensaje)
@@ -198,19 +212,6 @@ class LoggerConsoleTqdm:
         """Engañar a tqdm para que lo trate como un terminal interactivo."""
         return True
 
-
-class ThreadLevelFilter(logging.Filter):
-    def __init__(self, level):
-        super().__init__()
-        self.level = level
-        self.thread_id = threading.get_ident()
-    def filter(self, record):
-        # Solo afecta al hilo actual
-        if threading.get_ident() == self.thread_id:
-            return record.levelno >= self.level
-        return True  # otros hilos no afectados
-
-
 def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip_logfile=False, skip_console=False, format='log'):
     """
     Configures logger to a log file and console simultaneously.
@@ -328,10 +329,27 @@ def suppress_console_output_temporarily(logger):
         logger.handlers = original_handlers
         logger.propagate = original_propagate
 
-
-# Crear un contexto para cambiar el nivel del logger temporalmente
+# Crear un contexto para cambiar el nivel del logger y de todos los handlers temporalmente
 @contextmanager
-def set_log_level(logger: logging.Logger, level: int):
+def set_log_level_simple(logger: logging.Logger, level: int):
+    # If no level have been passed, or level=None, assign the GlovalVariable level defined by user arguments
+    if not level:
+        level = GV.LOG_LEVEL
+        
+    orig = logger.level
+    for h in logger.handlers:
+        h_orig = h.level
+        h.setLevel(level)
+        try:
+            yield
+        finally:
+            logger.setLevel(orig)
+            for h, lvl in zip(logger.handlers, [h.level for h in logger.handlers]):
+                h.setLevel(h_orig)
+
+# Crear un contexto para cambiar el nivel del logger y de todos los handlers temporalmente incluyendo threads
+@contextmanager
+def set_log_level(logger: logging.Logger, level: int, include_threads=False):
     """
     Context manager que:
       1) guarda el estado actual de logger.level y de cada handler.level,
@@ -348,16 +366,18 @@ def set_log_level(logger: logging.Logger, level: int):
     # 1) Guardar estados originales
     orig_logger_level   = logger.level
     orig_handler_states = [(h, h.level) for h in logger.handlers]
-    # Guardar los filtros ThreadLevelFilter que hubiera
-    orig_thread_filters = [f for f in logger.filters if isinstance(f, ThreadLevelFilter)]
 
-    # 2) Quitar los filtros de hilo anteriores
-    for f in orig_thread_filters:
-        logger.removeFilter(f)
+    if include_threads:
+        # Guardar los filtros ThreadLevelFilter que hubiera
+        orig_thread_filters = [f for f in logger.filters if isinstance(f, ThreadLevelFilter)]
 
-    # 3) Crear e instalar el filtro nuevo
-    new_filter = ThreadLevelFilter(level)
-    logger.addFilter(new_filter)
+        # 2) Quitar los filtros de hilo anteriores
+        for f in orig_thread_filters:
+            logger.removeFilter(f)
+
+        # 3) Crear e instalar el filtro nuevo
+        new_filter = ThreadLevelFilter(level)
+        logger.addFilter(new_filter)
 
     # 4) Ajustar niveles
     logger.setLevel(level)
@@ -367,11 +387,12 @@ def set_log_level(logger: logging.Logger, level: int):
     try:
         yield
     finally:
-        # 5a) Quitar el filtro que acabamos de poner
-        logger.removeFilter(new_filter)
-        # 5b) Restaurar los filtros originales
-        for f in orig_thread_filters:
-            logger.addFilter(f)
+        if include_threads:
+            # 5a) Quitar el filtro que acabamos de poner
+            logger.removeFilter(new_filter)
+            # 5b) Restaurar los filtros originales
+            for f in orig_thread_filters:
+                logger.addFilter(f)
         # 5c) Restaurar niveles originales
         logger.setLevel(orig_logger_level)
         for handler, old_level in orig_handler_states:
