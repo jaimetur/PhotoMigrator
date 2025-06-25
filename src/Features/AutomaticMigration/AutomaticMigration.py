@@ -199,7 +199,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
         if parallel:
             LOGGER.info(f"Migration Mode : Parallel")
         else:
-            LOGGER.info(f"Migration Mode : Secuential")
+            LOGGER.info(f"Migration Mode : Sequential")
 
         LOGGER.info(f"Move Assets    : {move_assets}")
 
@@ -266,16 +266,15 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
 
             # ------------------------------------------------------------------------------------------------------
             # 3) Verifica y procesa source_client y target_client si es una instancia de ClassTakeoutFolder
+            print_messages = False if show_dashboard else True
             if isinstance(source_client, ClassTakeoutFolder):
                 if source_client.needs_unzip or source_client.needs_process:
                     LOGGER.info(f"🔢 Source Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
-                    # source_client.precheck_takeout_and_calculate_initial_counters(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=False)
-                    source_client.process(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=False)
+                    source_client.process(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=print_messages)
             if isinstance(target_client, ClassTakeoutFolder):
                 if target_client.needs_unzip or target_client.needs_process:
                     LOGGER.info(f"🔢 Target Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
-                    # target_client.precheck_takeout_and_calculate_initial_counters(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=False)
-                    target_client.process(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=False)
+                    target_client.process(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=print_messages)
 
             # ---------------------------------------------------------------------------------------------------------
             # 4) Ejecutamos la migración en el hilo principal (ya sea con descargas y subidas en paralelo o secuencial)
@@ -305,7 +304,7 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
 #########################################
 # parallel_automatic_migration Function #
 #########################################
-@restore_log_info_on_exception
+# @restore_log_info_on_exception
 def parallel_automatic_migration(source_client, target_client, temp_folder, SHARED_DATA, parallel=None, log_level=logging.INFO):
     """
     Sincroniza fotos y vídeos entre un 'source_client' y un 'destination_client',
@@ -533,6 +532,7 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
             num_pull_threads = 1  # no Iniciar más de 1 hilo de descarga, de lo contrario los assets se descargarán multiples veces.
             LOGGER.info(f"Launching {num_pull_threads} Pull worker in parallel...")
             num_push_threads = max(1, int(cpu_total_threads * 2))
+            num_push_threads = 1
             LOGGER.info(f"Launching {num_push_threads} Push workers in parallel...")
 
             pull_threads = [threading.Thread(target=puller_worker, kwargs={"parallel": parallel}, daemon=True) for _ in range(num_pull_threads)]
@@ -607,6 +607,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # 1) PULLER: Función puller_worker para descargar assets y poner en la cola
     # --------------------------------------------------------------------------------
     def puller_worker(parallel=None, log_level=logging.INFO):
+        # # 1) Creamos un logger hijo para este hilo y lo asignamos a la variable LOGGER local
+        # from Core.GlobalVariables import LOGGER as GV_LOGGER
+        # thread_id = threading.get_ident()
+        # LOGGER = GV_LOGGER.getChild(f"puller-{thread_id}")
+
         with set_log_level(LOGGER, log_level):
 
             # 1.1) Descarga de álbumes
@@ -822,6 +827,11 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # 2) PUSHER: Función pusher_worker para SUBIR (consumir de la cola)
     # ----------------------------------------------------------------------------
     def pusher_worker(processed_albums=[], worker_id=1, log_level=logging.INFO):
+        # # 1) Creamos un logger hijo para este hilo y lo asignamos a la variable LOGGER local
+        # from Core.GlobalVariables import LOGGER as GV_LOGGER
+        # thread_id = threading.get_ident()
+        # LOGGER = GV_LOGGER.getChild(f"pusher-{thread_id}")
+
         with set_log_level(LOGGER, log_level):
             move_assets = ARGS.get('move-assets', None)
             while True:
@@ -863,6 +873,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
                                     SHARED_DATA.counters['total_pushed_photos'] += 1
                                 LOGGER.info(f"Asset Pushed    : '{os.path.basename(asset_file_path)}'")
                         else:
+                            # Si entramos aqui es porque asset_id no existe, probablemente se haya producido una excepción en push_asset, y el LOGGER se haya quedado con el nivel ERROR
+                            # Restauramos el LOGGER al nivel que tenía antes de llamar a push_asset
+                            # LOGGER.setLevel(orig_level)
+                            set_log_level(LOGGER, orig_level)
                             if album_name:
                                 LOGGER.error(f"Asset Push Fail : '{os.path.basename(asset_file_path)}'. Album: '{album_name}'")
                             else:
@@ -1009,6 +1023,11 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=No
     from rich.live import Live
     import queue
     import textwrap
+
+    # # 1) Creamos un logger hijo para este hilo y lo asignamos a la variable LOGGER local
+    # from Core.GlobalVariables import LOGGER as GV_LOGGER
+    # thread_id = threading.get_ident()
+    # LOGGER = GV_LOGGER.getChild(f"dashboard-{thread_id}")
 
     # 🚀 Guardar stdout y stderr originales
     original_stdout = sys.stdout
