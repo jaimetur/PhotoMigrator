@@ -329,13 +329,100 @@ def suppress_console_output_temporarily(logger):
         logger.handlers = original_handlers
         logger.propagate = original_propagate
 
+# # Crear un contexto para cambiar el nivel del logger y de todos los handlers temporalmente incluyendo threads
+# @contextmanager
+# def set_log_level(logger: logging.Logger, level: int, include_threads=False):
+#     """
+#     Context manager que:
+#       1) guarda el estado actual de logger.level y de cada handler.level,
+#          y todos los filtros ThreadLevelFilter instalados,
+#       2) quita esos filtros ThreadLevelFilter antiguos (para "romper" el contexto padre),
+#       3) instala un ThreadLevelFilter nuevo a `level`,
+#       4) ajusta logger.level y todos los handler.level a `level`,
+#       5) al salir, restaura los filtros, el logger.level y handler.level a sus valores originales.
+#     """
+#     # If no level have been passed, or level=None, assign the GlovalVariable level defined by user arguments
+#     if not level:
+#         level = GV.LOG_LEVEL
+#
+#     # 1) Guardar estados originales
+#     orig_logger_level   = logger.level
+#     orig_handler_states = [(h, h.level) for h in logger.handlers]
+#
+#     if include_threads:
+#         # Guardar los filtros ThreadLevelFilter que hubiera
+#         orig_thread_filters = [f for f in logger.filters if isinstance(f, ThreadLevelFilter)]
+#
+#         # 2) Quitar los filtros de hilo anteriores
+#         for f in orig_thread_filters:
+#             logger.removeFilter(f)
+#
+#         # 3) Crear e instalar el filtro nuevo
+#         new_filter = ThreadLevelFilter(level)
+#         logger.addFilter(new_filter)
+#
+#     # 4) Ajustar niveles
+#     logger.setLevel(level)
+#     for handler, _ in orig_handler_states:
+#         handler.setLevel(level)
+#
+#     try:
+#         yield
+#     finally:
+#         if include_threads:
+#             # 5a) Quitar el filtro que acabamos de poner
+#             logger.removeFilter(new_filter)
+#             # 5b) Restaurar los filtros originales
+#             for f in orig_thread_filters:
+#                 logger.addFilter(f)
+#         # 5c) Restaurar niveles originales
+#         logger.setLevel(orig_logger_level)
+#         for handler, old_level in orig_handler_states:
+#             handler.setLevel(old_level)
+
+# Crear un contexto para cambiar el nivel del logger temporalmente
+@contextmanager
+def set_log_level(logger, level):
+    """
+    Context manager that temporarily sets a specific logging level for the current thread only.
+
+    This function adds a thread-specific filter to the given logger, ensuring that the specified
+    logging level affects exclusively the current thread, without modifying the global logger level.
+    It is thread-safe and suitable for both single-threaded and multi-threaded environments.
+
+    Args:
+        logger (logging.Logger): The logger instance to which the temporary logging level applies.
+        level (int): The logging level to apply temporarily (e.g., logging.INFO, logging.ERROR).
+
+    Usage example:
+        with set_threads_log_level(LOGGER, logging.ERROR):
+            LOGGER.info("This message will NOT be shown in this thread.")
+            LOGGER.error("This message will be shown in this thread.")
+        # Outside the context, the logger reverts to its original behavior.
+
+    Important:
+        - This context manager does NOT change the global logging level.
+        - It only affects log messages emitted from the thread executing this context.
+        - After exiting the context, the original logging behavior is restored automatically.
+    """
+    # If no level have been passed, or level=None, assign the GlovalVariable level defined by user arguments
+    if not level:
+        level = GV.LOG_LEVEL
+    filtro = ThreadLevelFilter(level)
+    logger.addFilter(filtro)
+    try:
+        yield
+    finally:
+        logger.removeFilter(filtro)
+
+
 # Crear un contexto para cambiar el nivel del logger y de todos los handlers temporalmente
 @contextmanager
 def set_log_level_simple(logger: logging.Logger, level: int):
     # If no level have been passed, or level=None, assign the GlovalVariable level defined by user arguments
     if not level:
         level = GV.LOG_LEVEL
-        
+
     orig = logger.level
     for h in logger.handlers:
         h_orig = h.level
@@ -346,58 +433,6 @@ def set_log_level_simple(logger: logging.Logger, level: int):
             logger.setLevel(orig)
             for h, lvl in zip(logger.handlers, [h.level for h in logger.handlers]):
                 h.setLevel(h_orig)
-
-# Crear un contexto para cambiar el nivel del logger y de todos los handlers temporalmente incluyendo threads
-@contextmanager
-def set_log_level(logger: logging.Logger, level: int, include_threads=False):
-    """
-    Context manager que:
-      1) guarda el estado actual de logger.level y de cada handler.level,
-         y todos los filtros ThreadLevelFilter instalados,
-      2) quita esos filtros ThreadLevelFilter antiguos (para "romper" el contexto padre),
-      3) instala un ThreadLevelFilter nuevo a `level`,
-      4) ajusta logger.level y todos los handler.level a `level`,
-      5) al salir, restaura los filtros, el logger.level y handler.level a sus valores originales.
-    """
-    # If no level have been passed, or level=None, assign the GlovalVariable level defined by user arguments
-    if not level:
-        level = GV.LOG_LEVEL
-
-    # 1) Guardar estados originales
-    orig_logger_level   = logger.level
-    orig_handler_states = [(h, h.level) for h in logger.handlers]
-
-    if include_threads:
-        # Guardar los filtros ThreadLevelFilter que hubiera
-        orig_thread_filters = [f for f in logger.filters if isinstance(f, ThreadLevelFilter)]
-
-        # 2) Quitar los filtros de hilo anteriores
-        for f in orig_thread_filters:
-            logger.removeFilter(f)
-
-        # 3) Crear e instalar el filtro nuevo
-        new_filter = ThreadLevelFilter(level)
-        logger.addFilter(new_filter)
-
-    # 4) Ajustar niveles
-    logger.setLevel(level)
-    for handler, _ in orig_handler_states:
-        handler.setLevel(level)
-
-    try:
-        yield
-    finally:
-        if include_threads:
-            # 5a) Quitar el filtro que acabamos de poner
-            logger.removeFilter(new_filter)
-            # 5b) Restaurar los filtros originales
-            for f in orig_thread_filters:
-                logger.addFilter(f)
-        # 5c) Restaurar niveles originales
-        logger.setLevel(orig_logger_level)
-        for handler, old_level in orig_handler_states:
-            handler.setLevel(old_level)
-
 
 def clone_logger(original_logger, new_name=None):
     """
