@@ -4,7 +4,7 @@ import textwrap
 
 from colorama import Fore, Style
 
-from Core.GlobalVariables import MAX_HELP_POSITION, MAX_SHORT_ARGUMENT_LENGTH, IDENT_ARGUMENT_DESCRIPTION, IDENT_USAGE_DESCRIPTION
+from Core.GlobalVariables import MAX_HELP_POSITION, MAX_SHORT_ARGUMENT_LENGTH, IDENT_ARGUMENT_DESCRIPTION, IDENT_USAGE_DESCRIPTION, SHORT_LONG_ARGUMENTS_SEPARATOR
 
 
 class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
@@ -49,7 +49,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                     tokens.append(s[start:i])
             return tokens
         tokens = parse_brackets(flattened)
-        # Devolvemos como una sola "línea" con indent vacío
+        # Devolvemos como una sola “línea” con indent vacío
         return [('', tokens)]
 
     def _build_lines_with_forced_tokens(
@@ -145,9 +145,10 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             "[-gTakeout <TAKEOUT_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
             "[-uAlb <ALBUMS_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
             "[-uAll <INPUT_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
+            # "[-OTP]": False,   # Salto de línea antes, pero sigue reagrupando
             "[-fixSym <FOLDER_TO_FIX>]": False,   # Salto de línea antes, pero sigue reagrupando
-            "[-renFldcb <ALBUMS_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
-            "[-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]": True,  # Va solo
+            # "[-renFldcb <ALBUMS_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
+            # "[-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]": True,  # Va solo
         }
         # 6) Ancho real
         max_width = getattr(self, '_width', 90)
@@ -256,7 +257,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 ----------------------------------{Style.RESET_ALL}
                 To use following features, it is mandatory to use the argument '--client=[synology, immich]' to specify which Photo Service do you want to use.   
                 
-                You can optionally use the argument '--id=[1-3]' to specify the account id for a particular account defined in <CONFIGURATION_FILE>.                  
+                You can optionally use the argument '--id=[1-3]' to specify the account id for a particular account defined in Config.ini.                  
                 
                 Following arguments allow you to interact with Synology/Immich Photos. 
                 If more than one optional arguments are detected, only the first one will be executed.
@@ -289,7 +290,6 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         return "".join(parts)
 
     def _format_action_invocation(self, action):
-        print("entro en _format_action_invocation")
         if not action.option_strings:
             # Para argumentos posicionales
             return super()._format_action_invocation(action)
@@ -297,9 +297,9 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             # Combina los argumentos cortos y largos con espacio adicional si es necesario
             option_strings = []
             for opt in action.option_strings:
-                # Argumento corto, agrega una coma detrás
+                # Argumento corto, agrega SHORT_LONG_ARGUMENTS_SEPARATOR detrás
                 if opt.startswith("-") and not opt.startswith("--"):
-                    option_strings.append(f"{opt.ljust(MAX_SHORT_ARGUMENT_LENGTH)};")
+                    option_strings.append(f"{opt.ljust(MAX_SHORT_ARGUMENT_LENGTH)}{SHORT_LONG_ARGUMENTS_SEPARATOR}")
                 else:
                     option_strings.append(f"{opt}")
 

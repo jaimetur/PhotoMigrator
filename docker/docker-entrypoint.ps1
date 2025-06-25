@@ -21,7 +21,7 @@ if (-Not (Test-Path $DOCKER_CONF_FILE)) {
 
 Write-Host "🚀 Initializing container and launching PhotoMigrator..."
 
-# Validar <CONFIGURATION_FILE>
+# Validar Config.ini
 Write-Host "Looking for Configuration File"
 if (-Not (Test-Path $CONFIG_FILE)) {
     Write-Host "❌ Configuration File not found in the current folder."

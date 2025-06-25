@@ -78,11 +78,10 @@ def parse_arguments():
                         const=1,  # Si el usuario pasa --account-id sin valor, se asigna 1
                         default=1,  # Si no se pasa el argumento, también se asigna 1
                         type=validate_account_id,  # Ahora espera un entero como tipo de argumento
-                        help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the <CONFIGURATION_FILE> as suffix of USERNAME/PASSWORD or API_KEY_USER. "
+                        help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the Config.ini as suffix of USERNAME/PASSWORD or API_KEY_USER. "
                            "\nExample for Immich ID=2:"
-                           "\n  IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in <CONFIGURATION_FILE>."
+                           "\n  IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in Config.ini."
                         )
-    PARSER.add_argument("-OTP", "--one-time-password", action="store_true", default="", help="This Flag allow you to login into Synology Photos using 2FA with an OTP Token.")
 
     PARSER.add_argument("-from", "--filter-from-date", metavar="<FROM_DATE>", default=None, help="Specify the initial date to filter assets in the different Photo Clients.")
     PARSER.add_argument("-to", "--filter-to-date", metavar="<TO_DATE>", default=None, help="Specify the final date to filter assets in the different Photo Clients.")
@@ -102,7 +101,7 @@ def parse_arguments():
                          "\n"
                          "\nPossible values:"
                          "\n  ['synology', 'immich']-[id] or <INPUT_FOLDER>"
-                         "\n  [id] = [1, 2] select which account to use from the <CONFIGURATION_FILE> file."
+                         "\n  [id] = [1, 2] select which account to use from the Config.ini file."
                          "\n"    
                          "\nExamples: "
                          "\n ​--source=immich-1 -> Select Immich Photos account 1 as Source."
@@ -115,7 +114,7 @@ def parse_arguments():
                          "\n"
                          "\nPossible values:"
                          "\n  ['synology', 'immich']-[id] or <OUTPUT_FOLDER>"
-                         "\n  [id] = [1, 2] select which account to use from the <CONFIGURATION_FILE> file."
+                         "\n  [id] = [1, 2] select which account to use from the Config.ini file."
                          "\n"    
                          "\nExamples: "
                          "\n ​--target=immich-1 -> Select Immich Photos account 1 as Target."
@@ -128,7 +127,7 @@ def parse_arguments():
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=False,  # Si no se pasa el argumento, el valor por defecto es False
                         type=str2bool,  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="If this argument is present, the assets will be moved from <SOURCE> to <TARGET> instead of copy them. (default: False)."
+                        help="If this argument is present, the assets will be moved from <SOURCE> to <TARGET> instead of copy them.\n(default: False)."
     )
     PARSER.add_argument("-dashboard", "--dashboard",
                         metavar="= [true,false]",
@@ -136,7 +135,7 @@ def parse_arguments():
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=True,  # Si no se pasa el argumento, el valor por defecto es True
                         type=str2bool,  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="Enable or disable Live Dashboard feature during Autometed Migration Job. This argument only applies if both '--source' and '--target' arguments are given (AUTOMATIC-MIGRATION FEATURE). (default: True)."
+                        help="Enable or disable Live Dashboard feature during Autometed Migration Job. This argument only applies if both '--source' and '--target' arguments are given (Automatic Migration).\n(default: True)."
     )
     PARSER.add_argument("-parallel", "--parallel-migration",
                         metavar="= [true,false]",
@@ -145,7 +144,7 @@ def parse_arguments():
                         default=True,  # Si no se pasa el argumento, el valor por defecto es True
                         type=str2bool,  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
                         help="Select Parallel/Secuencial Migration during Automatic Migration Job."
-                           "\nThis argument only applies if both '--source' and '--target' arguments are given (AUTOMATIC-MIGRATION FEATURE). (default: True)."
+                           "\nThis argument only applies if both '--source' and '--target' arguments are given (Automatic Migration).\n(default: True)."
     )
 
 
@@ -185,7 +184,10 @@ def parse_arguments():
     PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skips processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposes.")
     PARSER.add_argument("-gKeepTkout", "--google-keep-takeout-folder", action="store_true", help=f"Keeps a copy of your original Takeout before to start to process it (requires double HDD space). \nTIP: If you use as <TAKEOUT_FOLDER>, the folder that contains your Takeout's Zip files, \nyou will always conserve the original Zips and don't need to use this flag.")
     PARSER.add_argument("-gSkipPrep", "--google-skip-preprocess", action="store_true",
-                        help="Skip Pre-process Google Takeout to 1.Clean Takeout Folder, 2.Fix MP4/Live Picture associations and 3.Fix Truncated filenames/extensions." 
+                        help="Skip Pre-process Google Takeout which has following steps:"
+                             "\n  1.Clean Takeout Folder"
+                             "\n  2.Fix MP4/Live Picture associations"
+                             "\n  3.Fix Truncated filenames/extensions." 
                            "\nThis Pre-process is very important for a high accuracy on the Output, but if you have already done this Pre-Processing in a previous execution using the flag '-gKeepTkout,--google-keep-takeout-folder' then you can skip it for that <TAKEOUT_FOLDER>.")
     PARSER.add_argument("-gpthInfo", "--show-gpth-info",
                         metavar="= [true,false]",
@@ -225,30 +227,28 @@ def parse_arguments():
                              "\n- Assets with no Albums associated will be downloaded within a subfolder called <OUTPUT_FOLDER>/<NO_ALBUMS_FOLDER>/ and will have a year/month structure inside."
                         )
 
-    PARSER.add_argument("-rOrphan", "--remove-orphan-assets", action="store_true", default="",
-                        help="The Tool will look for all Orphan Assets in the selected Photo client and will remove them.\nYou must provide the Photo client using the mandatory argument '--client'. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in <CONFIGURATION_FILE>.")
-
-    PARSER.add_argument("-rAll", "--remove-all-assets", action="store_true", default="",
-                        help="CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also ALL your Albums from the selected Photo client.\nYou must provide the Photo client using the mandatory flag '--client'.")
-    PARSER.add_argument("-rAllAlb", "--remove-all-albums", action="store_true", default="",
-                        help="CAUTION!!! The Tool will remove ALL your Albums from the selected Photo client.\nYou must provide the Photo client using the mandatory flag '--client'."
-                             "\nOptionally ALL the Assets associated to each Album can be removed If you also include the flag '-rAlbAsset, --remove-albums-assets'."
+    PARSER.add_argument("-renAlb", "--rename-albums", metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>", nargs="+", default="",
+                        help="CAUTION!!! The Tool will look for all Albums in the selected Photo client whose names matches with the pattern and will rename them from with the replacement pattern.\nYou must provide the Photo client using the mandatory flag '--client'."
                         )
     PARSER.add_argument("-rAlb", "--remove-albums", metavar="<ALBUMS_NAME_PATTERN>", default="",
                         help="CAUTION!!! The Tool will look for all Albums in the selected Photo client whose names matches with the pattern and will remove them.\nYou must provide the Photo client using the mandatory flag '--client'."
                              "\nOptionally ALL the Assets associated to each Album can be removed If you also include the flag '-rAlbAsset, --remove-albums-assets' flag."
                         )
+    PARSER.add_argument("-rAllAlb", "--remove-all-albums", action="store_true", default="",
+                        help="CAUTION!!! The Tool will remove ALL your Albums from the selected Photo client.\nYou must provide the Photo client using the mandatory flag '--client'."
+                             "\nOptionally ALL the Assets associated to each Album can be removed If you also include the flag '-rAlbAsset, --remove-albums-assets'."
+                        )
+    PARSER.add_argument("-rAll", "--remove-all-assets", action="store_true", default="",
+                        help="CAUTION!!! The Tool will remove ALL your Assets (Photos & Videos) and also ALL your Albums from the selected Photo client.\nYou must provide the Photo client using the mandatory flag '--client'.")
     PARSER.add_argument("-rEmpAlb", "--remove-empty-albums", action="store_true", default="",
                         help="The Tool will look for all Albums in the selected Photo client account and if any Album is empty, will remove it from the selected Photo client account.\nYou must provide the Photo client using the mandatory flag '--client'.")
     PARSER.add_argument("-rDupAlb", "--remove-duplicates-albums", action="store_true", default="",
                         help="The Tool will look for all Albums in the selected Photo client account and if any Album is duplicated (with the same name and size), will remove it from the selected Photo client account.\nYou must provide the Photo client using the mandatory flag '--client'.")
-
     PARSER.add_argument("-mDupAlb", "--merge-duplicates-albums", action="store_true", default="",
                         help="The Tool will look for all Albums in the selected Photo client account and if any Album is duplicated (with the same name), will transfer all its assets to the most relevant album and remove it from the selected Photo client account.\nYou must provide the Photo client using the mandatory flag '--client'.")
-
-    PARSER.add_argument("-renAlb", "--rename-albums", metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>", nargs="+", default="",
-                        help="CAUTION!!! The Tool will look for all Albums in the selected Photo client whose names matches with the pattern and will rename them from with the replacement pattern.\nYou must provide the Photo client using the mandatory flag '--client'."
-                        )
+    PARSER.add_argument("-rOrphan", "--remove-orphan-assets", action="store_true", default="",
+                        help="The Tool will look for all Orphan Assets in the selected Photo client and will remove them.\nYou must provide the Photo client using the mandatory argument '--client'. IMPORTANT: This feature requires a valid ADMIN_API_KEY configured in Config.ini.")
+    PARSER.add_argument("-OTP", "--one-time-password", action="store_true", default="", help="This Flag allow you to login into Synology Photos using 2FA with an OTP Token.")
 
 
     # OTHERS STAND-ALONE FEATURES:

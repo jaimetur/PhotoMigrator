@@ -1,6 +1,6 @@
-# ⚙️ Configuration File (default: 'Config.ini')
+# ⚙️ Configuration File 
 
-You can see the default <CONFIGURATION_FILE> file here:
+You can see the default Configuration File ('Config.ini' by default) below:
 
 >```
 ># Configuration for Google Takeout

@@ -39,10 +39,11 @@ PARSER                          = None                                          
 LOGGER                          = None                                          # To be Changed in set_LOGGER
 
 # Configure parameters for CustomHelpFormatter & CustomPager
-MAX_SHORT_ARGUMENT_LENGTH       = 11
+MAX_SHORT_ARGUMENT_LENGTH       = 12
 MAX_HELP_POSITION               = 120
 IDENT_ARGUMENT_DESCRIPTION      = 14
 IDENT_USAGE_DESCRIPTION         = 24
+SHORT_LONG_ARGUMENTS_SEPARATOR  = ';'
 
 # TAG and TAGS Colored for messages output (in console and log)
 MSG_TAGS = {

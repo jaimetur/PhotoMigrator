@@ -31,8 +31,7 @@ Following general arguments have different purposes depending on the Execution M
 | `-i`,<br>`--input-folder`                 | Input folder to process                                |
 | `-o`,<br>`--output-folder`                | Output folder to store results                         |
 | `-client`,<br>`--client`                  | Service client: `google-takeout`, `synology`, `immich` |
-| `-id`,<br>`--account-id`                  | Account ID (1–3) from `<CONFIGURATION_FILE>`           |
-| `-OTP`,<br>`--one-time-password`          | Use 2FA login with OTP token                           |
+| `-id`,<br>`--account-id`                  | Account ID (1–3) from `Config.ini`                     |
 | `-from`,<br>`--filter-from-date`          | Filter assets from this date                           |
 | `-to`,<br>`--filter-to-date`              | Filter assets up to this date                          |
 | `-type`,<br>`--filter-by-type`            | Filter assets by type: `image`, `video`, `all`         |
@@ -108,7 +107,7 @@ PhotoMigrator.run -gTakeout="/home/user/Takeout" -gics -gKeepTkout=true
 ---
 ## 🖼️ Synology / Immich Photo Management
 To use following features, it is mandatory to use the argument `--client=[synology, immich]` to specify which Photo Service do you want to use.  
-You can optionally use the argument `--id=[1-3]` to specify the account id for a particular account defined in <CONFIGURATION_FILE>.  
+You can optionally use the argument `--id=[1-3]` to specify the account id for a particular account defined in Config.ini.  
 If more than one optional arguments are detected, only the first one will be executed.  
 
 Following arguments allow you to interact with Synology/Immich Photos.
@@ -127,6 +126,7 @@ Following arguments allow you to interact with Synology/Immich Photos.
 | `-rAll`,<br>`--remove-all-assets`           | Delete all assets and albums (DANGER!)         |
 | `-rAllAlb`,<br>`--remove-all-albums`        | Delete all albums (assets optional)            |
 | `-rOrphan`,<br>`--remove-orphan-assets`     | Delete orphan assets                           |
+| `-OTP`,<br>`--one-time-password`            | Use 2FA login with OTP token                   |
 
 
 #### 🧪 Examples:

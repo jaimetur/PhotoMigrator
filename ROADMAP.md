@@ -17,10 +17,11 @@
   - #### 🌟 New Features:
     - [x] Created GitHub Forms on New Issues.
       - [ ] Auto-Update Issues Templates with new published releases.
+    - [ ] Implement logic for `-gKeepTkout, --google-keep-takeout-folder` or wait to GPTH to restore `--copy` feature.
 
   - #### 🚀 Enhancements:
     - [ ] Investigate Performance on Automatic Migration when target=`synology`. 
-    - [ ] Investigate Missing Logging Messages on Automatic Migration when target=`synology`. 
+    - [ ] Investigate Missing Logging Messages on Automatic Migration when exception happens. 
         
   - #### 🐛 Bug fixes:
 

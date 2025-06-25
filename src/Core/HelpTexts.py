@@ -65,7 +65,7 @@ def set_help_texts():
 
     HELP_TEXTS["remove-orphan-assets"] = textwrap.dedent(f"""
             ATTENTION!!!: In this process, the Tool will look for all Orphan Assets in your Photos account Database and will remove them. 
-            IMPORTANT!!!: This feature requires a valid ADMIN_API_KEY configured in <CONFIGURATION_FILE>.
+            IMPORTANT!!!: This feature requires a valid ADMIN_API_KEY configured in Config.ini.
             """)
 
     HELP_TEXTS["remove-all-assets"] = textwrap.dedent(f"""

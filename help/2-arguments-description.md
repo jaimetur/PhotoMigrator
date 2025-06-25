@@ -27,8 +27,7 @@ Following general arguments have different purposes depending on the Execution M
 | `-i`,<br>`--input-folder`                 | `<INPUT_FOLDER>`  |  path  |                `existing path`                 | Folder containing assets to be processed.               |
 | `-o`,<br>`--output-folder`                | `<OUTPUT_FOLDER>` |  path  |                  `valid path`                  | Folder where processed assets or results will be saved. |
 | `-client`,<br>`--client`                  | `<CLIENT>`        | string | `google-takeout`, <br>`synology`, <br>`immich` | Specifies the service to interact with.                 |
-| `-id`,<br>`--account-id`                  | `<ID>`            |  int   |        `1`, `2`, `3` <br>`(default: 1)`        | ID of the configured account in `<CONFIGURATION_FILE>`. |
-| `-OTP`,<br>`--one-time-password`          |                   |  flag  |                                                | Enables / Disables OTP login for Synology (2FA).        |
+| `-id`,<br>`--account-id`                  | `<ID>`            |  int   |        `1`, `2`, `3` <br>`(default: 1)`        | ID of the configured account in `Config.ini`.           |
 | `-from`,<br>`--filter-from-date`          | `<FROM_DATE>`     |  date  |    `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets from this date onward.                   |
 | `-to`,<br>`--filter-to-date`              | `<TO_DATE>`       |  date  |    `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets up to this date.                         |
 | `-type`,<br>`--filter-by-type`            | `<TYPE>`          | string |  `image`, `video`, `all` <br>`(default: all)`  | Filters assets by type.                                 |
@@ -105,7 +104,7 @@ PhotoMigrator.run -gTakeout="/home/user/Takeout" -gics -gKeepTkout=true
 ---
 ## 🖼️ Synology / Immich Management
 To use following features, it is mandatory to use the argument `--client=[synology, immich]` to specify which Photo Service do you want to use.  
-You can optionally use the argument `--id=[1-3]` to specify the account id for a particular account defined in `<CONFIGURATION_FILE>`.  
+You can optionally use the argument `--id=[1-3]` to specify the account id for a particular account defined in `Config.ini`.  
 If more than one optional arguments are detected, only the first one will be executed.  
 
 Following arguments allow you to interact with Synology/Immich Photos.
@@ -124,6 +123,7 @@ Following arguments allow you to interact with Synology/Immich Photos.
 | `-rAll`,<br>`--remove-all-assets`           |                                                 |       flag        |                  | Removes all albums and assets from the client.            |
 | `-rAllAlb`,<br>`--remove-all-albums`        |                                                 |       flag        |                  | Removes all albums from the photo client.                 |
 | `-rOrphan`,<br>`--remove-orphan-assets`     |                                                 |       flag        |                  | Removes orphan assets (admin API key required).           |
+| `-OTP`,<br>`--one-time-password`            |                                                 |       flag        |                  | Enables / Disables OTP login for Synology (2FA).          |
 
 
 #### 🧪 Examples:
