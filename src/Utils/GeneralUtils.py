@@ -77,7 +77,7 @@ def profile_and_print(function_to_analyze, *args, step_name_for_profile='', live
     return final_result
 
 
-# Redefinir `tqdm` para usar `TQDM_LOGGER_INSTANCE` si no se especifica `file`
+# Redefinir `tqdm` para usar `TQDM_LOGGER_INSTANCE` si no se especifica `file` y estamos en modo Automatic-Migration con dashboard=true
 def tqdm(*args, **kwargs):
     if ARGS['AUTOMATIC-MIGRATION'] and ARGS['dashboard'] == True:
         if 'file' not in kwargs:  # Si el usuario no especifica `file`, usar `TQDM_LOGGER_INSTANCE`
