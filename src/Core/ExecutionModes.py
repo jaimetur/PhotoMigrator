@@ -135,7 +135,8 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
     if need_unzip:
         ARGS['google-input-zip-folder'] = input_folder
         LOGGER.info(f"")
-        LOGGER.info(f"ZIP files have been detected in {input_folder}'. Files will be unziped first...")
+        LOGGER.info(f"ZIP files have been detected in {input_folder}'.")
+        LOGGER.info(f"Files will be unzipped first...")
 
     # Mensajes informativos
     LOGGER.info(f"")
@@ -154,9 +155,9 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
     LOGGER.info(f"Using Suffix                             : '{ARGS['google-output-folder-suffix']}'")
     LOGGER.info(f"Albums Folder Structure                  : '{ARGS['google-albums-folders-structure']}'")
     LOGGER.info(f"No Albums Folder Structure               : '{ARGS['google-no-albums-folders-structure']}'")
-    LOGGER.info(f"Creates symbolic links for Albums        : '{ARGS['google-create-symbolic-albums']}'")
+    LOGGER.info(f"No Creates symbolic links for Albums     : '{ARGS['google-no-symbolic-albums']}'")
     LOGGER.info(f"Ignore Check Google Takeout Structure    : '{ARGS['google-ignore-check-structure']}'")
-    LOGGER.info(f"Move Original Assets to Output Folder    : '{ARGS['google-move-takeout-folder']}'")
+    LOGGER.info(f"Keep Original Takeout Folder             : '{ARGS['google-keep-takeout-folder']}'")
     LOGGER.info(f"Remove Duplicates files in Output folder : '{ARGS['google-remove-duplicates-files']}'")
     LOGGER.info(f"Rename Albums folders in Output folder   : '{ARGS['google-rename-albums-folders']}'")
     LOGGER.info(f"Skip Extra Assets (-edited,-effects...)  : '{ARGS['google-skip-extras-files']}'")
@@ -167,16 +168,14 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
     LOGGER.info(f"")
 
     if user_confirmation:
-        LOGGER.warning('\n' + '-' * (terminal_width-11))
+        LOGGER.warning('\n' + '-' * (terminal_width))
         LOGGER.warning(HELP_TEXTS["google-photos-takeout"].replace('<TAKEOUT_FOLDER>',f"'{ARGS['google-takeout']}'"))
-        LOGGER.warning('\n' + '-' * (terminal_width-11))
+        LOGGER.warning('\n' + '-' * (terminal_width))
         if not confirm_continue():
             LOGGER.info(f"Exiting program.")
             sys.exit(0)
 
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
-        if ARGS['google-input-zip-folder']=="":
-            LOGGER.warning(f"No argument '-gizf or --google-input-zip-folder <ZIP_FOLDER>' detected. Skipping Unzipping files...")
         if ARGS['google-albums-folders-structure'].lower()!='flatten':
             LOGGER.warning(f"Flag detected '-gafs, --google-albums-folders-structure'. Folder structure '{ARGS['google-albums-folders-structure']}' will be applied on each Album folder...")
         if ARGS['google-no-albums-folders-structure'].lower()!='year/month':
@@ -187,12 +186,12 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
             LOGGER.warning(f"Flag detected '-gsef, --google-skip-extras-files'. Skipping Processing extra Photos from Google Photos such as -effects, -editted, etc...")
         if ARGS['google-skip-move-albums']:
             LOGGER.warning(f"Flag detected '-gsma, --google-skip-move-albums'. Skipping Moving Albums to Albums folder...")
-        if ARGS['google-create-symbolic-albums']:
-            LOGGER.warning(f"Flag detected '-gcsa, --google-create-symbolic-albums'. Albums files will be symlinked to the original files instead of duplicate them.")
+        if ARGS['google-no-symbolic-albums']:
+            LOGGER.warning(f"Flag detected '-gnsa, --google-no-symbolic-albums'. Albums files will be duplicated from the original files instead of create a symbolic link pointing to them.")
         if ARGS['google-ignore-check-structure']:
             LOGGER.warning(f"Flag detected '-gics, --google-ignore-check-structure'. All files in <TAKEOUT_FOLDER> will be processed ignoring Google Takeout Structure...")
-        if ARGS['google-move-takeout-folder']:
-            LOGGER.warning(f"Flag detected '-gmtf, --google-move-takeout-folder'. Photos/Videos in <TAKEOUT_FOLDER> will be moved (instead of copied) to <OUTPUT_TAKEOUT_FOLDER>...")
+        if ARGS['google-keep-takeout-folder']:
+            LOGGER.warning(f"Flag detected '-gKeepTkout, --google-keep-takeout-folder'. Your <TAKEOUT_FOLDER> will be Kept, but take into account that it will be Fixed (modified) by Pre-Processing actions...")
         if ARGS['google-remove-duplicates-files']:
             LOGGER.warning(f"Flag detected '-grdf, --google-remove-duplicates-files'. All duplicates files within OUTPUT_TAKEOUT_FOLDER will be removed after fixing them...")
         if ARGS['google-rename-albums-folders']:
@@ -286,20 +285,20 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
             LOGGER.info(f"    - Total Sidecars in Takeout folder      : {result['input_counters']['sidecar_files']:<7}")
             LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
             LOGGER.info(f"Total Size of Output folder                 : {result['output_counters']['total_size_mb']} MB")
-            LOGGER.info(f"Total Files in Output folder                : {result['output_counters']['total_files']:<7} {''.ljust(30)} |   (diff: {diff_output_input_total_files:>5})  |  ({perc_of_input_total_files:>5.1f}% of input) ")
-            LOGGER.info(f"Total Non-Supported files in Output folder  : {result['output_counters']['unsupported_files']:<7} {''.ljust(30)} |   (diff: {diff_output_input_total_unsupported_files:>5})  |  ({perc_of_input_total_unsupported_files:>5.1f}% of input) ")
+            LOGGER.info(f"Total Files in Output folder                : {result['output_counters']['total_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_files:>5})  |  ({perc_of_input_total_files:>5.1f}% of input) ")
+            LOGGER.info(f"Total Non-Supported files in Output folder  : {result['output_counters']['unsupported_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_unsupported_files:>5})  |  ({perc_of_input_total_unsupported_files:>5.1f}% of input) ")
             LOGGER.info(f"")
-            LOGGER.info(f"Total Supported files in Output folder      : {result['output_counters']['supported_files']:<7} {''.ljust(30)} |   (diff: {diff_output_input_total_supported_files:>5})  |  ({perc_of_input_total_supported_files:>5.1f}% of input) ")
-            LOGGER.info(f"  - Total Media files in Output folder      : {result['output_counters']['media_files']:<7} {''.ljust(30)} |   (diff: {diff_output_input_total_media:>5})  |  ({perc_of_input_total_media:>5.1f}% of input) ")
-            LOGGER.info(f"    - Total Photos in Output folder         : {result['output_counters']['photo_files']:<7} {''.ljust(30)} |   (diff: {diff_output_input_total_images:>5})  |  ({perc_of_input_total_images:>5.1f}% of input) ")
-            LOGGER.info(f"      - Correct Date                        : {result['output_counters']['photos']['with_date']:<7}" f" {f'({output_perc_photos_with_date:>5.1f}% of total photos)'.ljust(30)}" f"{f'|   (diff: {diff_output_input_total_photos_with_date:>5})  |  ({perc_of_input_total_photos_with_date:>5.1f}% of input)'.rjust(40)} ")
-            LOGGER.info(f"      - Incorrect Date                      : {result['output_counters']['photos']['without_date']:<7}" f" {f'({output_perc_photos_without_date:>5.1f}% of total photos)'.ljust(30)}" f"{f'|   (diff: {diff_output_input_total_photos_without_date:>5})  |  ({perc_of_input_total_photos_without_date:>5.1f}% of input)'.rjust(40)} ")
-            LOGGER.info(f"    - Total Videos in Output folder         : {result['output_counters']['video_files']:<7} {''.ljust(30)} |   (diff: {diff_output_input_total_videos:>5})  |  ({perc_of_input_total_videos:>5.1f}% of input) ")
-            LOGGER.info(f"      - Correct Date                        : {result['output_counters']['videos']['with_date']:<7}" f" {f'({output_perc_videos_with_date:>5.1f}% of total videos)'.ljust(30)}" f"{f'|   (diff: {diff_output_input_total_videos_with_date:>5})  |  ({perc_of_input_total_videos_with_date:>5.1f}% of input)'.rjust(40)} ")
-            LOGGER.info(f"      - Incorrect Date                      : {result['output_counters']['videos']['without_date']:<7}" f" {f'({output_perc_videos_without_date:>5.1f}% of total videos)'.ljust(30)}" f"{f'|   (diff: {diff_output_input_total_videos_without_date:>5})  |  ({perc_of_input_total_videos_without_date:>5.1f}% of input)'.rjust(40)} ")
-            LOGGER.info(f"  - Total Non-Media files in Output folder  : {result['output_counters']['non_media_files']:<7} {''.ljust(30)} |   (diff: {diff_output_input_total_non_media:>5})  |  ({perc_of_input_total_non_media:>5.1f}% of input) ")
-            LOGGER.info(f"    - Total Metadata in Output folder       : {result['output_counters']['metadata_files']:<7} {''.ljust(30)} |   (diff: {diff_output_input_total_metadata:>5})  |  ({perc_of_input_total_metadata:>5.1f}% of input) ")
-            LOGGER.info(f"    - Total Sidecars in Output folder       : {result['output_counters']['sidecar_files']:<7} {''.ljust(30)} |   (diff: {diff_output_input_total_sidecars:>5})  |  ({perc_of_input_total_sidecars:>5.1f}% of input) ")
+            LOGGER.info(f"Total Supported files in Output folder      : {result['output_counters']['supported_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_supported_files:>5})  |  ({perc_of_input_total_supported_files:>5.1f}% of input) ")
+            LOGGER.info(f"  - Total Media files in Output folder      : {result['output_counters']['media_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_media:>5})  |  ({perc_of_input_total_media:>5.1f}% of input) ")
+            LOGGER.info(f"    - Total Photos in Output folder         : {result['output_counters']['photo_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_images:>5})  |  ({perc_of_input_total_images:>5.1f}% of input) ")
+            LOGGER.info(f"      - Correct Date                        : {result['output_counters']['photos']['with_date']:<7}" f" {f'({output_perc_photos_with_date:>5.1f}% of total photos)'.ljust(29)}" f"{f'|   (diff: {diff_output_input_total_photos_with_date:>5})  |  ({perc_of_input_total_photos_with_date:>5.1f}% of input)'.rjust(40)} ")
+            LOGGER.info(f"      - Incorrect Date                      : {result['output_counters']['photos']['without_date']:<7}" f" {f'({output_perc_photos_without_date:>5.1f}% of total photos)'.ljust(29)}" f"{f'|   (diff: {diff_output_input_total_photos_without_date:>5})  |  ({perc_of_input_total_photos_without_date:>5.1f}% of input)'.rjust(40)} ")
+            LOGGER.info(f"    - Total Videos in Output folder         : {result['output_counters']['video_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_videos:>5})  |  ({perc_of_input_total_videos:>5.1f}% of input) ")
+            LOGGER.info(f"      - Correct Date                        : {result['output_counters']['videos']['with_date']:<7}" f" {f'({output_perc_videos_with_date:>5.1f}% of total videos)'.ljust(29)}" f"{f'|   (diff: {diff_output_input_total_videos_with_date:>5})  |  ({perc_of_input_total_videos_with_date:>5.1f}% of input)'.rjust(40)} ")
+            LOGGER.info(f"      - Incorrect Date                      : {result['output_counters']['videos']['without_date']:<7}" f" {f'({output_perc_videos_without_date:>5.1f}% of total videos)'.ljust(29)}" f"{f'|   (diff: {diff_output_input_total_videos_without_date:>5})  |  ({perc_of_input_total_videos_without_date:>5.1f}% of input)'.rjust(40)} ")
+            LOGGER.info(f"  - Total Non-Media files in Output folder  : {result['output_counters']['non_media_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_non_media:>5})  |  ({perc_of_input_total_non_media:>5.1f}% of input) ")
+            LOGGER.info(f"    - Total Metadata in Output folder       : {result['output_counters']['metadata_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_metadata:>5})  |  ({perc_of_input_total_metadata:>5.1f}% of input) ")
+            LOGGER.info(f"    - Total Sidecars in Output folder       : {result['output_counters']['sidecar_files']:<7} {''.ljust(29)} |   (diff: {diff_output_input_total_sidecars:>5})  |  ({perc_of_input_total_sidecars:>5.1f}% of input) ")
             LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
             LOGGER.info(f"")
             LOGGER.info(f"----------------------------------------------------------------------------------------------------------------------------")
@@ -309,7 +308,7 @@ def mode_google_takeout(user_confirmation=True, log_level=None):
                 LOGGER.info(f"Total Albums Duplicated                     : {result['duplicates_album_folders']}")
                 LOGGER.info(f"   - Total Albums Fully Merged              : {result['duplicates_albums_fully_merged']}")
                 LOGGER.info(f"   - Total Albums Not Fully Merged          : {result['duplicates_albums_not_fully_merged']}")
-            if ARGS['google-create-symbolic-albums']:
+            if not ARGS['google-no-symbolic-albums']:
                 LOGGER.info(f"")
                 LOGGER.info(f"Total Symlinks Fixed                        : {result['symlink_fixed']}")
                 LOGGER.info(f"Total Symlinks Not Fixed                    : {result['symlink_not_fixed']}")

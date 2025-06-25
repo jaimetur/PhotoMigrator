@@ -27,7 +27,7 @@ Following general arguments have different purposes depending on the Execution M
 | `-i`,<br>`--input-folder`                 | `<INPUT_FOLDER>`  |  path  |                `existing path`                 | Folder containing assets to be processed.               |
 | `-o`,<br>`--output-folder`                | `<OUTPUT_FOLDER>` |  path  |                  `valid path`                  | Folder where processed assets or results will be saved. |
 | `-client`,<br>`--client`                  | `<CLIENT>`        | string | `google-takeout`, <br>`synology`, <br>`immich` | Specifies the service to interact with.                 |
-| `-id`,<br>`--account-id`                  | `<ID>`            |  int   |        `1`, `2`, `3` <br>`(default: 1)`        | ID of the configured account in `<CONFIGURATION_FILE>`. |
+| `-id`,<br>`--account-id`                  | `<ID>`            |  int   |        `1`, `2`, `3` <br>`(default: 1)`        | ID of the configured account in `Config.ini`.           |
 | `-from`,<br>`--filter-from-date`          | `<FROM_DATE>`     |  date  |    `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets from this date onward.                   |
 | `-to`,<br>`--filter-to-date`              | `<TO_DATE>`       |  date  |    `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets up to this date.                         |
 | `-type`,<br>`--filter-by-type`            | `<TYPE>`          | string |  `image`, `video`, `all` <br>`(default: all)`  | Filters assets by type.                                 |
@@ -70,23 +70,23 @@ If only the argument `-gTakeout, --google-takeout <TAKEOUT_FOLDER>` is detected,
 
 Following arguments allow you to interact with Google Photos Takeout Folder.   
 
-| Argument                                           | Parameter          |  Type  |                                    Valid Values                                    | Description                                                        |
-|----------------------------------------------------|--------------------|:------:|:----------------------------------------------------------------------------------:|--------------------------------------------------------------------|
-| `-gTakeout`,<br>`--google-takeout`                 | `<TAKEOUT_FOLDER>` |  path  |                                                                                    | Path to the Takeout folder (either zipped or unzipped) to process. |
-| `-gofs`,<br>`--google-output-folder-suffix`        | `<SUFFIX>`         | string |                              `(default: 'processed')`                              | Suffix to add to the output folder.                                |
-| `-gafs`,<br>`--google-albums-folders-structure`    | `<STRUCTURE>`      | string | `flatten`, <br>`year`, <br>`year/month`, <br>`year-month` <br>`(default: flatten)` | Folder structure for <ALBUMS_FOLDER>.                              |
-| `-gnas`,<br>`--google-no-albums-folders-structure` | `<STRUCTURE>`      | string | `flatten`, <br>`year`, <br>`year/month`, <br>`year-month` <br>`(default: flatten)` | Folder structure for <NO_ALBUMS_FOLDER>.                           |
-| `-gcsa`,<br>`--google-create-symbolic-albums`      |                    |  flag  |                                                                                    | Creates symlinks for albums instead of duplicating files.          |
-| `-gics`,<br>`--google-ignore-check-structure`      |                    |  flag  |                                                                                    | Ignores structure check of Takeout folders.                        |
-| `-gmtf`,<br>`--google-move-takeout-folder`         |                    |  flag  |                                                                                    | Moves original assets to output (risk of loss).                    |
-| `-grdf`,<br>`--google-remove-duplicates-files`     |                    |  flag  |                                                                                    | Removes duplicate files in the output folder.                      |
-| `-graf`,<br>`--google-rename-albums-folders`       |                    |  flag  |                                                                                    | Renames albums folders based on content dates.                     |
-| `-gsef`,<br>`--google-skip-extras-files`           |                    |  flag  |                                                                                    | Skips extra Google photos like edited/effects.                     |
-| `-gsma`,<br>`--google-skip-move-albums`            |                    |  flag  |                                                                                    | Skips moving albums to `<ALBUMS_FOLDER>`.                          |
-| `-gsgt`,<br>`--google-skip-gpth-tool`              |                    |  flag  |                                                                                    | Skips GPTH tool processing (not recommended).                      |
-| `-gSkipPrep`,<br>`--google-skip-preprocess`        |                    |  flag  |                                                                                    | Skips Pre-process Google Takeout folder (not recommended).         |
-| `-gpthInfo`,<br>`--show-gpth-info`                 | `<bool>`           |  bool  |                       `true`, `false` <br>`(default: true)`                        | Show GPTH progress messages.                                       |
-| `-gpthError`,<br>`--show-gpth-errors`              | `<bool>`           |  bool  |                       `true`, `false` <br>`(default: true)`                        | Show GPTH error messages.                                          |
+| Argument                                           | Parameter          |  Type  |                                    Valid Values                                    | Description                                                                                                            |
+|----------------------------------------------------|--------------------|:------:|:----------------------------------------------------------------------------------:|------------------------------------------------------------------------------------------------------------------------|
+| `-gTakeout`,<br>`--google-takeout`                 | `<TAKEOUT_FOLDER>` |  path  |                                                                                    | Path to the Takeout folder (either zipped or unzipped) to process.                                                     |
+| `-gofs`,<br>`--google-output-folder-suffix`        | `<SUFFIX>`         | string |                              `(default: 'processed')`                              | Suffix to add to the output folder.                                                                                    |
+| `-gafs`,<br>`--google-albums-folders-structure`    | `<STRUCTURE>`      | string | `flatten`, <br>`year`, <br>`year/month`, <br>`year-month` <br>`(default: flatten)` | Folder structure for <ALBUMS_FOLDER>.                                                                                  |
+| `-gnas`,<br>`--google-no-albums-folders-structure` | `<STRUCTURE>`      | string | `flatten`, <br>`year`, <br>`year/month`, <br>`year-month` <br>`(default: flatten)` | Folder structure for <NO_ALBUMS_FOLDER>.                                                                               |
+| `-gics`,<br>`--google-ignore-check-structure`      |                    |  flag  |                                                                                    | Ignores structure check of Takeout folders.                                                                            |
+| `-gnsa`,<br>`--google-no-symbolic-albums`          |                    |  flag  |                                                                                    | Duplicates Albums assets instead of create symlinks to original asset in <NO_ALBUMS_FOLDER>. (requires more HDD space) |
+| `-grdf`,<br>`--google-remove-duplicates-files`     |                    |  flag  |                                                                                    | Removes duplicate files in the output folder.                                                                          |
+| `-graf`,<br>`--google-rename-albums-folders`       |                    |  flag  |                                                                                    | Renames albums folders based on content dates.                                                                         |
+| `-gsef`,<br>`--google-skip-extras-files`           |                    |  flag  |                                                                                    | Skips extra Google photos like edited/effects.                                                                         |
+| `-gsma`,<br>`--google-skip-move-albums`            |                    |  flag  |                                                                                    | Skips moving albums to `<ALBUMS_FOLDER>`.                                                                              |
+| `-gsgt`,<br>`--google-skip-gpth-tool`              |                    |  flag  |                                                                                    | Skips GPTH tool processing (not recommended).                                                                          |
+| `-gKeepTkout`,<br>`--google-keep-takeout-folder`   |                    |  flag  |                                                                                    | Copy (instead of Move) your original Takeout into <OUTPUT_TAKEOUT_FOLDER> (requires double HDD space).                 |
+| `-gSkipPrep`,<br>`--google-skip-preprocess`        |                    |  flag  |                                                                                    | Skips Pre-process Google Takeout folder (not recommended).                                                             |
+| `-gpthInfo`,<br>`--show-gpth-info`                 | `<bool>`           |  bool  |                       `true`, `false` <br>`(default: true)`                        | Show GPTH progress messages.                                                                                           |
+| `-gpthError`,<br>`--show-gpth-errors`              | `<bool>`           |  bool  |                       `true`, `false` <br>`(default: true)`                        | Show GPTH error messages.                                                                                              |
 
 
 #### 🧪 Examples:
@@ -97,14 +97,14 @@ PhotoMigrator.run --google-takeout="/home/user/Takeout" --google-albums-folders-
 
 or using short arguments, 
 PhotoMigrator.run -gTakeout="/home/user/Takeout" -gafs="year/month" -grdf -gsef
-PhotoMigrator.run -gTakeout="/home/user/Takeout" -gcsa -gofs="cleaned"
-PhotoMigrator.run -gTakeout="/home/user/Takeout" -gics -gmtf=true
+PhotoMigrator.run -gTakeout="/home/user/Takeout" -gnsa -gofs="cleaned"
+PhotoMigrator.run -gTakeout="/home/user/Takeout" -gics -gKeepTkout=true
 ```
 
 ---
 ## 🖼️ Synology / Immich Management
 To use following features, it is mandatory to use the argument `--client=[synology, immich]` to specify which Photo Service do you want to use.  
-You can optionally use the argument `--id=[1-3]` to specify the account id for a particular account defined in `<CONFIGURATION_FILE>`.  
+You can optionally use the argument `--id=[1-3]` to specify the account id for a particular account defined in `Config.ini`.  
 If more than one optional arguments are detected, only the first one will be executed.  
 
 Following arguments allow you to interact with Synology/Immich Photos.

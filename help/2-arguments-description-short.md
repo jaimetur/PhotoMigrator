@@ -26,20 +26,20 @@ PhotoMigrator.run --version
 ## ⚙️ General Options
 Following general arguments have different purposes depending on the Execution Mode.
 
-| Argument                                          | Description                                                    |
-|---------------------------------------------------|----------------------------------------------------------------|
-| `-i`,<br>`--input-folder`                         | Input folder to process                                        |
-| `-o`,<br>`--output-folder`                        | Output folder to store results                                 |
-| `-client`,<br>`--client`                          | Service client: `google-takeout`, `synology`, `immich`         |
-| `-id`,<br>`--account-id`                          | Account ID (1–3) from `<CONFIGURATION_FILE>`                             |
-| `-from`,<br>`--filter-from-date`                  | Filter assets from this date                                   |
-| `-to`,<br>`--filter-to-date`                      | Filter assets up to this date                                  |
-| `-type`,<br>`--filter-by-type`                    | Filter assets by type: `image`, `video`, `all`                 |
-| `-country`,<br>`--filter-by-country`              | Filter assets by country                                       |
-| `-city`,<br>`--filter-by-city`                    | Filter assets by city                                          |
-| `-person`,<br>`--filter-by-person`                | Filter assets by person                                        |
-| `-AlbFolder`,<br>`--albums-folders`               | Use subfolders in folder as albums                             |
-| `-rAlbAsset`,<br>`--remove-albums-assets`         | Remove assets inside deleted albums                            |
+| Argument                                  | Description                                            |
+|-------------------------------------------|--------------------------------------------------------|
+| `-i`,<br>`--input-folder`                 | Input folder to process                                |
+| `-o`,<br>`--output-folder`                | Output folder to store results                         |
+| `-client`,<br>`--client`                  | Service client: `google-takeout`, `synology`, `immich` |
+| `-id`,<br>`--account-id`                  | Account ID (1–3) from `Config.ini`                     |
+| `-from`,<br>`--filter-from-date`          | Filter assets from this date                           |
+| `-to`,<br>`--filter-to-date`              | Filter assets up to this date                          |
+| `-type`,<br>`--filter-by-type`            | Filter assets by type: `image`, `video`, `all`         |
+| `-country`,<br>`--filter-by-country`      | Filter assets by country                               |
+| `-city`,<br>`--filter-by-city`            | Filter assets by city                                  |
+| `-person`,<br>`--filter-by-person`        | Filter assets by person                                |
+| `-AlbFolder`,<br>`--albums-folders`       | Use subfolders in folder as albums                     |
+| `-rAlbAsset`,<br>`--remove-albums-assets` | Remove assets inside deleted albums                    |
 
 #### 🧪 Examples:
 ```bash
@@ -74,23 +74,23 @@ If only the argument `-gTakeout, --google-takeout <TAKEOUT_FOLDER>` is detected,
 
 Following arguments allow you to interact with Google Photos Takeout Folder.  
 
-| Argument                                           | Description                                                           |
-|----------------------------------------------------|-----------------------------------------------------------------------|
-| `-gTakeout`,<br>`--google-takeout`                 | Path to Takeout folder (mandatory for this mode)                      |
-| `-gofs`,<br>`--google-output-folder-suffix`        | Suffix for output folder (default: `processed`)                       |
-| `-gafs`,<br>`--google-albums-folders-structure`    | Album folder structure: `flatten`, `year`, `year/month`, `year-month` |
-| `-gnas`,<br>`--google-no-albums-folders-structure` | No-Album folder structure (same values as above)                      |
-| `-gcsa`,<br>`--google-create-symbolic-albums`      | Use symbolic links for albums                                         |
-| `-gics`,<br>`--google-ignore-check-structure`      | Ignore Takeout structure validations                                  |
-| `-gmtf`,<br>`--google-move-takeout-folder`         | Move instead of copy assets (destructive)                             |
-| `-grdf`,<br>`--google-remove-duplicates-files`     | Removes duplicate files in the output folder.                         |
-| `-graf`,<br>`--google-rename-albums-folders`       | Renames albums folders based on content dates.                        |
-| `-gsef`,<br>`--google-skip-extras-files`           | Skip `-edited`, `-effects` images                                     |
-| `-gsma`,<br>`--google-skip-move-albums`            | Skip moving albums to `<ALBUMS_FOLDER>`                               |
-| `-gsgt`,<br>`--google-skip-gpth-tool`              | Skip processing with GPTH Tool (not recommended)                      |
-| `-gSkipPrep`,<br>`--google-skip-preprocess`        | Skips Pre-process Google Takeout folder (not recommended).            |
-| `-gpthInfo`,<br>`--show-gpth-info`                 | Show GPTH progress messages (default: true)                           |
-| `-gpthError`,<br>`--show-gpth-errors`              | Show GPTH error messages (default: true)                              |
+| Argument                                           | Description                                                                                                            |
+|----------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| `-gTakeout`,<br>`--google-takeout`                 | Path to Takeout folder (mandatory for this mode)                                                                       |
+| `-gofs`,<br>`--google-output-folder-suffix`        | Suffix for output folder (default: `processed`)                                                                        |
+| `-gafs`,<br>`--google-albums-folders-structure`    | Album folder structure: `flatten`, `year`, `year/month`, `year-month`                                                  |
+| `-gnas`,<br>`--google-no-albums-folders-structure` | No-Album folder structure (same values as above)                                                                       |
+| `-gics`,<br>`--google-ignore-check-structure`      | Ignore Takeout structure validations                                                                                   |
+| `-gnsa`,<br>`--google-no-symbolic-albums`          | Duplicates Albums assets instead of create symlinks to original asset in <NO_ALBUMS_FOLDER>. (requires more HDD space) |
+| `-grdf`,<br>`--google-remove-duplicates-files`     | Removes duplicate files in the output folder.                                                                          |
+| `-graf`,<br>`--google-rename-albums-folders`       | Renames albums folders based on content dates.                                                                         |
+| `-gsef`,<br>`--google-skip-extras-files`           | Skips extra Google photos like edited/effects.                                                                         |
+| `-gsma`,<br>`--google-skip-move-albums`            | Skip moving albums to `<ALBUMS_FOLDER>`                                                                                |
+| `-gsgt`,<br>`--google-skip-gpth-tool`              | Skip processing with GPTH Tool (not recommended)                                                                       |
+| `-gKeepTkout`,<br>`--google-keep-takeout-folder`   | Copy (instead of Move) your original Takeout into <OUTPUT_TAKEOUT_FOLDER> (requires double HDD space)                  |
+| `-gSkipPrep`,<br>`--google-skip-preprocess`        | Skips Pre-process Google Takeout folder (not recommended).                                                             |
+| `-gpthInfo`,<br>`--show-gpth-info`                 | Show GPTH progress messages (default: true)                                                                            |
+| `-gpthError`,<br>`--show-gpth-errors`              | Show GPTH error messages (default: true)                                                                               |
 
 #### 🧪 Examples:
 ```bash
@@ -100,14 +100,14 @@ PhotoMigrator.run --google-takeout="/home/user/Takeout" --google-albums-folders-
 
 or using short arguments, 
 PhotoMigrator.run -gTakeout="/home/user/Takeout" -gafs="year/month" -grdf -gsef
-PhotoMigrator.run -gTakeout="/home/user/Takeout" -gcsa -gofs="cleaned"
-PhotoMigrator.run -gTakeout="/home/user/Takeout" -gics -gmtf=true
+PhotoMigrator.run -gTakeout="/home/user/Takeout" -gnsa -gofs="cleaned"
+PhotoMigrator.run -gTakeout="/home/user/Takeout" -gics -gKeepTkout=true
 ```
 
 ---
 ## 🖼️ Synology / Immich Photo Management
 To use following features, it is mandatory to use the argument `--client=[synology, immich]` to specify which Photo Service do you want to use.  
-You can optionally use the argument `--id=[1-3]` to specify the account id for a particular account defined in <CONFIGURATION_FILE>.  
+You can optionally use the argument `--id=[1-3]` to specify the account id for a particular account defined in Config.ini.  
 If more than one optional arguments are detected, only the first one will be executed.  
 
 Following arguments allow you to interact with Synology/Immich Photos.

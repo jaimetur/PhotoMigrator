@@ -45,7 +45,7 @@ In the following link you can find the [Complete Pipeline and features of GPTH T
 
 8. `(Disabled by default)` If flag `-grdf, --google-remove-duplicates-files` is detected, the Tool will look for any duplicate file on `<OUTPUT_FOLDER>` (ignoring symbolic links), and will remove all duplicates keeping only the principal file (giving more priority to duplicates files found into any album folder than those found on `ALL_PHOTOS` folder. 
 
-9. `(Disabled by default)` if flag `-gcsa, --google-create-symbolic-albums` is detected, the Took will look into the `<OUTPUT_FOLDER>` for any symbolic link broken and try to fix them by looking for the original file where the symlink is pointing to.
+9. `(Disabled by default)` if flag `-gnsa, --google-no-symbolic-albums` is detected, the Tool will create different copies (1 per album), of the same asset if the asset belong to any (or many) albums.
 
 10. `(Disabled by default)` If flag `-graf, --google-rename-albums-folders` is detected, the Tool rename all albums folders within `<OUTPUT_FOLDER>` based on content dates.
 
@@ -116,13 +116,13 @@ In this example, the tool will do the Takeout Processing with the following step
 
 - **Example 2:**
 ```
-./PhotoMigrator.run --google-takeout ./MyTakeout --google-remove-duplicates-files google-create-symbolic-albums
+./PhotoMigrator.run --google-takeout ./MyTakeout --google-remove-duplicates-files --google-no-symbolic-albums
 ```
  
 In this example, the tool will do the Takeout Processing with the following steps:
 1. Process you Takeout Files found in folder `./MyTakeout` (Unzipping them if needed) and fix all files found to set the correct date and time, and identifying which assets belongs to each Album created on Google Photos to create symbolic links for each asset in any Album to the original file stored in `<NO_ALBUMS_FOLDER>` subfolder.  
 2. Create a folder structure based on year/month for the folder `<OUTPUT_TAKEOUT_FOLDER>/<NO_ALBUMS_FOLDER>` (by default).  
-3. Create a flatten folder structure for each Album subfolder found in `<OUTPUT_TAKEOUT_FOLDER>/Albums` (by default).    
+3. Create a flatten folder structure for each Album subfolder found in `<OUTPUT_TAKEOUT_FOLDER>/<ALBUMS_FOLDER>` (by default).    
 4. Move the files will into `./MyTakeout_processed_timestamp` folder where timestamp is the timestamp of the execution.
 5. Remove any duplicates files found in `./MyTakeout_processed_timestamp` folder
 

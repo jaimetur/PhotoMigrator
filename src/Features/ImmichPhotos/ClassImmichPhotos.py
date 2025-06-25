@@ -1221,10 +1221,10 @@ class ClassImmichPhotos:
                     if is_duplicated:
                         LOGGER.debug(f"Duplicated Asset: '{os.path.basename(file_path)}'. Skipped!")
                     else:
-                        LOGGER.debug(f"Uploaded '{os.path.basename(file_path)}' with asset_id={asset_id}")
+                        LOGGER.debug(f"Pushed '{os.path.basename(file_path)}' with asset_id={asset_id}")
                 return asset_id, is_duplicated
             except Exception as e:
-                LOGGER.error(f"Failed to upload '{file_path}': {e}")
+                LOGGER.error(f"Failed to push '{file_path}': {e}")
                 return None, None
 
 

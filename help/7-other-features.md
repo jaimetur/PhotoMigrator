@@ -1,15 +1,13 @@
 # <span style="color:green">🛠️ Other Standalone Extra Features</span>
 
-> [!NOTE]
-> ## <span style="color:green">Other Standalone Extra Features</span>
->Additionally, this Tool can be executed with 4 Standalone Extra Features: 
-> 
-> - **Find Duplicates** 
-> - **Process Duplicates** 
-> - **Fix Symbolic Links Broken** 
-> - **Folder Rename Content Based** 
->
-> If more than one Stand Alone Extra Feature is detected, only the first one will be executed
+Additionally, this Tool can be executed with 4 Standalone Extra Features: 
+ 
+1. **Find Duplicates**
+2. **Process Duplicates**
+3. **Fix Symbolic Links Broken**
+4. **Folder Rename Content Based** 
+
+If more than one Stand Alone Extra Feature is detected, only the first one will be executed
 
 
 # <span style="color:blue"> Find Duplicates (Extra Feature)</span>
@@ -77,9 +75,9 @@
   the Tool will try to fix it finding the target of the symlink within the same `OUTPUT_FOLDER` structure.
 
 > [!TIP]  
-> This is useful when you run the Tool using argument _**`-gcsa, --google-create-symbolic-albums`**_ to create symbolic Albums instead of duplicate copies of the files contained on '<ALBUMS_FOLDER>'.  
+> This is useful when you run the Tool without the argument _**`-gnsa, --google-no-symbolic-albums`**_ to create symbolic Albums instead of duplicate copies of the files contained on '<ALBUMS_FOLDER>'.  
 > 
-> If you run the Tool with this argument and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken, and you will need to use this feature to fix them.
+> If you run the Tool without this argument and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken, and you will need to use this feature to fix them.
 
 
 # <span style="color:blue"> Folder Rename Content Based (Extra Feature)</span>

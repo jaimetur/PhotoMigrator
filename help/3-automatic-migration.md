@@ -5,13 +5,13 @@ From version 3.0.0 onwards, the Tool supports a new Feature called '**Automatic 
 Use the argument **`--source`** to select the `<SOURCE>` client and the argument **`--target`** to select `<TARGET>` client for the Automatic Migration Process to Pull all your Assets (including Albums) from the `<SOURCE>` Cloud Service and Push them to the `<TARGET>` Cloud Service (including all Albums that you may have on the `<SOURCE>` Cloud Service).
 
  - Possible values for:
-   - **`<SOURCE>`** : [`synology-photos`, `immich-photos`]-[id] or `<INPUT_FOLDER>`  (`id=[1, 2, 3]` to select which account to use from the `<CONFIGURATION_FILE>`).  
-   - **`<TARGET>`** : [`synology-photos`, `immich-photos`]-[id] or `<INPUT_FOLDER>`  (`id=[1, 2, 3]` to select which account to use from the `<CONFIGURATION_FILE>`).  
+   - **`<SOURCE>`** : [`synology-photos`, `immich-photos`]-[id] or `<INPUT_FOLDER>`  (`id=[1, 2, 3]` to select which account to use from the `Config.ini`).  
+   - **`<TARGET>`** : [`synology-photos`, `immich-photos`]-[id] or `<INPUT_FOLDER>`  (`id=[1, 2, 3]` to select which account to use from the `Config.ini`).  
    
 
  - The idea is complete above list to allow also Google Photos and Apple Photos (iCloud), so when this is done, the allowed values will be:
-   - **`<SOURCE>`** : [`synology-photos`, `immich-photos`, `google-photos`, `apple-photos`]-[id]  or `<INPUT_FOLDER>` (`id=[1, 2, 3]` to select which account to use from the `<CONFIGURATION_FILE>`).  
-   - **`<TARGET>`** : [`synology-photos`, `immich-photos`, `google-photos`, `apple-photos`]-[id]  or `<OUTPUT_FOLDER>` (`id=[1, 2, 3]` to select which account to use from the `<CONFIGURATION_FILE>`).  
+   - **`<SOURCE>`** : [`synology-photos`, `immich-photos`, `google-photos`, `apple-photos`]-[id]  or `<INPUT_FOLDER>` (`id=[1, 2, 3]` to select which account to use from the `Config.ini`).  
+   - **`<TARGET>`** : [`synology-photos`, `immich-photos`, `google-photos`, `apple-photos`]-[id]  or `<OUTPUT_FOLDER>` (`id=[1, 2, 3]` to select which account to use from the `Config.ini`).  
 
 If you omit the suffix -[id], the tool will assume that account 1 will be used for the specified client (ie: `--source=synology-photos` means that Synology Photos account 1 will be used as `<SOURCE>` client.)  
 
@@ -65,11 +65,11 @@ Finally, you can apply filters to filter assets to pull from `<SOURCE>` client. 
 > `<INPUT_FOLDER>/<ALBUMS_FOLDER>/Album2`  
 
 > [!IMPORTANT]  
-> It is important that you configure properly the file `<CONFIGURATION_FILE>` (included with the tool), to set properly the accounts for your Photo Cloud Service.  
+> It is important that you configure properly the file `Config.ini` (included with the tool), to set properly the accounts for your Photo Cloud Service.  
 
 
-## ⚙️ <CONFIGURATION_FILE>
-You can see how to configure the <CONFIGURATION_FILE> file in this help section:
+## ⚙️ Config.ini
+You can see how to configure the Config.ini file in this help section:
 [Configuration File](https://github.com/jaimetur/PhotoMigrator/blob/main/help/0-configuration-file.md) 
 
 
@@ -89,7 +89,7 @@ In this example, the Tool will do an Automatic Migration Process which has two s
   - First, the Tool will process the folder '/homes/MyTakeout' (Unzipping them if needed), fixing all files found on it, to set the
     correct date and time, and identifying which assets belongs to each Album created on Google Photos.  
 
-  - Second, the Tool will connect to your Synology Photos account 1 (if you have configured properly the <CONFIGURATION_FILE> file) and will 
+  - Second, the Tool will connect to your Synology Photos account 1 (if you have configured properly the Config.ini file) and will 
     push all the assets pulled from previous step, creating a new Album per each Album found in your Takeout files and associating
     all the assets included in each Album in the same way that you had on your Google Photos account.
 
@@ -102,10 +102,10 @@ In this example, the Tool will do an Automatic Migration Process which has two s
 
 In this example, the Tool will do an Automatic Migration Process which has two steps:  
 
-  - First, the Tool will connect to your Synology Photos account 2 (if you have configured properly the <CONFIGURATION_FILE> file) and will
+  - First, the Tool will connect to your Synology Photos account 2 (if you have configured properly the Config.ini file) and will
     pull all the assets found in your account (separating those associated to som Album(s), of those without any Album associated).  
 
-  - In parallel, the Tool will connect to your Immich Photos account 1 (if you have configured properly the <CONFIGURATION_FILE> file) and 
+  - In parallel, the Tool will connect to your Immich Photos account 1 (if you have configured properly the Config.ini file) and 
     push all the assets pulled from previous step, creating a new Album per each Album found in your Synology Photos and associating
     all the assets included in each Album in the same way that you had on your Synology Photos account.
 
@@ -117,7 +117,7 @@ In this example, the Tool will do an Automatic Migration Process which has two s
 
 In this example, the Tool will do an Automatic Migration Process which has two steps:  
 
-  - First, the Tool will connect to your Immich Photos account 2 (if you have configured properly the <CONFIGURATION_FILE> file) and will
+  - First, the Tool will connect to your Immich Photos account 2 (if you have configured properly the Config.ini file) and will
     pull all the assets found in your account where Peter have been labeled as person, and whose date is after 01/02/2024 (separating those associated to som Album(s), of those without any Album associated).  
 
   - In parallel, the Tool will push all the pulled assets into the local folder '/homes/local_folder' creating a folder structure
@@ -132,10 +132,10 @@ In this example, the Tool will do an Automatic Migration Process which has two s
 
 In this example, the Tool will do an Automatic Migration Process which has two steps:  
 
-  - First, the Tool will connect to your Immich Photos account 1 (if you have configured properly the <CONFIGURATION_FILE> file) and will
+  - First, the Tool will connect to your Immich Photos account 1 (if you have configured properly the Config.ini file) and will
     pull all the assets found in your account that have been taken in Rome and where Mery have been labeled as person (separating those associated to som Album(s), of those without any Album associated).  
 
-  - In parallel, the Tool will connect to your Immich Photos account 2 (if you have configured properly the <CONFIGURATION_FILE> file) and 
+  - In parallel, the Tool will connect to your Immich Photos account 2 (if you have configured properly the Config.ini file) and 
     push all the assets pulled from previous step, creating a new Album per each Album found in your Synology Photos and associating
     all the assets included in each Album in the same way that you had on your Synology Photos account.
 

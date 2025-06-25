@@ -281,6 +281,16 @@ def log_setup(log_folder="Logs", log_filename=None, log_level=logging.INFO, skip
     GV.LOGGER.setLevel(log_level)
     GV.LOGGER.propagate = False # <-- IMPORTANTE PARA EVITAR USAR EL LOOGER RAIZ
 
+    # 2) Define e instala el hook global de excepciones en hilos
+    def thread_exc_hook(args):
+        GV.LOGGER.setLevel(logging.INFO)
+        GV.LOGGER.error(
+            f"Excepción no capturada en hilo {args.thread.name}: {args.exc_value}",
+            exc_info=args.exc_value
+        )
+
+    threading.excepthook = thread_exc_hook
+
     return GV.LOGGER
 
 # ==============================================================================
