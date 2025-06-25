@@ -32,9 +32,7 @@ def set_FOLDERS():
 def set_LOGGER():
     script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     current_directory = os.getcwd()
-    print (f"FODERNAME_LOGS antes de resolve_path: {GV.FOLDERNAME_LOGS}")
     log_folder = resolve_path(GV.FOLDERNAME_LOGS)
-    print (f"FODERNAME_LOGS después de resolve_path: {GV.FOLDERNAME_LOGS}")
     log_filename = f"{script_name}_{GV.TIMESTAMP}"
     GV.LOG_FOLDER_FILENAME = os.path.join(current_directory, log_folder, log_filename)
 
