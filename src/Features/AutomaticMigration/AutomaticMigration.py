@@ -607,10 +607,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # 1) PULLER: Función puller_worker para descargar assets y poner en la cola
     # --------------------------------------------------------------------------------
     def puller_worker(parallel=None, log_level=logging.INFO):
-        # 1) Creamos un logger hijo para este hilo y lo asignamos a la variable LOGGER local
-        from Core.GlobalVariables import LOGGER as GV_LOGGER
-        thread_id = threading.get_ident()
-        LOGGER = GV_LOGGER.getChild(f"puller-{thread_id}")
+        # # 1) Creamos un logger hijo para este hilo y lo asignamos a la variable LOGGER local
+        # from Core.GlobalVariables import LOGGER as GV_LOGGER
+        # thread_id = threading.get_ident()
+        # LOGGER = GV_LOGGER.getChild(f"puller-{thread_id}")
 
         with set_log_level(LOGGER, log_level):
 
@@ -827,10 +827,10 @@ def parallel_automatic_migration(source_client, target_client, temp_folder, SHAR
     # 2) PUSHER: Función pusher_worker para SUBIR (consumir de la cola)
     # ----------------------------------------------------------------------------
     def pusher_worker(processed_albums=[], worker_id=1, log_level=logging.INFO):
-        # 1) Creamos un logger hijo para este hilo y lo asignamos a la variable LOGGER local
-        from Core.GlobalVariables import LOGGER as GV_LOGGER
-        thread_id = threading.get_ident()
-        LOGGER = GV_LOGGER.getChild(f"pusher-{thread_id}")
+        # # 1) Creamos un logger hijo para este hilo y lo asignamos a la variable LOGGER local
+        # from Core.GlobalVariables import LOGGER as GV_LOGGER
+        # thread_id = threading.get_ident()
+        # LOGGER = GV_LOGGER.getChild(f"pusher-{thread_id}")
 
         with set_log_level(LOGGER, log_level):
             move_assets = ARGS.get('move-assets', None)
@@ -1024,10 +1024,10 @@ def start_dashboard(migration_finished, SHARED_DATA, parallel=True, log_level=No
     import queue
     import textwrap
 
-    # 1) Creamos un logger hijo para este hilo y lo asignamos a la variable LOGGER local
-    from Core.GlobalVariables import LOGGER as GV_LOGGER
-    thread_id = threading.get_ident()
-    LOGGER = GV_LOGGER.getChild(f"dashboard-{thread_id}")
+    # # 1) Creamos un logger hijo para este hilo y lo asignamos a la variable LOGGER local
+    # from Core.GlobalVariables import LOGGER as GV_LOGGER
+    # thread_id = threading.get_ident()
+    # LOGGER = GV_LOGGER.getChild(f"dashboard-{thread_id}")
 
     # 🚀 Guardar stdout y stderr originales
     original_stdout = sys.stdout

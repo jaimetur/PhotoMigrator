@@ -23,7 +23,6 @@
 
   - #### 🐛 Bug fixes:
     - [ ] Investigate Performance on Automatic Migration when target=`synology`.
-    - [ ] Investigate Missing Logging Messages on Automatic Migration when exception happens.
 
   - #### 📚 Documentation:
     - [ ] Updated documentation with all changes.
