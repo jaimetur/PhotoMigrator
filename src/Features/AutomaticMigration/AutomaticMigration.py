@@ -251,13 +251,11 @@ def mode_AUTOMATIC_MIGRATION(source=None, target=None, show_dashboard=None, show
             # ------------------------------------------------------------------------------------------------------
             # 3) Verifica y procesa source_client y target_client si es una instancia de ClassTakeoutFolder
             if isinstance(source_client, ClassTakeoutFolder):
-                source_client.ARGS['google-create-symbolic-albums'] = True  # If the processing is done by Automatic Mode Feature, then use symbolic links for Albums (faster and less space needed)
                 if source_client.needs_unzip or source_client.needs_process:
                     LOGGER.info(f"🔢 Source Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
                     # source_client.precheck_takeout_and_calculate_initial_counters(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=False)
                     source_client.process(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=False)
             if isinstance(target_client, ClassTakeoutFolder):
-                target_client.ARGS['google-create-symbolic-albums'] = True  # If the processing is done by Automatic Mode Feature, then use symbolic links for Albums (faster and less space needed)
                 if target_client.needs_unzip or target_client.needs_process:
                     LOGGER.info(f"🔢 Target Folder contains a Google Takeout Structure and needs to be processed first. Processing it...")
                     # target_client.precheck_takeout_and_calculate_initial_counters(capture_output=show_gpth_info, capture_errors=show_gpth_errors, print_messages=False)

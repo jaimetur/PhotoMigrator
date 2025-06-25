@@ -136,8 +136,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.substep += 1
                 sub_step_start_time = datetime.now()
                 LOGGER.info(f"")
-                LOGGER.info(f"{step_name}📦 Input Folder contains ZIP files and needs to be unzipped first. This process might take long time, depending on how big is your Takeout. Be patient... 🙂")
-                LOGGER.info(f"{step_name}📦 Unzipping Takeout Folder...")
+                LOGGER.info(f"{step_name}📦 Input Folder contains ZIP files and needs to be unzipped first.")
+                LOGGER.info(f"{step_name}📦 This process might take long time, depending on how big is your Takeout.")
+                LOGGER.info(f"{step_name}📦 Unzipping Takeout Folder...Be patient... 🙂")
                 # Make the 'Unzipped' folder as the new takeout_folder for the object
                 self.unzipped_folder= Path(f"{self.takeout_folder}_unzipped_{self.TIMESTAMP}")
                 # Unzip the files into unzip_folder
@@ -332,11 +333,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 self.output_folder = output_folder
             # Determine the output_folder if it has not been given in the call to process() method
             output_folder = self.get_output_folder()
-            # if output_folder is None:
-            #     output_folder = self.get_output_folder()
-            # else:
-            #     self.output_folder = output_folder
-            # Determine the input_folder depending if the Takeout have been unzipped or not
+            # Determine the input_folder depending on if the Takeout have been unzipped or not
             input_folder = self.get_input_folder()
             # Determine where the Albums will be located
             albums_folder = self.get_albums_folder()
@@ -363,9 +360,6 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 if self.ARGS['google-ignore-check-structure']:
                     LOGGER.warning(f"{step_name}Google Takeout Structure detected ('-gics, --google-ignore-check-structure' flag detected).")
                 else:
-                    # Check Takeout structure
-                    # has_takeout_structure = GPRECHECK.contains_takeout_structure(input_folder=input_folder, step_name=step_name, log_level=LOG_LEVEL)
-                    # if not has_takeout_structure:
                     if not self.needs_process:
                         LOGGER.warning(f"{step_name}No Takeout structure detected in input folder. The tool will process the folder ignoring Takeout structure.")
                         self.ARGS['google-ignore-check-structure'] = True
@@ -376,9 +370,9 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     capture_output=capture_output,
                     capture_errors=capture_errors,
                     print_messages=print_messages,
-                    symbolic_albums=self.ARGS['google-create-symbolic-albums'],
+                    no_symbolic_albums=self.ARGS['google-no-symbolic-albums'],
                     skip_extras=self.ARGS['google-skip-extras-files'],
-                    move_takeout_folder=self.ARGS['google-move-takeout-folder'],
+                    keep_takeout_folder=self.ARGS['google-keep-takeout-folder'],
                     ignore_takeout_structure=self.ARGS['google-ignore-check-structure'],
                     step_name=step_name,
                     log_level=LOG_LEVEL
@@ -386,15 +380,18 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 if not ok:
                     LOGGER.warning(f"{step_name}Metadata fixing didn't finish properly due to GPTH error.")
                     LOGGER.warning(f"{step_name}If your Takeout does not contains Year/Month folder structure, you can use '-gics, --google-ignore-check-structure' flag.")
-                    # return (0, 0, 0, 0, initial_takeout_numfiles, 0, 0, 0, 0, 0)
                     return self.result
 
                 # Determine if manual copy/move is needed (for step 4)
                 manual_copy_move_needed = self.ARGS['google-skip-gpth-tool'] or self.ARGS['google-ignore-check-structure']
 
                 # if manual copy is detected, don't delete the input folder yet, will do it in next step
-                if self.ARGS['google-move-takeout-folder'] and not manual_copy_move_needed:
-                    force_remove_directory(folder=input_folder, log_level=LOG_LEVEL)
+                if not self.ARGS['google-keep-takeout-folder'] and not manual_copy_move_needed:
+                    removed = force_remove_directory(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
+                    if removed:
+                        LOGGER.info(f"{step_name}The folder '{input_folder}' have been successfully deleted.")
+                    else:
+                        LOGGER.info(f"{step_name}Nothing to Clean. The folder '{input_folder}' have been already deleted by a previous step.")
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
                 LOGGER.info(f"")
@@ -417,14 +414,18 @@ class ClassTakeoutFolder(ClassLocalFolder):
                     LOGGER.warning(f"{step_name}Metadata fixing with GPTH tool skipped ('-gsgt, --google-skip-gpth-tool' flag). step {self.step} is needed to copy files manually to output folder.")
                 if self.ARGS['google-ignore-check-structure']:
                     LOGGER.warning(f"{step_name}Flag to Ignore Google Takeout Structure detected. step {self.step} is needed to copy/move files manually to output folder.")
-                if self.ARGS['google-move-takeout-folder']:
+                if not self.ARGS['google-keep-takeout-folder']:
                     LOGGER.info(f"{step_name}Moving files from Takeout folder to Output folder...")
                 else:
                     LOGGER.info(f"{step_name}Copying files from Takeout folder to Output folder...")
 
-                copy_move_folder(input_folder, output_folder, ignore_patterns=['*.json', '*.j'], move=self.ARGS['google-move-takeout-folder'], step_name=step_name, log_level=LOG_LEVEL)
-                if self.ARGS['google-move-takeout-folder']:
-                    force_remove_directory(input_folder)
+                copy_move_folder(input_folder, output_folder, ignore_patterns=['*.json', '*.j'], move=not self.ARGS['google-keep-takeout-folder'], step_name=step_name, log_level=LOG_LEVEL)
+                if not self.ARGS['google-keep-takeout-folder']:
+                    removed = force_remove_directory(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
+                    if removed:
+                        LOGGER.info(f"{step_name}The folder '{input_folder}' have been successfully deleted.")
+                    else:
+                        LOGGER.info(f"{step_name}Nothing to Clean. The folder '{input_folder}' have been already deleted by a previous step.")
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
                 LOGGER.info(f"")
@@ -555,7 +556,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Step 9: Fix Broken Symbolic Links
             # ----------------------------------------------------------------------------------------------------------------------
-            if self.ARGS['google-create-symbolic-albums']:
+            if not self.ARGS['google-no-symbolic-albums']:
                 step_name = '🔗 [POST-PROCESS]-[Fix Symlinks] : '
                 step_start_time = datetime.now()
                 self.step += 1
@@ -650,8 +651,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
 
             # Step 13: FINAL CLEANING
             # ----------------------------------------------------------------------------------------------------------------------
-            if ARGS['google-move-takeout-folder'] or not ARGS['google-move-takeout-folder']:
-                # TODO: Insert logic here if GPTH implements again --copy argument to avoid remove input folder when using this argument
+            if not ARGS['google-keep-takeout-folder']:
                 step_name = '🧹 [FINAL-CLEANING] : '
                 step_start_time = datetime.now()
                 self.step += 1
@@ -661,7 +661,11 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"==========================================")
                 LOGGER.info(f"")
                 # Removes completely the input_folder because all the files (except JSON) have been already moved to output folder
-                remove_folder(folder=input_folder, step_name=step_name)
+                removed = force_remove_directory(folder=input_folder, step_name=step_name, log_level=logging.ERROR)
+                if removed:
+                    LOGGER.info(f"{step_name}The folder '{input_folder}' have been successfully deleted.")
+                else:
+                    LOGGER.info(f"{step_name}Nothing to Clean. The folder '{input_folder}' have been already deleted by a previous step.")
                 step_end_time = datetime.now()
                 formatted_duration = str(timedelta(seconds=round((step_end_time - step_start_time).total_seconds())))
                 LOGGER.info(f"")

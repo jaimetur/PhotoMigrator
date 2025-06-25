@@ -336,7 +336,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                                         os.rename(old_path, new_path)
                                         LOGGER.verbose(f"{step_name}Fixed ORIGIN Special Suffix: {file} → {new_name}")
                                         counters["special_suffixes_fixed"] += 1
-                                        # We need to medify file and old_path for next steps and to keep changes if other suffixes are found
+                                        # We need to modify file and old_path for next steps and to keep changes if other suffixes are found
                                         file = new_name
                                         old_path = new_path
                                         if not file_modified:
@@ -345,7 +345,7 @@ def fix_truncations(input_folder, step_name="", log_level=logging.INFO, name_len
                                             file_modified = True
                                     break # Once one truncation of the current suf is applied, stop trying shorter ones
 
-                    # B.2) Fix Editted Suffixes (multi-language): '-editted', '-edytowane', '-bearbeitet', '-bewerkt', '-編集済み', '-modificato', '-modifié', '-ha editado', '-editat'
+                    # B.2) Fix Edited Suffixes (multi-language): '-edited', '-edytowane', '-bearbeitet', '-bewerkt', '-編集済み', '-modificato', '-modifié', '-ha editado', '-editat'
                     for suf in EDITTED_SUFFIXES:
                         # try all truncations from longest to shortest
                         for i in range(len(suf), 1, -1):
@@ -592,7 +592,7 @@ def sync_mp4_timestamps_with_images(input_folder, step_name="", log_level=None):
                         break
 
 
-def force_remove_directory(folder, log_level=None):
+def force_remove_directory(folder, step_name='', log_level=None):
     def onerror(func, path, exc_info):
         # Cambia los permisos y vuelve a intentar
         os.chmod(path, stat.S_IWRITE)
@@ -601,9 +601,11 @@ def force_remove_directory(folder, log_level=None):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         if os.path.exists(folder):
             shutil.rmtree(folder, onerror=onerror)
-            LOGGER.info(f"The folder '{folder}' and all its contant have been deleted.")
+            LOGGER.info(f"{step_name}The folder '{folder}' and all its content have been deleted.")
+            return True
         else:
-            LOGGER.warning(f"Cannot delete the folder '{folder}'.")
+            LOGGER.info(f"{step_name}Cannot delete the folder '{folder}'.")
+            return False
 
 
 def copy_move_folder(src, dst, ignore_patterns=None, move=False, step_name="", log_level=None):

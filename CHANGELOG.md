@@ -13,24 +13,24 @@
 
 - ### Main Changes:
   - #### 🚨 Breaking Changes:
-    - [ ] Replaced argument `-gmtf, --google-move-takeout-folder` by `-gKeepTake, --google-keep-takeout-folder` argument and inverted the logic for Google Takeout Processing.
-    - [ ] Replaced argument `-gnsa, --google-create-symbolic-albums` by `-gcsa, --google-no-symbolic-albums` argument and inverted the logic for Google Takeout Processing.
+    - [x] Replaced argument `-gmtf, --google-move-takeout-folder` by `-gKeepTkout, --google-keep-takeout-folder` argument and inverted the logic for Google Takeout Processing.
+    - [x] Replaced argument `-gnsa, --google-create-symbolic-albums` by `-gnsa, --google-no-symbolic-albums` argument and inverted the logic for Google Takeout Processing.
     - [x] Replaced argument `-confirm, --request-user-confirmation` by `-noConfirm, --no-request-user-confirmation` and inverted logic. 
     
   - #### 🌟 New Features:
     - [x] Created GitHub Forms on New Issues.
       - [ ] Auto-Update Issues Templates with new published releases.
     - [x] Added Step duration summary at the end of `Google Takeout Processing` feature.
+    - [x] Call GPTH with `--verbose` argument when PhotoMigrator logLevel is VERBOSE.
     - [x] Added new `VERBOSE` value for `-logLevel` argument.
     - [x] Added new argument `-logFormat, --log-format` to define the format of the Log File. Valid values: `[LOG, TXT, ALL]`.
-    - [x] Call GPTH with `--verbose` when PhotoMigrator logLevel is VERBOSE.
-    - [x] Add argument `-gSkipPrep,--google-skip-preprocess` to Skipp Preprocess steps during Google Takeout Processing feature.
-    - [x] Allow user to define folder name for 'Logs'.
-    - [x] Allow user to define folder name for 'Duplicates'.
-    - [x] Allow user to define folder name for 'Exiftool Outputs'.
-    - [x] Allow user to define folder name for 'Albums'.
-    - [x] Allow user to define folder name for 'No-Albums'.
-    - [x] Allow user to define configuration file (path and name).
+    - [x] Added new argument `-config, --configuration-file` to Allow user to define configuration file (path and name).
+    - [x] Added new argument `-gSkipPrep, --google-skip-preprocess` to Skipp Preprocess steps during Google Takeout Processing feature.
+    - [x] Added new argument `-fnAlbums, --foldername-albums` to Allow user to define folder name for 'Albums'.
+    - [x] Added new argument `-fnNoAlbums, --foldername-no/albums` to Allow user to define folder name for 'No-Albums'.
+    - [x] Added new argument `-fnLogs, --foldername-logs` to Allow user to define folder name for 'Logs'.
+    - [x] Added new argument `-fnDuplicat, --foldername-duplicates-output` to Allow user to define folder name for 'Duplicates Outputs'.
+    - [x] Added new argument `-fnExiftool, --foldername-exiftool-output` to Allow user to define folder name for 'Exiftool Outputs'.
   
   - #### 🚀 Enhancements:
     - [x] Code totally refactored and structured in a Single Package called `photomigrator` for a better portability and maintenance.
@@ -42,8 +42,8 @@
     - [x] Improved Logging messages and screen messages prefixes using Global Variables instead of hardcoded strings.
     - [x] Improved Logging messages type detection when running GPTH (automatically detects warning messages and log them as warnings instead of info).
     - [x] Inserted Profiler support to Profile any function and optimize it.
-    - [x] Removed `input_folder` after successfully completion of `Google Takeout Processing` if the user used the flag `-gmtf, --google-move-takeout-folder`. Note that this only remove the `input_folder` with a valid Takeout Structure, this will not remove your original Takeout Zip folder with your Takeout Zips.
-    - [x] Increased the number of threads to 2 * number of cpu cores in all multi-threads processings. 
+    - [x] Removed `input_folder` after successfully completion of `Google Takeout Processing` if the user didn't use the flag `-gKeepTkout, --google-keep-takeout-folder`. Note that this only remove the `input_folder` with a valid Takeout Structure, this will not remove your original Takeout Zip folder with your Takeout Zips.
+    - [x] Increased the number of threads to 2 * number of cpu cores in all multi-threads processing. 
     - [x] Renamed argument `-loglevel` to `-logLevel`.
     - [x] Renamed argument `-dashb` to `-dashboard`.
     - [x] Renamed argument `-AlbFld` to `-AlbFolder`.

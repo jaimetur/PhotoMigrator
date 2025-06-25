@@ -118,7 +118,7 @@ def main():
 
     # Test different LOG_LEVELS
     custom_print("Testing Custom Print Function for all different logLevels.")
-    custom_print("All LogLevel should be displayed on console:")
+    custom_print("All logLevel should be displayed on console:")
     custom_print("This is a test message with logLevel: VERBOSE", log_level=logging.VERBOSE)
     custom_print("This is a test message with logLevel: DEBUG", log_level=logging.DEBUG)
     custom_print("This is a test message with logLevel: INFO", log_level=logging.INFO)
@@ -128,7 +128,7 @@ def main():
     custom_print("", log_level=logging.INFO)
 
     custom_log("Testing Custom Log Function for all different logLevels. ")
-    custom_log("Only LogLevels Higher or Equal than provided by '-logLevel, --log-level' argument should be displayed on console and Log file:")
+    custom_log("Only logLevel Higher or Equal than given by '-logLevel, --log-level' should be displayed on console and Log file:")
     custom_log("This is a test message with logLevel: VERBOSE", log_level=logging.VERBOSE)
     custom_log("This is a test message with logLevel: DEBUG", log_level=logging.DEBUG)
     custom_log("This is a test message with logLevel: INFO", log_level=logging.INFO)
@@ -138,12 +138,10 @@ def main():
     custom_log("", log_level=logging.INFO)
 
     # Print the Header (common for all modules)
-    GV.LOGGER.info(f"")
     GV.LOGGER.info(f"==========================================")
     GV.LOGGER.info(f"Starting {GV.SCRIPT_NAME} Tool...")
     GV.LOGGER.info(f"==========================================")
     GV.LOGGER.info(GV.SCRIPT_DESCRIPTION)
-    GV.LOGGER.info(f"")
     GV.LOGGER.info(f"Tool Configured with the following Global Settings:")
     GV.LOGGER.info(f"  - Configuration File            : {GV.CONFIGURATION_FILE}")
     GV.LOGGER.info(f"  - Folder for Albums             : {GV.FOLDERNAME_ALBUMS}")

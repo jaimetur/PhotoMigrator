@@ -18,7 +18,6 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
         # 1) Sustituimos saltos de línea por espacio (para no partir el texto en varias líneas).
         flattened = usage_text.replace('\n', ' ')
         def parse_brackets(s):
-            print("entro en parse_brackets")
             tokens = []
             i = 0
             n = len(s)
@@ -61,7 +60,6 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             first_line_indent = '',
             subsequent_indent = ' ' * IDENT_USAGE_DESCRIPTION
         ):
-        print("entro en _build_lines_with_forced_tokens")
         final_lines = []
         for (orig_indent, tokens) in tokenized_usage:
             if not tokens:
@@ -116,7 +114,6 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
 
     def _format_usage(self, usage, actions, groups, prefix, **kwargs):
         def remove_chain(usage, chain_to_remove):
-            print("entro en remove_chain")
             # 1) Unir todas las líneas (sustituir saltos de línea por espacio)
             usage_single_line = usage.replace('\n', ' ')
             # 2) Reemplazar 2 o más espacios consecutivos por uno solo
@@ -143,11 +140,13 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
             "[-country <COUNTRY_NAME>]": False,   # Salto de línea antes, pero sigue reagrupando
             "[-gpthInfo [= [true,false]]]": False,   # Salto de línea antes, pero sigue reagrupando
             "[-i <INPUT_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
+            "[-source <SOURCE>]": False,   # Salto de línea antes, pero sigue reagrupando
+            "[-move [= [true,false]": False,   # Salto de línea antes, pero sigue reagrupando
             "[-gTakeout <TAKEOUT_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
-            "[-iuAlb <ALBUMS_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
             "[-uAlb <ALBUMS_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
-            # "[-irEmpAlb]": False,   # Salto de línea antes, pero sigue reagrupando
+            "[-uAll <INPUT_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
             "[-fixSym <FOLDER_TO_FIX>]": False,   # Salto de línea antes, pero sigue reagrupando
+            "[-renFldcb <ALBUMS_FOLDER>]": False,   # Salto de línea antes, pero sigue reagrupando
             "[-findDup <ACTION> <DUPLICATES_FOLDER> [<DUPLICATES_FOLDER>...]]": True,  # Va solo
         }
         # 6) Ancho real
@@ -166,7 +165,6 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
 
     def _format_action(self, action):
         def justificar_texto(text, initial_indent="", subsequent_indent=""):
-            print("entro en justificar_texto")
             # 1. Separar en líneas
             lines = text.splitlines()
             # 2. Aplicar fill() a cada línea
@@ -251,7 +249,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 parts.insert(-1,f"{TEXT_TO_INSERT}")
 
             # FEATURES for Synology/Immich Photos Management: two lines before the string
-            if help_text.find("will create one Album per subfolder into the selected Photo client.")!=-1:
+            if help_text.find("The Tool will look for all Subfolders with assets within <ALBUMS_FOLDER>")!=-1:
                 TEXT_TO_INSERT =textwrap.dedent(f"""
                 {Fore.YELLOW}
                 SYNOLOGY/IMMICH PHOTOS MANAGEMENT:
@@ -272,7 +270,7 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
                 {Fore.YELLOW}
                 OTHER STANDALONE FEATURES:
                 --------------------------{Style.RESET_ALL}
-                Following arguments can be used to execute the Tool in any of the usefull additionals Extra Standalone Features included. 
+                Following arguments can be used to execute the Tool in any of the useful Extra Standalone Features included. 
                 If more than one Feature is detected, only the first one will be executed.
                 """)
                 TEXT_TO_INSERT = justificar_texto(TEXT_TO_INSERT)+'\n\n'

@@ -18,29 +18,29 @@ EXIF_VERSION                    = "13.30"
 INCLUDE_EXIF_TOOL               = True
 COMPILE_IN_ONE_FILE             = True
 RESOURCES_IN_CURRENT_FOLDER     = True
-LOG_FOLDER_FILENAME             = ""
 START_TIME                      = datetime.now()
 TIMESTAMP                       = datetime.now().strftime("%Y%m%d-%H%M%S")
 
 # Customizable DIR Folders
+CONFIGURATION_FILE              = "Config.ini"                                  # To be Changed in set_FOLDERS
 FOLDERNAME_ALBUMS               = "Albums"                                      # To be Changed in set_FOLDERS
 FOLDERNAME_NO_ALBUMS            = "ALL_PHOTOS"                                  # To be Changed in set_FOLDERS
-FOLDERNAME_LOGS                 = "Logs"                                        # To be Changed in set_FOLDERS
 FOLDERNAME_DUPLICATES_OUTPUT    = "Duplicates_outputs"                          # To be Changed in set_FOLDERS
 FOLDERNAME_EXIFTOOL_OUTPUT      = "Exiftool_outputs"                            # To be Changed in set_FOLDERS
-CONFIGURATION_FILE              = "Config.ini"                                  # To be Changed in set_FOLDERS
+FOLDERNAME_LOGS                 = "Logs"                                        # To be Changed in set_FOLDERS
+LOG_FOLDER_FILENAME             = "PhotoMigrator.log"                           # To be Changed in set_LOGGER
+LOG_LEVEL                       = logging.INFO                                  # To be Changed in set_LOGGER
 
 VERBOSE_LEVEL_NUM               = 5
 LOG_LEVEL_MIN                   = VERBOSE_LEVEL_NUM
-LOG_LEVEL                       = logging.INFO                                  # To be Changed in set_LOGGER
 HELP_TEXTS                      = None                                          # To be Changed in set_HELP_TEXTS
 ARGS                            = None                                          # To be Changed in set_ARGS_PARSER
 PARSER                          = None                                          # To be Changed in set_ARGS_PARSER
 LOGGER                          = None                                          # To be Changed in set_LOGGER
 
 # Configure parameters for CustomHelpFormatter & CustomPager
-MAX_SHORT_ARGUMENT_LENGTH       = 10
-MAX_HELP_POSITION               = 100
+MAX_SHORT_ARGUMENT_LENGTH       = 11
+MAX_HELP_POSITION               = 120
 IDENT_ARGUMENT_DESCRIPTION      = 14
 IDENT_USAGE_DESCRIPTION         = 24
 
@@ -91,15 +91,14 @@ EDITTED_SUFFIXES = [
 DEPRIORITIZE_FOLDERS_PATTERNS   = ['*Photos from [1-2][0-9]{3}$', '*ALL_PHOTOS', '*No-Albums', '*Others', '*Variad[oa]*', '*Vari[oa]*', '*Miscellaneous*', '*M[oó]vil*', r'\bfotos\b\s+(\w+)\s*$', r'fotos de \w y \w\s*$', r'fotos de \w\s*$', '*Fotos_de*', '*Fotos_con', '*Fotos de*', '*Fotos con*']
 
 # Script description
-SCRIPT_DESCRIPTION              = textwrap.dedent(f"""
-                                {SCRIPT_NAME_VERSION} - {SCRIPT_DATE}
+SCRIPT_DESCRIPTION              = textwrap.dedent(f"""{SCRIPT_NAME_VERSION} - {SCRIPT_DATE}
                                 
-                                Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
-                                such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
-                                
-                                (c) 2024-2025 by Jaime Tur (@jaimetur)
-                                """
-                                )
+          Multi-Platform/Multi-Arch tool designed to Interact and Manage different Photo Cloud Services
+          such as Google Photos, Synology Photos, Immich Photos & Apple Photos.
+         
+          ©️ 2024-2025 by Jaime Tur (@jaimetur)
+          """
+          )
 
 PHOTO_EXT                       = ['.3fr', '.ari', '.arw', '.cap', '.cin', '.cr2', '.cr3', '.crw', '.dcr', '.dng', '.erf', '.fff', '.iiq', '.k25', '.kdc', '.mrw', '.nef', '.nrw', '.orf', '.ori', '.pef', '.psd', '.raf', '.raw', '.rw2', '.rwl', '.sr2', '.srf', '.srw', '.x3f', '.avif', '.bmp', '.gif', '.heic', '.heif', '.hif', '.insp', '.jp2', '.jpe', '.jpeg', '.jpg', '.jxl', '.png', '.svg', '.tif', '.tiff', '.webp']
 VIDEO_EXT                       = ['.3gp', '.3gpp', '.avi', '.flv', '.insv', '.m2t', '.m2ts', '.m4v', '.mkv', '.mov', '.mp4', '.mpe', '.mpeg', '.mpg', '.mts', '.vob', '.webm', '.wmv']

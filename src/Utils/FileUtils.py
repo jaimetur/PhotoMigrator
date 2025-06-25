@@ -273,7 +273,7 @@ def remove_folder(folder, step_name='', log_level=None):
             return True
 
         except FileNotFoundError:
-            LOGGER.warning(f"{step_name}Folder not found: '{folder_path}'.")
+            LOGGER.info(f"{step_name}Folder '{folder_path}' was not found. Nothing to remove!")
             return False
 
         except PermissionError:

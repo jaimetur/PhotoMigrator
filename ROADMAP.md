@@ -13,8 +13,6 @@
 
 - ### Main Changes:
   - #### 🚨 Breaking Changes:
-    - [ ] Replaced argument `-gmtf, --google-move-takeout-folder` by `-gKeepTake, --google-keep-takeout-folder` argument and inverted the logic for Google Takeout Processing.
-    - [ ] Replaced argument `-gnsa, --google-create-symbolic-albums` by `-gcsa, --google-no-symbolic-albums` argument and inverted the logic for Google Takeout Processing.
     
   - #### 🌟 New Features:
     - [x] Created GitHub Forms on New Issues.

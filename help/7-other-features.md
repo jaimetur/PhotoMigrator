@@ -77,9 +77,9 @@
   the Tool will try to fix it finding the target of the symlink within the same `OUTPUT_FOLDER` structure.
 
 > [!TIP]  
-> This is useful when you run the Tool using argument _**`-gcsa, --google-create-symbolic-albums`**_ to create symbolic Albums instead of duplicate copies of the files contained on '<ALBUMS_FOLDER>'.  
+> This is useful when you run the Tool without the argument _**`-gnsa, --google-no-symbolic-albums`**_ to create symbolic Albums instead of duplicate copies of the files contained on '<ALBUMS_FOLDER>'.  
 > 
-> If you run the Tool with this argument and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken, and you will need to use this feature to fix them.
+> If you run the Tool without this argument and after that you rename original folders or change the folder structure of the OUTPUT_FOLDER, your symbolic links may be broken, and you will need to use this feature to fix them.
 
 
 # <span style="color:blue"> Folder Rename Content Based (Extra Feature)</span>

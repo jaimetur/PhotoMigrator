@@ -13,7 +13,7 @@ from Utils.FileUtils import resource_path
 from Utils.GeneralUtils import get_os, get_arch, ensure_executable, print_arguments_pretty
 
 
-def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=False, capture_errors=True, print_messages=True, skip_extras=False, symbolic_albums=False, move_takeout_folder=False, ignore_takeout_structure=False, step_name="", log_level=None):
+def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=False, capture_errors=True, print_messages=True, skip_extras=False, no_symbolic_albums=False, keep_takeout_folder=False, ignore_takeout_structure=False, step_name="", log_level=None):
     with set_log_level(LOGGER, log_level):  # Change Log Level to log_level for this function
         """Runs the GPTH Tool command to process photos."""
         input_folder = os.path.abspath(input_folder)
@@ -74,11 +74,11 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
 
         # Append --albums shortcut / duplicate-copy based on value of flag -sa, --symbolic-albums
         gpth_command.append("--albums")
-        if symbolic_albums:
+        if no_symbolic_albums:
+            gpth_command.append("duplicate-copy")
+        else:
             LOGGER.info(f"{step_name}Symbolic Albums will be created with links to the original files...")
             gpth_command.append("shortcut")
-        else:
-            gpth_command.append("duplicate-copy")
 
         # Append --skip-extras to the gpth tool call based on the value of flag -se, --skip-extras
         if skip_extras:
@@ -87,10 +87,10 @@ def fix_metadata_with_gpth_tool(input_folder, output_folder, capture_output=Fals
         # This feature have been removed in v4.0.9
         if Version(GPTH_VERSION) < Version("4.0.9"):
             # Append --copy/--no-copy to the gpth tool call based on the values of move_takeout_folder
-            if move_takeout_folder:
-                gpth_command.append("--no-copy")
-            else:
+            if keep_takeout_folder:
                 gpth_command.append("--copy")
+            else:
+                gpth_command.append("--no-copy")
 
         if Version(GPTH_VERSION) >= Version("3.6.0"):
             # Use the new feature to Delete the "supplemental-metadata" suffix from .json files to ensure that script works correctly

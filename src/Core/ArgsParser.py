@@ -26,7 +26,7 @@ valid_asset_types                   = ['all', 'image', 'images', 'photo', 'photo
 def parse_arguments():
     # Parser with Pagination:
     PARSER = PagedParser(
-        description=SCRIPT_DESCRIPTION,
+        description=f"\n{SCRIPT_DESCRIPTION}",
         formatter_class=CustomHelpFormatter,  # Aplica el formatter
     )
 
@@ -37,6 +37,7 @@ def parse_arguments():
             parser.exit()
 
     PARSER.add_argument("-v", "--version", action=VersionAction, nargs=0, help="Show the Tool name, version, and date, then exit.")
+    PARSER.add_argument("-config", "--configuration-file", metavar="<CONFIGURATION_FILE>", default="Config.ini", help="Specify the file that contains the Configuration to connect to the different Photo Cloud Services.")
     PARSER.add_argument("-noConfirm", "--no-request-user-confirmation", action="store_true", help="No Request User Confirmation before execute any Feature.")
     PARSER.add_argument("-noLog", "--no-log-file", action="store_true", help="Skip saving output messages to execution log file.")
     PARSER.add_argument("-logLevel", "--log-level",
@@ -59,7 +60,6 @@ def parse_arguments():
     PARSER.add_argument("-fnLogs", "--foldername-logs", metavar="<LOG_FOLDER>", default="Logs", help="Specify the folder name to save the execution Logs.")
     PARSER.add_argument("-fnDuplicat", "--foldername-duplicates-output", metavar="<DUPLICATES_OUTPUT_FOLDER>", default="Duplicates_outputs", help="Specify the folder name to save the outputs of 'Find Duplicates' Feature.")
     PARSER.add_argument("-fnExiftool", "--foldername-exiftool-output", metavar="<EXIFTOOL_OUTPUT_FOLDER>", default="Exiftool_outputs", help="Specify the folder name to save the outputs of 'Exiftool' Metadata Fixer.")
-    PARSER.add_argument("-config", "--configuration-file", metavar="<CONFIGURATION_FILE>", default="Config.ini", help="Specify the file that contains the Configuration to connect to the different Photo Cloud Services.")
 
 
     # GENERAL FEATURES:
@@ -78,8 +78,11 @@ def parse_arguments():
                         const=1,  # Si el usuario pasa --account-id sin valor, se asigna 1
                         default=1,  # Si no se pasa el argumento, también se asigna 1
                         type=validate_account_id,  # Ahora espera un entero como tipo de argumento
-                        help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the Configuration file as suffix of USERNAME/PASSWORD or API_KEY_USER. (example for Immich ID=2: IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in <CONFIGURATION_FILE> file)."
+                        help="Set the account ID for Synology Photos or Immich Photos. (default: 1). This value must exist in the <CONFIGURATION_FILE> as suffix of USERNAME/PASSWORD or API_KEY_USER. "
+                           "\nExample for Immich ID=2:"
+                           "\n  IMMICH_USERNAME_2/IMMICH_PASSWORD_2 or IMMICH_API_KEY_USER_2 entries must exist in <CONFIGURATION_FILE>."
                         )
+    PARSER.add_argument("-OTP", "--one-time-password", action="store_true", default="", help="This Flag allow you to login into Synology Photos using 2FA with an OTP Token.")
 
     PARSER.add_argument("-from", "--filter-from-date", metavar="<FROM_DATE>", default=None, help="Specify the initial date to filter assets in the different Photo Clients.")
     PARSER.add_argument("-to", "--filter-to-date", metavar="<TO_DATE>", default=None, help="Specify the final date to filter assets in the different Photo Clients.")
@@ -105,8 +108,7 @@ def parse_arguments():
                          "\n ​--source=immich-1 -> Select Immich Photos account 1 as Source."
                          "\n ​--source=synology-2 -> Select Synology Photos account 2 as Source."
                          "\n ​--source=/home/local_folder -> Select this local folder as Source."
-                         "\n ​--source=/home/Takeout -> Select this Takeout folder as Source."
-                         "\n ​                      (both, zipped and unzipped format are supported)"
+                         "\n ​--source=/home/Takeout -> Select this Takeout folder as Source. (zipped and unzipped format supported)"
                          )
     PARSER.add_argument( "-target", "--target", metavar="<TARGET>", default="",
                         help="Select the <TARGET> for the AUTOMATIC-MIGRATION Process to Pull all your Assets (including Albums) from the <SOURCE> Cloud Service and Push them to the <TARGET> Cloud Service (including all Albums that you may have on the <SOURCE> Cloud Service)."
@@ -142,7 +144,8 @@ def parse_arguments():
                         const=True,  # Si el usuario pasa --dashboard sin valor, se asigna True
                         default=True,  # Si no se pasa el argumento, el valor por defecto es True
                         type=str2bool,  # Convierte "true", "1", "yes" en True; cualquier otra cosa en False
-                        help="Select Parallel/Secuencial Migration during Automatic Migration Job. This argument only applies if both '--source' and '--target' arguments are given (AUTOMATIC-MIGRATION FEATURE). (default: True)."
+                        help="Select Parallel/Secuencial Migration during Automatic Migration Job."
+                           "\nThis argument only applies if both '--source' and '--target' arguments are given (AUTOMATIC-MIGRATION FEATURE). (default: True)."
     )
 
 
@@ -168,17 +171,22 @@ def parse_arguments():
                         type=lambda s: s.lower(),  # Convert input to lowercase
                         choices=choices_for_folder_structure,  # Valid choices
                         )
-    PARSER.add_argument("-gcsa", "--google-create-symbolic-albums", action="store_true", help="Creates symbolic links for Albums instead of duplicate the files of each Album. (Useful to save disk space but may not be portable to other systems).")
-    PARSER.add_argument("-gics", "--google-ignore-check-structure", action="store_true", help="Ignore Check Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc..), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from them.")
-    PARSER.add_argument("-gmtf", "--google-move-takeout-folder", action="store_true", help=f"Move original assets to <OUTPUT_TAKEOUT_FOLDER>. \nCAUTION: Useful to avoid disk space duplication and improve execution speed, but you will lost your original unzipped files!!!.\nUse only if you keep the original zipped files or you have disk space limitations and you don't mind to lost your original unzipped files.")
-    PARSER.add_argument("-grdf", "--google-remove-duplicates-files", action="store_true", help="Remove Duplicates files in <OUTPUT_TAKEOUT_FOLDER> after fixing them.")
-    PARSER.add_argument("-graf", "--google-rename-albums-folders", action="store_true", help="Rename Albums Folders in <OUTPUT_TAKEOUT_FOLDER> based on content date of each album after fixing them.")
-    PARSER.add_argument("-gsef", "--google-skip-extras-files", action="store_true", help="Skip processing extra photos such as  -edited, -effects photos.")
-    PARSER.add_argument("-gsma", "--google-skip-move-albums", action="store_true", help="Skip moving albums to 'Albums' folder.")
-    PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skip processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposes.")
+    PARSER.add_argument("-gics", "--google-ignore-check-structure", action="store_true", help="Ignores Check Google Takeout structure ('.json' files, 'Photos from ' sub-folders, etc..), and fix all files found on <TAKEOUT_FOLDER> trying to guess timestamp from them.")
+    PARSER.add_argument("-gnsa", "--google-no-symbolic-albums", action="store_true",
+                        help="Duplicates Albums assets instead of create symlinks to original asset within <NO_ALBUMS_FOLDER>. "
+                            "\n(Makes your Output Takeout Folder portable to other systems, but requires more HDD space)."
+                            "\nIMPORTANT: This increments considerably the Output Takeout Folder size, specially if you have many Albums."
+                            "\nFor instance, if one asset belongs to 3 different albums, then you will have 4 copies of the same asset (the original, and one per album)."
+                        )
+    PARSER.add_argument("-grdf", "--google-remove-duplicates-files", action="store_true", help="Removes Duplicates files in <OUTPUT_TAKEOUT_FOLDER> after fixing them.")
+    PARSER.add_argument("-graf", "--google-rename-albums-folders", action="store_true", help="Renames Albums Folders in <OUTPUT_TAKEOUT_FOLDER> based on content date of each album after fixing them.")
+    PARSER.add_argument("-gsef", "--google-skip-extras-files", action="store_true", help="Skips processing extra photos such as  -edited, -effects photos.")
+    PARSER.add_argument("-gsma", "--google-skip-move-albums", action="store_true", help="Skips moving albums to '<ALBUMS_FOLDER>'.")
+    PARSER.add_argument("-gsgt", "--google-skip-gpth-tool", action="store_true", help="Skips processing files with GPTH Tool. \nCAUTION: This option is NOT RECOMMENDED because this is the Core of the Google Photos Takeout Process. Use this flag only for testing purposes.")
+    PARSER.add_argument("-gKeepTkout", "--google-keep-takeout-folder", action="store_true", help=f"Keeps a copy of your original Takeout before to start to process it (requires double HDD space). \nTIP: If you use as <TAKEOUT_FOLDER>, the folder that contains your Takeout's Zip files, \nyou will always conserve the original Zips and don't need to use this flag.")
     PARSER.add_argument("-gSkipPrep", "--google-skip-preprocess", action="store_true",
                         help="Skip Pre-process Google Takeout to 1.Clean Takeout Folder, 2.Fix MP4/Live Picture associations and 3.Fix Truncated filenames/extensions." 
-                           "\nThis Pre-process is very important for a high accuracy on the Output, but if you have already done this Pre-Processing before, and you are not using the flag '-gmtf,--google-move-takeout-folder' then you can skip this Pre-Processing.")
+                           "\nThis Pre-process is very important for a high accuracy on the Output, but if you have already done this Pre-Processing in a previous execution using the flag '-gKeepTkout,--google-keep-takeout-folder' then you can skip it for that <TAKEOUT_FOLDER>.")
     PARSER.add_argument("-gpthInfo", "--show-gpth-info",
                         metavar="= [true,false]",
                         nargs="?",  # Permite que el argumento sea opcionalmente seguido de un valor
@@ -241,7 +249,6 @@ def parse_arguments():
     PARSER.add_argument("-renAlb", "--rename-albums", metavar="<ALBUMS_NAME_PATTERN>, <ALBUMS_NAME_REPLACEMENT_PATTERN>", nargs="+", default="",
                         help="CAUTION!!! The Tool will look for all Albums in the selected Photo client whose names matches with the pattern and will rename them from with the replacement pattern.\nYou must provide the Photo client using the mandatory flag '--client'."
                         )
-    PARSER.add_argument("-OTP", "--one-time-password", action="store_true", default="", help="This Flag allow you to login into Synology Photos using 2FA with an OTP Token.")
 
 
     # OTHERS STAND-ALONE FEATURES:
