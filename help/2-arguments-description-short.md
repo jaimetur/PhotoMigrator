@@ -31,8 +31,7 @@ Following general arguments have different purposes depending on the Execution M
 | `-i`,<br>`--input-folder`                 | Input folder to process                                |
 | `-o`,<br>`--output-folder`                | Output folder to store results                         |
 | `-client`,<br>`--client`                  | Service client: `google-takeout`, `synology`, `immich` |
-| `-id`,<br>`--account-id`                  | Account ID (1–3) from `Config.ini`           |
-| `-OTP`,<br>`--one-time-password`          | Use 2FA login with OTP token                           |
+| `-id`,<br>`--account-id`                  | Account ID (1–3) from `Config.ini`                     |
 | `-from`,<br>`--filter-from-date`          | Filter assets from this date                           |
 | `-to`,<br>`--filter-to-date`              | Filter assets up to this date                          |
 | `-type`,<br>`--filter-by-type`            | Filter assets by type: `image`, `video`, `all`         |
@@ -127,6 +126,7 @@ Following arguments allow you to interact with Synology/Immich Photos.
 | `-rAll`,<br>`--remove-all-assets`           | Delete all assets and albums (DANGER!)         |
 | `-rAllAlb`,<br>`--remove-all-albums`        | Delete all albums (assets optional)            |
 | `-rOrphan`,<br>`--remove-orphan-assets`     | Delete orphan assets                           |
+| `-OTP`,<br>`--one-time-password`            | Use 2FA login with OTP token                   |
 
 
 #### 🧪 Examples:

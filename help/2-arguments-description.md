@@ -27,8 +27,7 @@ Following general arguments have different purposes depending on the Execution M
 | `-i`,<br>`--input-folder`                 | `<INPUT_FOLDER>`  |  path  |                `existing path`                 | Folder containing assets to be processed.               |
 | `-o`,<br>`--output-folder`                | `<OUTPUT_FOLDER>` |  path  |                  `valid path`                  | Folder where processed assets or results will be saved. |
 | `-client`,<br>`--client`                  | `<CLIENT>`        | string | `google-takeout`, <br>`synology`, <br>`immich` | Specifies the service to interact with.                 |
-| `-id`,<br>`--account-id`                  | `<ID>`            |  int   |        `1`, `2`, `3` <br>`(default: 1)`        | ID of the configured account in `Config.ini`. |
-| `-OTP`,<br>`--one-time-password`          |                   |  flag  |                                                | Enables / Disables OTP login for Synology (2FA).        |
+| `-id`,<br>`--account-id`                  | `<ID>`            |  int   |        `1`, `2`, `3` <br>`(default: 1)`        | ID of the configured account in `Config.ini`.           |
 | `-from`,<br>`--filter-from-date`          | `<FROM_DATE>`     |  date  |    `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets from this date onward.                   |
 | `-to`,<br>`--filter-to-date`              | `<TO_DATE>`       |  date  |    `yyyy-mm-dd`, <br>`yyyy-mm`, <br>`yyyy`     | Filters assets up to this date.                         |
 | `-type`,<br>`--filter-by-type`            | `<TYPE>`          | string |  `image`, `video`, `all` <br>`(default: all)`  | Filters assets by type.                                 |
@@ -124,6 +123,7 @@ Following arguments allow you to interact with Synology/Immich Photos.
 | `-rAll`,<br>`--remove-all-assets`           |                                                 |       flag        |                  | Removes all albums and assets from the client.            |
 | `-rAllAlb`,<br>`--remove-all-albums`        |                                                 |       flag        |                  | Removes all albums from the photo client.                 |
 | `-rOrphan`,<br>`--remove-orphan-assets`     |                                                 |       flag        |                  | Removes orphan assets (admin API key required).           |
+| `-OTP`,<br>`--one-time-password`            |                                                 |       flag        |                  | Enables / Disables OTP login for Synology (2FA).          |
 
 
 #### 🧪 Examples:
