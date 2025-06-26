@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 
 from Core.CustomLogger import set_log_level
-from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE
+from Core.GlobalVariables import LOGGER, ARGS, MSG_TAGS, FOLDERNAME_NO_ALBUMS, CONFIGURATION_FILE, FOLDERNAME_ALBUMS
 from Utils.DateUtils import parse_text_datetime_to_epoch
 from Utils.StandaloneUtils import change_working_dir
 from Utils.GeneralUtils import has_any_filter, confirm_continue, convert_to_list
@@ -43,8 +43,8 @@ class ClassLocalFolder:
             base_folder (str, Path): Path to the main directory where albums and assets will be stored.
         """
         self.base_folder = Path(base_folder)
-        self.albums_folder = self.base_folder / "Albums"
-        self.shared_albums_folder = self.base_folder / "Albums-shared"
+        self.albums_folder = self.base_folder / f"{FOLDERNAME_ALBUMS}"
+        self.shared_albums_folder = self.base_folder / f"{FOLDERNAME_ALBUMS}-shared"
         self.no_albums_folder = self.base_folder / FOLDERNAME_NO_ALBUMS
 
         # Ensure all required folders exist
@@ -1092,7 +1092,7 @@ class ClassLocalFolder:
         pass
 
 
-    def push_no_albums(self, input_folder, subfolders_exclusion='Albums',
+    def push_no_albums(self, input_folder, subfolders_exclusion=f'{FOLDERNAME_ALBUMS}',
                        subfolders_inclusion=None, remove_duplicates=True,
                        log_level=logging.WARNING):
         """

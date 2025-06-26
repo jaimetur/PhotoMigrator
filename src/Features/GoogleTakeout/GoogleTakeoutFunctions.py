@@ -11,7 +11,7 @@ from pathlib import Path
 from colorama import init, Style
 
 from Core.CustomLogger import set_log_level, custom_print
-from Core.GlobalVariables import LOGGER, MSG_TAGS, MSG_TAGS_COLORED, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, FOLDERNAME_NO_ALBUMS
+from Core.GlobalVariables import LOGGER, MSG_TAGS, MSG_TAGS_COLORED, SUPPLEMENTAL_METADATA, SPECIAL_SUFFIXES, EDITTED_SUFFIXES, PHOTO_EXT, VIDEO_EXT, FOLDERNAME_NO_ALBUMS, FOLDERNAME_ALBUMS
 from Utils.FileUtils import is_valid_path
 from Utils.GeneralUtils import tqdm
 
@@ -756,7 +756,7 @@ def organize_files_by_date(input_folder, type='year', exclude_subfolders=[], ste
         LOGGER.info(f"{step_name}Organization completed. Folder structure per '{type}' created in '{input_folder}'.")
 
 
-def move_albums(input_folder, albums_subfolder="Albums", exclude_subfolder=None, step_name="", log_level=None):
+def move_albums(input_folder, albums_subfolder=f"{FOLDERNAME_ALBUMS}", exclude_subfolder=None, step_name="", log_level=None):
     """
     Moves album folders to a specific subfolder, excluding the specified subfolder(s).
 
@@ -840,33 +840,63 @@ def move_albums_to_root(albums_root, step_name="", log_level=None):
             LOGGER.error(f"{step_name}Failed to remove 'Takeout': {e}")
 
 
-def count_valid_albums(folder_path, excluded_folders=[], step_name="", log_level=None):
+def count_valid_albums(folder_path, excluded_folders=None, step_name="", log_level=None):
     """
-    Counts the number of subfolders within folder_path and its sublevels
-    that contain at least one valid image or video file.
-
-    A folder is considered valid if it contains at least one file with an extension
-    defined in PHOTO_EXT or VIDEO_EXT.
-
-    The following folders (and all their subfolders) are excluded from the count:
-    - Any folder named 'Photos from YYYY' where YYYY starts with 1 or 2.
-    - Folders named exactly as excluded_folder list.
+    Walk every sub-folder in *folder_path* and count how many of them contain at
+    least one photo or video (direct file, POSIX symlink, or Windows .lnk).
     """
+    if excluded_folders is None:
+        excluded_folders = ()
+
     YEAR_PATTERN = re.compile(r'^Photos from [12]\d{3}$')
-    with set_log_level(LOGGER, log_level):  # Change log level temporarily
-        valid_albums = 0
-        for root, dirs, files in os.walk(folder_path):
-            folder_name = os.path.basename(root)
-            # Skip current folder if it matches any exclusion rule
-            if folder_name in excluded_folders or YEAR_PATTERN.fullmatch(folder_name):
-                dirs.clear()  # Prevent descending into subdirectories
+    MEDIA_EXT = set(PHOTO_EXT) | set(VIDEO_EXT)         # union once → O(1) lookup
+
+    valid_albums = 0
+    visited_dirs = set()
+
+    with set_log_level(LOGGER, log_level):
+        for root, dirs, files in os.walk(folder_path, followlinks=True):
+            real_root = os.path.realpath(root)
+            if real_root in visited_dirs:               # avoid loops with symlinked dirs
                 continue
-            # Also remove excluded subfolders from being walked into
+            visited_dirs.add(real_root)
+
+            folder_name = os.path.basename(root)
+
+            # ── skip folders by name ────────────────────────────────────────────
+            if folder_name in excluded_folders or YEAR_PATTERN.fullmatch(folder_name):
+                dirs.clear()
+                continue
+
             dirs[:] = [
                 d for d in dirs
                 if d not in excluded_folders and not YEAR_PATTERN.fullmatch(d)
             ]
-            # Check for at least one valid image or video file
-            if any(os.path.splitext(file)[1].lower() in PHOTO_EXT or os.path.splitext(file)[1].lower() in VIDEO_EXT for file in files):
-                valid_albums += 1
-        return valid_albums
+
+            # ── inspect files inside this folder ───────────────────────────────
+            for fname in files:
+                fpath = Path(root) / fname
+                link_ext = fpath.suffix.lower()                 # ext of the file itself
+                target_ext = ''                                 # will be filled below
+
+                try:
+                    if fpath.is_symlink():                      # POSIX / NTFS symlink
+                        target_ext = fpath.resolve(strict=False).suffix.lower()
+
+                    elif os.name == 'nt' and link_ext == '.lnk':
+                        # Windows shortcut (.lnk): try to infer inner extension from its stem
+                        target_ext = Path(fpath.stem).suffix.lower()
+                        # NOTE: we don't parse the .lnk binary; good enough if names keep the ext.
+
+                    else:
+                        target_ext = link_ext                   # normal file (no link)
+
+                    if link_ext in MEDIA_EXT or target_ext in MEDIA_EXT:
+                        valid_albums += 1
+                        LOGGER.debug(f"{step_name}✅ Valid album at: {root}")
+                        break                                   # next folder
+
+                except Exception as exc:
+                    LOGGER.warning(f"{step_name}⚠️ Cannot inspect {fpath}: {exc}")
+
+    return valid_albums

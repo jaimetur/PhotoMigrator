@@ -8,7 +8,7 @@ from pathlib import Path
 
 from Core.CustomLogger import set_log_level
 from Core.FileStatistics import count_files_per_type_and_extract_dates_multi_threads
-from Core.GlobalVariables import ARGS, LOG_LEVEL, VERBOSE_LEVEL_NUM, LOGGER, TIMESTAMP, FOLDERNAME_NO_ALBUMS, START_TIME, FOLDERNAME_ALBUMS
+from Core.GlobalVariables import ARGS, LOG_LEVEL, LOGGER, START_TIME, FOLDERNAME_ALBUMS, FOLDERNAME_NO_ALBUMS
 from Features.GoogleTakeout import MetadataFixers
 # Import ClassLocalFolder (Parent Class of this)
 from Features.GoogleTakeout.ClassLocalFolder import ClassLocalFolder
@@ -17,8 +17,8 @@ from Features.GoogleTakeout.GoogleTakeoutFunctions import fix_mp4_files, fix_tru
 from Features.StandAlone.AutoRenameAlbumsFolders import rename_album_folders
 from Features.StandAlone.Duplicates import find_duplicates
 from Features.StandAlone.FixSymLinks import fix_symlinks_broken
-from Utils.FileUtils import delete_subfolders, remove_empty_dirs, remove_folder
-from Utils.GeneralUtils import profile_and_print, print_dict_pretty
+from Utils.FileUtils import delete_subfolders, remove_empty_dirs
+from Utils.GeneralUtils import print_dict_pretty
 from Utils.StandaloneUtils import change_working_dir
 
 
@@ -500,7 +500,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"{self.step}. MOVING ALBUMS FOLDER...")
                 LOGGER.info(f"====================================")
                 LOGGER.info(f"")
-                LOGGER.info(f"{step_name}Moving All your albums into 'Albums' folder for a better organization...")
+                LOGGER.info(f"{step_name}Moving All your albums into f'{FOLDERNAME_ALBUMS}' folder for a better organization...")
                 move_albums(input_folder=output_folder, exclude_subfolder=[FOLDERNAME_NO_ALBUMS, '@eaDir'], step_name=step_name, log_level=LOG_LEVEL)
                 step_end_time = datetime.now()
                 LOGGER.info(f"{step_name}All your albums have been moved successfully!")
@@ -526,7 +526,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 duplicates_found, removed_empty_folders = find_duplicates(
                     duplicates_action='remove',
                     duplicates_folders=output_folder,
-                    exclusion_folders=[FOLDERNAME_NO_ALBUMS],    # Exclude '<NO_ALBUMS_FOLDER>' folder since it will contain duplicates of all the assets withini 'Albums' subfolders.
+                    exclusion_folders=[FOLDERNAME_NO_ALBUMS],    # Exclude '<NO_ALBUMS_FOLDER>' folder since it will contain duplicates of all the assets within 'Albums' subfolders.
                     deprioritize_folders_patterns=self.DEPRIORITIZE_FOLDERS_PATTERNS,
                     timestamp=self.TIMESTAMP,
                     step_name=step_name,
@@ -639,7 +639,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
             self.result['output_counters'].update(output_counters)
 
             # 2. Now count the Albums in output Folder
-            if os.path.isdir(output_folder):
+            if os.path.isdir(albums_folder):
                 excluded_folders = [FOLDERNAME_NO_ALBUMS, "ALL_PHOTOS"]
                 self.result['valid_albums_found'] = count_valid_albums(albums_folder, excluded_folders=excluded_folders, step_name=step_name, log_level=LOG_LEVEL)
             LOGGER.info(f"{step_name}Valid Albums Found {self.result['valid_albums_found']}.")

@@ -9,7 +9,7 @@ import zipfile
 from pathlib import Path
 
 from Core.CustomLogger import set_log_level, custom_print
-from Core.GlobalVariables import LOGGER, MSG_TAGS, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME
+from Core.GlobalVariables import LOGGER, MSG_TAGS, RESOURCES_IN_CURRENT_FOLDER, SCRIPT_NAME, FOLDERNAME_ALBUMS
 from Utils.GeneralUtils import tqdm
 
 
@@ -103,7 +103,7 @@ def flatten_subfolders(input_folder, exclude_subfolders=[], max_depth=0, flatten
             # Process files in subfolders and move them to the root of the subfolder
             for folder in dirs:
                 # If 'Albums' folder is found, invoke the Tool recursively on its subdirectories
-                if os.path.basename(folder) == "Albums":
+                if os.path.basename(folder) == f"{FOLDERNAME_ALBUMS}":
                     for album_subfolder in dirs:
                         subfolder_path = os.path.join(path, album_subfolder)
                         flatten_subfolders(input_folder=subfolder_path, exclude_subfolders=exclude_subfolders, max_depth=max_depth+1)
@@ -293,6 +293,7 @@ def resource_path(relative_path):
     - Python directo (desde cwd o desde dirname(__file__))
     """
     # IMPORTANT: Don't use LOGGER in this function because is also used by build-binary.py which has not any LOGGER created.
+    compiled_source = globals().get("__compiled__")
     DEBUG_MODE = False  # Cambia a False para silenciar
     if DEBUG_MODE:
         custom_print(f"---DEBUG INFO", log_level=logging.DEBUG)
@@ -304,7 +305,7 @@ def resource_path(relative_path):
         custom_print(f"os.getcwd()                 : {os.getcwd()}", log_level=logging.DEBUG)
         custom_print(f"__file__                    : {globals().get('__file__', 'NO __file__')}", log_level=logging.DEBUG)
         try:
-            custom_print(f"__compiled__.containing_dir : {__compiled__.containing_dir}", log_level=logging.DEBUG)
+            custom_print(f"__compiled__.containing_dir : {compiled_source.containing_dir}", log_level=logging.DEBUG)
         except NameError:
             custom_print(f"__compiled__ not defined", log_level=logging.DEBUG)
         if hasattr(sys, '_MEIPASS'):
@@ -321,9 +322,10 @@ def resource_path(relative_path):
         base_path = os.path.dirname(os.path.abspath(__file__))
         if DEBUG_MODE: custom_print(f"Entra en modo Nuitka --onefile -> (__file__)", log_level=logging.DEBUG)
     # Nuitka standalone
-    elif "__compiled__" in globals():
-        base_path = os.path.join(__compiled__.containing_dir, SCRIPT_NAME+'.dist')
-        # base_path = __compiled__
+    elif compiled_source:
+    # elif "__compiled__" in globals():
+        base_path = os.path.join(compiled_source.containing_dir, SCRIPT_NAME+'.dist')
+        # base_path = compiled_source
         if DEBUG_MODE: custom_print(f"Entra en modo Nuitka --standalone -> (__compiled__.containing_dir)", log_level=logging.DEBUG)
     # Python normal
     elif "__file__" in globals():
