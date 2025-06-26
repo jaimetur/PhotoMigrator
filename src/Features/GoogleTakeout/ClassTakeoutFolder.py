@@ -763,7 +763,7 @@ class ClassTakeoutFolder(ClassLocalFolder):
                 LOGGER.info(f"")
                 LOGGER.info(f"Total Supported files in Takeout folder     : {result['input_counters']['supported_files']:<7}")
                 LOGGER.info(f"  - Total Media files in Takeout folder     : {result['input_counters']['media_files']:<7}")
-                LOGGER.info(f"    - Total Images in Takeout folder        : {result['input_counters']['photo_files']:<7}")
+                LOGGER.info(f"    - Total Photos in Takeout folder        : {result['input_counters']['photo_files']:<7}")
                 LOGGER.info(f"      - Correct Date                        : {result['input_counters']['photos']['with_date']:<7} ({result['input_counters']['photos']['pct_with_date']:>5.1f}% of total photos) ")
                 LOGGER.info(f"      - Incorrect Date                      : {result['input_counters']['photos']['without_date']:<7} ({result['input_counters']['photos']['pct_without_date']:>5.1f}% of total photos) ")
                 LOGGER.info(f"    - Total Videos in Takeout folder        : {result['input_counters']['video_files']:<7}")

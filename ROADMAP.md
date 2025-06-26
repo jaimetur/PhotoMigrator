@@ -23,6 +23,7 @@
 
   - #### 🐛 Bug fixes:
     - [ ] Investigate Performance on Automatic Migration when target=`synology`.
+    - [ ] Fix FileStatistics module (and other if there are more modules affected) when using windows shortcuts instead of real symlinks.
 
   - #### 📚 Documentation:
     - [ ] Updated documentation with all changes.
