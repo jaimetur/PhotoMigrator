@@ -338,6 +338,7 @@ def count_files_per_type_and_extract_dates_multi_threads(input_folder, max_files
     # Aux: process a list of files, extract EXIF-date and count types
     # ------------------------------------------------------------------
     def process_block(file_paths, block_index, temporary_directory, extract_dates, step_name):
+        block_index += 1
         candidate_date_tags = [
             'DateTimeOriginal', 'CreateDate', 'MediaCreateDate',
             'TrackCreateDate', 'EncodedDate', 'MetadataDate', 'FileModifyDate'
@@ -398,11 +399,11 @@ def count_files_per_type_and_extract_dates_multi_threads(input_folder, max_files
                         if "SourceFile" in entry
                     }
                 except Exception as error:
-                    LOGGER.warning(f"{step_name}📅 [block {block_index}] exiftool failed: {error}")
+                    LOGGER.debug(f"{step_name}📅 [Block {block_index}] exiftool failed to extract dates from some files of current block")
                     metadata_map = {}
             else:
                 LOGGER.warning(
-                    f"{step_name}📅 [block {block_index}] exiftool not found at {exif_tool_path}, falling back to PIL"
+                    f"{step_name}📅 [Block {block_index}] exiftool not found at {exif_tool_path}, falling back to PIL"
                 )
                 metadata_map = {}
                 # PIL fallback: extract DateTimeOriginal or DateTime from image EXIF
@@ -424,7 +425,7 @@ def count_files_per_type_and_extract_dates_multi_threads(input_folder, max_files
                                     break
                             dates_by_path[p] = dt_found
                         except Exception as e:
-                            LOGGER.debug(f"{step_name}📅 [block {block_index}] PIL failed on {p}: {e}")
+                            LOGGER.debug(f"{step_name}📅 [Block {block_index}] PIL failed on {p}: {e}")
                             dates_by_path[p] = None
         else:
             metadata_map = {}
